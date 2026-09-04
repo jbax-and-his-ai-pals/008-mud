@@ -301,8 +301,10 @@ class KnowledgeManager:
             
         # 3. Give Item
         if "give_item" in effects:
+            from engine.items.item_factory import ItemFactory
+
             item_id = effects["give_item"]
-            item = self.world.item_factory.create_item_from_template(item_id, self.world)
+            item = ItemFactory.create_item_from_template(item_id, self.world)
             if item:
                 recipient = player
                 if server is not None and hasattr(server, "distribute_party_loot"):

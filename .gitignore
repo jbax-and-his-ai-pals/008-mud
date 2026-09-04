@@ -9,3 +9,6 @@ tmp/
 server/tests/_tmp/
 .venv/
 .DS_Store
+server/.coverage
+server/.coverage.*
+coverage_html/

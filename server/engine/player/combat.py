@@ -60,7 +60,7 @@ class PlayerCombatMixin:
         
         p.runtime_state.combat.in_combat = True
         p.runtime_state.combat.targets.add(target)
-        
+
         # Bi-directional link
         target_state = getattr(target, "runtime_state", None)
         target_combatants = target_state.combat.targets if target_state is not None else getattr(target, "combat_targets", set())
@@ -94,6 +94,11 @@ class PlayerCombatMixin:
         if not p.runtime_state.combat.targets:
             p.runtime_state.combat.in_combat = False
             p.runtime_state.combat.target = None
+        elif p.runtime_state.combat.target not in p.runtime_state.combat.targets:
+            # The "current" convenience target left combat but others
+            # remain -- fall back to one of them instead of leaving a
+            # stale reference to a target that's no longer engaged.
+            p.runtime_state.combat.target = next(iter(p.runtime_state.combat.targets))
 
         if p.world and p.runtime_state.magic is not None:
             for instance_ids in p.runtime_state.magic.summons.values():
@@ -128,7 +133,12 @@ class PlayerCombatMixin:
         attack_power = p.get_attack_power()
         
         p.enter_combat(target)
-        
+        # The player explicitly chose to attack this target, so it becomes
+        # their "current" target for convenience-targeting consumers
+        # (auto-targeting spells, minions assisting their owner) -- unlike
+        # enter_combat(), which also fires reactively when merely attacked.
+        p.runtime_state.combat.target = target
+
         combat_result = CombatSystem.execute_attack(
             attacker=p, defender=target, attack_power=attack_power, 
             weapon_name=weapon_name, always_hit=always_hits, viewer=p

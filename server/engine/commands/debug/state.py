@@ -63,7 +63,13 @@ def removeeffect_handler(args, context):
     target_name = args[0].lower()
     target = player if target_name in ["self", "me"] else world.find_npc_in_room_for_player(target_name, player)
     if not target: return "Target not found."
-    
-    if target.remove_effect(args[1]):
+
+    # active_effects entries are keyed by display name (e.g. "Debug Poison"),
+    # not the DEBUG_EFFECTS registry key (e.g. "debug_poison") used here and
+    # by `applyeffect`, so the key must be resolved before matching.
+    eff = DEBUG_EFFECTS.get(args[1].lower())
+    if not eff: return "Effect not found."
+
+    if target.remove_effect(eff["name"]):
         return f"{FORMAT_SUCCESS}Removed {args[1]}.{FORMAT_RESET}"
     return "Effect not found."

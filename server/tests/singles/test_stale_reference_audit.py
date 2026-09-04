@@ -1,16 +1,19 @@
+import io
 import json
 import shutil
 import sys
 import unittest
 import uuid
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _TOOLKIT_DIR = _REPO_ROOT / "toolkit"
 if str(_TOOLKIT_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLKIT_DIR))
 
-from stale_reference_audit import audit_stale_references
+from stale_reference_audit import audit_stale_references, main
 
 
 class TestStaleReferenceAudit(unittest.TestCase):
@@ -63,6 +66,83 @@ class TestStaleReferenceAudit(unittest.TestCase):
         )
         lines = audit_stale_references(root)
         self.assertTrue(any("item_missing" in line for line in lines))
+
+    def test_flags_missing_npc_template_id_reference(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        (root / "npcs" / "summoners.json").write_text(
+            json.dumps({"summoner": {"name": "Summoner", "summon": {"template_id": "npc_missing"}}}),
+            encoding="utf-8",
+        )
+        lines = audit_stale_references(root)
+        self.assertTrue(any("npc_missing" in line for line in lines))
+
+    def test_malformed_npc_file_is_reported_as_a_parse_failure(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        (root / "npcs" / "broken.json").write_text("{not valid", encoding="utf-8")
+        lines = audit_stale_references(root)
+        self.assertTrue(any("parse failure" in line for line in lines))
+
+    def test_includes_baseline_reference_integrity_issues(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        (root / "regions" / "town.json").write_text(
+            json.dumps({"region_id": "town", "rooms": {"square": {"exits": {"north": "nowhere"}}}}),
+            encoding="utf-8",
+        )
+        lines = audit_stale_references(root)
+        self.assertTrue(any("unknown exit target" in line for line in lines))
+
+
+class TestStaleReferenceAuditMain(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = _REPO_ROOT / "server" / "tests" / "_tmp" / f"stale_audit_main_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def _seed_minimal_tree(self, root: Path) -> None:
+        for rel in ("items", "npcs", "regions", "quests", "campaigns"):
+            (root / rel).mkdir(parents=True, exist_ok=True)
+        (root / "quests" / "quests.json").write_text("{}", encoding="utf-8")
+        (root / "regions" / "town.json").write_text(
+            json.dumps({"region_id": "town", "rooms": {"square": {"exits": {}}}}), encoding="utf-8"
+        )
+
+    def _run_main(self, argv: list) -> int:
+        with patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+        return cm.exception.code
+
+    def test_missing_root_exits_two(self) -> None:
+        code = self._run_main(["stale_reference_audit.py", str(self._case_root() / "missing")])
+        self.assertEqual(2, code)
+
+    def test_clean_root_exits_zero(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        code = self._run_main(["stale_reference_audit.py", str(root)])
+        self.assertEqual(0, code)
+
+    def test_root_with_issues_exits_one(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        (root / "regions" / "town.json").write_text(
+            json.dumps({"region_id": "town", "rooms": {"square": {"exits": {"north": "nowhere"}}}}),
+            encoding="utf-8",
+        )
+        code = self._run_main(["stale_reference_audit.py", str(root)])
+        self.assertEqual(1, code)
+
+    def test_output_flag_writes_report_file(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        out_path = root / "report.txt"
+        code = self._run_main(["stale_reference_audit.py", str(root), "--output", str(out_path)])
+        self.assertEqual(0, code)
+        self.assertTrue(out_path.exists())
 
 
 if __name__ == "__main__":

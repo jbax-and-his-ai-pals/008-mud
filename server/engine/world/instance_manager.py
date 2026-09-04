@@ -84,7 +84,10 @@ class InstanceManager:
                     current_region_id=unique_region_id, current_room_id=chosen_room_id
                 )
                 if not npc:
-                    self.cleanup_quest_region(quest_instance_id, requesting_player=active_player) 
+                    # The quest hasn't been marked completed yet, so
+                    # cleanup_quest_region() would find nothing to clean up
+                    # here -- remove the just-created region directly instead.
+                    self._remove_region_and_npcs(unique_region_id)
                     return False, f"Could not spawn required creature '{target_template_id}'.", None
                 self.world.add_npc(npc)
 
@@ -111,7 +114,13 @@ class InstanceManager:
                     spawn_message = (f"{giver_npc.name} notices you taking their notice from the board and approaches you.\n"
                                      f"\"{giver_npc.dialog.get('greeting', 'Please help me!')}\"")
                 else:
-                    self.cleanup_quest_region(quest_instance_id, requesting_player=active_player) 
+                    # Same as above: the quest was never marked completed,
+                    # so cleanup_quest_region() is a no-op here. Remove the
+                    # region/NPCs directly, plus the permanent exit link
+                    # already written above if it was set.
+                    if permanent_entry_room and exit_command in permanent_entry_room.exits:
+                        del permanent_entry_room.exits[exit_command]
+                    self._remove_region_and_npcs(unique_region_id)
                     return False, f"Could not spawn giver NPC '{giver_tid}'.", None
 
             return True, spawn_message, giver_npc_id

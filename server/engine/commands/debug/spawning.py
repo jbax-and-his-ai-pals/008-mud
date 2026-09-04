@@ -96,8 +96,9 @@ def debuggear_command_handler(args, context):
     msgs = []
     
     if action == "on":
+        equipped_ids = {i.obj_id for i in player.equipment.values() if i}
         for iid in ids:
-            if player.inventory.find_item_by_id(iid): continue
+            if iid in equipped_ids or player.inventory.find_item_by_id(iid): continue
             item = ItemFactory.create_item_from_template(iid, world)
             if item:
                 player.inventory.add_item(item)

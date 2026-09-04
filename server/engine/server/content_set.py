@@ -263,7 +263,10 @@ def _validate_authored_world(
         room = regions.get(region_id, {}).get(room_id)
         if not isinstance(room, dict):
             continue
-        for destination in room.get("exits", {}).values():
+        exits = room.get("exits", {})
+        if not isinstance(exits, dict):
+            continue
+        for destination in exits.values():
             if not isinstance(destination, str):
                 continue
             target_region, separator, target_room = destination.partition(":")

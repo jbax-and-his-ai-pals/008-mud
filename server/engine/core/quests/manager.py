@@ -245,8 +245,12 @@ class QuestManager:
         objective = stage_data.get("objective", {})
         if objective.get("is_procedural_item"):
             item_data = objective.get("procedural_item_data")
-            target_region_id = random.choice(list(self.world.regions.keys()))
-            region = self.world.get_region(target_region_id)
+            # Some entries in world.regions (e.g. procedural-generation
+            # theme definitions like "dynamic_themes") have no rooms and
+            # must be excluded, or random.choice below can crash.
+            populated_region_ids = [rid for rid, r in self.world.regions.items() if r.rooms]
+            target_region_id = random.choice(populated_region_ids) if populated_region_ids else None
+            region = self.world.get_region(target_region_id) if target_region_id else None
             if region:
                 room_id = random.choice(list(region.rooms.keys()))
                 item = ItemFactory.create_item_from_template(item_data["template_id"], self.world)

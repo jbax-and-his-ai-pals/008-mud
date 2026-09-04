@@ -388,6 +388,37 @@ class TestFiniteAdventureRuntime(unittest.TestCase):
         restore_text = [str(event.get("payload", "")) for event in restore_events if event.get("type") == "text"]
         self.assertTrue(any("disabled" in payload.lower() for payload in restore_text))
 
+    def test_adventure_status_text_before_any_run(self) -> None:
+        events = self.server.execute_command(self.session.session_id, "adventure status")
+        texts = [str(event.get("payload", "")) for event in events if event.get("type") == "text"]
+        self.assertTrue(any("No finite adventure run started. Default campaign: intro_story." in t for t in texts))
+
+    def test_adventure_status_text_while_active(self) -> None:
+        self.server.execute_command(self.session.session_id, "adventure start")
+        events = self.server.execute_command(self.session.session_id, "adventure status")
+        texts = [str(event.get("payload", "")) for event in events if event.get("type") == "text"]
+        self.assertTrue(any(t.startswith("Adventure active: intro_story at node") for t in texts))
+
+    def test_adventure_status_text_after_completion(self) -> None:
+        self.server.execute_command(self.session.session_id, "adventure start")
+        quest_id = next(qid for qid in self.player.runtime_state.quests.active if qid.startswith("intro_quest"))
+        self.server.world.quest_manager.complete_quest(self.player, quest_id, resolution="SUCCESS")
+        events = self.server.execute_command(self.session.session_id, "adventure status")
+        texts = [str(event.get("payload", "")) for event in events if event.get("type") == "text"]
+        self.assertTrue(any("Adventure complete: intro_story ended with outcome 'VICTORY'." in t for t in texts))
+
+    def test_adventure_status_text_after_abandon(self) -> None:
+        self.server.execute_command(self.session.session_id, "adventure start")
+        self.server.execute_command(self.session.session_id, "adventure abandon")
+        events = self.server.execute_command(self.session.session_id, "adventure status")
+        texts = [str(event.get("payload", "")) for event in events if event.get("type") == "text"]
+        self.assertTrue(any("Adventure abandoned: intro_story." in t for t in texts))
+
+    def test_adventure_summary_text_before_any_run(self) -> None:
+        events = self.server.execute_command(self.session.session_id, "adventure summary")
+        texts = [str(event.get("payload", "")) for event in events if event.get("type") == "text"]
+        self.assertTrue(any(t.startswith("Last adventure summary:") for t in texts))
+
     def test_finite_adventure_blocks_secondary_session_commands(self) -> None:
         primary = self.session
         secondary = self.server.create_session(player_id="sidekick_player")

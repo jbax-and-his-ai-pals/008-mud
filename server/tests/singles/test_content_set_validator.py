@@ -1,9 +1,12 @@
+import io
 import json
 import shutil
 import sys
 import unittest
 import uuid
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -122,6 +125,22 @@ class TestContentSetValidator(unittest.TestCase):
         manifest_path.write_text(json.dumps(payload), encoding="utf-8")
         _definition, issues = validator.load_content_set(package)
         self.assertTrue(any("must be unique" in issue.message for issue in issues))
+
+
+class TestContentSetValidatorMain(unittest.TestCase):
+    def test_valid_content_set_prints_success_and_does_not_exit(self) -> None:
+        argv = ["content_set_validator.py", str(REPO_ROOT / "content_sets" / "fantasy_frontier")]
+        buf = io.StringIO()
+        with patch.object(sys, "argv", argv), redirect_stdout(buf):
+            validator.main()  # must not raise
+        self.assertIn("is valid", buf.getvalue())
+
+    def test_invalid_content_set_exits_one(self) -> None:
+        argv = ["content_set_validator.py", str(REPO_ROOT / "tmp" / f"no_such_content_set_{uuid.uuid4().hex}")]
+        with patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()):
+            with self.assertRaises(SystemExit) as cm:
+                validator.main()
+        self.assertEqual(1, cm.exception.code)
 
 
 if __name__ == "__main__":

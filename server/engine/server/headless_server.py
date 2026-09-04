@@ -124,6 +124,9 @@ class HeadlessServer:
         setattr(self.world, "server", self)
         self.world.bootstrap_starter_items = list(starter_items) if starter_items else None
         self.command_processor = CommandProcessor()
+        # Client-side display hint (text/icon/hybrid); the server does not
+        # render, but `invmode` reads/writes it for parity with GameManager.
+        self.inventory_mode = "hybrid"
         self.time_manager = TimeManager()
         self.weather_manager = WeatherManager()
         self.crafting_manager = (
@@ -3002,7 +3005,9 @@ class HeadlessServer:
 
         effect_names: List[str] = []
         for effect in getattr(player, "active_effects", []):
-            effect_name = getattr(effect, "name", None)
+            # active_effects entries are plain dicts (see GameObject.apply_effect),
+            # not objects, so the name must be read via mapping access.
+            effect_name = effect.get("name") if isinstance(effect, dict) else getattr(effect, "name", None)
             if effect_name:
                 effect_names.append(str(effect_name))
             else:

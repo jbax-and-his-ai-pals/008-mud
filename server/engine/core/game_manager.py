@@ -269,7 +269,10 @@ class GameManager:
             self.renderer.scroll_offset = 0
         else:
             Logger.error("GameManager", f"Failed to load '{save_to_load}'. Returning to title.")
-            self.world = World(); self.world.game = self
+            # World() requires a content set; reuse the currently selected one
+            # instead of constructing an invalid empty World.
+            self.world = World(content_set=self.world.content_set)
+            self.world.game = self
             self.game_state = "title_screen"
 
     def handle_respawn(self):

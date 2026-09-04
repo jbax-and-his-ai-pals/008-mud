@@ -1,16 +1,32 @@
+import io
 import json
 import shutil
+import stat
 import sys
 import unittest
 import uuid
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _TOOLKIT_DIR = _REPO_ROOT / "toolkit"
 if str(_TOOLKIT_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLKIT_DIR))
 
-from editor_export_shim import shim_editor_export
+from editor_export_shim import (
+    _collect_ids_from_payload,
+    _collect_references_for_migration,
+    _copy_path,
+    _copy_quests_root_json,
+    _hydrate_from_latest,
+    _load_template_payloads,
+    _normalize_export_tree,
+    _normalize_quest_payload,
+    _normalize_region_payload,
+    main,
+    shim_editor_export,
+)
 
 
 class TestEditorExportShim(unittest.TestCase):
@@ -191,6 +207,444 @@ class TestEditorExportShim(unittest.TestCase):
 
         report = shim_editor_export(src, dst, validate=False, latest_root=latest)
         self.assertIn("item_only_in_latest", report.get("migration", {}).get("hydrated_item_ids", []))
+
+
+class TestNormalizeRegionPayload(unittest.TestCase):
+    def test_non_dict_payload_is_returned_unchanged(self) -> None:
+        payload, stats = _normalize_region_payload(["not", "a", "dict"])
+        self.assertEqual(["not", "a", "dict"], payload)
+        self.assertEqual(0, stats["region_editor_keys_removed"])
+
+    def test_missing_rooms_key_returns_after_top_level_cleanup(self) -> None:
+        payload, stats = _normalize_region_payload({"_editor_graph": {}, "region_id": "x"})
+        self.assertNotIn("_editor_graph", payload)
+        self.assertEqual(1, stats["region_editor_keys_removed"])
+        self.assertEqual(0, stats["room_editor_keys_removed"])
+
+    def test_non_dict_rooms_value_returns_after_top_level_cleanup(self) -> None:
+        payload, stats = _normalize_region_payload({"rooms": "not-a-dict"})
+        self.assertEqual("not-a-dict", payload["rooms"])
+        self.assertEqual(0, stats["room_editor_keys_removed"])
+
+    def test_non_dict_room_entry_is_kept_verbatim(self) -> None:
+        payload, stats = _normalize_region_payload({"rooms": {"broken": "not-a-dict"}})
+        self.assertEqual("not-a-dict", payload["rooms"]["broken"])
+        self.assertEqual(0, stats["rooms_with_properties_added"])
+
+    def test_room_with_existing_properties_dict_is_not_flagged(self) -> None:
+        payload, stats = _normalize_region_payload(
+            {"rooms": {"square": {"properties": {"lit": True}, "exits": {}}}}
+        )
+        self.assertEqual({"lit": True}, payload["rooms"]["square"]["properties"])
+        self.assertEqual(0, stats["rooms_with_properties_added"])
+
+    def test_room_with_non_dict_exits_is_left_alone(self) -> None:
+        payload, _stats = _normalize_region_payload({"rooms": {"square": {"exits": "north"}}})
+        self.assertEqual("north", payload["rooms"]["square"]["exits"])
+
+    def test_exit_values_are_stringified_and_trimmed(self) -> None:
+        payload, _stats = _normalize_region_payload({"rooms": {"square": {"exits": {"north": "  town:gate  "}}}})
+        self.assertEqual("town:gate", payload["rooms"]["square"]["exits"]["north"])
+
+
+class TestNormalizeExportTree(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"editor_export_shim_helper_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def test_missing_regions_dir_returns_zeroed_summary(self) -> None:
+        root = self._case_root()
+        summary = _normalize_export_tree(root)
+        self.assertEqual(0, summary["regions_processed"])
+
+    def test_malformed_region_file_is_skipped_but_others_still_processed(self) -> None:
+        root = self._case_root()
+        regions = root / "regions"
+        regions.mkdir()
+        (regions / "broken.json").write_text("{not valid", encoding="utf-8")
+        (regions / "ok.json").write_text(json.dumps({"_editor_graph": {}, "rooms": {}}), encoding="utf-8")
+
+        summary = _normalize_export_tree(root)
+        self.assertEqual(1, summary["regions_processed"])
+        self.assertEqual(1, summary["region_editor_keys_removed"])
+
+
+class TestNormalizeQuestPayload(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"editor_export_shim_helper_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def test_missing_file_returns_zeroed_stats(self) -> None:
+        stats = _normalize_quest_payload(self._case_root() / "missing.json", "quest")
+        self.assertEqual({"templates_processed": 0, "types_added": 0, "stage_indexes_added": 0}, stats)
+
+    def test_malformed_json_returns_zeroed_stats(self) -> None:
+        path = self._case_root() / "quests.json"
+        path.write_text("{broken", encoding="utf-8")
+        stats = _normalize_quest_payload(path, "quest")
+        self.assertEqual(0, stats["templates_processed"])
+
+    def test_non_dict_top_level_returns_zeroed_stats(self) -> None:
+        path = self._case_root() / "quests.json"
+        path.write_text("[]", encoding="utf-8")
+        stats = _normalize_quest_payload(path, "quest")
+        self.assertEqual(0, stats["templates_processed"])
+
+    def test_non_dict_template_entry_is_kept_verbatim(self) -> None:
+        path = self._case_root() / "quests.json"
+        path.write_text(json.dumps({"broken": "not-a-dict"}), encoding="utf-8")
+        _normalize_quest_payload(path, "quest")
+        self.assertEqual({"broken": "not-a-dict"}, json.loads(path.read_text(encoding="utf-8")))
+
+    def test_existing_type_is_not_overwritten(self) -> None:
+        path = self._case_root() / "quests.json"
+        path.write_text(json.dumps({"q1": {"type": "custom_type"}}), encoding="utf-8")
+        stats = _normalize_quest_payload(path, "quest")
+        self.assertEqual(0, stats["types_added"])
+        self.assertEqual("custom_type", json.loads(path.read_text(encoding="utf-8"))["q1"]["type"])
+
+    def test_non_list_stages_are_left_alone(self) -> None:
+        path = self._case_root() / "quests.json"
+        path.write_text(json.dumps({"q1": {"stages": "not-a-list"}}), encoding="utf-8")
+        _normalize_quest_payload(path, "quest")
+        self.assertEqual("not-a-list", json.loads(path.read_text(encoding="utf-8"))["q1"]["stages"])
+
+    def test_non_dict_stage_is_kept_verbatim_and_still_indexed(self) -> None:
+        path = self._case_root() / "quests.json"
+        path.write_text(json.dumps({"q1": {"stages": ["not-a-dict"]}}), encoding="utf-8")
+        _normalize_quest_payload(path, "quest")
+        self.assertEqual(["not-a-dict"], json.loads(path.read_text(encoding="utf-8"))["q1"]["stages"])
+
+    def test_existing_stage_index_is_not_overwritten(self) -> None:
+        path = self._case_root() / "quests.json"
+        path.write_text(json.dumps({"q1": {"stages": [{"stage_index": 9}]}}), encoding="utf-8")
+        stats = _normalize_quest_payload(path, "quest")
+        self.assertEqual(0, stats["stage_indexes_added"])
+        self.assertEqual(9, json.loads(path.read_text(encoding="utf-8"))["q1"]["stages"][0]["stage_index"])
+
+
+class TestLoadTemplatePayloads(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"editor_export_shim_helper_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def test_missing_directory_returns_empty_dict(self) -> None:
+        self.assertEqual({}, _load_template_payloads(self._case_root() / "missing"))
+
+    def test_malformed_file_is_skipped(self) -> None:
+        root = self._case_root()
+        (root / "broken.json").write_text("{not valid", encoding="utf-8")
+        self.assertEqual({}, _load_template_payloads(root))
+
+    def test_non_dict_top_level_is_skipped(self) -> None:
+        root = self._case_root()
+        (root / "list.json").write_text("[]", encoding="utf-8")
+        self.assertEqual({}, _load_template_payloads(root))
+
+    def test_non_dict_entry_values_are_skipped(self) -> None:
+        root = self._case_root()
+        (root / "mixed.json").write_text(json.dumps({"good": {"a": 1}, "bad": "not-a-dict"}), encoding="utf-8")
+        self.assertEqual({"good": {"a": 1}}, _load_template_payloads(root))
+
+
+class TestCollectIdsFromPayload(unittest.TestCase):
+    def test_collects_item_and_npc_ids_from_nested_structures(self) -> None:
+        item_ids: set[str] = set()
+        npc_ids: set[str] = set()
+        payload = {
+            "vendor_inventory": [{"item_id": "item_potion"}],
+            "loot_table": {"item_gold": 1, "item_gem": 2},
+            "summon": {"template_id": "npc_wolf"},
+            "irrelevant": 42,
+        }
+        _collect_ids_from_payload(payload, item_ids, npc_ids)
+        self.assertEqual({"item_potion", "item_gold", "item_gem"}, item_ids)
+        self.assertEqual({"npc_wolf"}, npc_ids)
+
+    def test_ignores_non_dict_non_list_leaves(self) -> None:
+        item_ids: set[str] = set()
+        npc_ids: set[str] = set()
+        _collect_ids_from_payload("just a string", item_ids, npc_ids)
+        _collect_ids_from_payload(42, item_ids, npc_ids)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+
+class TestCollectReferencesForMigration(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"editor_export_shim_helper_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def test_no_directories_returns_empty_sets(self) -> None:
+        item_ids, npc_ids = _collect_references_for_migration(self._case_root())
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_malformed_region_and_quest_files_are_skipped(self) -> None:
+        root = self._case_root()
+        (root / "regions").mkdir()
+        (root / "regions" / "broken.json").write_text("{not valid", encoding="utf-8")
+        (root / "quests").mkdir()
+        (root / "quests" / "quests.json").write_text("{not valid", encoding="utf-8")
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_room_items_and_npcs_are_collected(self) -> None:
+        root = self._case_root()
+        (root / "regions").mkdir()
+        (root / "regions" / "town.json").write_text(
+            json.dumps({
+                "rooms": {
+                    "square": {
+                        "items": [{"item_id": "item_sword"}, "not-a-dict"],
+                        "initial_npcs": [{"template_id": "npc_guard"}, "not-a-dict"],
+                    },
+                    "broken": "not-a-dict",
+                }
+            }),
+            encoding="utf-8",
+        )
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual({"item_sword"}, item_ids)
+        self.assertEqual({"npc_guard"}, npc_ids)
+
+    def test_quest_reward_and_stage_references_are_collected(self) -> None:
+        root = self._case_root()
+        (root / "quests").mkdir()
+        (root / "quests" / "quests.json").write_text(
+            json.dumps({
+                "q1": {
+                    "rewards": {"items": [{"item_id": "item_reward"}, "not-a-dict"]},
+                    "stages": [
+                        "not-a-dict",
+                        {
+                            "turn_in_id": "npc_giver",
+                            "spawn_on_entry": {"template_id": "npc_spawned"},
+                            "objective": {
+                                "item_id": "item_objective",
+                                "target_template_id": "npc_target",
+                            },
+                        },
+                    ],
+                },
+                "q2": "not-a-dict",
+            }),
+            encoding="utf-8",
+        )
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual({"item_reward", "item_objective"}, item_ids)
+        self.assertEqual({"npc_giver", "npc_spawned", "npc_target"}, npc_ids)
+
+    def test_npc_templates_contribute_nested_references(self) -> None:
+        root = self._case_root()
+        (root / "npcs").mkdir()
+        (root / "npcs" / "broken.json").write_text("{not valid", encoding="utf-8")
+        (root / "npcs" / "vendors.json").write_text(
+            json.dumps({"npc_vendor": {"loot_table": {"item_from_npc": 1}}}),
+            encoding="utf-8",
+        )
+        item_ids, _npc_ids = _collect_references_for_migration(root)
+        self.assertEqual({"item_from_npc"}, item_ids)
+
+
+class TestHydrateFromLatest(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"editor_export_shim_helper_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def test_no_referenced_ids_writes_nothing(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        (target / "regions").mkdir(parents=True)
+        summary = _hydrate_from_latest(target, root / "latest")
+        self.assertEqual([], summary["hydrated_item_ids"])
+        self.assertFalse((target / "items" / "migrated_latest.items.json").exists())
+
+    def test_referenced_id_missing_from_latest_is_reported(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        (target / "regions").mkdir(parents=True)
+        (target / "regions" / "town.json").write_text(
+            json.dumps({"rooms": {"square": {"items": [{"item_id": "item_ghost"}]}}}), encoding="utf-8"
+        )
+        summary = _hydrate_from_latest(target, root / "latest")
+        self.assertEqual(["item_ghost"], summary["missing_item_ids"])
+
+    def test_second_pass_hydrates_items_referenced_only_by_a_hydrated_npc(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        latest = root / "latest"
+        (target / "regions").mkdir(parents=True)
+        (target / "regions" / "town.json").write_text(
+            json.dumps({"rooms": {"square": {"initial_npcs": [{"template_id": "npc_vendor"}]}}}),
+            encoding="utf-8",
+        )
+        (latest / "npcs").mkdir(parents=True)
+        (latest / "npcs" / "vendors.json").write_text(
+            json.dumps({"npc_vendor": {"loot_table": {"item_only_via_npc": 1}}}),
+            encoding="utf-8",
+        )
+        (latest / "items").mkdir(parents=True)
+        (latest / "items" / "misc.json").write_text(
+            json.dumps({"item_only_via_npc": {"type": "Item", "name": "x", "description": "x", "properties": {}}}),
+            encoding="utf-8",
+        )
+
+        summary = _hydrate_from_latest(target, latest)
+
+        self.assertIn("npc_vendor", summary["hydrated_npc_ids"])
+        self.assertIn("item_only_via_npc", summary["hydrated_item_ids"])
+        hydrated_items = json.loads((target / "items" / "migrated_latest.items.json").read_text(encoding="utf-8"))
+        self.assertIn("item_only_via_npc", hydrated_items)
+
+
+class TestCopyPathAndQuestsJson(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"editor_export_shim_helper_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def test_copy_path_copies_a_single_file(self) -> None:
+        root = self._case_root()
+        src = root / "src.json"
+        src.write_text("{}", encoding="utf-8")
+        dst = root / "nested" / "dst.json"
+        _copy_path(src, dst)
+        self.assertTrue(dst.exists())
+
+    def test_copy_path_replaces_an_existing_readonly_destination_directory(self) -> None:
+        root = self._case_root()
+        src = root / "src"
+        src.mkdir()
+        (src / "new.txt").write_text("new", encoding="utf-8")
+        dst = root / "dst"
+        dst.mkdir()
+        stale_file = dst / "stale.txt"
+        stale_file.write_text("stale", encoding="utf-8")
+        stale_file.chmod(stat.S_IREAD)  # exercise the readonly-cleanup path
+        self.addCleanup(lambda: stale_file.chmod(stat.S_IWRITE) if stale_file.exists() else None)
+
+        _copy_path(src, dst)
+
+        self.assertTrue((dst / "new.txt").exists())
+        self.assertFalse((dst / "stale.txt").exists())
+
+    def test_copy_quests_root_json_writes_empty_object_for_blank_source(self) -> None:
+        root = self._case_root()
+        src = root / "quests.json"
+        src.write_text("   ", encoding="utf-8")
+        dst = root / "out.json"
+        _copy_quests_root_json(src, dst)
+        self.assertEqual("{}\n", dst.read_text(encoding="utf-8"))
+
+    def test_copy_quests_root_json_preserves_bytes_on_malformed_source(self) -> None:
+        root = self._case_root()
+        src = root / "quests.json"
+        src.write_text("{not valid", encoding="utf-8")
+        dst = root / "out.json"
+        _copy_quests_root_json(src, dst)
+        self.assertEqual("{not valid", dst.read_text(encoding="utf-8"))
+
+    def test_copy_quests_root_json_writes_empty_object_for_non_dict_source(self) -> None:
+        root = self._case_root()
+        src = root / "quests.json"
+        src.write_text("[1, 2, 3]", encoding="utf-8")
+        dst = root / "out.json"
+        _copy_quests_root_json(src, dst)
+        self.assertEqual("{}\n", dst.read_text(encoding="utf-8"))
+
+
+class TestEditorExportShimMain(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"editor_export_shim_main_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def _write_clean_source(self, src: Path) -> None:
+        for sub in ("items", "npcs", "regions", "magic", "quests"):
+            (src / sub).mkdir(parents=True, exist_ok=True)
+        (src / "items" / "base.json").write_text("{}", encoding="utf-8")
+        (src / "npcs" / "base.json").write_text("{}", encoding="utf-8")
+        (src / "regions" / "town.json").write_text(
+            json.dumps({"region_id": "town", "rooms": {"square": {"name": "Square", "exits": {}}}}),
+            encoding="utf-8",
+        )
+        (src / "magic" / "base.json").write_text("{}", encoding="utf-8")
+        (src / "quests" / "instances.json").write_text("{}", encoding="utf-8")
+        (src / "quests.json").write_text("{}", encoding="utf-8")
+        (src / "world_layout.json").write_text("{}", encoding="utf-8")
+
+    def test_missing_source_root_raises_system_exit(self) -> None:
+        root = self._case_root()
+        argv = ["editor_export_shim.py", "--source", str(root / "missing")]
+        with patch.object(sys, "argv", argv):
+            with self.assertRaises(SystemExit):
+                main()
+
+    def test_no_validate_flag_omits_validation_report_key(self) -> None:
+        root = self._case_root()
+        src = root / "src"
+        self._write_clean_source(src)
+        argv = [
+            "editor_export_shim.py",
+            "--source", str(src),
+            "--target", str(root / "target"),
+            "--report", str(root / "report.json"),
+            "--latest-root", str(root / "latest"),
+            "--no-validate",
+        ]
+        with patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()):
+            main()
+        report = json.loads((root / "report.json").read_text(encoding="utf-8"))
+        self.assertNotIn("validation", report)
+
+    def test_strict_flag_raises_system_exit_when_issues_present(self) -> None:
+        root = self._case_root()
+        src = root / "src"
+        src.mkdir()  # empty source: everything will be reported missing
+        argv = [
+            "editor_export_shim.py",
+            "--source", str(src),
+            "--target", str(root / "target"),
+            "--report", str(root / "report.json"),
+            "--latest-root", str(root / "latest"),
+            "--no-validate",
+            "--strict",
+        ]
+        with patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()):
+            with self.assertRaises(SystemExit) as cm:
+                main()
+        self.assertEqual(1, cm.exception.code)
+
+    def test_clean_strict_run_does_not_raise(self) -> None:
+        root = self._case_root()
+        src = root / "src"
+        self._write_clean_source(src)
+        argv = [
+            "editor_export_shim.py",
+            "--source", str(src),
+            "--target", str(root / "target"),
+            "--report", str(root / "report.json"),
+            "--latest-root", str(root / "latest"),
+            "--strict",
+        ]
+        with patch.object(sys, "argv", argv), redirect_stdout(io.StringIO()):
+            main()  # must not raise
+        report = json.loads((root / "report.json").read_text(encoding="utf-8"))
+        self.assertTrue(report["validation"]["ok"])
 
 
 if __name__ == "__main__":

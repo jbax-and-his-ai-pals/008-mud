@@ -195,7 +195,14 @@ class ItemFactory:
             for key, value in template_properties.items():
                  if key in overrides: continue
                  if key == 'equip_slot' and 'equip_slot' in init_args: continue
-                 item.properties[key] = value
+                 # 'contains' is already hydrated into real Item instances by
+                 # Container.__init__; re-assigning the raw template list here
+                 # would both un-hydrate it and alias it, since template_properties
+                 # is a shallow copy that still shares nested lists/dicts with
+                 # world.item_templates[item_id]['properties']. Every item built
+                 # from this template would then mutate the same shared list.
+                 if key == 'contains' and isinstance(item, Container): continue
+                 item.properties[key] = copy.deepcopy(value) if isinstance(value, (list, dict)) else value
 
             if not has_kwargs:
                  for key, value in overrides.items():

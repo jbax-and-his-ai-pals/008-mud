@@ -1,0 +1,25 @@
+# Runtime dependencies to import and run the engine + test suite.
+#
+# torch/transformers are pulled in unconditionally because
+# engine/ai/ai_manager.py does `from engine.ai.llm_interface import
+# LLMInterface` at module scope, and llm_interface.py imports torch/
+# transformers at module scope too -- regardless of whether local-LLM NPC
+# dialogue (AI_AMBIENT_ENABLED) is actually turned on. That makes a ~1GB+ ML
+# stack a hard requirement just to import engine.world.world, which is worth
+# revisiting, but until then CI and fresh setups need it to collect tests at
+# all. In CI, install a CPU-only torch build first (see
+# .github/workflows/tests.yml) so this line resolves to an already-satisfied
+# no-op instead of pulling a CUDA build.
+torch>=2.10
+transformers>=5.0
+
+pygame>=2.6
+
+# toolkit/data_integrity_validator.py imports yaml unconditionally at module
+# scope to validate theme-pack YAML alongside JSON/SVG.
+PyYAML>=6.0
+
+# Optional at runtime (engine/server/transport/base.py guards the import),
+# but installed here so the msgpack transport contract test actually
+# exercises the codec instead of being silently skipped.
+msgpack>=1.0
