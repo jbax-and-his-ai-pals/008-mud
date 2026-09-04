@@ -1,0 +1,42 @@
+{
+  "theme_id": "post_apoc_settlement",
+  "display_name": "Post-Apocalyptic Settlement",
+  "pack_spec_version": "1",
+  "runtime_api_min": "1.0",
+  "runtime_api_max": "1.0",
+  "ui_strings": {
+    "status_title": "Survivor",
+    "inventory_title": "Scrap Pack",
+    "journal_title": "Rumors",
+    "nearby_title": "Wasteland Edge",
+    "world_state_title": "Fallout Drift",
+    "network_title": "Radio Net",
+    "asset_title": "Stencil Preview",
+    "connect_button": "Tune In",
+    "disconnect_button": "Sign Off",
+    "send_button": "Broadcast",
+    "command_placeholder": "Type command (scout, move west, status...)"
+  },
+  "lexicon": {
+    "world_field_id": "drift"
+  },
+  "style_tokens": {
+    "accent_color": "#D8B36A",
+    "text_color": "#F2E7CC",
+    "ui_density": 9
+  },
+  "icon_tokens": {
+    "status_effect": "Conditions:",
+    "hostile_tag": "raider",
+    "item_prefix": "*",
+    "npc_none": "No survivors in sight.",
+    "item_none": "No salvage nearby.",
+    "inventory_item_prefix": "*",
+    "inventory_none": "No pack report.",
+    "inventory_empty": "Pack is empty.",
+    "quest_active_prefix": "Lead:",
+    "quest_completed_prefix": "Settled:",
+    "quest_archived_prefix": "Told:",
+    "quest_none": "No rumors tracked."
+  }
+}

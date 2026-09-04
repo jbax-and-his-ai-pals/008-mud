@@ -1,0 +1,4 @@
+pygame
+torch
+transformers
+accelerate

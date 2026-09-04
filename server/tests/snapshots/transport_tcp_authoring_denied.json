@@ -1,0 +1,11 @@
+{
+  "authoring_mode": "disabled",
+  "events": [
+    {
+      "payload": "Live authoring is disabled by server profile.",
+      "protocol_version": "0.2.0",
+      "type": "error"
+    }
+  ],
+  "transport": "tcp-json"
+}

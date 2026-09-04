@@ -1,0 +1,71 @@
+{
+  "warrior": {
+    "name": "Warrior",
+    "description": "A master of arms and armor. High survivability and physical damage.",
+    "stats": {
+      "strength": 14, "dexterity": 10, "constitution": 14, 
+      "agility": 10, "intelligence": 8, "wisdom": 8,
+      "spell_power": 0, "magic_resist": 5
+    },
+    "equipment": {
+      "main_hand": "item_iron_sword",
+      "body": "item_leather_tunic"
+    },
+    "inventory": [
+      { "item_id": "item_healing_potion_small", "quantity": 3 }
+    ],
+    "spells": []
+  },
+  "rogue": {
+    "name": "Rogue",
+    "description": "A swift and precise killer. High critical chance and speed.",
+    "stats": {
+      "strength": 10, "dexterity": 15, "constitution": 10, 
+      "agility": 14, "intelligence": 10, "wisdom": 8,
+      "spell_power": 0, "magic_resist": 2
+    },
+    "equipment": {
+      "main_hand": "item_dagger",
+      "body": "item_leather_tunic"
+    },
+    "inventory": [
+      { "item_id": "item_lockpick", "quantity": 3 },
+      { "item_id": "item_smoke_bomb", "quantity": 1 }
+    ],
+    "spells": []
+  },
+  "mage": {
+    "name": "Mage",
+    "description": "A wielder of arcane arts. Frail but capable of devastating magic.",
+    "stats": {
+      "strength": 6, "dexterity": 10, "constitution": 8, 
+      "agility": 10, "intelligence": 16, "wisdom": 12,
+      "spell_power": 10, "magic_resist": 15
+    },
+    "equipment": {
+      "main_hand": "item_shamanic_staff",
+      "body": "item_cultist_robes"
+    },
+    "inventory": [
+      { "item_id": "item_mana_potion_small", "quantity": 3 }
+    ],
+    "spells": ["magic_missile", "ice_shard"]
+  },
+  "cleric": {
+    "name": "Cleric",
+    "description": "A warrior priest dedicated to healing and protection.",
+    "stats": {
+      "strength": 12, "dexterity": 8, "constitution": 12, 
+      "agility": 8, "intelligence": 10, "wisdom": 15,
+      "spell_power": 5, "magic_resist": 10
+    },
+    "equipment": {
+      "main_hand": "item_crude_club",
+      "body": "item_leather_tunic"
+    },
+    "inventory": [
+      { "item_id": "item_healing_potion_small", "quantity": 2 }
+    ],
+    "spells": ["minor_heal", "smite"]
+  }
+}

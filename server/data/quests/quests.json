@@ -1,0 +1,175 @@
+{
+  "quest_scout_forest": {
+    "title": "Eyes in the Woods",
+    "type": "quest",
+    "description": "Scout the forest to locate the bandit camp.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Locate the Hidden Camp in the Whispering Woods.",
+        "objective": {
+          "type": "scout",
+          "target_region": "forest",
+          "target_room_keywords": ["camp", "clearing"],
+          "target_room_id": "clearing" 
+        },
+        "turn_in_id": "village_elder",
+        "completion_dialogue": "You found it? Good. We need to deal with their leader."
+      }
+    ],
+    "rewards": { "xp": 200 }
+  },
+
+  "quest_bandit_lieutenant": {
+    "title": "The Bandit Lieutenant",
+    "type": "quest",
+    "description": "Deal with the bandit leadership.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Confront the Lieutenant.",
+        "turn_in_id": "bandit_leader",
+        
+        "spawn_on_entry": {
+             "template_id": "bandit_leader",
+             "region_id": "forest",
+             "room_id": "clearing",
+             "name_override": "Bandit Lieutenant",
+             "behavior_type": "stationary",
+             "dialog": {
+                 "greeting": "Hold! You have the look of someone sent by the village. I am willing to listen before I spill your blood. What do you want?"
+             }
+        },
+
+        "objective": {
+          "type": "negotiate",
+          "target_npc_id": "bandit_leader",
+          "skill": "diplomacy",
+          "difficulty": 10,
+          "choices": {
+            "success": { "description": "You convinced him to stand down. Peace is possible." },
+            "fail": { "next_stage": 1, "description": "Negotiations failed. Kill him." }
+          }
+        }
+      },
+      {
+        "stage_index": 1,
+        "description": "Kill the Lieutenant.",
+        "objective": {
+          "type": "kill",
+          "target_template_id": "bandit_leader",
+          "target_name": "Bandit Lieutenant",
+          "required_quantity": 1
+        },
+        "turn_in_id": "village_elder"
+      }
+    ],
+    "rewards": { "xp": 500, "gold": 100 }
+  },
+
+  "quest_kill_bandit_king": {
+    "title": "Regicide",
+    "type": "quest",
+    "description": "Put an end to the rebellion by slaying the King.",
+    "stages": [{
+        "stage_index": 0,
+        "description": "Kill the Bandit King in the forest clearing.",
+        
+        "spawn_on_entry": {
+             "template_id": "bandit_leader",
+             "region_id": "forest",
+             "room_id": "clearing",
+             "name_override": "Bandit King",
+             "behavior_type": "stationary"
+        },
+
+        "objective": { 
+            "type": "kill", 
+            "target_template_id": "bandit_leader", 
+            "target_name": "Bandit King",
+            "required_quantity": 1 
+        },
+        "turn_in_id": "village_elder"
+    }],
+    "rewards": { "xp": 1000, "items": [{"item_id": "item_iron_sword", "quantity": 1}] }
+  },
+
+  "quest_deliver_treaty": {
+    "title": "The White Flag",
+    "type": "quest",
+    "stages": [{
+        "stage_index": 0,
+        "description": "Deliver the Peace Treaty to the Bandit King.",
+        
+        "spawn_on_entry": {
+             "template_id": "bandit_leader",
+             "region_id": "forest",
+             "room_id": "clearing",
+             "name_override": "Bandit King",
+             "behavior_type": "stationary"
+        },
+
+        "objective": { 
+            "type": "deliver", 
+            "item_template_id": "item_treaty", 
+            "recipient_instance_id": "bandit_king",
+            "item_to_deliver_name": "Peace Treaty"
+        },
+        "turn_in_id": "bandit_leader"
+    }],
+    "rewards": { "xp": 1000, "gold": 500 }
+  },
+
+  "quest_missing_guard": {
+    "title": "The Missing Guard",
+    "type": "quest",
+    "rewards": {
+      "xp": 500,
+      "gold": 100,
+      "items": [{"item_id": "item_iron_shield", "quantity": 1}]
+    },
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Search for clues about the missing guard.",
+        "objective": {
+          "type": "fetch",
+          "item_id": "item_bloody_tabard",
+          "item_name": "Bloody Tabard",
+          "required_quantity": 1
+        },
+        "turn_in_id": "guard_captain",
+        "start_dialogue": "One of my recruits went missing near the river. Please, see if you can find any trace of him.",
+        "completion_dialogue": "By the gods... this is his tabard. And it's covered in strange slime. Take this to Kaelan the Alchemist immediately."
+      },
+      {
+        "stage_index": 1,
+        "description": "Show the Bloody Tabard to Kaelan the Alchemist.",
+        "objective": {
+          "type": "deliver",
+          "item_instance_id": "dynamic_check_inventory", 
+          "item_id": "item_bloody_tabard",
+          "item_name": "Bloody Tabard",
+          "recipient_id": "alchemist"
+        },
+        "turn_in_id": "alchemist",
+        "start_dialogue": "Go to Kaelan. He will know what creature left this slime.",
+        "completion_dialogue": "Hmm. River Troll slime. Acidic and foul. The beast must be nearby. Slay it before it takes more victims!"
+      },
+      {
+        "stage_index": 2,
+        "description": "Slay the River Troll.",
+        "objective": {
+          "type": "kill",
+          "target_template_id": "river_troll",
+          "target_name": "River Troll",
+          "required_quantity": 1,
+          "current_quantity": 0
+        },
+        "turn_in_id": "guard_captain", 
+        "start_dialogue": "The troll is the cause. Kill it.",
+        "completion_dialogue": "The beast is dead? You have done the village a great service today."
+      }
+    ]
+  }
+}

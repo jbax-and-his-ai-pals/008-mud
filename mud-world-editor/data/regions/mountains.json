@@ -1,0 +1,266 @@
+{
+	"_proxy_positions": {
+		"caves:mine_exit": [
+			768.0,
+			640.0
+		]
+	},
+	"description": "The jagged peaks of the Frostpeak range loom over the region. The air is thin and cold, and snow persists year-round on the higher slopes.",
+	"name": "Frostpeak Mountains",
+	"region_id": "mountains",
+	"rooms": {
+		"crevasse_edge": {
+			"_editor_pos": [
+				448.0,
+				0.0
+			],
+			"description": "The path skirts the edge of a deep, icy crevasse. A blast of freezing air rises from the depths, and the ground looks unstable.",
+			"exits": {
+				"east": "high_pass"
+			},
+			"name": "Edge of a Crevasse",
+			"properties": {
+				"weather": "windy"
+			}
+		},
+		"frozen_waterfall_base": {
+			"_editor_pos": [
+				1920.0,
+				192.0
+			],
+			"description": "A massive waterfall, frozen solid into shimmering blue ice, clings to the mountainside. The air here is intensely cold. It might be possible to climb the ice, but it looks dangerous.",
+			"exits": {
+				"climb": "ice_cave_entrance",
+				"west": "switchback_1"
+			},
+			"name": "Frozen Waterfall",
+			"properties": {
+
+			}
+		},
+		"hidden_valley": {
+			"_editor_pos": [
+				832.0,
+				-448.0
+			],
+			"description": "Surprisingly sheltered from the harsh mountain weather, this small valley is lush and green. A clear stream runs through it, and unusual alpine flowers bloom.",
+			"exits": {
+				"north": "valley_cave",
+				"up": "hidden_valley_descent"
+			},
+			"items": [
+				{
+					"item_id": "item_frostpetal"
+				}
+			],
+			"name": "Verdant Hidden Valley",
+			"properties": {
+
+			}
+		},
+		"hidden_valley_descent": {
+			"_editor_pos": [
+				512.0,
+				-576.0
+			],
+			"description": "A narrow cleft between rocks, easily missed, leads down from the summit into a sheltered area. Warmer air drifts up from below.",
+			"exits": {
+				"down": "hidden_valley",
+				"south": "summit"
+			},
+			"name": "Descent into Shadow",
+			"properties": {
+
+			}
+		},
+		"high_pass": {
+			"_editor_pos": [
+				832.0,
+				0.0
+			],
+			"description": "A narrow pass winds between towering peaks. The wind howls fiercely here, biting through your clothes. The path continues precariously upwards to the north.",
+			"exits": {
+				"north": "up_to_summit",
+				"southeast": "up",
+				"west": "crevasse_edge"
+			},
+			"name": "High Mountain Pass",
+			"properties": {
+				"weather": "windy"
+			}
+		},
+		"ice_cave": {
+			"_editor_pos": [
+				1696.0,
+				-32.0
+			],
+			"description": "Inside the ice cave, the temperature plummets. The air is still and silent. The ice walls glimmer, reflecting light in strange ways.",
+			"exits": {
+				"down": "ice_cave_chamber",
+				"out": "ice_cave_entrance"
+			},
+			"name": "Glacial Cave",
+			"properties": {
+				"dark": true
+			}
+		},
+		"ice_cave_chamber": {
+			"_editor_pos": [
+				1824.0,
+				-224.0
+			],
+			"description": "Deeper within the ice cave, the ice walls seem ancient and impossibly thick. Something large appears to be frozen within the ice in the center of the chamber.",
+			"exits": {
+				"up": "ice_cave"
+			},
+			"name": "Inner Ice Chamber",
+			"properties": {
+				"dark": true
+			}
+		},
+		"ice_cave_entrance": {
+			"_editor_pos": [
+				2048.0,
+				-32.0
+			],
+			"description": "You've climbed halfway up the frozen waterfall to a ledge containing the entrance to a hidden cave formed entirely of ice.",
+			"exits": {
+				"descend": "frozen_waterfall_base",
+				"in": "ice_cave"
+			},
+			"name": "Ice Cave Entrance",
+			"properties": {
+
+			}
+		},
+		"mine_exit": {
+			"_editor_pos": [
+				704.0,
+				416.0
+			],
+			"description": "You emerge from a small hole in the mountainside, the exit of an old mine. The air is thin and cold. A narrow, treacherous path leads east along the cliff face.",
+			"exits": {
+				"east": "rocky_ledge",
+				"in": "caves:mine_exit"
+			},
+			"name": "Abandoned Mine Exit",
+			"properties": {
+
+			}
+		},
+		"rocky_ledge": {
+			"_editor_pos": [
+				1120.0,
+				416.0
+			],
+			"description": "A narrow ledge clings to the mountainside, offering a dizzying view of the valley below. Loose rocks make footing uncertain. The path continues east to a switchback.",
+			"exits": {
+				"northeast": "switchback_1",
+				"west": "mine_exit"
+			},
+			"name": "Rocky Ledge",
+			"properties": {
+
+			}
+		},
+		"summit": {
+			"_editor_pos": [
+				512.0,
+				-352.0
+			],
+			"description": "The highest point for miles around. The view is breathtaking, stretching across forests, rivers, and distant lands. An ancient, weathered shrine stands here, half-buried in snow.",
+			"exits": {
+				"down": "up_to_summit",
+				"north": "hidden_valley_descent"
+			},
+			"items": [
+				{
+					"item_id": "item_summit_offering"
+				}
+			],
+			"name": "Frostpeak Summit",
+			"properties": {
+				"weather": "snowy"
+			}
+		},
+		"switchback_1": {
+			"_editor_pos": [
+				1504.0,
+				192.0
+			],
+			"description": "The trail makes a sharp turn here, beginning a steep ascent upwards to the west.",
+			"exits": {
+				"east": "frozen_waterfall_base",
+				"southwest": "rocky_ledge",
+				"west": "up"
+			},
+			"name": "Switchback Path",
+			"properties": {
+
+			}
+		},
+		"up": {
+			"_editor_pos": [
+				1120.0,
+				192.0
+			],
+			"description": "You are on a steep, winding path climbing the mountainside. You've gained significant elevation.",
+			"exits": {
+				"east": "switchback_1",
+				"northwest": "high_pass"
+			},
+			"name": "Steep Ascent",
+			"properties": {
+
+			}
+		},
+		"up_to_summit": {
+			"_editor_pos": [
+				832.0,
+				-224.0
+			],
+			"description": "The air is painfully thin here as you make the final climb to the summit. Every step is an effort.",
+			"exits": {
+				"south": "high_pass",
+				"up": "summit"
+			},
+			"name": "Final Ascent",
+			"properties": {
+
+			}
+		},
+		"valley_cave": {
+			"_editor_pos": [
+				832.0,
+				-864.0
+			],
+			"description": "A small, dry cave at the northern end of the hidden valley. Looks like it might have been used as a shelter recently.",
+			"exits": {
+				"south": "hidden_valley"
+			},
+			"items": [
+				{
+					"item_id": "item_old_campfire"
+				}
+			],
+			"name": "Small Valley Cave",
+			"properties": {
+				"dark": true
+			}
+		}
+	},
+	"spawner": {
+		"level_range": [
+			5.0,
+			8.0
+		],
+		"monster_types": {
+			"dire_wolf": 3.0,
+			"earth_elemental": 1.0,
+			"harpy": 2.0,
+			"hobgoblin_soldier": 3.0,
+			"orc_grunt": 4.0,
+			"orc_shaman": 1.0
+		}
+	}
+}

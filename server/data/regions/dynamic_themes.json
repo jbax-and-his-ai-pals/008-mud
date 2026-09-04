@@ -1,0 +1,56 @@
+{
+  "themes": {
+    "forest": {
+      "name_templates": ["The Tangled {Noun}", "The Whispering {Noun}", "{Adjective} Wilds"],
+      "description": "A sprawling, untamed forest region, recently discovered.",
+      "room_names": ["Forest Path", "Dense Thicket", "Small Clearing", "Ancient Tree", "Overgrown Trail", "Shaded Grove"],
+      "room_descriptions": [
+        "A narrow path winds between the {adjective} trees. The forest is alive with sounds.",
+        "The trees grow closer here, their branches blocking out the sun. The air is {adjective} and still.",
+        "A small, quiet clearing. Patches of {adjective} moss cover the ground.",
+        "An ancient, gnarled tree dominates this area, its roots like massive claws.",
+        "The undergrowth is thick here, making passage difficult. You can hear rustling in the leaves."
+      ],
+      "spawner": {
+        "monster_types": { "wolf": 5, "goblin": 3, "giant_spider": 2 },
+        "level_range": [1, 5]
+      }
+    },
+    "caves": {
+      "name_templates": ["The {Adjective} Caverns", "The Echoing {Noun}", "{Noun} Deep"],
+      "description": "A dark and winding cave system, ripe for exploration.",
+      "room_names": ["Main Cavern", "Narrow Passage", "Bat Cave", "Underground Stream", "Crystal Grotto", "Deep Tunnel"],
+      "room_descriptions": [
+        "A large, open cavern with stalactites hanging from the ceiling. The sound of dripping water echoes.",
+        "The passage narrows here, forcing you to squeeze through. The walls are {adjective} and damp.",
+        "A wide chamber filled with the fluttering of wings. The smell of guano is strong.",
+        "A shallow underground stream cuts through this part of the cave, its water {adjective} and cold.",
+        "Clusters of glowing crystals cast an eerie, {adjective} light around this grotto."
+      ],
+      "spawner": {
+        "monster_types": { "giant_rat": 4, "goblin": 3, "skeleton": 2, "troll": 1 },
+        "level_range": [2, 6]
+      }
+    },
+    "mountains": {
+      "name_templates": ["The {Adjective} Peaks", "{Noun} Ascent", "The Dragon's Tooth"],
+      "description": "A high, treacherous mountain path.",
+      "room_names": ["Rocky Trail", "Windswept Ridge", "Narrow Ledge", "Goat Path", "Scree Slope"],
+      "room_descriptions": [
+        "A rugged trail winds upwards. The air is thin and {adjective}.",
+        "You stand on a high, windswept ridge with a commanding view of the area.",
+        "The path narrows to a dangerous ledge with a sheer drop on one side.",
+        "A steep, crumbling slope of loose rock makes footing treacherous.",
+        "The wind howls here, a {adjective} and lonely sound."
+      ],
+      "spawner": {
+        "monster_types": { "goblin": 3, "wolf": 2 },
+        "level_range": [3, 7]
+      }
+    }
+  },
+  "placeholders": {
+    "adjective": ["damp", "cool", "eerie", "ancient", "forgotten", "quiet", "dark", "musty", "strange", "cold"],
+    "noun": ["Wood", "Cavern", "Path", "Deep", "Expanse", "Wilds", "Ridge", "Pass"]
+  }
+}

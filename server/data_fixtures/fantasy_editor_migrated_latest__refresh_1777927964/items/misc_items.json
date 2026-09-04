@@ -1,0 +1,13 @@
+{
+	"quest_package_generic": {
+		"description": "A package that needs delivering. Its contents are unknown.",
+		"name": "Sealed Package",
+		"properties": {
+			"is_quest_item": true
+		},
+		"stackable": false,
+		"type": "Item",
+		"value": 0.0,
+		"weight": 1.0
+	}
+}

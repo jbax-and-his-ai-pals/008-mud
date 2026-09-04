@@ -1,0 +1,140 @@
+{
+  "_proxy_positions": {
+    "portbridge:town_gate_north": [
+      64.0,
+      320.0
+    ],
+    "swamp:bog_end": [
+      64.0,
+      -800.0
+    ]
+  },
+  "description": "The fetid swamp gives way to brackish marshes and eventually sandy shores as the path winds towards the coast.",
+  "name": "Salt-Kissed Path",
+  "region_id": "coastal_path",
+  "rooms": {
+    "beach_approach": {
+      "description": "The muddy ground finally gives way to soft sand. You can hear the rhythmic sound of waves crashing nearby. To the south, you see the sturdy wooden walls of a coastal settlement.",
+      "exits": {
+        "north": "salt_marsh",
+        "south": "portbridge:town_gate_north",
+        "west": "sandy_beach"
+      },
+      "items": [
+        {
+          "item_id": "item_driftwood"
+        }
+      ],
+      "name": "Beach Approach",
+      "properties": {
+        "smell": "sea air"
+      }
+    },
+    "mudflats": {
+      "description": "The path from the bog opens into wide mudflats exposed by the receding tide. The air smells strongly of salt and decaying seaweed. Seabirds cry overhead.",
+      "exits": {
+        "north": "swamp:bog_end",
+        "south": "salt_marsh",
+        "west": "shipwreck_debris"
+      },
+      "name": "Mudflats",
+      "properties": {
+        "smell": "salt and mud"
+      }
+    },
+    "salt_marsh": {
+      "description": "Tough grasses and reeds grow in dense clumps, adapted to the salty, waterlogged ground. A narrow, muddy track continues south, while a smaller path leads east toward some trapped pools of water.",
+      "exits": {
+        "east": "tidal_pools",
+        "north": "mudflats",
+        "south": "beach_approach"
+      },
+      "name": "Salt Marsh",
+      "properties": {}
+    },
+    "sandy_beach": {
+      "description": "A wide stretch of sandy beach meets the sea. Waves gently lap at the shore. Kelp and shells are strewn along the high tide line. The beach continues to the southwest.",
+      "exits": {
+        "east": "beach_approach",
+        "southwest": "south_beach"
+      },
+      "name": "Sandy Beach",
+      "properties": {
+        "smell": "sea air"
+      }
+    },
+    "sea_cave_back": {
+      "description": "The rear of the cave is above the high tide line, the sandy floor littered with driftwood and debris washed in by the sea.",
+      "exits": {
+        "east": "sea_cave_main"
+      },
+      "name": "Back of the Sea Cave",
+      "properties": {
+        "dark": true
+      }
+    },
+    "sea_cave_entrance": {
+      "description": "At the base of the low cliff, a dark opening leads into a sea cave. The sound of waves echoes from within, and the air is cool and damp.",
+      "exits": {
+        "east": "south_beach",
+        "in": "sea_cave_main"
+      },
+      "name": "Sea Cave Entrance",
+      "properties": {}
+    },
+    "sea_cave_main": {
+      "description": "Inside the sea cave, the air is cool and filled with the smell of salt. Water pools on the floor, rising and falling with the tide. The cave continues deeper to the west.",
+      "exits": {
+        "out": "sea_cave_entrance",
+        "west": "sea_cave_back"
+      },
+      "name": "Sea Cave",
+      "properties": {
+        "dark": true,
+        "smell": "salty"
+      }
+    },
+    "shipwreck_debris": {
+      "description": "Fragments of a wrecked ship lie scattered across the mudflats, half-buried in the silt. Rotted timbers and rusted metal poke out from the muck.",
+      "exits": {
+        "east": "mudflats"
+      },
+      "name": "Shipwreck Debris",
+      "properties": {}
+    },
+    "south_beach": {
+      "description": "The sandy beach curves south here, ending at the base of a low, rocky cliff face. A dark opening is visible at the base of the cliff.",
+      "exits": {
+        "northeast": "sandy_beach",
+        "west": "sea_cave_entrance"
+      },
+      "name": "South Beach",
+      "properties": {}
+    },
+    "tidal_pools": {
+      "description": "Several shallow pools of seawater are trapped here among the marsh grasses. Small crabs scuttle for cover as you approach.",
+      "exits": {
+        "west": "salt_marsh"
+      },
+      "items": [
+        {
+          "item_id": "item_seashell",
+          "quantity": 2.0
+        }
+      ],
+      "name": "Tidal Pools",
+      "properties": {}
+    }
+  },
+  "spawner": {
+    "level_range": [
+      1.0,
+      3.0
+    ],
+    "monster_types": {
+      "bandit": 2.0,
+      "giant_rat": 4.0,
+      "kobold_skirmisher": 5.0
+    }
+  }
+}

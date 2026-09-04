@@ -1,0 +1,72 @@
+{
+  "commands": [
+    "look",
+    "status",
+    "inventory",
+    "nearby",
+    "north",
+    "look"
+  ],
+  "events": [
+    {
+      "payload": "look",
+      "protocol_version": "0.2.0",
+      "type": "command"
+    },
+    {
+      "payload": "No character yet. Use: char create <name>",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    },
+    {
+      "payload": "status",
+      "protocol_version": "0.2.0",
+      "type": "command"
+    },
+    {
+      "payload": "No character yet. Use: char create <name>",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    },
+    {
+      "payload": "inventory",
+      "protocol_version": "0.2.0",
+      "type": "command"
+    },
+    {
+      "payload": "No character yet. Use: char create <name>",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    },
+    {
+      "payload": "nearby",
+      "protocol_version": "0.2.0",
+      "type": "command"
+    },
+    {
+      "payload": "No character yet. Use: char create <name>",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    },
+    {
+      "payload": "north",
+      "protocol_version": "0.2.0",
+      "type": "command"
+    },
+    {
+      "payload": "No character yet. Use: char create <name>",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    },
+    {
+      "payload": "look",
+      "protocol_version": "0.2.0",
+      "type": "command"
+    },
+    {
+      "payload": "No character yet. Use: char create <name>",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    }
+  ]
+}

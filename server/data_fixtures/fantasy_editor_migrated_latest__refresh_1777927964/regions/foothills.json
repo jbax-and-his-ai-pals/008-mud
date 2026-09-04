@@ -1,0 +1,148 @@
+{
+  "description": "The land rises from the fertile farms into rolling, grassy hills dotted with rocky outcrops. Sheep graze on the slopes, watched over by solitary shepherds. The wind is a constant presence here.",
+  "name": "Windy Foothills",
+  "region_id": "foothills",
+  "rooms": {
+    "grassy_slope": {
+      "description": "A wide, open slope covered in tough grasses and heather, climbing steadily upwards from the farmlands. The wind is stronger here. You can see the apple orchards below to the west.",
+      "exits": {
+        "east": "shepherds_path",
+        "north": "rocky_outcrop",
+        "west": "farmland:orchard_east"
+      },
+      "items": [
+        {
+          "item_id": "item_wild_herbs",
+          "quantity": 2.0
+        }
+      ],
+      "name": "Grassy Slope",
+      "properties": {}
+    },
+    "high_meadow": {
+      "description": "A surprisingly sheltered meadow at a high elevation. Tough alpine flowers grow here, and a small cave opens into the hillside to the south.",
+      "exits": {
+        "south": "hilltop_cave_entrance",
+        "west": "windy_ridge"
+      },
+      "name": "High Meadow",
+      "properties": {}
+    },
+    "hilltop_cave": {
+      "description": "A small, damp cave inside the hill. It doesn't seem to go very deep.",
+      "exits": {
+        "out": "hilltop_cave_entrance"
+      },
+      "name": "Hilltop Cave",
+      "properties": {
+        "dark": true
+      }
+    },
+    "hilltop_cave_entrance": {
+      "description": "A small, dark opening is nestled into the side of the hill. A cool, damp draft emerges from within.",
+      "exits": {
+        "in": "hilltop_cave",
+        "north": "high_meadow"
+      },
+      "name": "Hilltop Cave Entrance",
+      "properties": {}
+    },
+    "mountain_pass_approach": {
+      "description": "The grassy ridge gives way to a stony path that leads north into a narrow pass between two larger hills. This looks like the way to the high mountains.",
+      "exits": {
+        "south": "windy_ridge"
+      },
+      "name": "Mountain Pass Approach",
+      "properties": {}
+    },
+    "rocky_outcrop": {
+      "description": "A cluster of large, weathered rocks juts from the hillside, offering some shelter from the wind. A narrow trail continues climbing to the north.",
+      "exits": {
+        "north": "steep_trail",
+        "northeast": "standing_stone",
+        "south": "grassy_slope"
+      },
+      "items": [
+        {
+          "item_id": "item_sharp_flint"
+        }
+      ],
+      "name": "Rocky Outcrop",
+      "properties": {}
+    },
+    "sheep_pen": {
+      "description": "A fenced area next to the shepherd's hut where sheep are kept at night. The ground is well-trodden and smells strongly of lanolin.",
+      "exits": {
+        "south": "shepherds_hut"
+      },
+      "items": [
+        {
+          "item_id": "item_wool_tuft"
+        }
+      ],
+      "name": "Sheep Pen",
+      "properties": {
+        "smell": "sheep"
+      }
+    },
+    "shepherds_hut": {
+      "description": "A small, simple hut made of stone and turf. A thin trail of smoke rises from a chimney hole. A fenced-in pen for sheep is attached to the north side.",
+      "exits": {
+        "north": "sheep_pen",
+        "west": "shepherds_path"
+      },
+      "name": "Shepherd's Hut",
+      "properties": {}
+    },
+    "shepherds_path": {
+      "description": "A narrow path, well-worn by boots and hooves, branches off from the main trail. It leads towards a small stone hut nestled into the hillside.",
+      "exits": {
+        "east": "shepherds_hut",
+        "west": "grassy_slope"
+      },
+      "name": "Shepherd's Path",
+      "properties": {}
+    },
+    "standing_stone": {
+      "description": "A single, large monolith of grey stone stands here, covered in ancient, weathered carvings. A small spring bubbles up from its base.",
+      "exits": {
+        "southwest": "rocky_outcrop"
+      },
+      "name": "Standing Stone",
+      "properties": {}
+    },
+    "steep_trail": {
+      "description": "The trail becomes steeper here, winding through a series of short switchbacks. The elevation is clearly increasing.",
+      "exits": {
+        "south": "rocky_outcrop",
+        "up": "windy_ridge"
+      },
+      "name": "Steep Trail",
+      "properties": {}
+    },
+    "windy_ridge": {
+      "description": "The top of the hill forms a long, windswept ridge. The view is expansive, showing the farmlands to the southwest and taller, more rugged peaks to the north.",
+      "exits": {
+        "down": "steep_trail",
+        "east": "high_meadow",
+        "north": "mountain_pass_approach"
+      },
+      "name": "Windy Ridge",
+      "properties": {
+        "weather": "windy"
+      }
+    }
+  },
+  "spawner": {
+    "level_range": [
+      2.0,
+      5.0
+    ],
+    "monster_types": {
+      "bandit_archer": 2.0,
+      "goblin": 4.0,
+      "orc_grunt": 4.0,
+      "wild_boar": 3.0
+    }
+  }
+}

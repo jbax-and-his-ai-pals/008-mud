@@ -1,0 +1,11 @@
+{
+  "plugin_id": "sample_world_effects_provider",
+  "name": "Sample World Effects Provider",
+  "version": "0.1.0",
+  "manifest_schema_version": "1",
+  "engine_api_min": "1.0",
+  "engine_api_max": "1.0",
+  "capabilities": [
+    "system_provider_registration"
+  ]
+}

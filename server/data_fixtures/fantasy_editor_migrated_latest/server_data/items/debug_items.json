@@ -1,0 +1,27 @@
+{
+	"debug_amulet": {
+		"description": "An amulet granting immense power and regeneration for testing.",
+		"name": "Debug Amulet",
+		"properties": {
+			"defense": 500.0,
+			"durability": 9999.0,
+			"equip_effect": {
+				"modifiers": {
+					"strength": 50.0,
+					"wisdom": 50.0
+				},
+				"name": "Amulet of Vitality",
+				"type": "stat_mod"
+			},
+			"equip_slot": [
+				"neck"
+			],
+			"magic_resist": 500.0,
+			"max_durability": 9999.0
+		},
+		"stackable": false,
+		"type": "Armor",
+		"value": 0.0,
+		"weight": 0.1
+	}
+}

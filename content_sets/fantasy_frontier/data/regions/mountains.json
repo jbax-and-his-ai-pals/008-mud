@@ -1,0 +1,146 @@
+{
+    "region_id": "mountains",
+    "name": "Frostpeak Mountains",
+    "description": "The jagged peaks of the Frostpeak range loom over the region. The air is thin and cold, and snow persists year-round on the higher slopes.",
+    "spawner": {
+        "monster_types": {
+            "orc_grunt": 4,
+            "hobgoblin_soldier": 3,
+            "dire_wolf": 3,
+            "harpy": 2,
+            "orc_shaman": 1,
+            "earth_elemental": 1
+        },
+        "level_range": [5, 8]
+    },
+    "rooms": {
+        "mine_exit": {
+            "name": "Abandoned Mine Exit",
+            "description": "You emerge from a small hole in the mountainside, the exit of an old mine. The air is thin and cold. A narrow, treacherous path leads east along the cliff face.",
+            "exits": {
+                "in": "caves:mine_exit",
+                "east": "rocky_ledge"
+            }
+        },
+        "rocky_ledge": {
+            "name": "Rocky Ledge",
+            "description": "A narrow ledge clings to the mountainside, offering a dizzying view of the valley below. Loose rocks make footing uncertain. The path continues east to a switchback.",
+            "exits": {
+                "west": "mine_exit",
+                "east": "switchback_1"
+            }
+        },
+        "switchback_1": {
+            "name": "Switchback Path",
+            "description": "The trail makes a sharp turn here, beginning a steep ascent upwards to the west.",
+            "exits": {
+                "east": "frozen_waterfall_base",
+                "west": "rocky_ledge",
+                "up": "up"
+            }
+        },
+        "up": {
+            "name": "Steep Ascent",
+            "description": "You are on a steep, winding path climbing the mountainside. You've gained significant elevation.",
+            "exits": {
+                "down": "switchback_1",
+                "northwest": "high_pass"
+            }
+        },
+        "high_pass": {
+            "name": "High Mountain Pass",
+            "description": "A narrow pass winds between towering peaks. The wind howls fiercely here, biting through your clothes. The path continues precariously upwards to the north.",
+            "exits": {
+                "southeast": "up",
+                "north": "up_to_summit",
+                "west": "crevasse_edge"
+            },
+            "properties": { "weather": "windy" }
+        },
+        "crevasse_edge": {
+            "name": "Edge of a Crevasse",
+            "description": "The path skirts the edge of a deep, icy crevasse. A blast of freezing air rises from the depths, and the ground looks unstable.",
+            "exits": { "east": "high_pass" },
+            "properties": {"weather": "windy"}
+        },
+        "up_to_summit": {
+            "name": "Final Ascent",
+            "description": "The air is painfully thin here as you make the final climb to the summit. Every step is an effort.",
+            "exits": {
+                "south": "high_pass",
+                "up": "summit"
+            }
+        },
+        "summit": {
+            "name": "Frostpeak Summit",
+            "description": "The highest point for miles around. The view is breathtaking, stretching across forests, rivers, and distant lands. An ancient, weathered shrine stands here, half-buried in snow.",
+            "exits": {
+                "down": "up_to_summit",
+                "north": "hidden_valley_descent"
+            },
+            "items": [
+                { "item_id": "item_summit_offering" }
+            ],
+            "properties": { "weather": "snowy" }
+        },
+        "hidden_valley_descent": {
+            "name": "Descent into Shadow",
+            "description": "A narrow cleft between rocks, easily missed, leads down from the summit into a sheltered area. Warmer air drifts up from below.",
+            "exits": {
+                "south": "summit",
+                "down": "hidden_valley"
+            }
+        },
+        "hidden_valley": {
+            "name": "Verdant Hidden Valley",
+            "description": "Surprisingly sheltered from the harsh mountain weather, this small valley is lush and green. A clear stream runs through it, and unusual alpine flowers bloom.",
+            "exits": {
+                "up": "hidden_valley_descent",
+                "north": "valley_cave"
+            },
+            "items": [
+               { "item_id": "item_frostpetal" }
+            ]
+        },
+        "valley_cave": {
+            "name": "Small Valley Cave",
+            "description": "A small, dry cave at the northern end of the hidden valley. Looks like it might have been used as a shelter recently.",
+            "exits": { "south": "hidden_valley" },
+            "items": [
+                { "item_id": "item_old_campfire" }
+            ],
+            "properties": {"dark": true}
+        },
+        "frozen_waterfall_base": {
+            "name": "Frozen Waterfall",
+            "description": "A massive waterfall, frozen solid into shimmering blue ice, clings to the mountainside. The air here is intensely cold. It might be possible to climb the ice, but it looks dangerous.",
+            "exits": {
+                "west": "switchback_1",
+                "climb": "ice_cave_entrance"
+            }
+        },
+        "ice_cave_entrance": {
+            "name": "Ice Cave Entrance",
+            "description": "You've climbed halfway up the frozen waterfall to a ledge containing the entrance to a hidden cave formed entirely of ice.",
+            "exits": {
+                "descend": "frozen_waterfall_base",
+                "in": "ice_cave"
+            }
+        },
+         "ice_cave": {
+            "name": "Glacial Cave",
+            "description": "Inside the ice cave, the temperature plummets. The air is still and silent. The ice walls glimmer, reflecting light in strange ways.",
+            "exits": {
+                "out": "ice_cave_entrance",
+                "in": "ice_cave_chamber"
+            },
+            "properties": { "dark": true }
+        },
+        "ice_cave_chamber": {
+            "name": "Inner Ice Chamber",
+            "description": "Deeper within the ice cave, the ice walls seem ancient and impossibly thick. Something large appears to be frozen within the ice in the center of the chamber.",
+            "exits": { "out": "ice_cave" },
+            "properties": {"dark": true}
+        }
+    }
+}

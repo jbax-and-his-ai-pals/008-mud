@@ -1,0 +1,27 @@
+{
+  "profile": {
+    "mods": {
+      "mode": "disabled"
+    },
+    "weather": {
+      "mode": "custom",
+      "provider_id": "mod.weather.missing"
+    },
+    "world_effects": {
+      "mode": "custom",
+      "provider_id": "mod.effects.missing"
+    }
+  },
+  "provider_state": {
+    "weather_mode": "custom",
+    "weather_provider_id": "custom.weather.noop",
+    "world_effects_mode": "custom",
+    "world_effects_provider_id": "custom.world_effects.noop",
+    "world_state_event_count": 0
+  },
+  "warnings": [
+    "Mods are disabled by server profile.",
+    "Weather provider id 'mod.weather.missing' was configured but not found. Running no-op provider.",
+    "World-effects provider id 'mod.effects.missing' was configured but not found. Running no-op provider."
+  ]
+}

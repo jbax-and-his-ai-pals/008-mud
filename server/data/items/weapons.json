@@ -1,0 +1,131 @@
+{
+  "item_starter_dagger": {
+    "type": "Weapon",
+    "name": "rusty dagger",
+    "description": "A simple dagger with a rusty blade, but it's better than nothing.",
+    "weight": 1.0,
+    "value": 5,
+    "stackable": false,
+    "properties": {
+      "damage": 3,
+      "durability": 20,
+      "max_durability": 20,
+      "equip_slot": [
+        "main_hand",
+        "off_hand"
+      ]
+    }
+  },
+  "item_iron_sword": {
+    "type": "Weapon",
+    "name": "iron sword",
+    "description": "A well-crafted iron sword with a leather-wrapped hilt. The blade is sharp and balanced.",
+    "weight": 3.0,
+    "value": 50,
+    "stackable": false,
+    "properties": {
+      "damage": 8,
+      "durability": 50,
+      "max_durability": 50,
+      "equip_slot": [
+        "main_hand"
+      ]
+    }
+  },
+  "item_pitchfork": {
+    "type": "Weapon",
+    "name": "pitchfork",
+    "description": "A sturdy pitchfork used for moving hay.",
+    "weight": 3.0,
+    "value": 5,
+    "stackable": false,
+    "properties": {
+      "damage": 4,
+      "durability": 30,
+      "max_durability": 30,
+      "equip_slot": [
+        "main_hand"
+      ]
+    }
+  },
+  "item_rusty_sword": {
+    "type": "Weapon",
+    "name": "rusty sword",
+    "description": "An old sword, covered in rust.",
+    "weight": 2.8,
+    "value": 5,
+    "stackable": false,
+    "properties": {
+      "damage": 4,
+      "durability": 25,
+      "max_durability": 25,
+      "equip_slot": [
+        "main_hand"
+      ]
+    }
+  },
+  "item_dagger": {
+    "type": "Weapon",
+    "name": "dagger",
+    "description": "A standard dagger, suitable for close combat.",
+    "weight": 0.8,
+    "value": 5,
+    "stackable": false,
+    "properties": {
+      "damage": 3,
+      "durability": 30,
+      "max_durability": 30,
+      "equip_slot": [
+        "main_hand",
+        "off_hand"
+      ]
+    }
+  },
+  "item_crude_club": {
+    "type": "Weapon",
+    "name": "crude club",
+    "description": "A heavy, crudely fashioned wooden club.",
+    "weight": 5.0,
+    "value": 8,
+    "stackable": false,
+    "properties": {
+      "damage": 7,
+      "durability": 40,
+      "max_durability": 40,
+      "equip_slot": [
+        "main_hand"
+      ]
+    }
+  },
+  "item_spider_fang": {
+    "type": "Weapon",
+    "name": "spider fang dagger",
+    "description": "A dagger crafted from the venomous fang of a giant spider. It drips slightly.",
+    "weight": 0.7,
+    "value": 45,
+    "stackable": false,
+    "properties": {
+      "damage": 4,
+      "durability": 40,
+      "max_durability": 40,
+      "equip_slot": [
+        "main_hand",
+        "off_hand"
+      ],
+      "on_hit_effect_chance": 0.25,
+      "on_hit_effect": {
+        "type": "dot",
+        "name": "Spider Venom",
+        "base_duration": 12.0,
+        "damage_per_tick": 3,
+        "tick_interval": 3.0,
+        "damage_type": "poison"
+      }
+    }
+  },
+  "item_simple_bow": { "type": "Weapon", "name": "simple bow", "description": "A simple but effective wooden bow.", "weight": 2.0, "value": 15, "properties": { "damage": 4, "durability": 30, "max_durability": 30, "equip_slot": ["main_hand"] }},
+  "item_cursed_dagger": { "type": "Weapon", "name": "cursed dagger", "description": "A wicked-looking dagger with unsettling runes carved into the blade.", "weight": 0.8, "value": 25, "properties": { "damage": 5, "durability": 35, "max_durability": 35, "equip_slot": ["main_hand", "off_hand"] }},
+  "item_barbed_spear": { "type": "Weapon", "name": "barbed spear", "description": "A long spear with a cruel, barbed tip.", "weight": 3.5, "value": 30, "properties": { "damage": 7, "durability": 45, "max_durability": 45, "equip_slot": ["main_hand"] }},
+  "item_hobgoblin_sword": { "type": "Weapon", "name": "hobgoblin sword", "description": "A well-made, practical shortsword of hobgoblin make.", "weight": 2.5, "value": 40, "properties": { "damage": 8, "durability": 50, "max_durability": 50, "equip_slot": ["main_hand"] }},
+  "item_shamanic_staff": { "type": "Weapon", "name": "shamanic staff", "description": "A gnarled wooden staff adorned with feathers and skulls.", "weight": 3.0, "value": 35, "properties": { "damage": 5, "durability": 40, "max_durability": 40, "equip_slot": ["main_hand"] }}
+}

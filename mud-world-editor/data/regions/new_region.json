@@ -1,0 +1,558 @@
+{
+	"description": "New region",
+	"region_id": "new_region",
+	"rooms": {
+		"room_1_1": {
+			"_editor_pos": [
+				-875.0,
+				-875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_1",
+				"south": "room_1_2"
+			},
+			"name": "Sector 0 1-1",
+			"properties": {
+
+			}
+		},
+		"room_1_2": {
+			"_editor_pos": [
+				-875.0,
+				-625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_2",
+				"north": "room_1_1",
+				"south": "room_1_3"
+			},
+			"name": "Sector 0 1-2",
+			"properties": {
+
+			}
+		},
+		"room_1_3": {
+			"_editor_pos": [
+				-875.0,
+				-375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_3",
+				"north": "room_1_2",
+				"south": "room_1_4"
+			},
+			"name": "Sector 0 1-3",
+			"properties": {
+
+			}
+		},
+		"room_1_4": {
+			"_editor_pos": [
+				-875.0,
+				-125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_4",
+				"north": "room_1_3",
+				"south": "room_1_5"
+			},
+			"name": "Sector 0 1-4",
+			"properties": {
+
+			}
+		},
+		"room_1_5": {
+			"_editor_pos": [
+				-875.0,
+				125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_5",
+				"north": "room_1_4",
+				"south": "room_1_6"
+			},
+			"name": "Sector 0 1-5",
+			"properties": {
+
+			}
+		},
+		"room_1_6": {
+			"_editor_pos": [
+				-875.0,
+				375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_6",
+				"north": "room_1_5",
+				"south": "room_1_7"
+			},
+			"name": "Sector 0 1-6",
+			"properties": {
+
+			}
+		},
+		"room_1_7": {
+			"_editor_pos": [
+				-875.0,
+				625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_7",
+				"north": "room_1_6",
+				"south": "room_1_8"
+			},
+			"name": "Sector 0 1-7",
+			"properties": {
+
+			}
+		},
+		"room_1_8": {
+			"_editor_pos": [
+				-875.0,
+				875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_2_8",
+				"north": "room_1_7"
+			},
+			"name": "Sector 0 1-8",
+			"properties": {
+
+			}
+		},
+		"room_2_1": {
+			"_editor_pos": [
+				-625.0,
+				-875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"south": "room_2_2",
+				"west": "room_1_1"
+			},
+			"name": "Sector 0 2-1",
+			"properties": {
+
+			}
+		},
+		"room_2_2": {
+			"_editor_pos": [
+				-625.0,
+				-625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_2_1",
+				"south": "room_2_3",
+				"west": "room_1_2"
+			},
+			"name": "Sector 0 2-2",
+			"properties": {
+
+			}
+		},
+		"room_2_3": {
+			"_editor_pos": [
+				-625.0,
+				-375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_2_2",
+				"south": "room_2_4",
+				"west": "room_1_3"
+			},
+			"name": "Sector 0 2-3",
+			"properties": {
+
+			}
+		},
+		"room_2_4": {
+			"_editor_pos": [
+				-625.0,
+				-125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_2_3",
+				"south": "room_2_5",
+				"west": "room_1_4"
+			},
+			"name": "Sector 0 2-4",
+			"properties": {
+
+			}
+		},
+		"room_2_5": {
+			"_editor_pos": [
+				-625.0,
+				125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_3_5",
+				"north": "room_2_4",
+				"south": "room_2_6",
+				"west": "room_1_5"
+			},
+			"name": "Sector 0 2-5",
+			"properties": {
+
+			}
+		},
+		"room_2_6": {
+			"_editor_pos": [
+				-625.0,
+				375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_2_5",
+				"south": "room_2_7",
+				"west": "room_1_6"
+			},
+			"name": "Sector 0 2-6",
+			"properties": {
+
+			}
+		},
+		"room_2_7": {
+			"_editor_pos": [
+				-625.0,
+				625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_2_6",
+				"south": "room_2_8",
+				"west": "room_1_7"
+			},
+			"name": "Sector 0 2-7",
+			"properties": {
+
+			}
+		},
+		"room_2_8": {
+			"_editor_pos": [
+				-625.0,
+				875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_2_7",
+				"west": "room_1_8"
+			},
+			"name": "Sector 0 2-8",
+			"properties": {
+
+			}
+		},
+		"room_3_5": {
+			"_editor_pos": [
+				-375.0,
+				125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_4_5",
+				"west": "room_2_5"
+			},
+			"name": "Hallway 3-5",
+			"properties": {
+
+			}
+		},
+		"room_4_5": {
+			"_editor_pos": [
+				-125.0,
+				125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_5_5",
+				"west": "room_3_5"
+			},
+			"name": "Hallway 4-5",
+			"properties": {
+
+			}
+		},
+		"room_5_1": {
+			"_editor_pos": [
+				125.0,
+				-875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"south": "room_5_2"
+			},
+			"name": "Sector 1 5-1",
+			"properties": {
+
+			}
+		},
+		"room_5_2": {
+			"_editor_pos": [
+				125.0,
+				-625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_6_2",
+				"north": "room_5_1",
+				"south": "room_5_3"
+			},
+			"name": "Sector 1 5-2",
+			"properties": {
+
+			}
+		},
+		"room_5_3": {
+			"_editor_pos": [
+				125.0,
+				-375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_5_2",
+				"south": "room_5_4"
+			},
+			"name": "Sector 1 5-3",
+			"properties": {
+
+			}
+		},
+		"room_5_4": {
+			"_editor_pos": [
+				125.0,
+				-125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_5_3",
+				"south": "room_5_5"
+			},
+			"name": "Hallway 5-4",
+			"properties": {
+
+			}
+		},
+		"room_5_5": {
+			"_editor_pos": [
+				125.0,
+				125.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_5_4",
+				"south": "room_5_6",
+				"west": "room_4_5"
+			},
+			"name": "Hallway 5-5",
+			"properties": {
+
+			}
+		},
+		"room_5_6": {
+			"_editor_pos": [
+				125.0,
+				375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_5_5",
+				"south": "room_5_7"
+			},
+			"name": "Sector 3 5-6",
+			"properties": {
+
+			}
+		},
+		"room_5_7": {
+			"_editor_pos": [
+				125.0,
+				625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_6_7",
+				"north": "room_5_6",
+				"south": "room_5_8"
+			},
+			"name": "Sector 3 5-7",
+			"properties": {
+
+			}
+		},
+		"room_5_8": {
+			"_editor_pos": [
+				125.0,
+				875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_5_7"
+			},
+			"name": "Sector 3 5-8",
+			"properties": {
+
+			}
+		},
+		"room_6_2": {
+			"_editor_pos": [
+				375.0,
+				-625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_7_2",
+				"west": "room_5_2"
+			},
+			"name": "Hallway 6-2",
+			"properties": {
+
+			}
+		},
+		"room_6_7": {
+			"_editor_pos": [
+				375.0,
+				625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_7_7",
+				"west": "room_5_7"
+			},
+			"name": "Hallway 6-7",
+			"properties": {
+
+			}
+		},
+		"room_7_2": {
+			"_editor_pos": [
+				625.0,
+				-625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_8_2",
+				"west": "room_6_2"
+			},
+			"name": "Hallway 7-2",
+			"properties": {
+
+			}
+		},
+		"room_7_7": {
+			"_editor_pos": [
+				625.0,
+				625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"east": "room_8_7",
+				"west": "room_6_7"
+			},
+			"name": "Hallway 7-7",
+			"properties": {
+
+			}
+		},
+		"room_8_1": {
+			"_editor_pos": [
+				875.0,
+				-875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"south": "room_8_2"
+			},
+			"name": "Sector 2 8-1",
+			"properties": {
+
+			}
+		},
+		"room_8_2": {
+			"_editor_pos": [
+				875.0,
+				-625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_8_1",
+				"south": "room_8_3",
+				"west": "room_7_2"
+			},
+			"name": "Sector 2 8-2",
+			"properties": {
+
+			}
+		},
+		"room_8_3": {
+			"_editor_pos": [
+				875.0,
+				-375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_8_2"
+			},
+			"name": "Sector 2 8-3",
+			"properties": {
+
+			}
+		},
+		"room_8_6": {
+			"_editor_pos": [
+				875.0,
+				375.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"south": "room_8_7"
+			},
+			"name": "Sector 4 8-6",
+			"properties": {
+
+			}
+		},
+		"room_8_7": {
+			"_editor_pos": [
+				875.0,
+				625.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_8_6",
+				"south": "room_8_8",
+				"west": "room_7_7"
+			},
+			"name": "Sector 4 8-7",
+			"properties": {
+
+			}
+		},
+		"room_8_8": {
+			"_editor_pos": [
+				875.0,
+				875.0
+			],
+			"description": "Generated.",
+			"exits": {
+				"north": "room_8_7"
+			},
+			"name": "Sector 4 8-8",
+			"properties": {
+
+			}
+		}
+	}
+}

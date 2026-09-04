@@ -1,0 +1,797 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_controller.gd" id="1_m0"]
+[ext_resource type="Script" path="res://scripts/network/tcp_client.gd" id="2_tcp"]
+[ext_resource type="Script" path="res://scripts/network/protocol_parser.gd" id="3_proto"]
+[ext_resource type="Script" path="res://scripts/network/ws_client.gd" id="4_ws"]
+[ext_resource type="Script" path="res://scripts/ui/svg_runtime_renderer.gd" id="5_svg"]
+[ext_resource type="Script" path="res://scripts/ui/keybindings_manager.gd" id="6_kb"]
+[ext_resource type="Script" path="res://scripts/ui/onboarding_controller.gd" id="7_ob"]
+[ext_resource type="Script" path="res://scripts/ui/crash_recovery_controller.gd" id="8_cr"]
+[ext_resource type="Script" path="res://scripts/ui/atmosphere_controller.gd" id="9_atmo"]
+[ext_resource type="Script" path="res://scripts/ui/char_create_controller.gd" id="11_cc"]
+[ext_resource type="Shader" path="res://shaders/atmosphere_overlay.gdshader" id="10_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_atmo"]
+shader = ExtResource("10_shader")
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_m0")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="ConnectionRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HostInput" type="LineEdit" parent="VBox/ConnectionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "127.0.0.1"
+placeholder_text = "Host"
+
+[node name="PortInput" type="LineEdit" parent="VBox/ConnectionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 0)
+text = "8765"
+placeholder_text = "Port"
+
+[node name="ConnectButton" type="Button" parent="VBox/ConnectionRow"]
+layout_mode = 2
+text = "Connect"
+
+[node name="DisconnectButton" type="Button" parent="VBox/ConnectionRow"]
+layout_mode = 2
+text = "Disconnect"
+
+[node name="PolicyButton" type="Button" parent="VBox/ConnectionRow"]
+layout_mode = 2
+text = "Policy"
+
+[node name="FieldPulseButton" type="Button" parent="VBox/ConnectionRow"]
+layout_mode = 2
+text = "Field Pulse"
+
+[node name="FieldIdInput" type="LineEdit" parent="VBox/ConnectionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(90, 0)
+text = "blight"
+placeholder_text = "Field"
+
+[node name="FieldXInput" type="LineEdit" parent="VBox/ConnectionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(44, 0)
+text = "4"
+placeholder_text = "X"
+
+[node name="FieldYInput" type="LineEdit" parent="VBox/ConnectionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(44, 0)
+text = "4"
+placeholder_text = "Y"
+
+[node name="FieldValueInput" type="LineEdit" parent="VBox/ConnectionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 0)
+text = "1.0"
+placeholder_text = "Val"
+
+[node name="TransportSelect" type="OptionButton" parent="VBox/ConnectionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 0)
+selected = 0
+item_count = 2
+popup/item_0/text = "TCP"
+popup/item_0/id = 0
+popup/item_1/text = "WebSocket"
+popup/item_1/id = 1
+
+[node name="AutoReconnectButton" type="Button" parent="VBox/ConnectionRow"]
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "Auto Reconnect: ON"
+
+[node name="GmAuthInput" type="LineEdit" parent="VBox/ConnectionRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 0)
+placeholder_text = "GM Token"
+secret = true
+
+[node name="GmAuthButton" type="Button" parent="VBox/ConnectionRow"]
+layout_mode = 2
+text = "GM Auth"
+
+[node name="ProfileRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ProfilePresetSelect" type="OptionButton" parent="VBox/ProfileRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(220, 0)
+
+[node name="ProfileRefreshButton" type="Button" parent="VBox/ProfileRow"]
+layout_mode = 2
+text = "Profiles"
+
+[node name="ProfileApplyButton" type="Button" parent="VBox/ProfileRow"]
+layout_mode = 2
+text = "Apply Selected"
+
+[node name="ProfileCancelButton" type="Button" parent="VBox/ProfileRow"]
+layout_mode = 2
+text = "Cancel Pending"
+
+[node name="ProfileStatusLabel" type="Label" parent="VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Profile: active (unknown) | pending none"
+
+[node name="OperatorRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="OperatorDomainSelect" type="OptionButton" parent="VBox/OperatorRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 0)
+item_count = 5
+popup/item_0/text = "Policy"
+popup/item_0/id = 0
+popup/item_1/text = "Profiles"
+popup/item_1/id = 1
+popup/item_2/text = "World Effects"
+popup/item_2/id = 2
+popup/item_3/text = "Auth"
+popup/item_3/id = 3
+popup/item_4/text = "Authoring"
+popup/item_4/id = 4
+
+[node name="OperatorActionSelect" type="OptionButton" parent="VBox/OperatorRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(260, 0)
+
+[node name="OperatorValueSelect" type="OptionButton" parent="VBox/OperatorRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(220, 0)
+
+[node name="OperatorArgInput" type="LineEdit" parent="VBox/OperatorRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(220, 0)
+placeholder_text = "Optional arg (provider id, etc.)"
+
+[node name="OperatorRunButton" type="Button" parent="VBox/OperatorRow"]
+layout_mode = 2
+text = "Run"
+
+[node name="OperatorStatusLabel" type="Label" parent="VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Operator: choose domain/action, then Run."
+
+[node name="AdventureRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AdventureCatalogSelect" type="OptionButton" parent="VBox/AdventureRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 0)
+
+[node name="AdventureCatalogButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "List"
+
+[node name="AdventureCampaignInput" type="LineEdit" parent="VBox/AdventureRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 0)
+placeholder_text = "Campaign id (optional)"
+
+[node name="AdventureStartButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Start"
+
+[node name="AdventureStatusButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Adv Status"
+
+[node name="AdventureAbandonButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Abandon"
+
+[node name="AdventureCheckpointButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Checkpoint"
+
+[node name="AdventureRestoreButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Restore"
+
+[node name="AdventureResetButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Reset"
+
+[node name="AdventureReplayButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Replay"
+
+[node name="AdventureSummaryMdButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Summary MD"
+
+[node name="AdventureSummaryTextButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Summary TXT"
+
+[node name="AdventureSummaryJsonButton" type="Button" parent="VBox/AdventureRow"]
+layout_mode = 2
+text = "Summary JSON"
+
+[node name="Log" type="RichTextLabel" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_following = true
+text = "[b]MUD Client Shell[/b]\n"
+
+[node name="AssetPreview" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="StatusTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Status"
+
+[node name="StatusPrimary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Level --  XP --"
+
+[node name="StatusVitals" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "HP --/--  MP --/--"
+
+[node name="StatusEffects" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Effects: none"
+
+[node name="InventoryTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Inventory"
+
+[node name="InventorySummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Slots --/--  Weight --/--"
+
+[node name="InventoryList" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+bbcode_enabled = true
+text = "[i]No inventory data yet.[/i]"
+
+[node name="JournalTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Journal"
+
+[node name="JournalSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Active 0  Completed 0  Archived 0"
+
+[node name="JournalList" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+bbcode_enabled = true
+text = "[i]No quest data yet.[/i]"
+
+[node name="NearbyTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Nearby"
+
+[node name="NearbyLocation" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Unknown Region / Unknown Room"
+
+[node name="NearbyExits" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Exits: --"
+
+[node name="NearbyNpcs" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+bbcode_enabled = true
+text = "[i]No nearby NPCs.[/i]"
+
+[node name="NearbyItems" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+bbcode_enabled = true
+text = "[i]No nearby items.[/i]"
+
+[node name="NearbyInteractions" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Try: look, inventory, status"
+
+[node name="WorldStateTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "World State"
+
+[node name="WorldStateLabel" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "World field: awaiting updates."
+
+[node name="NetworkTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Network"
+
+[node name="NetworkSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Transport --  Attempts 0  Up 0  Down 0  Err 0"
+
+[node name="NetworkDetail" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Sent 0  Recv 0  Last error: none"
+
+[node name="ServerPolicyTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Server Policy"
+
+[node name="ServerPolicySummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Profile: (unknown)"
+
+[node name="ServerPolicyModes" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Modes: --"
+
+[node name="ServerPolicyProviders" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Providers: --"
+
+[node name="ServerPolicyWarnings" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Warnings: --"
+
+[node name="ServerPolicyAuth" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Auth: GM no  Configured no  Cooldown 0s"
+
+[node name="StartupDiagnosticsTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Startup Diagnostics"
+
+[node name="StartupDiagnosticsSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Warnings: --  Fail-on-warning codes: --"
+
+[node name="StartupDiagnosticsDetail" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Fixture: --  Data root: --"
+
+[node name="AdventureTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Adventure"
+
+[node name="AdventureState" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Run: unavailable"
+
+[node name="AdventureSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Summary: unavailable"
+
+[node name="AdventureCatalog" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Campaigns: unavailable"
+
+[node name="AdventureObjective" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 84)
+bbcode_enabled = true
+text = "[i]No active adventure objective.[/i]"
+
+[node name="AdventureReport" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 140)
+bbcode_enabled = true
+scroll_following = true
+text = "[i]No adventure report yet.[/i]"
+
+[node name="AssetTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Asset Preview"
+
+[node name="AssetTexture" type="TextureRect" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 160)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AssetAltText" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "No asset yet."
+
+[node name="MobileControls" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+visible = false
+
+[node name="QuickActions" type="HBoxContainer" parent="VBox/MobileControls"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BtnStatus" type="Button" parent="VBox/MobileControls/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Status"
+
+[node name="BtnInventory" type="Button" parent="VBox/MobileControls/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Inventory"
+
+[node name="BtnQuests" type="Button" parent="VBox/MobileControls/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Quests"
+
+[node name="BtnPolicy" type="Button" parent="VBox/MobileControls/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Policy"
+
+[node name="DPad" type="GridContainer" parent="VBox/MobileControls"]
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+
+[node name="BtnNW" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "NW"
+
+[node name="BtnN" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "N"
+
+[node name="BtnNE" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "NE"
+
+[node name="BtnW" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "W"
+
+[node name="BtnLook" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Look"
+
+[node name="BtnE" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "E"
+
+[node name="BtnSW" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SW"
+
+[node name="BtnS" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "S"
+
+[node name="BtnSE" type="Button" parent="VBox/MobileControls/DPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SE"
+
+[node name="CommandRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AuthoringRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AuthoringAssetInput" type="LineEdit" parent="VBox/AuthoringRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 0)
+size_flags_horizontal = 3
+placeholder_text = "Asset ID"
+
+[node name="AuthoringAcquireButton" type="Button" parent="VBox/AuthoringRow"]
+layout_mode = 2
+text = "@dig"
+
+[node name="AuthoringRenewButton" type="Button" parent="VBox/AuthoringRow"]
+layout_mode = 2
+text = "Renew"
+
+[node name="AuthoringReleaseButton" type="Button" parent="VBox/AuthoringRow"]
+layout_mode = 2
+text = "Release"
+
+[node name="AuthoringEditButton" type="Button" parent="VBox/AuthoringRow"]
+layout_mode = 2
+text = "@edit next"
+
+[node name="AuthoringEditStaleButton" type="Button" parent="VBox/AuthoringRow"]
+layout_mode = 2
+text = "@edit stale"
+
+[node name="AuthoringStatus" type="Label" parent="VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Authoring: asset --  lock none  rev --"
+
+[node name="CommandInput" type="LineEdit" parent="VBox/CommandRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Type command (look, go north, status...)"
+
+[node name="SendButton" type="Button" parent="VBox/CommandRow"]
+layout_mode = 2
+text = "Send"
+
+[node name="TcpClient" type="Node" parent="."]
+script = ExtResource("2_tcp")
+
+[node name="WsClient" type="Node" parent="."]
+script = ExtResource("4_ws")
+
+[node name="ProtocolParser" type="Node" parent="."]
+script = ExtResource("3_proto")
+
+[node name="SvgRenderer" type="Node" parent="."]
+script = ExtResource("5_svg")
+
+[node name="KeybindingsManager" type="Node" parent="."]
+script = ExtResource("6_kb")
+
+[node name="OnboardingOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("7_ob")
+
+[node name="Backdrop" type="ColorRect" parent="OnboardingOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.78)
+mouse_filter = 0
+
+[node name="CenterContainer" type="CenterContainer" parent="OnboardingOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="OnboardingOverlay/CenterContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(560, 0)
+
+[node name="VBox" type="VBoxContainer" parent="OnboardingOverlay/CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="OnboardingOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Welcome to MUD Client Shell"
+
+[node name="TipsLabel" type="RichTextLabel" parent="OnboardingOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 300)
+bbcode_enabled = true
+text = "[b]Getting started[/b]\n• Type a command and press [b]Enter[/b] (or click Send)\n• Try [b]look[/b] to see your surroundings\n• Try [b]go north[/b]  [b]status[/b]  [b]inventory[/b]\n\n[b]Live authoring shell[/b]\n• [b]@dig <asset_id>[/b] — acquire edit lock\n• [b]@dig <asset_id> renew[/b] — renew lock lease\n• [b]@dig <asset_id> release[/b] — release lock\n• [b]@edit <asset_id> next[/b] — submit next revision\n\n[b]History and scrolling[/b]\n• [b]Up / Down[/b] — browse past commands\n• [b]PageUp / PageDown[/b] — scroll the log\n• [b]Escape[/b] — refocus the input\n\n[b]Client customisation[/b]\n• [b]theme list[/b] — browse visual themes\n• [b]a11y list[/b] — accessibility presets (high contrast, etc.)\n• [b]keybind list[/b] — view and remap keys\n\nType [b]onboarding show[/b] to see this again at any time."
+
+[node name="DismissButton" type="Button" parent="OnboardingOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Got it — start playing!"
+
+[node name="CrashRecoveryOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8_cr")
+
+[node name="Backdrop" type="ColorRect" parent="CrashRecoveryOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.82)
+mouse_filter = 0
+
+[node name="CenterContainer" type="CenterContainer" parent="CrashRecoveryOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="CrashRecoveryOverlay/CenterContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(560, 0)
+
+[node name="VBox" type="VBoxContainer" parent="CrashRecoveryOverlay/CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="CrashRecoveryOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Session Recovery"
+
+[node name="DetailLabel" type="RichTextLabel" parent="CrashRecoveryOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 180)
+bbcode_enabled = true
+text = ""
+
+[node name="ButtonRow" type="HBoxContainer" parent="CrashRecoveryOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RestoreButton" type="Button" parent="CrashRecoveryOverlay/CenterContainer/Panel/VBox/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 40)
+text = "Reconnect to last session"
+
+[node name="FreshButton" type="Button" parent="CrashRecoveryOverlay/CenterContainer/Panel/VBox/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 40)
+text = "Start fresh"
+
+[node name="CharCreateOverlay" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("11_cc")
+
+[node name="Backdrop" type="ColorRect" parent="CharCreateOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+mouse_filter = 0
+
+[node name="CenterContainer" type="CenterContainer" parent="CharCreateOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="CharCreateOverlay/CenterContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(480, 0)
+
+[node name="VBox" type="VBoxContainer" parent="CharCreateOverlay/CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="CharCreateOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Create Your Character"
+
+[node name="HintLabel" type="Label" parent="CharCreateOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Choose a name for your character. Names must be 3–24 characters and may contain letters, numbers, spaces, _, -, and '."
+
+[node name="NameInput" type="LineEdit" parent="CharCreateOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+placeholder_text = "Character name..."
+max_length = 24
+
+[node name="ErrorLabel" type="Label" parent="CharCreateOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+modulate = Color(1, 0.4, 0.4, 1)
+text = ""
+visible = false
+
+[node name="ButtonRow" type="HBoxContainer" parent="CharCreateOverlay/CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CreateButton" type="Button" parent="CharCreateOverlay/CenterContainer/Panel/VBox/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 40)
+text = "Create Character"
+
+[node name="CancelButton" type="Button" parent="CharCreateOverlay/CenterContainer/Panel/VBox/ButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Cancel"
+
+[node name="AtmosphereLayer" type="CanvasLayer" parent="."]
+layer = 5
+script = ExtResource("9_atmo")
+overlay_path = NodePath("Overlay")
+audio_player_path = NodePath("AmbientAudio")
+
+[node name="Overlay" type="ColorRect" parent="AtmosphereLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+material = SubResource("ShaderMaterial_atmo")
+
+[node name="AmbientAudio" type="AudioStreamPlayer" parent="AtmosphereLayer"]
+bus = &"Master"

@@ -1,0 +1,24 @@
+{
+  "item_lockpick": {
+    "type": "Lockpick",
+    "name": "iron lockpick",
+    "description": "A thin piece of iron shaped to manipulate tumbler locks. It looks brittle.",
+    "weight": 0.1,
+    "value": 10,
+    "stackable": true,
+    "properties": {
+      "break_chance": 0.25
+    }
+  },
+  "item_master_lockpick": {
+    "type": "Lockpick",
+    "name": "masterwork lockpick",
+    "description": "A finely crafted lockpick made of flexible steel. Much harder to break.",
+    "weight": 0.1,
+    "value": 50,
+    "stackable": true,
+    "properties": {
+      "break_chance": 0.05
+    }
+  }
+}

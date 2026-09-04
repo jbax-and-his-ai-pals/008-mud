@@ -1,0 +1,71 @@
+{
+  "valid_damage_types": [
+    "physical",
+    "fire", "ice", "lightning", "water", "earth", "air", "poison", "acid",
+    "holy", "shadow", "arcane"
+  ],
+  "default_damage_type": "magical",
+  "elemental_opposites": {
+    "fire": "water",
+    "water": "lightning",
+    "ice": "fire",
+    "earth": "air",
+    "air": "earth",
+    "holy": "shadow",
+    "shadow": "holy"
+  },
+  "flavor_text": {
+    "fire": {
+      "weakness": "The flames roar, incinerating {target_name}'s vulnerability!",
+      "resistance": "{target_name} shrugs off the heat.",
+      "strong_resistance": "The fire washes over {target_name} harmlessly."
+    },
+    "ice": {
+      "weakness": "{target_name} shatters under the extreme cold!",
+      "resistance": "{target_name} ignores the chill.",
+      "strong_resistance": "The ice cracks uselessly against {target_name}."
+    },
+    "lightning": {
+      "weakness": "Electricity arcs through {target_name} violently!",
+      "resistance": "{target_name} grounds the spark.",
+      "strong_resistance": "{target_name} is unfazed by the lightning."
+    },
+    "holy": {
+      "weakness": "{target_name} screams as the divine light burns their corruption!",
+      "resistance": "The holy light dims against {target_name}.",
+      "strong_resistance": "{target_name} is untouched by the light."
+    },
+    "shadow": {
+      "weakness": "The shadows drain the very life essence from {target_name}!",
+      "resistance": "{target_name} resists the encroaching darkness.",
+      "strong_resistance": "{target_name} is one with the shadows."
+    },
+    "poison": {
+      "weakness": "The toxin ravages {target_name}'s body!",
+      "resistance": "{target_name}'s immunity fights off the poison.",
+      "strong_resistance": "{target_name} is immune to the toxin."
+    },
+    "default": {
+      "weakness": "{target_name} is vulnerable to the attack!",
+      "resistance": "{target_name} resists the attack.",
+      "strong_resistance": "{target_name} strongly resists the attack."
+    }
+  },
+  "hazards": {
+    "mapping": {
+      "extreme_heat": "fire",
+      "extreme_cold": "ice",
+      "poison_gas": "poison",
+      "electrified_floor": "lightning",
+      "unholy_aura": "shadow"
+    },
+    "flavor": {
+      "fire": "The intense heat scorches you!",
+      "ice": "The biting cold freezes your skin!",
+      "poison": "You choke on the toxic fumes!",
+      "lightning": "Sparks from the floor shock you!",
+      "shadow": "The oppressive darkness drains your life!",
+      "default": "The environment hurts you!"
+    }
+  }
+}

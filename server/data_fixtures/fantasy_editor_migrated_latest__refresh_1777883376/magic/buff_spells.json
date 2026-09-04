@@ -1,0 +1,17 @@
+{
+    "resist_fire": {
+        "name": "Resist Fire",
+        "description": "Grants temporary resistance to fire.",
+        "mana_cost": 10,
+        "cooldown": 15.0,
+        "effect_type": "apply_dot",
+        "target_type": "friendly",
+        "dot_name": "Resist Fire",
+        "dot_duration": 60.0,
+        "dot_damage_per_tick": 0,
+        "effect_data": {
+            "type": "stat_mod",
+            "modifiers": { "resistance_fire": 25 }
+        }
+    }
+}

@@ -1,0 +1,34 @@
+{
+  "forge_iron_sword": {
+    "name": "Forge Iron Sword",
+    "description": "Forge a basic iron sword.",
+    "result_item_id": "item_iron_sword",
+    "result_quantity": 1,
+    "station_required": "anvil",
+    "ingredients": [
+      { "item_id": "item_iron_ingot", "quantity": 2 },
+      { "item_id": "item_leather_strip", "quantity": 1 }
+    ]
+  },
+  "brew_minor_heal": {
+    "name": "Brew Healing Potion",
+    "description": "Brew a small healing draught.",
+    "result_item_id": "item_healing_potion_small",
+    "result_quantity": 1,
+    "station_required": "alchemy_table",
+    "ingredients": [
+      { "item_id": "item_wild_herbs", "quantity": 2 },
+      { "item_id": "item_glass_vial", "quantity": 1 }
+    ]
+  },
+  "stitch_leather_cap": {
+    "name": "Stitch Leather Cap",
+    "description": "Sew a basic leather helmet.",
+    "result_item_id": "item_leather_cap",
+    "result_quantity": 1,
+    "station_required": null,
+    "ingredients": [
+      { "item_id": "item_leather_strip", "quantity": 3 }
+    ]
+  }
+}

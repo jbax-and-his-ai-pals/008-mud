@@ -1,0 +1,20 @@
+{
+  "combat": {
+    "mode": "enabled"
+  },
+  "weather": {
+    "mode": "builtin"
+  },
+  "world_field": {
+    "mode": "enabled"
+  },
+  "authoring": {
+    "mode": "all"
+  },
+  "world_mutation": {
+    "mode": "mutable"
+  },
+  "mods": {
+    "mode": "enabled"
+  }
+}

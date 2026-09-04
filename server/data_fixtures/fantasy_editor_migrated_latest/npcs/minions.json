@@ -1,0 +1,47 @@
+{
+	"skeletal_mage_minion": {
+		"attack_power": 1.0,
+		"behavior_type": "minion",
+		"default_dialog": "The skeletal mage clicks its jawbones, watching its surroundings.",
+		"defense": 2.0,
+		"description": "An animated skeleton crackling with faint arcane energy.",
+		"dialog": {
+
+		},
+		"faction": "player_minion",
+		"friendly": false,
+		"health": 30.0,
+		"level": 1.0,
+		"loot_table": {
+
+		},
+		"max_health": 30.0,
+		"max_mana": 30.0,
+		"name": "Skeletal Mage Minion",
+		"properties": {
+			"aggression": 1.0,
+			"creation_time": 0.0,
+			"flee_threshold": 0.0,
+			"is_summoned": true,
+			"move_cooldown": 4.0,
+			"owner_id": null,
+			"respawn_cooldown": -1.0,
+			"spell_cast_chance": 0.8,
+			"summon_duration": 0.0,
+			"wander_chance": 0.0
+		},
+		"stats": {
+			"agility": 7.0,
+			"constitution": 6.0,
+			"dexterity": 7.0,
+			"intelligence": 14.0,
+			"magic_resist": 4.0,
+			"spell_power": 8.0,
+			"strength": 4.0,
+			"wisdom": 10.0
+		},
+		"usable_spells": [
+			"bone_shard"
+		]
+	}
+}

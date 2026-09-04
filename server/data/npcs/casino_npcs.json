@@ -1,0 +1,98 @@
+{
+  "casino_receptionist": {
+    "name": "Gilded Lotus Receptionist",
+    "description": "An impeccably dressed attendant with a welcoming, yet discerning smile.",
+    "level": 5,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Welcome to The Gilded Lotus. Please, enjoy the games. You may check the 'rules' at any table.",
+      "games": "Downstairs: Dice and Slots. Upstairs: The Elemental Wheel, Blackjack, and the Arcane Vault for those who prefer logic over luck.",
+      "town": "We provide a necessary escape from the drudgery of village life."
+    }
+  },
+  "dice_dealer": {
+    "name": "High-Roller Dealer",
+    "description": "A sharp-eyed dealer wearing a vest of red silk. They handle the dice with practiced ease.",
+    "level": 10,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Place your bets. High number takes the pot. (Type 'rules' for details, or 'bet <amount>')",
+      "rules": "Standard 100-sided dice. High number takes the pot. House wins ties. Simple."
+    },
+    "properties": {
+      "is_dealer": true,
+      "dealer_game": "dice_high_roll"
+    }
+  },
+  "mechanical_dealer": {
+    "name": "Automaton Croupier",
+    "description": "A brass and clockwork construct standing beside a row of slot machines. Its porcelain face mask remains frozen in a pleasant expression.",
+    "level": 15,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Insert... Coin. Pull... Lever. (Type 'rules' for payout table)",
+      "rules": "Payouts:\n3x Dragon: 100x\n3x Crown: 25x\n3x Potion: 15x\n3x Shield: 10x\n3x Dagger: 5x\nAny Pair: Break Even",
+      "status": "Systems... Operational. Luck... Statistical."
+    },
+    "properties": {
+      "is_dealer": true,
+      "dealer_game": "slots"
+    }
+  },
+  "wheel_dealer": {
+    "name": "Mystic Spinner",
+    "description": "A robed figure standing beside a massive, colorful wheel. The wheel glows with shifting magical energies.",
+    "level": 12,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Step forward and test your fate against the elements! (Type 'rules' to see the odds)",
+      "rules": "The Void (0x) takes all. Earth (1x) returns your stake. Fire (2x) doubles it. Ice (5x) pays five-fold. And Aether (10x) is the grand prize.",
+      "odds": "The Void is vast and hungry. But the rewards of Aether are great for those who dare."
+    },
+    "properties": {
+      "is_dealer": true,
+      "dealer_game": "wheel"
+    }
+  },
+  "card_dealer": {
+    "name": "Card Shark",
+    "description": "A calm dealer with impossibly fast hands. They shuffle the deck with a sound like tearing silk.",
+    "level": 10,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Care for a hand of Twenty-One? (Type 'bet <amount>' to deal)",
+      "rules": "Standard rules. Get closer to 21 than me without going over. Face cards are 10, Aces are 1 or 11. I stand on 17. Blackjack pays 3:2.",
+      "advice": "Know when to stand, friend. Greed is the fastest way to the poorhouse."
+    },
+    "properties": {
+      "is_dealer": true,
+      "dealer_game": "blackjack"
+    }
+  },
+  "vault_keeper": {
+    "name": "Vault Keeper",
+    "description": "A stoic mage wearing thick spectacles and robes covered in geometric patterns. He guards the Arcane Vault.",
+    "level": 15,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "You wish to attempt the Runebreaker? A test of logic, not luck. (Type 'bet <amount>' to begin)",
+      "rules": "I will set a secret code of 3 Runes (Fire, Water, Earth, Air). Duplicates are possible.\nYou have 8 attempts.\n'Perfect' means correct rune in correct spot.\n'Partial' means correct rune in wrong spot.\nCrack the code to win 5x your wager."
+    },
+    "properties": {
+      "is_dealer": true,
+      "dealer_game": "runebreaker"
+    }
+  }
+}

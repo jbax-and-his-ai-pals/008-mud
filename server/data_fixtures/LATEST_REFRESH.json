@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "source_root": "C:\\python\\old\\restart\\mud-world-editor\\data",
+  "latest_root": "C:\\python\\old\\restart\\server\\data",
+  "work_dir": "C:\\python\\old\\restart\\tmp\\fixture_refresh_1777927963",
+  "report_path": "C:\\python\\old\\restart\\tmp\\fixture_refresh_1777927963\\report.json",
+  "fixture_primary_target": "C:\\python\\old\\restart\\server\\data_fixtures\\fantasy_editor_migrated_latest",
+  "fixture_selected_target": "C:\\python\\old\\restart\\server\\data_fixtures\\fantasy_editor_migrated_latest__refresh_1777927964",
+  "replaced_primary_target": false,
+  "replacement_error": "[WinError 5] Access is denied: 'C:\\\\python\\\\old\\\\restart\\\\server\\\\data_fixtures\\\\fantasy_editor_migrated_latest\\\\items\\\\armor.json'"
+}

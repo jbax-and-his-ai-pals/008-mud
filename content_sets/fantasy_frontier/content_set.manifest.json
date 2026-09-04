@@ -1,0 +1,27 @@
+{
+  "id": "fantasy_frontier",
+  "title": "Fantasy Frontier",
+  "version": "0.1.0",
+  "manifest_schema_version": "1",
+  "engine_api_min": "1.0",
+  "engine_api_max": "1.0",
+  "paths": {
+    "data_root": "data",
+    "ruleset": "rules/ruleset.json",
+    "presentation": "presentation/default.json",
+    "opening": "opening/arrival_in_town.json"
+  },
+  "start": {
+    "scenario_id": "arrival_in_town",
+    "region_id": "town",
+    "room_id": "town_square"
+  },
+  "capabilities": [
+    "inventory",
+    "quests",
+    "combat",
+    "magic",
+    "crafting",
+    "dialogue"
+  ]
+}

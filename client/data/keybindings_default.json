@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "bindings": {
+    "mud_history_prev": {
+      "keys": ["Up"],
+      "description": "Recall previous command from history"
+    },
+    "mud_history_next": {
+      "keys": ["Down"],
+      "description": "Advance to next command in history"
+    },
+    "mud_scroll_up": {
+      "keys": ["PageUp"],
+      "description": "Scroll the log upward"
+    },
+    "mud_scroll_down": {
+      "keys": ["PageDown"],
+      "description": "Scroll the log downward"
+    },
+    "mud_focus_input": {
+      "keys": ["Escape"],
+      "description": "Return focus to the command input"
+    }
+  }
+}

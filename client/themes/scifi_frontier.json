@@ -1,0 +1,39 @@
+{
+  "theme_id": "scifi_frontier",
+  "display_name": "Sci-Fi Frontier",
+  "pack_spec_version": "1",
+  "runtime_api_min": "1.0",
+  "runtime_api_max": "1.0",
+  "ui_strings": {
+    "status_title": "Operator",
+    "inventory_title": "Loadout",
+    "journal_title": "Mission Log",
+    "nearby_title": "Sensor Sweep",
+    "world_state_title": "Field Telemetry",
+    "network_title": "Uplink",
+    "asset_title": "Glyph Feed",
+    "command_placeholder": "Type command (scan, thrust north, status...)"
+  },
+  "lexicon": {
+    "world_field_id": "radiance"
+  },
+  "style_tokens": {
+    "accent_color": "#67FFD3",
+    "text_color": "#D6FFF7",
+    "ui_density": 6
+  },
+  "icon_tokens": {
+    "status_effect": "Status FX:",
+    "hostile_tag": "threat",
+    "item_prefix": ">",
+    "npc_none": "No contacts in range.",
+    "item_none": "No pickups in range.",
+    "inventory_item_prefix": ">",
+    "inventory_none": "No cargo data.",
+    "inventory_empty": "Cargo hold empty.",
+    "quest_active_prefix": "Op:",
+    "quest_completed_prefix": "Closed:",
+    "quest_archived_prefix": "Archive:",
+    "quest_none": "No missions tracked."
+  }
+}

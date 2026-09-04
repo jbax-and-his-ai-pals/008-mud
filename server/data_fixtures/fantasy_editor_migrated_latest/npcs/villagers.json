@@ -1,0 +1,43 @@
+{
+	"alchemist": {
+		"behavior_type": "stationary",
+		"description": "An eccentric man with wild hair and stained fingers. He is constantly distracted by his bubbling concoctions.",
+		"dialog": {
+			"greeting": "Ah, a customer! Don't mind the smell. Or the smoke. What can I get for you?",
+			"trade": "Potions? Tinctures? Reagents? If it bubbles or fizzes, I'm your man!"
+		},
+		"faction": "friendly",
+		"friendly": true,
+		"health": 80.0,
+		"level": 4.0,
+		"max_mana": 80.0,
+		"name": "Kaelan the Alchemist",
+		"properties": {
+			"buys_item_types": [
+				"Consumable",
+				"Material",
+				"Junk"
+			],
+			"can_give_generic_quests": true,
+			"is_vendor": true,
+			"sells_items": [
+				{
+					"item_id": "item_healing_potion_small"
+				},
+				{
+					"item_id": "item_mana_potion_small"
+				},
+				{
+					"item_id": "item_scroll_random",
+					"price_multiplier": 2.0
+				}
+			],
+			"work_location": "town:alchemist_interior"
+		},
+		"stats": {
+			"intelligence": 18.0,
+			"spell_power": 12.0,
+			"wisdom": 14.0
+		}
+	}
+}

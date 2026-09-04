@@ -1,0 +1,14 @@
+{
+  "ruleset_id": "modern_capsule_core",
+  "world_mode": "single_player_slice",
+  "progression_model": "none",
+  "systems": {
+    "combat": { "enabled": false },
+    "magic": { "enabled": false },
+    "crafting": { "enabled": false },
+    "quests": { "enabled": false },
+    "inventory": { "enabled": true },
+    "dialogue": { "enabled": true },
+    "economy": { "enabled": false }
+  }
+}

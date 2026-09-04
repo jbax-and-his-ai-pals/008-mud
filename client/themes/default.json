@@ -1,0 +1,42 @@
+{
+  "theme_id": "default",
+  "display_name": "Default Toolkit",
+  "pack_spec_version": "1",
+  "runtime_api_min": "1.0",
+  "runtime_api_max": "1.0",
+  "ui_strings": {
+    "status_title": "Status",
+    "inventory_title": "Inventory",
+    "journal_title": "Journal",
+    "nearby_title": "Nearby",
+    "world_state_title": "World State",
+    "network_title": "Network",
+    "asset_title": "Asset Preview",
+    "connect_button": "Connect",
+    "disconnect_button": "Disconnect",
+    "send_button": "Send",
+    "command_placeholder": "Type command (look, go north, status...)"
+  },
+  "lexicon": {
+    "world_field_id": "world_field"
+  },
+  "style_tokens": {
+    "accent_color": "#BFE6FF",
+    "text_color": "#E6E6E6",
+    "ui_density": 8
+  },
+  "icon_tokens": {
+    "status_effect": "Effects:",
+    "hostile_tag": "hostile",
+    "item_prefix": "-",
+    "npc_none": "No nearby NPCs.",
+    "item_none": "No nearby items.",
+    "inventory_item_prefix": "-",
+    "inventory_none": "No inventory data.",
+    "inventory_empty": "Inventory empty.",
+    "quest_active_prefix": "A:",
+    "quest_completed_prefix": "C:",
+    "quest_archived_prefix": "R:",
+    "quest_none": "No quests tracked."
+  }
+}

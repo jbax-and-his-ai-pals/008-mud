@@ -1,0 +1,9 @@
+{
+  "events": [
+    {
+      "payload": "asset_update payload must be an object",
+      "protocol_version": "0.2.0",
+      "type": "error"
+    }
+  ]
+}

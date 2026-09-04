@@ -1,0 +1,45 @@
+{
+  "region_id": "obsidian_trial",
+  "name": "The Obsidian Trial",
+  "description": "An ancient testing ground carved from volcanic rock. The air is hot and smells of sulfur.",
+  "rooms": {
+    "entrance": {
+      "name": "Trial Entrance",
+      "description": "You stand at the entrance of a foreboding structure. To the south, a lava tube leads back to the caves. To the north, a grand hallway beckons.",
+      "exits": {
+        "south": "caves:lava_tube",
+        "north": "hall_of_gates"
+      }
+    },
+    "hall_of_gates": {
+      "name": "Hall of Gates",
+      "description": "A wide hallway blocked by a Massive Obsidian Gate to the north. Passages branch off to the east and west.",
+      "exits": {
+        "south": "entrance",
+        "west": "lever_room_west",
+        "east": "lever_room_east"
+      },
+      "items": [ { "item_id": "obj_sealed_gate" } ],
+      "properties": {
+        "hidden_exits": { "north": "inner_sanctum" }
+      }
+    },
+    "lever_room_west": {
+      "name": "West Mechanism Room",
+      "description": "A small chamber containing a mechanism.",
+      "exits": { "east": "hall_of_gates" },
+      "items": [ { "item_id": "obj_obsidian_lever_a" } ]
+    },
+    "lever_room_east": {
+      "name": "East Mechanism Room",
+      "description": "A small chamber containing a mechanism. It seems broken or jammed (Dummy for now, or just flavor).",
+      "exits": { "west": "hall_of_gates" }
+    },
+    "inner_sanctum": {
+      "name": "Inner Sanctum",
+      "description": "A massive circular chamber. In the center stands a construct of living stone.",
+      "exits": { "south": "hall_of_gates" },
+      "initial_npcs": [ { "template_id": "obsidian_construct" } ]
+    }
+  }
+}

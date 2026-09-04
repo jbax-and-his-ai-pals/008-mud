@@ -1,0 +1,248 @@
+{
+  "job": {
+    "display_name": "My Trade",
+    "keywords": ["job", "work", "trade", "occupation", "profession"],
+    "responses": [
+      {
+        "text": "I forge steel and iron. It's honest work, hot and heavy.",
+        "conditions": { "template_id": "blacksmith" },
+        "priority": 10
+      },
+      {
+        "text": "I stand watch. Someone has to keep the wolves and bandits at bay.",
+        "conditions": { "template_id": "town_guard" },
+        "priority": 10
+      },
+      {
+        "text": "I buy low and sell high. That is the way of the world.",
+        "conditions": { "template_id": "merchant" },
+        "priority": 10
+      },
+      {
+        "text": "My duty is to guide this village, not to hire farmhands. However... we are facing trouble. If you are a warrior, perhaps you can help where my guards cannot.",
+        "conditions": { "template_id": "village_elder" },
+        "priority": 10
+      },
+      {
+        "text": "I study the properties of matter and magic. Potions, transmutation... it is delicate work.",
+        "conditions": { "template_id": "alchemist" },
+        "priority": 10
+      },
+      {
+        "text": "I tend to the sick and wounded at the shrine. The gods guide my hands.",
+        "conditions": { "template_id": "healer" },
+        "priority": 10
+      },
+      {
+        "text": "I run the Drunken Dragon. Keeping mugs full and patrons happy is a full-time job!",
+        "conditions": { "template_id": "tavern_keeper" },
+        "priority": 10
+      },
+      {
+        "text": "I am but a simple villager. I work the land.",
+        "conditions": {},
+        "priority": 0
+      }
+    ]
+  },
+  "work": {
+    "display_name": "Work",
+    "responses": [
+        {
+            "text": "Have you completed the task I set for you? I am waiting for good news.",
+            "conditions": { "quest_state": { "state": "active", "from_this_npc": true } },
+            "priority": 20
+        },
+        {
+            "text": "You have done a great service for me. I have nothing else for you right now.",
+            "conditions": { "quest_state": { "state": "completed", "from_this_npc": true } },
+            "priority": 15
+        },
+        {
+            "text": "Check the Quest Board in the square. Or, if you are brave, ask me about the trouble we are facing.",
+            "conditions": { "template_id": "village_elder" },
+            "priority": 10
+        },
+        {
+            "text": "I don't have any work for you. Ask around town.",
+            "conditions": {},
+            "priority": 0
+        }
+    ]
+  },
+  "rumors": {
+    "display_name": "Latest Rumors",
+    "keywords": ["rumors", "news", "gossip", "happenings"],
+    "responses": [
+      {
+        "text": "The villagers gossip about lost shipments, but I know better. There is trouble brewing in the forest that threatens us all.",
+        "conditions": { "template_id": "village_elder" },
+        "priority": 10
+      },
+      {
+        "text": "Have you heard? A merchant caravan lost its missing supplies near the forest edge.",
+        "conditions": { "region_id": "town" },
+        "priority": 5
+      },
+      {
+        "text": "They say the ancient ruins in the forest are stirring. Lights seen at night.",
+        "conditions": { "region_id": "town" },
+        "priority": 5
+      },
+      {
+        "text": "The Murkwater Swamp is more dangerous than usual. The lizardfolk are agitated.",
+        "conditions": { "region_id": "swamp" },
+        "priority": 5
+      },
+      {
+        "text": "It's been quiet lately. Too quiet.",
+        "conditions": {},
+        "priority": 0
+      }
+    ]
+  },
+  "village_elder": {
+    "display_name": "Village Elder",
+    "keywords": ["village elder", "elder", "thorne"],
+    "responses": [
+      {
+        "text": "I am Thorne. I have led this village for longer than many have been alive. It is a heavy burden, but one I bear with pride. Feel free to ask about my trade or the latest rumors.",
+        "conditions": { "template_id": "village_elder" },
+        "priority": 10
+      },
+      {
+        "text": "Elder Thorne lives in the large house near the Town Square. He speaks for all of us.",
+        "conditions": {},
+        "priority": 0
+      }
+    ]
+  },
+  "missing_supplies": {
+    "display_name": "Missing Supplies",
+    "keywords": ["missing supplies", "lost cargo", "caravan", "shipment", "crate"],
+    "responses": [
+      {
+        "text": "You found them! Or... you are still looking? We are desperate.",
+        "conditions": { 
+            "template_id": "village_elder",
+            "quest_state": { "state": "active", "from_this_npc": true } 
+        },
+        "priority": 20
+      },
+      {
+        "text": "The winter will be hard, but thanks to you, we might survive.",
+        "conditions": { 
+            "template_id": "village_elder",
+            "quest_state": { "state": "completed", "from_this_npc": true } 
+        },
+        "priority": 20
+      },
+      {
+        "text": "Aye, a whole wagon gone. The Village Elder is offering a reward for their return.",
+        "conditions": { "template_id": "town_guard" },
+        "priority": 10
+      },
+      {
+        "text": "I lost a crate of good iron in that shipment! If you find it, bring it to me.",
+        "conditions": { "template_id": "blacksmith" },
+        "priority": 10
+      },
+      {
+        "text": "It is a tragedy. We need those supplies for winter. Please, if you find them, let me know.",
+        "conditions": { "template_id": "village_elder" },
+        "priority": 15
+      },
+      {
+        "text": "It's a tragedy. Winter is coming, and we needed that grain.",
+        "conditions": {},
+        "priority": 0
+      }
+    ]
+  },
+  "ancient_ruins": {
+    "display_name": "Ancient Ruins",
+    "keywords": ["ancient ruins", "ruins", "old stones"],
+    "responses": [
+      {
+        "text": "Old stones in the deep woods. Bad mojo. I stay away.",
+        "conditions": {},
+        "priority": 0
+      }
+    ]
+  },
+  "infestation": {
+    "display_name": "Infestation",
+    "keywords": ["infestation", "creatures", "vermin", "scuttling"],
+    "responses": [
+      {
+        "text": "Please, you must hurry! I can hear them scuttling in the walls!",
+        "conditions": { 
+            "template_id": "worried_homeowner",
+            "quest_state": { "state": "active", "from_this_npc": true }
+        },
+        "priority": 20
+      },
+      {
+        "text": "It is so quiet now. I can finally sleep. Thank you.",
+        "conditions": { 
+            "template_id": "worried_homeowner",
+            "quest_state": { "state": "completed", "from_this_npc": true }
+        },
+        "priority": 20
+      },
+      {
+        "text": "They drove me out of my own home! I don't know what to do.",
+        "conditions": { "template_id": "worried_homeowner" },
+        "priority": 10
+      }
+    ]
+  },
+  "murkwater_swamp": {
+    "display_name": "Murkwater Swamp",
+    "keywords": ["murkwater swamp", "swamp", "bog", "mire"],
+    "responses": [
+      {
+        "text": "It lies to the south. Full of rot, disease, and giant rats.",
+        "conditions": {},
+        "priority": 0
+      }
+    ]
+  },
+  "trouble": {
+    "display_name": "Trouble in the Valley",
+    "keywords": ["trouble", "danger", "bandits"],
+    "responses": [
+      {
+        "text": "The bandits in the forest are becoming organized. I fear a rebellion is brewing. We need a capable outsider to investigate. Are you willing to accept this mission?",
+        "conditions": { "template_id": "village_elder" },
+        "priority": 10
+      }
+    ]
+  },
+  "accept_mission": {
+    "display_name": "The Mission",
+    "keywords": ["accept", "accept mission"],
+    "responses": [
+      {
+        "text": "Excellent. I need you to scout the forest to the north. Locate their camp, but do not engage their leader yet. Report back when you have found it.",
+        "conditions": { 
+            "template_id": "village_elder",
+            "campaign_state": { "campaign_id": "bandit_rebellion", "state": "not_active" },
+            "knowledge_state": { "topic_id": "trouble", "state": "discussed" }
+        },
+        "priority": 10,
+        "effects": {
+          "start_campaign": "bandit_rebellion"
+        }
+      },
+      {
+        "text": "We have already discussed this. Make haste to the forest.",
+        "conditions": { 
+            "template_id": "village_elder",
+            "campaign_state": { "campaign_id": "bandit_rebellion", "state": "active" }
+        },
+        "priority": 10
+      }
+    ]
+  }
+}

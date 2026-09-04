@@ -1,0 +1,316 @@
+{
+  "hello": {
+    "payload": {
+      "auth_state": {
+        "authoring_mode": "all",
+        "authoring_requires_gm": false,
+        "gm_auth_configured": false,
+        "gm_auth_cooldown_seconds": 0,
+        "gm_granted": false,
+        "session_entitlements": []
+      },
+      "has_character": false,
+      "message": "connected",
+      "operator_catalog": {
+        "domains": {
+          "Audit": [
+            "Shard Runtime",
+            "Stale Refs",
+            "Boot Warnings"
+          ],
+          "Auth": [
+            "GM Status",
+            "GM Deauth"
+          ],
+          "Authoring": [
+            "Lock Status",
+            "Acquire Lock",
+            "Renew Lock",
+            "Release Lock",
+            "Edit Next",
+            "Edit Stale"
+          ],
+          "Policy": [
+            "Fetch Policy"
+          ],
+          "Profiles": [
+            "List Profiles"
+          ],
+          "Shard": [
+            "Status",
+            "Set Normal",
+            "Set Drain",
+            "Set Freeze",
+            "Set Maintenance"
+          ],
+          "World Effects": [
+            "Providers",
+            "Status",
+            "Use Provider"
+          ]
+        },
+        "requirements": {
+          "Audit:Boot Warnings": {
+            "requires_entitlement": "operator.audit.boot_warnings"
+          },
+          "Audit:Shard Runtime": {
+            "requires_entitlement": "operator.shard.manage"
+          },
+          "Audit:Stale Refs": {
+            "requires_entitlement": "operator.audit.stale_refs"
+          },
+          "Authoring:Acquire Lock": {
+            "requires_entitlement": "creator_sdk.authoring"
+          },
+          "Authoring:Edit Next": {
+            "requires_entitlement": "creator_sdk.authoring"
+          },
+          "Authoring:Edit Stale": {
+            "requires_entitlement": "creator_sdk.authoring"
+          },
+          "Authoring:Release Lock": {
+            "requires_entitlement": "creator_sdk.authoring"
+          },
+          "Authoring:Renew Lock": {
+            "requires_entitlement": "creator_sdk.authoring"
+          },
+          "Profiles:Apply Selected": {
+            "requires_entitlement": "operator.profile.apply"
+          },
+          "Shard:Set Drain": {
+            "requires_entitlement": "operator.shard.manage"
+          },
+          "Shard:Set Freeze": {
+            "requires_entitlement": "operator.shard.manage"
+          },
+          "Shard:Set Maintenance": {
+            "requires_entitlement": "operator.shard.manage"
+          },
+          "Shard:Set Normal": {
+            "requires_entitlement": "operator.shard.manage"
+          },
+          "World Effects:Use Provider": {
+            "requires_entitlement": "operator.world_effects.manage",
+            "requires_gm": true
+          }
+        },
+        "value_options": {
+          "Profiles:Apply Selected": [
+            "creative_world",
+            "locked_static_no_combat",
+            "mobile_low_fx",
+            "social_no_combat",
+            "static_world"
+          ],
+          "World Effects:Use Provider": [
+            "builtin.world_effects.default",
+            "disabled.world_effects",
+            "sample.effects.balance"
+          ]
+        }
+      },
+      "party_state": {
+        "in_party": false,
+        "leader_name": "",
+        "leader_player_id": "",
+        "members": [],
+        "mode": "persistent_shard",
+        "outgoing_invites": [],
+        "party_id": "",
+        "pending_invites": [],
+        "supported": false
+      },
+      "server_capabilities": {
+        "transports": [
+          "json",
+          "msgpack"
+        ]
+      },
+      "server_policy": {
+        "abuse_policy": {
+          "command_burst": 16,
+          "command_rate_limit_per_sec": 8.0,
+          "max_command_chars": 512,
+          "max_envelope_bytes": 8192
+        },
+        "active_providers": {
+          "weather": "builtin.weather.default",
+          "world_effects": "builtin.world_effects.default"
+        },
+        "auth_policy": {
+          "authoring_requires_gm": false,
+          "gm_auth_configured": false,
+          "gm_auth_cooldown_seconds": 30,
+          "gm_auth_failures_for_cooldown": 3,
+          "gm_capability_name": "authoring.gm"
+        },
+        "content_set": {
+          "game_contract": {
+            "progression_model": "level_based",
+            "status_fields": [
+              "name",
+              "health",
+              "level",
+              "experience",
+              "mana"
+            ],
+            "systems": {
+              "combat": true,
+              "crafting": true,
+              "dialogue": true,
+              "economy": true,
+              "inventory": true,
+              "magic": true,
+              "progression": true,
+              "quests": true
+            },
+            "ui_sections": [
+              "log",
+              "nearby",
+              "status",
+              "inventory",
+              "quests"
+            ]
+          },
+          "id": "fantasy_frontier",
+          "manifest_path": "C:\\jbax-and-his-ai-pals\\008-single-player-mud\\content_sets\\fantasy_frontier\\content_set.manifest.json",
+          "start": {
+            "region_id": "town",
+            "room_id": "town_square"
+          },
+          "title": "Fantasy Frontier",
+          "version": "0.1.0"
+        },
+        "entitlement_policy": {
+          "default_session_grants": [],
+          "gates": {
+            "operator.profile.apply": [
+              "operator.profile.apply"
+            ]
+          }
+        },
+        "feature_flags": {
+          "authoring_allowed": true,
+          "combat_enabled": true,
+          "party_supported": false,
+          "persistent_world": true,
+          "weather_enabled": true,
+          "world_effects_enabled": true,
+          "world_mutation_allowed": true
+        },
+        "party_policy": {
+          "cancel_supported": true,
+          "decline_supported": true,
+          "enabled": false,
+          "invite_conflict_policy": "replace_existing",
+          "invite_required": true,
+          "leader_controls_membership": true,
+          "loot_policy": "round_robin",
+          "offline_invites_supported": true,
+          "shared_quest_policy": "leader_driven",
+          "shared_rewards_policy": "split"
+        },
+        "profile_modes": {
+          "authoring": "all",
+          "combat": "enabled",
+          "mods": "enabled",
+          "weather": "builtin",
+          "world": "persistent_shard",
+          "world_effects": "enabled",
+          "world_mutation": "mutable"
+        },
+        "require_character_creation": false,
+        "session_entitlements": [],
+        "shard_policy": {
+          "background_simulation_policy": "always_on",
+          "character_creation_enabled": true,
+          "diagnostics": {
+            "connected_session_count": 1,
+            "disconnected_session_count": 0,
+            "expired_grace_window_session_count": 0,
+            "grace_window_seconds": 300.0,
+            "last_mode_change_at": null,
+            "last_mode_changed_by_session_id": "",
+            "late_join_policy": "enabled",
+            "max_disconnected_age_seconds": 0.0,
+            "new_session_admission_enabled": true,
+            "new_session_admission_reason": "",
+            "resumable_session_count": 0,
+            "runtime_message": "",
+            "runtime_state": "normal",
+            "total_session_count": 1,
+            "world_mode": "persistent_shard"
+          },
+          "disconnect_timeout_policy": "indefinite",
+          "disconnect_timeout_seconds": 300.0,
+          "enabled": true,
+          "gameplay_enabled": true,
+          "late_join_policy": "enabled",
+          "new_session_admission_enabled": true,
+          "new_session_admission_reason": "",
+          "operator_locks_required": true,
+          "persistence_scope": "world_and_players",
+          "runtime_message": "",
+          "runtime_state": "normal",
+          "session_resume_policy": "enabled",
+          "tick_enabled": true,
+          "world_clock_policy": "always_on"
+        }
+      },
+      "server_protocol_version": "0.2.0",
+      "session_capabilities": [],
+      "startup_diagnostics": {
+        "boot_warning_fail_codes": [],
+        "content_set": {
+          "game_contract": {
+            "progression_model": "level_based",
+            "status_fields": [
+              "name",
+              "health",
+              "level",
+              "experience",
+              "mana"
+            ],
+            "systems": {
+              "combat": true,
+              "crafting": true,
+              "dialogue": true,
+              "economy": true,
+              "inventory": true,
+              "magic": true,
+              "progression": true,
+              "quests": true
+            },
+            "ui_sections": [
+              "log",
+              "nearby",
+              "status",
+              "inventory",
+              "quests"
+            ]
+          },
+          "id": "fantasy_frontier",
+          "manifest_path": "C:\\jbax-and-his-ai-pals\\008-single-player-mud\\content_sets\\fantasy_frontier\\content_set.manifest.json",
+          "start": {
+            "region_id": "town",
+            "room_id": "town_square"
+          },
+          "title": "Fantasy Frontier",
+          "version": "0.1.0"
+        },
+        "data_root": "C:\\jbax-and-his-ai-pals\\008-single-player-mud\\content_sets\\fantasy_frontier\\data",
+        "fixture_refresh_marker": {
+          "fixture_primary_target": "C:\\python\\old\\restart\\server\\data_fixtures\\fantasy_editor_migrated_latest",
+          "fixture_selected_target": "C:\\python\\old\\restart\\server\\data_fixtures\\fantasy_editor_migrated_latest__refresh_1777927964",
+          "present": true,
+          "selected_matches_primary": false
+        },
+        "warning_codes": {},
+        "warning_count": 0
+      }
+    },
+    "protocol_version": "0.2.0",
+    "type": "hello"
+  },
+  "transport": "ws-json"
+}

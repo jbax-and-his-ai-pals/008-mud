@@ -1,0 +1,13 @@
+{
+	"item_gold_coin": {
+		"description": "A shiny gold coin.",
+		"name": "gold coin",
+		"properties": {
+			"treasure_type": "coin"
+		},
+		"stackable": true,
+		"type": "Treasure",
+		"value": 1.0,
+		"weight": 0.01
+	}
+}

@@ -1,0 +1,11 @@
+{
+  "authoring_mode": "all",
+  "events": [
+    {
+      "payload": "unknown asset_id 'contract_asset'",
+      "protocol_version": "0.2.0",
+      "type": "error"
+    }
+  ],
+  "transport": "tcp-json"
+}

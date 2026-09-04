@@ -1,0 +1,74 @@
+{
+    "item_leather_cap": {
+      "type": "Armor",
+      "name": "leather cap",
+      "description": "A simple cap made of hardened leather. Offers basic head protection.",
+      "weight": 0.5,
+      "value": 10,
+      "stackable": false,
+      "properties": {
+        "defense": 1,
+        "durability": 30,
+        "max_durability": 30,
+        "equip_slot": ["head"]
+      }
+    },
+    "item_leather_tunic": {
+      "type": "Armor",
+      "name": "leather tunic",
+      "description": "A tunic crafted from thick, boiled leather panels sewn together.",
+      "weight": 3.0,
+      "value": 25,
+      "stackable": false,
+      "properties": {
+        "defense": 2,
+        "durability": 50,
+        "max_durability": 50,
+        "equip_slot": ["body"]
+      }
+    },
+    "item_leather_gloves": {
+      "type": "Armor",
+      "name": "leather gloves",
+      "description": "Simple gloves made from tough leather.",
+      "weight": 0.3,
+      "value": 8,
+      "stackable": false,
+      "properties": {
+        "defense": 1,
+        "durability": 25,
+        "max_durability": 25,
+        "equip_slot": ["hands"]
+      }
+    },
+    "item_leather_boots": {
+      "type": "Armor",
+      "name": "leather boots",
+      "description": "Sturdy boots made of thick leather, suitable for adventuring.",
+      "weight": 1.2,
+      "value": 12,
+      "stackable": false,
+      "properties": {
+        "defense": 1,
+        "durability": 40,
+        "max_durability": 40,
+        "equip_slot": ["feet"]
+      }
+    },
+    "item_padded_tunic": {
+      "type": "Armor",
+      "name": "padded tunic",
+      "description": "A cloth tunic reinforced with layers of thick padding sewn inside.",
+      "weight": 4.0,
+      "value": 40,
+      "stackable": false,
+      "properties": {
+        "defense": 3,
+        "durability": 60,
+        "max_durability": 60,
+        "equip_slot": ["body"]
+      }
+    },
+    "item_cultist_robes": { "type": "Armor", "name": "cultist robes", "description": "Dark, hooded robes stained with something unpleasant.", "weight": 2.0, "value": 15, "properties": { "defense": 1, "durability": 20, "max_durability": 20, "equip_slot": ["body"] }},
+    "item_lizardfolk_shield": { "type": "Armor", "name": "lizardfolk shield", "description": "A sturdy shield made from the hardened hide of a large reptile.", "weight": 4.0, "value": 30, "properties": { "defense": 2, "durability": 60, "max_durability": 60, "equip_slot": ["off_hand"] }}
+  }

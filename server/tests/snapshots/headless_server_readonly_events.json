@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "payload": "drop all",
+      "protocol_version": "0.2.0",
+      "type": "command"
+    },
+    {
+      "payload": "No character yet. Use: char create <name>",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    }
+  ],
+  "policy": {
+    "combat_mode": "enabled",
+    "world_mutation_mode": "readonly"
+  }
+}

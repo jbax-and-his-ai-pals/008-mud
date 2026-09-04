@@ -1,0 +1,8 @@
+{
+  "plugin_id": "sample_weather_provider",
+  "name": "Sample Weather Provider",
+  "version": "0.1.0",
+  "capabilities": [
+    "system_provider_registration"
+  ]
+}

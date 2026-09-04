@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "payload": {
+        "active_locks": [],
+        "locks_ephemeral": true
+      },
+      "protocol_version": "0.2.0",
+      "type": "lock_state"
+    },
+    {
+      "payload": {
+        "active_locks": [
+          {
+            "asset_id": "test_glyph_001",
+            "owner_session_id": "<uuid>"
+          }
+        ],
+        "locks_ephemeral": true
+      },
+      "protocol_version": "0.2.0",
+      "type": "lock_state"
+    }
+  ]
+}

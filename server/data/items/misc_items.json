@@ -1,0 +1,121 @@
+{
+  "item_town_notice": {
+    "type": "Item",
+    "name": "town notice",
+    "description": "A notice posted on the town bulletin board. It reads: 'MISSING: Supplies from the last merchant caravan. Anyone with information please speak to the Town Elder.'",
+    "weight": 0.1,
+    "value": 0,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_traveler_journal": {
+    "type": "Item",
+    "name": "traveler's journal",
+    "description": "A leather-bound journal with entries from a merchant who passed through the village. The last entry mentions strange noises in the forest at night and missing supplies.",
+    "weight": 0.5,
+    "value": 5,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_fishing_net": {
+    "type": "Item",
+    "name": "fishing net",
+    "description": "A sturdy net used for catching fish.",
+    "weight": 2.0,
+    "value": 15,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_barrel_ale": {
+    "type": "Item",
+    "name": "barrel of ale",
+    "description": "A large wooden barrel, full of the Drunken Dragon's signature ale.",
+    "weight": 50.0,
+    "value": 100,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_torn_map": {
+    "type": "Item",
+    "name": "torn map",
+    "description": "A torn piece of parchment showing a partial map of the region. There appears to be a marked location deep in the forest, but part of the map is missing.",
+    "weight": 0.1,
+    "value": 5,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_waterlogged_pouch": {
+    "type": "Item",
+    "name": "waterlogged pouch",
+    "description": "A small leather pouch, soaked through but seemingly intact. Perhaps something valuable remains inside.",
+    "weight": 0.5,
+    "value": 15,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_burnt_scroll": {
+    "type": "Item",
+    "name": "burnt scroll",
+    "description": "A fragile scroll, mostly destroyed by fire and time. Only a few cryptic symbols remain legible.",
+    "weight": 0.1,
+    "value": 5,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_summit_offering": {
+    "type": "Item",
+    "name": "weathered offering",
+    "description": "A small, carved stone left at the shrine long ago. It feels strangely peaceful to hold.",
+    "weight": 0.2,
+    "value": 30,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_sharp_flint": {
+    "type": "Item",
+    "name": "sharp flint",
+    "description": "A piece of flint with a naturally sharp edge. Could be used as a makeshift tool or weapon.",
+    "weight": 0.2,
+    "value": 1,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_driftwood": {
+    "type": "Item",
+    "name": "piece of driftwood",
+    "description": "A smooth piece of wood, worn by the sea and sand.",
+    "weight": 1.5,
+    "value": 1,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_seashell": {
+    "type": "Item",
+    "name": "pretty seashell",
+    "description": "A colorful, intact seashell.",
+    "weight": 0.1,
+    "value": 2,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_coiled_rope": {
+    "type": "Item",
+    "name": "coiled rope",
+    "description": "A length of sturdy hemp rope, coiled neatly.",
+    "weight": 2.0,
+    "value": 8,
+    "stackable": false,
+    "properties": {}
+  },
+  "quest_package_generic": {
+    "type": "Item",
+    "name": "Sealed Package",
+    "description": "A package that needs delivering. Its contents are unknown.",
+    "weight": 1.0,
+    "value": 0,
+    "stackable": false,
+    "properties": {
+        "is_quest_item": true
+    }
+  }
+}

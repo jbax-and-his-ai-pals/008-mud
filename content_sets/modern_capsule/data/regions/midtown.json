@@ -1,0 +1,51 @@
+{
+  "region_id": "midtown",
+  "name": "Midtown",
+  "description": "A compact downtown district on an ordinary weekday morning.",
+  "properties": { "safe_zone": true },
+  "rooms": {
+    "transit_plaza": {
+      "name": "Transit Plaza",
+      "description": "Commuters cross an open plaza between the station entrance, a small café, and a public-library branch. Electronic boards quietly list arrivals and departures.",
+      "exits": { "east": "corner_cafe", "north": "library_walk", "south": "station_concourse" },
+      "initial_npcs": [
+        { "template_id": "maya", "instance_id": "maya_plaza" }
+      ],
+      "items": [
+        { "item_id": "city_map" }
+      ]
+    },
+    "corner_cafe": {
+      "name": "Corner Café",
+      "description": "A bright neighborhood café with a long counter, a few occupied tables, and the calm hiss of an espresso machine.",
+      "properties": { "outdoors": false },
+      "exits": { "west": "transit_plaza" },
+      "initial_npcs": [
+        { "template_id": "devon", "instance_id": "devon_cafe" }
+      ],
+      "items": [
+        { "item_id": "paper_cup" }
+      ]
+    },
+    "library_walk": {
+      "name": "Library Walk",
+      "description": "A tree-lined pedestrian path runs along the library’s glass façade. A bench faces a modest community noticeboard.",
+      "exits": { "south": "transit_plaza", "north": "library_lobby" },
+      "items": [
+        { "item_id": "community_flyer" }
+      ]
+    },
+    "library_lobby": {
+      "name": "Library Lobby",
+      "description": "The public library lobby is quiet and welcoming, with returns slots, event posters, and a self-service checkout kiosk.",
+      "properties": { "outdoors": false },
+      "exits": { "south": "library_walk" }
+    },
+    "station_concourse": {
+      "name": "Station Concourse",
+      "description": "The station concourse is clean, busy, and lined with ticket machines. A departure board glows above the platforms.",
+      "properties": { "outdoors": false },
+      "exits": { "north": "transit_plaza" }
+    }
+  }
+}

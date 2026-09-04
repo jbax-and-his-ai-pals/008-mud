@@ -1,0 +1,34 @@
+{
+	"earth_elemental": {
+		"attack_power": 9.0,
+		"behavior_type": "aggressive",
+		"defense": 8.0,
+		"description": "A lumbering humanoid of living rock and soil.",
+		"faction": "hostile",
+		"friendly": false,
+		"health": 90.0,
+		"level": 7.0,
+		"loot_table": {
+			"item_amethyst": {
+				"chance": 0.3
+			},
+			"item_emerald": {
+				"chance": 0.1
+			},
+			"item_living_rock": {
+				"chance": 0.7
+			}
+		},
+		"name": "earth elemental",
+		"properties": {
+			"attack_cooldown": 4.0
+		},
+		"stats": {
+			"agility": 5.0,
+			"constitution": 18.0,
+			"dexterity": 6.0,
+			"magic_resist": 6.0,
+			"strength": 17.0
+		}
+	}
+}

@@ -1,0 +1,35 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8765,
+    "save_file": "server_save.json",
+    "asset_db": ":memory:",
+    "data_root": "server/data"
+  },
+  "websocket": {
+    "port": 8766
+  },
+  "feature_profile": {
+    "path": "server/data/profiles/locked_static_no_combat.profile.json"
+  },
+  "world_bootstrap": {
+    "starter_items": []
+  },
+  "session": {
+    "default_capabilities": [],
+    "default_entitlements": [],
+    "require_character_creation": true,
+    "authz_detail_level": "minimal",
+    "gm_auth_token": ""
+  },
+  "entitlements": {
+    "default_session_grants": [],
+    "gates": {
+      "operator.profile.apply": { "requires": ["operator.profile.apply"] },
+      "operator.world_effects.manage": { "requires": ["operator.world_effects.manage"] },
+      "operator.feature_profile.toggle": { "requires": ["operator.feature_profile.toggle"] },
+      "operator.world.debug": { "requires": ["operator.world.debug"] },
+      "creator_sdk.authoring": { "requires": ["creator_sdk.authoring"] }
+    }
+  }
+}

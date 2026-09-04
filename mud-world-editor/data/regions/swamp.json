@@ -1,0 +1,271 @@
+{
+	"description": "A vast, humid swamp stretching south of the Silver River. Twisted trees draped in moss rise from stagnant water, and the air buzzes with insects.",
+	"name": "Murkwater Swamp",
+	"region_id": "swamp",
+	"rooms": {
+		"ancient_bog": {
+			"_editor_pos": [
+				0.0,
+				0.0
+			],
+			"description": "This area feels unnaturally old. The water is black and still, preserving fallen trees from centuries past. The air is heavy and silent, save for the hum of insects.",
+			"exits": {
+				"north": "deep_swamp",
+				"south": "bog_end"
+			},
+			"name": "Ancient Bog",
+			"properties": {
+				"dark": true,
+				"smell": "peat"
+			}
+		},
+		"bog_end": {
+			"_editor_pos": [
+				0.0,
+				250.0
+			],
+			"description": "The fetid swamp begins to give way to brackish marshes. You can smell the salt of the sea on the wind from the south, promising an end to the swamp's oppressive atmosphere.",
+			"exits": {
+				"north": "ancient_bog",
+				"south": "coastal_path:mudflats"
+			},
+			"name": "Edge of the Bog"
+		},
+		"cypress_stand": {
+			"_editor_pos": [
+				700.0,
+				-1000.0
+			],
+			"description": "Gnarled cypress trees rise from the water, their 'knees' creating a treacherous maze of trip hazards. The path is unclear, but you think you can push south.",
+			"exits": {
+				"northwest": "stagnant_pool",
+				"south": "lizard_den"
+			},
+			"name": "Cypress Stand",
+			"properties": {
+
+			}
+		},
+		"deep_swamp": {
+			"_editor_pos": [
+				0.0,
+				-250.0
+			],
+			"description": "The path dissolves into treacherous mire. Twisted cypress trees rise from the muck, their roots like grasping claws. Visibility is poor due to thick fog.",
+			"exits": {
+				"north": "whispering_reeds",
+				"south": "ancient_bog",
+				"southeast": "quicksand_pit"
+			},
+			"name": "Deep Swamp Mire",
+			"properties": {
+				"dark": true,
+				"smell": "decay"
+			}
+		},
+		"flooded_ruin": {
+			"_editor_pos": [
+				576.0,
+				-128.0
+			],
+			"description": "Submerged within the sunken structure, this room is filled with murky water and debris. Visibility is extremely limited.",
+			"exits": {
+				"up": "sunken_structure"
+			},
+			"name": "Flooded Ruin Interior",
+			"properties": {
+				"dark": true,
+				"underwater": true
+			}
+		},
+		"lizard_den": {
+			"_editor_pos": [
+				700.0,
+				-750.0
+			],
+			"description": "A large burrow dug into a muddy bank. Large reptilian tracks lead into the opening. It smells of reptile and old meat.",
+			"exits": {
+				"north": "cypress_stand",
+				"west": "mangrove_thicket"
+			},
+			"items": [
+				{
+					"item_id": "item_lizard_scale"
+				}
+			],
+			"name": "Giant Lizard Den",
+			"properties": {
+				"smell": "reptilian"
+			}
+		},
+		"mangrove_thicket": {
+			"_editor_pos": [
+				350.0,
+				-750.0
+			],
+			"description": "A dense thicket of mangrove trees with tangled roots creating a maze-like environment. It's easy to get turned around. A faint trail leads west towards a rotting log.",
+			"exits": {
+				"east": "lizard_den",
+				"north": "muddy_trail",
+				"south": "sunken_structure_approach",
+				"west": "rotting_log"
+			},
+			"name": "Mangrove Thicket",
+			"properties": {
+
+			}
+		},
+		"marsh_edge": {
+			"_editor_pos": [
+				350.0,
+				-1500.0
+			],
+			"description": "The firm ground of the riverbank gives way to soggy marshland. The air grows heavy and humid, filled with the croaking of frogs. A narrow, muddy path leads south deeper into the mire.",
+			"exits": {
+				"north": "town:river_road",
+				"south": "stagnant_pool",
+				"west": "willow_grove"
+			},
+			"name": "Marsh Edge",
+			"properties": {
+				"smell": "damp earth"
+			}
+		},
+		"muddy_trail": {
+			"_editor_pos": [
+				350.0,
+				-1000.0
+			],
+			"description": "A slippery trail of thick mud winds between stagnant pools. It's difficult to keep your footing. The path continues south into a dense thicket.",
+			"exits": {
+				"north": "stagnant_pool",
+				"south": "mangrove_thicket"
+			},
+			"name": "Muddy Trail"
+		},
+		"quicksand_pit": {
+			"_editor_pos": [
+				350.0,
+				0.0
+			],
+			"description": "A deceptively calm-looking pool of mud. Ripples suggest movement beneath the surface. Getting too close looks dangerous. Something shiny is partially submerged near the edge.",
+			"exits": {
+				"northwest": "deep_swamp"
+			},
+			"items": [
+				{
+					"item_id": "item_muddy_brooch"
+				}
+			],
+			"name": "Quicksand Pit",
+			"properties": {
+
+			}
+		},
+		"rotting_log": {
+			"_editor_pos": [
+				0.0,
+				-750.0
+			],
+			"description": "A massive, moss-covered log bridges a particularly deep patch of dark water. Pale, rubbery fungi grow in clusters on its damp surface.",
+			"exits": {
+				"east": "mangrove_thicket",
+				"south": "whispering_reeds"
+			},
+			"items": [
+				{
+					"item_id": "item_swamp_fungus"
+				}
+			],
+			"name": "Rotting Log",
+			"properties": {
+
+			}
+		},
+		"stagnant_pool": {
+			"_editor_pos": [
+				350.0,
+				-1250.0
+			],
+			"description": "A large pool of dark, unmoving water blocks the path south. Bubbles occasionally rise to the surface with a soft 'plop'. A risky-looking path through cypress trees heads east.",
+			"exits": {
+				"north": "marsh_edge",
+				"south": "muddy_trail",
+				"southeast": "cypress_stand"
+			},
+			"name": "Stagnant Pool",
+			"properties": {
+				"smell": "stagnant water"
+			}
+		},
+		"sunken_structure": {
+			"_editor_pos": [
+				350.0,
+				-250.0
+			],
+			"description": "Most of an old stone structure has sunk into the swamp, but carvings near the waterline suggest it is very old. A dark opening leads down into its flooded interior.",
+			"exits": {
+				"down": "flooded_ruin",
+				"north": "sunken_structure_approach"
+			},
+			"name": "Sunken Structure",
+			"properties": {
+
+			}
+		},
+		"sunken_structure_approach": {
+			"_editor_pos": [
+				350.0,
+				-500.0
+			],
+			"description": "The path opens up slightly here. Ahead to the south, the top of an old stone structure juts out from the murky water.",
+			"exits": {
+				"north": "mangrove_thicket",
+				"south": "sunken_structure"
+			},
+			"name": "Approach to Sunken Structure",
+			"properties": {
+
+			}
+		},
+		"whispering_reeds": {
+			"_editor_pos": [
+				0.0,
+				-500.0
+			],
+			"description": "Tall reeds grow thickly here, whispering secrets as the wind sighs through them. It's hard to see far in any direction.",
+			"exits": {
+				"north": "rotting_log",
+				"south": "deep_swamp"
+			},
+			"name": "Whispering Reeds",
+			"properties": {
+				"noisy": true
+			}
+		},
+		"willow_grove": {
+			"_editor_pos": [
+				0.0,
+				-1500.0
+			],
+			"description": "A grove of ancient weeping willow trees stands near the marsh edge, their long branches trailing into the murky water, obscuring the view to the west.",
+			"exits": {
+				"east": "marsh_edge"
+			},
+			"name": "Weeping Willow Grove"
+		}
+	},
+	"spawner": {
+		"level_range": [
+			2.0,
+			4.0
+		],
+		"monster_types": {
+			"giant_rat": 4.0,
+			"lizardfolk_warrior": 2.0,
+			"shambling_mound": 1.0,
+			"slime": 4.0,
+			"zombie": 3.0
+		}
+	}
+}

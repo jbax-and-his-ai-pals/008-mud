@@ -1,0 +1,113 @@
+{
+  "item_lost_earring": {
+    "type": "Treasure",
+    "name": "lost earring",
+    "description": "A small silver earring, likely forgotten by a previous guest.",
+    "weight": 0.1,
+    "value": 10,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "jewelry"
+    }
+  },
+  "item_old_coin": {
+    "type": "Treasure",
+    "name": "ancient coin",
+    "description": "A tarnished silver coin bearing unfamiliar markings. It appears to be very old and might be valuable to a collector.",
+    "weight": 0.1,
+    "value": 25,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "coin"
+    }
+  },
+  "item_glowing_crystal": {
+    "type": "Treasure",
+    "name": "glowing crystal",
+    "description": "A fist-sized crystal that emits a faint blue glow. It feels warm to the touch and seems to pulse with an inner light.",
+    "weight": 1.0,
+    "value": 75,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "gem"
+    }
+  },
+  "item_crystal_shard": {
+    "type": "Treasure",
+    "name": "crystal shard",
+    "description": "A sharp shard broken off from a larger crystal formation.",
+    "weight": 0.2,
+    "value": 10,
+    "stackable": true,
+    "properties": {
+      "treasure_type": "gem"
+    }
+  },
+  "item_obsidian_chunk": {
+    "type": "Treasure",
+    "name": "obsidian chunk",
+    "description": "A piece of sharp, black volcanic glass.",
+    "weight": 0.5,
+    "value": 15,
+    "stackable": true,
+    "properties": {
+      "treasure_type": "rock"
+    }
+  },
+  "item_gold_nugget": {
+    "type": "Treasure",
+    "name": "gold nugget",
+    "description": "A small, rough nugget of pure gold, likely missed by the original miners.",
+    "weight": 0.3,
+    "value": 40,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "ore"
+    }
+  },
+  "item_ancient_amulet": {
+    "type": "Treasure",
+    "name": "ancient amulet",
+    "description": "A heavy amulet made of an unknown black metal, set with a dull, unblinking gem.",
+    "weight": 0.4,
+    "value": 100,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "jewelry"
+    }
+  },
+  "item_muddy_brooch": {
+    "type": "Treasure",
+    "name": "mud-covered brooch",
+    "description": "A fancy brooch, caked in thick mud. If cleaned, it might be quite valuable.",
+    "weight": 0.2,
+    "value": 60,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "jewelry"
+    }
+  },
+  "item_dubious_cargo": {
+    "type": "Treasure",
+    "name": "dubious cargo",
+    "description": "A small, locked chest containing unknown contents. It looks valuable but likely stolen.",
+    "weight": 10.0,
+    "value": 150,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "contraband"
+
+    }
+  },
+  "item_gold_coin": {
+    "type": "Treasure",
+    "name": "gold coin",
+    "description": "A shiny gold coin.",
+    "weight": 0.01,
+    "value": 1,
+    "stackable": true,
+    "properties": {
+      "treasure_type": "coin"
+    }
+  }
+}

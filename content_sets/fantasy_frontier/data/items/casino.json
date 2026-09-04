@@ -1,0 +1,47 @@
+{
+  "item_rules_dice": {
+    "type": "Item",
+    "name": "dice rules plaque",
+    "description": "A polished brass plaque reading:\n\n--- HIGH STAKES DICE ---\n1. Player rolls 1-100.\n2. House rolls 1-100.\n3. Highest roll wins.\n4. Ties go to the House.",
+    "weight": 5.0,
+    "value": 0,
+    "stackable": false,
+    "properties": { "can_take": false }
+  },
+  "item_rules_slots": {
+    "type": "Item",
+    "name": "payout chart",
+    "description": "A framed chart mounted on the wall:\n\n--- CLOCKWORK SLOTS ---\n[DRG][DRG][DRG] - 100x (Jackpot)\n[CWN][CWN][CWN] - 25x\n[POT][POT][POT] - 15x\n[SHD][SHD][SHD] - 10x\n[DAG][DAG][DAG] - 5x\nAny Pair - 1x (Refund)",
+    "weight": 2.0,
+    "value": 0,
+    "stackable": false,
+    "properties": { "can_take": false }
+  },
+  "item_rules_wheel": {
+    "type": "Item",
+    "name": "mystic inscription",
+    "description": "Glowing letters floating in the air:\n\n--- ELEMENTAL WHEEL ---\nVOID   - Loss\nEARTH  - 1x\nFIRE   - 2x\nICE    - 5x\nAETHER - 10x",
+    "weight": 0.0,
+    "value": 0,
+    "stackable": false,
+    "properties": { "can_take": false }
+  },
+  "item_rules_blackjack": {
+    "type": "Item",
+    "name": "velvet sign",
+    "description": "A small sign on the table:\n\n--- TWENTY-ONE ---\nBeat the Dealer's hand without exceeding 21.\nDealer stands on 17.\nBlackjack pays 3:2.\nCommands: 'hit' to take a card, 'stand' to hold.",
+    "weight": 0.5,
+    "value": 0,
+    "stackable": false,
+    "properties": { "can_take": false }
+  },
+  "item_rules_runebreaker": {
+    "type": "Item",
+    "name": "rune tablet",
+    "description": "A stone tablet engraved with instructions:\n\n--- RUNEBREAKER ---\n1. The Vault is locked by 3 Runes.\n2. Possible Runes: Fire, Water, Earth, Air.\n3. Guess the sequence to unlock.\n4. 8 Attempts allowed.\n\nFeedback:\n- Perfect: Right Rune, Right Spot.\n- Partial: Right Rune, Wrong Spot.\n\nPayout: 5x Wager.",
+    "weight": 0.0,
+    "value": 0,
+    "stackable": false,
+    "properties": { "can_take": false }
+  }
+}

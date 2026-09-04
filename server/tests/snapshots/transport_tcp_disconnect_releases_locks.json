@@ -1,0 +1,13 @@
+{
+  "events": [
+    {
+      "payload": {
+        "asset_id": "test_glyph_001",
+        "owner_session_id": null,
+        "state": "released_disconnect"
+      },
+      "protocol_version": "0.2.0",
+      "type": "lock_state_delta"
+    }
+  ]
+}

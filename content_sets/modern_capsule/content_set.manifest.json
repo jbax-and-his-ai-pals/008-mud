@@ -1,0 +1,20 @@
+{
+  "id": "modern_capsule",
+  "title": "Modern Capsule",
+  "version": "0.1.0",
+  "manifest_schema_version": "1",
+  "engine_api_min": "1.0",
+  "engine_api_max": "1.0",
+  "paths": {
+    "data_root": "data",
+    "ruleset": "rules/ruleset.json",
+    "presentation": "presentation/default.json",
+    "opening": "opening/morning_connection.json"
+  },
+  "start": {
+    "scenario_id": "morning_connection",
+    "region_id": "midtown",
+    "room_id": "transit_plaza"
+  },
+  "capabilities": ["inventory", "dialogue"]
+}

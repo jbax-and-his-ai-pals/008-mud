@@ -1,0 +1,17 @@
+{
+	"item_shamanic_staff": {
+		"description": "A gnarled wooden staff adorned with feathers and skulls.",
+		"name": "shamanic staff",
+		"properties": {
+			"damage": 5.0,
+			"durability": 40.0,
+			"equip_slot": [
+				"main_hand"
+			],
+			"max_durability": 40.0
+		},
+		"type": "Weapon",
+		"value": 35.0,
+		"weight": 3.0
+	}
+}

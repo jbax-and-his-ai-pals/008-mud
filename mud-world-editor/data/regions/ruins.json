@@ -1,0 +1,292 @@
+{
+	"_proxy_positions": {
+		"caves:hidden_passage": [
+			-1664.0,
+			-576.0
+		],
+		"forest:ruins_approach_path": [
+			576.0,
+			-224.0
+		]
+	},
+	"description": "Deep within the Whispering Woods lie the crumbling remains of a long-forgotten civilization. Stone structures are overgrown with vines and moss, hinting at a mysterious past.",
+	"name": "Ancient Ruins",
+	"region_id": "ruins",
+	"rooms": {
+		"burial_niches": {
+			"_editor_pos": [
+				-896.0,
+				-544.0
+			],
+			"description": "This chamber is lined with hundreds of small, square niches carved into the stone, likely for holding the ashes of the dead. Most have been looted or disturbed.",
+			"exits": {
+				"east": "crypt_upper_level"
+			},
+			"name": "Burial Niches",
+			"properties": {
+				"dark": true
+			}
+		},
+		"central_plaza": {
+			"_editor_pos": [
+				224.0,
+				-800.0
+			],
+			"description": "A large, open plaza paved with cracked flagstones. In the center stands the base of a destroyed statue. Collapsed buildings surround the plaza.",
+			"exits": {
+				"east": "library_ruins",
+				"north": "ritual_chamber",
+				"south": "crumbling_wall",
+				"west": "shadowy_crypt_entrance"
+			},
+			"name": "Central Plaza",
+			"properties": {
+
+			}
+		},
+		"crumbling_wall": {
+			"_editor_pos": [
+				224.0,
+				-512.0
+			],
+			"description": "A section of what was once a formidable stone wall lies before you, now breached in several places. Strange carvings are barely visible. A path leads north to a central plaza.",
+			"exits": {
+				"east": "guard_tower_base",
+				"north": "central_plaza",
+				"south": "ruins_approach",
+				"west": "overgrown_courtyard"
+			},
+			"name": "Crumbling Wall",
+			"properties": {
+
+			}
+		},
+		"crypt_lower_level": {
+			"_editor_pos": [
+				-768.0,
+				-224.0
+			],
+			"description": "Deeper in the crypt, the air is colder. More sarcophagi are here, some broken open. A faint draft from the northwest hints at a hidden passage.",
+			"exits": {
+				"northwest": "secret_passage",
+				"south": "flooded_tomb",
+				"up": "crypt_upper_level"
+			},
+			"items": [
+				{
+					"item_id": "item_ancient_amulet"
+				}
+			],
+			"name": "Crypt - Lower Level",
+			"properties": {
+				"dark": true
+			}
+		},
+		"crypt_upper_level": {
+			"_editor_pos": [
+				-480.0,
+				-544.0
+			],
+			"description": "You stand in a grand burial chamber. Stone sarcophagi line the walls, their lids heavy with dust. The air is deathly still. Another flight of stairs leads deeper down.",
+			"exits": {
+				"down": "crypt_lower_level",
+				"up": "shadowy_crypt_entrance",
+				"west": "burial_niches"
+			},
+			"name": "Crypt - Upper Level",
+			"properties": {
+				"dark": true
+			}
+		},
+		"final_tunnel": {
+			"_editor_pos": [
+				-1344.0,
+				-576.0
+			],
+			"description": "The worked stone of the ruins gives way completely to natural rock here. The passage ahead clearly leads into the Shadow Caves.",
+			"exits": {
+				"southeast": "secret_passage",
+				"west": "caves:hidden_passage"
+			},
+			"name": "Connecting Tunnel",
+			"properties": {
+				"dark": true
+			}
+		},
+		"flooded_tomb": {
+			"_editor_pos": [
+				-768.0,
+				0.0
+			],
+			"description": "This section of the crypt is partially flooded with stagnant, murky water. Sarcophagi jut out of the water like islands. The air is heavy with the smell of mildew.",
+			"exits": {
+				"north": "crypt_lower_level"
+			},
+			"name": "Flooded Tomb",
+			"properties": {
+				"dark": true,
+				"smell": "mildew"
+			}
+		},
+		"guard_tower_base": {
+			"_editor_pos": [
+				704.0,
+				-512.0
+			],
+			"description": "The base of a ruined guard tower. Rubble blocks most of the interior, but a narrow, unstable staircase seems to lead upwards.",
+			"exits": {
+				"up": "guard_tower_top",
+				"west": "crumbling_wall"
+			},
+			"name": "Guard Tower Base",
+			"properties": {
+
+			}
+		},
+		"guard_tower_top": {
+			"_editor_pos": [
+				960.0,
+				-736.0
+			],
+			"description": "From the precarious top of the ruined tower, you get a view of the surrounding ruins and the dense forest canopy stretching out in all directions.",
+			"exits": {
+				"down": "guard_tower_base"
+			},
+			"name": "Guard Tower Top",
+			"properties": {
+
+			}
+		},
+		"library_ruins": {
+			"_editor_pos": [
+				704.0,
+				-800.0
+			],
+			"description": "This collapsed building might have once been a repository of knowledge. Scraps of decayed parchment and broken shelves litter the floor. A doorway leads north to a smaller room.",
+			"exits": {
+				"north": "scriptorium",
+				"west": "central_plaza"
+			},
+			"items": [
+				{
+					"item_id": "item_burnt_scroll"
+				}
+			],
+			"name": "Library Ruins",
+			"properties": {
+				"dark": true
+			}
+		},
+		"overgrown_courtyard": {
+			"_editor_pos": [
+				-160.0,
+				-512.0
+			],
+			"description": "Once a manicured garden, this area is now choked with weeds and vines growing between cracked paving stones. A broken fountain sits in its center, dry and filled with leaves.",
+			"exits": {
+				"east": "crumbling_wall"
+			},
+			"items": [
+				{
+					"item_id": "item_stone_fragment"
+				}
+			],
+			"name": "Overgrown Courtyard",
+			"properties": {
+
+			}
+		},
+		"ritual_chamber": {
+			"_editor_pos": [
+				224.0,
+				-1056.0
+			],
+			"description": "This circular chamber has a large stone altar at its center, stained with something dark. Faded, unsettling symbols are etched into the floor and walls.",
+			"exits": {
+				"south": "central_plaza"
+			},
+			"name": "Ritual Chamber",
+			"properties": {
+				"dark": true,
+				"smell": "dusty"
+			}
+		},
+		"ruins_approach": {
+			"_editor_pos": [
+				224.0,
+				-224.0
+			],
+			"description": "The trees thin slightly, revealing scattered, moss-covered stones - the first signs of ancient construction. A crumbling wall to the north marks the outer boundary of the complex.",
+			"exits": {
+				"east": "forest:ruins_approach_path",
+				"north": "crumbling_wall"
+			},
+			"name": "Approach to the Ruins",
+			"properties": {
+
+			}
+		},
+		"scriptorium": {
+			"_editor_pos": [
+				704.0,
+				-1056.0
+			],
+			"description": "A smaller room adjoining the library, likely where scribes worked. Stone desks are overturned, and dried inkwells lie scattered among the debris.",
+			"exits": {
+				"south": "library_ruins"
+			},
+			"items": [
+				{
+					"item_id": "item_broken_stylus"
+				}
+			],
+			"name": "Ruined Scriptorium",
+			"properties": {
+				"dark": true
+			}
+		},
+		"secret_passage": {
+			"_editor_pos": [
+				-1050.0,
+				-400.0
+			],
+			"description": "This rough-hewn passage seems to connect the ancient crypt to the natural cave systems. The air feels slightly fresher here.",
+			"exits": {
+				"northwest": "final_tunnel",
+				"southeast": "crypt_lower_level"
+			},
+			"name": "Secret Passage",
+			"properties": {
+				"dark": true
+			}
+		},
+		"shadowy_crypt_entrance": {
+			"_editor_pos": [
+				-160.0,
+				-800.0
+			],
+			"description": "A dark, gaping entryway leads down beneath the plaza. The air flowing out is cold and smells of dust and decay. Stone steps descend into blackness.",
+			"exits": {
+				"down": "crypt_upper_level",
+				"east": "central_plaza"
+			},
+			"name": "Shadowy Crypt Entrance",
+			"properties": {
+				"dark": true
+			}
+		}
+	},
+	"spawner": {
+		"level_range": [
+			3.0,
+			6.0
+		],
+		"monster_types": {
+			"dark_cultist": 2.0,
+			"ghoul": 3.0,
+			"skeleton": 5.0,
+			"wraith": 1.0,
+			"zombie": 4.0
+		}
+	}
+}

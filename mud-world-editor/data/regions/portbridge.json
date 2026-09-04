@@ -1,0 +1,289 @@
+{
+	"description": "A bustling port town built where the Silver River meets the sea. Its docks teem with sailors and merchants, and the smell of salt and fish hangs heavy in the air.",
+	"name": "Portbridge",
+	"properties": {
+		"safe_zone": true
+	},
+	"region_id": "portbridge",
+	"rooms": {
+		"fish_market": {
+			"_editor_pos": [
+				0.0,
+				224.0
+			],
+			"description": "An open-air market dominated by stalls selling the day's catch. Fishermen haggle loudly over prices, and the ground is slick with seawater.",
+			"exits": {
+				"east": "fishing_pier",
+				"west": "harbor_road_south"
+			},
+			"name": "Fish Market",
+			"properties": {
+				"noisy": true,
+				"smell": "fishy"
+			}
+		},
+		"fishing_pier": {
+			"_editor_pos": [
+				384.0,
+				224.0
+			],
+			"description": "A smaller pier used by the local fishermen. Their colorful, smaller boats are tied up here.",
+			"exits": {
+				"west": "fish_market"
+			},
+			"name": "Fishing Pier",
+			"properties": {
+				"smell": "sea air"
+			}
+		},
+		"harbor_district": {
+			"_editor_pos": [
+				-352.0,
+				-256.0
+			],
+			"description": "This is the heart of the harbor. A large, rowdy inn, The Sailor's Rest, dominates the west side of the street, while the main docks stretch out to the east.",
+			"exits": {
+				"down": "smugglers_tunnel_entrance",
+				"east": "main_pier",
+				"north": "town_center_portbridge",
+				"south": "harbor_road_south",
+				"west": "sailors_rest_inn_exterior"
+			},
+			"name": "Harbor District",
+			"properties": {
+				"noisy": true,
+				"smell": "fish and tar"
+			}
+		},
+		"harbor_road_south": {
+			"_editor_pos": [
+				-352.0,
+				224.0
+			],
+			"description": "Warehouses and small taverns line the cobbled streets leading north towards the noisy docks. Sailors shout, gulls cry, and the air is thick with the smell of tar and fish.",
+			"exits": {
+				"east": "fish_market",
+				"north": "harbor_district"
+			},
+			"name": "Harbor Road",
+			"properties": {
+
+			}
+		},
+		"inn_upper_floor": {
+			"_editor_pos": [
+				-576.0,
+				-96.0
+			],
+			"description": "A narrow corridor above the Sailor's Rest, lined with doors to small, basic rooms for rent.",
+			"exits": {
+				"down": "sailors_rest_inn_common"
+			},
+			"name": "Inn - Upper Floor",
+			"properties": {
+				"outdoors": false
+			}
+		},
+		"lumber_storage": {
+			"_editor_pos": [
+				-350.0,
+				-1250.0
+			],
+			"description": "Huge stacks of timber and planks are stored here under canvas tarps, ready for use by the shipwrights.",
+			"exits": {
+				"north": "town_gate_north",
+				"south": "shipwright_yard"
+			},
+			"name": "Lumber Storage",
+			"properties": {
+				"smell": "fresh wood"
+			}
+		},
+		"main_pier": {
+			"_editor_pos": [
+				32.0,
+				-256.0
+			],
+			"description": "A long wooden pier extending out over the water. Large merchant vessels are tied up, and dockhands rush to load and unload cargo.",
+			"exits": {
+				"west": "harbor_district"
+			},
+			"items": [
+				{
+					"item_id": "item_coiled_rope"
+				}
+			],
+			"name": "Main Pier",
+			"properties": {
+
+			}
+		},
+		"port_authority_office": {
+			"_editor_pos": [
+				-704.0,
+				-480.0
+			],
+			"description": "A stern-looking building where harbourmasters manage dock traffic and collect tariffs. A sign on the door reads 'Official Business Only'.",
+			"exits": {
+				"east": "town_center_portbridge"
+			},
+			"name": "Port Authority Office",
+			"properties": {
+
+			}
+		},
+		"sailors_rest_inn_common": {
+			"_editor_pos": [
+				-800.0,
+				64.0
+			],
+			"description": "The common room is filled with loud conversation, laughter, and the occasional sea shanty. A staircase leads to the rooms above.",
+			"exits": {
+				"out": "sailors_rest_inn_exterior",
+				"up": "inn_upper_floor"
+			},
+			"name": "The Sailor's Rest - Common Room",
+			"properties": {
+				"noisy": true,
+				"outdoors": false,
+				"smell": "stale ale"
+			}
+		},
+		"sailors_rest_inn_exterior": {
+			"_editor_pos": [
+				-704.0,
+				-256.0
+			],
+			"description": "The entrance to a large, rowdy inn catering to seafarers. Loud conversation and the clatter of tankards can be heard from within.",
+			"exits": {
+				"east": "harbor_district",
+				"in": "sailors_rest_inn_common"
+			},
+			"name": "The Sailor's Rest Inn",
+			"properties": {
+
+			}
+		},
+		"shipwright_road": {
+			"_editor_pos": [
+				-350.0,
+				-750.0
+			],
+			"description": "This wide road is covered in wood shavings and smells of pitch and sawdust. It leads north to the massive shipwright's yard.",
+			"exits": {
+				"north": "shipwright_yard",
+				"south": "town_center_portbridge"
+			},
+			"name": "Shipwright's Road"
+		},
+		"shipwright_yard": {
+			"_editor_pos": [
+				-350.0,
+				-1000.0
+			],
+			"description": "The sounds of sawing and hammering fill the air. The massive wooden skeletons of ships under construction dominate the yard.",
+			"exits": {
+				"north": "lumber_storage",
+				"south": "shipwright_road"
+			},
+			"name": "Shipwright's Yard",
+			"properties": {
+				"noisy": true,
+				"smell": "wood and pitch"
+			}
+		},
+		"smugglers_crossroads": {
+			"_editor_pos": [
+				-960.0,
+				-256.0
+			],
+			"description": "The tunnel splits here, leading west towards what might be the inn's cellar and north to a storage area.",
+			"exits": {
+				"north": "underground_cache",
+				"south": "smugglers_tunnel"
+			},
+			"name": "Tunnel Crossroads",
+			"properties": {
+				"dark": true
+			}
+		},
+		"smugglers_tunnel": {
+			"_editor_pos": [
+				-960.0,
+				224.0
+			],
+			"description": "A narrow, damp tunnel running beneath the harbor district. It smells of seawater and stale air. The tunnel continues north.",
+			"exits": {
+				"north": "smugglers_crossroads",
+				"up": "smugglers_tunnel_entrance"
+			},
+			"name": "Smuggler's Tunnel",
+			"properties": {
+				"dark": true,
+				"smell": "stale air"
+			}
+		},
+		"smugglers_tunnel_entrance": {
+			"_editor_pos": [
+				-512.0,
+				96.0
+			],
+			"description": "Hidden behind a stack of loose crates near the main harbor is a dark, grimy opening leading down into the ground.",
+			"exits": {
+				"down": "smugglers_tunnel",
+				"up": "harbor_district"
+			},
+			"name": "Hidden Tunnel Entrance",
+			"properties": {
+				"dark": true
+			}
+		},
+		"town_center_portbridge": {
+			"_editor_pos": [
+				-352.0,
+				-480.0
+			],
+			"description": "The central area of Portbridge is slightly more orderly than the harbor. Merchant stalls and administrative buildings cluster around a small square.",
+			"exits": {
+				"north": "shipwright_road",
+				"south": "harbor_district",
+				"west": "port_authority_office"
+			},
+			"name": "Portbridge Town Center",
+			"properties": {
+
+			}
+		},
+		"town_gate_north": {
+			"_editor_pos": [
+				-350.0,
+				-1500.0
+			],
+			"description": "A sturdy wooden gatehouse guards the northern entrance to Portbridge. Two guards in the town's livery eye newcomers warily. Beyond the gate, the town looks busy and somewhat rough.",
+			"exits": {
+				"north": "coastal_path:beach_approach",
+				"south": "lumber_storage"
+			},
+			"name": "Portbridge North Gate"
+		},
+		"underground_cache": {
+			"_editor_pos": [
+				-960.0,
+				-480.0
+			],
+			"description": "The tunnel opens into a small, dry chamber where illicit goods are stored. A single, locked chest sits in the corner.",
+			"exits": {
+				"south": "smugglers_crossroads"
+			},
+			"items": [
+				{
+					"item_id": "item_dubious_cargo"
+				}
+			],
+			"name": "Underground Cache",
+			"properties": {
+				"dark": true
+			}
+		}
+	}
+}

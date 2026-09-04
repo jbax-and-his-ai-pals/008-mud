@@ -1,0 +1,48 @@
+{
+  "weaken_strength": {
+    "name": "Weaken",
+    "description": "A malevolent spell that saps the target's physical might.",
+    "mana_cost": 10,
+    "cooldown": 12.0,
+    "target_type": "enemy",
+    "level_required": 3,
+    "cast_message": "{caster_name} chants a draining curse!",
+    "hit_message": "{target_name} suddenly feels weaker!",
+    "effects": [
+      {
+        "type": "apply_effect",
+        "dot_duration": 20.0,
+        "effect_data": {
+          "type": "stat_mod",
+          "name": "Weaken",
+          "modifiers": {
+            "strength": -5
+          }
+        }
+      }
+    ]
+  },
+  "frost_curse": {
+    "name": "Frost Curse",
+    "description": "Curses the target, making them vulnerable to cold.",
+    "mana_cost": 15,
+    "cooldown": 15.0,
+    "target_type": "enemy",
+    "level_required": 5,
+    "cast_message": "{caster_name} whispers a chilling incantation.",
+    "hit_message": "{target_name} shivers as a layer of frost covers them.",
+    "effects": [
+      {
+        "type": "apply_effect",
+        "dot_duration": 20.0,
+        "effect_data": {
+          "type": "stat_mod",
+          "name": "Frost Vulnerability",
+          "modifiers": {
+            "resist_cold": -30
+          }
+        }
+      }
+    ]
+  }
+}

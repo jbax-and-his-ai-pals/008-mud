@@ -1,0 +1,38 @@
+{
+  "maya": {
+    "name": "Maya Chen",
+    "description": "A commuter with a canvas tote and a folded newspaper tucked under one arm.",
+    "health": 100,
+    "level": 1,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 8, "dexterity": 9, "constitution": 9, "agility": 9, "intelligence": 11, "wisdom": 10 },
+    "dialog": {
+      "greeting": "Morning. If you are looking for the library, the walk just north of here is pleasant.",
+      "station": "The platforms are through the concourse to the south. The board usually updates a minute or two early.",
+      "cafe": "The café is good for a quick coffee, especially before the rush."
+    },
+    "default_dialog": "Maya gives you a friendly nod before checking the time.",
+    "initial_inventory": [],
+    "properties": { "can_give_generic_quests": false }
+  },
+  "devon": {
+    "name": "Devon Reyes",
+    "description": "The café barista, moving easily between the register and the espresso machine.",
+    "health": 100,
+    "level": 1,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 8, "dexterity": 10, "constitution": 9, "agility": 10, "intelligence": 10, "wisdom": 9 },
+    "dialog": {
+      "greeting": "Welcome in. Take your time—there is no line yet.",
+      "library": "The library is north of the plaza. They have a good community-events board in the lobby.",
+      "morning": "Quiet mornings are my favorite part of the shift."
+    },
+    "default_dialog": "Devon smiles and returns to arranging cups by the counter.",
+    "initial_inventory": [],
+    "properties": { "can_give_generic_quests": false }
+  }
+}

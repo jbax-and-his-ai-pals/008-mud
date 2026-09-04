@@ -1,0 +1,15 @@
+{
+  "minor_heal": {
+    "name": "Minor Heal",
+    "description": "Soothes minor wounds with gentle restorative magic.",
+    "mana_cost": 8,
+    "cooldown": 6.0,
+    "effect_type": "heal",
+    "effect_value": 15,
+    "target_type": "friendly",
+    "cast_message": "{caster_name} channels soothing energy.",
+    "heal_message": "{caster_name} heals {target_name} for {value} health!",
+    "self_heal_message": "A soothing warmth spreads through you, restoring {value} health!",
+    "level_required": 1
+  }
+}

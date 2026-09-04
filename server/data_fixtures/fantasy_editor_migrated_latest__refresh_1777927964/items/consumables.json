@@ -1,0 +1,18 @@
+{
+	"item_scroll_random": {
+		"description": "A scroll inscribed with the runes for the '{spell_name}' spell.",
+		"name": "Scroll of {spell_name}",
+		"properties": {
+			"effect_type": "learn_spell",
+			"is_procedural": true,
+			"max_uses": 1.0,
+			"procedural_type": "random_spell_scroll",
+			"spell_to_learn": null,
+			"uses": 1.0
+		},
+		"stackable": false,
+		"type": "Consumable",
+		"value": 100.0,
+		"weight": 0.1
+	}
+}

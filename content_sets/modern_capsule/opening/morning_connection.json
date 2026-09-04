@@ -1,0 +1,10 @@
+{
+  "scenario_id": "morning_connection",
+  "heading": "A Connection Across Town",
+  "intro": "You have a little time before your next train. Explore the plaza, speak with the people nearby, and decide where to head next.",
+  "objectives": [
+    { "id": "orient", "instruction": "Take in the plaza and its exits", "command": "look" },
+    { "id": "meet_maya", "instruction": "Speak with Maya about the neighborhood", "command": "talk maya" },
+    { "id": "choose", "instruction": "Visit the café or library when you are ready", "command": "east / north" }
+  ]
+}

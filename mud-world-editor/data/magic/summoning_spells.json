@@ -1,0 +1,67 @@
+{
+  "raise_skeleton": {
+    "name": "Raise Skeleton",
+    "description": "Animates inert bones into a temporary skeletal servant.",
+    "mana_cost": 20,
+    "cooldown": 10.0,
+    "effect_type": "summon",
+    "target_type": "self",
+    "cast_message": "{caster_name} chants words of necromancy...",
+    "level_required": 1,
+    "summon_template_id": "skeleton_minion",
+    "summon_duration": 120.0,
+    "max_summons": 3
+  },
+  "raise_skeletal_mage": {
+    "name": "Raise Skeletal Mage",
+    "description": "Summons a skeletal mage from ethereal bone fragments to serve you.",
+    "mana_cost": 30,
+    "cooldown": 15.0,
+    "effect_type": "summon",
+    "target_type": "self",
+    "cast_message": "{caster_name} draws arcane sigils in the air...",
+    "level_required": 3,
+    "summon_template_id": "skeletal_mage_minion",
+    "summon_duration": 90.0,
+    "max_summons": 2
+  },
+  "summon_spirit_wolf": {
+    "name": "Summon Spirit Wolf",
+    "description": "Calls forth an ethereal wolf to fight by your side.",
+    "mana_cost": 25,
+    "cooldown": 12.0,
+    "effect_type": "summon",
+    "target_type": "self",
+    "cast_message": "{caster_name} whistles an otherworldly tune...",
+    "level_required": 2,
+    "summon_template_id": "spirit_wolf_minion",
+    "summon_duration": 60.0,
+    "max_summons": 2
+  },
+  "summon_fire_imp": {
+    "name": "Summon Fire Imp",
+    "description": "Summons a mischievous, fire-hurling imp from another plane.",
+    "mana_cost": 35,
+    "cooldown": 18.0,
+    "effect_type": "summon",
+    "target_type": "self",
+    "cast_message": "{caster_name} traces a sigil of fire in the air...",
+    "level_required": 4,
+    "summon_template_id": "fire_imp_minion",
+    "summon_duration": 75.0,
+    "max_summons": 1
+  },
+  "summon_stone_golem": {
+    "name": "Summon Stone Golem",
+    "description": "Animates raw earth and rock into a loyal, lumbering guardian.",
+    "mana_cost": 50,
+    "cooldown": 30.0,
+    "effect_type": "summon",
+    "target_type": "self",
+    "cast_message": "{caster_name} slams their hands on the ground, and the earth begins to churn...",
+    "level_required": 6,
+    "summon_template_id": "stone_golem_minion",
+    "summon_duration": 180.0,
+    "max_summons": 1
+  }
+}

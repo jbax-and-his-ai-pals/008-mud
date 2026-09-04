@@ -1,0 +1,316 @@
+{
+  "_proxy_positions": {
+    "forest:ancient_oak": [
+      -928.0,
+      64.0
+    ],
+    "mountains:mine_exit": [
+      416.0,
+      416.0
+    ],
+    "ruins:crypt_lower_level": [
+      -928.0,
+      320.0
+    ]
+  },
+  "description": "A network of caves in the hills beyond the forest. Few villagers venture this far, telling tales of strange echoes and mysterious lights.",
+  "name": "Shadow Caves",
+  "region_id": "caves",
+  "rooms": {
+    "bat_cave": {
+      "description": "The ceiling here is high and lost in shadow. The air is filled with the leathery flapping of wings and high-pitched squeaks. A thick layer of guano covers the floor.",
+      "exits": {
+        "east": "narrow_passage"
+      },
+      "items": [
+        {
+          "item_id": "item_guano"
+        }
+      ],
+      "name": "Bat Cave",
+      "properties": {
+        "dark": true,
+        "smell": "ammonia"
+      }
+    },
+    "cave_entrance": {
+      "description": "A dark opening in the hillside marks the entrance to the caves. Cool, damp air flows out. Moss grows around the entrance, and you can hear water dripping somewhere inside.",
+      "exits": {
+        "in": "main_cavern",
+        "west": "forest:ancient_oak"
+      },
+      "name": "Cave Entrance",
+      "properties": {}
+    },
+    "collapsed_tunnel": {
+      "description": "This section of the mine has suffered a major cave-in. Massive rocks and splintered beams block the way further west. Dust hangs heavy in the air.",
+      "exits": {
+        "east": "mine_entrance"
+      },
+      "name": "Collapsed Tunnel",
+      "properties": {
+        "dark": true
+      }
+    },
+    "crystal_antechamber": {
+      "description": "The rough stone walls here begin to glitter with small, embedded crystals, catching and reflecting your light. A larger, more brilliant chamber lies to the east.",
+      "exits": {
+        "east": "crystal_chamber",
+        "west": "main_cavern"
+      },
+      "name": "Crystal Antechamber",
+      "properties": {
+        "dark": true
+      }
+    },
+    "crystal_chamber": {
+      "description": "This chamber is filled with crystalline formations that glow with a faint inner light. The crystals vary in color from clear to amethyst, creating an otherworldly beauty.",
+      "exits": {
+        "east": "geode_cluster",
+        "north": "hidden_ledge",
+        "west": "crystal_antechamber"
+      },
+      "items": [
+        {
+          "item_id": "item_glowing_crystal"
+        }
+      ],
+      "name": "Crystal Chamber",
+      "properties": {}
+    },
+    "deep_tunnel": {
+      "description": "This rough-hewn tunnel slopes steeply downwards into the earth. The air grows colder, and the silence is profound. Loose scree makes the footing treacherous.",
+      "exits": {
+        "south": "mine_entrance",
+        "up": "main_cavern"
+      },
+      "name": "Deep Tunnel",
+      "properties": {
+        "dark": true
+      }
+    },
+    "east_mine_tunnel": {
+      "description": "An old mining tunnel heading east. It appears stable but unused for a very long time.",
+      "exits": {
+        "east": "lava_tube_entrance",
+        "west": "forgotten_mine_shaft"
+      },
+      "name": "East Mine Tunnel",
+      "properties": {
+        "dark": true
+      }
+    },
+    "flooded_passage": {
+      "description": "Submerged in icy water, this passage connects the pool to deeper parts of the cave. You must hold your breath. Strange phosphorescent fungi provide a dim, eerie light.",
+      "exits": {
+        "east": "submerged_chamber",
+        "surface": "underground_pool"
+      },
+      "name": "Flooded Passage",
+      "properties": {
+        "dark": true,
+        "underwater": true
+      }
+    },
+    "forgotten_mine_shaft": {
+      "description": "A vertical mine shaft plunges into darkness below and ascends into blackness above. A rickety ladder is bolted to the wall. Tunnels lead east and west.",
+      "exits": {
+        "down": "mine_lower_level",
+        "east": "east_mine_tunnel",
+        "north": "mine_entrance",
+        "up": "mine_upper_level",
+        "west": "west_mine_tunnel"
+      },
+      "name": "Forgotten Mine Shaft",
+      "properties": {
+        "dark": true
+      }
+    },
+    "geode_cluster": {
+      "description": "Several large, cracked-open geodes line the walls of this small alcove. Their hollow interiors sparkle with thousands of tiny crystals.",
+      "exits": {
+        "west": "crystal_chamber"
+      },
+      "items": [
+        {
+          "item_id": "item_crystal_shard",
+          "quantity": 3.0
+        }
+      ],
+      "name": "Geode Cluster",
+      "properties": {}
+    },
+    "hidden_ledge": {
+      "description": "You surface from the flooded chamber onto a narrow, hidden ledge. It seems to be part of a larger cavern system you haven't seen before.",
+      "exits": {
+        "down": "submerged_chamber",
+        "south": "crystal_chamber"
+      },
+      "name": "Hidden Ledge",
+      "properties": {
+        "dark": true
+      }
+    },
+    "hidden_passage": {
+      "description": "This narrow passage seems intentionally constructed, connecting the old mine to something even older. It smells of dust and ancient decay.",
+      "exits": {
+        "northwest": "ruins:crypt_lower_level",
+        "southeast": "west_mine_tunnel"
+      },
+      "name": "Hidden Passage",
+      "properties": {
+        "dark": true
+      }
+    },
+    "lava_tube": {
+      "description": "A smooth, cylindrical tunnel formed by ancient lava flows. The air is still and surprisingly warm.",
+      "exits": {
+        "out": "lava_tube_entrance"
+      },
+      "items": [
+        {
+          "item_id": "item_obsidian_chunk"
+        }
+      ],
+      "name": "Lava Tube",
+      "properties": {
+        "dark": true
+      }
+    },
+    "lava_tube_entrance": {
+      "description": "The rock here changes, becoming darker and smoother. A cylindrical tunnel leads deeper east into what looks like an ancient lava tube.",
+      "exits": {
+        "in": "lava_tube",
+        "west": "east_mine_tunnel"
+      },
+      "name": "Lava Tube Entrance",
+      "properties": {
+        "dark": true
+      }
+    },
+    "main_cavern": {
+      "description": "A large, open space within the cave system. Stalactites hang from the ceiling, and the ground is uneven. Passages lead north and east, while a rough-hewn tunnel slopes steeply down.",
+      "exits": {
+        "down": "deep_tunnel",
+        "east": "crystal_antechamber",
+        "north": "narrow_passage",
+        "out": "cave_entrance"
+      },
+      "name": "Main Cavern",
+      "properties": {
+        "dark": true
+      }
+    },
+    "mine_entrance": {
+      "description": "The natural tunnel opens into a worked passage supported by rotting wooden beams. The air smells of dust and decay. This appears to be an old, forgotten mine.",
+      "exits": {
+        "north": "deep_tunnel",
+        "south": "forgotten_mine_shaft",
+        "west": "collapsed_tunnel"
+      },
+      "name": "Mine Entrance",
+      "properties": {
+        "dark": true
+      }
+    },
+    "mine_exit": {
+      "description": "A collapsed tunnel exit, now just a small hole leading out onto a windswept mountainside.",
+      "exits": {
+        "out": "mountains:mine_exit",
+        "south": "mine_upper_level"
+      },
+      "name": "Mine Exit",
+      "properties": {}
+    },
+    "mine_lower_level": {
+      "description": "You are at the bottom of the main shaft. The air is stale and heavy. A large gold nugget glints from a crack in the wall.",
+      "exits": {
+        "up": "forgotten_mine_shaft"
+      },
+      "items": [
+        {
+          "item_id": "item_gold_nugget"
+        }
+      ],
+      "name": "Mine - Lower Level",
+      "properties": {
+        "dark": true
+      }
+    },
+    "mine_upper_level": {
+      "description": "This level of the mine is high and drafty. A rickety wooden platform overlooks the main shaft. The tunnel continues north towards what looks like an exit to the high peaks.",
+      "exits": {
+        "down": "forgotten_mine_shaft",
+        "north": "mine_exit"
+      },
+      "name": "Mine - Upper Level",
+      "properties": {
+        "dark": true
+      }
+    },
+    "narrow_passage": {
+      "description": "A tight corridor that winds between stone walls. The passage feels claustrophobic, and the air is stale. You can hear the squeaking of bats from a passage to the west.",
+      "exits": {
+        "north": "underground_pool",
+        "south": "main_cavern",
+        "west": "bat_cave"
+      },
+      "name": "Narrow Passage",
+      "properties": {
+        "dark": true
+      }
+    },
+    "submerged_chamber": {
+      "description": "This small air pocket within the flooded passage offers a brief respite. Water drips constantly, and the air is thick with moisture. More glowing fungi cling to the walls.",
+      "exits": {
+        "up": "hidden_ledge",
+        "west": "flooded_passage"
+      },
+      "items": [
+        {
+          "item_id": "item_waterlogged_pouch"
+        }
+      ],
+      "name": "Submerged Chamber",
+      "properties": {
+        "dark": true
+      }
+    },
+    "underground_pool": {
+      "description": "The passage opens into a chamber with a still, dark pool of water. The surface is like a mirror, reflecting the stone ceiling. The chamber is eerily quiet.",
+      "exits": {
+        "dive": "flooded_passage",
+        "south": "narrow_passage"
+      },
+      "name": "Underground Pool",
+      "properties": {
+        "dark": true
+      }
+    },
+    "west_mine_tunnel": {
+      "description": "This tunnel feels different from the others, with smoother walls and strange, faint carvings. A faint, cold draft comes from a hidden passage to the northwest.",
+      "exits": {
+        "east": "forgotten_mine_shaft",
+        "northwest": "hidden_passage"
+      },
+      "name": "West Mine Tunnel",
+      "properties": {
+        "dark": true
+      }
+    }
+  },
+  "spawner": {
+    "level_range": [
+      3.0,
+      6.0
+    ],
+    "monster_types": {
+      "cave_bear": 1.0,
+      "giant_bat": 4.0,
+      "giant_scorpion": 2.0,
+      "goblin": 4.0,
+      "skeleton": 3.0,
+      "slime": 3.0
+    }
+  }
+}

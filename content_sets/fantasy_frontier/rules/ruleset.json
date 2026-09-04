@@ -1,0 +1,25 @@
+{
+  "ruleset_id": "fantasy_frontier_core",
+  "world_mode": "single_player_story",
+  "progression_model": "level_based",
+  "player_defaults": {
+    "magic": { "known_spells": ["magic_missile", "minor_heal"] },
+    "starting_inventory": [
+      { "item_id": "item_starter_dagger", "quantity": 1 },
+      { "item_id": "item_healing_potion_small", "quantity": 2 }
+    ]
+  },
+  "quest_generation": {
+    "quest_board_locations": ["town:town_square", "portbridge:harbor_district"]
+  },
+  "spawning": {
+    "no_spawn_keywords": ["town_square", "tavern", "inn", "shop", "temple", "shrine", "home", "general_store", "blacksmith", "farmhouse_yard", "shepherds_hut"]
+  },
+  "systems": {
+    "combat": { "enabled": true },
+    "magic": { "enabled": true },
+    "crafting": { "enabled": true },
+    "quests": { "enabled": true },
+    "economy": { "enabled": true }
+  }
+}

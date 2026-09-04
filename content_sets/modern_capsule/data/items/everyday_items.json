@@ -1,0 +1,29 @@
+{
+  "city_map": {
+    "type": "Item",
+    "name": "city map",
+    "description": "A pocket map showing transit lines, public buildings, and the blocks surrounding the plaza.",
+    "weight": 0.1,
+    "value": 0,
+    "stackable": false,
+    "properties": {}
+  },
+  "paper_cup": {
+    "type": "Item",
+    "name": "paper coffee cup",
+    "description": "An empty recyclable cup with the café’s simple blue logo.",
+    "weight": 0.1,
+    "value": 0,
+    "stackable": false,
+    "properties": {}
+  },
+  "community_flyer": {
+    "type": "Item",
+    "name": "community flyer",
+    "description": "A flyer for a neighborhood repair café this Saturday at the library.",
+    "weight": 0.1,
+    "value": 0,
+    "stackable": false,
+    "properties": {}
+  }
+}

@@ -1,0 +1,381 @@
+{
+  "item_amethyst": {
+    "type": "Gem",
+    "name": "amethyst",
+    "description": "A beautiful violet-colored quartz crystal.",
+    "value": 75
+  },
+  "item_ancient_amulet": {
+    "type": "Treasure",
+    "name": "ancient amulet",
+    "description": "A heavy amulet made of an unknown black metal, set with a dull, unblinking gem.",
+    "weight": 0.4,
+    "value": 100,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "jewelry"
+    }
+  },
+  "item_broken_stylus": {
+    "type": "Junk",
+    "name": "broken stylus",
+    "description": "An intricate stylus made of bone, now broken in two.",
+    "weight": 0.1,
+    "value": 1,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_burnt_scroll": {
+    "type": "Item",
+    "name": "burnt scroll",
+    "description": "A fragile scroll, mostly destroyed by fire and time. Only a few cryptic symbols remain legible.",
+    "weight": 0.1,
+    "value": 5,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_coiled_rope": {
+    "type": "Item",
+    "name": "coiled rope",
+    "description": "A length of sturdy hemp rope, coiled neatly.",
+    "weight": 2.0,
+    "value": 8,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_crystal_shard": {
+    "type": "Treasure",
+    "name": "crystal shard",
+    "description": "A sharp shard broken off from a larger crystal formation.",
+    "weight": 0.2,
+    "value": 10,
+    "stackable": true,
+    "properties": {
+      "treasure_type": "gem"
+    }
+  },
+  "item_driftwood": {
+    "type": "Item",
+    "name": "piece of driftwood",
+    "description": "A smooth piece of wood, worn by the sea and sand.",
+    "weight": 1.5,
+    "value": 1,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_dubious_cargo": {
+    "type": "Treasure",
+    "name": "dubious cargo",
+    "description": "A small, locked chest containing unknown contents. It looks valuable but likely stolen.",
+    "weight": 10.0,
+    "value": 150,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "contraband"
+    }
+  },
+  "item_emerald": {
+    "type": "Gem",
+    "name": "emerald",
+    "description": "A stunning deep green gemstone, though it has a few minor flaws.",
+    "value": 350
+  },
+  "item_forest_berries": {
+    "type": "Consumable",
+    "name": "forest berries",
+    "description": "A handful of wild berries growing along the path. They look edible.",
+    "weight": 0.2,
+    "value": 2,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 3,
+      "effect_type": "heal"
+    }
+  },
+  "item_frostpetal": {
+    "type": "Consumable",
+    "name": "frostpetal bloom",
+    "description": "A rare alpine flower that thrives in cold, sheltered places. Said to have potent restorative properties.",
+    "weight": 0.1,
+    "value": 50,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 25,
+      "effect_type": "heal"
+    }
+  },
+  "item_glowing_crystal": {
+    "type": "Treasure",
+    "name": "glowing crystal",
+    "description": "A fist-sized crystal that emits a faint blue glow. It feels warm to the touch and seems to pulse with an inner light.",
+    "weight": 1.0,
+    "value": 75,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "gem"
+    }
+  },
+  "item_gold_nugget": {
+    "type": "Treasure",
+    "name": "gold nugget",
+    "description": "A small, rough nugget of pure gold, likely missed by the original miners.",
+    "weight": 0.3,
+    "value": 40,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "ore"
+    }
+  },
+  "item_guano": {
+    "type": "Junk",
+    "name": "pile of guano",
+    "description": "A large pile of bat droppings. Smells awful, but might be useful as fertilizer.",
+    "weight": 2.0,
+    "value": 1,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_healing_potion_small": {
+    "type": "Consumable",
+    "name": "small healing potion",
+    "description": "A small vial containing a red liquid that can heal minor wounds.",
+    "weight": 0.5,
+    "value": 10,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 15,
+      "effect_type": "heal"
+    }
+  },
+  "item_living_rock": {
+    "type": "Junk",
+    "name": "living rock",
+    "description": "A piece of stone that hums with a faint inner energy.",
+    "weight": 2.5,
+    "value": 30
+  },
+  "item_lizard_scale": {
+    "type": "Junk",
+    "name": "large scale",
+    "description": "A tough, greenish scale, likely shed by a large lizard.",
+    "weight": 0.2,
+    "value": 3,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_mana_potion_small": {
+    "type": "Consumable",
+    "name": "small mana potion",
+    "description": "A small vial containing a swirling blue liquid that restores a minor amount of mana.",
+    "weight": 0.5,
+    "value": 15,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 20,
+      "effect_type": "mana_restore"
+    }
+  },
+  "item_muddy_brooch": {
+    "type": "Treasure",
+    "name": "mud-covered brooch",
+    "description": "A fancy brooch, caked in thick mud. If cleaned, it might be quite valuable.",
+    "weight": 0.2,
+    "value": 60,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "jewelry"
+    }
+  },
+  "item_obsidian_chunk": {
+    "type": "Treasure",
+    "name": "obsidian chunk",
+    "description": "A piece of sharp, black volcanic glass.",
+    "weight": 0.5,
+    "value": 15,
+    "stackable": true,
+    "properties": {
+      "treasure_type": "rock"
+    }
+  },
+  "item_old_campfire": {
+    "type": "Junk",
+    "name": "old campfire ashes",
+    "description": "The cold ashes of a small campfire.",
+    "weight": 0.1,
+    "value": 0,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_old_coin": {
+    "type": "Treasure",
+    "name": "ancient coin",
+    "description": "A tarnished silver coin bearing unfamiliar markings. It appears to be very old and might be valuable to a collector.",
+    "weight": 0.1,
+    "value": 25,
+    "stackable": false,
+    "properties": {
+      "treasure_type": "coin"
+    }
+  },
+  "item_pitchfork": {
+    "type": "Weapon",
+    "name": "pitchfork",
+    "description": "A sturdy pitchfork used for moving hay.",
+    "weight": 3.0,
+    "value": 5,
+    "stackable": false,
+    "properties": {
+      "damage": 4,
+      "durability": 30,
+      "max_durability": 30,
+      "equip_slot": [
+        "main_hand"
+      ]
+    }
+  },
+  "item_pumpkin": {
+    "type": "Consumable",
+    "name": "large pumpkin",
+    "description": "A heavy orange pumpkin, good for carving or cooking. Might provide some sustenance.",
+    "weight": 5.0,
+    "value": 4,
+    "stackable": false,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 8,
+      "effect_type": "heal"
+    }
+  },
+  "item_ripe_apple": {
+    "type": "Consumable",
+    "name": "ripe apple",
+    "description": "A crisp, juicy red apple, freshly picked.",
+    "weight": 0.3,
+    "value": 2,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 4,
+      "effect_type": "heal"
+    }
+  },
+  "item_rusty_lantern": {
+    "type": "Junk",
+    "name": "rusty lantern",
+    "description": "An old iron lantern, rusted and without fuel.",
+    "weight": 1.5,
+    "value": 2,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_seashell": {
+    "type": "Item",
+    "name": "pretty seashell",
+    "description": "A colorful, intact seashell.",
+    "weight": 0.1,
+    "value": 2,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_sharp_flint": {
+    "type": "Item",
+    "name": "sharp flint",
+    "description": "A piece of flint with a naturally sharp edge. Could be used as a makeshift tool or weapon.",
+    "weight": 0.2,
+    "value": 1,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_stone_fragment": {
+    "type": "Junk",
+    "name": "carved stone fragment",
+    "description": "A piece of stone broken from a larger structure, bearing part of an intricate carving.",
+    "weight": 3.0,
+    "value": 2,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_strange_feather": {
+    "type": "Junk",
+    "name": "strange feather",
+    "description": "A large, iridescent feather unlike any bird you know.",
+    "weight": 0.1,
+    "value": 5,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_summit_offering": {
+    "type": "Item",
+    "name": "weathered offering",
+    "description": "A small, carved stone left at the shrine long ago. It feels strangely peaceful to hold.",
+    "weight": 0.2,
+    "value": 30,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_swamp_fungus": {
+    "type": "Consumable",
+    "name": "pale fungus",
+    "description": "A cluster of pale, rubbery fungi growing on a rotting log. It looks vaguely unwholesome.",
+    "weight": 0.2,
+    "value": 1,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": -5,
+      "effect_type": "poison"
+    }
+  },
+  "item_torn_map": {
+    "type": "Item",
+    "name": "torn map",
+    "description": "A torn piece of parchment showing a partial map of the region. There appears to be a marked location deep in the forest, but part of the map is missing.",
+    "weight": 0.1,
+    "value": 5,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_waterlogged_pouch": {
+    "type": "Item",
+    "name": "waterlogged pouch",
+    "description": "A small leather pouch, soaked through but seemingly intact. Perhaps something valuable remains inside.",
+    "weight": 0.5,
+    "value": 15,
+    "stackable": false,
+    "properties": {}
+  },
+  "item_wild_herbs": {
+    "type": "Consumable",
+    "name": "wild herbs",
+    "description": "A bundle of fragrant wild herbs. Might be useful for cooking or alchemy.",
+    "weight": 0.1,
+    "value": 3,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 1,
+      "effect_type": "heal"
+    }
+  },
+  "item_wool_tuft": {
+    "type": "Junk",
+    "name": "tuft of wool",
+    "description": "A small tuft of sheep's wool caught on the fence.",
+    "weight": 0.1,
+    "value": 1,
+    "stackable": true,
+    "properties": {}
+  }
+}

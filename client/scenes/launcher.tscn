@@ -1,0 +1,74 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/launcher_controller.gd" id="1_lc"]
+
+[node name="Launcher" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lc")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LauncherVBox" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(480, 0)
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/LauncherVBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "MUD Client Shell"
+
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/LauncherVBox"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Choose how to play"
+
+[node name="OfflineButton" type="Button" parent="CenterContainer/LauncherVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Play Offline"
+
+[node name="ConnectOnlineButton" type="Button" parent="CenterContainer/LauncherVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Connect Online"
+
+[node name="OnlinePanel" type="VBoxContainer" parent="CenterContainer/LauncherVBox"]
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="ServerLabel" type="Label" parent="CenterContainer/LauncherVBox/OnlinePanel"]
+layout_mode = 2
+text = "Server address"
+
+[node name="HostPortRow" type="HBoxContainer" parent="CenterContainer/LauncherVBox/OnlinePanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HostInput" type="LineEdit" parent="CenterContainer/LauncherVBox/OnlinePanel/HostPortRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+placeholder_text = "host or IP"
+
+[node name="PortInput" type="LineEdit" parent="CenterContainer/LauncherVBox/OnlinePanel/HostPortRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(100, 0)
+text = "8765"
+placeholder_text = "Port"
+
+[node name="ConnectButton" type="Button" parent="CenterContainer/LauncherVBox/OnlinePanel"]
+layout_mode = 2
+text = "Connect"

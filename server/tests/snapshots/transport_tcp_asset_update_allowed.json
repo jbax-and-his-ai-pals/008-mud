@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "payload": {
+        "asset_id": "test_glyph_001",
+        "revision": 2
+      },
+      "protocol_version": "0.2.0",
+      "type": "asset_update_accepted"
+    },
+    {
+      "payload": {
+        "alt_text": "allowed update",
+        "asset_id": "test_glyph_001",
+        "asset_type": "svg_1bit",
+        "byte_length": 87,
+        "checksum_sha256": "d65e16a40b1691818f16da9da71759c85a0610c6f31719d5d1398e9d4510675f",
+        "revision": 2,
+        "svg": "<svg xmlns='http://www.w3.org/2000/svg'><rect width='1' height='1' fill='white'/></svg>"
+      },
+      "protocol_version": "0.2.0",
+      "type": "asset"
+    }
+  ]
+}

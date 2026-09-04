@@ -1,0 +1,52 @@
+{
+  "item_iron_ingot": {
+    "type": "Item",
+    "name": "iron ingot",
+    "description": "A heavy bar of refined iron.",
+    "weight": 1.0,
+    "value": 5,
+    "stackable": true,
+    "properties": { "category": "material" }
+  },
+  "item_leather_strip": {
+    "type": "Item",
+    "name": "leather strip",
+    "description": "A strip of cured leather, used for bindings.",
+    "weight": 0.1,
+    "value": 2,
+    "stackable": true,
+    "properties": { "category": "material" }
+  },
+  "item_glass_vial": {
+    "type": "Item",
+    "name": "empty glass vial",
+    "description": "A small glass container for potions.",
+    "weight": 0.1,
+    "value": 1,
+    "stackable": true,
+    "properties": { "category": "material" }
+  },
+  "item_anvil": {
+    "type": "Item",
+    "name": "blacksmith's anvil",
+    "description": "A heavy iron anvil used for forging weapons and armor.",
+    "weight": 200.0,
+    "value": 0,
+    "stackable": false,
+    "properties": { 
+        "crafting_station_type": "anvil",
+        "can_take": false 
+    }
+  },
+  "item_alchemy_kit": {
+    "type": "Item",
+    "name": "alchemy kit",
+    "description": "A portable set of mortar, pestle, and burners.",
+    "weight": 5.0,
+    "value": 50,
+    "stackable": false,
+    "properties": { 
+        "crafting_station_type": "alchemy_table"
+    }
+  }
+}

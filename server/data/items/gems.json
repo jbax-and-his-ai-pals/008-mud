@@ -1,0 +1,176 @@
+{
+  "item_quartz_crystal": {
+    "type": "Gem",
+    "name": "quartz crystal",
+    "description": "A common, semi-precious crystal, cloudy but with a certain charm.",
+    "value": 15
+  },
+  "item_tiger_eye": {
+    "type": "Gem",
+    "name": "tiger eye",
+    "description": "A gemstone with a silky luster and a golden-brown hue.",
+    "value": 30
+  },
+  "item_garnet": {
+    "type": "Gem",
+    "name": "garnet",
+    "description": "A deep red gemstone, the size of a small pebble.",
+    "value": 50
+  },
+  "item_amethyst": {
+    "type": "Gem",
+    "name": "amethyst",
+    "description": "A beautiful violet-colored quartz crystal.",
+    "value": 75
+  },
+  "item_jade": {
+    "type": "Gem",
+    "name": "jade",
+    "description": "A smooth, polished stone of a milky green color.",
+    "value": 100
+  },
+  "item_sapphire": {
+    "type": "Gem",
+    "name": "sapphire",
+    "description": "A brilliant blue gemstone that seems to capture the light.",
+    "value": 250
+  },
+  "item_ruby": {
+    "type": "Gem",
+    "name": "ruby",
+    "description": "A fiery red gemstone, cut with many facets.",
+    "value": 300
+  },
+  "item_emerald": {
+    "type": "Gem",
+    "name": "emerald",
+    "description": "A stunning deep green gemstone, though it has a few minor flaws.",
+    "value": 350
+  },
+  "item_diamond": {
+    "type": "Gem",
+    "name": "diamond",
+    "description": "A flawless, brilliantly cut diamond of exceptional rarity.",
+    "value": 750
+  },
+  "item_shadowquartz": {
+    "type": "Gem",
+    "name": "shadowquartz",
+    "description": "A shard of smoky grey quartz that seems to drink the light around it.",
+    "value": 20
+  },
+  "item_agate": {
+    "type": "Gem",
+    "name": "agate",
+    "description": "A common, earthy stone with concentric bands of color.",
+    "value": 30
+  },
+  "item_jet": {
+    "type": "Gem",
+    "name": "jet",
+    "description": "A piece of polished black lignite, deep and lusterous.",
+    "value": 35
+  },
+  "item_turquoise": {
+    "type": "Gem",
+    "name": "turquoise",
+    "description": "An opaque, blue-to-green stone, often veined with dark matrix.",
+    "value": 40
+  },
+  "item_bloodstone": {
+    "type": "Gem",
+    "name": "bloodstone",
+    "description": "A dark green jasper with flecks of red, resembling drops of blood.",
+    "value": 45
+  },
+  "item_moonstone": {
+    "type": "Gem",
+    "name": "moonstone",
+    "description": "A pearly, opalescent stone that seems to glow with a soft inner light.",
+    "value": 60
+  },
+  "item_peridot": {
+    "type": "Gem",
+    "name": "peridot",
+    "description": "A vibrant lime-green gemstone, often found near volcanic rock.",
+    "value": 90
+  },
+  "item_tourmaline": {
+    "type": "Gem",
+    "name": "tourmaline",
+    "description": "A crystal that shows different colors when viewed from different angles.",
+    "value": 110
+  },
+  "item_pearl": {
+    "type": "Gem",
+    "name": "pearl",
+    "description": "A smooth, lustrous pearl, harvested from a river oyster.",
+    "value": 120
+  },
+  "item_topaz": {
+    "type": "Gem",
+    "name": "topaz",
+    "description": "A silicate mineral, this one a brilliant shade of sunny yellow.",
+    "value": 150
+  },
+  "item_aquamarine": {
+    "type": "Gem",
+    "name": "aquamarine",
+    "description": "A clear, pale blue gemstone that evokes the color of the sea.",
+    "value": 175
+  },
+  "item_opal": {
+    "type": "Gem",
+    "name": "opal",
+    "description": "A beautiful stone that diffracts light to show a shimmering play of colors.",
+    "value": 200
+  },
+  "item_spinel": {
+    "type": "Gem",
+    "name": "spinel",
+    "description": "A magnificent gemstone, often mistaken for a ruby due to its deep red hue.",
+    "value": 220
+  },
+  "item_sunstone": {
+    "type": "Gem",
+    "name": "sunstone",
+    "description": "A fiery orange gemstone that seems to contain captured sunlight.",
+    "value": 280
+  },
+  "item_stormstone": {
+    "type": "Gem",
+    "name": "stormstone",
+    "description": "A dark grey gem with veins of yellow that seem to crackle with latent energy.",
+    "value": 320
+  },
+  "item_fey_opal": {
+    "type": "Gem",
+    "name": "fey-opal",
+    "description": "An otherworldly opal whose colors shift in ways that defy the laws of light.",
+    "value": 450
+  },
+  "item_star_sapphire": {
+    "type": "Gem",
+    "name": "star sapphire",
+    "description": "A deep blue sapphire that exhibits a perfect six-rayed star under light.",
+    "value": 500
+  },
+  "item_soulgem": {
+    "type": "Gem",
+    "name": "soulgem",
+    "description": "A flawless black crystal that is unnervingly cold to the touch and seems to drink the light around it. It feels... empty.",
+    "value": 600
+  },
+  "item_black_diamond": {
+    "type": "Gem",
+    "name": "black diamond",
+    "description": "An extremely rare, opaque black diamond of incredible hardness.",
+    "value": 900
+  },
+  "item_dragons_eye": {
+    "type": "Gem",
+    "name": "dragon's eye",
+    "description": "A legendary gemstone, warm to the touch, with a deep, fiery core that seems to watch you.",
+    "value": 1000
+  }
+}

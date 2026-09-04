@@ -1,0 +1,311 @@
+{
+	"description": "A dense forest that borders Riverside Village. The trees grow tall and close together, creating a canopy that filters the sunlight. Local legends speak of strange creatures living in its depths.",
+	"name": "Whispering Woods",
+	"region_id": "forest",
+	"rooms": {
+		"abandoned_cabin": {
+			"_editor_pos": [
+				-350.0,
+				-250.0
+			],
+			"description": "A dilapidated wooden cabin that appears to have been abandoned for years. The door hangs off its hinges.",
+			"exits": {
+				"north": "clearing"
+			},
+			"items": [
+				{
+					"item_id": "item_torn_map"
+				},
+				{
+					"item_id": "item_rusty_lantern"
+				}
+			],
+			"name": "Abandoned Cabin",
+			"properties": {
+				"dark": true
+			}
+		},
+		"ancient_oak": {
+			"_editor_pos": [
+				1575.0,
+				-375.0
+			],
+			"description": "A massive oak tree, its trunk wider than several people. There's a hollow at its base. A dark opening in the hillside to the east leads into the Shadow Caves.",
+			"exits": {
+				"east": "caves:cave_entrance",
+				"west": "ancient_path_2"
+			},
+			"items": [
+				{
+					"item_id": "item_old_coin"
+				}
+			],
+			"name": "Ancient Oak"
+		},
+		"ancient_path_1": {
+			"_editor_pos": [
+				875.0,
+				-375.0
+			],
+			"description": "This part of the forest feels untouched. The path is faint, marked only by the occasional oddly-placed stone.",
+			"exits": {
+				"east": "ancient_path_2",
+				"north": "spider_nest",
+				"west": "east_bank"
+			},
+			"name": "Ancient Path"
+		},
+		"ancient_path_2": {
+			"_editor_pos": [
+				1225.0,
+				-375.0
+			],
+			"description": "The faint trail ends here in a small clearing dominated by a single, massive oak tree. An unnatural darkness seems to emanate from the hills to the east.",
+			"exits": {
+				"east": "ancient_oak",
+				"west": "ancient_path_1"
+			},
+			"name": "End of the Ancient Path"
+		},
+		"clearing": {
+			"_editor_pos": [
+				-350.0,
+				-500.0
+			],
+			"description": "A peaceful clearing where the trees thin out. Wildflowers grow in the grassy area. An old, dilapidated cabin stands to the south.",
+			"exits": {
+				"east": "crossroads",
+				"south": "abandoned_cabin"
+			},
+			"name": "Forest Clearing"
+		},
+		"crossroads": {
+			"_editor_pos": [
+				0.0,
+				-500.0
+			],
+			"description": "The path splits here. The main trail continues north into deeper woods, while another path leads east towards the sound of running water.",
+			"exits": {
+				"east": "stream_approach",
+				"north": "dense_woods_1",
+				"south": "forest_path_1",
+				"west": "clearing"
+			},
+			"name": "Forest Crossroads"
+		},
+		"deep_forest_1": {
+			"_editor_pos": [
+				0.0,
+				-1000.0
+			],
+			"description": "You are deep within the Whispering Woods. Ancient trees loom overhead, and the ground is covered in thick moss. The way forward is unclear.",
+			"exits": {
+				"north": "deep_forest_2",
+				"south": "dense_woods_1"
+			},
+			"items": [
+				{
+					"item_id": "item_strange_feather"
+				}
+			],
+			"name": "Deep Forest",
+			"properties": {
+				"dark": true
+			}
+		},
+		"deep_forest_2": {
+			"_editor_pos": [
+				0.0,
+				-1250.0
+			],
+			"description": "The forest feels ancient and slightly menacing here. Twisted roots cross the path, and shadows seem to dance at the edge of your vision.",
+			"exits": {
+				"south": "deep_forest_1"
+			},
+			"name": "Deeper Forest",
+			"properties": {
+				"dark": true,
+				"smell": "damp earth"
+			}
+		},
+		"dense_woods_1": {
+			"_editor_pos": [
+				0.0,
+				-750.0
+			],
+			"description": "The forest grows denser here. The path is harder to follow, and less light filters through the branches. The trail continues north and also seems to climb a ridge to the northwest.",
+			"exits": {
+				"north": "deep_forest_1",
+				"northwest": "up",
+				"south": "crossroads"
+			},
+			"name": "Dense Woods"
+		},
+		"east_bank": {
+			"_editor_pos": [
+				525.0,
+				-375.0
+			],
+			"description": "You climb up from the stream bed onto its eastern bank. The forest seems older here, the path less distinct.",
+			"exits": {
+				"east": "ancient_path_1",
+				"west": "stream_crossing"
+			},
+			"name": "Eastern Bank"
+		},
+		"forest_edge": {
+			"_editor_pos": [
+				0.0,
+				0.0
+			],
+			"description": "The manicured path from the village ends here, giving way to a narrow trail that winds between the trees. The forest is alive with the sounds of birds and rustling leaves.",
+			"exits": {
+				"north": "forest_path_1",
+				"south": "town:north_gate"
+			},
+			"items": [
+				{
+					"item_id": "item_forest_berries"
+				}
+			],
+			"name": "Forest Edge",
+			"properties": {
+
+			}
+		},
+		"forest_path_1": {
+			"_editor_pos": [
+				0.0,
+				-250.0
+			],
+			"description": "The main path continues north into the woods. A smaller, less-used trail branches off to the west.",
+			"exits": {
+				"north": "crossroads",
+				"south": "forest_edge",
+				"west": "western_thicket"
+			},
+			"name": "Forest Path"
+		},
+		"ruins_approach_path": {
+			"_editor_pos": [
+				-700.0,
+				-1000.0
+			],
+			"description": "The trees here are ancient and moss-covered. You see scattered, vine-choked stones that hint at old construction. The path clearly leads to some manner of ruins to the west.",
+			"exits": {
+				"east": "up",
+				"west": "ruins:ruins_approach"
+			},
+			"name": "Path to the Ruins"
+		},
+		"spider_nest": {
+			"_editor_pos": [
+				875.0,
+				-625.0
+			],
+			"description": "The trees here are draped in thick, sticky webs. The ground is littered with the desiccated husks of animals.",
+			"exits": {
+				"south": "ancient_path_1"
+			},
+			"name": "Spider Nest"
+		},
+		"stream_approach": {
+			"_editor_pos": [
+				350.0,
+				-500.0
+			],
+			"description": "The ground slopes downwards here. You can hear the clear sound of a bubbling stream just ahead to the east.",
+			"exits": {
+				"down": "stream_crossing",
+				"west": "crossroads"
+			},
+			"name": "Approach to the Stream"
+		},
+		"stream_crossing": {
+			"_editor_pos": [
+				175.0,
+				-375.0
+			],
+			"description": "A shallow stream bubbles over smooth stones in a small, cool ravine. Stepping stones offer a way across to the east bank.",
+			"exits": {
+				"east": "east_bank",
+				"up": "stream_approach"
+			},
+			"name": "Stream Crossing",
+			"properties": {
+				"noisy": true
+			}
+		},
+		"up": {
+			"_editor_pos": [
+				-350.0,
+				-1000.0
+			],
+			"description": "You've climbed a short, steep ridge. From here you can see the forest canopy stretching out for miles. The path continues west into a particularly dark and ancient-looking part of the woods.",
+			"exits": {
+				"southeast": "dense_woods_1",
+				"west": "ruins_approach_path"
+			},
+			"name": "Wooded Ridge"
+		},
+		"western_thicket": {
+			"_editor_pos": [
+				-350.0,
+				-250.0
+			],
+			"description": "A dense thicket of thorny bushes blocks easy passage further west. A small, dark opening is visible at the base of a rocky outcrop to the south.",
+			"exits": {
+				"east": "forest_path_1",
+				"south": "wolf_den_entrance"
+			},
+			"name": "Western Thicket",
+			"properties": {
+
+			}
+		},
+		"wolf_den_cave": {
+			"_editor_pos": [
+				-280.0,
+				50.0
+			],
+			"description": "A cramped, foul-smelling cave that serves as a den for a pack of forest wolves.",
+			"exits": {
+				"out": "wolf_den_entrance"
+			},
+			"name": "Wolf Den",
+			"properties": {
+				"dark": true,
+				"smell": "rank"
+			}
+		},
+		"wolf_den_entrance": {
+			"_editor_pos": [
+				-350.0,
+				0.0
+			],
+			"description": "The ground here is littered with bones, and a low growl emanates from a dark cave opening.",
+			"exits": {
+				"in": "wolf_den_cave",
+				"north": "western_thicket"
+			},
+			"name": "Wolf Den Entrance",
+			"properties": {
+				"smell": "musky"
+			}
+		}
+	},
+	"spawner": {
+		"level_range": [
+			1.0,
+			3.0
+		],
+		"monster_types": {
+			"bandit": 1.0,
+			"giant_bat": 4.0,
+			"giant_rat": 4.0,
+			"goblin": 3.0,
+			"wild_boar": 3.0,
+			"wolf": 5.0
+		}
+	}
+}

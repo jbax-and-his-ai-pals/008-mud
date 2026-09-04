@@ -1,0 +1,31 @@
+{
+  "goblin_culture": {
+    "name": "Goblin Culture",
+    "description": "Artifacts representing the crude artistic attempts of local goblins.",
+    "items": [
+      "item_goblin_bead_red",
+      "item_goblin_bead_blue",
+      "item_goblin_bead_green",
+      "item_goblin_shaman_charm"
+    ],
+    "rewards": {
+      "xp": 250,
+      "gold": 100,
+      "items": [ { "item_id": "item_emerald", "quantity": 1 } ]
+    }
+  },
+  "numismatics": {
+    "name": "Numismatics",
+    "description": "A collection of currency from the Old Kingdom.",
+    "items": [
+      "item_ancient_coin_copper",
+      "item_ancient_coin_silver",
+      "item_ancient_coin_gold"
+    ],
+    "rewards": {
+      "xp": 500,
+      "gold": 200,
+      "items": [ { "item_id": "item_diamond", "quantity": 1 } ]
+    }
+  }
+}

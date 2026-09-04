@@ -1,0 +1,8 @@
+{
+	"item_dragons_eye": {
+		"description": "A legendary gemstone, warm to the touch, with a deep, fiery core that seems to watch you.",
+		"name": "dragon's eye",
+		"type": "Gem",
+		"value": 1000.0
+	}
+}

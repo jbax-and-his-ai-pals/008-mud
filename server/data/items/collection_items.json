@@ -1,0 +1,51 @@
+{
+  "item_goblin_bead_red": {
+    "type": "Junk",
+    "name": "red goblin bead",
+    "description": "A rough clay bead painted red. Part of a goblin ceremonial set.",
+    "weight": 0.1, "value": 5,
+    "properties": { "collection_id": "goblin_culture" }
+  },
+  "item_goblin_bead_blue": {
+    "type": "Junk",
+    "name": "blue goblin bead",
+    "description": "A chipped blue bead. Part of a goblin ceremonial set.",
+    "weight": 0.1, "value": 5,
+    "properties": { "collection_id": "goblin_culture" }
+  },
+  "item_goblin_bead_green": {
+    "type": "Junk",
+    "name": "green goblin bead",
+    "description": "A mossy green bead. Part of a goblin ceremonial set.",
+    "weight": 0.1, "value": 5,
+    "properties": { "collection_id": "goblin_culture" }
+  },
+  "item_goblin_shaman_charm": {
+    "type": "Junk",
+    "name": "shaman's charm",
+    "description": "A complex knot of roots and bone. The centerpiece of a goblin collection.",
+    "weight": 0.2, "value": 25,
+    "properties": { "collection_id": "goblin_culture" }
+  },
+  "item_ancient_coin_copper": {
+    "type": "Treasure",
+    "name": "ancient copper coin",
+    "description": "A worn coin from a fallen empire.",
+    "weight": 0.01, "value": 10,
+    "properties": { "collection_id": "numismatics" }
+  },
+  "item_ancient_coin_silver": {
+    "type": "Treasure",
+    "name": "ancient silver coin",
+    "description": "A silver coin stamped with a forgotten king's profile.",
+    "weight": 0.01, "value": 50,
+    "properties": { "collection_id": "numismatics" }
+  },
+  "item_ancient_coin_gold": {
+    "type": "Treasure",
+    "name": "ancient gold coin",
+    "description": "A pristine gold coin. Rare and valuable.",
+    "weight": 0.01, "value": 200,
+    "properties": { "collection_id": "numismatics" }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "relieved_homeowner": {
+    "name": "Relieved Homeowner",
+    "description": "A person who looks immensely grateful, no longer pale with worry.",
+    "level": 1, "friendly": true, "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Oh, thank you, thank you! Did you get them all?",
+      "quest_complete": "You're a hero! Please, take this for your trouble. I can finally sleep soundly."
+    }
+  },
+  "worried_homeowner": {
+    "name": "Worried Homeowner",
+    "description": "A person wringing their hands, looking anxiously at their house.",
+    "level": 1, "friendly": true, "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Oh, hello there! I see you've taken my notice from the board. Thank goodness!",
+      "greeting_extended": "My house is just over at the {entry_location_desc}. Please, get rid of those awful creatures! If you're not sure where that is, I can guide you there. Just say the word.",
+      "accept_guide": "Excellent! Follow me, I'll show you the way. Type 'stop' at any time if you wish to cancel.",
+      "arrival_handoff": "Here it is. Please, be careful in there. I'll wait out here for you."
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "events": [
+    {
+      "payload": {
+        "active_provider": "builtin.world_effects.default",
+        "available_providers": [
+          "builtin.world_effects.default",
+          "disabled.world_effects",
+          "sample.effects.balance"
+        ],
+        "mode": "enabled"
+      },
+      "protocol_version": "0.2.0",
+      "type": "world_effects_status"
+    },
+    {
+      "payload": "World-effects mode=enabled provider=builtin.world_effects.default",
+      "protocol_version": "0.2.0",
+      "type": "text"
+    }
+  ]
+}

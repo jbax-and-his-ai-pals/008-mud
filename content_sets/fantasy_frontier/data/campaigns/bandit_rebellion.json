@@ -1,0 +1,51 @@
+{
+  "campaign_id": "bandit_rebellion",
+  "name": "The Bandit Rebellion",
+  "description": "A local bandit clan is rising up. Will you crush them or join them?",
+  "start_node_id": "intro_investigation",
+  "nodes": {
+    "intro_investigation": {
+      "description": "Scout the forest to find the bandit camp.",
+      "quest_template_id": "quest_scout_forest",
+      "transitions": [
+        {
+          "trigger": "SUCCESS",
+          "target_node_id": "confront_lieutenant",
+          "narrative_text": "You found the camp. Now you must deal with their leader."
+        }
+      ]
+    },
+    "confront_lieutenant": {
+      "description": "Deal with the Lieutenant.",
+      "quest_template_id": "quest_bandit_lieutenant", 
+      "transitions": [
+        {
+          "trigger": "VIOLENT_SUCCESS",
+          "target_node_id": "assault_stronghold",
+          "narrative_text": "You chose violence. The King demands blood."
+        },
+        {
+          "trigger": "PEACEFUL_SUCCESS",
+          "target_node_id": "diplomatic_envoy",
+          "narrative_text": "He listened. The Bandit King awaits the treaty."
+        }
+      ]
+    },
+    "diplomatic_envoy": {
+      "description": "Deliver the treaty.",
+      "quest_template_id": "quest_deliver_treaty",
+      "transitions": [
+        { "trigger": "SUCCESS", "target_node_id": "end_peace", "narrative_text": "Peace is restored." }
+      ]
+    },
+    "assault_stronghold": {
+        "description": "Kill the King.",
+        "quest_template_id": "quest_kill_bandit_king",
+        "transitions": [
+            { "trigger": "SUCCESS", "target_node_id": "end_war", "narrative_text": "The rebellion is crushed." }
+        ]
+    },
+    "end_peace": { "type": "END", "outcome": "PEACE_ALLIANCE" },
+    "end_war": { "type": "END", "outcome": "TOTAL_VICTORY" }
+  }
+}

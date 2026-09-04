@@ -1,0 +1,17 @@
+{
+	"item_lizardfolk_shield": {
+		"description": "A sturdy shield made from the hardened hide of a large reptile.",
+		"name": "lizardfolk shield",
+		"properties": {
+			"defense": 2.0,
+			"durability": 60.0,
+			"equip_slot": [
+				"off_hand"
+			],
+			"max_durability": 60.0
+		},
+		"type": "Armor",
+		"value": 30.0,
+		"weight": 4.0
+	}
+}

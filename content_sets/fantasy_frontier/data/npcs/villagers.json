@@ -1,0 +1,458 @@
+{
+  "wandering_villager": {
+    "name": "Villager",
+    "description": "A local resident going about their day, seemingly without a specific destination.",
+    "health": 80,
+    "level": 1,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "wanderer",
+    "stats": {
+      "strength": 7,
+      "dexterity": 8,
+      "constitution": 9,
+      "agility": 9,
+      "intelligence": 8,
+      "wisdom": 8,
+      "spell_power": 0,
+      "magic_resist": 0
+    },
+    "dialog": {
+      "greeting": "Hullo there. Just enjoying the day.",
+      "weather": "Nice weather for a walk, don't you think?",
+      "town": "Just wandering around town, seeing the sights.",
+      "work": "Work? Nah, just taking it easy today.",
+      "rumors": "Haven't heard much interesting lately."
+    },
+    "default_dialog": "The {name} gives you a simple nod.",
+    "initial_inventory": [],
+    "properties": {
+      "wander_chance": 0.8,    
+      "move_cooldown": 5,     
+      "can_give_generic_quests": false
+    }
+  },
+  "wandering_mage": {
+    "name": "Wandering Mage",
+    "description": "A traveler clad in simple robes, humming a tune as they walk. Their eyes occasionally sparkle with arcane energy.",
+    "health": 40,
+    "max_mana": 80,
+    "level": 3,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "wanderer",
+    "stats": {
+      "strength": 6, "dexterity": 9, "constitution": 8, "agility": 10,
+      "intelligence": 15, "wisdom": 12, "spell_power": 8, "magic_resist": 5
+    },
+    "dialog": { "greeting": "A pleasant day for a walk and a bit of study, isn't it?" },
+    "default_dialog": "The {name} seems lost in thought, muttering arcane phrases.",
+    "loot_table": {
+        "item_healing_potion_small": { "chance": 0.1 },
+        "scroll_raise_skeleton": { "chance": 0.05 }
+    },
+    "properties": {
+      "wander_chance": 0.7,
+      "move_cooldown": 6,
+      "spell_cast_chance": 0.80,
+      "random_spells": {
+        "pool": ["magic_missile", "fireball", "ice_shard"],
+        "count": [1, 2]
+      }
+    }
+  },
+  "wandering_priest": {
+    "name": "Wandering Priest",
+    "description": "A kindly person in simple clerical vestments, offering a warm smile to those they pass. They carry a satchel that smells faintly of herbs.",
+    "health": 40,
+    "max_mana": 80,
+    "level": 3,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "healer",
+    "stats": {
+      "strength": 8, "dexterity": 8, "constitution": 11, "agility": 8,
+      "intelligence": 12, "wisdom": 15, "spell_power": 5, "magic_resist": 4
+    },
+    "dialog": { "greeting": "Blessings upon you, traveler." },
+    "default_dialog": "The {name} offers a quiet prayer as they walk.",
+    "loot_table": {
+        "item_healing_potion_small": { "chance": 0.25 }
+    },
+    "properties": {
+      "wander_chance": 0.6,
+      "move_cooldown": 8,
+      "spell_cast_chance": 0.9,
+      "required_spells": ["minor_heal"]
+    }
+  },
+  "tavern_keeper": {
+    "name": "Barlin the Tavern Keeper",
+    "description": "A robust man with a thick beard and friendly eyes. He keeps his tavern in good order and knows all the local gossip.",
+    "health": 100,
+    "level": 2,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": {
+      "strength": 11,
+      "dexterity": 10,
+      "constitution": 13,
+      "agility": 9,
+      "intelligence": 10,
+      "wisdom": 11,
+      "spell_power": 0,
+      "magic_resist": 1
+    },
+    "dialog": {
+      "greeting": "Welcome to the Drunken Dragon! Can I get you a drink or a hot meal?",
+      "drink": "I've got ale, mead, and wine. The ale's brewed right here in town.",
+      "food": "Our cook makes a mean venison stew, and the bread's fresh from the baker this morning.",
+      "rumors": "Have you heard about the missing supplies? The last merchant caravan lost an entire wagon's worth of goods. Some say it was bandits, others blame forest creatures.",
+      "town": "Riverside's a peaceful place, most of the time. We get travelers passing through on their way upriver to the city.",
+      "forest": "I wouldn't venture too deep into those woods alone. Strange things happen there, especially at night.",
+      "cellar_key": "Ah, the cellar key! Found it, did you? Must have dropped it somewhere. You can keep it, might be useful if you need to... access the cellar quickly.",
+      "portbridge": "Portbridge, down by the sea? Rough place, full of sailors and smugglers, or so I hear. Very different from our quiet village.",
+      "trade": "Looking for a drink, or perhaps selling something?"
+    },
+    "default_dialog": "The {name} is busy wiping down the bar.",
+    "initial_inventory": [
+      {
+        "item_id": "item_ale",
+        "quantity": 10
+      }
+    ],
+    "properties": {
+      "is_vendor": true,
+      "wander_chance": 0.0,
+      "move_cooldown": 9999,
+      "spell_cast_chance": 0.0,
+      "work_location": "town:tavern",
+      "buys_item_types": ["Consumable", "Junk", "Food"],
+      "sells_items": [
+        { "item_id": "item_ale" },
+        { "item_id": "item_hunk_bread" },
+        { "item_id": "item_healing_potion_small", "price_multiplier": 1.5 }
+      ],
+      "can_give_generic_quests": true
+    }
+  },
+  "blacksmith": {
+    "name": "Grenda the Blacksmith",
+    "description": "A tall, muscular woman with her hair tied back and soot-stained arms. Her steady hands and keen eye produce some of the finest metalwork in the region.",
+    "health": 120,
+    "level": 3,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": {
+      "strength": 15,
+      "dexterity": 11,
+      "constitution": 14,
+      "agility": 9,
+      "intelligence": 10,
+      "wisdom": 10,
+      "spell_power": 0,
+      "magic_resist": 2
+    },
+    "dialog": {
+      "greeting": "Welcome to my forge. Need something repaired or looking to buy?",
+      "weapons": "I can make you a fine sword or axe if you've got the coin. Quality steel, properly tempered.",
+      "armor": "I've got leather and chainmail available. Full plate's a special order, takes time to get right.",
+      "repair": "I can fix that up for you. Just leave it with me and come back tomorrow.",
+      "business": "Business is steady enough. Always need for good tools and weapons.",
+      "missing_supplies": "Aye, there was good steel on that caravan. I was expecting a shipment that never arrived.",
+      "mountains": "The Frostpeaks? Cold and dangerous up there. Heard tell of old mines, but most are played out or collapsed. Not worth the climb unless you're hunting griffins... or trouble.",
+      "trade": "Looking for weapons, armor, or need repairs?"
+    },
+    "default_dialog": "The {name} nods but continues working at the forge.",
+    "initial_inventory": [],
+    "properties": {
+      "is_vendor": true,
+      "can_repair": true,
+      "wander_chance": 0.0,
+      "move_cooldown": 9999,
+      "spell_cast_chance": 0.0,
+      "work_location": "town:blacksmith",
+      "buys_item_types": ["Weapon", "Armor", "Material", "Junk"],
+      "sells_items": [
+         { "item_id": "item_starter_dagger" },
+         { "item_id": "item_iron_sword", "price_multiplier": 1.1 },
+         { "item_id": "item_leather_tunic" },
+         { "item_id": "item_leather_cap" },
+         { "item_id": "item_leather_gloves" },
+         { "item_id": "item_leather_boots" },
+         { "item_id": "item_iron_ingot", "price_multiplier": 1.2 },
+         { "item_id": "item_leather_strip", "price_multiplier": 1.2 }
+      ],
+      "can_give_generic_quests": true
+    }
+  },
+  "village_elder": {
+    "name": "Elder Thorne",
+    "description": "An elderly person with silver hair and a dignified bearing. Despite their age, there's a sharp intelligence in their eyes and a commanding presence in their manner.",
+    "health": 70,
+    "level": 3,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "scheduled",
+    "stats": {
+      "strength": 6,
+      "dexterity": 7,
+      "constitution": 8,
+      "agility": 7,
+      "intelligence": 14,
+      "wisdom": 16,
+      "spell_power": 3,
+      "magic_resist": 4
+    },
+    "schedule": {
+    },
+    "dialog": {
+      "greeting": "Greetings, traveler. I am Elder Thorne. Feel free to ask about my trade or the latest rumors.",
+      "village": "Riverside has stood here for five generations. We're simple folk, making our living from the river and the land.",
+      "history": "Our village was founded by refugees from the great war to the north. They sought peace, and found it here by the river.",
+      "missing_supplies": "Yes, it's quite troubling. A whole wagon of supplies vanished between here and the crossroads. We need those supplies for winter. If you could investigate, the village would be most grateful. Any clue, no matter how small, could help.",
+      "reward": "Find our missing supplies, and you'll be well compensated. The merchants' guild has offered a bounty, and I can add a personal reward as well.",
+      "forest": "The Whispering Woods have always held secrets. Our ancestors knew to respect its boundaries. Some say there are ancient ruins deep within.",
+      "ruins": "The ruins in the forest? Aye, they are spoken of in whispers. Older than memory. Best left undisturbed, some say. Too many shadows linger there.",
+      "swamp": "The Murkwater? A foul place. Little of value there, and much that can harm you. Best avoided.",
+      "farmland": "The farms across the river provide much of our sustenance. Good, honest folk work that land.",
+      "portbridge": "I have little dealing with Portbridge. It's a place of transient folk and shifting loyalties, unlike our steadfast community here."
+    },
+    "default_dialog": "The {name} considers your words carefully before responding.",
+    "initial_inventory": [],
+    "properties": {
+      "is_quest_giver": true,
+      "wander_chance": 0.1,
+      "move_cooldown": 120,
+      "spell_cast_chance": 0.1,
+      "can_give_generic_quests": true
+    }
+  },
+  "merchant": {
+    "name": "Talia the Merchant",
+    "description": "A well-dressed woman with a quick smile and shrewd eyes. She travels between villages with her wagon of goods, bringing news as well as merchandise.",
+    "health": 80,
+    "level": 2,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "wanderer",
+    "stats": {
+      "strength": 8,
+      "dexterity": 10,
+      "constitution": 9,
+      "agility": 11,
+      "intelligence": 12,
+      "wisdom": 12,
+      "spell_power": 0,
+      "magic_resist": 1
+    },
+    "dialog": {
+      "greeting": "Well met! Looking to buy or sell? I've got wares from up and down the river.",
+      "goods": "I've got cloth from the city, spices from the eastern lands, tools, trinkets, and more. Take a look!",
+      "buy": "Show me what you're selling, and I'll give you a fair price.",
+      "news": "News from the city? The new tax on river trade has everyone in an uproar. The merchants' guild is petitioning the king.",
+      "bandits": "There's been more bandit activity on the north road. I hired guards for this trip, cost me a pretty coin.",
+      "missing_supplies": "I heard about that. Bad business, that. Makes all of us merchants nervous. Who's to say our goods won't be next?",
+      "travel": "I travel the river road mostly. Safer than the deep woods, usually. Though I've heard odd tales about the swamp downstream... nothing I'd care to investigate myself.",
+      "portbridge": "Portbridge? Oh yes, I trade there sometimes, though you have to watch your back. Good place to find exotic goods brought in by sea, if you know where to look. The coastal path south from the swamp will get you there, eventually.",
+      "trade": "Interested in my wares today?"
+    },
+    "default_dialog": "The {name} is busy arranging her wares.",
+    "initial_inventory": [],
+    "properties": {
+      "is_vendor": true,
+      "wander_chance": 0.0,
+      "move_cooldown": 60,
+      "spell_cast_chance": 0.0,
+      "work_location": "town:market",
+      "buys_item_types": ["Consumable", "Treasure", "Material", "Junk", "Key", "Item", "Misc"],
+      "sells_items": [
+        { "item_id": "item_healing_potion_small" },
+        { "item_id": "item_mana_potion_small" },
+        { "item_id": "item_hunk_bread" },
+        { "item_id": "item_ripe_apple" },
+        { "item_id": "item_coiled_rope" },
+        { "item_id": "item_strange_feather", "price_multiplier": 1.5 },
+        { "item_id": "item_rusty_lantern", "price_multiplier": 0.8 },
+        { "item_id": "scroll_raise_skeleton", "price_multiplier": 2.5 },
+        { "item_id": "item_glass_vial" }
+      ],
+      "can_give_generic_quests": true
+    }
+  },
+  "forest_hermit": {
+    "name": "Old Bryn",
+    "description": "A hunched figure in tattered clothes with a wild beard and hair. Despite his unkempt appearance, his eyes are clear and knowing.",
+    "health": 60,
+    "level": 1,
+    "friendly": true,
+    "faction": "neutral",
+    "behavior_type": "wanderer",
+    "stats": {
+      "strength": 7,
+      "dexterity": 8,
+      "constitution": 10,
+      "agility": 9,
+      "intelligence": 9,
+      "wisdom": 14,
+      "spell_power": 2,
+      "magic_resist": 2
+    },
+    "dialog": {
+      "greeting": "Eh? Who's there? Don't get many visitors out this way.",
+      "forest": "These woods have a spirit to them, if you know how to listen. Been living here for twenty years, and they still surprise me.",
+      "village": "Bah, too many people in that village. Too much noise. I prefer the company of trees.",
+      "missing_supplies": "Supplies? Hrmph. Saw something strange a few nights back. Lights moving through the trees, deeper in than most dare to go. Towards the old stones... Not natural, those lights.",
+      "cave": "There's caves in the hills yonder. Old caves, deep ones. Folk say they're haunted, but it's just echoes playing tricks. Still, wouldn't go too deep if I were you. Lead all sorts of places... some up to the cold peaks.",
+      "ruins": "The old ruins? Aye, they're real enough. Hidden in the deepest part of the woods, northwest of here. Built by who? Not men, I'd wager. The stones are too perfectly fit, and the markings... not like any writing I've seen."
+    },
+    "default_dialog": "The {name} mutters to himself and doesn't seem to hear you.",
+    "initial_inventory": [],
+    "properties": {
+      "wander_chance": 0.2,
+      "move_cooldown": 90,
+      "spell_cast_chance": 0.05,
+      "can_give_generic_quests": true
+    }
+  },
+  "guard_captain": {
+    "name": "Guard Captain Elara",
+    "description": "A veteran soldier with a no-nonsense demeanor. Her armor is well-maintained, and her gaze is sharp.",
+    "health": 150,
+    "level": 5,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": {
+      "strength": 14,
+      "dexterity": 12,
+      "constitution": 13
+    },
+    "dialog": {
+      "greeting": "State your business. We keep the peace here in Riverside.",
+      "bandits": "They've been a nuisance on the roads. My guards are stretched thin, but we handle any threats that get too close to the walls.",
+      "forest": "The woods are wild. We don't patrol beyond the tree line. That's adventurer's work."
+    },
+    "properties": {
+      "can_give_generic_quests": true,
+      "quest_interests": [
+        "kill",
+        "deliver"
+      ]
+    }
+  },
+  "town_guard": {
+    "name": "Town Guard",
+    "description": "A guard in the service of Riverside, equipped with a spear and leather armor.",
+    "health": 100,
+    "level": 3,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": {
+      "strength": 12,
+      "dexterity": 11,
+      "constitution": 12
+    },
+    "dialog": {
+      "greeting": "Keep the peace, citizen."
+    },
+    "properties": {
+      "aggression": 1.0,
+      "move_cooldown": 5
+    }
+  },
+  "healer": {
+    "name": "Elara the Healer",
+    "description": "A calm, gentle woman who tends to the town's sick and injured at the local shrine.",
+    "health": 70,
+    "level": 4,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "healer",
+    "max_mana": 100,
+    "stats": {
+      "intelligence": 15,
+      "wisdom": 18,
+      "spell_power": 10
+    },
+    "dialog": {
+      "greeting": "Blessings upon you. Are you in need of healing?",
+      "trade": "I do not sell wares, but I can offer restorative services, for a donation to the shrine."
+    },
+    "properties": {
+      "is_vendor": true,
+      "can_heal": true,
+      "spell_cast_chance": 1.0,
+      "buys_item_types": [
+        "Consumable"
+      ],
+      "sells_items": [
+        {
+          "item_id": "item_healing_potion_small"
+        }
+      ],
+      "required_spells": [
+        "minor_heal"
+      ]
+    }
+  },
+  "alchemist": {
+    "name": "Kaelan the Alchemist",
+    "description": "An eccentric man with wild hair and stained fingers. He is constantly distracted by his bubbling concoctions.",
+    "health": 80,
+    "level": 4,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "max_mana": 80,
+    "stats": {
+      "intelligence": 18,
+      "wisdom": 14,
+      "spell_power": 12
+    },
+    "dialog": {
+      "greeting": "Ah, a customer! Don't mind the smell. Or the smoke. What can I get for you?",
+      "trade": "Potions? Tinctures? Reagents? If it bubbles or fizzes, I'm your man!"
+    },
+    "properties": {
+      "is_vendor": true,
+      "work_location": "town:alchemist_interior",
+      "buys_item_types": [
+        "Consumable",
+        "Material",
+        "Junk"
+      ],
+      "sells_items": [
+        {
+          "item_id": "item_healing_potion_small"
+        },
+        {
+          "item_id": "item_mana_potion_small"
+        },
+        {
+          "item_id": "item_scroll_random",
+          "price_multiplier": 2.0
+        },
+        { "item_id": "item_glass_vial" }
+      ],
+      "can_give_generic_quests": true
+    }
+  },
+  "curator": {
+    "name": "Curator Vane",
+    "description": "A bespectacled scholar with an obsessive gleam in his eye. He loves nothing more than cataloging history.",
+    "level": 5, "friendly": true, "faction": "friendly", "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Welcome to the Riverside Museum! We are always looking for new [Collections].",
+      "collections": "History is scattered to the winds. If you find artifacts—coins, idols, rare items—bring them to me. I will ensure they are preserved.",
+      "reward": "Knowledge is its own reward... but I also have funding from the city to pay finders fees."
+    },
+    "properties": {
+      "is_collector": true,
+      "can_give_generic_quests": false
+    }
+  }
+}

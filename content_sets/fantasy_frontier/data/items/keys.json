@@ -1,0 +1,13 @@
+{
+    "item_tavern_cellar_key": {
+      "type": "Key",
+      "name": "tavern cellar key",
+      "description": "A small iron key that opens the cellar of the Drunken Dragon tavern.",
+      "weight": 0.1,
+      "value": 0,
+      "stackable": false,
+      "properties": {
+        "target_id": "tavern_cellar_door"
+      }
+    }
+  }

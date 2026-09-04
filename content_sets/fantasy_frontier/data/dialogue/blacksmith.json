@@ -1,0 +1,26 @@
+{
+  "root": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Well met. The forge is hot, but my supplies are low.",
+      "choices": [
+        { "text": "What are you making?", "next_node": "making_desc" },
+        { "text": "I found some iron ore.", "next_node": "turn_in_ore", 
+          "condition": { "has_item": "item_iron_ore" } },
+        { "text": "Goodbye.", "next_node": "exit" }
+      ]
+    },
+    "making_desc": {
+      "text": "Just horseshoes for now. Without good iron, I can't forge weapons.",
+      "choices": [
+        { "text": "Where can I find iron?", "next_node": "quest_hook" },
+        { "text": "I see.", "next_node": "greeting" }
+      ]
+    },
+    "quest_hook": {
+      "text": "The old mine to the north. It's overrun, but the ore is rich.",
+      "effects": { "start_quest": "iron_shortage" },
+      "choices": [{ "text": "I'll check it out.", "next_node": "exit" }]
+    }
+  }
+}

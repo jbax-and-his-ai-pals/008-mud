@@ -1,0 +1,42 @@
+{
+  "theme_id": "cyberpunk_district",
+  "display_name": "Cyberpunk District",
+  "pack_spec_version": "1",
+  "runtime_api_min": "1.0",
+  "runtime_api_max": "1.0",
+  "ui_strings": {
+    "status_title": "Runner",
+    "inventory_title": "Rig",
+    "journal_title": "Contracts",
+    "nearby_title": "Street Feed",
+    "world_state_title": "District Signal",
+    "network_title": "Grid Link",
+    "asset_title": "Tag Preview",
+    "connect_button": "Jack In",
+    "disconnect_button": "Jack Out",
+    "send_button": "Transmit",
+    "command_placeholder": "Type command (scan, move east, status...)"
+  },
+  "lexicon": {
+    "world_field_id": "signal"
+  },
+  "style_tokens": {
+    "accent_color": "#00F0B5",
+    "text_color": "#D7FFF5",
+    "ui_density": 6
+  },
+  "icon_tokens": {
+    "status_effect": "Status Mods:",
+    "hostile_tag": "hostile",
+    "item_prefix": ">",
+    "npc_none": "No contacts detected.",
+    "item_none": "No hardware nearby.",
+    "inventory_item_prefix": ">",
+    "inventory_none": "No rig telemetry.",
+    "inventory_empty": "Rig storage empty.",
+    "quest_active_prefix": "Live:",
+    "quest_completed_prefix": "Closed:",
+    "quest_archived_prefix": "Cold:",
+    "quest_none": "No contracts loaded."
+  }
+}

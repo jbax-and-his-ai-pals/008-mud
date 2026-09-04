@@ -1,0 +1,9 @@
+{
+    "plugin_id": "test_mod",
+    "name": "Test Mod",
+    "version": "1.0.0",
+    "manifest_schema_version": "1",
+    "engine_api_min": "1.0",
+    "engine_api_max": "1.0",
+    "capabilities": ["command_registration"]
+}

@@ -1,0 +1,282 @@
+{
+  "region_id": "town",
+  "name": "Riverside Village",
+  "description": "A bustling village nestled by the Silver River. The buildings are made of sturdy timber with thatched roofs, and the villagers are a mix of hardworking locals and wary travelers.",
+  "properties": { "safe_zone": true },
+  "rooms": {
+    "town_square": {
+      "name": "Town Square",
+      "description": "The heart of Riverside Village. A large stone fountain gurgles peacefully in the center of the cobblestone square. Shops and lanes branch off in all directions, and the distant sound of the flowing river can be heard to the south. A sturdy Quest Board stands near the fountain.",
+      "exits": { "north": "north_gate_road", "south": "river_road", "east": "east_market_road", "west": "west_lane", "northeast": "tavern_exterior", "southeast": "museum_exterior" },
+      "initial_npcs": [
+        { "template_id": "village_elder" },
+        { "template_id": "alchemist" },
+        { "template_id": "healer" },
+        { "template_id": "town_guard" },
+        { "template_id": "guard_captain" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" },
+        { "template_id": "wandering_villager" }
+      ]
+    },
+    "north_gate_road": {
+      "name": "North Gate Road",
+      "description": "A wide, well-trodden road leading north out of the village. The cobblestones give way to dirt further on. A tall watchtower stands guard to the east, and the entrance to the guard barracks is to the west.",
+      "exits": { "south": "town_square", "north": "north_gate", "east": "watchtower_base", "west": "barracks_exterior" }
+    },
+    "north_gate": {
+      "name": "North Gate",
+      "description": "A sturdy wooden gate marks the northern exit of Riverside. Two guards stand watch, observing travelers as they come and go.",
+      "exits": { "south": "north_gate_road", "north": "forest:forest_edge" },
+      "initial_npcs": [
+        { "template_id": "town_guard", "instance_id": "guard_north_1" },
+        { "template_id": "town_guard", "instance_id": "guard_north_2" }
+      ]
+    },
+    "watchtower_base": {
+      "name": "Watchtower Base",
+      "description": "The base of a tall stone watchtower. A heavy wooden door leads inside.",
+      "exits": { "west": "north_gate_road", "in": "watchtower_interior_ground" }
+    },
+    "watchtower_interior_ground": {
+      "name": "Watchtower - Ground Floor",
+      "description": "The ground floor of the watchtower is spartan, containing a weapon rack and a small table. A steep wooden ladder leads up.",
+      "properties": { "outdoors": false },
+      "exits": { "out": "watchtower_base", "up": "watchtower_top" }
+    },
+    "watchtower_top": {
+      "name": "Watchtower - Top",
+      "description": "From the top of the watchtower, you have a commanding view of the village to the south and the sprawling Whispering Woods to the north.",
+      "properties": { "outdoors": true },
+      "exits": { "down": "watchtower_interior_ground" }
+    },
+    "barracks_exterior": {
+      "name": "Guard Barracks",
+      "description": "A solid, functional building that houses the town guard. The sound of training drills can sometimes be heard from the yard behind it.",
+      "exits": { "east": "north_gate_road", "in": "barracks_interior" }
+    },
+    "barracks_interior": {
+      "name": "Inside the Barracks",
+      "description": "The barracks common room is simple and orderly. Bunks line the walls, and a long table is set for meals. A guard captain is reviewing a map.",
+      "properties": { "outdoors": false },
+      "exits": { "out": "barracks_exterior" },
+      "initial_npcs": [ { "template_id": "guard_captain", "instance_id": "guard_captain_elara" } ]
+    },
+    "west_lane": {
+      "name": "West Lane",
+      "description": "A quiet lane bordering the blacksmith's forge. The lane continues west into a residential area and south towards a community garden.",
+      "exits": { "east": "town_square", "west": "residential_street_east", "south": "community_garden", "north": "blacksmith_exterior" }
+    },
+    "blacksmith_exterior": {
+      "name": "Blacksmith's Forge",
+      "description": "The rhythmic clang of hammer on anvil echoes from this soot-stained building. The heat from the forge can be felt even from outside.",
+      "exits": { "south": "west_lane", "in": "blacksmith_interior" }
+    },
+    "blacksmith_interior": {
+      "name": "Inside the Forge",
+      "description": "The interior is dominated by a massive stone forge, its coals glowing fiercely. Tools and half-finished weapons hang from the walls.",
+      "properties": { "outdoors": false, "noisy": true, "smell": "smoky" },
+      "items": [ { "item_id": "item_anvil" } ],
+      "exits": { "out": "blacksmith_exterior" },
+      "initial_npcs": [ { "template_id": "blacksmith", "instance_id": "blacksmith_grenda_forge" } ]
+    },
+    "residential_street_east": {
+      "name": "Residential Street",
+      "description": "A quiet residential street lined with small, well-kept houses. A small shrine stands at the western end of the street.",
+      "exits": { "east": "west_lane", "west": "shrine_exterior", "north": "small_house_1_exterior" }
+    },
+    "small_house_1_exterior": {
+      "name": "A Small House",
+      "description": "A quaint little house with a thatched roof and a small flower garden out front.",
+      "exits": { "south": "residential_street_east", "in": "small_house_1_interior" }
+    },
+    "small_house_1_interior": {
+      "name": "Inside a Small House",
+      "description": "A cozy, one-room home. A bed sits in the corner, and a small table is set for one.",
+      "properties": { "outdoors": false },
+      "exits": { "out": "small_house_1_exterior" }
+    },
+    "shrine_exterior": {
+      "name": "Shrine of Healing",
+      "description": "A small, open-air shrine dedicated to the gods of healing and restoration. It is a peaceful, quiet place.",
+      "exits": { "east": "residential_street_east", "in": "shrine_interior" }
+    },
+    "shrine_interior": {
+      "name": "Inside the Shrine",
+      "description": "The air inside the small shrine is calm and smells of incense. Acolytes tend to a central altar.",
+      "properties": { "outdoors": false, "smell": "incense" },
+      "exits": { "out": "shrine_exterior" },
+      "initial_npcs": [ { "template_id": "healer", "instance_id": "healer_elara_shrine" } ]
+    },
+    "community_garden": {
+      "name": "Community Garden",
+      "description": "A well-tended plot of land where villagers grow vegetables and herbs. The air smells of damp earth and fresh greens.",
+      "exits": { "north": "west_lane", "east": "river_road" },
+      "initial_npcs": [ { "template_id": "wandering_villager", "instance_id": "villager_wandering_2" } ]
+    },
+    "east_market_road": {
+      "name": "East Market Road",
+      "description": "This road leads from the town square to the bustling open-air market. The sounds and smells of commerce are strong here.",
+      "exits": { "west": "town_square", "east": "market_square", "north": "tavern_exterior" }
+    },
+    "market_square": {
+      "name": "Market Square",
+      "description": "The busy market area where villagers and travelers trade goods. Stalls sell everything from fresh produce to handcrafted goods. A road continues east towards another town gate.",
+      "exits": { "west": "east_market_road", "north": "general_store_exterior", "south": "fish_stall", "east": "east_gate_road"},
+      "initial_npcs": [ { "template_id": "merchant", "instance_id": "merchant_talia_market" } ]
+    },
+    "general_store_exterior": {
+      "name": "General Store",
+      "description": "A sign depicting a balanced scale hangs above the door of this well-kept shop. It seems to be the main provisioner for the village.",
+      "exits": { "south": "market_square", "in": "general_store_interior" }
+    },
+    "general_store_interior": {
+      "name": "Inside the General Store",
+      "description": "Shelves line the walls, filled with tools, preserved foods, clothing, and various sundries. The shopkeeper keeps a careful eye on the merchandise.",
+      "properties": { "outdoors": false },
+      "exits": { "out": "general_store_exterior" }
+    },
+    "east_gate_road": {
+      "name": "East Gate Road",
+      "description": "The road leading out of the market towards the eastern gate. A shop with bubbling vials in the window is to the north.",
+      "exits": { "west": "market_square", "east": "east_gate", "north": "alchemist_exterior" }
+    },
+    "alchemist_exterior": {
+      "name": "Alchemist's Shop",
+      "description": "A curious shop with stained-glass windows depicting bubbling cauldrons. A faint, chemical smell emanates from within.",
+      "exits": { "south": "east_gate_road", "in": "alchemist_interior" }
+    },
+    "alchemist_interior": {
+      "name": "Inside the Alchemist's Shop",
+      "description": "The air is thick with the scent of strange herbs and chemicals. Shelves are crowded with oddly shaped bottles, beakers, and bundles of dried plants.",
+      "properties": { "outdoors": false, "smell": "herbs and chemicals" },
+      "items": [ { "item_id": "item_alchemy_kit" } ],
+      "exits": { "out": "alchemist_exterior" },
+      "initial_npcs": [ { "template_id": "alchemist", "instance_id": "alchemist_kaelan_shop" } ]
+    },
+    "east_gate": {
+      "name": "East Gate",
+      "description": "A smaller gate that leads out of town towards the rolling foothills. A single guard watches the path.",
+      "exits": { "west": "east_gate_road", "east": "foothills:grassy_slope" },
+      "initial_npcs": [ { "template_id": "town_guard", "instance_id": "guard_east_1" } ]
+    },
+    "fish_stall": {
+        "name": "Fish Stall",
+        "description": "The smell of the nearby river is strong here. A wooden table is covered with the day's fresh catch.",
+        "exits": { "north": "market_square", "south": "alleyway" }
+    },
+    "tavern_exterior": {
+      "name": "The Drunken Dragon Tavern",
+      "description": "A large, inviting tavern with a sign depicting a rather cheerful-looking green dragon holding a foamy mug. To the east, a pristine path of white stone leads to a grand building with a lotus symbol.",
+      "exits": { "south": "east_market_road", "southwest": "town_square", "in": "tavern_main_floor", "east": "casino:lobby" }
+    },
+    "tavern_main_floor": {
+      "name": "Tavern - Main Floor",
+      "description": "A warm, bustling common room with a large hearth at one end. Patrons sit at wooden tables, drinking ale and sharing stories. A staircase leads up to the guest rooms, and a heavy door leads down to the cellar.",
+      "properties": { "outdoors": false, "noisy": true },
+      "exits": { "out": "tavern_exterior", "up": "tavern_upper_floor", "down": "tavern_cellar", "east": "tavern_kitchen" },
+      "initial_npcs": [
+        { "template_id": "tavern_keeper", "instance_id": "tavernkeeper_barlin_tavern" }
+      ]
+    },
+    "tavern_upper_floor": {
+      "name": "Tavern - Upper Floor",
+      "description": "A narrow hallway on the second floor with several doors leading to guest rooms. The floor creaks underfoot.",
+      "properties": { "outdoors": false },
+      "exits": { "down": "tavern_main_floor", "north": "guest_room_1", "south": "guest_room_2" }
+    },
+    "guest_room_1": {
+        "name": "Guest Room (North)",
+        "description": "A simple but clean guest room containing a bed, a small table, and a washbasin.",
+        "properties": { "outdoors": false },
+        "exits": { "south": "tavern_upper_floor" }
+    },
+    "guest_room_2": {
+        "name": "Guest Room (South)",
+        "description": "This guest room is slightly larger, with a sturdy chest at the foot of the bed. A faded tapestry hangs on one wall.",
+        "properties": { "outdoors": false },
+        "exits": { "north": "tavern_upper_floor" }
+    },
+    "tavern_cellar": {
+      "name": "Tavern Cellar",
+      "description": "A cool, damp cellar beneath the tavern, smelling strongly of ale and earth. Barrels are stacked against the walls.",
+      "properties": { "outdoors": false, "dark": true },
+      "exits": { "up": "tavern_main_floor" }
+    },
+    "tavern_kitchen": {
+      "name": "Tavern Kitchen",
+      "description": "A bustling kitchen filled with the clatter of pots and pans. The air is thick with steam and the aroma of cooking food.",
+      "properties": { "outdoors": false, "noisy": true, "smell": "cooking food" },
+      "exits": { "west": "tavern_main_floor" }
+    },
+    "river_road": {
+      "name": "River Road",
+      "description": "A wide dirt road that runs parallel to the Silver River. The sound of flowing water is louder here, and you can see boats moving along the river.",
+      "exits": { "north": "town_square", "south": "riverside_docks", "east": "alleyway", "west": "community_garden", "downstream": "swamp:marsh_edge" }
+    },
+    "riverside_docks": {
+      "name": "Riverside Docks",
+      "description": "Wooden docks extend into the gently flowing river. Fishing boats are tied up, bobbing in the current. To the south, a sturdy stone bridge crosses the water.",
+      "properties": { "smell": "fishy" },
+      "exits": { "north": "river_road", "south": "bridge_approach_west", "west": "fishing_hut", "east": "old_mill_path"}
+    },
+    "fishing_hut": {
+        "name": "Fishing Hut",
+        "description": "A small wooden hut near the docks, smelling strongly of fish. Nets hang drying outside.",
+        "properties": { "smell": "fishy" },
+        "exits": { "east": "riverside_docks" }
+    },
+    "old_mill_path": {
+      "name": "Path to Old Mill",
+      "description": "A less-used path branching off towards an old, quiet structure by the river.",
+      "exits": { "west": "riverside_docks", "east": "old_mill" }
+    },
+    "old_mill": {
+      "name": "Abandoned Mill",
+      "description": "An old water mill stands silently beside the river, its large wheel still and covered in moss. The building looks unused.",
+      "properties": { "smell": "damp wood" },
+      "exits": { "west": "old_mill_path" }
+    },
+    "alleyway": {
+      "name": "Narrow Alley",
+      "description": "A cramped and shadowy alley running behind the market stalls. Barrels and crates are stacked against the walls.",
+      "exits": { "north": "fish_stall", "west": "river_road" }
+    },
+    "bridge_approach_west": {
+        "name": "Bridge Approach",
+        "description": "The southern road leads to the base of a well-made stone bridge that arches high over the river to the east.",
+        "exits": { "north": "riverside_docks", "up": "bridge_middle" }
+    },
+    "bridge_middle": {
+        "name": "Middle of the Stone Bridge",
+        "description": "From the apex of the bridge, you can see the whole of Riverside to the north and the rolling farmlands to the east. The river flows serenely below.",
+        "exits": { "down": "bridge_approach_west", "east": "bridge_approach_east"}
+    },
+    "bridge_approach_east": {
+        "name": "East Bridge Approach",
+        "description": "The stone bridge descends here, leading to a path that continues into the vast, open farmlands.",
+        "exits": { "west": "bridge_middle", "east": "farmland:farm_bridge" }
+    },
+    "museum_exterior": {
+      "name": "Riverside Museum",
+      "description": "A stately building of white stone, recently renovated. Banners depicting historical artifacts hang from the pillars.",
+      "exits": {
+        "in": "museum_interior",
+        "northwest": "town_square"
+      }
+    },
+    "museum_interior": {
+      "name": "Museum Grand Hall",
+      "description": "Glass display cases line the walls, many still empty. The air is cool and quiet. A curator stands behind a large desk, sorting through papers.",
+      "properties": { "outdoors": false },
+      "exits": { "out": "museum_exterior" },
+      "initial_npcs": [ { "template_id": "curator" } ]
+    }
+  }
+}

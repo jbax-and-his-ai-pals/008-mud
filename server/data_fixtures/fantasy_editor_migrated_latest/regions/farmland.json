@@ -1,0 +1,176 @@
+{
+  "description": "Fertile fields and rolling pastures stretch out under an open sky, tended by hardworking farmers. The air smells of crops and rich earth.",
+  "name": "Riverside Farmlands",
+  "properties": {
+    "safe_zone": true
+  },
+  "region_id": "farmland",
+  "rooms": {
+    "barn_exterior": {
+      "description": "The large double doors of a wooden barn stand before you. The smell of hay and animals comes from within.",
+      "exits": {
+        "in": "barn_interior",
+        "south": "farmhouse_yard"
+      },
+      "name": "Outside the Barn",
+      "properties": {}
+    },
+    "barn_interior": {
+      "description": "Inside the barn, stalls line the walls, some containing cows. Hay is piled high in a loft above. Farming equipment is stored neatly in corners.",
+      "exits": {
+        "out": "barn_exterior"
+      },
+      "items": [
+        {
+          "item_id": "item_pitchfork"
+        }
+      ],
+      "name": "Barn Interior",
+      "properties": {
+        "outdoors": false,
+        "smell": "hay"
+      }
+    },
+    "farm_bridge": {
+      "description": "You stand on the east end of the stone bridge, having crossed the Silver River. The bustling village of Riverside is to your west, and vast, open farmlands stretch out before you to the east.",
+      "exits": {
+        "east": "wheat_field_west",
+        "west": "town:bridge_approach_east"
+      },
+      "name": "West End of Stone Bridge",
+      "properties": {}
+    },
+    "farmhouse_interior": {
+      "description": "A simple, cozy common room with a warm hearth. The air smells of baking bread and stew. It feels safe and lived-in.",
+      "exits": {
+        "out": "farmhouse_yard"
+      },
+      "name": "Inside the Farmhouse",
+      "properties": {
+        "outdoors": false
+      }
+    },
+    "farmhouse_path": {
+      "description": "A well-trodden path leads towards a simple but sturdy farmhouse with smoke curling from its chimney. A large red barn stands nearby.",
+      "exits": {
+        "east": "farmhouse_yard",
+        "north": "wheat_field_north",
+        "southwest": "wheat_field_west"
+      },
+      "name": "Path to Farmhouse",
+      "properties": {}
+    },
+    "farmhouse_yard": {
+      "description": "A tidy yard surrounds the farmhouse. Chickens peck at the ground, and tools lean against the wall. The farmhouse door looks welcoming.",
+      "exits": {
+        "in": "farmhouse_interior",
+        "north": "barn_exterior",
+        "west": "farmhouse_path"
+      },
+      "name": "Farmhouse Yard",
+      "properties": {}
+    },
+    "orchard_east": {
+      "description": "The neat rows of apple trees end here. The ground begins to rise to the east, climbing towards rocky, windswept hills.",
+      "exits": {
+        "east": "foothills:grassy_slope",
+        "west": "orchard_west"
+      },
+      "name": "Eastern Edge of the Orchard",
+      "properties": {}
+    },
+    "orchard_south": {
+      "description": "The southern part of the apple orchard borders the sheep pasture. Several wooden beehives stand in a quiet corner.",
+      "exits": {
+        "north": "orchard_west",
+        "south": "shepherds_pasture"
+      },
+      "name": "Southern Apple Orchard",
+      "properties": {
+        "smell": "honey"
+      }
+    },
+    "orchard_west": {
+      "description": "The edge of a large apple orchard. Gnarled trees grow in neat rows, their branches laden with fruit. The scent of ripe apples hangs in the air.",
+      "exits": {
+        "east": "orchard_east",
+        "south": "orchard_south",
+        "west": "wheat_field_north"
+      },
+      "items": [
+        {
+          "item_id": "item_ripe_apple",
+          "quantity": 3.0
+        }
+      ],
+      "name": "Western Apple Orchard",
+      "properties": {
+        "smell": "apples"
+      }
+    },
+    "pumpkin_patch": {
+      "description": "Large orange pumpkins lie scattered amongst tangled vines in this fertile patch of ground. Some look ripe for picking. Butts.",
+      "exits": {
+        "north": "wheat_field_south",
+        "northeast": "scarecrow_field"
+      },
+      "items": [
+        {
+          "item_id": "item_pumpkin"
+        }
+      ],
+      "name": "Pumpkin Patch",
+      "properties": {}
+    },
+    "scarecrow_field": {
+      "description": "A lonely scarecrow made of straw and old clothes stands guard over a patch of corn. It casts a long shadow in the afternoon sun.",
+      "exits": {
+        "east": "shepherds_pasture",
+        "southwest": "pumpkin_patch",
+        "west": "wheat_field_south"
+      },
+      "name": "Field with Scarecrow",
+      "properties": {}
+    },
+    "shepherds_pasture": {
+      "description": "A wide, grassy pasture enclosed by a low stone wall. A flock of sheep graze peacefully, their bells making a gentle, tinkling sound.",
+      "exits": {
+        "north": "orchard_south",
+        "west": "scarecrow_field"
+      },
+      "name": "Shepherd's Pasture",
+      "properties": {
+        "smell": "sheep"
+      }
+    },
+    "wheat_field_north": {
+      "description": "The golden wheat field continues north. To the east, you can see rows of apple trees marking the start of an orchard.",
+      "exits": {
+        "east": "orchard_west",
+        "south": "farmhouse_path"
+      },
+      "name": "Northern Wheat Field",
+      "properties": {}
+    },
+    "wheat_field_south": {
+      "description": "The southern edge of the vast wheat field. A path leads south towards a large patch of tangled vines.",
+      "exits": {
+        "east": "scarecrow_field",
+        "north": "wheat_field_west",
+        "south": "pumpkin_patch"
+      },
+      "name": "Southern Wheat Field",
+      "properties": {}
+    },
+    "wheat_field_west": {
+      "description": "A vast field of golden wheat stretches as far as the eye can see, rustling gently in the breeze. A path cuts through it towards a distant farmhouse visible to the northeast.",
+      "exits": {
+        "northeast": "farmhouse_path",
+        "south": "wheat_field_south",
+        "west": "farm_bridge"
+      },
+      "name": "Western Wheat Field",
+      "properties": {}
+    }
+  }
+}

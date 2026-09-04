@@ -1,0 +1,9 @@
+{
+	"item_swamp_heart": {
+		"description": "A pulsating, organic mass of root and vine.",
+		"name": "heart of the swamp",
+		"type": "Junk",
+		"value": 50.0,
+		"weight": 1.0
+	}
+}

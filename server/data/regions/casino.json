@@ -1,0 +1,98 @@
+{
+  "region_id": "casino",
+  "name": "The Gilded Lotus",
+  "description": "An upscale establishment contrasting sharply with the rustic village outside. Thick carpets muffle footsteps, and the air smells of expensive perfume and cigar smoke.",
+  "properties": { "safe_zone": true, "indoors": true },
+  "rooms": {
+    "lobby": {
+      "name": "Casino Lobby",
+      "description": "The entrance to the casino is grand, with a crystal chandelier hanging from the ceiling. Soft music plays from somewhere unseen. A receptionist stands behind a polished mahogany desk, and a sweeping staircase leads to the upper floor.",
+      "exits": {
+        "out": "town:tavern_exterior",
+        "west": "town:tavern_exterior",
+        "north": "dice_parlor",
+        "east": "slots_room",
+        "up": "upper_lobby"
+      },
+      "initial_npcs": [
+        { "template_id": "casino_receptionist" }
+      ]
+    },
+    "dice_parlor": {
+      "name": "Dice Parlor",
+      "description": "A dimly lit room focused around a large, green-felted table. The rhythmic clatter of dice is the only sound. A dealer waits expectantly behind the table.",
+      "exits": {
+        "south": "lobby"
+      },
+      "initial_npcs": [
+        { "template_id": "dice_dealer" }
+      ],
+      "items": [
+        { "item_id": "item_rules_dice" }
+      ]
+    },
+    "slots_room": {
+      "name": "The Gearworks",
+      "description": "This room is filled with the whirring and clicking of clockwork machinery. Several brass slot machines line the walls, tended to by a mechanical servant.",
+      "properties": { "noisy": true },
+      "exits": {
+        "west": "lobby"
+      },
+      "initial_npcs": [
+        { "template_id": "mechanical_dealer" }
+      ],
+      "items": [
+        { "item_id": "item_rules_slots" }
+      ]
+    },
+    "upper_lobby": {
+      "name": "Upper Balcony",
+      "description": "A plush, carpeted balcony overlooking the main lobby. Waiters drift silently carrying trays of drinks. Private gaming rooms branch off to the east, west, and north.",
+      "exits": {
+        "down": "lobby",
+        "west": "wheel_room",
+        "east": "card_room",
+        "north": "arcane_vault"
+      }
+    },
+    "wheel_room": {
+      "name": "Hall of Elements",
+      "description": "This circular room is dominated by a massive, vertical spinning wheel. Sections of the wheel glow with magical light representing the elements. The air hums with energy.",
+      "exits": {
+        "east": "upper_lobby"
+      },
+      "initial_npcs": [
+        { "template_id": "wheel_dealer" }
+      ],
+      "items": [
+        { "item_id": "item_rules_wheel" }
+      ]
+    },
+    "card_room": {
+      "name": "High Stakes Parlor",
+      "description": "An intimate room with velvet-draped walls and a single, pristine card table. The atmosphere is tense and quiet.",
+      "exits": {
+        "west": "upper_lobby"
+      },
+      "initial_npcs": [
+        { "template_id": "card_dealer" }
+      ],
+      "items": [
+        { "item_id": "item_rules_blackjack" }
+      ]
+    },
+    "arcane_vault": {
+      "name": "The Arcane Vault",
+      "description": "A high-security room guarded by magical wards. In the center stands a massive, locked Vault Door with three glowing tumblers. A solemn keeper watches over it.",
+      "exits": {
+        "south": "upper_lobby"
+      },
+      "initial_npcs": [
+        { "template_id": "vault_keeper" }
+      ],
+      "items": [
+        { "item_id": "item_rules_runebreaker" }
+      ]
+    }
+  }
+}

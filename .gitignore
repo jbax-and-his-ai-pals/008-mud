@@ -1,0 +1,11 @@
+__pycache__
+concatenated/
+*.sqlite3
+*.sqlite3-journal
+.godot/
+server/data/saves/
+server/tests.log
+tmp/
+server/tests/_tmp/
+.venv/
+.DS_Store

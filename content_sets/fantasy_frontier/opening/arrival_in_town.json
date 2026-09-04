@@ -1,0 +1,22 @@
+{
+  "scenario_id": "arrival_in_town",
+  "heading": "Welcome to Riverside",
+  "intro": "You have arrived in a village on the edge of the Whispering Woods. Something is stirring beyond its gates, but the square is safe enough to get your bearings.",
+  "objectives": [
+    {
+      "id": "orient",
+      "instruction": "Read your surroundings and available exits",
+      "command": "look"
+    },
+    {
+      "id": "meet_the_village",
+      "instruction": "See who is nearby; Elder Thorne can point you toward the village's troubles",
+      "command": "nearby"
+    },
+    {
+      "id": "choose_a_direction",
+      "instruction": "Take the north road when you are ready to explore",
+      "command": "north"
+    }
+  ]
+}
