@@ -80,8 +80,9 @@ def give_handler(args, context):
 
     # Quest Delivery Logic
     matching_quest = None
-    
-    for q_id, q_data in player.runtime_state.quests.active.items():
+
+    quests_active = player.runtime_state.quests.active if player.runtime_state.quests is not None else {}
+    for q_id, q_data in quests_active.items():
         if q_data.get("state") != "active": continue
         
         qm = world.quest_manager

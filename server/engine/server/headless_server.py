@@ -2829,14 +2829,18 @@ class HeadlessServer:
                 if "|" in raw_cell_id:
                     field_id, cell_id = raw_cell_id.split("|", 1)
                 else:
-                    field_id, cell_id = "blight", raw_cell_id
+                    field_id, cell_id = self.default_field_id, raw_cell_id
                 grouped_states.setdefault(field_id, {})
                 grouped_states[field_id][cell_id] = float(state.get("value", state.get("intensity", 0.0)))
             for field_id, states in grouped_states.items():
                 heartbeat = self._ensure_field(field_id)
                 heartbeat.load_cells(states)
             return
-        default_field = self._ensure_field("blight")
+        if not os.path.exists(self.field_config_path):
+            # No ambient-field system configured for this content set (no
+            # field_interactions.json) -- don't invent one to seed.
+            return
+        default_field = self._ensure_field(self.default_field_id)
         center_x = default_field.width // 2
         center_y = default_field.height // 2
         default_field.seed_cell(center_x, center_y, value=1.0)

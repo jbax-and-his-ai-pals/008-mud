@@ -67,9 +67,20 @@ def talk_handler(args, context):
     if remaining_args:
         if remaining_args[0].lower() == "about": remaining_args.pop(0)
         topic_str = " ".join(remaining_args)
-        if topic_str.lower() in ["complete quest", "report quest", "finish quest", "turnin quest", "complete", "turnin", "negotiate", "parley"]: 
+        # Quest turn-in phrases only intercept dialogue when quests are
+        # actually enabled -- otherwise a dialogue-only content set is free
+        # to author its own "complete"/"negotiate" topics without them
+        # being silently stolen.
+        quest_phrases = (
+            world.ruleset_section("quest_generation").get(
+                "turn_in_phrases", ["complete", "turn in", "turnin"]
+            )
+            if world.has_capability("quests")
+            else []
+        )
+        if topic_str.lower() in quest_phrases:
             is_quest_turn_in = True
-        else: 
+        else:
             topic = topic_str
 
     if is_quest_turn_in:
@@ -227,7 +238,7 @@ def follow_handler(args, context):
         return f"{FORMAT_HIGHLIGHT}You start following {found_npc.name}.{FORMAT_RESET}"
     else: return f"{FORMAT_ERROR}No '{cmd_arg}' here to follow.{FORMAT_RESET}"
 
-@command("guide", [], "interaction", "Ask a quest giver to guide you to your destination.\nUsage: guide <npc_name>")
+@command("guide", [], "interaction", "Ask a quest giver to guide you to your destination.\nUsage: guide <npc_name>", content_capability="quests")
 def guide_handler(args, context):
     world = context["world"]; player = context.get('player'); game = context["game"]
     if not player or not game: return f"{FORMAT_ERROR}System error: context missing.{FORMAT_RESET}"
@@ -239,8 +250,9 @@ def guide_handler(args, context):
     if guide_npc.faction == "hostile": return f"{FORMAT_ERROR}{guide_npc.name} growls at you. They won't guide you anywhere.{FORMAT_RESET}"
 
     quest_to_guide = None
-    for quest in player.runtime_state.quests.active.values():
-        if quest.get("giver_instance_id") == guide_npc.obj_id and quest.get("type") == "instance": quest_to_guide = quest; break
+    if player.runtime_state.quests is not None:
+        for quest in player.runtime_state.quests.active.values():
+            if quest.get("giver_instance_id") == guide_npc.obj_id and quest.get("type") == "instance": quest_to_guide = quest; break
     
     if not quest_to_guide: return f"{guide_npc.name} has not offered to guide you anywhere."
     entry_point = quest_to_guide.get("entry_point")
@@ -258,8 +270,8 @@ def guide_handler(args, context):
 def _handle_quest_dialogue(player, target_npc, world) -> str:
     ready_quests_for_npc = []
     quest_manager = world.quest_manager
-    
-    if player.runtime_state.quests.active:
+
+    if player.runtime_state.quests is not None and player.runtime_state.quests.active:
         for q_id, q_data in player.runtime_state.quests.active.items():
             stages = q_data.get("stages", [])
             idx = q_data.get("current_stage_index", 0)
@@ -366,7 +378,7 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
     else: 
         return f"{FORMAT_ERROR}You haven't fully met the requirements. {completion_error_msg}{FORMAT_RESET}"
     
-@command("negotiate", ["parley"], "interaction", "Attempt to negotiate with an NPC.\nUsage: negotiate <npc>")
+@command("negotiate", ["parley"], "interaction", "Attempt to negotiate with an NPC.\nUsage: negotiate <npc>", content_capability="quests")
 def negotiate_handler(args, context):
     """Shortcut command that proxies to 'talk <npc> negotiate'."""
     # This tricks the talk_handler into thinking we typed 'talk <npc> negotiate'

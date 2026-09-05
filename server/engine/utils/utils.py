@@ -178,8 +178,13 @@ def format_name_for_display(
         inner_color = FORMAT_CATEGORY
 
     # 2. Build Suffix
+    # Only show a level/HP readout when the selected game actually presents
+    # progression or combat -- otherwise every NPC (a barista, a commuter)
+    # displays a level and hit-point bar regardless of theme.
+    world = getattr(viewer, 'world', None) or getattr(target, 'world', None)
+    show_vitals = (world.uses_progression() or world.has_capability("combat")) if world is not None else DEBUG_SHOW_LEVEL
     detail_suffix = ""
-    if is_npc and target_level is not None and DEBUG_SHOW_LEVEL:
+    if is_npc and target_level is not None and show_vitals:
         hp = int(getattr(target, 'health', 0))
         max_hp = int(getattr(target, 'max_health', 1))
         hp_percent = (hp / max_hp) * 100 if max_hp > 0 else 0
