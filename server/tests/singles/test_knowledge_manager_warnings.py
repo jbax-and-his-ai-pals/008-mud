@@ -9,8 +9,8 @@ import engine.core.knowledge_manager as knowledge_manager_module
 
 
 class _DummyWorld:
-    def __init__(self, data_root: Path) -> None:
-        self.data_root = str(data_root)
+    def __init__(self, content_root: Path) -> None:
+        self.content_root = str(content_root)
 
 
 class TestKnowledgeManagerWarnings(unittest.TestCase):

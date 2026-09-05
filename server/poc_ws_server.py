@@ -7,6 +7,7 @@ from poc_server import JsonLineMudServer
 from engine.server.transport.base import MSGPACK_AVAILABLE
 from engine.server.transport.websocket_transport import WebSocketTransport
 from engine.server.protocol import PROTOCOL_VERSION
+from engine.server.feature_profile import FeatureProfile
 from engine.server.server_config import load_server_config, resolve_server_settings
 
 
@@ -17,9 +18,8 @@ class JsonWebSocketMudServer:
         port: int,
         save_file: str,
         asset_db_path: str = ":memory:",
-        data_root: str | None = None,
         content_set_path: str | None = None,
-        feature_profile_path: str | None = None,
+        feature_profile: FeatureProfile | None = None,
         session_default_capabilities: list[str] | None = None,
         session_default_entitlements: list[str] | None = None,
         session_authz_detail_level: str = "full",
@@ -40,9 +40,8 @@ class JsonWebSocketMudServer:
             port,
             save_file,
             asset_db_path=asset_db_path,
-            data_root=data_root,
             content_set_path=content_set_path,
-            feature_profile_path=feature_profile_path,
+            feature_profile=feature_profile,
             session_default_capabilities=session_default_capabilities,
             session_default_entitlements=session_default_entitlements,
             session_authz_detail_level=session_authz_detail_level,
@@ -702,9 +701,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--save", "-s", default=None)
     parser.add_argument("--asset-db", default=None)
-    parser.add_argument("--data-root", default=None)
     parser.add_argument("--content-set", required=True, help="Content-set directory or manifest path.")
-    parser.add_argument("--profile", default=None, help="Optional CLI override for feature profile JSON path.")
     args = parser.parse_args()
     config_payload = load_server_config(args.config)
     settings = resolve_server_settings(
@@ -714,8 +711,6 @@ def main() -> None:
         args.port,
         args.save,
         args.asset_db,
-        args.data_root,
-        args.profile,
         args.config,
     )
 
@@ -724,9 +719,7 @@ def main() -> None:
         settings.port,
         settings.save_file,
         asset_db_path=settings.asset_db,
-        data_root=settings.data_root,
         content_set_path=args.content_set,
-        feature_profile_path=settings.feature_profile_path,
         session_default_capabilities=settings.session_default_capabilities,
         session_default_entitlements=settings.session_default_entitlements,
         session_authz_detail_level=settings.session_authz_detail_level,
@@ -753,8 +746,6 @@ def main() -> None:
                 "save_file": settings.save_file,
                 "asset_db": settings.asset_db,
                 "content_set": app.core.effective_settings()["content_set"],
-                "data_root": app.core.effective_settings()["data_root"],
-                "feature_profile_path": settings.feature_profile_path,
                 "feature_profile_modes": {
                     "combat": app.core.server.feature_profile.combat_mode,
                     "weather": app.core.server.feature_profile.weather_mode,

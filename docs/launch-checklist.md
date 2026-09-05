@@ -57,7 +57,7 @@
 - [ ] Steam install layout finalized (`MUD Client`, `Engine + Toolkit`, `Sample Worlds`).
 - [ ] Mod folder conventions documented and enforced by installer.
 - [ ] Update-safe user content directory defined and tested.
-- [ ] Save migration compatibility policy published (`docs/save-migration-policy.md`).
+- [ ] Save content-isolation policy published (`docs/save-content-isolation-policy.md`).
 - [ ] Workshop strategy decided (if used).
 
 ### Quality

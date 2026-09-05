@@ -104,7 +104,7 @@ class TestFeatureProfile(unittest.TestCase):
             json.dump(payload, tmp)
             tmp_path = tmp.name
         try:
-            server = HeadlessServer(db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), feature_profile_path=tmp_path)
+            server = HeadlessServer(db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), feature_profile=FeatureProfile.load(tmp_path))
             primary = server.create_session()
             secondary = server.create_session()
             server.execute_command(primary.session_id, "char create Primary")

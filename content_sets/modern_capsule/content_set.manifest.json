@@ -6,7 +6,7 @@
   "engine_api_min": "1.0",
   "engine_api_max": "1.0",
   "paths": {
-    "data_root": "data",
+    "content_root": "data",
     "ruleset": "rules/ruleset.json",
     "presentation": "presentation/default.json",
     "opening": "opening/morning_connection.json"

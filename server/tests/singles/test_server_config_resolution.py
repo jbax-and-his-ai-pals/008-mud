@@ -11,14 +11,12 @@ class TestServerConfigResolution(unittest.TestCase):
 
     def test_defaults_when_no_config_and_no_cli(self) -> None:
         settings = resolve_server_settings(
-            "tcp", {}, None, None, None, None, None, None, None
+            "tcp", {}, None, None, None, None, None
         )
         self.assertEqual("127.0.0.1", settings.host)
         self.assertEqual(8765, settings.port)
         self.assertEqual("server_save.json", settings.save_file)
         self.assertEqual(":memory:", settings.asset_db)
-        self.assertIsNone(settings.data_root)
-        self.assertIsNone(settings.feature_profile_path)
         self.assertEqual([], settings.session_default_capabilities)
         self.assertEqual([], settings.session_default_entitlements)
         self.assertEqual("full", settings.session_authz_detail_level)
@@ -39,9 +37,7 @@ class TestServerConfigResolution(unittest.TestCase):
                 "port": 9999,
                 "save_file": "foo.json",
                 "asset_db": "bar.sqlite3",
-                "data_root": "server/data_fixtures/fantasy_editor_migrated_latest",
             },
-            "feature_profile": {"path": "server/data/server_profile.example.json"},
             "world_bootstrap": {
                 "starter_items": [
                     {"item_id": "item_starter_dagger", "quantity": 1},
@@ -68,18 +64,16 @@ class TestServerConfigResolution(unittest.TestCase):
             },
         }
         tcp_settings = resolve_server_settings(
-            "tcp", payload, None, None, None, None, None, None, "server/config/server_config.json"
+            "tcp", payload, None, None, None, None, "server/config/server_config.json"
         )
         ws_settings = resolve_server_settings(
-            "ws", payload, None, None, None, None, None, None, "server/config/server_config.json"
+            "ws", payload, None, None, None, None, "server/config/server_config.json"
         )
         self.assertEqual("0.0.0.0", tcp_settings.host)
         self.assertEqual(9999, tcp_settings.port)
         self.assertEqual(7777, ws_settings.port)
         self.assertEqual("foo.json", tcp_settings.save_file)
         self.assertEqual("bar.sqlite3", tcp_settings.asset_db)
-        self.assertEqual("server/data_fixtures/fantasy_editor_migrated_latest", tcp_settings.data_root)
-        self.assertEqual("server/data/server_profile.example.json", tcp_settings.feature_profile_path)
         self.assertEqual(
             [
                 {"item_id": "item_starter_dagger", "quantity": 1},
@@ -108,7 +102,6 @@ class TestServerConfigResolution(unittest.TestCase):
     def test_cli_overrides_config(self) -> None:
         payload = {
             "server": {"host": "0.0.0.0", "port": 9999, "save_file": "foo.json", "asset_db": "bar.sqlite3"},
-            "feature_profile": {"path": "server/data/server_profile.example.json"},
         }
         settings = resolve_server_settings(
             "tcp",
@@ -117,16 +110,12 @@ class TestServerConfigResolution(unittest.TestCase):
             8123,
             "custom_save.json",
             "custom.sqlite3",
-            "server/data_fixtures/fantasy_editor_migrated_latest",
-            "server/data/custom_profile.json",
             "server/config/server_config.json",
         )
         self.assertEqual("127.1.1.1", settings.host)
         self.assertEqual(8123, settings.port)
         self.assertEqual("custom_save.json", settings.save_file)
         self.assertEqual("custom.sqlite3", settings.asset_db)
-        self.assertEqual("server/data_fixtures/fantasy_editor_migrated_latest", settings.data_root)
-        self.assertEqual("server/data/custom_profile.json", settings.feature_profile_path)
         self.assertEqual([], settings.session_default_capabilities)
         self.assertEqual([], settings.session_default_entitlements)
         self.assertEqual("full", settings.session_authz_detail_level)
@@ -150,11 +139,8 @@ class TestServerConfigResolution(unittest.TestCase):
             None,
             None,
             None,
-            None,
-            None,
             str(cfg_path),
         )
-        self.assertEqual("server/data/profiles/locked_static_no_combat.profile.json", settings.feature_profile_path)
         self.assertEqual([], settings.session_default_capabilities)
         self.assertEqual([], settings.session_default_entitlements)
         self.assertTrue(settings.session_require_character_creation)

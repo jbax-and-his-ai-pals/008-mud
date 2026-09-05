@@ -1,5 +1,5 @@
 # tests/singles/test_crafting_manager_full.py
-"""Coverage for engine/crafting/crafting_manager.py: __init__'s data_root
+"""Coverage for engine/crafting/crafting_manager.py: __init__'s content_root
 mismatch guard, _load_recipes' missing-directory/non-json-skip/malformed-
 file branches, get_nearby_stations' no-player guard and no-station-
 property skip, craft()'s unknown-recipe/missing-result-item/failed-item-
@@ -21,25 +21,25 @@ from engine.items.item_factory import ItemFactory
 
 
 class TestInit(GameTestBase):
-    def test_mismatched_data_root_raises(self):
-        with self.assertRaises(ValueError):
-            CraftingManager(self.world, data_root="/some/other/path")
+    def test_mismatched_content_root_raises(self):
+        with self.assertRaises(TypeError):
+            CraftingManager(self.world, content_root="/some/other/path")
 
 
 class TestLoadRecipes(GameTestBase):
     def setUp(self):
         super().setUp()
         self.tmp_root = tempfile.mkdtemp()
-        self.original_data_root = self.world.data_root
-        self.world.data_root = self.tmp_root
+        self.original_content_root = self.world.content_root
+        self.world.content_root = self.tmp_root
 
     def tearDown(self):
-        self.world.data_root = self.original_data_root
+        self.world.content_root = self.original_content_root
         shutil.rmtree(self.tmp_root, ignore_errors=True)
         super().tearDown()
 
     def test_missing_directory_results_in_no_recipes(self):
-        manager = CraftingManager(self.world, data_root=self.tmp_root)
+        manager = CraftingManager(self.world)
         self.assertEqual(manager.recipes, {})
 
     def test_non_json_files_are_skipped(self):
@@ -47,7 +47,7 @@ class TestLoadRecipes(GameTestBase):
         os.makedirs(crafting_dir)
         with open(os.path.join(crafting_dir, "readme.txt"), "w") as f:
             f.write("not json")
-        manager = CraftingManager(self.world, data_root=self.tmp_root)
+        manager = CraftingManager(self.world)
         self.assertEqual(manager.recipes, {})
 
     def test_malformed_json_file_is_logged_and_skipped(self):
@@ -55,7 +55,7 @@ class TestLoadRecipes(GameTestBase):
         os.makedirs(crafting_dir)
         with open(os.path.join(crafting_dir, "broken.json"), "w") as f:
             f.write("{not valid json")
-        manager = CraftingManager(self.world, data_root=self.tmp_root)
+        manager = CraftingManager(self.world)
         self.assertEqual(manager.recipes, {})
 
 

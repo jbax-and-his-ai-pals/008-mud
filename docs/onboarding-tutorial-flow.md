@@ -51,7 +51,7 @@ After 10 minutes of play (or via `settings > creator mode`):
 For users launching the **Engine + Toolkit** SKU:
 
 1. **Template Selection**: Choose a starter pack (blank world, social world, adventure world).
-2. **World Initialization**: `toolkit/pack_tool.py init --template adventure` scaffolds the `server/data/` folder.
+2. **World Initialization**: `toolkit/pack_tool.py init --template adventure` scaffolds the a content-set `data/` folder.
 3. **Guided Edit**: The toolkit README walks through editing the first room, NPC, and item via JSON.
 4. **Validation**: `run_content_checks.ps1` is run automatically after template generation.
 5. **Launch Server**: `python server/poc_server.py` starts the local headless server.

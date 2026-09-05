@@ -13,7 +13,7 @@ The product is a platform, not just one game:
 ## Core Style + Protocol Identity
 
 - Visual identity: 1-bit terminal-forward presentation with subtle atmosphere.
-- Interop identity: supports both rich client and legacy Telnet/GMCP client paths.
+- Interop identity: uses the rich client protocol as its single player transport path.
 - Authoring identity: players can live-author worlds through guided, permissioned tooling.
 - Product identity: server operators can choose feature profiles (combat/no-combat, weather/no-weather, mutable/readonly world, authoring on/off).
 
@@ -36,7 +36,6 @@ The product is a platform, not just one game:
 - Client must expose platform abstraction for desktop input and mobile touch/lifecycle handling.
 - Server must expose multi-modal output translation:
   - rich packets for Godot clients
-  - text + GMCP for legacy clients
 - Content must be data-driven and schema-validated.
 - Mods must load through explicit contracts and capability checks.
 - Client (Godot or otherwise) consumes versioned protocol events.

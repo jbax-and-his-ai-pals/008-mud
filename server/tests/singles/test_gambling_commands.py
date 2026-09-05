@@ -23,7 +23,7 @@ class TestCheckLocation(GameTestBase):
         self.player.active_minigame = None
         self.assertFalse(_check_location(self.player))
 
-    def test_legacy_record_without_location_keys_is_treated_as_stationary(self):
+    def test_deprecated_record_without_location_keys_is_treated_as_stationary(self):
         self.player.active_minigame = {"type": "blackjack"}
         self.assertTrue(_check_location(self.player))
 

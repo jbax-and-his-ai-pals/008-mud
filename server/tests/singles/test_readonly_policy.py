@@ -2,6 +2,7 @@ import os
 import unittest
 
 from engine.server.headless_server import HeadlessServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -42,12 +43,10 @@ class TestStaticWorldProfile(unittest.TestCase):
     that world mutation is readonly, so the profile is semantically consistent.
     """
 
-    _PROFILE_PATH = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "..", "data", "profiles", "static_world.profile.json")
-    )
+    _PROFILE_PATH = os.path.join(FANTASY_FRONTIER, "data", "profiles", "static_world.profile.json")
 
     def setUp(self) -> None:
-        self.server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile_path=self._PROFILE_PATH)
+        self.server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile=FeatureProfile.load(self._PROFILE_PATH))
         self.session = self.server.create_session()
         self.session_id = self.session.session_id
         # Character creation bypasses the readonly/combat gates (pre-gameplay bootstrapping).

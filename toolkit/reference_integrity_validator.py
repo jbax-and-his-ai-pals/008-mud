@@ -32,14 +32,14 @@ def _collect_templates(dir_path: Path) -> set[str]:
 
 
 def load_catalogs(root: Path) -> dict[str, Any]:
-    data_root = root
-    items = _collect_templates(data_root / "items")
-    npcs = _collect_templates(data_root / "npcs")
-    quests_payload = _load_json(data_root / "quests" / "quests.json")
-    campaigns_dir = data_root / "campaigns"
-    region_files = sorted((data_root / "regions").glob("*.json"))
+    content_root = root
+    items = _collect_templates(content_root / "items")
+    npcs = _collect_templates(content_root / "npcs")
+    quests_payload = _load_json(content_root / "quests" / "quests.json")
+    campaigns_dir = content_root / "campaigns"
+    region_files = sorted((content_root / "regions").glob("*.json"))
     return {
-        "root": data_root,
+        "root": content_root,
         "item_ids": items,
         "npc_template_ids": npcs,
         "quest_ids": set(quests_payload.keys()) if isinstance(quests_payload, dict) else set(),
@@ -215,8 +215,8 @@ def validate_catalogs(catalogs: dict[str, Any]) -> list[RefIssue]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Validate cross-file reference integrity for server data.")
-    parser.add_argument("root", nargs="?", default="server/data", help="Path to server data root.")
+    parser = argparse.ArgumentParser(description="Validate cross-file reference integrity for content-set data.")
+    parser.add_argument("root", nargs="?", default="content_sets/fantasy_frontier/data", help="Path to content-set data root.")
     args = parser.parse_args()
 
     root = Path(args.root)

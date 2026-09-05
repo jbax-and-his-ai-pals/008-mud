@@ -1,20 +1,23 @@
 # engine/items/set_manager.py
 import json
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, TYPE_CHECKING
 
 from engine.config import FORMAT_ERROR, FORMAT_RESET
 
+if TYPE_CHECKING:
+    from engine.world.world import World
+
 class SetManager:
-    def __init__(self, data_root: str):
-        if not data_root:
-            raise ValueError("SetManager requires a content-set data root.")
-        self.data_root = data_root
+    def __init__(self, world: 'World'):
+        if world is None:
+            raise ValueError("SetManager requires an owning world.")
+        self.content_root = world.content_root
         self.sets: Dict[str, Any] = {}
         self._load_sets()
 
     def _load_sets(self):
-        path = os.path.join(self.data_root, "items", "sets.json")
+        path = os.path.join(self.content_root, "items", "sets.json")
         if not os.path.exists(path):
             return
 

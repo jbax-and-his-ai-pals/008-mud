@@ -4,6 +4,7 @@ import os
 import tempfile
 
 from engine.server.headless_server import HeadlessServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -64,7 +65,7 @@ class TestShardRuntimeControls(unittest.TestCase):
                 content_set_path=FANTASY_FRONTIER,
                 deterministic_test_mode=True,
                 tick_rate_hz=10.0,
-                feature_profile_path=profile_path,
+                feature_profile=FeatureProfile.load(profile_path),
             )
             try:
                 self.assertEqual("maintenance", server.shard_runtime_state())

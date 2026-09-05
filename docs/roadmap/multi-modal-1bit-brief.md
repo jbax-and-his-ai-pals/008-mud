@@ -4,7 +4,7 @@
 
 - Aesthetic: 1-bit minimalist terminal feel with subtle atmosphere.
 - Architecture: authoritative Python server + dumb Godot GUI-first client.
-- Identity: bridge between legacy MUD protocols (Telnet/GMCP) and rich modern clients.
+- Identity: rich-client MUD platform with a single modern transport contract.
 - Extensibility: live player authoring with GM system toggles (for example blight/permadeath).
 - Flexibility: a Swiss-army platform that supports different text-game philosophies, not a single fixed ruleset.
 
@@ -12,12 +12,10 @@
 
 - Server: Python headless runtime.
 - Client: Godot 4.x primary client.
-- Legacy interoperability: Telnet + GMCP support for third-party clients.
 - Persistence: SQLite + JSON hybrid, memory-resident runtime with async persistence pipeline.
 - Data: YAML/JSON object-component templates + SVG for 1-bit player-authored assets.
 - Transport:
   - Rich client: WebSocket or TCP socket with binary serialization (MessagePack/Protobuf).
-  - Legacy client: raw text + GMCP tags.
 
 ## Architecture Pillars
 

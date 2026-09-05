@@ -25,7 +25,7 @@ class TestMinionOwnerDeath(GameTestBase):
             self.assertFalse(minion.is_alive)
             self.assertNotIn("spell_raise_dead", self.player.runtime_state.magic.summons)
 
-    def test_minion_despawn_clears_owner_tracking_without_legacy_player_binding(self):
+    def test_minion_despawn_clears_owner_tracking_without_deprecated_player_binding(self):
         """Verify summoned-minion cleanup uses loaded-player lookup, not world.player."""
         minion = NPCFactory.create_npc_from_template("skeleton_minion", self.world)
         if minion:
@@ -35,7 +35,7 @@ class TestMinionOwnerDeath(GameTestBase):
 
             assert self.player.runtime_state.magic is not None
             self.player.runtime_state.magic.summons["spell_raise_dead"] = [minion.obj_id]
-            self.world._legacy_player_id = None
+            self.world._deprecated_player_id = None
 
             minion.despawn(self.world, silent=True)
 

@@ -25,10 +25,10 @@ class TestContentSetValidator(unittest.TestCase):
 
     def _write_package(self, root: Path, *, room_id: str = "square") -> Path:
         package = root / "sample_game"
-        data_root = package / "data"
+        content_root = package / "data"
         for directory in ("regions", "items", "npcs", "quests", "campaigns"):
-            (data_root / directory).mkdir(parents=True, exist_ok=True)
-        (data_root / "regions" / "town.json").write_text(
+            (content_root / directory).mkdir(parents=True, exist_ok=True)
+        (content_root / "regions" / "town.json").write_text(
             json.dumps({"region_id": "town", "rooms": {room_id: {"name": "Square"}}}),
             encoding="utf-8",
         )
@@ -44,7 +44,7 @@ class TestContentSetValidator(unittest.TestCase):
             "engine_api_min": "1.0",
             "engine_api_max": "1.0",
             "paths": {
-                "data_root": "data",
+                "content_root": "data",
                 "ruleset": "rules/ruleset.json",
                 "presentation": "presentation/default.json",
             },
@@ -60,7 +60,7 @@ class TestContentSetValidator(unittest.TestCase):
         self.assertIsNotNone(definition)
         assert definition is not None
         self.assertEqual("fantasy_frontier", definition.content_set_id)
-        self.assertEqual(REPO_ROOT / "content_sets" / "fantasy_frontier" / "data", definition.data_root)
+        self.assertEqual(REPO_ROOT / "content_sets" / "fantasy_frontier" / "data", definition.content_root)
         self.assertEqual("town", definition.start_region_id)
         self.assertEqual("town_square", definition.start_room_id)
         self.assertTrue(definition.game_contract.system_enabled("magic"))

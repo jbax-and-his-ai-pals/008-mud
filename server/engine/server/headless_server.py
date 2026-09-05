@@ -84,10 +84,10 @@ class HeadlessServer:
         self,
         save_file: str = "server_save.json",
         db_path: Optional[str] = None,
-        data_root: Optional[str] = None,
         content_set_path: Optional[str] = None,
+        save_directory: Optional[str] = None,
         field_config_path: Optional[str] = None,
-        feature_profile_path: Optional[str] = None,
+        feature_profile: Optional[FeatureProfile] = None,
         starter_items: Optional[List[Dict[str, Any] | str]] = None,
         entitlement_policy: Optional[Dict[str, Any]] = None,
         mods_dir: Optional[str] = None,
@@ -109,18 +109,10 @@ class HeadlessServer:
         if definition is None or errors:
             detail = "; ".join(errors) if errors else "unknown validation error"
             raise ValueError(f"Invalid content set '{content_set_path}': {detail}")
-        selected_data_root = os.path.abspath(str(definition.data_root))
-        if data_root and os.path.abspath(data_root) != selected_data_root:
-            raise ValueError(
-                "data_root conflicts with selected content set: "
-                f"{os.path.abspath(data_root)} != {selected_data_root}"
-            )
         self.content_set: ContentSetDefinition = definition
         self.content_set_path: str = str(definition.manifest_path)
-        data_root = selected_data_root
-
-        self.data_root = os.path.abspath(data_root) if data_root else None
-        self.world = World(data_root=self.data_root, content_set=self.content_set)
+        self.content_root = os.path.abspath(str(definition.content_root))
+        self.world = World(content_set=self.content_set, save_directory=save_directory)
         setattr(self.world, "server", self)
         self.world.bootstrap_starter_items = list(starter_items) if starter_items else None
         self.command_processor = CommandProcessor()
@@ -130,7 +122,7 @@ class HeadlessServer:
         self.time_manager = TimeManager()
         self.weather_manager = WeatherManager()
         self.crafting_manager = (
-            CraftingManager(self.world, data_root=self.world.data_root)
+            CraftingManager(self.world)
             if self.world.has_capability("crafting")
             else None
         )
@@ -140,16 +132,16 @@ class HeadlessServer:
         self.knowledge_manager = KnowledgeManager(
             self.world,
             warning_sink=self.add_boot_warning,
-            data_root=self.world.data_root,
         )
-        self.collection_manager = CollectionManager(self.world, data_root=self.world.data_root)
+        self.collection_manager = CollectionManager(self.world)
         self.renderer = _NullRenderer()
         self.input_handler = _NullInputHandler()
         self.current_save_file = save_file
         self.db_path = db_path or os.path.abspath("server_state.sqlite3")
         self.persistence = SqliteStore(self.db_path)
         self.persistence.start_async_writer()
-        self.feature_profile = FeatureProfile.load(feature_profile_path)
+        self.feature_profile_source_path = "injected" if feature_profile is not None else str(definition.feature_profile_path or "")
+        self.feature_profile = feature_profile or FeatureProfile.load(self.feature_profile_source_path or None)
         self._seed_boot_warnings_from_profile()
         self.entitlement_guard = EntitlementGuard(entitlement_policy or {})
         self.mods_dir = mods_dir or os.path.abspath("mods")
@@ -171,11 +163,7 @@ class HeadlessServer:
         self.field_interaction_profiles: Dict[str, Dict[str, float]] = {
             "positive_suppresses_negative": {"coefficient": 0.60}
         }
-        default_field_config = (
-            os.path.join(self.data_root, "world", "field_interactions.json")
-            if self.data_root
-            else os.path.abspath(os.path.join("data", "world", "field_interactions.json"))
-        )
+        default_field_config = os.path.join(self.content_root, "world", "field_interactions.json")
         self.field_config_path = field_config_path or default_field_config
         self._load_field_interaction_config()
         # Providers are initialized to safe built-in defaults here.  Proper
@@ -1440,7 +1428,7 @@ class HeadlessServer:
             return True, "Character already exists for this session.", False
 
         from engine.player import Player
-        new_player = Player(raw_name, data_root=self.world.data_root)
+        new_player = Player(raw_name, world=self.world)
         new_player.obj_id = session.player_id
         new_player.world = self.world
         self.world.initialize_content_player(new_player)

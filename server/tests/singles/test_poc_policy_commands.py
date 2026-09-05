@@ -9,7 +9,9 @@ from typing import Any
 from pathlib import Path
 
 from poc_server import JsonLineMudServer as _JsonLineMudServer
+from engine.server.feature_profile import FeatureProfile
 from poc_ws_server import JsonWebSocketMudServer as _JsonWebSocketMudServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -62,7 +64,7 @@ class TestPocPolicyCommands(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
         return root
 
-    def _seed_minimal_data_root(self, root: Path) -> None:
+    def _seed_minimal_content_root(self, root: Path) -> None:
         for rel in ("items", "npcs", "regions", "quests", "campaigns"):
             (root / rel).mkdir(parents=True, exist_ok=True)
         (root / "quests" / "quests.json").write_text("{}", encoding="utf-8")
@@ -521,7 +523,7 @@ class TestPocPolicyCommands(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             seeded = app.server.create_session()
             app.server.execute_command(seeded.session_id, "char create Seeder")
             server = await asyncio.start_server(app._handle_client, "127.0.0.1", 0)
@@ -946,7 +948,7 @@ class TestPocPolicyCommands(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonWebSocketMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonWebSocketMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             seeded = app.core.server.create_session(player_id="seeded_ws_player")
             app.core.server.execute_command(seeded.session_id, "char create Seeder")
             fake_ws = _FakeWebSocket(

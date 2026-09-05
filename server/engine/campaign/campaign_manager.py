@@ -12,17 +12,14 @@ if TYPE_CHECKING:
     from engine.player.core import Player
 
 class CampaignManager:
-    def __init__(self, world: 'World', data_root: str | None = None):
+    def __init__(self, world: 'World'):
         self.world = world
-        world_data_root = world.data_root
-        if data_root is not None and os.path.abspath(data_root) != os.path.abspath(world_data_root):
-            raise ValueError("CampaignManager requires the owning world's content-set data root.")
-        self.data_root = world_data_root
+        self.content_root = world.content_root
         self.definitions: Dict[str, CampaignDefinition] = {}
         self._load_definitions()
 
     def _load_definitions(self):
-        path = os.path.join(self.data_root, "campaigns")
+        path = os.path.join(self.content_root, "campaigns")
         if not os.path.exists(path):
             return
 

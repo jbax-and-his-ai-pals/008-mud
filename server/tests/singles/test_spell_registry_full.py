@@ -1,6 +1,6 @@
 # tests/singles/test_spell_registry_full.py
 """Coverage for engine/magic/spell_registry.py's load_spells_from_json:
-the no-data_root guard, non-json files being skipped, malformed-JSON
+the no-content_root guard, non-json files being skipped, malformed-JSON
 decode errors, and other unexpected exceptions during file load."""
 
 import os
@@ -22,7 +22,7 @@ class TestLoadSpellsFromJson(unittest.TestCase):
         SPELL_REGISTRY.clear()
         SPELL_REGISTRY.update(self._original_registry)
 
-    def test_empty_data_root_raises(self):
+    def test_empty_content_root_raises(self):
         with self.assertRaises(ValueError):
             load_spells_from_json("")
 

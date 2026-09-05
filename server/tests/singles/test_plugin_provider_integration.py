@@ -5,6 +5,7 @@ import unittest
 import uuid
 
 from engine.server.headless_server import HeadlessServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -41,7 +42,7 @@ class TestPluginProviderIntegration(unittest.TestCase):
         server = HeadlessServer(
             db_path=":memory:",
             content_set_path=FANTASY_FRONTIER,
-            feature_profile_path=profile_path,
+            feature_profile=FeatureProfile.load(profile_path),
             mods_dir=mods_dir,
         )
         try:
@@ -80,7 +81,7 @@ class TestPluginProviderIntegration(unittest.TestCase):
         server = HeadlessServer(
             db_path=":memory:",
             content_set_path=FANTASY_FRONTIER,
-            feature_profile_path=profile_path,
+            feature_profile=FeatureProfile.load(profile_path),
             mods_dir=mods_dir,
         )
         session = server.create_session()
@@ -134,7 +135,7 @@ class TestPluginProviderIntegration(unittest.TestCase):
         server = HeadlessServer(
             db_path=":memory:",
             content_set_path=FANTASY_FRONTIER,
-            feature_profile_path=profile_path,
+            feature_profile=FeatureProfile.load(profile_path),
             mods_dir=mods_dir,
         )
         try:

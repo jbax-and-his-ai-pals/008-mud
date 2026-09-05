@@ -31,6 +31,6 @@ Ship a stable Engine + Toolkit product on Steam with sample packs and support-re
 - Load and soak test suite: [test_load_soak.py](../../server/tests/singles/test_load_soak.py)
 - Support workflow and on-call runbook: [support-workflow.md](../support-workflow.md)
 - Patching and rollback policy: [support-workflow.md](../support-workflow.md)
-- Save migration compatibility policy: [save-migration-policy.md](../save-migration-policy.md)
+- Save content-isolation policy: [save-content-isolation-policy.md](../save-content-isolation-policy.md)
 - Onboarding and tutorial flow: [onboarding-tutorial-flow.md](../onboarding-tutorial-flow.md)
 - Final launch checklist: [launch-checklist.md](../launch-checklist.md)

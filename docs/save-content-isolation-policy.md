@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the policy for backward compatibility of player save files, world saves, and server state databases across game versions.
+Save files belong to one content-set identity and are rejected when loaded by a different game.
 
 ## Versioning Contracts
 
@@ -60,7 +60,7 @@ If a release introduces a breaking save schema change:
 Player saves (inventory, level, experience, location) are treated as the most sensitive data:
 
 - Player data migrations must be **lossless** — no stats or items silently dropped.
-- If a migration would lose data (e.g. removed item type), it must log a warning and retain the raw data under `_legacy_data`.
+- Save formats are not migrated across content sets; start a new save for the selected game.
 - Players may be notified in-game on first login after a migration.
 
 ---
@@ -77,7 +77,7 @@ The `SqliteStore` persistence layer versions its schema via a `schema_version` t
 
 ## Mod Data
 
-Mods are responsible for their own save data compatibility. Mods must:
+Mods own their save data schema and must:
 
 - Namespace all saved keys under their `plugin_id`.
 - Provide a `migrate(old_version, data)` hook in their manifest if they change data shapes.

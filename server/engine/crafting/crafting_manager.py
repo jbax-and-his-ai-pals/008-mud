@@ -14,18 +14,15 @@ if TYPE_CHECKING:
     from engine.player import Player
 
 class CraftingManager:
-    def __init__(self, world: 'World', data_root: str | None = None):
+    def __init__(self, world: 'World'):
         self.world = world
-        world_data_root = world.data_root
-        if data_root is not None and os.path.abspath(data_root) != os.path.abspath(world_data_root):
-            raise ValueError("CraftingManager requires the owning world's content-set data root.")
-        self.data_root = world_data_root
+        self.content_root = world.content_root
         self.recipes: Dict[str, Recipe] = {}
         self._load_recipes()
 
     def _load_recipes(self):
         """Loads all recipe JSON files from data/crafting."""
-        crafting_dir = os.path.join(self.data_root, "crafting")
+        crafting_dir = os.path.join(self.content_root, "crafting")
         if not os.path.exists(crafting_dir):
             return
 

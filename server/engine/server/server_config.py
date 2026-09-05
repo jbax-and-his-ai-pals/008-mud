@@ -12,8 +12,6 @@ class ServerSettings:
     port: int
     save_file: str
     asset_db: str
-    data_root: str | None
-    feature_profile_path: str | None
     session_default_capabilities: list[str]
     session_default_entitlements: list[str]
     session_authz_detail_level: str
@@ -51,17 +49,10 @@ def resolve_server_settings(
     cli_port: int | None,
     cli_save: str | None,
     cli_asset_db: str | None,
-    cli_data_root: str | None,
-    cli_profile_path: str | None,
     config_path: str | None,
 ) -> ServerSettings:
     server_cfg = config_payload.get("server", {}) if isinstance(config_payload.get("server"), dict) else {}
     ws_cfg = config_payload.get("websocket", {}) if isinstance(config_payload.get("websocket"), dict) else {}
-    profile_cfg = (
-        config_payload.get("feature_profile", {})
-        if isinstance(config_payload.get("feature_profile"), dict)
-        else {}
-    )
     session_cfg = (
         config_payload.get("session", {})
         if isinstance(config_payload.get("session"), dict)
@@ -136,24 +127,11 @@ def resolve_server_settings(
 
     default_port = 8765 if transport == "tcp" else 8766
     config_port = int(ws_cfg.get("port", default_port)) if transport == "ws" else int(server_cfg.get("port", default_port))
-    resolved_profile = cli_profile_path
-    if resolved_profile is None:
-        resolved_profile = profile_cfg.get("path") or server_cfg.get("feature_profile_path")
     return ServerSettings(
         host=cli_host or str(server_cfg.get("host", "127.0.0.1")),
         port=int(cli_port) if cli_port is not None else config_port,
         save_file=cli_save or str(server_cfg.get("save_file", "server_save.json")),
         asset_db=cli_asset_db or str(server_cfg.get("asset_db", ":memory:")),
-        data_root=(
-            str(cli_data_root).strip()
-            if cli_data_root is not None and str(cli_data_root).strip() != ""
-            else (
-                str(server_cfg.get("data_root")).strip()
-                if str(server_cfg.get("data_root", "")).strip() != ""
-                else None
-            )
-        ),
-        feature_profile_path=str(resolved_profile) if resolved_profile else None,
         session_default_capabilities=default_caps,
         session_default_entitlements=default_entitlements,
         session_authz_detail_level=authz_detail_level,

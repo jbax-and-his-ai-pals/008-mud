@@ -1,8 +1,9 @@
-﻿import json
+import json
 import os
 import unittest
 
 from engine.server.headless_server import HeadlessServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 from tests.singles.snapshot_assertions import assert_snapshot
 
@@ -68,7 +69,7 @@ class TestHeadlessServerPolicySnapshots(unittest.TestCase):
             content_set_path=FANTASY_FRONTIER,
             deterministic_test_mode=True,
             tick_rate_hz=10.0,
-            feature_profile_path=profile_path,
+            feature_profile=FeatureProfile.load(profile_path),
         )
         try:
             events = server.execute_command(server.create_session().session_id, "look")

@@ -193,11 +193,11 @@ def validate_tree(root: Path, strict_templates: bool = False) -> tuple[int, int,
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Validate server data JSON integrity.")
+    parser = argparse.ArgumentParser(description="Validate content-set data JSON integrity.")
     parser.add_argument(
         "root",
         nargs="?",
-        default="server/data",
+        default="content_sets/fantasy_frontier/data",
         help="Root directory containing JSON content files.",
     )
     parser.add_argument(

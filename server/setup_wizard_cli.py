@@ -23,7 +23,7 @@ def _write_json_file(path: Path, payload: dict, force: bool) -> None:
 
 
 def run(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Generate validated server/profile bootstrap files from wizard presets.")
+    parser = argparse.ArgumentParser(description="Generate a content-set policy asset and validated server bootstrap config from a wizard preset.")
     parser.add_argument("--preset", required=True, choices=list_wizard_presets())
     parser.add_argument("--server-name", required=True)
     parser.add_argument("--content-set", required=True)
@@ -57,8 +57,6 @@ def run(argv: list[str] | None = None) -> int:
     _ = resolve_server_settings(
         "tcp",
         artifact["config_payload"],
-        None,
-        None,
         None,
         None,
         None,

@@ -73,7 +73,7 @@ class PlayerPersistenceMixin:
         from engine.player.core import Player
 
         # Create instance using base init
-        player_obj = cls(name=data.get("name", PLAYER_DEFAULT_NAME), data_root=world.data_root) # type: ignore
+        player_obj = cls(name=data.get("name", PLAYER_DEFAULT_NAME), world=world) # type: ignore
         
         # Cast to Player to satisfy Pylance about attribute access
         player = cast(Player, player_obj)

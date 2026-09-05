@@ -82,10 +82,10 @@ class TestSpawner(GameTestBase):
         self.assertEqual(final_count, 10 + initial_count)
 
     def test_spawner_considers_all_active_player_regions(self):
-        """Verify spawning can occur in a non-legacy active player region."""
+        """Verify spawning can occur in a non-deprecated active player region."""
         spawner = Spawner(self.world)
 
-        primary_region = Region("Primary Region", "Legacy player region.", obj_id="primary_region")
+        primary_region = Region("Primary Region", "Deprecated player region.", obj_id="primary_region")
         primary_player_room = Room("Primary Player Room", "Occupied.", obj_id="primary_player_room")
         primary_spawn_room = Room("Primary Spawn Room", "Spawn room.", obj_id="primary_spawn_room")
         primary_region.add_room("primary_player_room", primary_player_room)
@@ -109,7 +109,7 @@ class TestSpawner(GameTestBase):
         self.world.current_room_id = "primary_player_room"
 
         from engine.player.core import Player
-        other_player = Player("Secondary Hero", obj_id="secondary_hero", data_root=self.world.data_root)
+        other_player = Player("Secondary Hero", obj_id="secondary_hero", world=self.world)
         other_player.world = self.world
         other_player.current_region_id = "secondary_region"
         other_player.current_room_id = "secondary_player_room"
@@ -127,9 +127,9 @@ class TestSpawner(GameTestBase):
             npc for npc in self.world.npcs.values()
             if npc.faction == "hostile" and npc.current_region_id == "secondary_region"
         ]
-        self.assertGreater(len(spawned_in_secondary), 0, "Spawner should consider the non-legacy active player region.")
+        self.assertGreater(len(spawned_in_secondary), 0, "Spawner should consider the non-deprecated active player region.")
 
-    def test_spawner_uses_resolved_player_when_legacy_binding_missing(self):
+    def test_spawner_uses_resolved_player_when_deprecated_binding_missing(self):
         """Verify spawn activation still works when only loaded players remain."""
         spawner = Spawner(self.world)
 
@@ -144,7 +144,7 @@ class TestSpawner(GameTestBase):
 
         self.player.current_region_id = "resolved_region"
         self.player.current_room_id = "player_room"
-        self.world._legacy_player_id = None
+        self.world._deprecated_player_id = None
 
         if "goblin" not in self.world.npc_templates:
             self.world.npc_templates["goblin"] = {

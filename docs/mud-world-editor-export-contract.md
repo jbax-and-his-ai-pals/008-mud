@@ -32,4 +32,4 @@ The server strictly requires:
 Any SVG assets included must be structurally flat (`<svg>` -> `<path>`), avoiding arbitrary XML namespaces or `<script>` tags, which are blocked by the data payload guard.
 
 ## Live Reload
-The server supports live reloading via the `@dig` and `@edit` pipeline. An external editor can write directly to the `server/data` folder in local-dev mode, and the `data_integrity_validator.py` can be used as a pre-commit/pre-export validation hook by the editor.
+The server supports live reloading via the `@dig` and `@edit` pipeline. An external editor can write directly to the selected content-set `data/` folder in local-dev mode, and the `data_integrity_validator.py` can be used as a pre-commit/pre-export validation hook by the editor.

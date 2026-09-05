@@ -21,7 +21,7 @@ class RegionGenerator:
 
     def load_themes(self):
         """Loads region generation themes and placeholders from a JSON file."""
-        theme_path = os.path.join(self.world.data_root, "regions", "dynamic_themes.json")
+        theme_path = os.path.join(self.world.content_root, "regions", "dynamic_themes.json")
         try:
             with open(theme_path, 'r') as f:
                 data = json.load(f)

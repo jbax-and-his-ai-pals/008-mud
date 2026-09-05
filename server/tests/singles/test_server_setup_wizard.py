@@ -25,18 +25,17 @@ class TestServerSetupWizard(unittest.TestCase):
         self.assertEqual("disabled", profile.weather_mode)
         self.assertEqual("readonly", profile.world_mutation_mode)
         settings = resolve_server_settings(
-            "tcp", artifact["config_payload"], None, None, None, None, None, None, artifact["config_filename"]
+            "tcp", artifact["config_payload"], None, None, None, None, artifact["config_filename"]
         )
         self.assertEqual("minimal", settings.session_authz_detail_level)
         self.assertEqual([], settings.world_bootstrap_starter_items)
         self.assertEqual([], settings.session_default_capabilities)
         self.assertEqual([], settings.session_default_entitlements)
-        self.assertEqual(artifact["profile_path"], settings.feature_profile_path)
 
     def test_social_preset_sets_placeholder_gm_token_when_missing(self) -> None:
         artifact = build_server_bootstrap_artifacts("social_no_combat", server_name="Social Hub", content_set_path=FANTASY_FRONTIER)
         settings = resolve_server_settings(
-            "tcp", artifact["config_payload"], None, None, None, None, None, None, artifact["config_filename"]
+            "tcp", artifact["config_payload"], None, None, None, None, artifact["config_filename"]
         )
         self.assertEqual("replace-with-strong-token", settings.session_gm_auth_token)
         self.assertEqual([], settings.world_bootstrap_starter_items)
@@ -52,7 +51,7 @@ class TestServerSetupWizard(unittest.TestCase):
             gm_auth_token="",
         )
         settings = resolve_server_settings(
-            "tcp", artifact["config_payload"], None, None, None, None, None, None, artifact["config_filename"]
+            "tcp", artifact["config_payload"], None, None, None, None, artifact["config_filename"]
         )
         self.assertIn("authoring.gm", settings.session_default_capabilities)
         self.assertIn("creator_sdk.authoring", settings.session_default_entitlements)

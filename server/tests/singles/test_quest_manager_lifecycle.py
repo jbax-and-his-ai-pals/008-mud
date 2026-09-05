@@ -15,9 +15,9 @@ from engine.npcs.npc_factory import NPCFactory
 
 
 class TestConstructor(GameTestBase):
-    def test_mismatched_data_root_raises(self):
-        with self.assertRaises(ValueError):
-            QuestManager(self.world, data_root="/not/the/real/root")
+    def test_mismatched_content_root_raises(self):
+        with self.assertRaises(TypeError):
+            QuestManager(self.world, content_root="/not/the/real/root")
 
 
 class TestLoadNpcInterests(GameTestBase):

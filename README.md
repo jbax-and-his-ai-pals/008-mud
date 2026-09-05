@@ -361,8 +361,8 @@ Current content-engine development flow:
   - `python server/launch_content_set.py --transport ws`
 
 Legacy server-fixture operator flow:
-- Refresh fixture: `python toolkit/fixture_refresh.py --source mud-world-editor/data --latest-root server/data --fixture-root server/data_fixtures --fixture-name fantasy_editor_migrated_latest`
-- Launch from latest selected fixture (auto-reads `server/data_fixtures/LATEST_REFRESH.json`):
+- Refresh fixture: `python toolkit/fixture_refresh.py --source mud-world-editor/data --latest-root content_sets/fantasy_frontier/data --fixture-root tmp/content_fixtures --fixture-name fantasy_editor_migrated_latest`
+- Launch from latest selected fixture (auto-reads `tmp/content_fixtures/LATEST_REFRESH.json`):
   - `python server/launch_from_latest_fixture.py --transport tcp`
   - `python server/launch_from_latest_fixture.py --transport ws`
 - Operator reference: `docs/roadmap/server-operator-guide.md`

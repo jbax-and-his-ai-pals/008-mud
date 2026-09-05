@@ -4,6 +4,7 @@ import tempfile
 import unittest
 
 from engine.server.headless_server import HeadlessServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -32,7 +33,7 @@ class TestSystemProviders(unittest.TestCase):
             "world_effects": {"mode": "custom"},
             "mods": {"mode": "disabled"},
         })
-        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile_path=profile_path)
+        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile=FeatureProfile.load(profile_path))
         try:
             self.assertEqual("custom", server.weather_provider.mode)
             self.assertEqual("custom", server.world_effects_provider.mode)
@@ -45,7 +46,7 @@ class TestSystemProviders(unittest.TestCase):
 
     def test_custom_world_field_provider_is_noop(self) -> None:
         profile_path = self._make_profile({"world_effects": {"mode": "custom"}, "mods": {"mode": "disabled"}})
-        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile_path=profile_path)
+        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile=FeatureProfile.load(profile_path))
         session = server.create_session()
         try:
             events = server.tick(session.session_id, 1.0)
@@ -56,7 +57,7 @@ class TestSystemProviders(unittest.TestCase):
 
     def test_registered_custom_weather_provider_is_selected(self) -> None:
         profile_path = self._make_profile({"weather": {"mode": "custom", "provider_id": "mod.weather.test"}})
-        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile_path=profile_path)
+        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile=FeatureProfile.load(profile_path))
         try:
             class TestWeatherProvider:
                 mode = "custom"
@@ -74,7 +75,7 @@ class TestSystemProviders(unittest.TestCase):
 
     def test_registered_custom_world_effects_provider_is_selected(self) -> None:
         profile_path = self._make_profile({"world_effects": {"mode": "custom", "provider_id": "mod.effects.test"}})
-        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile_path=profile_path)
+        server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, feature_profile=FeatureProfile.load(profile_path))
         try:
             class TestEffectsProvider:
                 mode = "custom"

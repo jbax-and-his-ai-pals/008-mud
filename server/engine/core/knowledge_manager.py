@@ -11,12 +11,9 @@ if TYPE_CHECKING:
     from engine.npcs.npc import NPC
 
 class KnowledgeManager:
-    def __init__(self, world, warning_sink=None, data_root: str | None = None):
+    def __init__(self, world, warning_sink=None):
         self.world = world
-        world_data_root = world.data_root
-        if data_root is not None and os.path.abspath(data_root) != os.path.abspath(world_data_root):
-            raise ValueError("KnowledgeManager requires the owning world's content-set data root.")
-        self.data_root = world_data_root
+        self.content_root = world.content_root
         self.topics: Dict[str, Any] = {}
         self.common_topics = ["job", "rumors"] 
         self._warning_sink = warning_sink
@@ -29,7 +26,7 @@ class KnowledgeManager:
         print(message)
 
     def _load_topics(self):
-        path = os.path.join(self.data_root, "knowledge", "topics.json")
+        path = os.path.join(self.content_root, "knowledge", "topics.json")
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path), exist_ok=True)
             

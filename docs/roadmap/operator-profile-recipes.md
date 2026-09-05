@@ -4,10 +4,10 @@ These recipes are baseline server-level configurations for common game styles.
 Each recipe is a JSON feature profile loaded by the authoritative server.
 
 Profile files:
-- `server/data/profiles/static_world.profile.json`
-- `server/data/profiles/creative_world.profile.json`
-- `server/data/profiles/social_no_combat.profile.json`
-- `server/data/profiles/mobile_low_fx.profile.json`
+- `content_sets/fantasy_frontier/data/profiles/static_world.profile.json`
+- `content_sets/fantasy_frontier/data/profiles/creative_world.profile.json`
+- `content_sets/fantasy_frontier/data/profiles/social_no_combat.profile.json`
+- `content_sets/fantasy_frontier/data/profiles/mobile_low_fx.profile.json`
 
 ## Static World
 
@@ -67,13 +67,13 @@ Alternative (runtime elevation):
 - Set `"session": { "gm_auth_token": "<strong token>" }` in config.
 - In-client, run `gm auth <token>` to grant `authoring.gm` to the current session.
 
-Optional override:
-- Use `--profile <path>` to temporarily override the config profile path.
+Profile selection:
+- Set `paths.feature_profile` in the selected content-set manifest; transport configuration does not override it.
 
 Runtime check:
 - In a TCP or WebSocket session, run `server policy` to receive the active profile source, startup warnings, and effective policy/provider flags.
 
 Runtime profile management (PoC):
-- `profile list` (or `profiles`) to list available preset names from `server/data/profiles/`.
+- `profile list` (or `profiles`) to list available preset names from `content_sets/fantasy_frontier/data/profiles/`.
 - `profile apply <preset_name>` to apply a preset at runtime.
 - Client shell safety flow: entering `profile apply <preset_name>` prompts for `profile apply confirm` (or `profile apply cancel`) before sending.

@@ -409,7 +409,7 @@ def shim_editor_export(
             "instance_stage_indexes_added": instance_norm["stage_indexes_added"],
         }
     )
-    migration = _hydrate_from_latest(target_root, (latest_root or Path("server/data")).resolve())
+    migration = _hydrate_from_latest(target_root, (latest_root or Path("content_sets/fantasy_frontier/data")).resolve())
 
     report: dict[str, Any] = {
         "source_root": str(source_root),
@@ -448,14 +448,14 @@ def shim_editor_export(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Migrate mud-world-editor export data into latest-format server/data structure."
+        description="Migrate mud-world-editor export data into latest-format content-set data structure."
     )
     parser.add_argument("--source", default="mud-world-editor/data", help="Editor data root.")
-    parser.add_argument("--target", default="tmp/editor_export_shim/server_data", help="Shim output root.")
+    parser.add_argument("--target", default="tmp/editor_export_shim/content_data", help="Shim output root.")
     parser.add_argument("--report", default="tmp/editor_export_shim/report.json", help="Report JSON output path.")
     parser.add_argument("--no-validate", action="store_true", help="Skip data/reference validation pass.")
     parser.add_argument("--strict", action="store_true", help="Fail when warnings/missing/validation errors are present.")
-    parser.add_argument("--latest-root", default="server/data", help="Canonical latest-format data root for template hydration.")
+    parser.add_argument("--latest-root", default="content_sets/fantasy_frontier/data", help="Canonical content-set data root for template hydration.")
     args = parser.parse_args()
 
     source_root = Path(args.source)

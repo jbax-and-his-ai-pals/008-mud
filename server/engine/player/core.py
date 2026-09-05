@@ -40,9 +40,9 @@ class Player(
     PlayerPersistenceMixin, 
     GameObject
 ):
-    def __init__(self, name: str, obj_id: str = "player", data_root: str | None = None):
-        if not data_root:
-            raise ValueError("Player creation requires a content-set data root.")
+    def __init__(self, name: str, world: 'World', obj_id: str = "player"):
+        if world is None:
+            raise ValueError("Player creation requires an owning world.")
         super().__init__(obj_id=obj_id, name=name, description="The main character.")
         # Optional gameplay state lives here.
         self.runtime_state = PlayerRuntimeState()
@@ -87,7 +87,7 @@ class Player(
         self.respawn_room_id: Optional[str] = None
         self.runtime_state.magic.known_spells = set()
         self.runtime_state.magic.cooldowns = {}
-        self.world: Optional['World'] = None
+        self.world: Optional['World'] = world
         self.current_region_id: Optional[str] = None
         self.current_room_id: Optional[str] = None
         self.runtime_state.gold = 0
@@ -105,7 +105,7 @@ class Player(
         self.collections_completed: Dict[str, bool] = {} 
 
         self.reputation: Dict[str, int] = {} 
-        self.set_manager = SetManager(data_root=data_root)
+        self.set_manager = SetManager(world)
 
     def get_effective_stat(self, stat_name: str) -> int:
         """Calculates stat including base, buffs, equipment, AND set bonuses."""

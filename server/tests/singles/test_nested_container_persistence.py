@@ -29,7 +29,7 @@ class TestNestedContainerPersistence(GameTestBase):
         }
 
     def tearDown(self):
-        path = os.path.join("data", "saves", self.TEST_SAVE)
+        path = os.path.join(self.world.save_directory, self.TEST_SAVE)
         if os.path.exists(path):
             try: os.remove(path)
             except OSError: pass

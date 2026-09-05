@@ -2,6 +2,7 @@ import json
 import os
 import stat
 import time
+import tempfile
 import unittest
 
 from engine.server.headless_server import HeadlessServer
@@ -12,7 +13,8 @@ class TestHeadlessPlayerReferenceContext(unittest.TestCase):
     TEST_SAVE_FILE = "headless_reference_context_save.json"
 
     def setUp(self) -> None:
-        self.server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER)
+        self._runtime_state = tempfile.TemporaryDirectory()
+        self.server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, save_directory=self._runtime_state.name)
         self.session_a = self.server.create_session(player_id="reference_ctx_a")
         self.server.mark_session_connected(self.session_a.session_id)
         self.server.execute_command(self.session_a.session_id, "char create ReferenceHeroA")
@@ -27,20 +29,11 @@ class TestHeadlessPlayerReferenceContext(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.server.shutdown()
-        save_path = os.path.join("data", "saves", self.TEST_SAVE_FILE)
-        if os.path.exists(save_path):
-            for _ in range(3):
-                try:
-                    os.chmod(save_path, stat.S_IWRITE)
-                    os.remove(save_path)
-                    break
-                except PermissionError:
-                    time.sleep(0.1)
-
+        self._runtime_state.cleanup()
     def _text_payloads(self, events: list[dict]) -> list[str]:
         return [str(event.get("payload", "")) for event in events if event.get("type") == "text"]
 
-    def test_journal_uses_invoking_session_player_not_legacy_world_player(self) -> None:
+    def test_journal_uses_invoking_session_player_not_deprecated_world_player(self) -> None:
         self.player_a.runtime_state.quests.active["reference_quest"] = {
             "instance_id": "reference_quest",
             "title": "Reference Quest",
@@ -67,7 +60,7 @@ class TestHeadlessPlayerReferenceContext(unittest.TestCase):
         self.assertTrue(any("Reference Quest" in payload for payload in payloads))
         self.assertFalse(any("Other Quest" in payload for payload in payloads))
 
-    def test_save_game_uses_explicit_player_not_legacy_world_player(self) -> None:
+    def test_save_game_uses_explicit_player_not_deprecated_world_player(self) -> None:
         self.player_a.runtime_state.gold = 777
         self.player_b.runtime_state.gold = 5
         self.server.world.player = self.player_b
@@ -75,7 +68,7 @@ class TestHeadlessPlayerReferenceContext(unittest.TestCase):
         success = self.server.world.save_game(self.TEST_SAVE_FILE, player=self.player_a)
         self.assertTrue(success)
 
-        save_path = os.path.join("data", "saves", self.TEST_SAVE_FILE)
+        save_path = os.path.join(self.server.world.save_directory, self.TEST_SAVE_FILE)
         with open(save_path, "r", encoding="utf-8") as handle:
             payload = json.load(handle)
 

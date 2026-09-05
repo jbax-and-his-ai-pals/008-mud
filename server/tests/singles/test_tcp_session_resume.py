@@ -7,6 +7,7 @@ import unittest
 from typing import Any
 
 from poc_server import JsonLineMudServer as _JsonLineMudServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -157,7 +158,7 @@ class TestTcpSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             primary = app.server.create_session()
             secondary = app.server.create_session()
             _ = primary
@@ -271,7 +272,7 @@ class TestTcpSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             existing = app.server.create_session()
             existing_id = existing.session_id
             server = await asyncio.start_server(app._handle_client, "127.0.0.1", 0)
@@ -311,7 +312,7 @@ class TestTcpSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             existing = app.server.create_session()
             existing_id = existing.session_id
             app.server.mark_session_connected(existing_id)
@@ -355,7 +356,7 @@ class TestTcpSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             expired = app.server.create_session()
             expired_id = expired.session_id
             app.server.execute_command(expired_id, "char create Expiring")
@@ -395,7 +396,7 @@ class TestTcpSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             expired_a = app.server.create_session(player_id="expired_a")
             expired_b = app.server.create_session(player_id="expired_b")
             resumable = app.server.create_session(player_id="resumable_c")
@@ -460,7 +461,7 @@ class TestTcpSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile_path=profile_path)
+            app = JsonLineMudServer("127.0.0.1", 0, "test_save.json", feature_profile=FeatureProfile.load(profile_path))
             expired = app.server.create_session(player_id="expired_player")
             resumable_a = app.server.create_session(player_id="resumable_a")
             resumable_b = app.server.create_session(player_id="resumable_b")

@@ -26,7 +26,7 @@ class SaveManager:
 
     def save(self, filename: str = DEFAULT_SAVE_FILE, player: Optional[Player] = None) -> bool:
         """Saves the current world state to a JSON file."""
-        save_path = self._resolve_save_path(filename, SAVE_GAME_DIR)
+        save_path = self._resolve_save_path(filename)
         if not save_path: return False
         Logger.info("SaveManager", f"Saving game to {save_path}...")
         try:
@@ -100,7 +100,7 @@ class SaveManager:
         Loads a world state from a file.
         Returns: (success_flag, time_data, weather_data)
         """
-        save_path = self._resolve_load_path(filename, SAVE_GAME_DIR)
+        save_path = self._resolve_load_path(filename)
         if not save_path or not os.path.exists(save_path):
             Logger.warning("SaveManager", f"Save file not found: {filename}.")
             return False, None, None
@@ -119,7 +119,7 @@ class SaveManager:
                 if saved_id and (saved_id != current_id or (saved_version and saved_version != current_version)):
                     Logger.error(
                         "SaveManager",
-                        "Save content set is incompatible with the selected game: "
+                        "Save belongs to a different content set than the selected game: "
                         f"{saved_id}@{saved_version or '?'} != {current_id or 'unknown'}@{current_version or '?'}.",
                     )
                     return False, None, None
@@ -191,28 +191,23 @@ class SaveManager:
             self.world.initialize_new_world()
             return False, None, None
 
-    def _resolve_save_path(self, filename: str, base_dir: str) -> Optional[str]:
+    def _resolve_save_path(self, filename: str) -> Optional[str]:
         try:
-            os.makedirs(base_dir, exist_ok=True)
+            os.makedirs(self.world.save_directory, exist_ok=True)
             safe_filename = "".join(c for c in filename if c.isalnum() or c in ('_', '-', '.'))
             if not safe_filename.endswith(".json"): safe_filename += ".json"
-            return os.path.abspath(os.path.join(base_dir, safe_filename))
+            return os.path.abspath(os.path.join(self.world.save_directory, safe_filename))
         except Exception as e:
             Logger.error("SaveManager", f"Error resolving save path '{filename}': {e}")
             return None
 
-    def _resolve_load_path(self, filename: str, base_dir: str) -> Optional[str]:
+    def _resolve_load_path(self, filename: str) -> Optional[str]:
         try:
             safe_filename = "".join(c for c in filename if c.isalnum() or c in ('_', '-', '.'))
             if not safe_filename.endswith(".json"): safe_filename += ".json"
             
-            path = os.path.abspath(os.path.join(base_dir, safe_filename))
-            if os.path.exists(path): return path
-
-            cwd_path = os.path.abspath(safe_filename)
-            if os.path.exists(cwd_path): return cwd_path
-            
-            return None
+            path = os.path.abspath(os.path.join(self.world.save_directory, safe_filename))
+            return path if os.path.exists(path) else None
         except Exception as e:
             Logger.error("SaveManager", f"Error resolving load path '{filename}': {e}")
             return None

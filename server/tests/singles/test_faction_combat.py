@@ -68,7 +68,7 @@ class TestFactionCombat(GameTestBase):
             region.add_room("scan_room", room)
             self.world.add_region("scan_region", region)
 
-            other_player = Player("OffRoomViewer", obj_id="offroom_viewer", data_root=self.world.data_root)
+            other_player = Player("OffRoomViewer", obj_id="offroom_viewer", world=self.world)
             other_player.world = self.world
             other_player.current_region_id = "scan_region"
             other_player.current_room_id = "offroom"

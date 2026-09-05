@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document defines baseline quality and compatibility expectations for:
+This document defines baseline quality and validation expectations for:
 
-- data content under `server/data`
+- data content inside content-set packages
 - theme packs under `client/themes` and `toolkit/starter_packs`
 - server mods under `server/mods` and `mods`
 
@@ -47,7 +47,7 @@ Compatibility policy:
 
 - `pack_spec_version` must match supported pack spec major.
 - runtime API must satisfy `runtime_api_min <= runtime_api <= runtime_api_max`.
-- packs failing compatibility checks are not shippable.
+- packs failing validation checks are not shippable.
 
 ## 3. Mod Manifest Compatibility Contract
 
@@ -74,7 +74,7 @@ Validation entrypoint:
 
 Runtime enforcement:
 
-- Plugin load path validates manifest compatibility and capability whitelist before executing `setup(api)`.
+- Plugin load path validates manifest requirements and capability whitelist before executing `setup(api)`.
 
 ## 4. Publishing Workflow (Minimum)
 
@@ -89,9 +89,9 @@ Runtime enforcement:
 
 ## 5. Compatibility and Deprecation Policy
 
-- Backward compatibility is the default expectation for IDs and contracts.
+- Stable IDs and contracts are required within a published content set.
 - Breaking changes require:
   - explicit deprecation note
   - migration guidance
-  - compatibility range update in pack/mod manifests
+  - engine version range update in pack/mod manifests
 - New runtime API versions should retain prior behavior where possible, and only tighten contracts with clear changelogs.

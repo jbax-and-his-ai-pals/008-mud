@@ -1,5 +1,5 @@
 # tests/singles/test_collection_manager_full.py
-"""Coverage for engine/core/collection_manager.py: __init__'s data_root
+"""Coverage for engine/core/collection_manager.py: __init__'s content_root
 mismatch guard, _load_collections' exception handling, discovery's
 already-tracked-progress skip, turn_in's non-collector guard, item-scan
 skips (no collection_id, duplicate-in-loop), a failed removal being
@@ -21,9 +21,9 @@ from engine.npcs.npc_factory import NPCFactory
 
 
 class TestInit(GameTestBase):
-    def test_mismatched_data_root_raises(self):
-        with self.assertRaises(ValueError):
-            CollectionManager(self.world, data_root="/some/other/path")
+    def test_mismatched_content_root_raises(self):
+        with self.assertRaises(TypeError):
+            CollectionManager(self.world, content_root="/some/other/path")
 
 
 class TestLoadCollectionsErrorHandling(GameTestBase):
@@ -32,12 +32,12 @@ class TestLoadCollectionsErrorHandling(GameTestBase):
         try:
             with open(os.path.join(tmp_root, "collections.json"), "w") as f:
                 f.write("{not valid json")
-            original_data_root = self.world.data_root
-            self.world.data_root = tmp_root
+            original_content_root = self.world.content_root
+            self.world.content_root = tmp_root
             try:
-                manager = CollectionManager(self.world, data_root=tmp_root)
+                manager = CollectionManager(self.world)
             finally:
-                self.world.data_root = original_data_root
+                self.world.content_root = original_content_root
             self.assertEqual(manager.collections, {})
         finally:
             shutil.rmtree(tmp_root, ignore_errors=True)

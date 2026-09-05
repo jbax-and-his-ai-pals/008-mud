@@ -33,7 +33,7 @@ class TestSave(GameTestBase):
         super().setUp()
         self.manager = SaveManager(self.world)
         self.save_file = "save_manager_full_test.json"
-        self.save_path = os.path.join("data", "saves", self.save_file)
+        self.save_path = os.path.join(self.world.save_directory, self.save_file)
 
     def tearDown(self):
         _cleanup(self.save_path)
@@ -89,7 +89,7 @@ class TestLoad(GameTestBase):
         super().setUp()
         self.manager = SaveManager(self.world)
         self.save_file = "save_manager_full_load_test.json"
-        self.save_path = os.path.join("data", "saves", self.save_file)
+        self.save_path = os.path.join(self.world.save_directory, self.save_file)
 
     def tearDown(self):
         _cleanup(self.save_path)
@@ -216,23 +216,14 @@ class TestResolvePaths(GameTestBase):
 
     def test_resolve_save_path_exception_returns_none(self):
         with patch("engine.world.save_manager.os.makedirs", side_effect=OSError("disk full")):
-            self.assertIsNone(self.manager._resolve_save_path("x.json", "data/saves"))
+            self.assertIsNone(self.manager._resolve_save_path("x.json"))
 
     def test_resolve_load_path_exception_returns_none(self):
         with patch("engine.world.save_manager.os.path.abspath", side_effect=OSError("bad path")):
-            self.assertIsNone(self.manager._resolve_load_path("x.json", "data/saves"))
+            self.assertIsNone(self.manager._resolve_load_path("x.json"))
 
-    def test_resolve_load_path_falls_back_to_cwd(self):
-        cwd_filename = "save_manager_full_cwd_test.json"
-        cwd_path = os.path.abspath(cwd_filename)
-        with open(cwd_path, "w") as f:
-            f.write("{}")
-        try:
-            result = self.manager._resolve_load_path(cwd_filename, "totally_bogus_save_dir_xyz")
-            self.assertEqual(result, cwd_path)
-        finally:
-            os.remove(cwd_path)
-
+    def test_resolve_load_path_does_not_fall_back_to_cwd(self):
+        self.assertIsNone(self.manager._resolve_load_path("not-present-outside-state.json"))
 
 if __name__ == "__main__":
     unittest.main()

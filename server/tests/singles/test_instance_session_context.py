@@ -23,7 +23,7 @@ class TestInstanceSessionContext(unittest.TestCase):
     def tearDown(self) -> None:
         self.server.shutdown()
 
-    def test_cleanup_quest_region_finds_completed_owner_not_legacy_world_player(self) -> None:
+    def test_cleanup_quest_region_finds_completed_owner_not_deprecated_world_player(self) -> None:
         quest_id = "instance_ctx_cleanup"
         region_id = "instance_ctx_region"
         assert self.player_a.runtime_state.quests is not None
@@ -44,23 +44,23 @@ class TestInstanceSessionContext(unittest.TestCase):
         self.assertIn(quest_id, self.player_a.runtime_state.quests.archived)
         self.assertNotIn(quest_id, self.player_a.runtime_state.quests.completed)
 
-    def test_cleanup_quest_region_works_without_legacy_player_binding(self) -> None:
-        quest_id = "instance_ctx_cleanup_no_legacy"
-        region_id = "instance_ctx_region_no_legacy"
+    def test_cleanup_quest_region_works_without_deprecated_player_binding(self) -> None:
+        quest_id = "instance_ctx_cleanup_no_deprecated"
+        region_id = "instance_ctx_region_no_deprecated"
         assert self.player_a.runtime_state.quests is not None
         self.player_a.runtime_state.quests.completed[quest_id] = {
             "instance_id": quest_id,
             "instance_region_id": region_id,
-            "entry_point": {"region_id": "town", "room_id": "town_square", "exit_command": "ctx_portal_no_legacy"},
+            "entry_point": {"region_id": "town", "room_id": "town_square", "exit_command": "ctx_portal_no_deprecated"},
         }
         self.server.world.add_region(region_id, Region("Ctx Region", "Test", obj_id=region_id))
         town_room = self.server.world.get_region("town").get_room("town_square")
-        town_room.exits["ctx_portal_no_legacy"] = f"{region_id}:entry"
-        self.server.world._legacy_player_id = None
+        town_room.exits["ctx_portal_no_deprecated"] = f"{region_id}:entry"
+        self.server.world._deprecated_player_id = None
 
         self.server.world.cleanup_quest_region(quest_id)
 
         self.assertNotIn(region_id, self.server.world.regions)
-        self.assertNotIn("ctx_portal_no_legacy", town_room.exits)
+        self.assertNotIn("ctx_portal_no_deprecated", town_room.exits)
         self.assertIn(quest_id, self.player_a.runtime_state.quests.archived)
         self.assertNotIn(quest_id, self.player_a.runtime_state.quests.completed)

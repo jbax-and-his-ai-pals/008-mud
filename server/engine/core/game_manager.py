@@ -10,7 +10,7 @@ from engine.ai.ai_manager import AIManager
 from engine.commands.command_system import CommandProcessor
 from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_TITLE, SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS,
-    DEBUG_IGNORE_PLAYER_COMBAT, DEFAULT_SAVE_FILE, SAVE_GAME_DIR
+    DEBUG_IGNORE_PLAYER_COMBAT, DEFAULT_SAVE_FILE
 )
 from engine.core.collection_manager import CollectionManager
 from engine.core.knowledge_manager import KnowledgeManager
@@ -33,7 +33,7 @@ from engine.crafting.crafting_manager import CraftingManager
 from engine.utils.logger import Logger
 
 class GameManager:
-    def __init__(self, content_set_path: str, save_file: str = DEFAULT_SAVE_FILE):
+    def __init__(self, content_set_path: str, save_file: str = DEFAULT_SAVE_FILE, save_directory: str | None = None):
         content_set, issues = load_content_set(content_set_path)
         errors = [issue.message for issue in issues if issue.severity == "error"]
         if content_set is None or errors:
@@ -43,7 +43,7 @@ class GameManager:
         pygame.display.set_caption("Pygame MUD")
         self.clock = pygame.time.Clock()
 
-        self.world = World(content_set=content_set)
+        self.world = World(content_set=content_set, save_directory=save_directory)
         self.world.game = self
         self.crafting_manager = CraftingManager(self.world)
         self.command_processor = CommandProcessor()
@@ -96,7 +96,7 @@ class GameManager:
         self.process_command(text)
 
     def _load_class_definitions(self):
-        path = os.path.join(self.world.data_root, "player", "classes.json")
+        path = os.path.join(self.world.content_root, "player", "classes.json")
         
         if os.path.exists(path):
             try:
@@ -307,11 +307,12 @@ class GameManager:
 
     def _update_available_saves(self):
         self.available_saves = []
-        if not os.path.isdir(SAVE_GAME_DIR): return
+        save_directory = self.world.save_directory
+        if not os.path.isdir(save_directory): return
         try:
-            self.available_saves = sorted([fname for fname in os.listdir(SAVE_GAME_DIR) if fname.lower().endswith(".json")])
+            self.available_saves = sorted([fname for fname in os.listdir(save_directory) if fname.lower().endswith(".json")])
         except Exception as e:
-            Logger.error("GameManager", f"Error scanning save directory '{SAVE_GAME_DIR}': {e}")
+            Logger.error("GameManager", f"Error scanning save directory '{save_directory}': {e}")
             
     def toggle_debug_mode(self):
         self.debug_mode = not self.debug_mode

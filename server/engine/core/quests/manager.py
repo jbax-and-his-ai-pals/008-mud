@@ -17,19 +17,16 @@ if TYPE_CHECKING:
     from engine.npcs.npc import NPC
 
 class QuestManager:
-    def __init__(self, world: 'World', data_root: str | None = None):
+    def __init__(self, world: 'World'):
         self.world = world
-        world_data_root = world.data_root
-        if data_root is not None and os.path.abspath(data_root) != os.path.abspath(world_data_root):
-            raise ValueError("QuestManager requires the owning world's content-set data root.")
-        self.data_root = world_data_root
+        self.content_root = world.content_root
         self.config = {**QUEST_SYSTEM_CONFIG, **world.ruleset_section("quest_generation")}
         self.config.setdefault(
             "quest_board_locations",
             [f"{world.content_set.start_region_id}:{world.content_set.start_room_id}"],
         )
         self.npc_interests: Dict[str, List[str]] = {}
-        self.quest_templates: Dict[str, Any] = load_quest_templates(self.data_root)
+        self.quest_templates: Dict[str, Any] = load_quest_templates(self.content_root)
         
         self.generator = QuestGenerator(world, cast('QuestManager', self))
         

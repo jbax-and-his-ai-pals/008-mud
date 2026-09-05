@@ -20,14 +20,12 @@ if TYPE_CHECKING:
     from engine.world.world import World
 
 
-def load_all_definitions(world: 'World', data_root: str | None = None):
+def load_all_definitions(world: 'World'):
     """Populates the world's template dictionaries by loading from disk."""
-    resolved_data_root = world.data_root
-    if data_root is not None and os.path.abspath(data_root) != os.path.abspath(resolved_data_root):
-        raise ValueError("Definition loading cannot override the selected content-set data root.")
+    resolved_content_root = world.content_root
     Logger.info("Loader", "Loading definitions...")
     if world.has_capability("magic"):
-        spell_stats = load_spells_from_json(resolved_data_root)
+        spell_stats = load_spells_from_json(resolved_content_root)
         spell_stats["enabled"] = True
     else:
         spell_stats = {
@@ -38,8 +36,8 @@ def load_all_definitions(world: 'World', data_root: str | None = None):
             "file_errors": 0,
             "dir_missing": 0,
         }
-    item_stats = _load_item_templates(world, resolved_data_root)
-    npc_stats = _load_npc_templates(world, resolved_data_root)
+    item_stats = _load_item_templates(world, resolved_content_root)
+    npc_stats = _load_npc_templates(world, resolved_content_root)
     world.definition_load_stats = {
         "spell_registry": spell_stats,
         "item_templates": item_stats,
@@ -47,10 +45,10 @@ def load_all_definitions(world: 'World', data_root: str | None = None):
     }
     if world.quest_manager:
         world.quest_manager._load_npc_interests()
-    _load_regions(world, resolved_data_root)
+    _load_regions(world, resolved_content_root)
     Logger.info("Loader", "Definitions loaded.")
 
-def _load_item_templates(world: 'World', data_root: str) -> dict[str, int]:
+def _load_item_templates(world: 'World', content_root: str) -> dict[str, int]:
     world.item_templates = {}
     stats = {
         "files_loaded": 0,
@@ -60,7 +58,7 @@ def _load_item_templates(world: 'World', data_root: str) -> dict[str, int]:
         "file_errors": 0,
         "dir_missing": 0,
     }
-    item_template_dir = os.path.join(data_root, "items")
+    item_template_dir = os.path.join(content_root, "items")
     if not os.path.isdir(item_template_dir):
         stats["dir_missing"] = 1
         Logger.warning("Loader", f"Item template directory not found: {item_template_dir}")
@@ -96,7 +94,7 @@ def _load_item_templates(world: 'World', data_root: str) -> dict[str, int]:
         )
     return stats
 
-def _load_npc_templates(world: 'World', data_root: str) -> dict[str, int]:
+def _load_npc_templates(world: 'World', content_root: str) -> dict[str, int]:
     world.npc_templates = {}
     stats = {
         "files_loaded": 0,
@@ -105,7 +103,7 @@ def _load_npc_templates(world: 'World', data_root: str) -> dict[str, int]:
         "file_errors": 0,
         "dir_missing": 0,
     }
-    npc_template_dir = os.path.join(data_root, "npcs")
+    npc_template_dir = os.path.join(content_root, "npcs")
     if not os.path.isdir(npc_template_dir):
         stats["dir_missing"] = 1
         Logger.warning("Loader", f"NPC template directory not found: {npc_template_dir}")
@@ -137,9 +135,9 @@ def _load_npc_templates(world: 'World', data_root: str) -> dict[str, int]:
     Logger.info("Loader", f"[NPC Templates] Loaded {len(world.npc_templates)} NPC templates.")
     return stats
 
-def _load_regions(world: 'World', data_root: str):
+def _load_regions(world: 'World', content_root: str):
     world.regions = {}
-    region_dir = os.path.join(data_root, "regions")
+    region_dir = os.path.join(content_root, "regions")
     if not os.path.isdir(region_dir):
         Logger.warning("Loader", f"Region directory not found: {region_dir}")
         return
@@ -187,7 +185,7 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
     world.player = None
     initial_player = None
     if not skip_initial_player:
-        initial_player = Player("Adventurer", data_root=world.data_root)
+        initial_player = Player("Adventurer", world=world)
         initial_player.world = world
         world.initialize_content_player(initial_player)
         world.player = initial_player

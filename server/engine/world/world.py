@@ -2,6 +2,7 @@
 import heapq
 import os
 import time
+from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 
 from engine.campaign.campaign_manager import CampaignManager
@@ -36,15 +37,14 @@ if TYPE_CHECKING:
     from engine.core.game_manager import GameManager
 
 class World:
-    def __init__(self, data_root: Optional[str] = None, content_set: Any = None):
+    def __init__(self, content_set: Any = None, save_directory: Optional[str] = None):
         if content_set is None:
             raise ValueError("World requires a validated content set.")
-        package_root = os.path.abspath(str(content_set.data_root))
-        if data_root is not None and os.path.abspath(data_root) != package_root:
-            raise ValueError("World data_root must be the selected content set's data_root.")
-        self.data_root = package_root
-        configure_combat_elements(self.data_root)
+        package_root = os.path.abspath(str(content_set.content_root))
+        self.content_root = package_root
+        configure_combat_elements(self.content_root)
         self.content_set = content_set
+        self.save_directory = self._resolve_save_directory(save_directory)
         self.enabled_capabilities = frozenset(content_set.capabilities)
         self.player_aspects = PlayerGameAspects.from_world(self)
         self.regions: Dict[str, Region] = {}
@@ -56,12 +56,12 @@ class World:
         self.quest_board: List[Dict[str, Any]] = []
         
         self.quest_manager = (
-            QuestManager(self, data_root=self.data_root)
+            QuestManager(self)
             if self.has_capability("quests")
             else None
         )
         self.campaign_manager = (
-            CampaignManager(self, data_root=self.data_root)
+            CampaignManager(self)
             if self.has_capability("quests")
             else None
         )
@@ -73,8 +73,19 @@ class World:
         self.last_update_time = 0.0
         self.game: Optional['GameManager'] = None
 
-        load_all_definitions(self, data_root=self.data_root)
+        load_all_definitions(self)
 
+    def _resolve_save_directory(self, configured_directory: Optional[str]) -> str:
+        """Return the writable, content-set-scoped location for save files."""
+        if configured_directory:
+            return str(Path(configured_directory).expanduser().resolve())
+        configured_root = os.environ.get("MUD_STATE_DIR", "").strip()
+        if configured_root and configured_root.lower() not in {"none", "null"}:
+            state_root = Path(configured_root).expanduser()
+        else:
+            local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
+            state_root = Path(local_app_data) if local_app_data else Path.home() / ".local" / "share"
+        return str((state_root / "single_player_mud" / "saves" / self.content_set.content_set_id).resolve())
     def has_capability(self, capability: str) -> bool:
         """Return whether this package has enabled an optional system."""
         return self.content_set.game_contract.system_enabled(capability, False)

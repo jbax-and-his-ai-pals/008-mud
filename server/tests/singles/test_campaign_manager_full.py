@@ -1,5 +1,5 @@
 # tests/singles/test_campaign_manager_full.py
-"""Coverage for engine/campaign/campaign_manager.py: __init__'s data_root
+"""Coverage for engine/campaign/campaign_manager.py: __init__'s content_root
 mismatch guard, _load_definitions' missing-directory/non-json-skip/
 malformed-file branches, start_campaign's already-active-or-completed
 guard and missing-start-node guard, handle_quest_completion's unknown-
@@ -22,25 +22,25 @@ from engine.campaign.campaign_models import CampaignDefinition, CampaignNode, Ca
 
 
 class TestInit(GameTestBase):
-    def test_mismatched_data_root_raises(self):
-        with self.assertRaises(ValueError):
-            CampaignManager(self.world, data_root="/some/other/path")
+    def test_mismatched_content_root_raises(self):
+        with self.assertRaises(TypeError):
+            CampaignManager(self.world, content_root="/some/other/path")
 
 
 class TestLoadDefinitions(GameTestBase):
     def setUp(self):
         super().setUp()
         self.tmp_root = tempfile.mkdtemp()
-        self.original_data_root = self.world.data_root
-        self.world.data_root = self.tmp_root
+        self.original_content_root = self.world.content_root
+        self.world.content_root = self.tmp_root
 
     def tearDown(self):
-        self.world.data_root = self.original_data_root
+        self.world.content_root = self.original_content_root
         shutil.rmtree(self.tmp_root, ignore_errors=True)
         super().tearDown()
 
     def test_missing_directory_results_in_no_definitions(self):
-        manager = CampaignManager(self.world, data_root=self.tmp_root)
+        manager = CampaignManager(self.world)
         self.assertEqual(manager.definitions, {})
 
     def test_non_json_files_are_skipped(self):
@@ -48,7 +48,7 @@ class TestLoadDefinitions(GameTestBase):
         os.makedirs(campaigns_dir)
         with open(os.path.join(campaigns_dir, "readme.txt"), "w") as f:
             f.write("not json")
-        manager = CampaignManager(self.world, data_root=self.tmp_root)
+        manager = CampaignManager(self.world)
         self.assertEqual(manager.definitions, {})
 
     def test_malformed_json_file_is_logged_and_skipped(self):
@@ -56,7 +56,7 @@ class TestLoadDefinitions(GameTestBase):
         os.makedirs(campaigns_dir)
         with open(os.path.join(campaigns_dir, "broken.json"), "w") as f:
             f.write("{not valid json")
-        manager = CampaignManager(self.world, data_root=self.tmp_root)
+        manager = CampaignManager(self.world)
         self.assertEqual(manager.definitions, {})
 
 

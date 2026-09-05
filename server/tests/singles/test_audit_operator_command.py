@@ -4,7 +4,7 @@ These tests verify:
 - The command is recognised by the parser helper.
 - The audit result event has the expected shape.
 - An entitlement gate blocks unauthorised callers.
-- The audit runs against the default data directory cleanly.
+- The audit runs against the selected content set cleanly.
 """
 import json
 import sys
@@ -110,7 +110,7 @@ class TestAuditCatalogRegistration(unittest.TestCase):
 
 
 class TestAuditDefaultDataClean(unittest.TestCase):
-    """Regression guard: the default server/data directory must pass the audit."""
+    """Regression guard: the selected content set must pass the audit."""
 
     def setUp(self) -> None:
         self.core = _make_core()
@@ -118,7 +118,7 @@ class TestAuditDefaultDataClean(unittest.TestCase):
     def tearDown(self) -> None:
         self.core.server.shutdown()
 
-    def test_default_data_has_no_stale_ref_errors(self) -> None:
+    def test_content_set_has_no_stale_ref_errors(self) -> None:
         result = self.core._run_stale_ref_audit()
         if result.get("error"):
             self.skipTest(f"Audit toolkit not available: {result['error']}")
@@ -126,7 +126,7 @@ class TestAuditDefaultDataClean(unittest.TestCase):
         self.assertEqual(
             [],
             errors,
-            msg="Stale reference errors found in server/data:\n" + "\n".join(errors),
+            msg="Stale reference errors found in selected content set:\n" + "\n".join(errors),
         )
 
 

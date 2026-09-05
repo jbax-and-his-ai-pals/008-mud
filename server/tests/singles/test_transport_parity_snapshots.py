@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import json
 import os
 import shutil
@@ -60,7 +60,7 @@ class TestTransportParitySnapshots(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
         return root
 
-    def _seed_minimal_data_root(self, root: Path) -> None:
+    def _seed_minimal_content_root(self, root: Path) -> None:
         for rel in ("items", "npcs", "regions", "quests", "campaigns"):
             (root / rel).mkdir(parents=True, exist_ok=True)
         (root / "quests" / "quests.json").write_text("{}", encoding="utf-8")
@@ -603,13 +603,13 @@ class TestTransportParitySnapshots(unittest.IsolatedAsyncioTestCase):
             writer.write(b"audit stale-refs\n")
             await writer.drain()
             events = await self._read_available_events(reader)
-            root_value = str(app.server.world.data_root)
+            root_value = str(app.server.world.content_root)
             for event in events:
                 payload = event.get("payload", {})
                 if isinstance(payload, dict) and "root" in payload:
-                    payload["root"] = "<data_root>"
+                    payload["root"] = "<content_root>"
                 elif isinstance(payload, str):
-                    event["payload"] = payload.replace(root_value, "<data_root>")
+                    event["payload"] = payload.replace(root_value, "<content_root>")
             assert_snapshot(self, self._snapshot_path("transport_tcp_audit_stale_refs.json"), {"events": events})
         finally:
             writer.close(); await writer.wait_closed(); server.close(); await server.wait_closed(); app.shutdown()
@@ -631,13 +631,13 @@ class TestTransportParitySnapshots(unittest.IsolatedAsyncioTestCase):
             await app._handle_websocket_client(fake_ws)
             parsed = [json.loads(item) for item in fake_ws.sent if isinstance(item, str)]
             events = [evt for evt in parsed if evt.get("type") in {"audit_result", "text"}]
-            root_value = str(app.core.server.world.data_root)
+            root_value = str(app.core.server.world.content_root)
             for event in events:
                 payload = event.get("payload", {})
                 if isinstance(payload, dict) and "root" in payload:
-                    payload["root"] = "<data_root>"
+                    payload["root"] = "<content_root>"
                 elif isinstance(payload, str):
-                    event["payload"] = payload.replace(root_value, "<data_root>")
+                    event["payload"] = payload.replace(root_value, "<content_root>")
             assert_snapshot(self, self._snapshot_path("transport_ws_audit_stale_refs.json"), {"events": events})
         finally:
             app.shutdown()

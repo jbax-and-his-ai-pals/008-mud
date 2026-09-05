@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import re
 from pathlib import Path
@@ -8,7 +8,7 @@ _HEX_SUFFIX_RE = re.compile(r"_[0-9a-f]{8}$")
 _UUID_RE = re.compile(r"^[0-9a-f]{32}$")
 
 # Repo root (this file lives at <root>/server/tests/singles/). Absolute paths
-# baked into payloads (e.g. content-set manifest_path/data_root) are specific
+# baked into payloads (e.g. content-set manifest_path/content_root) are specific
 # to wherever the repo happens to be checked out, so they must be relativized
 # before snapshot comparison or every clone/move breaks every snapshot test.
 _REPO_ROOT = str(Path(__file__).resolve().parents[3])

@@ -2,7 +2,7 @@
 """Coverage for engine/world/definition_loader.py's edge branches: missing
 template/region directories, non-.json files skipped, duplicate ids, missing
 required fields, malformed JSON causing file_errors, load_all_definitions'
-data_root mismatch guard, grant_starting_inventory's entry-shape handling,
+content_root mismatch guard, grant_starting_inventory's entry-shape handling,
 and initialize_new_world's skip-existing-npc / failed-creation branches."""
 
 import json
@@ -26,9 +26,9 @@ from engine.world.room import Room
 
 
 class TestLoadAllDefinitionsGuard(GameTestBase):
-    def test_mismatched_data_root_raises(self):
-        with self.assertRaises(ValueError):
-            load_all_definitions(self.world, data_root="/some/other/path")
+    def test_mismatched_content_root_raises(self):
+        with self.assertRaises(TypeError):
+            load_all_definitions(self.world, content_root="/some/other/path")
 
 
 class TestLoadItemTemplates(GameTestBase):

@@ -113,7 +113,7 @@ class TestEditorExportShim(unittest.TestCase):
         self.assertEqual(1, len(report["missing"]))
         self.assertEqual("error", report["missing"][0]["severity"])
 
-    def test_ignores_legacy_templates_path_without_warning(self) -> None:
+    def test_ignores_deprecated_templates_path_without_warning(self) -> None:
         root = self._case_root()
         src = root / "src"
         dst = root / "dst"

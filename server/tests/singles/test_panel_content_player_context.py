@@ -20,13 +20,13 @@ class TestPanelContentPlayerContext(unittest.TestCase):
         self.world = World(content_set=content_set)
         self.world.initialize_new_world()
 
-        self.player = Player("Panel Hero", obj_id="panel_hero", data_root=self.world.data_root)
+        self.player = Player("Panel Hero", obj_id="panel_hero", world=self.world)
         self.player.world = self.world
         self.player.current_region_id = "town"
         self.player.current_room_id = "town_square"
         self.world.players[self.player.obj_id] = self.player
 
-        self.other_player = Player("Other Panel Hero", obj_id="other_panel_hero", data_root=self.world.data_root)
+        self.other_player = Player("Other Panel Hero", obj_id="other_panel_hero", world=self.world)
         self.other_player.world = self.world
         self.other_player.current_region_id = "town"
         self.other_player.current_room_id = "market_square"

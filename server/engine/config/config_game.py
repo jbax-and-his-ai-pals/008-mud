@@ -7,17 +7,8 @@ import os
 # FIX: Import directly from the module to avoid circular dependency with engine.config
 from engine.config.config_display import FORMAT_GRAY
 
-# --- Directories and Files ---
-# Calculate the Project Root based on the location of this config file
-# config_game.py is in engine/config/, so we go up two levels to get to root.
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-SAVE_GAME_DIR = os.path.join(DATA_DIR, "saves")
-REGION_DIR = os.path.join(DATA_DIR, "regions")
-ITEM_TEMPLATE_DIR = os.path.join(DATA_DIR, "items")
-NPC_TEMPLATE_DIR = os.path.join(DATA_DIR, "npcs")
+# Save filenames are engine-level; their writable directory is selected by the active world.
 DEFAULT_SAVE_FILE = "default_save.json"
-CAMPAIGN_DIR = os.path.join(DATA_DIR, "campaigns")
 
 # --- System Settings ---
 SCROLL_SPEED = 3

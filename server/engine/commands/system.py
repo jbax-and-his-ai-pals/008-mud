@@ -4,7 +4,7 @@ Contains all core system and meta-game commands.
 """
 import os
 from engine.commands.command_system import command
-from engine.config import SAVE_GAME_DIR, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS
+from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS
 from engine.config.config_display import FORMAT_TITLE
 
 @command("help", ["h", "?"], "system", "Show help.\nUsage: help [command]")
@@ -56,9 +56,9 @@ def load_handler(args, context):
     game = context["game"]
     fname = (args[0] if args else game.current_save_file)
     if not fname.endswith(".json"): fname += ".json"
-    save_path = os.path.join(SAVE_GAME_DIR, fname)
+    save_path = os.path.join(world.save_directory, fname)
     if not os.path.exists(save_path):
-         return f"{FORMAT_ERROR}Save file '{fname}' not found in '{SAVE_GAME_DIR}'.{FORMAT_RESET}"
+         return f"{FORMAT_ERROR}Save file '{fname}' not found in '{world.save_directory}'.{FORMAT_RESET}"
     
     print(f"Attempting to load game state from {fname}...")
     

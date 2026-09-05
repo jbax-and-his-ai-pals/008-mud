@@ -53,7 +53,7 @@ class Item(GameObject):
 
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
-        # Ensure core properties are present at top level for compatibility/readability
+        # Ensure core properties are present at top level for a stable serialized representation
         data["weight"] = self.weight
         data["value"] = self.value
         data["stackable"] = self.stackable

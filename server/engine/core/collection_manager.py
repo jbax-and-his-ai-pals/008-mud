@@ -11,17 +11,14 @@ if TYPE_CHECKING:
     from engine.npcs.npc import NPC
 
 class CollectionManager:
-    def __init__(self, world, data_root: str | None = None):
+    def __init__(self, world):
         self.world = world
-        world_data_root = world.data_root
-        if data_root is not None and os.path.abspath(data_root) != os.path.abspath(world_data_root):
-            raise ValueError("CollectionManager requires the owning world's content-set data root.")
-        self.data_root = world_data_root
+        self.content_root = world.content_root
         self.collections: Dict[str, Any] = {}
         self._load_collections()
 
     def _load_collections(self):
-        path = os.path.join(self.data_root, "collections.json")
+        path = os.path.join(self.content_root, "collections.json")
         if os.path.exists(path):
             try:
                 with open(path, 'r') as f:

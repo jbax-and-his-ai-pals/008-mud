@@ -2,6 +2,7 @@
 import unittest
 import sys
 import os
+import tempfile
 from typing import cast, List, Any
 
 # Get the absolute path to the project root (one level up from tests/)
@@ -73,8 +74,14 @@ class GameTestBase(unittest.TestCase):
         # 1. Silence Logger
         Logger.set_level(LogLevel.CRITICAL)
         
-        # 2. Create a dummy Game Manager (headless)
-        self.game = GameManager(FANTASY_FRONTIER, save_file="test_save.json")
+        # 2. Keep every test's mutable state outside authored content and production AppData.
+        self._save_directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self._save_directory.cleanup)
+        self.game = GameManager(
+            FANTASY_FRONTIER,
+            save_file="test_save.json",
+            save_directory=self._save_directory.name,
+        )
         
         # 3. Swap out the real renderer for a mock.
         self.game.renderer = MockRenderer() # type: ignore

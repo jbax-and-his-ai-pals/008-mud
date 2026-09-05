@@ -27,10 +27,10 @@ class ContentSetDirectTestBase(unittest.TestCase):
 
     def _write_package(self, root: Path, *, room_id: str = "square", manifest_overrides: dict | None = None) -> Path:
         package = root / "sample_game"
-        data_root = package / "data"
+        content_root = package / "data"
         for directory in ("regions", "items", "npcs"):
-            (data_root / directory).mkdir(parents=True, exist_ok=True)
-        (data_root / "regions" / "town.json").write_text(
+            (content_root / directory).mkdir(parents=True, exist_ok=True)
+        (content_root / "regions" / "town.json").write_text(
             json.dumps({"region_id": "town", "rooms": {room_id: {"name": "Square"}}}),
             encoding="utf-8",
         )
@@ -46,7 +46,7 @@ class ContentSetDirectTestBase(unittest.TestCase):
             "engine_api_min": "1.0",
             "engine_api_max": "1.0",
             "paths": {
-                "data_root": "data",
+                "content_root": "data",
                 "ruleset": "rules/ruleset.json",
                 "presentation": "presentation/default.json",
             },
@@ -294,11 +294,11 @@ class TestManifestFieldErrors(ContentSetDirectTestBase):
         self.assertFalse([i for i in issues if i.severity == "error"])
         self.assertEqual({"scenario_id": "start"}, definition.opening)
 
-    def test_data_root_not_a_directory_reports_error(self):
+    def test_content_root_not_a_directory_reports_error(self):
         package = self._write_package(self._case_root())
         manifest_path = package / cs.CONTENT_SET_MANIFEST_NAME
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-        payload["paths"]["data_root"] = "does_not_exist_dir"
+        payload["paths"]["content_root"] = "does_not_exist_dir"
         manifest_path.write_text(json.dumps(payload), encoding="utf-8")
         _definition, issues = cs.load_content_set(package)
         self.assertTrue(any("does not resolve to a directory" in i.message for i in issues))
@@ -309,15 +309,15 @@ class TestManifestFieldErrors(ContentSetDirectTestBase):
         _definition, issues = cs.load_content_set(package)
         self.assertTrue(any("missing required data directory 'npcs'" in i.message for i in issues))
 
-    def test_missing_data_root_key_skips_directory_checks(self):
+    def test_missing_content_root_key_skips_directory_checks(self):
         package = self._write_package(self._case_root())
         manifest_path = package / cs.CONTENT_SET_MANIFEST_NAME
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-        del payload["paths"]["data_root"]
+        del payload["paths"]["content_root"]
         manifest_path.write_text(json.dumps(payload), encoding="utf-8")
         definition, issues = cs.load_content_set(package)
-        self.assertIsNone(definition)  # still an error (missing path), but no crash reaching data_root logic
-        self.assertTrue(any("paths.data_root must be a non-empty string" in i.message for i in issues))
+        self.assertIsNone(definition)  # still an error (missing path), but no crash reaching content_root logic
+        self.assertTrue(any("paths.content_root must be a non-empty string" in i.message for i in issues))
 
     def test_ruleset_not_object_reports_error(self):
         package = self._write_package(self._case_root())

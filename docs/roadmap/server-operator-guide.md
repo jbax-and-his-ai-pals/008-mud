@@ -22,7 +22,7 @@ Top-level sections:
 
 1. `server`
 - host/port/save file/asset DB.
-- optional `data_root` override to boot from a different content tree (for example fixtures or migrated exports).
+- required `--content-set` selection; each game package owns its authored data.
 
 2. `websocket`
 - WS port.
@@ -59,7 +59,7 @@ python C:\python\old\restart\server\poc_server.py --config C:\python\old\restart
 TCP server from migrated fixture content:
 
 ```powershell
-python C:\python\old\restart\server\poc_server.py --config C:\python\old\restart\server\config\server_config.json --data-root C:\python\old\restart\server\data_fixtures\fantasy_editor_migrated_latest
+python server/poc_server.py --content-set content_sets/fantasy_frontier
 ```
 
 WebSocket server:

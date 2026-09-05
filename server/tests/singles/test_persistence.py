@@ -11,7 +11,7 @@ class TestPersistence(GameTestBase):
 
     def tearDown(self):
         # Cleanup the file created
-        save_path = os.path.join("data", "saves", self.TEST_SAVE_FILE)
+        save_path = os.path.join(self.world.save_directory, self.TEST_SAVE_FILE)
         if os.path.exists(save_path):
             for _ in range(3):
                 try:

@@ -32,7 +32,7 @@ class TestContentSetRuntime(unittest.TestCase):
             self.assertIsNotNone(server.content_set)
             assert server.content_set is not None
             self.assertEqual("fantasy_frontier", server.content_set.content_set_id)
-            self.assertEqual(FANTASY_FRONTIER / "data", Path(server.data_root))
+            self.assertEqual(FANTASY_FRONTIER / "data", Path(server.content_root))
             self.assertEqual(0, server.world.definition_load_stats["spell_registry"]["overwrites"])
             self.assertEqual(0, server.world.definition_load_stats["item_templates"]["invalid_missing_required"])
             self.assertEqual(1, server.world.definition_load_stats["item_templates"]["metadata_files_skipped"])
@@ -47,12 +47,12 @@ class TestContentSetRuntime(unittest.TestCase):
         finally:
             server.shutdown()
 
-    def test_conflicting_data_root_is_rejected(self) -> None:
-        with self.assertRaisesRegex(ValueError, "data_root conflicts"):
+    def test_content_root_is_not_a_runtime_override(self) -> None:
+        with self.assertRaises(TypeError):
             HeadlessServer(
                 db_path=":memory:",
                 content_set_path=str(FANTASY_FRONTIER),
-                data_root=str(REPO_ROOT / "server" / "data_fixtures"),
+                content_root=str(REPO_ROOT / "server" / "data_fixtures"),
             )
 
     def test_fantasy_frontier_opening_journey(self) -> None:
@@ -256,6 +256,19 @@ class TestContentSetRuntime(unittest.TestCase):
         finally:
             app.shutdown()
 
+    def test_transport_profile_presets_are_scoped_to_the_content_set(self) -> None:
+        fantasy = JsonLineMudServer(
+            "127.0.0.1", 0, "test_save.json", content_set_path=str(FANTASY_FRONTIER)
+        )
+        modern = JsonLineMudServer(
+            "127.0.0.1", 0, "test_save.json", content_set_path=str(MODERN_CAPSULE)
+        )
+        try:
+            self.assertIn("static_world", fantasy._list_profile_presets())
+            self.assertEqual([], modern._list_profile_presets())
+        finally:
+            fantasy.shutdown()
+            modern.shutdown()
     def test_modern_policy_publishes_non_fantasy_game_contract(self) -> None:
         app = JsonLineMudServer(
             "127.0.0.1",

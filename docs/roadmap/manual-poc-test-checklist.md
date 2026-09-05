@@ -8,7 +8,7 @@ Use this checklist for personal end-to-end testing against the latest refreshed 
   - `powershell -ExecutionPolicy Bypass -File run_content_checks.ps1`
 - [ ] Confirm fixture selection:
   - `python server/launch_from_latest_fixture.py --transport tcp --dry-run`
-  - Verify `data_root` in output JSON.
+  - Verify the selected content-set identity in output JSON.
 
 ## B. TCP Session
 

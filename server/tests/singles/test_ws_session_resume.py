@@ -16,6 +16,7 @@ import unittest
 from typing import Any
 
 from poc_ws_server import JsonWebSocketMudServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -206,7 +207,7 @@ class TestWsSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = _make_app(feature_profile_path=profile_path)
+            app = _make_app(feature_profile=FeatureProfile.load(profile_path))
             primary = app.core.server.create_session()
             secondary = app.core.server.create_session()
             _ = primary
@@ -317,7 +318,7 @@ class TestWsSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = _make_app(feature_profile_path=profile_path)
+            app = _make_app(feature_profile=FeatureProfile.load(profile_path))
             prior_session = app.core.server.create_session()
             prior_sid = prior_session.session_id
             fake_ws = _FakeWebSocket([
@@ -347,7 +348,7 @@ class TestWsSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = _make_app(feature_profile_path=profile_path)
+            app = _make_app(feature_profile=FeatureProfile.load(profile_path))
             prior_session = app.core.server.create_session()
             prior_sid = prior_session.session_id
             app.core.server.mark_session_connected(prior_sid)
@@ -381,7 +382,7 @@ class TestWsSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = _make_app(feature_profile_path=profile_path)
+            app = _make_app(feature_profile=FeatureProfile.load(profile_path))
             prior_session = app.core.server.create_session()
             prior_sid = prior_session.session_id
             app.core.server.execute_command(prior_sid, "char create Expiring")
@@ -410,7 +411,7 @@ class TestWsSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = _make_app(feature_profile_path=profile_path)
+            app = _make_app(feature_profile=FeatureProfile.load(profile_path))
             expired_a = app.core.server.create_session(player_id="expired_a")
             expired_b = app.core.server.create_session(player_id="expired_b")
             resumable = app.core.server.create_session(player_id="resumable_c")
@@ -455,7 +456,7 @@ class TestWsSessionResume(unittest.IsolatedAsyncioTestCase):
             json.dump(profile_payload, tmp)
             profile_path = tmp.name
         try:
-            app = _make_app(feature_profile_path=profile_path)
+            app = _make_app(feature_profile=FeatureProfile.load(profile_path))
             expired = app.core.server.create_session(player_id="expired_player")
             resumable_a = app.core.server.create_session(player_id="resumable_a")
             resumable_b = app.core.server.create_session(player_id="resumable_b")

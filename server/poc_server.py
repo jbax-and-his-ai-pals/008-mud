@@ -23,9 +23,8 @@ class JsonLineMudServer:
         port: int,
         save_file: str,
         asset_db_path: str = ":memory:",
-        data_root: str | None = None,
         content_set_path: str | None = None,
-        feature_profile_path: str | None = None,
+        feature_profile: FeatureProfile | None = None,
         session_default_capabilities: list[str] | None = None,
         session_default_entitlements: list[str] | None = None,
         session_authz_detail_level: str = "full",
@@ -42,13 +41,11 @@ class JsonLineMudServer:
         self.host = host
         self.port = port
         self.content_set_path = content_set_path
-        self.feature_profile_path = feature_profile_path
         self.server = HeadlessServer(
             save_file=save_file,
             db_path=":memory:",
-            data_root=data_root,
             content_set_path=content_set_path,
-            feature_profile_path=feature_profile_path,
+            feature_profile=feature_profile,
             starter_items=starter_items,
             require_character_creation=require_character_creation,
             boot_warning_fail_codes=boot_warning_fail_codes,
@@ -81,8 +78,7 @@ class JsonLineMudServer:
             "save_file": self.server.current_save_file,
             "asset_db": self.assets._asset_db.execute("PRAGMA database_list").fetchone()[2] if self.assets else ":memory:",
             "content_set": self._content_set_summary(),
-            "data_root": str(getattr(self.server, "data_root", "") or ""),
-            "feature_profile_path": getattr(self.server.feature_profile, "raw", {}),
+            "feature_profile": getattr(self.server.feature_profile, "raw", {}),
             "feature_profile_modes": {
                 "world": self.server.feature_profile.resolved_world_mode(),
                 "combat": self.server.feature_profile.combat_mode,
@@ -232,7 +228,7 @@ class JsonLineMudServer:
 
     def build_operator_policy_payload(self, session_id: str | None = None) -> dict[str, Any]:
         return {
-            "profile_source_path": str(self.feature_profile_path or ""),
+            "profile_source_path": str(getattr(self.server, "feature_profile_source_path", "") or ""),
             "boot_warnings": list(getattr(self.server, "boot_warnings", [])),
             "boot_warnings_structured": list(getattr(self.server, "boot_warning_records", [])),
             "startup_diagnostics": self.build_startup_diagnostics_payload(),
@@ -247,31 +243,11 @@ class JsonLineMudServer:
             code = str(record.get("code", "server.unknown")).strip() or "server.unknown"
             warning_codes[code] = warning_codes.get(code, 0) + 1
 
-        marker_path = Path(__file__).resolve().parent / "data_fixtures" / "LATEST_REFRESH.json"
-        marker_payload: dict[str, Any] = {"present": False}
-        if marker_path.is_file():
-            marker_payload["present"] = True
-            try:
-                parsed = json.loads(marker_path.read_text(encoding="utf-8"))
-                selected = str(parsed.get("fixture_selected_target", "")).strip()
-                primary = str(parsed.get("fixture_primary_target", "")).strip()
-                marker_payload.update(
-                    {
-                        "fixture_selected_target": selected,
-                        "fixture_primary_target": primary,
-                        "selected_matches_primary": bool(selected and primary and selected == primary),
-                    }
-                )
-            except Exception as exc:
-                marker_payload["error"] = str(exc)
-
         return {
-            "data_root": str(getattr(self.server, "data_root", "") or ""),
             "content_set": self._content_set_summary(),
             "warning_count": len(warning_records),
             "warning_codes": dict(sorted(warning_codes.items())),
             "boot_warning_fail_codes": sorted(list(getattr(self.server, "boot_warning_fail_codes", set()))),
-            "fixture_refresh_marker": marker_payload,
         }
 
     def _operator_action_entitlement_gate(self, domain: str, action: str) -> str:
@@ -410,7 +386,7 @@ class JsonLineMudServer:
     def build_profile_presets_payload(self) -> dict[str, Any]:
         return {
             "presets": self._list_profile_presets(),
-            "active_profile_path": str(self.feature_profile_path or ""),
+            "active_profile_path": str(getattr(self.server, "feature_profile_source_path", "") or ""),
         }
 
     def _is_server_policy_command(self, command_text: str) -> bool:
@@ -658,13 +634,7 @@ class JsonLineMudServer:
         import sys
         from pathlib import Path
 
-        # Resolve data root: use the configured data_root, or fall back to the
-        # default adjacent "data" directory next to poc_server.py.
-        data_root = self.server.data_root
-        if not data_root:
-            data_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "data"))
-
-        root_path = Path(data_root)
+        root_path = Path(self.server.world.content_root)
         if not root_path.is_dir():
             return {
                 "audit": "stale_refs",
@@ -769,7 +739,7 @@ class JsonLineMudServer:
         return True, "World-effects provider set to '%s'." % requested
 
     def _profile_presets_dir(self) -> str:
-        return os.path.abspath(os.path.join("data", "profiles"))
+        return os.path.join(self.server.world.content_root, "profiles")
 
     def _list_profile_presets(self) -> list[str]:
         presets_dir = self._profile_presets_dir()
@@ -791,7 +761,7 @@ class JsonLineMudServer:
         if not os.path.exists(preset_path):
             return False, "Unknown profile preset '%s'." % requested
 
-        self.feature_profile_path = os.path.relpath(preset_path).replace("\\", "/")
+        self.server.feature_profile_source_path = str(preset_path)
         self.server.reset_boot_warnings_for_profile(FeatureProfile.load(preset_path))
         self.server._sync_providers_with_profile()
         return True, "Profile applied: %s" % requested
@@ -1513,7 +1483,7 @@ class JsonLineMudServer:
         envelope_type = str(envelope.get("type", "")).strip().lower()
         if envelope_type in {"lock_acquire", "lock_release", "lock_renew", "asset_update"}:
             return True
-        # Forward-compatible guard: future protocol additions in these
+        # Guard: future protocol additions in these
         # namespaces are world-authoring mutations unless explicitly exempted.
         return envelope_type.startswith("lock_") or envelope_type.startswith("asset_")
 
@@ -1601,9 +1571,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--save", "-s", default=None)
     parser.add_argument("--asset-db", default=None)
-    parser.add_argument("--data-root", default=None)
     parser.add_argument("--content-set", required=True, help="Content-set directory or manifest path.")
-    parser.add_argument("--profile", default=None, help="Optional CLI override for feature profile JSON path.")
     args = parser.parse_args()
     config_payload = load_server_config(args.config)
     settings = resolve_server_settings(
@@ -1613,8 +1581,6 @@ def main() -> None:
         args.port,
         args.save,
         args.asset_db,
-        args.data_root,
-        args.profile,
         args.config,
     )
 
@@ -1623,9 +1589,7 @@ def main() -> None:
         settings.port,
         settings.save_file,
         asset_db_path=settings.asset_db,
-        data_root=settings.data_root,
         content_set_path=args.content_set,
-        feature_profile_path=settings.feature_profile_path,
         session_default_capabilities=settings.session_default_capabilities,
         session_default_entitlements=settings.session_default_entitlements,
         session_authz_detail_level=settings.session_authz_detail_level,
@@ -1652,8 +1616,6 @@ def main() -> None:
                 "save_file": settings.save_file,
                 "asset_db": settings.asset_db,
                 "content_set": app.effective_settings()["content_set"],
-                "data_root": app.effective_settings()["data_root"],
-                "feature_profile_path": settings.feature_profile_path,
                 "feature_profile_modes": {
                     "combat": app.server.feature_profile.combat_mode,
                     "weather": app.server.feature_profile.weather_mode,

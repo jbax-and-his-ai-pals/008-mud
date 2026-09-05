@@ -37,7 +37,7 @@ Every shipped or development content set must be a versioned package with a mani
 | Play structure | Start scenarios, goals, quests/cases/jobs, progression gates, endings or ongoing-play policy |
 | Interaction | Enabled verbs, vocabulary, skill/activity definitions, conversation and action affordances |
 | Presentation | Theme, UI copy, typography/palette/assets, audio hooks, accessibility descriptions and defaults |
-| Quality | Reference validation, deterministic fixtures, smoke scenarios, compatibility snapshots, migration tests |
+| Quality | Reference validation, deterministic fixtures, smoke scenarios, contract snapshots, isolation tests |
 
 The initial manifest shape should be deliberately small:
 
@@ -50,7 +50,7 @@ The initial manifest shape should be deliberately small:
   "engine_api_max": "1.0",
   "title": "Fantasy Frontier",
   "paths": {
-    "data_root": "../../server/data",
+    "content_root": "data",
     "ruleset": "rules/ruleset.json",
     "presentation": "presentation/default.json"
   },
@@ -63,7 +63,7 @@ The initial manifest shape should be deliberately small:
 }
 ```
 
-The initial `paths.data_root` may temporarily point outside the package while legacy server data is being extracted. That is a transition adapter, not the final package layout. Rules should be data-driven where practical. When a rule genuinely needs code, it should use a narrow, documented, engine-owned capability adapter—not unrestricted content-set Python executed in the server process.
+`paths.content_root` resolves inside the content-set package. Content packages are self-contained. Rules should be data-driven where practical. When a rule genuinely needs code, it should use a narrow, documented, engine-owned capability adapter—not unrestricted content-set Python executed in the server process.
 
 ## Canonical content sets
 
@@ -104,10 +104,10 @@ Western, space, and other themes are candidates only after the first two sets de
 - Add the manifest schema, version policy, and structured validation output.
 - Introduce a `GameDefinition`/content-set loader that resolves all paths from one selected package root.
 - Replace process-global data-root rewrites with instance-scoped content resolution.
-- Make a missing, invalid, or incompatible content set a clear startup failure.
+- Make a missing, invalid, or invalid content set a clear startup failure.
 - Define capability registration and ruleset configuration independently from transport/server profiles.
 
-**Current implementation:** `--content-set <directory-or-manifest>` now validates and selects a package for the headless, TCP, and WebSocket startup paths. Fantasy Frontier now carries a packaged `data/` root rather than pointing at `server/data`. The headless boot path uses instance-scoped content paths for definition, spell, quest, campaign, knowledge, collection, crafting, and item-set loading; it no longer rewrites imported data-path constants through `sys.modules`. Legacy Pygame/save/debug paths still need the same migration before the global path model can be retired everywhere.
+**Current implementation:** `--content-set <directory-or-manifest>` now validates and selects a package for the headless, TCP, and WebSocket startup paths. Fantasy Frontier carries a packaged `data/` root. The headless boot path uses instance-scoped content paths for definition, spell, quest, campaign, knowledge, collection, crafting, and item-set loading; it no longer rewrites imported data-path constants through `sys.modules`. The global server-data path model has been retired; the selected content set owns all authored data.
 
 **First genre-neutral seam:** A selected package's declared capabilities now govern optional system loading and player-facing access. A game without `magic` neither loads spell definitions nor exposes mana, spells, or magic help. A game without `crafting` does not construct its crafting manager or show crafting help. A game without `quests` may omit both `quests/` and `campaigns/` and does not construct their managers. A game without `combat` hides combat status and rejects combat commands. The package ruleset now controls presentation and command availability for level-based progression and economy: a `progression_model` of `none` omits class, level, XP, RPG stats, and skills from text, structured status, and help; `economy.enabled: false` omits currency and trade commands. On creation and loading, inactive systems are also normalized out of player state—no default spells/mana, combat values, progression state, currency, or quest/campaign state. The remaining underlying player-model, dialogue, and client-facing assumptions still need the same treatment; this is a tested boundary, not a claim that all runtime behavior is capability-driven.
 
@@ -154,11 +154,11 @@ Western, space, and other themes are candidates only after the first two sets de
 
 ### Decoupling completion program
 
-The current capability work is a safe compatibility layer around a legacy fantasy-RPG runtime. Finishing the separation requires four larger, ordered chunks rather than more command-by-command gates.
+The content engine is foundational: packages own their rules, data, and policy without a fantasy-runtime bridge.
 
 1. **Canonical game contract.** Replace the loose manifest capability list plus ad-hoc ruleset keys with one validated, normalized game contract: enabled systems, progression/economy policy, player-facing labels, UI sections, and supported commands. The server emits that contract at connection time. Gate: Fantasy Frontier and Modern Capsule both validate against the schema; unsupported or contradictory combinations fail before boot.
 
-2. **Composable runtime aspects.** Split the legacy `Player` and manager construction into a neutral actor core plus opt-in magic, combat, progression, economy, quest/campaign, and crafting aspects. Saves use aspect-keyed state and migrate legacy saves. Gate: Modern creates and reloads an actor without RPG/magic/combat fields; Fantasy preserves its current journey and save behavior.
+2. **Composable runtime aspects.** Keep player and manager construction neutral, with magic, combat, progression, economy, quest/campaign, and crafting enabled only by the selected content set. Saves use aspect-keyed state. Gate: Modern creates and reloads an actor without RPG/magic/combat fields; Fantasy preserves its current journey and save behavior.
 
 3. **Package-scoped command catalog.** Replace process-global command registration and HeadlessServer's handwritten command maps with command descriptors resolved against the game contract. Help, completion, execution, and the client command palette consume the same catalog. Gate: disabled commands are neither registered for the active game nor discoverable through help, aliases, or completion.
 
@@ -172,7 +172,7 @@ After those four chunks, package authoring/export and content-set-isolated save 
 
 - Make the world editor export the content-set contract directly and deterministically.
 - Provide schema-aware validation, migration, preview, and playable smoke scenarios.
-- Define pack versioning, dependency resolution, signing/trust policy, and compatibility reporting.
+- Define pack versioning, dependency resolution, signing/trust policy, and validation reporting.
 - Treat code-bearing extensions as trusted until a real isolation boundary exists.
 - Harden authored-asset handling with strict SVG/XML allowlisting and clear provenance rules.
 
@@ -223,7 +223,7 @@ Progress is demonstrated by observable content-engine outcomes:
 2. A second non-fantasy package works without core genre branching.
 3. The editor and toolkit can produce a package that the runtime accepts.
 4. A clean checkout can run validation and a representative player journey.
-5. Save/load, protocol, and content compatibility are covered by executable tests.
+5. Save/load, protocol, and content isolation are covered by executable tests.
 
 ## Immediate next work
 

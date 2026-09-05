@@ -57,9 +57,9 @@ HAZARD_TYPE_MAP: dict = {}
 HAZARD_FLAVOR_TEXT: dict = {}
 
 
-def configure_combat_elements(data_root: str) -> None:
+def configure_combat_elements(content_root: str) -> None:
     """Load elemental definitions from the selected content package."""
-    path = os.path.join(data_root, "combat", "elements.json")
+    path = os.path.join(content_root, "combat", "elements.json")
     data = _DEFAULT_ELEMENTAL_DATA
     if os.path.isfile(path):
         with open(path, "r", encoding="utf-8") as file:

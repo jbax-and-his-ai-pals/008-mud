@@ -1,20 +1,14 @@
-# Server Feature Profile Recipes
+# Content-set feature profiles
 
-These profile files are ready-to-use server policy presets.
-
-- `static_world.profile.json`
-- `creative_world.profile.json`
-- `social_no_combat.profile.json`
-- `mobile_low_fx.profile.json`
-
-Use any profile by setting:
+A feature profile is authored with its content set and selected by that set's
+`content_set.manifest.json`:
 
 ```json
 {
-  "feature_profile": {
-    "path": "server/data/profiles/static_world.profile.json"
+  "paths": {
+    "feature_profile": "data/profiles/default.profile.json"
   }
 }
 ```
 
-in `server/config/server_config.json` (or pass `--profile` at startup).
+Server configuration and command-line transport options never select a profile.

@@ -1,7 +1,9 @@
 import unittest
+from pathlib import Path
 import time
 
 from poc_server import JsonLineMudServer
+from engine.server.feature_profile import FeatureProfile
 from tests.fixtures import FANTASY_FRONTIER
 
 
@@ -265,7 +267,7 @@ class TestServerPolicyPayload(unittest.TestCase):
             0,
             "test_save.json",
             content_set_path=FANTASY_FRONTIER,
-            feature_profile_path="server/data/profiles/static_world.profile.json",
+            feature_profile=FeatureProfile.load(str(Path(FANTASY_FRONTIER) / "data" / "profiles" / "static_world.profile.json")),
         )
         self.addCleanup(app.shutdown)
         payload = app.build_operator_policy_payload()
@@ -275,7 +277,7 @@ class TestServerPolicyPayload(unittest.TestCase):
         self.assertIn("startup_diagnostics", payload)
         self.assertIn("server_policy", payload)
         self.assertEqual(
-            "server/data/profiles/static_world.profile.json",
+            "injected",
             payload["profile_source_path"],
         )
         self.assertIn("profile_modes", payload["server_policy"])

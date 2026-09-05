@@ -41,7 +41,7 @@ Critical issues = data loss, server crash loop, security issue, or total gamepla
    - P1 = crash loop / unplayable → respond within 2 hours
    - P2 = degraded UX → respond within 24 hours
 3. **Communicate**: Post status update to Steam Discussion / Discord within 1 hour of P0/P1 detection.
-4. **Rollback if needed**: Follow `docs/save-migration-policy.md` rollback procedure.
+4. **Rollback if needed**: Follow `docs/save-content-isolation-policy.md` rollback procedure.
 5. **Post-mortem**: Within 3 days of resolution, write a brief post-mortem documenting root cause and prevention steps.
 
 ---

@@ -11,7 +11,7 @@ from engine.utils.logger import Logger
 # The registry is now populated at runtime by the loader.
 SPELL_REGISTRY: Dict[str, Spell] = {}
 
-def load_spells_from_json(data_root: str) -> dict[str, int]:
+def load_spells_from_json(content_root: str) -> dict[str, int]:
     """
     Scans the data/magic directory for all .json files, loads them,
     creates Spell objects, and populates the SPELL_REGISTRY.
@@ -24,9 +24,9 @@ def load_spells_from_json(data_root: str) -> dict[str, int]:
         "dir_missing": 0,
     }
 
-    if not data_root:
+    if not content_root:
         raise ValueError("Spell loading requires a content-set data root.")
-    magic_dir = os.path.join(data_root, "magic")
+    magic_dir = os.path.join(content_root, "magic")
     if not os.path.isdir(magic_dir):
         stats["dir_missing"] = 1
         Logger.error("SpellRegistry", f"Magic data directory not found at '{magic_dir}'.")

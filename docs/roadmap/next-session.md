@@ -11,7 +11,7 @@
   - core command execution (`HeadlessServer` authz hook).
 - Operator catalog derives requirement metadata from command decorators where possible.
 - Session authz payload detail level is now config-driven (`full` or `minimal`).
-- `server.data_root` + CLI `--data-root` are wired for TCP/WS boot against alternate data trees.
+- `server.content_root` + CLI `--data-root` are wired for TCP/WS boot against alternate data trees.
 - `world_bootstrap.starter_items` is now config-driven; missing starter templates are warning-only.
 - Character creation is client/session-driven by default; sessions must issue `char create <name>` before gameplay commands.
 - Transport handshake coverage now explicitly tests character-creation gating on both TCP and WS (`test_transport_character_creation_gate`).

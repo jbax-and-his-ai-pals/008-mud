@@ -59,7 +59,7 @@ def test_refactor_handler(args, context):
     player = context.get('player')
     if not player: return "Player not found."
 
-    load_spells_from_json(world.data_root)
+    load_spells_from_json(world.content_root)
     key_id = "debug_key_999"
     k_success, k_msg = player.learn_spell("knock")
     al_success, al_msg = player.learn_spell("arcane_lock")

@@ -48,7 +48,7 @@ def main() -> None:
         raise SystemExit(1)
     print(
         f"Content set '{definition.content_set_id}' is valid "
-        f"(data root: {definition.data_root}, start: {definition.start_region_id}:{definition.start_room_id})."
+        f"(data root: {definition.content_root}, start: {definition.start_region_id}:{definition.start_room_id})."
     )
 
 

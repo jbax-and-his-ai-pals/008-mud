@@ -260,7 +260,7 @@ class TestCheckQuestCompletion(GameTestBase):
     def test_multiple_players_are_all_processed(self):
         from engine.player.core import Player
         qm = self.world.quest_manager
-        other = Player("Other Hero", obj_id="tracker_other_hero", data_root=self.world.data_root)
+        other = Player("Other Hero", obj_id="tracker_other_hero", world=self.world)
         other.world = self.world
         other.current_region_id = self.player.current_region_id
         other.current_room_id = self.player.current_room_id

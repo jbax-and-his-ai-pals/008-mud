@@ -3,14 +3,10 @@
     "host": "127.0.0.1",
     "port": 8765,
     "save_file": "server_save.json",
-    "asset_db": ":memory:",
-    "data_root": "server/data"
+    "asset_db": ":memory:"
   },
   "websocket": {
     "port": 8766
-  },
-  "feature_profile": {
-    "path": "server/data/profiles/locked_static_no_combat.profile.json"
   },
   "world_bootstrap": {
     "starter_items": []

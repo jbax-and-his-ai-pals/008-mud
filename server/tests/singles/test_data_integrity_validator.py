@@ -56,17 +56,17 @@ class TestDataIntegrityValidator(unittest.TestCase):
 
     def test_item_template_missing_name_type_warns_by_default(self) -> None:
         payload = {"item_x": {"description": "x", "properties": {}}}
-        issues = validator.validate_payload(payload, "server/data/items/items.json", strict_templates=False)
+        issues = validator.validate_payload(payload, "content/items/items.json", strict_templates=False)
         self.assertTrue(any(issue.severity == "warn" for issue in issues))
         self.assertFalse(any(issue.severity == "error" for issue in issues))
 
     def test_item_template_missing_name_type_errors_in_strict_mode(self) -> None:
         payload = {"item_x": {"description": "x", "properties": {}}}
-        issues = validator.validate_payload(payload, "server/data/items/items.json", strict_templates=True)
+        issues = validator.validate_payload(payload, "content/items/items.json", strict_templates=True)
         self.assertTrue(any(issue.severity == "error" for issue in issues))
 
     def test_validate_tree_counts_files(self) -> None:
-        checked, errors, _warnings = validator.validate_tree(REPO_ROOT / "server" / "data")
+        checked, errors, _warnings = validator.validate_tree(REPO_ROOT / "content_sets" / "fantasy_frontier" / "data")
         self.assertGreater(checked, 0)
         self.assertEqual(0, errors)
 
@@ -92,12 +92,12 @@ class TestDataIntegrityValidator(unittest.TestCase):
 
     def test_sets_json_is_excluded_from_item_template_checks(self) -> None:
         payload = {"set_x": {"description": "x", "properties": {}}}
-        issues = validator.validate_payload(payload, "server/data/items/sets.json")
+        issues = validator.validate_payload(payload, "content/items/sets.json")
         self.assertEqual([], issues)
 
     def test_item_template_non_dict_properties_is_an_error(self) -> None:
         payload = {"item_x": {"name": "X", "type": "Item", "description": "x", "properties": "not-a-dict"}}
-        issues = validator.validate_payload(payload, "server/data/items/items.json")
+        issues = validator.validate_payload(payload, "content/items/items.json")
         self.assertTrue(any("must be an object when present" in i.message for i in issues))
 
     def test_top_level_must_be_object_or_array(self) -> None:

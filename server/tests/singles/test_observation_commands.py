@@ -109,13 +109,13 @@ class TestLookQuestBoard(GameTestBase):
 
 class TestLookTargetSearchPriority(GameTestBase):
     def test_skips_non_matching_players_before_finding_match(self):
-        decoy = Player("Decoy Person", obj_id="obs_decoy_player", data_root=self.world.data_root)
+        decoy = Player("Decoy Person", obj_id="obs_decoy_player", world=self.world)
         decoy.world = self.world
         decoy.current_region_id = self.player.current_region_id
         decoy.current_room_id = self.player.current_room_id
         self.world.players[decoy.obj_id] = decoy
 
-        target = Player("Findable Hero", obj_id="obs_findable_player", data_root=self.world.data_root)
+        target = Player("Findable Hero", obj_id="obs_findable_player", world=self.world)
         target.world = self.world
         target.current_region_id = self.player.current_region_id
         target.current_room_id = self.player.current_room_id
@@ -125,7 +125,7 @@ class TestLookTargetSearchPriority(GameTestBase):
         self.assertIn("Findable Hero", result)
 
     def test_finds_another_player_in_same_room(self):
-        other = Player("Other Hero", obj_id="obs_other_player", data_root=self.world.data_root)
+        other = Player("Other Hero", obj_id="obs_other_player", world=self.world)
         other.world = self.world
         other.current_region_id = self.player.current_region_id
         other.current_room_id = self.player.current_room_id
@@ -195,7 +195,7 @@ class TestLookInsideContainer(GameTestBase):
 
 class TestLookAtPlayerHealthTiers(GameTestBase):
     def _other_player(self):
-        other = Player("Wounded Hero", obj_id="obs_wounded_player", data_root=self.world.data_root)
+        other = Player("Wounded Hero", obj_id="obs_wounded_player", world=self.world)
         other.world = self.world
         other.current_region_id = self.player.current_region_id
         other.current_room_id = self.player.current_room_id

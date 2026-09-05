@@ -125,7 +125,7 @@ class TestAdvancedAI(GameTestBase):
             region.add_room("healer_room", room)
             self.world.add_region("healer_region", region)
 
-            other_player = Player("WoundedHero", obj_id="wounded_hero", data_root=self.world.data_root)
+            other_player = Player("WoundedHero", obj_id="wounded_hero", world=self.world)
             other_player.world = self.world
             other_player.current_region_id = "healer_region"
             other_player.current_room_id = "healer_room"

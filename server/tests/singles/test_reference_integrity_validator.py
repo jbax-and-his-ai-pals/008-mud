@@ -34,7 +34,7 @@ from toolkit import reference_integrity_validator as riv
 
 class TestReferenceIntegrityValidator(unittest.TestCase):
     def test_live_data_has_no_reference_errors(self) -> None:
-        catalogs = riv.load_catalogs(REPO_ROOT / "server" / "data")
+        catalogs = riv.load_catalogs(REPO_ROOT / "content_sets" / "fantasy_frontier" / "data")
         issues = riv.validate_catalogs(catalogs)
         errors = [i for i in issues if i.severity == "error"]
         self.assertEqual([], errors)
@@ -420,7 +420,7 @@ class TestReferenceIntegrityValidatorMain(unittest.TestCase):
         code = self._run_main(["reference_integrity_validator.py", str(self._case_root() / "missing")])
         self.assertEqual(2, code)
 
-    def test_clean_data_root_exits_zero(self) -> None:
+    def test_clean_content_root_exits_zero(self) -> None:
         root = self._case_root()
         (root / "items").mkdir(parents=True)
         (root / "npcs").mkdir(parents=True)
@@ -432,7 +432,7 @@ class TestReferenceIntegrityValidatorMain(unittest.TestCase):
         code = self._run_main(["reference_integrity_validator.py", str(root)])
         self.assertEqual(0, code)
 
-    def test_data_root_with_issues_exits_one(self) -> None:
+    def test_content_root_with_issues_exits_one(self) -> None:
         root = self._case_root()
         (root / "items").mkdir(parents=True)
         (root / "npcs").mkdir(parents=True)

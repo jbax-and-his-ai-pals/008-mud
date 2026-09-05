@@ -7,13 +7,13 @@ Map current `mud-world-editor` capability against runtime/toolkit contracts so w
 ## Current Signals (Codebase Audit)
 
 - Editor project exists: `C:\python\old\restart\mud-world-editor`
-- Uses legacy and mixed data files (`world_layout.json`, region JSONs, templates, quests).
+- Uses mixed un-packaged data files (`world_layout.json`, region JSONs, templates, quests).
 - Runtime/toolkit now rely on stronger validators and profile-aware behavior.
 
 ## Gap Matrix
 
 1. Canonical Data Contract
-- Current: editor appears to target legacy `world.json`/custom region files.
+- Current: editor targets older un-packaged `world.json`/custom region files.
 - Needed: explicit export contract aligned with current runtime data schema + validator inputs.
 - Priority: P0
 

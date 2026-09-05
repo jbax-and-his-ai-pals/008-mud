@@ -57,7 +57,7 @@ class TestMultiplayerSimulationTicks(unittest.TestCase):
         self.server.world.last_update_time = 0.0
         return self.server.world.update()
 
-    def test_world_update_hostile_targets_colocated_player_when_legacy_player_elsewhere(self) -> None:
+    def test_world_update_hostile_targets_colocated_player_when_deprecated_player_elsewhere(self) -> None:
         self.server.world.npc_templates["tick_hostile"] = {
             "name": "Tick Hostile",
             "faction": "hostile",

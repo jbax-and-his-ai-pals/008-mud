@@ -8,7 +8,7 @@ class TestQuestPersistenceAdvanced(GameTestBase):
     TEST_SAVE = "test_quest_adv.json"
 
     def tearDown(self):
-        save_path = os.path.join("data", "saves", self.TEST_SAVE)
+        save_path = os.path.join(self.world.save_directory, self.TEST_SAVE)
         if os.path.exists(save_path):
             os.remove(save_path)
         super().tearDown()

@@ -25,12 +25,12 @@ def _villager(world):
 
 
 class TestConstructorAndWarnings(GameTestBase):
-    def test_mismatched_data_root_raises(self):
-        with self.assertRaises(ValueError):
-            KnowledgeManager(self.world, data_root="/not/the/real/root")
+    def test_mismatched_content_root_raises(self):
+        with self.assertRaises(TypeError):
+            KnowledgeManager(self.world, content_root="/not/the/real/root")
 
-    def test_matching_data_root_is_accepted(self):
-        km = KnowledgeManager(self.world, data_root=self.world.data_root)
+    def test_matching_content_root_is_accepted(self):
+        km = KnowledgeManager(self.world)
         self.assertIsInstance(km.topics, dict)
 
     def test_emit_warning_without_sink_prints(self):

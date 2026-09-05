@@ -4,7 +4,6 @@ import unittest
 import uuid
 from pathlib import Path
 
-from engine.config import DATA_DIR
 from engine.server.headless_server import HeadlessServer
 
 
@@ -21,11 +20,11 @@ class TestContentSetDataIsolation(unittest.TestCase):
 
     def _write_alternate_content_set(self, root: Path) -> Path:
         package = root / "alternate_game"
-        data_root = package / "data"
+        content_root = package / "data"
         for directory in ("regions", "items", "npcs", "magic", "knowledge"):
-            (data_root / directory).mkdir(parents=True, exist_ok=True)
+            (content_root / directory).mkdir(parents=True, exist_ok=True)
 
-        (data_root / "regions" / "alternate.json").write_text(
+        (content_root / "regions" / "alternate.json").write_text(
             json.dumps(
                 {
                     "region_id": "alternate",
@@ -35,21 +34,21 @@ class TestContentSetDataIsolation(unittest.TestCase):
             ),
             encoding="utf-8",
         )
-        (data_root / "items" / "items.json").write_text(
+        (content_root / "items" / "items.json").write_text(
             json.dumps({"alternate_token": {"name": "Alternate Token", "type": "misc", "description": "A token."}}),
             encoding="utf-8",
         )
-        (data_root / "items" / "sets.json").write_text(
+        (content_root / "items" / "sets.json").write_text(
             json.dumps({"alternate_set": {"items": ["alternate_token"], "bonuses": {}}}),
             encoding="utf-8",
         )
-        (data_root / "npcs" / "npcs.json").write_text("{}", encoding="utf-8")
-        (data_root / "magic" / "spells.json").write_text("{}", encoding="utf-8")
-        (data_root / "knowledge" / "topics.json").write_text(
+        (content_root / "npcs" / "npcs.json").write_text("{}", encoding="utf-8")
+        (content_root / "magic" / "spells.json").write_text("{}", encoding="utf-8")
+        (content_root / "knowledge" / "topics.json").write_text(
             json.dumps({"alternate_topic": {"display_name": "Alternate Topic", "keywords": [], "responses": []}}),
             encoding="utf-8",
         )
-        (data_root / "collections.json").write_text(
+        (content_root / "collections.json").write_text(
             json.dumps({"alternate_collection": {"name": "Alternate Collection"}}),
             encoding="utf-8",
         )
@@ -68,7 +67,7 @@ class TestContentSetDataIsolation(unittest.TestCase):
                     "engine_api_min": "1.0",
                     "engine_api_max": "1.0",
                     "paths": {
-                        "data_root": "data",
+                        "content_root": "data",
                         "ruleset": "rules/ruleset.json",
                         "presentation": "presentation/default.json",
                     },
@@ -82,7 +81,6 @@ class TestContentSetDataIsolation(unittest.TestCase):
 
     def test_selected_content_set_uses_its_own_data_without_mutating_defaults(self) -> None:
         package = self._write_alternate_content_set(self._case_root())
-        original_data_dir = DATA_DIR
         alternate = HeadlessServer(db_path=":memory:", content_set_path=str(package))
         try:
             self.assertFalse(alternate.world.definition_load_stats["spell_registry"]["enabled"])
@@ -111,7 +109,6 @@ class TestContentSetDataIsolation(unittest.TestCase):
             self.assertEqual("alternate", player.current_region_id)
             self.assertEqual("hub", player.current_room_id)
             self.assertIn("alternate_set", player.set_manager.sets)
-            self.assertEqual(original_data_dir, DATA_DIR)
         finally:
             alternate.shutdown()
 
@@ -120,7 +117,6 @@ class TestContentSetDataIsolation(unittest.TestCase):
             self.assertIn("town", default_server.world.regions)
             self.assertNotIn("alternate", default_server.world.regions)
             self.assertNotIn("alternate_campaign", default_server.world.campaign_manager.definitions)
-            self.assertEqual(original_data_dir, DATA_DIR)
         finally:
             default_server.shutdown()
 

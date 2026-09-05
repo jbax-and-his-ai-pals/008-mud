@@ -291,13 +291,6 @@
           "title": "Fantasy Frontier",
           "version": "0.1.0"
         },
-        "data_root": "<REPO_ROOT>/content_sets/fantasy_frontier/data",
-        "fixture_refresh_marker": {
-          "fixture_primary_target": "C:\\python\\old\\restart\\server\\data_fixtures\\fantasy_editor_migrated_latest",
-          "fixture_selected_target": "C:\\python\\old\\restart\\server\\data_fixtures\\fantasy_editor_migrated_latest__refresh_1777927964",
-          "present": true,
-          "selected_matches_primary": false
-        },
         "warning_codes": {},
         "warning_count": 0
       }

@@ -1,5 +1,5 @@
 # tests/singles/test_player_core_full.py
-"""Coverage for engine/player/core.py: __init__'s missing-data_root guard,
+"""Coverage for engine/player/core.py: __init__'s missing-world guard,
 get_effective_stat's set-bonus loop-back past a non-stat_mod bonus,
 apply_class_template's no-world guard and each optional-field skip
 (no "name", no "stats", magic disabled, an inventory ref missing item_id,
@@ -17,9 +17,9 @@ from engine.player.core import Player
 
 
 class TestInit(unittest.TestCase):
-    def test_missing_data_root_raises(self):
-        with self.assertRaises(ValueError):
-            Player(name="Test", data_root=None)
+    def test_missing_world_is_rejected(self):
+        with self.assertRaises(TypeError):
+            Player(name="Test")
 
 
 class TestGetEffectiveStat(GameTestBase):

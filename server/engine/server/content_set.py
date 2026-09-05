@@ -135,7 +135,8 @@ class ContentSetDefinition:
     content_set_id: str
     title: str
     version: str
-    data_root: Path
+    content_root: Path
+    feature_profile_path: Path | None
     ruleset_path: Path
     ruleset: dict[str, Any]
     presentation_path: Path
@@ -188,7 +189,7 @@ def _load_definition_ids(directory: Path, label: str, issues: list[ContentSetIss
 
 
 def _validate_authored_world(
-    data_root: Path,
+    content_root: Path,
     start_region_id: str,
     start_room_id: str,
     issues: list[ContentSetIssue],
@@ -196,7 +197,7 @@ def _validate_authored_world(
     """Validate cross-file references that are only meaningful as a complete game."""
     regions: dict[str, dict[str, Any]] = {}
     region_paths: dict[str, Path] = {}
-    for path in sorted((data_root / "regions").glob("*.json")):
+    for path in sorted((content_root / "regions").glob("*.json")):
         payload = _load_json(path, issues, "region")
         if not isinstance(payload, dict):
             continue
@@ -217,8 +218,8 @@ def _validate_authored_world(
         regions[region_id] = rooms
         region_paths[region_id] = path
 
-    item_ids = _load_definition_ids(data_root / "items", "item definitions", issues)
-    npc_ids = _load_definition_ids(data_root / "npcs", "NPC definitions", issues)
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
     reachable: set[tuple[str, str]] = set()
     pending = [(start_region_id, start_room_id)]
 
@@ -344,13 +345,23 @@ def load_content_set(
         return None, issues
 
     resolved_paths: dict[str, Path] = {}
-    for key in ("data_root", "ruleset", "presentation"):
+    for key in ("content_root", "ruleset", "presentation"):
         value = paths.get(key)
         if not isinstance(value, str) or value.strip() == "":
             issues.append(ContentSetIssue("error", str(manifest_path), f"paths.{key} must be a non-empty string"))
             continue
         resolved_paths[key] = (package_root / value).resolve()
 
+    feature_profile_path: Path | None = None
+    if "feature_profile" in paths:
+        profile_value = paths.get("feature_profile")
+        if not isinstance(profile_value, str) or profile_value.strip() == "":
+            issues.append(ContentSetIssue("error", str(manifest_path), "paths.feature_profile must be a non-empty string when provided"))
+        else:
+            feature_profile_path = (package_root / profile_value).resolve()
+            profile_payload = _load_json(feature_profile_path, issues, "feature profile")
+            if profile_payload is not None and not isinstance(profile_payload, dict):
+                issues.append(ContentSetIssue("error", str(feature_profile_path), "feature profile must be a JSON object"))
     opening_path: Path | None = None
     opening_payload: dict[str, Any] = {}
     if "opening" in paths:
@@ -365,10 +376,10 @@ def load_content_set(
             elif isinstance(raw_opening, dict):
                 opening_payload = raw_opening
 
-    data_root = resolved_paths.get("data_root")
-    if data_root is not None:
-        if not data_root.is_dir():
-            issues.append(ContentSetIssue("error", str(manifest_path), f"paths.data_root does not resolve to a directory: {data_root}"))
+    content_root = resolved_paths.get("content_root")
+    if content_root is not None:
+        if not content_root.is_dir():
+            issues.append(ContentSetIssue("error", str(manifest_path), f"paths.content_root does not resolve to a directory: {content_root}"))
         else:
             required_directories = list(_REQUIRED_DATA_DIRECTORIES)
             declared_capabilities = payload.get("capabilities")
@@ -377,8 +388,8 @@ def load_content_set(
                 # so their authored data belongs to the same optional system.
                 required_directories.extend(("quests", "campaigns"))
             for directory in required_directories:
-                if not (data_root / directory).is_dir():
-                    issues.append(ContentSetIssue("error", str(data_root), f"missing required data directory '{directory}'"))
+                if not (content_root / directory).is_dir():
+                    issues.append(ContentSetIssue("error", str(content_root), f"missing required data directory '{directory}'"))
 
     ruleset_payload: dict[str, Any] = {}
     for key, label in (("ruleset", "ruleset"), ("presentation", "presentation")):
@@ -425,8 +436,8 @@ def load_content_set(
 
     game_contract = _build_game_contract(capability_values, ruleset_payload, issues, resolved_paths.get("ruleset", manifest_path))
 
-    if data_root is not None and data_root.is_dir() and start_region_id and start_room_id:
-        region_path = data_root / "regions" / f"{start_region_id}.json"
+    if content_root is not None and content_root.is_dir() and start_region_id and start_room_id:
+        region_path = content_root / "regions" / f"{start_region_id}.json"
         region_payload = _load_json(region_path, issues, "start region")
         if isinstance(region_payload, dict):
             rooms = region_payload.get("rooms")
@@ -439,7 +450,7 @@ def load_content_set(
                     )
                 )
 
-        _validate_authored_world(data_root, start_region_id, start_room_id, issues)
+        _validate_authored_world(content_root, start_region_id, start_room_id, issues)
 
     if any(issue.severity == "error" for issue in issues):
         return None, issues
@@ -451,7 +462,8 @@ def load_content_set(
             content_set_id=content_set_id,
             title=str(payload["title"]).strip(),
             version=str(payload["version"]).strip(),
-            data_root=data_root,
+            content_root=content_root,
+            feature_profile_path=feature_profile_path,
             ruleset_path=resolved_paths["ruleset"],
             ruleset=ruleset_payload,
             presentation_path=resolved_paths["presentation"],

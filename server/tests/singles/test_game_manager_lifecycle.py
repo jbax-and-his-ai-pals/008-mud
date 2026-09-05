@@ -5,6 +5,7 @@ non-auto-travel tick, class-definition loading fallbacks, new-game/load-game
 menu flow, respawn, debug toggle, resize, and auto-travel stop/interrupt.
 Intentionally skips run() -- the actual pygame blocking event loop."""
 
+import json
 import os
 import shutil
 from unittest.mock import patch
@@ -15,27 +16,21 @@ from engine.utils.logger import Logger, LogLevel
 
 class TestLoadClassDefinitions(GameTestBase):
     def test_malformed_classes_json_falls_back_to_empty(self):
-        classes_path = os.path.join(self.world.data_root, "player", "classes.json")
-        with open(classes_path, "r", encoding="utf-8") as f:
-            original = f.read()
-        try:
-            with open(classes_path, "w", encoding="utf-8") as f:
-                f.write("{not valid json")
+        with patch(
+            "engine.core.game_manager.json.load",
+            side_effect=json.JSONDecodeError("bad payload", "{not valid json", 1),
+        ):
             self.game._load_class_definitions()
-            self.assertEqual({}, self.game.class_definitions)
-        finally:
-            with open(classes_path, "w", encoding="utf-8") as f:
-                f.write(original)
-
+        self.assertEqual({}, self.game.class_definitions)
     def test_missing_classes_json_falls_back_to_default_adventurer(self):
-        real_data_root = self.world.data_root
+        real_content_root = self.world.content_root
         try:
-            self.world.data_root = os.path.join(real_data_root, "does_not_exist")
+            self.world.content_root = os.path.join(real_content_root, "does_not_exist")
             self.game._load_class_definitions()
             self.assertEqual(["adventurer"], self.game.available_classes)
             self.assertIn("adventurer", self.game.class_definitions)
         finally:
-            self.world.data_root = real_data_root
+            self.world.content_root = real_content_root
 
 
 class TestUpdateTick(GameTestBase):
@@ -112,7 +107,7 @@ class TestLoadGameMenuFlow(GameTestBase):
     SAVE_NAME = "test_gm_lifecycle_save.json"
 
     def tearDown(self):
-        path = os.path.join("data", "saves", self.SAVE_NAME)
+        path = os.path.join(self.world.save_directory, self.SAVE_NAME)
         if os.path.exists(path):
             try: os.remove(path)
             except OSError: pass
@@ -171,16 +166,9 @@ class TestLoadGameMenuFlow(GameTestBase):
         self.assertEqual("playing", self.game.game_state)
 
     def test_update_available_saves_with_missing_directory(self):
-        from engine.config import SAVE_GAME_DIR
-        original_exists = os.path.isdir(SAVE_GAME_DIR)
-        if not original_exists:
+        with patch("engine.core.game_manager.os.path.isdir", return_value=False):
             self.game._update_available_saves()
-            self.assertEqual([], self.game.available_saves)
-        else:
-            # Directory exists in this environment; just verify it doesn't raise
-            # and returns a list (covered by the "with files" test below).
-            self.game._update_available_saves()
-
+        self.assertEqual([], self.game.available_saves)
     def test_update_available_saves_lists_json_files(self):
         self.world.save_game(self.SAVE_NAME)
         self.game._update_available_saves()

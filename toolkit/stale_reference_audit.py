@@ -69,7 +69,7 @@ def audit_stale_references(root: Path) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Audit stale content references beyond baseline integrity checks.")
-    parser.add_argument("root", nargs="?", default="server/data", help="Server data root")
+    parser.add_argument("root", nargs="?", default="content_sets/fantasy_frontier/data", help="Content-set data root")
     parser.add_argument("--output", default="", help="Optional output report path")
     args = parser.parse_args()
 

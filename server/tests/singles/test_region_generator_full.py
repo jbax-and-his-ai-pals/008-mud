@@ -23,12 +23,12 @@ from engine.world.region_generator import RegionGenerator
 
 class TestLoadThemesErrorHandling(GameTestBase):
     def test_missing_theme_file_is_handled_gracefully(self):
-        original_data_root = self.world.data_root
-        self.world.data_root = "/totally/bogus/missing/data/root"
+        original_content_root = self.world.content_root
+        self.world.content_root = "/totally/bogus/missing/data/root"
         try:
             generator = RegionGenerator(self.world)
         finally:
-            self.world.data_root = original_data_root
+            self.world.content_root = original_content_root
         self.assertEqual({}, generator.themes)
 
     def test_malformed_theme_file_is_handled_gracefully(self):
@@ -41,12 +41,12 @@ class TestLoadThemesErrorHandling(GameTestBase):
         with open(os.path.join(regions_dir, "dynamic_themes.json"), "w") as f:
             f.write("{not valid json")
 
-        original_data_root = self.world.data_root
-        self.world.data_root = tmp_dir
+        original_content_root = self.world.content_root
+        self.world.content_root = tmp_dir
         try:
             generator = RegionGenerator(self.world)
         finally:
-            self.world.data_root = original_data_root
+            self.world.content_root = original_content_root
             import shutil
             shutil.rmtree(tmp_dir, ignore_errors=True)
         self.assertEqual({}, generator.themes)

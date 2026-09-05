@@ -10,20 +10,20 @@ Run from repo root:
 python toolkit/pack_tool.py validate client/themes
 python toolkit/pack_tool.py validate toolkit/starter_packs
 python toolkit/pack_tool.py export client/themes/fantasy_classic.json --out dist/packs
-python toolkit/data_integrity_validator.py server/data
-python toolkit/reference_integrity_validator.py server/data
+python toolkit/data_integrity_validator.py content_sets/fantasy_frontier/data
+python toolkit/reference_integrity_validator.py content_sets/fantasy_frontier/data
 python toolkit/mod_manifest_validator.py --roots server/mods mods
 python toolkit/content_set_validator.py content_sets/fantasy_frontier
 python toolkit/editor_export_shim.py --source mud-world-editor/data --target tmp/editor_export_shim/server_data --report tmp/editor_export_shim/report.json
-python toolkit/fixture_refresh.py --source mud-world-editor/data --latest-root server/data --fixture-root server/data_fixtures --fixture-name fantasy_editor_migrated_latest
-python toolkit/stale_reference_audit.py server/data --output tmp/stale_audit_server_data.txt
+python toolkit/fixture_refresh.py --source mud-world-editor/data --latest-root content_sets/fantasy_frontier/data --fixture-root content_sets/fantasy_frontier/data_fixtures --fixture-name fantasy_editor_migrated_latest
+python toolkit/stale_reference_audit.py content_sets/fantasy_frontier/data --output tmp/stale_audit_server_data.txt
 ```
 
 Optional strict validation:
 
 ```powershell
 python toolkit/pack_tool.py validate toolkit/starter_packs --strict
-python toolkit/data_integrity_validator.py server/data --strict-templates
+python toolkit/data_integrity_validator.py content_sets/fantasy_frontier/data --strict-templates
 
 # Single gate command (recommended for CI/local preflight)
 powershell -ExecutionPolicy Bypass -File run_content_checks.ps1

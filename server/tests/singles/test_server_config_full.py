@@ -39,7 +39,7 @@ class TestLoadServerConfig(unittest.TestCase):
 
 
 def _resolve(payload):
-    return resolve_server_settings("tcp", payload, None, None, None, None, None, None, None)
+    return resolve_server_settings("tcp", payload, None, None, None, None, None)
 
 
 class TestResolveServerSettingsListFields(unittest.TestCase):

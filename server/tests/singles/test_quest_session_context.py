@@ -22,7 +22,7 @@ class TestQuestSessionContext(unittest.TestCase):
     def tearDown(self) -> None:
         self.server.shutdown()
 
-    def test_clear_region_completion_uses_tracked_player_not_legacy_world_player(self) -> None:
+    def test_clear_region_completion_uses_tracked_player_not_deprecated_world_player(self) -> None:
         quest_id = "clear_ctx"
         objective_data = {
             "type": "clear_region",
@@ -56,8 +56,8 @@ class TestQuestSessionContext(unittest.TestCase):
         assert self.player_b.runtime_state.quests is not None
         self.assertNotIn(quest_id, self.player_b.runtime_state.quests.active)
 
-    def test_clear_region_completion_works_without_legacy_player_binding(self) -> None:
-        quest_id = "clear_ctx_no_legacy"
+    def test_clear_region_completion_works_without_deprecated_player_binding(self) -> None:
+        quest_id = "clear_ctx_no_deprecated"
         objective_data = {
             "type": "clear_region",
             "target_template_id": "giant_rat",
@@ -82,7 +82,7 @@ class TestQuestSessionContext(unittest.TestCase):
         self.player_a.current_room_id = "entry_hall"
         self.player_b.current_region_id = "town"
         self.player_b.current_room_id = "town_square"
-        self.server.world._legacy_player_id = None
+        self.server.world._deprecated_player_id = None
 
         self.server.world.quest_manager.check_quest_completion()
 

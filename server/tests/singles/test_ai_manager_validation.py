@@ -48,7 +48,7 @@ class TestAIManagerValidation(GameTestBase):
         
         self.assertIsNone(output, "Stale AI text should be discarded.")
 
-    def test_context_helpers_use_resolved_player_not_legacy_world_player(self):
+    def test_context_helpers_use_resolved_player_not_deprecated_world_player(self):
         ai_mgr = self.game.ai_manager
 
         region = Region("AI Region", "desc", obj_id="ai_region")
@@ -61,7 +61,7 @@ class TestAIManagerValidation(GameTestBase):
         self.player.current_region_id = "ai_region"
         self.player.current_room_id = "room_a"
 
-        other_player = Player("Other", obj_id="other_ai_player", data_root=self.world.data_root)
+        other_player = Player("Other", obj_id="other_ai_player", world=self.world)
         other_player.world = self.world
         other_player.current_region_id = "ai_region"
         other_player.current_room_id = "room_b"

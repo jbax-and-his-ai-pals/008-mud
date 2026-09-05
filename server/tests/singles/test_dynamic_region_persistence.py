@@ -8,8 +8,8 @@ class TestDynamicRegionPersistence(GameTestBase):
     TEST_SAVE = "test_dynamic_save.json"
 
     def tearDown(self):
-        if os.path.exists(os.path.join("data", "saves", self.TEST_SAVE)):
-            try: os.remove(os.path.join("data", "saves", self.TEST_SAVE))
+        if os.path.exists(os.path.join(self.world.save_directory, self.TEST_SAVE)):
+            try: os.remove(os.path.join(self.world.save_directory, self.TEST_SAVE))
             except: pass
         super().tearDown()
 

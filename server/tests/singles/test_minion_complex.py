@@ -81,7 +81,7 @@ class TestMinionComplex(GameTestBase):
         self.assertIsNotNone(hostile)
 
         if minion and hostile:
-            other_player = Player("OtherViewer", obj_id="other_viewer", data_root=self.world.data_root)
+            other_player = Player("OtherViewer", obj_id="other_viewer", world=self.world)
             other_player.world = self.world
             other_player.current_region_id = "town"
             other_player.current_room_id = "town_square"
@@ -89,7 +89,7 @@ class TestMinionComplex(GameTestBase):
 
             self.player.current_region_id = "town"
             self.player.current_room_id = "town_square"
-            self.world._legacy_player_id = None
+            self.world._deprecated_player_id = None
 
             minion.current_region_id = "town"
             minion.current_room_id = "town_square"
@@ -118,7 +118,7 @@ class TestMinionComplex(GameTestBase):
         self.assertIsNotNone(target)
 
         if minion and target:
-            other_player = Player("RoomViewer", obj_id="room_viewer", data_root=self.world.data_root)
+            other_player = Player("RoomViewer", obj_id="room_viewer", world=self.world)
             other_player.world = self.world
             other_player.current_region_id = "town"
             other_player.current_room_id = "town_square"
