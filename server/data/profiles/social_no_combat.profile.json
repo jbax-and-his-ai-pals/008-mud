@@ -1,9 +1,0 @@
-{
-  "combat": { "mode": "disabled" },
-  "weather": { "mode": "builtin" },
-  "world_field": { "mode": "custom" },
-  "world_effects": { "mode": "custom", "provider_id": "sample.effects.balance" },
-  "authoring": { "mode": "gm_only" },
-  "world_mutation": { "mode": "mutable" },
-  "mods": { "mode": "enabled" }
-}

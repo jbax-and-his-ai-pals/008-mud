@@ -1,9 +1,0 @@
-{
-  "combat": { "mode": "enabled" },
-  "weather": { "mode": "disabled" },
-  "world_field": { "mode": "disabled" },
-  "world_effects": { "mode": "disabled" },
-  "authoring": { "mode": "gm_only" },
-  "world_mutation": { "mode": "readonly" },
-  "mods": { "mode": "disabled" }
-}
