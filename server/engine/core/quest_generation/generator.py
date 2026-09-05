@@ -10,7 +10,7 @@ from engine.world.region_generator import RegionGenerator
 
 # Import sub-modules
 from .objectives import generate_kill_objective, generate_fetch_objective, generate_deliver_objective
-from .text import format_quest_text
+from .text import format_quest_text, DEFAULT_TEXT_TEMPLATES
 from .rewards import calculate_rewards
 from engine.items.loot_generator import LootGenerator
 
@@ -53,8 +53,9 @@ class QuestGenerator:
 
         # Generate Text
         temp_ctx = {"type": quest_type, "objective": objective_data}
-        title = format_quest_text("title", temp_ctx, giver_npc)
-        description = format_quest_text("description", temp_ctx, giver_npc)
+        text_templates = self.qm.config.get("text_templates", DEFAULT_TEXT_TEMPLATES)
+        title = format_quest_text("title", temp_ctx, giver_npc, text_templates)
+        description = format_quest_text("description", temp_ctx, giver_npc, text_templates)
 
         stage_0 = {
             "stage_index": 0,
@@ -108,20 +109,26 @@ class QuestGenerator:
         
         if not valid_entry_points: return None
         chosen_entry = random.choice(valid_entry_points)
+        instance_quest_config = self.qm.config.get("instance_quest", {})
         entry_point_data = {
             **chosen_entry,
-            "exit_command": "house",
-            "description_when_visible": "A previously unnoticed, rundown house stands here."
+            "exit_command": instance_quest_config.get("entry_exit_command", "enter"),
+            "description_when_visible": instance_quest_config.get(
+                "entry_description_when_visible", "Something unusual has appeared here."
+            ),
         }
 
         quest_id = f"quest_inst_{uuid.uuid4().hex[:6]}"
         creature_template = self.world.npc_templates.get(chosen_creature_id, {})
         creature_name = simple_plural(creature_template.get("name", "Creature"))
-        title = f"Bounty: {creature_name} Infestation"
+        title = instance_quest_config.get("title_pattern", "Quest: {creature_name}").format(creature_name=creature_name)
+        description = instance_quest_config.get("description_pattern", "Deal with the {creature_name}.").format(
+            creature_name=creature_name
+        )
 
         stage_0 = {
             "stage_index": 0,
-            "description": f"Clear the infestation of {creature_name}.",
+            "description": description,
             "objective": objective_data,
             "turn_in_id": "quest_board"
         }
@@ -191,8 +198,9 @@ class QuestGenerator:
     def _instantiate_quest_logic(self, quest_instance, quest_template, player_level, saga_context, generated_region_ids):
         # Procedural Regions
         if "procedural_regions" in quest_template:
+            default_theme = self.qm.config.get("instance_quest", {}).get("default_procedural_theme", "")
             for region_conf in quest_template["procedural_regions"]:
-                theme = region_conf.get("theme", "caves")
+                theme = region_conf.get("theme", default_theme)
                 rooms_count = region_conf.get("rooms", 5)
                 gen = RegionGenerator(self.world)
                 result = gen.generate_region(theme, rooms_count)
@@ -234,9 +242,10 @@ class QuestGenerator:
 
         # Stages
         previous_npc_id = None
-        self.adjectives = ["Forgotten", "Cursed", "Shining", "Ancient", "Broken", "Whispering"]
-        self.nouns = ["Hope", "Despair", "Light", "Shadow", "King", "Truth"]
-        
+        procedural_naming = self.qm.config.get("procedural_naming", {})
+        self.adjectives = procedural_naming.get("adjectives", [])
+        self.nouns = procedural_naming.get("nouns", [])
+
         for stage_template in quest_template.get("stages", []):
             new_stage = stage_template.copy()
             objective = new_stage.get("objective", {}).copy()
@@ -276,11 +285,15 @@ class QuestGenerator:
                     objective["target_name"] = template.get("name", tid)
 
             elif obj_type == "fetch_procedural":
-                base_tid = objective.get("base_template_id", "item_ancient_amulet")
-                pattern = objective.get("name_pattern", "Artifact of {Noun}")
-                adj = random.choice(self.adjectives)
-                noun = random.choice(self.nouns)
-                item_name = pattern.format(Adjective=adj, Noun=noun)
+                base_tid = objective.get("base_template_id", procedural_naming.get("default_base_template_id", ""))
+                if self.adjectives and self.nouns:
+                    pattern = objective.get("name_pattern", procedural_naming.get("default_name_pattern", "{Noun}"))
+                    adj = random.choice(self.adjectives)
+                    noun = random.choice(self.nouns)
+                    item_name = pattern.format(Adjective=adj, Noun=noun)
+                else:
+                    base_template = self.world.item_templates.get(base_tid, {})
+                    item_name = base_template.get("name", base_tid or "Unknown Item")
                 saga_context["item_name"] = item_name
                 objective["type"] = "fetch"
                 objective["item_name"] = item_name

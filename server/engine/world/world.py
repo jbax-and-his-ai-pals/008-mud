@@ -30,6 +30,7 @@ from engine.world.instance_manager import InstanceManager
 from engine.utils.pathfinding import find_path
 from engine.core.skill_system import SkillSystem
 from engine.config.config_combat import configure_combat_elements
+from engine.items.affix_data import configure_item_affixes
 
 from engine.world.description_generator import generate_room_description
 
@@ -43,6 +44,7 @@ class World:
         package_root = os.path.abspath(str(content_set.content_root))
         self.content_root = package_root
         configure_combat_elements(self.content_root)
+        configure_item_affixes(self.content_root)
         self.content_set = content_set
         self.save_directory = self._resolve_save_directory(save_directory)
         self.enabled_capabilities = frozenset(content_set.capabilities)

@@ -128,28 +128,34 @@ class CraftingManager:
         return f"{FORMAT_SUCCESS}Successfully crafted {recipe.result_quantity} x {result_item.name}.{FORMAT_RESET} {roll_msg}{xp_msg}"
 
     def salvage(self, player: 'Player', item: Item) -> str:
-        """Breaks down an item into basic materials."""
-        
-        # 1. Determine Output
-        # Simple logic: Based on name/type
+        """Breaks down an item into basic materials.
+
+        Output is determined by the item's own "salvage_output" property
+        (an author-declared override), falling back to a ruleset-driven
+        rule keyed by the item's class (Weapon/Armor/...), and finally a
+        content-set-provided generic default. An item type/content set with
+        no salvage rule configured simply cannot be salvaged.
+        """
+        salvage_rules = self.world.ruleset_section("crafting").get("salvage_rules", {})
+
         output_template_id = None
         output_qty = 1
-        
-        name_lower = item.name.lower()
-        if "sword" in name_lower or "plate" in name_lower or "helm" in name_lower:
-            output_template_id = "item_iron_ingot"
-            output_qty = max(1, int(item.weight // 2))
-        elif "leather" in name_lower or "boots" in name_lower:
-            output_template_id = "item_leather_scraps" # Assuming this exists or generic scrap
-            output_qty = max(1, int(item.weight // 1))
-        else:
-             # Default fallback
-             output_template_id = "item_scrap" # Generic junk
 
-        # 2. Check if template exists
-        # In a real scenario we'd check self.world.item_templates
-        # For now, let's assume factories handle None return
-        
+        override = item.get_property("salvage_output")
+        if isinstance(override, dict) and override.get("item_id"):
+            output_template_id = override["item_id"]
+            output_qty = max(1, int(item.weight * override.get("quantity_per_weight", 1.0)))
+        else:
+            rule = salvage_rules.get(item.__class__.__name__)
+            if isinstance(rule, dict) and rule.get("item_id"):
+                output_template_id = rule["item_id"]
+                output_qty = max(1, int(item.weight * rule.get("quantity_per_weight", 1.0)))
+            else:
+                output_template_id = salvage_rules.get("default_item_id")
+
+        if not output_template_id:
+            return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"
+
         mat = ItemFactory.create_item_from_template(output_template_id, self.world)
         if not mat:
              return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"

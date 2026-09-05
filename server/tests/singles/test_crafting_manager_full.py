@@ -3,8 +3,9 @@
 mismatch guard, _load_recipes' missing-directory/non-json-skip/malformed-
 file branches, get_nearby_stations' no-player guard and no-station-
 property skip, craft()'s unknown-recipe/missing-result-item/failed-item-
-creation branches, and salvage()'s leather/default-fallback categories
-and unknown-output-template guard."""
+creation branches, and salvage()'s per-item salvage_output override,
+ruleset class-keyed rule, default-fallback, and unknown-output-template
+guard."""
 
 import json
 import os
@@ -18,6 +19,7 @@ from engine.crafting.crafting_manager import CraftingManager
 from engine.crafting.recipe import Recipe
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
+from engine.items.weapon import Weapon
 
 
 class TestInit(GameTestBase):
@@ -99,9 +101,10 @@ class TestCraft(GameTestBase):
 
 
 class TestSalvage(GameTestBase):
-    def test_leather_item_salvages_to_leather_scraps(self):
+    def test_item_level_salvage_output_override_is_honored(self):
         manager = self.game.crafting_manager
         item = Item(name="Leather Boots", weight=2.0)
+        item.update_property("salvage_output", {"item_id": "item_leather_scraps", "quantity_per_weight": 1.0})
         self.player.inventory.add_item(item)
         stand_in_material = ItemFactory.create_item_from_template("item_iron_sword", self.world)
         with patch(
@@ -110,6 +113,19 @@ class TestSalvage(GameTestBase):
         ) as mock_create:
             manager.salvage(self.player, item)
         mock_create.assert_called_once_with("item_leather_scraps", self.world)
+
+    def test_class_keyed_ruleset_rule_is_used_when_no_item_override(self):
+        manager = self.game.crafting_manager
+        weapon = Weapon(name="Test Blade", weight=4.0)
+        self.player.inventory.add_item(weapon)
+        stand_in_material = ItemFactory.create_item_from_template("item_iron_sword", self.world)
+        with patch(
+            "engine.crafting.crafting_manager.ItemFactory.create_item_from_template",
+            return_value=stand_in_material,
+        ) as mock_create:
+            manager.salvage(self.player, weapon)
+        # fantasy_frontier's ruleset maps Weapon -> item_iron_ingot at 0.5/weight.
+        mock_create.assert_called_once_with("item_iron_ingot", self.world)
 
     def test_unrecognized_item_uses_default_scrap_fallback(self):
         manager = self.game.crafting_manager

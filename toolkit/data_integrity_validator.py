@@ -77,7 +77,11 @@ def _walk(value: Any, file_path: Path, pointer: str, issues: list[ValidationIssu
                 _validate_reward_items(child, file_path, child_pointer, issues)
             _walk(child, file_path, child_pointer, issues, strict_templates)
 
-        if "items" in file_path.parts and file_path.name != "sets.json" and _looks_like_item_template(value):
+        if (
+            "items" in file_path.parts
+            and file_path.name not in ("sets.json", "affixes.json")
+            and _looks_like_item_template(value)
+        ):
             name = str(value.get("name", "")).strip()
             item_type = str(value.get("type", "")).strip()
             if name == "" or item_type == "":

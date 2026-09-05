@@ -32,5 +32,27 @@ QUEST_SYSTEM_CONFIG = {
     # engine ships no default here since template ids and interest tags are
     # entirely content-defined vocabulary.
     "npc_quest_interests": {},
+    # Word pools + patterns for naming procedurally-generated "fetch" quest
+    # items (QuestGenerator._instantiate_quest_logic's "fetch_procedural"
+    # objective). No default pools are shipped -- when empty, the generator
+    # uses the base item template's own authored name instead of inventing
+    # one. Content sets provide their own via "quest_generation.procedural_naming".
+    "procedural_naming": {
+        "adjectives": [],
+        "nouns": [],
+        "default_name_pattern": "{Noun}",
+        "default_base_template_id": "",
+    },
+    # Text/behavior for the auto-generated entry point and title/description
+    # of instance quests (QuestGenerator.generate_instance_quest). No default
+    # theme/flavor is shipped; content sets provide their own via
+    # "quest_generation.instance_quest".
+    "instance_quest": {
+        "entry_exit_command": "enter",
+        "entry_description_when_visible": "Something unusual has appeared here.",
+        "title_pattern": "Quest: {creature_name}",
+        "description_pattern": "Deal with the {creature_name}.",
+        "default_procedural_theme": "",
+    },
     "debug": True
 }

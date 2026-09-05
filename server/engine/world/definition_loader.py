@@ -65,9 +65,10 @@ def _load_item_templates(world: 'World', content_root: str) -> dict[str, int]:
         return stats
     for filename in os.listdir(item_template_dir):
         if filename.endswith(".json"):
-            # Item-set definitions are deliberately kept beside item data,
-            # but are consumed by SetManager rather than ItemFactory.
-            if filename == "sets.json":
+            # Item-set and procedural-affix definitions are deliberately kept
+            # beside item data, but are consumed by SetManager / affix_data's
+            # configure_item_affixes() rather than ItemFactory.
+            if filename in ("sets.json", "affixes.json"):
                 stats["metadata_files_skipped"] += 1
                 continue
             path = os.path.join(item_template_dir, filename)

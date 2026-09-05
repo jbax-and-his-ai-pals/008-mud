@@ -35,7 +35,7 @@ class TestContentSetRuntime(unittest.TestCase):
             self.assertEqual(FANTASY_FRONTIER / "data", Path(server.content_root))
             self.assertEqual(0, server.world.definition_load_stats["spell_registry"]["overwrites"])
             self.assertEqual(0, server.world.definition_load_stats["item_templates"]["invalid_missing_required"])
-            self.assertEqual(1, server.world.definition_load_stats["item_templates"]["metadata_files_skipped"])
+            self.assertEqual(2, server.world.definition_load_stats["item_templates"]["metadata_files_skipped"])
             session = server.create_session()
             server.execute_command(session.session_id, "char create ContentTester")
             player = server.get_player_for_session(session.session_id)

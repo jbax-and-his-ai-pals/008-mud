@@ -19,6 +19,40 @@
       "village_elder": ["kill", "deliver", "fetch", "kill_major_threats", "investigate_problems", "deliver_official", "fetch_historical", "kill_nearby_threats", "deliver_local"],
       "guard": ["kill", "deliver", "fetch", "kill_any_hostile", "patrol_area", "deliver_reports", "kill_nearby_threats"],
       "villager": ["kill", "deliver", "fetch", "fetch_simple", "kill_pests", "deliver_local", "fetch_ingredients"]
+    },
+    "procedural_naming": {
+      "adjectives": ["Forgotten", "Cursed", "Shining", "Ancient", "Broken", "Whispering"],
+      "nouns": ["Hope", "Despair", "Light", "Shadow", "King", "Truth"],
+      "default_name_pattern": "Artifact of {Noun}",
+      "default_base_template_id": "item_ancient_amulet"
+    },
+    "instance_quest": {
+      "entry_exit_command": "house",
+      "entry_description_when_visible": "A previously unnoticed, rundown house stands here.",
+      "title_pattern": "Bounty: {creature_name} Infestation",
+      "description_pattern": "Clear the infestation of {creature_name}.",
+      "default_procedural_theme": "caves"
+    },
+    "text_templates": {
+      "kill": {
+        "title": "Bounty: {target_name_plural}",
+        "description": "{giver_name} is offering a bounty for slaying {quantity} {target_name_plural} sighted in {location_description}."
+      },
+      "fetch": {
+        "title": "Gather: {item_name_plural}",
+        "description": "{giver_name} needs {quantity} {item_name_plural}. They believe {source_enemy_name_plural} in {location_description} may carry them."
+      },
+      "deliver": {
+        "title": "Delivery: {item_to_deliver_name} to {recipient_name}",
+        "description": "{giver_name} asks you to deliver a {item_to_deliver_name} to {recipient_name}, who can be found in {recipient_location_description}."
+      }
+    }
+  },
+  "crafting": {
+    "salvage_rules": {
+      "Weapon": { "item_id": "item_iron_ingot", "quantity_per_weight": 0.5 },
+      "Armor": { "item_id": "item_iron_ingot", "quantity_per_weight": 0.5 },
+      "default_item_id": "item_scrap"
     }
   },
   "economy": {

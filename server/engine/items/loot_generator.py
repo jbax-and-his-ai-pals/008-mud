@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
-from engine.items.affix_data import PREFIXES, SUFFIXES
+from engine.items.affix_data import PREFIXES, SUFFIXES, GENERATED_EFFECT_TEXT
 
 class LootGenerator:
     @staticmethod
@@ -64,15 +64,16 @@ class LootGenerator:
 
         # Apply merged effect
         if combined_stats or buff_name:
-            final_effect_name = buff_name if buff_name else f"Enchantment of {item.name}"
-            
+            final_effect_name = buff_name if buff_name else GENERATED_EFFECT_TEXT["effect_name_pattern"].format(item_name=item.name)
+
             new_effect = {
                 "type": "stat_mod" if not buff_name else "buff",
                 "name": final_effect_name,
                 "modifiers": combined_stats
             }
             item.update_property("equip_effect", new_effect)
-            item.description += f" It hums with magical energy."
+            if GENERATED_EFFECT_TEXT["description_suffix"]:
+                item.description += GENERATED_EFFECT_TEXT["description_suffix"]
 
         return item
 
