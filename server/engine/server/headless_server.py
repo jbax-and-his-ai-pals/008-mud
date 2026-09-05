@@ -119,7 +119,7 @@ class HeadlessServer:
         # Client-side display hint (text/icon/hybrid); the server does not
         # render, but `invmode` reads/writes it for parity with GameManager.
         self.inventory_mode = "hybrid"
-        self.time_manager = TimeManager()
+        self.time_manager = TimeManager(self.world)
         self.weather_manager = WeatherManager()
         self.crafting_manager = (
             CraftingManager(self.world)
@@ -695,7 +695,7 @@ class HeadlessServer:
                 f"- Duration: `{summary.get('duration_seconds')}` seconds",
                 f"- Player: `{summary.get('player_name', '')}` (level {summary.get('player_level', 0)})",
                 f"- Final vitals: HP {summary.get('final_health', 0)}/{summary.get('max_health', 0)}, Mana {summary.get('final_mana', 0)}/{summary.get('max_mana', 0)}",
-                f"- Gold: `{summary.get('player_gold', 0)}`",
+                f"- {self.world.currency_name().capitalize()}: `{summary.get('player_gold', 0)}`",
                 f"- Quest counts: active {summary.get('quest_log_count', 0)}, completed {summary.get('completed_quest_count', 0)}, archived {summary.get('archived_quest_count', 0)}",
                 "",
                 "## Resolution Counts",
@@ -1012,7 +1012,7 @@ class HeadlessServer:
         return (
             f"Last adventure summary: {campaign_name} ended with status '{status}' and outcome '{outcome}'. "
             f"Final node '{final_node}', {history_count} resolved node(s). "
-            f"Player {player_name} (level {player_level}) finished with {gold} gold.{duration_text}"
+            f"Player {player_name} (level {player_level}) finished with {gold} {self.world.currency_name()}.{duration_text}"
         )
 
     def _build_finite_adventure_checkpoint(self, player: Any) -> Dict[str, Any]:
@@ -1852,11 +1852,12 @@ class HeadlessServer:
                 msgs.append(f"{recipient.name} +{amount} XP")
 
         if gold_total > 0:
+            currency = self.world.currency_name().capitalize()
             for recipient, amount in zip(recipients, self._split_int_amount(gold_total, len(recipients))):
                 if amount <= 0:
                     continue
                 recipient.runtime_state.gold += amount
-                msgs.append(f"{recipient.name} +{amount} Gold")
+                msgs.append(f"{recipient.name} +{amount} {currency}")
 
         item_rewards = rewards.get("items", [])
         if isinstance(item_rewards, list):
@@ -1898,11 +1899,12 @@ class HeadlessServer:
             recipients = [actor]
 
         msgs: List[str] = []
+        currency = self.world.currency_name().capitalize()
         for recipient, share in zip(recipients, self._split_int_amount(total, len(recipients))):
             if share <= 0:
                 continue
             recipient.runtime_state.gold += share
-            msgs.append(f"{recipient.name} +{share} Gold")
+            msgs.append(f"{recipient.name} +{share} {currency}")
         return ", ".join(msgs)
 
     def _ensure_party_for_leader(self, leader_player_id: str) -> Party:

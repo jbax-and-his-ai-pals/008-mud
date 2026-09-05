@@ -3,10 +3,11 @@ import time
 import math
 from typing import TYPE_CHECKING, Optional, cast, Any, List
 from engine.config import (
-    FORMAT_TITLE, FORMAT_RESET, FORMAT_CATEGORY, FORMAT_ERROR, FORMAT_HIGHLIGHT, 
+    FORMAT_TITLE, FORMAT_RESET, FORMAT_CATEGORY, FORMAT_ERROR, FORMAT_HIGHLIGHT,
     FORMAT_SUCCESS, FORMAT_CYAN, FORMAT_ORANGE, FORMAT_GRAY, TEXT_COLOR,
     PLAYER_STATUS_HEALTH_CRITICAL_THRESHOLD, PLAYER_STATUS_HEALTH_LOW_THRESHOLD,
-    VALID_DAMAGE_TYPES, EQUIPMENT_SLOTS, DEFAULT_COLORS, MIN_ATTACK_COOLDOWN
+    VALID_DAMAGE_TYPES, EQUIPMENT_SLOTS, DEFAULT_COLORS, MIN_ATTACK_COOLDOWN,
+    DEFAULT_CURRENCY_NAME
 )
 from engine.config.config_display import FORMAT_YELLOW
 from engine.items.item import Item
@@ -98,7 +99,8 @@ class PlayerDisplayMixin:
                 stat_parts.append(f"{abbr} {color}{effective_stat}{FORMAT_RESET}")
             status += f"{FORMAT_CATEGORY}Stats:{FORMAT_RESET} {', '.join(stat_parts)}\n"
         if shows_economy:
-            status += f"{FORMAT_CATEGORY}Gold:{FORMAT_RESET} {p.runtime_state.gold}\n"
+            currency_name = p.world.currency_name() if p.world else DEFAULT_CURRENCY_NAME
+            status += f"{FORMAT_CATEGORY}{currency_name.capitalize()}:{FORMAT_RESET} {p.runtime_state.gold}\n"
         has_combat = (not p.world or p.world.has_capability("combat")) and p.runtime_state.combat is not None
         if has_combat:
             effective_cd = p.get_effective_attack_cooldown()

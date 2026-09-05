@@ -47,7 +47,7 @@ class GameManager:
         self.world.game = self
         self.crafting_manager = CraftingManager(self.world)
         self.command_processor = CommandProcessor()
-        self.time_manager = TimeManager()
+        self.time_manager = TimeManager(self.world)
         self.weather_manager = WeatherManager()
         self.renderer = Renderer(self.screen, self)
         self.input_handler = InputHandler(self, self.command_processor)

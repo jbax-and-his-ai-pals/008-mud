@@ -121,7 +121,7 @@ class CollectionManager:
         if "gold" in rewards:
             amt = rewards["gold"]
             player.runtime_state.gold += amt
-            msgs.append(f"Gained {amt} Gold")
+            msgs.append(f"Gained {amt} {self.world.currency_name().capitalize()}")
             
         if "items" in rewards:
             from engine.items.item_factory import ItemFactory

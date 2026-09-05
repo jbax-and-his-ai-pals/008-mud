@@ -251,7 +251,7 @@ class KnowledgeManager:
             messages.append(f"You gain {xp} XP.")
         if gold > 0:
             player.runtime_state.gold += gold
-            messages.append(f"You receive {gold} Gold.")
+            messages.append(f"You receive {gold} {self.world.currency_name().capitalize()}.")
 
         if "items" in rewards:
             from engine.items.item_factory import ItemFactory
@@ -322,7 +322,7 @@ class KnowledgeManager:
                         messages.append(f"Rewards: {routing}")
                 else:
                     player.runtime_state.gold += amount
-                    messages.append(f"You receive {amount} Gold.")
+                    messages.append(f"You receive {amount} {self.world.currency_name().capitalize()}.")
 
         # 5. Give Structured Rewards
         structured_rewards = effects.get("give_rewards")

@@ -191,7 +191,7 @@ class PlayerCombatMixin:
             else:
                 if gold_dropped > 0 and p.runtime_state.gold is not None:
                     p.runtime_state.gold += gold_dropped
-                    result_message += f"\n{FORMAT_SUCCESS}You find {gold_dropped} gold.{FORMAT_RESET}"
+                    result_message += f"\n{FORMAT_SUCCESS}You find {gold_dropped} {current_world.currency_name()}.{FORMAT_RESET}"
                 if final_xp_gained > 0 and p.runtime_state.progression is not None:
                     result_message += f"\n{FORMAT_SUCCESS}You gain {final_xp_gained} experience!{FORMAT_RESET}"
                     leveled_up, level_up_msg = p.gain_experience(final_xp_gained)

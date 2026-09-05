@@ -64,22 +64,22 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
             
             buy_price = max(VENDOR_MIN_BUY_PRICE, int(base_value * final_mult))
             
-            display_lines.append(f"- {item_name:<{VENDOR_LIST_ITEM_NAME_WIDTH}} | Price: {buy_price:>{VENDOR_LIST_PRICE_WIDTH}} gold")
+            display_lines.append(f"- {item_name:<{VENDOR_LIST_ITEM_NAME_WIDTH}} | Price: {buy_price:>{VENDOR_LIST_PRICE_WIDTH}} {world.currency_name()}")
 
     for slot in vendor.inventory.slots:
         if slot.item:
             item_name = slot.item.name
-            
+
             # Dynamic stock usually uses default multiplier
             buy_price = max(VENDOR_MIN_BUY_PRICE, int(slot.item.value * current_multiplier))
-            
+
             qty_str = f" (x{slot.quantity})" if slot.quantity > 1 else ""
-            display_lines.append(f"- {item_name}{qty_str:<{VENDOR_LIST_ITEM_NAME_WIDTH - len(qty_str)}} | Price: {buy_price:>{VENDOR_LIST_PRICE_WIDTH}} gold")
+            display_lines.append(f"- {item_name}{qty_str:<{VENDOR_LIST_ITEM_NAME_WIDTH - len(qty_str)}} | Price: {buy_price:>{VENDOR_LIST_PRICE_WIDTH}} {world.currency_name()}")
 
     if len(display_lines) == 1:
         return f"{vendor.name} has nothing to sell right now."
 
-    display_lines.append(f"\nYour Gold: {player.runtime_state.gold}\n\nCommands: list, buy <item> [qty], sell <item> [qty], stoptrade")
+    display_lines.append(f"\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}\n\nCommands: list, buy <item> [qty], sell <item> [qty], stoptrade")
     return "\n".join(display_lines)
 
 def _calculate_repair_cost(item: Item) -> Tuple[Optional[int], Optional[str]]:
@@ -162,15 +162,15 @@ def buy_handler(args, context):
         buy_price_per_item = max(VENDOR_MIN_BUY_PRICE, int(base_value * current_multiplier))
         total_cost = buy_price_per_item * quantity
         
-        if player.runtime_state.gold < total_cost: return f"{FORMAT_ERROR}You don't have enough gold (Need {total_cost}, have {player.runtime_state.gold}).{FORMAT_RESET}"
+        if player.runtime_state.gold < total_cost: return f"{FORMAT_ERROR}You don't have enough {world.currency_name()} (Need {total_cost}, have {player.runtime_state.gold}).{FORMAT_RESET}"
 
         can_add, inv_msg = player.inventory.can_add_item(found_inv_item, quantity)
         if not can_add: return f"{FORMAT_ERROR}{inv_msg}{FORMAT_RESET}"
-        
+
         player.runtime_state.gold -= total_cost
-        
+
         removed_item, removed_qty, _ = vendor.inventory.remove_item(found_inv_item.obj_id, quantity)
-        
+
         if removed_item:
             if removed_item.stackable and removed_item.obj_id in world.item_templates:
                 for _ in range(quantity):
@@ -179,7 +179,7 @@ def buy_handler(args, context):
             else:
                 player.inventory.add_item(removed_item, quantity)
 
-        return f"{FORMAT_SUCCESS}You buy {quantity} {found_inv_item.name}{'' if quantity == 1 else 's'} for {total_cost} gold.{FORMAT_RESET}"
+        return f"{FORMAT_SUCCESS}You buy {quantity} {found_inv_item.name}{'' if quantity == 1 else 's'} for {total_cost} {world.currency_name()}.{FORMAT_RESET}"
 
     found_item_ref = None; found_template = None
     for item_ref in vendor.properties.get("sells_items", []):
@@ -205,8 +205,8 @@ def buy_handler(args, context):
     buy_price_per_item = max(VENDOR_MIN_BUY_PRICE, int(base_value * final_mult))
     total_cost = buy_price_per_item * quantity
     
-    if player.runtime_state.gold < total_cost: return f"{FORMAT_ERROR}You don't have enough gold (Need {total_cost}, have {player.runtime_state.gold}).{FORMAT_RESET}"
-    
+    if player.runtime_state.gold < total_cost: return f"{FORMAT_ERROR}You don't have enough {world.currency_name()} (Need {total_cost}, have {player.runtime_state.gold}).{FORMAT_RESET}"
+
     temp_item = ItemFactory.create_item_from_template(item_id, world)
     if not temp_item: return f"{FORMAT_ERROR}Internal error creating item '{item_id}'. Cannot buy.{FORMAT_RESET}"
     
@@ -229,7 +229,7 @@ def buy_handler(args, context):
               return f"{FORMAT_ERROR}Failed to create item instance during purchase. Transaction cancelled.{FORMAT_RESET}"
               
     item_display_name = found_template.get("name", item_id)
-    return f"{FORMAT_SUCCESS}You buy {quantity} {item_display_name}{'' if quantity == 1 else 's'} for {total_cost} gold.{FORMAT_RESET}\nYour Gold: {player.runtime_state.gold}"
+    return f"{FORMAT_SUCCESS}You buy {quantity} {item_display_name}{'' if quantity == 1 else 's'} for {total_cost} {world.currency_name()}.{FORMAT_RESET}\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}"
 
 @command("sell", [], "interaction", "Sell an item from your inventory to the current vendor.\nUsage: sell <item_name> [quantity]", ruleset_system="economy")
 def sell_handler(args, context):
@@ -276,7 +276,7 @@ def sell_handler(args, context):
         vendor.inventory.add_item(removed_item_type, actual_removed_count)
 
     routing = _grant_party_sale_gold(world, player, total_gold_gain)
-    response = f"{FORMAT_SUCCESS}You sell {quantity} {removed_item_type.name}{'' if quantity == 1 else 's'} for {total_gold_gain} gold.{FORMAT_RESET}\nYour Gold: {player.runtime_state.gold}"
+    response = f"{FORMAT_SUCCESS}You sell {quantity} {removed_item_type.name}{'' if quantity == 1 else 's'} for {total_gold_gain} {world.currency_name()}.{FORMAT_RESET}\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}"
     if routing:
         response += f"\n{routing}"
     return response
@@ -324,11 +324,11 @@ def repair_handler(args, context):
     
     if repair_cost == 0: return f"Your {item_to_repair.name} is already in perfect condition."
     
-    if player.runtime_state.gold < repair_cost: return f"{FORMAT_ERROR}You need {repair_cost} gold to repair the {item_to_repair.name}, but you only have {player.runtime_state.gold}.{FORMAT_RESET}"
+    if player.runtime_state.gold < repair_cost: return f"{FORMAT_ERROR}You need {repair_cost} {world.currency_name()} to repair the {item_to_repair.name}, but you only have {player.runtime_state.gold}.{FORMAT_RESET}"
 
     player.runtime_state.gold -= repair_cost
     item_to_repair.update_property("durability", item_to_repair.get_property("max_durability"))
-    return f"{FORMAT_SUCCESS}You pay {repair_cost} gold. {repair_npc.name} repairs your {item_to_repair.name} to perfect condition.{FORMAT_RESET}\nYour Gold: {player.runtime_state.gold}"
+    return f"{FORMAT_SUCCESS}You pay {repair_cost} {world.currency_name()}. {repair_npc.name} repairs your {item_to_repair.name} to perfect condition.{FORMAT_RESET}\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}"
 
 @command("repaircost", ["checkrepair", "rcost"], "interaction", "Check the cost to repair an item.\nUsage: repaircost <item_name>", ruleset_system="economy")
 def repaircost_handler(args, context):
@@ -357,4 +357,4 @@ def repaircost_handler(args, context):
     
     if repair_cost == 0: return f"Your {item_to_check.name} does not need repairing."
     
-    return f"{repair_npc.name} quotes a price of {FORMAT_HIGHLIGHT}{repair_cost} gold{FORMAT_RESET} to fully repair your {item_to_check.name}."
+    return f"{repair_npc.name} quotes a price of {FORMAT_HIGHLIGHT}{repair_cost} {world.currency_name()}{FORMAT_RESET} to fully repair your {item_to_check.name}."

@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 from engine.campaign.campaign_manager import CampaignManager
 from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, DEFAULT_SAVE_FILE, WORLD_UPDATE_INTERVAL,
-    REP_KILL_PENALTY_SAME_FACTION, REP_KILL_REWARD_HOSTILE, FORMAT_SUCCESS
+    REP_KILL_PENALTY_SAME_FACTION, REP_KILL_REWARD_HOSTILE, FORMAT_SUCCESS, DEFAULT_CURRENCY_NAME
 )
 # UPDATED IMPORT
 from engine.core.quests import QuestManager
@@ -124,6 +124,12 @@ class World:
     def ruleset_section(self, name: str) -> dict[str, Any]:
         raw = self.content_set.ruleset.get(name, {})
         return raw if isinstance(raw, dict) else {}
+
+    def currency_name(self) -> str:
+        """Display name for this content set's currency (e.g. "gold", "credits")."""
+        raw = self.ruleset_section("economy").get("currency_name")
+        name = raw.strip() if isinstance(raw, str) else ""
+        return name or DEFAULT_CURRENCY_NAME
 
     def initialize_content_player(self, player: Any) -> None:
         """Apply authored starting state to a newly created player only."""

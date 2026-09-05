@@ -4,18 +4,32 @@ Core system for managing in-game time, date, and seasons.
 Refactored to use Delta Time (dt) for stable simulation.
 """
 import time
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from engine.config import (TIME_DAWN_HOUR, TIME_DAY_NAMES,
+from engine.config import (TIME_DAWN_HOUR, DEFAULT_TIME_DAY_NAMES,
                          TIME_DAYS_PER_MONTH, TIME_DUSK_HOUR,
-                         TIME_MONTH_NAMES,
+                         DEFAULT_TIME_MONTH_NAMES,
                          TIME_MONTHS_PER_YEAR, TIME_NIGHT_HOUR,
                          TIME_REAL_SECONDS_PER_GAME_DAY, TIME_UPDATE_THRESHOLD)
 from engine.config.config_game import TIME_AFTERNOON_HOUR, TIME_MORNING_HOUR
 
 
+def _resolve_calendar_names(world, key: str, default: List[str]) -> List[str]:
+    if world is None:
+        return default
+    ruleset_section = getattr(world, "ruleset_section", None)
+    if ruleset_section is None:
+        return default
+    names = ruleset_section("calendar").get(key)
+    if isinstance(names, list) and names and all(isinstance(n, str) and n for n in names):
+        return names
+    return default
+
+
 class TimeManager:
-    def __init__(self):
+    def __init__(self, world=None):
+        self.day_names: List[str] = _resolve_calendar_names(world, "day_names", DEFAULT_TIME_DAY_NAMES)
+        self.month_names: List[str] = _resolve_calendar_names(world, "month_names", DEFAULT_TIME_MONTH_NAMES)
         self.game_time: float = 0.0
         self.hour: int = 12
         self.minute: int = 0
@@ -84,8 +98,8 @@ class TimeManager:
             self.current_time_period = "dusk"
 
     def _update_time_data_for_ui(self):
-        day_name = TIME_DAY_NAMES[(self.day - 1) % len(TIME_DAY_NAMES)]
-        month_name = TIME_MONTH_NAMES[(self.month - 1) % len(TIME_MONTH_NAMES)]
+        day_name = self.day_names[(self.day - 1) % len(self.day_names)]
+        month_name = self.month_names[(self.month - 1) % len(self.month_names)]
         seasons = ["winter", "spring", "summer", "fall"]
         season_idx = (self.month - 1) * len(seasons) // TIME_MONTHS_PER_YEAR
         self.time_data = {

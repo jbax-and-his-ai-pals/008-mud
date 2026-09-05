@@ -196,7 +196,7 @@ class QuestManager:
         msgs = []
         xp = rewards.get("xp", 0); gold = rewards.get("gold", 0)
         if xp > 0: _, msg = player.gain_experience(xp); msgs.append(f"{xp} XP"); 
-        if gold > 0: player.runtime_state.gold += gold; msgs.append(f"{gold} Gold")
+        if gold > 0: player.runtime_state.gold += gold; msgs.append(f"{gold} {self.world.currency_name().capitalize()}")
         if "items" in rewards:
             for d in rewards["items"]:
                 it = ItemFactory.create_item_from_template(d["item_id"], player.world)

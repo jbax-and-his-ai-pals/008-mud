@@ -13,7 +13,10 @@ PLAYER_BASE_MANA_REGEN_RATE = 1.0
 PLAYER_BASE_HEALTH_REGEN_RATE = 1.0
 PLAYER_MAX_COMBAT_MESSAGES = 10
 PLAYER_DEFAULT_MAX_TOTAL_SUMMONS = 100
-DEFAULT_PLAYER_NAME = 'Adventurer'
+# Neutral fallback for the player's starting class/role label, shown until a
+# content set names its own via "player_defaults.player_class" in its
+# ruleset (see fantasy_frontier's ruleset.json for a worked example).
+DEFAULT_PLAYER_CLASS_NAME = "Player"
 
 # --- Player Health Calculation ---
 PLAYER_BASE_HEALTH = 80

@@ -91,7 +91,7 @@ def rules_handler(args, context):
     game_name = dealer.properties.get('dealer_game', 'Unknown').replace('_', ' ').title()
     return f"{FORMAT_TITLE}Game Rules: {game_name}{FORMAT_RESET}\n{rules_text}"
 
-@command("bet", ["gamble", "wager"], "interaction", "Bet gold on a game of chance.\nUsage: bet <amount>", ruleset_system="economy")
+@command("bet", ["gamble", "wager"], "interaction", "Bet your currency on a game of chance.\nUsage: bet <amount>", ruleset_system="economy")
 def bet_handler(args, context):
     world = context["world"]
     player = context.get('player')
@@ -112,7 +112,7 @@ def bet_handler(args, context):
         if amount <= 0: return f"{FORMAT_ERROR}You must bet a positive amount.{FORMAT_RESET}"
     except ValueError: return f"{FORMAT_ERROR}Invalid amount.{FORMAT_RESET}"
     
-    if player.runtime_state.gold < amount: return f"{FORMAT_ERROR}You don't have enough gold (Have: {player.runtime_state.gold}).{FORMAT_RESET}"
+    if player.runtime_state.gold < amount: return f"{FORMAT_ERROR}You don't have enough {world.currency_name()} (Have: {player.runtime_state.gold}).{FORMAT_RESET}"
 
     dealer = None
     for npc in world.get_npcs_for_player(player):
@@ -157,8 +157,9 @@ def hit_handler(args, context):
     
     if val > 21:
         amount = game_state["bet"]
+        currency = player.world.currency_name()
         msg += f"\n{FORMAT_ERROR}Bust! You went over 21.{FORMAT_RESET}"
-        msg += f"\nYou lose {amount} gold. (Gold: {player.runtime_state.gold})"
+        msg += f"\nYou lose {amount} {currency}. ({currency.capitalize()}: {player.runtime_state.gold})"
         player.active_minigame = None
     return msg
 
@@ -187,10 +188,11 @@ def stand_handler(args, context):
         dealer_val = get_hand_value(game_state["dealer_hand"])
         msg.append(f"Dealer draws {format_hand([card])}. Total: {dealer_val}")
         
+    currency = world.currency_name()
     if dealer_val > 21:
         player.runtime_state.gold += amount
         routing = _grant_party_profit(world, player, amount)
-        msg.append(f"{FORMAT_SUCCESS}Dealer busts! You win {amount} gold!{FORMAT_RESET}")
+        msg.append(f"{FORMAT_SUCCESS}Dealer busts! You win {amount} {currency}!{FORMAT_RESET}")
     elif dealer_val > player_val:
         msg.append(f"{FORMAT_ERROR}Dealer wins.{FORMAT_RESET} ({dealer_val} vs {player_val})")
     elif dealer_val < player_val:
@@ -205,7 +207,7 @@ def stand_handler(args, context):
         if routing:
             msg.append(routing)
     player.active_minigame = None
-    msg.append(f"(Gold: {player.runtime_state.gold})")
+    msg.append(f"({currency.capitalize()}: {player.runtime_state.gold})")
     return "\n".join(msg)
 
 @command("guess", [], "gambling", "Make a guess in Runebreaker.\nUsage: guess <element1> <element2> <element3>", ruleset_system="economy")
@@ -261,13 +263,14 @@ def guess_handler(args, context):
         routing = _grant_party_profit(world, player, winnings - amount)
         player.active_minigame = None
         extra = f"\n{routing}" if routing else ""
-        return f"{result_msg}\n{FORMAT_SUCCESS}*** CODE BROKEN! ***{FORMAT_RESET}\nThe Vault opens! You win {winnings} gold!{extra} (Gold: {player.runtime_state.gold})"
-        
+        currency = world.currency_name()
+        return f"{result_msg}\n{FORMAT_SUCCESS}*** CODE BROKEN! ***{FORMAT_RESET}\nThe Vault opens! You win {winnings} {currency}!{extra} ({currency.capitalize()}: {player.runtime_state.gold})"
+
     if game_state["attempts_left"] <= 0:
         amount = game_state["bet"]
         secret_display = " ".join([f"{RUNE_COLORS[r]}{r.upper()}{FORMAT_RESET}" for r in secret])
         player.active_minigame = None
-        return f"{result_msg}\n{FORMAT_ERROR}Out of attempts!{FORMAT_RESET}\nThe code was: {secret_display}.\nYou lose {amount} gold."
+        return f"{result_msg}\n{FORMAT_ERROR}Out of attempts!{FORMAT_RESET}\nThe code was: {secret_display}.\nYou lose {amount} {world.currency_name()}."
         
     return f"{result_msg}\nAttempts remaining: {game_state['attempts_left']}"
 
@@ -287,7 +290,8 @@ def _start_blackjack(player, dealer, amount):
         "room_id": player.current_room_id
     }
     
-    msg = f"You place {amount} gold. {dealer.name} deals.\nDealer: {format_hand(d_hand, hide_first=True)}\nYou:    {format_hand(p_hand)} ({get_hand_value(p_hand)})"
+    currency = player.world.currency_name()
+    msg = f"You place {amount} {currency}. {dealer.name} deals.\nDealer: {format_hand(d_hand, hide_first=True)}\nYou:    {format_hand(p_hand)} ({get_hand_value(p_hand)})"
     if get_hand_value(p_hand) == 21:
         player.active_minigame = None
         if get_hand_value(d_hand) == 21: player.runtime_state.gold += amount; return msg + f"\n{FORMAT_HIGHLIGHT}Push.{FORMAT_RESET}"
@@ -296,7 +300,7 @@ def _start_blackjack(player, dealer, amount):
             player.runtime_state.gold += amount
             routing = _grant_party_profit(player.world, player, win)
             extra = f"\n{routing}" if routing else ""
-            return msg + f"\n{FORMAT_SUCCESS}BLACKJACK! Win {win} gold!{FORMAT_RESET}{extra}"
+            return msg + f"\n{FORMAT_SUCCESS}BLACKJACK! Win {win} {currency}!{FORMAT_RESET}{extra}"
     return msg + f"\nType '{FORMAT_HIGHLIGHT}hit{FORMAT_RESET}' or '{FORMAT_HIGHLIGHT}stand{FORMAT_RESET}'."
 
 def _start_runebreaker(player, dealer, amount):
@@ -313,7 +317,7 @@ def _start_runebreaker(player, dealer, amount):
     }
     
     msg = [
-        f"You pay the {amount} gold entry fee to access The Vault.",
+        f"You pay the {amount} {player.world.currency_name()} entry fee to access The Vault.",
         f"{dealer.name} seals the door. Three magical tumblers spin and lock.",
         f"\"You have 8 attempts to deduce the sequence of 3 Runes.\"",
         f"\"Valid Runes: {FORMAT_RED}FIRE{FORMAT_RESET}, {FORMAT_BLUE}WATER{FORMAT_RESET}, {FORMAT_GREEN}EARTH{FORMAT_RESET}, {FORMAT_CYAN}AIR{FORMAT_RESET}.\"",
@@ -322,23 +326,24 @@ def _start_runebreaker(player, dealer, amount):
     return "\n".join(msg)
 
 def _play_dice_high_roll(player, dealer, amount):
-    # DEDUCT GOLD FOR BET
+    # DEDUCT CURRENCY FOR BET
     player.runtime_state.gold -= amount
-    
+    currency = player.world.currency_name()
+
     player_roll = random.randint(1, 100)
     dealer_roll = random.randint(1, 100)
-    msg = [f"You place {amount} gold.", f"{FORMAT_HIGHLIGHT}You roll {player_roll}.{FORMAT_RESET}", f"{FORMAT_HIGHLIGHT}Dealer rolls {dealer_roll}.{FORMAT_RESET}"]
-    
-    if player_roll > dealer_roll: 
+    msg = [f"You place {amount} {currency}.", f"{FORMAT_HIGHLIGHT}You roll {player_roll}.{FORMAT_RESET}", f"{FORMAT_HIGHLIGHT}Dealer rolls {dealer_roll}.{FORMAT_RESET}"]
+
+    if player_roll > dealer_roll:
         player.runtime_state.gold += amount
         routing = _grant_party_profit(player.world, player, amount)
         msg.append(f"{FORMAT_SUCCESS}You win!{FORMAT_RESET}")
         if routing:
             msg.append(routing)
-    else: 
+    else:
         msg.append(f"{FORMAT_ERROR}You lose.{FORMAT_RESET}")
-    
-    msg.append(f"(Gold: {player.runtime_state.gold})")
+
+    msg.append(f"({currency.capitalize()}: {player.runtime_state.gold})")
     return "\n".join(msg)
 
 def _play_slots(player, dealer, amount):
@@ -347,18 +352,19 @@ def _play_slots(player, dealer, amount):
     reel1 = random.choices(symbols, weights=weights, k=1)[0]; reel2 = random.choices(symbols, weights=weights, k=1)[0]; reel3 = random.choices(symbols, weights=weights, k=1)[0]
     r1_disp = f"{colors[reel1]}{reel1}{FORMAT_RESET}"; r2_disp = f"{colors[reel2]}{reel2}{FORMAT_RESET}"; r3_disp = f"{colors[reel3]}{reel3}{FORMAT_RESET}"
     msg = [f"{FORMAT_TITLE}| {r1_disp} | {r2_disp} | {r3_disp} |{FORMAT_RESET}"]
+    currency = player.world.currency_name()
     player.runtime_state.gold -= amount
     if reel1 == reel2 == reel3:
         mult = 100 if reel1 == "[DRG]" else (25 if reel1 == "[CWN]" else (15 if reel1 == "[POT]" else (10 if reel1 == "[SHD]" else 5)))
         player.runtime_state.gold += amount
         routing = _grant_party_profit(player.world, player, amount * max(0, mult - 1))
-        msg.append(f"{FORMAT_SUCCESS}Jackpot! {amount*mult} gold!{FORMAT_RESET}")
+        msg.append(f"{FORMAT_SUCCESS}Jackpot! {amount*mult} {currency}!{FORMAT_RESET}")
         if routing:
             msg.append(routing)
     elif (reel1 == reel2) or (reel2 == reel3) or (reel1 == reel3):
         player.runtime_state.gold += amount; msg.append(f"{FORMAT_HIGHLIGHT}Pair. Bet returned.{FORMAT_RESET}")
     else: msg.append(f"{FORMAT_ERROR}No match.{FORMAT_RESET}")
-    msg.append(f"(Gold: {player.runtime_state.gold})")
+    msg.append(f"({currency.capitalize()}: {player.runtime_state.gold})")
     return "\n".join(msg)
 
 def _play_elemental_wheel(player, dealer, amount):
@@ -372,4 +378,4 @@ def _play_elemental_wheel(player, dealer, amount):
     msg += f"{FORMAT_SUCCESS}Win {winnings}!{FORMAT_RESET}" if result[1] > 0 else f"{FORMAT_ERROR}Loss.{FORMAT_RESET}"
     if routing:
         msg += f"\n{routing}"
-    return msg + f" (Gold: {player.runtime_state.gold})"
+    return msg + f" ({player.world.currency_name().capitalize()}: {player.runtime_state.gold})"

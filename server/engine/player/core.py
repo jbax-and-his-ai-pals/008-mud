@@ -4,12 +4,12 @@ import random
 from typing import List, Dict, Optional, Any, Tuple, Set, TYPE_CHECKING, cast
 
 from engine.config import (
-    DEFAULT_INVENTORY_MAX_SLOTS, DEFAULT_INVENTORY_MAX_WEIGHT, EQUIPMENT_SLOTS, EQUIPMENT_VALID_SLOTS_BY_TYPE, 
+    DEFAULT_INVENTORY_MAX_SLOTS, DEFAULT_INVENTORY_MAX_WEIGHT, EQUIPMENT_SLOTS, EQUIPMENT_VALID_SLOTS_BY_TYPE,
     PLAYER_BASE_ATTACK_COOLDOWN,
-    PLAYER_BASE_ATTACK_POWER, PLAYER_BASE_DEFENSE, PLAYER_BASE_HEALTH, PLAYER_BASE_HEALTH_REGEN_RATE, 
+    PLAYER_BASE_ATTACK_POWER, PLAYER_BASE_DEFENSE, PLAYER_BASE_HEALTH, PLAYER_BASE_HEALTH_REGEN_RATE,
     PLAYER_BASE_MANA_REGEN_RATE, PLAYER_BASE_XP_TO_LEVEL, PLAYER_CON_HEALTH_MULTIPLIER,
     PLAYER_DEFAULT_MAX_MANA, PLAYER_DEFAULT_MAX_TOTAL_SUMMONS, PLAYER_DEFAULT_NAME,
-    PLAYER_DEFAULT_STATS, PLAYER_MANA_REGEN_WISDOM_DIVISOR,
+    PLAYER_DEFAULT_STATS, PLAYER_MANA_REGEN_WISDOM_DIVISOR, DEFAULT_PLAYER_CLASS_NAME,
     PLAYER_MAX_COMBAT_MESSAGES, PLAYER_REGEN_TICK_INTERVAL, PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR
 )
 from engine.game_object import GameObject
@@ -55,7 +55,10 @@ class Player(
         self.max_health = PLAYER_BASE_HEALTH + int(self.stats.get('constitution', 10)) * PLAYER_CON_HEALTH_MULTIPLIER
         self.health = self.max_health
         self.runtime_state.progression.level = 1
-        self.runtime_state.progression.player_class = "Adventurer"
+        player_class = world.ruleset_section("player_defaults").get("player_class")
+        self.runtime_state.progression.player_class = (
+            player_class if isinstance(player_class, str) and player_class else DEFAULT_PLAYER_CLASS_NAME
+        )
         self.runtime_state.progression.experience = 0
         self.runtime_state.progression.experience_to_level = PLAYER_BASE_XP_TO_LEVEL
         

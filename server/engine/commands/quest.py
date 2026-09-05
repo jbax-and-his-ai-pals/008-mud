@@ -51,7 +51,7 @@ def look_board_handler(args, context):
         
         response += (f"{FORMAT_CATEGORY}[{i + 1}]{FORMAT_RESET} {quest_data.get('title', 'Unnamed Quest')}{FORMAT_HIGHLIGHT}{quantity_summary}{FORMAT_RESET}\n"
                     f"   Giver: {giver_name}\n"
-                    f"   Reward: {rewards.get('xp', 0)} XP, {rewards.get('gold', 0)} Gold\n\n")
+                    f"   Reward: {rewards.get('xp', 0)} XP, {rewards.get('gold', 0)} {world.currency_name().capitalize()}\n\n")
         
     response += f"Type '{FORMAT_HIGHLIGHT}accept quest <#>{FORMAT_RESET}' to take a task."
     return response

@@ -25,15 +25,11 @@ TIME_REAL_SECONDS_PER_GAME_DAY = 1200  # 20 minutes
 TIME_DAYS_PER_WEEK = 7
 TIME_DAYS_PER_MONTH = 30
 TIME_MONTHS_PER_YEAR = 12
-TIME_DAY_NAMES = [
-    "Moonday", "Tideday", "Windday", "Thunderday",
-    "Fireday", "Starday", "Sunday"
-]
-TIME_MONTH_NAMES = [
-    "Deepwinter", "Icemelt", "Springbloom", "Rainshower",
-    "Meadowgrow", "Highsun", "Fireheat", "Goldenfield",
-    "Harvestide", "Leaffall", "Frostwind", "Darknight"
-]
+# Generic, content-neutral fallback names. Content sets override these via
+# a "calendar" ruleset section ({"day_names": [...], "month_names": [...]})
+# -- see TimeManager, which resolves the override at construction time.
+DEFAULT_TIME_DAY_NAMES = [f"Day {i}" for i in range(1, TIME_DAYS_PER_WEEK + 1)]
+DEFAULT_TIME_MONTH_NAMES = [f"Month {i}" for i in range(1, TIME_MONTHS_PER_YEAR + 1)]
 
 # --- REVISED TIME PERIOD THRESHOLDS ---
 TIME_DAWN_HOUR = 5      # Dawn starts at 5:00

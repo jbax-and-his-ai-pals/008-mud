@@ -15,7 +15,7 @@ def sethealth_handler(args, context):
         return f"{FORMAT_SUCCESS}Health set to {player.health}.{FORMAT_RESET}"
     except ValueError: return "Invalid number."
 
-@command("setgold", ["gold"], "debug", "Set gold amount.\nUsage: setgold <amount>")
+@command("setgold", ["gold"], "debug", "Set currency amount.\nUsage: setgold <amount>")
 def setgold_handler(args, context):
     player = context.get("player")
     if not player or not args: return f"{FORMAT_ERROR}Usage: setgold <amount>{FORMAT_RESET}"
@@ -23,7 +23,8 @@ def setgold_handler(args, context):
         val = int(args[0])
         if val < 0: return f"{FORMAT_ERROR}Amount cannot be negative.{FORMAT_RESET}"
         player.runtime_state.gold = val
-        return f"{FORMAT_SUCCESS}Gold set to {val}.{FORMAT_RESET}"
+        currency = context["world"].currency_name().capitalize()
+        return f"{FORMAT_SUCCESS}{currency} set to {val}.{FORMAT_RESET}"
     except ValueError: return "Invalid number."
 
 @command("level", ["levelup"], "debug", "Level up player.\nUsage: level [count]")

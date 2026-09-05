@@ -1,8 +1,8 @@
 # engine/commands/information.py
 from engine.commands.command_system import command
 from engine.config import (
-    FORMAT_TITLE, FORMAT_RESET, TIME_DAY_NAMES, TIME_MONTHS_PER_YEAR,
-    TIME_DAYS_PER_WEEK, TIME_DAYS_PER_MONTH, TIME_MONTH_NAMES
+    FORMAT_TITLE, FORMAT_RESET, TIME_MONTHS_PER_YEAR,
+    TIME_DAYS_PER_WEEK, TIME_DAYS_PER_MONTH
 )
 from engine.config.config_display import FORMAT_HIGHLIGHT
 from engine.core.skill_system import MAX_SKILL_LEVEL, SkillSystem
@@ -35,8 +35,8 @@ def calendar_handler(args, context):
     response += f"Days in a month: {TIME_DAYS_PER_MONTH}\n"
     response += f"Months in a year: {TIME_MONTHS_PER_YEAR}\n\n"
     
-    response += f"{FORMAT_TITLE}Day Names:{FORMAT_RESET}\n" + ", ".join(TIME_DAY_NAMES) + "\n\n"
-    response += f"{FORMAT_TITLE}Month Names:{FORMAT_RESET}\n" + ", ".join(TIME_MONTH_NAMES) + "\n"
+    response += f"{FORMAT_TITLE}Day Names:{FORMAT_RESET}\n" + ", ".join(game.time_manager.day_names) + "\n\n"
+    response += f"{FORMAT_TITLE}Month Names:{FORMAT_RESET}\n" + ", ".join(game.time_manager.month_names) + "\n"
     
     return response
 

@@ -8,7 +8,7 @@ from engine.magic.spell import Spell
 from engine.magic.spell_registry import get_spell
 from engine.magic.effects import apply_spell_effect
 from engine.npcs.npc import NPC
-from engine.config import FORMAT_ERROR, FORMAT_RESET
+from engine.config import FORMAT_ERROR, FORMAT_RESET, DEFAULT_CURRENCY_NAME
 from engine.utils.utils import calculate_xp_gain, format_loot_drop_message
 
 if TYPE_CHECKING:
@@ -150,7 +150,8 @@ class PlayerMagicMixin:
                  else:
                      if gold_dropped > 0 and p.runtime_state.gold is not None:
                          p.runtime_state.gold += gold_dropped
-                         results.append(f"You find {gold_dropped} gold.")
+                         currency = target_world.currency_name() if target_world else DEFAULT_CURRENCY_NAME
+                         results.append(f"You find {gold_dropped} {currency}.")
                      if final_xp > 0 and p.runtime_state.progression is not None:
                          p.gain_experience(final_xp)
                          results.append(f"You gain {final_xp} experience!")

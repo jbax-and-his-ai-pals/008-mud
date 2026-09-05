@@ -25,20 +25,12 @@ QUEST_SYSTEM_CONFIG = {
     "kill_quest_quantity_per_level": 0.5,
     "fetch_quest_quantity_base": 5,
     "fetch_quest_quantity_per_level": 1,
-    # NPC Quest Giver Interests
-    "npc_quest_interests": {
-        "blacksmith": ["kill", "deliver", "fetch", "kill_nearby_threats", "fetch_materials_metal", "fetch_materials_ore", "fetch_materials_hide", "fetch_simple", "kill_pests"],
-        "tavern_keeper": ["kill", "deliver", "fetch", "fetch_ingredients", "fetch_consumables", "kill_pests", "deliver_messages", "fetch_simple"],
-        "merchant": ["kill", "deliver", "fetch", "fetch_trade_goods", "deliver_cargo", "kill_bandits", "fetch_materials_rare", "fetch_simple", "deliver_local"],
-        "village_elder": ["kill", "deliver", "fetch", "kill_major_threats", "investigate_problems", "deliver_official", "fetch_historical", "kill_nearby_threats", "deliver_local"],
-        "guard": ["kill", "deliver", "fetch", "kill_any_hostile", "patrol_area", "deliver_reports", "kill_nearby_threats"],
-        "villager": ["kill", "deliver", "fetch", "fetch_simple", "kill_pests", "deliver_local", "fetch_ingredients"]
-    },
-    # Mapping from broad quest types to specific interests
-    "quest_type_interest_map": {
-        "kill": ["kill_nearby_threats", "kill_pests", "kill_major_threats", "kill_any_hostile", "kill_bandits"],
-        "fetch": ["fetch_materials_metal", "fetch_materials_ore", "fetch_materials_hide", "fetch_ingredients", "fetch_consumables", "fetch_trade_goods", "fetch_materials_rare", "fetch_historical", "fetch_simple"],
-        "deliver": ["deliver_messages", "deliver_cargo", "deliver_official", "deliver_local", "deliver_reports"]
-    },
+    # NPC Quest Giver Interests: which quest types/tags a given NPC template
+    # is willing to offer, used as a fallback when a template doesn't declare
+    # its own properties.quest_interests. Content sets provide their own via
+    # the "quest_generation.npc_quest_interests" ruleset section -- the
+    # engine ships no default here since template ids and interest tags are
+    # entirely content-defined vocabulary.
+    "npc_quest_interests": {},
     "debug": True
 }

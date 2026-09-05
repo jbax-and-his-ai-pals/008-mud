@@ -3,6 +3,7 @@
   "world_mode": "single_player_story",
   "progression_model": "level_based",
   "player_defaults": {
+    "player_class": "Adventurer",
     "magic": { "known_spells": ["magic_missile", "minor_heal"] },
     "starting_inventory": [
       { "item_id": "item_starter_dagger", "quantity": 1 },
@@ -10,10 +11,110 @@
     ]
   },
   "quest_generation": {
-    "quest_board_locations": ["town:town_square", "portbridge:harbor_district"]
+    "quest_board_locations": ["town:town_square", "portbridge:harbor_district"],
+    "npc_quest_interests": {
+      "blacksmith": ["kill", "deliver", "fetch", "kill_nearby_threats", "fetch_materials_metal", "fetch_materials_ore", "fetch_materials_hide", "fetch_simple", "kill_pests"],
+      "tavern_keeper": ["kill", "deliver", "fetch", "fetch_ingredients", "fetch_consumables", "kill_pests", "deliver_messages", "fetch_simple"],
+      "merchant": ["kill", "deliver", "fetch", "fetch_trade_goods", "deliver_cargo", "kill_bandits", "fetch_materials_rare", "fetch_simple", "deliver_local"],
+      "village_elder": ["kill", "deliver", "fetch", "kill_major_threats", "investigate_problems", "deliver_official", "fetch_historical", "kill_nearby_threats", "deliver_local"],
+      "guard": ["kill", "deliver", "fetch", "kill_any_hostile", "patrol_area", "deliver_reports", "kill_nearby_threats"],
+      "villager": ["kill", "deliver", "fetch", "fetch_simple", "kill_pests", "deliver_local", "fetch_ingredients"]
+    }
+  },
+  "economy": {
+    "currency_name": "gold"
+  },
+  "calendar": {
+    "day_names": ["Moonday", "Tideday", "Windday", "Thunderday", "Fireday", "Starday", "Sunday"],
+    "month_names": ["Deepwinter", "Icemelt", "Springbloom", "Rainshower", "Meadowgrow", "Highsun", "Fireheat", "Goldenfield", "Harvestide", "Leaffall", "Frostwind", "Darknight"]
   },
   "spawning": {
     "no_spawn_keywords": ["town_square", "tavern", "inn", "shop", "temple", "shrine", "home", "general_store", "blacksmith", "farmhouse_yard", "shepherds_hut"]
+  },
+  "npc_schedules": {
+    "excluded_name_keywords": ["guard"],
+    "room_categories": {
+      "homes": ["home", "house", "cottage"],
+      "taverns": ["tavern", "inn", "pub"],
+      "markets": ["market", "bazaar"],
+      "civic_area": ["square", "plaza", "center"],
+      "gardens": ["garden", "park"],
+      "work_areas": ["workshop", "forge", "mill"]
+    },
+    "roles": [
+      {
+        "id": "merchant",
+        "template_keywords": ["merchant", "shopkeeper"],
+        "location_slots": {
+          "work": { "type": "property_or_self", "property": "work_location" },
+          "home": { "type": "category", "categories": ["homes"], "exclude": "work", "fallback": "work" },
+          "social": { "type": "category", "categories": ["taverns"], "fallback": "home" }
+        },
+        "schedule": {
+          "7": { "activity": "waking up", "slot": "home" },
+          "8": { "activity": "opening shop", "slot": "work" },
+          "9": { "activity": "working", "slot": "work" },
+          "17": { "activity": "closing up", "slot": "work" },
+          "18": { "activity": "eating dinner", "slot": "social" },
+          "20": { "activity": "heading home", "slot": "home" },
+          "22": { "activity": "sleeping", "slot": "home" }
+        }
+      },
+      {
+        "id": "bartender",
+        "template_keywords": ["bartender"],
+        "location_slots": {
+          "work": { "type": "property_or_self", "property": "work_location" },
+          "home": { "type": "category", "categories": ["homes"], "exclude": "work", "fallback": "work" },
+          "market": { "type": "category", "categories": ["markets"], "fallback": "work" }
+        },
+        "schedule": {
+          "9": { "activity": "waking up", "slot": "home" },
+          "11": { "activity": "getting supplies", "slot": "market" },
+          "12": { "activity": "preparing the bar", "slot": "work" },
+          "14": { "activity": "working", "slot": "work" },
+          "23": { "activity": "closing up", "slot": "work" },
+          "0": { "activity": "walking home", "slot": "home" },
+          "1": { "activity": "sleeping", "slot": "home" }
+        }
+      },
+      {
+        "id": "elder",
+        "template_keywords": ["elder"],
+        "location_slots": {
+          "home": { "type": "self" },
+          "square": { "type": "category", "categories": ["civic_area"], "fallback": "home" },
+          "garden": { "type": "category", "categories": ["gardens"], "fallback": "square" }
+        },
+        "schedule": {
+          "8": { "activity": "meditating", "slot": "home" },
+          "10": { "activity": "counseling villagers", "slot": "square" },
+          "15": { "activity": "walking in the garden", "slot": "garden" },
+          "17": { "activity": "returning home", "slot": "home" },
+          "21": { "activity": "sleeping", "slot": "home" }
+        }
+      },
+      {
+        "id": "villager",
+        "template_keywords": ["villager"],
+        "location_slots": {
+          "home": { "type": "category", "categories": ["homes"] },
+          "work": { "type": "category", "categories": ["work_areas", "markets"], "exclude": "home", "fallback": "home" },
+          "social": { "type": "category", "categories": ["taverns", "civic_area"], "exclude": "home", "fallback": "home" }
+        },
+        "schedule": {
+          "7": { "activity": "waking up", "slot": "home" },
+          "8": { "activity": "eating", "slot": "home" },
+          "9": { "activity": "going to work", "slot": "work" },
+          "10": { "activity": "working", "slot": "work" },
+          "13": { "activity": "lunch break", "slot": "social" },
+          "14": { "activity": "working", "slot": "work" },
+          "18": { "activity": "socializing", "slot": "social" },
+          "21": { "activity": "relaxing", "slot": "home" },
+          "22": { "activity": "sleeping", "slot": "home" }
+        }
+      }
+    ]
   },
   "systems": {
     "combat": { "enabled": true },
