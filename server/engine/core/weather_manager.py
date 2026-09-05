@@ -9,15 +9,25 @@ from engine.config import (WEATHER_INTENSITY_WEIGHTS, WEATHER_PERSISTENCE_CHANCE
                          WEATHER_TRANSITION_CHANGE_CHANCE)
 
 
+DEFAULT_WEATHER_CHANCES = {
+    "spring": {"clear": 0.4, "cloudy": 0.3, "rain": 0.3, "storm": 0.1},
+    "summer": {"clear": 0.6, "cloudy": 0.2, "rain": 0.1, "storm": 0.1},
+    "fall": {"clear": 0.3, "cloudy": 0.4, "rain": 0.2, "storm": 0.1},
+    "winter": {"clear": 0.5, "cloudy": 0.3, "snow": 0.2}
+}
+
+
 class WeatherManager:
-    def __init__(self):
-        # Default weather chances, can be customized or loaded
-        self.weather_chances = {
-            "spring": {"clear": 0.4, "cloudy": 0.3, "rain": 0.3, "storm": 0.1},
-            "summer": {"clear": 0.6, "cloudy": 0.2, "rain": 0.1, "storm": 0.1},
-            "fall": {"clear": 0.3, "cloudy": 0.4, "rain": 0.2, "storm": 0.1},
-            "winter": {"clear": 0.5, "cloudy": 0.3, "snow": 0.2}
-        }
+    def __init__(self, world=None):
+        # Content sets override the season->weather-type probability table
+        # via a "weather.chances" ruleset section; this is a reasonable,
+        # theme-neutral real-world default for content sets that don't.
+        chances = None
+        if world is not None:
+            raw = world.ruleset_section("weather").get("chances")
+            if isinstance(raw, dict) and raw:
+                chances = raw
+        self.weather_chances = chances or DEFAULT_WEATHER_CHANCES
         self.current_weather = "clear"
         self.current_intensity = "mild"
 

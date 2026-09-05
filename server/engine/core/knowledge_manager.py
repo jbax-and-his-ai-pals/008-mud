@@ -15,7 +15,10 @@ class KnowledgeManager:
         self.world = world
         self.content_root = world.content_root
         self.topics: Dict[str, Any] = {}
-        self.common_topics = ["job", "rumors"] 
+        # Topic ids always available to ask any NPC about, regardless of
+        # conversation history. No default here -- a content set declares
+        # its own via a top-level "__common_topics__" key in topics.json.
+        self.common_topics: List[str] = []
         self._warning_sink = warning_sink
         self._load_topics()
 
@@ -33,7 +36,14 @@ class KnowledgeManager:
         if os.path.exists(path):
             try:
                 with open(path, 'r') as f:
-                    self.topics = json.load(f)
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    common = data.pop("__common_topics__", None)
+                    self.topics = data
+                    if isinstance(common, list):
+                        self.common_topics = [str(t) for t in common if isinstance(t, str)]
+                else:
+                    self.topics = {}
             except Exception as e:
                 self._emit_warning(
                     "content.topics.load_error",

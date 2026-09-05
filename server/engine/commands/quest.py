@@ -22,19 +22,20 @@ def look_board_handler(args, context):
     quest_manager = world.quest_manager
 
     if not _is_player_at_quest_board(player, quest_manager):
-        return f"{FORMAT_ERROR}You don't see a quest board here.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}You don't see a {world.quest_board_name().lower()} here.{FORMAT_RESET}"
 
     available_quests = world.quest_board
 
+    board_name = world.quest_board_name()
     if not available_quests:
-        return "The quest board is currently empty."
+        return f"The {board_name.lower()} is currently empty."
 
-    response = f"{FORMAT_TITLE}Quest Board{FORMAT_RESET}\n" + "-"*20 + "\nAvailable Tasks:\n\n"
+    response = f"{FORMAT_TITLE}{board_name}{FORMAT_RESET}\n" + "-"*20 + "\nAvailable Tasks:\n\n"
     for i, quest_data in enumerate(available_quests):
         giver_instance_id = quest_data.get("giver_instance_id")
         rewards = quest_data.get("rewards", {})
-        
-        giver_name = "Quest Board Notice"
+
+        giver_name = f"{board_name} Notice"
         if giver_instance_id != "quest_board":
             giver_npc = world.get_npc(giver_instance_id) 
             giver_name = giver_npc.name if giver_npc else "Unknown"
@@ -202,7 +203,7 @@ def journal_handler(args, context):
              
              giver_npc = context["world"].get_npc(turn_in_target)
              giver_name = giver_npc.name if giver_npc else "Unknown"
-             if turn_in_target == "quest_board": giver_name = "Quest Board"
+             if turn_in_target == "quest_board": giver_name = context["world"].quest_board_name()
              
              response += f"{FORMAT_CATEGORY}{title}{FORMAT_RESET} (Report to: {giver_name})\n"
              state_display = quest_data.get("state", "unknown").replace('_', ' ').capitalize(); response += f"  Status: {state_display}\n"

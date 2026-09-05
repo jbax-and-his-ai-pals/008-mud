@@ -1,4 +1,5 @@
 {
+  "__common_topics__": ["job", "rumors"],
   "job": {
     "display_name": "My Trade",
     "keywords": ["job", "work", "trade", "occupation", "profession"],

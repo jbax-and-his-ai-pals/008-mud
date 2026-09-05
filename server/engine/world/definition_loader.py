@@ -7,7 +7,7 @@ import os
 import uuid
 from typing import TYPE_CHECKING
 
-from engine.config import FORMAT_ERROR, FORMAT_RESET
+from engine.config import FORMAT_ERROR, FORMAT_RESET, PLAYER_DEFAULT_NAME
 from engine.items.item_factory import ItemFactory
 from engine.magic.spell_registry import load_spells_from_json
 from engine.npcs.npc_factory import NPCFactory
@@ -186,7 +186,7 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
     world.player = None
     initial_player = None
     if not skip_initial_player:
-        initial_player = Player("Adventurer", world=world)
+        initial_player = Player(PLAYER_DEFAULT_NAME, world=world)
         initial_player.world = world
         world.initialize_content_player(initial_player)
         world.player = initial_player

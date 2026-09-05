@@ -216,7 +216,7 @@ class CommandProcessor:
         help_text += f"{FORMAT_TITLE}Getting Started Examples:{FORMAT_RESET}\n"
         help_text += f"  - {FORMAT_HIGHLIGHT}look{FORMAT_RESET}\n"
         help_text += f"  - {FORMAT_HIGHLIGHT}north{FORMAT_RESET} (or {FORMAT_HIGHLIGHT}n{FORMAT_RESET})\n"
-        help_text += f"  - {FORMAT_HIGHLIGHT}take potion{FORMAT_RESET}\n"
+        help_text += f"  - {FORMAT_HIGHLIGHT}take <item>{FORMAT_RESET}\n"
         help_text += f"  - {FORMAT_HIGHLIGHT}inventory{FORMAT_RESET}\n\n"
         help_text += f"{FORMAT_TITLE}Other Tips:{FORMAT_RESET}\n"
         help_text += "  - Use Up/Down arrows for command history.\n"

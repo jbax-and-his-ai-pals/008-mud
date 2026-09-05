@@ -56,14 +56,18 @@ def weather_handler(args, context):
     if not is_outdoors:
         return f"You can't see the weather from inside, but you can hear sounds indicating {weather_manager.current_weather} conditions outside."
     
-    weather_desc_map = {
+    # Content sets provide their own per-weather-type flavor text via a
+    # "weather.descriptions" ruleset section; this default is a plain,
+    # theme-neutral fallback.
+    default_weather_descriptions = {
         "clear": "The sky is clear and blue.",
         "cloudy": "Clouds fill the sky.",
         "rain": "Rain falls steadily.",
         "storm": "Thunder rumbles as a storm rages.",
         "snow": "Snowflakes drift down from the sky."
     }
-    description = weather_desc_map.get(weather_manager.current_weather, "The weather is unremarkable.")
+    weather_descriptions = world.ruleset_section("weather").get("descriptions") or default_weather_descriptions
+    description = weather_descriptions.get(weather_manager.current_weather, "The weather is unremarkable.")
     
     return f"Current Weather: {weather_manager.current_weather.capitalize()} ({weather_manager.current_intensity})\n\n{description}"
 

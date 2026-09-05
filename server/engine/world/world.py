@@ -133,6 +133,12 @@ class World:
         name = raw.strip() if isinstance(raw, str) else ""
         return name or DEFAULT_CURRENCY_NAME
 
+    def quest_board_name(self) -> str:
+        """Display name for this content set's quest board (e.g. "Job Board")."""
+        raw = self.ruleset_section("quest_generation").get("board_display_name")
+        name = raw.strip() if isinstance(raw, str) else ""
+        return name or "Quest Board"
+
     def initialize_content_player(self, player: Any) -> None:
         """Apply authored starting state to a newly created player only."""
         self.apply_content_player_defaults(player)

@@ -120,7 +120,7 @@ class HeadlessServer:
         # render, but `invmode` reads/writes it for parity with GameManager.
         self.inventory_mode = "hybrid"
         self.time_manager = TimeManager(self.world)
-        self.weather_manager = WeatherManager()
+        self.weather_manager = WeatherManager(self.world)
         self.crafting_manager = (
             CraftingManager(self.world)
             if self.world.has_capability("crafting")

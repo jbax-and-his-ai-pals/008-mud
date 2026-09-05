@@ -4,7 +4,7 @@ Configuration for the player character, including defaults, stats, and leveling.
 """
 
 # --- Player Defaults & Base Values ---
-PLAYER_DEFAULT_NAME = "Adventurer"
+PLAYER_DEFAULT_NAME = "Player"
 PLAYER_DEFAULT_MAX_MANA = 50
 PLAYER_BASE_ATTACK_POWER = 5
 PLAYER_BASE_DEFENSE = 3

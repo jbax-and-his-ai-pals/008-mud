@@ -48,7 +48,7 @@ class GameManager:
         self.crafting_manager = CraftingManager(self.world)
         self.command_processor = CommandProcessor()
         self.time_manager = TimeManager(self.world)
-        self.weather_manager = WeatherManager()
+        self.weather_manager = WeatherManager(self.world)
         self.renderer = Renderer(self.screen, self)
         self.input_handler = InputHandler(self, self.command_processor)
         self.ai_manager = AIManager(self)
@@ -227,7 +227,7 @@ class GameManager:
     def finalize_new_game(self):
         self.world.initialize_new_world()
         self.time_manager.initialize_time()
-        self.weather_manager = WeatherManager()
+        self.weather_manager = WeatherManager(self.world)
         
         if self.world.player:
             class_id = self.available_classes[self.selected_class_index]

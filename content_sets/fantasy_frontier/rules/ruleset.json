@@ -12,6 +12,7 @@
   },
   "quest_generation": {
     "quest_board_locations": ["town:town_square", "portbridge:harbor_district"],
+    "board_display_name": "Quest Board",
     "npc_quest_interests": {
       "blacksmith": ["kill", "deliver", "fetch", "kill_nearby_threats", "fetch_materials_metal", "fetch_materials_ore", "fetch_materials_hide", "fetch_simple", "kill_pests"],
       "tavern_keeper": ["kill", "deliver", "fetch", "fetch_ingredients", "fetch_consumables", "kill_pests", "deliver_messages", "fetch_simple"],

@@ -58,7 +58,7 @@ class QuestManager:
             
         giver = self.world.get_npc(giver_id)
         if giver: return giver.name
-        if giver_id == "quest_board": return "Quest Board"
+        if giver_id == "quest_board": return self.world.quest_board_name()
         
         if giver_id in self.world.npc_templates:
              return self.world.npc_templates[giver_id].get("name", "Quest Giver")

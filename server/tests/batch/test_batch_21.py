@@ -45,7 +45,7 @@ class TestBatch21(GameTestBase):
         self.assertFalse(success)
         self.assertIsNotNone(self.world.player)
         if self.world.player:
-            self.assertEqual(self.world.player.name, "Adventurer")
+            self.assertEqual(self.world.player.name, "Player")
 
     def test_quest_board_overflow_prevention(self):
         """Verify quest board doesn't exceed MAX_QUESTS."""

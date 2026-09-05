@@ -19,7 +19,6 @@ VENDOR_CAN_BUY_JUNK = True
 VENDOR_CAN_BUY_ALL_ITEMS = False # Should vendors only buy certain types?
 VENDOR_MIN_BUY_PRICE = 1         # Minimum price player pays when buying
 VENDOR_MIN_SELL_PRICE = 0        # Minimum price player gets when selling
-VENDOR_ID_HINTS = ["shop", "merchant", "bartender"] # Lowercase hints in NPC IDs
 
 # --- Repair Settings ---
 REPAIR_COST_PER_VALUE_POINT = 0.1 # e.g., 10% of item value to repair fully
