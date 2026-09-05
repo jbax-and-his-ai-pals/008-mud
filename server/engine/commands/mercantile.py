@@ -281,7 +281,10 @@ def sell_handler(args, context):
         response += f"\n{routing}"
     return response
 
-@command("stoptrade", ["stop", "done"], "interaction", "Stop trading with the current vendor.\nUsage: stoptrade", ruleset_system="economy")
+# "stop" is intentionally not an alias here -- system.py's general
+# "stop current automated action" command already owns that word (and
+# loads after this module), so it silently wins over this one.
+@command("stoptrade", ["done"], "interaction", "Stop trading with the current vendor.\nUsage: stoptrade", ruleset_system="economy")
 def stoptrade_handler(args, context):
     world = context["world"]; player = context.get('player')
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"

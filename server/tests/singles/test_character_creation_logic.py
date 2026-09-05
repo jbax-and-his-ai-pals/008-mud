@@ -1,4 +1,10 @@
 # tests/singles/test_character_creation_logic.py
+"""Note: GameManager.finalize_new_game()'s `if class_data:` guard around
+apply_class_template() is left untested in its False arm as unreachable --
+the preceding `if not class_data: ... return` already sends execution back
+to the title screen whenever class_data is falsy, so by the time this
+check runs class_data is guaranteed truthy."""
+
 from tests.fixtures import GameTestBase
 from typing import Dict, Any
 

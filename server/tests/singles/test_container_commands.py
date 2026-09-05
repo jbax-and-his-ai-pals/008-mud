@@ -4,7 +4,14 @@ handlers: dead-player and no-args guards, room-vs-inventory target lookup,
 non-container-target errors, put's preposition parsing (missing/malformed),
 item-not-found/container-not-found (room and inventory) lookups, the
 self-nesting and recursive-nesting guards, can_add rejection, and the
-successful-put/failed-add-back-to-inventory paths."""
+successful-put/failed-add-back-to-inventory paths.
+
+Note: put_handler's `except (ValueError, AttributeError):` around
+`.index(PUT_COMMAND_PREPOSITION)` is provably unreachable -- the preceding
+`if PUT_COMMAND_PREPOSITION not in [...]` check already guarantees
+`.index()` succeeds. Left untested as dead code, consistent with this
+codebase's established precedent (e.g. engine/commands/magic.py's
+cast_handler has the identical pattern)."""
 
 from unittest.mock import patch
 

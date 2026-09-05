@@ -5,7 +5,12 @@ without a viewer) and perform_minion_logic's remaining branches (no owner
 -> despawn, expired summon duration -> despawn, following an absent owner,
 assisting an owner mid-combat, intercepting an attacker targeting the
 owner, and attacking a hostile NPC when idle) -- most of which
-test_minion_complex.py's kill-credit-focused tests don't reach."""
+test_minion_complex.py's kill-credit-focused tests don't reach.
+
+Note: perform_minion_logic's `if my_loc == owner_loc:` False arm is left
+untested as unreachable -- the preceding `if my_loc != owner_loc: ...
+return perform_follow(...)` already returns whenever they differ, so by
+the time this check runs the locations are guaranteed equal."""
 
 import time
 from unittest.mock import patch

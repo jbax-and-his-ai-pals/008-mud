@@ -1,3 +1,14 @@
+"""Coverage for toolkit/mod_manifest_validator.py.
+
+Note: two branches are left untested as unreachable:
+- validate_mod_roots()'s `else: print(f"[WARN] ...")` arm -- every
+  ManifestIssue that validate_manifest()/validate_manifest_file() can
+  produce is constructed with severity="error"; the module defines no
+  "warn"-severity issue anywhere, so the else branch can never fire.
+- the module's `if __name__ == "__main__": main()` guard, which only runs
+  when the file is invoked directly as a script (consistent with this
+  codebase's established precedent for such guards)."""
+
 import io
 import json
 import shutil
@@ -27,6 +38,18 @@ VALID_MANIFEST = {
 
 
 class TestModManifestValidator(unittest.TestCase):
+    def test_parse_version_rejects_blank_string(self) -> None:
+        self.assertIsNone(mmv._parse_version(""))
+        self.assertIsNone(mmv._parse_version("   "))
+
+    def test_in_range_rejects_unparseable_current_version(self) -> None:
+        self.assertFalse(mmv._in_range("", "1.0", "2.0"))
+
+    def test_runtime_api_outside_supported_range_is_rejected(self) -> None:
+        payload = dict(VALID_MANIFEST, engine_api_min="2.0", engine_api_max="3.0")
+        issues = mmv.validate_manifest(payload, "sample")
+        self.assertTrue(any("outside supported range" in i.message for i in issues))
+
     def test_manifest_payload_validation_passes(self) -> None:
         payload = {
             "plugin_id": "sample_mod",

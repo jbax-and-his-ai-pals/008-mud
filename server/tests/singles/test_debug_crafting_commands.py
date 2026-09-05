@@ -2,6 +2,8 @@
 """Coverage for GM/debug crafting commands
 (engine/commands/debug_crafting.py): givemats, spawnstation."""
 
+from unittest.mock import patch
+
 from tests.fixtures import GameTestBase
 from engine.crafting.recipe import Recipe
 
@@ -17,6 +19,18 @@ class TestGivematsCommand(GameTestBase):
             "station_required": "anvil",
             "ingredients": [{"item_id": "item_iron_ingot", "quantity": 2}],
         })
+
+    def test_no_crafting_manager_is_reported(self):
+        with patch.object(self.world.game, "crafting_manager", None):
+            result = self.game.process_command("givemats test_sword")
+        self.assertEqual("Crafting system not loaded.", result)
+
+    def test_ingredient_creation_failure_is_skipped(self):
+        with patch(
+            "engine.commands.debug_crafting.ItemFactory.create_item_from_template", return_value=None,
+        ):
+            result = self.game.process_command("givemats test_sword")
+        self.assertIn("(0 items)", result)
 
     def test_no_args_shows_usage(self):
         self.assertIn("Usage", self.game.process_command("givemats"))
@@ -59,3 +73,10 @@ class TestSpawnstationCommand(GameTestBase):
         self.player.current_room_id = None
         result = self.game.process_command("spawnstation anvil")
         self.assertEqual("Player location is unavailable.", result)
+
+    def test_station_creation_failure_is_reported(self):
+        with patch(
+            "engine.commands.debug_crafting.ItemFactory.create_item_from_template", return_value=None,
+        ):
+            result = self.game.process_command("spawnstation anvil")
+        self.assertEqual("Failed to create station.", result)

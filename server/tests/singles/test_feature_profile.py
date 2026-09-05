@@ -121,5 +121,51 @@ class TestFeatureProfile(unittest.TestCase):
         self.assertFalse(any("single_player_story" in payload for payload in allowed_text))
 
 
+class TestFeatureProfileEdgeCases(unittest.TestCase):
+    def test_non_dict_category_value_falls_back_to_default(self) -> None:
+        profile = FeatureProfile.from_dict({"combat": "not a dict"})
+        self.assertEqual(profile.combat_mode, "enabled")
+
+    def test_load_with_no_path_returns_defaults(self) -> None:
+        profile = FeatureProfile.load(None)
+        self.assertEqual(profile.combat_mode, "enabled")
+
+    def test_load_with_missing_file_returns_defaults(self) -> None:
+        profile = FeatureProfile.load("/totally/bogus/missing/profile.json")
+        self.assertEqual(profile.combat_mode, "enabled")
+
+    def test_load_with_malformed_json_returns_defaults(self) -> None:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as tmp:
+            tmp.write("{not valid json")
+            tmp_path = tmp.name
+        try:
+            profile = FeatureProfile.load(tmp_path)
+        finally:
+            os.remove(tmp_path)
+        self.assertEqual(profile.combat_mode, "enabled")
+
+    def test_load_with_non_dict_json_returns_defaults(self) -> None:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", suffix=".json", delete=False) as tmp:
+            json.dump([1, 2, 3], tmp)
+            tmp_path = tmp.name
+        try:
+            profile = FeatureProfile.load(tmp_path)
+        finally:
+            os.remove(tmp_path)
+        self.assertEqual(profile.combat_mode, "enabled")
+
+    def test_set_mode_with_invalid_value_is_rejected(self) -> None:
+        profile = FeatureProfile()
+        success, msg = profile.set_mode("combat", "totally_bogus_mode")
+        self.assertFalse(success)
+        self.assertIn("Invalid mode", msg)
+
+    def test_permadeath_enabled(self) -> None:
+        profile = FeatureProfile(permadeath_mode="enabled")
+        self.assertTrue(profile.permadeath_enabled())
+        profile.permadeath_mode = "disabled"
+        self.assertFalse(profile.permadeath_enabled())
+
+
 if __name__ == "__main__":
     unittest.main()

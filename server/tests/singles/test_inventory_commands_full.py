@@ -2,9 +2,16 @@
 """Coverage for engine/commands/inventory.py's guard clauses and the
 entirely-untested unequip command: invmode's mode-setting/invalid-mode
 branches, status/equip's no-player guards, equip's dead-player guard and
-'to <slot>' preposition parsing (including its ValueError fallback), and
-unequip's no-args listing, slot-name-direct, exact/partial item-name
-matching, ambiguous-match, and not-found paths."""
+'to <slot>' preposition parsing, and unequip's no-args listing,
+slot-name-direct, exact/partial item-name matching, ambiguous-match, and
+not-found paths.
+
+Note: equip_handler's `except ValueError:` around
+`.index(EQUIP_COMMAND_SLOT_PREPOSITION)` is unreachable -- the preceding
+`if EQUIP_COMMAND_SLOT_PREPOSITION in [...]` check already guarantees the
+value is present, so `.index()` can never raise. Left untested as dead
+code, consistent with this codebase's established precedent (e.g.
+engine/commands/magic.py's cast_handler has the identical pattern)."""
 
 from tests.fixtures import GameTestBase
 from engine.items.weapon import Weapon

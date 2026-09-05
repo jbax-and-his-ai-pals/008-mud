@@ -3,7 +3,17 @@
 render(), its [[tag]] segment parser, and the pure helper functions
 get_level_diff_category() / format_target_name(). render() is exercised
 against a real (headless) pygame Surface+Font, matching the pattern already
-used by test_panel_content_player_context.py."""
+used by test_panel_content_player_context.py.
+
+Note: two branches are left untested as unreachable:
+- the `elif content == '[[/]]':` reset-color body -- DEFAULT_COLORS maps
+  FORMAT_RESET (== "[[/]]") to a color, so `if content in self.colors:`
+  (the very first branch in the chain) already matches and handles it;
+  the literal "[[/]]" string can never fall through to this elif.
+- the segment-loop's "matched neither 'format' nor 'text', fall through
+  to the next segment" arc -- _parse_segments() only ever tags a segment
+  as 'format' or 'text', so the if/elif chain covering exactly those two
+  values always matches one of them."""
 
 import unittest
 
@@ -91,6 +101,12 @@ class TestTextFormatterRender(unittest.TestCase):
 
     def test_render_reset_tag_restores_default_color(self):
         self.tf.render(self.surface, f"{FORMAT_RED}colored{FORMAT_RESET}[[/]]back to default", (10, 10))
+
+    def test_render_text_segment_followed_by_more_segments_on_the_same_line(self):
+        # A leading plain-text segment followed by a format tag exercises the
+        # loop continuing past a 'text' segment to a later segment on the
+        # same line, rather than a text segment always being the last one.
+        self.tf.render(self.surface, f"plain {FORMAT_RED}red{FORMAT_RESET}", (10, 10))
 
     def test_render_command_tag_creates_hotspot(self):
         self.tf.render(self.surface, "[[CMD:look sword]]sword[[/CMD]] on the table", (10, 10))

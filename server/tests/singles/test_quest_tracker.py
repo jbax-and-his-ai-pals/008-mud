@@ -2,7 +2,15 @@
 """Coverage for engine/core/quests/tracker.py: handle_npc_killed's standard-
 kill and group-kill objective tracking, and check_quest_completion's
 clear_region auto-completion flow (including the completion-NPC respawn and
-homeowner-returns message branches)."""
+homeowner-returns message branches).
+
+Note: _update_standard_kill's `if stages and idx < len(stages):` False arm
+is left untested as unreachable -- handle_npc_killed only ever reaches
+_update_standard_kill after manager.get_active_objective(quest_data)
+returned a non-None objective, and that method itself requires `stages`
+truthy and `idx` in-range to return anything at all, so both conditions
+are already guaranteed true on the same quest_data by the time
+_update_standard_kill re-checks them."""
 
 from unittest.mock import patch
 

@@ -5,7 +5,12 @@ reach: update2() returns early whenever llm_interface.pipe is falsy (always
 true by default, since model loading is disabled), so its queue-processing,
 staleness-discard, error-text, and thread-spawn branches need pipe forced
 truthy to exercise. Also covers _worker_generate_text() directly and the
-remaining guard branches in _create_context_stamp/_gather_context_for_llm."""
+remaining guard branches in _create_context_stamp/_gather_context_for_llm.
+
+Note: _gather_context_for_llm's `if not all([player, room, region]): return
+"Context Error..."` is left untested as unreachable -- the preceding `if
+not player or not room or not region: return "Error."` is the exact same
+condition spelled differently, so it always returns first."""
 
 import queue
 from unittest.mock import MagicMock, patch

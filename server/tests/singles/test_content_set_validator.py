@@ -143,5 +143,21 @@ class TestContentSetValidatorMain(unittest.TestCase):
         self.assertEqual(1, cm.exception.code)
 
 
+class TestServerRootPathInsertion(unittest.TestCase):
+    def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
+        import importlib
+
+        server_root = str(validator._SERVER_ROOT)
+        original_path = list(sys.path)
+        try:
+            sys.path[:] = [p for p in sys.path if p != server_root]
+            self.assertNotIn(server_root, sys.path)
+            importlib.reload(validator)
+            self.assertIn(server_root, sys.path)
+        finally:
+            sys.path[:] = original_path
+            importlib.reload(validator)
+
+
 if __name__ == "__main__":
     unittest.main()

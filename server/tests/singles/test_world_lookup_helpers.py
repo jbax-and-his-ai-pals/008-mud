@@ -108,9 +108,94 @@ class TestNoneAndEmptyGuardBranches(GameTestBase):
         self.world.player = None
         self.assertEqual("Player not loaded.", self.world.get_player_status())
 
+    def test_get_player_status_with_loaded_player(self):
+        result = self.world.get_player_status()
+        self.assertIn(self.player.name, result)
+
+    def test_get_room_description_for_display_delegates_to_generate_room_description(self):
+        result = self.world.get_room_description_for_display()
+        self.assertIn(self.player.current_room_id.replace("_", " ").upper(), result.upper())
+
+    def test_get_players_in_room_default_includes_dead_players(self):
+        self.player.is_alive = False
+        result = self.world.get_players_in_room(self.player.current_region_id, self.player.current_room_id)
+        self.assertIn(self.player, result)
+
+    def test_get_current_room_npcs_with_no_location(self):
+        player = self._blank_player()
+        self.assertEqual([], self.world.get_current_room_npcs(player))
+
+    def test_get_items_in_room_unknown_region(self):
+        self.assertEqual([], self.world.get_items_in_room("not_a_real_region", "some_room"))
+
+    def test_get_items_in_current_room_with_no_location(self):
+        player = self._blank_player()
+        self.assertEqual([], self.world.get_items_in_current_room(player))
+
+    def test_add_item_to_room_unknown_region_fails(self):
+        item = ItemFactory.create_item_from_template("item_starter_dagger", self.world)
+        self.assertFalse(self.world.add_item_to_room("not_a_real_region", "some_room", item))
+
+    def test_add_item_to_room_unknown_room_fails(self):
+        item = ItemFactory.create_item_from_template("item_starter_dagger", self.world)
+        self.assertFalse(self.world.add_item_to_room("town", "not_a_real_room_xyz", item))
+
+    def test_remove_item_from_room_unknown_region_returns_none(self):
+        self.assertIsNone(self.world.remove_item_from_room("not_a_real_region", "some_room", "item_x"))
+
+    def test_remove_item_from_room_unknown_room_returns_none(self):
+        self.assertIsNone(self.world.remove_item_from_room("town", "not_a_real_room_xyz", "item_x"))
+
+    def test_remove_item_from_room_succeeds(self):
+        item = ItemFactory.create_item_from_template("item_starter_dagger", self.world)
+        self.world.add_item_to_room(self.player.current_region_id, self.player.current_room_id, item)
+        removed = self.world.remove_item_from_room(
+            self.player.current_region_id, self.player.current_room_id, item.obj_id
+        )
+        self.assertIs(item, removed)
+
+    def test_is_location_outdoors_with_known_region_unknown_room_falls_back_to_region(self):
+        region = Region("Roofless", "No specific room setting.", obj_id="roofless_region")
+        region.update_property("outdoors", False)
+        self.world.add_region("roofless_region", region)
+        self.assertFalse(self.world.is_location_outdoors("roofless_region", "not_a_real_room_xyz"))
+
+    def test_find_item_in_room_fuzzy_match_and_not_found(self):
+        self.assertIsNone(self.world.find_item_in_room("anything", self.player))
+        other = ItemFactory.create_item_from_template("item_iron_sword", self.world)
+        item = ItemFactory.create_item_from_template("item_starter_dagger", self.world)
+        # A non-matching item first forces the fuzzy loop to skip past it
+        # before finding the real match on a later iteration.
+        self.world.add_item_to_room(self.player.current_region_id, self.player.current_room_id, other)
+        self.world.add_item_to_room(self.player.current_region_id, self.player.current_room_id, item)
+        found = self.world.find_item_in_room("dagger", self.player)
+        self.assertIsNotNone(found)
+
+    def test_find_npc_in_room_fuzzy_match_and_not_found(self):
+        self.assertIsNone(self.world.find_npc_in_room("anything", self.player))
+        npc = NPCFactory.create_npc_from_template("giant_rat", self.world, instance_id="find_npc_room_rat")
+        npc.current_region_id = self.player.current_region_id
+        npc.current_room_id = self.player.current_room_id
+        self.world.add_npc(npc)
+        found = self.world.find_npc_in_room("rat", self.player)
+        self.assertIsNotNone(found)
+
+    def test_find_npc_in_room_exact_name_match(self):
+        npc = NPCFactory.create_npc_from_template("giant_rat", self.world, instance_id="find_npc_room_exact")
+        npc.name = "Exact Match Name"
+        npc.current_region_id = self.player.current_region_id
+        npc.current_room_id = self.player.current_room_id
+        self.world.add_npc(npc)
+        found = self.world.find_npc_in_room("exact match name", self.player)
+        self.assertIs(npc, found)
+
     def test_remove_item_instance_from_room_unknown_region(self):
         item = ItemFactory.create_item_from_template("item_starter_dagger", self.world)
         self.assertFalse(self.world.remove_item_instance_from_room("not_a_real_region", "some_room", item))
+
+    def test_remove_item_instance_from_room_unknown_room(self):
+        item = ItemFactory.create_item_from_template("item_starter_dagger", self.world)
+        self.assertFalse(self.world.remove_item_instance_from_room("town", "not_a_real_room_xyz", item))
 
     def test_remove_item_instance_from_room_item_not_present(self):
         item = ItemFactory.create_item_from_template("item_starter_dagger", self.world)
@@ -164,6 +249,14 @@ class TestLoadRoomItemsFromSave(GameTestBase):
     def test_malformed_location_key_is_skipped_without_raising(self):
         # "no colon" key can't be split into region:room -> ValueError, caught internally.
         self.world._load_room_items_from_save({"malformed_key_no_colon": []})  # must not raise
+
+    def test_falsy_and_missing_item_id_refs_are_skipped(self):
+        room = self.world.get_region("town").get_room("town_square")
+        before = len(room.items)
+        self.world._load_room_items_from_save({
+            "town:town_square": [None, {"no_item_id_here": True}, {"item_id": "item_starter_dagger"}],
+        })
+        self.assertEqual(before + 1, len(room.items))
 
 
 if __name__ == "__main__":

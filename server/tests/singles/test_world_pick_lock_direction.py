@@ -2,7 +2,15 @@
 """Coverage for engine/world/world.py's attempt_pick_lock_direction(), which
 handles two cases: a source-room exit_requirements lock (partially covered
 by test_command_room_context.py) and a destination-room locked_by lock
-(previously entirely untested)."""
+(previously entirely untested).
+
+Note: both of this method's `if not active_player: return "Player not
+found."` guards are left untested as unreachable -- `current_room` (and,
+for the destination-lock case, `room`) can only be truthy here because
+get_current_room()/get_region() already re-resolved the exact same
+active_player via resolve_reference_player() and found a home for them;
+if active_player were falsy that resolution would have failed too, and
+the method already returns earlier ("You are nowhere.") in that case."""
 
 from unittest.mock import patch
 
@@ -98,6 +106,15 @@ class TestDestinationLockedByLock(GameTestBase):
         self.player.current_region_id = "town"
         self.player.current_room_id = "town_square"
         result = self.world.attempt_pick_lock_direction("nowhere_direction")
+        self.assertEqual("There is nothing locked in that direction.", result)
+
+    def test_destination_in_unknown_region_reports_nothing_locked(self):
+        region = self.world.get_region("town")
+        start = Room("Portal Start", "A portal to nowhere.", {"east": "nonexistent_region:some_room"}, obj_id="portal_start")
+        region.add_room("portal_start", start)
+        self.player.current_region_id = "town"
+        self.player.current_room_id = "portal_start"
+        result = self.world.attempt_pick_lock_direction("east")
         self.assertEqual("There is nothing locked in that direction.", result)
 
     def test_unlocked_destination_reports_nothing_locked(self):

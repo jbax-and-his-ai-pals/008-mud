@@ -39,7 +39,10 @@ def _resolve_target_npc(world, args, player):
         
     return None, 0
 
-@command("talk", ["speak", "chat", "ask"], "interaction", "Talk to an NPC.\nUsage: talk <npc_name> [topic | complete quest]")
+# "ask" is intentionally not an alias here -- the dedicated "ask <npc>
+# <topic>" command already owns that word (and loads after this module),
+# so it silently wins over this one.
+@command("talk", ["speak", "chat"], "interaction", "Talk to an NPC.\nUsage: talk <npc_name> [topic | complete quest]")
 def talk_handler(args, context):
     world = context["world"]
     player = context.get('player')

@@ -29,7 +29,7 @@ def debug_string(s):
         print(f"Position {i}: '{ch}' (ord: {ord(ch)})")
     print("End of string")
 
-if(TYPE_CHECKING):
+if TYPE_CHECKING:
     from engine.world.world import World
     from engine.player import Player
     from engine.npcs.npc import NPC

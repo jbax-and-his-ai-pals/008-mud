@@ -1,7 +1,6 @@
 # engine/items/consumable.py
 import time
 from typing import Optional
-from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS
 from engine.items.item import Item
 
 class Consumable(Item):
@@ -10,17 +9,22 @@ class Consumable(Item):
                  value: int = 5, uses: int = 1, effect_value: int = 10,
                  effect_type: str = "heal", **kwargs):
         
-        # Prevent duplicate stackable arg error
-        if 'stackable' in kwargs:
-            kwargs.pop('stackable')
-            
+        # Templates (e.g. unique learn-spell scrolls) may explicitly declare
+        # stackable=False even though uses==1 -- honor that override instead
+        # of silently discarding it, otherwise every uses==1 consumable is
+        # forced stackable and distinct procedurally-generated instances
+        # (each with different properties, like a scroll's spell_to_learn)
+        # collapse into a single inventory stack.
+        explicit_stackable = kwargs.pop('stackable', None)
+        is_stackable = explicit_stackable if explicit_stackable is not None else (uses == 1)
+
         super().__init__(
             obj_id=obj_id, name=name, description=description, weight=weight,
-            value=value, stackable=(uses==1),
+            value=value, stackable=is_stackable,
             uses=uses, max_uses=uses, effect_value=effect_value, effect_type=effect_type,
             **kwargs
         )
-        self.update_property("stackable", (uses == 1))
+        self.update_property("stackable", is_stackable)
     
     def use(self, user, **kwargs) -> str:
         current_uses = self.get_property("uses")
@@ -61,10 +65,12 @@ class Consumable(Item):
                 message = f"You try to learn from the {self.name}, but cannot."
             else:
                 learned, learn_message = user.learn_spell(spell_id_to_learn)
-                if learned:
-                    message = f"{FORMAT_SUCCESS}{learn_message}{FORMAT_RESET}"
-                else:
-                    message = f"{FORMAT_ERROR}{learn_message}{FORMAT_RESET}"
+                # Left unformatted, like every other branch here -- use_handler
+                # already wraps the returned message in FORMAT_HIGHLIGHT, so
+                # adding FORMAT_SUCCESS/FORMAT_ERROR here doubles up the tags
+                # (e.g. "[[GREEN]][[RED]]...[[/]][[/]]").
+                message = learn_message
+                if not learned:
                     consumed = False
 
         elif effect_type == "apply_dot":

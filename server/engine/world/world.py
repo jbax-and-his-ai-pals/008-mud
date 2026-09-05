@@ -182,28 +182,35 @@ class World:
             return next(iter(self.players.values()), None)
         return None
 
-    def update(self) -> List[str]:
+    def update(self) -> List[Tuple[Optional[Tuple[str, str]], str]]:
+        """Advances world state by one tick.
+
+        Each returned message is paired with the (region_id, room_id) it
+        occurred in (or None for messages with no single location), so the
+        server can deliver it only to sessions actually watching that room
+        instead of whichever session's poll happened to trigger this tick.
+        """
         current_time_abs = time.time()
-        messages = []
-        
+        messages: List[Tuple[Optional[Tuple[str, str]], str]] = []
+
         dt = current_time_abs - self.last_update_time
-        
+
         if dt < WORLD_UPDATE_INTERVAL:
              return messages
         self.last_update_time = current_time_abs
-        
+
         active_regions_rooms = set()
         for p in self.players.values():
             if p.current_region_id and p.current_room_id:
                 active_regions_rooms.add((p.current_region_id, p.current_room_id))
-                
+
         for reg_id, room_id in active_regions_rooms:
             region = self.get_region(reg_id)
             if region:
                 room = region.get_room(room_id)
                 if room:
                     room_msgs = room.update(dt)
-                    messages.extend(room_msgs)
+                    messages.extend(((reg_id, room_id), msg) for msg in room_msgs)
 
         messages.extend(self.respawn_manager.update(current_time_abs))
         self.spawner.update(current_time_abs)
@@ -211,7 +218,8 @@ class World:
         npcs_to_update = [npc for npc in self.npcs.values() if npc.is_alive]
         for npc in npcs_to_update:
             npc_message = npc.update(self, current_time_abs)
-            if npc_message: messages.append(npc_message)
+            if npc_message:
+                messages.append(((npc.current_region_id, npc.current_room_id), npc_message))
 
         if self.quest_manager:
             for player in list(self.players.values()):

@@ -1,3 +1,11 @@
+"""Coverage for toolkit/stale_reference_audit.py.
+
+Note: the module's `if __name__ == "__main__": main()` guard (line 95) is
+never executed under import-based testing -- it only runs when the file is
+invoked directly as a script. Left untested as unreachable boilerplate,
+consistent with this codebase's established precedent (e.g.
+toolkit/content_set_validator.py's equivalent guard)."""
+
 import io
 import json
 import shutil
@@ -14,6 +22,7 @@ if str(_TOOLKIT_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLKIT_DIR))
 
 from stale_reference_audit import audit_stale_references, main
+from reference_integrity_validator import RefIssue
 
 
 class TestStaleReferenceAudit(unittest.TestCase):
@@ -84,6 +93,26 @@ class TestStaleReferenceAudit(unittest.TestCase):
         lines = audit_stale_references(root)
         self.assertTrue(any("parse failure" in line for line in lines))
 
+    def test_blank_item_id_value_is_ignored(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        (root / "npcs" / "blank_item.json").write_text(
+            json.dumps({"vendor": {"name": "Vendor", "initial_inventory": [{"item_id": ""}]}}),
+            encoding="utf-8",
+        )
+        lines = audit_stale_references(root)
+        self.assertFalse(any("unknown item_id" in line for line in lines))
+
+    def test_blank_template_id_value_is_ignored(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        (root / "npcs" / "blank_template.json").write_text(
+            json.dumps({"summoner": {"name": "Summoner", "summon": {"template_id": ""}}}),
+            encoding="utf-8",
+        )
+        lines = audit_stale_references(root)
+        self.assertFalse(any("unknown npc template_id" in line for line in lines))
+
     def test_includes_baseline_reference_integrity_issues(self) -> None:
         root = self._case_root()
         self._seed_minimal_tree(root)
@@ -135,6 +164,16 @@ class TestStaleReferenceAuditMain(unittest.TestCase):
         )
         code = self._run_main(["stale_reference_audit.py", str(root)])
         self.assertEqual(1, code)
+
+    def test_non_error_lines_do_not_count_toward_error_total(self) -> None:
+        root = self._case_root()
+        self._seed_minimal_tree(root)
+        with patch(
+            "stale_reference_audit.validate_catalogs",
+            return_value=[RefIssue("warning", "test/path", "a non-fatal warning")],
+        ):
+            code = self._run_main(["stale_reference_audit.py", str(root)])
+        self.assertEqual(0, code)
 
     def test_output_flag_writes_report_file(self) -> None:
         root = self._case_root()

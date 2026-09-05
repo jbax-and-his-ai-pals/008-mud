@@ -1,6 +1,17 @@
 # tests/singles/test_debug_spawning_commands.py
 """Coverage for GM/debug spawn commands (engine/commands/debug/spawning.py):
-`spawn`/`create` and `debuggear`."""
+`spawn`/`create` and `debuggear`.
+
+Note: spawn_handler's nested `_spawn_item`'s `if not resolved_id:` guard
+(line 29) is provably unreachable via the only call site -- the smart-match
+dispatcher already calls `_resolve_item_id(name)` and only invokes
+`_spawn_item(name, ...)` when that call returned truthy, and a second,
+identical call with the same `name` against the same (unchanged)
+`world.item_templates` is guaranteed to return the same result. Left
+untested as dead code, consistent with this codebase's established
+precedent for a redundant guard following an equivalent earlier check."""
+
+from unittest.mock import patch
 
 from tests.fixtures import GameTestBase
 
@@ -56,6 +67,33 @@ class TestSpawnCommand(GameTestBase):
         result = self.game.process_command("spawn item_starter_dagger")
         self.assertIn("Player location unavailable", result)
 
+    def test_item_creation_failure_is_reported(self):
+        with patch(
+            "engine.commands.debug.spawning.ItemFactory.create_item_from_template", return_value=None,
+        ):
+            result = self.game.process_command("spawn item_starter_dagger 2")
+        self.assertIn("Failed to spawn items", result)
+
+    def test_spawn_npc_without_player_location_reports_error(self):
+        self.player.current_region_id = None
+        self.player.current_room_id = None
+        result = self.game.process_command("spawn npc giant_rat")
+        self.assertIn("Player location unavailable", result)
+
+    def test_npc_creation_failure_is_reported(self):
+        with patch(
+            "engine.commands.debug.spawning.NPCFactory.create_npc_from_template", return_value=None,
+        ):
+            result = self.game.process_command("spawn npc giant_rat")
+        self.assertIn("Failed to create NPC", result)
+
+    def test_spawn_npc_with_count_and_level_suffix(self):
+        before = len(self.world.npcs)
+        result = self.game.process_command("spawn giant_rat 3 5")
+        self.assertEqual(before + 3, len(self.world.npcs))
+        new_npcs = [n for n in self.world.npcs.values() if n.template_id == "giant_rat" and n.level == 5]
+        self.assertEqual(3, len(new_npcs))
+
 
 class TestDebugGearCommand(GameTestBase):
     def test_no_args_shows_usage(self):
@@ -79,3 +117,10 @@ class TestDebugGearCommand(GameTestBase):
         self.assertEqual("Debug gear removed.", result)
         equipped_ids = {i.obj_id for i in self.player.equipment.values() if i}
         self.assertFalse(any(iid.startswith("debug_") for iid in equipped_ids))
+
+    def test_item_creation_failure_is_skipped(self):
+        with patch(
+            "engine.commands.debug.spawning.ItemFactory.create_item_from_template", return_value=None,
+        ):
+            result = self.game.process_command("debuggear on")
+        self.assertEqual("Gear already present.", result)

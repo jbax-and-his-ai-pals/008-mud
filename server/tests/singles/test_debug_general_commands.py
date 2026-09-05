@@ -2,10 +2,17 @@
 """Coverage for GM/debug general commands (engine/commands/debug/general.py):
 refresh, ignoreplayer, debug_commands, testrefactor."""
 
+from unittest.mock import patch
+
 from tests.fixtures import GameTestBase
 
 
 class TestRefreshCommand(GameTestBase):
+    def test_no_player_reports_not_found(self):
+        from engine.commands.debug.general import refresh_handler
+        result = refresh_handler([], {"player": None})
+        self.assertEqual("Player not found.", result)
+
     def test_restores_health_mana_and_cooldowns(self):
         self.player.health = 1
         self.player.runtime_state.magic.mana = 0
@@ -50,8 +57,18 @@ class TestDebugCommandsCommand(GameTestBase):
         self.assertIn("Total Registered Names/Aliases", result)
         self.assertIn("Commands by Category", result)
 
+    def test_empty_registry_is_reported(self):
+        with patch("engine.commands.debug.general.registered_commands", {}):
+            result = self.game.process_command("debug_commands")
+        self.assertIn("No commands are registered!", result)
+
 
 class TestTestRefactorCommand(GameTestBase):
+    def test_no_player_reports_not_found(self):
+        from engine.commands.debug.general import test_refactor_handler
+        result = test_refactor_handler([], {"world": self.world, "player": None})
+        self.assertEqual("Player not found.", result)
+
     def test_sets_up_the_lock_unlock_scenario(self):
         result = self.game.process_command("testrefactor")
         self.assertIn("LOCK/UNLOCK TEST INITIALIZED", result)

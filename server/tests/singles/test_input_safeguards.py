@@ -1,6 +1,6 @@
 import unittest
 
-from engine.server.input_safeguards import InputSafeguards
+from engine.server.input_safeguards import InputSafeguards, SessionRateLimiter
 
 
 class TestInputSafeguards(unittest.TestCase):
@@ -29,6 +29,27 @@ class TestInputSafeguards(unittest.TestCase):
         self.assertTrue(a2)
         self.assertFalse(a3)
         self.assertGreater(retry, 0.0)
+
+    def test_blank_session_id_is_never_allowed(self) -> None:
+        limiter = SessionRateLimiter(rate_per_sec=10.0, burst=5)
+        result = limiter.consume("   ")
+        self.assertFalse(result.allowed)
+        self.assertEqual(1.0, result.retry_after_s)
+
+    def test_clearing_a_blank_session_id_is_a_no_op(self) -> None:
+        limiter = SessionRateLimiter(rate_per_sec=10.0, burst=5)
+        limiter.clear("")  # must not raise
+
+    def test_evict_stale_sessions_removes_inactive_state(self) -> None:
+        guards = InputSafeguards()
+        guards.consume_rate_budget("active_session")
+        guards.consume_rate_budget("stale_session")
+
+        removed = guards.evict_stale_sessions({"active_session"})
+
+        self.assertEqual(1, removed)
+        self.assertNotIn("stale_session", guards._limiter._tokens_by_session)
+        self.assertIn("active_session", guards._limiter._tokens_by_session)
 
 
 if __name__ == "__main__":

@@ -46,6 +46,11 @@ class TestSetGoldCommand(GameTestBase):
 
 
 class TestLevelCommand(GameTestBase):
+    def test_no_player_reports_not_found(self):
+        from engine.commands.debug.state import level_command_handler
+        result = level_command_handler([], {"player": None})
+        self.assertIn("Player not found", result)
+
     def test_levels_up_once_by_default(self):
         start_level = self.player.runtime_state.progression.level
         self.game.process_command("level")
@@ -101,6 +106,10 @@ class TestApplyAndRemoveEffectCommands(GameTestBase):
 
     def test_removeeffect_not_present_is_reported(self):
         result = self.game.process_command("removeeffect self debug_poison")
+        self.assertEqual("Effect not found.", result)
+
+    def test_removeeffect_unknown_effect_name_is_reported(self):
+        result = self.game.process_command("removeeffect self not_a_real_effect")
         self.assertEqual("Effect not found.", result)
 
     def test_removeeffect_removes_applied_effect(self):

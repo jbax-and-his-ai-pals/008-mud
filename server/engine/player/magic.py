@@ -161,10 +161,10 @@ class PlayerMagicMixin:
                          results.append(loot_str)
 
         # Formatting Output
-        if len(targets) > 1:
-            full_message = f"{spell.format_cast_message(p)}\n" + "\n".join(results)
-        else:
-            full_message = f"{spell.format_cast_message(p)}\n{results[0]}"
+        # (Single-target casts can still accumulate multiple result lines --
+        # e.g. a kill appends gold/XP/loot messages after the hit message --
+        # so always join the full list rather than taking only results[0].)
+        full_message = f"{spell.format_cast_message(p)}\n" + "\n".join(results)
 
         p._add_combat_message(full_message)
         return {"success": True, "message": full_message, "value": 0}

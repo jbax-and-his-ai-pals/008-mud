@@ -5,7 +5,15 @@ hydration edge cases, examine()/list_contents() formatting, open/close,
 toggle_lock's exact-id/fuzzy-name matching, pick_lock, magic_interact,
 can_add/add_item/find_item_by_name/remove_item, and to_dict/from_dict
 round-tripping -- most of which the existing command-driven container tests
-never exercise at this direct, unit level."""
+never exercise at this direct, unit level.
+
+Note: Container.from_dict()'s `if not isinstance(container, Container):`
+rebuild-fallback is left untested as unreachable -- `container` comes from
+`super(Container, cls).from_dict(data)`, and Item.from_dict() constructs
+the instance via `cls(...)`, where `cls` is bound to the *calling* class
+(Container) through normal classmethod polymorphism, so it always
+produces a Container instance here; there is no Container subclass to
+make `cls` resolve to something else."""
 
 from tests.fixtures import GameTestBase
 from engine.items.container import Container

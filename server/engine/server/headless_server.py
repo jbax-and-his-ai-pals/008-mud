@@ -1453,6 +1453,13 @@ class HeadlessServer:
         new_player.respawn_region_id = start_region
         new_player.respawn_room_id = start_room
         self.world.players[session.player_id] = new_player
+        if self.world.quest_manager:
+            # World bootstrap seeds the board with initial_player=None (no
+            # character exists yet at that point), so ensure_initial_quests()
+            # bails out immediately and the board is left permanently empty.
+            # The first character to ever exist gives it a real player to
+            # scale quests against.
+            self.world.quest_manager.ensure_initial_quests(new_player)
         return True, f"Character created: {raw_name}", True
 
     def build_opening_guidance(self) -> str:
@@ -2409,11 +2416,26 @@ class HeadlessServer:
                 # Time-of-day transitions are background ambient — batch them.
                 self._background_event_batch.append(self._event("text", session_id, msg))
 
-        for msg in self.world.update():
+        for location, msg in self.world.update():
             if self._is_combat_adjacent_message(msg):
                 continue
-            # World NPC/region tick messages are background — batch.
-            self._background_event_batch.append(self._event("text", session_id, msg))
+            # World NPC/region tick messages are background — batch, but route
+            # each one only to sessions whose player is actually in the room
+            # it happened in. Without this, whichever session's poll happens
+            # to trigger the periodic world tick would receive combat/ambient
+            # text for events happening anywhere else in the world.
+            if location is None:
+                self._background_event_batch.append(self._event("text", session_id, msg))
+                continue
+            region_id, room_id = location
+            for other_session_id in self.sessions:
+                other_player = self.get_player_for_session(other_session_id)
+                if (
+                    other_player
+                    and other_player.current_region_id == region_id
+                    and other_player.current_room_id == room_id
+                ):
+                    self._background_event_batch.append(self._event("text", other_session_id, msg))
 
         player = self.get_player_for_session(session_id)
         if player and player.is_alive:

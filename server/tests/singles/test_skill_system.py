@@ -62,6 +62,16 @@ class TestSkillSystem(GameTestBase):
         self.assertFalse(success)
 
     @patch('random.randint')
+    def test_mercantile_skill_check_uses_wisdom_bonus(self, mock_randint):
+        """Verify the mercantile stat-bonus branch uses wisdom."""
+        self.player.stats["wisdom"] = 14  # +8 bonus: (14-10)*2
+        mock_randint.return_value = 50
+        success, _ = SkillSystem.attempt_check(self.player, "mercantile", 57)
+        self.assertTrue(success)  # 50 + 0 skill + 8 = 58 >= 57
+        success, _ = SkillSystem.attempt_check(self.player, "mercantile", 59)
+        self.assertFalse(success)
+
+    @patch('random.randint')
     def test_lockpicking_mechanics(self, mock_randint):
         """Verify lockpicks use the skill system."""
         # Inject a guaranteed Container template into the world for this test

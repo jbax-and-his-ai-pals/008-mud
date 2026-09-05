@@ -179,7 +179,7 @@ class GameManager:
             if msg: self.renderer.add_message(msg)
 
         world_messages = self.world.update()
-        for msg in world_messages: self.renderer.add_message(msg)
+        for _location, msg in world_messages: self.renderer.add_message(msg)
 
         active_player = self.world.resolve_reference_player()
         if active_player and active_player.is_alive:

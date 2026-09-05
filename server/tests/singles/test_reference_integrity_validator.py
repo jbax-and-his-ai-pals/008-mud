@@ -1,3 +1,20 @@
+"""Coverage for toolkit/reference_integrity_validator.py.
+
+Note: three branches are left untested as unreachable:
+- validate_catalogs()'s `if not isinstance(rooms, dict): continue` inside
+  the region-references loop -- that loop only ever iterates
+  `region_payloads`, which is populated earlier gated on
+  `isinstance(rooms, dict)` already being true for that exact payload, so
+  re-fetching `payload.get("rooms", {})` here is guaranteed to still be a
+  dict.
+- main()'s `else: print(f"[WARN] ...")` arm -- every RefIssue that
+  validate_catalogs() can produce is constructed with severity="error";
+  the module defines no "warn"-severity issue anywhere, so the else
+  branch can never fire.
+- the module's `if __name__ == "__main__": main()` guard, which only runs
+  when the file is invoked directly as a script (consistent with this
+  codebase's established precedent for such guards)."""
+
 import io
 import json
 import shutil
@@ -25,6 +42,30 @@ class TestReferenceIntegrityValidator(unittest.TestCase):
 
 def _issue_paths(issues: list) -> set:
     return {i.path for i in issues}
+
+
+class TestCollectTemplates(unittest.TestCase):
+    def _case_root(self) -> Path:
+        root = Path("tmp") / f"ref_integrity_test_{uuid.uuid4().hex}"
+        root.mkdir(parents=True, exist_ok=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        return root
+
+    def test_non_dict_template_file_is_skipped(self) -> None:
+        root = self._case_root()
+        items_dir = root / "items"
+        items_dir.mkdir()
+        (items_dir / "list.json").write_text(json.dumps(["not", "a", "dict"]), encoding="utf-8")
+        self.assertEqual(set(), riv._collect_templates(items_dir))
+
+    def test_blank_template_key_is_skipped(self) -> None:
+        root = self._case_root()
+        items_dir = root / "items"
+        items_dir.mkdir()
+        (items_dir / "mixed.json").write_text(
+            json.dumps({"   ": {"name": "blank key"}, "item_real": {"name": "real"}}), encoding="utf-8",
+        )
+        self.assertEqual({"item_real"}, riv._collect_templates(items_dir))
 
 
 class TestValidateCatalogsRegionReferences(unittest.TestCase):
@@ -132,6 +173,33 @@ class TestValidateCatalogsRegionReferences(unittest.TestCase):
         issues = riv.validate_catalogs(catalogs)
         self.assertEqual([], issues)
 
+    def test_non_dict_exits_is_skipped(self) -> None:
+        root = self._case_root()
+        rf = self._write_region(root, "town", {
+            "region_id": "town", "rooms": {"square": {"exits": "not-a-dict"}},
+        })
+        catalogs = self._base_catalogs(root, region_files=[rf])
+        issues = riv.validate_catalogs(catalogs)
+        self.assertEqual([], issues)
+
+    def test_non_list_items_is_skipped(self) -> None:
+        root = self._case_root()
+        rf = self._write_region(root, "town", {
+            "region_id": "town", "rooms": {"square": {"items": "not-a-list"}},
+        })
+        catalogs = self._base_catalogs(root, region_files=[rf])
+        issues = riv.validate_catalogs(catalogs)
+        self.assertEqual([], issues)
+
+    def test_non_list_initial_npcs_is_skipped(self) -> None:
+        root = self._case_root()
+        rf = self._write_region(root, "town", {
+            "region_id": "town", "rooms": {"square": {"initial_npcs": "not-a-list"}},
+        })
+        catalogs = self._base_catalogs(root, region_files=[rf])
+        issues = riv.validate_catalogs(catalogs)
+        self.assertEqual([], issues)
+
 
 class TestValidateCatalogsQuestReferences(unittest.TestCase):
     def _case_root(self) -> Path:
@@ -227,6 +295,24 @@ class TestValidateCatalogsQuestReferences(unittest.TestCase):
         issues = riv.validate_catalogs(self._base_catalogs(root, quests_unknown_room, region_files=[rf]))
         self.assertIn("quests/q1.stages[0].objective.target_room_id", _issue_paths(issues))
 
+    def test_non_list_reward_items_is_ignored(self) -> None:
+        root = self._case_root()
+        quests = {"q1": {"rewards": {"items": "not-a-list"}}}
+        issues = riv.validate_catalogs(self._base_catalogs(root, quests))
+        self.assertEqual([], issues)
+
+    def test_non_dict_spawn_on_entry_is_ignored(self) -> None:
+        root = self._case_root()
+        quests = {"q1": {"stages": [{"spawn_on_entry": "not-a-dict"}]}}
+        issues = riv.validate_catalogs(self._base_catalogs(root, quests))
+        self.assertEqual([], issues)
+
+    def test_non_dict_objective_is_ignored(self) -> None:
+        root = self._case_root()
+        quests = {"q1": {"stages": [{"objective": "not-a-dict"}]}}
+        issues = riv.validate_catalogs(self._base_catalogs(root, quests))
+        self.assertEqual([], issues)
+
     def test_non_dict_quests_payload_is_ignored(self) -> None:
         root = self._case_root()
         issues = riv.validate_catalogs(self._base_catalogs(root, quests_payload=["not", "a", "dict"]))
@@ -300,6 +386,13 @@ class TestValidateCatalogsCampaignReferences(unittest.TestCase):
         })
         issues = riv.validate_catalogs(self._base_catalogs(root))
         self.assertTrue(any("transitions[0].target_node_id" in i.path for i in issues))
+
+    def test_non_dict_nodes_is_ignored(self) -> None:
+        root = self._case_root()
+        self._write_campaign(root, "c1", {"start_node_id": "a", "nodes": "not-a-dict"})
+        issues = riv.validate_catalogs(self._base_catalogs(root))
+        # start_node_id is still checked against the (empty) node_ids set...
+        self.assertTrue(any("start_node_id" in i.path for i in issues))
 
     def test_non_dict_node_and_non_list_transitions_are_ignored(self) -> None:
         root = self._case_root()

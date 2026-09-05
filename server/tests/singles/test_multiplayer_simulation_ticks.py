@@ -53,7 +53,7 @@ class TestMultiplayerSimulationTicks(unittest.TestCase):
     def tearDown(self) -> None:
         self.server.shutdown()
 
-    def _force_tick(self) -> list[str]:
+    def _force_tick(self) -> list[tuple]:
         self.server.world.last_update_time = 0.0
         return self.server.world.update()
 
@@ -115,7 +115,7 @@ class TestMultiplayerSimulationTicks(unittest.TestCase):
         messages = self._force_tick()
 
         self.assertGreater(self.player_b.health, start_health)
-        self.assertTrue(any("casts Tick Heal" in message for message in messages))
+        self.assertTrue(any("casts Tick Heal" in message for _location, message in messages))
 
     @patch("engine.npcs.combat.random.random", return_value=0.0)
     def test_world_update_minion_kill_credit_routes_to_owner_not_room_viewer(self, _mock_random) -> None:

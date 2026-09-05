@@ -66,6 +66,16 @@ class TestServerSetupWizard(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_server_bootstrap_artifacts("not_a_preset", server_name="X", content_set_path=FANTASY_FRONTIER)
 
+    def test_blank_server_name_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            build_server_bootstrap_artifacts("static_world", server_name="   ", content_set_path=FANTASY_FRONTIER)
+
+    def test_content_set_path_without_manifest_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            build_server_bootstrap_artifacts(
+                "static_world", server_name="X", content_set_path=str(Path(__file__).resolve().parent),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

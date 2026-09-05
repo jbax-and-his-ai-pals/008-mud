@@ -6,7 +6,10 @@ import time
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_RESET
 
-@command("attack", ["kill", "fight", "hit"], "combat", "Attack a target.\nUsage: attack <target_name>", content_capability="combat")
+# "hit" is intentionally not an alias here -- gambling.py's blackjack "hit"
+# command already owns that word, and registered_commands is a flat
+# name->handler map, so the later-loaded module always wins.
+@command("attack", ["kill", "fight"], "combat", "Attack a target.\nUsage: attack <target_name>", content_capability="combat")
 def attack_handler(args, context):
     world = context["world"]
     player = context.get('player')

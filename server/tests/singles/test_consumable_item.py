@@ -18,6 +18,20 @@ class TestConsumableConstructor(GameTestBase):
         c = Consumable(obj_id="c2", name="Wand", uses=5)
         self.assertFalse(c.stackable)
 
+    def test_explicit_stackable_false_is_honored_despite_single_use(self):
+        # Bug: a template can explicitly mark a single-use item non-stackable
+        # (e.g. a unique learn-spell scroll, so distinct instances don't
+        # collapse into one inventory slot) -- this used to be silently
+        # discarded in favor of the uses==1 heuristic.
+        c = Consumable(obj_id="c1b", name="Unique Scroll", uses=1, stackable=False)
+        self.assertFalse(c.stackable)
+        self.assertFalse(c.get_property("stackable"))
+
+    def test_explicit_stackable_true_is_honored_despite_multi_use(self):
+        c = Consumable(obj_id="c2b", name="Bundle", uses=5, stackable=True)
+        self.assertTrue(c.stackable)
+        self.assertTrue(c.get_property("stackable"))
+
 
 class TestConsumableUseHeal(GameTestBase):
     def test_already_used_up_reports_so(self):
@@ -99,6 +113,17 @@ class TestConsumableUseLearnSpell(GameTestBase):
             result = c.use(self.player)
         self.assertIn("You already know that.", result)
         self.assertEqual(1, c.get_property("uses"))
+
+    def test_learn_spell_message_is_left_unformatted(self):
+        # Bug: this branch used to wrap learn_spell()'s own message in
+        # FORMAT_SUCCESS/FORMAT_ERROR, and use_handler wraps the whole
+        # Consumable.use() result in FORMAT_HIGHLIGHT on top of that --
+        # doubling up color tags (e.g. "[[GREEN]][[RED]]...[[/]][[/]]").
+        c = Consumable(obj_id="c13b", name="Scroll of Fireball", uses=1, effect_type="learn_spell")
+        c.properties["spell_to_learn"] = "magic_missile"
+        with patch.object(self.player, "learn_spell", return_value=(False, "You lack the experience.")):
+            result = c.use(self.player)
+        self.assertEqual("You lack the experience.", result)
 
 
 class TestConsumableUseApplyDot(GameTestBase):

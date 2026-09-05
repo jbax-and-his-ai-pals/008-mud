@@ -5,7 +5,14 @@ inventory-alias delegation, quest-board-alias delegation (and its fallback
 when 'look board' isn't registered), the player/NPC/room-item/inventory/
 equipment search priority chain, container inside-lookup (open/locked/
 closed), the Player-target health-tier description, and examine/read's
-guard clauses and delegation to look_handler."""
+guard clauses and delegation to look_handler.
+
+Note: look_handler's final `return f"You see {target.name}."` fallback is
+left untested as unreachable -- every search path that can assign `target`
+(the other-player loop, find_npc_in_room_for_player,
+find_item_in_room_for_player, inventory.find_item_by_name, the equipment
+loop) only ever produces a Player, an NPC, or an Item, and all three are
+handled by the preceding isinstance branches."""
 
 from tests.fixtures import GameTestBase
 from engine.commands.interaction.observation import look_handler, examine_handler, read_handler

@@ -4,7 +4,15 @@ create_item's kwarg-filtering/extra-properties/exception paths, from_dict's
 template-first-then-class-fallback logic (including the Container branch and
 exception handling), get_template, and create_item_from_template's procedural
 (random-spell-scroll) generation, scroll-template fallback, and the various
-override/property-merging edge cases."""
+override/property-merging edge cases.
+
+Note: create_item_from_template's `if 'is_procedural' in new_template['properties']:`
+False branch is left untested as unreachable -- `template_props` (used to
+gate entry into this whole block on `is_procedural` being truthy) is the
+literal `properties` dict from the template, and `new_template` is a
+`copy.deepcopy(template)` taken before anything mutates it, so
+`new_template['properties']` is guaranteed to still contain the same
+'is_procedural' key by the time this check runs."""
 
 from unittest.mock import patch, MagicMock
 
@@ -40,18 +48,38 @@ class TestCreateItem(GameTestBase):
         self.assertIsInstance(item, Weapon)
 
     def test_unrecognized_kwarg_becomes_extra_property_when_no_var_kwargs(self):
-        # Item.__init__ doesn't accept **kwargs, so an unrecognized key like
-        # 'custom_flag' should land in extra_properties and be applied via
-        # update_property after construction.
-        item = ItemFactory.create_item("Item", obj_id="ci3", name="Thing", description="x", custom_flag="yes")
+        # Every built-in item class accepts **kwargs (and Item.__init__
+        # itself applies unrecognized kwargs as properties), so this
+        # specific extra_properties/update_property code path in
+        # create_item is only reachable with a class that genuinely
+        # defines no **kwargs of its own.
+        class _NoKwargsItem(Item):
+            def __init__(self, obj_id=None, name="X", description="d"):
+                super().__init__(obj_id=obj_id, name=name, description=description)
+
+        with patch.dict("engine.items.item_factory.ITEM_CLASS_MAP", {"NoKwargs": _NoKwargsItem}):
+            item = ItemFactory.create_item(
+                "NoKwargs", obj_id="ci3", name="Thing", description="x",
+                custom_flag="yes", another_flag="also",
+                # Not a valid_param for _NoKwargsItem, has_kwargs is False,
+                # but 'weight' is in the hard-coded exclusion list -- it is
+                # silently dropped rather than becoming an extra property.
+                weight=99.0,
+            )
         self.assertEqual("yes", item.get_property("custom_flag"))
+        self.assertEqual("also", item.get_property("another_flag"))
+        self.assertEqual(1.0, item.weight)  # the excluded 'weight' kwarg was silently dropped
 
     def test_kwarg_routed_through_var_kwargs_when_class_accepts_them(self):
-        # Container.__init__ accepts **kwargs, so arbitrary extra keys should
-        # be passed straight through as constructor kwargs instead.
-        item = ItemFactory.create_item("Container", obj_id="ci4", name="Box", description="x", locked=True)
+        # Container.__init__ accepts **kwargs, so a key that ISN'T one of
+        # its own named parameters (unlike 'locked') should be passed
+        # straight through as a constructor kwarg instead of being routed
+        # through create_item's own extra_properties fallback.
+        item = ItemFactory.create_item(
+            "Container", obj_id="ci4", name="Box", description="x", custom_container_flag=True,
+        )
         self.assertIsInstance(item, Container)
-        self.assertTrue(item.properties["locked"])
+        self.assertTrue(item.properties["custom_container_flag"])
 
     def test_construction_exception_returns_none(self):
         with patch("engine.items.item_factory.inspect.signature", side_effect=RuntimeError("boom")):
@@ -184,6 +212,30 @@ class TestCreateItemFromTemplateOverrides(GameTestBase):
         item = ItemFactory.create_item_from_template("box_template", self.world, locked=True)
         self.assertIsInstance(item, Container)
         self.assertTrue(item.properties["locked"])
+
+    def test_extra_override_lands_in_properties_for_a_class_with_no_var_kwargs(self):
+        # As in TestCreateItem, every built-in item class accepts **kwargs,
+        # so create_item_from_template's own `if not has_kwargs:` branch
+        # for filtering init_args and re-applying leftover overrides is
+        # only reachable with a class that genuinely has none.
+        class _NoKwargsItem(Item):
+            def __init__(self, obj_id=None, name="X", description="d"):
+                super().__init__(obj_id=obj_id, name=name, description=description)
+
+        self.world.item_templates["no_kwargs_template"] = {"name": "Plain", "type": "NoKwargs"}
+        with patch.dict("engine.items.item_factory.ITEM_CLASS_MAP", {"NoKwargs": _NoKwargsItem}):
+            item = ItemFactory.create_item_from_template(
+                "no_kwargs_template", self.world,
+                totally_custom_flag="present", another_custom_flag="also_present",
+                # 'name' IS a valid param for _NoKwargsItem, so this leftover
+                # override must be skipped rather than re-applied as a property.
+                name="Renamed Plain",
+            )
+        self.assertIsInstance(item, _NoKwargsItem)
+        self.assertEqual("Renamed Plain", item.name)
+        self.assertEqual("present", item.properties.get("totally_custom_flag"))
+        self.assertEqual("also_present", item.properties.get("another_custom_flag"))
+        self.assertNotIn("name", item.properties)
 
 
 class TestCreateItemFromTemplateProcedural(GameTestBase):

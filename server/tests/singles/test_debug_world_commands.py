@@ -2,6 +2,8 @@
 """Coverage for GM/debug world commands (engine/commands/debug/world.py):
 settime, setweather, teleport, whereis, census, genregion, close portal."""
 
+from unittest.mock import patch
+
 from tests.fixtures import GameTestBase
 
 
@@ -60,6 +62,30 @@ class TestSetWeatherCommand(GameTestBase):
 class TestTeleportCommand(GameTestBase):
     def test_no_args_shows_usage(self):
         self.assertEqual("Usage: tp <target>", self.game.process_command("tp"))
+
+    def test_no_player_reports_not_found(self):
+        from engine.commands.debug.world import teleport_handler
+        result = teleport_handler(["town", "market_square"], {"world": self.world, "player": None})
+        self.assertEqual("Player not found.", result)
+
+    def test_region_room_teleport_without_quest_manager_skips_quest_check(self):
+        with patch.object(self.world, "quest_manager", None):
+            result = self.game.process_command("tp town market_square")
+        self.assertIn("Teleported to town:market_square", result)
+
+    def test_npc_teleport_without_quest_manager_skips_quest_check(self):
+        from engine.npcs.npc_factory import NPCFactory
+
+        npc = NPCFactory.create_npc_from_template(
+            "village_elder", self.world, instance_id="tp_target_noqm", name="Noqm Target Npc"
+        )
+        npc.current_region_id = "town"
+        npc.current_room_id = "market_square"
+        self.world.add_npc(npc)
+
+        with patch.object(self.world, "quest_manager", None):
+            result = self.game.process_command("tp Noqm Target Npc")
+        self.assertIn("Teleported to Noqm Target Npc", result)
 
     def test_teleport_to_region_and_room(self):
         result = self.game.process_command("tp town market_square")
@@ -133,10 +159,65 @@ class TestCensusCommand(GameTestBase):
         self.assertIn("World Census", result)
         self.assertIn("town", result)
 
+    def test_dead_npcs_are_excluded_from_counts(self):
+        from engine.npcs.npc_factory import NPCFactory
+
+        before = self.game.process_command("census")
+        npc = NPCFactory.create_npc_from_template("giant_rat", self.world, instance_id="dead_census_rat")
+        npc.current_region_id = "town"
+        npc.is_alive = False
+        self.world.add_npc(npc)
+
+        after = self.game.process_command("census")
+        self.assertEqual(before, after)
+
 
 class TestGenregionAndClosePortal(GameTestBase):
     def test_genregion_no_args_shows_usage(self):
         self.assertEqual("Usage: genregion <theme> [rooms]", self.game.process_command("genregion"))
+
+    def test_genregion_without_player_location_reports_must_be_in_world(self):
+        self.player.current_region_id = None
+        self.player.current_room_id = None
+        result = self.game.process_command("genregion caves")
+        self.assertEqual("Must be in world.", result)
+
+    def test_genregion_generation_failure_is_reported(self):
+        with patch(
+            "engine.commands.debug.world.RegionGenerator.generate_region", return_value=None,
+        ):
+            result = self.game.process_command("genregion caves")
+        self.assertEqual("Generation failed.", result)
+
+    def test_genregion_with_unresolvable_current_room_skips_local_portal_link(self):
+        self.player.current_room_id = "not_a_real_room_in_town"
+        result = self.game.process_command("genregion caves 5")
+        self.assertIn("Generated", result)
+
+    def test_genregion_with_missing_entry_room_skips_far_side_portal_link(self):
+        from engine.world.region import Region
+        from engine.world.room import Room
+
+        fake_region = Region("Generated", "A place.", obj_id="dynamic_no_entry_room")
+        fake_region.add_room("some_other_room", Room("Other", "x", obj_id="some_other_room"))
+        with patch(
+            "engine.commands.debug.world.RegionGenerator.generate_region",
+            return_value=(fake_region, "not_a_real_entry_id"),
+        ):
+            result = self.game.process_command("genregion caves 5")
+        self.assertIn("Generated", result)
+
+    def test_close_portal_without_player_location_reports_must_be_in_world(self):
+        self.player.current_region_id = None
+        self.player.current_room_id = None
+        result = self.game.process_command("close portal")
+        self.assertEqual("Must be in world.", result)
+
+    def test_close_portal_on_a_non_dynamic_region_is_rejected(self):
+        room = self.world.get_region(self.player.current_region_id).get_room(self.player.current_room_id)
+        room.exits["portal"] = "town:market_square"
+        result = self.game.process_command("close portal")
+        self.assertEqual("Not a dynamic region.", result)
 
     def test_genregion_creates_portal_and_close_portal_removes_it(self):
         result = self.game.process_command("genregion caves 5")

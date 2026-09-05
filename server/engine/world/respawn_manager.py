@@ -3,7 +3,7 @@
 Manages the respawning of NPCs after they have been defeated.
 """
 import time
-from typing import TYPE_CHECKING, List, Dict, Any
+from typing import TYPE_CHECKING, List, Dict, Any, Tuple
 
 from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET, NAMED_NPC_RESPAWN_COOLDOWN
 from engine.npcs.npc import NPC
@@ -29,9 +29,13 @@ class RespawnManager:
         }
         self.respawn_queue.append(respawn_data)
 
-    def update(self, current_time: float) -> List[str]:
-        """Checks the respawn queue and recreates NPCs whose timers have expired."""
-        messages = []
+    def update(self, current_time: float) -> List[Tuple[Tuple[str, str], str]]:
+        """Checks the respawn queue and recreates NPCs whose timers have expired.
+
+        Each returned message is paired with the (region_id, room_id) it occurred
+        in, so callers can deliver it only to sessions actually watching that room.
+        """
+        messages: List[Tuple[Tuple[str, str], str]] = []
         remaining_in_queue = []
         respawned_this_tick = False
 
@@ -50,7 +54,8 @@ class RespawnManager:
                     # Notify all players currently in that room
                     for p in self.world.players.values():
                         if p.current_room_id == data["home_room_id"] and p.current_region_id == data["home_region_id"]:
-                            messages.append(f"{FORMAT_HIGHLIGHT}{new_npc.name} has returned.{FORMAT_RESET}")
+                            location = (data["home_region_id"], data["home_room_id"])
+                            messages.append((location, f"{FORMAT_HIGHLIGHT}{new_npc.name} has returned.{FORMAT_RESET}"))
                             break  # one message per respawn event
             else:
                 remaining_in_queue.append(data)

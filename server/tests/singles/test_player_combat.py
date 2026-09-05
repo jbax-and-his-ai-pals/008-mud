@@ -3,7 +3,15 @@
 guard clauses and minion notification, _add_combat_message trimming, attack()'s
 full branch matrix (stun, dead target, weapon durability/breaking, loot/gold/
 xp/level-up/quest-message assembly, party-reward routing), and the entirely
-untested die()/respawn() lifecycle (including permadeath)."""
+untested die()/respawn() lifecycle (including permadeath).
+
+Note: exit_combat()'s summon-notification `elif not
+p.runtime_state.combat.in_combat:` False arm is left untested as
+unreachable -- when `target` is falsy, exit_combat() always clears every
+entry from combat.targets before this loop runs, and the very next check
+(`if not p.runtime_state.combat.targets:`) then always sets in_combat to
+False, so this elif is guaranteed True whenever it's reached with a falsy
+target."""
 
 from unittest.mock import patch, MagicMock
 

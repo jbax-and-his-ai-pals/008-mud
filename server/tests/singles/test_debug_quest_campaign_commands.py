@@ -89,6 +89,14 @@ class TestDebugQuestCommand(GameTestBase):
         result = self.game.process_command("quest complete kill_rats")
         self.assertIn("Forced completion", result)
 
+    def test_search_skips_non_matching_quest_before_finding_a_later_match(self):
+        self.player.runtime_state.quests.active["quest_alpha"] = _one_stage_quest("quest_alpha")
+        self.player.runtime_state.quests.active["quest_beta"] = _one_stage_quest("quest_beta")
+        result = self.game.process_command("quest complete beta")
+        self.assertIn("Forced completion", result)
+        self.assertNotIn("quest_beta", self.player.runtime_state.quests.active)
+        self.assertIn("quest_alpha", self.player.runtime_state.quests.active)
+
 
 class TestDebugCampaignCommand(GameTestBase):
     def test_no_args_shows_usage(self):

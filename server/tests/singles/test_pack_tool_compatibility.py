@@ -1,3 +1,15 @@
+"""Coverage for toolkit/pack_tool.py.
+
+Note: two branches are left untested as unreachable:
+- main()'s `elif args.command == "export":` falling through without
+  taking either the "validate" or "export" body -- the subparsers are
+  configured with `required=True` and only "validate"/"export" choices,
+  so argparse itself guarantees args.command is always one of the two by
+  the time main() reaches this dispatch.
+- the module's `if __name__ == "__main__": main()` guard, which only runs
+  when the file is invoked directly as a script (consistent with this
+  codebase's established precedent for such guards)."""
+
 import io
 import json
 import shutil
@@ -20,6 +32,25 @@ class TestPackToolCompatibility(unittest.TestCase):
         self.assertTrue(pack_tool.version_in_range("1.0", "1.0", "1.0"))
         self.assertTrue(pack_tool.version_in_range("1.2", "1.0", "2.0"))
         self.assertFalse(pack_tool.version_in_range("2.1", "1.0", "2.0"))
+
+    def test_version_range_rejects_unparseable_version(self) -> None:
+        self.assertFalse(pack_tool.version_in_range("abc", "1.0", "2.0"))
+
+    def test_validate_pack_rejects_non_string_compat_field(self) -> None:
+        payload = {
+            "theme_id": "x", "display_name": "X",
+            "pack_spec_version": 1, "runtime_api_min": "1.0", "runtime_api_max": "1.0",
+        }
+        with patch("toolkit.pack_tool.load_json", return_value=payload):
+            self.assertFalse(pack_tool.validate_pack(Path("dummy.json"), {}))
+
+    def test_validate_pack_rejects_blank_compat_field(self) -> None:
+        payload = {
+            "theme_id": "x", "display_name": "X",
+            "pack_spec_version": "   ", "runtime_api_min": "1.0", "runtime_api_max": "1.0",
+        }
+        with patch("toolkit.pack_tool.load_json", return_value=payload):
+            self.assertFalse(pack_tool.validate_pack(Path("dummy.json"), {}))
 
     def test_validate_pack_rejects_missing_compat_by_default(self) -> None:
         payload = {
@@ -179,6 +210,20 @@ class TestPackToolFilesystem(unittest.TestCase):
         self.assertTrue(out_file.exists())
         self.assertEqual(self.VALID_PACK, json.loads(out_file.read_text(encoding="utf-8")))
 
+    def test_export_pack_reports_failure_when_write_raises(self) -> None:
+        root = self._case_root()
+        target = root / "sample.json"
+        target.write_text(json.dumps(self.VALID_PACK), encoding="utf-8")
+        out_dir = root / "dist"
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            with patch("toolkit.pack_tool.json.dump", side_effect=OSError("disk full")):
+                success = pack_tool.export_pack(target, out_dir, {"ui_strings": {}})
+
+        self.assertFalse(success)
+        self.assertIn("Export failed", buf.getvalue())
+
     def test_export_pack_fails_and_writes_nothing_for_an_invalid_pack(self) -> None:
         root = self._case_root()
         target = root / "invalid.json"
@@ -218,6 +263,26 @@ class TestPackToolFilesystem(unittest.TestCase):
 
         code = self._run_main(["pack_tool.py", "validate", str(packs_dir), "--reference", str(ref)])
         self.assertEqual(1, code)
+
+    def test_main_validate_accepts_a_single_file_target(self) -> None:
+        root = self._case_root()
+        ref = root / "reference.json"
+        ref.write_text(json.dumps({"ui_strings": {}}), encoding="utf-8")
+        target = root / "sample.json"
+        target.write_text(json.dumps(self.VALID_PACK), encoding="utf-8")
+
+        code = self._run_main(["pack_tool.py", "validate", str(target), "--reference", str(ref)])
+        self.assertEqual(0, code)
+
+    def test_main_validate_nonexistent_target_finds_nothing_and_exits_zero(self) -> None:
+        root = self._case_root()
+        ref = root / "reference.json"
+        ref.write_text(json.dumps({"ui_strings": {}}), encoding="utf-8")
+
+        code = self._run_main([
+            "pack_tool.py", "validate", str(root / "does_not_exist"), "--reference", str(ref),
+        ])
+        self.assertEqual(0, code)
 
     def test_main_validate_missing_reference_exits_one(self) -> None:
         root = self._case_root()

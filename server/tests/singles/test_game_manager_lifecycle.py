@@ -7,6 +7,7 @@ Intentionally skips run() -- the actual pygame blocking event loop."""
 
 import os
 import shutil
+from unittest.mock import patch
 
 from tests.fixtures import GameTestBase
 from engine.utils.logger import Logger, LogLevel
@@ -274,6 +275,80 @@ class TestAutoTravelStopAndInterrupt(GameTestBase):
         self.player.is_alive = False
         self.game._update_auto_travel()
         self.assertFalse(self.game.is_auto_traveling)
+
+
+class TestGameManagerConstruction(GameTestBase):
+    def test_invalid_content_set_path_raises(self):
+        from engine.core.game_manager import GameManager
+        with self.assertRaises(ValueError):
+            GameManager("totally_bogus_content_set_path_xyz")
+
+
+class TestHandleUiCommand(GameTestBase):
+    def test_delegates_to_process_command(self):
+        with patch.object(self.game, "process_command") as mock_process:
+            self.game._handle_ui_command("look")
+        mock_process.assert_called_once_with("look")
+
+
+class TestUpdateTickMessages(GameTestBase):
+    def test_ai_manager_message_is_added_to_renderer(self):
+        with patch.object(self.game.ai_manager, "update", return_value="An NPC did something."):
+            self.game.update(0.1)
+        self.assertIn("An NPC did something.", self.game.renderer.message_buffer)
+
+    def test_time_period_change_updates_weather_and_emits_message(self):
+        with patch.object(self.game.time_manager, "update", return_value=("night", "dawn")):
+            with patch.object(self.game.weather_manager, "update_on_time_period_change") as mock_weather:
+                with patch.object(
+                    self.game.time_manager, "get_time_transition_message", return_value="The sun rises.",
+                ):
+                    self.game.update(0.1)
+        mock_weather.assert_called_once()
+        self.assertIn("The sun rises.", self.game.renderer.message_buffer)
+
+
+class TestSelectLoadOptionNoOp(GameTestBase):
+    def test_no_available_saves_is_a_noop(self):
+        self.game.available_saves = []
+        self.game.selected_load_option = 5
+        self.game.game_state = "load_game_menu"
+        self.game.select_load_option()
+        self.assertEqual(self.game.game_state, "load_game_menu")
+
+
+class TestUpdateAvailableSavesErrorHandling(GameTestBase):
+    def test_missing_directory_is_deterministically_a_noop(self):
+        with patch("os.path.isdir", return_value=False):
+            self.game._update_available_saves()
+        self.assertEqual(self.game.available_saves, [])
+
+    def test_listdir_exception_is_caught(self):
+        with patch("os.path.isdir", return_value=True):
+            with patch("os.listdir", side_effect=OSError("boom")):
+                self.game._update_available_saves()
+        self.assertEqual(self.game.available_saves, [])
+
+
+class TestUpdateAutoTravelTimerNotElapsed(GameTestBase):
+    def test_timer_still_counting_down_takes_no_action(self):
+        class _Guide:
+            name = "Guide"
+            is_alive = True
+        class _FakeClock:
+            def get_time(self):
+                return 1
+        self.game.is_auto_traveling = True
+        self.game.auto_travel_guide = _Guide()
+        self.game.auto_travel_timer = 10000
+        original_clock = self.game.clock
+        self.game.clock = _FakeClock()
+        try:
+            self.game._update_auto_travel()
+        finally:
+            self.game.clock = original_clock
+        self.assertTrue(self.game.is_auto_traveling)
+        self.assertGreater(self.game.auto_travel_timer, 0)
 
 
 if __name__ == "__main__":

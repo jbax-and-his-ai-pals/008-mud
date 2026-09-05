@@ -1,3 +1,18 @@
+"""Coverage for toolkit/editor_export_shim.py.
+
+Note: two branches are left untested as unreachable:
+- _hydrate_from_latest()'s second-pass `if item_id not in
+  summary["hydrated_item_ids"]:` guard -- add_items and
+  summary["hydrated_item_ids"] are always updated together (in both the
+  first pass and the second pass, immediately after each other, with no
+  intervening reset), and the preceding `if item_id in target_items or
+  item_id in add_items: continue` check already guarantees an item_id
+  reaching this point was never in add_items before -- so it can never
+  already be in hydrated_item_ids either.
+- the module's `if __name__ == "__main__": main()` guard, which only runs
+  when the file is invoked directly as a script (consistent with this
+  codebase's established precedent for such guards)."""
+
 import io
 import json
 import shutil
@@ -15,6 +30,7 @@ if str(_TOOLKIT_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLKIT_DIR))
 
 from editor_export_shim import (
+    CopyRule,
     _collect_ids_from_payload,
     _collect_references_for_migration,
     _copy_path,
@@ -85,6 +101,17 @@ class TestEditorExportShim(unittest.TestCase):
         normalization = report.get("normalization", {})
         self.assertGreaterEqual(int(normalization.get("regions_processed", 0)), 1)
         self.assertGreaterEqual(int(normalization.get("room_editor_keys_removed", 0)), 1)
+
+    def test_missing_required_copy_rule_is_reported_as_an_error(self) -> None:
+        root = self._case_root()
+        src = root / "src"
+        dst = root / "dst"
+        src.mkdir(parents=True, exist_ok=True)
+        required_rule = (CopyRule("must_exist", "must_exist", required=True),)
+        with patch("editor_export_shim._COPY_RULES", required_rule):
+            report = shim_editor_export(src, dst, validate=False)
+        self.assertEqual(1, len(report["missing"]))
+        self.assertEqual("error", report["missing"][0]["severity"])
 
     def test_ignores_legacy_templates_path_without_warning(self) -> None:
         root = self._case_root()
@@ -375,6 +402,21 @@ class TestCollectIdsFromPayload(unittest.TestCase):
         self.assertEqual(set(), item_ids)
         self.assertEqual(set(), npc_ids)
 
+    def test_blank_item_and_template_id_values_are_ignored(self) -> None:
+        item_ids: set[str] = set()
+        npc_ids: set[str] = set()
+        payload = {"item_id": "   ", "nested": {"template_id": "  "}}
+        _collect_ids_from_payload(payload, item_ids, npc_ids)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_blank_loot_table_key_is_ignored(self) -> None:
+        item_ids: set[str] = set()
+        npc_ids: set[str] = set()
+        payload = {"loot_table": {"  ": 1, "item_real": 1}}
+        _collect_ids_from_payload(payload, item_ids, npc_ids)
+        self.assertEqual({"item_real"}, item_ids)
+
 
 class TestCollectReferencesForMigration(unittest.TestCase):
     def _case_root(self) -> Path:
@@ -455,6 +497,105 @@ class TestCollectReferencesForMigration(unittest.TestCase):
         item_ids, _npc_ids = _collect_references_for_migration(root)
         self.assertEqual({"item_from_npc"}, item_ids)
 
+    def test_non_dict_npc_json_top_level_is_skipped(self) -> None:
+        root = self._case_root()
+        (root / "npcs").mkdir()
+        (root / "npcs" / "list.json").write_text(json.dumps(["not", "a", "dict"]), encoding="utf-8")
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_non_dict_rooms_value_is_skipped(self) -> None:
+        root = self._case_root()
+        (root / "regions").mkdir()
+        (root / "regions" / "town.json").write_text(
+            json.dumps({"rooms": "not-a-dict"}), encoding="utf-8",
+        )
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_non_list_room_items_and_npcs_are_skipped(self) -> None:
+        root = self._case_root()
+        (root / "regions").mkdir()
+        (root / "regions" / "town.json").write_text(
+            json.dumps({
+                "rooms": {"square": {"items": "not-a-list", "initial_npcs": "not-a-list"}},
+            }),
+            encoding="utf-8",
+        )
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_blank_room_item_and_npc_ids_are_ignored(self) -> None:
+        root = self._case_root()
+        (root / "regions").mkdir()
+        (root / "regions" / "town.json").write_text(
+            json.dumps({
+                "rooms": {
+                    "square": {
+                        "items": [{"item_id": "  "}, {"item_id": "item_real"}],
+                        "initial_npcs": [{"template_id": "  "}, {"template_id": "npc_real"}],
+                    },
+                },
+            }),
+            encoding="utf-8",
+        )
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual({"item_real"}, item_ids)
+        self.assertEqual({"npc_real"}, npc_ids)
+
+    def test_non_dict_quest_json_top_level_is_skipped(self) -> None:
+        root = self._case_root()
+        (root / "quests").mkdir()
+        (root / "quests" / "quests.json").write_text(json.dumps(["not", "a", "dict"]), encoding="utf-8")
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_quest_rewards_and_stages_with_wrong_types_are_skipped(self) -> None:
+        root = self._case_root()
+        (root / "quests").mkdir()
+        (root / "quests" / "quests.json").write_text(
+            json.dumps({"q1": {"rewards": "not-a-dict", "stages": "not-a-list"}}), encoding="utf-8",
+        )
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
+    def test_non_list_reward_items_is_skipped(self) -> None:
+        root = self._case_root()
+        (root / "quests").mkdir()
+        (root / "quests" / "quests.json").write_text(
+            json.dumps({"q1": {"rewards": {"items": "not-a-list"}}}), encoding="utf-8",
+        )
+        item_ids, _npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+
+    def test_blank_reward_item_id_is_ignored(self) -> None:
+        root = self._case_root()
+        (root / "quests").mkdir()
+        (root / "quests" / "quests.json").write_text(
+            json.dumps({"q1": {"rewards": {"items": [{"item_id": "  "}, {"item_id": "item_real"}]}}}),
+            encoding="utf-8",
+        )
+        item_ids, _npc_ids = _collect_references_for_migration(root)
+        self.assertEqual({"item_real"}, item_ids)
+
+    def test_spawn_and_objective_with_wrong_types_are_skipped(self) -> None:
+        root = self._case_root()
+        (root / "quests").mkdir()
+        (root / "quests" / "quests.json").write_text(
+            json.dumps({
+                "q1": {"stages": [{"spawn_on_entry": "not-a-dict", "objective": "not-a-dict"}]},
+            }),
+            encoding="utf-8",
+        )
+        item_ids, npc_ids = _collect_references_for_migration(root)
+        self.assertEqual(set(), item_ids)
+        self.assertEqual(set(), npc_ids)
+
 
 class TestHydrateFromLatest(unittest.TestCase):
     def _case_root(self) -> Path:
@@ -480,6 +621,108 @@ class TestHydrateFromLatest(unittest.TestCase):
         )
         summary = _hydrate_from_latest(target, root / "latest")
         self.assertEqual(["item_ghost"], summary["missing_item_ids"])
+
+    def test_referenced_npc_missing_from_latest_is_reported(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        (target / "regions").mkdir(parents=True)
+        (target / "regions" / "town.json").write_text(
+            json.dumps({"rooms": {"square": {"initial_npcs": [{"template_id": "npc_ghost"}]}}}),
+            encoding="utf-8",
+        )
+        summary = _hydrate_from_latest(target, root / "latest")
+        self.assertEqual(["npc_ghost"], summary["missing_npc_ids"])
+
+    def test_second_pass_skips_item_already_present_in_target(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        latest = root / "latest"
+        (target / "regions").mkdir(parents=True)
+        (target / "regions" / "town.json").write_text(
+            json.dumps({"rooms": {"square": {"initial_npcs": [{"template_id": "npc_vendor"}]}}}),
+            encoding="utf-8",
+        )
+        (target / "items").mkdir(parents=True)
+        (target / "items" / "existing.json").write_text(
+            json.dumps({"item_already_present": {"type": "Item", "name": "x", "description": "x", "properties": {}}}),
+            encoding="utf-8",
+        )
+        (latest / "npcs").mkdir(parents=True)
+        (latest / "npcs" / "vendors.json").write_text(
+            json.dumps({"npc_vendor": {"loot_table": {"item_already_present": 1}}}),
+            encoding="utf-8",
+        )
+
+        summary = _hydrate_from_latest(target, latest)
+
+        self.assertNotIn("item_already_present", summary["hydrated_item_ids"])
+        self.assertFalse((target / "items" / "migrated_latest.items.json").exists())
+
+    def test_second_pass_reports_item_missing_from_latest(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        latest = root / "latest"
+        (target / "regions").mkdir(parents=True)
+        (target / "regions" / "town.json").write_text(
+            json.dumps({"rooms": {"square": {"initial_npcs": [{"template_id": "npc_vendor"}]}}}),
+            encoding="utf-8",
+        )
+        (latest / "npcs").mkdir(parents=True)
+        (latest / "npcs" / "vendors.json").write_text(
+            json.dumps({"npc_vendor": {"loot_table": {"item_only_via_npc_and_missing": 1}}}),
+            encoding="utf-8",
+        )
+
+        summary = _hydrate_from_latest(target, latest)
+
+        self.assertIn("item_only_via_npc_and_missing", summary["missing_item_ids"])
+
+    def test_second_pass_does_not_duplicate_an_already_reported_missing_item(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        latest = root / "latest"
+        (target / "regions").mkdir(parents=True)
+        (target / "regions" / "town.json").write_text(
+            json.dumps({
+                "rooms": {
+                    "square": {
+                        "items": [{"item_id": "item_shared_missing"}],
+                        "initial_npcs": [{"template_id": "npc_vendor"}],
+                    },
+                },
+            }),
+            encoding="utf-8",
+        )
+        (latest / "npcs").mkdir(parents=True)
+        (latest / "npcs" / "vendors.json").write_text(
+            json.dumps({"npc_vendor": {"loot_table": {"item_shared_missing": 1}}}),
+            encoding="utf-8",
+        )
+
+        summary = _hydrate_from_latest(target, latest)
+
+        self.assertEqual(["item_shared_missing"], summary["missing_item_ids"])
+
+    def test_second_pass_with_no_item_references_writes_no_items_file(self) -> None:
+        root = self._case_root()
+        target = root / "target"
+        latest = root / "latest"
+        (target / "regions").mkdir(parents=True)
+        (target / "regions" / "town.json").write_text(
+            json.dumps({"rooms": {"square": {"initial_npcs": [{"template_id": "npc_plain"}]}}}),
+            encoding="utf-8",
+        )
+        (latest / "npcs").mkdir(parents=True)
+        (latest / "npcs" / "plain.json").write_text(
+            json.dumps({"npc_plain": {"name": "Plain Npc", "faction": "neutral"}}),
+            encoding="utf-8",
+        )
+
+        summary = _hydrate_from_latest(target, latest)
+
+        self.assertIn("npc_plain", summary["hydrated_npc_ids"])
+        self.assertEqual([], summary["hydrated_item_ids"])
+        self.assertFalse((target / "items" / "migrated_latest.items.json").exists())
 
     def test_second_pass_hydrates_items_referenced_only_by_a_hydrated_npc(self) -> None:
         root = self._case_root()

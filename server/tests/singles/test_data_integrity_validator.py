@@ -1,3 +1,16 @@
+"""Coverage for toolkit/data_integrity_validator.py.
+
+Note: two branches are left untested as unreachable:
+- validate_tree()'s `else: continue` arm for an unrecognized file suffix --
+  the file-collection walk immediately above it only ever appends paths
+  whose suffix is already one of ".json"/".yaml"/".yml"/".svg", so by the
+  time a path reaches this dispatch, one of the preceding branches always
+  matches.
+- the module's `if __name__ == "__main__": main()` guard, which only runs
+  when the file is invoked directly as a script (consistent with this
+  codebase's established precedent for such guards, e.g.
+  toolkit/content_set_validator.py)."""
+
 import io
 import shutil
 import sys
@@ -15,6 +28,10 @@ from toolkit import data_integrity_validator as validator
 
 
 class TestDataIntegrityValidator(unittest.TestCase):
+    def test_looks_like_item_template_rejects_non_dict_values(self) -> None:
+        self.assertFalse(validator._looks_like_item_template("not a dict"))
+        self.assertFalse(validator._looks_like_item_template(["also", "not", "a", "dict"]))
+
     def test_valid_reward_items_pass(self) -> None:
         payload = {
             "quest_a": {
@@ -136,6 +153,32 @@ class TestDataIntegrityValidator(unittest.TestCase):
         root.mkdir(parents=True, exist_ok=True)
         self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
         return root
+
+    def test_validate_tree_processes_yaml_and_svg_files(self) -> None:
+        root = self._case_root()
+        (root / "good.yaml").write_text("key: value\n", encoding="utf-8")
+        (root / "bad.svg").write_text("<svg><unclosed>", encoding="utf-8")
+
+        with redirect_stdout(io.StringIO()):
+            checked, errors, _warnings = validator.validate_tree(root)
+
+        self.assertEqual(2, checked)
+        self.assertEqual(1, errors)  # only the malformed svg
+
+    def test_validate_tree_prints_warnings(self) -> None:
+        root = self._case_root()
+        (root / "items").mkdir()
+        (root / "items" / "items.json").write_text(
+            '{"item_x": {"description": "x", "properties": {}}}', encoding="utf-8"
+        )
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            checked, errors, warnings = validator.validate_tree(root)
+
+        self.assertEqual(0, errors)
+        self.assertEqual(1, warnings)
+        self.assertIn("[WARN]", buf.getvalue())
 
     def test_validate_tree_counts_errors_and_ignores_dot_and_save_dirs(self) -> None:
         root = self._case_root()

@@ -630,7 +630,13 @@ class JsonWebSocketMudServer:
                     continue
                 events = self.core.server.execute_command_envelope(envelope)
                 for event in events:
-                    await transport.send_event(event)
+                    target_id = event.get("session_id")
+                    if target_id == "*" or target_id == "broadcast":
+                        await self._broadcast_ws_event(event)
+                    elif target_id and target_id != active_session_id and target_id in self._ws_sessions:
+                        await self._ws_sessions[target_id].send_event(event)
+                    else:
+                        await transport.send_event(event)
         finally:
             self.core.server.mark_session_disconnected(active_session_id)
             await self._release_session_locks(active_session_id)

@@ -5,6 +5,7 @@ minimap, view, toggle."""
 import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tests.fixtures import GameTestBase
 
@@ -37,6 +38,11 @@ class TestQuitCommand(GameTestBase):
         self.assertIn("title screen", result)
         self.assertEqual("title_screen", self.game.game_state)
 
+    def test_no_game_reports_context_not_found(self):
+        from engine.commands.system import quit_handler
+        result = quit_handler([], {})
+        self.assertIn("Game context not found", result)
+
 
 class TestSaveAndLoadCommands(GameTestBase):
     TEST_SAVE = "test_system_commands_save.json"
@@ -68,6 +74,40 @@ class TestSaveAndLoadCommands(GameTestBase):
         self.assertIn("loaded", result)
         self.assertEqual("playing", self.game.game_state)
 
+    def test_save_no_player_reports_start_or_load(self):
+        from engine.commands.system import save_handler
+        result = save_handler([], {"world": self.world, "player": None})
+        self.assertIn("start or load a game", result)
+
+    def test_save_failure_is_reported(self):
+        with patch.object(self.world, "save_game", return_value=False):
+            result = self.game.process_command(f"save {self.TEST_SAVE}")
+        self.assertIn("Error saving", result)
+
+    def test_load_failure_is_reported(self):
+        self.game.process_command(f"save {self.TEST_SAVE}")
+        with patch.object(self.world, "load_save_game", return_value=(False, None, None)):
+            result = self.game.process_command(f"load {self.TEST_SAVE}")
+        self.assertIn("Error loading", result)
+
+    def test_load_without_renderer_or_input_handler_skips_reset(self):
+        # Calls load_handler directly (bypassing process_command) since
+        # process_command itself unconditionally touches self.renderer
+        # before/after dispatch, which would crash once it's None.
+        from engine.commands.system import load_handler
+        self.game.process_command(f"save {self.TEST_SAVE}")
+        original_renderer = self.game.renderer
+        original_input_handler = self.game.input_handler
+        self.game.renderer = None
+        self.game.input_handler = None
+        try:
+            context = {"world": self.world, "game": self.game}
+            result = load_handler([self.TEST_SAVE], context)
+        finally:
+            self.game.renderer = original_renderer
+            self.game.input_handler = original_input_handler
+        self.assertIn("loaded", result)
+
 
 class TestMinimapCommand(GameTestBase):
     def test_toggle_off_then_on(self):
@@ -90,11 +130,63 @@ class TestMinimapCommand(GameTestBase):
         result = self.game.process_command("minimap sideways")
         self.assertIn("Usage", result)
 
+    def test_no_game_reports_system_error(self):
+        from engine.commands.system import toggle_minimap_handler
+        result = toggle_minimap_handler([], {})
+        self.assertIn("System error", result)
+
+    def test_no_ui_manager_reports_unavailable(self):
+        from engine.commands.system import toggle_minimap_handler
+        from engine.server.headless_server import HeadlessServer
+
+        repo_root = Path(__file__).resolve().parents[3]
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(repo_root / "content_sets" / "fantasy_frontier"),
+        )
+        try:
+            result = toggle_minimap_handler([], {"game": server})
+        finally:
+            server.shutdown()
+        self.assertIn("not available", result)
+
+    def test_enable_failure_is_reported(self):
+        self.game.process_command("minimap off")
+        with patch.object(self.game.ui_manager, "add_panel_to_dock", return_value=False):
+            result = self.game.process_command("minimap on")
+        self.assertIn("Could not enable minimap", result)
+
+    def test_disable_failure_is_reported(self):
+        self.game.process_command("minimap on")
+        with patch.object(self.game.ui_manager, "remove_panel", return_value=False):
+            result = self.game.process_command("minimap off")
+        self.assertIn("Could not disable minimap", result)
+
 
 class TestViewCommand(GameTestBase):
     def test_no_args_shows_usage(self):
         result = self.game.process_command("view")
         self.assertIn("Usage", result)
+
+    def test_no_game_reports_context_missing(self):
+        from engine.commands.system import view_panel_handler
+        result = view_panel_handler([], {})
+        self.assertIn("Game context missing", result)
+
+    def test_no_ui_manager_reports_unavailable(self):
+        from engine.commands.system import view_panel_handler
+        from engine.server.headless_server import HeadlessServer
+
+        repo_root = Path(__file__).resolve().parents[3]
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(repo_root / "content_sets" / "fantasy_frontier"),
+        )
+        try:
+            result = view_panel_handler(["list"], {"game": server})
+        finally:
+            server.shutdown()
+        self.assertIn("not available", result)
 
     def test_list_shows_panel_states(self):
         result = self.game.process_command("view list")
@@ -129,6 +221,11 @@ class TestToggleCommand(unittest.TestCase):
     """toggle_handler reads game.feature_profile/broadcast_global, which only
     exist on HeadlessServer -- it is a multiplayer-operator-only command with
     no single-player equivalent, so it needs the headless harness."""
+
+    def test_no_game_reports_context_not_found(self):
+        from engine.commands.system import toggle_handler
+        result = toggle_handler([], {})
+        self.assertIn("Game context not found", result)
 
     def test_usage_and_success_paths(self):
         from engine.commands.system import toggle_handler

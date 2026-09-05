@@ -4,11 +4,34 @@ test_gambling.py/test_gambling_logic.py already exercise: rules, bet dispatch
 across all five games, hit/stand/guess edge cases, and the non-blackjack
 minigame implementations (dice, slots, wheel, runebreaker)."""
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from tests.fixtures import GameTestBase
-from engine.commands.gambling import bet_handler
+from engine.commands.gambling import bet_handler, draw_card, _check_location, RANKS, SUITS
 from engine.npcs.npc_factory import NPCFactory
+
+
+class TestDrawCard(GameTestBase):
+    def test_returns_a_valid_rank_and_suit(self):
+        rank, suit = draw_card()
+        self.assertIn(rank, RANKS)
+        self.assertIn(suit, SUITS)
+
+
+class TestCheckLocation(GameTestBase):
+    def test_no_active_minigame_returns_false(self):
+        self.player.active_minigame = None
+        self.assertFalse(_check_location(self.player))
+
+    def test_legacy_record_without_location_keys_is_treated_as_stationary(self):
+        self.player.active_minigame = {"type": "blackjack"}
+        self.assertTrue(_check_location(self.player))
+
+
+class TestBetHandlerDirect(GameTestBase):
+    def test_no_player_reports_not_found(self):
+        result = bet_handler(["10"], {"world": self.world, "player": None})
+        self.assertIn("Player not found", result)
 
 
 class _CasinoTestBase(GameTestBase):
@@ -221,6 +244,12 @@ class TestGuessCommand(_CasinoTestBase):
         self.assertIn("Attempts remaining", result)
         self.assertIsNotNone(self.player.active_minigame)
 
+    def test_guess_with_right_element_wrong_position_counts_as_partial(self):
+        self._start_runebreaker(["fire", "water", "earth"])
+        # "water" and "earth" are both present but shifted out of position.
+        result = self.game.process_command("guess air earth water")
+        self.assertIn("2 Partial", result)
+
     def test_running_out_of_attempts_ends_the_game(self):
         self._start_runebreaker(["fire", "water", "earth"])
         self.player.active_minigame["attempts_left"] = 1
@@ -291,6 +320,17 @@ class TestSlots(_CasinoTestBase):
         self.assertIn("No match", result)
         self.assertEqual(90, self.player.runtime_state.gold)
 
+    @patch("engine.commands.gambling.random.choices")
+    def test_jackpot_routes_profit_through_party_server(self, mock_choices):
+        mock_choices.return_value = ["[DRG]"]
+        self._place_dealer("mechanical_dealer")
+        fake_server = MagicMock()
+        fake_server.grant_party_gold.return_value = "Party profit shared!"
+        with patch.object(self.world, "server", fake_server, create=True):
+            result = self.game.process_command("bet 10")
+        self.assertIn("Jackpot", result)
+        self.assertIn("Party profit shared!", result)
+
 
 class TestElementalWheel(_CasinoTestBase):
     @patch("engine.commands.gambling.random.choices")
@@ -308,6 +348,17 @@ class TestElementalWheel(_CasinoTestBase):
         result = self.game.process_command("bet 10")
         self.assertIn("Loss", result)
         self.assertEqual(90, self.player.runtime_state.gold)
+
+    @patch("engine.commands.gambling.random.choices")
+    def test_winning_spin_routes_profit_through_party_server(self, mock_choices):
+        mock_choices.return_value = [("AETHER", 10, "", 1)]
+        self._place_dealer("wheel_dealer")
+        fake_server = MagicMock()
+        fake_server.grant_party_gold.return_value = "Party profit shared!"
+        with patch.object(self.world, "server", fake_server, create=True):
+            result = self.game.process_command("bet 10")
+        self.assertIn("Win", result)
+        self.assertIn("Party profit shared!", result)
 
 
 class TestStartRunebreakerViaBet(_CasinoTestBase):

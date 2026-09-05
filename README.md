@@ -111,8 +111,9 @@ This engine is built on a Component-Entity-System architecture heavily reliant o
 *   `inventory` / `i` - Show inventory.
 *   `status` / `st` - Show health, mana, stats, and active effects.
 *   `spells` - List known spells and cooldowns.
-*   `quest` / `journal` - View active quests.
-*   `time` / `calendar` - Check game time and date.
+*   `journal` / `quests` / `log` - View active or completed quests.
+*   `time` - Check the current in-game time and date.
+*   `calendar` - View the full calendar (day/month names, days per week/month).
 *   `weather` - Check current weather conditions.
 *   `map` / `minimap` - Toggle the ASCII minimap panel.
 *   `help` - Show command categories.
@@ -175,10 +176,8 @@ The Giant Rat bites you for 3 physical damage.
 **4. Loot and Mechanics**
 After the fight, you find loot.
 ```text
-> loot rat
-You find:
-- Rat Tail
-- 2 Gold
+> take all
+You pick up a Rat Tail, 2 Gold.
 
 > pick chest
 You successfully pick the lock! (Skill: Lockpicking increased to 2)

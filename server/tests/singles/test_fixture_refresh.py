@@ -1,3 +1,10 @@
+"""Coverage for toolkit/fixture_refresh.py.
+
+Note: the module's `if __name__ == "__main__": main()` guard is left
+untested as unreachable under import-based testing -- it only runs when
+the file is invoked directly as a script (consistent with this codebase's
+established precedent for such guards)."""
+
 import io
 import json
 import shutil
@@ -13,7 +20,7 @@ _TOOLKIT_DIR = _REPO_ROOT / "toolkit"
 if str(_TOOLKIT_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLKIT_DIR))
 
-from fixture_refresh import _copy_tree, _safe_rmtree, main, refresh_fixture
+from fixture_refresh import _copy_tree, _on_rm_error, _safe_rmtree, main, refresh_fixture
 
 
 class TestFixtureRefresh(unittest.TestCase):
@@ -47,6 +54,19 @@ class TestFixtureRefresh(unittest.TestCase):
         missing = root / "does_not_exist"
         _safe_rmtree(missing)  # must not raise
         self.assertFalse(missing.exists())
+
+    def test_on_rm_error_clears_readonly_and_retries(self) -> None:
+        import os
+        import stat
+
+        root = self._case_root()
+        stubborn = root / "readonly.txt"
+        stubborn.write_text("locked", encoding="utf-8")
+        os.chmod(stubborn, stat.S_IREAD)
+
+        _on_rm_error(os.remove, str(stubborn), None)
+
+        self.assertFalse(stubborn.exists())
 
     def test_copy_tree_replaces_existing_destination(self) -> None:
         root = self._case_root()
@@ -140,6 +160,28 @@ class TestFixtureRefresh(unittest.TestCase):
 
         self.assertEqual("ok", result["status"])
         self.assertTrue((root / "fixtures" / "LATEST_REFRESH.json").exists())
+
+    def test_primary_copy_failure_falls_back_to_a_secondary_target(self) -> None:
+        root = self._case_root()
+        src = root / "src"
+        self._write_clean_source(src)
+
+        with patch(
+            "fixture_refresh._copy_tree", side_effect=[OSError("locked by another process"), None],
+        ):
+            result = refresh_fixture(
+                source_root=src,
+                latest_root=root / "latest",
+                fixture_root=root / "fixtures",
+                fixture_name="my_fixture",
+                tmp_root=root / "tmp",
+                strict=True,
+            )
+
+        self.assertFalse(result["replaced_primary_target"])
+        self.assertEqual("locked by another process", result["replacement_error"])
+        self.assertNotEqual(result["fixture_primary_target"], result["fixture_selected_target"])
+        self.assertTrue(str(result["fixture_selected_target"]).startswith(result["fixture_primary_target"] + "__refresh_"))
 
     def test_main_parses_args_and_prints_result_json(self) -> None:
         root = self._case_root()

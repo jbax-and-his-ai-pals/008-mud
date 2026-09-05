@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 
+from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -53,6 +54,71 @@ class TestFlushBackgroundBatch(unittest.TestCase):
         flushed = self.server._flush_background_batch(sid)
         payload_types_and_sessions = [(e["type"], e["session_id"]) for e in flushed]
         self.assertIn(("text", other.session_id), payload_types_and_sessions)
+
+
+class TestWorldTickMessageRoutingByRoom(unittest.TestCase):
+    """Regression coverage for a bug found during live playtesting: a hostile's
+    attack message (and other room-scoped world-tick messages) was tagged with
+    whichever session's poll happened to trigger the periodic world.update(),
+    not the session(s) actually watching the room the event occurred in."""
+
+    def setUp(self) -> None:
+        self.server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True
+        )
+        self.session_a = self.server.create_session(player_id="route_player_a")
+        self.session_b = self.server.create_session(player_id="route_player_b")
+        for session in (self.session_a, self.session_b):
+            self.server.mark_session_connected(session.session_id)
+        self.server.execute_command(self.session_a.session_id, "char create RouteA")
+        self.server.execute_command(self.session_b.session_id, "char create RouteB")
+        self.player_a = self.server.get_player_for_session(self.session_a.session_id)
+        self.player_b = self.server.get_player_for_session(self.session_b.session_id)
+        self.assertIsNotNone(self.player_a)
+        self.assertIsNotNone(self.player_b)
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+
+    def test_room_scoped_combat_message_is_not_delivered_to_a_session_in_another_room(self):
+        # Put player_b somewhere else so only player_a's session should ever
+        # see the goblin's attack message.
+        self.player_b.current_region_id = "town"
+        self.player_b.current_room_id = "market_square"
+
+        goblin = NPCFactory.create_npc_from_template(
+            "goblin", self.server.world, instance_id="route_goblin"
+        )
+        self.assertIsNotNone(goblin)
+        goblin.current_region_id = self.player_a.current_region_id
+        goblin.current_room_id = self.player_a.current_room_id
+        self.server.world.add_npc(goblin)
+        goblin.enter_combat(self.player_a)
+        goblin.combat_cooldown = 0.0
+        goblin.attack_cooldown = 0.0
+        goblin.last_attack_time = 0.0
+        goblin.last_combat_action = 0.0
+
+        self.server.world.last_update_time = 0.0
+        # Session B's poll is the one that happens to trigger the periodic
+        # world tick -- it must not receive the goblin's combat text just
+        # because its poll was the one that ran the tick. (Session B may
+        # legitimately still receive unrelated global background events,
+        # like time-of-day/weather ticks tagged to the calling session --
+        # this only asserts on the room-scoped combat message itself.)
+        self.server.tick(self.session_b.session_id)
+
+        batch = self.server._background_event_batch
+        session_a_texts = [
+            ev.get("payload", "") for ev in batch
+            if ev.get("session_id") == self.session_a.session_id and ev.get("type") == "text"
+        ]
+        session_b_texts = [
+            ev.get("payload", "") for ev in batch
+            if ev.get("session_id") == self.session_b.session_id and ev.get("type") == "text"
+        ]
+        self.assertTrue(any("goblin" in text.lower() for text in session_a_texts))
+        self.assertFalse(any("goblin" in text.lower() for text in session_b_texts))
 
 
 class TestCombatAdjacentMessageFilter(unittest.TestCase):

@@ -25,7 +25,10 @@ def stop_handler(args, context):
         return "" # The stop_auto_travel function will print its own message
     return "There is nothing to stop."
 
-@command("quit", ["q", "exit"], "system", "Return to the main title screen.")
+# "exit" is intentionally not an alias here -- the dynamically-registered
+# "out" movement command already owns that word (and registers after every
+# static module, including this one), so it silently wins over this one.
+@command("quit", ["q"], "system", "Return to the main title screen.")
 def quit_handler(args, context):
     game = context.get("game")
     if game:
