@@ -8,7 +8,7 @@ from engine.config import (
     FORMAT_ERROR, FORMAT_RESET, NPC_BASE_HEALTH, NPC_BASE_XP_TO_LEVEL, NPC_CON_HEALTH_MULTIPLIER, NPC_DEFAULT_AGGRESSION,
     NPC_DEFAULT_FLEE_THRESHOLD, NPC_DEFAULT_MOVE_COOLDOWN, NPC_DEFAULT_RESPAWN_COOLDOWN,
     NPC_DEFAULT_SPELL_CAST_CHANCE, NPC_DEFAULT_WANDER, NPC_LEVEL_CON_HEALTH_MULTIPLIER, NPC_LEVEL_HEALTH_BASE_INCREASE,
-    NPC_XP_TO_LEVEL_MULTIPLIER, VILLAGER_FIRST_NAMES_FEMALE, VILLAGER_FIRST_NAMES_MALE
+    NPC_XP_TO_LEVEL_MULTIPLIER
 )
 from engine.config.config_npc import NPC_MANA_LEVEL_UP_INT_DIVISOR, NPC_MANA_LEVEL_UP_MULTIPLIER
 from engine.items.item_factory import ItemFactory
@@ -57,10 +57,11 @@ class NPCFactory:
             final_npc_name = overrides.get("name")
             if not final_npc_name:
                 if template.get("properties", {}).get("randomize_name"):
-                    first_names = VILLAGER_FIRST_NAMES_MALE + VILLAGER_FIRST_NAMES_FEMALE
+                    npc_naming = world.ruleset_section("npc_naming")
+                    first_names = npc_naming.get("first_names", [])
                     random_first_name = random.choice(first_names) if first_names else "Wanderer"
                     base_title = template.get("name", "NPC").split(" ")[-1]
-                    name_pattern = world.ruleset_section("npc_naming").get("random_name_pattern", "{first_name}")
+                    name_pattern = npc_naming.get("random_name_pattern", "{first_name}")
                     final_npc_name = name_pattern.format(first_name=random_first_name, title=base_title)
                 else:
                     final_npc_name = template.get("name", "Unknown NPC")

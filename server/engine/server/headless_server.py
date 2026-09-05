@@ -630,13 +630,13 @@ class HeadlessServer:
         final_node: str,
         completed_at: float | None = None,
     ) -> Dict[str, Any]:
-        finite_state = player.runtime_state.quests.finite_adventure
+        finite_state = player.runtime_state.quests.finite_adventure if player.runtime_state.quests is not None else None
         if not isinstance(finite_state, dict):
             finite_state = {}
         started_at = finite_state.get("started_at")
         history: List[Dict[str, Any]] = []
-        active_campaigns = player.runtime_state.quests.active_campaigns
-        completed_campaigns = player.runtime_state.quests.completed_campaigns
+        active_campaigns = player.runtime_state.quests.active_campaigns if player.runtime_state.quests is not None else None
+        completed_campaigns = player.runtime_state.quests.completed_campaigns if player.runtime_state.quests is not None else None
         campaign_state = {}
         if isinstance(active_campaigns, dict):
             campaign_state = active_campaigns.get(campaign_id, {})
@@ -647,6 +647,9 @@ class HeadlessServer:
             if isinstance(raw_history, list):
                 history = copy.deepcopy(raw_history)
         resolved_completed_at = completed_at if completed_at is not None else time.time()
+        progression = player.runtime_state.progression
+        magic = player.runtime_state.magic
+        quests = player.runtime_state.quests
         return {
             "summary_version": 2,
             "campaign_id": campaign_id,
@@ -658,15 +661,15 @@ class HeadlessServer:
             "final_node": str(final_node),
             "history": history,
             "player_name": str(getattr(player, "name", "")),
-            "player_level": int(player.runtime_state.progression.level),
-            "player_gold": int(player.runtime_state.gold),
+            "player_level": int(progression.level) if progression is not None else 0,
+            "player_gold": int(player.runtime_state.gold) if player.runtime_state.gold is not None else 0,
             "final_health": int(getattr(player, "health", 0)),
             "max_health": int(getattr(player, "max_health", 0)),
-            "final_mana": int(player.runtime_state.magic.mana),
-            "max_mana": int(player.runtime_state.magic.max_mana),
-            "quest_log_count": len(player.runtime_state.quests.active),
-            "completed_quest_count": len(player.runtime_state.quests.completed),
-            "archived_quest_count": len(player.runtime_state.quests.archived),
+            "final_mana": int(magic.mana) if magic is not None else 0,
+            "max_mana": int(magic.max_mana) if magic is not None else 0,
+            "quest_log_count": len(quests.active) if quests is not None else 0,
+            "completed_quest_count": len(quests.completed) if quests is not None else 0,
+            "archived_quest_count": len(quests.archived) if quests is not None else 0,
             "world_mode": str(self.feature_profile.resolved_world_mode()),
         }
 
@@ -1086,25 +1089,28 @@ class HeadlessServer:
     def _reset_finite_adventure_player_state(self, player: Any, campaign_id: str = "") -> None:
         if player is None:
             return
-        if campaign_id:
-            player.runtime_state.quests.active_campaigns.pop(campaign_id, None)
-            player.runtime_state.quests.completed_campaigns.pop(campaign_id, None)
-        else:
-            player.runtime_state.quests.active_campaigns = {}
-            player.runtime_state.quests.completed_campaigns = {}
-        player.runtime_state.quests.active = {}
-        player.runtime_state.quests.completed = {}
-        player.runtime_state.quests.archived = {}
+        if player.runtime_state.quests is not None:
+            if campaign_id:
+                player.runtime_state.quests.active_campaigns.pop(campaign_id, None)
+                player.runtime_state.quests.completed_campaigns.pop(campaign_id, None)
+            else:
+                player.runtime_state.quests.active_campaigns = {}
+                player.runtime_state.quests.completed_campaigns = {}
+            player.runtime_state.quests.active = {}
+            player.runtime_state.quests.completed = {}
+            player.runtime_state.quests.archived = {}
         player.health = int(getattr(player, "max_health", 0))
-        player.runtime_state.magic.mana = int(player.runtime_state.magic.max_mana)
         player.is_alive = True
-        player.runtime_state.combat.in_combat = False
-        player.runtime_state.combat.target = None
-        player.runtime_state.combat.targets = set()
+        if player.runtime_state.magic is not None:
+            player.runtime_state.magic.mana = int(player.runtime_state.magic.max_mana)
+            player.runtime_state.magic.cooldowns = {}
+            player.runtime_state.magic.summons = {}
+        if player.runtime_state.combat is not None:
+            player.runtime_state.combat.in_combat = False
+            player.runtime_state.combat.target = None
+            player.runtime_state.combat.targets = set()
         player.combat_messages = []
         player.active_effects = []
-        player.runtime_state.magic.cooldowns = {}
-        player.runtime_state.magic.summons = {}
         player.active_minigame = None
         player.trading_with = None
         player.follow_target = None

@@ -64,8 +64,7 @@ class TestBatchMechanicsDeep(GameTestBase):
             
             res = self.player.cast_spell(self.remove_curse_spell, self.player, time.time(), self.world)
             self.assertTrue(res["success"])
-            # FIX: Updated to match flavor text "unbinds"
-            self.assertIn("unbinds", res["message"]) 
+            self.assertIn("removed", res["message"])
             self.assertFalse(ring.get_property("cursed"))
             
             success, msg = self.player.unequip_item("hands")

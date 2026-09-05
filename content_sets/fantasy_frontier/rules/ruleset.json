@@ -68,7 +68,13 @@
     }
   },
   "npc_naming": {
-    "random_name_pattern": "{first_name} the {title}"
+    "random_name_pattern": "{first_name} the {title}",
+    "first_names": [
+      "Alex", "Avery", "Cameron", "Casey", "Drew", "Elliot", "Harper", "Jamie", "Jordan", "Lee",
+      "Logan", "Morgan", "Parker", "Quinn", "Reese", "Robin", "Rowan", "Sage", "Taylor", "Terry", "Wes", "Zane",
+      "Alex", "Avery", "Cameron", "Casey", "Drew", "Emery", "Harper", "Jamie", "Jordan", "Kai",
+      "Logan", "Morgan", "Parker", "Quinn", "Reese", "Robin", "Rowan", "Sage", "Taylor", "Terry", "Wren", "Zoe"
+    ]
   },
   "calendar": {
     "day_names": ["Moonday", "Tideday", "Windday", "Thunderday", "Fireday", "Starday", "Sunday"],

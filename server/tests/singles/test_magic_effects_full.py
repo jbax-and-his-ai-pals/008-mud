@@ -198,7 +198,7 @@ class TestRemoveCurse(GameTestBase):
         spell = _spell([{"type": "remove_curse"}], target_type="self")
         value, msg = apply_spell_effect(self.player, self.player, spell, self.player)
         self.assertEqual(value, 1)
-        self.assertIn("unbinds", msg)
+        self.assertIn("removed", msg)
         self.assertFalse(weapon.get_property("cursed"))
 
 

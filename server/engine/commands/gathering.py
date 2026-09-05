@@ -3,7 +3,7 @@ from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_RESET
 from engine.items.resource_node import ResourceNode
 
-@command("gather", ["mine", "harvest", "chop"], "interaction", "Gather resources from a node.\nUsage: gather <target>")
+@command("gather", ["mine", "harvest", "chop"], "interaction", "Gather resources from a node.\nUsage: gather <target>", content_capability="gathering")
 def gather_handler(args, context):
     world = context["world"]
     player = context.get('player')

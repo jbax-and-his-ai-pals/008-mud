@@ -203,7 +203,7 @@ def handle_accept_offer(args, context):
     formatted_response = manager.parse_and_highlight(raw_response, player, source_npc=target_npc)
     return f"{FORMAT_TITLE}{target_npc.name}{FORMAT_RESET}: {formatted_response}"
 
-@command("turnin", ["donate", "deposit"], "interaction", "Turn in collection items to a collector.\nUsage: turnin")
+@command("turnin", ["donate", "deposit"], "interaction", "Turn in collection items to a collector.\nUsage: turnin", content_capability="collections")
 def turnin_handler(args, context):
     world = context["world"]; player = context.get('player'); game = context["game"]; manager = game.collection_manager 
     if not player: return "Error."

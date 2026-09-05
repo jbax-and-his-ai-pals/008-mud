@@ -23,6 +23,8 @@
     "combat",
     "magic",
     "crafting",
-    "dialogue"
+    "dialogue",
+    "gathering",
+    "collections"
   ]
 }

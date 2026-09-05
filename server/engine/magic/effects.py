@@ -101,9 +101,11 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                         if raw_flavor: flavor = f"{FORMAT_HIGHLIGHT}{raw_flavor.format(target_name=target_name_raw)}{FORMAT_RESET}\n"
 
                 formatted_target = format_name_for_display(viewer, target, start_of_sentence=False) if viewer else target_name_raw
-                msg = spell.hit_message.replace("points!", f"{eff_dmg_type} points!")
                 try:
-                     msg = msg.format(caster_name=formatted_caster_name, target_name=formatted_target, spell_name=spell.name, value=dmg)
+                     msg = spell.hit_message.format(
+                         caster_name=formatted_caster_name, target_name=formatted_target, spell_name=spell.name,
+                         value=dmg, damage_type=eff_dmg_type,
+                     )
                 except: msg = f"{spell.name} hits {formatted_target} for {dmg} {eff_dmg_type} damage."
                 messages.append(flavor + msg)
 
@@ -153,7 +155,7 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
              if isinstance(target, Item) and target.get_property("cursed"):
                   target.update_property("cursed", False)
                   total_value += 1
-                  messages.append(f"The curse on {target.name} is lifted.")
+                  messages.append(spell.remove_curse_item_message.format(target_name=target.name))
              elif hasattr(target, 'equipment'):
                   count = 0
                   equipment_dict = getattr(target, 'equipment', {})
@@ -161,9 +163,9 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                        if item and item.get_property("cursed"):
                             item.update_property("cursed", False)
                             count += 1
-                  if count > 0: 
+                  if count > 0:
                       total_value += count
-                      messages.append(f"A holy light unbinds {count} cursed items from {target_name_raw}.")
+                      messages.append(spell.remove_curse_equipment_message.format(target_name=target_name_raw, value=count))
                   else:
                       messages.append(f"{target_name_raw} is not wearing any cursed items.")
 

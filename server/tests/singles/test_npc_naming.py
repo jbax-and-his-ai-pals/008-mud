@@ -6,7 +6,7 @@ class TestNPCNaming(GameTestBase):
 
     def test_procedural_wandering_names(self):
         """Verify that wandering NPCs receive randomized names."""
-        # The factory uses VILLAGER_FIRST_NAMES lists for these templates
+        # The factory draws from fantasy_frontier's ruleset "npc_naming.first_names" for these templates
         template_id = "wandering_villager"
         
         # Create a batch to ensure we see variety (mitigates RNG collisions)

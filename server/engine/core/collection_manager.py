@@ -118,7 +118,7 @@ class CollectionManager:
             player.gain_experience(amt)
             msgs.append(f"Gained {amt} XP")
             
-        if "gold" in rewards:
+        if "gold" in rewards and player.runtime_state.gold is not None:
             amt = rewards["gold"]
             player.runtime_state.gold += amt
             msgs.append(f"Gained {amt} {self.world.currency_name().capitalize()}")

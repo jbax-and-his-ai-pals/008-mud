@@ -91,11 +91,16 @@ class NPC(GameObject):
 
     def get_description(self) -> str:
         health_percent = self.health / self.max_health * 100 if self.max_health > 0 else 0
+        # A proper name (e.g. "Maya Chen") takes no article; a generic noun
+        # (e.g. "goblin") does -- mirrors format_name_for_display's own
+        # is_generic check instead of assuming every NPC name is generic.
+        is_proper_name = bool(self.name) and self.name[0].isupper()
+        subject = self.name if is_proper_name else f"The {self.name}"
         health_desc = ""
-        if health_percent <= NPC_HEALTH_DESC_THRESHOLDS[0] * 100: health_desc = f"The {self.name} looks severely injured."
-        elif health_percent <= NPC_HEALTH_DESC_THRESHOLDS[1] * 100: health_desc = f"The {self.name} appears to be wounded."
-        elif health_percent <= NPC_HEALTH_DESC_THRESHOLDS[2] * 100: health_desc = f"The {self.name} has some minor injuries."
-        else: health_desc = f"The {self.name} looks healthy."
+        if health_percent <= NPC_HEALTH_DESC_THRESHOLDS[0] * 100: health_desc = f"{subject} looks severely injured."
+        elif health_percent <= NPC_HEALTH_DESC_THRESHOLDS[1] * 100: health_desc = f"{subject} appears to be wounded."
+        elif health_percent <= NPC_HEALTH_DESC_THRESHOLDS[2] * 100: health_desc = f"{subject} has some minor injuries."
+        else: health_desc = f"{subject} looks healthy."
         return f"{self.name}\n\n{self.description}\n\n{health_desc}"
 
     def talk(self, topic: Optional[str] = None) -> str:

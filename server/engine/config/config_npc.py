@@ -54,18 +54,9 @@ NPC_HEALTH_DESC_THRESHOLDS = (0.25, 0.50, 0.75) # severely injured, wounded, min
 NPC_HEALER_HEAL_THRESHOLD = 0.75
 
 # --- NPC Naming ---
-VILLAGER_FIRST_NAMES_MALE = [
-    "Alex", "Avery", "Cameron", "Casey", "Drew", "Elliot", "Harper", "Jamie", "Jordan", "Lee",
-    "Logan", "Morgan", "Parker", "Quinn", "Reese", "Robin", "Rowan", "Sage", "Taylor", "Terry", "Wes", "Zane"
-]
-VILLAGER_FIRST_NAMES_FEMALE = [
-    "Alex", "Avery", "Cameron", "Casey", "Drew", "Emery", "Harper", "Jamie", "Jordan", "Kai",
-    "Logan", "Morgan", "Parker", "Quinn", "Reese", "Robin", "Rowan", "Sage", "Taylor", "Terry", "Wren", "Zoe"
-]
-VILLAGER_LAST_NAMES = [
-    "Bailey", "Bennett", "Brooks", "Carter", "Chen", "Davis", "Ellis", "Garcia", "Hughes", "Kim",
-    "Lee", "Martin", "Miller", "Morgan", "Nguyen", "Parker", "Patel", "Reed", "Rivera", "Shaw", "Taylor", "Walker", "Young", "Zhang"
-]
+# Random-name word pools are content-authored via ruleset
+# "npc_naming.first_names" (see content_sets/fantasy_frontier/rules/ruleset.json);
+# the engine ships no default pool, and falls back to "Wanderer" when empty.
 
 # --- NPC Flavor Text ---
 NPC_DOT_FLAVOR_MESSAGES = [

@@ -14,9 +14,11 @@ class Spell:
         cooldown: float = 5.0,
         target_type: str = "enemy",
         cast_message: str = "You cast {spell_name}!",
-        hit_message: str = "{caster_name} hits {target_name} with {spell_name} for {value} points!",
+        hit_message: str = "{caster_name} hits {target_name} with {spell_name} for {value} {damage_type} points!",
         heal_message: str = "{caster_name} heals {target_name} with {spell_name} for {value} points!",
         self_heal_message: str = "You heal yourself for {value} health!",
+        remove_curse_item_message: str = "The curse on {target_name} is lifted.",
+        remove_curse_equipment_message: str = "{value} cursed item(s) removed from {target_name}.",
         level_required: int = 1,
     ):
         if not effects or not all(isinstance(effect, dict) and effect.get("type") for effect in effects):
@@ -32,6 +34,8 @@ class Spell:
         self.hit_message = hit_message
         self.heal_message = heal_message
         self.self_heal_message = self_heal_message
+        self.remove_curse_item_message = remove_curse_item_message
+        self.remove_curse_equipment_message = remove_curse_equipment_message
         self.level_required = level_required
 
     @classmethod
