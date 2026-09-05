@@ -181,16 +181,19 @@ class CommandProcessor:
 
     def get_help_text(self, world: Any = None) -> str:
         """Generate the top-level help text showing categories and commands."""
-        help_text = f"{FORMAT_TITLE}===== Pygame MUD Help ====={FORMAT_RESET}\n\n"
+        help_text = f"{FORMAT_TITLE}===== Help ====={FORMAT_RESET}\n\n"
         help_text += "Interact by typing commands. Use the following categories for guidance:\n\n"
         help_text += f"{FORMAT_HIGHLIGHT}How to Get More Help:{FORMAT_RESET}\n"
         help_text += f"  - Type '{FORMAT_HIGHLIGHT}help <category>{FORMAT_RESET}' for all commands in a category.\n"
         help_text += f"  - Type '{FORMAT_HIGHLIGHT}help <command>{FORMAT_RESET}' for details on a specific command.\n\n"
         help_text += f"{FORMAT_TITLE}Command Categories & Examples:{FORMAT_RESET}\n"
-        
+
+        # "debug"/GM-only tooling is intentionally left off the discoverable
+        # overview -- it still works if invoked directly (help <category>
+        # or the command itself), it's just not advertised to every player.
         categories = sorted([
             category for category, commands in command_groups.items()
-            if any(self._is_content_enabled(command_data, world) for command_data in commands)
+            if category != "debug" and any(self._is_content_enabled(command_data, world) for command_data in commands)
         ])
         max_cmds_to_show = HELP_MAX_COMMANDS_PER_CATEGORY
 

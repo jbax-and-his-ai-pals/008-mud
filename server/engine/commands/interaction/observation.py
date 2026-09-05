@@ -100,7 +100,7 @@ def examine_handler(args, context):
     if not args: return f"{FORMAT_ERROR}What do you want to examine?{FORMAT_RESET}"
     return look_handler(args, context)
 
-@command("read", category="interaction", help_text="Read something, like a book, scroll, or sign.\nUsage: read <object>")
+@command("read", category="interaction", help_text="Read something with text on it.\nUsage: read <object>")
 def read_handler(args, context):
     if not args: return f"{FORMAT_ERROR}What do you want to read?{FORMAT_RESET}"
     return look_handler(args, context)

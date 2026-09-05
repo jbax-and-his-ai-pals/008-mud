@@ -3253,6 +3253,12 @@ class HeadlessServer:
         normalized = str(message).strip().lower()
         if normalized == "":
             return False
+        # This base set matches the engine's own generated combat text
+        # (combat_system.py's literal templates), so it's not itself
+        # content-coupled -- but a content set's custom spell/attack
+        # flavor text may use different vocabulary entirely, so it can
+        # extend the filter via ruleset "combat.additional_combat_message_tokens"
+        # (mirrors additional_blocked_command_names on the command side).
         combat_tokens = (
             "attacks",
             "hits",
@@ -3266,5 +3272,8 @@ class HeadlessServer:
             "slain",
             "you are dead",
             "you died",
+        ) + tuple(
+            str(t).strip().lower()
+            for t in self.world.ruleset_section("combat").get("additional_combat_message_tokens", [])
         )
-        return any(token in normalized for token in combat_tokens)
+        return any(token in normalized for token in combat_tokens if token)

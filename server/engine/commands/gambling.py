@@ -219,14 +219,14 @@ def stand_handler(args, context):
     msg.append(f"({currency.capitalize()}: {player.runtime_state.gold})")
     return "\n".join(msg)
 
-@command("guess", [], "gambling", "Make a guess in Runebreaker.\nUsage: guess <element1> <element2> <element3>", ruleset_system="economy")
+@command("guess", [], "gambling", "Make a guess in the current code-breaking game.\nUsage: guess <symbol> <symbol> <symbol>", ruleset_system="economy")
 def guess_handler(args, context):
     world = context["world"]
     player = context.get("player")
     # Robust check
     game_state = player.active_minigame if player else None
     if not player or game_state is None or game_state.get("type") != "runebreaker":
-        return "You are not playing Runebreaker."
+        return "You are not playing a code-breaking game right now."
 
     symbols = game_state.get("symbols") or list(VALID_DAMAGE_TYPES) or ["alpha", "beta", "gamma", "delta"]
     symbol_colors = game_state.get("symbol_colors", {})

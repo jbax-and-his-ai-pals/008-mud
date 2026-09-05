@@ -61,7 +61,7 @@ class TestEquipHandlerGuards(GameTestBase):
         # its own internal is_alive guard.
         from engine.commands.inventory import equip_handler
         self.player.is_alive = False
-        result = equip_handler(["dagger"], {"world": self.world})
+        result = equip_handler(["dagger"], {"world": self.world, "player": self.player})
         self.assertIn("You are dead", result)
 
     def test_no_args_prompts(self):
@@ -96,7 +96,7 @@ class TestUnequipHandler(GameTestBase):
     def test_dead_player_cannot_unequip(self):
         from engine.commands.inventory import unequip_handler
         self.player.is_alive = False
-        result = unequip_handler(["main_hand"], {"world": self.world})
+        result = unequip_handler(["main_hand"], {"world": self.world, "player": self.player})
         self.assertIn("You are dead", result)
 
     def test_no_args_with_nothing_equipped_lists_empty(self):

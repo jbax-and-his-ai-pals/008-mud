@@ -215,7 +215,7 @@ class TestGuessCommand(_CasinoTestBase):
 
     def test_not_playing_is_reported(self):
         result = self.game.process_command("guess fire water earth")
-        self.assertEqual("You are not playing Runebreaker.", result)
+        self.assertEqual("You are not playing a code-breaking game right now.", result)
 
     def test_away_from_the_vault_is_rejected(self):
         self._start_runebreaker(["fire", "water", "earth"])

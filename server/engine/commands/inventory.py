@@ -47,7 +47,7 @@ def status_handler(args, context):
 
 @command("equip", ["wear", "wield"], "inventory", "Equip an item from your inventory.\nUsage: equip <item_name> [to <slot_name>]", content_capability="inventory")
 def equip_handler(args, context):
-    player = context["world"].player
+    player = context.get('player')
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
     if not player.is_alive: return f"{FORMAT_ERROR}You are dead. You cannot equip items.{FORMAT_RESET}"
     if not args: return f"{FORMAT_ERROR}What do you want to equip?{FORMAT_RESET}"
@@ -66,7 +66,7 @@ def equip_handler(args, context):
 
 @command("unequip", ["remove"], "inventory", "Unequip an item by name or slot.\nUsage: unequip <item_name | slot_name>", content_capability="inventory")
 def unequip_handler(args, context):
-    player = context["world"].player
+    player = context.get('player')
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
     if not player.is_alive: return f"{FORMAT_ERROR}You are dead. You cannot unequip items.{FORMAT_RESET}"
     

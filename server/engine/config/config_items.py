@@ -31,6 +31,5 @@ EQUIPMENT_SLOTS = [
 EQUIPMENT_VALID_SLOTS_BY_TYPE = {
     "Weapon": ["main_hand", "off_hand"],
     "Armor": ["body", "head", "feet", "hands", "neck"],
-    "Shield": ["off_hand"],
     "Item": []
 }
