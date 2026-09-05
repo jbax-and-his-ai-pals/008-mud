@@ -261,7 +261,9 @@
       "effect_type": "learn_spell",
       "spell_to_learn": null,
       "is_procedural": true,
-      "procedural_type": "random_spell_scroll"
+      "procedural_type": "random_spell_scroll",
+      "procedural_fallback_prefixes": ["item_scroll_"],
+      "procedural_disambiguation_property": "spell_to_learn"
     }
   }
 }

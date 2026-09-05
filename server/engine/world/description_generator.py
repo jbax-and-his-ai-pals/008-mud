@@ -96,11 +96,16 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
             item_counts: Dict[str, Dict[str, Any]] = {}
             for item in items_in_room:
                 item_key = item.obj_id
-                # Differentiate procedural items (like scrolls) by their learned spell
+                # Differentiate procedural items (e.g. scrolls that teach
+                # different spells) so distinct instances don't merge into
+                # one stack entry. A template opts in by declaring which of
+                # its own properties makes instances distinct, via
+                # properties.procedural_disambiguation_property.
                 if item.get_property("is_procedural"):
-                    if item.get_property("procedural_type") == "random_spell_scroll":
-                        spell_id = item.get_property("spell_to_learn")
-                        if spell_id: item_key += f"_{spell_id}"
+                    disambiguation_prop = item.get_property("procedural_disambiguation_property")
+                    if disambiguation_prop:
+                        disambiguation_value = item.get_property(disambiguation_prop)
+                        if disambiguation_value: item_key += f"_{disambiguation_value}"
                 
                 if item_key not in item_counts:
                     item_counts[item_key] = {"name": item.name, "count": 0}

@@ -155,14 +155,15 @@ class HeadlessServer:
         self.custom_world_effects_providers: Dict[str, Any] = {}
         self.fields: Dict[str, WorldEffectsHeartbeat] = {}
         self.field_polarities: Dict[str, str] = {}
-        self.field_interaction_rules: Dict[str, Dict[str, float]] = {
-            # source_field -> {target_field: suppression_coefficient}
-            "sanctity": {"blight": 0.60},
-            "harmony": {"entropy": 0.45},
-        }
+        # source_field -> {target_field: suppression_coefficient}; content
+        # sets provide their own via field_interactions.json's
+        # "pairwise_rules" -- the engine ships no default field vocabulary.
+        self.field_interaction_rules: Dict[str, Dict[str, float]] = {}
         self.field_interaction_profiles: Dict[str, Dict[str, float]] = {
             "positive_suppresses_negative": {"coefficient": 0.60}
         }
+        self.default_field_id = "blight"
+        self.default_field_polarity = "negative"
         default_field_config = os.path.join(self.content_root, "world", "field_interactions.json")
         self.field_config_path = field_config_path or default_field_config
         self._load_field_interaction_config()
@@ -174,8 +175,6 @@ class HeadlessServer:
         # supplied by plugins (e.g. social_no_combat → sample.effects.balance).
         self.weather_provider = BuiltinWeatherProvider()
         self.world_effects_provider = BuiltinWorldEffectsProvider()
-        self.default_field_id = "blight"
-        self.default_field_polarity = "negative"
         self.game_state = "playing"
         self.debug_mode = False
         self.debug_ignore_player = False
@@ -405,6 +404,21 @@ class HeadlessServer:
                 self.field_interaction_profiles["positive_suppresses_negative"]["coefficient"] = fallback_value
         except (TypeError, ValueError):
             pass
+
+        raw_polarities = raw.get("polarities", {})
+        if isinstance(raw_polarities, dict):
+            for field_id, polarity in raw_polarities.items():
+                field_key = str(field_id).strip().lower()
+                polarity_value = str(polarity).strip().lower()
+                if field_key and polarity_value in {"positive", "neutral", "negative"}:
+                    self.field_polarities[field_key] = polarity_value
+
+        default_field_id = raw.get("default_field_id")
+        if isinstance(default_field_id, str) and default_field_id.strip():
+            self.default_field_id = default_field_id.strip().lower()
+            self.default_field_polarity = self.field_polarities.get(
+                self.default_field_id, self._classify_polarity(self.default_field_id)
+            )
 
     def create_session(self, player_id: Optional[str] = None, entitlements: Optional[List[str]] = None) -> Session:
         session_id = uuid.uuid4().hex
@@ -2787,16 +2801,13 @@ class HeadlessServer:
         cmd_category = str(cmd_data.get("category", "")).strip().lower()
         if cmd_category == "combat":
             return True
-        blocked_names = {
-            "attack",
-            "kill",
-            "flee",
-            "cast",
-            "shoot",
-            "strike",
-            "stab",
-            "slash",
-            "smite",
+        # "attack"/"kill"/"flee"/"cast" are the engine's own generic combat
+        # and magic command names -- "cast" in particular is category
+        # "magic", not "combat", but offensive spells route through it.
+        # A content set with its own offensive commands under a different
+        # category/name extends this via "combat.additional_blocked_command_names".
+        blocked_names = {"attack", "kill", "flee", "cast"} | {
+            str(n).strip().lower() for n in self.world.ruleset_section("combat").get("additional_blocked_command_names", [])
         }
         return cmd_name in blocked_names or first_token in blocked_names
 
@@ -2891,7 +2902,8 @@ class HeadlessServer:
     def _ensure_field(self, field_id: str) -> WorldEffectsHeartbeat:
         if field_id not in self.fields:
             self.fields[field_id] = WorldEffectsHeartbeat()
-            self.field_polarities[field_id] = self._classify_polarity(field_id)
+            if field_id not in self.field_polarities:
+                self.field_polarities[field_id] = self._classify_polarity(field_id)
         return self.fields[field_id]
 
     def _apply_field_interactions(self, field_delta_maps: Dict[str, Dict[str, float]]) -> None:
@@ -2948,11 +2960,15 @@ class HeadlessServer:
         return 0.0
 
     def _classify_polarity(self, field_id: str) -> str:
-        if field_id in {"sanctity", "harmony", "vitality", "hope"}:
-            return "positive"
-        if field_id in {"fog", "entropy", "wild"}:
-            return "neutral"
-        return "negative"
+        """Last-resort fallback for a field with no configured polarity.
+
+        Content sets declare real polarities via field_interactions.json's
+        "polarities" section (see self.field_polarities); this only fires
+        for a field the content set never classified at all, so it stays
+        neutral (no suppression effect either direction) rather than
+        assuming an unknown field is harmful.
+        """
+        return "neutral"
 
     def _is_status_command(self, text: str) -> bool:
         normalized = text.strip().lower()

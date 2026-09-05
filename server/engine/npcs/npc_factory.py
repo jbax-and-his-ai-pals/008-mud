@@ -56,11 +56,12 @@ class NPCFactory:
 
             final_npc_name = overrides.get("name")
             if not final_npc_name:
-                if template_id in ["wandering_villager", "wandering_mage", "wandering_priest"]:
+                if template.get("properties", {}).get("randomize_name"):
                     first_names = VILLAGER_FIRST_NAMES_MALE + VILLAGER_FIRST_NAMES_FEMALE
                     random_first_name = random.choice(first_names) if first_names else "Wanderer"
-                    base_title = template.get("name", "Villager").split(" ")[-1]
-                    final_npc_name = f"{random_first_name} the {base_title}"
+                    base_title = template.get("name", "NPC").split(" ")[-1]
+                    name_pattern = world.ruleset_section("npc_naming").get("random_name_pattern", "{first_name}")
+                    final_npc_name = name_pattern.format(first_name=random_first_name, title=base_title)
                 else:
                     final_npc_name = template.get("name", "Unknown NPC")
 

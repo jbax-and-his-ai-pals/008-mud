@@ -15,7 +15,7 @@ class TestItemProcedural(GameTestBase):
         # 2. Inject the procedural template
         self.world.item_templates["item_scroll_random"] = {
             "type": "Consumable",
-            "name": "Random Scroll",
+            "name": "Scroll of {spell_name}",
             "description": "Unidentified.",
             "properties": {
                 "is_procedural": True,

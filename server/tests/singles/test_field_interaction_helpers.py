@@ -7,24 +7,36 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 FANTASY_FRONTIER = REPO_ROOT / "content_sets" / "fantasy_frontier"
 
 
-class TestClassifyPolarity(unittest.TestCase):
+class TestFieldPolarities(unittest.TestCase):
+    """fantasy_frontier declares its field polarities via
+    field_interactions.json's "polarities" section, loaded into
+    server.field_polarities; _classify_polarity() itself is now just the
+    neutral last-resort fallback for a field no content set ever
+    classified."""
+
     def setUp(self) -> None:
         self.server = HeadlessServer(db_path=":memory:", content_set_path=str(FANTASY_FRONTIER))
 
     def tearDown(self) -> None:
         self.server.shutdown()
 
-    def test_positive_fields(self):
+    def _polarity_of(self, field_id: str) -> str:
+        return self.server.field_polarities.get(field_id, self.server._classify_polarity(field_id))
+
+    def test_positive_fields_from_content_config(self):
         for field_id in ("sanctity", "harmony", "vitality", "hope"):
-            self.assertEqual("positive", self.server._classify_polarity(field_id))
+            self.assertEqual("positive", self._polarity_of(field_id))
 
-    def test_neutral_fields(self):
+    def test_neutral_fields_from_content_config(self):
         for field_id in ("fog", "entropy", "wild"):
-            self.assertEqual("neutral", self.server._classify_polarity(field_id))
+            self.assertEqual("neutral", self._polarity_of(field_id))
 
-    def test_unrecognized_fields_default_to_negative(self):
-        for field_id in ("blight", "corruption", "made_up_field"):
-            self.assertEqual("negative", self.server._classify_polarity(field_id))
+    def test_negative_field_from_content_config(self):
+        self.assertEqual("negative", self._polarity_of("blight"))
+
+    def test_unclassified_fields_default_to_neutral(self):
+        for field_id in ("corruption", "made_up_field"):
+            self.assertEqual("neutral", self.server._classify_polarity(field_id))
 
 
 class TestInteractionCoefficient(unittest.TestCase):

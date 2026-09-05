@@ -76,15 +76,15 @@ class TestGenerateRoomDescriptionItems(GameTestBase):
     def test_procedural_spell_scroll_key_includes_learned_spell(self):
         item = self._add_room_item(
             "item_iron_sword",
-            is_procedural=True, procedural_type="random_spell_scroll", spell_to_learn="magic_missile",
+            is_procedural=True, procedural_disambiguation_property="spell_to_learn", spell_to_learn="magic_missile",
         )
         result = generate_room_description(self.world, player=self.player)
         self.assertIn(item.name, result)
 
-    def test_procedural_item_with_other_type_skips_spell_key_suffix(self):
+    def test_procedural_item_without_disambiguation_property_skips_key_suffix(self):
         item = self._add_room_item(
             "item_iron_sword",
-            is_procedural=True, procedural_type="something_else",
+            is_procedural=True,
         )
         result = generate_room_description(self.world, player=self.player)
         self.assertIn(item.name, result)

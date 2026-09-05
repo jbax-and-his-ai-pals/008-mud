@@ -115,13 +115,28 @@ class ItemFactory:
          return None
 
     @staticmethod
+    def _find_procedural_fallback_template(item_id: str, world: 'World') -> Optional[Dict[str, Any]]:
+        """Find a procedural template willing to stand in for an unknown item id.
+
+        A procedural template opts in by declaring which id prefixes it
+        covers via properties.procedural_fallback_prefixes (a list of
+        strings) -- replacing a hardcoded "item_scroll_" convention with a
+        content-defined one, so any content set can define its own
+        procedural item families.
+        """
+        for candidate in world.item_templates.values():
+            prefixes = candidate.get("properties", {}).get("procedural_fallback_prefixes", [])
+            if isinstance(prefixes, list) and any(item_id.startswith(str(p)) for p in prefixes if p):
+                return candidate
+        return None
+
+    @staticmethod
     def create_item_from_template(item_id: str, world: 'World', **overrides) -> Optional['Item']:
         if not world or not hasattr(world, 'item_templates'): return None
         template = world.item_templates.get(item_id)
         if not template:
-            if item_id.startswith("item_scroll_") and "item_scroll_random" in world.item_templates:
-                 template = world.item_templates.get("item_scroll_random")
-                 
+            template = ItemFactory._find_procedural_fallback_template(item_id, world)
+
             if not template:
                 Logger.error("ItemFactory", f"Item template '{item_id}' not found.")
                 return None
@@ -138,8 +153,17 @@ class ItemFactory:
                     possible_spells = [s for s in SPELL_REGISTRY.values() if s.level_required > 0 and s.mana_cost > 0]
                     if possible_spells:
                         chosen_spell = random.choice(possible_spells)
-                        new_template['name'] = f"Scroll of {chosen_spell.name}"
-                        new_template['description'] = f"A scroll inscribed with the runes for the '{chosen_spell.name}' spell."
+                        # Use the template's own name/description as format
+                        # strings (e.g. "Scroll of {spell_name}") rather than
+                        # hardcoding scroll/rune flavor text here.
+                        try:
+                            new_template['name'] = str(template.get('name', '{spell_name}')).format(spell_name=chosen_spell.name)
+                        except (KeyError, IndexError):
+                            new_template['name'] = chosen_spell.name
+                        try:
+                            new_template['description'] = str(template.get('description', '{spell_name}')).format(spell_name=chosen_spell.name)
+                        except (KeyError, IndexError):
+                            new_template['description'] = chosen_spell.name
                         new_template['value'] = chosen_spell.level_required * 50 + 50
                         new_template['properties']['spell_to_learn'] = chosen_spell.spell_id
                         

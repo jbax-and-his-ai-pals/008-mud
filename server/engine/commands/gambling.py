@@ -5,21 +5,30 @@ from engine.commands.command_system import command
 from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE,
     FORMAT_RED, FORMAT_GREEN, FORMAT_YELLOW, FORMAT_BLUE, FORMAT_GRAY, FORMAT_PURPLE,
-    FORMAT_CYAN
+    FORMAT_CYAN, VALID_DAMAGE_TYPES
 )
 
 # --- Card Constants ---
 SUITS = ["S", "H", "D", "C"]
 RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
 
-# --- Runebreaker Constants ---
-RUNE_TYPES = ["fire", "water", "earth", "air"]
-RUNE_COLORS = {
-    "fire": FORMAT_RED,
-    "water": FORMAT_BLUE,
-    "earth": FORMAT_GREEN,
-    "air": FORMAT_CYAN
-}
+# --- Runebreaker (Mastermind-style code-breaking minigame) ---
+# The symbol pool, per-symbol colors, and flavor text are dealer-authored
+# (dealer.properties), not engine constants -- a content set names its own
+# "runes". Falling back to the content set's own combat elements (already
+# content-driven via combat/elements.json) keeps the fallback non-fantasy.
+def _runebreaker_symbols(dealer) -> list[str]:
+    symbols = dealer.properties.get("minigame_symbols")
+    if isinstance(symbols, list) and symbols:
+        return [str(s) for s in symbols]
+    return list(VALID_DAMAGE_TYPES) or ["alpha", "beta", "gamma", "delta"]
+
+
+def _runebreaker_symbol_color(dealer, symbol: str) -> str:
+    colors = dealer.properties.get("minigame_symbol_colors", {})
+    if isinstance(colors, dict) and symbol in colors:
+        return str(colors[symbol])
+    return FORMAT_HIGHLIGHT
 
 
 def _grant_party_profit(world, player, profit_amount: int) -> str:
@@ -219,16 +228,21 @@ def guess_handler(args, context):
     if not player or game_state is None or game_state.get("type") != "runebreaker":
         return "You are not playing Runebreaker."
 
+    symbols = game_state.get("symbols") or list(VALID_DAMAGE_TYPES) or ["alpha", "beta", "gamma", "delta"]
+    symbol_colors = game_state.get("symbol_colors", {})
+    venue_name = game_state.get("venue_name", "the sealed chamber")
+    item_name = game_state.get("item_name", "symbol")
+
     if not _check_location(player):
-        return f"{FORMAT_ERROR}You must return to the Arcane Vault to make a guess.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}You must return to {venue_name} to make a guess.{FORMAT_RESET}"
 
     if len(args) != 3:
-        return f"{FORMAT_ERROR}You must guess exactly 3 elements (fire, water, earth, air).{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}You must guess exactly 3 {item_name}s ({', '.join(symbols)}).{FORMAT_RESET}"
 
     guess = [arg.lower() for arg in args]
     for rune in guess:
-        if rune not in RUNE_TYPES:
-            return f"{FORMAT_ERROR}Invalid element '{rune}'. Valid: fire, water, earth, air.{FORMAT_RESET}"
+        if rune not in symbols:
+            return f"{FORMAT_ERROR}Invalid {item_name} '{rune}'. Valid: {', '.join(symbols)}.{FORMAT_RESET}"
 
     # Use local variable game_state
     secret = game_state["secret_code"]
@@ -253,9 +267,12 @@ def guess_handler(args, context):
                     secret_matched[j] = True
                     break
     
-    guess_display = " ".join([f"{RUNE_COLORS[r]}{r.upper()}{FORMAT_RESET}" for r in guess])
+    def _colorize(symbol: str) -> str:
+        return f"{symbol_colors.get(symbol, FORMAT_HIGHLIGHT)}{symbol.upper()}{FORMAT_RESET}"
+
+    guess_display = " ".join(_colorize(r) for r in guess)
     result_msg = f"Guess: {guess_display} -> {FORMAT_SUCCESS}{exact_matches} Perfect{FORMAT_RESET}, {FORMAT_HIGHLIGHT}{partial_matches} Partial{FORMAT_RESET}."
-    
+
     if exact_matches == 3:
         amount = game_state["bet"]
         winnings = amount * 5
@@ -264,11 +281,12 @@ def guess_handler(args, context):
         player.active_minigame = None
         extra = f"\n{routing}" if routing else ""
         currency = world.currency_name()
-        return f"{result_msg}\n{FORMAT_SUCCESS}*** CODE BROKEN! ***{FORMAT_RESET}\nThe Vault opens! You win {winnings} {currency}!{extra} ({currency.capitalize()}: {player.runtime_state.gold})"
+        venue_sentence_case = venue_name[:1].upper() + venue_name[1:] if venue_name else venue_name
+        return f"{result_msg}\n{FORMAT_SUCCESS}*** CODE BROKEN! ***{FORMAT_RESET}\n{venue_sentence_case} opens! You win {winnings} {currency}!{extra} ({currency.capitalize()}: {player.runtime_state.gold})"
 
     if game_state["attempts_left"] <= 0:
         amount = game_state["bet"]
-        secret_display = " ".join([f"{RUNE_COLORS[r]}{r.upper()}{FORMAT_RESET}" for r in secret])
+        secret_display = " ".join(_colorize(r) for r in secret)
         player.active_minigame = None
         return f"{result_msg}\n{FORMAT_ERROR}Out of attempts!{FORMAT_RESET}\nThe code was: {secret_display}.\nYou lose {amount} {world.currency_name()}."
         
@@ -305,23 +323,36 @@ def _start_blackjack(player, dealer, amount):
 
 def _start_runebreaker(player, dealer, amount):
     player.runtime_state.gold -= amount
-    secret_code = [random.choice(RUNE_TYPES) for _ in range(3)]
-    
+    symbols = _runebreaker_symbols(dealer)
+    secret_code = [random.choice(symbols) for _ in range(3)]
+    venue_name = dealer.properties.get("minigame_venue_name", "the sealed chamber")
+    item_name = dealer.properties.get("minigame_item_name", "symbol")
+    entry_flavor = dealer.properties.get(
+        "minigame_entry_flavor", f"{dealer.name} seals the door. Three mechanisms spin and lock."
+    )
+
     player.active_minigame = {
         "type": "runebreaker",
         "bet": amount,
         "secret_code": secret_code,
         "attempts_left": 8,
         "region_id": player.current_region_id,
-        "room_id": player.current_room_id
+        "room_id": player.current_room_id,
+        "symbols": symbols,
+        "symbol_colors": {s: _runebreaker_symbol_color(dealer, s) for s in symbols},
+        "venue_name": venue_name,
+        "item_name": item_name,
     }
-    
+
+    valid_symbols_display = ", ".join(
+        f"{_runebreaker_symbol_color(dealer, s)}{s.upper()}{FORMAT_RESET}" for s in symbols
+    )
     msg = [
-        f"You pay the {amount} {player.world.currency_name()} entry fee to access The Vault.",
-        f"{dealer.name} seals the door. Three magical tumblers spin and lock.",
-        f"\"You have 8 attempts to deduce the sequence of 3 Runes.\"",
-        f"\"Valid Runes: {FORMAT_RED}FIRE{FORMAT_RESET}, {FORMAT_BLUE}WATER{FORMAT_RESET}, {FORMAT_GREEN}EARTH{FORMAT_RESET}, {FORMAT_CYAN}AIR{FORMAT_RESET}.\"",
-        f"Type '{FORMAT_HIGHLIGHT}guess <rune> <rune> <rune>{FORMAT_RESET}' to begin."
+        f"You pay the {amount} {player.world.currency_name()} entry fee to access {venue_name}.",
+        entry_flavor,
+        f"\"You have 8 attempts to deduce the sequence of 3 {item_name}s.\"",
+        f"\"Valid {item_name}s: {valid_symbols_display}.\"",
+        f"Type '{FORMAT_HIGHLIGHT}guess <{item_name}> <{item_name}> <{item_name}>{FORMAT_RESET}' to begin."
     ]
     return "\n".join(msg)
 

@@ -27,9 +27,10 @@
     "default_dialog": "The {name} gives you a simple nod.",
     "initial_inventory": [],
     "properties": {
-      "wander_chance": 0.8,    
-      "move_cooldown": 5,     
-      "can_give_generic_quests": false
+      "wander_chance": 0.8,
+      "move_cooldown": 5,
+      "can_give_generic_quests": false,
+      "randomize_name": true
     }
   },
   "wandering_mage": {
@@ -58,7 +59,8 @@
       "random_spells": {
         "pool": ["magic_missile", "fireball", "ice_shard"],
         "count": [1, 2]
-      }
+      },
+      "randomize_name": true
     }
   },
   "wandering_priest": {
@@ -83,7 +85,8 @@
       "wander_chance": 0.6,
       "move_cooldown": 8,
       "spell_cast_chance": 0.9,
-      "required_spells": ["minor_heal"]
+      "required_spells": ["minor_heal"],
+      "randomize_name": true
     }
   },
   "tavern_keeper": {

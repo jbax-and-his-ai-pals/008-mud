@@ -1,5 +1,16 @@
 {
   "fallback_positive_suppresses_negative": 0.6,
+  "default_field_id": "blight",
+  "polarities": {
+    "sanctity": "positive",
+    "harmony": "positive",
+    "vitality": "positive",
+    "hope": "positive",
+    "fog": "neutral",
+    "entropy": "neutral",
+    "wild": "neutral",
+    "blight": "negative"
+  },
   "pairwise_rules": {
     "sanctity": {
       "blight": 0.6

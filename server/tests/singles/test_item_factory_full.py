@@ -158,6 +158,7 @@ class TestCreateItemFromTemplateBasics(GameTestBase):
     def test_scroll_prefixed_unknown_id_falls_back_to_scroll_random_template(self):
         self.world.item_templates["item_scroll_random"] = {
             "name": "Random Scroll", "type": "Item", "value": 10,
+            "properties": {"is_procedural": True, "procedural_fallback_prefixes": ["item_scroll_"]},
         }
         item = ItemFactory.create_item_from_template("item_scroll_totally_unknown", self.world)
         self.assertIsNotNone(item)
@@ -241,7 +242,7 @@ class TestCreateItemFromTemplateOverrides(GameTestBase):
 class TestCreateItemFromTemplateProcedural(GameTestBase):
     def _spell_scroll_template(self):
         self.world.item_templates["procedural_scroll"] = {
-            "name": "Mystery Scroll", "type": "Item", "value": 5,
+            "name": "Scroll of {spell_name}", "type": "Item", "value": 5,
             "properties": {
                 "is_procedural": True,
                 "procedural_type": "random_spell_scroll",
@@ -262,7 +263,7 @@ class TestCreateItemFromTemplateProcedural(GameTestBase):
         with patch("engine.items.item_factory.SPELL_REGISTRY", {}):
             item = ItemFactory.create_item_from_template("procedural_scroll", self.world)
         self.assertIsNotNone(item)
-        self.assertEqual("Mystery Scroll", item.name)
+        self.assertEqual("Scroll of {spell_name}", item.name)
 
     def test_explicit_spell_to_learn_override_skips_random_selection(self):
         self._spell_scroll_template()
@@ -273,7 +274,7 @@ class TestCreateItemFromTemplateProcedural(GameTestBase):
         self.assertEqual("magic_missile", item.properties.get("spell_to_learn"))
         # Name should remain the un-randomized template name since the
         # spell-selection branch was skipped entirely.
-        self.assertEqual("Mystery Scroll", item.name)
+        self.assertEqual("Scroll of {spell_name}", item.name)
 
     def test_procedural_without_procedural_type_key_is_handled_gracefully(self):
         self.world.item_templates["no_proc_type"] = {

@@ -58,6 +58,9 @@
   "economy": {
     "currency_name": "gold"
   },
+  "npc_naming": {
+    "random_name_pattern": "{first_name} the {title}"
+  },
   "calendar": {
     "day_names": ["Moonday", "Tideday", "Windday", "Thunderday", "Fireday", "Starday", "Sunday"],
     "month_names": ["Deepwinter", "Icemelt", "Springbloom", "Rainshower", "Meadowgrow", "Highsun", "Fireheat", "Goldenfield", "Harvestide", "Leaffall", "Frostwind", "Darknight"]

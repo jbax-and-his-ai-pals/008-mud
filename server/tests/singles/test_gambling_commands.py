@@ -205,6 +205,9 @@ class TestGuessCommand(_CasinoTestBase):
         self.player.active_minigame = {
             "type": "runebreaker", "bet": 10, "secret_code": secret, "attempts_left": 8,
             "region_id": "town", "room_id": "town_square",
+            "symbols": ["fire", "water", "earth", "air"],
+            "symbol_colors": {},
+            "venue_name": "the Arcane Vault", "item_name": "element",
         }
         self.player.current_region_id = "town"
         self.player.current_room_id = "town_square"

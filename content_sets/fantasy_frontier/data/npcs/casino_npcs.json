@@ -92,7 +92,17 @@
     },
     "properties": {
       "is_dealer": true,
-      "dealer_game": "runebreaker"
+      "dealer_game": "runebreaker",
+      "minigame_symbols": ["fire", "water", "earth", "air"],
+      "minigame_symbol_colors": {
+        "fire": "[[RED]]",
+        "water": "[[BLUE]]",
+        "earth": "[[GREEN]]",
+        "air": "[[CYAN]]"
+      },
+      "minigame_venue_name": "the Arcane Vault",
+      "minigame_item_name": "Rune",
+      "minigame_entry_flavor": "Vault Keeper seals the door. Three magical tumblers spin and lock."
     }
   }
 }
