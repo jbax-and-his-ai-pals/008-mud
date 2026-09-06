@@ -113,7 +113,7 @@ class CollectionManager:
 
         msgs = []
         
-        if "xp" in rewards:
+        if "xp" in rewards and player.runtime_state.progression is not None:
             amt = rewards["xp"]
             player.gain_experience(amt)
             msgs.append(f"Gained {amt} XP")

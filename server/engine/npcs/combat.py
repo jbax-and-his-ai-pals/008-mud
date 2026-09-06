@@ -25,7 +25,11 @@ def _combat_targets(actor):
 
 def _progression_level(actor):
     runtime_state = getattr(actor, "runtime_state", None)
-    return runtime_state.progression.level if runtime_state is not None else actor.level
+    if runtime_state is None:
+        return actor.level
+    if runtime_state.progression is None:
+        return 1
+    return runtime_state.progression.level
 
 
 def get_relation_to(viewer: Union['NPC', 'Player'], target: Union['NPC', 'Player']) -> int:

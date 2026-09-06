@@ -1866,7 +1866,7 @@ class HeadlessServer:
 
         if xp_total > 0:
             for recipient, amount in zip(recipients, self._split_int_amount(xp_total, len(recipients))):
-                if amount <= 0:
+                if amount <= 0 or recipient.runtime_state.progression is None:
                     continue
                 recipient.gain_experience(amount)
                 msgs.append(f"{recipient.name} +{amount} XP")

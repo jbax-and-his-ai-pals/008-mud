@@ -82,7 +82,8 @@ def look_handler(args: List[str], context: Any):
         if isinstance(target, NPC): return target.get_description()
         elif isinstance(target, Player):
             desc = f"{FORMAT_TITLE}{target.name}{FORMAT_RESET}\n{target.description}\n"
-            desc += f"They look like a level {target.runtime_state.progression.level} {target.runtime_state.progression.player_class}.\n"
+            if target.runtime_state.progression is not None:
+                desc += f"They look like a level {target.runtime_state.progression.level} {target.runtime_state.progression.player_class}.\n"
             health_pct = (target.health / target.max_health) * 100 if target.max_health > 0 else 0
             if health_pct > 80: desc += "They appear to be in excellent health."
             elif health_pct > 50: desc += "They look a bit banged up."

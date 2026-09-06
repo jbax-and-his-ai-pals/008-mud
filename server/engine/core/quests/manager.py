@@ -197,7 +197,8 @@ class QuestManager:
 
         msgs = []
         xp = rewards.get("xp", 0); gold = rewards.get("gold", 0)
-        if xp > 0: _, msg = player.gain_experience(xp); msgs.append(f"{xp} XP");
+        if xp > 0 and player.runtime_state.progression is not None:
+            _, msg = player.gain_experience(xp); msgs.append(f"{xp} XP")
         if gold > 0 and player.runtime_state.gold is not None:
             player.runtime_state.gold += gold; msgs.append(f"{gold} {self.world.currency_name().capitalize()}")
         if "items" in rewards:

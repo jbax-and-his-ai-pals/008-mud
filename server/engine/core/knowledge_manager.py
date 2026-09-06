@@ -258,7 +258,7 @@ class KnowledgeManager:
         xp = int(rewards.get("xp", 0) or 0)
         gold = int(rewards.get("gold", 0) or 0)
 
-        if xp > 0:
+        if xp > 0 and player.runtime_state.progression is not None:
             player.gain_experience(xp)
             messages.append(f"You gain {xp} XP.")
         if gold > 0 and player.runtime_state.gold is not None:
