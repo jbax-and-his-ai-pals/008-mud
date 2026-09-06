@@ -2,7 +2,7 @@
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE, FORMAT_CATEGORY
 
-@command("quest", ["qdebug"], "debug", "Manage quests.\nUsage: quest list | quest advance <id> | quest complete <id>")
+@command("quest", ["qdebug"], "debug", "Manage quests.\nUsage: quest list | quest advance <id> | quest complete <id>", content_capability="quests")
 def quest_debug_handler(args, context):
     world = context["world"]
     player = context.get('player')
@@ -43,7 +43,7 @@ def quest_debug_handler(args, context):
         
     return "Unknown subcommand."
 
-@command("campaign", ["saga", "cdebug"], "debug", "Manage campaigns.\nUsage: campaign list | start <id> | jump <camp_id> <node_id>")
+@command("campaign", ["saga", "cdebug"], "debug", "Manage campaigns.\nUsage: campaign list | start <id> | jump <camp_id> <node_id>", content_capability="quests")
 def campaign_debug_handler(args, context):
     world = context["world"]
     player = context.get('player')

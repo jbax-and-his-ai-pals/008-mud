@@ -1871,10 +1871,10 @@ class HeadlessServer:
                 recipient.gain_experience(amount)
                 msgs.append(f"{recipient.name} +{amount} XP")
 
-        if gold_total > 0:
+        if gold_total > 0 and self.world.ruleset_system_enabled("economy"):
             currency = self.world.currency_name().capitalize()
             for recipient, amount in zip(recipients, self._split_int_amount(gold_total, len(recipients))):
-                if amount <= 0:
+                if amount <= 0 or recipient.runtime_state.gold is None:
                     continue
                 recipient.runtime_state.gold += amount
                 msgs.append(f"{recipient.name} +{amount} {currency}")
@@ -1912,7 +1912,7 @@ class HeadlessServer:
 
     def grant_party_gold(self, actor: Any, amount: int) -> str:
         total = int(amount or 0)
-        if total <= 0:
+        if total <= 0 or not self.world.ruleset_system_enabled("economy"):
             return ""
         recipients = self._reward_recipient_players(actor)
         if not recipients:
@@ -1921,7 +1921,7 @@ class HeadlessServer:
         msgs: List[str] = []
         currency = self.world.currency_name().capitalize()
         for recipient, share in zip(recipients, self._split_int_amount(total, len(recipients))):
-            if share <= 0:
+            if share <= 0 or recipient.runtime_state.gold is None:
                 continue
             recipient.runtime_state.gold += share
             msgs.append(f"{recipient.name} +{share} {currency}")

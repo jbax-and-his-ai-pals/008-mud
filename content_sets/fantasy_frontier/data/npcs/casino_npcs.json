@@ -42,7 +42,14 @@
     },
     "properties": {
       "is_dealer": true,
-      "dealer_game": "slots"
+      "dealer_game": "slots",
+      "minigame_slots_reel": [
+        {"symbol": "[DAG]", "color": "[[GRAY]]", "weight": 35, "multiplier": 5},
+        {"symbol": "[SHD]", "color": "[[BLUE]]", "weight": 30, "multiplier": 10},
+        {"symbol": "[POT]", "color": "[[GREEN]]", "weight": 20, "multiplier": 15},
+        {"symbol": "[CWN]", "color": "[[YELLOW]]", "weight": 10, "multiplier": 25},
+        {"symbol": "[DRG]", "color": "[[RED]]", "weight": 5, "multiplier": 100}
+      ]
     }
   },
   "wheel_dealer": {
@@ -59,7 +66,14 @@
     },
     "properties": {
       "is_dealer": true,
-      "dealer_game": "wheel"
+      "dealer_game": "wheel",
+      "minigame_wheel_outcomes": [
+        {"label": "VOID", "multiplier": 0, "color": "[[GRAY]]", "weight": 60},
+        {"label": "EARTH", "multiplier": 1, "color": "[[GREEN]]", "weight": 20},
+        {"label": "FIRE", "multiplier": 2, "color": "[[RED]]", "weight": 10},
+        {"label": "ICE", "multiplier": 5, "color": "[[BLUE]]", "weight": 9},
+        {"label": "AETHER", "multiplier": 10, "color": "[[PURPLE]]", "weight": 1}
+      ]
     }
   },
   "card_dealer": {

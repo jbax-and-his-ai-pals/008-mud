@@ -2,7 +2,7 @@
 from engine.commands.command_system import command, registered_commands, command_groups
 from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE, FORMAT_CATEGORY
 
-@command("refresh", ["restore", "r"], "debug", "Heals player, fills mana, and resets all cooldowns.")
+@command("refresh", ["restore", "r"], "debug", "Heals player, fills mana, and resets all cooldowns.", content_capability="magic")
 def refresh_handler(args, context):
     p = context.get("player")
     if not p: return "Player not found."
@@ -47,7 +47,7 @@ def debug_commands_handler(args, context):
     
     return response
 
-@command("testrefactor", ["testlock"], "debug", "Focused test for locking/unlocking mechanics.")
+@command("testrefactor", ["testlock"], "debug", "Focused test for locking/unlocking mechanics.", content_capability="magic")
 def test_refactor_handler(args, context):
     from engine.items.container import Container
     from engine.items.key import Key

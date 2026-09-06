@@ -338,7 +338,7 @@ class TestSlots(_CasinoTestBase):
 class TestElementalWheel(_CasinoTestBase):
     @patch("engine.commands.gambling.random.choices")
     def test_winning_spin(self, mock_choices):
-        mock_choices.return_value = [("AETHER", 10, "", 1)]
+        mock_choices.return_value = [{"label": "AETHER", "multiplier": 10, "color": "", "weight": 1}]
         self._place_dealer("wheel_dealer")
         result = self.game.process_command("bet 10")
         self.assertIn("Win", result)
@@ -346,7 +346,7 @@ class TestElementalWheel(_CasinoTestBase):
 
     @patch("engine.commands.gambling.random.choices")
     def test_losing_spin(self, mock_choices):
-        mock_choices.return_value = [("VOID", 0, "", 60)]
+        mock_choices.return_value = [{"label": "VOID", "multiplier": 0, "color": "", "weight": 60}]
         self._place_dealer("wheel_dealer")
         result = self.game.process_command("bet 10")
         self.assertIn("Loss", result)
@@ -354,7 +354,7 @@ class TestElementalWheel(_CasinoTestBase):
 
     @patch("engine.commands.gambling.random.choices")
     def test_winning_spin_routes_profit_through_party_server(self, mock_choices):
-        mock_choices.return_value = [("AETHER", 10, "", 1)]
+        mock_choices.return_value = [{"label": "AETHER", "multiplier": 10, "color": "", "weight": 1}]
         self._place_dealer("wheel_dealer")
         fake_server = MagicMock()
         fake_server.grant_party_gold.return_value = "Party profit shared!"

@@ -31,6 +31,40 @@ def _runebreaker_symbol_color(dealer, symbol: str) -> str:
     return FORMAT_HIGHLIGHT
 
 
+# Slot reels and the elemental wheel are likewise dealer-authored via
+# dealer.properties, with a theme-neutral fallback for a dealer that
+# doesn't configure one.
+_DEFAULT_SLOTS_REEL = [
+    {"symbol": "[X1]", "color": FORMAT_GRAY, "weight": 35, "multiplier": 5},
+    {"symbol": "[X2]", "color": FORMAT_BLUE, "weight": 30, "multiplier": 10},
+    {"symbol": "[X3]", "color": FORMAT_GREEN, "weight": 20, "multiplier": 15},
+    {"symbol": "[X4]", "color": FORMAT_YELLOW, "weight": 10, "multiplier": 25},
+    {"symbol": "[X5]", "color": FORMAT_RED, "weight": 5, "multiplier": 100},
+]
+
+_DEFAULT_WHEEL_OUTCOMES = [
+    {"label": "VOID", "multiplier": 0, "color": FORMAT_GRAY, "weight": 60},
+    {"label": "LOW", "multiplier": 1, "color": FORMAT_GREEN, "weight": 20},
+    {"label": "MID", "multiplier": 2, "color": FORMAT_RED, "weight": 10},
+    {"label": "HIGH", "multiplier": 5, "color": FORMAT_BLUE, "weight": 9},
+    {"label": "JACKPOT", "multiplier": 10, "color": FORMAT_PURPLE, "weight": 1},
+]
+
+
+def _slots_reel(dealer) -> list[dict]:
+    reel = dealer.properties.get("minigame_slots_reel")
+    if isinstance(reel, list) and reel:
+        return reel
+    return _DEFAULT_SLOTS_REEL
+
+
+def _wheel_outcomes(dealer) -> list[dict]:
+    outcomes = dealer.properties.get("minigame_wheel_outcomes")
+    if isinstance(outcomes, list) and outcomes:
+        return outcomes
+    return _DEFAULT_WHEEL_OUTCOMES
+
+
 def _grant_party_profit(world, player, profit_amount: int) -> str:
     profit = int(profit_amount or 0)
     if profit <= 0:
@@ -378,15 +412,18 @@ def _play_dice_high_roll(player, dealer, amount):
     return "\n".join(msg)
 
 def _play_slots(player, dealer, amount):
-    slot_data = [("[DAG]", FORMAT_GRAY, 35), ("[SHD]", FORMAT_BLUE, 30), ("[POT]", FORMAT_GREEN, 20), ("[CWN]", FORMAT_YELLOW, 10), ("[DRG]", FORMAT_RED, 5)]
-    symbols = [x[0] for x in slot_data]; colors = {x[0]: x[1] for x in slot_data}; weights = [x[2] for x in slot_data]
+    reel_data = _slots_reel(dealer)
+    symbols = [s["symbol"] for s in reel_data]
+    colors = {s["symbol"]: s.get("color", FORMAT_HIGHLIGHT) for s in reel_data}
+    multipliers = {s["symbol"]: s.get("multiplier", 1) for s in reel_data}
+    weights = [s.get("weight", 1) for s in reel_data]
     reel1 = random.choices(symbols, weights=weights, k=1)[0]; reel2 = random.choices(symbols, weights=weights, k=1)[0]; reel3 = random.choices(symbols, weights=weights, k=1)[0]
     r1_disp = f"{colors[reel1]}{reel1}{FORMAT_RESET}"; r2_disp = f"{colors[reel2]}{reel2}{FORMAT_RESET}"; r3_disp = f"{colors[reel3]}{reel3}{FORMAT_RESET}"
     msg = [f"{FORMAT_TITLE}| {r1_disp} | {r2_disp} | {r3_disp} |{FORMAT_RESET}"]
     currency = player.world.currency_name()
     player.runtime_state.gold -= amount
     if reel1 == reel2 == reel3:
-        mult = 100 if reel1 == "[DRG]" else (25 if reel1 == "[CWN]" else (15 if reel1 == "[POT]" else (10 if reel1 == "[SHD]" else 5)))
+        mult = multipliers.get(reel1, 1)
         player.runtime_state.gold += amount
         routing = _grant_party_profit(player.world, player, amount * max(0, mult - 1))
         msg.append(f"{FORMAT_SUCCESS}Jackpot! {amount*mult} {currency}!{FORMAT_RESET}")
@@ -399,14 +436,17 @@ def _play_slots(player, dealer, amount):
     return "\n".join(msg)
 
 def _play_elemental_wheel(player, dealer, amount):
-    outcomes = [("VOID", 0, FORMAT_GRAY, 60), ("EARTH", 1, FORMAT_GREEN, 20), ("FIRE", 2, FORMAT_RED, 10), ("ICE", 5, FORMAT_BLUE, 9), ("AETHER", 10, FORMAT_PURPLE, 1)]
-    result = random.choices(outcomes, weights=[x[3] for x in outcomes], k=1)[0]
+    outcomes = _wheel_outcomes(dealer)
+    result = random.choices(outcomes, weights=[o.get("weight", 1) for o in outcomes], k=1)[0]
+    label = result.get("label", "?")
+    mult = result.get("multiplier", 0)
+    color = result.get("color", FORMAT_HIGHLIGHT)
     player.runtime_state.gold -= amount
-    winnings = amount * result[1]
+    winnings = amount * mult
     player.runtime_state.gold += min(amount, winnings)
     routing = _grant_party_profit(player.world, player, max(0, winnings - amount))
-    msg = f"Wheel: {result[2]}{result[0]}{FORMAT_RESET}. "
-    msg += f"{FORMAT_SUCCESS}Win {winnings}!{FORMAT_RESET}" if result[1] > 0 else f"{FORMAT_ERROR}Loss.{FORMAT_RESET}"
+    msg = f"Wheel: {color}{label}{FORMAT_RESET}. "
+    msg += f"{FORMAT_SUCCESS}Win {winnings}!{FORMAT_RESET}" if mult > 0 else f"{FORMAT_ERROR}Loss.{FORMAT_RESET}"
     if routing:
         msg += f"\n{routing}"
     return msg + f" ({player.world.currency_name().capitalize()}: {player.runtime_state.gold})"

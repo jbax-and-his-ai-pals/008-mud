@@ -72,8 +72,9 @@ def perform_minion_logic(npc: 'NPC', world: 'World', current_time: float, player
         return perform_follow(npc, world, owner, path_override=None)
 
     if my_loc == owner_loc:
-        if owner.runtime_state.combat.in_combat and owner.runtime_state.combat.target:
-            target = owner.runtime_state.combat.target
+        owner_combat = owner.runtime_state.combat
+        if owner_combat is not None and owner_combat.in_combat and owner_combat.target:
+            target = owner_combat.target
             if target and target.is_alive:
                 npc_combat.enter_combat(npc, target)
                 return f"{npc.name} moves to assist you against {format_name_for_display(owner, target, False)}!"

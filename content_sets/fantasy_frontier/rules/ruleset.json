@@ -174,5 +174,8 @@
     "crafting": { "enabled": true },
     "quests": { "enabled": true },
     "economy": { "enabled": true }
+  },
+  "debug": {
+    "gear_item_ids": ["debug_sword", "debug_shield", "debug_armor", "debug_helmet", "debug_gauntlets", "debug_boots", "debug_amulet"]
   }
 }

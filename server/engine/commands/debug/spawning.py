@@ -92,9 +92,10 @@ def debuggear_command_handler(args, context):
     if not player or not args: return f"{FORMAT_ERROR}Usage: debuggear <on|off>{FORMAT_RESET}"
     
     action = args[0].lower()
-    ids = ["debug_sword", "debug_shield", "debug_armor", "debug_helmet", "debug_gauntlets", "debug_boots", "debug_amulet"]
+    ids = world.ruleset_section("debug").get("gear_item_ids", [])
+    if not ids: return f"{FORMAT_ERROR}No debug gear is configured for this content set.{FORMAT_RESET}"
     msgs = []
-    
+
     if action == "on":
         equipped_ids = {i.obj_id for i in player.equipment.values() if i}
         for iid in ids:
