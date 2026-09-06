@@ -2736,7 +2736,7 @@ class HeadlessServer:
             events.append(self._event("quests", session_id, self._build_quests_payload(session_id)))
         if self._is_nearby_command(text):
             events.append(self._event("nearby", session_id, self._build_nearby_payload(session_id)))
-        if self.feature_profile.resolved_world_mode() == "finite_adventure":
+        if self.feature_profile.resolved_world_mode() == "finite_adventure" and self.world.has_capability("quests"):
             events.append(self._event("finite_adventure_state", session_id, self.build_finite_adventure_state_payload(session_id)))
             events.append(self._event("finite_adventure_summary", session_id, self.build_finite_adventure_summary_payload(session_id)))
         events.extend(self.tick(session_id))

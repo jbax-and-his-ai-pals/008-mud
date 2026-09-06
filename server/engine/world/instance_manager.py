@@ -21,13 +21,13 @@ class InstanceManager:
 
     def _find_player_with_completed_quest(self, quest_id: str):
         for player in getattr(self.world, "players", {}).values():
-            completed = player.runtime_state.quests.completed
-            if quest_id in completed:
+            if player.runtime_state.quests is None:
+                continue
+            if quest_id in player.runtime_state.quests.completed:
                 return player
         reference_player = self.world.resolve_reference_player()
-        if reference_player is not None:
-            completed = reference_player.runtime_state.quests.completed
-            if quest_id in completed:
+        if reference_player is not None and reference_player.runtime_state.quests is not None:
+            if quest_id in reference_player.runtime_state.quests.completed:
                 return reference_player
         return None
 
