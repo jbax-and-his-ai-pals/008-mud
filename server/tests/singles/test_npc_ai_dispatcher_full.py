@@ -101,6 +101,22 @@ class TestIdleMovementDispatch(GameTestBase):
                 handle_ai(npc, self.world, time.time(), self.player)
         mock_follow.assert_called_once()
 
+    def test_unseen_movement_still_records_the_cooldown(self):
+        npc = self._idle_npc("village_elder", "dispatcher_unseen_move", "wanderer")
+        npc.current_region_id = "town"
+        npc.current_room_id = "town_square"
+        movement_time = 5432.1
+
+        def move_without_observer(*_args):
+            npc.current_room_id = "north_gate_road"
+            return None
+
+        with patch("engine.npcs.ai.dispatcher.perform_wander", side_effect=move_without_observer):
+            with patch("engine.npcs.ai.dispatcher.scan_for_targets", return_value=None):
+                result = handle_ai(npc, self.world, movement_time, self.player)
+
+        self.assertIsNone(result)
+        self.assertEqual(movement_time, npc.last_moved)
     def test_unrecognized_behavior_type_produces_no_movement(self):
         npc = self._idle_npc("village_elder", "dispatcher_unknown_behavior", "totally_unrecognized_behavior")
         with patch("engine.npcs.ai.dispatcher.scan_for_targets", return_value=None):

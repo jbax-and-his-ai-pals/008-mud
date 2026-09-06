@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from engine.server.headless_server import HeadlessServer
 
@@ -134,6 +135,16 @@ class TestBuildNearbyPayload(unittest.TestCase):
     def tearDown(self) -> None:
         self.server.shutdown()
 
+    def test_explicit_nearby_alias_renders_observation_instead_of_unknown_command(self):
+        session = self.server.create_session()
+        self.server.execute_command(session.session_id, "char create NearbyHero")
+
+        events = self.server.execute_command(session.session_id, "nearby")
+        text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
+
+        self.assertIn("TOWN SQUARE", text)
+        self.assertNotIn("Unknown command", text)
+        self.assertTrue(any(event["type"] == "nearby" for event in events))
     def test_no_player_falls_back_to_world_cursor_and_finds_no_room(self):
         session = self.server.create_session()
         payload = self.server._build_nearby_payload(session.session_id)
@@ -151,7 +162,80 @@ class TestBuildNearbyPayload(unittest.TestCase):
         self.assertEqual("Unknown", payload["location"]["room_name"])
 
 
+    def test_fixed_items_are_not_advertised_as_portable_or_take_actions(self):
+        session = self.server.create_session()
+        self.server.execute_command(session.session_id, "char create PuzzleHero")
+        player = self.server.get_player_for_session(session.session_id)
+        player.current_region_id = "obsidian_trial"
+        player.current_room_id = "hall_of_gates"
+
+        payload = self.server._build_nearby_payload(session.session_id)
+        gate = next(item for item in payload["items"] if item["name"] == "massive obsidian gate")
+
+        self.assertFalse(gate["portable"])
+        self.assertNotIn("take massive obsidian gate", payload["interactions"])
+
+class TestHeadlessRespawnCommand(unittest.TestCase):
+    def setUp(self) -> None:
+        self.server = HeadlessServer(db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True)
+        self.session = self.server.create_session()
+        self.server.execute_command(self.session.session_id, "char create RespawnHero")
+        self.player = self.server.get_player_for_session(self.session.session_id)
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+
+    def test_dead_player_can_respawn_through_the_server_command(self):
+        self.player.current_region_id = "caves"
+        self.player.current_room_id = "main_cavern"
+        self.player.die(self.server.world)
+
+        events = self.server.execute_command(self.session.session_id, "respawn")
+        text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
+
+        self.assertTrue(self.player.is_alive)
+        self.assertEqual("town", self.player.current_region_id)
+        self.assertEqual("town_square", self.player.current_room_id)
+        self.assertIn("spirit return", text)
+
+    def test_living_player_is_not_relocated_by_respawn(self):
+        events = self.server.execute_command(self.session.session_id, "respawn")
+        text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
+
+        self.assertIn("already alive", text)
+        self.assertEqual("town_square", self.player.current_room_id)
+
+class TestHeadlessPersistenceBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True
+        )
+        self.session = self.server.create_session()
+        self.server.execute_command(self.session.session_id, "char create PersistenceHero")
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+
+    def test_manual_save_is_not_allowed_to_serialize_the_shared_world(self):
+        with patch.object(self.server.world, "save_game") as save_game:
+            events = self.server.execute_command(self.session.session_id, "save alternate_world")
+
+        text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
+        save_game.assert_not_called()
+        self.assertIn("saved automatically", text)
+        self.assertIn("shared world", text)
+
+    def test_manual_load_is_not_allowed_to_replace_the_shared_world(self):
+        with patch.object(self.server.world, "load_save_game") as load_save_game:
+            events = self.server.execute_command(self.session.session_id, "load alternate_world")
+
+        text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
+        load_save_game.assert_not_called()
+        self.assertIn("saved automatically", text)
+        self.assertIn("shared world", text)
+
 class TestNormalizeQuestEntries(unittest.TestCase):
+
     def setUp(self) -> None:
         self.server = HeadlessServer(db_path=":memory:", content_set_path=str(FANTASY_FRONTIER))
 

@@ -26,11 +26,30 @@ def _resolve_calendar_names(world, key: str, default: List[str]) -> List[str]:
     return default
 
 
+
+def _resolve_initial_game_time(world) -> float:
+    """Read an optional content-defined initial clock, falling back to midnight."""
+    if world is None or not hasattr(world, "ruleset_section"):
+        return 0.0
+    start_time = world.ruleset_section("calendar").get("start_time")
+    if not isinstance(start_time, dict):
+        return 0.0
+    hour = start_time.get("hour", 0)
+    minute = start_time.get("minute", 0)
+    if isinstance(hour, bool) or isinstance(minute, bool):
+        return 0.0
+    if not isinstance(hour, int) or not isinstance(minute, int):
+        return 0.0
+    if not 0 <= hour < 24 or not 0 <= minute < 60:
+        return 0.0
+    return float((hour * 3600) + (minute * 60))
+
 class TimeManager:
     def __init__(self, world=None):
         self.day_names: List[str] = _resolve_calendar_names(world, "day_names", DEFAULT_TIME_DAY_NAMES)
         self.month_names: List[str] = _resolve_calendar_names(world, "month_names", DEFAULT_TIME_MONTH_NAMES)
         self.game_time: float = 0.0
+        self.initial_game_time = _resolve_initial_game_time(world)
         self.hour: int = 12
         self.minute: int = 0
         self.day: int = 1
@@ -40,9 +59,9 @@ class TimeManager:
         self.time_data: Dict[str, Any] = {}
         self.initialize_time()
 
-    def initialize_time(self, game_time: float = 0.0):
+    def initialize_time(self, game_time: Optional[float] = None):
         """Resets or initializes the time state."""
-        self.game_time = game_time
+        self.game_time = self.initial_game_time if game_time is None else game_time
         self._recalculate_date_from_game_time()
         self._update_time_period()
         self._update_time_data_for_ui()

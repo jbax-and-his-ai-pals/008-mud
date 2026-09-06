@@ -51,6 +51,7 @@ class JsonLineMudServer:
             boot_warning_fail_codes=boot_warning_fail_codes,
         )
         self._tcp_server: asyncio.AbstractServer | None = None
+        self._background_tick_task: asyncio.Task[None] | None = None
         self._session_writers: Dict[str, asyncio.StreamWriter] = {}
         self.assets = RealtimeAssetService(self.server._event, asset_db_path=asset_db_path)
         self.session_default_capabilities = list(session_default_capabilities or [])
@@ -766,13 +767,47 @@ class JsonLineMudServer:
         self.server._sync_providers_with_profile()
         return True, "Profile applied: %s" % requested
 
+    async def _run_background_ticks(self) -> None:
+        """Advance persistent-world simulation even while clients are idle."""
+        interval = max(0.01, float(getattr(self.server, "tick_dt", 0.1)))
+        while True:
+            await asyncio.sleep(interval)
+            active_session_ids = [
+                session_id
+                for session_id in self._session_writers
+                if session_id in self.server.sessions
+                and bool(getattr(self.server.sessions[session_id], "connected", False))
+            ]
+            if not active_session_ids:
+                continue
+            events = self.server.tick(active_session_ids[0], dt=interval)
+            events.extend(self.server._flush_background_batch(active_session_ids[0]))
+            for event in events:
+                await self._route_event(event)
+
+    async def _route_event(self, event: Dict[str, Any]) -> None:
+        target_id = event.get("session_id")
+        if target_id == "*" or target_id == "broadcast":
+            await self._broadcast_event(event)
+        elif target_id and target_id in self._session_writers:
+            await self._send_event(self._session_writers[target_id], event)
+
     async def start(self) -> None:
         self._tcp_server = await asyncio.start_server(self._handle_client, self.host, self.port)
+        self._background_tick_task = asyncio.create_task(self._run_background_ticks())
         addrs = ", ".join(str(sock.getsockname()) for sock in self._tcp_server.sockets or [])
         print(f"PoC server listening on {addrs}")
-        async with self._tcp_server:
-            await self._tcp_server.serve_forever()
-
+        try:
+            async with self._tcp_server:
+                await self._tcp_server.serve_forever()
+        finally:
+            if self._background_tick_task is not None:
+                self._background_tick_task.cancel()
+                try:
+                    await self._background_tick_task
+                except asyncio.CancelledError:
+                    pass
+                self._background_tick_task = None
     async def _handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         import uuid
         unique_player_id = f"player_{uuid.uuid4().hex[:8]}"

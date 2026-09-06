@@ -333,11 +333,12 @@ class TestQuestTurnInDialogue(_NpcTestBase):
             "instance_id": "q1", "title": "Fetch Ingot", "type": "fetch",
             "giver_instance_id": elder.obj_id, "current_stage_index": 0,
             "rewards": {}, "state": "active",
-            "objective": {"type": "fetch", "item_id": "item_iron_ingot", "required_quantity": 1},
-            "stages": [{"stage_index": 0, "objective": {"type": "fetch", "item_id": "item_iron_ingot", "required_quantity": 1}}],
+            "objective": {"type": "fetch", "item_id": "item_iron_ingot", "item_name": "iron ingot", "item_name_plural": "iron ingots", "required_quantity": 2},
+            "stages": [{"stage_index": 0, "objective": {"type": "fetch", "item_id": "item_iron_ingot", "item_name": "iron ingot", "item_name_plural": "iron ingots", "required_quantity": 2}}],
         }
         result = self.game.process_command("talk Sage complete")
         self.assertIn("haven't fully met the requirements", result)
+        self.assertIn("still need 2 more iron ingots", result)
         self.assertIn("q1", self.player.runtime_state.quests.active)
 
     def test_active_fetch_quest_advances_to_next_stage_when_satisfied(self):

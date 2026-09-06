@@ -58,6 +58,29 @@ class JsonWebSocketMudServer:
         # Values are WebSocketTransport instances (not raw sockets) so that
         # each session's codec preference is respected during broadcast.
         self._ws_sessions: dict[str, WebSocketTransport] = {}
+        self._background_tick_task: asyncio.Task[None] | None = None
+
+    async def _run_background_ticks(self) -> None:
+        """Advance the shared world while WebSocket clients are idle."""
+        interval = max(0.01, float(getattr(self.core.server, "tick_dt", 0.1)))
+        while True:
+            await asyncio.sleep(interval)
+            active_session_ids = [
+                session_id
+                for session_id in self._ws_sessions
+                if session_id in self.core.server.sessions
+                and bool(getattr(self.core.server.sessions[session_id], "connected", False))
+            ]
+            if not active_session_ids:
+                continue
+            events = self.core.server.tick(active_session_ids[0], dt=interval)
+            events.extend(self.core.server._flush_background_batch(active_session_ids[0]))
+            for event in events:
+                target_id = event.get("session_id")
+                if target_id == "*" or target_id == "broadcast":
+                    await self._broadcast_ws_event(event)
+                elif target_id in self._ws_sessions:
+                    await self._ws_sessions[target_id].send_event(event)
 
     async def start(self) -> None:
         try:
@@ -75,8 +98,18 @@ class JsonWebSocketMudServer:
                 pass
 
         async with websockets.serve(_handler, self.host, self.port):
+            self._background_tick_task = asyncio.create_task(self._run_background_ticks())
             print(f"PoC WebSocket server listening on ws://{self.host}:{self.port}")
-            await asyncio.Future()
+            try:
+                await asyncio.Future()
+            finally:
+                if self._background_tick_task is not None:
+                    self._background_tick_task.cancel()
+                    try:
+                        await self._background_tick_task
+                    except asyncio.CancelledError:
+                        pass
+                    self._background_tick_task = None
 
     def shutdown(self) -> None:
         self.core.shutdown()

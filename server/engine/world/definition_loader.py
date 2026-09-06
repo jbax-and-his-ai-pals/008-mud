@@ -4,6 +4,7 @@ Handles loading all game definitions from JSON files and initializing a new worl
 """
 import json
 import os
+import time
 import uuid
 from typing import TYPE_CHECKING
 
@@ -225,6 +226,20 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
         Logger.warning("Loader", "No initial NPCs were spawned. The world may feel empty.")
 
     initialize_npc_schedules(world)
+
+    # Newly loaded populations otherwise all have ``last_moved == 0`` and
+    # immediately attempt movement together on the first simulation tick.
+    # Begin their normal cooldown now so a new arrival can read its opening
+    # before the world starts producing ambient movement narration.
+    initial_movement_time = time.time()
+    for npc in world.npcs.values():
+        # Spread first moves across each NPC's normal cooldown instead of
+        # releasing the whole bootstrap population on the same tick. The
+        # stable instance-id phase is deterministic and consumes no gameplay
+        # randomness.
+        cooldown = max(0.0, float(getattr(npc, "move_cooldown", 0.0)))
+        phase = (sum(ord(char) for char in str(getattr(npc, "obj_id", ""))) % 1000) / 1000.0
+        npc.last_moved = initial_movement_time + (phase * cooldown)
 
     # initialize quest board
     world.quest_board = []

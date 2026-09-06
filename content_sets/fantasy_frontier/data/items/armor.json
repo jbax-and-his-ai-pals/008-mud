@@ -11,7 +11,7 @@
         "durability": 30,
         "max_durability": 30,
         "equip_slot": ["head"],
-        "salvage_output": { "item_id": "item_leather_scraps", "quantity_per_weight": 1.0 }
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
       }
     },
     "item_leather_tunic": {
@@ -26,7 +26,7 @@
         "durability": 50,
         "max_durability": 50,
         "equip_slot": ["body"],
-        "salvage_output": { "item_id": "item_leather_scraps", "quantity_per_weight": 1.0 }
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
       }
     },
     "item_leather_gloves": {
@@ -41,7 +41,7 @@
         "durability": 25,
         "max_durability": 25,
         "equip_slot": ["hands"],
-        "salvage_output": { "item_id": "item_leather_scraps", "quantity_per_weight": 1.0 }
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
       }
     },
     "item_leather_boots": {
@@ -56,7 +56,7 @@
         "durability": 40,
         "max_durability": 40,
         "equip_slot": ["feet"],
-        "salvage_output": { "item_id": "item_leather_scraps", "quantity_per_weight": 1.0 }
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
       }
     },
     "item_padded_tunic": {

@@ -38,3 +38,22 @@ class TestWeatherVisibility(GameTestBase):
         
         desc_in = self.world.look()
         self.assertNotIn("weather is storm", desc_in)
+
+    def test_room_weather_property_overrides_global_weather_for_outdoors(self):
+        """Authored local climates take precedence over ambient weather."""
+        self.game.weather_manager.current_weather = "storm"
+        region = self.world.get_region("town")
+        self.assertIsNotNone(region)
+        summit = Room("Snowy Summit", "A frozen peak.", obj_id="snowy_summit")
+        summit.properties["outdoors"] = True
+        summit.update_property("weather", "snowy")
+        region.add_room("snowy_summit", summit)
+        self.world.current_region_id = "town"
+        self.world.current_room_id = "snowy_summit"
+        self.player.current_region_id = "town"
+        self.player.current_room_id = "snowy_summit"
+
+        desc = self.world.look()
+
+        self.assertIn("weather is snowy", desc)
+        self.assertNotIn("weather is storm", desc)

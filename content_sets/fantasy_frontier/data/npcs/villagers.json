@@ -269,7 +269,7 @@
       "wander_chance": 0.0,
       "move_cooldown": 60,
       "spell_cast_chance": 0.0,
-      "work_location": "town:market",
+      "work_location": "town:market_square",
       "buys_item_types": ["Consumable", "Treasure", "Material", "Junk", "Key", "Item", "Misc"],
       "sells_items": [
         { "item_id": "item_healing_potion_small" },

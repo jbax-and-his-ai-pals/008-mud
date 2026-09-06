@@ -44,7 +44,7 @@ def save_handler(args, context):
     game = context["game"]
     fname = (args[0] if args else game.current_save_file)
     if not fname.endswith(".json"): fname += ".json"
-    if world.save_game(fname):
+    if world.save_game(fname, player=player):
         game.current_save_file = fname
         return f"{FORMAT_SUCCESS}World state saved to {fname}{FORMAT_RESET}"
     else:
@@ -89,6 +89,20 @@ def load_handler(args, context):
     else:
          return f"{FORMAT_ERROR}Error loading world state from {fname}. Game state might be unstable.{FORMAT_RESET}"
 
+@command("respawn", ["revive"], "system", "Return to your respawn point after death.\nUsage: respawn")
+def respawn_handler(args, context):
+    player = context.get("player")
+    world = context.get("world")
+    if not player or not world:
+        return f"{FORMAT_ERROR}Player context not found.{FORMAT_RESET}"
+    if player.is_alive:
+        return "You are already alive."
+
+    player.respawn()
+    return (
+        f"{FORMAT_HIGHLIGHT}You feel your spirit return to your body.{FORMAT_RESET}\n\n"
+        + world.look(minimal=True, player=player)
+    )
 @command("minimap", ["map"], "system", "Toggle the visual minimap panel.\nUsage: minimap [on|off]")
 def toggle_minimap_handler(args, context):
     game = context.get("game")

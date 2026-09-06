@@ -2634,6 +2634,27 @@ class HeadlessServer:
             )
             return events
 
+        # Headless sessions persist their character snapshot after every
+        # command. The desktop save/load commands serialize or replace the
+        # entire shared World, so allowing them here would let one session
+        # affect every active character. Keep persistence session-scoped.
+        command_name = str(text).strip().split(maxsplit=1)[0].lower() if str(text).strip() else ""
+        if command_name in {"save", "load"}:
+            events.append(
+                self._event(
+                    "text",
+                    session_id,
+                    "Character progress is saved automatically on this server. "
+                    "Manual save and load are unavailable in a shared world.",
+                )
+            )
+            self.persist_player_snapshot(session_id)
+            events.extend(self.tick(session_id))
+            events.extend(self._flush_background_batch(session_id))
+            if getattr(self, "pending_broadcasts", None):
+                events.extend(self.pending_broadcasts)
+                self.pending_broadcasts = []
+            return events
         capability_reason = self.command_processor.content_block_reason(text, self.world)
         if capability_reason:
             events.append(self._event("text", session_id, capability_reason))
@@ -2716,7 +2737,13 @@ class HeadlessServer:
                         "player": self.get_player_for_session(session_id),
                         "session_id": session_id
                     }
-                    result = self.command_processor.process_input(text, context)
+                    # The nearby panel is also exposed as a terminal-friendly
+                    # observation command. Keep aliases generic: they render
+                    # the current room rather than depending on a content verb.
+                    if raw_command_text in {"nearby", "scan", "who"}:
+                        result = self.world.look(minimal=True, player=session_player)
+                    else:
+                        result = self.command_processor.process_input(text, context)
                     if result:
                         events.append(self._event("text", session_id, result))
 
@@ -3198,7 +3225,10 @@ class HeadlessServer:
                 {
                     "item_id": str(getattr(item, "obj_id", "unknown")),
                     "name": str(getattr(item, "name", "Unknown Item")),
-                    "portable": bool(getattr(item, "portable", True)),
+                    # Item ``can_take`` is the authoritative gameplay rule.
+                    # Do not advertise structural puzzle objects as pickups just
+                    # because they do not expose an obsolete ``portable`` field.
+                    "portable": bool(item.get_property("can_take", True)),
                 }
                 for item in self.world.get_items_in_room(region_id, room_id)
             ],
@@ -3211,7 +3241,8 @@ class HeadlessServer:
         for npc in npcs[:3]:
             interactions.append(f"talk {npc.get('name', 'npc')}")
         for item in items[:3]:
-            interactions.append(f"take {item.get('name', 'item')}")
+            if item.get("portable", True):
+                interactions.append(f"take {item.get('name', 'item')}")
 
         return {
             "location": {

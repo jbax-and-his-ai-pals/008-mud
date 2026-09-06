@@ -209,10 +209,23 @@ def journal_handler(args, context):
                  if stage_target: turn_in_target = stage_target
              
              giver_npc = context["world"].get_npc(turn_in_target)
+             if giver_npc is None and turn_in_target:
+                 giver_npc = next(
+                     (
+                         npc for npc in context["world"].npcs.values()
+                         if getattr(npc, "template_id", None) == turn_in_target
+                     ),
+                     None,
+                 )
              giver_name = giver_npc.name if giver_npc else "Unknown"
              if turn_in_target == "quest_board": giver_name = context["world"].quest_board_name()
              
-             response += f"{FORMAT_CATEGORY}{title}{FORMAT_RESET} (Report to: {giver_name})\n"
+             destination_label = "Report to"
+             destination_name = giver_name
+             if obj_type == "deliver":
+                 destination_label = "Deliver to"
+                 destination_name = str(objective.get("recipient_name", "")).strip() or "Unknown"
+             response += f"{FORMAT_CATEGORY}{title}{FORMAT_RESET} ({destination_label}: {destination_name})\n"
              state_display = quest_data.get("state", "unknown").replace('_', ' ').capitalize(); response += f"  Status: {state_display}\n"
              
              if obj_type == "kill": 

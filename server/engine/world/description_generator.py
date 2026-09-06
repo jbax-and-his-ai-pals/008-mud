@@ -32,7 +32,9 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
     
     # 2. Environment Context
     time_period = world.game.time_manager.current_time_period
-    weather = world.game.weather_manager.current_weather
+    # A room may declare a local climate for authored extremes (for example,
+    # a permanently snowy summit). Otherwise it inherits world weather.
+    weather = current_room.get_property("weather", world.game.weather_manager.current_weather)
     
     if not current_region_id or not current_room_id:
         return f"{FORMAT_ERROR}Location Error{FORMAT_RESET}"

@@ -56,6 +56,17 @@ class TestDirectionHandlerGuards(GameTestBase):
         self.assertIsNotNone(result)
 
 
+class TestContextualExitCommands(GameTestBase):
+    def test_unregistered_room_exit_is_available_as_a_contextual_verb(self):
+        room = self.world.get_current_room(self.player)
+        room.exits["house"] = "town:east_market_road"
+
+        result = self.game.process_command("house")
+
+        self.assertNotIn("Unknown command", result)
+        self.assertEqual("east_market_road", self.player.current_room_id)
+
+
 class TestGoHandler(GameTestBase):
     def test_no_player_reports_error(self):
         result = go_handler(["north"], {"world": self.world, "player": None})

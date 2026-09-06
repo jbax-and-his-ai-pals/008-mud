@@ -187,7 +187,27 @@ class TestJournalCommand(_AtBoardTestBase):
             "objective": objective, "stages": [{"stage_index": 0, "objective": objective}],
         }
         result = self.game.process_command("journal")
+        self.assertIn("Deliver to: Someone", result)
+        self.assertNotIn("Report to: Quest Board", result)
         self.assertIn("don't have the package", result)
+
+    def test_active_quest_resolves_template_turn_in_giver_name(self):
+        from engine.npcs.npc_factory import NPCFactory
+
+        elder = NPCFactory.create_npc_from_template("village_elder", self.world, instance_id="journal_elder")
+        self.world.add_npc(elder)
+        objective = {"type": "scout"}
+        self.player.runtime_state.quests.active["q1"] = {
+            "instance_id": "q1", "title": "Eyes in the Woods", "state": "active",
+            "current_stage_index": 0, "giver_instance_id": "quest_board",
+            "objective": objective,
+            "stages": [{"stage_index": 0, "objective": objective, "turn_in_id": "village_elder"}],
+        }
+
+        result = self.game.process_command("journal")
+
+        self.assertIn(f"Report to: {elder.name}", result)
+        self.assertNotIn("Report to: Unknown", result)
 
     def test_active_generic_objective_falls_back_to_stage_description(self):
         objective = {"type": "custom_thing"}

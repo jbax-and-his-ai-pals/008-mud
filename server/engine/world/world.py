@@ -73,6 +73,7 @@ class World:
         self.instance_manager = InstanceManager(self)
 
         self.last_update_time = 0.0
+        self._simulation_has_started = False
         self.game: Optional['GameManager'] = None
 
         load_all_definitions(self)
@@ -224,6 +225,16 @@ class World:
              return messages
         self.last_update_time = current_time_abs
 
+        # An idle headless server does not tick until a client connects. Prime
+        # cooldowns from that first real simulation tick, not process boot,
+        # so a late-joining player does not trigger a synchronized crowd move.
+        if not self._simulation_has_started:
+            self._simulation_has_started = True
+            for npc in self.npcs.values():
+                cooldown = max(0.0, float(getattr(npc, "move_cooldown", 0.0)))
+                phase = (sum(ord(char) for char in str(getattr(npc, "obj_id", ""))) % 1000) / 1000.0
+                npc.last_moved = current_time_abs + (phase * cooldown)
+
         active_regions_rooms = set()
         for p in self.players.values():
             if p.current_region_id and p.current_room_id:
@@ -242,9 +253,13 @@ class World:
 
         npcs_to_update = [npc for npc in self.npcs.values() if npc.is_alive]
         for npc in npcs_to_update:
+            # An NPC update may move the NPC (for example, a combatant fleeing).
+            # Its message describes the event from the room it started in, so
+            # route it to observers there rather than to the destination room.
+            message_location = (npc.current_region_id, npc.current_room_id)
             npc_message = npc.update(self, current_time_abs)
             if npc_message:
-                messages.append(((npc.current_region_id, npc.current_room_id), npc_message))
+                messages.append((message_location, npc_message))
 
         if self.quest_manager:
             for player in list(self.players.values()):

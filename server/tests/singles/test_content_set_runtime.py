@@ -47,6 +47,34 @@ class TestContentSetRuntime(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_initial_population_waits_for_its_movement_cooldown(self) -> None:
+        with patch("engine.world.definition_loader.time.time", return_value=1234.5):
+            server = HeadlessServer(
+                db_path=":memory:",
+                content_set_path=str(FANTASY_FRONTIER),
+                deterministic_test_mode=True,
+            )
+        try:
+            self.assertTrue(server.world.npcs)
+            npc_movement_times = [npc.last_moved for npc in server.world.npcs.values()]
+            self.assertTrue(all(value >= 1234.5 for value in npc_movement_times))
+            self.assertTrue(any(value > 1234.5 for value in npc_movement_times))
+        finally:
+            server.shutdown()
+
+    def test_first_world_tick_primes_initial_npc_cooldowns_from_simulation_start(self) -> None:
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(FANTASY_FRONTIER),
+            deterministic_test_mode=True,
+        )
+        try:
+            with patch("engine.world.world.time.time", return_value=4321.0):
+                server.world.update()
+            self.assertTrue(server.world._simulation_has_started)
+            self.assertTrue(all(npc.last_moved >= 4321.0 for npc in server.world.npcs.values()))
+        finally:
+            server.shutdown()
     def test_content_root_is_not_a_runtime_override(self) -> None:
         with self.assertRaises(TypeError):
             HeadlessServer(
@@ -67,6 +95,8 @@ class TestContentSetRuntime(unittest.TestCase):
             self.assertIn("Character created: Rowan", [event["payload"] for event in creation_events])
             self.assertIn("Welcome to Riverside", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
+            self.assertIn("talk Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
+            self.assertIn("equip rusty dagger", "\n".join(str(event["payload"]) for event in creation_events))
 
             look_events = server.execute_command(session.session_id, "look")
             self.assertIn("Town Square", "\n".join(str(event["payload"]) for event in look_events))
@@ -81,6 +111,43 @@ class TestContentSetRuntime(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_fantasy_frontier_merchant_schedule_targets_real_market_room(self) -> None:
+        """Schedule slots resolve to a playable content location, not an alias."""
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(FANTASY_FRONTIER),
+            deterministic_test_mode=True,
+        )
+        try:
+            merchant = next(npc for npc in server.world.npcs.values() if npc.template_id == "merchant")
+            work_entry = merchant.schedule["9"]
+
+            self.assertEqual("town", work_entry["region_id"])
+            self.assertEqual("market_square", work_entry["room_id"])
+            self.assertIsNotNone(server.world.get_region(work_entry["region_id"]).get_room(work_entry["room_id"]))
+        finally:
+            server.shutdown()
+    def test_fantasy_frontier_quicksand_hazard_is_runtime_active(self) -> None:
+        """A real authored hazard resolves through content-defined mappings."""
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(FANTASY_FRONTIER),
+            deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="quicksand_hazard_player")
+            server.execute_command(session.session_id, "char create HazardTester")
+            player = server.get_player_for_session(session.session_id)
+            room = server.world.get_region("swamp").get_room("quicksand_pit")
+            starting_health = player.health
+
+            message = room.apply_hazards(player, time.time())
+
+            self.assertEqual("quicksand", room.get_property("hazard_type"))
+            self.assertEqual(starting_health - 4, player.health)
+            self.assertIn("sucking mud", message)
+        finally:
+            server.shutdown()
     def test_modern_capsule_is_a_playable_non_fantasy_slice(self) -> None:
         server = HeadlessServer(
             db_path=":memory:",

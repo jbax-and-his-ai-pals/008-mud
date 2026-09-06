@@ -57,7 +57,8 @@
       "extreme_cold": "ice",
       "poison_gas": "poison",
       "electrified_floor": "lightning",
-      "unholy_aura": "shadow"
+      "unholy_aura": "shadow",
+      "quicksand": "physical"
     },
     "flavor": {
       "fire": "The intense heat scorches you!",
@@ -65,6 +66,7 @@
       "poison": "You choke on the toxic fumes!",
       "lightning": "Sparks from the floor shock you!",
       "shadow": "The oppressive darkness drains your life!",
+      "physical": "The sucking mud drags you under!",
       "default": "The environment hurts you!"
     }
   }

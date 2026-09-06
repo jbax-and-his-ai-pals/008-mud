@@ -74,6 +74,17 @@ class TestGenerateFetchObjective(unittest.TestCase):
         giver = _FakeNPC()
         self.assertIsNone(generate_fetch_objective(world, 1, giver, {}))
 
+    def test_procedural_template_display_name_is_excluded(self):
+        world = _FakeWorld()
+        world.item_templates["item_random_scroll"] = {
+            "type": "Consumable", "name": "Scroll of {spell_name}", "value": 100,
+        }
+        world.npc_templates["goblin"] = {
+            "faction": "hostile", "level": 1, "name": "Goblin",
+            "loot_table": {"item_random_scroll": 0.5},
+        }
+        self.assertIsNone(generate_fetch_objective(world, 1, _FakeNPC(), {}))
+
     def test_valid_option_builds_objective(self):
         world = _FakeWorld()
         world.item_templates["item_widget"] = {"type": "Misc", "name": "Widget", "value": 10}
@@ -84,6 +95,7 @@ class TestGenerateFetchObjective(unittest.TestCase):
         result = generate_fetch_objective(world, 1, giver, {})
         self.assertEqual("item_widget", result["item_id"])
         self.assertIn("Goblin", result["source_enemy_name_plural"])
+        self.assertEqual(1, result["difficulty_level"])
 
 
 class TestGenerateDeliverObjective(unittest.TestCase):

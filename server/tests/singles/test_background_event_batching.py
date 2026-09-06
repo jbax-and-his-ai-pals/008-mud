@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 
 from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
@@ -119,6 +120,39 @@ class TestWorldTickMessageRoutingByRoom(unittest.TestCase):
         ]
         self.assertTrue(any("goblin" in text.lower() for text in session_a_texts))
         self.assertFalse(any("goblin" in text.lower() for text in session_b_texts))
+
+    def test_moving_npc_message_routes_to_the_room_it_left(self):
+        self.player_b.current_region_id = "town"
+        self.player_b.current_room_id = "market_square"
+
+        goblin = NPCFactory.create_npc_from_template(
+            "goblin", self.server.world, instance_id="routing_flee_goblin"
+        )
+        self.assertIsNotNone(goblin)
+        goblin.current_region_id = self.player_a.current_region_id
+        goblin.current_room_id = self.player_a.current_room_id
+        starting_room = goblin.current_room_id
+
+        def flee_during_update(_world, _current_time):
+            goblin.current_room_id = "north_gate_road"
+            return "The goblin flees north!"
+
+        goblin.update = Mock(side_effect=flee_during_update)
+        self.server.world.add_npc(goblin)
+        self.server.world.last_update_time = 0.0
+        self.server.tick(self.session_b.session_id)
+
+        session_a_texts = [
+            ev.get("payload", "") for ev in self.server._background_event_batch
+            if ev.get("session_id") == self.session_a.session_id and ev.get("type") == "text"
+        ]
+        session_b_texts = [
+            ev.get("payload", "") for ev in self.server._background_event_batch
+            if ev.get("session_id") == self.session_b.session_id and ev.get("type") == "text"
+        ]
+        self.assertNotEqual(starting_room, goblin.current_room_id)
+        self.assertIn("The goblin flees north!", session_a_texts)
+        self.assertNotIn("The goblin flees north!", session_b_texts)
 
 
 class TestCombatAdjacentMessageFilter(unittest.TestCase):

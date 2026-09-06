@@ -114,6 +114,18 @@ class TestSalvage(GameTestBase):
             manager.salvage(self.player, item)
         mock_create.assert_called_once_with("item_leather_scraps", self.world)
 
+    def test_fantasy_leather_cap_salvages_to_existing_crafting_material(self):
+        manager = self.game.crafting_manager
+        cap = ItemFactory.create_item_from_template("item_leather_cap", self.world)
+        self.assertIsNotNone(cap)
+        self.player.inventory.add_item(cap)
+
+        result = manager.salvage(self.player, cap)
+
+        self.assertIn("recover", result)
+        self.assertEqual(0, self.player.inventory.count_item("item_leather_cap"))
+        self.assertEqual(1, self.player.inventory.count_item("item_leather_strip"))
+
     def test_class_keyed_ruleset_rule_is_used_when_no_item_override(self):
         manager = self.game.crafting_manager
         weapon = Weapon(name="Test Blade", weight=4.0)

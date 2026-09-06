@@ -67,6 +67,7 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
     behavior = npc.behavior_type
     if behavior == "healer": behavior = "wanderer" 
     
+    previous_location = (npc.current_region_id, npc.current_room_id)
     move_message = None
     if behavior == "wanderer" or behavior == "aggressive": 
         move_message = perform_wander(npc, world, player)
@@ -79,5 +80,6 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
     elif behavior == "minion": 
         move_message = perform_minion_logic(npc, world, current_time, player)
     
-    if move_message: npc.last_moved = current_time
+    if move_message or (npc.current_region_id, npc.current_room_id) != previous_location:
+        npc.last_moved = current_time
     return move_message

@@ -9,6 +9,18 @@ from unittest.mock import patch
 from engine.core.time_manager import TimeManager
 
 
+class TestContentDefinedStartTime(unittest.TestCase):
+    class _World:
+        def ruleset_section(self, section):
+            return {"start_time": {"hour": 9, "minute": 30}} if section == "calendar" else {}
+
+    def test_calendar_start_time_initializes_the_clock(self):
+        tm = TimeManager(self._World())
+        self.assertEqual(9, tm.hour)
+        self.assertEqual(30, tm.minute)
+        self.assertEqual(34200.0, tm.game_time)
+
+
 class TestUpdate(unittest.TestCase):
     def setUp(self):
         self.tm = TimeManager()

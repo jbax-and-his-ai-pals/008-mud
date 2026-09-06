@@ -28,7 +28,12 @@ def generate_fetch_objective(world, player_level, giver_npc, config) -> Optional
     min_mob_lvl, max_mob_lvl = max(1, player_level - level_range), player_level + level_range
     valid_options = []
     for item_id, item_template in world.item_templates.items():
-        if item_template.get("type") == "Key": continue
+        item_name = str(item_template.get("name", item_id))
+        # Procedural families can use format placeholders that are resolved
+        # only when an item instance is created. A board offer needs a stable,
+        # player-readable objective, so it cannot request those templates.
+        if item_template.get("type") == "Key" or "{" in item_name or "}" in item_name:
+            continue
         for mob_tid, mob_template in world.npc_templates.items():
             if mob_template.get("faction") == "hostile" and min_mob_lvl <= mob_template.get("level", 1) <= max_mob_lvl:
                 if item_id in mob_template.get("loot_table", {}):
@@ -44,7 +49,7 @@ def generate_fetch_objective(world, player_level, giver_npc, config) -> Optional
         "item_name_plural": simple_plural(item_template.get("name", item_id)),
         "required_quantity": qty, "current_quantity": 0,
         "source_enemy_name_plural": simple_plural(source_mob_template.get("name", source_mob_tid)),
-        "location_hint": "nearby areas", "difficulty_level": item_template.get("value", 1) * qty
+        "location_hint": "nearby areas", "difficulty_level": source_mob_template.get("level", 1)
     }
 
 def generate_deliver_objective(world, player_level, giver_npc, config) -> Optional[Dict[str, Any]]:

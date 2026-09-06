@@ -59,6 +59,11 @@ class TestSaveAndLoadCommands(GameTestBase):
         self.assertIn("saved", result)
         self.assertEqual(self.TEST_SAVE, self.game.current_save_file)
 
+    def test_save_uses_the_context_player(self):
+        with patch.object(self.world, "save_game", return_value=True) as save_game:
+            self.game.process_command(f"save {self.TEST_SAVE}")
+
+        save_game.assert_called_once_with(self.TEST_SAVE, player=self.player)
     def test_save_defaults_to_current_save_file(self):
         self.game.current_save_file = self.TEST_SAVE
         result = self.game.process_command("save")

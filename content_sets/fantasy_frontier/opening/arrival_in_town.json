@@ -10,8 +10,13 @@
     },
     {
       "id": "meet_the_village",
-      "instruction": "See who is nearby; Elder Thorne can point you toward the village's troubles",
-      "command": "nearby"
+      "instruction": "Speak with Elder Thorne to learn about the village's troubles",
+      "command": "talk Elder Thorne"
+    },
+    {
+      "id": "equip_starter_weapon",
+      "instruction": "Equip your rusty dagger before venturing beyond town",
+      "command": "equip rusty dagger"
     },
     {
       "id": "choose_a_direction",

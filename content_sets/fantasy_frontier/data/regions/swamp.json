@@ -130,6 +130,7 @@
             "name": "Quicksand Pit",
             "description": "A deceptively calm-looking pool of mud. Ripples suggest movement beneath the surface. Getting too close looks dangerous. Something shiny is partially submerged near the edge.",
             "exits": { "west": "deep_swamp" },
+            "properties": { "hazard_type": "quicksand", "hazard_damage": 4, "hazard_tick_interval": 5.0 },
             "items": [ { "item_id": "item_muddy_brooch" } ]
         },
         "ancient_bog": {

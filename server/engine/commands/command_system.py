@@ -176,6 +176,24 @@ class CommandProcessor:
 
             return cmd_data["handler"](args, context)
 
+        # Content can author contextual exit verbs (for example, "house"
+        # or "hatch") without adding them to the process-global command
+        # registry. Prefer registered commands, then let a one-word unknown
+        # command move through a same-named exit in the player's current room.
+        if context and isinstance(context, dict) and len(parts) == 1:
+            world = context.get("world")
+            player = context.get("player")
+            room = world.get_current_room(player) if world is not None and player is not None else None
+            if room is not None and parts[0] in getattr(room, "exits", {}):
+                if not getattr(player, "is_alive", True):
+                    return f"{FORMAT_ERROR}You are dead. You cannot move.{FORMAT_RESET}"
+                if getattr(player, "trading_with", None):
+                    vendor = world.get_npc(player.trading_with)
+                    if vendor:
+                        vendor.is_trading = False
+                    player.trading_with = None
+                return world.change_room(parts[0], player=player)
+
         # No registered command matches this input.
         return f"{FORMAT_ERROR}Unknown command: {parts[0]}{FORMAT_RESET}"
 

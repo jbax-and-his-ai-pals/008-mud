@@ -13,6 +13,10 @@
         "text": "I stand watch. Someone has to keep the wolves and bandits at bay.",
         "conditions": { "template_id": "town_guard" },
         "priority": 10
+      },      {
+        "text": "I command Riverside's guard. Keeping the roads safe and the village prepared is my duty; speak with Elder Thorne if you want to help with the wider trouble.",
+        "conditions": { "template_id": "guard_captain" },
+        "priority": 10
       },
       {
         "text": "I buy low and sell high. That is the way of the world.",
