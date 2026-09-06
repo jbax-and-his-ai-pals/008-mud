@@ -213,7 +213,7 @@ class JsonLineMudServer:
                 "command_burst": int(self.input_safeguards.command_burst),
             },
         }
-        if world_mode == "finite_adventure":
+        if world_mode == "finite_adventure" and self.server.world.has_capability("quests"):
             payload["adventure_policy"] = {
                 "enabled": True,
                 "default_campaign_id": self.server.finite_adventure_default_campaign_id(),
