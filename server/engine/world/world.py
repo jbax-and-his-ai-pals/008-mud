@@ -329,7 +329,7 @@ class World:
         if self.quest_manager:
             quest_updates = self.quest_manager.handle_room_entry(active_player)
 
-        if new_region_id.startswith("instance_"):
+        if new_region_id.startswith("instance_") and active_player.runtime_state.quests is not None:
             for quest in active_player.runtime_state.quests.active.values():
                 if quest.get("instance_region_id") == new_region_id:
                     quest["completion_check_enabled"] = True

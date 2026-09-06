@@ -125,23 +125,25 @@ class KnowledgeManager:
 
             # Campaign State Check
             if key == "campaign_state":
+                if player.runtime_state.quests is None: return False
                 c_id = val.get("campaign_id")
                 state_req = val.get("state") # "active", "completed", "not_active"
-                
+
                 is_active = c_id in player.runtime_state.quests.active_campaigns
                 is_completed = c_id in player.runtime_state.quests.completed_campaigns
-                
+
                 if state_req == "active" and not is_active: return False
                 if state_req == "completed" and not is_completed: return False
                 if state_req == "not_active" and (is_active or is_completed): return False
 
             # Quest State Check
             if key == "quest_state":
+                if player.runtime_state.quests is None: return False
                 req_state = val.get("state")
                 from_this = val.get("from_this_npc", False)
                 pattern = val.get("id_pattern")
                 found_match = False
-                
+
                 logs_to_check = []
                 if req_state == "active":
                     logs_to_check = [player.runtime_state.quests.active]
@@ -259,7 +261,7 @@ class KnowledgeManager:
         if xp > 0:
             player.gain_experience(xp)
             messages.append(f"You gain {xp} XP.")
-        if gold > 0:
+        if gold > 0 and player.runtime_state.gold is not None:
             player.runtime_state.gold += gold
             messages.append(f"You receive {gold} {self.world.currency_name().capitalize()}.")
 
@@ -330,7 +332,7 @@ class KnowledgeManager:
                     routing = str(server.grant_party_gold(player, amount))
                     if routing:
                         messages.append(f"Rewards: {routing}")
-                else:
+                elif player.runtime_state.gold is not None:
                     player.runtime_state.gold += amount
                     messages.append(f"You receive {amount} {self.world.currency_name().capitalize()}.")
 

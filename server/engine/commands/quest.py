@@ -50,9 +50,16 @@ def look_board_handler(args, context):
             if quantity:
                 quantity_summary = f" ({quantity})"
         
+        reward_parts = []
+        if world.uses_progression():
+            reward_parts.append(f"{rewards.get('xp', 0)} XP")
+        if world.ruleset_system_enabled("economy"):
+            reward_parts.append(f"{rewards.get('gold', 0)} {world.currency_name().capitalize()}")
+        reward_summary = ", ".join(reward_parts) if reward_parts else "—"
+
         response += (f"{FORMAT_CATEGORY}[{i + 1}]{FORMAT_RESET} {quest_data.get('title', 'Unnamed Quest')}{FORMAT_HIGHLIGHT}{quantity_summary}{FORMAT_RESET}\n"
                     f"   Giver: {giver_name}\n"
-                    f"   Reward: {rewards.get('xp', 0)} XP, {rewards.get('gold', 0)} {world.currency_name().capitalize()}\n\n")
+                    f"   Reward: {reward_summary}\n\n")
         
     response += f"Type '{FORMAT_HIGHLIGHT}accept quest <#>{FORMAT_RESET}' to take a task."
     return response

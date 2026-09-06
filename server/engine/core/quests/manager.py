@@ -87,15 +87,16 @@ class QuestManager:
         if slots_to_fill == 0: return
 
         possible_types = QUEST_TYPES_ALL
-        
+        player_level = player.runtime_state.progression.level if player.runtime_state.progression is not None else 1
+
         while slots_to_fill > 0:
             quest_type = random.choice(possible_types)
             new_quest = None
-            
-            if quest_type == "instance": 
-                new_quest = self.generator.generate_instance_quest(player.runtime_state.progression.level)
-            else: 
-                new_quest = self.generator.generate_noninstance_quest(player.runtime_state.progression.level, quest_type)
+
+            if quest_type == "instance":
+                new_quest = self.generator.generate_instance_quest(player_level)
+            else:
+                new_quest = self.generator.generate_noninstance_quest(player_level, quest_type)
             
             if new_quest:
                 current_quests.append(new_quest)
@@ -115,7 +116,8 @@ class QuestManager:
             return False
             
         template = self.quest_templates[template_id]
-        quest_data = self.generator.instantiate_quest(template, player.runtime_state.progression.level)
+        player_level = player.runtime_state.progression.level if player.runtime_state.progression is not None else 1
+        quest_data = self.generator.instantiate_quest(template, player_level)
         
         import uuid
         instance_id = f"{template_id}_{uuid.uuid4().hex[:4]}"
@@ -195,8 +197,9 @@ class QuestManager:
 
         msgs = []
         xp = rewards.get("xp", 0); gold = rewards.get("gold", 0)
-        if xp > 0: _, msg = player.gain_experience(xp); msgs.append(f"{xp} XP"); 
-        if gold > 0: player.runtime_state.gold += gold; msgs.append(f"{gold} {self.world.currency_name().capitalize()}")
+        if xp > 0: _, msg = player.gain_experience(xp); msgs.append(f"{xp} XP");
+        if gold > 0 and player.runtime_state.gold is not None:
+            player.runtime_state.gold += gold; msgs.append(f"{gold} {self.world.currency_name().capitalize()}")
         if "items" in rewards:
             for d in rewards["items"]:
                 it = ItemFactory.create_item_from_template(d["item_id"], player.world)
