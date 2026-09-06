@@ -21,6 +21,19 @@ def _grant_party_sale_gold(world, player: Player, total_gold_gain: int) -> str:
     player.runtime_state.gold += total_gold_gain
     return ""
 
+def _template_preview_name(template: Dict) -> str:
+    """Name for a vendor listing/match target -- procedural templates (e.g.
+    the random-spell-scroll's "Scroll of {spell_name}") aren't resolved until
+    an actual instance is rolled at purchase time, so format them with a
+    generic placeholder rather than showing the raw '{spell_name}' token."""
+    raw_name = template.get("name", "Unknown Item")
+    if template.get("properties", {}).get("is_procedural"):
+        try:
+            return raw_name.format(spell_name="a random spell")
+        except (KeyError, IndexError):
+            return raw_name
+    return raw_name
+
 def _get_price_multiplier(vendor: NPC) -> float:
     base = DEFAULT_VENDOR_SELL_MULTIPLIER
     if "economy_impact" in vendor.properties:
@@ -45,7 +58,7 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
             template = world.item_templates.get(item_id)
             if not template: continue
                 
-            item_name = template.get("name", "Unknown Item")
+            item_name = _template_preview_name(template)
             base_value = template.get("value", 0)
             
             # Combine item-specific multiplier with vendor global multiplier (discount)
@@ -187,7 +200,7 @@ def buy_handler(args, context):
         if not item_id: continue
         template = world.item_templates.get(item_id)
         if template:
-            name_in_template = template.get("name", "").lower()
+            name_in_template = _template_preview_name(template).lower()
             if item_name == item_id.lower() or item_name == name_in_template:
                 found_item_ref = item_ref; found_template = template; break
             elif item_name in name_in_template:
@@ -215,10 +228,12 @@ def buy_handler(args, context):
 
     player.runtime_state.gold -= total_cost
     items_added_successfully = 0
-    
+    last_item_name = _template_preview_name(found_template)
+
     for _ in range(quantity):
          item_instance = ItemFactory.create_item_from_template(item_id, world)
          if item_instance:
+              last_item_name = item_instance.name
               added, add_msg = player.inventory.add_item(item_instance, 1)
               if added: items_added_successfully += 1
               else:
@@ -227,8 +242,8 @@ def buy_handler(args, context):
          else:
               player.runtime_state.gold += buy_price_per_item * (quantity - items_added_successfully)
               return f"{FORMAT_ERROR}Failed to create item instance during purchase. Transaction cancelled.{FORMAT_RESET}"
-              
-    item_display_name = found_template.get("name", item_id)
+
+    item_display_name = last_item_name if quantity == 1 else _template_preview_name(found_template)
     return f"{FORMAT_SUCCESS}You buy {quantity} {item_display_name}{'' if quantity == 1 else 's'} for {total_cost} {world.currency_name()}.{FORMAT_RESET}\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}"
 
 @command("sell", [], "interaction", "Sell an item from your inventory to the current vendor.\nUsage: sell <item_name> [quantity]", ruleset_system="economy")
