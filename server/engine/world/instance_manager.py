@@ -42,7 +42,9 @@ class InstanceManager:
             entry_point = quest_data['entry_point']
             instance_region = quest_data['instance_region']
             quest_instance_id = quest_data['instance_id']
-            objective = quest_data.get("objective", {})
+            quest_manager = getattr(self.world, "quest_manager", None)
+            objective = (quest_manager.get_active_objective(quest_data) if quest_manager else None) \
+                or quest_data.get("objective", {})
             layout_config = quest_data.get("layout_generation_config", {})
 
             unique_region_id = f"instance_{quest_instance_id}"

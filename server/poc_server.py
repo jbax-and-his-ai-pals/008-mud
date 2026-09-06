@@ -1354,8 +1354,10 @@ class JsonLineMudServer:
                         await self._broadcast_event(event)
                     elif target_id and target_id in self._session_writers:
                         await self._send_event(self._session_writers[target_id], event)
-                    else:
+                    elif not target_id or target_id == session.session_id:
                         await self._send_event(writer, event)
+                    # else: targeted at a session that has since disconnected --
+                    # drop it rather than misdelivering it to this connection.
         finally:
             self.server.mark_session_disconnected(session.session_id)
             await self._release_session_locks(session.session_id)
