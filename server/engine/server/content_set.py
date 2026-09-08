@@ -766,8 +766,10 @@ def load_content_set(
                 )
 
         _validate_authored_world(content_root, start_region_id, start_room_id, issues)
-        _validate_ruleset_references(content_root, ruleset_payload, issues, resolved_paths["ruleset"])
-        _validate_ambient_loot_references(content_root, ruleset_payload, issues, resolved_paths["ruleset"])
+        ruleset_source_path = resolved_paths.get("ruleset")
+        if ruleset_source_path is not None:
+            _validate_ruleset_references(content_root, ruleset_payload, issues, ruleset_source_path)
+            _validate_ambient_loot_references(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_collection_references(content_root, issues)
         _validate_discovery_references(content_root, issues)
         _validate_vendor_orders(content_root, issues)

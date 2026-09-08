@@ -34,7 +34,11 @@ class TestTextFormatterRender(unittest.TestCase):
         self.tf = TextFormatter(self.font, screen_width=400, margin=10, line_spacing=5)
 
     def tearDown(self):
-        pygame.quit()
+        # Deliberately not calling pygame.quit(): it tears down the process-wide
+        # SDL font subsystem, which invalidates other modules' cached Font
+        # objects for the rest of the test suite (they become dangling and
+        # segfault on the next render()).
+        pass
 
     def test_update_screen_width_recalculates_usable_width(self):
         self.tf.update_screen_width(800)

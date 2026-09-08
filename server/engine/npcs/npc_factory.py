@@ -59,7 +59,14 @@ class NPCFactory:
                 if template.get("properties", {}).get("randomize_name"):
                     npc_naming = world.ruleset_section("npc_naming")
                     first_names = npc_naming.get("first_names", [])
-                    random_first_name = random.choice(first_names) if first_names else "Wanderer"
+                    used_first_names = {
+                        npc.name.split(" ")[0] for npc in world.npcs.values()
+                        if npc.template_id == template_id
+                    }
+                    available_first_names = [n for n in first_names if n not in used_first_names]
+                    if not available_first_names:
+                        available_first_names = first_names
+                    random_first_name = random.choice(available_first_names) if available_first_names else "Wanderer"
                     base_title = template.get("name", "NPC").split(" ")[-1]
                     name_pattern = npc_naming.get("random_name_pattern", "{first_name}")
                     final_npc_name = name_pattern.format(first_name=random_first_name, title=base_title)

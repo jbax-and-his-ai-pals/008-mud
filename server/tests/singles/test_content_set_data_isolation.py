@@ -49,7 +49,7 @@ class TestContentSetDataIsolation(unittest.TestCase):
             encoding="utf-8",
         )
         (content_root / "collections.json").write_text(
-            json.dumps({"alternate_collection": {"name": "Alternate Collection"}}),
+            json.dumps({"alternate_collection": {"name": "Alternate Collection", "items": ["alternate_token"]}}),
             encoding="utf-8",
         )
 

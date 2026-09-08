@@ -117,11 +117,32 @@ class TestEnsureInitialQuests(GameTestBase):
         finally:
             qm.world = original_world
 
+    def _authored_board_template_ids(self, qm):
+        return [
+            str(entry.get("template_id", ""))
+            for entry in qm.config.get("authored_board_templates", [])
+            if isinstance(entry, dict) and entry.get("template_id")
+        ]
+
     def test_board_already_full_is_a_no_op(self):
         qm = self.world.quest_manager
         from engine.config import MAX_QUESTS_ON_BOARD
-        self.world.quest_board = [{"instance_id": f"filler_{i}"} for i in range(MAX_QUESTS_ON_BOARD)]
-        qm.ensure_initial_quests(self.player)
+        # Content-authored board quests (e.g. commissions) are seeded before the
+        # capacity-gated procedural fill loop and are exempt from its cap, so a
+        # "board already full" fixture must already contain them -- otherwise
+        # they'd still be appended even though the board is at capacity.
+        board = [
+            {"instance_id": f"authored_{template_id}", "template_id": template_id}
+            for template_id in self._authored_board_template_ids(qm)
+        ]
+        while len(board) < MAX_QUESTS_ON_BOARD:
+            board.append({"instance_id": f"filler_{len(board)}", "template_id": f"filler_template_{len(board)}"})
+        self.world.quest_board = board
+        with patch.object(qm.generator, "generate_instance_quest") as mock_instance, \
+             patch.object(qm.generator, "generate_noninstance_quest") as mock_noninstance:
+            qm.ensure_initial_quests(self.player)
+            mock_instance.assert_not_called()
+            mock_noninstance.assert_not_called()
         self.assertEqual(MAX_QUESTS_ON_BOARD, len(self.world.quest_board))
 
     def test_generator_returning_none_stops_the_fill_loop(self):
@@ -130,7 +151,9 @@ class TestEnsureInitialQuests(GameTestBase):
         with patch.object(qm.generator, "generate_instance_quest", return_value=None), \
              patch.object(qm.generator, "generate_noninstance_quest", return_value=None):
             qm.ensure_initial_quests(self.player)
-        self.assertEqual(0, len(self.world.quest_board))
+        # Authored board quests are seeded independently of the (mocked-out)
+        # procedural generator, so the board ends up holding exactly those.
+        self.assertEqual(len(self._authored_board_template_ids(qm)), len(self.world.quest_board))
 
     def test_no_reference_player_is_a_no_op(self):
         qm = self.world.quest_manager

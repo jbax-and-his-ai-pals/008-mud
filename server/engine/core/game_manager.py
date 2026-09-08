@@ -39,8 +39,18 @@ class GameManager:
         errors = [issue.message for issue in issues if issue.severity == "error"]
         if content_set is None or errors:
             raise ValueError("GameManager requires a valid content set: " + "; ".join(errors))
-        pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+        if not pygame.get_init():
+            pygame.init()
+        # Tests construct a fresh GameManager per test case (thousands of times per
+        # run) and immediately discard the real renderer. Recreating the display
+        # surface every time accumulates SDL resources across the whole suite and
+        # can eventually crash the dummy video driver's font backend, so reuse an
+        # existing surface of the right size instead of calling set_mode() again.
+        existing_surface = pygame.display.get_surface()
+        if existing_surface is not None and existing_surface.get_size() == (SCREEN_WIDTH, SCREEN_HEIGHT):
+            self.screen = existing_surface
+        else:
+            self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption("Pygame MUD")
         self.clock = pygame.time.Clock()
 

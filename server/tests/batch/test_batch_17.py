@@ -130,11 +130,15 @@ class TestBatch17(GameTestBase):
             npc.current_room_id = self.player.current_room_id
             
             npc.loot_table = {"rare_gem": {"chance": 0.1}}
-            
+            # Isolate this test to the manual loot_table: with random.random()
+            # patched to always "hit", the content-authored ambient loot pools
+            # would otherwise also trigger for this goblin's tags.
+            self.world.content_set.ruleset["loot"] = {"ambient_pools": []}
+
             # Force drop (Random.random() < 0.1)
             with patch('random.random', return_value=0.0):
                  dropped = npc.die(self.world)
-                 
+
             self.assertEqual(len(dropped), 1, "Should drop 1 item.")
             self.assertEqual(dropped[0].name, "Rare Gem")
 

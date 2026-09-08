@@ -15,6 +15,10 @@ These are complementary routes, not classes or mandatory checklists.
 - Basic progression must not require a single preferred playstyle.
 - Systems should offer optional depth, not punish players for ignoring them.
 - New work ships as a small playable vertical slice with automated coverage.
+- Generic/decorative filler content (ambient wanderers, flavor-only NPCs)
+  must never crowd out or outrank named, story-relevant content in what a
+  player is shown first -- a room description, an interaction suggestion, or
+  a highlighted panel entry.
 
 ## Now: first-hour hardening
 
@@ -33,6 +37,32 @@ next paths in their first session.
   commissions, a trust gain, a tool purchase, and a destination visit.
 - [x] Add an equally deterministic low-risk combat route with a confirmed
   encounter resolution, then run it beside the existing route assertions.
+
+### Recently completed: opening-room and test-infrastructure hardening
+
+- Randomized-name NPCs (ambient wandering villagers) no longer collide within
+  the same room; the factory now prefers an unused first name over the
+  content-authored pool before falling back to a repeat.
+- The "nearby" interaction hint now prefers named/authored NPCs over generic
+  randomized-name filler when picking who gets a "talk" suggestion, so a
+  room full of decorative extras can't crowd out the NPC a new player
+  actually needs to notice (this is how the villager fix above surfaced --
+  the suggestion list is alphabetical among whoever's offered, so it was
+  effectively a coin flip whether Elder Thorne made the cut).
+- The disabled local-LLM integration no longer imports `torch`/`transformers`
+  at module scope, since `AI_AMBIENT_ENABLED` defaults on and every
+  `GameManager` construction (including each of the ~3,500 legacy unit
+  tests) was paying that import cost for a feature that is currently a no-op.
+- Root-caused and fixed a reproducible segfault in the full legacy
+  (`unittest discover`) run: a few UI tests called `pygame.quit()` in
+  `tearDown`, which tears down the process-wide SDL font subsystem and left
+  `engine/ui/panel_content.py`'s module-level font cache holding dangling
+  `Font` objects for the rest of the suite. `GameManager` also now reuses an
+  existing display surface instead of recreating one on every construction.
+  The full suite (3,520 tests) now runs clean in under a minute.
+- `content_set.py`'s ruleset/ambient-loot reference validation no longer
+  crashes with a `KeyError` when a manifest's `ruleset` path entry is itself
+  invalid; it now degrades to reporting that error instead of masking it.
 
 ### Recently completed: collectable gem loop
 
@@ -132,6 +162,12 @@ route alongside combat and exploration.
   trophies, and combat-derived crafting inputs.
 - Ensure ambient loot selectors distinguish appropriate NPC categories using
   content-authored tags.
+- The engine already implements `minion`, `scheduled`, `healer`, and
+  `retreating_for_mana` NPC behaviors (`engine/npcs/ai/dispatcher.py`), but
+  every fantasy-frontier hostile currently authors `behavior_type:
+  aggressive`. Giving even a few existing enemies one of these behaviors is
+  authoring work, not engine work, and is likely the cheapest available way
+  to make combat feel less uniform before a larger combat-variety slice.
 
 ### Gems, collections, and knowledge
 
@@ -165,6 +201,22 @@ route alongside combat and exploration.
 - Persist traces, replay and minimize failures, and distinguish player-visible
   dead ends from invariant or protocol failures.
 - Maintain headless defaults for bulk test runs.
+- No test may call `pygame.quit()`: it tears down the process-wide SDL font
+  subsystem for every other test in the same run, not just the one that
+  called it (see the segfault fix above). `pygame.init()` is idempotent and
+  safe to leave initialized for the life of the process.
+- Add a generic content-validation check that renders every authored dialog/
+  description/vendor-listing template with representative substitutions and
+  fails on any leftover `{placeholder}`. This class of bug (a vendor listing
+  once showed a raw `{spell_name}`) has recurred at least twice with only
+  ad hoc, per-feature test coverage; a single generic check would catch the
+  whole class instead of one incident at a time.
+- `engine/server/headless_server.py` has grown into a single ~3,600-line,
+  ~140-method class covering session lifecycle, TCP/WS/msgpack framing,
+  capability negotiation, the operator catalog, and world-effects policy.
+  It still works, but it's the file most likely to become hard to safely
+  review or extend; worth splitting along those seams before it grows much
+  further.
 
 ## Deliberately later
 

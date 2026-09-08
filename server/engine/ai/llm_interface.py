@@ -1,7 +1,4 @@
 # engine/ai/llm_interface.py
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-from transformers.pipelines import pipeline
 import json
 import os
 import sys
@@ -26,10 +23,14 @@ class LLMInterface:
         """
         # loading the model takes several seconds, so disabling for now until we're ready to work more with ai functionality
         return
-    
+
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from transformers.pipelines import pipeline
+
         print(f"Loading LLM: {self.model_id}...")
         print("This may take a while and require a significant download on the first run.")
-        
+
         try:
             device = "cuda" if torch.cuda.is_available() else "cpu"
             print(f"Using device: {device.upper()}")

@@ -43,26 +43,25 @@ class _FakeWorld:
 
 class TestMinimapPlayerContext(unittest.TestCase):
     def test_draw_minimap_with_explicit_player_without_world_player(self) -> None:
+        # Not calling pygame.quit(): it tears down the process-wide SDL font
+        # subsystem, invalidating other modules' cached Font objects for the
+        # rest of the test suite (they become dangling and segfault on the
+        # next render()). pygame.init() is idempotent, so leaving it running
+        # for the rest of the process is safe.
         pygame.init()
-        try:
-            surface = pygame.Surface((200, 200))
-            rect = pygame.Rect(0, 0, 200, 200)
-            world = _FakeWorld()
-            player = _FakePlayer("r1", "a")
-            draw_minimap(surface, rect, world, player=player)
-        finally:
-            pygame.quit()
+        surface = pygame.Surface((200, 200))
+        rect = pygame.Rect(0, 0, 200, 200)
+        world = _FakeWorld()
+        player = _FakePlayer("r1", "a")
+        draw_minimap(surface, rect, world, player=player)
 
     def test_draw_minimap_uses_resolved_player_without_world_player(self) -> None:
         pygame.init()
-        try:
-            surface = pygame.Surface((200, 200))
-            rect = pygame.Rect(0, 0, 200, 200)
-            world = _FakeWorld()
-            world.players["p1"] = _FakePlayer("r1", "a")
-            draw_minimap(surface, rect, world)
-        finally:
-            pygame.quit()
+        surface = pygame.Surface((200, 200))
+        rect = pygame.Rect(0, 0, 200, 200)
+        world = _FakeWorld()
+        world.players["p1"] = _FakePlayer("r1", "a")
+        draw_minimap(surface, rect, world)
 
 
 if __name__ == "__main__":

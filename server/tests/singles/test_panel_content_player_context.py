@@ -50,7 +50,11 @@ class TestPanelContentPlayerContext(unittest.TestCase):
         self.world.add_npc(friendly)
 
     def tearDown(self) -> None:
-        pygame.quit()
+        # Deliberately not calling pygame.quit(): it tears down the process-wide
+        # SDL font subsystem, which invalidates engine.ui.panel_content's
+        # module-level font cache for every other test in the suite (their
+        # cached Font objects become dangling and segfault on next render()).
+        pass
 
     def test_render_hostiles_uses_explicit_player_room(self) -> None:
         surface = pygame.Surface((300, 200))

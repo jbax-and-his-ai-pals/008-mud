@@ -122,10 +122,14 @@ class TestBatch11(GameTestBase):
             npc.loot_table = {"drop_item": {"chance": 1.0, "quantity": [1, 1]}}
             npc.current_region_id = "town"
             npc.current_room_id = "town_square"
-            
+            # Isolate this test to the manual loot_table: with random.random()
+            # patched to always "hit", the content-authored ambient loot pools
+            # would otherwise also trigger for this goblin's tags.
+            self.world.content_set.ruleset["loot"] = {"ambient_pools": []}
+
             with patch('random.random', return_value=0.0):
                 dropped = npc.die(self.world)
-            
+
             self.assertEqual(len(dropped), 1)
             self.assertEqual(dropped[0].name, "Drop")
 

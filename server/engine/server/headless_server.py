@@ -3445,6 +3445,7 @@ class HeadlessServer:
             }
 
         exits = sorted([str(direction) for direction in room.exits.keys()])
+        room_npcs = list(self.world.get_npcs_in_room(region_id, room_id))
         npcs = sorted(
             [
                 {
@@ -3456,10 +3457,22 @@ class HeadlessServer:
                         and str(getattr(npc, "faction", "")) == "hostile"
                     ),
                 }
-                for npc in self.world.get_npcs_in_room(region_id, room_id)
+                for npc in room_npcs
             ],
             key=lambda n: str(n.get("name", "")),
         )
+        # Prefer named/authored NPCs over content's generic randomized-name
+        # filler (e.g. ambient wandering villagers) when picking who gets a
+        # "talk" suggestion, so a room full of decorative extras doesn't crowd
+        # out the NPC a new player actually needs to notice.
+        def _is_generic_filler(npc: Any) -> bool:
+            template = self.world.npc_templates.get(getattr(npc, "template_id", None), {})
+            return bool(template.get("properties", {}).get("randomize_name"))
+
+        interaction_npc_names = [
+            str(getattr(npc, "name", "npc"))
+            for npc in sorted(room_npcs, key=lambda npc: (_is_generic_filler(npc), str(getattr(npc, "name", ""))))
+        ]
         items = sorted(
             [
                 {
@@ -3478,8 +3491,8 @@ class HeadlessServer:
         interactions: List[str] = []
         for direction in exits[:4]:
             interactions.append(f"go {direction}")
-        for npc in npcs[:3]:
-            interactions.append(f"talk {npc.get('name', 'npc')}")
+        for npc_name in interaction_npc_names[:3]:
+            interactions.append(f"talk {npc_name}")
         for item in items[:3]:
             if item.get("portable", True):
                 interactions.append(f"take {item.get('name', 'item')}")
