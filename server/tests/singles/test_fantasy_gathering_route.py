@@ -202,6 +202,67 @@ class TestFantasyGatheringRoute(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_practiced_fine_clay_crafting_reaches_river_masterwork(self) -> None:
+        """A recipe's masterwork tier requires both practice and its material gate."""
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="masterwork_clay_player")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+
+            for _ in range(5):
+                clay = ItemFactory.create_item_from_template("item_river_clay", server.world)
+                clay.properties["material_quality_score"] = 2
+                player.inventory.add_item(clay, 2)
+                crafted = server.execute_command(session.session_id, "craft press_river_token")
+                crafted_text = "\n".join(str(event["payload"]) for event in crafted)
+                self.assertIn("Craft quality: River Fine.", crafted_text)
+
+            clay = ItemFactory.create_item_from_template("item_river_clay", server.world)
+            clay.properties["material_quality_score"] = 2
+            player.inventory.add_item(clay, 2)
+            sixth = server.execute_command(session.session_id, "craft press_river_token")
+            sixth_text = "\n".join(str(event["payload"]) for event in sixth)
+            self.assertIn("Craft quality: River Masterwork.", sixth_text)
+            self.assertIn("Master presser", sixth_text)
+            tokens = [
+                slot.item for slot in player.inventory.slots
+                if slot.item and slot.item.obj_id == "item_river_token"
+                and slot.item.get_property("craft_quality") == "river_masterwork"
+            ]
+            self.assertEqual(1, len(tokens))
+        finally:
+            server.shutdown()
+
+    def test_pristine_quartz_and_practice_reaches_a_masterwork_facet(self) -> None:
+        """Gem cutting's masterwork tier needs a lucky find as well as a practiced hand."""
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="masterwork_facet_player")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+            server.execute_command(session.session_id, "southeast")
+            server.execute_command(session.session_id, "in")
+
+            for _ in range(3):
+                rough = ItemFactory.create_item_from_template("item_rose_quartz", server.world)
+                player.inventory.add_item(rough)
+                server.execute_command(session.session_id, "craft facet_rose_quartz")
+
+            pristine = ItemFactory.create_item_from_template("item_rose_quartz", server.world)
+            pristine.properties["material_quality_score"] = 3
+            player.inventory.add_item(pristine)
+            fourth = server.execute_command(session.session_id, "craft facet_rose_quartz")
+            fourth_text = "\n".join(str(event["payload"]) for event in fourth)
+            self.assertIn("Craft quality: Masterwork.", fourth_text)
+            self.assertIn("Master lapidary", fourth_text)
+        finally:
+            server.shutdown()
+
     def test_gem_ledger_static_membership_can_be_donated_to_the_museum(self) -> None:
         """A collection list works without bespoke gem properties in engine code."""
         server = HeadlessServer(

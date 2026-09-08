@@ -148,7 +148,18 @@ here.
   masterwork variants.
 - Recipe familiarity is persistent and visible in terminal/client crafting
   ledgers. Content may author deterministic quality tiers that retain their
-  value and gift provenance; masterwork outcomes remain a future extension.
+  value and gift provenance.
+- Masterwork tiers are now live on all five gift/trade-good recipes (posy,
+  charm, river token, faceted rose quartz, rose quartz talisman), using the
+  engine's existing (already-generic, no code changes needed) combined
+  `min_crafts` + `min_material_quality` gate. The token and quartz recipes
+  require both sustained practice *and* their material's best available
+  grade, not just one or the other. Equipment/consumable recipes
+  (sword, cap, bandage, potion) deliberately don't get a tier yet: the
+  quality-tier system only affects an item's `value` and gift bonus, not
+  combat stats, so a "masterwork" sword would currently be identical in a
+  fight to a plain one -- giving equipment a real masterwork tier needs a
+  quality-affects-stats extension, which is a distinct, larger feature.
 - Gatherable nodes may also author material quality. Recipes use the limiting
   score across their required inputs, demonstrated by fine river clay creating
   a premium token even before repeated practice unlocks later tiers.

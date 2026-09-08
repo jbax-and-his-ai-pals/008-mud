@@ -8,11 +8,13 @@
     "difficulty": 0,
     "familiarity_milestones": [
       { "count": 1, "label": "Thoughtful beginner", "message": "You have learned the rhythm of tying a thoughtful posy." },
-      { "count": 3, "label": "Village florist", "message": "Your posies now look like a familiar Riverside kindness." }
+      { "count": 3, "label": "Village florist", "message": "Your posies now look like a familiar Riverside kindness." },
+      { "count": 8, "label": "Master florist", "message": "Your hands know this posy so well you no longer have to think about it." }
     ],
     "quality_tiers": [
       { "id": "simple", "label": "Simple", "min_crafts": 1, "value_multiplier": 1.0 },
-      { "id": "fine", "label": "Fine", "min_crafts": 3, "value_multiplier": 1.25, "gift_bonus": 1 }
+      { "id": "fine", "label": "Fine", "min_crafts": 3, "value_multiplier": 1.25, "gift_bonus": 1 },
+      { "id": "masterwork", "label": "Masterwork", "min_crafts": 8, "value_multiplier": 1.5, "gift_bonus": 2 }
     ],
     "ingredients": [
       { "item_id": "item_wild_herbs", "quantity": 2 }
@@ -27,11 +29,13 @@
     "difficulty": 0,
     "familiarity_milestones": [
       { "count": 1, "label": "Woodcarver", "message": "You have learned the basic cuts for a Riverside charm." },
-      { "count": 3, "label": "Local artisan", "message": "Your carved charms have a confident, practiced finish." }
+      { "count": 3, "label": "Local artisan", "message": "Your carved charms have a confident, practiced finish." },
+      { "count": 8, "label": "Master carver", "message": "You could carve this charm blindfolded; every cut lands where it should." }
     ],
     "quality_tiers": [
       { "id": "plain", "label": "Plain", "min_crafts": 1, "value_multiplier": 1.0 },
-      { "id": "fine", "label": "Fine", "min_crafts": 3, "value_multiplier": 1.5, "gift_bonus": 1 }
+      { "id": "fine", "label": "Fine", "min_crafts": 3, "value_multiplier": 1.5, "gift_bonus": 1 },
+      { "id": "masterwork", "label": "Masterwork", "min_crafts": 8, "value_multiplier": 2.0, "gift_bonus": 2 }
     ],
     "ingredients": [
       { "item_id": "item_softwood", "quantity": 2 }
@@ -44,9 +48,14 @@
     "result_quantity": 1,
     "station_required": null,
     "difficulty": 0,
+    "familiarity_milestones": [
+      { "count": 1, "label": "Riverside presser", "message": "You have learned to press a clean token from river clay." },
+      { "count": 6, "label": "Master presser", "message": "Your practiced hands turn fine clay into tokens worth a museum's notice." }
+    ],
     "quality_tiers": [
       { "id": "plain", "label": "Plain", "min_crafts": 1, "value_multiplier": 1.0 },
-      { "id": "river_fine", "label": "River Fine", "min_crafts": 1, "min_material_quality": 2, "rank": 3, "value_multiplier": 1.5, "gift_bonus": 1 }
+      { "id": "river_fine", "label": "River Fine", "min_crafts": 1, "min_material_quality": 2, "rank": 3, "value_multiplier": 1.5, "gift_bonus": 1 },
+      { "id": "river_masterwork", "label": "River Masterwork", "min_crafts": 6, "min_material_quality": 2, "rank": 10, "value_multiplier": 2.0, "gift_bonus": 2 }
     ],
     "ingredients": [
       { "item_id": "item_river_clay", "quantity": 2 }
@@ -71,6 +80,14 @@
     "result_quantity": 1,
     "station_required": null,
     "difficulty": 0,
+    "familiarity_milestones": [
+      { "count": 1, "label": "Talisman stringer", "message": "You have learned to set a rose quartz on a cord without a wasted knot." },
+      { "count": 4, "label": "Master stringer", "message": "A pristine stone in practiced hands makes a talisman worth keeping." }
+    ],
+    "quality_tiers": [
+      { "id": "corded", "label": "Corded", "min_crafts": 1, "value_multiplier": 1.0 },
+      { "id": "masterwork", "label": "Masterwork", "min_crafts": 4, "min_material_quality": 3, "rank": 10, "value_multiplier": 1.75, "gift_bonus": 2 }
+    ],
     "ingredients": [
       { "item_id": "item_rose_quartz", "quantity": 1 },
       { "item_id": "item_leather_strip", "quantity": 1 }
@@ -83,6 +100,14 @@
     "result_quantity": 1,
     "station_required": "lapidary_wheel",
     "difficulty": 0,
+    "familiarity_milestones": [
+      { "count": 1, "label": "Lapidary apprentice", "message": "You have learned the basic cuts for faceting rose quartz." },
+      { "count": 4, "label": "Master lapidary", "message": "A pristine specimen under your practiced wheel yields a museum-grade cut." }
+    ],
+    "quality_tiers": [
+      { "id": "cut", "label": "Cut", "min_crafts": 1, "value_multiplier": 1.0 },
+      { "id": "masterwork", "label": "Masterwork", "min_crafts": 4, "min_material_quality": 3, "rank": 10, "value_multiplier": 2.0, "gift_bonus": 2 }
+    ],
     "ingredients": [
       { "item_id": "item_rose_quartz", "quantity": 1 }
     ]
