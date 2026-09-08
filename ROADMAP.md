@@ -85,21 +85,51 @@ next paths in their first session.
 - The first museum commission is relationship-gated and requires a player
   crafted refined item, closing the loop from discovery through reward.
 
-## Next vertical slice: Riverlands Craft & Kinship
+## Completed vertical slice: Riverlands Craft & Kinship
 
 **Goal:** make gathering, crafting, gifts, and commissions a complete early
 route alongside combat and exploration.
 
-1. Formalize gathering as a content capability and author real resource nodes
-   in two approachable regions.
-2. Add 8–12 recipes spanning utility, equipment, trade goods, and gifts.
-3. Give three NPCs preferences, visible relationship milestones, and small
-   reward or access changes.
-4. Add craft/gather/delivery commissions and at least one relationship-gated
-   quest or item.
-5. Give gems regional sources, appraisal/cutting hooks, and collection value.
-6. Expand the journey runner with real (not debug-provisioned) gathering and
-   outcome assertions for each route.
+- [x] Formalize gathering as a content capability and author real resource
+  nodes in two approachable regions.
+- [x] Add 8-12 recipes spanning utility, equipment, trade goods, and gifts
+  (9 authored: posy, charm, token, bandage, talisman, faceted quartz, iron
+  sword, healing brew, leather cap).
+- [x] Give three NPCs preferences, visible relationship milestones, and
+  small reward or access changes (five NPCs author gift preferences:
+  blacksmith, merchant, healer, alchemist, curator).
+- [x] Add craft/gather/delivery commissions and at least one
+  relationship-gated quest or item (four commissions; the museum showcase
+  is relationship- and craft-gated).
+- [x] Give gems regional sources, appraisal/cutting hooks, and collection
+  value.
+- [x] Expand the journey runner with real (not debug-provisioned) gathering
+  and outcome assertions for each route.
+
+## Open design question: procedural world placement
+
+Raised while scoping place-making, but broader than that one system: right
+now every region is entirely statically authored -- fixed room graphs, fixed
+NPC lists, fixed resource-node rooms. A player's home would currently have to
+live at one hardcoded room, the same for every playthrough. The question is
+whether more of the world should instead be seeded procedurally at world-init
+time: where the player's home ends up, but also things like bandit camp
+locations, mineral vein placement, or other landmarks -- so replaying the
+same content set doesn't produce an identical map every time.
+
+Worth noting this pulls against an existing design commitment ("Exploration
+and gathering" below already says "authored resource placement rather than
+generic random abundance"), and the engine already has a working middle
+ground to build on rather than pick a side from scratch: the region
+`spawner` config (`content_sets/fantasy_frontier/data/regions/mountains.json`)
+already distributes monster types across a region's rooms by weight at
+world-init time, rather than fixing each monster to one authored room. The
+open question is how far to generalize that pattern -- e.g. authoring a set
+of *candidate* rooms/regions for a landmark (a home site, a bandit camp, a
+mineral vein) and letting world-init choose among them, which keeps every
+placement authorially intentional while adding real replay variance. Needs
+a real design pass before committing to an approach -- not scoped further
+here.
 
 ## Connected progression
 
@@ -207,6 +237,11 @@ route alongside combat and exploration.
   lapidary work.
 
 ### Place-making
+
+**Postponed pending design brainstorm** (see "Open design question: procedural
+world placement" below) -- picking this back up before resolving where a
+player's home actually lives risks authoring it against a static-placement
+assumption that gets thrown out immediately after.
 
 - A modest player home, camp, or workshop: storage, displays, workstations,
   gardens, trophies, and furnishings.
