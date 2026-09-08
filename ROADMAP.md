@@ -162,12 +162,32 @@ route alongside combat and exploration.
   trophies, and combat-derived crafting inputs.
 - Ensure ambient loot selectors distinguish appropriate NPC categories using
   content-authored tags.
-- The engine already implements `minion`, `scheduled`, `healer`, and
-  `retreating_for_mana` NPC behaviors (`engine/npcs/ai/dispatcher.py`), but
-  every fantasy-frontier hostile currently authors `behavior_type:
-  aggressive`. Giving even a few existing enemies one of these behaviors is
-  authoring work, not engine work, and is likely the cheapest available way
-  to make combat feel less uniform before a larger combat-variety slice.
+- Fixed a real bug found while pursuing this: `NPCFactory` only ever read
+  spell lists from `properties.required_spells`/`properties.random_spells`,
+  never from a template's own top-level `usable_spells` field. Five
+  templates author that field directly (`goblin`, `skeleton`, `dark_cultist`,
+  `orc_shaman`, `wraith`), plus the player-summonable `skeletal_mage_minion`
+  -- every one of them has been silently mute (never casting) since spawn.
+  The factory now reads both.
+- `orc_shaman` (found alongside `orc_grunt`/`hobgoblin_soldier` in the
+  mountains region's spawner) now authors `behavior_type: healer` and knows
+  `minor_heal`, so it prioritizes healing a wounded ally over attacking --
+  the engine's existing `healer` behavior applied to a hostile for the first
+  time, giving mountain encounters a real "kill the healer first" dynamic.
+  Verified directly (a wounded orc_grunt gets healed before the shaman
+  attacks) and against the full journey-runner suite across multiple seeds.
+- `scheduled` and `minion` turned out not to be equally cheap next steps:
+  `scheduled` needs a real authored patrol route (multi-room, time-of-day),
+  and there's no existing fixed hostile camp to attach one to without new
+  room content; `minion` is player-summon-only infrastructure (a hostile
+  "summoner" archetype would need engine work, not just authoring, to spawn
+  and own a minion itself). Both remain open for a dedicated slice rather
+  than a quick addition.
+- `retreating_for_mana` is not an authored `behavior_type` choice at all --
+  it's a transient state any NPC with `max_mana > 0` and `usable_spells`
+  already enters automatically mid-combat when low on mana. With the spell
+  wiring fixed above, `dark_cultist`, `orc_shaman`, and `wraith` now get this
+  for free.
 
 ### Gems, collections, and knowledge
 

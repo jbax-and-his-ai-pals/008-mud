@@ -336,10 +336,10 @@
     "loot_table": { "item_hobgoblin_sword": { "chance": 0.3 }, "item_leather_tunic": { "chance": 0.2 }, "item_military_insignia": { "chance": 0.5 } }
   },
   "orc_shaman": {
-    "name": "orc shaman", "description": "An orc adorned with skulls and fetishes, crackling with primal magic.", "level": 6, "health": 50, "max_mana": 50, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
+    "name": "orc shaman", "description": "An orc adorned with skulls and fetishes, crackling with primal magic.", "level": 6, "health": 50, "max_mana": 50, "faction": "hostile", "friendly": false, "behavior_type": "healer",
     "stats": { "strength": 9, "dexterity": 10, "constitution": 11, "agility": 10, "intelligence": 16, "spell_power": 12 }, "attack_power": 3, "defense": 3,
     "loot_table": { "item_shamanic_staff": { "chance": 0.2 }, "item_scroll_random": { "chance": 0.25 }, "item_orcish_war_beads": { "chance": 0.8 } },
-    "usable_spells": ["zap", "weaken_strength"], "properties": { "spell_cast_chance": 0.7 }
+    "usable_spells": ["zap", "weaken_strength", "minor_heal"], "properties": { "spell_cast_chance": 0.7 }
   },
   "wraith": {
     "name": "wraith", "description": "An incorporeal, shadowy figure that drains life with its chilling touch.", "level": 6, "health": 55, "max_mana": 40, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",

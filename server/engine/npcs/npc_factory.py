@@ -137,8 +137,19 @@ class NPCFactory:
             npc.usable_spells = []
             npc.schedule = creation_args.get("schedule", {}).copy()
 
+            # A template's own top-level `usable_spells` is its baseline spell
+            # list (as authored on e.g. dark_cultist, orc_shaman, wraith, and
+            # the skeletal_mage_minion); `properties.required_spells` below is
+            # a second, additive way to grant spells (used by friendly NPCs
+            # like the healer template).
+            base_spells = template.get("usable_spells", [])
+            if isinstance(base_spells, list):
+                for spell_id in base_spells:
+                    if spell_id not in npc.usable_spells:
+                        npc.usable_spells.append(spell_id)
+
             template_props = template.get("properties", {})
-            
+
             if "required_spells" in template_props:
                 for spell_id in template_props["required_spells"]:
                     if spell_id not in npc.usable_spells:
