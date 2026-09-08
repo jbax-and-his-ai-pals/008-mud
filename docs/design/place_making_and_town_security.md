@@ -50,6 +50,10 @@ work:
   authored rooms, not new bookkeeping.
 - The `scheduled` NPC behavior_type (found underused during the combat pass)
   is the natural mechanism for a guard patrol route.
+- `lockpicking` is already a real, functioning skill (`Lockpick` item class,
+  `get_skill_level`, `SkillSystem.attempt_check`/`grant_xp` wired up) --
+  needs no introduction, only combining with the new stealth skill for the
+  jail-escape gate below.
 
 ## Decided
 
@@ -70,9 +74,40 @@ work:
   a thief has to keep re-engaging lockpicking/skills rather than loot being
   free once inside.
 - **Any NPC can witness and report a crime; guards are better at noticing.**
-- **A perception-style skill lets a thief gauge guard proximity** before or
-  during a theft (Elder-Scrolls-"how close is trouble" flavor) -- mechanism
-  not yet chosen, see open questions.
+- **Perception and stealth are two separate skills**, not one unified skill.
+  Perception governs sensing threats/guards; stealth (paired with
+  lockpicking, see the jail-escape entry below) governs your own
+  detectability and manual dexterity.
+- **Perception detects hostile-faction NPCs and guards in nearby rooms**,
+  starting at one room away at base skill; each further skill tier extends
+  range by one more room (measured as actual room-graph distance, reusing
+  the engine's existing pathfinding rather than any new spatial model).
+  Ordinary/generic NPCs (wandering villagers, shopkeepers) never trigger
+  this -- only things worth caring about do, which is most of what keeps
+  this from becoming spam (see the next point).
+- **Detection is edge-triggered, not continuous.** A cue fires only when a
+  detectable NPC crosses your detection-range boundary (enters or leaves
+  range), never on every step it takes while already inside it -- a goblin
+  pacing two rooms over stays silent after the first "you hear it
+  approach." A short per-NPC debounce prevents something loitering right at
+  the boundary from flickering in and out repeatedly.
+- **Detection fidelity is soft or hard, decided by roll margin on one
+  check** (not two separate rolls): a narrow success gives an ambiguous cue
+  ("you hear something moving to the north"); a wide success identifies it
+  ("you're fairly sure that's a goblin, north"). Higher perception raises
+  both the chance to notice at all and the odds of a wide-margin (hard)
+  result, so high-skill play trends toward specific information rather than
+  just longer range.
+- **The jail-escape concealed lockpick is a bottleneck of two existing
+  skills**, not a new stat or a faction-reputation gate: a player needs
+  *both* stealth and lockpicking independently above some floor (not a
+  combined/compensatory score where one covers for the other) -- a
+  narrative reading being that concealing a pick from a search takes
+  practiced sleight of hand (stealth), and having a reason to carry one at
+  all takes lockpicking competence. First time both floors are crossed,
+  it's marked with a one-time flavor beat ("you've learned to keep a spare
+  pick where a search won't find it") rather than silently changing
+  behavior with no acknowledgment.
 - **Punishment severity is multi-factor:** value of this theft, cumulative
   value stolen, cumulative crime value, and notoriety (reputation) all feed
   into whether the outcome is a fine, jail, or both. Reputation-gated
@@ -85,8 +120,8 @@ work:
   search-relevant skill (perception or similar).
 - **Escape is a lockpicking check on the cell door** (reusing the existing
   locked-exit mechanism), but a prisoner only has a concealed pick available
-  if a skill/perk grants it -- not available from the start. Exact gating is
-  an open question (see below).
+  if the stealth+lockpicking bottleneck above has been crossed -- not
+  available from the start.
 - **Escape failure is usually a no-op; only a major/critical failure alerts
   the guards** (extends sentence and/or raises alertness) -- ordinary failure
   is a free retry.
@@ -104,38 +139,14 @@ work:
   every container in the world (a dungeon loot chest becoming a lockpicking
   gate would be a much bigger, probably unwanted, game-feel change). Confirm
   the boundary explicitly before authoring content against it.
-- **Perception/stealth: one skill or two?** Classic split is "stealth" (how
-  detectable *you* are while sneaking) vs. "perception" (how well you notice
-  guards/threats/hidden things) as two skills; the alternative is one unified
-  skill covering both directions. A single skill is simpler to level and
-  teach; two skills let a player specialize (a good sneak who's bad at
-  noticing threats, or vice versa) at the cost of two things to raise.
-- **How proximity awareness is surfaced.** An explicit command in the
-  `survey`/`appraise` idiom (a player-initiated "how close is the nearest
-  guard" check) fits the codebase's existing pattern of specialized
-  info-gathering verbs better than ambient text injected into every room
-  description, but ambient cues read more atmospheric. Leaning toward an
-  explicit command; not decided.
-- **Detection roll shape.** Is a guard's chance to notice a theft driven by
-  distance/line-of-sight through the room graph, a flat per-room chance
-  modified by the thief's stealth, or something else? Feeds directly into
-  the proximity-awareness question above, since whatever the thief can sense
-  should be the same signal the detection roll actually uses.
-- **How a prisoner gets a concealed lockpick at all.** Not available from
-  the start; a few candidate shapes, none chosen:
-  - A passive perk automatically granted at some skill threshold (simplest,
-    least narratively interesting).
-  - A discrete, deliberately-acquired perk/feat (a trainer NPC or specific
-    quest reward) -- gives it a clear narrative moment.
-  - Standing with a criminal-underground faction (reusing the existing
-    reputation system on a *different* faction than town_guard) -- "earn
-    your way into the thieves' circle before they'll trust you with a
-    concealment trick." Ties two already-existing reputation tracks into
-    real tension (liked by the underworld vs. liked by the guards) without
-    new engine plumbing.
-
-  Reputation-gated (the third option) is the strongest fit with what's
-  already built, but this was explicitly left open to think through further.
+- **Whether/how a *guard's* detection of an in-progress theft reuses the
+  perception mechanism above**, versus being its own separate roll. The
+  perception design above was framed around a thief sensing threats; a
+  guard noticing a *crime* is the inverse case and hasn't been explicitly
+  decided to use the same range/edge-trigger/fidelity shape, though reusing
+  it directly (guards have their own perception skill, rolled against the
+  thief's stealth) would keep one mechanism serving both directions instead
+  of two parallel systems.
 - **What a district needs beyond identity, eventually.** Decided as "just a
   group of rooms" for now; town security iteration may later want to hang
   patrol routes, ambient encounter posture, or crime-severity modifiers off
