@@ -65,14 +65,28 @@ work:
   fishing) rather than one fixed upgrade. Each branch implies its own
   materials/crafting/quest requirements, so each is effectively its own small
   vertical slice riding on the shared tier-gate mechanism.
+- **Early branch tiers are exclusive (pick one); later tiers accumulate.**
+  The first branching tier or two force a real choice, so a player commits
+  to and establishes a playstyle rather than trivially getting everything
+  at once; eventually (a later tier, or a separate unlock) a player can
+  round out their house with the branches they didn't originally pick.
 - **Expansion is paid for via a contractor NPC**, requiring gold plus
   fetched/crafted materials (not a flat gold sink). The contractor can
   delegate sub-fetches to other named NPCs (blacksmith for nails, wood shop
   for boards) as stages of one multi-stage commission quest.
-- **Residential containers are locked by default** (scope: home/residential
-  containers specifically -- see open question below on exact boundary), so
-  a thief has to keep re-engaging lockpicking/skills rather than loot being
-  free once inside.
+- **Locking is a property of the container *type* (chests), not of
+  location** (not "residential vs. everywhere" as originally framed).
+  Barrels and similar incidental containers are never locked, wherever
+  found. Chests are locked when first found, full stop -- as home/NPC-house
+  furniture, and also as ordinary combat loot (chests are a normal random
+  drop from defeated enemies, not just something houses contain). A town
+  locksmith offers a paid service to open a chest for players who'd rather
+  spend gold than invest in lockpicking. This gives lockpicking skill
+  everyday utility in ordinary adventuring, not just in the theft/crime
+  loop -- one more case of a system paying into more than one playstyle.
+  Quest rewards deliberately sidestep the whole question: a quest never
+  hands out a locked chest, only the raw item(s) that would have been
+  inside one.
 - **Any NPC can witness and report a crime; guards are better at noticing.**
   A guard noticing an in-progress theft is the *same* perception-vs-stealth
   mechanism described below, run in the other direction (guard's perception
@@ -138,11 +152,6 @@ work:
 
 ## Open questions
 
-- **Residential container scope.** "Unowned containers are locked" should
-  almost certainly mean *residential* containers (homes, NPC houses), not
-  every container in the world (a dungeon loot chest becoming a lockpicking
-  gate would be a much bigger, probably unwanted, game-feel change). Confirm
-  the boundary explicitly before authoring content against it.
 - **What a district needs beyond identity, eventually.** Decided as "just a
   group of rooms" for now; town security iteration may later want to hang
   patrol routes, ambient encounter posture, or crime-severity modifiers off
