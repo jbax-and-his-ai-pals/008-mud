@@ -74,6 +74,10 @@ work:
   a thief has to keep re-engaging lockpicking/skills rather than loot being
   free once inside.
 - **Any NPC can witness and report a crime; guards are better at noticing.**
+  A guard noticing an in-progress theft is the *same* perception-vs-stealth
+  mechanism described below, run in the other direction (guard's perception
+  vs. thief's stealth), not a separate detection system -- one mechanism
+  serves both "thief senses guard" and "guard senses thief."
 - **Perception and stealth are two separate skills**, not one unified skill.
   Perception governs sensing threats/guards; stealth (paired with
   lockpicking, see the jail-escape entry below) governs your own
@@ -139,14 +143,6 @@ work:
   every container in the world (a dungeon loot chest becoming a lockpicking
   gate would be a much bigger, probably unwanted, game-feel change). Confirm
   the boundary explicitly before authoring content against it.
-- **Whether/how a *guard's* detection of an in-progress theft reuses the
-  perception mechanism above**, versus being its own separate roll. The
-  perception design above was framed around a thief sensing threats; a
-  guard noticing a *crime* is the inverse case and hasn't been explicitly
-  decided to use the same range/edge-trigger/fidelity shape, though reusing
-  it directly (guards have their own perception skill, rolled against the
-  thief's stealth) would keep one mechanism serving both directions instead
-  of two parallel systems.
 - **What a district needs beyond identity, eventually.** Decided as "just a
   group of rooms" for now; town security iteration may later want to hang
   patrol routes, ambient encounter posture, or crime-severity modifiers off
