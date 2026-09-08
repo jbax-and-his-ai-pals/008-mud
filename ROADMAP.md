@@ -106,30 +106,19 @@ route alongside combat and exploration.
 - [x] Expand the journey runner with real (not debug-provisioned) gathering
   and outcome assertions for each route.
 
-## Open design question: procedural world placement
+## Resolved design question: procedural world placement
 
-Raised while scoping place-making, but broader than that one system: right
-now every region is entirely statically authored -- fixed room graphs, fixed
-NPC lists, fixed resource-node rooms. A player's home would currently have to
-live at one hardcoded room, the same for every playthrough. The question is
-whether more of the world should instead be seeded procedurally at world-init
-time: where the player's home ends up, but also things like bandit camp
-locations, mineral vein placement, or other landmarks -- so replaying the
-same content set doesn't produce an identical map every time.
-
-Worth noting this pulls against an existing design commitment ("Exploration
-and gathering" below already says "authored resource placement rather than
-generic random abundance"), and the engine already has a working middle
-ground to build on rather than pick a side from scratch: the region
-`spawner` config (`content_sets/fantasy_frontier/data/regions/mountains.json`)
-already distributes monster types across a region's rooms by weight at
-world-init time, rather than fixing each monster to one authored room. The
-open question is how far to generalize that pattern -- e.g. authoring a set
-of *candidate* rooms/regions for a landmark (a home site, a bandit camp, a
-mineral vein) and letting world-init choose among them, which keeps every
-placement authorially intentional while adding real replay variance. Needs
-a real design pass before committing to an approach -- not scoped further
-here.
+Raised while scoping place-making: should more of the world be seeded
+procedurally at world-init time (bandit camp locations, mineral vein
+placement, other landmarks), not just the player's home? Resolved: no --
+the static, fully-authored content is the point (it's what "authored
+resource placement rather than generic random abundance," below, already
+commits to), and generating variance from it works against that reason for
+being static in the first place. Bandit camps, mineral veins, and other
+world content stay exactly as authored. Only the player-home placement
+question remains open, and it turned out to need a different mechanism
+entirely (materializing a new, persistent room rather than picking among
+existing authored candidates) -- see place-making below.
 
 ## Connected progression
 
@@ -249,10 +238,30 @@ here.
 
 ### Place-making
 
-**Postponed pending design brainstorm** (see "Open design question: procedural
-world placement" below) -- picking this back up before resolving where a
-player's home actually lives risks authoring it against a static-placement
-assumption that gets thrown out immediately after.
+**Design in progress, not yet scoped for implementation.** Grew in
+conversation into a combined housing/theft/town-security design (a home
+worth having implies things worth stealing, which implies guards and a
+place for them to patrol). Full decision log, engine-fact grounding, and
+open questions: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+
+Decided so far: tiered house expansion (Cottage -> House -> Manor) with
+some tiers branching by playstyle (e.g. a garden tier toward a future
+farming system, a pond tier toward fishing); expansion paid for via a
+contractor NPC requiring gold plus fetched/crafted materials, possibly
+delegated across other named NPCs as a multi-stage commission; residential
+containers locked by default so theft requires continuous skill
+engagement; a multi-factor crime/notoriety system (theft value, cumulative
+crime value, reputation) driving a fine-or-jail outcome, with jail time
+passing on the existing real-time clock and an escape mechanic gated behind
+a not-yet-decided skill/perk; a residential district as a labeled room
+group connected by a non-directional gate; guards patrolling the whole
+town as a first iteration.
+
+Still open: exact scope of "unowned containers are locked," how a thief
+senses guard proximity, how the concealed-lockpick perk is earned, and the
+prerequisite engineering gap (persisting a player-created region through
+save/load, since the current instance-region mechanism is built to be
+torn down, not kept forever).
 
 - A modest player home, camp, or workshop: storage, displays, workstations,
   gardens, trophies, and furnishings.
