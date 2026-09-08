@@ -164,22 +164,32 @@ def validate_catalogs(catalogs: dict[str, Any]) -> list[RefIssue]:
                         issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].spawn_on_entry.region_id", f"unknown region_id '{region_id}'"))
                     elif region_id and room_id and room_id not in region_rooms.get(region_id, set()):
                         issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].spawn_on_entry.room_id", f"unknown room_id '{room_id}' in region '{region_id}'"))
-                objective = stage.get("objective", {})
-                if isinstance(objective, dict):
+                objective_routes = []
+                primary_objective = stage.get("objective")
+                if isinstance(primary_objective, dict):
+                    objective_routes.append(("objective", primary_objective))
+                alternatives = stage.get("objectives_any", [])
+                if isinstance(alternatives, list):
+                    objective_routes.extend(
+                        (f"objectives_any[{index}]", objective)
+                        for index, objective in enumerate(alternatives)
+                        if isinstance(objective, dict)
+                    )
+                for objective_path, objective in objective_routes:
                     for field in ("item_id", "item_template_id"):
                         item_id = str(objective.get(field, "")).strip()
                         if item_id and item_id not in item_ids:
-                            issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].objective.{field}", f"unknown item_id '{item_id}'"))
+                            issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].{objective_path}.{field}", f"unknown item_id '{item_id}'"))
                     for field in ("target_template_id", "target_npc_id", "recipient_id"):
                         npc_id = str(objective.get(field, "")).strip()
                         if npc_id and npc_id not in npc_ids:
-                            issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].objective.{field}", f"unknown npc id '{npc_id}'"))
+                            issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].{objective_path}.{field}", f"unknown npc id '{npc_id}'"))
                     target_region = str(objective.get("target_region", "")).strip()
                     target_room = str(objective.get("target_room_id", "")).strip()
                     if target_region and target_region not in region_rooms:
-                        issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].objective.target_region", f"unknown region '{target_region}'"))
+                        issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].{objective_path}.target_region", f"unknown region '{target_region}'"))
                     elif target_region and target_room and target_room not in region_rooms.get(target_region, set()):
-                        issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].objective.target_room_id", f"unknown room '{target_room}' in region '{target_region}'"))
+                        issues.append(RefIssue("error", f"quests/{quest_id}.stages[{sidx}].{objective_path}.target_room_id", f"unknown room '{target_room}' in region '{target_region}'"))
 
     # Campaign references
     for cfile in sorted(campaigns_dir.glob("*.json")):

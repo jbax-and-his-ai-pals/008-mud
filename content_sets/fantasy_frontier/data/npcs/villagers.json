@@ -188,6 +188,10 @@
          { "item_id": "item_iron_ingot", "price_multiplier": 1.2 },
          { "item_id": "item_leather_strip", "price_multiplier": 1.2 }
       ],
+      "gift_preferences": {
+        "preferred_item_ids": ["item_iron_sword", "item_iron_ingot"],
+        "preferred_categories": ["material"]
+      },
       "can_give_generic_quests": true
     }
   },
@@ -280,8 +284,20 @@
         { "item_id": "item_strange_feather", "price_multiplier": 1.5 },
         { "item_id": "item_rusty_lantern", "price_multiplier": 0.8 },
         { "item_id": "scroll_raise_skeleton", "price_multiplier": 2.5 },
-        { "item_id": "item_glass_vial" }
+        { "item_id": "item_glass_vial" },
+        { "item_id": "item_foraging_knife" },
+        { "item_id": "item_hand_axe", "price_multiplier": 1.0 },
+        { "item_id": "item_prospector_pick" },
+        { "item_id": "item_master_lockpick", "relationship_min": 30 }
       ],
+      "buy_orders": [
+        { "id": "river_clay", "item_id": "item_river_clay", "quantity": 2, "reward_gold": 12, "relationship_amount": 1, "repeatable": true },
+        { "id": "riverside_charm", "item_id": "item_riverside_charm", "quantity": 1, "reward_gold": 22, "relationship_amount": 3, "crafted_only": true },
+        { "id": "river_fine_token", "item_id": "item_river_token", "quantity": 1, "reward_gold": 28, "relationship_amount": 2, "crafted_only": true, "min_material_quality_score": 2 }
+      ],
+      "gift_preferences": {
+        "preferred_item_ids": ["item_strange_feather", "item_rusty_lantern"]
+      },
       "can_give_generic_quests": true
     }
   },
@@ -397,6 +413,9 @@
           "item_id": "item_healing_potion_small"
         }
       ],
+      "gift_preferences": {
+        "preferred_item_ids": ["item_healing_potion_small", "item_frostpetal"]
+      },
       "required_spells": [
         "minor_heal"
       ]
@@ -436,11 +455,18 @@
           "item_id": "item_mana_potion_small"
         },
         {
+          "item_id": "item_mana_potion_medium",
+          "relationship_min": 10
+        },
+        {
           "item_id": "item_scroll_random",
           "price_multiplier": 2.0
         },
         { "item_id": "item_glass_vial" }
       ],
+      "gift_preferences": {
+        "preferred_item_ids": ["item_healing_potion_small", "item_wild_herbs"]
+      },
       "can_give_generic_quests": true
     }
   },
@@ -455,6 +481,10 @@
     },
     "properties": {
       "is_collector": true,
+      "gift_preferences": { "preferred_gift_tags": ["gem"] },
+      "relationship_milestones": [
+        { "id": "archive_acquaintance", "min": 10, "rewards": { "gold": 15 }, "message": "Curator Vane entrusts you with an archive finder’s stipend." }
+      ],
       "can_give_generic_quests": false
     }
   }

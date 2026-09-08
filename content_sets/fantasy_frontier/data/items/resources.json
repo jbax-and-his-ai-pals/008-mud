@@ -1,0 +1,79 @@
+{
+  "node_herb_bed": {
+    "type": "ResourceNode",
+    "name": "herb bed",
+    "description": "A tended patch of fragrant herbs. Careful cutting will leave enough for it to recover.",
+    "properties": {
+      "resource_item_id": "item_wild_herbs",
+      "tool_required": "foraging_knife",
+      "charges": 6,
+      "max_charges": 6,
+      "respawn_days": 1,
+      "resource_tags": ["plant", "herb", "garden"]
+    }
+  },
+  "node_berry_bramble": {
+    "type": "ResourceNode",
+    "name": "berry bramble",
+    "description": "A thorny bramble heavy with berries and a few useful wild herbs growing at its base.",
+    "properties": {
+      "resource_item_id": "item_forest_berries",
+      "tool_required": "foraging_knife",
+      "charges": 3,
+      "max_charges": 3,
+      "respawn_days": 1,
+      "resource_tags": ["plant", "forest", "food"],
+      "yield_table": [
+        { "item_id": "item_wild_herbs", "chance": 0.25 }
+      ]
+    }
+  },
+  "node_fallen_bough": {
+    "type": "ResourceNode",
+    "name": "fallen bough",
+    "description": "A storm-fallen bough with several sound lengths of wood still worth cutting free.",
+    "properties": {
+      "resource_item_id": "item_softwood",
+      "tool_required": "hand_axe",
+      "charges": 3,
+      "max_charges": 3,
+      "respawn_days": 2,
+      "resource_tags": ["wood", "orchard", "fallen"]
+    }
+  },
+  "node_river_clay_bank": {
+    "type": "ResourceNode",
+    "name": "river clay bank",
+    "description": "A sheltered bank where the slow river has left a workable seam of fine clay.",
+    "properties": {
+      "resource_item_id": "item_river_clay",
+      "tool_required": "foraging_knife",
+      "charges": 4,
+      "max_charges": 4,
+      "respawn_days": 2,
+      "resource_tags": ["clay", "river", "mineral"],
+      "material_quality": { "id": "river_fine", "label": "Fine", "score": 2 }
+    }
+  },
+  "node_rose_quartz_seam": {
+    "type": "ResourceNode",
+    "name": "rose quartz seam",
+    "description": "A blush-pink seam of crystal runs through the weathered rock. A careful prospector could prise loose a few intact pieces.",
+    "properties": {
+      "resource_item_id": "item_rose_quartz",
+      "tool_required": "pickaxe",
+      "charges": 2,
+      "max_charges": 2,
+      "respawn_days": 3,
+      "resource_tags": ["gem", "mineral", "foothills", "crystal"],
+      "material_quality": { "id": "foothill_rough", "label": "Rough Foothill", "score": 1 },
+      "yield_table": [
+        {
+          "item_id": "item_rose_quartz",
+          "chance": 0.2,
+          "material_quality": { "id": "foothill_pristine", "label": "Pristine Foothill", "score": 3 }
+        }
+      ]
+    }
+  }
+}

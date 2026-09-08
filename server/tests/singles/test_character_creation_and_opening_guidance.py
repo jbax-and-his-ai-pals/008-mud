@@ -91,6 +91,14 @@ class TestBuildOpeningGuidance(unittest.TestCase):
         guidance = self.server.build_opening_guidance()
         self.assertIn("1. Look around (look)", guidance)
 
+    def test_content_can_choose_a_neutral_objectives_heading(self):
+        from dataclasses import replace
+        self.server.content_set = replace(
+            self.server.content_set,
+            opening={"heading": "", "intro": "", "objectives_heading": "Choose a route:", "objectives": [{"instruction": "Look around"}]},
+        )
+        self.assertIn("Choose a route:\n1. Look around", self.server.build_opening_guidance())
+
     def test_empty_objectives_list_omits_first_steps_section(self):
         from dataclasses import replace
         self.server.content_set = replace(

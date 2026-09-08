@@ -17,6 +17,7 @@ from engine.items.inventory import Inventory
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.set_manager import SetManager
+from engine.items.attachments import attachment_stat_modifier
 from engine.core.conversation_history import ConversationHistory
 
 # Import Mixins
@@ -106,8 +107,22 @@ class Player(
 
         self.collections_progress: Dict[str, List[str]] = {} 
         self.collections_completed: Dict[str, bool] = {} 
+        # Content-authored journal entries unlocked by generic discovery hooks.
+        self.discoveries: Dict[str, Dict[str, Any]] = {}
+        # Per-recipe craft counts are an optional progression seam. Content
+        # decides whether any milestones use the counts.
+        self.recipe_craft_counts: Dict[str, int] = {}
 
         self.reputation: Dict[str, int] = {} 
+        # Personal bonds are intentionally distinct from faction reputation:
+        # helping a village improves a broad reputation, while gifts and
+        # conversations build trust with an individual NPC.
+        self.npc_relationships: Dict[str, int] = {}
+        self.npc_gift_days: Dict[str, str] = {}
+        # Non-repeatable vendor orders completed by this player, keyed by
+        # vendor identity. Repeatable orders intentionally never enter it.
+        self.vendor_orders_completed: Dict[str, List[str]] = {}
+        self.relationship_milestones_completed: Dict[str, List[str]] = {}
         self.set_manager = SetManager(world)
 
     def get_effective_stat(self, stat_name: str) -> int:
@@ -121,6 +136,9 @@ class Player(
             if bonus.get("type") == "stat_mod":
                 mods = bonus.get("modifiers", {})
                 val += mods.get(stat_name, 0)
+
+        for item in self.equipment.values():
+            val += attachment_stat_modifier(item, stat_name)
 
         return val
 

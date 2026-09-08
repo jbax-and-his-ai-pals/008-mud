@@ -1,6 +1,8 @@
 # engine/commands/crafting.py
 from engine.commands.command_system import command
 from engine.config import FORMAT_TITLE, FORMAT_RESET, FORMAT_HIGHLIGHT, FORMAT_CATEGORY, FORMAT_SUCCESS, FORMAT_ERROR
+from engine.items.attachments import installed_attachments
+from engine.items.item_factory import ItemFactory
 
 @command("recipes", ["craftlist"], "crafting", "List available recipes and crafting stations.\nUsage: recipes [all]", content_capability="crafting")
 def recipes_handler(args, context):
@@ -51,6 +53,10 @@ def recipes_handler(args, context):
             
             out.append(f"{prefix} {FORMAT_HIGHLIGHT}{recipe.name}{FORMAT_RESET} {station_str}")
             out.append(f"    Requires: {req_str}")
+            craft_count = int(getattr(player, "recipe_craft_counts", {}).get(r_id, 0))
+            milestone = recipe.familiarity_milestone(craft_count)
+            familiarity = str(milestone.get("label", "")) if milestone else "Unpracticed"
+            out.append(f"    Practice: {craft_count} craft{'s' if craft_count != 1 else ''} ({familiarity})")
             out.append(f"    Command: craft {r_id}")
             available_count += 1
 
@@ -107,3 +113,83 @@ def salvage_handler(args, context):
     # Optional: Check for tool (Hammer/Kit) here if desired
     
     return manager.salvage(player, item)
+
+
+@command("attach", ["install"], "crafting", "Install an attachment token into an item.\nUsage: attach <token> to <item>", content_capability="crafting")
+def attach_handler(args, context):
+    """Install a content-authored attachment without assuming a token theme."""
+    player = context.get("player")
+    if not player:
+        return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    lowered = [str(arg).lower() for arg in args]
+    if "to" not in lowered:
+        return f"{FORMAT_ERROR}Usage: attach <token> to <item>{FORMAT_RESET}"
+    split_at = lowered.index("to")
+    token_name = " ".join(args[:split_at]).strip()
+    host_name = " ".join(args[split_at + 1:]).strip()
+    if not token_name or not host_name:
+        return f"{FORMAT_ERROR}Usage: attach <token> to <item>{FORMAT_RESET}"
+    token = player.inventory.find_item_by_name(token_name)
+    if token is None:
+        return f"{FORMAT_ERROR}You do not have '{token_name}'.{FORMAT_RESET}"
+    attachment = token.get_property("attachment")
+    if not isinstance(attachment, dict):
+        return f"{FORMAT_ERROR}The {token.name} is not an attachment token.{FORMAT_RESET}"
+    slot = str(attachment.get("slot", "")).strip()
+    modifiers = attachment.get("modifiers", {})
+    if not slot or not isinstance(modifiers, dict):
+        return f"{FORMAT_ERROR}The {token.name} has an invalid attachment definition.{FORMAT_RESET}"
+    host = player.inventory.find_item_by_name(host_name)
+    if host is None:
+        host = next((item for item in player.equipment.values() if item and host_name.lower() in item.name.lower()), None)
+    if host is None:
+        return f"{FORMAT_ERROR}You do not have '{host_name}'.{FORMAT_RESET}"
+    slots = host.get_property("attachment_slots", [])
+    if not isinstance(slots, list) or slot not in slots:
+        return f"{FORMAT_ERROR}The {host.name} has no compatible '{slot}' attachment slot.{FORMAT_RESET}"
+    attachments = installed_attachments(host)
+    if any(str(entry.get("slot", "")) == slot for entry in attachments):
+        return f"{FORMAT_ERROR}The {host.name}'s '{slot}' attachment slot is already occupied.{FORMAT_RESET}"
+    removed, _count, _message = player.inventory.remove_item(token.obj_id, 1)
+    if removed is None:
+        return f"{FORMAT_ERROR}Failed to install the {token.name}.{FORMAT_RESET}"
+    attachments.append({"slot": slot, "item_id": token.obj_id, "name": token.name, "modifiers": modifiers})
+    host.update_property("attachments", attachments)
+    return f"{FORMAT_SUCCESS}You install {token.name} in the {host.name}'s {slot} slot.{FORMAT_RESET}"
+
+
+@command("detach", ["remove attachment"], "crafting", "Remove an attachment token from an item.\nUsage: detach <slot> from <item>", content_capability="crafting")
+def detach_handler(args, context):
+    """Return an installed token to inventory using its content template."""
+    player = context.get("player")
+    if not player:
+        return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    lowered = [str(arg).lower() for arg in args]
+    if "from" not in lowered:
+        return f"{FORMAT_ERROR}Usage: detach <slot> from <item>{FORMAT_RESET}"
+    split_at = lowered.index("from")
+    slot = " ".join(args[:split_at]).strip()
+    host_name = " ".join(args[split_at + 1:]).strip()
+    if not slot or not host_name:
+        return f"{FORMAT_ERROR}Usage: detach <slot> from <item>{FORMAT_RESET}"
+    host = player.inventory.find_item_by_name(host_name)
+    if host is None:
+        host = next((item for item in player.equipment.values() if item and host_name.lower() in item.name.lower()), None)
+    if host is None:
+        return f"{FORMAT_ERROR}You do not have '{host_name}'.{FORMAT_RESET}"
+    attachments = installed_attachments(host)
+    match_index = next((index for index, entry in enumerate(attachments) if str(entry.get("slot", "")).lower() == slot.lower()), None)
+    if match_index is None:
+        return f"{FORMAT_ERROR}The {host.name} has no '{slot}' attachment installed.{FORMAT_RESET}"
+    attachment = attachments[match_index]
+    token_id = str(attachment.get("item_id", "")).strip()
+    token = ItemFactory.create_item_from_template(token_id, player.world)
+    if token is None:
+        return f"{FORMAT_ERROR}The installed attachment cannot be recovered safely.{FORMAT_RESET}"
+    can_add, space_message = player.inventory.can_add_item(token)
+    if not can_add:
+        return f"{FORMAT_ERROR}Not enough inventory space: {space_message}{FORMAT_RESET}"
+    attachments.pop(match_index)
+    host.update_property("attachments", attachments)
+    player.inventory.add_item(token)
+    return f"{FORMAT_SUCCESS}You remove {token.name} from the {host.name}'s {slot} slot.{FORMAT_RESET}"

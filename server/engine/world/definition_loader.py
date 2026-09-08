@@ -216,7 +216,25 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
             for npc_ref in getattr(room, 'initial_npc_refs', []):
                 instance_id = npc_ref.get("instance_id", f"{npc_ref.get('template_id')}_{uuid.uuid4().hex[:8]}")
                 if npc_ref.get("template_id") and instance_id not in world.npcs:
-                    overrides = {"current_region_id": region_id, "current_room_id": room_id, "home_region_id": region_id, "home_room_id": room_id}
+                    # A room can author a particular, reusable NPC placement
+                    # (for example a stationary guide or a weakened encounter)
+                    # without changing the template used elsewhere.  Location
+                    # remains owned by the room, not by authored overrides.
+                    placement_overrides = npc_ref.get("overrides", {})
+                    if not isinstance(placement_overrides, dict):
+                        placement_overrides = {}
+                    allowed_overrides = {
+                        key: placement_overrides[key]
+                        for key in ("name", "level", "health", "max_health", "mana", "max_mana", "behavior_type", "properties_override")
+                        if key in placement_overrides
+                    }
+                    overrides = {
+                        "current_region_id": region_id,
+                        "current_room_id": room_id,
+                        "home_region_id": region_id,
+                        "home_room_id": room_id,
+                        **allowed_overrides,
+                    }
                     npc = NPCFactory.create_npc_from_template(npc_ref.get("template_id"), world, instance_id, **overrides)
                     if npc:
                         world.add_npc(npc)

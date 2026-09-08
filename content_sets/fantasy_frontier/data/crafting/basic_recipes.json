@@ -1,4 +1,92 @@
 {
+  "tie_wildflower_posy": {
+    "name": "Tie Wildflower Posy",
+    "description": "Tie freshly gathered herbs into a simple, thoughtful gift.",
+    "result_item_id": "item_wildflower_posy",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "familiarity_milestones": [
+      { "count": 1, "label": "Thoughtful beginner", "message": "You have learned the rhythm of tying a thoughtful posy." },
+      { "count": 3, "label": "Village florist", "message": "Your posies now look like a familiar Riverside kindness." }
+    ],
+    "quality_tiers": [
+      { "id": "simple", "label": "Simple", "min_crafts": 1, "value_multiplier": 1.0 },
+      { "id": "fine", "label": "Fine", "min_crafts": 3, "value_multiplier": 1.25, "gift_bonus": 1 }
+    ],
+    "ingredients": [
+      { "item_id": "item_wild_herbs", "quantity": 2 }
+    ]
+  },
+  "carve_riverside_charm": {
+    "name": "Carve Riverside Charm",
+    "description": "Carve a modest keepsake from sound local wood.",
+    "result_item_id": "item_riverside_charm",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "familiarity_milestones": [
+      { "count": 1, "label": "Woodcarver", "message": "You have learned the basic cuts for a Riverside charm." },
+      { "count": 3, "label": "Local artisan", "message": "Your carved charms have a confident, practiced finish." }
+    ],
+    "quality_tiers": [
+      { "id": "plain", "label": "Plain", "min_crafts": 1, "value_multiplier": 1.0 },
+      { "id": "fine", "label": "Fine", "min_crafts": 3, "value_multiplier": 1.5, "gift_bonus": 1 }
+    ],
+    "ingredients": [
+      { "item_id": "item_softwood", "quantity": 2 }
+    ]
+  },
+  "press_river_token": {
+    "name": "Press River-Clay Token",
+    "description": "Shape river clay into a small Riverside keepsake.",
+    "result_item_id": "item_river_token",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "quality_tiers": [
+      { "id": "plain", "label": "Plain", "min_crafts": 1, "value_multiplier": 1.0 },
+      { "id": "river_fine", "label": "River Fine", "min_crafts": 1, "min_material_quality": 2, "rank": 3, "value_multiplier": 1.5, "gift_bonus": 1 }
+    ],
+    "ingredients": [
+      { "item_id": "item_river_clay", "quantity": 2 }
+    ]
+  },
+  "bind_herbal_bandage": {
+    "name": "Bind Herbal Bandage",
+    "description": "Wrap fresh herbs into a practical field dressing.",
+    "result_item_id": "item_herbal_bandage",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_wild_herbs", "quantity": 1 },
+      { "item_id": "item_leather_strip", "quantity": 1 }
+    ]
+  },
+  "string_rose_quartz_talisman": {
+    "name": "String Rose Quartz Talisman",
+    "description": "Set a rose quartz on a leather cord as a thoughtful gift or trade good.",
+    "result_item_id": "item_rose_quartz_talisman",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_rose_quartz", "quantity": 1 },
+      { "item_id": "item_leather_strip", "quantity": 1 }
+    ]
+  },
+  "facet_rose_quartz": {
+    "name": "Facet Rose Quartz",
+    "description": "Shape a natural crystal into a clean ornamental stone.",
+    "result_item_id": "item_faceted_rose_quartz",
+    "result_quantity": 1,
+    "station_required": "lapidary_wheel",
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_rose_quartz", "quantity": 1 }
+    ]
+  },
   "forge_iron_sword": {
     "name": "Forge Iron Sword",
     "description": "Forge a basic iron sword.",

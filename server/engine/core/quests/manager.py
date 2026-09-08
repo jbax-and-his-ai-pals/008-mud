@@ -8,6 +8,7 @@ from engine.config import (
 from engine.core.quest_generation.generator import QuestGenerator
 from engine.items.item_factory import ItemFactory
 from engine.npcs.npc_factory import NPCFactory
+from engine.social.relationships import apply_relationship_milestones, relationship_key
 from engine.utils.logger import Logger
 from .loader import load_quest_templates
 from .tracker import check_quest_completion, handle_npc_killed
@@ -65,11 +66,30 @@ class QuestManager:
         return "the quest giver"
 
     def get_active_objective(self, quest_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        objectives = self.get_active_objectives(quest_data)
+        return objectives[0] if objectives else None
+
+    def get_active_objectives(self, quest_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Return the current stage's acceptable objective routes.
+
+        ``objective`` remains the compact authoring path.  A stage may instead
+        (or additionally) author ``objectives_any`` to let one completed route
+        satisfy the stage.  The engine interprets only objective mechanics;
+        content decides what those routes mean.
+        """
         stages = quest_data.get("stages", [])
         idx = quest_data.get("current_stage_index", 0)
-        if stages and 0 <= idx < len(stages):
-            return stages[idx].get("objective")
-        return None
+        if not isinstance(stages, list) or not (0 <= idx < len(stages)) or not isinstance(stages[idx], dict):
+            return []
+        stage = stages[idx]
+        routes: List[Dict[str, Any]] = []
+        primary = stage.get("objective")
+        if isinstance(primary, dict):
+            routes.append(primary)
+        alternatives = stage.get("objectives_any", [])
+        if isinstance(alternatives, list):
+            routes.extend(route for route in alternatives if isinstance(route, dict))
+        return routes
 
     def _resolve_reference_player(self, player=None):
         if not self.world:
@@ -83,6 +103,7 @@ class QuestManager:
         if player is None:
             return
         current_quests = self.world.quest_board
+        self._add_authored_board_quests(current_quests, player)
         slots_to_fill = max(0, MAX_QUESTS_ON_BOARD - len(current_quests))
         if slots_to_fill == 0: return
 
@@ -103,6 +124,54 @@ class QuestManager:
                 slots_to_fill -= 1
             else:
                 break 
+
+    def _add_authored_board_quests(self, board: List[Dict[str, Any]], player) -> None:
+        """Seed opt-in, content-authored notices before procedural board fill.
+
+        Content sets may declare ``quest_generation.authored_board_templates``.
+        Each entry names a normal quest template and may name its giver by
+        template id. The engine resolves the current NPC instance, but neither
+        quest titles nor NPC identities are encoded here.
+        """
+        configured = self.config.get("authored_board_templates", [])
+        if not isinstance(configured, list):
+            return
+        existing_template_ids = {str(quest.get("template_id", "")) for quest in board}
+        player_level = player.runtime_state.progression.level if player.runtime_state.progression is not None else 1
+        for entry in configured:
+            if not isinstance(entry, dict):
+                continue
+            template_id = str(entry.get("template_id", "")).strip()
+            if not template_id or template_id in existing_template_ids:
+                continue
+            template = self.quest_templates.get(template_id)
+            if not isinstance(template, dict):
+                Logger.warning("QuestManager", f"Authored board quest template '{template_id}' is missing.")
+                continue
+            quest = self.generator.instantiate_quest(template, player_level)
+            if not isinstance(quest, dict):
+                continue
+            import uuid
+            quest["template_id"] = template_id
+            quest["instance_id"] = f"{template_id}_{uuid.uuid4().hex[:8]}"
+            quest["state"] = "available"
+            quest["current_stage_index"] = 0
+            giver_template_id = str(entry.get("giver_template_id", "")).strip()
+            if giver_template_id:
+                giver = next(
+                    (npc for npc in self.world.npcs.values() if getattr(npc, "template_id", None) == giver_template_id),
+                    None,
+                )
+                if giver is not None:
+                    quest["giver_instance_id"] = giver.obj_id
+                quest["relationship_npc_id"] = giver_template_id
+            if "relationship_min" in entry:
+                # Content-set validation constrains this field; normalize it
+                # here so every downstream quest consumer sees one stable
+                # runtime type.
+                quest["relationship_min"] = max(0, int(entry["relationship_min"]))
+            board.append(quest)
+            existing_template_ids.add(template_id)
 
     def replenish_board(self, completed_quest_instance_id: Optional[str], player=None):
         if not self.world:
@@ -208,6 +277,31 @@ class QuestManager:
         if "generated_item_data" in rewards:
             it = ItemFactory.from_dict(rewards["generated_item_data"], player.world)
             if it: player.inventory.add_item(it); msgs.append(f"{it.name}")
+        relationship_rewards = rewards.get("relationships", [])
+        if isinstance(relationship_rewards, list):
+            for reward in relationship_rewards:
+                if not isinstance(reward, dict):
+                    continue
+                template_id = str(reward.get("npc_template_id", "")).strip()
+                try:
+                    amount = int(reward.get("amount", 0))
+                except (TypeError, ValueError):
+                    continue
+                npc = next(
+                    (candidate for candidate in self.world.npcs.values() if getattr(candidate, "template_id", None) == template_id),
+                    None,
+                )
+                if npc is None or amount == 0:
+                    continue
+                key = relationship_key(npc)
+                old_score = int(player.npc_relationships.get(key, 0))
+                new_score = max(0, min(100, old_score + amount))
+                player.npc_relationships[key] = new_score
+                signed_amount = f"+{amount}" if amount > 0 else str(amount)
+                msgs.append(f"{signed_amount} relationship with {npc.name}")
+                milestone_note = apply_relationship_milestones(player, npc, old_score, new_score, self.world)
+                if milestone_note:
+                    msgs.append(milestone_note)
         if not msgs: return ""
         return "Rewards: " + ", ".join(msgs)
 

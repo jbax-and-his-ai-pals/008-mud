@@ -1,0 +1,10 @@
+{
+  "riverside_gem_ledger": {
+    "name": "Riverside Gem Ledger",
+    "description": "Curator Vane's survey of the crystals, stones, and rare gems found across the wider Riverlands.",
+    "items": [
+      "item_quartz_crystal", "item_tiger_eye", "item_garnet", "item_amethyst", "item_jade", "item_sapphire", "item_ruby", "item_emerald", "item_diamond", "item_shadowquartz", "item_agate", "item_jet", "item_turquoise", "item_bloodstone", "item_moonstone", "item_peridot", "item_tourmaline", "item_pearl", "item_topaz", "item_aquamarine", "item_opal", "item_spinel", "item_sunstone", "item_stormstone", "item_fey_opal", "item_star_sapphire", "item_soulgem", "item_black_diamond", "item_alexandrite", "item_amber", "item_carnelian", "item_chrysoberyl", "item_citrine", "item_coral_gem", "item_iolite", "item_labradorite", "item_lapis_lazuli", "item_malachite", "item_obsidian_shard", "item_rhodonite", "item_rose_quartz", "item_serpentine", "item_zircon", "item_dragons_eye"
+    ],
+    "rewards": { "xp": 100, "gold": 75 }
+  }
+}

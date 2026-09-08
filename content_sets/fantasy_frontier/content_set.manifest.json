@@ -23,7 +23,10 @@
     "combat",
     "magic",
     "crafting",
+    "gathering",
     "dialogue",
-    "collections"
+    "collections",
+    "discoveries",
+    "social"
   ]
 }

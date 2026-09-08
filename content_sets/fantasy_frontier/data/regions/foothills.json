@@ -34,7 +34,8 @@
                 "northeast": "standing_stone"
             },
             "items": [
-                 { "item_id": "item_sharp_flint" }
+                 { "item_id": "item_sharp_flint" },
+                 { "item_id": "node_rose_quartz_seam" }
             ]
         },
         "steep_trail": {

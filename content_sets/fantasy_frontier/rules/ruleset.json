@@ -2,16 +2,26 @@
   "ruleset_id": "fantasy_frontier_core",
   "world_mode": "single_player_story",
   "progression_model": "level_based",
+  "systems": {
+    "gathering": { "enabled": true }
+  },
   "player_defaults": {
     "player_class": "Adventurer",
     "magic": { "known_spells": ["magic_missile", "minor_heal"] },
     "starting_inventory": [
       { "item_id": "item_starter_dagger", "quantity": 1 },
+      { "item_id": "item_foraging_knife", "quantity": 1 },
       { "item_id": "item_healing_potion_small", "quantity": 2 }
     ]
   },
   "quest_generation": {
     "quest_board_locations": ["town:town_square", "portbridge:harbor_district"],
+    "authored_board_templates": [
+      { "template_id": "quest_wildflower_commission", "giver_template_id": "village_elder" },
+      { "template_id": "quest_riverside_charm_commission", "giver_template_id": "village_elder", "relationship_min": 10 },
+      { "template_id": "quest_river_fine_token_commission", "giver_template_id": "village_elder", "relationship_min": 10 },
+      { "template_id": "quest_museum_showcase_commission", "giver_template_id": "curator", "relationship_min": 5 }
+    ],
     "board_display_name": "Quest Board",
     "turn_in_phrases": ["complete quest", "report quest", "finish quest", "turnin quest", "complete", "turnin", "negotiate", "parley"],
     "npc_quest_interests": {
@@ -57,8 +67,98 @@
       "default_item_id": "item_scrap"
     }
   },
+  "social": {
+    "gift_tag_values": { "gem": 1 },
+    "gift_values": {
+      "ordinary": 1,
+      "crafted": 5,
+      "preferred_item": 4,
+      "preferred_category": 2,
+      "preferred_tag": 3,
+      "disliked_item": -3,
+      "disliked_tag": -2
+    },
+    "tiers": [
+      { "min": 60, "label": "Close Friend", "vendor_discount": 0.15 },
+      { "min": 30, "label": "Friend", "vendor_discount": 0.10 },
+      { "min": 10, "label": "Acquaintance", "vendor_discount": 0.05 },
+      { "min": 0, "label": "Stranger", "vendor_discount": 0.0 }
+    ]
+  },
   "economy": {
     "currency_name": "gold"
+  },
+  "loot": {
+    "ambient_pools": [
+      {
+        "chance": 0.18,
+        "npc_tags_any": ["living"],
+        "entries": [
+          { "item_id": "item_amber", "weight": 12 },
+          { "item_id": "item_serpentine", "weight": 11 },
+          { "item_id": "item_obsidian_shard", "weight": 10 },
+          { "item_id": "item_rose_quartz", "weight": 10 },
+          { "item_id": "item_carnelian", "weight": 9 },
+          { "item_id": "item_citrine", "weight": 8 },
+          { "item_id": "item_malachite", "weight": 8 },
+          { "item_id": "item_coral_gem", "weight": 7 },
+          { "item_id": "item_lapis_lazuli", "weight": 6 },
+          { "item_id": "item_rhodonite", "weight": 6 },
+          { "item_id": "item_labradorite", "weight": 5 },
+          { "item_id": "item_iolite", "weight": 4 },
+          { "item_id": "item_zircon", "weight": 3 },
+          { "item_id": "item_chrysoberyl", "weight": 2 },
+          { "item_id": "item_alexandrite", "weight": 1 }
+        ]
+      },
+      {
+        "chance": 0.10,
+        "npc_tags_all": ["living", "beast"],
+        "entries": [
+          { "item_id": "item_quartz_crystal", "weight": 12 },
+          { "item_id": "item_tiger_eye", "weight": 10 },
+          { "item_id": "item_agate", "weight": 10 },
+          { "item_id": "item_jet", "weight": 9 },
+          { "item_id": "item_turquoise", "weight": 8 },
+          { "item_id": "item_bloodstone", "weight": 7 },
+          { "item_id": "item_moonstone", "weight": 6 },
+          { "item_id": "item_peridot", "weight": 5 },
+          { "item_id": "item_pearl", "weight": 3 }
+        ]
+      },
+      {
+        "chance": 0.10,
+        "npc_tags_all": ["living", "humanoid"],
+        "entries": [
+          { "item_id": "item_garnet", "weight": 10 },
+          { "item_id": "item_amethyst", "weight": 9 },
+          { "item_id": "item_jade", "weight": 8 },
+          { "item_id": "item_topaz", "weight": 7 },
+          { "item_id": "item_aquamarine", "weight": 6 },
+          { "item_id": "item_opal", "weight": 5 },
+          { "item_id": "item_spinel", "weight": 4 },
+          { "item_id": "item_sunstone", "weight": 3 },
+          { "item_id": "item_stormstone", "weight": 2 },
+          { "item_id": "item_tourmaline", "weight": 2 },
+          { "item_id": "item_shadowquartz", "weight": 1 }
+        ]
+      },
+      {
+        "chance": 0.04,
+        "npc_tags_all": ["living", "giant"],
+        "entries": [
+          { "item_id": "item_fey_opal", "weight": 6 },
+          { "item_id": "item_star_sapphire", "weight": 5 },
+          { "item_id": "item_soulgem", "weight": 3 },
+          { "item_id": "item_sapphire", "weight": 3 },
+          { "item_id": "item_ruby", "weight": 2 },
+          { "item_id": "item_emerald", "weight": 2 },
+          { "item_id": "item_diamond", "weight": 1 },
+          { "item_id": "item_black_diamond", "weight": 1 },
+          { "item_id": "item_dragons_eye", "weight": 1 }
+        ]
+      }
+    ]
   },
   "skills": {
     "stat_bonuses": {

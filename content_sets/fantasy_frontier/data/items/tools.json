@@ -1,4 +1,31 @@
 {
+  "item_foraging_knife": {
+    "type": "Item",
+    "name": "foraging knife",
+    "description": "A small, stout knife for cutting herbs and gathering plants without damaging their roots.",
+    "weight": 0.3,
+    "value": 4,
+    "stackable": false,
+    "properties": { "tool_type": "foraging_knife", "category": "tool" }
+  },
+  "item_hand_axe": {
+    "type": "Item",
+    "name": "hand axe",
+    "description": "A compact woodcutter's axe, useful for trimming fallen branches and light chopping.",
+    "weight": 1.5,
+    "value": 12,
+    "stackable": false,
+    "properties": { "tool_type": "hand_axe", "category": "tool" }
+  },
+  "item_prospector_pick": {
+    "type": "Item",
+    "name": "prospector's pick",
+    "description": "A modest pick for loosening ore and prying crystals from exposed stone.",
+    "weight": 2.0,
+    "value": 18,
+    "stackable": false,
+    "properties": { "tool_type": "pickaxe", "category": "tool" }
+  },
   "item_lockpick": {
     "type": "Lockpick",
     "name": "iron lockpick",

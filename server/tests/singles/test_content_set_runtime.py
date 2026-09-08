@@ -1,3 +1,5 @@
+import json
+import tempfile
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -7,7 +9,7 @@ from unittest.mock import patch
 from engine.magic.spell_registry import get_spell
 from engine.server.headless_server import HeadlessServer
 from engine.player import Player
-from engine.server.content_set import GameContract, load_content_set
+from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_discovery_references, _validate_item_extension_data, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
 from poc_server import JsonLineMudServer
 from poc_ws_server import JsonWebSocketMudServer
 
@@ -18,6 +20,125 @@ MODERN_CAPSULE = REPO_ROOT / "content_sets" / "modern_capsule"
 
 
 class TestContentSetRuntime(unittest.TestCase):
+    def test_authored_board_relationship_gates_are_validated(self) -> None:
+        issues: list[ContentSetIssue] = []
+        _validate_ruleset_references(
+            FANTASY_FRONTIER / "data",
+            {"quest_generation": {"authored_board_templates": [
+                {"template_id": "quest_wildflower_commission", "relationship_min": "ten"}
+            ]}},
+            issues,
+            FANTASY_FRONTIER / "rules.json",
+        )
+        self.assertTrue(any("relationship_min must be an integer from 0 to 100" in issue.message for issue in issues))
+
+    def test_ambient_loot_references_are_validated(self) -> None:
+        issues: list[ContentSetIssue] = []
+        _validate_ambient_loot_references(
+            FANTASY_FRONTIER / "data",
+            {"loot": {"ambient_pools": [{
+                "chance": 1.5,
+                "npc_tags_any": "living",
+                "entries": [{"item_id": "item_missing_gem", "weight": 0}],
+            }]}},
+            issues,
+            FANTASY_FRONTIER / "rules.json",
+        )
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("chance must be a number from 0 to 1" in message for message in messages))
+        self.assertTrue(any("npc_tags_any must be an array" in message for message in messages))
+        self.assertTrue(any("missing item template" in message for message in messages))
+        self.assertTrue(any("weight must be a positive number" in message for message in messages))
+
+    def test_collection_references_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir()
+            (content_root / "items" / "items.json").write_text(json.dumps({"item_real": {}}), encoding="utf-8")
+            (content_root / "collections.json").write_text(
+                json.dumps({"gem_ledger": {"items": ["item_missing_gem", "item_missing_gem"], "rewards": []}}),
+                encoding="utf-8",
+            )
+            issues: list[ContentSetIssue] = []
+            _validate_collection_references(content_root, issues)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("must not contain duplicates" in message for message in messages))
+        self.assertTrue(any("missing item template" in message for message in messages))
+        self.assertTrue(any("rewards must be an object" in message for message in messages))
+
+    def test_resource_node_yield_and_material_grade_contracts_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir()
+            (content_root / "items" / "resources.json").write_text(json.dumps({
+                "item_real": {},
+                "node_bad": {"type": "ResourceNode", "properties": {
+                    "resource_item_id": "item_missing",
+                    "material_quality": {"id": "", "label": "", "score": 0},
+                    "yield_table": [{"item_id": "item_missing", "chance": 2, "material_quality": "bad"}],
+                }},
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_resource_node_yields(content_root, issues)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("resource_item_id references a missing item template" in message for message in messages))
+        self.assertTrue(any("material_quality.id must be a non-empty string" in message for message in messages))
+        self.assertTrue(any("chance must be a number from 0 to 1" in message for message in messages))
+        self.assertTrue(any("material_quality must be an object" in message for message in messages))
+
+    def test_attachment_extensions_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir()
+            (content_root / "items" / "items.json").write_text(json.dumps({
+                "item_host": {"properties": {"attachment_slots": ["ornament", "ornament"]}},
+                "item_token": {"properties": {"attachment": {
+                    "slot": "",
+                    "modifiers": {"attack": "one", "stats": {"strength": "two"}},
+                }}},
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_item_extension_data(content_root, issues)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("attachment_slots must not contain duplicates" in message for message in messages))
+        self.assertTrue(any("attachment.slot must be a non-empty string" in message for message in messages))
+        self.assertTrue(any("attachment.modifiers.attack must be a number" in message for message in messages))
+        self.assertTrue(any("attachment.modifiers.stats must map stat names to numbers" in message for message in messages))
+
+    def test_discovery_references_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir()
+            (content_root / "items" / "items.json").write_text(json.dumps({"item_real": {}}), encoding="utf-8")
+            (content_root / "discoveries.json").write_text(json.dumps({
+                "bad_entry": {"name": "", "item_ids": ["item_missing", "item_missing"], "item_tags": []},
+                "no_trigger": {"name": "No Trigger", "item_ids": [], "item_tags": []},
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_discovery_references(content_root, issues)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("name must be a non-empty string" in message for message in messages))
+        self.assertTrue(any("must not contain duplicates" in message for message in messages))
+        self.assertTrue(any("missing item template" in message for message in messages))
+        self.assertTrue(any("requires at least one" in message for message in messages))
+
+    def test_vendor_orders_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir(); (content_root / "npcs").mkdir()
+            (content_root / "items" / "items.json").write_text(json.dumps({"item_real": {}}), encoding="utf-8")
+            (content_root / "npcs" / "npcs.json").write_text(json.dumps({"trader": {"properties": {"buy_orders": [
+                {"id": "bad", "item_id": "item_missing", "quantity": 0, "reward_gold": -1},
+                {"id": "bad", "item_id": "item_real", "quantity": 1, "reward_gold": 1, "repeatable": "yes"},
+            ]}}}), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_vendor_orders(content_root, issues)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("ids must be unique" in message for message in messages))
+        self.assertTrue(any("missing item template" in message for message in messages))
+        self.assertTrue(any("quantity must be" in message for message in messages))
+        self.assertTrue(any("repeatable must be a boolean" in message for message in messages))
+
     def test_headless_server_requires_a_content_set(self) -> None:
         with self.assertRaisesRegex(ValueError, "content_set_path is required"):
             HeadlessServer(db_path=":memory:")
@@ -97,6 +218,8 @@ class TestContentSetRuntime(unittest.TestCase):
             self.assertIn("Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("talk Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("equip rusty dagger", "\n".join(str(event["payload"]) for event in creation_events))
+            self.assertIn("Choose a first path", "\n".join(str(event["payload"]) for event in creation_events))
+            self.assertIn("Talia", "\n".join(str(event["payload"]) for event in creation_events))
 
             look_events = server.execute_command(session.session_id, "look")
             self.assertIn("Town Square", "\n".join(str(event["payload"]) for event in look_events))
@@ -125,6 +248,22 @@ class TestContentSetRuntime(unittest.TestCase):
             self.assertEqual("town", work_entry["region_id"])
             self.assertEqual("market_square", work_entry["room_id"])
             self.assertIsNotNone(server.world.get_region(work_entry["region_id"]).get_room(work_entry["room_id"]))
+        finally:
+            server.shutdown()
+
+    def test_forest_edge_authors_a_low_risk_stationary_encounter(self) -> None:
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(FANTASY_FRONTIER),
+            deterministic_test_mode=True,
+        )
+        try:
+            rat = server.world.get_npc("forest_edge_lone_giant_rat")
+            self.assertIsNotNone(rat)
+            self.assertEqual("forest", rat.current_region_id)
+            self.assertEqual("forest_edge", rat.current_room_id)
+            self.assertEqual("stationary", rat.behavior_type)
+            self.assertEqual(8, rat.health)
         finally:
             server.shutdown()
     def test_fantasy_frontier_quicksand_hazard_is_runtime_active(self) -> None:

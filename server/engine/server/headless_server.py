@@ -13,6 +13,7 @@ import re
 import engine.commands  # noqa: F401 - force command module registration
 from engine.commands.command_system import CommandProcessor
 from engine.core.collection_manager import CollectionManager
+from engine.core.discovery_manager import DiscoveryManager
 from engine.core.knowledge_manager import KnowledgeManager
 from engine.core.plugin_manager import PluginManager
 from engine.core.time_manager import TimeManager
@@ -134,6 +135,7 @@ class HeadlessServer:
             warning_sink=self.add_boot_warning,
         )
         self.collection_manager = CollectionManager(self.world)
+        self.discovery_manager = DiscoveryManager(self.world)
         self.renderer = _NullRenderer()
         self.input_handler = _NullInputHandler()
         self.current_save_file = save_file
@@ -1478,6 +1480,7 @@ class HeadlessServer:
         heading = str(opening.get("heading", "")).strip()
         intro = str(opening.get("intro", "")).strip()
         objectives = opening.get("objectives", [])
+        objectives_heading = str(opening.get("objectives_heading", "First steps:")).strip() or "First steps:"
         lines = [value for value in (heading, intro) if value]
         if isinstance(objectives, list) and objectives:
             steps = []
@@ -1490,7 +1493,7 @@ class HeadlessServer:
                     command_suffix = f" ({command})" if command else ""
                     steps.append(f"{instruction}{command_suffix}")
             if steps:
-                lines.append("First steps:\n" + "\n".join(f"{index}. {step}" for index, step in enumerate(steps, start=1)))
+                lines.append(objectives_heading + "\n" + "\n".join(f"{index}. {step}" for index, step in enumerate(steps, start=1)))
         return "\n\n".join(lines)
 
     def _party_for_player_id(self, player_id: str) -> Party | None:
@@ -1905,6 +1908,31 @@ class HeadlessServer:
                 recipient, _note = self.distribute_party_loot(actor, item)
                 recipient.inventory.add_item(item)
                 msgs.append(f"{recipient.name} received {item.name}")
+
+        relationship_rewards = rewards.get("relationships", [])
+        if isinstance(relationship_rewards, list):
+            from engine.social.relationships import relationship_key
+
+            for reward in relationship_rewards:
+                if not isinstance(reward, dict):
+                    continue
+                template_id = str(reward.get("npc_template_id", "")).strip()
+                try:
+                    amount = int(reward.get("amount", 0))
+                except (TypeError, ValueError):
+                    continue
+                npc = next(
+                    (candidate for candidate in self.world.npcs.values() if getattr(candidate, "template_id", None) == template_id),
+                    None,
+                )
+                if npc is None or amount == 0:
+                    continue
+                key = relationship_key(npc)
+                for recipient in recipients:
+                    old_score = int(recipient.npc_relationships.get(key, 0))
+                    recipient.npc_relationships[key] = max(0, min(100, old_score + amount))
+                    signed_amount = f"+{amount}" if amount > 0 else str(amount)
+                    msgs.append(f"{recipient.name} {signed_amount} relationship with {npc.name}")
 
         if not msgs:
             return ""
@@ -2757,8 +2785,22 @@ class HeadlessServer:
         self.persist_player_snapshot(session_id)
         if self._is_status_command(text):
             events.append(self._event("status", session_id, self._build_status_payload(session_id)))
-        if self._is_inventory_command(text):
+        if self._is_combat_command(text):
+            # Combat changes vitals more often than a player explicitly asks for
+            # status. Keep the client encounter card authoritative after every
+            # combat decision instead of leaving it stale until `status`.
+            events.append(self._event("status", session_id, self._build_status_payload(session_id)))
+            events.append(self._event("combat", session_id, self._build_combat_payload(session_id)))
+        if self._is_inventory_command(text) or self._is_attachment_command(text):
             events.append(self._event("inventory", session_id, self._build_inventory_payload(session_id)))
+        if self._is_crafting_command(text):
+            events.append(self._event("crafting", session_id, self._build_crafting_payload(session_id)))
+        if self._is_collection_command(text):
+            events.append(self._event("collections", session_id, self._build_collections_payload(session_id)))
+        if self._is_discovery_command(text):
+            events.append(self._event("discoveries", session_id, self._build_discoveries_payload(session_id)))
+        if self._is_relationship_command(text):
+            events.append(self._event("relationships", session_id, self._build_relationships_payload(session_id)))
         if self._is_quest_command(text) or quest_state_changed:
             events.append(self._event("quests", session_id, self._build_quests_payload(session_id)))
         if self._is_nearby_command(text):
@@ -3011,6 +3053,46 @@ class HeadlessServer:
         normalized = text.strip().lower()
         return normalized in {"status", "stat", "st"}
 
+    def _is_combat_command(self, text: str) -> bool:
+        """Whether a command should refresh the live encounter presentation."""
+        parts = text.strip().lower().split()
+        return bool(parts) and parts[0] in {"attack", "kill", "fight", "cast", "combat", "cstat", "fightstatus", "flee", "retreat"}
+
+    def _build_combat_payload(self, session_id: str) -> Dict[str, Any]:
+        """Return a small UI-ready encounter snapshot from authoritative state."""
+        player = self.get_player_for_session(session_id)
+        if not player or player.runtime_state.combat is None:
+            return {"active": False, "targets": [], "recent_actions": [], "suggested_actions": ["look", "nearby"]}
+
+        combat = player.runtime_state.combat
+        targets: List[Dict[str, Any]] = []
+        for target in sorted(list(combat.targets), key=lambda value: str(getattr(value, "name", ""))):
+            if not bool(getattr(target, "is_alive", False)):
+                continue
+            if getattr(target, "current_region_id", None) != player.current_region_id or getattr(target, "current_room_id", None) != player.current_room_id:
+                continue
+            targets.append({
+                "name": str(getattr(target, "name", "Unknown target")),
+                "health": int(getattr(target, "health", 0)),
+                "max_health": int(getattr(target, "max_health", 0)),
+                "current_target": target is combat.target,
+            })
+
+        active = bool(combat.in_combat and targets)
+        suggested_actions: List[str] = []
+        if active:
+            current = next((target for target in targets if target["current_target"]), targets[0])
+            suggested_actions.append(f"attack {current['name']}")
+            suggested_actions.extend(["status", "flee"])
+        else:
+            suggested_actions.extend(["look", "nearby"])
+        return {
+            "active": active,
+            "targets": targets,
+            "recent_actions": [str(message) for message in getattr(player, "combat_messages", [])[-3:]],
+            "suggested_actions": suggested_actions,
+        }
+
     def _try_handle_fx_debug_command(self, text: str) -> tuple[bool, Any]:
         """
         Debug command for client-side atmospheric text rendering:
@@ -3101,11 +3183,144 @@ class HeadlessServer:
         normalized = text.strip().lower()
         return normalized in {"inventory", "inv", "i"}
 
+    def _is_crafting_command(self, text: str) -> bool:
+        parts = text.strip().lower().split()
+        return bool(parts) and parts[0] in {"recipes", "craftlist", "craft", "make", "salvage", "breakdown", "scrap", "attach", "install", "detach"}
+
+    def _is_attachment_command(self, text: str) -> bool:
+        parts = text.strip().lower().split()
+        return bool(parts) and parts[0] in {"attach", "install", "detach"}
+
+    def _is_collection_command(self, text: str) -> bool:
+        """Identify actions that inspect or can change collection progress."""
+        parts = text.strip().lower().split()
+        return bool(parts) and parts[0] in {"collection", "collections", "turnin", "donate", "deposit", "gather", "mine", "forage", "harvest", "take", "get", "pickup"}
+
+    def _is_discovery_command(self, text: str) -> bool:
+        """Actions that inspect or can add a player discovery."""
+        parts = text.strip().lower().split()
+        return bool(parts) and parts[0] in {"discoveries", "discovery", "catalogue", "catalog", "gather", "mine", "forage", "harvest", "take", "get", "pickup", "craft", "make"}
+
+    def _is_relationship_command(self, text: str) -> bool:
+        parts = text.strip().lower().split()
+        return bool(parts) and parts[0] in {"relationship", "bond", "friendship", "relationships", "bonds", "friends", "give", "fulfill"}
+
+    def _build_relationships_payload(self, session_id: str) -> Dict[str, Any]:
+        from engine.social.relationships import next_relationship_milestone, relationship_key, relationship_tier
+        player = self.get_player_for_session(session_id)
+        if not player:
+            return {"relationships": []}
+        npcs = {relationship_key(npc): npc for npc in self.world.npcs.values()}
+        entries = []
+        for key, score in sorted(player.npc_relationships.items(), key=lambda entry: (-int(entry[1]), entry[0])):
+            npc = npcs.get(key)
+            milestone = next_relationship_milestone(player, npc, int(score)) if npc else None
+            entries.append({
+                "npc_id": key,
+                "name": str(getattr(npc, "name", key.replace("_", " ").title())),
+                "score": int(score),
+                "tier": relationship_tier(int(score), self.world),
+                "next_milestone": int(milestone["min"]) if milestone else None,
+            })
+        return {"relationships": entries}
+
+    def _build_discoveries_payload(self, session_id: str) -> Dict[str, Any]:
+        player = self.get_player_for_session(session_id)
+        manager = getattr(getattr(self.world, "game", None), "discovery_manager", None)
+        if not player or manager is None:
+            return {"discoveries": []}
+        entries: List[Dict[str, Any]] = []
+        for discovery_id, definition in sorted(manager.discoveries.items()):
+            if discovery_id not in player.discoveries or not isinstance(definition, dict):
+                continue
+            progress = player.discoveries.get(discovery_id, {})
+            entries.append({
+                "discovery_id": discovery_id,
+                "name": str(definition.get("name", discovery_id)),
+                "description": str(definition.get("description", "")),
+                "unlocked_day": int(progress.get("day", 0)) if isinstance(progress, dict) else 0,
+            })
+        return {"discoveries": entries, "total_authored": len(manager.discoveries)}
+
+    def _build_collections_payload(self, session_id: str) -> Dict[str, Any]:
+        """Return a content-neutral ledger view for active item collections."""
+        player = self.get_player_for_session(session_id)
+        manager = getattr(getattr(self.world, "game", None), "collection_manager", None)
+        if not player or manager is None:
+            return {"collections": []}
+        collections: List[Dict[str, Any]] = []
+        for collection_id, definition in sorted(manager.collections.items()):
+            if not isinstance(definition, dict):
+                continue
+            turned_in = set(player.collections_progress.get(collection_id, []))
+            items: List[Dict[str, Any]] = []
+            for item_id in definition.get("items", []):
+                template = self.world.item_templates.get(item_id, {})
+                items.append({
+                    "item_id": str(item_id),
+                    "name": str(template.get("name", item_id)),
+                    "turned_in": item_id in turned_in,
+                    "in_inventory": player.inventory.count_item(item_id) > 0,
+                })
+            collections.append({
+                "collection_id": str(collection_id),
+                "name": str(definition.get("name", collection_id)),
+                "description": str(definition.get("description", "")),
+                "discovered": collection_id in player.collections_progress,
+                "completed": bool(player.collections_completed.get(collection_id, False)),
+                "turned_in_count": len(turned_in),
+                "required_count": len(items),
+                "items": items,
+            })
+        return {"collections": collections}
+
+    def _build_crafting_payload(self, session_id: str) -> Dict[str, Any]:
+        player = self.get_player_for_session(session_id)
+        manager = self.crafting_manager
+        if not player or manager is None:
+            return {"stations": [], "recipes": []}
+        stations = sorted(manager.get_nearby_stations(player))
+        recipes: List[Dict[str, Any]] = []
+        for recipe_id, recipe in sorted(manager.recipes.items()):
+            ingredients: List[Dict[str, Any]] = []
+            for ingredient in recipe.ingredients:
+                item_id = str(ingredient.get("item_id", ""))
+                template = self.world.item_templates.get(item_id, {})
+                ingredients.append({
+                    "item_id": item_id,
+                    "name": str(template.get("name", item_id)),
+                    "have": int(player.inventory.count_item(item_id)),
+                    "need": int(ingredient.get("quantity", 1)),
+                })
+            craftable, blocker = manager.can_craft(player, recipe)
+            result = self.world.item_templates.get(recipe.result_item_id, {})
+            craft_count = int(getattr(player, "recipe_craft_counts", {}).get(recipe_id, 0))
+            milestone = recipe.familiarity_milestone(craft_count)
+            material_quality_score = manager.ingredient_quality_score(player, recipe)
+            quality_tier = recipe.quality_tier(craft_count, material_quality_score)
+            recipes.append({
+                "recipe_id": recipe_id,
+                "name": str(recipe.name),
+                "description": str(recipe.description),
+                "station": str(recipe.station_required or "handcraft"),
+                "station_display": str(recipe.station_display),
+                "craftable": bool(craftable),
+                "blocker": str(blocker),
+                "result": {"item_id": str(recipe.result_item_id), "name": str(result.get("name", recipe.result_item_id)), "quantity": int(recipe.result_quantity)},
+                "ingredients": ingredients,
+                "craft_count": craft_count,
+                "familiarity_label": str(milestone.get("label", "Unpracticed")) if milestone else "Unpracticed",
+                "quality_label": str(quality_tier.get("label", "Standard")) if quality_tier else "Standard",
+                "material_quality_score": material_quality_score,
+            })
+        return {"stations": stations, "recipes": recipes}
+
     def _build_inventory_payload(self, session_id: str) -> Dict[str, Any]:
         player = self.get_player_for_session(session_id)
         if not player or not hasattr(player, "inventory"):
             return {
                 "items": [],
+                "equipped": [],
                 "slots_used": 0,
                 "slots_max": 0,
                 "total_weight": 0.0,
@@ -3118,6 +3333,12 @@ class HeadlessServer:
             if not slot.item:
                 continue
             item_weight = float(getattr(slot.item, "weight", 0.0))
+            attachments = slot.item.get_property("attachments", [])
+            attachment_names = [
+                str(entry.get("name", entry.get("item_id", "attachment")))
+                for entry in attachments
+                if isinstance(entry, dict)
+            ] if isinstance(attachments, list) else []
             items.append(
                 {
                     "slot_index": idx,
@@ -3127,11 +3348,30 @@ class HeadlessServer:
                     "stackable": bool(getattr(slot.item, "stackable", False)),
                     "weight_each": item_weight,
                     "weight_total": item_weight * int(getattr(slot, "quantity", 1)),
+                    "attachments": attachment_names,
                 }
             )
 
+        equipped: List[Dict[str, Any]] = []
+        for slot_name, item in player.equipment.items():
+            if item is None:
+                continue
+            attachments = item.get_property("attachments", [])
+            attachment_names = [
+                str(entry.get("name", entry.get("item_id", "attachment")))
+                for entry in attachments
+                if isinstance(entry, dict)
+            ] if isinstance(attachments, list) else []
+            equipped.append({
+                "slot": str(slot_name),
+                "item_id": str(getattr(item, "obj_id", "unknown")),
+                "name": str(getattr(item, "name", "Unknown Item")),
+                "attachments": attachment_names,
+            })
+
         return {
             "items": items,
+            "equipped": equipped,
             "slots_used": len(items),
             "slots_max": int(getattr(inventory, "max_slots", len(inventory.slots))),
             "total_weight": float(inventory.get_total_weight()),
@@ -3273,10 +3513,78 @@ class HeadlessServer:
                     "title": str(raw.get("title", "Unnamed Quest")),
                     "state": state,
                     "current_stage_index": int(raw.get("current_stage_index", 0)),
+                    "objective": self._quest_objective_payload(raw),
                 }
             )
         entries.sort(key=lambda q: q.get("title", ""))
         return entries
+
+    def _quest_objective_payload(self, quest: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize the current quest stage for compact journal presentation."""
+        stages = quest.get("stages", [])
+        stage_index = int(quest.get("current_stage_index", 0))
+        stage: Dict[str, Any] = {}
+        if isinstance(stages, list) and 0 <= stage_index < len(stages) and isinstance(stages[stage_index], dict):
+            stage = stages[stage_index]
+
+        raw_objective = stage.get("objective")
+        alternatives = stage.get("objectives_any", [])
+        routes: List[Dict[str, Any]] = []
+        if isinstance(raw_objective, dict):
+            routes.append(raw_objective)
+        if isinstance(alternatives, list):
+            routes.extend(route for route in alternatives if isinstance(route, dict))
+        # Older producers placed objective fields directly on a stage. Keep the
+        # payload adapter backward compatible while new authored stages use
+        # ``objective`` or ``objectives_any``.
+        objective = routes[0] if routes else stage
+
+        kind = str(objective.get("type", "objective"))
+        description = str(stage.get("description", "")).strip() or "Complete the objective."
+        location_hint = str(objective.get("location_hint", objective.get("location", ""))).strip()
+        destination = str(objective.get("recipient_name", stage.get("turn_in_id", ""))).strip()
+        progress_current: Optional[int] = None
+        progress_required: Optional[int] = None
+
+        if kind == "kill":
+            progress_current = int(objective.get("current_quantity", 0))
+            progress_required = int(objective.get("required_quantity", 0))
+            target = str(objective.get("target_name_plural", objective.get("target_name", "enemies")))
+            description = f"Defeat {target}."
+        elif kind == "fetch":
+            progress_current = int(objective.get("current_quantity", 0))
+            progress_required = int(objective.get("required_quantity", 0))
+            target = str(objective.get("item_name_plural", objective.get("item_name", "items")))
+            description = f"Gather {target}."
+        elif kind == "deliver":
+            target = str(objective.get("item_to_deliver_name", "the delivery"))
+            recipient = str(objective.get("recipient_name", destination or "the recipient"))
+            description = f"Deliver {target} to {recipient}."
+            destination = recipient
+            location_hint = str(objective.get("recipient_location_description", location_hint)).strip()
+        elif kind == "group_kill":
+            targets = objective.get("targets", {})
+            if isinstance(targets, dict):
+                progress_current = sum(int(item.get("current", 0)) for item in targets.values() if isinstance(item, dict))
+                progress_required = sum(int(item.get("required", 0)) for item in targets.values() if isinstance(item, dict))
+            description = str(stage.get("description", "")).strip() or "Defeat the marked enemies."
+
+        route_summaries = []
+        for route in routes:
+            if route.get("type") == "deliver":
+                route_summaries.append("Deliver %s to %s." % (route.get("item_to_deliver_name", "the delivery"), route.get("recipient_name", "the recipient")))
+            else:
+                route_summaries.append(str(route.get("description", route.get("type", "Complete the objective"))))
+        return {
+            "kind": kind,
+            "summary": description,
+            "progress_current": progress_current,
+            "progress_required": progress_required,
+            "destination": destination,
+            "location_hint": location_hint,
+            "ready_to_turn_in": str(quest.get("state", "")) == "ready_to_complete",
+            "alternatives": route_summaries,
+        }
 
     def _is_combat_adjacent_message(self, message: Any) -> bool:
         if str(self.feature_profile.combat_mode).strip().lower() != "disabled":

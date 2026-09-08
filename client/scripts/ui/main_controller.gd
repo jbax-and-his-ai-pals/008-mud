@@ -204,9 +204,24 @@ var _game_contract: Dictionary = {}
 @onready var status_primary_label: Label = $VBox/AssetPreview/StatusPrimary
 @onready var status_vitals_label: Label = $VBox/AssetPreview/StatusVitals
 @onready var status_effects_label: Label = $VBox/AssetPreview/StatusEffects
+@onready var combat_title_label: Label = $VBox/AssetPreview/CombatTitle
+@onready var combat_summary_label: Label = $VBox/AssetPreview/CombatSummary
+@onready var combat_targets_label: RichTextLabel = $VBox/AssetPreview/CombatTargets
 @onready var inventory_title_label: Label = $VBox/AssetPreview/InventoryTitle
 @onready var inventory_summary_label: Label = $VBox/AssetPreview/InventorySummary
 @onready var inventory_list_label: RichTextLabel = $VBox/AssetPreview/InventoryList
+@onready var crafting_title_label: Label = $VBox/AssetPreview/CraftingTitle
+@onready var crafting_summary_label: Label = $VBox/AssetPreview/CraftingSummary
+@onready var crafting_list_label: RichTextLabel = $VBox/AssetPreview/CraftingList
+@onready var collections_title_label: Label = $VBox/AssetPreview/CollectionsTitle
+@onready var collections_summary_label: Label = $VBox/AssetPreview/CollectionsSummary
+@onready var collections_list_label: RichTextLabel = $VBox/AssetPreview/CollectionsList
+@onready var discoveries_title_label: Label = $VBox/AssetPreview/DiscoveriesTitle
+@onready var discoveries_summary_label: Label = $VBox/AssetPreview/DiscoveriesSummary
+@onready var discoveries_list_label: RichTextLabel = $VBox/AssetPreview/DiscoveriesList
+@onready var relationships_title_label: Label = $VBox/AssetPreview/RelationshipsTitle
+@onready var relationships_summary_label: Label = $VBox/AssetPreview/RelationshipsSummary
+@onready var relationships_list_label: RichTextLabel = $VBox/AssetPreview/RelationshipsList
 @onready var journal_title_label: Label = $VBox/AssetPreview/JournalTitle
 @onready var journal_summary_label: Label = $VBox/AssetPreview/JournalSummary
 @onready var journal_list_label: RichTextLabel = $VBox/AssetPreview/JournalList
@@ -1196,8 +1211,18 @@ func _on_line_received(line: String) -> void:
 		_handle_asset_payload(payload)
 	elif event_type == "status":
 		_handle_status_payload(payload)
+	elif event_type == "combat":
+		_handle_combat_payload(payload)
 	elif event_type == "inventory":
 		_handle_inventory_payload(payload)
+	elif event_type == "crafting":
+		_handle_crafting_payload(payload)
+	elif event_type == "collections":
+		_handle_collections_payload(payload)
+	elif event_type == "discoveries":
+		_handle_discoveries_payload(payload)
+	elif event_type == "relationships":
+		_handle_relationships_payload(payload)
 	elif event_type == "quests":
 		_handle_quests_payload(payload)
 	elif event_type == "nearby":
@@ -1414,14 +1439,34 @@ func _game_status_field_enabled(field_name: String) -> bool:
 func _refresh_game_contract_affordances() -> void:
 	var inventory_enabled: bool = _game_system_enabled("inventory")
 	var quests_enabled: bool = _game_system_enabled("quests")
+	var combat_enabled: bool = _game_system_enabled("combat")
+	var crafting_enabled: bool = _game_system_enabled("crafting")
+	var collections_enabled: bool = _game_system_enabled("collections")
+	var discoveries_enabled: bool = _game_system_enabled("discoveries")
+	var relationships_enabled: bool = _game_system_enabled("social")
 	btn_inventory.visible = inventory_enabled
 	btn_quests.visible = quests_enabled
 	inventory_title_label.visible = inventory_enabled
 	inventory_summary_label.visible = inventory_enabled
 	inventory_list_label.visible = inventory_enabled
+	crafting_title_label.visible = crafting_enabled
+	crafting_summary_label.visible = crafting_enabled
+	crafting_list_label.visible = crafting_enabled
+	collections_title_label.visible = collections_enabled
+	collections_summary_label.visible = collections_enabled
+	collections_list_label.visible = collections_enabled
+	discoveries_title_label.visible = discoveries_enabled
+	discoveries_summary_label.visible = discoveries_enabled
+	discoveries_list_label.visible = discoveries_enabled
+	relationships_title_label.visible = relationships_enabled
+	relationships_summary_label.visible = relationships_enabled
+	relationships_list_label.visible = relationships_enabled
 	journal_title_label.visible = quests_enabled
 	journal_summary_label.visible = quests_enabled
 	journal_list_label.visible = quests_enabled
+	combat_title_label.visible = combat_enabled
+	combat_summary_label.visible = combat_enabled
+	combat_targets_label.visible = combat_enabled
 	# Campaign/adventure controls currently depend on quest state. Hide them for
 	# a game contract that deliberately has no quest system.
 	adventure_row.visible = quests_enabled
@@ -2138,6 +2183,36 @@ func _handle_status_payload(payload: Variant) -> void:
 			effect_names.append(str(effect_value))
 		status_effects_label.text = "%s %s" % [_icon_token("status_effect", "Effects:"), ", ".join(effect_names)]
 
+func _handle_combat_payload(payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var body: Dictionary = payload as Dictionary
+	var active: bool = bool(body.get("active", false))
+	combat_title_label.text = "Encounter" if active else "Encounter (clear)"
+	if not active:
+		combat_summary_label.text = "No active encounter."
+		combat_targets_label.text = "[i]Explore carefully; hostile creatures will appear here.[/i]"
+		return
+
+	var targets: Array = body.get("targets", []) as Array
+	var lines: PackedStringArray = []
+	for target_value in targets:
+		if typeof(target_value) != TYPE_DICTIONARY:
+			continue
+		var target: Dictionary = target_value as Dictionary
+		var name: String = str(target.get("name", "Unknown target"))
+		var current: String = " [b](target)[/b]" if bool(target.get("current_target", false)) else ""
+		lines.append("• [url=cmd:attack %s]%s[/url]%s — HP %d/%d" % [name, _bbcode_escape(name), current, int(target.get("health", 0)), int(target.get("max_health", 0))])
+
+	var actions: Array = body.get("suggested_actions", []) as Array
+	combat_summary_label.text = "Choose an action: %s" % ", ".join(actions)
+	if not actions.is_empty():
+		lines.append("[color=gray]Suggested: %s[/color]" % _bbcode_escape(", ".join(actions)))
+	var recent: Array = body.get("recent_actions", []) as Array
+	if not recent.is_empty():
+		lines.append("[color=gray]Recent: %s[/color]" % _bbcode_escape(str(recent[recent.size() - 1])))
+	combat_targets_label.text = "\n".join(lines) if not lines.is_empty() else "[i]No targets remain in sight.[/i]"
+
 func _handle_inventory_payload(payload: Variant) -> void:
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
@@ -2154,18 +2229,36 @@ func _handle_inventory_payload(payload: Variant) -> void:
 		return
 
 	var lines: PackedStringArray = []
+	for equipped_value in body.get("equipped", []) as Array:
+		if typeof(equipped_value) != TYPE_DICTIONARY:
+			continue
+		var equipped: Dictionary = equipped_value as Dictionary
+		var equipped_attachments: Array = equipped.get("attachments", []) as Array
+		var equipped_suffix: String = ""
+		if not equipped_attachments.is_empty():
+			equipped_suffix = " [color=cyan](%s)[/color]" % _bbcode_escape(", ".join(equipped_attachments))
+		lines.append("[color=gray]Equipped — %s:[/color] %s%s" % [
+			_bbcode_escape(str(equipped.get("slot", "slot")).replace("_", " ")),
+			_bbcode_escape(str(equipped.get("name", "Unknown item"))),
+			equipped_suffix,
+		])
 	var items: Array = items_variant as Array
 	for item_variant in items:
 		if typeof(item_variant) != TYPE_DICTIONARY:
 			continue
 		var item: Dictionary = item_variant as Dictionary
 		var item_name: String = str(item.get("name", "Unknown"))
+		var attachment_suffix: String = ""
+		var attachments: Array = item.get("attachments", []) as Array
+		if not attachments.is_empty():
+			attachment_suffix = " [color=cyan](%s)[/color]" % _bbcode_escape(", ".join(attachments))
 		lines.append(
-			"%s %d: [url=cmd:look %s]%s[/url] x%d (%.1f wt)" % [
+			"%s %d: [url=cmd:look %s]%s[/url]%s x%d (%.1f wt)" % [
 				_icon_token("inventory_item_prefix", "-"),
 				int(item.get("slot_index", -1)),
 				item_name,
 				item_name,
+				attachment_suffix,
 				int(item.get("quantity", 0)),
 				_to_float(item.get("weight_total", 0.0)),
 			]
@@ -2174,6 +2267,94 @@ func _handle_inventory_payload(payload: Variant) -> void:
 		inventory_list_label.text = "[i]%s[/i]" % _icon_token("inventory_empty", "Inventory empty.")
 		return
 	inventory_list_label.text = "\n".join(lines)
+
+func _handle_crafting_payload(payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var body: Dictionary = payload as Dictionary
+	var stations: Array = body.get("stations", []) as Array
+	crafting_summary_label.text = "Stations: %s" % (", ".join(stations) if not stations.is_empty() else "none nearby")
+	var lines: PackedStringArray = []
+	for recipe_value in body.get("recipes", []) as Array:
+		if typeof(recipe_value) != TYPE_DICTIONARY:
+			continue
+		var recipe: Dictionary = recipe_value as Dictionary
+		var recipe_id: String = str(recipe.get("recipe_id", ""))
+		var ingredients: PackedStringArray = []
+		for ingredient_value in recipe.get("ingredients", []) as Array:
+			if typeof(ingredient_value) != TYPE_DICTIONARY:
+				continue
+			var ingredient: Dictionary = ingredient_value as Dictionary
+			ingredients.append("%d/%d %s" % [int(ingredient.get("have", 0)), int(ingredient.get("need", 0)), _bbcode_escape(str(ingredient.get("name", "material")))])
+		var state: String = "[color=green]Ready[/color]" if bool(recipe.get("craftable", false)) else "[color=orange]%s[/color]" % _bbcode_escape(str(recipe.get("blocker", "Unavailable")))
+		var practice: String = "%s craft%s — %s · %s quality · material %s" % [str(recipe.get("craft_count", 0)), "" if int(recipe.get("craft_count", 0)) == 1 else "s", _bbcode_escape(str(recipe.get("familiarity_label", "Unpracticed"))), _bbcode_escape(str(recipe.get("quality_label", "Standard"))), str(recipe.get("material_quality_score", 0))]
+		lines.append("[url=cmd:craft %s]%s[/url] — %s\n    %s\n    %s · %s" % [recipe_id, _bbcode_escape(str(recipe.get("name", recipe_id))), state, ", ".join(ingredients), _bbcode_escape(str(recipe.get("station_display", "Handcrafting"))), practice])
+	crafting_list_label.text = "\n".join(lines) if not lines.is_empty() else "[i]No recipes are known.[/i]"
+
+func _handle_collections_payload(payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var body: Dictionary = payload as Dictionary
+	var lines: PackedStringArray = []
+	var active_count: int = 0
+	var completed_count: int = 0
+	for collection_value in body.get("collections", []) as Array:
+		if typeof(collection_value) != TYPE_DICTIONARY:
+			continue
+		var collection: Dictionary = collection_value as Dictionary
+		if not bool(collection.get("discovered", false)):
+			continue
+		active_count += 1
+		var name: String = _bbcode_escape(str(collection.get("name", "Collection")))
+		var turned_in_count: int = int(collection.get("turned_in_count", 0))
+		var required_count: int = int(collection.get("required_count", 0))
+		var completed: bool = bool(collection.get("completed", false))
+		if completed:
+			completed_count += 1
+		var state: String = "[color=green]Complete[/color]" if completed else "%d/%d donated" % [turned_in_count, required_count]
+		var items: PackedStringArray = []
+		for item_value in collection.get("items", []) as Array:
+			if typeof(item_value) != TYPE_DICTIONARY:
+				continue
+			var item: Dictionary = item_value as Dictionary
+			var marker: String = "[x]" if bool(item.get("turned_in", false)) else "[+]" if bool(item.get("in_inventory", false)) else "[ ]"
+			items.append("%s %s" % [marker, _bbcode_escape(str(item.get("name", "Unknown item")))])
+		lines.append("[url=cmd:collection %s]%s[/url] — %s\n    %s" % [str(collection.get("collection_id", "")), name, state, ", ".join(items)])
+	collections_summary_label.text = "Active %d  Complete %d" % [active_count, completed_count]
+	collections_list_label.text = "\n".join(lines) if not lines.is_empty() else "[i]Find a collectible item to begin a ledger.[/i]"
+
+func _handle_discoveries_payload(payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var body: Dictionary = payload as Dictionary
+	var entries: Array = body.get("discoveries", []) as Array
+	var lines: PackedStringArray = []
+	for entry_value in entries:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value as Dictionary
+		var discovery_id: String = str(entry.get("discovery_id", ""))
+		var name: String = _bbcode_escape(str(entry.get("name", discovery_id)))
+		var description: String = _bbcode_escape(str(entry.get("description", "")))
+		lines.append("[url=cmd:discoveries]%s[/url]\n    %s" % [name, description])
+	discoveries_summary_label.text = "%d discovered  •  %d authored" % [lines.size(), int(body.get("total_authored", lines.size()))]
+	discoveries_list_label.text = "\n".join(lines) if not lines.is_empty() else "[i]Explore, gather, craft, or acquire unusual things to make entries.[/i]"
+
+func _handle_relationships_payload(payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var body: Dictionary = payload as Dictionary
+	var entries: Array = body.get("relationships", []) as Array
+	var lines: PackedStringArray = []
+	for entry_value in entries:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value as Dictionary
+		var next_value: Variant = entry.get("next_milestone", null)
+		var next_text: String = "" if next_value == null else " — next %d/100" % int(next_value)
+		lines.append("[url=cmd:relationships]%s[/url] — %s (%d/100)%s" % [_bbcode_escape(str(entry.get("name", "Unknown"))), _bbcode_escape(str(entry.get("tier", "Relationship"))), int(entry.get("score", 0)), next_text])
+	relationships_summary_label.text = "%d known bond(s)" % lines.size()
+	relationships_list_label.text = "\n".join(lines) if not lines.is_empty() else "[i]Gifts, orders, and commissions can build bonds.[/i]"
 
 func _handle_quests_payload(payload: Variant) -> void:
 	if typeof(payload) != TYPE_DICTIONARY:
@@ -2194,7 +2375,24 @@ func _handle_quests_payload(payload: Variant) -> void:
 			continue
 		var quest: Dictionary = quest_variant as Dictionary
 		var title: String = str(quest.get("title", "Unnamed Quest"))
-		lines.append("%s [url=cmd:journal %s]%s[/url] [%s]" % [active_prefix, title, title, str(quest.get("state", "unknown"))])
+		var objective: Dictionary = quest.get("objective", {}) as Dictionary
+		var objective_text: String = str(objective.get("summary", "Complete the objective."))
+		var alternatives: Array = objective.get("alternatives", []) as Array
+		if alternatives.size() > 1:
+			var route_text: PackedStringArray = []
+			for alternative in alternatives:
+				route_text.append(str(alternative))
+			objective_text = "Choose one: " + "  OR  ".join(route_text)
+		var progress_current: Variant = objective.get("progress_current", null)
+		var progress_required: Variant = objective.get("progress_required", null)
+		if progress_current != null and progress_required != null:
+			objective_text += " (%d/%d)" % [int(progress_current), int(progress_required)]
+		var hint: String = str(objective.get("location_hint", "")).strip_edges()
+		if hint != "":
+			objective_text += " — %s" % hint
+		if bool(objective.get("ready_to_turn_in", false)):
+			objective_text = "[color=yellow]Ready to turn in:[/color] " + objective_text
+		lines.append("%s [url=cmd:journal]%s[/url] [%s]\n    %s" % [active_prefix, _bbcode_escape(title), str(quest.get("state", "unknown")), _bbcode_escape(objective_text)])
 	for quest_variant in completed:
 		if typeof(quest_variant) != TYPE_DICTIONARY:
 			continue
@@ -2796,6 +2994,8 @@ func _apply_theme(theme_id: String) -> void:
 
 	status_title_label.text = str(ui.get("status_title", "Status"))
 	inventory_title_label.text = str(ui.get("inventory_title", "Inventory"))
+	collections_title_label.text = str(ui.get("collections_title", "Collections"))
+	discoveries_title_label.text = str(ui.get("discoveries_title", "Discoveries"))
 	journal_title_label.text = str(ui.get("journal_title", "Journal"))
 	nearby_title_label.text = str(ui.get("nearby_title", "Nearby"))
 	world_state_title_label.text = str(ui.get("world_state_title", "World State"))
@@ -2846,6 +3046,8 @@ func _apply_theme_style(style_tokens: Dictionary) -> void:
 
 	status_title_label.self_modulate = accent
 	inventory_title_label.self_modulate = accent
+	collections_title_label.self_modulate = accent
+	discoveries_title_label.self_modulate = accent
 	journal_title_label.self_modulate = accent
 	nearby_title_label.self_modulate = accent
 	world_state_title_label.self_modulate = accent
@@ -2857,6 +3059,8 @@ func _apply_theme_style(style_tokens: Dictionary) -> void:
 	status_vitals_label.self_modulate = text_color
 	status_effects_label.self_modulate = text_color
 	inventory_summary_label.self_modulate = text_color
+	collections_summary_label.self_modulate = text_color
+	discoveries_summary_label.self_modulate = text_color
 	journal_summary_label.self_modulate = text_color
 	nearby_location_label.self_modulate = text_color
 	nearby_exits_label.self_modulate = text_color

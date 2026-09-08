@@ -18,7 +18,7 @@ CONTENT_SET_SCHEMA_VERSION = "1"
 RUNTIME_API_VERSION = "1.0"
 _CONTENT_SET_ID_PATTERN = re.compile(r"[a-z][a-z0-9_]*")
 _REQUIRED_DATA_DIRECTORIES = ("regions", "items", "npcs")
-_CAPABILITY_SYSTEMS = ("inventory", "dialogue", "combat", "magic", "crafting", "quests")
+_CAPABILITY_SYSTEMS = ("inventory", "dialogue", "combat", "magic", "crafting", "gathering", "quests", "collections", "discoveries", "social")
 _RULESET_SYSTEMS = ("progression", "economy")
 _DISABLED_PROGRESSION_MODELS = {"", "none", "off", "disabled"}
 
@@ -120,6 +120,12 @@ def _build_game_contract(
         ui_sections.append("inventory")
     if resolved["quests"]:
         ui_sections.append("quests")
+    if resolved["collections"]:
+        ui_sections.append("collections")
+    if resolved["discoveries"]:
+        ui_sections.append("discoveries")
+    if resolved["social"]:
+        ui_sections.append("relationships")
     return GameContract(
         progression_model=progression_model or "none",
         systems=tuple(sorted(resolved.items())),
@@ -249,6 +255,8 @@ def _validate_authored_world(
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' has an invalid initial_npcs entry"))
                 elif npc["template_id"] not in npc_ids:
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' references missing NPC template '{npc['template_id']}'"))
+                elif "overrides" in npc and not isinstance(npc["overrides"], dict):
+                    issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' initial NPC overrides must be an object"))
             for item in room.get("items", []):
                 if not isinstance(item, dict) or not isinstance(item.get("item_id"), str):
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' has an invalid items entry"))
@@ -277,6 +285,313 @@ def _validate_authored_world(
         for room_id in rooms:
             if (region_id, room_id) not in reachable:
                 issues.append(ContentSetIssue("warning", str(region_paths[region_id]), f"room '{region_id}:{room_id}' is not reachable from the declared start"))
+
+
+def _validate_ruleset_references(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """Validate optional cross-file references made by generic ruleset systems."""
+    quest_generation = ruleset.get("quest_generation", {})
+    if not isinstance(quest_generation, dict):
+        return
+    configured = quest_generation.get("authored_board_templates", [])
+    if configured is None:
+        return
+    if not isinstance(configured, list):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "quest_generation.authored_board_templates must be an array"))
+        return
+    quest_ids = _load_definition_ids(content_root / "quests", "quest definitions", issues)
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    for index, entry in enumerate(configured):
+        label = f"quest_generation.authored_board_templates[{index}]"
+        if not isinstance(entry, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} must be an object"))
+            continue
+        template_id = entry.get("template_id")
+        if not isinstance(template_id, str) or not template_id.strip():
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.template_id must be a non-empty string"))
+        elif template_id not in quest_ids:
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} references missing quest template '{template_id}'"))
+        giver_template_id = entry.get("giver_template_id")
+        if giver_template_id is not None and (not isinstance(giver_template_id, str) or not giver_template_id.strip()):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.giver_template_id must be a non-empty string when provided"))
+        elif isinstance(giver_template_id, str) and giver_template_id not in npc_ids:
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} references missing NPC template '{giver_template_id}'"))
+        if "relationship_min" in entry:
+            relationship_min = entry["relationship_min"]
+            if isinstance(relationship_min, bool) or not isinstance(relationship_min, int) or relationship_min < 0 or relationship_min > 100:
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.relationship_min must be an integer from 0 to 100"))
+
+
+def _validate_ambient_loot_references(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """Validate generic, content-authored ambient loot pools."""
+    loot = ruleset.get("loot", {})
+    if loot is None:
+        return
+    if not isinstance(loot, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "loot must be an object"))
+        return
+    pools = loot.get("ambient_pools", [])
+    if pools is None:
+        return
+    if not isinstance(pools, list):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "loot.ambient_pools must be an array"))
+        return
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    for index, pool in enumerate(pools):
+        label = f"loot.ambient_pools[{index}]"
+        if not isinstance(pool, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} must be an object"))
+            continue
+        chance = pool.get("chance")
+        if isinstance(chance, bool) or not isinstance(chance, (int, float)) or chance < 0 or chance > 1:
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.chance must be a number from 0 to 1"))
+        for selector in ("npc_template_ids", "npc_tags_any", "npc_tags_all", "npc_tags_none"):
+            if selector in pool and (
+                not isinstance(pool[selector], list)
+                or any(not isinstance(value, str) or not value.strip() for value in pool[selector])
+            ):
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.{selector} must be an array of non-empty strings"))
+        entries = pool.get("entries")
+        if not isinstance(entries, list) or not entries:
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.entries must be a non-empty array"))
+            continue
+        for entry_index, entry in enumerate(entries):
+            entry_label = f"{label}.entries[{entry_index}]"
+            if not isinstance(entry, dict):
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{entry_label} must be an object"))
+                continue
+            item_id = entry.get("item_id")
+            if not isinstance(item_id, str) or not item_id.strip() or item_id not in item_ids:
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{entry_label} references missing item template '{item_id}'"))
+            if "weight" in entry and (isinstance(entry["weight"], bool) or not isinstance(entry["weight"], (int, float)) or entry["weight"] <= 0):
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{entry_label}.weight must be a positive number"))
+
+
+def _validate_collection_references(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate optional data-authored collection definitions.
+
+    Collections deliberately remain a generic item-list/reward contract.  The
+    validator only checks that authored lists are usable by the engine and
+    that their item references survive content-set loading.
+    """
+    collections_path = content_root / "collections.json"
+    if not collections_path.exists():
+        return
+    payload = _load_json(collections_path, issues, "collections")
+    if not isinstance(payload, dict):
+        if payload is not None:
+            issues.append(ContentSetIssue("error", str(collections_path), "collections must be an object"))
+        return
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    for collection_id, definition in payload.items():
+        label = f"collection '{collection_id}'"
+        if not isinstance(collection_id, str) or not collection_id.strip():
+            issues.append(ContentSetIssue("error", str(collections_path), "collection ids must be non-empty strings"))
+            continue
+        if not isinstance(definition, dict):
+            issues.append(ContentSetIssue("error", str(collections_path), f"{label} must be an object"))
+            continue
+        items = definition.get("items")
+        if not isinstance(items, list) or not items or any(not isinstance(item_id, str) or not item_id.strip() for item_id in items):
+            issues.append(ContentSetIssue("error", str(collections_path), f"{label}.items must be a non-empty array of item ids"))
+            continue
+        if len(set(items)) != len(items):
+            issues.append(ContentSetIssue("error", str(collections_path), f"{label}.items must not contain duplicates"))
+        for item_id in items:
+            if item_id not in item_ids:
+                issues.append(ContentSetIssue("error", str(collections_path), f"{label} references missing item template '{item_id}'"))
+        rewards = definition.get("rewards", {})
+        if not isinstance(rewards, dict):
+            issues.append(ContentSetIssue("error", str(collections_path), f"{label}.rewards must be an object"))
+
+
+def _validate_discovery_references(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate portable discovery journal records and their item triggers."""
+    path = content_root / "discoveries.json"
+    if not path.exists():
+        return
+    payload = _load_json(path, issues, "discoveries")
+    if not isinstance(payload, dict):
+        if payload is not None:
+            issues.append(ContentSetIssue("error", str(path), "discoveries must be an object"))
+        return
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    for discovery_id, definition in payload.items():
+        if str(discovery_id).startswith("_"):
+            continue
+        label = f"discovery '{discovery_id}'"
+        if not isinstance(discovery_id, str) or not discovery_id.strip() or not isinstance(definition, dict):
+            issues.append(ContentSetIssue("error", str(path), f"{label} must have a non-empty id and object definition"))
+            continue
+        if not isinstance(definition.get("name"), str) or not definition["name"].strip():
+            issues.append(ContentSetIssue("error", str(path), f"{label}.name must be a non-empty string"))
+        item_triggers = definition.get("item_ids", [])
+        tag_triggers = definition.get("item_tags", [])
+        if not isinstance(item_triggers, list) or not isinstance(tag_triggers, list):
+            issues.append(ContentSetIssue("error", str(path), f"{label}.item_ids and item_tags must be arrays"))
+            continue
+        if not item_triggers and not tag_triggers:
+            issues.append(ContentSetIssue("error", str(path), f"{label} requires at least one item_ids or item_tags trigger"))
+        if any(not isinstance(item_id, str) or not item_id.strip() for item_id in item_triggers):
+            issues.append(ContentSetIssue("error", str(path), f"{label}.item_ids must contain non-empty item ids"))
+        if len(set(item_triggers)) != len(item_triggers):
+            issues.append(ContentSetIssue("error", str(path), f"{label}.item_ids must not contain duplicates"))
+        for item_id in item_triggers:
+            if item_id not in item_ids:
+                issues.append(ContentSetIssue("error", str(path), f"{label} references missing item template '{item_id}'"))
+        if any(not isinstance(tag, str) or not tag.strip() for tag in tag_triggers):
+            issues.append(ContentSetIssue("error", str(path), f"{label}.item_tags must contain non-empty tags"))
+
+
+def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate optional, setting-agnostic vendor delivery orders."""
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    for path in sorted((content_root / "npcs").glob("*.json")):
+        payload = _load_json(path, issues, "NPC definitions")
+        if not isinstance(payload, dict):
+            continue
+        for npc_id, definition in payload.items():
+            if not isinstance(definition, dict):
+                continue
+            properties = definition.get("properties", {})
+            orders = properties.get("buy_orders", []) if isinstance(properties, dict) else []
+            if not orders:
+                continue
+            label = f"NPC '{npc_id}'.properties.buy_orders"
+            if not isinstance(orders, list):
+                issues.append(ContentSetIssue("error", str(path), f"{label} must be an array"))
+                continue
+            seen: set[str] = set()
+            for index, order in enumerate(orders):
+                entry = f"{label}[{index}]"
+                if not isinstance(order, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry} must be an object"))
+                    continue
+                order_id = order.get("id")
+                if not isinstance(order_id, str) or not order_id.strip():
+                    issues.append(ContentSetIssue("error", str(path), f"{entry}.id must be a non-empty string"))
+                elif order_id in seen:
+                    issues.append(ContentSetIssue("error", str(path), f"{label} ids must be unique"))
+                else:
+                    seen.add(order_id)
+                item_id = order.get("item_id")
+                if not isinstance(item_id, str) or item_id not in item_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{entry}.item_id references a missing item template"))
+                for field in ("quantity", "reward_gold"):
+                    value = order.get(field)
+                    if isinstance(value, bool) or not isinstance(value, int) or value < 0 or (field == "quantity" and value < 1):
+                        issues.append(ContentSetIssue("error", str(path), f"{entry}.{field} must be a valid non-negative integer"))
+                for field in ("repeatable", "crafted_only"):
+                    if field in order and not isinstance(order[field], bool):
+                        issues.append(ContentSetIssue("error", str(path), f"{entry}.{field} must be a boolean"))
+                if "min_material_quality_score" in order:
+                    score = order["min_material_quality_score"]
+                    if isinstance(score, bool) or not isinstance(score, int) or score < 0:
+                        issues.append(ContentSetIssue("error", str(path), f"{entry}.min_material_quality_score must be a non-negative integer"))
+
+
+def _validate_resource_node_yields(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate portable resource-node yield and material-grade contracts."""
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+
+    def validate_quality(value: Any, path: Path, label: str) -> None:
+        if not isinstance(value, dict):
+            issues.append(ContentSetIssue("error", str(path), f"{label}.material_quality must be an object"))
+            return
+        quality_id = value.get("id")
+        quality_label = value.get("label")
+        score = value.get("score")
+        if not isinstance(quality_id, str) or not quality_id.strip():
+            issues.append(ContentSetIssue("error", str(path), f"{label}.material_quality.id must be a non-empty string"))
+        if not isinstance(quality_label, str) or not quality_label.strip():
+            issues.append(ContentSetIssue("error", str(path), f"{label}.material_quality.label must be a non-empty string"))
+        if isinstance(score, bool) or not isinstance(score, int) or score < 1:
+            issues.append(ContentSetIssue("error", str(path), f"{label}.material_quality.score must be a positive integer"))
+
+    for path in sorted((content_root / "items").glob("*.json")):
+        payload = _load_json(path, issues, "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item_id, definition in payload.items():
+            if not isinstance(definition, dict) or definition.get("type") != "ResourceNode":
+                continue
+            properties = definition.get("properties", {})
+            if not isinstance(properties, dict):
+                continue
+            label = f"resource node '{item_id}'"
+            resource_item_id = properties.get("resource_item_id")
+            if not isinstance(resource_item_id, str) or resource_item_id not in item_ids:
+                issues.append(ContentSetIssue("error", str(path), f"{label}.properties.resource_item_id references a missing item template"))
+            if "material_quality" in properties:
+                validate_quality(properties["material_quality"], path, label)
+            yields = properties.get("yield_table", [])
+            if not isinstance(yields, list):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.properties.yield_table must be an array"))
+                continue
+            for index, candidate in enumerate(yields):
+                entry = f"{label}.properties.yield_table[{index}]"
+                if not isinstance(candidate, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry} must be an object"))
+                    continue
+                candidate_item_id = candidate.get("item_id")
+                if not isinstance(candidate_item_id, str) or candidate_item_id not in item_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{entry}.item_id references a missing item template"))
+                chance = candidate.get("chance")
+                if isinstance(chance, bool) or not isinstance(chance, (int, float)) or not 0 <= chance <= 1:
+                    issues.append(ContentSetIssue("error", str(path), f"{entry}.chance must be a number from 0 to 1"))
+                if "material_quality" in candidate:
+                    validate_quality(candidate["material_quality"], path, entry)
+
+
+def _validate_item_extension_data(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate optional generic item extension contracts used by the engine.
+
+    Extension names describe mechanics, not a particular game theme: hosts may
+    expose attachment slots and tokens may offer numeric modifiers.  Content
+    remains free to author the actual slot and modifier names.
+    """
+    for path in sorted((content_root / "items").glob("*.json")):
+        payload = _load_json(path, issues, "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item_id, definition in payload.items():
+            if not isinstance(definition, dict) or str(item_id).startswith("_"):
+                continue
+            properties = definition.get("properties", {})
+            if not isinstance(properties, dict):
+                continue
+            label = f"item '{item_id}'"
+            if "attachment_slots" in properties:
+                slots = properties["attachment_slots"]
+                if (
+                    not isinstance(slots, list)
+                    or not slots
+                    or any(not isinstance(slot, str) or not slot.strip() for slot in slots)
+                ):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment_slots must be a non-empty array of slot names"))
+                elif len(set(slots)) != len(slots):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment_slots must not contain duplicates"))
+            if "attachment" not in properties:
+                continue
+            attachment = properties["attachment"]
+            if not isinstance(attachment, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment must be an object"))
+                continue
+            slot = attachment.get("slot")
+            if not isinstance(slot, str) or not slot.strip():
+                issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment.slot must be a non-empty string"))
+            modifiers = attachment.get("modifiers")
+            if not isinstance(modifiers, dict) or not modifiers:
+                issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment.modifiers must be a non-empty object"))
+                continue
+            for modifier_name, value in modifiers.items():
+                if modifier_name == "stats":
+                    if not isinstance(value, dict) or not value or any(
+                        isinstance(amount, bool) or not isinstance(amount, (int, float))
+                        for amount in value.values()
+                    ):
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment.modifiers.stats must map stat names to numbers"))
+                elif isinstance(value, bool) or not isinstance(value, (int, float)):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment.modifiers.{modifier_name} must be a number"))
 
 
 def _resolve_manifest_path(content_set_path: Path | str) -> Path:
@@ -451,6 +766,13 @@ def load_content_set(
                 )
 
         _validate_authored_world(content_root, start_region_id, start_room_id, issues)
+        _validate_ruleset_references(content_root, ruleset_payload, issues, resolved_paths["ruleset"])
+        _validate_ambient_loot_references(content_root, ruleset_payload, issues, resolved_paths["ruleset"])
+        _validate_collection_references(content_root, issues)
+        _validate_discovery_references(content_root, issues)
+        _validate_vendor_orders(content_root, issues)
+        _validate_resource_node_yields(content_root, issues)
+        _validate_item_extension_data(content_root, issues)
 
     if any(issue.severity == "error" for issue in issues):
         return None, issues

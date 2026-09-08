@@ -1,4 +1,22 @@
 {
+  "item_softwood": {
+    "type": "Item",
+    "name": "softwood branch",
+    "description": "A straight, dry branch suitable for small carvings and practical wooden goods.",
+    "weight": 0.8,
+    "value": 2,
+    "stackable": true,
+    "properties": { "category": "material", "material_tags": ["wood", "softwood"], "discovery_tags": ["field_material"] }
+  },
+  "item_river_clay": {
+    "type": "Item",
+    "name": "river clay",
+    "description": "Fine grey clay gathered from a slow riverbank, ready to be shaped and fired.",
+    "weight": 1.0,
+    "value": 2,
+    "stackable": true,
+    "properties": { "category": "material", "material_tags": ["clay", "river"], "discovery_tags": ["field_material"] }
+  },
   "item_iron_ingot": {
     "type": "Item",
     "name": "iron ingot",
@@ -47,6 +65,18 @@
     "stackable": false,
     "properties": { 
         "crafting_station_type": "alchemy_table"
+    }
+  },
+  "item_lapidary_wheel": {
+    "type": "Item",
+    "name": "lapidary wheel",
+    "description": "A foot-powered grinding wheel with trays for water and polishing grit.",
+    "weight": 150.0,
+    "value": 0,
+    "stackable": false,
+    "properties": {
+      "crafting_station_type": "lapidary_wheel",
+      "can_take": false
     }
   }
 }

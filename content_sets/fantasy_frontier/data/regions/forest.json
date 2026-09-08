@@ -22,7 +22,21 @@
           "north": "forest_path_1"
         },
         "items": [
-          { "item_id": "item_forest_berries" }
+          { "item_id": "item_forest_berries" },
+          { "item_id": "node_berry_bramble" }
+        ],
+        "initial_npcs": [
+          {
+            "template_id": "giant_rat",
+            "instance_id": "forest_edge_lone_giant_rat",
+            "overrides": {
+              "name": "lone giant rat",
+              "health": 8,
+              "max_health": 8,
+              "behavior_type": "stationary",
+              "properties_override": { "aggression": 0.0, "wander_chance": 0.0 }
+            }
+          }
         ]
       },
       "forest_path_1": {
@@ -146,6 +160,7 @@
         "name": "Stream Crossing",
         "description": "A shallow stream bubbles over smooth stones in a small, cool ravine. Stepping stones offer a way across to the east bank.",
         "properties": {"noisy": true},
+        "items": [ { "item_id": "node_river_clay_bank" } ],
         "exits": {
           "up": "stream_approach",
           "east": "east_bank"

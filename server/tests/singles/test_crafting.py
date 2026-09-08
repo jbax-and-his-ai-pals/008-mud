@@ -85,3 +85,80 @@ class TestCrafting(GameTestBase):
             
             self.assertEqual(sword.get_property("durability"), sword.get_property("max_durability"))
             self.assertLess(self.player.runtime_state.gold, 100)
+
+    def test_recipe_familiarity_is_recorded_and_reports_authored_milestones(self):
+        recipe = Recipe("practice_cap", {
+            "name": "Practice Cap",
+            "result_item_id": "item_leather_cap",
+            "result_quantity": 1,
+            "difficulty": 0,
+            "ingredients": [],
+            "familiarity_milestones": [{"count": 1, "label": "Beginner", "message": "You know the first stitch."}],
+        })
+        self.manager.recipes[recipe.recipe_id] = recipe
+
+        result = self.manager.craft(self.player, recipe.recipe_id)
+
+        self.assertIn("You know the first stitch.", result)
+        self.assertEqual(1, self.player.recipe_craft_counts[recipe.recipe_id])
+        cap = self.player.inventory.find_item_by_name("leather cap")
+        self.assertEqual(1, cap.get_property("crafted_recipe_count"))
+        self.assertEqual("practice_cap", cap.get_property("crafted_recipe_id"))
+
+    def test_recipe_familiarity_survives_a_player_round_trip(self):
+        self.player.recipe_craft_counts = {"practice_cap": 3}
+
+        from engine.player.core import Player
+        restored = Player.from_dict(self.player.to_dict(self.world), self.world)
+
+        self.assertEqual({"practice_cap": 3}, restored.recipe_craft_counts)
+
+    def test_quality_tiers_apply_deterministically_from_recipe_familiarity(self):
+        recipe = Recipe("quality_cap", {
+            "name": "Quality Cap",
+            "result_item_id": "item_leather_cap",
+            "difficulty": 0,
+            "ingredients": [],
+            "quality_tiers": [
+                {"id": "standard", "label": "Standard", "min_crafts": 1, "value_multiplier": 1.0},
+                {"id": "fine", "label": "Fine", "min_crafts": 2, "value_multiplier": 2.0, "gift_bonus": 2},
+            ],
+        })
+        self.manager.recipes[recipe.recipe_id] = recipe
+        base_value = ItemFactory.create_item_from_template("item_leather_cap", self.world).value
+
+        self.manager.craft(self.player, recipe.recipe_id)
+        result = self.manager.craft(self.player, recipe.recipe_id)
+        crafted = [
+            slot.item for slot in self.player.inventory.slots
+            if slot.item is not None and slot.item.get_property("crafted_recipe_id") == recipe.recipe_id
+        ]
+
+        self.assertIn("Craft quality: Fine.", result)
+        self.assertEqual(["standard", "fine"], [item.get_property("craft_quality") for item in crafted])
+        self.assertEqual([base_value, base_value * 2], [item.value for item in crafted])
+        self.assertEqual(2, crafted[-1].get_property("gift_quality_bonus"))
+
+    def test_quality_enabled_stackables_remain_distinct_inventory_instances(self):
+        recipe = Recipe("quality_posy", {
+            "name": "Quality Posy",
+            "result_item_id": "item_wildflower_posy",
+            "difficulty": 0,
+            "ingredients": [],
+            "quality_tiers": [
+                {"id": "standard", "label": "Standard", "min_crafts": 1},
+                {"id": "fine", "label": "Fine", "min_crafts": 2, "value_multiplier": 2.0},
+            ],
+        })
+        self.manager.recipes[recipe.recipe_id] = recipe
+
+        self.manager.craft(self.player, recipe.recipe_id)
+        self.manager.craft(self.player, recipe.recipe_id)
+        crafted = [
+            slot for slot in self.player.inventory.slots
+            if slot.item is not None and slot.item.get_property("crafted_recipe_id") == recipe.recipe_id
+        ]
+
+        self.assertEqual(2, len(crafted))
+        self.assertEqual(["standard", "fine"], [slot.item.get_property("craft_quality") for slot in crafted])
+        self.assertTrue(all(not slot.item.stackable and slot.quantity == 1 for slot in crafted))

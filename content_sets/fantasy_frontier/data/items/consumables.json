@@ -1,4 +1,13 @@
 {
+  "item_herbal_bandage": {
+    "type": "Consumable",
+    "name": "herbal bandage",
+    "description": "Clean cloth packed with fresh herbs; useful for treating a wound in the field.",
+    "weight": 0.2,
+    "value": 8,
+    "stackable": true,
+    "properties": { "uses": 1, "max_uses": 1, "effect_value": 8, "effect_type": "heal" }
+  },
   "item_healing_potion_small": {
     "type": "Consumable",
     "name": "small healing potion",

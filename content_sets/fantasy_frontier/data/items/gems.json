@@ -167,6 +167,55 @@
     "description": "An extremely rare, opaque black diamond of incredible hardness.",
     "value": 900
   },
+  "item_alexandrite": { "type": "Gem", "name": "alexandrite", "description": "A rare crystal that shifts from green to red as it turns.", "value": 380 },
+  "item_amber": { "type": "Gem", "name": "amber", "description": "Warm golden resin holding a tiny fragment of an ancient world.", "value": 55 },
+  "item_carnelian": { "type": "Gem", "name": "carnelian", "description": "A polished orange-red stone with a sunlit glow.", "value": 65 },
+  "item_chrysoberyl": { "type": "Gem", "name": "chrysoberyl", "description": "A clear yellow-green gem with a sharp, glassy shine.", "value": 210 },
+  "item_citrine": { "type": "Gem", "name": "citrine", "description": "A bright honey-colored quartz crystal.", "value": 70 },
+  "item_coral_gem": { "type": "Gem", "name": "coral gem", "description": "A polished branch of deep pink sea-coral.", "value": 85 },
+  "item_iolite": { "type": "Gem", "name": "iolite", "description": "A dusky blue-violet stone favored by navigators.", "value": 130 },
+  "item_labradorite": { "type": "Gem", "name": "labradorite", "description": "A grey stone flashing blue and green beneath its surface.", "value": 115 },
+  "item_lapis_lazuli": { "type": "Gem", "name": "lapis lazuli", "description": "A royal blue stone scattered with tiny gold-colored sparks.", "value": 95 },
+  "item_malachite": { "type": "Gem", "name": "malachite", "description": "A banded green stone with hypnotic concentric patterns.", "value": 75 },
+  "item_obsidian_shard": { "type": "Gem", "name": "obsidian shard", "description": "Volcanic glass with an edge dark enough to swallow candlelight.", "value": 45 },
+  "item_rhodonite": { "type": "Gem", "name": "rhodonite", "description": "A rose-pink stone veined with charcoal black.", "value": 105 },
+  "item_rose_quartz": {
+    "type": "Gem",
+    "name": "rose quartz",
+    "description": "A soft pink crystal with a gentle inner cloudiness.",
+    "value": 50,
+    "properties": {
+      "discovery_tags": ["field_material"],
+      "appraisal": {
+        "summary": "A natural specimen with a soft, even blush.",
+        "quality": "rough specimen",
+        "origin": "rocky uplands",
+        "traits": ["collectable", "cuttable"]
+      }
+    }
+  },
+  "item_faceted_rose_quartz": {
+    "type": "Gem",
+    "name": "faceted rose quartz",
+    "description": "Rose quartz cut into clean facets that gather a warm, pink light.",
+    "value": 85,
+    "properties": {
+      "discovery_tags": ["field_material"],
+      "appraisal": {
+        "summary": "A carefully cut ornamental stone with an even polish.",
+        "quality": "faceted",
+        "origin": "refined from a natural specimen",
+        "craft": "lapidary work",
+        "traits": ["gift-worthy", "trade good"]
+      },
+      "attachment": {
+        "slot": "ornament",
+        "modifiers": { "attack": 1 }
+      }
+    }
+  },
+  "item_serpentine": { "type": "Gem", "name": "serpentine", "description": "A waxy green stone with a subtle scaled pattern.", "value": 40 },
+  "item_zircon": { "type": "Gem", "name": "zircon", "description": "A bright crystal whose facets throw fierce sparks of light.", "value": 160 },
   "item_dragons_eye": {
     "type": "Gem",
     "name": "dragon's eye",

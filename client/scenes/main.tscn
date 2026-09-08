@@ -274,6 +274,21 @@ layout_mode = 2
 autowrap_mode = 3
 text = "Effects: none"
 
+[node name="CombatTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Encounter"
+
+[node name="CombatSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "No active encounter."
+
+[node name="CombatTargets" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+bbcode_enabled = true
+text = "[i]Explore carefully; hostile creatures will appear here.[/i]"
+
 [node name="InventoryTitle" type="Label" parent="VBox/AssetPreview"]
 layout_mode = 2
 text = "Inventory"
@@ -288,6 +303,66 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 120)
 bbcode_enabled = true
 text = "[i]No inventory data yet.[/i]"
+
+[node name="CraftingTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Crafting Ledger"
+
+[node name="CraftingSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Use recipes to inspect available work."
+
+[node name="CraftingList" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+bbcode_enabled = true
+text = "[i]No recipe data yet.[/i]"
+
+[node name="CollectionsTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Collections"
+
+[node name="CollectionsSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Find a collectible item to begin a ledger."
+
+[node name="CollectionsList" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+bbcode_enabled = true
+text = "[i]No collections discovered.[/i]"
+
+[node name="DiscoveriesTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Discoveries"
+
+[node name="DiscoveriesSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Unlock discoveries through exploration and work."
+
+[node name="DiscoveriesList" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+bbcode_enabled = true
+text = "[i]No discoveries recorded.[/i]"
+
+[node name="RelationshipsTitle" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+text = "Relationships"
+
+[node name="RelationshipsSummary" type="Label" parent="VBox/AssetPreview"]
+layout_mode = 2
+autowrap_mode = 3
+text = "No personal bonds recorded."
+
+[node name="RelationshipsList" type="RichTextLabel" parent="VBox/AssetPreview"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+bbcode_enabled = true
+text = "[i]Gifts, orders, and commissions can build bonds.[/i]"
 
 [node name="JournalTitle" type="Label" parent="VBox/AssetPreview"]
 layout_mode = 2

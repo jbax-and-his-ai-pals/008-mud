@@ -33,9 +33,10 @@ class CollectionManager:
         1. Adds the collection to the player's list (if new).
         2. Returns a hint string.
         """
-        col_id = item.get_property("collection_id")
-        if not col_id or col_id not in self.collections:
+        collection_ids = self._collection_ids_for_item(item)
+        if not collection_ids:
             return ""
+        col_id = collection_ids[0]
         
         # --- NEW: Unlock the collection in the UI immediately ---
         if col_id not in player.collections_progress:
@@ -43,6 +44,26 @@ class CollectionManager:
         
         col_name = self.collections[col_id].get("name", "Unknown")
         return f"{FORMAT_HIGHLIGHT}(This item belongs to the '{col_name}' collection. You should take it to the Museum.){FORMAT_RESET}"
+
+    def _collection_ids_for_item(self, item: 'Item') -> List[str]:
+        """Resolve content membership from an item annotation or collection list.
+
+        Item annotations keep a compact authoring path for broad item families,
+        while explicit ``collections.json`` item lists make one-off or external
+        item types collectible without an engine subtype knowing a collection.
+        """
+        found: List[str] = []
+        declared = item.get_property("collection_id")
+        declared_ids = declared if isinstance(declared, list) else [declared]
+        for collection_id in declared_ids:
+            normalized = str(collection_id).strip()
+            if normalized and normalized in self.collections:
+                found.append(normalized)
+        for collection_id, definition in self.collections.items():
+            items = definition.get("items", []) if isinstance(definition, dict) else []
+            if item.obj_id in items and collection_id not in found:
+                found.append(collection_id)
+        return found
 
     def turn_in_items(self, player: 'Player', collector_npc: 'NPC') -> str:
         """
@@ -59,7 +80,8 @@ class CollectionManager:
             if not slot.item: continue
             
             item = slot.item
-            col_id = item.get_property("collection_id")
+            collection_ids = self._collection_ids_for_item(item)
+            col_id = collection_ids[0] if collection_ids else None
             
             if col_id and col_id in self.collections:
                 # Initialize progress list if needed

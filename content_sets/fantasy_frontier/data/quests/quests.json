@@ -1,4 +1,111 @@
 {
+  "quest_wildflower_commission": {
+    "title": "A Posy for Riverside",
+    "type": "commission",
+    "description": "Elder Thorne would like a hand-tied wildflower posy for the village's newest residents.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Gather herbs, craft a wildflower posy, and deliver it to Elder Thorne.",
+        "objective": {
+          "type": "deliver",
+          "item_template_id": "item_wildflower_posy",
+          "crafted_only": true,
+          "recipient_template_id": "village_elder",
+          "recipient_name": "Elder Thorne"
+        },
+        "turn_in_id": "village_elder",
+        "completion_dialogue": "A small kindness, thoughtfully made. Riverside is fortunate to have you here."
+      }
+    ],
+    "rewards": {
+      "xp": 25,
+      "gold": 12,
+      "relationships": [ { "npc_template_id": "village_elder", "amount": 10 } ]
+    }
+  },
+  "quest_riverside_charm_commission": {
+    "title": "A Riverside Welcome",
+    "type": "commission",
+    "description": "Elder Thorne needs a carved charm for a new household settling near the river.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Craft a carved Riverside charm and deliver it to Elder Thorne.",
+        "objective": {
+          "type": "deliver",
+          "item_template_id": "item_riverside_charm",
+          "crafted_only": true,
+          "recipient_template_id": "village_elder",
+          "recipient_name": "Elder Thorne"
+        },
+        "turn_in_id": "village_elder"
+      }
+    ],
+    "rewards": { "xp": 40, "gold": 20 }
+  },
+  "quest_river_fine_token_commission": {
+    "title": "A Token Worth Keeping",
+    "type": "commission",
+    "description": "Elder Thorne seeks a carefully made river-clay token using unusually fine local material.",
+    "relationship_min": 10,
+    "relationship_npc_id": "village_elder",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Craft a River Fine token and deliver it to Elder Thorne.",
+        "objective": {
+          "type": "deliver",
+          "item_template_id": "item_river_token",
+          "crafted_only": true,
+          "min_material_quality_score": 2,
+          "recipient_template_id": "village_elder",
+          "recipient_name": "Elder Thorne"
+        },
+        "turn_in_id": "village_elder"
+      }
+    ],
+    "rewards": {
+      "xp": 35,
+      "gold": 24,
+      "relationships": [ { "npc_template_id": "village_elder", "amount": 2 } ]
+    }
+  },
+  "quest_museum_showcase_commission": {
+    "title": "A Light for the Museum",
+    "type": "commission",
+    "description": "Curator Vane is seeking a display-worthy stone: refine one yourself, or source a suitable specimen through other pursuits.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Bring Curator Vane one display-worthy stone by any accepted route.",
+        "objectives_any": [
+          {
+            "type": "deliver",
+            "item_template_id": "item_faceted_rose_quartz",
+            "item_to_deliver_name": "a player-faceted rose quartz",
+            "crafted_only": true,
+            "recipient_template_id": "curator",
+            "recipient_name": "Curator Vane"
+          },
+          {
+            "type": "deliver",
+            "item_template_id": "item_amethyst",
+            "item_to_deliver_name": "an amethyst specimen",
+            "recipient_template_id": "curator",
+            "recipient_name": "Curator Vane"
+          }
+        ],
+        "turn_in_id": "curator",
+        "completion_dialogue": "The cut catches the light beautifully. This will help visitors see the valley's treasures anew."
+      }
+    ],
+    "rewards": {
+      "xp": 50,
+      "gold": 28,
+      "relationships": [ { "npc_template_id": "curator", "amount": 8 } ]
+    }
+  },
   "quest_scout_forest": {
     "title": "Eyes in the Woods",
     "type": "quest",

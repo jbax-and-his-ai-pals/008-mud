@@ -12,6 +12,7 @@ from engine.items.item_factory import ItemFactory
 from engine.items.item import Item
 from engine.player import Player
 from engine.npcs.npc import NPC
+from engine.social.relationships import apply_relationship_milestones, relationship_key, relationship_discount
 
 
 def _grant_party_sale_gold(world, player: Player, total_gold_gain: int) -> str:
@@ -34,19 +35,32 @@ def _template_preview_name(template: Dict) -> str:
             return raw_name
     return raw_name
 
-def _get_price_multiplier(vendor: NPC) -> float:
+def _get_price_multiplier(vendor: NPC, player: Optional[Player] = None) -> float:
     base = DEFAULT_VENDOR_SELL_MULTIPLIER
     if "economy_impact" in vendor.properties:
         discount = vendor.properties["economy_impact"].get("discount", 0.0)
-        return max(0.1, base - discount)
-    return base
+        base = max(0.1, base - discount)
+    # Personal relationships stack gently with world/economy discounts. This
+    # makes friendship valuable without making vendor stock free at high tiers.
+    if player is not None:
+        bond = int(getattr(player, "npc_relationships", {}).get(relationship_key(vendor), 0))
+        base *= 1.0 - relationship_discount(bond, getattr(player, "world", None))
+    return max(0.1, base)
+
+def _relationship_requirement(item_ref: Dict[str, Any]) -> int:
+    return max(0, min(100, int(item_ref.get("relationship_min", 0))))
+
+def _relationship_allows_stock(player: Player, vendor: NPC, item_ref: Dict[str, Any]) -> bool:
+    required = _relationship_requirement(item_ref)
+    score = int(getattr(player, "npc_relationships", {}).get(relationship_key(vendor), 0))
+    return score >= required
 
 def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
     vendor_items_refs = vendor.properties.get("sells_items", [])
     
     display_lines = [f"{FORMAT_TITLE}{vendor.name}'s Wares:{FORMAT_RESET}\n"]
     
-    current_multiplier = _get_price_multiplier(vendor)
+    current_multiplier = _get_price_multiplier(vendor, player)
     if current_multiplier < DEFAULT_VENDOR_SELL_MULTIPLIER:
         display_lines.append(f"{FORMAT_HIGHLIGHT}(Special Discount Active!){FORMAT_RESET}\n")
 
@@ -60,6 +74,10 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
                 
             item_name = _template_preview_name(template)
             base_value = template.get("value", 0)
+            relationship_required = _relationship_requirement(item_ref)
+            if not _relationship_allows_stock(player, vendor, item_ref):
+                display_lines.append(f"- {item_name:<{VENDOR_LIST_ITEM_NAME_WIDTH}} | [Friendship {relationship_required}/100 required]")
+                continue
             
             # Combine item-specific multiplier with vendor global multiplier (discount)
             # Item specific multiplier is usually 1.0 or higher.
@@ -92,8 +110,127 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
     if len(display_lines) == 1:
         return f"{vendor.name} has nothing to sell right now."
 
-    display_lines.append(f"\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}\n\nCommands: list, buy <item> [qty], sell <item> [qty], stoptrade")
+    if vendor.properties.get("buy_orders"):
+        display_lines.append("\nBuy orders available: type 'orders'.")
+    display_lines.append(f"\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}\n\nCommands: list, orders, fulfill <order>, buy <item> [qty], sell <item> [qty], stoptrade")
     return "\n".join(display_lines)
+
+def _active_vendor(player: Player, world) -> Optional[NPC]:
+    if not player.trading_with:
+        return None
+    vendor = world.get_npc(player.trading_with)
+    if not vendor or vendor.current_region_id != player.current_region_id or vendor.current_room_id != player.current_room_id:
+        player.trading_with = None
+        return None
+    return vendor
+
+def _vendor_orders(vendor: NPC) -> List[Dict[str, Any]]:
+    orders = vendor.properties.get("buy_orders", [])
+    return [order for order in orders if isinstance(order, dict) and str(order.get("id", "")).strip()]
+
+
+def _order_material_quality_requirement(order: Dict[str, Any]) -> int:
+    value = order.get("min_material_quality_score", 0)
+    return max(0, int(value)) if isinstance(value, int) and not isinstance(value, bool) else 0
+
+@command("orders", ["buyorders"], "interaction", "List buy orders from the current vendor.", ruleset_system="economy")
+def orders_handler(args, context):
+    world = context["world"]; player = context.get("player")
+    if not player:
+        return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    vendor = _active_vendor(player, world)
+    if vendor is None:
+        return f"{FORMAT_ERROR}You need to 'trade' with someone first.{FORMAT_RESET}"
+    completed = set(player.vendor_orders_completed.get(relationship_key(vendor), []))
+    lines = [f"{FORMAT_TITLE}{vendor.name}'s Buy Orders:{FORMAT_RESET}"]
+    for order in _vendor_orders(vendor):
+        order_id = str(order["id"])
+        item_id = str(order.get("item_id", ""))
+        template = world.item_templates.get(item_id, {})
+        item_name = str(template.get("name", item_id or "unknown item"))
+        quantity = max(1, int(order.get("quantity", 1)))
+        reward = max(0, int(order.get("reward_gold", 0)))
+        repeatable = bool(order.get("repeatable", False))
+        if order_id in completed and not repeatable:
+            state = "complete"
+        else:
+            state = "repeatable" if repeatable else "available"
+        quality_required = _order_material_quality_requirement(order)
+        quality_note = f"; material quality {quality_required}+" if quality_required else ""
+        lines.append(f"- {order_id}: {quantity} x {item_name} — {reward} {world.currency_name()} ({state}{quality_note})")
+    if len(lines) == 1:
+        return f"{vendor.name} has no active buy orders."
+    lines.append("Use: fulfill <order id>")
+    return "\n".join(lines)
+
+@command("fulfill", ["fillorder"], "interaction", "Fulfill a current vendor buy order.\nUsage: fulfill <order id>", ruleset_system="economy")
+def fulfill_handler(args, context):
+    world = context["world"]; player = context.get("player")
+    if not player:
+        return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    vendor = _active_vendor(player, world)
+    if vendor is None:
+        return f"{FORMAT_ERROR}You need to 'trade' with someone first.{FORMAT_RESET}"
+    order_id = " ".join(args).strip().lower()
+    if not order_id:
+        return f"{FORMAT_ERROR}Fulfill which order? Type 'orders' to inspect them.{FORMAT_RESET}"
+    order = next((entry for entry in _vendor_orders(vendor) if str(entry["id"]).lower() == order_id), None)
+    if order is None:
+        return f"{FORMAT_ERROR}{vendor.name} has no order named '{order_id}'.{FORMAT_RESET}"
+    vendor_key = relationship_key(vendor)
+    completed = player.vendor_orders_completed.setdefault(vendor_key, [])
+    if str(order["id"]) in completed and not bool(order.get("repeatable", False)):
+        return f"{FORMAT_ERROR}You have already completed that order.{FORMAT_RESET}"
+    item_id = str(order.get("item_id", ""))
+    quantity = max(1, int(order.get("quantity", 1)))
+    item = player.inventory.find_item_by_id(item_id)
+    if item is None or player.inventory.count_item(item_id) < quantity:
+        return f"{FORMAT_ERROR}You need {quantity} x {world.item_templates.get(item_id, {}).get('name', item_id)} for this order.{FORMAT_RESET}"
+    if bool(order.get("crafted_only", False)) and not bool(item.get_property("crafted_by_player", False)):
+        return f"{FORMAT_ERROR}This order requires an item crafted by you.{FORMAT_RESET}"
+    quality_required = _order_material_quality_requirement(order)
+    if quality_required:
+        qualified_items = [
+            slot.item for slot in player.inventory.slots
+            if slot.item is not None and slot.item.obj_id == item_id
+            and isinstance(slot.item.get_property("material_quality_score", 0), int)
+            and not isinstance(slot.item.get_property("material_quality_score", 0), bool)
+            and slot.item.get_property("material_quality_score", 0) >= quality_required
+            and (not bool(order.get("crafted_only", False)) or bool(slot.item.get_property("crafted_by_player", False)))
+        ]
+        if len(qualified_items) < quantity:
+            return f"{FORMAT_ERROR}This order requires {quantity} item(s) with material quality {quality_required} or better.{FORMAT_RESET}"
+        removed_items = []
+        for qualified_item in qualified_items[:quantity]:
+            if not player.inventory.remove_item_instance(qualified_item):
+                return f"{FORMAT_ERROR}The order could not be fulfilled safely.{FORMAT_RESET}"
+            removed_items.append(qualified_item)
+        removed = removed_items[0]
+        count = len(removed_items)
+    else:
+        removed, count, _message = player.inventory.remove_item(item_id, quantity)
+    if removed is None or count != quantity:
+        return f"{FORMAT_ERROR}The order could not be fulfilled safely.{FORMAT_RESET}"
+    reward = max(0, int(order.get("reward_gold", 0)))
+    routing = _grant_party_sale_gold(world, player, reward)
+    relationship = int(order.get("relationship_amount", 0))
+    if relationship:
+        old_score = int(player.npc_relationships.get(vendor_key, 0))
+        new_score = max(0, min(100, old_score + relationship))
+        player.npc_relationships[vendor_key] = new_score
+        milestone_note = apply_relationship_milestones(player, vendor, old_score, new_score, world)
+    else:
+        milestone_note = ""
+    if not bool(order.get("repeatable", False)):
+        completed.append(str(order["id"]))
+    response = f"{FORMAT_SUCCESS}Order fulfilled: {quantity} x {removed.name} for {reward} {world.currency_name()}.{FORMAT_RESET}"
+    if relationship:
+        response += f"\nRelationship with {vendor.name}: {'+' if relationship > 0 else ''}{relationship}"
+    if milestone_note:
+        response += f"\n{milestone_note}"
+    if routing:
+        response += f"\n{routing}"
+    return response
 
 def _calculate_repair_cost(item: Item) -> Tuple[Optional[int], Optional[str]]:
     current_durability = item.get_property("durability")
@@ -161,7 +298,7 @@ def buy_handler(args, context):
     if not item_name: return f"{FORMAT_ERROR}You must specify an item name.{FORMAT_RESET}"
 
     # Calculate current effective multiplier (including discounts)
-    current_multiplier = _get_price_multiplier(vendor)
+    current_multiplier = _get_price_multiplier(vendor, player)
     discount_ratio = current_multiplier / DEFAULT_VENDOR_SELL_MULTIPLIER
 
     found_inv_item = vendor.inventory.find_item_by_name(item_name)
@@ -208,6 +345,10 @@ def buy_handler(args, context):
                  
     if not found_item_ref or not found_template:
         return f"{FORMAT_ERROR}{vendor.name} doesn't sell '{item_name}'. Type 'list' to see wares.{FORMAT_RESET}"
+    if not _relationship_allows_stock(player, vendor, found_item_ref):
+        required = _relationship_requirement(found_item_ref)
+        current = int(getattr(player, "npc_relationships", {}).get(relationship_key(vendor), 0))
+        return f"{FORMAT_ERROR}{vendor.name} reserves that for trusted friends ({current}/{required} relationship).{FORMAT_RESET}"
 
     item_id = found_template["obj_id"] = found_item_ref["item_id"]
     base_value = found_template.get("value", 0)

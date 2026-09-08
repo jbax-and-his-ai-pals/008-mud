@@ -13,7 +13,8 @@
       "equip_slot": [
         "main_hand",
         "off_hand"
-      ]
+      ],
+      "attachment_slots": ["ornament"]
     }
   },
   "item_iron_sword": {

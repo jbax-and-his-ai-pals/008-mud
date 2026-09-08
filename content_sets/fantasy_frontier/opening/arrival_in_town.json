@@ -1,27 +1,28 @@
 {
   "scenario_id": "arrival_in_town",
   "heading": "Welcome to Riverside",
-  "intro": "You have arrived in a village on the edge of the Whispering Woods. Something is stirring beyond its gates, but the square is safe enough to get your bearings.",
+  "intro": "You have arrived in a village on the edge of the Whispering Woods. Something is stirring beyond its gates, but the square is safe enough to get your bearings. Pick any path below; none closes off the others.",
+  "objectives_heading": "Choose a first path:",
   "objectives": [
     {
       "id": "orient",
-      "instruction": "Read your surroundings and available exits",
+      "instruction": "Get oriented: read your surroundings and the available exits",
       "command": "look"
     },
     {
       "id": "meet_the_village",
-      "instruction": "Speak with Elder Thorne to learn about the village's troubles",
-      "command": "talk Elder Thorne"
+      "instruction": "Help Riverside: inspect the board, then gather at the community garden west and south",
+      "command": "look board"
     },
     {
       "id": "equip_starter_weapon",
-      "instruction": "Equip your rusty dagger before venturing beyond town",
-      "command": "equip rusty dagger"
+      "instruction": "Trade and prepare: visit Talia at the market by going east twice",
+      "command": "east"
     },
     {
-      "id": "choose_a_direction",
-      "instruction": "Take the north road when you are ready to explore",
-      "command": "north"
+      "id": "explore_beyond_town",
+      "instruction": "Explore and face danger: equip your rusty dagger, then take the north road to the woods",
+      "command": "equip rusty dagger"
     }
   ]
 }

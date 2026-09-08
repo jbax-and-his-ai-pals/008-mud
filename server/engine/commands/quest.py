@@ -5,6 +5,15 @@ from engine.config import FORMAT_SUCCESS, FORMAT_ERROR, FORMAT_RESET, FORMAT_HIG
 from engine.items.item_factory import ItemFactory
 from engine.player import Player
 from engine.world import world
+from engine.social.relationships import relationship_key
+
+
+def _relationship_requirement(quest_data):
+    """Return a safe relationship gate for a board quest instance."""
+    try:
+        return max(0, int(quest_data.get("relationship_min", 0)))
+    except (TypeError, ValueError):
+        return 0
 
 # Need to import handle_accept_offer
 from engine.commands.interaction.npcs import handle_accept_offer
@@ -56,10 +65,20 @@ def look_board_handler(args, context):
         if world.ruleset_system_enabled("economy"):
             reward_parts.append(f"{rewards.get('gold', 0)} {world.currency_name().capitalize()}")
         reward_summary = ", ".join(reward_parts) if reward_parts else "—"
+        relationship_required = _relationship_requirement(quest_data)
+        relationship_npc_id = str(quest_data.get("relationship_npc_id", giver_instance_id or ""))
+        giver_for_relationship = world.get_npc(relationship_npc_id)
+        bond_key = relationship_key(giver_for_relationship) if giver_for_relationship is not None else relationship_npc_id
+        current_relationship = int(getattr(player, "npc_relationships", {}).get(bond_key, 0))
+        trust_summary = ""
+        if relationship_required:
+            trust_summary = f"   Trust: {current_relationship}/{relationship_required}"
+            if current_relationship < relationship_required:
+                trust_summary += " (locked)"
 
         response += (f"{FORMAT_CATEGORY}[{i + 1}]{FORMAT_RESET} {quest_data.get('title', 'Unnamed Quest')}{FORMAT_HIGHLIGHT}{quantity_summary}{FORMAT_RESET}\n"
                     f"   Giver: {giver_name}\n"
-                    f"   Reward: {reward_summary}\n\n")
+                    f"   Reward: {reward_summary}\n{trust_summary}\n\n")
         
     response += f"Type '{FORMAT_HIGHLIGHT}accept quest <#>{FORMAT_RESET}' to take a task."
     return response
@@ -102,6 +121,15 @@ def accept_quest_handler(args, context):
         return f"{FORMAT_ERROR}Invalid quest number.{FORMAT_RESET}"
 
     quest_to_accept = world.quest_board.pop(quest_index)
+    relationship_required = _relationship_requirement(quest_to_accept)
+    relationship_npc_id = str(quest_to_accept.get("relationship_npc_id", quest_to_accept.get("giver_instance_id", "")))
+    if relationship_required:
+        giver = world.get_npc(relationship_npc_id)
+        bond_key = relationship_key(giver) if giver is not None else relationship_npc_id
+        current_relationship = int(getattr(player, "npc_relationships", {}).get(bond_key, 0))
+        if current_relationship < relationship_required:
+            world.quest_board.insert(quest_index, quest_to_accept)
+            return f"{FORMAT_ERROR}This task requires more trust ({current_relationship}/{relationship_required} relationship).{FORMAT_RESET}"
     quest_to_accept["state"] = "active"
     quest_instance_id = quest_to_accept.get("instance_id")
 
@@ -142,8 +170,12 @@ def accept_quest_handler(args, context):
     else:
         # Check if first stage is 'deliver' to grant items
         objective = quest_manager.get_active_objective(quest_to_accept)
-        if objective and objective.get("type") == "deliver":
+        if objective and objective.get("type") == "deliver" and not objective.get("crafted_only", False):
              # Create Package
+             required_fields = ("item_template_id", "item_instance_id", "item_to_deliver_name", "item_to_deliver_description")
+             if not all(objective.get(field) for field in required_fields):
+                 world.quest_board.insert(quest_index, quest_to_accept)
+                 return f"{FORMAT_ERROR}This delivery task has incomplete item data.{FORMAT_RESET}"
              pkg = ItemFactory.create_item_from_template(
                  objective["item_template_id"], world,
                  obj_id=objective["item_instance_id"],
@@ -227,6 +259,14 @@ def journal_handler(args, context):
                  destination_name = str(objective.get("recipient_name", "")).strip() or "Unknown"
              response += f"{FORMAT_CATEGORY}{title}{FORMAT_RESET} ({destination_label}: {destination_name})\n"
              state_display = quest_data.get("state", "unknown").replace('_', ' ').capitalize(); response += f"  Status: {state_display}\n"
+             routes = context["world"].quest_manager.get_active_objectives(quest_data)
+             if len(routes) > 1:
+                 response += "  Choose one route:\n"
+                 for route in routes:
+                     if route.get("type") == "deliver":
+                         response += f"    - Deliver {route.get('item_to_deliver_name', route.get('item_template_id', 'the item'))} to {route.get('recipient_name', 'the recipient')}.\n"
+                     else:
+                         response += f"    - {route.get('description', 'Complete this route.')}\n"
              
              if obj_type == "kill": 
                  response += f"  Task: Defeat {objective.get('current_quantity', 0)}/{objective.get('required_quantity', '?')} {objective.get('target_name_plural', '?')} in {objective.get('location_hint', '?')}.\n"

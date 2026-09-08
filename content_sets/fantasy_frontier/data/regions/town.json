@@ -118,6 +118,7 @@
       "name": "Community Garden",
       "description": "A well-tended plot of land where villagers grow vegetables and herbs. The air smells of damp earth and fresh greens.",
       "exits": { "north": "west_lane", "east": "river_road" },
+      "items": [ { "item_id": "node_herb_bed" } ],
       "initial_npcs": [ { "template_id": "wandering_villager", "instance_id": "villager_wandering_2" } ]
     },
     "east_market_road": {
@@ -275,6 +276,7 @@
       "name": "Museum Grand Hall",
       "description": "Glass display cases line the walls, many still empty. The air is cool and quiet. A curator stands behind a large desk, sorting through papers.",
       "properties": { "outdoors": false },
+      "items": [ { "item_id": "item_lapidary_wheel" } ],
       "exits": { "out": "museum_exterior" },
       "initial_npcs": [ { "template_id": "curator" } ]
     }

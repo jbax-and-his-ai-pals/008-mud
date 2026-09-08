@@ -13,6 +13,7 @@ from engine.config import (
     DEBUG_IGNORE_PLAYER_COMBAT, DEFAULT_SAVE_FILE
 )
 from engine.core.collection_manager import CollectionManager
+from engine.core.discovery_manager import DiscoveryManager
 from engine.core.knowledge_manager import KnowledgeManager
 from engine.core.time_manager import TimeManager
 from engine.core.weather_manager import WeatherManager
@@ -91,6 +92,7 @@ class GameManager:
 
         self.knowledge_manager = KnowledgeManager(self.world)
         self.collection_manager = CollectionManager(self.world)
+        self.discovery_manager = DiscoveryManager(self.world)
 
     def _handle_ui_command(self, text: str) -> None:
         self.process_command(text)

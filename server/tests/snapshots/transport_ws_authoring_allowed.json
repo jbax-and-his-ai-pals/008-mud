@@ -158,21 +158,28 @@
                 "mana"
               ],
               "systems": {
+                "collections": true,
                 "combat": true,
                 "crafting": true,
                 "dialogue": true,
+                "discoveries": true,
                 "economy": true,
+                "gathering": true,
                 "inventory": true,
                 "magic": true,
                 "progression": true,
-                "quests": true
+                "quests": true,
+                "social": true
               },
               "ui_sections": [
                 "log",
                 "nearby",
                 "status",
                 "inventory",
-                "quests"
+                "quests",
+                "collections",
+                "discoveries",
+                "relationships"
               ]
             },
             "id": "fantasy_frontier",
@@ -271,21 +278,28 @@
                 "mana"
               ],
               "systems": {
+                "collections": true,
                 "combat": true,
                 "crafting": true,
                 "dialogue": true,
+                "discoveries": true,
                 "economy": true,
+                "gathering": true,
                 "inventory": true,
                 "magic": true,
                 "progression": true,
-                "quests": true
+                "quests": true,
+                "social": true
               },
               "ui_sections": [
                 "log",
                 "nearby",
                 "status",
                 "inventory",
-                "quests"
+                "quests",
+                "collections",
+                "discoveries",
+                "relationships"
               ]
             },
             "id": "fantasy_frontier",

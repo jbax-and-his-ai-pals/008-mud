@@ -20,6 +20,7 @@ class Gem(Item):
             stackable=is_stackable,
             **kwargs
         )
+        self.update_property("gift_tags", ["gem"])
 
     def use(self, user, **kwargs) -> str:
         return f"You hold the {self.name} up to the light. It sparkles brilliantly."

@@ -47,8 +47,14 @@ class PlayerPersistenceMixin:
             "last_talked_to": p.last_talked_to,
             "collections_progress": p.collections_progress,
             "collections_completed": p.collections_completed,
+            "discoveries": p.discoveries,
+            "recipe_craft_counts": p.recipe_craft_counts,
             "follow_target": p.follow_target,
             "reputation": p.reputation,
+            "npc_relationships": p.npc_relationships,
+            "npc_gift_days": p.npc_gift_days,
+            "vendor_orders_completed": p.vendor_orders_completed,
+            "relationship_milestones_completed": p.relationship_milestones_completed,
             "gameplay": {},
         })
         gameplay = data["gameplay"]
@@ -171,8 +177,19 @@ class PlayerPersistenceMixin:
         
         player.collections_progress = data.get("collections_progress", {})
         player.collections_completed = data.get("collections_completed", {})
+        player.discoveries = data.get("discoveries", {})
+        raw_recipe_counts = data.get("recipe_craft_counts", {})
+        player.recipe_craft_counts = {
+            str(recipe_id): max(0, int(count))
+            for recipe_id, count in raw_recipe_counts.items()
+            if isinstance(recipe_id, str) and isinstance(count, int) and not isinstance(count, bool)
+        } if isinstance(raw_recipe_counts, dict) else {}
         player.follow_target = data.get("follow_target")
         player.reputation = data.get("reputation", {})
+        player.npc_relationships = data.get("npc_relationships", {})
+        player.npc_gift_days = data.get("npc_gift_days", {})
+        player.vendor_orders_completed = data.get("vendor_orders_completed", {})
+        player.relationship_milestones_completed = data.get("relationship_milestones_completed", {})
 
         player.world = world
         normalize = getattr(world, "apply_content_player_defaults", None)

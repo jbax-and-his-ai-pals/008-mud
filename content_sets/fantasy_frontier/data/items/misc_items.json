@@ -1,4 +1,40 @@
 {
+  "item_wildflower_posy": {
+    "type": "Item",
+    "name": "wildflower posy",
+    "description": "A hand-tied bundle of fragrant herbs and wildflowers; modest, but clearly made with care.",
+    "weight": 0.2,
+    "value": 8,
+    "stackable": true,
+    "properties": { "category": "gift", "gift_tags": ["flower", "handmade"] }
+  },
+  "item_riverside_charm": {
+    "type": "Item",
+    "name": "carved riverside charm",
+    "description": "A small carved charm showing a river bend and three reeds. It is simple, but carefully finished.",
+    "weight": 0.2,
+    "value": 12,
+    "stackable": true,
+    "properties": { "category": "gift", "gift_tags": ["handmade", "curio"] }
+  },
+  "item_river_token": {
+    "type": "Item",
+    "name": "river-clay token",
+    "description": "A thumb-sized clay token pressed with the Riverside river-mark.",
+    "weight": 0.2,
+    "value": 6,
+    "stackable": true,
+    "properties": { "category": "curio", "gift_tags": ["handmade", "curio"] }
+  },
+  "item_rose_quartz_talisman": {
+    "type": "Item",
+    "name": "rose quartz talisman",
+    "description": "A polished rose quartz set on a leather cord. It catches the light with a soft warmth.",
+    "weight": 0.2,
+    "value": 30,
+    "stackable": true,
+    "properties": { "category": "gift", "gift_tags": ["gem", "handmade", "curio"] }
+  },
   "item_town_notice": {
     "type": "Item",
     "name": "town notice",

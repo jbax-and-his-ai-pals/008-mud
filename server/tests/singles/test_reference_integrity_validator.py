@@ -295,6 +295,12 @@ class TestValidateCatalogsQuestReferences(unittest.TestCase):
         issues = riv.validate_catalogs(self._base_catalogs(root, quests_unknown_room, region_files=[rf]))
         self.assertIn("quests/q1.stages[0].objective.target_room_id", _issue_paths(issues))
 
+    def test_alternative_objective_references_are_reported(self) -> None:
+        root = self._case_root()
+        quests = {"q1": {"stages": [{"objectives_any": [{"item_template_id": "item_ghost"}]}]}}
+        issues = riv.validate_catalogs(self._base_catalogs(root, quests))
+        self.assertIn("quests/q1.stages[0].objectives_any[0].item_template_id", _issue_paths(issues))
+
     def test_non_list_reward_items_is_ignored(self) -> None:
         root = self._case_root()
         quests = {"q1": {"rewards": {"items": "not-a-list"}}}

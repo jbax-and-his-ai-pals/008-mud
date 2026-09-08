@@ -13,6 +13,7 @@ from engine.config import (
 from engine.core.combat_system import CombatSystem
 from engine.items.item import Item
 from engine.items.weapon import Weapon
+from engine.items.attachments import attachment_modifier
 from engine.utils.utils import calculate_xp_gain, format_loot_drop_message
 
 if TYPE_CHECKING:
@@ -28,6 +29,8 @@ class PlayerCombatMixin:
         main_hand_weapon = p.equipment.get("main_hand")
         if isinstance(main_hand_weapon, Weapon) and main_hand_weapon.get_property("durability", 1) > 0:
             attack += main_hand_weapon.get_property("damage", 0)
+        for item in p.equipment.values():
+            attack += attachment_modifier(item, "attack")
         return attack
 
     def get_defense(self) -> int:
@@ -36,6 +39,7 @@ class PlayerCombatMixin:
         for item in p.equipment.values():
             if isinstance(item, Item) and item.get_property("durability", 1) > 0:
                 defense += item.get_property("defense", 0)
+                defense += attachment_modifier(item, "defense")
         return defense
     
     def get_effective_attack_cooldown(self) -> float:

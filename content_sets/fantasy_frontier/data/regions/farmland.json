@@ -106,7 +106,7 @@
                 "north": "orchard_south"
             }
         },
-        "orchard_west": {
+      "orchard_west": {
             "name": "Western Apple Orchard",
             "description": "The edge of a large apple orchard. Gnarled trees grow in neat rows, their branches laden with fruit. The scent of ripe apples hangs in the air.",
             "properties": { "smell": "apples" },
@@ -116,7 +116,8 @@
                 "east": "orchard_east"
             },
             "items": [
-                { "item_id": "item_ripe_apple", "quantity": 3 }
+          { "item_id": "item_ripe_apple", "quantity": 3 },
+          { "item_id": "node_fallen_bough" }
             ]
         },
         "orchard_south": {

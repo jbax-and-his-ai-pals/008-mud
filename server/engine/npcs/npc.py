@@ -148,7 +148,62 @@ class NPC(GameObject):
                         if item:
                             world.add_item_to_room(self.current_region_id, self.current_room_id, item)
                             dropped_items.append(item)
+        # Optional content-authored ambient pools supplement explicit NPC loot.
+        # Tags and template selectors let a content set express an ecology
+        # (rather than awarding every NPC the same valuables) without placing
+        # setting-specific creature classes in the engine.
+        ambient_pools = world.ruleset_section("loot").get("ambient_pools", [])
+        for pool in ambient_pools if isinstance(ambient_pools, list) else []:
+            if not isinstance(pool, dict) or not self._matches_ambient_loot_pool(pool) or random.random() > float(pool.get("chance", 0.0)):
+                continue
+            entries = [entry for entry in pool.get("entries", []) if isinstance(entry, dict) and entry.get("item_id")]
+            if not entries:
+                continue
+            total_weight = sum(max(0.0, float(entry.get("weight", 1.0))) for entry in entries)
+            if total_weight <= 0:
+                continue
+            roll = random.random() * total_weight
+            selected = entries[-1]
+            for entry in entries:
+                roll -= max(0.0, float(entry.get("weight", 1.0)))
+                if roll <= 0:
+                    selected = entry
+                    break
+            item = ItemFactory.create_item_from_template(str(selected["item_id"]), world)
+            if item and self.current_region_id and self.current_room_id:
+                world.add_item_to_room(self.current_region_id, self.current_room_id, item)
+                dropped_items.append(item)
         return dropped_items
+
+    def _matches_ambient_loot_pool(self, pool: Dict[str, Any]) -> bool:
+        """Apply optional, content-defined selectors for an ambient loot pool."""
+        raw_tags = self.get_property("loot_tags", [])
+        npc_tags = {str(tag).strip() for tag in raw_tags if str(tag).strip()} if isinstance(raw_tags, list) else set()
+
+        template_ids = pool.get("npc_template_ids")
+        if isinstance(template_ids, list):
+            allowed_ids = {str(template_id).strip() for template_id in template_ids if str(template_id).strip()}
+            if allowed_ids and self.template_id not in allowed_ids:
+                return False
+
+        tags_any = pool.get("npc_tags_any")
+        if isinstance(tags_any, list):
+            required_any = {str(tag).strip() for tag in tags_any if str(tag).strip()}
+            if required_any and not npc_tags.intersection(required_any):
+                return False
+
+        tags_all = pool.get("npc_tags_all")
+        if isinstance(tags_all, list):
+            required_all = {str(tag).strip() for tag in tags_all if str(tag).strip()}
+            if not required_all.issubset(npc_tags):
+                return False
+
+        tags_none = pool.get("npc_tags_none")
+        if isinstance(tags_none, list):
+            excluded_tags = {str(tag).strip() for tag in tags_none if str(tag).strip()}
+            if npc_tags.intersection(excluded_tags):
+                return False
+        return True
         
     def to_dict(self) -> Dict[str, Any]:
         return {

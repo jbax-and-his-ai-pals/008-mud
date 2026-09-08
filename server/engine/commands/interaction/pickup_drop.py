@@ -88,6 +88,10 @@ def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_v
              # Collection Logic
              hint = context["game"].collection_manager.handle_collection_discovery(recipient, item)
              if hint: hints.append(hint)
+             discovery_manager = getattr(context["game"], "discovery_manager", None)
+             if discovery_manager:
+                  hint = discovery_manager.handle_item_discovery(recipient, item)
+                  if hint: hints.append(hint)
              if route_note:
                   hints.append(route_note)
              

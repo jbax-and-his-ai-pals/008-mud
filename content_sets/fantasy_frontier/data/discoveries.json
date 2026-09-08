@@ -1,0 +1,22 @@
+{
+  "fieldcraft_basics": {
+    "name": "Fieldcraft Basics",
+    "description": "You have found a useful natural material. Tools, terrain, and time can turn such finds into practical work.",
+    "item_tags": ["field_material"]
+  },
+  "riverside_clay": {
+    "name": "Riverbank Clay",
+    "description": "Fine river clay can become vessels, tiles, and other fired work when a suitable craft is available.",
+    "item_ids": ["item_river_clay"]
+  },
+  "rose_quartz": {
+    "name": "Rose Quartz Prospect",
+    "description": "A rough crystal can be appraised, cut at a lapidary station, displayed, traded, gifted, or fitted as an ornament.",
+    "item_ids": ["item_rose_quartz"]
+  },
+  "lapidary_work": {
+    "name": "Lapidary Work",
+    "description": "A finished ornamental stone is both a valuable social gift and a modular equipment component.",
+    "item_ids": ["item_faceted_rose_quartz"]
+  }
+}
