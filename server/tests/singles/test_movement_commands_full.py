@@ -58,10 +58,12 @@ class TestDirectionHandlerGuards(GameTestBase):
 
 class TestContextualExitCommands(GameTestBase):
     def test_unregistered_room_exit_is_available_as_a_contextual_verb(self):
+        # "gazebo" just needs to be a word with no registered command of its
+        # own; it isn't otherwise meaningful to what this test covers.
         room = self.world.get_current_room(self.player)
-        room.exits["house"] = "town:east_market_road"
+        room.exits["gazebo"] = "town:east_market_road"
 
-        result = self.game.process_command("house")
+        result = self.game.process_command("gazebo")
 
         self.assertNotIn("Unknown command", result)
         self.assertEqual("east_market_road", self.player.current_room_id)

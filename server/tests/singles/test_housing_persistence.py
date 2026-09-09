@@ -11,6 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from engine.items.item_factory import ItemFactory
 from engine.server.content_set import load_content_set
 from engine.server.headless_server import HeadlessServer
 
@@ -90,6 +91,69 @@ class TestHousingPersistence(unittest.TestCase):
                 lock = vacant_lot.properties.get("exit_requirements", {}).get("in", {})
                 self.assertEqual("locked", lock.get("type"))
                 self.assertEqual("item_house_key_starter", lock.get("key_id"))
+            finally:
+                server2.shutdown()
+
+    def test_house_tier_2_branch_survives_save_and_a_fresh_server_load(self) -> None:
+        with tempfile.TemporaryDirectory() as save_directory:
+            server = HeadlessServer(
+                save_file="housetest_tier2.json",
+                db_path=":memory:",
+                content_set_path=str(FANTASY_FRONTIER),
+                save_directory=save_directory,
+                deterministic_test_mode=True,
+            )
+            try:
+                session = server.create_session(player_id="house_expander")
+                server.execute_command(session.session_id, "char create Rowan")
+                player = server.get_player_for_session(session.session_id)
+                player.runtime_state.gold = 1000
+                player.current_region_id = "town"
+                player.current_room_id = "residential_street_east"
+                server.execute_command(session.session_id, "northeast")
+                server.execute_command(session.session_id, "buy house")
+
+                # Ambiguous without a branch: two options exist for tier 2.
+                ambiguous = server.execute_command(session.session_id, "expand house")
+                self.assertIn(
+                    "Which upgrade did you have in mind?",
+                    "\n".join(str(event["payload"]) for event in ambiguous),
+                )
+
+                for item_id, quantity in (("item_softwood", 6), ("item_wild_herbs", 5)):
+                    item = ItemFactory.create_item_from_template(item_id, server.world)
+                    player.inventory.add_item(item, quantity)
+
+                expanded = server.execute_command(session.session_id, "expand house garden")
+                expanded_text = "\n".join(str(event["payload"]) for event in expanded)
+                self.assertIn("Garden Cottage", expanded_text)
+                self.assertEqual(250, player.runtime_state.gold)
+                self.assertEqual(0, player.inventory.count_item("item_softwood"))
+                self.assertEqual(0, player.inventory.count_item("item_wild_herbs"))
+
+                self.assertTrue(server.world.save_game("housetest_tier2.json"))
+            finally:
+                server.shutdown()
+
+            server2 = HeadlessServer(
+                save_file="housetest_tier2.json",
+                db_path=":memory:",
+                content_set_path=str(FANTASY_FRONTIER),
+                save_directory=save_directory,
+                deterministic_test_mode=True,
+            )
+            try:
+                success, _time_state, _weather_state = server2.world.load_save_game("housetest_tier2.json")
+                self.assertTrue(success)
+
+                house_region = server2.world.get_region("dynamic_player_house")
+                self.assertIsNotNone(house_region)
+                self.assertEqual(2, house_region.properties.get("house_tier"))
+                self.assertEqual("garden", house_region.properties.get("house_branch"))
+
+                interior = house_region.get_room(house_region.properties.get("interior_room_id"))
+                self.assertEqual("Your House (with a Garden)", interior.name)
+                self.assertIn("garden plot", interior.description)
             finally:
                 server2.shutdown()
 

@@ -498,10 +498,12 @@
     "behavior_type": "stationary",
     "dialog": {
       "greeting": "Looking for a place of your own? This lot's been sitting empty too long.",
-      "house": "500 gold and it's yours, free and clear. Just say the word: buy house."
+      "house": "500 gold and it's yours, free and clear. Just say the word: buy house.",
+      "expand": "Thinking bigger? I can put in a garden or a pond out back -- your call. Just say: expand house garden, or expand house pond."
     },
     "properties": {
       "sells_houses": true,
+      "can_expand_houses": true,
       "house_offer": {
         "cost": 500,
         "region_id": "dynamic_player_house",
@@ -516,6 +518,34 @@
             "properties": { "outdoors": false },
             "exits": { "out": "dynamic_exit" }
           }
+        }
+      },
+      "house_tiers": {
+        "2": {
+          "options": [
+            {
+              "branch": "garden",
+              "label": "Garden Cottage",
+              "cost": 250,
+              "materials": [
+                { "item_id": "item_softwood", "quantity": 6 },
+                { "item_id": "item_wild_herbs", "quantity": 5 }
+              ],
+              "room_name": "Your House (with a Garden)",
+              "room_description": "A cozy one-room home. A small garden plot has been tilled behind the house, ready for planting."
+            },
+            {
+              "branch": "pond",
+              "label": "Pond Cottage",
+              "cost": 250,
+              "materials": [
+                { "item_id": "item_softwood", "quantity": 6 },
+                { "item_id": "item_river_clay", "quantity": 5 }
+              ],
+              "room_name": "Your House (with a Pond)",
+              "room_description": "A cozy one-room home. A modest pond has been dug and lined beside the house, its still water catching the light."
+            }
+          ]
         }
       }
     }

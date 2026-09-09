@@ -256,18 +256,29 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   Deliberately scoped to exactly one house existing in the world for now
   (a single fixed offer/region id, one shared key template) -- making
   houses genuinely per-player is real follow-up work, not an oversight.
-- Still to build: the tiered expansion (Cottage -> House -> Manor) with
-  playstyle-branching tiers (e.g. a garden tier toward a future farming
-  system, a pond tier toward fishing), paid for via a contractor NPC
-  requiring gold plus fetched/crafted materials, possibly delegated across
-  other named NPCs as a multi-stage commission; residential containers
-  locked by default so theft requires continuous skill engagement; a
-  multi-factor crime/notoriety system (theft value, cumulative crime
-  value, reputation) driving a fine-or-jail outcome, with jail time
-  passing on the existing real-time clock and an escape mechanic gated
-  behind a stealth+lockpicking bottleneck; a residential district as a
-  labeled room group connected by a non-directional gate; guards
-  patrolling the whole town as a first iteration.
+- [x] **Tier 2 shipped: a branching garden/pond expansion.** `expand house
+  <garden|pond>` (same property agent, now doubling as contractor) reflavors
+  the house's interior room and records `house_tier`/`house_branch` on the
+  region, gated on gold plus distinct materials per branch; a new `house`
+  command shows current tier/branch and, near the contractor, the next
+  tier's options. Confirmed content alone can't wire quest completion to an
+  arbitrary side effect like a tier bump -- `_grant_rewards`/
+  `grant_party_rewards` only support `xp`/`gold`/`items`/`relationships` --
+  so this reuses a direct command (mirroring `buy_house`) rather than a
+  quest, the same way `CraftingManager`'s multi-ingredient check/deduct
+  loop was reused for the materials cost. A real, multi-stage delegated
+  commission (contractor sends you to the blacksmith, then the wood shop)
+  remains real follow-up work, not yet built.
+- Still to build: further tiers beyond 2 (a Manor-level tier, and whether
+  a later tier lets a player pick up the branch they didn't originally
+  choose); residential containers locked by default so theft requires
+  continuous skill engagement; a multi-factor crime/notoriety system (theft
+  value, cumulative crime value, reputation) driving a fine-or-jail
+  outcome, with jail time passing on the existing real-time clock and an
+  escape mechanic gated behind a stealth+lockpicking bottleneck; a
+  residential district as a labeled room group connected by a
+  non-directional gate; guards patrolling the whole town as a first
+  iteration.
 - Still open: exact scope of "unowned containers are locked" (resolved as
   chest-vs-barrel, not location-based, per the design doc) is decided, but
   district tagging, guard patrol routes, and per-player house uniqueness

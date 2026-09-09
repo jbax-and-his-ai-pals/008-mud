@@ -39,9 +39,37 @@ every key made from the shared key template is interchangeable
 houses genuinely per-player -- unique region and key per owner -- is
 follow-up work, not an oversight; flagged in code where it matters.
 
-Not yet built: tiers, playstyle branches, the contractor/expansion flow,
-chest locking, crime/jail, districts, and guards -- everything else in this
-document below is still just design, not implementation.
+## Shipped: tier 2 (branching garden/pond expansion)
+
+`expand house <garden|pond>` reflavors the house's interior room and
+records `house_tier`/`house_branch` on the region (`house_tier` starts at 1
+from purchase), gated on gold plus branch-specific materials
+(`HousingManager.expand_house`, `engine/world/housing_manager.py`) -- the
+same property agent, Cobb, doubles as the contractor rather than
+introducing a separate NPC (a pure content move to split out later, not a
+structural one). A new `house` command (`describe_house_status`) shows
+current tier/branch and, near a contractor, the next tier's options --
+the "look before you spend" step tier 1 didn't need with only one option.
+
+Investigated wiring this through the quest system first, since the
+contractor-delegation narrative ("fetch nails from the blacksmith, boards
+from the wood shop") was the original framing below. Confirmed that's not
+achievable with content alone: `QuestManager.complete_quest`/
+`_grant_rewards` and `HeadlessServer.grant_party_rewards` only support four
+hardcoded reward keys (`xp`/`gold`/`items`/`relationships`) with no hook
+for an arbitrary side effect like a tier increment, even though the
+NPC-delegation chain itself needs no new mechanic (`quest_missing_guard`
+already proves fetch-from-A-then-deliver-to-B works). Built the direct
+command instead (mirroring `buy_house`'s gold check, reusing
+`CraftingManager.can_craft`/`craft`'s multi-ingredient check-then-deduct
+loop for the materials cost) -- a real multi-stage delegated commission is
+follow-up work once a quest-engine reward hook exists, not part of this
+slice.
+
+Not yet built: tiers beyond 2, whether a later tier lets a player pick up
+the branch they didn't originally choose, chest locking, crime/jail,
+districts, and guards -- everything else in this document below is still
+just design, not implementation.
 
 ## Engine facts this design leans on
 
