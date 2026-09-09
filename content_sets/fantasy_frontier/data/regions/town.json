@@ -89,7 +89,13 @@
     "residential_street_east": {
       "name": "Residential Street",
       "description": "A quiet residential street lined with small, well-kept houses. A small shrine stands at the western end of the street.",
-      "exits": { "east": "west_lane", "west": "shrine_exterior", "north": "small_house_1_exterior" }
+      "exits": { "east": "west_lane", "west": "shrine_exterior", "north": "small_house_1_exterior", "northeast": "player_house_exterior" }
+    },
+    "player_house_exterior": {
+      "name": "Vacant Lot",
+      "description": "A modest vacant lot at the edge of the residential street, freshly cleared and waiting for an owner.",
+      "exits": { "southwest": "residential_street_east" },
+      "initial_npcs": [ { "template_id": "property_agent" } ]
     },
     "small_house_1_exterior": {
       "name": "A Small House",

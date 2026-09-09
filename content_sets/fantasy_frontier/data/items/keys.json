@@ -9,5 +9,13 @@
       "properties": {
         "target_id": "tavern_cellar_door"
       }
+    },
+    "item_house_key_starter": {
+      "type": "Key",
+      "name": "house key",
+      "description": "A plain brass key. It's warm from your pocket.",
+      "weight": 0.1,
+      "value": 0,
+      "stackable": false
     }
   }

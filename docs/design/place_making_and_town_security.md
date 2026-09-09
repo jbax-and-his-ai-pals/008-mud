@@ -12,6 +12,37 @@ were designed together because housing motivates theft, theft motivates
 guards, and guards motivate a district for them to patrol -- but each is
 buildable as its own vertical slice once its open questions are resolved.
 
+## Shipped: first slice (persistent single-player-house purchase)
+
+A property agent (`property_agent`, at `town:player_house_exterior`, off
+Residential Street) sells one house for 500 gold via a new `buy house`
+command; the buyer receives `item_house_key_starter`, and the door
+(`player_house_exterior`'s `in` exit) is locked to everyone else via the
+existing `exit_requirements` mechanism. Implementation: `InstanceManager`
+gained `build_region`/`apply_entry_exit`/`remove_entry_exit` (extracted from
+`instantiate_quest_region`, which now calls them instead of inlining the
+same logic), and `SaveManager.load()` now replays `apply_entry_exit` for
+every restored dynamic/instance region. That replay is the fix for a real,
+independently-confirmed bug: a quest instance's door onto its permanent
+entry room was silently lost on every save/load round trip, because that
+permanent room's (static) region is always rebuilt fresh from content-set
+JSON before a save is loaded, and nothing ever re-applied the runtime
+wiring afterward. A new `HousingManager` (`engine/world/housing_manager.py`)
+owns house-specific behavior (ownership via `region.properties
+["owner_player_id"]`, payment, key granting) separately from
+`InstanceManager`, so it can't touch quest cleanup/abandonment code paths.
+
+Deliberately scoped to exactly one house existing in the world: the offer's
+`region_id` is a single fixed string, so a second buyer is turned away, and
+every key made from the shared key template is interchangeable
+(`ItemFactory` sets a created item's `obj_id` to its template id). Making
+houses genuinely per-player -- unique region and key per owner -- is
+follow-up work, not an oversight; flagged in code where it matters.
+
+Not yet built: tiers, playstyle branches, the contractor/expansion flow,
+chest locking, crime/jail, districts, and guards -- everything else in this
+document below is still just design, not implementation.
+
 ## Engine facts this design leans on
 
 Found while scoping this, all already built and tested -- most of this
@@ -20,9 +51,10 @@ work:
 
 - `InstanceManager.instantiate_quest_region` already creates a `Region` at
   runtime and wires a new exit onto an existing, real, authored room to reach
-  it. Built for temporary quest dungeons (torn down on completion); a home
-  needs the same attachment trick but made *persistent* across save/load,
-  which is the one genuinely new engine lift in this whole design.
+  it. Built for temporary quest dungeons (torn down on completion) -- a home
+  needed the same attachment trick made *persistent* across save/load,
+  which was the one genuinely new engine lift in this whole design and is
+  now done (see "Shipped" above).
 - `Container` already has native `locked`/`key_id` fields, and
   `exit_requirements` already supports a `locked` type with `key_id` and a
   lockpicking skill check (`pick_difficulty`). Locked-but-pickable containers
@@ -161,9 +193,3 @@ work:
   actual route(s) -- one big loop, several overlapping short ones, guard
   count -- is "iterate on it," i.e. build a first pass and see how it feels
   rather than fully specify up front.
-- **Persisting player-created regions.** The one real engine gap: save/load
-  currently only knows about content-authored (static) regions. A home
-  needs its region, its exit-wire on the entry room, and its contents to
-  survive a save/load round trip. Scoping this is prerequisite engineering
-  work before any of the above can ship, independent of which design
-  choices above get made.

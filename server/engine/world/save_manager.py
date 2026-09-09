@@ -135,6 +135,13 @@ class SaveManager:
                     try:
                         region = Region.from_dict(region_data)
                         self.world.add_region(region.obj_id, region)
+                        # A dynamic region's door onto a permanent room lives
+                        # only in that permanent room's exits dict, and the
+                        # permanent room's own (static) region was just
+                        # rebuilt fresh from content-set JSON in World.__init__
+                        # -- so any such wiring must be replayed here or it's
+                        # silently lost every time a save is reloaded.
+                        self.world.instance_manager.apply_entry_exit(region)
                         Logger.debug("SaveManager", f"Restored dynamic region: {region.obj_id}")
                     except Exception as e:
                         Logger.error("SaveManager", f"Failed to restore dynamic region: {e}")

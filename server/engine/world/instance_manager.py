@@ -31,7 +31,85 @@ class InstanceManager:
                 return reference_player
         return None
 
-    # ... (Keep instantiate_quest_region) ...
+    def build_region(
+        self, unique_region_id: str, region_name: str, region_description: str,
+        rooms_data: Dict[str, Any], entry_point: Dict[str, Any],
+        region_properties: Optional[Dict[str, Any]] = None,
+        exit_requirements: Optional[Dict[str, Any]] = None,
+    ) -> Tuple['Region', str]:
+        """Builds a Region from a {room_id: {name, description, exits}} dict
+        (the shape both quest instances and houses use, including the
+        'dynamic_exit' sentinel for a room that should lead back to the
+        permanent entry room), registers it on the world, and records
+        entry_point metadata on the region so apply_entry_exit can wire (or
+        re-wire, e.g. after a save/load) its door onto a real, permanent
+        room. Does NOT wire the door itself -- callers that need other setup
+        first (e.g. spawning NPCs into the new region) should call
+        apply_entry_exit once everything else has succeeded, matching the
+        order quest instantiation already relied on.
+        """
+        new_region = Region(obj_id=unique_region_id, name=region_name, description=region_description)
+        new_region.properties = region_properties if region_properties is not None else {}
+
+        entry_room_id = ""
+        for room_id, room_data in rooms_data.items():
+            if not entry_room_id: entry_room_id = room_id
+            for direction, exit_dest in list(room_data.get('exits', {}).items()):
+                if exit_dest == "dynamic_exit":
+                    room_data['exits'][direction] = f"{entry_point['region_id']}:{entry_point['room_id']}"
+                elif ":" not in exit_dest:
+                    room_data['exits'][direction] = f"{unique_region_id}:{exit_dest}"
+
+            new_room = Room.from_dict(room_data)
+            new_region.add_room(room_id, new_room)
+
+        self.world.regions[unique_region_id] = new_region
+        new_region.properties["entry_point"] = {
+            "region_id": entry_point['region_id'],
+            "room_id": entry_point['room_id'],
+            "exit_command": entry_point['exit_command'],
+            "destination": f"{unique_region_id}:{entry_room_id}",
+            "exit_requirements": exit_requirements,
+        }
+        return new_region, entry_room_id
+
+    def apply_entry_exit(self, region: 'Region') -> bool:
+        """Wires (or re-wires) a region's entry_point metadata onto its
+        permanent room's exits. Safe to call repeatedly, including after a
+        save/load restores the region -- the permanent room's own region is
+        rebuilt fresh from static content on every load, which silently
+        drops any exit wired onto it at runtime unless this is replayed.
+        Returns True if wiring was applied, False if the metadata or the
+        target room couldn't be resolved (mirrors the historical silent-skip
+        behavior of quest-instance creation).
+        """
+        meta = region.properties.get("entry_point")
+        if not meta:
+            return False
+        perm_region = self.world.get_region(meta.get("region_id"))
+        if not perm_region:
+            return False
+        perm_room = perm_region.get_room(meta.get("room_id"))
+        if not perm_room:
+            return False
+        perm_room.exits[meta["exit_command"]] = meta["destination"]
+        exit_reqs = meta.get("exit_requirements")
+        if exit_reqs:
+            reqs = perm_room.properties.get("exit_requirements", {})
+            reqs[meta["exit_command"]] = exit_reqs
+            perm_room.update_property("exit_requirements", reqs)
+        return True
+
+    def remove_entry_exit(self, region: 'Region') -> None:
+        """Removes a region's wired exit from its permanent room, if present."""
+        meta = region.properties.get("entry_point")
+        if not meta:
+            return
+        perm_region = self.world.get_region(meta.get("region_id"))
+        perm_room = perm_region.get_room(meta.get("room_id")) if perm_region else None
+        if perm_room and meta.get("exit_command") in perm_room.exits:
+            del perm_room.exits[meta["exit_command"]]
+
     def instantiate_quest_region(self, quest_data: Dict[str, Any], requesting_player=None) -> Tuple[bool, str, Optional[str]]:
         # Use explicitly provided player or fall back to a loaded reference player.
         active_player = self._resolve_reference_player(requesting_player)
@@ -49,27 +127,15 @@ class InstanceManager:
 
             unique_region_id = f"instance_{quest_instance_id}"
             quest_data['instance_region_id'] = unique_region_id
-            
-            new_region = Region(
-                obj_id=unique_region_id,
-                name=instance_region['region_name'],
-                description=instance_region['region_description']
-            )
-            new_region.properties = instance_region.get("properties", {})
-            
-            entry_room_id = ""
-            for room_id, room_data in instance_region['rooms'].items():
-                if not entry_room_id: entry_room_id = room_id
-                for direction, exit_dest in list(room_data.get('exits', {}).items()):
-                    if exit_dest == "dynamic_exit":
-                        room_data['exits'][direction] = f"{entry_point['region_id']}:{entry_point['room_id']}"
-                    elif ":" not in exit_dest:
-                        room_data['exits'][direction] = f"{unique_region_id}:{exit_dest}"
-                
-                new_room = Room.from_dict(room_data)
-                new_region.add_room(room_id, new_room)
 
-            self.world.regions[unique_region_id] = new_region
+            new_region, entry_room_id = self.build_region(
+                unique_region_id=unique_region_id,
+                region_name=instance_region['region_name'],
+                region_description=instance_region['region_description'],
+                rooms_data=instance_region['rooms'],
+                entry_point=entry_point,
+                region_properties=instance_region.get("properties", {}),
+            )
 
             target_template_id = objective.get("target_template_id")
             target_count_range = layout_config.get("target_count", [2, 4])
@@ -95,10 +161,7 @@ class InstanceManager:
 
             permanent_entry_region = self.world.get_region(entry_point['region_id'])
             if not permanent_entry_region: return False, "Could not get permanent entry region.", None
-            permanent_entry_room = permanent_entry_region.get_room(entry_point['room_id'])
-            exit_command = entry_point['exit_command']
-            if permanent_entry_room:
-                permanent_entry_room.exits[exit_command] = f"{unique_region_id}:{entry_room_id}"
+            self.apply_entry_exit(new_region)
 
             giver_npc_id = None
             spawn_message = "You decide to take on the task."
@@ -120,8 +183,7 @@ class InstanceManager:
                     # so cleanup_quest_region() is a no-op here. Remove the
                     # region/NPCs directly, plus the permanent exit link
                     # already written above if it was set.
-                    if permanent_entry_room and exit_command in permanent_entry_room.exits:
-                        del permanent_entry_room.exits[exit_command]
+                    self.remove_entry_exit(new_region)
                     self._remove_region_and_npcs(unique_region_id)
                     return False, f"Could not spawn giver NPC '{giver_tid}'.", None
 

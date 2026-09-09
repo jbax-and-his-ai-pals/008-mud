@@ -487,5 +487,37 @@
       ],
       "can_give_generic_quests": false
     }
+  },
+  "property_agent": {
+    "name": "Cobb the Property Agent",
+    "description": "A stout man with a ledger tucked under one arm, always eyeing the empty lot behind him.",
+    "health": 50,
+    "level": 2,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "dialog": {
+      "greeting": "Looking for a place of your own? This lot's been sitting empty too long.",
+      "house": "500 gold and it's yours, free and clear. Just say the word: buy house."
+    },
+    "properties": {
+      "sells_houses": true,
+      "house_offer": {
+        "cost": 500,
+        "region_id": "dynamic_player_house",
+        "region_name": "Your House",
+        "region_description": "A small house of your own, still smelling faintly of fresh-cut timber.",
+        "key_item_id": "item_house_key_starter",
+        "entry_point": { "region_id": "town", "room_id": "player_house_exterior", "exit_command": "in" },
+        "rooms": {
+          "interior": {
+            "name": "Your House",
+            "description": "A cozy one-room home. A bed sits in the corner, and there's room for whatever you'd like to keep here.",
+            "properties": { "outdoors": false },
+            "exits": { "out": "dynamic_exit" }
+          }
+        }
+      }
+    }
   }
 }

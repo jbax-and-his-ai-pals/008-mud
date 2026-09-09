@@ -238,30 +238,40 @@ existing authored candidates) -- see place-making below.
 
 ### Place-making
 
-**Design in progress, not yet scoped for implementation.** Grew in
-conversation into a combined housing/theft/town-security design (a home
-worth having implies things worth stealing, which implies guards and a
+Grew in conversation into a combined housing/theft/town-security design (a
+home worth having implies things worth stealing, which implies guards and a
 place for them to patrol). Full decision log, engine-fact grounding, and
 open questions: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 
-Decided so far: tiered house expansion (Cottage -> House -> Manor) with
-some tiers branching by playstyle (e.g. a garden tier toward a future
-farming system, a pond tier toward fishing); expansion paid for via a
-contractor NPC requiring gold plus fetched/crafted materials, possibly
-delegated across other named NPCs as a multi-stage commission; residential
-containers locked by default so theft requires continuous skill
-engagement; a multi-factor crime/notoriety system (theft value, cumulative
-crime value, reputation) driving a fine-or-jail outcome, with jail time
-passing on the existing real-time clock and an escape mechanic gated behind
-a not-yet-decided skill/perk; a residential district as a labeled room
-group connected by a non-directional gate; guards patrolling the whole
-town as a first iteration.
-
-Still open: exact scope of "unowned containers are locked," how a thief
-senses guard proximity, how the concealed-lockpick perk is earned, and the
-prerequisite engineering gap (persisting a player-created region through
-save/load, since the current instance-region mechanism is built to be
-torn down, not kept forever).
+- [x] **First implementation slice shipped: a persistent, player-owned
+  house.** A property agent (`town:player_house_exterior`, off the
+  Residential Street) sells a house for gold via `buy house`; the door is
+  key-locked to everyone else and survives save/load. This proved the
+  riskiest unproven part of the whole design and fixed a real, pre-existing
+  bug along the way: `InstanceManager`'s quest-dungeon doors were silently
+  losing their wiring on every save/load round trip, because the permanent
+  room they're wired onto is always rebuilt fresh from static content-set
+  JSON before a save is loaded, and nothing replayed the wiring afterward.
+  `InstanceManager.apply_entry_exit` now does, for both quests and houses.
+  Deliberately scoped to exactly one house existing in the world for now
+  (a single fixed offer/region id, one shared key template) -- making
+  houses genuinely per-player is real follow-up work, not an oversight.
+- Still to build: the tiered expansion (Cottage -> House -> Manor) with
+  playstyle-branching tiers (e.g. a garden tier toward a future farming
+  system, a pond tier toward fishing), paid for via a contractor NPC
+  requiring gold plus fetched/crafted materials, possibly delegated across
+  other named NPCs as a multi-stage commission; residential containers
+  locked by default so theft requires continuous skill engagement; a
+  multi-factor crime/notoriety system (theft value, cumulative crime
+  value, reputation) driving a fine-or-jail outcome, with jail time
+  passing on the existing real-time clock and an escape mechanic gated
+  behind a stealth+lockpicking bottleneck; a residential district as a
+  labeled room group connected by a non-directional gate; guards
+  patrolling the whole town as a first iteration.
+- Still open: exact scope of "unowned containers are locked" (resolved as
+  chest-vs-barrel, not location-based, per the design doc) is decided, but
+  district tagging, guard patrol routes, and per-player house uniqueness
+  are not yet built.
 
 - A modest player home, camp, or workshop: storage, displays, workstations,
   gardens, trophies, and furnishings.

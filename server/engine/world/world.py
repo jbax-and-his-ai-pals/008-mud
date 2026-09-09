@@ -27,6 +27,7 @@ from engine.world.save_manager import SaveManager
 from engine.world.definition_loader import load_all_definitions, initialize_new_world
 from engine.world.respawn_manager import RespawnManager
 from engine.world.instance_manager import InstanceManager
+from engine.world.housing_manager import HousingManager
 from engine.utils.pathfinding import find_path
 from engine.core.skill_system import SkillSystem
 from engine.config.config_combat import configure_combat_elements
@@ -71,6 +72,7 @@ class World:
         self.save_manager = SaveManager(self)
         self.respawn_manager = RespawnManager(self)
         self.instance_manager = InstanceManager(self)
+        self.housing_manager = HousingManager(self)
 
         self.last_update_time = 0.0
         self._simulation_has_started = False
