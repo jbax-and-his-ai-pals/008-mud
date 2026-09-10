@@ -79,5 +79,14 @@
     "value": 45,
     "durability": 24,
     "max_durability": 24
+  },
+  "item_lockpick_shiv": {
+    "type": "Lockpick",
+    "name": "makeshift shiv",
+    "description": "A sliver of scavenged metal, bent and sharpened by hand. Not much, but it might just work.",
+    "weight": 0.05,
+    "value": 1,
+    "durability": 4,
+    "max_durability": 4
   }
 }

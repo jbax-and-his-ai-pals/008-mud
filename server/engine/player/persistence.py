@@ -55,6 +55,10 @@ class PlayerPersistenceMixin:
             "npc_gift_days": p.npc_gift_days,
             "vendor_orders_completed": p.vendor_orders_completed,
             "relationship_milestones_completed": p.relationship_milestones_completed,
+            "jailed_until": p.jailed_until,
+            "confiscated_inventory": p.confiscated_inventory.to_dict(world) if p.confiscated_inventory else None,
+            "total_theft_value": p.total_theft_value,
+            "discovered_concealed_pick_trick": p.discovered_concealed_pick_trick,
             "gameplay": {},
         })
         gameplay = data["gameplay"]
@@ -190,6 +194,11 @@ class PlayerPersistenceMixin:
         player.npc_gift_days = data.get("npc_gift_days", {})
         player.vendor_orders_completed = data.get("vendor_orders_completed", {})
         player.relationship_milestones_completed = data.get("relationship_milestones_completed", {})
+        player.jailed_until = data.get("jailed_until")
+        player.total_theft_value = data.get("total_theft_value", 0)
+        player.discovered_concealed_pick_trick = data.get("discovered_concealed_pick_trick", False)
+        confiscated_data = data.get("confiscated_inventory")
+        player.confiscated_inventory = Inventory.from_dict(confiscated_data, world) if confiscated_data else None
 
         player.world = world
         normalize = getattr(world, "apply_content_player_defaults", None)

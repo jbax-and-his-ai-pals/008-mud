@@ -363,6 +363,7 @@
       "forest": "The woods are wild. We don't patrol beyond the tree line. That's adventurer's work."
     },
     "properties": {
+      "is_guard": true,
       "can_give_generic_quests": true,
       "quest_interests": [
         "kill",
@@ -387,6 +388,7 @@
       "greeting": "Keep the peace, citizen."
     },
     "properties": {
+      "is_guard": true,
       "aggression": 1.0,
       "move_cooldown": 5
     }
@@ -495,6 +497,26 @@
       ],
       "can_give_generic_quests": false
     }
+  },
+  "weaver_mira": {
+    "name": "Mira the Weaver",
+    "description": "A quiet woman who keeps mostly to herself, tending a loom in the evenings.",
+    "health": 40,
+    "level": 2,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "scheduled",
+    "home_region_id": "town",
+    "home_room_id": "small_house_1_interior",
+    "stats": { "strength": 8, "dexterity": 10, "constitution": 9, "wisdom": 11 },
+    "dialog": {
+      "greeting": "Oh -- hello. I don't get many visitors."
+    },
+    "schedule": {
+      "8": { "activity": "tending the market stalls", "region_id": "town", "room_id": "town_square" },
+      "19": { "activity": "home for the evening", "region_id": "town", "room_id": "small_house_1_interior" }
+    },
+    "properties": {}
   },
   "property_agent": {
     "name": "Cobb the Property Agent",

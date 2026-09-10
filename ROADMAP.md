@@ -323,14 +323,32 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   chest afterward needs more thought first (open question in the design
   doc). Full detail:
   [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+- [x] **Crime and notoriety system shipped.** A `steal` command covers
+  both robbing a vendor's shop stock and burgling an NPC's home, either
+  way resolved by one perception-vs-stealth witness roll against NPCs
+  actually present (a new `stealth` skill; NPC "perception" is a derived
+  difficulty, not a tracked skill, with a `is_guard` bonus for
+  `town_guard`/`guard_captain`). Getting caught is multi-factor (this
+  theft's value, running total stolen, `"town_guard"` notoriety in the
+  existing `reputation` dict) deciding fine vs. jail. Jailing strips the
+  full backpack, held until release; crossing a stealth+lockpicking
+  bottleneck exempts or freshly issues one escape lockpick, so an attempt
+  is always available once earned. Escape reuses the existing
+  `pick <direction>` mechanism with zero new command -- a success forfeits
+  confiscated items (a new asymmetry vs. waiting out the sentence, which
+  returns everything), a severe-enough failure extends the sentence. One
+  home (Mira the Weaver's cottage, reusing a previously-decorative,
+  unused room) and one lazily-loot-generated furniture container were
+  authored as the concrete first burglary case. Deliberately out of scope:
+  the ambient multi-room threat-detection system from the original
+  brainstorm (a separate exploration-awareness feature, not a crime
+  prerequisite) and guard patrol AI (guards remain stationary). Full
+  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't
-  originally choose); a multi-factor crime/notoriety system (theft value,
-  cumulative crime value, reputation) driving a fine-or-jail outcome, with
-  jail time passing on the existing real-time clock and an escape mechanic
-  gated behind a stealth+lockpicking bottleneck; a residential district as
-  a labeled room group connected by a non-directional gate; guards
-  patrolling the whole town as a first iteration.
+  originally choose); the ambient perception/threat-detection system;
+  guard patrol AI; a residential district as a labeled room group
+  connected by a non-directional gate.
 
 - A modest player home, camp, or workshop: storage, displays, workstations,
   gardens, trophies, and furnishings.

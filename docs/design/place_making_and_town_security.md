@@ -303,6 +303,98 @@ only that open question remains. Full original design below.
   crafting outputs). A "crude bronze lockpick" and a "crude steel lockpick"
   are different templates, not the same template with a material label.
 
+## Shipped: crime and notoriety system
+
+Closes the "crime and jail loop" scope named at the top of this doc,
+narrowed in one deliberate way (see below): a `steal` command
+(`engine/commands/interaction/theft.py`) covers both scenarios discussed --
+robbing a vendor's shop stock (an unpaid version of the same
+`sells_items`/`ItemFactory` lookup vendors already use to sell it) and
+burgling an NPC's home. Either way, a single perception-vs-stealth roll
+(`CrimeManager.attempt_witness`, `engine/core/crime_manager.py`) against
+NPCs actually present in the room decides whether it's noticed -- an NPC
+witness doesn't get a tracked skill (NPCs don't level skills); its
+"perception" is a derived difficulty from level plus a flat base plus a
+new `is_guard` bonus (added to the `town_guard`/`guard_captain` templates)
+run through the same `SkillSystem.attempt_check_with_margin` every other
+skill check already uses, against a new `stealth` skill on the thief's side.
+
+**Narrowed from the original brainstorm:** the doc's ambient, multi-room
+"sense a threat approaching" detection system (edge-triggered cues,
+per-skill-tier range, soft/hard fidelity) is explicitly *not* part of
+this. It shares a skill/mechanism with crime-witnessing in the earlier
+discussion, but it's really a separate, general exploration-awareness
+feature -- this pass builds only the narrower thing crime actually needs,
+a single same-room witness-or-not roll at the moment of the theft. The
+ambient system remains a real, separate future idea (see Open questions).
+
+Getting caught is multi-factor exactly as decided: this theft's value,
+the player's running total stolen value, and their `"town_guard"`
+notoriety (living in the existing `player.reputation` dict, isolated from
+the real NPC combat-faction list so it never touches aggro) decide fine
+vs. jail (`CrimeManager.resolve_crime`). A fine the player can't afford
+escalates to jail rather than partial payment.
+
+Jailing strips the player's full carried backpack (not just the stolen
+item) -- a firmer version of the original "concealed pick" framing settled
+once inventory confiscation entered the picture: since everything else is
+gone, the escape pick needs to be a real, separately-exempted item, not a
+bare permission check. Crossing the stealth+lockpicking bottleneck (still
+two independent floors, not a new stat) either exempts a carried lockpick
+from confiscation or, if the player wasn't carrying one, issues a fresh
+cheap "shiv" (`item_lockpick_shiv`, `content_sets/fantasy_frontier/data/items/tools.json`)
+so an attempt is always mechanically available once earned. The one-time
+flavor beat ("you've learned to keep a spare pick...") fires the first
+time the bottleneck is crossed, tracked on a new player flag so it never
+repeats.
+
+**A new asymmetry not in the original brainstorm:** waiting out a
+sentence in full returns every confiscated item; escaping does not --
+guards keep what they recovered. This makes escape a real tradeoff
+(freedom now vs. your belongings) rather than a strictly dominant
+strategy once the pick is available. Escape itself needed zero new
+command: `pick <direction>` (`World.attempt_pick_lock_direction`) already
+required *some* `Lockpick` in inventory and ran the skill check, so
+whether a prisoner can even attempt it falls out automatically from
+whether the emergency pick survived confiscation. Two small, jail-specific
+hooks were added to that one method (gated on a new `is_jail_cell` room
+flag): a success forfeits confiscated items; a failure whose margin is
+worse than a threshold (mirroring `TRAP_DISARM_TRIGGER_MARGIN_THRESHOLD`'s
+established pattern) extends the sentence instead of staying a free retry.
+
+New `wait`/`rest` and `search` commands (`engine/commands/jail.py`): `wait`
+works anywhere for flavor but specifically checks whether a jail sentence
+(tracked as `player.jailed_until`, a plain `time.time() + seconds`
+deadline -- the exact pattern `RespawnManager` already used for NPC
+respawn cooldowns) has elapsed, releasing and restoring confiscated items
+if so. `search`, usable only in a room flagged `is_jail_cell`, gives a
+low-probability minor gold reward -- ungated by any skill (the doc called
+for gating this by "perception or similar," but no player-facing
+perception skill exists in this narrower scope; a flat chance was judged
+not worth introducing one just for this).
+
+One home was authored as the concrete first burglary case rather than
+invented wholesale: "Inside a Small House" (`small_house_1_interior`,
+already existing, generic, and unused in content) became Mira the
+Weaver's (`weaver_mira`) home, holding one furniture container ("old
+trunk") whose contents are generated lazily the first time someone loots
+it -- reusing `ChestLootGenerator`'s own per-slot item generation
+(`ChestLootGenerator.generate_household_loot`) rather than hand-authoring
+household loot tables. Whether the burglary is safe depends entirely on
+whether Mira is actually home at the time, which just falls out of an
+explicit `"self"`-type schedule slot on her template (she has her own
+`home_room_id`, so this needed no changes to the shared, keyword-matched
+`"homes"` category pool every other scheduled villager draws from).
+
+Caught along the way: a template id containing the substring `"villager"`
+(the obvious first choice, `villager_mira`) silently matched the generic
+auto-scheduler's `"villager"` role (`content_sets/fantasy_frontier/rules/ruleset.json`'s
+`npc_schedules.roles`, matched by simple substring on `template_keywords`)
+and had her manually-authored schedule overwritten by the shared,
+randomized "homes" category pool -- renamed to `weaver_mira` to opt out
+entirely, the same way `guard_captain`/`town_guard` already opt out via
+`excluded_name_keywords`.
+
 ## Engine facts this design leans on
 
 Found while scoping this, all already built and tested -- most of this
@@ -438,6 +530,18 @@ work:
 
 ## Open questions
 
+- **The ambient, multi-room threat-detection system.** Edge-triggered
+  cues as hostile NPCs/guards enter or leave range, per-skill-tier range
+  scaling, soft/hard fidelity by roll margin -- all still just described,
+  not built. Deliberately separated from the crime system when crime
+  shipped (see above): it's really a general exploration-awareness
+  feature that happens to share a skill/mechanism with theft-witnessing,
+  not a prerequisite for it. A real player-facing `perception` skill
+  would likely arrive with this, not before.
+- **Guard patrol AI.** Guards are currently stationary NPCs (the existing
+  `scheduled` behavior_type wasn't extended to them); "guards patrol the
+  whole town" is decided in shape but not yet built. A district isn't a
+  prerequisite for this -- patrol routes could cover town today.
 - **A trap that permanently ruins the lock.** Raised as a real idea when
   disarm/traps shipped: some traps could make a chest unpickable by
   anyone, locksmith included. What happens to that chest afterward --

@@ -71,6 +71,24 @@ class ChestLootGenerator:
         return chest
 
     @staticmethod
+    def generate_household_loot(world: 'World', container: Container) -> None:
+        """Lazily fill a piece of home furniture the first time it's
+        looted, rather than hand-authoring its contents -- reuses the same
+        per-slot item generation chests use, just fewer slots pinned to a
+        low level (household goods, not dungeon loot). A no-op on every
+        call after the first, so it's safe to call unconditionally."""
+        if container.properties.get("loot_generated"):
+            return
+        container.properties["loot_generated"] = True
+
+        contents = container.properties.setdefault("contains", [])
+        slot_count = max(1, min(2, round(roll_around(1.2, 0.8, minimum=1, maximum=2))))
+        for _ in range(slot_count):
+            item = ChestLootGenerator._generate_slot_item(world, level=1)
+            if item:
+                contents.append(item)
+
+    @staticmethod
     def _roll_material(world: 'World', level: int) -> str:
         available = [m for m in _CHEST_MATERIALS if m in world.item_templates]
         if not available:

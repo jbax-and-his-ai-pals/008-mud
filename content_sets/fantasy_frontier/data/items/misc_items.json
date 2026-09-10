@@ -1,4 +1,15 @@
 {
+  "item_old_trunk": {
+    "type": "Container",
+    "name": "old trunk",
+    "description": "A worn wooden trunk at the foot of the bed. It isn't yours.",
+    "weight": 15.0,
+    "value": 8,
+    "capacity": 20.0,
+    "locked": false,
+    "is_open": true,
+    "properties": { "owned_by_npc": "weaver_mira", "loot_pool": "household" }
+  },
   "item_wildflower_posy": {
     "type": "Item",
     "name": "wildflower posy",

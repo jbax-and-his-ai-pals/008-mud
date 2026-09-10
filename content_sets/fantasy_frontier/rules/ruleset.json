@@ -164,7 +164,8 @@
     "stat_bonuses": {
       "lockpicking": { "stat": "dexterity", "per_point": 2 },
       "crafting": { "stat": "intelligence", "per_point": 2 },
-      "mercantile": { "stat": "wisdom", "per_point": 2 }
+      "mercantile": { "stat": "wisdom", "per_point": 2 },
+      "stealth": { "stat": "agility", "per_point": 2 }
     }
   },
   "npc_naming": {

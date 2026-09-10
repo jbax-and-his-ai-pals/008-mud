@@ -65,8 +65,18 @@
       "name": "Inside the Barracks",
       "description": "The barracks common room is simple and orderly. Bunks line the walls, and a long table is set for meals. A guard captain is reviewing a map.",
       "properties": { "outdoors": false },
-      "exits": { "out": "barracks_exterior" },
+      "exits": { "out": "barracks_exterior", "down": "jail_cell" },
       "initial_npcs": [ { "template_id": "guard_captain", "instance_id": "guard_captain_elara" } ]
+    },
+    "jail_cell": {
+      "name": "Jail Cell",
+      "description": "A cramped stone cell with a single barred window too small to squeeze through. A heavy locked door is the only way out.",
+      "properties": {
+        "outdoors": false,
+        "is_jail_cell": true,
+        "exit_requirements": { "up": { "type": "locked", "key_id": null, "pick_difficulty": 35 } }
+      },
+      "exits": { "up": "barracks_interior" }
     },
     "west_lane": {
       "name": "West Lane",
@@ -106,7 +116,9 @@
       "name": "Inside a Small House",
       "description": "A cozy, one-room home. A bed sits in the corner, and a small table is set for one.",
       "properties": { "outdoors": false },
-      "exits": { "out": "small_house_1_exterior" }
+      "exits": { "out": "small_house_1_exterior" },
+      "items": [ { "item_id": "item_old_trunk" } ],
+      "initial_npcs": [ { "template_id": "weaver_mira" } ]
     },
     "shrine_exterior": {
       "name": "Shrine of Healing",

@@ -125,6 +125,21 @@ class Player(
         self.relationship_milestones_completed: Dict[str, List[str]] = {}
         self.set_manager = SetManager(world)
 
+        # Crime/notoriety state. Notoriety itself lives in `reputation`
+        # under the "town_guard" key -- a plain dict entry, not a new
+        # container, and isolated from the combat-faction aggro system
+        # since "town_guard" is never a real NPC faction.
+        self.jailed_until: Optional[float] = None
+        # A full second Inventory, not a bare item list, so confiscation
+        # can reuse Inventory's own to_dict/from_dict for persistence
+        # exactly like the player's real inventory -- stacks, quantities,
+        # and weight/slot limits all keep working for free.
+        self.confiscated_inventory: Optional[Inventory] = None
+        self.total_theft_value: int = 0
+        # One-time flavor beat the first time the stealth+lockpicking
+        # concealed-pick bottleneck is crossed, not re-shown on every arrest.
+        self.discovered_concealed_pick_trick: bool = False
+
     def get_effective_stat(self, stat_name: str) -> int:
         """Calculates stat including base, buffs, equipment, AND set bonuses."""
         val = super().get_effective_stat(stat_name)

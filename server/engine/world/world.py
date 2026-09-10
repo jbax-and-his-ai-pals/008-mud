@@ -8,7 +8,8 @@ from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 from engine.campaign.campaign_manager import CampaignManager
 from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, DEFAULT_SAVE_FILE, WORLD_UPDATE_INTERVAL,
-    REP_KILL_PENALTY_SAME_FACTION, REP_KILL_REWARD_HOSTILE, FORMAT_SUCCESS, DEFAULT_CURRENCY_NAME
+    REP_KILL_PENALTY_SAME_FACTION, REP_KILL_REWARD_HOSTILE, FORMAT_SUCCESS, DEFAULT_CURRENCY_NAME,
+    JAIL_ESCAPE_ALERT_MARGIN_THRESHOLD, JAIL_ESCAPE_ALERT_PENALTY_SECONDS
 )
 # UPDATED IMPORT
 from engine.core.quests import QuestManager
@@ -28,6 +29,7 @@ from engine.world.definition_loader import load_all_definitions, initialize_new_
 from engine.world.respawn_manager import RespawnManager
 from engine.world.instance_manager import InstanceManager
 from engine.world.housing_manager import HousingManager
+from engine.core.crime_manager import CrimeManager
 from engine.utils.pathfinding import find_path
 from engine.core.skill_system import SkillSystem
 from engine.config.config_combat import configure_combat_elements
@@ -73,6 +75,7 @@ class World:
         self.respawn_manager = RespawnManager(self)
         self.instance_manager = InstanceManager(self)
         self.housing_manager = HousingManager(self)
+        self.crime_manager = CrimeManager(self)
 
         self.last_update_time = 0.0
         self._simulation_has_started = False
@@ -410,14 +413,23 @@ class World:
                 return "You need a lockpick."
 
             success, msg, margin = SkillSystem.attempt_check_with_margin(active_player, "lockpicking", difficulty)
+            is_jail_cell = bool(current_room.properties.get("is_jail_cell"))
             if success:
                 del reqs[direction]
                 current_room.update_property("exit_requirements", reqs)
                 SkillSystem.grant_xp(active_player, "lockpicking", difficulty)
-                return f"{FORMAT_SUCCESS}Click! You unlock the way {direction}.{FORMAT_RESET}"
+                escape_note = ""
+                if is_jail_cell and active_player.jailed_until is not None:
+                    self.crime_manager.forfeit_confiscated_items(active_player)
+                    escape_note = " Whatever the guards confiscated stays with them now."
+                return f"{FORMAT_SUCCESS}Click! You unlock the way {direction}.{escape_note}{FORMAT_RESET}"
             else:
                 wear_msg = lockpick_item.apply_wear(active_player, margin) or ""
-                return f"{FORMAT_ERROR}You fail to pick the lock.{FORMAT_RESET}{wear_msg}"
+                alert_note = ""
+                if is_jail_cell and active_player.jailed_until is not None and abs(margin) >= JAIL_ESCAPE_ALERT_MARGIN_THRESHOLD:
+                    active_player.jailed_until += JAIL_ESCAPE_ALERT_PENALTY_SECONDS
+                    alert_note = " The noise brings a guard running -- your sentence just got longer."
+                return f"{FORMAT_ERROR}You fail to pick the lock.{alert_note}{FORMAT_RESET}{wear_msg}"
 
         dest_id = current_room.get_exit(direction)
         if dest_id:
