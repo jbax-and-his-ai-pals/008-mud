@@ -32,10 +32,8 @@
     "description": "A thin piece of iron shaped to manipulate tumbler locks. It looks brittle.",
     "weight": 0.1,
     "value": 10,
-    "stackable": true,
-    "properties": {
-      "break_chance": 0.25
-    }
+    "durability": 8,
+    "max_durability": 8
   },
   "item_master_lockpick": {
     "type": "Lockpick",
@@ -43,9 +41,43 @@
     "description": "A finely crafted lockpick made of flexible steel. Much harder to break.",
     "weight": 0.1,
     "value": 50,
-    "stackable": true,
-    "properties": {
-      "break_chance": 0.05
-    }
+    "durability": 40,
+    "max_durability": 40
+  },
+  "item_lockpick_crude_bronze": {
+    "type": "Lockpick",
+    "name": "crude bronze lockpick",
+    "description": "A hastily cast bronze pick. Soft metal; it won't take much abuse.",
+    "weight": 0.1,
+    "value": 6,
+    "durability": 6,
+    "max_durability": 6
+  },
+  "item_lockpick_crude_steel": {
+    "type": "Lockpick",
+    "name": "crude steel lockpick",
+    "description": "A roughly filed steel pick. Not pretty, but sturdier than bronze.",
+    "weight": 0.1,
+    "value": 12,
+    "durability": 10,
+    "max_durability": 10
+  },
+  "item_lockpick_fine_bronze": {
+    "type": "Lockpick",
+    "name": "fine bronze lockpick",
+    "description": "A carefully shaped bronze pick with a well-balanced tension bar.",
+    "weight": 0.1,
+    "value": 25,
+    "durability": 16,
+    "max_durability": 16
+  },
+  "item_lockpick_fine_steel": {
+    "type": "Lockpick",
+    "name": "fine steel lockpick",
+    "description": "A precisely tempered steel pick, built to take a beating without snapping.",
+    "weight": 0.1,
+    "value": 45,
+    "durability": 24,
+    "max_durability": 24
   }
 }

@@ -1,50 +1,77 @@
 # tests/singles/test_lockpick_rng.py
+"""Coverage for Lockpick's durability mechanic: a failed attempt costs
+durability scaled by how badly it missed, a success costs nothing, and
+exhausting durability destroys the specific pick instance."""
+
 from unittest.mock import patch
 from tests.fixtures import GameTestBase
 from engine.items.item_factory import ItemFactory
 from engine.items.lockpick import Lockpick
 from engine.items.container import Container
 
-class TestLockpickRNG(GameTestBase):
 
-    def test_pick_breakage(self):
-        """Verify lockpick is consumed when breakage RNG hits."""
-        # 1. Setup
+class TestLockpickDurability(GameTestBase):
+    def _box(self, difficulty=50):
         self.world.item_templates["box"] = {
-            "type": "Container", "name": "Box", 
-            "properties": {"locked": True, "lock_difficulty": 50}
+            "type": "Container", "name": "Box",
+            "properties": {"locked": True, "lock_difficulty": difficulty},
         }
-        box = ItemFactory.create_item_from_template("box", self.world)
-        
-        pick = Lockpick("pick", "Pick", break_chance=1.0) # 100% break chance
+        return ItemFactory.create_item_from_template("box", self.world)
+
+    def test_pick_breaks_when_durability_is_exhausted(self):
+        box = self._box()
+        pick = Lockpick("pick", "Pick", durability=1)
         self.player.inventory.add_item(pick)
-        
-        # 2. Force Skill Fail (so we don't unlock it, but trigger break logic)
-        # Lockpick.use calls SkillSystem.attempt_check
-        # Break logic happens regardless of success/fail based on RNG
-        
-        # Patch skill check to fail
-        with patch('engine.core.skill_system.SkillSystem.attempt_check', return_value=(False, "")):
-            # Patch random.random to return 0.0 ( < 1.0 chance) -> Break
-            with patch('random.random', return_value=0.0):
-                msg = pick.use(self.player, box)
-        
-        # 3. Assert
+
+        with patch(
+            "engine.items.lockpick.SkillSystem.attempt_check_with_margin",
+            return_value=(False, "", -5),
+        ):
+            msg = pick.use(self.player, box)
+
         self.assertIn("snaps", msg)
         self.assertEqual(self.player.inventory.count_item("pick"), 0)
 
-    def test_pick_survival(self):
-        """Verify lockpick is kept when RNG rolls high."""
-        self.world.item_templates["box"] = {"type": "Container", "name": "Box", "properties": {"locked": True}}
-        box = ItemFactory.create_item_from_template("box", self.world)
-        
-        pick = Lockpick("pick", "Pick", break_chance=0.5)
+    def test_pick_survives_a_minor_failure(self):
+        box = self._box()
+        pick = Lockpick("pick", "Pick", durability=10)
         self.player.inventory.add_item(pick)
-        
-        with patch('engine.core.skill_system.SkillSystem.attempt_check', return_value=(False, "")):
-            # Patch random to 0.9 ( > 0.5 ) -> No break
-            with patch('random.random', return_value=0.9):
-                msg = pick.use(self.player, box)
-        
+
+        with patch(
+            "engine.items.lockpick.SkillSystem.attempt_check_with_margin",
+            return_value=(False, "", -5),  # small miss -> loss of 1 (max(1, 5 // 10))
+        ):
+            msg = pick.use(self.player, box)
+
         self.assertNotIn("snaps", msg)
+        self.assertIn("lockpick durability: 9/10", msg)
         self.assertEqual(self.player.inventory.count_item("pick"), 1)
+        self.assertEqual(pick.durability, 9)
+
+    def test_a_worse_failure_costs_more_durability(self):
+        box = self._box()
+        pick = Lockpick("pick", "Pick", durability=100)
+        self.player.inventory.add_item(pick)
+
+        with patch(
+            "engine.items.lockpick.SkillSystem.attempt_check_with_margin",
+            return_value=(False, "", -47),  # big miss -> loss of 4 (max(1, 47 // 10))
+        ):
+            pick.use(self.player, box)
+
+        self.assertEqual(pick.durability, 96)
+
+    def test_success_costs_no_durability(self):
+        box = self._box()
+        pick = Lockpick("pick", "Pick", durability=5)
+        self.player.inventory.add_item(pick)
+
+        with patch(
+            "engine.items.lockpick.SkillSystem.attempt_check_with_margin",
+            return_value=(True, "", 12),
+        ), patch("engine.items.lockpick.SkillSystem.grant_xp", return_value=""):
+            msg = pick.use(self.player, box)
+
+        self.assertNotIn("durability", msg)
+        self.assertEqual(pick.durability, 5)
+        self.assertFalse(box.properties.get("locked"))

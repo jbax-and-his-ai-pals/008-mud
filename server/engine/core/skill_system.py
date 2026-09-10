@@ -15,10 +15,12 @@ class SkillSystem:
         return int(BASE_XP_TO_LEVEL_SKILL * (SKILL_XP_MULTIPLIER ** (current_level - 1)))
 
     @staticmethod
-    def attempt_check(player, skill_name: str, difficulty: int) -> Tuple[bool, str]:
-        """
-        Performs a skill check.
-        Formula: Roll (0-100) + Skill_Level + Stat_Bonus >= Difficulty
+    def _compute_score(player, skill_name: str) -> int:
+        """Shared by attempt_check and attempt_check_with_margin: rolls the
+        d100 and adds skill level + stat bonus. Kept separate so a second
+        entry point can expose the margin against difficulty without
+        changing attempt_check's existing return shape (six call sites
+        across the engine unpack it as a plain (bool, str) pair today).
         """
         # Skill names are entirely content-authored (a fantasy set might use
         # "lockpicking", a sci-fi one "hacking") -- progression itself may
@@ -47,12 +49,31 @@ class SkillSystem:
                 stat_bonus = (player.stats.get(stat_name, 10) - 10) * per_point
 
         roll = random.randint(1, 100)
-        total_score = roll + skill_level + stat_bonus
+        return roll + skill_level + stat_bonus
 
+    @staticmethod
+    def attempt_check(player, skill_name: str, difficulty: int) -> Tuple[bool, str]:
+        """
+        Performs a skill check.
+        Formula: Roll (0-100) + Skill_Level + Stat_Bonus >= Difficulty
+        """
+        total_score = SkillSystem._compute_score(player, skill_name)
         success = total_score >= difficulty
 
         # Debug detail (could be hidden behind a debug flag)
         return success, f"(Rolled {total_score} vs DC {difficulty})"
+
+    @staticmethod
+    def attempt_check_with_margin(player, skill_name: str, difficulty: int) -> Tuple[bool, str, int]:
+        """Same check as attempt_check, plus the signed margin by which it
+        passed or failed (total_score - difficulty; negative on failure).
+        For callers that need to scale a consequence by how badly an
+        attempt missed (e.g. lockpick wear) rather than just pass/fail.
+        """
+        total_score = SkillSystem._compute_score(player, skill_name)
+        margin = total_score - difficulty
+        success = margin >= 0
+        return success, f"(Rolled {total_score} vs DC {difficulty})", margin
 
     @staticmethod
     def grant_xp(player, skill_name: str, amount: int) -> str:

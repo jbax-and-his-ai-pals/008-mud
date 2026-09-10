@@ -135,9 +135,59 @@ tests needed an explicit `sell_rate_multiplier: 0.4` override to keep
 testing what they actually meant to test (the *default* rate), not
 Talia specifically.
 
-**Explicitly deferred to later passes:** traps/disarm, and the lockpick
-durability rework (+ crude/fine x bronze/steel material matrix). Each is
-its own plan when picked up. Full original design below.
+### Shipped: lockpick durability rework
+
+`Lockpick` (`engine/items/lockpick.py`) no longer rolls a flat break chance
+independent of outcome. It now carries a `durability`/`max_durability`
+pool that only depletes on a **failed** pick attempt, with the loss scaled
+by how badly the attempt missed (`max(1, abs(margin) // 10)`, a new
+`LOCKPICK_DURABILITY_LOSS_DIVISOR` tunable) -- reusing the same "how badly
+you missed matters" idea already established for perception's soft/hard
+detection fidelity. A clean success costs nothing. Reaching 0 durability
+destroys that specific pick instance. This required a new additive
+`SkillSystem.attempt_check_with_margin` (a signed `total_score -
+difficulty` alongside the existing pass/fail bool) sharing a refactored
+score-computation helper with the unchanged `attempt_check` -- every
+pre-existing caller of `attempt_check` was left untouched.
+
+Durability inherently requires each pick to be a distinct instance, so
+lockpicks are no longer stackable (matches how `Weapon`/`Armor` already
+work); carrying three lockpicks is now three inventory entries. Durability
+display needed no new code -- `Item.examine()` already prints any numeric
+property not on its skip-list generically.
+
+The crude/fine x bronze/steel matrix is real content now: four new
+templates (`item_lockpick_crude_bronze`, `item_lockpick_crude_steel`,
+`item_lockpick_fine_bronze`, `item_lockpick_fine_steel`,
+`content_sets/fantasy_frontier/data/items/tools.json`) scaling durability
+and price with tier, sold by the blacksmith (same locksmith-role reuse as
+the chest-unlock fee) alongside the two pre-existing templates
+(`item_lockpick`, `item_master_lockpick`), which kept their ids but moved
+from `break_chance` to `durability`/`max_durability`.
+
+Room-exit picking (`World.attempt_pick_lock_direction`,
+`engine/world/world.py`) was a completely separate code path from
+`Lockpick.use()` that never touched a `Lockpick` object at all -- it only
+checked that *some* pick existed in inventory, then ran its own
+`attempt_check`. Both `exit_requirements`-locked exits and `locked_by`-locked
+rooms now capture the actual pick instance and call the same
+`Lockpick.apply_wear()` used by chest-picking, so a pick used to open a
+door wears down exactly like one used on a chest, rather than two
+mechanics for one physical tool.
+
+Caught along the way: `item_master_lockpick`'s old `break_chance` property
+was nested under a `"properties"` sub-object in content, but
+`ItemFactory.create_item_from_template` pops `"properties"` out of
+`creation_args` *before* building constructor kwargs -- so that value
+never actually reached `Lockpick.__init__`, and the master lockpick always
+used the constructor's default break chance regardless of what the
+template said. Moot now that `break_chance` is gone, but the general
+lesson (template properties meant to reach the constructor must be
+top-level keys, not nested under `"properties"`) is worth remembering for
+future item templates.
+
+**Explicitly deferred to later passes:** traps/disarm. Its own plan when
+picked up. Full original design below.
 
 **The chest as an object:**
 - Chests are portable loot items (not fixed furniture) -- picked up like

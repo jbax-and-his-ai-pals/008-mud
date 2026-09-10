@@ -62,6 +62,24 @@ class TestSkillSystem(GameTestBase):
         self.assertFalse(success)
 
     @patch('random.randint')
+    def test_skill_check_with_margin_matches_pass_fail_of_the_plain_check(self, mock_randint):
+        """attempt_check_with_margin must agree with attempt_check on
+        success/failure (same shared score computation) and additionally
+        expose the signed margin by which it passed or failed."""
+        skill = "crafting"
+        self.player.add_skill(skill, 5)
+        self.player.stats["intelligence"] = 12  # +4 bonus: (12-10)*2
+        mock_randint.return_value = 50  # total_score = 50 + 5 + 4 = 59
+
+        success, _, margin = SkillSystem.attempt_check_with_margin(self.player, skill, 40)
+        self.assertTrue(success)
+        self.assertEqual(19, margin)  # 59 - 40
+
+        success, _, margin = SkillSystem.attempt_check_with_margin(self.player, skill, 60)
+        self.assertFalse(success)
+        self.assertEqual(-1, margin)  # 59 - 60
+
+    @patch('random.randint')
     def test_mercantile_skill_check_uses_wisdom_bonus(self, mock_randint):
         """Verify the mercantile stat-bonus branch uses wisdom."""
         self.player.stats["wisdom"] = 14  # +8 bonus: (14-10)*2

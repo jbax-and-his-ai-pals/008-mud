@@ -48,23 +48,38 @@ class TestSourceExitRequirementLock(GameTestBase):
         result = self.world.attempt_pick_lock_direction("east")
         self.assertEqual("You need a lockpick.", result)
 
-    @patch("engine.world.world.SkillSystem.attempt_check")
+    @patch("engine.world.world.SkillSystem.attempt_check_with_margin")
     def test_successful_pick_removes_requirement(self, mock_check):
-        mock_check.return_value = (True, "")
+        mock_check.return_value = (True, "", 5)
         start = self._linked_rooms_with_lock()
-        self.player.inventory.add_item(Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick."))
+        pick = Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick.")
+        self.player.inventory.add_item(pick)
         result = self.world.attempt_pick_lock_direction("east")
         self.assertIn("unlock the way east", result)
         self.assertNotIn("east", start.properties.get("exit_requirements", {}))
+        self.assertEqual(pick.durability, pick.max_durability, "a success must not wear the pick")
 
-    @patch("engine.world.world.SkillSystem.attempt_check")
+    @patch("engine.world.world.SkillSystem.attempt_check_with_margin")
     def test_failed_pick_keeps_requirement(self, mock_check):
-        mock_check.return_value = (False, "")
+        mock_check.return_value = (False, "", -15)
         start = self._linked_rooms_with_lock()
-        self.player.inventory.add_item(Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick."))
+        pick = Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick.")
+        self.player.inventory.add_item(pick)
         result = self.world.attempt_pick_lock_direction("east")
         self.assertIn("fail to pick the lock", result)
         self.assertIn("east", start.properties.get("exit_requirements", {}))
+        self.assertIn("lockpick durability", result)
+        self.assertLess(pick.durability, pick.max_durability, "a failure must wear the specific pick used")
+
+    @patch("engine.world.world.SkillSystem.attempt_check_with_margin")
+    def test_failed_pick_breaks_and_is_removed_when_exhausted(self, mock_check):
+        mock_check.return_value = (False, "", -50)
+        self._linked_rooms_with_lock()
+        pick = Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick.", durability=1)
+        self.player.inventory.add_item(pick)
+        result = self.world.attempt_pick_lock_direction("east")
+        self.assertIn("snaps in the mechanism", result)
+        self.assertEqual(0, self.player.inventory.count_item("lockpick1"))
 
 
 class TestDestinationLockedByLock(GameTestBase):
@@ -84,23 +99,25 @@ class TestDestinationLockedByLock(GameTestBase):
         result = self.world.attempt_pick_lock_direction("east")
         self.assertEqual("You need a lockpick.", result)
 
-    @patch("engine.world.world.SkillSystem.attempt_check")
+    @patch("engine.world.world.SkillSystem.attempt_check_with_margin")
     def test_successful_pick_unlocks_destination_room(self, mock_check):
-        mock_check.return_value = (True, "")
+        mock_check.return_value = (True, "", 5)
         end = self._linked_rooms_with_target_lock()
         self.player.inventory.add_item(Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick."))
         result = self.world.attempt_pick_lock_direction("east")
         self.assertIn("unlock the door", result)
         self.assertIsNone(end.properties.get("locked_by"))
 
-    @patch("engine.world.world.SkillSystem.attempt_check")
+    @patch("engine.world.world.SkillSystem.attempt_check_with_margin")
     def test_failed_pick_keeps_destination_locked(self, mock_check):
-        mock_check.return_value = (False, "")
+        mock_check.return_value = (False, "", -15)
         end = self._linked_rooms_with_target_lock()
-        self.player.inventory.add_item(Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick."))
+        pick = Lockpick(obj_id="lockpick1", name="Lockpick", description="A pick.")
+        self.player.inventory.add_item(pick)
         result = self.world.attempt_pick_lock_direction("east")
         self.assertIn("fail to pick the lock", result)
         self.assertEqual("vault_key", end.properties.get("locked_by"))
+        self.assertLess(pick.durability, pick.max_durability)
 
     def test_no_exit_in_direction_reports_nothing_locked(self):
         self.player.current_region_id = "town"

@@ -398,25 +398,26 @@ class World:
         if dir_req and dir_req.get("type") == "locked":
             difficulty = dir_req.get("pick_difficulty", 999)
             if difficulty > 100: return "This lock cannot be picked."
-            
-            has_lockpick = False
+
+            lockpick_item = None
             if not active_player: return f"{FORMAT_ERROR}Player not found.{FORMAT_RESET}"
             for slot in active_player.inventory.slots:
                 if isinstance(slot.item, Lockpick):
-                    has_lockpick = True
+                    lockpick_item = slot.item
                     break
-            
-            if not has_lockpick:
+
+            if not lockpick_item:
                 return "You need a lockpick."
-                
-            success, msg = SkillSystem.attempt_check(active_player, "lockpicking", difficulty)
+
+            success, msg, margin = SkillSystem.attempt_check_with_margin(active_player, "lockpicking", difficulty)
             if success:
                 del reqs[direction]
                 current_room.update_property("exit_requirements", reqs)
                 SkillSystem.grant_xp(active_player, "lockpicking", difficulty)
                 return f"{FORMAT_SUCCESS}Click! You unlock the way {direction}.{FORMAT_RESET}"
             else:
-                return f"{FORMAT_ERROR}You fail to pick the lock.{FORMAT_RESET}"
+                wear_msg = lockpick_item.apply_wear(active_player, margin) or ""
+                return f"{FORMAT_ERROR}You fail to pick the lock.{FORMAT_RESET}{wear_msg}"
 
         dest_id = current_room.get_exit(direction)
         if dest_id:
@@ -427,23 +428,24 @@ class World:
             if reg:
                 room = reg.get_room(dest_id)
                 if room and room.get_property("locked_by"):
-                    difficulty = 20 
-                    
-                    has_lockpick = False
+                    difficulty = 20
+
+                    lockpick_item = None
                     if not active_player: return f"{FORMAT_ERROR}Player not found.{FORMAT_RESET}"
                     for slot in active_player.inventory.slots:
                         if isinstance(slot.item, Lockpick):
-                            has_lockpick = True
+                            lockpick_item = slot.item
                             break
 
-                    if not has_lockpick: return "You need a lockpick."
-                    success, msg = SkillSystem.attempt_check(active_player, "lockpicking", difficulty)
+                    if not lockpick_item: return "You need a lockpick."
+                    success, msg, margin = SkillSystem.attempt_check_with_margin(active_player, "lockpicking", difficulty)
                     if success:
-                        room.properties["locked_by"] = None 
+                        room.properties["locked_by"] = None
                         SkillSystem.grant_xp(active_player, "lockpicking", 10)
                         return f"{FORMAT_SUCCESS}Click! You unlock the door to {room.name}.{FORMAT_RESET}"
                     else:
-                        return f"{FORMAT_ERROR}You fail to pick the lock.{FORMAT_RESET}"
+                        wear_msg = lockpick_item.apply_wear(active_player, margin) or ""
+                        return f"{FORMAT_ERROR}You fail to pick the lock.{FORMAT_RESET}{wear_msg}"
 
         return "There is nothing locked in that direction."
 

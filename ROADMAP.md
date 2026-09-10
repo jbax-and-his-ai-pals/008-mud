@@ -291,10 +291,22 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   pre-existing unit tests that used Talia's template as a generic
   stand-in vendor needed an explicit rate override to keep testing the
   *default* rate rather than her now-intentionally-different one.
-- Still to build (each its own future pass): traps/disarm sharing the
-  lockpicking skill, and a lockpick durability rework across a quality x
-  material matrix (crude/fine, bronze/steel). Keys stay out of the normal
-  loop, reserved for one-off quest/exploration treasure. Full detail:
+- [x] **Lockpick durability rework shipped.** `Lockpick` now carries a
+  `durability`/`max_durability` pool that only depletes on a *failed* pick
+  attempt, scaled by how badly the attempt missed (a new
+  `SkillSystem.attempt_check_with_margin`, additive alongside the unchanged
+  `attempt_check`). Lockpicks are no longer stackable (durability requires
+  per-instance uniqueness). A real crude/fine x bronze/steel quality
+  matrix now exists as four new blacksmith-sold templates. Room-exit
+  picking (`World.attempt_pick_lock_direction`), previously a totally
+  separate code path that never touched a `Lockpick` object, now shares
+  the same wear logic as chest-picking. Caught along the way: the old
+  master lockpick's `break_chance` was nested under a `"properties"` block
+  in content and never actually reached the constructor -- a latent,
+  harmless bug now moot since `break_chance` is gone.
+- Still to build (its own future pass): traps/disarm sharing the
+  lockpicking skill. Keys stay out of the normal loop, reserved for
+  one-off quest/exploration treasure. Full detail:
   [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't

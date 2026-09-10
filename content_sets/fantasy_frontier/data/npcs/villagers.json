@@ -167,7 +167,8 @@
       "missing_supplies": "Aye, there was good steel on that caravan. I was expecting a shipment that never arrived.",
       "mountains": "The Frostpeaks? Cold and dangerous up there. Heard tell of old mines, but most are played out or collapsed. Not worth the climb unless you're hunting griffins... or trouble.",
       "trade": "Looking for weapons, armor, or need repairs?",
-      "unlock": "Bring me a locked chest and I'll have it open in no time -- for a fair price, mind you. Just say: unlock <chest>."
+      "unlock": "Bring me a locked chest and I'll have it open in no time -- for a fair price, mind you. Just say: unlock <chest>.",
+      "lockpicks": "I forge lockpicks too, if you'd rather do the work yourself. Bronze is cheap but soft; steel holds up better. Crude or fine, take your pick -- pun intended."
     },
     "default_dialog": "The {name} nods but continues working at the forge.",
     "initial_inventory": [],
@@ -188,7 +189,11 @@
          { "item_id": "item_leather_gloves" },
          { "item_id": "item_leather_boots" },
          { "item_id": "item_iron_ingot", "price_multiplier": 1.2 },
-         { "item_id": "item_leather_strip", "price_multiplier": 1.2 }
+         { "item_id": "item_leather_strip", "price_multiplier": 1.2 },
+         { "item_id": "item_lockpick_crude_bronze" },
+         { "item_id": "item_lockpick_crude_steel" },
+         { "item_id": "item_lockpick_fine_bronze" },
+         { "item_id": "item_lockpick_fine_steel" }
       ],
       "gift_preferences": {
         "preferred_item_ids": ["item_iron_sword", "item_iron_ingot"],

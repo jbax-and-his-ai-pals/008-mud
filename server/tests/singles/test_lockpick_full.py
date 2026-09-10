@@ -25,7 +25,7 @@ class TestLockpickUse(GameTestBase):
         self.assertIn("can't use a lockpick", result)
 
     def test_user_without_inventory_skips_removal_on_break(self):
-        pick = Lockpick(name="Rusty Pick", break_chance=1.0)
+        pick = Lockpick(name="Rusty Pick", durability=1)
         container = Container(name="Chest", locked=True)
         container.update_property("lock_difficulty", 30)
 
@@ -34,12 +34,12 @@ class TestLockpickUse(GameTestBase):
             def get_skill_level(self, skill_name):
                 return 0
 
-        with patch("engine.items.lockpick.random.random", return_value=0.0):
-            with patch(
-                "engine.items.lockpick.SkillSystem.attempt_check", return_value=(False, "roll failed"),
-            ):
-                with patch("engine.items.lockpick.SkillSystem.grant_xp", return_value=""):
-                    result = pick.use(_NoInventoryUser(), target=container)
+        with patch(
+            "engine.items.lockpick.SkillSystem.attempt_check_with_margin",
+            return_value=(False, "roll failed", -20),
+        ):
+            with patch("engine.items.lockpick.SkillSystem.grant_xp", return_value=""):
+                result = pick.use(_NoInventoryUser(), target=container)  # must not raise
         self.assertIn("snaps in the mechanism", result)
 
 

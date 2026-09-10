@@ -11,6 +11,11 @@ CONTAINER_EMPTY_MESSAGE = "  (Empty)"
 # --- Item Mechanics ---
 ITEM_DURABILITY_LOSS_ON_HIT = 1
 ITEM_DURABILITY_LOW_THRESHOLD = 0.30
+# A failed lockpicking attempt costs durability scaled by how badly it
+# missed (SkillSystem.attempt_check_with_margin's margin), not a flat
+# amount -- a narrow miss barely wears the pick; a bad one costs more.
+# Exact tuning is an implementation detail, not a design decision.
+LOCKPICK_DURABILITY_LOSS_DIVISOR = 10
 
 # --- Trading & Vendor Settings ---
 DEFAULT_VENDOR_SELL_MULTIPLIER = 2.0  # Player Buys: Item Value * 2.0 (default)
