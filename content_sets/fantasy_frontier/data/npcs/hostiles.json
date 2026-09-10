@@ -197,7 +197,8 @@
       "gold_value": { "chance": 0.4, "quantity": [10, 30] },
       "item_troll_hide": { "chance": 0.9 },
       "item_crude_club": { "chance": 0.5 },
-      "item_shiny_rock": { "chance": 0.7, "quantity": [1, 3] }
+      "item_shiny_rock": { "chance": 0.7, "quantity": [1, 3] },
+      "chest": { "chance": 0.1, "quantity": [1, 1], "is_chest": true }
     },
     "usable_spells": [],
     "properties": {
@@ -333,12 +334,12 @@
   "hobgoblin_soldier": {
     "name": "hobgoblin soldier", "description": "A disciplined, well-armed goblinoid warrior in chainmail.", "level": 5, "health": 65, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
     "stats": { "strength": 14, "dexterity": 13, "constitution": 13, "agility": 12 }, "attack_power": 7, "defense": 6,
-    "loot_table": { "item_hobgoblin_sword": { "chance": 0.3 }, "item_leather_tunic": { "chance": 0.2 }, "item_military_insignia": { "chance": 0.5 } }
+    "loot_table": { "item_hobgoblin_sword": { "chance": 0.3 }, "item_leather_tunic": { "chance": 0.2 }, "item_military_insignia": { "chance": 0.5 }, "chest": { "chance": 0.1, "quantity": [1, 1], "is_chest": true } }
   },
   "orc_shaman": {
     "name": "orc shaman", "description": "An orc adorned with skulls and fetishes, crackling with primal magic.", "level": 6, "health": 50, "max_mana": 50, "faction": "hostile", "friendly": false, "behavior_type": "healer",
     "stats": { "strength": 9, "dexterity": 10, "constitution": 11, "agility": 10, "intelligence": 16, "spell_power": 12 }, "attack_power": 3, "defense": 3,
-    "loot_table": { "item_shamanic_staff": { "chance": 0.2 }, "item_scroll_random": { "chance": 0.25 }, "item_orcish_war_beads": { "chance": 0.8 } },
+    "loot_table": { "item_shamanic_staff": { "chance": 0.2 }, "item_scroll_random": { "chance": 0.25 }, "item_orcish_war_beads": { "chance": 0.8 }, "chest": { "chance": 0.12, "quantity": [1, 1], "is_chest": true } },
     "usable_spells": ["zap", "weaken_strength", "minor_heal"], "properties": { "spell_cast_chance": 0.7 }
   },
   "wraith": {
@@ -355,7 +356,7 @@
   "bandit_leader": {
     "name": "bandit leader", "description": "A skilled and ruthless fighter, leading a band of outlaws.", "level": 7, "health": 85, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
     "stats": { "strength": 15, "dexterity": 14, "constitution": 14, "agility": 13 }, "attack_power": 8, "defense": 7,
-    "loot_table": { "gold_value": { "chance": 1.0, "quantity": [25, 50] }, "item_iron_sword": { "chance": 0.5 }, "item_leather_tunic": { "chance": 0.8 } }
+    "loot_table": { "gold_value": { "chance": 1.0, "quantity": [25, 50] }, "item_iron_sword": { "chance": 0.5 }, "item_leather_tunic": { "chance": 0.8 }, "chest": { "chance": 0.15, "quantity": [1, 1], "is_chest": true } }
   },
   "harpy": {
     "name": "harpy", "description": "A vicious, winged monstrosity with a piercing shriek.", "level": 6, "health": 50, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
@@ -426,7 +427,8 @@
     "loot_table": {
       "item_troll_hide": { "chance": 0.9 },
       "item_crude_club": { "chance": 0.4 },
-      "item_shiny_rock": { "chance": 0.7, "quantity": [1, 3] }
+      "item_shiny_rock": { "chance": 0.7, "quantity": [1, 3] },
+      "chest": { "chance": 0.1, "quantity": [1, 1], "is_chest": true }
     },
     "usable_spells": [],
     "properties": {

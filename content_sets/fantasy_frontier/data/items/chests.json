@@ -1,0 +1,29 @@
+{
+  "item_chest_wooden": {
+    "type": "Container",
+    "name": "wooden chest",
+    "description": "A plain wooden chest bound with a few iron bands.",
+    "weight": 8.0,
+    "value": 15,
+    "capacity": 30.0,
+    "locked": true
+  },
+  "item_chest_iron_bound": {
+    "type": "Container",
+    "name": "iron-bound chest",
+    "description": "A sturdy chest reinforced with heavy iron bands and corner plates.",
+    "weight": 14.0,
+    "value": 60,
+    "capacity": 30.0,
+    "locked": true
+  },
+  "item_chest_gilded": {
+    "type": "Container",
+    "name": "gilded chest",
+    "description": "An ornate chest trimmed in gold leaf, clearly built for someone with money to spare.",
+    "weight": 12.0,
+    "value": 200,
+    "capacity": 30.0,
+    "locked": true
+  }
+}

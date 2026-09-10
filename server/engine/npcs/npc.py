@@ -13,6 +13,7 @@ from engine.game_object import GameObject
 from engine.items.inventory import Inventory
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
+from engine.items.chest_loot_generator import ChestLootGenerator
 from engine.magic.spell_registry import SPELL_REGISTRY
 from engine.utils.utils import format_loot_drop_message, format_name_for_display, calculate_xp_gain
 
@@ -142,9 +143,16 @@ class NPC(GameObject):
                 if isinstance(loot_data, dict) and random.random() < loot_data.get("chance", 0):
                     quantity_range = loot_data.get("quantity", [1, 1])
                     quantity_to_drop = random.randint(quantity_range[0], quantity_range[1])
-                    
+
                     for _ in range(quantity_to_drop):
-                        item = ItemFactory.create_item_from_template(item_id, world)
+                        if loot_data.get("is_chest"):
+                            # A chest's contents are generated per-drop, not
+                            # instantiated from a single fixed template --
+                            # item_id here is a nominal label, not a real
+                            # template id.
+                            item = ChestLootGenerator.generate_chest(world, level=self.level)
+                        else:
+                            item = ItemFactory.create_item_from_template(item_id, world)
                         if item:
                             world.add_item_to_room(self.current_region_id, self.current_room_id, item)
                             dropped_items.append(item)

@@ -7,6 +7,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
+      "debug_only": true,
       "damage": 999,
       "durability": 9999,
       "max_durability": 9999,
@@ -27,6 +28,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
+      "debug_only": true,
       "defense": 500,
       "magic_resist": 500,
       "durability": 9999,
@@ -47,6 +49,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
+      "debug_only": true,
       "defense": 1000,
       "magic_resist": 1000,
       "damage_immunity_chance": 0.95,
@@ -68,6 +71,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
+      "debug_only": true,
       "defense": 500,
       "magic_resist": 500,
       "durability": 9999,
@@ -88,6 +92,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
+      "debug_only": true,
       "defense": 500,
       "magic_resist": 500,
       "durability": 9999,
@@ -108,6 +113,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
+      "debug_only": true,
       "defense": 500,
       "magic_resist": 500,
       "durability": 9999,
@@ -128,6 +134,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
+      "debug_only": true,
       "defense": 500,
       "magic_resist": 500,
       "durability": 9999,
@@ -136,12 +143,12 @@
       "equip_effect": {
         "type": "stat_mod",
         "name": "Debug Omnipotence",
-        "modifiers": { 
-            "strength": 50, 
-            "dexterity": 50, 
-            "constitution": 50, 
-            "intelligence": 50, 
-            "wisdom": 50, 
+        "modifiers": {
+            "strength": 50,
+            "dexterity": 50,
+            "constitution": 50,
+            "intelligence": 50,
+            "wisdom": 50,
             "agility": 50,
             "spell_power": 50
         }
@@ -156,6 +163,7 @@
     "value": 0,
     "stackable": true,
     "properties": {
+      "debug_only": true,
       "break_chance": 0.0
     }
   }

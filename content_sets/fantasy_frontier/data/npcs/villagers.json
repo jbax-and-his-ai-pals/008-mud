@@ -166,13 +166,15 @@
       "business": "Business is steady enough. Always need for good tools and weapons.",
       "missing_supplies": "Aye, there was good steel on that caravan. I was expecting a shipment that never arrived.",
       "mountains": "The Frostpeaks? Cold and dangerous up there. Heard tell of old mines, but most are played out or collapsed. Not worth the climb unless you're hunting griffins... or trouble.",
-      "trade": "Looking for weapons, armor, or need repairs?"
+      "trade": "Looking for weapons, armor, or need repairs?",
+      "unlock": "Bring me a locked chest and I'll have it open in no time -- for a fair price, mind you. Just say: unlock <chest>."
     },
     "default_dialog": "The {name} nods but continues working at the forge.",
     "initial_inventory": [],
     "properties": {
       "is_vendor": true,
       "can_repair": true,
+      "can_unlock_chests": true,
       "wander_chance": 0.0,
       "move_cooldown": 9999,
       "spell_cast_chance": 0.0,
@@ -274,7 +276,7 @@
       "move_cooldown": 60,
       "spell_cast_chance": 0.0,
       "work_location": "town:market_square",
-      "buys_item_types": ["Consumable", "Treasure", "Material", "Junk", "Key", "Item", "Misc"],
+      "buys_item_types": ["Consumable", "Treasure", "Material", "Junk", "Key", "Item", "Misc", "Container"],
       "sells_items": [
         { "item_id": "item_healing_potion_small" },
         { "item_id": "item_mana_potion_small" },

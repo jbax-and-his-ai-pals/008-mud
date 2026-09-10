@@ -386,3 +386,47 @@ def weighted_choice(choices: Dict[str, int]) -> Optional[str]:
     except Exception as e:
         print(f"Error in weighted choice: {e}. Choices: {choices}")
         return random.choice(options) if options else None
+
+
+def roll_around(
+    expected: float, spread: float,
+    minimum: Optional[float] = None, maximum: Optional[float] = None,
+) -> float:
+    """Roll a value that's usually near ``expected``, rarely far from it.
+
+    Every other random-outcome mechanic in this engine is a flat threshold
+    check or a uniform range pick (no normalized/bell-curve shape exists
+    anywhere) -- this is that missing building block, used anywhere a
+    value should scale with something (level, tier, quality) while still
+    occasionally landing as a notable outlier in either direction.
+
+    Uses random.triangular, which is bounded by construction (no
+    reclamping loop needed) and naturally peaks at ``expected``.
+    """
+    if minimum is not None and maximum is not None and minimum >= maximum:
+        return minimum
+
+    low = expected - spread
+    high = expected + spread
+    if minimum is not None:
+        low = max(low, minimum)
+    if maximum is not None:
+        high = min(high, maximum)
+
+    if low >= high:
+        result = low
+    else:
+        mode = min(max(expected, low), high)
+        result = random.triangular(low, high, mode)
+
+    # expected/spread can still push the raw result outside [minimum,
+    # maximum] when expected itself lies far outside that range (e.g. low
+    # gets clamped up but high, computed before any clamp, was never
+    # brought down to match) -- clamp the final value defensively so
+    # minimum/maximum are always honored regardless of how the inputs
+    # relate to each other.
+    if minimum is not None:
+        result = max(result, minimum)
+    if maximum is not None:
+        result = min(result, maximum)
+    return result

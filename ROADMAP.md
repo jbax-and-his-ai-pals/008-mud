@@ -269,19 +269,24 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   loop was reused for the materials cost. A real, multi-stage delegated
   commission (contractor sends you to the blacksmith, then the wood shop)
   remains real follow-up work, not yet built.
-- **Chest locking and lockpicking economy: fully designed, not yet built.**
-  Chests are the first `Container`-type content in the game -- portable
-  loot items with their own material value (sellable, still locked, to a
-  general-store-type vendor by weight alone, deliberately far worse than
-  actually opening one), randomized/scaled contents and lock difficulty
-  (independent rolls, normalized distribution with rare big swings, and
-  every generated item gets its own recursive quality roll), occasional
-  traps disarmed via the *same* lockpicking skill (no second skill to
-  desync), and lockpicks that carry a durability pool (worse-margin
-  failures cost more durability) across a quality x material matrix (crude
-  vs. fine, bronze vs. steel). Keys stay out of the normal loop, reserved
-  for one-off quest/exploration treasure. Full detail:
-  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+- [x] **Chest loot slice 1 shipped: findable, lockable, randomized-content
+  chests.** Three chest materials drop from five "hoarder" hostiles with
+  contents and lock difficulty generated per-drop (junk/currency/gem/
+  equipment via `weighted_choice`, a new `roll_around` distribution utility
+  for the "usually expected, rarely a big swing" shape, and a recursive
+  per-item value roll on top) -- reusing the existing affix system for
+  equipment and the gathering system's quality-score convention for gems
+  rather than inventing new mechanics. A locksmith opens a chest for a fee;
+  opening/looking-inside/taking already worked with zero new command code.
+  Caught and fixed along the way: dynamic template-pool discovery surfaced
+  test-only debug gear into real loot, now excluded via a `debug_only` flag.
+- Still to build (each its own future pass): traps/disarm sharing the
+  lockpicking skill, a lockpick durability rework across a quality x
+  material matrix (crude/fine, bronze/steel), and the general-store economy
+  overhaul (per-vendor sell-rate multiplier, weight-based pricing for a
+  still-locked chest, quest-item sale exclusion). Keys stay out of the
+  normal loop, reserved for one-off quest/exploration treasure. Full
+  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't
   originally choose); a multi-factor crime/notoriety system (theft value,

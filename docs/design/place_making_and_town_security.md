@@ -71,12 +71,47 @@ the branch they didn't originally choose, chest locking, crime/jail,
 districts, and guards -- everything else in this document below is still
 just design, not implementation.
 
-## Chest locking and lockpicking economy (decided, not yet built)
+## Chest locking and lockpicking economy
 
-Nothing here exists in content today -- no `Container`-type item has ever
-been authored in `fantasy_frontier`. This is the first chest content in the
-game, with locking, trapping, and a real lockpicking economy built in from
-the start, not bolted onto something that already existed.
+### Shipped: slice 1 -- findable, lockable, randomized-content chests
+
+Chests are now real: three material tiers (`item_chest_wooden`/
+`item_chest_iron_bound`/`item_chest_gilded`, `content_sets/fantasy_frontier/data/items/chests.json`)
+drop from five thematically "hoarder" hostiles (bandit leader, troll, river
+troll, hobgoblin soldier, orc shaman), each with contents and lock
+difficulty generated per-drop, not templated. `ChestLootGenerator`
+(`engine/items/chest_loot_generator.py`) rolls the material and difficulty,
+then 1-3 content slots across junk/currency/gem/equipment categories
+(via `weighted_choice`), reusing three systems that already existed and
+were tested rather than inventing new ones: `LootGenerator`'s level-scaled
+affix rolls for equipment, the gathering system's `material_quality_score`
+convention for gems, and a new `roll_around` utility
+(`engine/utils/utils.py`, `random.triangular`-based) for the "usually
+expected, rarely a big swing" distribution shape nothing in this engine had
+before. Every generated item also gets one more `roll_around` pass on its
+own value, so quality varies recursively regardless of category. Opening,
+looking inside, and taking items out all worked with zero new command code
+-- `Container`'s generic mechanics (confirmed mature but never previously
+exercised by any authored content) already handled it.
+
+A locksmith (the blacksmith, doubling the role rather than a new NPC, same
+scope pattern as housing) opens a locked chest for a fee via a new `unlock`
+command, computed from lock difficulty and weight -- a placeholder formula,
+not yet tuned. Selling a chest uses the existing flat 40%-of-value vendor
+formula via Talia (now accepting `Container`) as an interim stand-in.
+
+Caught along the way: dynamically discovering "any Weapon/Armor template"
+for the equipment category surfaced `debug_items.json`'s test-only gear
+(a "Debug Amulet" with +50 to every stat) into real loot, since nothing
+had ever needed to treat that file as excludable before -- fixed by adding
+a `debug_only` property flag to those templates and checking it wherever
+this generator discovers pools.
+
+**Explicitly deferred to later passes:** traps/disarm, the lockpick
+durability rework (+ crude/fine x bronze/steel material matrix), and the
+general-store economy overhaul (per-vendor sell-rate multiplier,
+weight-based pricing for a still-locked chest, quest-item sale exclusion).
+Each is its own plan when picked up. Full original design below.
 
 **The chest as an object:**
 - Chests are portable loot items (not fixed furniture) -- picked up like
