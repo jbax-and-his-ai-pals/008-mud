@@ -280,13 +280,22 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   opening/looking-inside/taking already worked with zero new command code.
   Caught and fixed along the way: dynamic template-pool discovery surfaced
   test-only debug gear into real loot, now excluded via a `debug_only` flag.
+- [x] **General-store economy overhaul shipped.** Vendors now support a
+  per-vendor `sell_rate_multiplier` (default 0.4 preserved for anyone who
+  doesn't set one), a weight-only price for a still-*locked* container
+  (ignores value/contents, worse than unlocking first), and a universal
+  quest-item sale exclusion. Talia is now the general store: broadest
+  `buys_item_types` of any vendor, worst rate (0.2) of any vendor -- no new
+  NPC. Reconciled two dead, redundant "unique quest item" property flags
+  in content down to one (`quest_item`) while wiring the check up. Nine
+  pre-existing unit tests that used Talia's template as a generic
+  stand-in vendor needed an explicit rate override to keep testing the
+  *default* rate rather than her now-intentionally-different one.
 - Still to build (each its own future pass): traps/disarm sharing the
-  lockpicking skill, a lockpick durability rework across a quality x
-  material matrix (crude/fine, bronze/steel), and the general-store economy
-  overhaul (per-vendor sell-rate multiplier, weight-based pricing for a
-  still-locked chest, quest-item sale exclusion). Keys stay out of the
-  normal loop, reserved for one-off quest/exploration treasure. Full
-  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+  lockpicking skill, and a lockpick durability rework across a quality x
+  material matrix (crude/fine, bronze/steel). Keys stay out of the normal
+  loop, reserved for one-off quest/exploration treasure. Full detail:
+  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't
   originally choose); a multi-factor crime/notoriety system (theft value,

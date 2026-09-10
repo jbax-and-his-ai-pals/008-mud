@@ -151,7 +151,7 @@
     "value": 0,
     "stackable": false,
     "properties": {
-        "is_quest_item": true
+        "quest_item": true
     }
   }
 }

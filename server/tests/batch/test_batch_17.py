@@ -53,7 +53,11 @@ class TestBatch17(GameTestBase):
         self.world.add_npc(merchant)
         merchant.properties["is_vendor"] = True
         merchant.properties["buys_item_types"] = ["Item"]
-        
+        # This test spawns the "merchant" template as a generic stand-in
+        # vendor and expects the global default sell rate, not the
+        # merchant's own (deliberately lower) general-store rate.
+        merchant.properties["sell_rate_multiplier"] = 0.4
+
         # Player sells unique item
         self.world.item_templates["unique"] = {"type": "Item", "name": "UniqueThing", "value": 100}
         item = ItemFactory.create_item_from_template("unique", self.world)
@@ -166,7 +170,11 @@ class TestBatch17(GameTestBase):
         # Ensure merchant location matches player
         merchant.current_region_id = self.player.current_region_id
         merchant.current_room_id = self.player.current_room_id
-        
+        # This test spawns the "merchant" template as a generic stand-in
+        # vendor and expects the global default sell rate, not the
+        # merchant's own (deliberately lower) general-store rate.
+        merchant.properties["sell_rate_multiplier"] = 0.4
+
         self.world.item_templates["coin"] = {"type": "Treasure", "name": "Coin", "value": 10, "stackable": True}
         coin = ItemFactory.create_item_from_template("coin", self.world)
         

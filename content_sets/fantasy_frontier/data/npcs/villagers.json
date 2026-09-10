@@ -277,6 +277,7 @@
       "spell_cast_chance": 0.0,
       "work_location": "town:market_square",
       "buys_item_types": ["Consumable", "Treasure", "Material", "Junk", "Key", "Item", "Misc", "Container"],
+      "sell_rate_multiplier": 0.2,
       "sells_items": [
         { "item_id": "item_healing_potion_small" },
         { "item_id": "item_mana_potion_small" },

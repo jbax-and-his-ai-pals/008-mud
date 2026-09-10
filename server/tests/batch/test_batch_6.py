@@ -227,6 +227,11 @@ class TestBatch6(GameTestBase):
                 if "Gem" not in buy_types:
                     buy_types.append("Gem")
                     merchant.properties["buys_item_types"] = buy_types
+                # This test spawns the "merchant" template as a generic
+                # stand-in vendor and expects the global default sell rate,
+                # not the merchant's own (deliberately lower) general-store
+                # rate.
+                merchant.properties["sell_rate_multiplier"] = 0.4
 
                 self.world.add_npc(merchant)
                 if self.player.current_region_id and self.player.current_room_id:

@@ -19,6 +19,11 @@ VENDOR_CAN_BUY_JUNK = True
 VENDOR_CAN_BUY_ALL_ITEMS = False # Should vendors only buy certain types?
 VENDOR_MIN_BUY_PRICE = 1         # Minimum price player pays when buying
 VENDOR_MIN_SELL_PRICE = 0        # Minimum price player gets when selling
+# A still-locked container sells by weight alone (nobody knows what's
+# inside), deliberately worse than unlocking it and selling the contents.
+# Global, not per-vendor -- unlike DEFAULT_VENDOR_BUY_MULTIPLIER, which a
+# vendor can override via its own `sell_rate_multiplier` property.
+LOCKED_CONTAINER_SELL_RATE_PER_WEIGHT = 1.5
 
 # --- Repair Settings ---
 REPAIR_COST_PER_VALUE_POINT = 0.1 # e.g., 10% of item value to repair fully

@@ -2,14 +2,16 @@
 from typing import Any, Dict, List, Tuple, Optional
 from engine.commands.command_system import command
 from engine.config import (
-    FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE, 
-    VENDOR_LIST_ITEM_NAME_WIDTH, VENDOR_LIST_PRICE_WIDTH, 
-    DEFAULT_VENDOR_BUY_MULTIPLIER, DEFAULT_VENDOR_SELL_MULTIPLIER, 
-    REPAIR_COST_PER_VALUE_POINT, REPAIR_MINIMUM_COST, 
-    VENDOR_CAN_BUY_ALL_ITEMS, VENDOR_MIN_BUY_PRICE, VENDOR_MIN_SELL_PRICE
+    FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE,
+    VENDOR_LIST_ITEM_NAME_WIDTH, VENDOR_LIST_PRICE_WIDTH,
+    DEFAULT_VENDOR_BUY_MULTIPLIER, DEFAULT_VENDOR_SELL_MULTIPLIER,
+    REPAIR_COST_PER_VALUE_POINT, REPAIR_MINIMUM_COST,
+    VENDOR_CAN_BUY_ALL_ITEMS, VENDOR_MIN_BUY_PRICE, VENDOR_MIN_SELL_PRICE,
+    LOCKED_CONTAINER_SELL_RATE_PER_WEIGHT
 )
 from engine.items.item_factory import ItemFactory
 from engine.items.item import Item
+from engine.items.container import Container
 from engine.player import Player
 from engine.npcs.npc import NPC
 from engine.social.relationships import apply_relationship_milestones, relationship_key, relationship_discount
@@ -420,8 +422,19 @@ def sell_handler(args, context):
     if VENDOR_CAN_BUY_ALL_ITEMS or item_type_name in vendor_buy_types or ("Item" in vendor_buy_types and item_type_name == "Item"):
         can_sell = True
     if not can_sell: return f"{FORMAT_ERROR}{vendor.name} is not interested in buying {item_to_sell.name}.{FORMAT_RESET}"
-    
-    sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, int(item_to_sell.value * DEFAULT_VENDOR_BUY_MULTIPLIER))
+
+    if item_to_sell.get_property("quest_item"):
+        return f"{FORMAT_ERROR}{item_to_sell.name} isn't something you can part with.{FORMAT_RESET}"
+
+    if isinstance(item_to_sell, Container) and item_to_sell.properties.get("locked"):
+        # Nobody buying a still-locked container knows what's inside, so
+        # its value (and whatever it contains) never factors into the
+        # price -- deliberately worse than unlocking it and selling the
+        # contents separately.
+        sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, int(item_to_sell.weight * LOCKED_CONTAINER_SELL_RATE_PER_WEIGHT))
+    else:
+        sell_rate = vendor.properties.get("sell_rate_multiplier", DEFAULT_VENDOR_BUY_MULTIPLIER)
+        sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, int(item_to_sell.value * sell_rate))
     total_gold_gain = sell_price_per_item * quantity
     removed_item_type, actual_removed_count, remove_msg = player.inventory.remove_item(item_to_sell.obj_id, quantity)
     

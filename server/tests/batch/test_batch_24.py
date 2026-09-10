@@ -127,7 +127,11 @@ class TestBatch24(GameTestBase):
             merchant.current_room_id = self.player.current_room_id
             merchant.properties["is_vendor"] = True
             merchant.properties["buys_item_types"] = ["Item"]
-            
+            # This test spawns the "merchant" template as a generic stand-in
+            # vendor and expects the global default sell rate, not the
+            # merchant's own (deliberately lower) general-store rate.
+            merchant.properties["sell_rate_multiplier"] = 0.4
+
             self.player.inventory.add_item(item)
             self.player.runtime_state.gold = 0
             self.player.trading_with = merchant.obj_id

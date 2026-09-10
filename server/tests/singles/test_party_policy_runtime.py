@@ -224,6 +224,10 @@ class TestPartyPolicyRuntime(unittest.TestCase):
         if "Gem" not in buy_types:
             buy_types.append("Gem")
         merchant.properties["buys_item_types"] = buy_types
+        # This test spawns the "merchant" template as a generic stand-in
+        # vendor and expects the global default sell rate, not the
+        # merchant's own (deliberately lower) general-store rate.
+        merchant.properties["sell_rate_multiplier"] = 0.4
         leader_player.trading_with = merchant.obj_id
 
         result = sell_handler(["ruby"], {"world": self.server.world, "player": leader_player})

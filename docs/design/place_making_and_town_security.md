@@ -107,11 +107,37 @@ had ever needed to treat that file as excludable before -- fixed by adding
 a `debug_only` property flag to those templates and checking it wherever
 this generator discovers pools.
 
-**Explicitly deferred to later passes:** traps/disarm, the lockpick
-durability rework (+ crude/fine x bronze/steel material matrix), and the
-general-store economy overhaul (per-vendor sell-rate multiplier,
-weight-based pricing for a still-locked chest, quest-item sale exclusion).
-Each is its own plan when picked up. Full original design below.
+### Shipped: general-store economy overhaul
+
+`sell_handler` (`engine/commands/mercantile.py`) now supports a per-vendor
+`sell_rate_multiplier` (falling back to the prior global 0.4 default for
+every vendor that doesn't set one), a weight-only pricing branch for a
+still-*locked* container (ignores its value/contents entirely, so it's
+worth notably less than unlocking it first), and a universal `quest_item`
+sale exclusion. Talia is now the general store: broadest `buys_item_types`
+of any vendor (already extended to include `Container` in chest slice 1)
+plus an explicit `sell_rate_multiplier: 0.2` -- worse than every other
+vendor's implicit 0.4, exactly the "accepts almost anything, pays the
+least" role the design called for. No new NPC, same reuse pattern as the
+housing contractor and chest locksmith.
+
+Found and reconciled in passing: two different "this is a unique quest
+item" property flags existed in content (`is_quest_item`, `quest_item`),
+neither read by any engine code. Standardized on `quest_item` (renamed the
+one `is_quest_item` usage) rather than having `sell_handler` check both
+forever.
+
+Caught by the full test suite, not by design: nine pre-existing unit tests
+across `tests/batch/` and `tests/singles/` spawned the `"merchant"`
+template as a generic stand-in vendor and asserted the old flat 0.4 rate --
+now that Talia genuinely has a different, lower rate by design, those
+tests needed an explicit `sell_rate_multiplier: 0.4` override to keep
+testing what they actually meant to test (the *default* rate), not
+Talia specifically.
+
+**Explicitly deferred to later passes:** traps/disarm, and the lockpick
+durability rework (+ crude/fine x bronze/steel material matrix). Each is
+its own plan when picked up. Full original design below.
 
 **The chest as an object:**
 - Chests are portable loot items (not fixed furniture) -- picked up like

@@ -13,7 +13,12 @@ class TestStackSelling(GameTestBase):
             self.world.add_npc(merchant)
             merchant.current_region_id = self.player.current_region_id
             merchant.current_room_id = self.player.current_room_id
-            
+            # This test spawns the "merchant" template as a generic
+            # stand-in vendor and expects the global default sell rate,
+            # not the merchant's own (deliberately lower) general-store
+            # rate.
+            merchant.properties["sell_rate_multiplier"] = 0.4
+
             # 2. Setup Player Items
             # Create stackable item worth 10 gold
             self.world.item_templates["gold_bar"] = {

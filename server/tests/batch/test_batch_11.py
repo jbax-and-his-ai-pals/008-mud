@@ -150,6 +150,10 @@ class TestBatch11(GameTestBase):
         merchant.properties["is_vendor"] = True
         merchant.properties["sells_items"] = [{"item_id": "widget", "price_multiplier": 2.0}] # Buy for 200
         merchant.properties["buys_item_types"] = ["Item"]
+        # This test spawns the "merchant" template as a generic stand-in
+        # vendor and expects the global default sell rate, not the
+        # merchant's own (deliberately lower) general-store rate.
+        merchant.properties["sell_rate_multiplier"] = 0.4
         
         # 1. Buy
         self.player.runtime_state.gold = 1000
