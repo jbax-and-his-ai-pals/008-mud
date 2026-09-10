@@ -1,7 +1,12 @@
 # engine/items/container.py
 import random
+import time
 from typing import TYPE_CHECKING, Any, Dict, Optional, List, Tuple
-from engine.config import FORMAT_CATEGORY, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS
+from engine.config import (
+    FORMAT_CATEGORY, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS,
+    TRAP_DAMAGE_PER_DIFFICULTY, TRAP_POISON_DAMAGE_PER_DIFFICULTY,
+    TRAP_POISON_DURATION, TRAP_POISON_TICK_INTERVAL,
+)
 from engine.items.item import Item
 from engine.utils.utils import _serialize_item_reference
 
@@ -11,6 +16,11 @@ if TYPE_CHECKING:
 
 class Container(Item):
      """A container that can hold other items."""
+
+     # Trap state is meant to stay hidden until the player disarms or
+     # triggers it -- see trigger_trap() below.
+     HIDDEN_EXAMINE_PROPERTIES = {"trapped", "trap_kind", "trap_difficulty"}
+
      def __init__(self, obj_id: Optional[str] = None, name: str = "Unknown Container",
                     description: str = "No description", weight: float = 2.0,
                     value: int = 20, capacity: float = 50.0, locked: bool = False,
@@ -181,6 +191,41 @@ class Container(Item):
           
           self.properties["locked"] = False
           return True, "Unlocked."
+
+     def trigger_trap(self, user) -> Optional[str]:
+          """Fire this chest's trap (if any) at `user` and spend it -- a
+          trap only ever fires once. Safe no-op if nothing is armed, so
+          every access path (picking, the Knock spell, a bad disarm
+          attempt) can call this unconditionally whenever a locked,
+          undisarmed chest is being forced open."""
+          if not self.properties.get("trapped"):
+               return None
+
+          self.properties["trapped"] = False
+          if not getattr(user, "is_alive", True):
+               return None
+
+          kind = self.properties.get("trap_kind", "damage")
+          difficulty = int(self.properties.get("trap_difficulty", 10) or 10)
+
+          if kind == "poison" and hasattr(user, "apply_effect"):
+               damage_per_tick = max(1, round(difficulty * TRAP_POISON_DAMAGE_PER_DIFFICULTY))
+               user.apply_effect({
+                    "type": "dot",
+                    "name": "Trap Venom",
+                    "base_duration": TRAP_POISON_DURATION,
+                    "damage_per_tick": damage_per_tick,
+                    "tick_interval": TRAP_POISON_TICK_INTERVAL,
+                    "damage_type": "poison",
+               }, time.time())
+               return (f"\n{FORMAT_ERROR}A poisoned needle jabs your finger as you disturb the "
+                       f"{self.name}! Venom seeps into the wound.{FORMAT_RESET}")
+          elif hasattr(user, "take_damage"):
+               raw_damage = max(3, round(difficulty * TRAP_DAMAGE_PER_DIFFICULTY))
+               actual_damage = user.take_damage(raw_damage, "physical")
+               return (f"\n{FORMAT_ERROR}A hidden spring snaps as you disturb the {self.name}! "
+                       f"You take {actual_damage} damage!{FORMAT_RESET}")
+          return None
 
      def magic_interact(self, interaction_type: str) -> Tuple[bool, str]:
           """Handle magical interactions (unlock/lock)."""

@@ -5,6 +5,12 @@ from engine.game_object import GameObject
 class Item(GameObject):
     """Base class for all items in the game."""
 
+    # Properties a subclass wants to store (so get_property/serialization
+    # keep working) without them leaking through examine()'s generic
+    # "show any numeric/string/bool property" fallback -- e.g. a chest
+    # trap that's meant to stay hidden until the player acts on it.
+    HIDDEN_EXAMINE_PROPERTIES: set = set()
+
     def __init__(self, obj_id: Optional[str] = None, name: str = "Unknown Item",
                  description: str = "No description", weight: float = 1.0,
                  value: int = 0, stackable: bool = False,
@@ -40,7 +46,7 @@ class Item(GameObject):
         extra_props = []
         skip_keys = {"weight", "value", "stackable", "equip_slot", "name", "description", "id", "obj_id", "type", "world"}
         for key, value in self.properties.items():
-            if key not in skip_keys:
+            if key not in skip_keys and key not in self.HIDDEN_EXAMINE_PROPERTIES:
                 if isinstance(value, (int, float, str, bool)):
                     formatted_name = key.replace('_', ' ').title()
                     extra_props.append(f"{formatted_name}: {value}")

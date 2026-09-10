@@ -59,6 +59,13 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                     success, msg = target.magic_interact(ef_type)
                     if success: total_value = 1
                     messages.append(msg)
+                    # Forcing a lock open by magic is just as much "trying
+                    # to pick the lock without disarming" as doing it by
+                    # hand -- a trapped, undisarmed chest goes off either way.
+                    if ef_type == "unlock" and hasattr(target, "trigger_trap"):
+                        trap_msg = target.trigger_trap(caster)
+                        if trap_msg:
+                            messages.append(trap_msg)
             return total_value, "\n".join(messages)
 
     # ... (Rest of function logic same as previous step, just ensure Room import is there)

@@ -186,8 +186,51 @@ lesson (template properties meant to reach the constructor must be
 top-level keys, not nested under `"properties"`) is worth remembering for
 future item templates.
 
-**Explicitly deferred to later passes:** traps/disarm. Its own plan when
-picked up. Full original design below.
+### Shipped: chest traps and disarming
+
+Chest generation now rolls a trap as a fourth independent draw
+(`ChestLootGenerator._roll_trap`, `CHEST_TRAP_CHANCE`, a new tunable):
+whether one exists, its kind (`damage` or `poison`, both reusing existing
+engine primitives -- `take_damage()` for a direct hit, the same
+`apply_effect()`/DoT shape already authored for poison weapons and
+hostiles for the poison kind), and its own difficulty. Traps are hidden --
+`Item.examine()`'s generic "show any numeric/string/bool property"
+fallback (the same mechanism that shows `Lockpick`/`Weapon`/`Armor`
+durability for free) got a small, reusable opt-out
+(`HIDDEN_EXAMINE_PROPERTIES`) so a chest doesn't leak its own trap state
+to `examine`.
+
+`Container.trigger_trap(user)` is the single place a trap's consequence is
+computed and applied; it's a safe no-op if nothing's armed, and spends the
+trap (one-shot) the moment it fires. Every way a lock can be forced open
+calls it the same way: trying to pick a trapped-and-undisarmed lock always
+sets it off (`Lockpick.use()`), regardless of whether the pick roll itself
+succeeds; the "Knock" spell going through `Container.magic_interact()`
+does too (see below); and a bad-enough `disarm` failure does as well.
+
+A new `disarm` command reuses the **lockpicking** skill exactly as
+designed: it finds the trap by attempting to disarm it (no separate
+detection step or skill), and a narrow miss fails safely and is retryable
+(costs only lockpick durability, via the same `apply_wear` used
+everywhere else) while a miss beyond `TRAP_DISARM_TRIGGER_MARGIN_THRESHOLD`
+sets the trap off. Paying the locksmith (`unlock_handler`) safely defuses
+any trap with zero risk as part of the fee -- real added value over DIY
+picking on a trapped chest, on top of skipping the skill check entirely.
+
+Found and closed along the way: a "Knock" spell already existed
+(`content_sets/fantasy_frontier/data/magic/utility_spells.json`, wired
+through `Container.magic_interact()`/`engine/magic/effects.py`) as a
+genuine, already-live alternative to lockpicking -- undocumented by this
+doc's earlier "spells... not building yet" framing. Left alone, it would
+have been a zero-risk, zero-cost way to bypass any trap entirely. It now
+triggers a trap exactly like manual picking does.
+
+**Explicitly deferred:** a trap that permanently ruins the lock (unpickable
+by anyone, including the locksmith). Noted below as an open question
+rather than built -- what happens to a chest in that state (sold as a
+total loss? a future spell-based retrieval path?) needs more thought
+first. This was the last piece of the original chest-locking design list;
+only that open question remains. Full original design below.
 
 **The chest as an object:**
 - Chests are portable loot items (not fixed furniture) -- picked up like
@@ -395,6 +438,12 @@ work:
 
 ## Open questions
 
+- **A trap that permanently ruins the lock.** Raised as a real idea when
+  disarm/traps shipped: some traps could make a chest unpickable by
+  anyone, locksmith included. What happens to that chest afterward --
+  sold to a vendor as a total loss, some other authored escape hatch, or
+  a future spell-based retrieval path -- needs more thought before it's
+  built. Not decided, not built.
 - **What a district needs beyond identity, eventually.** Decided as "just a
   group of rooms" for now; town security iteration may later want to hang
   patrol routes, ambient encounter posture, or crime-severity modifiers off

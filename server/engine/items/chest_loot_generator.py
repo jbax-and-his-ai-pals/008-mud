@@ -13,8 +13,9 @@ in this engine previously rolled a "usually expected, rarely a big swing"
 value.
 """
 import random
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
+from engine.config import CHEST_TRAP_CHANCE
 from engine.items.container import Container
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
@@ -44,8 +45,13 @@ class ChestLootGenerator:
 
         material_id = ChestLootGenerator._roll_material(world, level)
         difficulty = round(roll_around(10 + level * 3, 4 + level * 0.5, minimum=5))
+        trapped, trap_kind, trap_difficulty = ChestLootGenerator._roll_trap(level)
+        overrides = {"lock_difficulty": difficulty, "trapped": trapped}
+        if trapped:
+            overrides["trap_kind"] = trap_kind
+            overrides["trap_difficulty"] = trap_difficulty
         chest = ItemFactory.create_item_from_template(
-            material_id, world, properties_override={"lock_difficulty": difficulty},
+            material_id, world, properties_override=overrides,
         )
         if not isinstance(chest, Container):
             return None
@@ -75,6 +81,16 @@ class ChestLootGenerator:
         for index, material_id in enumerate(available):
             weights[material_id] = max(1, 10 - index * 4 + index * level)
         return weighted_choice(weights) or available[0]
+
+    @staticmethod
+    def _roll_trap(level: int) -> Tuple[bool, Optional[str], Optional[int]]:
+        """Independent of lock difficulty and contents -- a chest's
+        difficulty says nothing about whether it's trapped."""
+        if random.random() >= CHEST_TRAP_CHANCE:
+            return False, None, None
+        kind = weighted_choice({"damage": 3, "poison": 2})
+        difficulty = round(roll_around(10 + level * 3, 4 + level * 0.5, minimum=5))
+        return True, kind, difficulty
 
     @staticmethod
     def _generate_slot_item(world: 'World', level: int) -> Optional[Item]:

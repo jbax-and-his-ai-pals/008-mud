@@ -74,3 +74,47 @@ class TestChestLootGenerator(GameTestBase):
             item = ChestLootGenerator._generate_slot_item(self.world, level=5)
         self.assertIsNotNone(item)
         self.assertEqual("item_gold_coin", item.obj_id)
+
+
+class TestChestTrapRoll(GameTestBase):
+    def test_never_trapped_below_the_chance_threshold(self):
+        with patch("engine.items.chest_loot_generator.random.random", return_value=0.99):
+            trapped, kind, difficulty = ChestLootGenerator._roll_trap(level=5)
+        self.assertFalse(trapped)
+        self.assertIsNone(kind)
+        self.assertIsNone(difficulty)
+
+    def test_always_trapped_at_the_chance_threshold(self):
+        with patch("engine.items.chest_loot_generator.random.random", return_value=0.0):
+            trapped, kind, difficulty = ChestLootGenerator._roll_trap(level=5)
+        self.assertTrue(trapped)
+        self.assertIn(kind, ("damage", "poison"))
+        self.assertGreaterEqual(difficulty, 5)
+
+    def test_trap_difficulty_scales_with_level_independently_of_lock_difficulty(self):
+        low_level_difficulties = []
+        high_level_difficulties = []
+        with patch("engine.items.chest_loot_generator.random.random", return_value=0.0):
+            for _ in range(30):
+                _, _, difficulty = ChestLootGenerator._roll_trap(level=1)
+                low_level_difficulties.append(difficulty)
+            for _ in range(30):
+                _, _, difficulty = ChestLootGenerator._roll_trap(level=15)
+                high_level_difficulties.append(difficulty)
+        self.assertLess(
+            sum(low_level_difficulties) / len(low_level_difficulties),
+            sum(high_level_difficulties) / len(high_level_difficulties),
+        )
+
+    def test_generated_chest_carries_trap_state_when_trapped(self):
+        with patch("engine.items.chest_loot_generator.random.random", return_value=0.0):
+            chest = ChestLootGenerator.generate_chest(self.world, level=5)
+        self.assertTrue(chest.properties.get("trapped"))
+        self.assertIn(chest.properties.get("trap_kind"), ("damage", "poison"))
+        self.assertIsNotNone(chest.properties.get("trap_difficulty"))
+
+    def test_generated_chest_has_no_trap_kind_when_untrapped(self):
+        with patch("engine.items.chest_loot_generator.random.random", return_value=0.99):
+            chest = ChestLootGenerator.generate_chest(self.world, level=5)
+        self.assertFalse(chest.properties.get("trapped"))
+        self.assertIsNone(chest.properties.get("trap_kind"))

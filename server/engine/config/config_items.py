@@ -17,6 +17,20 @@ ITEM_DURABILITY_LOW_THRESHOLD = 0.30
 # Exact tuning is an implementation detail, not a design decision.
 LOCKPICK_DURABILITY_LOSS_DIVISOR = 10
 
+# --- Chest Traps ---
+# Independent of the lock-difficulty and contents rolls (see
+# ChestLootGenerator) -- a chest's difficulty says nothing about whether
+# it's trapped. Chance a generated chest is trapped at all.
+CHEST_TRAP_CHANCE = 0.25
+# A disarm failure only sets the trap off if it misses by a lot; a narrow
+# miss just fails safely and can be retried -- mirrors the margin-scaled
+# lockpick wear idea above.
+TRAP_DISARM_TRIGGER_MARGIN_THRESHOLD = 15
+TRAP_DAMAGE_PER_DIFFICULTY = 0.5
+TRAP_POISON_DAMAGE_PER_DIFFICULTY = 0.15
+TRAP_POISON_DURATION = 12.0
+TRAP_POISON_TICK_INTERVAL = 3.0
+
 # --- Trading & Vendor Settings ---
 DEFAULT_VENDOR_SELL_MULTIPLIER = 2.0  # Player Buys: Item Value * 2.0 (default)
 DEFAULT_VENDOR_BUY_MULTIPLIER = 0.4   # Player Sells: Item Value * 0.4 (default)

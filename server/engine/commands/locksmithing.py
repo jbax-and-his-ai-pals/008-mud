@@ -43,7 +43,15 @@ def unlock_handler(args, context):
 
     player.runtime_state.gold -= fee
     target.properties["locked"] = False
+
+    was_trapped = bool(target.properties.get("trapped"))
+    if was_trapped:
+        # A locksmith safely defuses any trap as part of the job -- no
+        # roll, no damage. Real extra value for the fee over DIY picking.
+        target.properties["trapped"] = False
+    trap_note = f" {locksmith.name} also carefully disarms a hidden trap along the way." if was_trapped else ""
+
     return (
         f"{FORMAT_SUCCESS}You pay {fee} {world.currency_name()}. {locksmith.name} makes quick work of the "
-        f"{target.name}'s lock.{FORMAT_RESET}\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}"
+        f"{target.name}'s lock.{trap_note}{FORMAT_RESET}\nYour {world.currency_name().capitalize()}: {player.runtime_state.gold}"
     )

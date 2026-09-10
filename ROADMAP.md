@@ -304,9 +304,24 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   master lockpick's `break_chance` was nested under a `"properties"` block
   in content and never actually reached the constructor -- a latent,
   harmless bug now moot since `break_chance` is gone.
-- Still to build (its own future pass): traps/disarm sharing the
-  lockpicking skill. Keys stay out of the normal loop, reserved for
-  one-off quest/exploration treasure. Full detail:
+- [x] **Chest traps and disarming shipped -- closes out the chest-locking
+  design.** Chest generation now rolls a trap as a fourth independent
+  draw (kind -- damage or poison, both reusing existing primitives -- plus
+  its own difficulty). Traps are hidden from `examine` (a new, reusable
+  `HIDDEN_EXAMINE_PROPERTIES` opt-out on `Item`). `Container.trigger_trap`
+  is the one place a trap's consequence fires, called from every way a
+  lock can be forced: picking blind (always sets it off, win or lose), a
+  bad-enough `disarm` failure, and a "Knock" spell that turned out to
+  already exist as a live alternative to lockpicking (previously
+  undocumented, and a free trap-bypass until now). A new `disarm` command
+  reuses the lockpicking skill exactly as designed -- a narrow miss is
+  safe and retryable, a bad one sets the trap off -- and paying the
+  locksmith safely defuses any trap at no risk, real extra value over DIY
+  picking. Keys stay out of the normal loop, reserved for one-off
+  quest/exploration treasure. Deliberately not built: a trap that
+  permanently ruins the lock -- a real idea, but what happens to that
+  chest afterward needs more thought first (open question in the design
+  doc). Full detail:
   [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't
