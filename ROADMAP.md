@@ -269,20 +269,27 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   loop was reused for the materials cost. A real, multi-stage delegated
   commission (contractor sends you to the blacksmith, then the wood shop)
   remains real follow-up work, not yet built.
-- Still to build: further tiers beyond 2 (a Manor-level tier, and whether
-  a later tier lets a player pick up the branch they didn't originally
-  choose); residential containers locked by default so theft requires
-  continuous skill engagement; a multi-factor crime/notoriety system (theft
-  value, cumulative crime value, reputation) driving a fine-or-jail
-  outcome, with jail time passing on the existing real-time clock and an
-  escape mechanic gated behind a stealth+lockpicking bottleneck; a
-  residential district as a labeled room group connected by a
-  non-directional gate; guards patrolling the whole town as a first
-  iteration.
-- Still open: exact scope of "unowned containers are locked" (resolved as
-  chest-vs-barrel, not location-based, per the design doc) is decided, but
-  district tagging, guard patrol routes, and per-player house uniqueness
-  are not yet built.
+- **Chest locking and lockpicking economy: fully designed, not yet built.**
+  Chests are the first `Container`-type content in the game -- portable
+  loot items with their own material value (sellable, still locked, to a
+  general-store-type vendor by weight alone, deliberately far worse than
+  actually opening one), randomized/scaled contents and lock difficulty
+  (independent rolls, normalized distribution with rare big swings, and
+  every generated item gets its own recursive quality roll), occasional
+  traps disarmed via the *same* lockpicking skill (no second skill to
+  desync), and lockpicks that carry a durability pool (worse-margin
+  failures cost more durability) across a quality x material matrix (crude
+  vs. fine, bronze vs. steel). Keys stay out of the normal loop, reserved
+  for one-off quest/exploration treasure. Full detail:
+  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+- Still to build: further house tiers beyond 2 (a Manor-level tier, and
+  whether a later tier lets a player pick up the branch they didn't
+  originally choose); a multi-factor crime/notoriety system (theft value,
+  cumulative crime value, reputation) driving a fine-or-jail outcome, with
+  jail time passing on the existing real-time clock and an escape mechanic
+  gated behind a stealth+lockpicking bottleneck; a residential district as
+  a labeled room group connected by a non-directional gate; guards
+  patrolling the whole town as a first iteration.
 
 - A modest player home, camp, or workshop: storage, displays, workstations,
   gardens, trophies, and furnishings.

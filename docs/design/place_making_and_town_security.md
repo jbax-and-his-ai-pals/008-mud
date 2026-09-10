@@ -71,6 +71,84 @@ the branch they didn't originally choose, chest locking, crime/jail,
 districts, and guards -- everything else in this document below is still
 just design, not implementation.
 
+## Chest locking and lockpicking economy (decided, not yet built)
+
+Nothing here exists in content today -- no `Container`-type item has ever
+been authored in `fantasy_frontier`. This is the first chest content in the
+game, with locking, trapping, and a real lockpicking economy built in from
+the start, not bolted onto something that already existed.
+
+**The chest as an object:**
+- Chests are portable loot items (not fixed furniture) -- picked up like
+  any other item, not opened-in-place.
+- A chest has its own intrinsic value from its *material* (a gold chest is
+  worth a lot as an object), independent of whatever's inside it.
+- A chest can be sold, still locked, to a vendor that accepts chests (e.g.
+  a general store) via the existing `buys_item_types` vendor filter --
+  priced purely by weight, deliberately much less than lockpicking it open
+  and selling the contents separately. This exists as a fallback for a
+  player with no lockpicking skill and no other money, not as a viable
+  alternative to actually engaging the lock -- the return has to stay bad
+  enough that it never out-competes picking or paying a locksmith.
+- The general store more broadly should be the worst-rate vendor for
+  *everything*, not just chests -- it accepts nearly any item (unlike
+  specialist vendors) but always pays the least. Specialist vendors remain
+  the better sale for anything in their specialty. Exception: unique quest
+  items are never purchasable by any vendor, general store included.
+
+**Contents:** generated at drop time, not fixed per template.
+- A normalized distribution around a tier-appropriate expected value, so
+  most chests land near what you'd expect for their level and only rarely
+  swing well above or below it.
+- Draws from systems already built: junk, straight currency, gems, and
+  crafted/attachment-bearing equipment. No nested chests (a chest can never
+  contain another chest).
+- Whatever item type gets rolled is *itself* then quality-rolled the same
+  way (a rolled gem gets its own good-or-mediocre quality roll; this
+  applies generically to any generated chest item, not just gems) -- the
+  same normalized-distribution idea applied recursively: first roll what's
+  inside, then roll how good that specific thing is.
+
+**Difficulty and traps:**
+- Lock difficulty scales with level using the same normalized-distribution
+  shape as contents -- usually near expected for the tier, occasionally a
+  notable outlier in either direction.
+- Traps are occasional. Difficulty (of both the lock and any trap) and
+  whether a trap is present at all, and the contents roll, are four
+  **independent** rolls -- a chest's difficulty says nothing about what's
+  inside it or whether it's trapped.
+- Disarming a trap reuses the **lockpicking** skill rather than a separate
+  disarm skill, specifically so a player capable of picking a given chest's
+  lock is never under-trained for a trap on that same chest -- no second
+  skill to keep in sync.
+
+**Access methods:**
+- Lockpicking only, for now. Spells as an alternative unlock method are
+  worth keeping in mind for later, not building yet.
+- A locksmith opens a chest for a fee based on a formula combining its lock
+  difficulty and (probably) its weight -- distinct from, and much more
+  generous than, the general store's weight-only locked-chest purchase
+  above. Exact formula constants are an implementation detail, not a
+  design decision to settle here.
+- Keys stay out of the normal chest loop entirely. The one place they'd
+  earn their keep: quest/exploration-specific unique treasure -- a named
+  boss or puzzle drops a unique key that opens one specific,
+  otherwise-unpickable legendary chest elsewhere. An occasional authored
+  exception, not a parallel access system competing with lockpicking for
+  ordinary loot.
+
+**Lockpicks:**
+- Lockpicks can break. Rather than (or alongside) a flat break-chance-per-
+  use, they carry a durability/"health" pool that depletes on failed
+  attempts, with a **worse failure margin costing more durability** --
+  reusing the "how badly you missed matters" idea already established for
+  perception's soft/hard detection fidelity.
+- Lockpicks vary along two independent axes: a quality tier (crude / fine)
+  crossed with a material (bronze / steel / ...), mirroring how tools and
+  materials already vary elsewhere in this content set (e.g. quality-tiered
+  crafting outputs). A "crude bronze lockpick" and a "crude steel lockpick"
+  are different templates, not the same template with a material label.
+
 ## Engine facts this design leans on
 
 Found while scoping this, all already built and tested -- most of this
@@ -137,16 +215,10 @@ work:
 - **Locking is a property of the container *type* (chests), not of
   location** (not "residential vs. everywhere" as originally framed).
   Barrels and similar incidental containers are never locked, wherever
-  found. Chests are locked when first found, full stop -- as home/NPC-house
-  furniture, and also as ordinary combat loot (chests are a normal random
-  drop from defeated enemies, not just something houses contain). A town
-  locksmith offers a paid service to open a chest for players who'd rather
-  spend gold than invest in lockpicking. This gives lockpicking skill
-  everyday utility in ordinary adventuring, not just in the theft/crime
-  loop -- one more case of a system paying into more than one playstyle.
-  Quest rewards deliberately sidestep the whole question: a quest never
-  hands out a locked chest, only the raw item(s) that would have been
-  inside one.
+  found; chests are locked when first found, full stop. A town locksmith
+  offers a paid alternative to lockpicking. Full chest design (contents
+  generation, traps, lockpick durability/materials, vendor economics) is
+  its own section above, not repeated here.
 - **Any NPC can witness and report a crime; guards are better at noticing.**
   A guard noticing an in-progress theft is the *same* perception-vs-stealth
   mechanism described below, run in the other direction (guard's perception
