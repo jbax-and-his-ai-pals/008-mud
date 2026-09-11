@@ -10,7 +10,11 @@
             "exits": {
                 "north": "coastal_path:beach_approach",
                 "south": "harbor_road"
-            }
+            },
+            "initial_npcs": [
+                { "template_id": "portbridge_guard", "instance_id": "portbridge_guard_gate_1" },
+                { "template_id": "portbridge_guard", "instance_id": "portbridge_guard_gate_2" }
+            ]
         },
         "town_gate_south": {
             "name": "Portbridge South Gate",
@@ -26,7 +30,8 @@
                 "north": "town_gate_north",
                 "south": "harbor_district",
                 "east": "fish_market"
-            }
+            },
+            "initial_npcs": [ { "template_id": "portbridge_dockhand" } ]
         },
         "harbor_district": {
             "name": "Harbor District",
@@ -38,7 +43,15 @@
                 "east": "main_pier",
                 "west": "sailors_rest_inn_exterior",
                 "down": "smugglers_tunnel_entrance"
-            }
+            },
+            "initial_npcs": [
+                { "template_id": "portbridge_dockhand" },
+                {
+                    "template_id": "portbridge_guard",
+                    "instance_id": "portbridge_guard_patrol_1",
+                    "overrides": { "behavior_type": "patrol", "patrol_points": ["harbor_district", "town_center_portbridge", "harbor_road"] }
+                }
+            ]
         },
         "sailors_rest_inn_exterior": {
             "name": "The Sailor's Rest Inn",
@@ -56,7 +69,8 @@
                 "out": "sailors_rest_inn_exterior",
                 "up": "inn_upper_floor",
                 "down": "inn_cellar"
-            }
+            },
+            "initial_npcs": [ { "template_id": "portbridge_innkeeper" } ]
         },
         "inn_cellar": {
             "name": "Inn Cellar",
@@ -86,7 +100,8 @@
             "name": "Main Pier",
             "description": "A long wooden pier extending out over the water. Large merchant vessels are tied up, and dockhands rush to load and unload cargo.",
             "exits": { "west": "harbor_district" },
-            "items": [ { "item_id": "item_coiled_rope" } ]
+            "items": [ { "item_id": "item_coiled_rope" } ],
+            "initial_npcs": [ { "template_id": "portbridge_dockhand" } ]
         },
         "fish_market": {
             "name": "Fish Market",
@@ -95,7 +110,8 @@
                 "west": "harbor_road",
                 "east": "fishing_pier"
             },
-            "properties": { "noisy": true, "smell": "fishy" }
+            "properties": { "noisy": true, "smell": "fishy" },
+            "initial_npcs": [ { "template_id": "portbridge_fisherman" } ]
         },
         "fishing_pier": {
             "name": "Fishing Pier",
@@ -115,7 +131,8 @@
         "port_authority_office": {
             "name": "Port Authority Office",
             "description": "A stern-looking building where harbourmasters manage dock traffic and collect tariffs. A sign on the door reads 'Official Business Only'.",
-            "exits": { "east": "town_center_portbridge" }
+            "exits": { "east": "town_center_portbridge" },
+            "initial_npcs": [ { "template_id": "harbourmaster_voss" } ]
         },
         "shipwright_road": {
             "name": "Shipwright's Road",
@@ -132,7 +149,8 @@
                 "north": "shipwright_road",
                 "south": "lumber_storage"
             },
-            "properties": { "noisy": true, "smell": "wood and pitch" }
+            "properties": { "noisy": true, "smell": "wood and pitch" },
+            "initial_npcs": [ { "template_id": "portbridge_shipwright" } ]
         },
         "lumber_storage": {
             "name": "Lumber Storage",
@@ -156,7 +174,8 @@
                 "up": "smugglers_tunnel_entrance",
                 "north": "smugglers_crossroads"
             },
-            "properties": {"dark": true, "smell": "stale air"}
+            "properties": {"dark": true, "smell": "stale air"},
+            "initial_npcs": [ { "template_id": "smuggler_thug", "instance_id": "smuggler_thug_1" } ]
         },
         "smugglers_crossroads": {
             "name": "Tunnel Crossroads",
@@ -166,7 +185,8 @@
                 "north": "underground_cache",
                 "west": "inn_cellar_tunnel"
             },
-            "properties": {"dark": true}
+            "properties": {"dark": true},
+            "initial_npcs": [ { "template_id": "smuggler_thug", "instance_id": "smuggler_thug_2" } ]
         },
         "underground_cache": {
             "name": "Underground Cache",

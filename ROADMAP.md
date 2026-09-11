@@ -106,6 +106,55 @@ route alongside combat and exploration.
 - [x] Expand the journey runner with real (not debug-provisioned) gathering
   and outcome assertions for each route.
 
+## Completed vertical slice: Portbridge comes alive
+
+**Goal:** turn a fully-mapped but nearly empty 21-room second town into a
+real, playable place, closing the biggest dormant-content gap found in a
+survey of existing playstyles.
+
+- [x] Populated the harbor/inn/town-center core with named NPCs (a
+  harbourmaster, an innkeeper, a fisherman, a shipwright, three guards --
+  two fixed at the north gate, one on patrol -- and randomized-name
+  dockhands for ambient life), reusing every existing NPC-authoring
+  pattern (vendor `sells_items`/`buys_item_types`, `is_guard`, the guard
+  patrol mechanism) with zero new engine mechanics for placement itself.
+- [x] Gave the previously-decorative smuggler's tunnel real teeth: two
+  tunnel hostiles, and a branching "bust or join the smugglers" campaign
+  (`portbridge_smugglers`) mirroring the existing Bandit Rebellion
+  campaign's exact shape -- a negotiate-or-fight quest stage whose
+  outcome (`PEACEFUL_SUCCESS` vs. `VIOLENT_SUCCESS`) drives the campaign
+  branch, reusing the same objective-type-decides-resolution mechanism.
+  The previously-unclaimed "dubious cargo" loot in the tunnel's
+  underground cache now has real narrative purpose (the join path's
+  delivery quest target).
+- [x] No fence NPC or "this item is stolen" tracking -- explicitly
+  deferred; vendors don't currently know or care whether an item was
+  stolen, and that's a separate design question for later.
+
+Found and fixed three real, pre-existing engine gaps while authoring the
+negotiate-driven branch -- none specific to Portbridge, all now benefit
+the existing Bandit Rebellion campaign too:
+- `spawn_on_entry`'s `dialog` override was silently dead: the JSON
+  supports it (and Bandit Rebellion's bandit_leader spawn already
+  authored one), but the engine never read it, so a quest boss always
+  showed its generic combat greeting instead of the negotiation-specific
+  line an author wrote for it. Fixed to merge onto the base template's
+  dialog rather than replace it, so threat/flee lines survive.
+- `talk`'s hostile-faction refusal ("refuses to listen and prepares to
+  attack!") fired unconditionally, with no exception for a spawned quest
+  NPC waiting on a negotiation -- meaning a `"negotiate"` objective
+  targeting any hostile-template NPC (which is all of them, quest bosses
+  are always spawned from combat templates) was **unreachable by a real
+  player** through any phrasing, including the dedicated `negotiate`
+  command. Fixed with a narrow, quest-scoped exception.
+- A successful negotiation's own completion branch never computed or
+  passed a `resolution` to `complete_quest`, silently defaulting to plain
+  `SUCCESS` -- meaning a campaign transition keyed on `PEACEFUL_SUCCESS`
+  could never fire. This is very likely why Bandit Rebellion's own
+  peaceful ending has never actually been reachable in real play. Fixed
+  to compute `PEACEFUL_SUCCESS`/`VIOLENT_SUCCESS` from which choice
+  branch actually completed the quest.
+
 ## Resolved design question: procedural world placement
 
 Raised while scoping place-making: should more of the world be seeded

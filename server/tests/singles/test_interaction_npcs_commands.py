@@ -86,6 +86,39 @@ class TestTalkCommand(_NpcTestBase):
         result = self.game.process_command("talk rat")
         self.assertIn("refuses to listen", result)
 
+    def test_hostile_npc_with_a_pending_negotiation_will_talk(self):
+        """A hostile-faction NPC spawned for a quest's "negotiate" stage
+        must still be reachable via talk -- otherwise the negotiate
+        objective (always targeting a hostile-template boss) can never be
+        triggered by a real player, regardless of phrasing."""
+        boss = _place_npc(self.world, "giant_rat", "boss1", "town", "town_square", name="Rat King")
+        self.player.runtime_state.quests.active["negotiate_q"] = {
+            "state": "active",
+            "current_stage_index": 0,
+            "stages": [{
+                "objective": {"type": "negotiate", "target_npc_id": "boss1", "skill": "diplomacy", "difficulty": 10,
+                              "choices": {"success": {}, "fail": {}}},
+            }],
+        }
+        result = self.game.process_command("talk Rat King")
+        self.assertNotIn("refuses to listen", result)
+
+    def test_hostile_npc_without_a_matching_negotiation_still_refuses(self):
+        """The exception is scoped to the specific NPC the negotiation
+        targets -- an unrelated hostile in the same room is unaffected."""
+        _place_npc(self.world, "giant_rat", "boss1", "town", "town_square", name="Rat King")
+        other = _place_npc(self.world, "giant_rat", "rat2", "town", "town_square", name="Plain Rat")
+        self.player.runtime_state.quests.active["negotiate_q"] = {
+            "state": "active",
+            "current_stage_index": 0,
+            "stages": [{
+                "objective": {"type": "negotiate", "target_npc_id": "boss1", "skill": "diplomacy", "difficulty": 10,
+                              "choices": {"success": {}, "fail": {}}},
+            }],
+        }
+        result = self.game.process_command("talk Plain Rat")
+        self.assertIn("refuses to listen", result)
+
     def test_topic_with_known_response(self):
         elder = _place_npc(self.world, "village_elder", "elder1", "town", "town_square", name="Sage")
         self.game.knowledge_manager.topics["favorite_color"] = {
@@ -417,6 +450,28 @@ class TestQuestTurnInDialogue(_NpcTestBase):
             result = self.game.process_command("talk Negotiator negotiate")
         self.assertIn("Quest Complete", result)
         self.assertNotIn("q_neg", self.player.runtime_state.quests.active)
+
+    def test_negotiate_objective_success_resolves_as_peaceful_for_campaigns(self):
+        """A negotiate objective completes through its own branch (not the
+        generic kill/deliver/fetch completion path below it), which must
+        still pass a resolution through to complete_quest -- otherwise a
+        campaign transition keyed on PEACEFUL_SUCCESS never fires, since
+        complete_quest's default is plain SUCCESS."""
+        elder = _place_npc(self.world, "village_elder", "elder1", "town", "town_square", name="Negotiator")
+        objective = {
+            "type": "negotiate", "skill": "diplomacy", "difficulty": 1,
+            "choices": {"success": {"next_stage": 1, "description": "Deal made."}},
+        }
+        self.player.runtime_state.quests.active["q_neg"] = {
+            "instance_id": "q_neg", "title": "A Negotiation", "type": "instance",
+            "giver_instance_id": elder.obj_id, "current_stage_index": 0,
+            "rewards": {}, "state": "active", "objective": objective,
+            "stages": [{"stage_index": 0, "objective": objective}],
+        }
+        with patch("engine.commands.interaction.npcs.SkillSystem.attempt_check", return_value=(True, "Roll succeeded!")), \
+             patch("engine.core.quests.manager.QuestManager.complete_quest", return_value="") as mock_complete:
+            self.game.process_command("talk Negotiator negotiate")
+        mock_complete.assert_called_once_with(self.player, "q_neg", resolution="PEACEFUL_SUCCESS")
 
     def test_negotiate_objective_failure_advances_with_fail_dialogue(self):
         elder = _place_npc(self.world, "village_elder", "elder1", "town", "town_square", name="Negotiator")

@@ -273,10 +273,97 @@
           "required_quantity": 1,
           "current_quantity": 0
         },
-        "turn_in_id": "guard_captain", 
+        "turn_in_id": "guard_captain",
         "start_dialogue": "The troll is the cause. Kill it.",
         "completion_dialogue": "The beast is dead? You have done the village a great service today."
       }
     ]
+  },
+
+  "quest_investigate_smuggling": {
+    "title": "Something's Not Right at the Docks",
+    "type": "quest",
+    "description": "Investigate the source of Portbridge's smuggling rumors.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Search the harbor district for signs of smuggling activity.",
+        "objective": {
+          "type": "scout",
+          "target_region": "portbridge",
+          "target_room_keywords": ["cache"],
+          "target_room_id": "underground_cache"
+        },
+        "turn_in_id": "harbourmaster_voss",
+        "completion_dialogue": "An underground cache? So it's true -- someone's running goods through my harbor without paying a cent in tariffs. Find out who's behind it. Carefully."
+      }
+    ],
+    "rewards": { "xp": 50 }
+  },
+
+  "quest_smuggler_contact": {
+    "title": "The Smuggler's Offer",
+    "type": "quest",
+    "description": "Confront whoever is running the smuggling operation beneath Portbridge.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Confront the smugglers' leader in the underground cache.",
+        "spawn_on_entry": {
+          "template_id": "smuggler_leader",
+          "region_id": "portbridge",
+          "room_id": "underground_cache",
+          "name_override": "Smuggler Leader",
+          "behavior_type": "stationary",
+          "dialog": {
+            "greeting": "Well now. You found us. Question is -- what are you going to do about it? I could use someone with your nerve... for the right price."
+          }
+        },
+        "objective": {
+          "type": "negotiate",
+          "target_npc_id": "smuggler_leader",
+          "skill": "mercantile",
+          "difficulty": 15,
+          "choices": {
+            "success": { "next_stage": 2, "description": "You strike a deal. Welcome to the crew." },
+            "fail": { "next_stage": 1, "description": "She doesn't like your terms. Steel is drawn." }
+          }
+        },
+        "turn_in_id": "smuggler_leader"
+      },
+      {
+        "stage_index": 1,
+        "description": "The negotiation failed. Deal with the smugglers' leader.",
+        "objective": {
+          "type": "kill",
+          "target_template_id": "smuggler_leader",
+          "target_name": "Smuggler Leader",
+          "required_quantity": 1
+        },
+        "turn_in_id": "harbourmaster_voss"
+      }
+    ],
+    "rewards": { "xp": 300, "gold": 75 }
+  },
+
+  "quest_smuggler_delivery": {
+    "title": "Cutting You In",
+    "type": "quest",
+    "description": "Bring the dubious cargo to the smugglers to seal the deal.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Deliver the dubious cargo to the smugglers' leader.",
+        "objective": {
+          "type": "deliver",
+          "item_template_id": "item_dubious_cargo",
+          "recipient_template_id": "smuggler_leader",
+          "recipient_name": "the smuggler leader"
+        },
+        "turn_in_id": "smuggler_leader",
+        "completion_dialogue": "Good. This is what trust looks like. You've got a share coming to you."
+      }
+    ],
+    "rewards": { "xp": 150, "gold": 100 }
   }
 }

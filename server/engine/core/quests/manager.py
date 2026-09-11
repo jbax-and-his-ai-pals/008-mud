@@ -427,7 +427,14 @@ class QuestManager:
                                 Logger.debug("spawn_on_entry", "Name overwritten: " + overrides["name"])
                             if "behavior_type" in spawn_config:
                                 overrides["behavior_type"] = spawn_config["behavior_type"]
-                                Logger.debug("spawn_on_entry", "Behavior type overwritten: " + overrides["behavior_type"])      
+                                Logger.debug("spawn_on_entry", "Behavior type overwritten: " + overrides["behavior_type"])
+                            if "dialog" in spawn_config:
+                                # Merge onto the base template's dialog rather than
+                                # replacing it outright, so a spawn-specific greeting
+                                # (e.g. a negotiation opener) doesn't silently drop
+                                # the template's other lines (threat/flee/etc).
+                                base_dialog = self.world.npc_templates.get(tid, {}).get("dialog", {})
+                                overrides["dialog"] = {**base_dialog, **spawn_config["dialog"]}
                             boss = NPCFactory.create_npc_from_template(
                                 tid, self.world, 
                                 current_region_id=req_region,

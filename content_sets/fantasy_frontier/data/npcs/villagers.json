@@ -580,5 +580,149 @@
         }
       }
     }
+  },
+  "harbourmaster_voss": {
+    "name": "Harbourmaster Voss",
+    "description": "A stern, weathered woman who has run these docks longer than anyone can remember. Little escapes her notice.",
+    "health": 60,
+    "level": 4,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 9, "dexterity": 10, "constitution": 11, "agility": 9, "intelligence": 12, "wisdom": 14 },
+    "dialog": {
+      "greeting": "State your business, traveler. Portbridge runs on order, and I intend to keep it that way."
+    },
+    "default_dialog": "The {name} scans the harbor traffic, missing nothing.",
+    "properties": {
+      "wander_chance": 0.0,
+      "move_cooldown": 9999,
+      "work_location": "portbridge:port_authority_office",
+      "can_give_generic_quests": false
+    }
+  },
+  "portbridge_innkeeper": {
+    "name": "Nell the Innkeeper",
+    "description": "A broad-shouldered woman who has heard every sailor's tale twice and believes none of them.",
+    "health": 60,
+    "level": 2,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 10, "dexterity": 9, "constitution": 12, "agility": 8, "intelligence": 9, "wisdom": 11 },
+    "dialog": {
+      "greeting": "Welcome to the Sailor's Rest. Ale, a meal, or a bed for the night?",
+      "trade": "Ale, bread, and the odd tonic. What'll it be?",
+      "rumors": "Half of what you hear in here is nonsense. The other half's worse."
+    },
+    "default_dialog": "The {name} wipes down the bar, half-listening to the room.",
+    "initial_inventory": [ { "item_id": "item_ale", "quantity": 10 } ],
+    "properties": {
+      "is_vendor": true,
+      "wander_chance": 0.0,
+      "move_cooldown": 9999,
+      "work_location": "portbridge:sailors_rest_inn_common",
+      "buys_item_types": ["Consumable", "Junk", "Treasure"],
+      "sells_items": [
+        { "item_id": "item_ale" },
+        { "item_id": "item_hunk_bread" },
+        { "item_id": "item_healing_potion_small", "price_multiplier": 1.5 }
+      ],
+      "can_give_generic_quests": true
+    }
+  },
+  "portbridge_fisherman": {
+    "name": "Fenn the Fisherman",
+    "description": "A leathery old fisherman mending a net outside the market stalls.",
+    "health": 50,
+    "level": 2,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 11, "dexterity": 10, "constitution": 11, "agility": 9 },
+    "dialog": {
+      "greeting": "Fresh catch, if you're hungry. Or gear, if you're fishing yourself.",
+      "trade": "Fish and nets, that's my trade."
+    },
+    "default_dialog": "The {name} keeps working at a knot in the netting.",
+    "properties": {
+      "is_vendor": true,
+      "wander_chance": 0.0,
+      "move_cooldown": 9999,
+      "work_location": "portbridge:fish_market",
+      "buys_item_types": ["Item", "Junk"],
+      "sells_items": [
+        { "item_id": "item_fresh_fish" },
+        { "item_id": "item_fishing_net" }
+      ],
+      "can_give_generic_quests": false
+    }
+  },
+  "portbridge_shipwright": {
+    "name": "Thane the Shipwright",
+    "description": "A broad, sawdust-covered man overseeing the half-built hull behind him.",
+    "health": 70,
+    "level": 3,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 14, "dexterity": 10, "constitution": 13, "agility": 8 },
+    "dialog": {
+      "greeting": "Mind the sawdust. Need rope, timber, or just looking?",
+      "trade": "Rope and good timber, mostly. Ships don't build themselves."
+    },
+    "default_dialog": "The {name} calls out measurements to the yard hands.",
+    "properties": {
+      "is_vendor": true,
+      "wander_chance": 0.0,
+      "move_cooldown": 9999,
+      "work_location": "portbridge:shipwright_yard",
+      "buys_item_types": ["Item", "Junk"],
+      "sells_items": [
+        { "item_id": "item_coiled_rope" },
+        { "item_id": "item_softwood" }
+      ],
+      "can_give_generic_quests": false
+    }
+  },
+  "portbridge_guard": {
+    "name": "Portbridge Guard",
+    "description": "A guard in Portbridge livery, keeping a watchful eye on the harbor traffic.",
+    "health": 100,
+    "level": 3,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 12, "dexterity": 11, "constitution": 12 },
+    "dialog": {
+      "greeting": "Move along. Nothing to see here."
+    },
+    "properties": {
+      "is_guard": true,
+      "aggression": 1.0,
+      "move_cooldown": 5
+    }
+  },
+  "portbridge_dockhand": {
+    "name": "Dockhand",
+    "description": "A local resident hauling cargo and going about their day.",
+    "health": 70,
+    "level": 1,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "wanderer",
+    "stats": { "strength": 10, "dexterity": 9, "constitution": 10, "agility": 9 },
+    "dialog": {
+      "greeting": "Busy day on the docks. Always is.",
+      "town": "Portbridge never really sleeps, not with the tides to catch.",
+      "rumors": "Funny noises from that old inn cellar, some nights. Probably just rats."
+    },
+    "default_dialog": "The {name} hauls another crate past without a second look.",
+    "properties": {
+      "wander_chance": 0.7,
+      "move_cooldown": 6,
+      "can_give_generic_quests": false,
+      "randomize_name": true
+    }
   }
 }

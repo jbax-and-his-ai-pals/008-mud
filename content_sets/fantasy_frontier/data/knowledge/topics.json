@@ -242,9 +242,47 @@
       },
       {
         "text": "We have already discussed this. Make haste to the forest.",
-        "conditions": { 
+        "conditions": {
             "template_id": "village_elder",
             "campaign_state": { "campaign_id": "bandit_rebellion", "state": "active" }
+        },
+        "priority": 10
+      }
+    ]
+  },
+
+  "portbridge_smuggling_rumor": {
+    "display_name": "Smuggling in the Harbor",
+    "keywords": ["smuggling", "smugglers", "suspicious"],
+    "responses": [
+      {
+        "text": "Cargo's been going missing off the manifests for months, and the tariffs never add up. Someone's running goods through my harbor without paying a cent. I'd deal with it myself, but I can't be everywhere at once. Are you willing to look into it?",
+        "conditions": { "template_id": "harbourmaster_voss" },
+        "priority": 10
+      }
+    ]
+  },
+  "portbridge_accept_investigation": {
+    "display_name": "The Investigation",
+    "keywords": ["investigate", "investigation"],
+    "responses": [
+      {
+        "text": "Good. Start with the harbor district -- there's talk of a hidden way down into the old cellars. Find where they're stashing the goods.",
+        "conditions": {
+            "template_id": "harbourmaster_voss",
+            "campaign_state": { "campaign_id": "portbridge_smugglers", "state": "not_active" },
+            "knowledge_state": { "topic_id": "portbridge_smuggling_rumor", "state": "discussed" }
+        },
+        "priority": 10,
+        "effects": {
+          "start_campaign": "portbridge_smugglers"
+        }
+      },
+      {
+        "text": "You know what to do. Find that cache.",
+        "conditions": {
+            "template_id": "harbourmaster_voss",
+            "campaign_state": { "campaign_id": "portbridge_smugglers", "state": "active" }
         },
         "priority": 10
       }

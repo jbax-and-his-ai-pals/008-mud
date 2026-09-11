@@ -167,6 +167,86 @@
       "move_cooldown": 10
     }
   },
+  "smuggler_thug": {
+    "name": "smuggler",
+    "description": "A wiry dockhand-turned-criminal, keeping to the shadows of the tunnel.",
+    "health": 55,
+    "level": 4,
+    "friendly": false,
+    "faction": "hostile",
+    "behavior_type": "aggressive",
+    "stats": {
+      "strength": 12,
+      "dexterity": 13,
+      "constitution": 12,
+      "agility": 12,
+      "intelligence": 8,
+      "wisdom": 8,
+      "spell_power": 0,
+      "magic_resist": 1
+    },
+    "attack_power": 6,
+    "defense": 4,
+    "dialog": {
+      "greeting": "\"You shouldn't have come down here,\" hisses the {name}.",
+      "threat": "\"Nobody walks out of this tunnel!\" snarls the {name}.",
+      "flee": "\"This ain't my fight!\" cries the {name}."
+    },
+    "default_dialog": "{name} watches the tunnel entrance warily.",
+    "loot_table": {
+      "gold_value": { "chance": 0.85, "quantity": [8, 20] },
+      "item_dagger": { "chance": 0.4 },
+      "item_stolen_pouch": { "chance": 0.3 }
+    },
+    "usable_spells": [],
+    "properties": {
+      "loot_tags": ["living", "humanoid"],
+      "aggression": 0.8,
+      "flee_threshold": 0.2,
+      "respawn_cooldown": 600,
+      "spell_cast_chance": 0.0,
+      "wander_chance": 0.0,
+      "move_cooldown": 10
+    }
+  },
+  "smuggler_leader": {
+    "name": "smuggler leader",
+    "description": "A sharp-eyed woman in a weathered captain's coat, clearly used to giving orders.",
+    "health": 70,
+    "level": 6,
+    "friendly": false,
+    "faction": "hostile",
+    "behavior_type": "aggressive",
+    "stats": {
+      "strength": 13,
+      "dexterity": 14,
+      "constitution": 13,
+      "agility": 13,
+      "intelligence": 11,
+      "wisdom": 10,
+      "spell_power": 0,
+      "magic_resist": 2
+    },
+    "attack_power": 7,
+    "defense": 6,
+    "dialog": {
+      "greeting": "\"Far enough,\" says the {name}, hand on her cutlass.",
+      "threat": "\"You've made your choice, then,\" says the {name}.",
+      "flee": "\"Fall back! We're done here!\" shouts the {name}."
+    },
+    "default_dialog": "{name} watches you closely.",
+    "loot_table": {
+      "gold_value": { "chance": 1.0, "quantity": [20, 40] },
+      "item_dagger": { "chance": 0.3 },
+      "item_stolen_pouch": { "chance": 0.4 }
+    },
+    "usable_spells": [],
+    "properties": {
+      "loot_tags": ["living", "humanoid"],
+      "flee_threshold": 0.2,
+      "respawn_cooldown": 600
+    }
+  },
   "troll": {
     "name": "troll",
     "description": "A massive, green-skinned brute with regenerative abilities.",

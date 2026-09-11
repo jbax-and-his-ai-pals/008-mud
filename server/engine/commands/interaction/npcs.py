@@ -9,6 +9,31 @@ from engine.config.config_display import FORMAT_CATEGORY
 from engine.core.skill_system import SkillSystem
 from engine.utils.utils import format_name_for_display
 
+def _has_pending_negotiation(player, target_npc) -> bool:
+    """A hostile-faction NPC will still hear you out if a quest stage is
+    specifically waiting on a negotiation with them -- e.g. a spawned
+    quest boss given a chance to talk before the fight starts. Without
+    this, a "negotiate" objective targeting any hostile-faction NPC
+    (quest bosses are almost always spawned from a hostile template) is
+    unreachable: the generic hostile-refusal check below would always
+    fire first, regardless of phrasing ("talk", "talk ... complete",
+    or the "negotiate" alias -- all three reach this same function)."""
+    quests = getattr(player.runtime_state, "quests", None)
+    if quests is None:
+        return False
+    for q_data in quests.active.values():
+        stages = q_data.get("stages", [])
+        idx = q_data.get("current_stage_index", 0)
+        if not (0 <= idx < len(stages)):
+            continue
+        objective = stages[idx].get("objective", {})
+        if objective.get("type") != "negotiate":
+            continue
+        target_id = objective.get("target_npc_id")
+        if target_id == target_npc.template_id or target_id == target_npc.obj_id:
+            return True
+    return False
+
 def _resolve_target_npc(world, args, player):
     """Helper to resolve NPC target based on arguments or context."""
     npcs_in_room = world.get_npcs_for_player(player)
@@ -54,7 +79,7 @@ def talk_handler(args, context):
 
     if not target_npc: return f"{FORMAT_ERROR}There is no one here to talk to.{FORMAT_RESET}"
     
-    if target_npc.faction == "hostile":
+    if target_npc.faction == "hostile" and not _has_pending_negotiation(player, target_npc):
         formatted_name = format_name_for_display(player, target_npc, start_of_sentence=True)
         return f"{formatted_name} {FORMAT_ERROR}refuses to listen and prepares to attack!{FORMAT_RESET}"
 
@@ -316,7 +341,14 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
             qm = world.quest_manager
             dialogue = qm.advance_quest_stage(player, quest_turn_in_id, choice_id=choice_id)
             if dialogue == "QUEST_COMPLETE":
-                 rewards_msg = qm.complete_quest(player, quest_turn_in_id)
+                 # A negotiate objective completes the quest through its own
+                 # branch here rather than the generic path below (which is
+                 # what maps "negotiate" -> PEACEFUL_SUCCESS for campaign
+                 # transitions) -- without this, any campaign branching on a
+                 # successful negotiation would never fire, since complete_quest
+                 # would silently fall back to its plain "SUCCESS" default.
+                 resolution = "PEACEFUL_SUCCESS" if choice_id == "success" else "VIOLENT_SUCCESS"
+                 rewards_msg = qm.complete_quest(player, quest_turn_in_id, resolution=resolution)
                  return f"{FORMAT_SUCCESS}[Quest Complete] {quest_data.get('title')}{FORMAT_RESET}\n{FORMAT_HIGHLIGHT}\"Negotiation concluded.\"{FORMAT_RESET}"
             outcome_desc = choices[choice_id].get("description", "Result")
             status_color = FORMAT_SUCCESS if success else FORMAT_ERROR

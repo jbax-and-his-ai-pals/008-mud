@@ -623,6 +623,36 @@ class TestHandleRoomEntry(GameTestBase):
         result = qm.handle_room_entry(self.player)
         self.assertEqual([], result)
 
+    def test_spawn_on_entry_dialog_override_merges_onto_base_template(self):
+        """A spawn_on_entry `dialog` override (e.g. a negotiation-specific
+        greeting) must merge onto the base template's dialog, not replace
+        it outright -- otherwise a quest boss loses its other lines
+        (threat/flee) just for having a custom greeting authored."""
+        qm = self.world.quest_manager
+        self.player.runtime_state.quests.active["spawn_dialog_q"] = {
+            "state": "active",
+            "current_stage_index": 0,
+            "stages": [
+                {
+                    "objective": {},
+                    "spawn_on_entry": {
+                        "template_id": "bandit",
+                        "region_id": self.player.current_region_id,
+                        "room_id": self.player.current_room_id,
+                        "name_override": "Negotiator",
+                        "behavior_type": "stationary",
+                        "dialog": {"greeting": "Let's talk business."},
+                    },
+                }
+            ],
+        }
+        qm.handle_room_entry(self.player)
+        spawned = next(n for n in self.world.npcs.values() if n.name == "Negotiator")
+        self.assertEqual("Let's talk business.", spawned.dialog.get("greeting"))
+        # The base "bandit" template's other dialog lines survive the merge.
+        self.assertIn("threat", spawned.dialog)
+        self.assertIn("flee", spawned.dialog)
+
     def test_spawn_on_entry_triggers_when_location_matches(self):
         qm = self.world.quest_manager
         self.player.runtime_state.quests.active["spawn_entry_q"] = {
