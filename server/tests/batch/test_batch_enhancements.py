@@ -120,8 +120,12 @@ class TestBatchEnhancements(GameTestBase):
                 pick = ItemFactory.create_item_from_template("pick", self.world)
                 if pick: self.player.inventory.add_item(pick)
                 
-                # Force skill check success
-                with patch('engine.core.skill_system.SkillSystem.attempt_check', return_value=(True, "")):
+                # Force skill check success. attempt_pick_lock_direction
+                # (engine/world/world.py) calls attempt_check_with_margin,
+                # not attempt_check -- patching the latter is a silent
+                # no-op that leaves this test dependent on a real,
+                # unseeded dice roll against pick_difficulty 10.
+                with patch('engine.world.world.SkillSystem.attempt_check_with_margin', return_value=(True, "", 10)):
                     res2 = self.game.process_command("pick north")
                     if res2: self.assertIn("unlock the way", res2)
                     

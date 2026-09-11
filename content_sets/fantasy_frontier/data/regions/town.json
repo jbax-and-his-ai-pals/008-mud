@@ -257,7 +257,8 @@
         "name": "Fishing Hut",
         "description": "A small wooden hut near the docks, smelling strongly of fish. Nets hang drying outside.",
         "properties": { "smell": "fishy" },
-        "exits": { "east": "riverside_docks" }
+        "exits": { "east": "riverside_docks" },
+        "items": [ { "item_id": "node_river_fishing_spot" } ]
     },
     "old_mill_path": {
       "name": "Path to Old Mill",

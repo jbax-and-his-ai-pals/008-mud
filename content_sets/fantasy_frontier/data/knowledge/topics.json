@@ -287,5 +287,17 @@
         "priority": 10
       }
     ]
+  },
+
+  "portbridge_fishing": {
+    "display_name": "Fishing the Pier",
+    "keywords": ["fishing", "fish"],
+    "responses": [
+      {
+        "text": "Head out to the fishing pier east of here with a net, and you can catch your own. The water's calm enough there for a decent haul.",
+        "conditions": { "template_id": "portbridge_fisherman" },
+        "priority": 10
+      }
+    ]
   }
 }

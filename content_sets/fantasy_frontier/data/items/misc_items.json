@@ -71,7 +71,7 @@
     "weight": 2.0,
     "value": 15,
     "stackable": false,
-    "properties": {}
+    "properties": { "tool_type": "fishing_net", "category": "tool" }
   },
   "item_barrel_ale": {
     "type": "Item",

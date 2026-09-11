@@ -117,7 +117,8 @@
             "name": "Fishing Pier",
             "description": "A smaller pier used by the local fishermen. Their colorful, smaller boats are tied up here.",
             "exits": { "west": "fish_market" },
-            "properties": {"smell": "sea air"}
+            "properties": {"smell": "sea air"},
+            "items": [ { "item_id": "node_sea_fishing_spot" } ]
         },
         "town_center_portbridge": {
             "name": "Portbridge Town Center",

@@ -75,5 +75,41 @@
         }
       ]
     }
+  },
+  "node_river_fishing_spot": {
+    "type": "ResourceNode",
+    "name": "calm fishing hole",
+    "description": "A quiet stretch of water where fish gather in the shallows. A net could pull in a decent catch here.",
+    "properties": {
+      "resource_item_id": "item_fresh_fish",
+      "tool_required": "fishing_net",
+      "charges": 4, "max_charges": 4, "respawn_days": 1,
+      "resource_tags": ["fish", "river", "food"],
+      "yield_table": [
+        {
+          "item_id": "item_pearl",
+          "chance": 0.08,
+          "material_quality": { "id": "tide_pearl", "label": "Lustrous", "score": 2 }
+        }
+      ]
+    }
+  },
+  "node_sea_fishing_spot": {
+    "type": "ResourceNode",
+    "name": "sheltered fishing spot",
+    "description": "A patch of calmer water off the pier, favored by the local fishermen for its steady catch.",
+    "properties": {
+      "resource_item_id": "item_fresh_fish",
+      "tool_required": "fishing_net",
+      "charges": 4, "max_charges": 4, "respawn_days": 1,
+      "resource_tags": ["fish", "sea", "food"],
+      "yield_table": [
+        {
+          "item_id": "item_coral_gem",
+          "chance": 0.08,
+          "material_quality": { "id": "reef_coral", "label": "Vivid", "score": 2 }
+        }
+      ]
+    }
   }
 }

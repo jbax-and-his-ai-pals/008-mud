@@ -179,6 +179,27 @@ existing authored candidates) -- see place-making below.
   random abundance.
 - A first generic `survey` command now exposes a node's availability, tool,
   recovery cadence, and seasonal constraints using the same state as harvest.
+- [x] **Fishing shipped, at zero engine cost.** Four fish-themed rooms
+  across both towns (`fish_stall`/`fishing_hut` in town,
+  `fish_market`/`fishing_pier` in Portbridge) were pure flavor text with
+  no mechanics; two new `ResourceNode` fishing spots (one per town, at
+  the actual gathering room rather than the market) turn them into a
+  real activity using entirely existing gathering machinery -- no new
+  command, no new engine code. The already-authored (but unwired)
+  `item_fishing_net` became the required tool for the first time. Each
+  spot's rare-catch `yield_table` entry gives `item_pearl`/
+  `item_coral_gem` -- both already listed in the 44-item Riverside Gem
+  Ledger collection with **no drop source anywhere in the game** -- their
+  first home, so a lucky catch now surfaces a real, immediate collection
+  discovery. Fenn the Fisherman's existing "if you're fishing yourself"
+  greeting line finally pays off with a dialogue hint pointing at the pier.
+  Caught along the way: an unrelated pre-existing test
+  (`test_batch_enhancements.py::test_pick_door_direction`) patched
+  `SkillSystem.attempt_check`, but `attempt_pick_lock_direction` has
+  called `attempt_check_with_margin` since this session's lockpick
+  durability rework -- a silent no-op that left the test dependent on a
+  real, unseeded dice roll and occasionally failing under full-suite
+  ordering. Fixed to patch the method actually called.
 
 ### Crafting and economy
 
