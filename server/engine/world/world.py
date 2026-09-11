@@ -613,6 +613,24 @@ class World:
         if not region: return False
         return region.get_property("safe_zone", False)
     
+    def get_district(self, region_id: Optional[str], room_id: Optional[str]) -> Optional[Dict[str, Any]]:
+        """Return the district (a plain {"name", "rooms"} dict, content-
+        authored on the region's `properties.districts`) a room belongs
+        to, or None. Districts have no mechanical behavior of their own
+        yet -- this is purely an identity lookup for display."""
+        if not region_id or not room_id:
+            return None
+        region = self.get_region(region_id)
+        if not region:
+            return None
+        districts = region.properties.get("districts", {})
+        if not isinstance(districts, dict):
+            return None
+        for district in districts.values():
+            if isinstance(district, dict) and room_id in district.get("rooms", []):
+                return district
+        return None
+
     def is_location_outdoors(self, region_id: str, room_id: str) -> bool:
         region = self.get_region(region_id)
         if not region: return True

@@ -2,7 +2,15 @@
   "region_id": "town",
   "name": "Riverside Village",
   "description": "A bustling village nestled by the Silver River. The buildings are made of sturdy timber with thatched roofs, and the villagers are a mix of hardworking locals and wary travelers.",
-  "properties": { "safe_zone": true },
+  "properties": {
+    "safe_zone": true,
+    "districts": {
+      "residential": {
+        "name": "Residential District",
+        "rooms": ["residential_street_east", "player_house_exterior", "small_house_1_exterior", "small_house_1_interior"]
+      }
+    }
+  },
   "rooms": {
     "town_square": {
       "name": "Town Square",
@@ -80,8 +88,8 @@
     },
     "west_lane": {
       "name": "West Lane",
-      "description": "A quiet lane bordering the blacksmith's forge. The lane continues west into a residential area and south towards a community garden.",
-      "exits": { "east": "town_square", "west": "residential_street_east", "south": "community_garden", "north": "blacksmith_exterior" }
+      "description": "A quiet lane bordering the blacksmith's forge. A low wooden gate to the west marks the entrance to the residential district, and a path leads south towards a community garden.",
+      "exits": { "east": "town_square", "in": "residential_street_east", "south": "community_garden", "north": "blacksmith_exterior" }
     },
     "blacksmith_exterior": {
       "name": "Blacksmith's Forge",
@@ -98,8 +106,8 @@
     },
     "residential_street_east": {
       "name": "Residential Street",
-      "description": "A quiet residential street lined with small, well-kept houses. A small shrine stands at the western end of the street.",
-      "exits": { "east": "west_lane", "west": "shrine_exterior", "north": "small_house_1_exterior", "northeast": "player_house_exterior" }
+      "description": "A quiet residential street lined with small, well-kept houses. A small shrine stands at the western end of the street, and a low wooden gate to the east leads back out to West Lane.",
+      "exits": { "out": "west_lane", "west": "shrine_exterior", "north": "small_house_1_exterior", "northeast": "player_house_exterior" }
     },
     "player_house_exterior": {
       "name": "Vacant Lot",

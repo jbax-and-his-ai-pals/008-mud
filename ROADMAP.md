@@ -354,11 +354,25 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   placement route overrides, extending an existing room-level NPC-override
   allow-list that already supported per-instance `behavior_type`. Full
   detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+- [x] **Residential district shipped -- closes the original housing/theft/
+  guards/district trio.** Needed zero new engine mechanics: a "gate" is
+  just an exit keyed `in`/`out` instead of a compass direction (already
+  fully registered movement verbs), and a district is a plain
+  `{"name", "rooms"}` entry in a new `districts` key on a region's
+  existing, schema-free `properties` dict. The existing residential
+  street (plus Mira the Weaver's home from the crime slice) became the
+  first district; its old compass-direction link to the rest of town was
+  changed outright to a non-directional gate, per the design's explicit
+  "not a compass direction." One new `World.get_district` lookup powers
+  the entire player-visible effect: the room header names the district
+  when you're in one. No mechanical behavior yet -- deliberately, per
+  design -- but the registry shape leaves room for future patrol routes
+  or encounter posture to attach to a district without re-tagging every
+  room in it. Full detail:
+  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't
-  originally choose); the ambient perception/threat-detection system; a
-  residential district as a labeled room group connected by a
-  non-directional gate.
+  originally choose); the ambient perception/threat-detection system.
 
 - A modest player home, camp, or workshop: storage, displays, workstations,
   gardens, trophies, and furnishings.

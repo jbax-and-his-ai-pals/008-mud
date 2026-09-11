@@ -556,6 +556,39 @@ site, not just its template) gained `patrol_points`/`patrol_index` as
 two more allowed keys -- the exact extension point its own code comment
 already anticipated.
 
+## Shipped: residential district
+
+The last piece of the original housing/theft/guards/district trio.
+Confirmed to need genuinely zero new engine mechanics, exactly as this
+doc anticipated: a "gate" is just an exit keyed `"in"`/`"out"` instead of
+a compass direction (`in`/`enter`/`inside`, `out`/`exit`/`outside`/`o`
+were already fully registered, generic movement commands), and a
+district is a plain `{"name", "rooms"}` entry in a new `"districts"` key
+on the region's existing, schema-free `properties` dict -- no loader
+changes needed either.
+
+The existing residential street content became the first district
+outright: `residential_street_east`, the vacant lot, and both of Mira the
+Weaver's rooms (`small_house_1_exterior`/`interior`, from the crime
+slice) -- already themed as a residential street, already has a real
+resident. The shrine and community garden nearby stay outside it
+(civic/religious and civic/agricultural, not residential). Per the
+doc's explicit "not a compass direction," the existing `west_lane` <->
+`residential_street_east` link was changed outright (not left duplicated
+alongside a new one) from compass directions to `in`/`out` -- confirmed
+safe first, since nothing tested that specific corridor by direction.
+
+One new `World.get_district(region_id, room_id)` helper does a linear
+scan over the region's districts (plenty at this scale) and is the one
+and only consumer of the registry so far: the room header
+(`[REGION - DISTRICT - ROOM]`) shows a district's name when the current
+room is in one, and nothing otherwise -- the entire player-visible effect
+of "just an identity," as decided. Nothing else reads the registry yet,
+which is exactly the point: future patrol routes, encounter posture, or
+crime-severity modifiers (see the open question below, still open) would
+attach to the one `districts` entry, not require re-tagging every room
+in it.
+
 ## Open questions
 
 - **The ambient, multi-room threat-detection system.** Edge-triggered
@@ -572,11 +605,13 @@ already anticipated.
   sold to a vendor as a total loss, some other authored escape hatch, or
   a future spell-based retrieval path -- needs more thought before it's
   built. Not decided, not built.
-- **What a district needs beyond identity, eventually.** Decided as "just a
-  group of rooms" for now; town security iteration may later want to hang
-  patrol routes, ambient encounter posture, or crime-severity modifiers off
-  district membership. Not deciding now, just noting the tag/grouping should
-  be designed so those can attach later without re-authoring the district.
+- **What a district needs beyond identity, eventually.** The
+  `"residential"` district now exists (see Shipped above) as pure
+  identity -- no mechanical behavior. Town security iteration may later
+  want to hang patrol routes, ambient encounter posture, or
+  crime-severity modifiers off district membership; the registry shape
+  (one dict per district, everything else keyed off it) was built with
+  that in mind, but nothing consumes it that way yet. Not decided, not built.
 - **Guard patrol density/route shape.** Whole-town coverage is decided; the
   actual route(s) -- one big loop, several overlapping short ones, guard
   count -- is "iterate on it," i.e. build a first pass and see how it feels

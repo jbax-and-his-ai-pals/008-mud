@@ -28,7 +28,9 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
         return f"{FORMAT_ERROR}You are nowhere.{FORMAT_RESET}"
     
     # 1. Header
-    title = f"{FORMAT_TITLE}[{current_region.name.upper()} - {current_room.name.upper()}]{FORMAT_RESET}\n\n"
+    district = world.get_district(current_region_id, current_room_id)
+    district_segment = f" - {district['name'].upper()}" if district else ""
+    title = f"{FORMAT_TITLE}[{current_region.name.upper()}{district_segment} - {current_room.name.upper()}]{FORMAT_RESET}\n\n"
     
     # 2. Environment Context
     time_period = world.game.time_manager.current_time_period
