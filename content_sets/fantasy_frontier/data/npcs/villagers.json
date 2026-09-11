@@ -378,7 +378,8 @@
     "level": 3,
     "friendly": true,
     "faction": "friendly",
-    "behavior_type": "stationary",
+    "behavior_type": "patrol",
+    "patrol_points": ["town_square", "west_lane", "east_market_road"],
     "stats": {
       "strength": 12,
       "dexterity": 11,

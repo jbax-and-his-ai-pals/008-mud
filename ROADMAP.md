@@ -344,11 +344,21 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   brainstorm (a separate exploration-awareness feature, not a crime
   prerequisite) and guard patrol AI (guards remain stationary). Full
   detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+- [x] **Guard patrol AI shipped.** Turned out to be almost entirely a
+  content task -- a `"patrol"` NPC behavior already existed end-to-end in
+  the engine (dispatcher routing, pathfinding movement, three pre-existing
+  unit tests) but no content had ever used it. All four `town_guard`
+  instances now walk short, overlapping routes hubbed at `town_square`
+  (route shape was explicitly left "iterate on it"); both Guard Captains
+  stay stationary at their posts. One small engine addition: per-NPC-
+  placement route overrides, extending an existing room-level NPC-override
+  allow-list that already supported per-instance `behavior_type`. Full
+  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't
-  originally choose); the ambient perception/threat-detection system;
-  guard patrol AI; a residential district as a labeled room group
-  connected by a non-directional gate.
+  originally choose); the ambient perception/threat-detection system; a
+  residential district as a labeled room group connected by a
+  non-directional gate.
 
 - A modest player home, camp, or workshop: storage, displays, workstations,
   gardens, trophies, and furnishings.

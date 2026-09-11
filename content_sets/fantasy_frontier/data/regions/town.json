@@ -12,7 +12,7 @@
         { "template_id": "village_elder" },
         { "template_id": "alchemist" },
         { "template_id": "healer" },
-        { "template_id": "town_guard" },
+        { "template_id": "town_guard", "instance_id": "guard_south_1", "overrides": { "patrol_points": ["town_square", "riverside_docks", "museum_exterior"] } },
         { "template_id": "guard_captain" },
         { "template_id": "wandering_villager" },
         { "template_id": "wandering_villager" },
@@ -35,8 +35,8 @@
       "description": "A sturdy wooden gate marks the northern exit of Riverside. Two guards stand watch, observing travelers as they come and go.",
       "exits": { "south": "north_gate_road", "north": "forest:forest_edge" },
       "initial_npcs": [
-        { "template_id": "town_guard", "instance_id": "guard_north_1" },
-        { "template_id": "town_guard", "instance_id": "guard_north_2" }
+        { "template_id": "town_guard", "instance_id": "guard_north_1", "overrides": { "patrol_points": ["north_gate", "watchtower_base", "town_square"] } },
+        { "template_id": "town_guard", "instance_id": "guard_north_2", "overrides": { "patrol_points": ["north_gate", "barracks_exterior", "town_square"] } }
       ]
     },
     "watchtower_base": {
@@ -183,7 +183,7 @@
       "name": "East Gate",
       "description": "A smaller gate that leads out of town towards the rolling foothills. A single guard watches the path.",
       "exits": { "west": "east_gate_road", "east": "foothills:grassy_slope" },
-      "initial_npcs": [ { "template_id": "town_guard", "instance_id": "guard_east_1" } ]
+      "initial_npcs": [ { "template_id": "town_guard", "instance_id": "guard_east_1", "overrides": { "patrol_points": ["east_gate", "market_square", "town_square"] } } ]
     },
     "fish_stall": {
         "name": "Fish Stall",

@@ -225,7 +225,8 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
                         placement_overrides = {}
                     allowed_overrides = {
                         key: placement_overrides[key]
-                        for key in ("name", "level", "health", "max_health", "mana", "max_mana", "behavior_type", "properties_override")
+                        for key in ("name", "level", "health", "max_health", "mana", "max_mana", "behavior_type",
+                                    "properties_override", "patrol_points", "patrol_index")
                         if key in placement_overrides
                     }
                     overrides = {

@@ -528,6 +528,34 @@ work:
   new engine work.
 - **Guards patrol the whole town**, not just the residential district.
 
+## Shipped: guard patrol AI
+
+Turned out to be almost entirely a content task: a `"patrol"` NPC
+`behavior_type` already existed, fully wired in the AI dispatcher
+(`engine/npcs/ai/dispatcher.py`) and implemented end-to-end in
+`perform_patrol` (`engine/npcs/ai/movement.py`) -- walks an NPC's
+`patrol_points` (room ids) in a cycle via `patrol_index`, pathfinding
+between waypoints and moving one real step at a time through actual room
+exits, falling back to ordinary wandering if a path can't be found. It
+had simply never been used by any content; three pre-existing unit tests
+(`test_npc_patrol.py` and two in `tests/batch/`) already covered the
+mechanic in isolation against synthetic rooms.
+
+All four `town_guard` instances now patrol; both Guard Captains stay
+`"stationary"` (an undictated but reasonable choice -- the commanding
+officer holds a post). Route shape was explicitly left "iterate on it" by
+this doc, so this pass built several short, overlapping loops hubbed at
+`town_square` rather than one town-spanning loop -- each guard keeps
+patrolling near their original post (north gate, east gate, the square
+itself) while still reading as whole-town coverage between them. Making
+this authorable per NPC placement (rather than one shared route for every
+`town_guard`) needed one small addition:
+`definition_loader.py`'s `initial_npcs.overrides` allow-list (which
+already let a room override an NPC's `behavior_type` at the placement
+site, not just its template) gained `patrol_points`/`patrol_index` as
+two more allowed keys -- the exact extension point its own code comment
+already anticipated.
+
 ## Open questions
 
 - **The ambient, multi-room threat-detection system.** Edge-triggered
@@ -538,10 +566,6 @@ work:
   feature that happens to share a skill/mechanism with theft-witnessing,
   not a prerequisite for it. A real player-facing `perception` skill
   would likely arrive with this, not before.
-- **Guard patrol AI.** Guards are currently stationary NPCs (the existing
-  `scheduled` behavior_type wasn't extended to them); "guards patrol the
-  whole town" is decided in shape but not yet built. A district isn't a
-  prerequisite for this -- patrol routes could cover town today.
 - **A trap that permanently ruins the lock.** Raised as a real idea when
   disarm/traps shipped: some traps could make a chest unpickable by
   anyone, locksmith included. What happens to that chest afterward --
