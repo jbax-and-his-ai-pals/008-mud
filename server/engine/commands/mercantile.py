@@ -37,6 +37,19 @@ def _template_preview_name(template: Dict) -> str:
             return raw_name
     return raw_name
 
+def _active_tariff_rate(player: Optional[Player], vendor: NPC) -> float:
+    """A vendor's `tariff` property (unlike `economy_impact`, which is a
+    timed modifier that expires on its own -- see NPC.update()) stays in
+    effect until the named campaign is completed, evaluated live against
+    the player's actual campaign state rather than a stored timer."""
+    tariff = vendor.properties.get("tariff")
+    if not isinstance(tariff, dict) or player is None:
+        return 0.0
+    quests = getattr(player.runtime_state, "quests", None)
+    if quests is not None and tariff.get("campaign_id") in quests.completed_campaigns:
+        return 0.0
+    return max(0.0, float(tariff.get("rate", 0.0)))
+
 def _get_price_multiplier(vendor: NPC, player: Optional[Player] = None) -> float:
     base = DEFAULT_VENDOR_SELL_MULTIPLIER
     if "economy_impact" in vendor.properties:
@@ -47,7 +60,12 @@ def _get_price_multiplier(vendor: NPC, player: Optional[Player] = None) -> float
     if player is not None:
         bond = int(getattr(player, "npc_relationships", {}).get(relationship_key(vendor), 0))
         base *= 1.0 - relationship_discount(bond, getattr(player, "world", None))
+    base *= 1.0 + _active_tariff_rate(player, vendor)
     return max(0.1, base)
+
+def _get_sell_rate_multiplier(vendor: NPC, player: Optional[Player] = None) -> float:
+    rate = vendor.properties.get("sell_rate_multiplier", DEFAULT_VENDOR_BUY_MULTIPLIER)
+    return rate * max(0.0, 1.0 - _active_tariff_rate(player, vendor))
 
 def _relationship_requirement(item_ref: Dict[str, Any]) -> int:
     return max(0, min(100, int(item_ref.get("relationship_min", 0))))
@@ -65,6 +83,8 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
     current_multiplier = _get_price_multiplier(vendor, player)
     if current_multiplier < DEFAULT_VENDOR_SELL_MULTIPLIER:
         display_lines.append(f"{FORMAT_HIGHLIGHT}(Special Discount Active!){FORMAT_RESET}\n")
+    if _active_tariff_rate(player, vendor) > 0:
+        display_lines.append(f"{FORMAT_HIGHLIGHT}(Portbridge Tariff in Effect!){FORMAT_RESET}\n")
 
     if vendor_items_refs:
         for item_ref in vendor_items_refs:
@@ -441,7 +461,7 @@ def sell_handler(args, context):
         # contents separately.
         sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, int(item_to_sell.weight * LOCKED_CONTAINER_SELL_RATE_PER_WEIGHT))
     else:
-        sell_rate = vendor.properties.get("sell_rate_multiplier", DEFAULT_VENDOR_BUY_MULTIPLIER)
+        sell_rate = _get_sell_rate_multiplier(vendor, player)
         sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, int(item_to_sell.value * sell_rate))
     total_gold_gain = sell_price_per_item * quantity
     removed_item_type, actual_removed_count, remove_msg = player.inventory.remove_item(item_to_sell.obj_id, quantity)

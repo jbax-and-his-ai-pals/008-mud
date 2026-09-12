@@ -628,7 +628,8 @@
         { "item_id": "item_hunk_bread" },
         { "item_id": "item_healing_potion_small", "price_multiplier": 1.5 }
       ],
-      "can_give_generic_quests": true
+      "can_give_generic_quests": true,
+      "tariff": { "campaign_id": "portbridge_smugglers", "rate": 0.10 }
     }
   },
   "portbridge_fisherman": {
@@ -655,7 +656,8 @@
         { "item_id": "item_fresh_fish" },
         { "item_id": "item_fishing_net" }
       ],
-      "can_give_generic_quests": false
+      "can_give_generic_quests": false,
+      "tariff": { "campaign_id": "portbridge_smugglers", "rate": 0.10 }
     }
   },
   "portbridge_shipwright": {
@@ -682,7 +684,8 @@
         { "item_id": "item_coiled_rope" },
         { "item_id": "item_softwood" }
       ],
-      "can_give_generic_quests": false
+      "can_give_generic_quests": false,
+      "tariff": { "campaign_id": "portbridge_smugglers", "rate": 0.10 }
     }
   },
   "portbridge_guard": {

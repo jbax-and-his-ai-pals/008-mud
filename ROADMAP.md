@@ -184,6 +184,20 @@ when Portbridge shipped -- narrowly, on purpose.
   `relationship_min` gate, reusing the same mechanism `sells_items`
   already had; a buy-orders-only vendor no longer gets misreported as
   "has nothing to sell right now" with the `orders` hint unreachable.
+- [x] **Portbridge tariffs.** All three of Portbridge's honest vendors
+  (innkeeper, fisherman, shipwright) carry a flat 10% penalty on both
+  buying and selling until `portbridge_smugglers` is completed, either
+  ending -- mechanical teeth for Voss's "the tariffs never add up" line,
+  and a felt reward for finishing the questline regardless of which way
+  you resolved it. A new generic `tariff` vendor property (distinct from
+  the existing `economy_impact`, which is a *timed* modifier that
+  expires on its own and so can't be gated on quest state) is evaluated
+  live against the player's `completed_campaigns`, reusing the
+  `campaign_outcome` groundwork above. A `(Portbridge Tariff in
+  Effect!)` banner mirrors the existing discount banner so a worse price
+  is never unexplained. The smuggler leader's fence deal is untouched --
+  her payout is a flat `reward_gold`, a separate code path from ordinary
+  buy/sell pricing, so dealing with a smuggler isn't taxed.
 
 ## Resolved design question: procedural world placement
 
