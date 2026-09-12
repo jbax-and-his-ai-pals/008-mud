@@ -304,6 +304,35 @@
       "move_cooldown": 15
     }
   },
+  "troll_elder": {
+    "name": "troll elder", "description": "A hulking, moss-covered troll far older and larger than its kin, its hide scarred by wounds that healed wrong and grew back thicker.", "level": 8, "health": 130, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
+    "stats": { "strength": 24, "dexterity": 8, "constitution": 26, "agility": 6, "intelligence": 4, "wisdom": 5, "spell_power": 0, "magic_resist": 4 },
+    "attack_power": 12, "defense": 10,
+    "dialog": {
+      "greeting": "{name} rises to its full, towering height and roars!",
+      "threat": "{name} beats its chest, unbothered by your blows!",
+      "flee": "{name} finally retreats, trailing a thick green ichor!"
+    },
+    "default_dialog": "{name} grunts, watching you with ancient, patient eyes.",
+    "loot_table": {
+      "gold_value": { "chance": 1.0, "quantity": [30, 60] },
+      "item_troll_hide": { "chance": 1.0, "quantity": [2, 3] },
+      "item_crude_club": { "chance": 0.5 },
+      "item_shiny_rock": { "chance": 0.7, "quantity": [1, 3] },
+      "chest": { "chance": 0.15, "quantity": [1, 1], "is_chest": true }
+    },
+    "usable_spells": [],
+    "properties": {
+      "is_elite": true,
+      "loot_tags": ["living", "giant"],
+      "aggression": 0.1,
+      "flee_threshold": 0.1,
+      "respawn_cooldown": 1200,
+      "spell_cast_chance": 0.0,
+      "wander_chance": 0.2,
+      "move_cooldown": 15
+    }
+  },
   "giant_spider": {
     "name": "giant spider",
     "description": "A large, hairy arachnid with multiple eyes glinting in the dim light. Its fangs drip with venom.",
@@ -394,6 +423,27 @@
     "name": "dire wolf", "description": "A massive, unnaturally large wolf with intelligent, hungry eyes.", "level": 3, "health": 40, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
     "stats": { "strength": 12, "dexterity": 14, "constitution": 11, "agility": 15 }, "attack_power": 6, "defense": 2,
     "loot_table": { "item_wolf_pelt": { "chance": 0.9, "quantity": [1,2] }, "item_wolf_fang": { "chance": 0.8, "quantity": [1,2] } }
+  },
+  "dire_wolf_alpha": {
+    "name": "alpha of the pack", "description": "A scarred, oversized dire wolf that carries itself like it has never lost a fight. The rest of the pack gives it a wide berth.", "level": 5, "health": 65, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
+    "stats": { "strength": 18, "dexterity": 18, "constitution": 16, "agility": 20 }, "attack_power": 10, "defense": 4,
+    "dialog": {
+      "greeting": "The {name} lowers its head and snarls, hackles raised.",
+      "threat": "The {name} snaps its jaws, daring you closer.",
+      "flee": "The {name} yelps and bolts for the treeline!"
+    },
+    "default_dialog": "{name} circles, watching for an opening.",
+    "loot_table": {
+      "gold_value": { "chance": 1.0, "quantity": [15, 30] },
+      "item_wolf_pelt": { "chance": 1.0, "quantity": [2, 3] },
+      "item_wolf_fang": { "chance": 1.0, "quantity": [2, 3] }
+    },
+    "properties": {
+      "is_elite": true,
+      "loot_tags": ["living", "beast"],
+      "flee_threshold": 0.15,
+      "respawn_cooldown": 900
+    }
   },
   "bandit_archer": {
     "name": "bandit archer", "description": "A bandit who prefers to strike from a distance with a simple bow.", "level": 4, "health": 35, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",

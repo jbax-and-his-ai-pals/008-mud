@@ -74,5 +74,35 @@
       }
     },
     "item_cultist_robes": { "type": "Armor", "name": "cultist robes", "description": "Dark, hooded robes stained with something unpleasant.", "weight": 2.0, "value": 15, "properties": { "defense": 1, "durability": 20, "max_durability": 20, "equip_slot": ["body"] }},
-    "item_lizardfolk_shield": { "type": "Armor", "name": "lizardfolk shield", "description": "A sturdy shield made from the hardened hide of a large reptile.", "weight": 4.0, "value": 30, "properties": { "defense": 2, "durability": 60, "max_durability": 60, "equip_slot": ["off_hand"] }}
+    "item_lizardfolk_shield": { "type": "Armor", "name": "lizardfolk shield", "description": "A sturdy shield made from the hardened hide of a large reptile.", "weight": 4.0, "value": 30, "properties": { "defense": 2, "durability": 60, "max_durability": 60, "equip_slot": ["off_hand"] }},
+    "item_wolf_pelt_cloak": {
+      "type": "Armor",
+      "name": "wolf pelt cloak",
+      "description": "A cloak stitched from a wolf's pelt, still carrying a hint of the hunt.",
+      "weight": 2.0,
+      "value": 20,
+      "stackable": false,
+      "properties": {
+        "defense": 2,
+        "durability": 40,
+        "max_durability": 40,
+        "equip_slot": ["body"],
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
+      }
+    },
+    "item_trollhide_vest": {
+      "type": "Armor",
+      "name": "trollhide vest",
+      "description": "A heavy vest cut from troll hide, thick enough to have shrugged off more than one blade.",
+      "weight": 5.0,
+      "value": 45,
+      "stackable": false,
+      "properties": {
+        "defense": 4,
+        "durability": 70,
+        "max_durability": 70,
+        "equip_slot": ["body"],
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
+      }
+    }
   }

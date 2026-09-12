@@ -143,5 +143,37 @@
     "ingredients": [
       { "item_id": "item_leather_strip", "quantity": 3 }
     ]
+  },
+  "stitch_wolf_pelt_cloak": {
+    "name": "Stitch Wolf Pelt Cloak",
+    "description": "Stitch a wolf's pelt into a wearable cloak.",
+    "result_item_id": "item_wolf_pelt_cloak",
+    "result_quantity": 1,
+    "station_required": null,
+    "ingredients": [
+      { "item_id": "item_wolf_pelt", "quantity": 2 },
+      { "item_id": "item_leather_strip", "quantity": 1 }
+    ]
+  },
+  "string_wolf_fang_necklace": {
+    "name": "String Wolf Fang Necklace",
+    "description": "String wolf fangs into a trophy necklace.",
+    "result_item_id": "item_wolf_fang_necklace",
+    "result_quantity": 1,
+    "station_required": null,
+    "ingredients": [
+      { "item_id": "item_wolf_fang", "quantity": 2 }
+    ]
+  },
+  "cure_trollhide_vest": {
+    "name": "Cure Trollhide Vest",
+    "description": "Cure and stitch a troll's thick hide into a protective vest.",
+    "result_item_id": "item_trollhide_vest",
+    "result_quantity": 1,
+    "station_required": null,
+    "ingredients": [
+      { "item_id": "item_troll_hide", "quantity": 2 },
+      { "item_id": "item_leather_strip", "quantity": 1 }
+    ]
   }
 }

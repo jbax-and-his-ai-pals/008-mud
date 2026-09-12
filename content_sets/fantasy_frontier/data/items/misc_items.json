@@ -173,5 +173,14 @@
     "value": 2,
     "stackable": true,
     "properties": { "category": "contraband" }
+  },
+  "item_wolf_fang_necklace": {
+    "type": "Item",
+    "name": "wolf fang necklace",
+    "description": "A necklace of wolf fangs strung on a leather cord -- a small trophy, and a striking gift.",
+    "weight": 0.3,
+    "value": 14,
+    "stackable": true,
+    "properties": { "category": "gift", "gift_tags": ["trophy", "handmade"] }
   }
 }

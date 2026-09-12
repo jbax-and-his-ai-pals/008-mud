@@ -286,18 +286,48 @@ class World:
     def look(self, minimal: bool = False, player: Optional['Player'] = None) -> str:
         return generate_room_description(self, minimal, player=player)
 
+    def _attempt_combat_retreat(self, player: 'Player') -> Tuple[bool, Optional[str]]:
+        """Walking away mid-fight isn't free: a contested check against the
+        toughest engaged hostile, reusing the stealth skill (slipping away
+        from a fight is the same act as slipping away with stolen goods).
+        Returns (allowed_to_move, failure_message)."""
+        combat_state = getattr(player.runtime_state, "combat", None)
+        if combat_state is None or not combat_state.in_combat:
+            return True, None
+        live_hostiles = [
+            t for t in combat_state.targets
+            if getattr(t, "is_alive", False) and getattr(t, "faction", None) == "hostile"
+        ]
+        if not live_hostiles:
+            return True, None
+        difficulty = 10 + 2 * max(getattr(t, "level", 1) for t in live_hostiles)
+        success, _ = SkillSystem.attempt_check(player, "stealth", difficulty)
+        if not success:
+            return False, f"{FORMAT_ERROR}You can't break away from the fight!{FORMAT_RESET}"
+        # Deliberately not forcing exit_combat here: a hostile left behind
+        # keeps remembering the fight (matching existing, intentional aggro
+        # persistence -- see test_npc_aggro_persistence.py), and naturally
+        # exits combat on its own next turn once it finds no same-room
+        # target (engine/npcs/combat.py::try_attack). The check's only job
+        # is gating whether the move is allowed to happen at all.
+        return True, None
+
     def change_room(self, direction: str, player: Optional['Player'] = None) -> str:
         active_player = self.resolve_reference_player(player)
         if not active_player or not active_player.is_alive:
              return f"{FORMAT_ERROR}You cannot move while dead.{FORMAT_RESET}"
-        
+
         old_region_id = active_player.current_region_id
         old_room_id = active_player.current_room_id
         current_room = self.get_current_room(active_player)
-        
+
         if not old_region_id or not old_room_id or not current_room:
             return f"{FORMAT_ERROR}You are lost in an unknown place and cannot move.{FORMAT_RESET}"
-        
+
+        retreat_allowed, retreat_failure_msg = self._attempt_combat_retreat(active_player)
+        if not retreat_allowed:
+            return retreat_failure_msg or f"{FORMAT_ERROR}You can't break away from the fight!{FORMAT_RESET}"
+
         reqs = current_room.properties.get("exit_requirements", {})
         dir_req = reqs.get(direction)
         

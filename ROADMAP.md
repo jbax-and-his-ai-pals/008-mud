@@ -302,8 +302,68 @@ existing authored candidates) -- see place-making below.
 
 ### Combat and adventure
 
-- Distinct enemy behavior, bounties, elite encounters, meaningful retreat,
-  trophies, and combat-derived crafting inputs.
+- [x] **Meaningful retreat shipped.** Fleeing combat was previously free
+  and guaranteed: any ordinary movement command while `in_combat` walked
+  the player out with no roll, no cost, and no risk
+  (`test_combat_flee_mechanics.py` used to document exactly this).
+  `World._attempt_combat_retreat` now gates every room change while
+  engaged with a live hostile behind a contested `stealth` skill check
+  (difficulty scales off the toughest engaged hostile's level) --
+  reusing the exact skill this session's crime system already added,
+  giving it a second real use. Failure blocks the move outright and
+  costs nothing extra: NPCs already auto-attack every tick while
+  `in_combat` (`engine/npcs/ai/dispatcher.py`), so simply not letting
+  the player leave is the entire "cost," no new combat code needed. A
+  new `flee`/`retreat` command auto-picks an exit (preferring a safe
+  destination, the mirror image of a hostile NPC's own `try_flee`,
+  which prefers *unsafe* ones) and funnels through the identical check
+  -- no second formula. Deliberately does **not** force combat to end on
+  a successful retreat: a hostile left behind keeps remembering the
+  fight, matching existing, intentional aggro-persistence behavior
+  (`test_npc_aggro_persistence.py`), and cleans up its own combat state
+  naturally once it finds no same-room target on its next turn.
+- [x] **Elite encounters shipped.** Two new hostile templates --
+  `dire_wolf_alpha` and `troll_elder`, both meaningfully boosted
+  variants of an existing template with guaranteed (not just chance-based)
+  bonus loot -- placed at low weight in the mountains region's existing
+  weighted `Spawner` pool (`region.spawner_config.monster_types`). No
+  elite/rarity system was built; these are two hand-authored templates
+  reusing spawn/loot mechanics that already existed end-to-end. Found
+  along the way: `troll` itself (already a fully-defined, level-5
+  template with "regenerative abilities" flavor) was never placed in
+  any static hand-authored region -- only in `dynamic_themes.json`'s
+  procedurally-generated-region pool, meaning a real troll encounter in
+  the explored world didn't exist. It now has a genuine home in the
+  mountains alongside its elder variant.
+- [x] **Bounties shipped.** Two hand-authored, single-target kill quests
+  (`quest_bounty_dire_wolf_alpha`, `quest_bounty_troll_elder`) posted to
+  the quest board via the existing `authored_board_templates` mechanism,
+  turned in to Guard Captain Elara. Confirmed the procedural kill-quest
+  generator (`generate_kill_objective`) was already a bounty system in
+  everything but name -- reward scaling already keys off the target's
+  own level -- but these are hand-authored (like every other named-boss
+  quest) so they can target a *specific* elite rather than a random
+  level-matched hostile. Because authored board seeding only checks
+  "already on the board," never "already completed," a bounty against a
+  rare elite naturally reposts once cleared -- a real "hunt it down
+  again when it reappears" loop with zero extra code. Found and fixed
+  along the way: two tests (`test_batch_21.py`'s quest-board-overflow
+  test, `test_quest_manager_lifecycle.py`'s board-already-full test)
+  hardcoded the assumption that authored board quests would never
+  outnumber `MAX_QUESTS_ON_BOARD` -- true by coincidence at 4 authored
+  templates, false the moment a 5th and 6th were added, even though the
+  engine has explicitly treated authored quests as cap-exempt since
+  before this session. Fixed both to assert the actual intended
+  invariant (no unbounded/duplicate growth) instead of a stale headcount.
+- [x] **Combat-derived crafting inputs shipped.** `item_wolf_pelt`,
+  `item_wolf_fang`, and `item_troll_hide` were already dropping from
+  existing hostile loot tables with **zero recipes consuming any of
+  them** -- the same "authored but orphaned" shape this session already
+  closed twice (fishing's gem-ledger gap, the smuggler fence's
+  contraband). Three new recipes close it: a wolf pelt cloak, a wolf
+  fang trophy necklace (a new gift-economy curio), and a trollhide vest
+  (the toughest basic body armor in the game). An elite kill now has an
+  immediate, legible crafting payoff on top of gold.
 - Ensure ambient loot selectors distinguish appropriate NPC categories using
   content-authored tags.
 - Fixed a real bug found while pursuing this: `NPCFactory` only ever read

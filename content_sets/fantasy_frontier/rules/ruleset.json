@@ -20,7 +20,9 @@
       { "template_id": "quest_wildflower_commission", "giver_template_id": "village_elder" },
       { "template_id": "quest_riverside_charm_commission", "giver_template_id": "village_elder", "relationship_min": 10 },
       { "template_id": "quest_river_fine_token_commission", "giver_template_id": "village_elder", "relationship_min": 10 },
-      { "template_id": "quest_museum_showcase_commission", "giver_template_id": "curator", "relationship_min": 5 }
+      { "template_id": "quest_museum_showcase_commission", "giver_template_id": "curator", "relationship_min": 5 },
+      { "template_id": "quest_bounty_dire_wolf_alpha", "giver_template_id": "guard_captain" },
+      { "template_id": "quest_bounty_troll_elder", "giver_template_id": "guard_captain" }
     ],
     "board_display_name": "Quest Board",
     "turn_in_phrases": ["complete quest", "report quest", "finish quest", "turnin quest", "complete", "turnin", "negotiate", "parley"],

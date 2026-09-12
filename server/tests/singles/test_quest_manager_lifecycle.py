@@ -138,12 +138,18 @@ class TestEnsureInitialQuests(GameTestBase):
         while len(board) < MAX_QUESTS_ON_BOARD:
             board.append({"instance_id": f"filler_{len(board)}", "template_id": f"filler_template_{len(board)}"})
         self.world.quest_board = board
+        # Authored board quests are uncapped, so their own count can exceed
+        # MAX_QUESTS_ON_BOARD outright (this fixture's own padding loop
+        # above is a no-op whenever that's already true) -- the assertion
+        # below should reflect whichever is actually larger, not assume
+        # the constant always wins.
+        expected_len = max(MAX_QUESTS_ON_BOARD, len(board))
         with patch.object(qm.generator, "generate_instance_quest") as mock_instance, \
              patch.object(qm.generator, "generate_noninstance_quest") as mock_noninstance:
             qm.ensure_initial_quests(self.player)
             mock_instance.assert_not_called()
             mock_noninstance.assert_not_called()
-        self.assertEqual(MAX_QUESTS_ON_BOARD, len(self.world.quest_board))
+        self.assertEqual(expected_len, len(self.world.quest_board))
 
     def test_generator_returning_none_stops_the_fill_loop(self):
         qm = self.world.quest_manager
