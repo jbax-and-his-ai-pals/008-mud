@@ -12,19 +12,21 @@ from engine.npcs.npc_factory import NPCFactory
 
 
 class TestBountyQuestShape(GameTestBase):
-    def test_dire_wolf_alpha_bounty_targets_the_elite_with_a_single_kill(self):
+    def test_dire_wolf_alpha_bounty_targets_an_elite_dire_wolf(self):
         template = self.world.quest_manager.quest_templates["quest_bounty_dire_wolf_alpha"]
         objective = template["stages"][0]["objective"]
         self.assertEqual("kill", objective["type"])
-        self.assertEqual("dire_wolf_alpha", objective["target_template_id"])
+        self.assertEqual("dire_wolf", objective["target_template_id"])
+        self.assertTrue(objective["require_elite"])
         self.assertEqual(1, objective["required_quantity"])
         self.assertEqual("guard_captain", template["stages"][0]["turn_in_id"])
 
-    def test_troll_elder_bounty_targets_the_elite_with_a_single_kill(self):
+    def test_troll_elder_bounty_targets_an_elite_troll(self):
         template = self.world.quest_manager.quest_templates["quest_bounty_troll_elder"]
         objective = template["stages"][0]["objective"]
         self.assertEqual("kill", objective["type"])
-        self.assertEqual("troll_elder", objective["target_template_id"])
+        self.assertEqual("troll", objective["target_template_id"])
+        self.assertTrue(objective["require_elite"])
         self.assertEqual(1, objective["required_quantity"])
         self.assertEqual("guard_captain", template["stages"][0]["turn_in_id"])
 

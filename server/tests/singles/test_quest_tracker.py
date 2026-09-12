@@ -117,6 +117,32 @@ class TestHandleNpcKilled(GameTestBase):
         self.assertIn("1/3 killed", result)
         self.assertEqual("active", self.player.runtime_state.quests.active["q4"]["state"])
 
+    def test_require_elite_kill_objective_ignores_a_non_elite_kill(self):
+        qm = self.world.quest_manager
+        objective = {"type": "kill", "target_template_id": "goblin", "current_quantity": 0, "required_quantity": 1, "require_elite": True}
+        self.player.runtime_state.quests.active["q_elite_bounty"] = {
+            "state": "active", "objective": objective, "current_stage_index": 0,
+            "stages": [{"objective": objective}],
+        }
+        goblin = _goblin(self.world)
+        self.assertFalse(goblin.properties.get("is_elite"))
+        result = handle_npc_killed(qm, "npc_killed", {"player": self.player, "npc": goblin})
+        self.assertIsNone(result)
+        self.assertEqual(0, objective["current_quantity"])
+
+    def test_require_elite_kill_objective_counts_an_elite_kill(self):
+        qm = self.world.quest_manager
+        objective = {"type": "kill", "target_template_id": "goblin", "current_quantity": 0, "required_quantity": 1, "require_elite": True}
+        self.player.runtime_state.quests.active["q_elite_bounty_2"] = {
+            "state": "active", "title": "Bounty", "objective": objective, "current_stage_index": 0,
+            "stages": [{"objective": objective, "description": "Kill an elite goblin"}],
+        }
+        goblin = _goblin(self.world)
+        goblin.properties["is_elite"] = True
+        result = handle_npc_killed(qm, "npc_killed", {"player": self.player, "npc": goblin})
+        self.assertIn("Objective complete", result)
+        self.assertEqual(1, objective["current_quantity"])
+
     def test_kill_objective_completion_reports_ready_to_complete(self):
         qm = self.world.quest_manager
         objective = {"type": "kill", "target_template_id": "goblin", "current_quantity": 0, "required_quantity": 1}

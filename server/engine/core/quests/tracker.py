@@ -23,6 +23,8 @@ def handle_npc_killed(manager, event_type: str, data: Dict[str, Any]) -> Optiona
         
         if obj_type == "kill":
             if objective.get("target_template_id") == killed_template_id:
+                if objective.get("require_elite") and not getattr(killed_npc, "properties", {}).get("is_elite"):
+                    continue
                 _update_standard_kill(manager, quest_data, objective, messages)
 
         elif obj_type == "group_kill" and "targets" in objective:

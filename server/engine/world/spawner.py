@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from engine.config import (SPAWN_CHANCE_PER_TICK, SPAWN_DEBUG,
                          SPAWN_INTERVAL_SECONDS, SPAWN_MAX_MONSTERS_PER_REGION_CAP,
                          SPAWN_MIN_MONSTERS_PER_REGION, SPAWN_ROOMS_PER_MONSTER)
+from engine.npcs.elite import roll_elite_overrides
 from engine.npcs.npc_factory import NPCFactory
 from engine.utils.utils import weighted_choice
 from engine.world.region import Region
@@ -117,6 +118,9 @@ class Spawner:
             "home_region_id": region.obj_id,
             "home_room_id": room_id_to_spawn
         }
+        elite_overrides = roll_elite_overrides(self.world.npc_templates[monster_template_id], self.world)
+        if elite_overrides:
+            overrides.update(elite_overrides)
         monster = NPCFactory.create_npc_from_template(monster_template_id, self.world, **overrides)
 
         if monster:

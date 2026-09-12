@@ -187,6 +187,14 @@
   "spawning": {
     "no_spawn_keywords": ["town_square", "tavern", "inn", "shop", "temple", "shrine", "home", "general_store", "blacksmith", "farmhouse_yard", "shepherds_hut"]
   },
+  "elites": {
+    "chance": 0.05,
+    "stat_multiplier": 1.6,
+    "loot_guaranteed_chance": 1.0,
+    "loot_quantity_multiplier": 1.5,
+    "name_pattern": "{prefix} {name}",
+    "prefixes": ["Alpha", "Elder", "Ancient", "Dread", "Savage", "Greater", "Feral", "Grizzled"]
+  },
   "npc_schedules": {
     "excluded_name_keywords": ["guard"],
     "room_categories": {

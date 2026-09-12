@@ -322,32 +322,46 @@ existing authored candidates) -- see place-making below.
   fight, matching existing, intentional aggro-persistence behavior
   (`test_npc_aggro_persistence.py`), and cleans up its own combat state
   naturally once it finds no same-room target on its next turn.
-- [x] **Elite encounters shipped.** Two new hostile templates --
-  `dire_wolf_alpha` and `troll_elder`, both meaningfully boosted
-  variants of an existing template with guaranteed (not just chance-based)
-  bonus loot -- placed at low weight in the mountains region's existing
-  weighted `Spawner` pool (`region.spawner_config.monster_types`). No
-  elite/rarity system was built; these are two hand-authored templates
-  reusing spawn/loot mechanics that already existed end-to-end. Found
-  along the way: `troll` itself (already a fully-defined, level-5
-  template with "regenerative abilities" flavor) was never placed in
-  any static hand-authored region -- only in `dynamic_themes.json`'s
-  procedurally-generated-region pool, meaning a real troll encounter in
-  the explored world didn't exist. It now has a genuine home in the
-  mountains alongside its elder variant.
-- [x] **Bounties shipped.** Two hand-authored, single-target kill quests
+- [x] **Elite encounters shipped, then generalized.** Originally two
+  hand-authored templates (`dire_wolf_alpha`, `troll_elder`); per
+  follow-up request, folded into one generic system instead:
+  `engine/npcs/elite.py`'s `roll_elite_overrides` gives **any** hostile
+  template a content-configured chance (`ruleset.json`'s new `"elites"`
+  section: chance, stat multiplier, loot guarantee/quantity multiplier,
+  a naming prefix pool) to spawn as a boosted, guaranteed-bonus-loot,
+  randomly-named variant -- "Alpha dire wolf," "Dread orc grunt,"
+  "Ancient harpy" all fall out of the same small config block, wired
+  into the ambient `Spawner`'s existing per-region weighted pool with
+  one call site and zero per-species content. `NPCFactory`'s override
+  plumbing needed no changes at all -- `stats`/`attack_power`/`defense`/
+  `loot_table` overrides and the `properties_override` merge (not a
+  destructive replace) already existed exactly as needed. Deliberately
+  scoped to the ambient `Spawner` only, not a global `NPCFactory` hook
+  -- promoting arbitrarily-placed named villagers or quest bosses to
+  "elite" would risk breaking scripted encounters. Found along the way:
+  `troll` itself (already a fully-defined, level-5 template with
+  "regenerative abilities" flavor) was never placed in any static
+  hand-authored region -- only in `dynamic_themes.json`'s
+  procedurally-generated-region pool. It now has a genuine home in the
+  mountains.
+- [x] **Bounties shipped.** Two hand-authored kill quests
   (`quest_bounty_dire_wolf_alpha`, `quest_bounty_troll_elder`) posted to
   the quest board via the existing `authored_board_templates` mechanism,
-  turned in to Guard Captain Elara. Confirmed the procedural kill-quest
-  generator (`generate_kill_objective`) was already a bounty system in
-  everything but name -- reward scaling already keys off the target's
-  own level -- but these are hand-authored (like every other named-boss
-  quest) so they can target a *specific* elite rather than a random
-  level-matched hostile. Because authored board seeding only checks
-  "already on the board," never "already completed," a bounty against a
-  rare elite naturally reposts once cleared -- a real "hunt it down
-  again when it reappears" loop with zero extra code. Found and fixed
-  along the way: two tests (`test_batch_21.py`'s quest-board-overflow
+  turned in to Guard Captain Elara. Retargeted once elites went generic:
+  a bounty now names a base species (`target_template_id: "dire_wolf"`/
+  `"troll"`) plus a new `require_elite` flag on the `kill` objective
+  (`engine/core/quests/tracker.py`, one extra condition on the existing
+  template-id match) rather than a since-deleted fixed template id --
+  "kill an elite dire wolf," not one specific creature. Confirmed the
+  procedural kill-quest generator (`generate_kill_objective`) was
+  already a bounty system in everything but name -- reward scaling
+  already keys off the target's own level -- but these stay
+  hand-authored (like every other named-boss quest) so they can require
+  the elite roll specifically. Because authored board seeding only
+  checks "already on the board," never "already completed," a bounty
+  against a rare elite naturally reposts once cleared -- a real "hunt
+  it down again when it reappears" loop with zero extra code. Found and
+  fixed along the way: two tests (`test_batch_21.py`'s quest-board-overflow
   test, `test_quest_manager_lifecycle.py`'s board-already-full test)
   hardcoded the assumption that authored board quests would never
   outnumber `MAX_QUESTS_ON_BOARD` -- true by coincidence at 4 authored

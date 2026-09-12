@@ -10,9 +10,7 @@
             "harpy": 2,
             "orc_shaman": 1,
             "earth_elemental": 1,
-            "troll": 2,
-            "dire_wolf_alpha": 1,
-            "troll_elder": 1
+            "troll": 2
         },
         "level_range": [5, 8]
     },

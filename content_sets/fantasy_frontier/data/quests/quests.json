@@ -372,39 +372,41 @@
   },
 
   "quest_bounty_dire_wolf_alpha": {
-    "title": "Bounty: Alpha of the Pack",
+    "title": "Bounty: An Elite Dire Wolf",
     "type": "quest",
-    "description": "An unusually large and cunning dire wolf has been leading raids on travelers near the mountains. Guard Captain Elara is offering a bounty for its head.",
+    "description": "One of the dire wolves near the mountains has grown unusually large and cunning, leading raids on travelers. Guard Captain Elara doesn't know its name, only that it's far more dangerous than the rest of its kind -- and is offering a bounty for whichever one it is.",
     "stages": [
       {
         "stage_index": 0,
-        "description": "Hunt down and kill the Alpha of the Pack.",
+        "description": "Hunt down and kill an elite dire wolf.",
         "objective": {
           "type": "kill",
-          "target_template_id": "dire_wolf_alpha",
-          "target_name": "Alpha of the Pack",
-          "required_quantity": 1
+          "target_template_id": "dire_wolf",
+          "target_name": "an elite dire wolf",
+          "required_quantity": 1,
+          "require_elite": true
         },
         "turn_in_id": "guard_captain",
-        "completion_dialogue": "The Alpha, dead? Good riddance. That bounty is well earned."
+        "completion_dialogue": "One of the strong ones, dead? Good riddance. That bounty is well earned."
       }
     ],
     "rewards": { "xp": 250, "gold": 60 }
   },
 
   "quest_bounty_troll_elder": {
-    "title": "Bounty: The Troll Elder",
+    "title": "Bounty: A Monstrous Troll",
     "type": "quest",
     "description": "Something old and enormous has been sighted in the mountains -- a troll far larger than any on record. Guard Captain Elara wants it put down before it wanders toward the roads.",
     "stages": [
       {
         "stage_index": 0,
-        "description": "Hunt down and kill the Troll Elder.",
+        "description": "Hunt down and kill an elite troll.",
         "objective": {
           "type": "kill",
-          "target_template_id": "troll_elder",
-          "target_name": "Troll Elder",
-          "required_quantity": 1
+          "target_template_id": "troll",
+          "target_name": "an elite troll",
+          "required_quantity": 1,
+          "require_elite": true
         },
         "turn_in_id": "guard_captain",
         "completion_dialogue": "That thing's been a rumor for months. You've done Riverside a real service."
