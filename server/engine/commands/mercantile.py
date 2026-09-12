@@ -110,7 +110,9 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
             display_lines.append(f"- {item_name}{qty_str:<{VENDOR_LIST_ITEM_NAME_WIDTH - len(qty_str)}} | Price: {buy_price:>{VENDOR_LIST_PRICE_WIDTH}} {world.currency_name()}")
 
     if len(display_lines) == 1:
-        return f"{vendor.name} has nothing to sell right now."
+        if not vendor.properties.get("buy_orders"):
+            return f"{vendor.name} has nothing to sell right now."
+        display_lines.append(f"{vendor.name} has nothing to sell outright, but deals in buy orders.")
 
     if vendor.properties.get("buy_orders"):
         display_lines.append("\nBuy orders available: type 'orders'.")
@@ -153,6 +155,10 @@ def orders_handler(args, context):
         quantity = max(1, int(order.get("quantity", 1)))
         reward = max(0, int(order.get("reward_gold", 0)))
         repeatable = bool(order.get("repeatable", False))
+        if not _relationship_allows_stock(player, vendor, order):
+            relationship_required = _relationship_requirement(order)
+            lines.append(f"- {order_id}: [Friendship {relationship_required}/100 required]")
+            continue
         if order_id in completed and not repeatable:
             state = "complete"
         else:
@@ -179,6 +185,8 @@ def fulfill_handler(args, context):
     order = next((entry for entry in _vendor_orders(vendor) if str(entry["id"]).lower() == order_id), None)
     if order is None:
         return f"{FORMAT_ERROR}{vendor.name} has no order named '{order_id}'.{FORMAT_RESET}"
+    if not _relationship_allows_stock(player, vendor, order):
+        return f"{FORMAT_ERROR}{vendor.name} doesn't trust you enough for that order yet.{FORMAT_RESET}"
     vendor_key = relationship_key(vendor)
     completed = player.vendor_orders_completed.setdefault(vendor_key, [])
     if str(order["id"]) in completed and not bool(order.get("repeatable", False)):

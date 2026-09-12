@@ -155,6 +155,36 @@ the existing Bandit Rebellion campaign too:
   to compute `PEACEFUL_SUCCESS`/`VIOLENT_SUCCESS` from which choice
   branch actually completed the quest.
 
+## Completed vertical slice: the smuggler-crew follow-up
+
+**Goal:** the Portbridge smuggling campaign's join path ("You're one of
+them now.") was a dead end with no ongoing payoff, and the busted path
+had no closure with Voss beyond the quest's own reward. This gives both
+endings real weight and answers the fence/stolen-goods question deferred
+when Portbridge shipped -- narrowly, on purpose.
+
+- [x] The smuggler leader (a permanent, stationary NPC once negotiation
+  succeeds -- nothing in the engine ever despawns a `spawn_on_entry`
+  NPC) is now a repeatable fence: a new `item_contraband_bundle`
+  (worthless to any ordinary vendor) drops from the tunnel's
+  already-respawning `smuggler_thug`s, and she'll buy it via a
+  repeatable vendor buy order for a flat 35 gold, unlocked the moment
+  "Cutting You In" pays out its new relationship reward. No global
+  stolen-item-tracking system was added -- deliberately narrower in
+  scope than that would be; contraband is just an item type no honest
+  merchant wants.
+- [x] Both campaign endings now get a real reaction from Harbourmaster
+  Voss on asking about smuggling again: grateful closure if busted,
+  frustrated dramatic irony if you joined and he never found out.
+- [x] Two small, generically useful engine gaps closed to support this:
+  a new `campaign_outcome` dialogue condition (`knowledge_manager.py`)
+  checks *which* END node a completed campaign reached, not just
+  whether it's completed -- `campaign_state` couldn't do this, and
+  nothing else did either. And vendor `buy_orders` can now carry a
+  `relationship_min` gate, reusing the same mechanism `sells_items`
+  already had; a buy-orders-only vendor no longer gets misreported as
+  "has nothing to sell right now" with the `orders` hint unreachable.
+
 ## Resolved design question: procedural world placement
 
 Raised while scoping place-making: should more of the world be seeded

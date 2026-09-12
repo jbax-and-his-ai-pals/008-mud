@@ -364,6 +364,10 @@
         "completion_dialogue": "Good. This is what trust looks like. You've got a share coming to you."
       }
     ],
-    "rewards": { "xp": 150, "gold": 100 }
+    "rewards": {
+      "xp": 150,
+      "gold": 100,
+      "relationships": [ { "npc_template_id": "smuggler_leader", "amount": 25 } ]
+    }
   }
 }

@@ -134,6 +134,17 @@ class TestCheckConditions(GameTestBase):
         self.player.runtime_state.quests.active_campaigns["campZ"] = {}
         self.assertFalse(self.km._check_conditions(self.npc, self.player, cond))
 
+    def test_campaign_outcome_matches_completed_outcome(self):
+        cond = {"campaign_outcome": {"campaign_id": "campW", "outcome": "JOINED_SMUGGLERS"}}
+        self.assertFalse(self.km._check_conditions(self.npc, self.player, cond))
+        self.player.runtime_state.quests.completed_campaigns["campW"] = {"outcome": "JOINED_SMUGGLERS"}
+        self.assertTrue(self.km._check_conditions(self.npc, self.player, cond))
+
+    def test_campaign_outcome_false_for_wrong_outcome(self):
+        self.player.runtime_state.quests.completed_campaigns["campW"] = {"outcome": "SMUGGLING_BUSTED"}
+        cond = {"campaign_outcome": {"campaign_id": "campW", "outcome": "JOINED_SMUGGLERS"}}
+        self.assertFalse(self.km._check_conditions(self.npc, self.player, cond))
+
     def test_quest_state_active_with_from_this_and_pattern(self):
         self.player.runtime_state.quests.active["quest_other_npc"] = {
             "state": "active", "giver_instance_id": "some_other_npc",

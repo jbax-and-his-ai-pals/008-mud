@@ -196,7 +196,8 @@
     "loot_table": {
       "gold_value": { "chance": 0.85, "quantity": [8, 20] },
       "item_dagger": { "chance": 0.4 },
-      "item_stolen_pouch": { "chance": 0.3 }
+      "item_stolen_pouch": { "chance": 0.3 },
+      "item_contraband_bundle": { "chance": 0.3 }
     },
     "usable_spells": [],
     "properties": {
@@ -244,7 +245,19 @@
     "properties": {
       "loot_tags": ["living", "humanoid"],
       "flee_threshold": 0.2,
-      "respawn_cooldown": 600
+      "respawn_cooldown": 600,
+      "is_vendor": true,
+      "buy_orders": [
+        {
+          "id": "contraband_run",
+          "item_id": "item_contraband_bundle",
+          "quantity": 1,
+          "reward_gold": 35,
+          "relationship_amount": 3,
+          "repeatable": true,
+          "relationship_min": 20
+        }
+      ]
     }
   },
   "troll": {

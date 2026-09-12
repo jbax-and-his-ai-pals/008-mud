@@ -256,6 +256,22 @@
     "keywords": ["smuggling", "smugglers", "suspicious"],
     "responses": [
       {
+        "text": "You put a stop to it, and I won't forget it. The manifests have balanced ever since. Portbridge owes you a debt.",
+        "conditions": {
+          "template_id": "harbourmaster_voss",
+          "campaign_outcome": { "campaign_id": "portbridge_smugglers", "outcome": "SMUGGLING_BUSTED" }
+        },
+        "priority": 20
+      },
+      {
+        "text": "Still can't account for it. The cache you found was cleaned out before I could get down there myself -- whoever was running it slipped through my fingers. It galls me.",
+        "conditions": {
+          "template_id": "harbourmaster_voss",
+          "campaign_outcome": { "campaign_id": "portbridge_smugglers", "outcome": "JOINED_SMUGGLERS" }
+        },
+        "priority": 20
+      },
+      {
         "text": "Cargo's been going missing off the manifests for months, and the tariffs never add up. Someone's running goods through my harbor without paying a cent. I'd deal with it myself, but I can't be everywhere at once. Are you willing to look into it?",
         "conditions": { "template_id": "harbourmaster_voss" },
         "priority": 10

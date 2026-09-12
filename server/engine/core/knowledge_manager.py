@@ -136,6 +136,14 @@ class KnowledgeManager:
                 if state_req == "completed" and not is_completed: return False
                 if state_req == "not_active" and (is_active or is_completed): return False
 
+            # Campaign Outcome Check -- which END node a completed campaign
+            # reached, not just whether it's completed.
+            if key == "campaign_outcome":
+                if player.runtime_state.quests is None: return False
+                c_id = val.get("campaign_id")
+                data = player.runtime_state.quests.completed_campaigns.get(c_id)
+                if not data or data.get("outcome") != val.get("outcome"): return False
+
             # Quest State Check
             if key == "quest_state":
                 if player.runtime_state.quests is None: return False

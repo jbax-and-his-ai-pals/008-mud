@@ -49,6 +49,19 @@ class TestPortbridgePlacement(GameTestBase):
         self.assertEqual(2, len(thugs))
         self.assertEqual({"smugglers_tunnel", "smugglers_crossroads"}, {t.current_room_id for t in thugs})
 
+    def test_tunnel_thugs_can_drop_contraband(self):
+        template = self.world.npc_templates["smuggler_thug"]
+        self.assertIn("item_contraband_bundle", template["loot_table"])
+
+    def test_smuggler_leader_template_is_a_repeatable_fence(self):
+        template = self.world.npc_templates["smuggler_leader"]
+        self.assertTrue(template["properties"].get("is_vendor"))
+        orders = template["properties"].get("buy_orders", [])
+        order = next(o for o in orders if o["id"] == "contraband_run")
+        self.assertEqual("item_contraband_bundle", order["item_id"])
+        self.assertTrue(order["repeatable"])
+        self.assertGreater(order["relationship_min"], 0)
+
 
 class TestSmugglingCampaignTrigger(GameTestBase):
     def setUp(self):
@@ -119,6 +132,34 @@ class TestSmugglingCampaignPeacefulPath(_CampaignTestBase):
         self.assertIn("Quest Complete", result)
         self.assertIsNone(self._campaign_state())
 
+    def test_delivering_the_cargo_unlocks_the_repeatable_fence_order(self):
+        from engine.social.relationships import relationship_key
+        with patch("engine.core.skill_system.SkillSystem.attempt_check", return_value=(True, "rolled well")):
+            self.game.process_command("talk smuggler leader complete")
+        cargo = ItemFactory.create_item_from_template("item_dubious_cargo", self.world)
+        self.player.inventory.add_item(cargo)
+        self.game.process_command("give dubious cargo to smuggler leader")
+
+        leader = _portbridge_npc(self.world, "smuggler_leader")
+        self.assertGreaterEqual(self.player.npc_relationships.get(relationship_key(leader), 0), 20)
+
+        self.game.process_command("trade smuggler leader")
+        for _ in range(2):
+            bundle = ItemFactory.create_item_from_template("item_contraband_bundle", self.world)
+            self.player.inventory.add_item(bundle)
+            result = self.game.process_command("fulfill contraband_run")
+            self.assertIn("Order fulfilled", result)
+
+    def test_voss_dialogue_reflects_joining_the_smugglers(self):
+        with patch("engine.core.skill_system.SkillSystem.attempt_check", return_value=(True, "rolled well")):
+            self.game.process_command("talk smuggler leader complete")
+        cargo = ItemFactory.create_item_from_template("item_dubious_cargo", self.world)
+        self.player.inventory.add_item(cargo)
+        self.game.process_command("give dubious cargo to smuggler leader")
+        self.player.current_room_id = "port_authority_office"
+        result = self.game.process_command("ask Voss about smuggling")
+        self.assertIn("slipped through my fingers", result)
+
 
 class TestSmugglingCampaignViolentPath(_CampaignTestBase):
     def test_failing_negotiation_keeps_the_leader_alive_and_hostile(self):
@@ -147,3 +188,6 @@ class TestSmugglingCampaignViolentPath(_CampaignTestBase):
         result = self.game.process_command("talk Voss complete")
         self.assertIn("Quest Complete", result)
         self.assertIsNone(self._campaign_state())
+
+        aftermath = self.game.process_command("ask Voss about smuggling")
+        self.assertIn("owes you a debt", aftermath)

@@ -164,5 +164,14 @@
     "properties": {
         "quest_item": true
     }
+  },
+  "item_contraband_bundle": {
+    "type": "Item",
+    "name": "contraband bundle",
+    "description": "A small parcel wrapped in oilcloth and tied with waxed cord. No manifest, no maker's mark, no questions asked -- an honest merchant wouldn't touch it.",
+    "weight": 1.5,
+    "value": 2,
+    "stackable": true,
+    "properties": { "category": "contraband" }
   }
 }
