@@ -521,6 +521,14 @@ def _validate_resource_node_yields(content_root: Path, issues: list[ContentSetIs
             resource_item_id = properties.get("resource_item_id")
             if not isinstance(resource_item_id, str) or resource_item_id not in item_ids:
                 issues.append(ContentSetIssue("error", str(path), f"{label}.properties.resource_item_id references a missing item template"))
+            if "substitute_resource_ids" in properties:
+                substitute_ids = properties["substitute_resource_ids"]
+                if not isinstance(substitute_ids, list):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.substitute_resource_ids must be an array"))
+                else:
+                    for substitute_id in substitute_ids:
+                        if not isinstance(substitute_id, str) or substitute_id not in item_ids:
+                            issues.append(ContentSetIssue("error", str(path), f"{label}.properties.substitute_resource_ids references a missing item template: {substitute_id!r}"))
             if "material_quality" in properties:
                 validate_quality(properties["material_quality"], path, label)
             yields = properties.get("yield_table", [])

@@ -77,13 +77,25 @@ def survey_handler(args, context):
             seasonal_note = f"; seasons: {names}"
             if current_season and current_season not in seasons:
                 seasonal_note += " (inactive now)"
-        recovery_note = f"; recovers in {respawn_days} day(s)" if respawn_days > 0 else ""
+        state = "ready" if charges > 0 else "depleted"
+        if charges <= 0:
+            days_left = node.recovery_days_left(world)
+            recovery_note = f"; recovers in about {days_left} day(s)" if days_left is not None else ""
+        else:
+            recovery_note = f"; recovers in {respawn_days} day(s) once emptied" if respawn_days > 0 else ""
         material_quality = node.get_property("material_quality", {})
         quality_note = ""
         if isinstance(material_quality, dict) and isinstance(material_quality.get("score"), int) and material_quality["score"] > 0:
             quality_note = f"; material quality: {material_quality.get('label', material_quality.get('id', 'notable'))}"
-        state = "ready" if charges > 0 else "depleted"
-        lines.append(f"- {node.name}: {charges}/{maximum} ({state}); tool: {required_tool}{recovery_note}{seasonal_note}{quality_note}")
+        alternatives_note = ""
+        if charges <= 0:
+            alternates = node.find_alternate_sources(world)
+            substitutes = node.find_substitutes(world)
+            if alternates:
+                alternatives_note += f"; also at: {', '.join(alternates)}"
+            if substitutes:
+                alternatives_note += f"; try instead: {', '.join(substitutes)}"
+        lines.append(f"- {node.name}: {charges}/{maximum} ({state}); tool: {required_tool}{recovery_note}{seasonal_note}{quality_note}{alternatives_note}")
     return "\n".join(lines)
 
 @command("time", ["clock"], "information", "Display the current in-game time and date.")

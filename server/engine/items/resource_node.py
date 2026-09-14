@@ -1,8 +1,13 @@
 # engine/items/resource_node.py
-from typing import Optional
+from typing import List, Optional
 import random
 from engine.items.item import Item
 from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET
+
+def _is_public_region(region_id: str) -> bool:
+    """Exclude per-player houses and quest instances from world-wide
+    gathering hints -- they aren't generally-accessible locations."""
+    return not (region_id.startswith("instance_") or region_id.startswith("dynamic_player_house"))
 
 class ResourceNode(Item):
     def __init__(self, obj_id: Optional[str] = None, name: str = "Resource",
@@ -31,12 +36,10 @@ class ResourceNode(Item):
         respawn_days = int(self.get_property("respawn_days", 0))
         if charges <= 0:
             base_message = f"The {self.name} has been depleted."
-            depleted_day = self.get_property("depleted_day")
-            if respawn_days > 0 and depleted_day is not None:
-                days_left = respawn_days - (self._day_number(world) - int(depleted_day))
-                if days_left > 0:
-                    return f"{base_message} It should recover in about {days_left} day{'s' if days_left != 1 else ''}."
-            return base_message
+            days_left = self.recovery_days_left(world)
+            if days_left is not None:
+                base_message += f" It should recover in about {days_left} day{'s' if days_left != 1 else ''}."
+            return base_message + self._alternatives_note(world)
 
         time_manager = getattr(getattr(world, "game", None), "time_manager", None)
         day_number = self._day_number(world)
@@ -102,9 +105,13 @@ class ResourceNode(Item):
             added, add_message = player.inventory.add_item(resource)
             if not added:
                 return f"{FORMAT_ERROR}You cannot carry the {resource.name}: {add_message}{FORMAT_RESET}"
-            self.update_property("charges", charges - 1)
-            if charges - 1 <= 0 and respawn_days > 0:
+            remaining = charges - 1
+            self.update_property("charges", remaining)
+            if remaining <= 0 and respawn_days > 0:
                 self.update_property("depleted_day", day_number)
+                self.update_property("last_partial_gather_day", None)
+            elif remaining > 0 and respawn_days > 0:
+                self.update_property("last_partial_gather_day", day_number)
             discovery = ""
             collection_manager = getattr(getattr(world, "game", None), "collection_manager", None)
             if collection_manager is not None:
@@ -125,10 +132,91 @@ class ResourceNode(Item):
     def available_charges(self, world) -> int:
         """Refresh and return charge state for gathering and inspection alike."""
         charges = int(self.get_property("charges", 0))
+        max_charges = int(self.get_property("max_charges", 1))
+        respawn_days = int(self.get_property("respawn_days", 0))
+        day_number = self._day_number(world)
+
+        if charges <= 0:
+            depleted_day = self.get_property("depleted_day")
+            if respawn_days > 0 and depleted_day is not None and day_number - int(depleted_day) >= respawn_days:
+                charges = max_charges
+                self.update_property("charges", charges)
+                self.update_property("depleted_day", None)
+        elif charges < max_charges and respawn_days > 0:
+            # A partial harvest never fully blocks recovery: it slowly
+            # trickles back toward max instead of sitting frozen until
+            # someone drains it to zero (see ROADMAP.md).
+            last_partial_day = self.get_property("last_partial_gather_day")
+            if last_partial_day is not None:
+                elapsed = day_number - int(last_partial_day)
+                gained = elapsed // respawn_days
+                if gained > 0:
+                    charges = min(max_charges, charges + gained)
+                    self.update_property("charges", charges)
+                    new_last_day = int(last_partial_day) + gained * respawn_days
+                    self.update_property("last_partial_gather_day", None if charges >= max_charges else new_last_day)
+        return charges
+
+    def recovery_days_left(self, world) -> Optional[int]:
+        """Real remaining time for a currently-depleted, renewable node, or
+        None when the node isn't depleted or won't recover on its own."""
+        if self.available_charges(world) > 0:
+            return None
         respawn_days = int(self.get_property("respawn_days", 0))
         depleted_day = self.get_property("depleted_day")
-        day_number = self._day_number(world)
-        if charges <= 0 and respawn_days > 0 and depleted_day is not None and day_number - int(depleted_day) >= respawn_days:
-            charges = int(self.get_property("max_charges", 1))
-            self.update_property("charges", charges)
-        return charges
+        if respawn_days <= 0 or depleted_day is None:
+            return None
+        days_left = respawn_days - (self._day_number(world) - int(depleted_day))
+        return days_left if days_left > 0 else None
+
+    def _other_nodes(self, world):
+        for region_id, region in getattr(world, "regions", {}).items():
+            if not _is_public_region(region_id):
+                continue
+            for room in region.rooms.values():
+                for item in room.items:
+                    if isinstance(item, ResourceNode) and item.obj_id != self.obj_id:
+                        yield item, room, region
+
+    def find_alternate_sources(self, world) -> List[str]:
+        """Other public nodes yielding this exact same resource."""
+        resource_id = self.get_property("resource_item_id")
+        if not resource_id:
+            return []
+        seen = set()
+        locations = []
+        for node, room, region in self._other_nodes(world):
+            if node.get_property("resource_item_id") != resource_id:
+                continue
+            label = f"{node.name} ({room.name})"
+            if label not in seen:
+                seen.add(label)
+                locations.append(label)
+        return locations
+
+    def find_substitutes(self, world) -> List[str]:
+        """Public nodes yielding an authored substitute resource."""
+        substitute_ids = self.get_property("substitute_resource_ids", [])
+        if not isinstance(substitute_ids, list) or not substitute_ids:
+            return []
+        seen = set()
+        locations = []
+        for node, room, region in self._other_nodes(world):
+            node_resource_id = node.get_property("resource_item_id")
+            if node_resource_id not in substitute_ids:
+                continue
+            label = f"{node.name} ({room.name})"
+            if label not in seen:
+                seen.add(label)
+                locations.append(label)
+        return locations
+
+    def _alternatives_note(self, world) -> str:
+        lines = []
+        alternates = self.find_alternate_sources(world)
+        if alternates:
+            lines.append(f" Also found at: {', '.join(alternates)}.")
+        substitutes = self.find_substitutes(world)
+        if substitutes:
+            lines.append(f" You could gather instead from: {', '.join(substitutes)}.")
+        return "".join(lines)

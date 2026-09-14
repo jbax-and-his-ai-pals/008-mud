@@ -9,7 +9,8 @@
       "charges": 6,
       "max_charges": 6,
       "respawn_days": 1,
-      "resource_tags": ["plant", "herb", "garden"]
+      "resource_tags": ["plant", "herb", "garden"],
+      "substitute_resource_ids": ["item_forest_berries"]
     }
   },
   "node_berry_bramble": {
@@ -23,6 +24,7 @@
       "max_charges": 3,
       "respawn_days": 1,
       "resource_tags": ["plant", "forest", "food"],
+      "substitute_resource_ids": ["item_wild_herbs"],
       "yield_table": [
         { "item_id": "item_wild_herbs", "chance": 0.25 }
       ]

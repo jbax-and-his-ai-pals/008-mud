@@ -77,6 +77,11 @@ class TestContentSetRuntime(unittest.TestCase):
                     "resource_item_id": "item_missing",
                     "material_quality": {"id": "", "label": "", "score": 0},
                     "yield_table": [{"item_id": "item_missing", "chance": 2, "material_quality": "bad"}],
+                    "substitute_resource_ids": "item_real",
+                }},
+                "node_bad_substitute": {"type": "ResourceNode", "properties": {
+                    "resource_item_id": "item_real",
+                    "substitute_resource_ids": ["item_missing_substitute"],
                 }},
             }), encoding="utf-8")
             issues: list[ContentSetIssue] = []
@@ -86,6 +91,8 @@ class TestContentSetRuntime(unittest.TestCase):
         self.assertTrue(any("material_quality.id must be a non-empty string" in message for message in messages))
         self.assertTrue(any("chance must be a number from 0 to 1" in message for message in messages))
         self.assertTrue(any("material_quality must be an object" in message for message in messages))
+        self.assertTrue(any("substitute_resource_ids must be an array" in message for message in messages))
+        self.assertTrue(any("substitute_resource_ids references a missing item template" in message for message in messages))
 
     def test_crafting_quality_contributor_contract_is_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

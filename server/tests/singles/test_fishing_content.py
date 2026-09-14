@@ -90,6 +90,19 @@ class TestGatheringWithANet(GameTestBase):
                 self.assertIn("fresh fish", result)
             depleted = self.game.process_command("gather calm fishing hole")
         self.assertIn("depleted", depleted)
+        self.assertIn("recover in about 1 day", depleted)
+        self.assertIn("sheltered fishing spot (Fishing Pier)", depleted)
+
+    def test_survey_shows_accurate_recovery_time_and_alternate_source_once_depleted(self):
+        self.player.current_region_id = "town"
+        self.player.current_room_id = "fishing_hut"
+        with patch("engine.items.resource_node.random.random", return_value=0.99):
+            for _ in range(4):
+                self.game.process_command("gather calm fishing hole")
+        survey = self.game.process_command("survey")
+        self.assertIn("calm fishing hole: 0/4 (depleted)", survey)
+        self.assertIn("recovers in about 1 day", survey)
+        self.assertIn("also at: sheltered fishing spot (Fishing Pier)", survey)
 
 
 class TestFishingDiscoverabilityHint(GameTestBase):

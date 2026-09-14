@@ -253,10 +253,44 @@ number of new mechanics.
   (content-authored `replacement_key_cost`, defaulting to 100) reissues
   a correctly-scoped key, mirroring `buy_house`'s existing
   preflight-then-charge-then-issue shape.
-- [ ] Give gathering alternate sources, substitutions, and visible recovery
-  information so a depleted shared resource creates a choice rather than an
-  abandoned session. Consider whether partial harvests should contribute to
-  ecological recovery rather than blocking it.
+- [x] **Give gathering alternate sources, substitutions, and visible recovery
+  information.** `survey` already showed `charges/max` and a static
+  "recovers in N day(s)" cadence for every renewable node, but never told you
+  *when* a currently-depleted node actually comes back -- that math was
+  inlined in `gather()`'s own depleted message and unused elsewhere.
+  Extracted it into `ResourceNode.recovery_days_left(world)`, shared by both
+  `gather()` and `survey`, so a depleted node now reports real days-left
+  instead of just its cadence. **Alternate sources**: a new
+  `find_alternate_sources(world)` scans all public regions for other nodes
+  yielding the identical `resource_item_id` -- zero new content needed, since
+  the two fishing spots (river/sea) already shared one. **Substitutions**: a
+  new, explicit, optional `substitute_resource_ids` content field (not the
+  existing free-form `resource_tags`, which mixes category and location
+  descriptors with no distinction the engine could safely act on --
+  reusing it would have linked nonsense pairs, e.g. river clay bank and
+  river fishing spot sharing `"river"`). Authored on the one clear,
+  justified pair: the herb bed and berry bramble, both foraging-knife plant
+  gathers already informally linked (the bramble's own `yield_table` already
+  had a chance of bonus herbs). Both cross-references exclude per-player
+  house regions and quest instances (private, not generally-accessible
+  "alternate" locations) and render as an optional appendix -- "Also found
+  at: ..." / "You could gather instead from: ..." -- only when matches
+  exist, on both `gather()`'s depleted message and `survey`'s per-node line.
+  **Partial-harvest recovery** (the "consider whether..." ask): reading
+  `available_charges()` showed a real gap -- a node only ever started its
+  respawn clock when a gather drove `charges` to exactly 0; one left
+  partially harvested (say 4/6) sat frozen forever, worse than full
+  depletion, which at least guarantees eventual recovery. Left the existing,
+  tuned full-depletion-to-max-after-`respawn_days` timing completely
+  unchanged, and added new, purely additive trickle recovery for the
+  previously-dead partial case: each gather that doesn't fully empty a node
+  stamps `last_partial_gather_day`, and `available_charges()` now regenerates
+  `elapsed // respawn_days` charges (capped at max) since that stamp. A
+  lightly-tapped node now slowly heals back toward full instead of staying
+  frozen at a partial count indefinitely. Extended
+  `_validate_resource_node_yields` to validate `substitute_resource_ids`
+  references real item templates, matching the existing `resource_item_id`/
+  `yield_table` checks beside it.
 - [ ] Extend crafting through decisions, not recipe count: explicit ingredient
   selection and previews, substitutions with trade-offs, recipe discovery,
   useful tools/travel supplies/furnishings, and efficient batching for routine
