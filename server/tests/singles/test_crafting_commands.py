@@ -8,6 +8,7 @@ exercise at the command-handler level."""
 from unittest.mock import patch
 
 from tests.fixtures import GameTestBase
+from engine.commands import crafting as crafting_module
 from engine.commands.crafting import recipes_handler, craft_handler, salvage_handler
 from engine.crafting.recipe import Recipe
 from engine.items.item_factory import ItemFactory
@@ -82,6 +83,86 @@ class TestCraftHandler(GameTestBase):
         # No ingredients in inventory -> craft() reports failure.
         result = craft_handler(["cmd_test_sword"], {"world": self.world, "player": self.player})
         self.assertNotIn("Successfully", result)
+
+
+class TestCraftBatching(GameTestBase):
+    def setUp(self):
+        super().setUp()
+        self.manager = self.game.crafting_manager
+        self.recipe = Recipe("batch_test_sword", {
+            "name": "Batch Test Sword",
+            "result_item_id": "item_iron_sword",
+            "result_quantity": 1,
+            "difficulty": 0,
+            "ingredients": [{"item_id": "item_iron_ingot", "quantity": 1}],
+        })
+        self.manager.recipes["batch_test_sword"] = self.recipe
+
+    def _give_ingots(self, count):
+        for _ in range(count):
+            self.player.inventory.add_item(ItemFactory.create_item_from_template("item_iron_ingot", self.world))
+
+    def test_count_of_one_keeps_the_single_craft_message(self):
+        self._give_ingots(1)
+        result = craft_handler(["batch_test_sword", "1"], {"world": self.world, "player": self.player})
+        self.assertIn("Successfully crafted", result)
+
+    def test_batch_crafts_the_requested_count(self):
+        self._give_ingots(3)
+        result = craft_handler(["batch_test_sword", "3"], {"world": self.world, "player": self.player})
+        self.assertIn("Crafted 3 x Batch Test Sword", result)
+        self.assertEqual(3, self.player.inventory.count_item("item_iron_sword"))
+
+    def test_batch_stops_early_and_reports_why_when_materials_run_out(self):
+        self._give_ingots(2)
+        result = craft_handler(["batch_test_sword", "5"], {"world": self.world, "player": self.player})
+        self.assertIn("Crafted 2 x Batch Test Sword", result)
+        self.assertIn("Stopped early", result)
+        self.assertEqual(2, self.player.inventory.count_item("item_iron_sword"))
+
+    def test_batch_count_is_clamped_to_the_maximum(self):
+        # Each non-stackable sword takes its own slot -- give plenty of room
+        # so slot/weight capacity isn't what stops the batch, only the cap.
+        from engine.items.inventory import Inventory
+        self.player.inventory = Inventory(max_slots=40, max_weight=1000.0)
+        self._give_ingots(25)
+        result = craft_handler(["batch_test_sword", "9999"], {"world": self.world, "player": self.player})
+        self.assertIn(f"Crafted {crafting_module.MAX_CRAFT_BATCH} x Batch Test Sword", result)
+
+    def test_zero_successes_reports_the_failure_as_an_error(self):
+        result = craft_handler(["batch_test_sword", "3"], {"world": self.world, "player": self.player})
+        self.assertNotIn("Successfully", result)
+        self.assertNotIn("Crafted", result)
+
+
+class TestDiscoveryGatedRecipeListing(GameTestBase):
+    def setUp(self):
+        super().setUp()
+        self.manager = self.game.crafting_manager
+        self.recipe = Recipe("secret_test_recipe", {
+            "name": "Secret Test Recipe",
+            "result_item_id": "item_iron_sword",
+            "requires_discovery": True,
+            "ingredients": [],
+        })
+        self.manager.recipes["secret_test_recipe"] = self.recipe
+
+    def test_unlearned_recipe_is_hidden_from_the_default_listing(self):
+        result = recipes_handler([], {"world": self.world, "player": self.player})
+        self.assertNotIn("Secret Test Recipe", result)
+
+    def test_unlearned_recipe_is_hidden_even_with_all(self):
+        result = recipes_handler(["all"], {"world": self.world, "player": self.player})
+        self.assertNotIn("Secret Test Recipe", result)
+
+    def test_learned_recipe_appears_and_behaves_normally(self):
+        self.player.known_recipe_ids.add("secret_test_recipe")
+        result = recipes_handler(["all"], {"world": self.world, "player": self.player})
+        self.assertIn("Secret Test Recipe", result)
+
+    def test_craft_on_an_unlearned_gated_recipe_reports_not_learned(self):
+        result = craft_handler(["secret_test_recipe"], {"world": self.world, "player": self.player})
+        self.assertIn("haven't learned", result)
 
 
 class TestSalvageHandler(GameTestBase):

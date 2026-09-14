@@ -33,6 +33,22 @@
       ]
     }
   },
+  "item_travelers_hatchet": {
+    "type": "Weapon",
+    "name": "traveler's hatchet",
+    "description": "A compact, well-balanced hatchet, forged to double as both a light weapon and a woodcutter's tool on the road.",
+    "weight": 1.5,
+    "value": 45,
+    "stackable": false,
+    "properties": {
+      "damage": 6,
+      "durability": 35,
+      "max_durability": 35,
+      "equip_slot": ["main_hand"],
+      "tool_type": "hand_axe",
+      "category": "tool"
+    }
+  },
   "item_pitchfork": {
     "type": "Weapon",
     "name": "pitchfork",

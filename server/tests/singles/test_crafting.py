@@ -113,6 +113,14 @@ class TestCrafting(GameTestBase):
 
         self.assertEqual({"practice_cap": 3}, restored.recipe_craft_counts)
 
+    def test_known_recipe_ids_survive_a_player_round_trip(self):
+        self.player.known_recipe_ids = {"forge_travelers_hatchet"}
+
+        from engine.player.core import Player
+        restored = Player.from_dict(self.player.to_dict(self.world), self.world)
+
+        self.assertEqual({"forge_travelers_hatchet"}, restored.known_recipe_ids)
+
     def test_quality_tiers_apply_deterministically_from_recipe_familiarity(self):
         recipe = Recipe("quality_cap", {
             "name": "Quality Cap",

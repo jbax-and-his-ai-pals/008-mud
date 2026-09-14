@@ -36,6 +36,24 @@
       "effect_type": "heal"
     }
   },
+  "item_travel_rations": {
+    "type": "Consumable",
+    "name": "travel rations",
+    "description": "A portable trail meal, packed tight for a long walk. Keeps well and eats fast.",
+    "weight": 0.4,
+    "value": 6,
+    "stackable": true,
+    "properties": { "uses": 1, "max_uses": 1, "effect_value": 6, "effect_type": "heal" }
+  },
+  "item_smithing_pattern_hatchet": {
+    "type": "Consumable",
+    "name": "Smithing Pattern: Traveler's Hatchet",
+    "description": "A folded diagram in a steady hand, showing how to forge a compact hatchet fit for both the road and a fight.",
+    "weight": 0.1,
+    "value": 60,
+    "stackable": false,
+    "properties": { "uses": 1, "max_uses": 1, "effect_type": "learn_recipe", "recipe_to_learn": "forge_travelers_hatchet" }
+  },
   "item_fresh_fish": {
     "type": "Consumable",
     "name": "fresh fish",

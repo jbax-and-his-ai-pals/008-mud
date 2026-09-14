@@ -25,29 +25,43 @@ def recipes_handler(args, context):
 
     # List Recipes
     available_count = 0
+    known_recipe_ids = getattr(player, "known_recipe_ids", set())
     for r_id, recipe in manager.recipes.items():
+        # A not-yet-learned recipe stays entirely hidden -- no spoiler, no
+        # dead "Locked" entry for something the player doesn't know exists.
+        if recipe.requires_discovery and r_id not in known_recipe_ids:
+            continue
+
         can_do, _ = manager.can_craft(player, recipe)
-        
+
         # Filter: Only show if we can craft it OR if the user typed "recipes all"
         # We also show it if we have the station but missing ingredients, to help player learn.
         has_station = not recipe.station_required or recipe.station_required in nearby_stations
-        
+
         if show_all or has_station:
             prefix = f"{FORMAT_SUCCESS}[Ready]{FORMAT_RESET}" if can_do else f"{FORMAT_ERROR}[Locked]{FORMAT_RESET}"
-            
+
             # Format Ingredients string
             ing_list = []
             for ing in recipe.ingredients:
                 # Get name from factory/template for display
                 from engine.items.item_factory import ItemFactory
+                from engine.crafting.recipe import Recipe
                 template = ItemFactory.get_template(ing['item_id'], world)
                 i_name = template.get("name", ing['item_id']) if template else ing['item_id']
-                
+
                 has = player.inventory.count_item(ing['item_id'])
                 req = ing['quantity']
                 color = FORMAT_SUCCESS if has >= req else FORMAT_ERROR
-                ing_list.append(f"{color}{has}/{req} {i_name}{FORMAT_RESET}")
-            
+                entry = f"{color}{has}/{req} {i_name}{FORMAT_RESET}"
+                alt_names = []
+                for opt in Recipe.ingredient_options(ing)[1:]:
+                    alt_template = ItemFactory.get_template(opt['item_id'], world)
+                    alt_names.append(alt_template.get("name", opt['item_id']) if alt_template else opt['item_id'])
+                if alt_names:
+                    entry += f" (or: {', '.join(alt_names)})"
+                ing_list.append(entry)
+
             req_str = ", ".join(ing_list)
             station_str = f" ({recipe.station_display})" if recipe.station_required else ""
             
@@ -89,17 +103,23 @@ def recipes_handler(args, context):
 
     return "\n".join(out)
 
-@command("craft", ["make"], "crafting", "Craft an item.\nUsage: craft <recipe_id>", content_capability="crafting")
+MAX_CRAFT_BATCH = 20
+
+@command("craft", ["make"], "crafting", "Craft an item, optionally several at once.\nUsage: craft <recipe_id> [count]", content_capability="crafting")
 def craft_handler(args, context):
     world = context["world"]
     player = context.get('player')
     manager = world.game.crafting_manager
 
     if not args:
-        return f"{FORMAT_ERROR}Craft what? Usage: craft <recipe_id> (Use 'recipes' to see list){FORMAT_RESET}"
-    
+        return f"{FORMAT_ERROR}Craft what? Usage: craft <recipe_id> [count] (Use 'recipes' to see list){FORMAT_RESET}"
+
+    count = 1
+    if len(args) >= 2 and args[-1].isdigit():
+        count = max(1, min(MAX_CRAFT_BATCH, int(args[-1])))
+
     recipe_id = args[0].lower()
-    
+
     # Fuzzy match for recipe name/id
     if recipe_id not in manager.recipes:
         found = None
@@ -112,12 +132,28 @@ def craft_handler(args, context):
         else:
             return f"{FORMAT_ERROR}Unknown recipe '{recipe_id}'.{FORMAT_RESET}"
 
-    result = manager.craft(player, recipe_id)
-    
-    if "Successfully" in result:
-        return f"{FORMAT_SUCCESS}{result}{FORMAT_RESET}"
-    else:
-        return f"{FORMAT_ERROR}{result}{FORMAT_RESET}"
+    if count == 1:
+        result = manager.craft(player, recipe_id)
+        if "Successfully" in result:
+            return f"{FORMAT_SUCCESS}{result}{FORMAT_RESET}"
+        else:
+            return f"{FORMAT_ERROR}{result}{FORMAT_RESET}"
+
+    recipe_name = manager.recipes[recipe_id].name
+    successes = 0
+    last_result = ""
+    for _ in range(count):
+        last_result = manager.craft(player, recipe_id)
+        if "Successfully" not in last_result:
+            break
+        successes += 1
+
+    if successes == 0:
+        return f"{FORMAT_ERROR}{last_result}{FORMAT_RESET}"
+    summary = f"{FORMAT_SUCCESS}Crafted {successes} x {recipe_name}.{FORMAT_RESET}"
+    if successes < count:
+        summary += f" Stopped early: {last_result}"
+    return summary
     
 @command("salvage", ["breakdown", "scrap"], "crafting", "Break an item into materials.\nUsage: salvage <item>", content_capability="crafting")
 def salvage_handler(args, context):

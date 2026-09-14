@@ -103,8 +103,14 @@ class TestContentSetRuntime(unittest.TestCase):
             )
             (content_root / "crafting" / "recipes.json").write_text(json.dumps({
                 "bad": {
-                    "ingredients": [{"item_id": "item_missing", "quality_contributes": "yes"}],
+                    "ingredients": [{
+                        "item_id": "item_missing", "quality_contributes": "yes",
+                        "alternatives": [{"item_id": "item_missing_alt", "quality_penalty": -1}],
+                    }],
                     "quality_tiers": [{"min_crafts": 1, "min_material_quality": 2}],
+                },
+                "bad_alternatives_shape": {
+                    "ingredients": [{"item_id": "item_real", "alternatives": "not_a_list"}],
                 },
             }), encoding="utf-8")
             issues: list[ContentSetIssue] = []
@@ -113,6 +119,9 @@ class TestContentSetRuntime(unittest.TestCase):
         self.assertTrue(any("missing item template" in message for message in messages))
         self.assertTrue(any("quality_contributes must be a boolean" in message for message in messages))
         self.assertTrue(any("has no quality-contributing ingredient" in message for message in messages))
+        self.assertTrue(any("alternatives[0].item_id references a missing item template" in message for message in messages))
+        self.assertTrue(any("alternatives[0].quality_penalty must be a non-negative integer" in message for message in messages))
+        self.assertTrue(any("alternatives must be an array" in message for message in messages))
 
     def test_attachment_extensions_are_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

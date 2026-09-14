@@ -73,6 +73,18 @@ class Consumable(Item):
                 if not learned:
                     consumed = False
 
+        elif effect_type == "learn_recipe":
+            recipe_id_to_learn = self.get_property("recipe_to_learn")
+            if not recipe_id_to_learn:
+                message = f"The {self.name} seems inert or misconfigured."
+            elif not hasattr(user, "learn_recipe"):
+                message = f"You try to learn from the {self.name}, but cannot."
+            else:
+                learned, learn_message = user.learn_recipe(recipe_id_to_learn)
+                message = learn_message
+                if not learned:
+                    consumed = False
+
         elif effect_type == "apply_dot":
             dot_name = self.get_property("dot_name")
             dot_duration = self.get_property("dot_duration")

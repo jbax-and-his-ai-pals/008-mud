@@ -176,6 +176,39 @@
       { "item_id": "item_leather_strip", "quantity": 1 }
     ]
   },
+  "pack_travel_rations": {
+    "name": "Pack Travel Rations",
+    "description": "Pack a portable trail meal from foraged plants -- wild herbs work best, but forest berries will do in a pinch.",
+    "result_item_id": "item_travel_rations",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "ingredients": [
+      {
+        "item_id": "item_wild_herbs",
+        "quantity": 2,
+        "alternatives": [
+          { "item_id": "item_forest_berries", "quality_penalty": 1 }
+        ]
+      }
+    ]
+  },
+  "forge_travelers_hatchet": {
+    "name": "Forge Traveler's Hatchet",
+    "description": "Forge a compact hatchet fit for both the road and a fight, from a pattern learned at the forge.",
+    "result_item_id": "item_travelers_hatchet",
+    "result_quantity": 1,
+    "station_required": "anvil",
+    "difficulty": 0,
+    "requires_discovery": true,
+    "familiarity_milestones": [
+      { "count": 1, "label": "Pattern learned", "message": "You forge your first traveler's hatchet from the pattern." }
+    ],
+    "ingredients": [
+      { "item_id": "item_iron_ingot", "quantity": 2 },
+      { "item_id": "item_softwood", "quantity": 1 }
+    ]
+  },
   "build_wooden_toolbox": {
     "name": "Build Wooden Toolbox",
     "description": "Build a sturdy toolbox for extra storage, right at your own carpentry bench.",

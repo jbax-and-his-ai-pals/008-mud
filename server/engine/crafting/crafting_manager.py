@@ -59,22 +59,35 @@ class CraftingManager:
 
     def can_craft(self, player: 'Player', recipe: Recipe) -> Tuple[bool, str]:
         """Checks if player has ingredients, station, AND SKILL."""
-        
-        # 1. Check Station
+
+        # 1. Check Discovery
+        if recipe.requires_discovery and recipe.recipe_id not in getattr(player, "known_recipe_ids", set()):
+            return False, "You haven't learned this recipe yet."
+
+        # 2. Check Station
         if recipe.station_required:
             nearby = self.get_nearby_stations(player)
             if recipe.station_required not in nearby:
                 return False, f"You need a {recipe.station_display} to craft this."
 
-        # 2. Check Ingredients
+        # 3. Check Ingredients (the primary item_id, or any authored substitute)
         for ing in recipe.ingredients:
-            req_id = ing["item_id"]
             req_qty = ing["quantity"]
-            has_qty = player.inventory.count_item(req_id)
-            if has_qty < req_qty:
+            options = Recipe.ingredient_options(ing)
+            has_any = any(player.inventory.count_item(opt["item_id"]) >= req_qty for opt in options)
+            if not has_any:
+                req_id = ing["item_id"]
                 template = ItemFactory.get_template(req_id, self.world)
                 name = template.get("name", req_id) if template else req_id
-                return False, f"Missing ingredient: {name} ({has_qty}/{req_qty})"
+                has_qty = player.inventory.count_item(req_id)
+                message = f"Missing ingredient: {name} ({has_qty}/{req_qty})"
+                alt_names = []
+                for opt in options[1:]:
+                    alt_template = ItemFactory.get_template(opt["item_id"], self.world)
+                    alt_names.append(alt_template.get("name", opt["item_id"]) if alt_template else opt["item_id"])
+                if alt_names:
+                    message += f" -- or: {', '.join(alt_names)}"
+                return False, message
 
         return True, "Ready to craft."
 
@@ -84,17 +97,27 @@ class CraftingManager:
         return int(raw_score) if isinstance(raw_score, int) and not isinstance(raw_score, bool) else 0
 
     def select_recipe_ingredients(self, player: 'Player', recipe: Recipe) -> Optional[List[Item]]:
-        """Choose the exact, highest-quality input units for a recipe."""
+        """Choose the exact, highest-quality input units for a recipe.
+
+        Tries each ingredient's primary item_id first -- preserving today's
+        behavior exactly for every recipe without alternatives, and keeping
+        the primary preferred even when it does have substitutes -- and
+        only falls through to an authored alternative when the primary is
+        short."""
         selected: List[Item] = []
         for ingredient in recipe.ingredients:
-            item_id = str(ingredient.get("item_id", ""))
             quantity = max(1, int(ingredient.get("quantity", 1)))
-            choices = player.inventory.select_items(
-                item_id, quantity, sort_key=self._material_quality_score
-            )
-            if len(choices) != quantity:
+            chosen: Optional[List[Item]] = None
+            for option in Recipe.ingredient_options(ingredient):
+                candidate = player.inventory.select_items(
+                    str(option["item_id"]), quantity, sort_key=self._material_quality_score
+                )
+                if len(candidate) == quantity:
+                    chosen = candidate
+                    break
+            if chosen is None:
                 return None
-            selected.extend(choices)
+            selected.extend(chosen)
         return selected
 
     def ingredient_quality_score(self, player: 'Player', recipe: Recipe, selected_items: Optional[List[Item]] = None) -> int:
@@ -108,7 +131,13 @@ class CraftingManager:
                 if len(chosen) != quantity:
                     return 0
                 if ingredient.get("quality_contributes", True) is not False:
-                    selected_scores.append(min(self._material_quality_score(item) for item in chosen))
+                    base_score = min(self._material_quality_score(item) for item in chosen)
+                    chosen_item_id = str(getattr(chosen[0], "obj_id", ""))
+                    penalty = next(
+                        (int(opt["quality_penalty"]) for opt in Recipe.ingredient_options(ingredient) if opt["item_id"] == chosen_item_id),
+                        0,
+                    )
+                    selected_scores.append(max(0, base_score - penalty))
                 offset += quantity
             return min(selected_scores) if selected_scores else 0
 

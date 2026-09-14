@@ -582,6 +582,23 @@ def _validate_crafting_quality_contracts(content_root: Path, issues: list[Conten
                     issues.append(ContentSetIssue("error", str(path), f"{entry}.quality_contributes must be a boolean"))
                 elif contributes:
                     quality_contributors += 1
+                if "alternatives" in ingredient:
+                    alternatives = ingredient["alternatives"]
+                    if not isinstance(alternatives, list):
+                        issues.append(ContentSetIssue("error", str(path), f"{entry}.alternatives must be an array"))
+                    else:
+                        for alt_index, alternative in enumerate(alternatives):
+                            alt_entry = f"{entry}.alternatives[{alt_index}]"
+                            if not isinstance(alternative, dict):
+                                issues.append(ContentSetIssue("error", str(path), f"{alt_entry} must be an object"))
+                                continue
+                            alt_item_id = alternative.get("item_id")
+                            if not isinstance(alt_item_id, str) or alt_item_id not in item_ids:
+                                issues.append(ContentSetIssue("error", str(path), f"{alt_entry}.item_id references a missing item template"))
+                            if "quality_penalty" in alternative:
+                                penalty = alternative["quality_penalty"]
+                                if isinstance(penalty, bool) or not isinstance(penalty, int) or penalty < 0:
+                                    issues.append(ContentSetIssue("error", str(path), f"{alt_entry}.quality_penalty must be a non-negative integer"))
             tiers = recipe.get("quality_tiers", [])
             if not isinstance(tiers, list):
                 continue

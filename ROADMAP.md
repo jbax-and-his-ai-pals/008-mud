@@ -291,10 +291,47 @@ number of new mechanics.
   `_validate_resource_node_yields` to validate `substitute_resource_ids`
   references real item templates, matching the existing `resource_item_id`/
   `yield_table` checks beside it.
-- [ ] Extend crafting through decisions, not recipe count: explicit ingredient
-  selection and previews, substitutions with trade-offs, recipe discovery,
-  useful tools/travel supplies/furnishings, and efficient batching for routine
-  work.
+- [x] **Extend crafting through decisions, not recipe count.** Ingredient
+  selection and previews already existed (`select_recipe_ingredients` already
+  picked the exact highest-quality instances to spend; `quality_preview`/
+  `recipes` already showed the next craft's outcome before spending) --
+  nothing to add there beyond making it reflect the new mechanics below,
+  which it does automatically since both route through the same methods.
+  **Substitutions with trade-offs**: every ingredient was a single fixed
+  `item_id`; added an optional `alternatives: [{item_id, quality_penalty}]`
+  list per ingredient (`Recipe.ingredient_options`). `can_craft`/
+  `select_recipe_ingredients` now accept any authored alternative (primary
+  always preferred when available), and `ingredient_quality_score` docks the
+  authored penalty only when a substitute was actually the one spent --
+  `craft()` itself needed zero changes, since it already threads both
+  methods' results together. Authored on `pack_travel_rations` (wild herbs,
+  or forest berries at a quality cost), deliberately reusing the exact pair
+  the gathering system already established as informal substitutes
+  (`node_herb_bed`/`node_berry_bramble`, see the "alternate sources" entry
+  above) -- crafting now has the same decision at the recipe layer.
+  **Recipe discovery**: every recipe was craftable by every player from the
+  start. Added `Recipe.requires_discovery` (default `False` -- every
+  existing recipe stays known-by-default, zero behavior change, zero test
+  breakage) and a plain `Player.known_recipe_ids` set gating `can_craft`,
+  mirroring the *exact* precedent already in the engine for spells: found
+  `Consumable`'s `effect_type == "learn_spell"` branch calling
+  `player.learn_spell(id)`, and mirrored it line-for-line with a new
+  `"learn_recipe"` effect type and `Player.learn_recipe`. A gated recipe
+  stays entirely hidden from `recipes`/`recipes all` until learned -- no
+  spoiler, no dead "Locked" entry for a recipe the player doesn't know
+  exists. Authored on a new `forge_travelers_hatchet` (anvil, a
+  `item_travelers_hatchet` weapon that doubles as the existing `hand_axe`
+  gathering tool -- "useful tools/travel supplies" that ties back to the
+  wood-gathering system too), taught by a new
+  `item_smithing_pattern_hatchet` scroll sold by Grenda the Blacksmith, who
+  already deals in anvil goods. **Batching**: `craft <recipe_id>` only ever
+  made one item per command; `craft <recipe_id> <count>` (clamped 1-20) now
+  loops, stopping at the first non-success (out of materials/space, or a
+  failed skill check) and reporting how far it got -- simple and never
+  silently loops forever. Content validator
+  (`_validate_crafting_quality_contracts`) extended to check
+  `alternatives[].item_id`/`quality_penalty`, matching the existing
+  `item_id`/`quality_contributes` checks beside it.
 - [ ] Expand fishing through optional location, season, bait, or target-catch
   choices. Avoid a compulsory reaction minigame.
 

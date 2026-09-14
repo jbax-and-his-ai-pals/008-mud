@@ -13,6 +13,9 @@ class Recipe:
         
         # "anvil", "alchemy_table", "campfire", or None (handcrafting)
         self.station_required = data.get("station_required")
+        # A recipe every player can attempt from the start unless content
+        # opts it into being taught/found first (see Player.learn_recipe).
+        self.requires_discovery: bool = bool(data.get("requires_discovery", False))
         # ``None`` preserves the content-neutral default difficulty derived
         # from result value. A content set may use 0 for a guaranteed beginner
         # recipe or supply an explicit positive skill-check difficulty.
@@ -70,6 +73,25 @@ class Recipe:
         current_rank = self.quality_rank(current) if current else -1
         higher = [tier for tier in self.quality_tiers if self.quality_rank(tier) > current_rank]
         return min(higher, key=self.quality_rank) if higher else None
+
+    @staticmethod
+    def ingredient_options(ingredient: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """The acceptable item_ids for one ingredient slot: the authored
+        primary first, then any content-declared substitutes. Each option
+        carries a quality_penalty (0 for the primary unless overridden,
+        defaulting to 0 for an alternative that doesn't author one) applied
+        to that slot's material-grade contribution when it's the one
+        actually spent -- the "trade-off" in a substitution."""
+        options = [{"item_id": ingredient.get("item_id"), "quality_penalty": 0}]
+        alternatives = ingredient.get("alternatives", [])
+        if isinstance(alternatives, list):
+            for alternative in alternatives:
+                if isinstance(alternative, dict) and alternative.get("item_id"):
+                    options.append({
+                        "item_id": alternative["item_id"],
+                        "quality_penalty": max(0, int(alternative.get("quality_penalty", 0) or 0)),
+                    })
+        return options
 
     def quality_ingredients(self) -> List[Dict[str, Any]]:
         """Return inputs which set the craft's material-grade outcome.

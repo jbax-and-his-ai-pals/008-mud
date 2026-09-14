@@ -100,6 +100,40 @@ class TestCraft(GameTestBase):
         self.assertIn("Crafting aborted", result)
 
 
+class TestDiscoveryGate(GameTestBase):
+    """A recipe authored with requires_discovery stays unusable until the
+    player has it in known_recipe_ids -- every recipe without that flag
+    (i.e. every recipe that existed before this feature) is unaffected."""
+
+    def setUp(self):
+        super().setUp()
+        self.manager = self.game.crafting_manager
+        self.recipe = Recipe("gated_test_recipe", {
+            "name": "Gated Test Recipe",
+            "result_item_id": "item_iron_sword",
+            "requires_discovery": True,
+            "ingredients": [],
+        })
+        self.manager.recipes["gated_test_recipe"] = self.recipe
+
+    def test_unlearned_recipe_cannot_be_crafted(self):
+        can_do, message = self.manager.can_craft(self.player, self.recipe)
+        self.assertFalse(can_do)
+        self.assertIn("haven't learned", message)
+
+    def test_learned_recipe_passes_the_discovery_check(self):
+        self.player.known_recipe_ids.add("gated_test_recipe")
+        can_do, _ = self.manager.can_craft(self.player, self.recipe)
+        self.assertTrue(can_do)
+
+    def test_recipes_without_the_flag_are_unaffected(self):
+        ordinary = Recipe("ordinary_test_recipe", {
+            "name": "Ordinary", "result_item_id": "item_iron_sword", "ingredients": [],
+        })
+        can_do, _ = self.manager.can_craft(self.player, ordinary)
+        self.assertTrue(can_do)
+
+
 class TestSalvage(GameTestBase):
     def test_item_level_salvage_output_override_is_honored(self):
         manager = self.game.crafting_manager

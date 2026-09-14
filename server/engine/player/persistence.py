@@ -49,6 +49,7 @@ class PlayerPersistenceMixin:
             "collections_completed": p.collections_completed,
             "discoveries": p.discoveries,
             "recipe_craft_counts": p.recipe_craft_counts,
+            "known_recipe_ids": list(p.known_recipe_ids),
             "follow_target": p.follow_target,
             "reputation": p.reputation,
             "npc_relationships": p.npc_relationships,
@@ -188,6 +189,10 @@ class PlayerPersistenceMixin:
             for recipe_id, count in raw_recipe_counts.items()
             if isinstance(recipe_id, str) and isinstance(count, int) and not isinstance(count, bool)
         } if isinstance(raw_recipe_counts, dict) else {}
+        raw_known_recipes = data.get("known_recipe_ids", [])
+        player.known_recipe_ids = {
+            str(recipe_id) for recipe_id in raw_known_recipes if isinstance(recipe_id, str)
+        } if isinstance(raw_known_recipes, list) else set()
         player.follow_target = data.get("follow_target")
         player.reputation = data.get("reputation", {})
         player.npc_relationships = data.get("npc_relationships", {})

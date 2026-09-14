@@ -112,6 +112,9 @@ class Player(
         # Per-recipe craft counts are an optional progression seam. Content
         # decides whether any milestones use the counts.
         self.recipe_craft_counts: Dict[str, int] = {}
+        # Recipes flagged requires_discovery are unusable until learned
+        # (see learn_recipe); every other recipe is known from the start.
+        self.known_recipe_ids: Set[str] = set()
 
         self.reputation: Dict[str, int] = {} 
         # Personal bonds are intentionally distinct from faction reputation:
@@ -238,4 +241,15 @@ class Player(
         if not self.is_alive or self.runtime_state.magic is None: return 0
         old = self.runtime_state.magic.mana; self.runtime_state.magic.mana = min(self.runtime_state.magic.mana + amount, self.runtime_state.magic.max_mana)
         return int(self.runtime_state.magic.mana - old)
-        
+
+    def learn_recipe(self, recipe_id: str) -> Tuple[bool, str]:
+        crafting_manager = getattr(getattr(self.world, "game", None), "crafting_manager", None)
+        recipe = crafting_manager.recipes.get(recipe_id) if crafting_manager else None
+        if not recipe:
+            return False, f"The technique for '{recipe_id}' seems non-existent."
+        if recipe_id in self.known_recipe_ids:
+            return False, f"You already know how to craft {recipe.name}."
+        self.known_recipe_ids.add(recipe_id)
+        return True, f"You study the pattern and successfully learn to craft {recipe.name}!"
+
+
