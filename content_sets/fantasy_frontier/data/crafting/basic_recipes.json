@@ -175,5 +175,20 @@
       { "item_id": "item_troll_hide", "quantity": 2 },
       { "item_id": "item_leather_strip", "quantity": 1 }
     ]
+  },
+  "build_wooden_toolbox": {
+    "name": "Build Wooden Toolbox",
+    "description": "Build a sturdy toolbox for extra storage, right at your own carpentry bench.",
+    "result_item_id": "item_wooden_toolbox",
+    "result_quantity": 1,
+    "station_required": "carpentry_bench",
+    "difficulty": 0,
+    "familiarity_milestones": [
+      { "count": 1, "label": "Handy carpenter", "message": "You have learned to build a sturdy toolbox at your own bench." }
+    ],
+    "ingredients": [
+      { "item_id": "item_softwood", "quantity": 4 },
+      { "item_id": "item_iron_ingot", "quantity": 1 }
+    ]
   }
 }

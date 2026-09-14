@@ -173,9 +173,33 @@ number of new mechanics.
   a renewable garden with cultivation decisions, and a pond/fishing benefit
   with its own useful output or social connection. Neither should be required
   for progression.
-- [ ] Add dependable, persistent home storage plus one player-selected utility
-  (display, workstation, garden, pond, trophy space, or similar) before more
-  decorative house tiers.
+- [x] **Add dependable, persistent home storage plus one player-selected
+  utility.** Garden/pond (tier 2) were already decorative-only (name/
+  description reflavor, no mechanical effect) -- their real depth is the
+  next item below, so "one player-selected utility" meant a genuinely
+  functional third branch. Picked **workstation** over display/trophy
+  space: it reuses the most existing, already-tested machinery
+  (`CraftingManager.get_nearby_stations`, the same `crafting_station_type`
+  property `item_lapidary_wheel` already uses), where a "display" would
+  have needed brand-new engine mechanics (`CollectionManager.turn_in_items`
+  is donation -- it permanently removes the item and is coupled to a
+  collector NPC, not a reusable display primitive). A fixed, unlocked
+  `item_house_storage_chest` (`can_take: false`) is placed in every new
+  house at purchase automatically; `expand house workstation` (a third,
+  mutually-exclusive tier-2 branch alongside garden/pond) places an
+  `item_carpentry_bench` the same way, and a new `build_wooden_toolbox`
+  recipe (station-gated, ordinary softwood/iron-ingot materials) gives it
+  real value -- a craftable, portable second container, so "more storage"
+  stays a normal crafted item rather than a bespoke "attach to house"
+  mechanic. Both reuse the exact same one-line gap fix: `InstanceManager.
+  build_region` only sets `initial_item_refs` from static content, never
+  instantiates them into live `room.items` for a region built mid-session
+  (only world-bootstrap does that) -- so both create their item via
+  `ItemFactory` and `room.add_item(...)` directly in `HousingManager`,
+  mirroring how it already creates the house key. Room-item persistence
+  needed zero new code: `_serialize_item_reference` already
+  recursively serializes a `Container`'s contents for any room, the same
+  path `item_old_trunk` already proved.
 - [x] **Make per-player housing safe for shared worlds.** The prototype's
   gap was real at every layer, not just a friendlier refusal for a second
   buyer: a single fixed region id (a second buy attempt was flatly

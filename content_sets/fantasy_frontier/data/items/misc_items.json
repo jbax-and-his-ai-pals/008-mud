@@ -182,5 +182,27 @@
     "value": 14,
     "stackable": true,
     "properties": { "category": "gift", "gift_tags": ["trophy", "handmade"] }
+  },
+  "item_house_storage_chest": {
+    "type": "Container",
+    "name": "house storage chest",
+    "description": "A sturdy chest built into the corner of the room, ready to hold whatever you don't want to carry around.",
+    "weight": 25.0,
+    "value": 0,
+    "capacity": 100.0,
+    "locked": false,
+    "is_open": false,
+    "properties": { "can_take": false }
+  },
+  "item_wooden_toolbox": {
+    "type": "Container",
+    "name": "wooden toolbox",
+    "description": "A sturdy toolbox with a hinged lid, built by your own hands. Plenty of room inside.",
+    "weight": 8.0,
+    "value": 15,
+    "capacity": 40.0,
+    "locked": false,
+    "is_open": false,
+    "properties": {}
   }
 }

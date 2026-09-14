@@ -78,5 +78,17 @@
       "crafting_station_type": "lapidary_wheel",
       "can_take": false
     }
+  },
+  "item_carpentry_bench": {
+    "type": "Item",
+    "name": "carpentry bench",
+    "description": "A sturdy workbench with a vise, a rack of hand tools, and sawdust underfoot.",
+    "weight": 120.0,
+    "value": 0,
+    "stackable": false,
+    "properties": {
+      "crafting_station_type": "carpentry_bench",
+      "can_take": false
+    }
   }
 }

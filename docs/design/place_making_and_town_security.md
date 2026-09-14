@@ -652,6 +652,41 @@ generically useful beyond housing:
   `durability`/`uses`/`is_open`/`locked`/`contains` are already handled
   there.
 
+## Shipped: home storage and a workstation utility
+
+Garden/pond (tier 2) were decorative-only -- name/description reflavor,
+no mechanical effect -- so "one player-selected utility" needed something
+genuinely functional and distinct from them. Considered display/trophy
+space too; picked **workstation** because it reuses the most existing,
+already-tested machinery (`CraftingManager.get_nearby_stations`, the same
+`crafting_station_type` property `item_lapidary_wheel` already uses) --
+"display" would need brand-new mechanics, since `CollectionManager.
+turn_in_items` is donation (permanently removes the item, coupled to a
+collector NPC), not a reusable display primitive.
+
+Every new house gets a fixed, unlocked `item_house_storage_chest`
+(`can_take: false`) automatically at purchase. `expand house workstation`
+is a third, mutually-exclusive tier-2 branch alongside garden/pond,
+placing an `item_carpentry_bench` the same way. A new `build_wooden_
+toolbox` recipe (station-gated, ordinary softwood/iron-ingot materials)
+gives the workstation real value: a craftable, portable second container
+-- "more storage" stays an ordinary crafted item a player can `drop`
+wherever they like, rather than a bespoke "attach an item to my house"
+mechanic.
+
+Both features hit the exact same one-line gap: `InstanceManager.
+build_region` only sets a room's `initial_item_refs` from static content
+-- it never instantiates them into live `room.items`, because only
+world-bootstrap (`definition_loader.initialize_new_world`) does that.
+Authoring `"items": [...]` directly on the house offer's interior room
+would have been silently inert for a house built mid-session. Both the
+chest and the bench are instead created via `ItemFactory` and placed with
+`room.add_item(...)` directly in `HousingManager`, mirroring how it
+already creates the house key. Room-item persistence itself needed zero
+new code: `_serialize_item_reference` already recursively serializes a
+`Container`'s contents for any room -- the same path `item_old_trunk`
+(Mira the Weaver's home) already proved.
+
 ## Open questions
 
 - **The ambient, multi-room threat-detection system.** Edge-triggered

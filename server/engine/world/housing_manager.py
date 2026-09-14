@@ -132,6 +132,17 @@ class HousingManager:
         region.properties["house_tier"] = 1
         region.properties["key_item_id"] = key_item_id
 
+        # A dependable place to keep things, from the moment the house
+        # exists. Unlike the key, a missing/misconfigured storage template
+        # doesn't lock the player out of anything -- skip it rather than
+        # failing the whole purchase.
+        storage_item_id = offer.get("storage_item_id")
+        if storage_item_id:
+            storage_item = ItemFactory.create_item_from_template(storage_item_id, self.world)
+            interior_room = region.get_room(entry_room_id)
+            if storage_item is not None and interior_room is not None:
+                interior_room.add_item(storage_item)
+
         if key_item is not None:
             added, add_message = player.inventory.add_item(key_item, 1)
             if not added:
@@ -319,6 +330,12 @@ class HousingManager:
         if room is not None:
             room.name = option.get("room_name", room.name)
             room.description = option.get("room_description", room.description)
+
+            room_item_id = option.get("room_item_id")
+            if room_item_id:
+                room_item = ItemFactory.create_item_from_template(room_item_id, self.world)
+                if room_item is not None:
+                    room.add_item(room_item)
 
         house.properties["house_tier"] = next_tier
         branch_id = option.get("branch")
