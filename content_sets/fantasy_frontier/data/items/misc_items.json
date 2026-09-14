@@ -204,5 +204,23 @@
     "locked": false,
     "is_open": false,
     "properties": {}
+  },
+  "item_herb_seeds": {
+    "type": "Item",
+    "name": "packet of herb seeds",
+    "description": "A small paper packet of wild herb seeds, ready to sow.",
+    "weight": 0.1,
+    "value": 5,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_berry_seeds": {
+    "type": "Item",
+    "name": "packet of berry seeds",
+    "description": "A small paper packet of forest berry seeds, ready to sow.",
+    "weight": 0.1,
+    "value": 5,
+    "stackable": true,
+    "properties": {}
   }
 }

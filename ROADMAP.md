@@ -169,10 +169,27 @@ number of new mechanics.
 
 ### Homes, gathering, and crafting
 
-- [ ] Turn the garden/pond house branches into distinct functional choices:
-  a renewable garden with cultivation decisions, and a pond/fishing benefit
-  with its own useful output or social connection. Neither should be required
-  for progression.
+- [x] **Turn the garden/pond house branches into distinct functional
+  choices.** Both reuse the existing gathering system entirely --
+  `ResourceNode` is a plain `Item`, so both are placed into the house
+  interior exactly like the new workstation's carpentry bench, via
+  `HousingManager.expand_house`'s `room_item_id` mechanism. **Pond**:
+  authored to mirror the shipped fishing feature's own resource node
+  (`node_river_fishing_spot`) exactly -- a private `node_house_pond`
+  requiring a fishing net, with its own rare-pearl yield-table entry.
+  **Garden**: a real cultivation decision, not just passive respawn --
+  `node_garden_plot` starts with zero charges (nothing planted yet); a
+  new `plant <crop>` command (`engine/commands/gathering.py`) picks from
+  a content-authored `plantable_crops` list (wild herbs, faster but
+  lower-yield, vs. forest berries, slower but higher-yield), consumes a
+  matching seed item (`item_herb_seeds`/`item_berry_seeds`, sold by the
+  property agent), then reconfigures that *same* node's
+  `resource_item_id`/`charges`/`respawn_days` at runtime. `gather`
+  (already aliased to `harvest`) then runs completely unmodified --
+  nothing in `ResourceNode`'s charge/respawn tracking caches
+  `resource_item_id`, so replanting a different crop next cycle needs no
+  engine changes at all. Neither branch touches progression; both are
+  purely optional amenities alongside garden/pond's original flavor.
 - [x] **Add dependable, persistent home storage plus one player-selected
   utility.** Garden/pond (tier 2) were already decorative-only (name/
   description reflavor, no mechanical effect) -- their real depth is the

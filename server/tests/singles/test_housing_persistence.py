@@ -406,5 +406,101 @@ class TestHomeStorageAndWorkstation(unittest.TestCase):
         self.assertEqual(1, player.inventory.count_item("item_wooden_toolbox"))
 
 
+class TestGardenAndPondUtility(unittest.TestCase):
+    """The garden and pond tier-2 branches, now genuinely functional
+    instead of a name/description reflavor: a renewable, replantable
+    garden plot with a real crop choice, and a private fishing spot."""
+
+    def setUp(self) -> None:
+        self.server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+
+    def _new_owner(self, player_id: str, name: str):
+        session = self.server.create_session(player_id=player_id)
+        self.server.execute_command(session.session_id, f"char create {name}")
+        player = self.server.get_player_for_session(session.session_id)
+        player.runtime_state.gold = 1000
+        player.current_region_id = "town"
+        player.current_room_id = "player_house_exterior"
+        return session, player
+
+    def _text(self, session_id: str, command: str) -> str:
+        events = self.server.execute_command(session_id, command)
+        return "\n".join(str(event["payload"]) for event in events)
+
+    def _expand(self, session_id: str, branch: str, materials) -> None:
+        player = self.server.get_player_for_session(session_id)
+        for item_id, quantity in materials:
+            item = ItemFactory.create_item_from_template(item_id, self.server.world)
+            player.inventory.add_item(item, quantity)
+        self._text(session_id, f"expand house {branch}")
+
+    def test_garden_plot_requires_planting_before_it_can_be_harvested(self) -> None:
+        session, player = self._new_owner("house_owner_garden", "Ash")
+        self._text(session.session_id, "buy house")
+        self._expand(
+            session.session_id, "garden",
+            (("item_softwood", 6), ("item_wild_herbs", 5)),
+        )
+        self._text(session.session_id, "in")
+
+        empty_attempt = self._text(session.session_id, "harvest garden plot")
+        self.assertIn("depleted", empty_attempt)
+
+        no_seeds = self._text(session.session_id, "plant wild herbs")
+        self.assertIn("You need", no_seeds)
+
+        seeds = ItemFactory.create_item_from_template("item_herb_seeds", self.server.world)
+        player.inventory.add_item(seeds, 1)
+
+        planted = self._text(session.session_id, "plant wild herbs")
+        self.assertIn("You plant wild herbs", planted)
+        self.assertEqual(0, player.inventory.count_item("item_herb_seeds"))
+
+        harvested = self._text(session.session_id, "harvest garden plot")
+        self.assertIn("You gather", harvested)
+        self.assertEqual(1, player.inventory.count_item("item_wild_herbs"))
+
+    def test_garden_plot_offers_a_real_crop_choice(self) -> None:
+        session, player = self._new_owner("house_owner_garden_choice", "Ash")
+        self._text(session.session_id, "buy house")
+        self._expand(
+            session.session_id, "garden",
+            (("item_softwood", 6), ("item_wild_herbs", 5)),
+        )
+        self._text(session.session_id, "in")
+
+        seeds = ItemFactory.create_item_from_template("item_berry_seeds", self.server.world)
+        player.inventory.add_item(seeds, 1)
+        self._text(session.session_id, "plant forest berries")
+
+        harvested = self._text(session.session_id, "harvest garden plot")
+        self.assertIn("forest berries", harvested)
+        self.assertEqual(1, player.inventory.count_item("item_forest_berries"))
+
+    def test_house_pond_yields_fish_with_a_fishing_net(self) -> None:
+        session, player = self._new_owner("house_owner_pond", "Ash")
+        self._text(session.session_id, "buy house")
+        self._expand(
+            session.session_id, "pond",
+            (("item_softwood", 6), ("item_river_clay", 5)),
+        )
+        self._text(session.session_id, "in")
+
+        without_net = self._text(session.session_id, "gather house pond")
+        self.assertIn("You need a fishing_net", without_net)
+
+        net = ItemFactory.create_item_from_template("item_fishing_net", self.server.world)
+        player.inventory.add_item(net, 1)
+
+        caught = self._text(session.session_id, "gather house pond")
+        self.assertIn("You gather", caught)
+        self.assertEqual(1, player.inventory.count_item("item_fresh_fish"))
+
+
 if __name__ == "__main__":
     unittest.main()

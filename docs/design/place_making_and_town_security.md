@@ -687,6 +687,34 @@ new code: `_serialize_item_reference` already recursively serializes a
 `Container`'s contents for any room -- the same path `item_old_trunk`
 (Mira the Weaver's home) already proved.
 
+## Shipped: garden and pond as distinct functional choices
+
+Both reuse the existing gathering system (`ResourceNode`) entirely and
+are placed via the exact same mechanism as the workstation bench
+(`HousingManager.expand_house`'s `room_item_id` field) -- no new
+placement code, just two new resource-node templates.
+
+**Pond**: `node_house_pond` mirrors the shipped fishing feature's own
+node (`node_river_fishing_spot`) closely -- same `fishing_net`
+requirement, its own rare-pearl yield-table entry. A private version of
+an already-proven mechanic.
+
+**Garden**: a real cultivation decision, not passive respawn.
+`node_garden_plot` is authored with zero starting charges -- nothing
+planted yet. A new `plant <crop>` command
+(`server/engine/commands/gathering.py`) reads a content-authored
+`plantable_crops` list on that same node (wild herbs: faster, lower
+yield; forest berries: slower, higher yield), consumes a matching seed
+item (new `item_herb_seeds`/`item_berry_seeds`, sold by the property
+agent alongside houses), then reconfigures the node's own
+`resource_item_id`/`charges`/`respawn_days` via the same
+`update_property` every `ResourceNode` field already goes through.
+`gather` (already aliased to `harvest`) then works completely
+unmodified: nothing in `ResourceNode.gather()`/`available_charges()`
+caches `resource_item_id` at construction time, it's re-read fresh every
+call, so replanting a different crop the next cycle needed zero engine
+changes.
+
 ## Open questions
 
 - **The ambient, multi-room threat-detection system.** Edge-triggered

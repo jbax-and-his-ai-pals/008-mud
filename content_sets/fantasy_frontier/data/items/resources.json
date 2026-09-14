@@ -111,5 +111,54 @@
         }
       ]
     }
+  },
+  "node_garden_plot": {
+    "type": "ResourceNode",
+    "name": "garden plot",
+    "description": "A small patch of tilled earth behind the house, freshly turned and ready for planting.",
+    "properties": {
+      "resource_item_id": "item_wild_herbs",
+      "tool_required": "foraging_knife",
+      "charges": 0,
+      "max_charges": 0,
+      "respawn_days": 0,
+      "resource_tags": ["garden", "plant", "home"],
+      "plantable_crops": [
+        {
+          "id": "herbs",
+          "label": "wild herbs",
+          "seed_item_id": "item_herb_seeds",
+          "resource_item_id": "item_wild_herbs",
+          "charges": 3,
+          "respawn_days": 1
+        },
+        {
+          "id": "berries",
+          "label": "forest berries",
+          "seed_item_id": "item_berry_seeds",
+          "resource_item_id": "item_forest_berries",
+          "charges": 2,
+          "respawn_days": 2
+        }
+      ]
+    }
+  },
+  "node_house_pond": {
+    "type": "ResourceNode",
+    "name": "house pond",
+    "description": "A modest pond dug beside the house, its still water home to a few hardy fish.",
+    "properties": {
+      "resource_item_id": "item_fresh_fish",
+      "tool_required": "fishing_net",
+      "charges": 3, "max_charges": 3, "respawn_days": 1,
+      "resource_tags": ["fish", "water", "home"],
+      "yield_table": [
+        {
+          "item_id": "item_pearl",
+          "chance": 0.05,
+          "material_quality": { "id": "pond_pearl", "label": "Modest", "score": 1 }
+        }
+      ]
+    }
   }
 }
