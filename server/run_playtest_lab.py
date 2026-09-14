@@ -110,6 +110,7 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
                 "gameplay_failure_count": report.gameplay_failure_count,
                 "invariant_errors": report.invariant_errors,
                 "outcome_errors": getattr(report, "outcome_errors", []),
+                "stall_errors": getattr(report, "stall_errors", []),
                 "agents": args.agents,
             }
             if args.keep_passing_traces or not report.passed:

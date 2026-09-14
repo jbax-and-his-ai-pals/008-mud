@@ -301,6 +301,17 @@ class FantasyFrontierPremiumMaterialPolicy:
         "east",
         "down",
         "survey",
+        # Deliberate, fully-deterministic disrupted-plan beat: gathering
+        # river clay needs the foraging knife the player started with
+        # (fantasy_frontier's player_defaults.starting_inventory). Dropping
+        # it first makes the very next gather fail for real -- no RNG
+        # involved -- surfacing ResourceNode.gather's missing-tool message
+        # ("You need a foraging_knife..."), which _is_gameplay_failure
+        # already classifies. Picking it back up and continuing proves
+        # recovery: the same four real gathers below still succeed.
+        "drop foraging knife",
+        "gather river clay bank",
+        "take foraging knife",
         "gather river clay bank",
         "gather river clay bank",
         "gather river clay bank",
@@ -657,10 +668,11 @@ class JourneyReport:
     steps: List[JourneyStep]
     invariant_errors: List[str]
     outcome_errors: List[str] = field(default_factory=list)
+    stall_errors: List[str] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
-        return not self.invariant_errors and not self.outcome_errors
+        return not self.invariant_errors and not self.outcome_errors and not self.stall_errors
 
     @property
     def error_event_count(self) -> int:
@@ -692,10 +704,11 @@ class MultiJourneyReport:
     requested_duration_s: float
     agents: Dict[str, List[JourneyStep]]
     invariant_errors: List[str]
+    stall_errors: List[str] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
-        return not self.invariant_errors
+        return not self.invariant_errors and not self.stall_errors
 
     @property
     def error_event_count(self) -> int:
@@ -769,6 +782,7 @@ class JourneyRunner:
             if invariant_errors:
                 break
         outcome_errors = self._evaluate_outcomes(session.session_id, steps)
+        stall_errors = _detect_repeated_failure_stalls(steps, JOURNEY_MAX_CONSECUTIVE_GAMEPLAY_FAILURES)
         return JourneyReport(
             seed=self.seed,
             player_name=self.player_name,
@@ -778,6 +792,7 @@ class JourneyRunner:
             steps=steps,
             invariant_errors=all_invariant_errors,
             outcome_errors=outcome_errors,
+            stall_errors=stall_errors,
         )
 
     def run_commands(
@@ -804,6 +819,7 @@ class JourneyRunner:
                 break
 
         outcome_errors = self._evaluate_outcomes(session.session_id, steps)
+        stall_errors = _detect_repeated_failure_stalls(steps, JOURNEY_MAX_CONSECUTIVE_GAMEPLAY_FAILURES)
         return JourneyReport(
             seed=self.seed,
             player_name=self.player_name,
@@ -813,6 +829,7 @@ class JourneyRunner:
             steps=steps,
             invariant_errors=all_invariant_errors,
             outcome_errors=outcome_errors,
+            stall_errors=stall_errors,
         )
 
     def _run_hooks(self, session_id: str, index: int) -> List[str]:
@@ -875,6 +892,44 @@ def _is_gameplay_failure(message: str) -> bool:
     """Conservative response classifier for player-visible unsuccessful actions."""
     plain = re.sub(r"\x1b\[[0-9;]*m", "", message)
     return bool(_GAMEPLAY_FAILURE_PATTERN.search(plain))
+
+
+# gameplay_failure_count is a raw sum across an entire run -- it can't tell a
+# player who hit one failure per step across a long journey from one stuck
+# repeating the same failing action forever. This threshold instead flags
+# *consecutive* failure-classified steps with no intervening success, a
+# proxy for "stuck with no progress" a policy's outcome_checks can't catch
+# on their own (they only look at end state, not the path taken there).
+JOURNEY_MAX_CONSECUTIVE_GAMEPLAY_FAILURES = 4
+
+
+def _detect_repeated_failure_stalls(steps: Sequence[JourneyStep], threshold: int) -> List[str]:
+    """Flag any run of `threshold`-or-more consecutive steps that were each
+    classified as a gameplay failure, with no non-failure step between them.
+    One message per streak, however long it runs past the threshold."""
+    errors: List[str] = []
+    streak_start: int | None = None
+    streak_len = 0
+
+    def _flush(end_index: int) -> None:
+        if streak_start is not None and streak_len >= threshold:
+            errors.append(
+                f"steps {streak_start}-{end_index}: {streak_len} consecutive gameplay failures with no progress"
+            )
+
+    for step in steps:
+        if step.gameplay_failures:
+            if streak_start is None:
+                streak_start = step.index
+            streak_len += 1
+        else:
+            _flush(step.index - 1)
+            streak_start = None
+            streak_len = 0
+    if steps:
+        _flush(steps[-1].index)
+    return errors
+
 
 def validate_player_state(server: Any, session_id: str) -> List[str]:
     """Invariant checks shared by solo and multi-agent journeys."""
@@ -967,8 +1022,20 @@ class MultiJourneyRunner:
                 invariant_errors.extend(f"{agent_id} step {round_index}: {error}" for error in errors)
                 traces[agent_id].append(record_journey_step(self.server, round_index, command, events, errors, session.session_id, faults))
                 if errors:
-                    return MultiJourneyReport(self.seed, self.action_interval_s, duration_s, traces, invariant_errors)
-        return MultiJourneyReport(self.seed, self.action_interval_s, duration_s, traces, invariant_errors)
+                    return MultiJourneyReport(self.seed, self.action_interval_s, duration_s, traces, invariant_errors, self._detect_stalls(traces))
+        return MultiJourneyReport(self.seed, self.action_interval_s, duration_s, traces, invariant_errors, self._detect_stalls(traces))
+
+    @staticmethod
+    def _detect_stalls(traces: Dict[str, List[JourneyStep]]) -> List[str]:
+        """Per-agent: "no progress" is scoped to one agent's own command
+        sequence, not the interleaved multi-agent stream."""
+        errors: List[str] = []
+        for agent_id, steps in traces.items():
+            errors.extend(
+                f"{agent_id}: {message}"
+                for message in _detect_repeated_failure_stalls(steps, JOURNEY_MAX_CONSECUTIVE_GAMEPLAY_FAILURES)
+            )
+        return errors
 
 
 def commands_from_trace(trace: JourneyReport | Dict[str, Any] | str | Path) -> List[str]:

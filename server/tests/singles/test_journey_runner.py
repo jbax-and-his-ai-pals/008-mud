@@ -119,10 +119,16 @@ class TestJourneyRunner(unittest.TestCase):
                 seed=27,
                 policy=FantasyFrontierPremiumMaterialPolicy(),
                 outcome_checks=fantasy_frontier_premium_material_outcome_checks(),
-            ).run(duration_s=220.0)
+            ).run(duration_s=240.0)
             self.assertTrue(report.passed, report.outcome_errors)
             self.assertEqual([], report.outcome_errors)
+            self.assertEqual([], report.stall_errors)
             self.assertIn("fulfill river_fine_token", [step.command for step in report.steps])
+            # The route deliberately drops its foraging knife and fails a
+            # gather before picking it back up -- proving the run recovers
+            # from a real, disrupted plan rather than only ever succeeding.
+            all_text = [message for step in report.steps for message in step.text_messages]
+            self.assertTrue(any("You need a foraging_knife" in message for message in all_text))
         finally:
             server.shutdown()
 

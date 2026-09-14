@@ -94,7 +94,7 @@ The quality-aware commission and merchant route is similarly outcome-asserted:
 
 ```bash
 cd server
-../.venv/bin/python run_playtest_lab.py --policy premium --duration 220 --runs 1
+../.venv/bin/python run_playtest_lab.py --policy premium --duration 240 --runs 1
 ```
 
 The broader opportunity route covers economy, gathering, appraisal, social

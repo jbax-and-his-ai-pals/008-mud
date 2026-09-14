@@ -117,17 +117,35 @@ meaningful progress, not only that the server state stayed valid.
   parallel, untracked, unranked paths) -- what's not yet decided is whether
   a one-shot upfront message is a sufficient "signpost" or whether it should
   be re-surfaceable later; left open rather than assumed.
-- [ ] Retain deterministic maker/economy and low-risk combat routes, but make
-  them prove an actual completed goal, recovery from a disrupted plan, and no
-  prolonged repeated failure. The "prove a completed goal" half already
-  holds for the `premium`/`opportunity`/`combat`/`first-hour` journey-runner
-  policies (real outcome checks: quest completion, gold gained, trust
-  thresholds) -- `explorer`/`guided`/`sweep` still have none. Neither
-  "recovery from a disrupted plan" (no route deliberately injects a
-  failure to recover from) nor "no prolonged repeated failure" (no
-  consecutive-failure/dead-end detector exists in `journey_runner.py` at
-  all) is built yet -- test-infrastructure work of a different kind,
-  sized for its own slice.
+- [x] **Retain deterministic maker/economy and low-risk combat routes,
+  but make them prove an actual completed goal, recovery from a
+  disrupted plan, and no prolonged repeated failure.** "Prove a
+  completed goal" already held for `premium`/`opportunity`/`combat`/
+  `first-hour` (real outcome checks). The two missing pieces:
+  - **Recovery from a disrupted plan.** `FantasyFrontierPremiumMaterialPolicy`
+    (inherited by `FantasyFrontierOpportunityPolicy`) now deliberately
+    drops its starting foraging knife, attempts to gather river clay
+    without it -- a real, fully deterministic, zero-RNG failure hitting
+    last slice's improved missing-tool message -- then picks the knife
+    back up and completes the same four gathers and full delivery chain
+    as before. The low-risk combat route's own disruption is
+    deliberately deferred: `flee`'s success is a genuine unmocked skill
+    roll in a live run, and a successful flee relocates the player to
+    an unpredictable neighboring room, both meaningfully complicating
+    deterministic scripting for no clear gain over the maker-route
+    proof already shipped.
+  - **No prolonged repeated failure.** `gameplay_failure_count` was
+    only ever a raw sum across a whole run -- a player failing once
+    every ten steps looked identical to one stuck repeating the same
+    failing action forever. New `_detect_repeated_failure_stalls`
+    (`journey_runner.py`) flags any run of 4-or-more consecutive
+    failure-classified steps with no intervening success; both
+    `JourneyReport` and `MultiJourneyReport` gained a `stall_errors`
+    field that now also gates `passed`, and `run_playtest_lab.py`
+    surfaces it in every run's JSON summary.
+  `explorer`/`guided`/`sweep` still have no outcome checks -- untouched,
+  since the ROADMAP wording names only the maker/economy and combat
+  routes specifically.
 
 ### Definition of done
 
