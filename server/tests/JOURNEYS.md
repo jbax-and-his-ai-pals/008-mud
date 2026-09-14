@@ -121,6 +121,15 @@ cd server
   --agent-policy sweep --agent-policy explorer --keep-passing-traces
 ```
 
+Multi-agent runs carry the same per-route outcome checks as their solo
+counterparts (`MultiJourneyRunner`'s `agent_outcome_check_factories`,
+mirroring `agent_policy_factories`): each agent's outcome errors are
+independently evaluated against its own session and trace, prefixed with
+its agent id (e.g. `agent_2: ...`), and gate `passed` in the JSON summary's
+`outcome_errors` field exactly like a solo `first-hour`/`combat`/`premium`/
+`opportunity` run. An `explorer`/`guided`/`sweep` agent has none, same as
+in a solo run.
+
 Use `--keep-passing-traces` when investigating a behavior change. The current
 fault hook covers authoritative disconnect/resume; future hooks should add
 restart/recovery and inventory-overflow cases only with explicit invariants.

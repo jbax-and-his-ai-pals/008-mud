@@ -17,6 +17,7 @@ from tests.journey_runner import (
     JourneyRunner,
     LocationVisitedOutcome,
     MultiJourneyRunner,
+    PlayerStateOutcome,
     SessionReconnectFault,
     SimulatedCombatCadenceHook,
     commands_from_trace,
@@ -129,6 +130,10 @@ class TestJourneyRunner(unittest.TestCase):
             # from a real, disrupted plan rather than only ever succeeding.
             all_text = [message for step in report.steps for message in step.text_messages]
             self.assertTrue(any("You need a foraging_knife" in message for message in all_text))
+            # The classifier's locked/depleted/missing-ingredient additions
+            # must not change this route's failure count -- the one
+            # deliberate failure above already matched "you need ".
+            self.assertEqual(1, report.gameplay_failure_count)
         finally:
             server.shutdown()
 
@@ -237,5 +242,38 @@ class TestJourneyRunner(unittest.TestCase):
             self.assertTrue(report.passed, report.invariant_errors)
             self.assertEqual(["session_disconnect_resume"], report.agents["agent_1"][1].faults)
             self.assertEqual(["session_disconnect_resume"], report.agents["agent_2"][1].faults)
+        finally:
+            server.shutdown()
+
+    def test_multi_agent_runner_evaluates_per_agent_outcome_checks(self) -> None:
+        server = make_test_server()
+        try:
+            report = MultiJourneyRunner(
+                server,
+                seed=101,
+                agent_count=2,
+                agent_outcome_check_factories=[
+                    lambda: [LocationVisitedOutcome("nowhere", "unreachable_room", label="agent goal")],
+                    lambda: [PlayerStateOutcome("always true", lambda player: True)],
+                ],
+            ).run(duration_s=10.0)
+            self.assertFalse(report.passed)
+            self.assertEqual(
+                ["agent_1: agent goal: never reached nowhere/unreachable_room"],
+                report.outcome_errors,
+            )
+        finally:
+            server.shutdown()
+
+    def test_multi_agent_runner_rejects_mismatched_outcome_check_factory_count(self) -> None:
+        server = make_test_server()
+        try:
+            with self.assertRaises(ValueError):
+                MultiJourneyRunner(
+                    server,
+                    seed=102,
+                    agent_count=2,
+                    agent_outcome_check_factories=[lambda: []],
+                )
         finally:
             server.shutdown()

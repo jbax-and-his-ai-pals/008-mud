@@ -704,11 +704,12 @@ class MultiJourneyReport:
     requested_duration_s: float
     agents: Dict[str, List[JourneyStep]]
     invariant_errors: List[str]
+    outcome_errors: List[str] = field(default_factory=list)
     stall_errors: List[str] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
-        return not self.invariant_errors and not self.stall_errors
+        return not self.invariant_errors and not self.outcome_errors and not self.stall_errors
 
     @property
     def error_event_count(self) -> int:
@@ -883,7 +884,8 @@ def record_journey_step(
 
 
 _GAMEPLAY_FAILURE_PATTERN = re.compile(
-    r"\b(unknown command|not found|you don't have|you need |cannot |failed|not ready|invalid |doesn't sell|don't see|unavailable)\b",
+    r"\b(unknown command|not found|you don't have|you need |cannot |failed|not ready|invalid |doesn't sell|don't see|unavailable"
+    r"|is locked|has been depleted|missing ingredient)\b",
     re.IGNORECASE,
 )
 
@@ -973,6 +975,8 @@ class MultiJourneyRunner:
         policy_factory: Callable[[], JourneyPolicy] = ExplorerPolicy,
         agent_policy_factories: Sequence[Callable[[], JourneyPolicy]] | None = None,
         hooks: Sequence[JourneyHook] = (),
+        outcome_checks_factory: Callable[[], Sequence[JourneyOutcomeCheck]] = list,
+        agent_outcome_check_factories: Sequence[Callable[[], Sequence[JourneyOutcomeCheck]]] | None = None,
     ) -> None:
         if agent_count < 2:
             raise ValueError("MultiJourneyRunner requires at least two agents")
@@ -980,6 +984,8 @@ class MultiJourneyRunner:
             raise ValueError("action_interval_s must be positive")
         if agent_policy_factories is not None and len(agent_policy_factories) != agent_count:
             raise ValueError("agent_policy_factories must provide exactly one policy factory per agent")
+        if agent_outcome_check_factories is not None and len(agent_outcome_check_factories) != agent_count:
+            raise ValueError("agent_outcome_check_factories must provide exactly one factory per agent")
         self.server = server
         self.agent_count = agent_count
         self.seed = seed
@@ -987,6 +993,10 @@ class MultiJourneyRunner:
         self.policy_factory = policy_factory
         self.agent_policy_factories = list(agent_policy_factories) if agent_policy_factories is not None else None
         self.hooks = list(hooks)
+        self.outcome_checks_factory = outcome_checks_factory
+        self.agent_outcome_check_factories = (
+            list(agent_outcome_check_factories) if agent_outcome_check_factories is not None else None
+        )
         self.rng = random.Random(seed)
 
     def run(self, duration_s: float) -> MultiJourneyReport:
@@ -998,6 +1008,7 @@ class MultiJourneyRunner:
         self.server.tick_dt = self.action_interval_s / self.agent_count
         sessions: Dict[str, Any] = {}
         policies: Dict[str, JourneyPolicy] = {}
+        outcome_checks: Dict[str, List[JourneyOutcomeCheck]] = {}
         traces: Dict[str, List[JourneyStep]] = {}
         invariant_errors: List[str] = []
         for index in range(self.agent_count):
@@ -1007,6 +1018,12 @@ class MultiJourneyRunner:
             sessions[agent_id] = session
             factory = self.agent_policy_factories[index] if self.agent_policy_factories is not None else self.policy_factory
             policies[agent_id] = factory()
+            checks_factory = (
+                self.agent_outcome_check_factories[index]
+                if self.agent_outcome_check_factories is not None
+                else self.outcome_checks_factory
+            )
+            outcome_checks[agent_id] = list(checks_factory())
             traces[agent_id] = []
 
         for round_index in range(rounds):
@@ -1022,8 +1039,39 @@ class MultiJourneyRunner:
                 invariant_errors.extend(f"{agent_id} step {round_index}: {error}" for error in errors)
                 traces[agent_id].append(record_journey_step(self.server, round_index, command, events, errors, session.session_id, faults))
                 if errors:
-                    return MultiJourneyReport(self.seed, self.action_interval_s, duration_s, traces, invariant_errors, self._detect_stalls(traces))
-        return MultiJourneyReport(self.seed, self.action_interval_s, duration_s, traces, invariant_errors, self._detect_stalls(traces))
+                    return MultiJourneyReport(
+                        seed=self.seed,
+                        action_interval_s=self.action_interval_s,
+                        requested_duration_s=duration_s,
+                        agents=traces,
+                        invariant_errors=invariant_errors,
+                        outcome_errors=self._evaluate_outcomes(sessions, traces, outcome_checks),
+                        stall_errors=self._detect_stalls(traces),
+                    )
+        return MultiJourneyReport(
+            seed=self.seed,
+            action_interval_s=self.action_interval_s,
+            requested_duration_s=duration_s,
+            agents=traces,
+            invariant_errors=invariant_errors,
+            outcome_errors=self._evaluate_outcomes(sessions, traces, outcome_checks),
+            stall_errors=self._detect_stalls(traces),
+        )
+
+    def _evaluate_outcomes(
+        self,
+        sessions: Dict[str, Any],
+        traces: Dict[str, List[JourneyStep]],
+        outcome_checks: Dict[str, List[JourneyOutcomeCheck]],
+    ) -> List[str]:
+        """Per-agent: an outcome goal is scoped to one agent's own session
+        and command sequence, not the interleaved multi-agent stream."""
+        errors: List[str] = []
+        for agent_id, checks in outcome_checks.items():
+            session = sessions[agent_id]
+            for check in checks:
+                errors.extend(f"{agent_id}: {message}" for message in check.evaluate(self.server, session.session_id, traces[agent_id]))
+        return errors
 
     @staticmethod
     def _detect_stalls(traces: Dict[str, List[JourneyStep]]) -> List[str]:

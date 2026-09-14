@@ -763,13 +763,48 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
 - Persist traces, replay and minimize failures, and distinguish player-visible
   dead ends from invariant or protocol failures.
 - Maintain headless defaults for bulk test runs.
-- [ ] **Redefine passing playtests around progress.** Solo reports need
-  intentional outcome checks beyond state invariants; multi-agent reports
-  need equivalent per-agent outcomes. Treat repeated failed commands,
-  prolonged lack of location/goal progress, and an abandoned route with no
-  alternate plan as failures or prominently reported warnings. Expand the
-  classifier beyond its current narrow text patterns to include locked,
-  depleted, and missing-ingredient feedback.
+- [x] **Redefine passing playtests around progress.** Solo outcome checks
+  and "repeated failed commands" (the stall detector) already shipped in
+  earlier slices. Two real gaps remained, both closed:
+  - **The classifier was missing exactly the three named patterns.**
+    `_GAMEPLAY_FAILURE_PATTERN` (`journey_runner.py`) had no match for a
+    locked exit/container, a depleted resource node, or a missing
+    crafting ingredient -- all three previously passed through as
+    ordinary, non-failure text with zero effect on `gameplay_failure_count`
+    or stall detection. Added narrow phrase matches (`is locked`,
+    `has been depleted`, `missing ingredient`) rather than the bare words,
+    since each bare word also appears in genuinely informational,
+    non-failure text: a container's `examine` status line ("It's locked.",
+    a `[Locked]` tag), the quest-trust display's `"(locked)"` annotation,
+    and the `survey` command's bare `"(depleted)"` status tag for any
+    exhausted node in view. Verified both the true positives and these
+    specific false-positive candidates with dedicated unit tests.
+  - **Multi-agent reports had zero outcome-check support.**
+    `MultiJourneyRunner` only ever computed invariant and stall errors;
+    `JourneyRunner`'s `outcome_checks` had no multi-agent equivalent at
+    all. Added `outcome_checks_factory`/`agent_outcome_check_factories`,
+    mirroring the existing `policy_factory`/`agent_policy_factories`
+    two-tier shape exactly, plus a new `outcome_errors` field on
+    `MultiJourneyReport` that gates `passed`, each message prefixed by
+    agent id like the stall detector already does. `run_playtest_lab.py`'s
+    multi-agent branch now selects per-agent outcome checks by policy name,
+    reusing the same four `fantasy_frontier_*_outcome_checks` functions the
+    solo branch already used.
+  This immediately paid off: running two `opportunity`-policy agents in one
+  shared world (previously invisible to any outcome check) now correctly
+  reports both agents failing their museum-commission and curator-access
+  goals, because they contend for the same single-instance rose quartz
+  seam and the second agent's fixed script has no way to notice or adapt.
+  Real evidence for the not-yet-started "Strengthen shared-world
+  playtesting" item below, not something fixed here.
+  Deliberately not attempted: "prolonged lack of location/goal progress"
+  and "an abandoned route with no alternate plan." Both describe a
+  fuzzier condition than either fix above -- a policy could issue
+  successful-looking commands (`look`, `wait`) forever without advancing
+  any goal, which neither a failure-keyed stall detector nor a
+  final-state-keyed outcome check can catch. That needs its own
+  progress-over-a-window instrumentation and is a meaningfully larger,
+  separate feature.
 - [ ] **Separate simulated and real time.** A fast 30-minute journey advances
   game/calendar time but some NPC, cooldown, spawn, and jail behavior still
   uses wall-clock time. Establish a shared injectable clock for deterministic
@@ -780,6 +815,10 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   behavior, housing/access, shared doors, and transactions while another
   player changes the same world. A run with gameplay failures must not be
   summarized as a clean pass merely because no invariant failed.
+  "Give every agent a goal" now has the mechanism (`MultiJourneyRunner`'s
+  per-agent outcome checks, above) and one real contention finding to
+  start from; still needed: alternate recovery routes, party/reconnect,
+  housing/access, shared doors, and transaction interference specifically.
 - [ ] **Add route-disruption tests.** Intentionally fill inventory, deplete a
   resource, remove a tool, alter vendor/relationship availability, trigger
   jail/death/recovery, and permute item order. Assert a useful recovery path,

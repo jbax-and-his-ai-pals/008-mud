@@ -71,6 +71,12 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
             selected_policies = args.agent_policy or [args.policy] * args.agents
             if "combat" in selected_policies:
                 hooks.append(SimulatedCombatCadenceHook())
+            outcome_check_factories = {
+                "first-hour": fantasy_frontier_first_hour_outcome_checks,
+                "combat": fantasy_frontier_combat_route_outcome_checks,
+                "premium": fantasy_frontier_premium_material_outcome_checks,
+                "opportunity": fantasy_frontier_opportunity_route_outcome_checks,
+            }
             if args.agents > 1:
                 report = MultiJourneyRunner(
                     server,
@@ -80,6 +86,9 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
                     policy_factory=policy_types[args.policy],
                     agent_policy_factories=[policy_types[policy_name] for policy_name in selected_policies],
                     hooks=hooks,
+                    agent_outcome_check_factories=[
+                        outcome_check_factories.get(policy_name, list) for policy_name in selected_policies
+                    ],
                 ).run(args.duration)
             else:
                 report = JourneyRunner(
@@ -89,17 +98,7 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
                     action_interval_s=args.action_interval,
                     policy=policy_types[args.policy](),
                     hooks=hooks,
-                    outcome_checks=(
-                        fantasy_frontier_first_hour_outcome_checks()
-                        if args.policy == "first-hour"
-                        else fantasy_frontier_combat_route_outcome_checks()
-                        if args.policy == "combat"
-                        else fantasy_frontier_premium_material_outcome_checks()
-                        if args.policy == "premium"
-                        else fantasy_frontier_opportunity_route_outcome_checks()
-                        if args.policy == "opportunity"
-                        else []
-                    ),
+                    outcome_checks=outcome_check_factories.get(args.policy, list)(),
                 ).run(args.duration)
             summary = {
                 "seed": seed,
