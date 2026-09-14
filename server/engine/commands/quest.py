@@ -8,6 +8,23 @@ from engine.world import world
 from engine.social.relationships import relationship_key
 
 
+def _getting_started_block(world) -> str:
+    """A persistent, always-available orientation reminder.
+
+    Reuses the same opening-guidance text shown once at character creation
+    (HeadlessServer.build_opening_guidance) so a player who skims past it or
+    returns after a break can pull it back up via `journal` instead of it
+    being gone for good.
+    """
+    server = getattr(world, "server", None)
+    if server is None or not hasattr(server, "build_opening_guidance"):
+        return ""
+    guidance = server.build_opening_guidance()
+    if not guidance:
+        return ""
+    return f"{FORMAT_TITLE}Getting Started{FORMAT_RESET}\n{'-'*20}\n\n{guidance}"
+
+
 def _deliver_item_display_name(world, objective) -> str:
     """Name a deliver objective's item without falling back to a bare,
     tautological noun ("the item") or a raw internal template id."""
@@ -246,7 +263,8 @@ def journal_handler(args, context):
             response += f"- {quest_data.get('title', 'Unnamed Quest')}\n"
         return response.strip()
 
-    if not active_quests: return "Your quest journal is empty."
+    if not active_quests:
+        return _getting_started_block(context["world"]) or "Your quest journal is empty."
 
     response = f"{FORMAT_TITLE}Active Quests{FORMAT_RESET}\n{'-'*20}\n\n"
     found_active = False
@@ -331,5 +349,10 @@ def journal_handler(args, context):
              if quest_data.get('state') == "ready_to_complete": response += f"  {FORMAT_HIGHLIGHT}Ready to turn in!{FORMAT_RESET}\n"
              response += "\n"
 
-    if not found_active: return "You have no active quests."
+    if not found_active:
+        return _getting_started_block(context["world"]) or "You have no active quests."
+
+    getting_started = _getting_started_block(context["world"])
+    if getting_started:
+        response += "\n" + getting_started
     return response.strip()

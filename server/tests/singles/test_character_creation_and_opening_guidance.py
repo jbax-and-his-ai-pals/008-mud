@@ -110,5 +110,38 @@ class TestBuildOpeningGuidance(unittest.TestCase):
         self.assertNotIn("First steps", guidance)
 
 
+class TestJournalResurfacesOpeningGuidance(unittest.TestCase):
+    """The one-shot opening brief (sent once after `char create`) should also
+    be reachable any time later via `journal`, not lost the moment a player
+    scrolls past it."""
+
+    def setUp(self) -> None:
+        self.server = HeadlessServer(db_path=":memory:", content_set_path=str(FANTASY_FRONTIER))
+        self.session = self.server.create_session()
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+
+    def _text(self, command: str) -> str:
+        events = self.server.execute_command(self.session.session_id, command)
+        return "\n".join(str(e.get("payload", "")) for e in events if e.get("type") == "text")
+
+    def test_journal_shows_opening_guidance_before_any_quest_is_accepted(self):
+        self._text("char create Wanderer")
+        result = self._text("journal")
+        self.assertIn("Getting Started", result)
+        self.assertIn("Welcome to Riverside", result)
+        self.assertIn("Choose a first path:", result)
+
+    def test_journal_still_shows_opening_guidance_alongside_an_active_quest(self):
+        self._text("char create Wanderer")
+        self._text("look board")
+        self._text("accept 1")
+        result = self._text("journal")
+        self.assertIn("Active Quests", result)
+        self.assertIn("Getting Started", result)
+        self.assertIn("Welcome to Riverside", result)
+
+
 if __name__ == "__main__":
     unittest.main()
