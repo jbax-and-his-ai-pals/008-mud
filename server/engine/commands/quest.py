@@ -8,6 +8,21 @@ from engine.world import world
 from engine.social.relationships import relationship_key
 
 
+def _deliver_item_display_name(world, objective) -> str:
+    """Name a deliver objective's item without falling back to a bare,
+    tautological noun ("the item") or a raw internal template id."""
+    authored_name = str(objective.get("item_to_deliver_name", "")).strip()
+    if authored_name:
+        return authored_name
+    template_id = str(objective.get("item_template_id", "")).strip()
+    if template_id:
+        template = ItemFactory.get_template(template_id, world)
+        if template:
+            name = str(template.get("name", "")).strip()
+            if name:
+                return name
+    return "the item"
+
 def _relationship_requirement(quest_data):
     """Return a safe relationship gate for a board quest instance."""
     try:
@@ -279,7 +294,7 @@ def journal_handler(args, context):
                  response += "  Choose one route:\n"
                  for route in routes:
                      if route.get("type") == "deliver":
-                         response += f"    - Deliver {route.get('item_to_deliver_name', route.get('item_template_id', 'the item'))} to {route.get('recipient_name', 'the recipient')}.\n"
+                         response += f"    - Deliver {_deliver_item_display_name(context['world'], route)} to {route.get('recipient_name', 'the recipient')}.\n"
                      else:
                          response += f"    - {route.get('description', 'Complete this route.')}\n"
              
@@ -303,7 +318,7 @@ def journal_handler(args, context):
              elif obj_type == "deliver":
                   package_instance_id = objective.get("item_instance_id", ""); has_package = player.inventory.find_item_by_id(package_instance_id) is not None
                   package_status = f"{FORMAT_HIGHLIGHT}(You have the package){FORMAT_RESET}" if has_package else f"{FORMAT_ERROR}(You don't have the package!){FORMAT_RESET}"
-                  response += f"  Task: Deliver the {objective.get('item_to_deliver_name', '?')} to {objective.get('recipient_name', '?')} in {objective.get('recipient_location_description', '?')}. {package_status}\n"
+                  response += f"  Task: Deliver {_deliver_item_display_name(context['world'], objective)} to {objective.get('recipient_name', '?')} in {objective.get('recipient_location_description', '?')}. {package_status}\n"
              
              else: 
                   # Generic fallback

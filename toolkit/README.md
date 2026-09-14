@@ -12,6 +12,7 @@ python toolkit/pack_tool.py validate toolkit/starter_packs
 python toolkit/pack_tool.py export client/themes/fantasy_classic.json --out dist/packs
 python toolkit/data_integrity_validator.py content_sets/fantasy_frontier/data
 python toolkit/reference_integrity_validator.py content_sets/fantasy_frontier/data
+python toolkit/template_placeholder_validator.py content_sets/fantasy_frontier
 python toolkit/mod_manifest_validator.py --roots server/mods mods
 python toolkit/content_set_validator.py content_sets/fantasy_frontier
 python toolkit/editor_export_shim.py --source mud-world-editor/data --target tmp/editor_export_shim/server_data --report tmp/editor_export_shim/report.json

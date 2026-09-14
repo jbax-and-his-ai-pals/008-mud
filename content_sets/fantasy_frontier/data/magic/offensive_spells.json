@@ -90,7 +90,7 @@
     "mana_cost": 14,
     "cooldown": 9.0,
     "target_type": "enemy",
-    "cast_message": "{caster_name} gestures, and flames erupt around {target_name}!",
+    "cast_message": "{caster_name} gestures, and flames erupt outward!",
     "hit_message": "{target_name} bursts into magical flames!",
     "level_required": 4,
     "effects": [

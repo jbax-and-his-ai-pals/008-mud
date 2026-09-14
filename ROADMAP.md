@@ -834,12 +834,8 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   subsystem for every other test in the same run, not just the one that
   called it (see the segfault fix above). `pygame.init()` is idempotent and
   safe to leave initialized for the life of the process.
-- Add a generic content-validation check that renders every authored dialog/
-  description/vendor-listing template with representative substitutions and
-  fails on any leftover `{placeholder}`. This class of bug (a vendor listing
-  once showed a raw `{spell_name}`) has recurred at least twice with only
-  ad hoc, per-feature test coverage; a single generic check would catch the
-  whole class instead of one incident at a time.
+- [x] **Generic text-rendering validation shipped** -- see the Content
+  authoring section below for full detail.
 - `engine/server/headless_server.py` has grown into a single ~3,600-line,
   ~140-method class covering session lifecycle, TCP/WS/msgpack framing,
   capability negotiation, the operator catalog, and world-effects policy.
@@ -854,10 +850,59 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   controls. Surface expected craft quality, qualifying delivery items,
   resource leads, locked-content reasons, and recovery actions without
   exposing internal schema language.
-- [ ] **Add generic text rendering validation.** Render every authored
-  dialogue, description, objective, and vendor template with representative
-  substitutions and fail on leftover placeholders or schema-flavored prose.
-  This should catch issues such as “Deliver the delivery” before playtest.
+- [x] **Add generic text rendering validation.** Investigating this found
+  the bug class was worse than the roadmap's own illustrative example:
+  - **`NPC.talk()` only ever calls `.format()` on the `default_dialog`
+    fallback** -- every other `dialog` key (`greeting`, `threat`, `flee`,
+    any custom topic) was returned completely verbatim. `hostiles.json`
+    authored `{name}` inside `greeting`/`threat`/`flee` for all seven
+    hostile templates (wolf, giant rat, bandit, both smuggler templates,
+    troll, giant spider); fixed by writing the creature name directly into
+    each line instead. Currently latent rather than reachable through
+    ordinary play (`talk` refuses hostile-faction NPCs before reaching
+    `.talk()`, and `threat`/`flee` are read nowhere at all today), but a
+    real content-authoring mistake the very next dialogue feature to read
+    one of these fields would have shipped straight to players.
+  - **"Deliver the delivery" was real and live**, not hypothetical:
+    `quest_wildflower_commission` -- one of the earliest quests a new
+    player sees -- authors `recipient_name` but not `item_to_deliver_name`,
+    and the Journal/board-listing code fell back to the literal noun "the
+    delivery" (or a raw `item_template_id`) when that field was absent.
+    Fixed at the source in both `headless_server.py`'s objective-payload
+    builder and `commands/quest.py`'s board-listing line: derive a real
+    display name from the item's own template via `ItemFactory.get_template`
+    (the same pattern `crafting_manager.py`'s missing-ingredient message
+    already used) instead of requiring every author to duplicate the name.
+  - **Building the validator caught a genuine crash bug**, not just
+    cosmetic text: `immolate`'s `cast_message` referenced `{target_name}`,
+    but `Spell.format_cast_message` only ever supplies `caster_name`/
+    `spell_name` and neither call site (`npcs/combat.py`, `player/magic.py`)
+    catches the resulting exception -- any player who learned Immolate
+    (level-4 gate, no other prerequisite) and cast it would have hit an
+    unhandled `KeyError`. Fixed the content; added a standing regression
+    test that renders every registered spell's `cast_message` against the
+    engine's real supplied keys, not just this one spell.
+  - New `toolkit/template_placeholder_validator.py` (mirrors
+    `reference_integrity_validator.py`'s conventions) checks three
+    categories against a content-set root: dialog fields the engine never
+    formats must contain no `{placeholder}`; fields with a fixed, known
+    substitution key set (spell messages, procedural item names, affix
+    name patterns, `default_dialog`/`trade`/`greeting_extended`) must
+    format cleanly against those exact keys; and quest procedural text
+    templates (engine defaults plus any content-set
+    `quest_generation.text_templates` override) must resolve against
+    `format_quest_text`'s real key set. All three content sets
+    (fantasy_frontier, modern_capsule, night_shift) pass with zero issues.
+  - Deliberately out of scope: campaign/saga stage `description` templates
+    that draw on a dynamically-accumulated `saga_context` (validating
+    those correctly means replicating that generator's stateful,
+    order-dependent control flow outside of it -- a meaningfully larger
+    undertaking) and procedural region `dynamic_themes.json` templates
+    (flavor-only, procedurally generated, lowest value of everything
+    found). Detecting *semantic* "schema-flavored prose" in general
+    (beyond the one concrete tautology fixed above) was also deliberately
+    not attempted -- there's no reliable syntactic signal for it short of
+    a brittle, low-confidence phrase blocklist.
 - [ ] **Unify the editor path with content-set contracts.** The Godot world
   editor still targets older unpackaged data conventions. Deliver a canonical
   export, validator preflight, profile-aware linting, and a launchable

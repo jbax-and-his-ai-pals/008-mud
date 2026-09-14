@@ -53,9 +53,9 @@
     "attack_power": 3,
     "defense": 1,
     "dialog": {
-      "greeting": "{name} growls menacingly!",
-      "threat": "{name} bares its fangs!",
-      "flee": "{name} whimpers and tries to escape!"
+      "greeting": "The wolf growls menacingly!",
+      "threat": "The wolf bares its fangs!",
+      "flee": "The wolf whimpers and tries to escape!"
     },
     "default_dialog": "{name} growls.",
     "loot_table": {
@@ -95,9 +95,9 @@
     "attack_power": 2,
     "defense": 1,
     "dialog": {
-      "greeting": "{name} squeaks aggressively!",
-      "threat": "{name} bares its teeth!",
-      "flee": "{name} scurries away!"
+      "greeting": "The giant rat squeaks aggressively!",
+      "threat": "The giant rat bares its teeth!",
+      "flee": "The giant rat scurries away!"
     },
     "default_dialog": "{name} squeaks.",
     "loot_table": {
@@ -145,9 +145,9 @@
     "attack_power": 5,
     "defense": 4,
     "dialog": {
-      "greeting": "\"Your money or your life!\" threatens the {name}.",
-      "threat": "\"You'll regret this!\" shouts the {name}.",
-      "flee": "\"This isn't worth dying for!\" cries the {name}."
+      "greeting": "\"Your money or your life!\" threatens the bandit.",
+      "threat": "\"You'll regret this!\" shouts the bandit.",
+      "flee": "\"This isn't worth dying for!\" cries the bandit."
     },
     "default_dialog": "{name} eyes you warily.",
     "loot_table": {
@@ -188,9 +188,9 @@
     "attack_power": 6,
     "defense": 4,
     "dialog": {
-      "greeting": "\"You shouldn't have come down here,\" hisses the {name}.",
-      "threat": "\"Nobody walks out of this tunnel!\" snarls the {name}.",
-      "flee": "\"This ain't my fight!\" cries the {name}."
+      "greeting": "\"You shouldn't have come down here,\" hisses the smuggler.",
+      "threat": "\"Nobody walks out of this tunnel!\" snarls the smuggler.",
+      "flee": "\"This ain't my fight!\" cries the smuggler."
     },
     "default_dialog": "{name} watches the tunnel entrance warily.",
     "loot_table": {
@@ -231,9 +231,9 @@
     "attack_power": 7,
     "defense": 6,
     "dialog": {
-      "greeting": "\"Far enough,\" says the {name}, hand on her cutlass.",
-      "threat": "\"You've made your choice, then,\" says the {name}.",
-      "flee": "\"Fall back! We're done here!\" shouts the {name}."
+      "greeting": "\"Far enough,\" says the smuggler leader, hand on her cutlass.",
+      "threat": "\"You've made your choice, then,\" says the smuggler leader.",
+      "flee": "\"Fall back! We're done here!\" shouts the smuggler leader."
     },
     "default_dialog": "{name} watches you closely.",
     "loot_table": {
@@ -281,9 +281,9 @@
     "attack_power": 7,
     "defense": 6,
     "dialog": {
-      "greeting": "{name} roars loudly!",
-      "threat": "{name} pounds its chest!",
-      "flee": "{name} retreats, looking for easier prey!"
+      "greeting": "The troll roars loudly!",
+      "threat": "The troll pounds its chest!",
+      "flee": "The troll retreats, looking for easier prey!"
     },
     "default_dialog": "{name} grunts.",
     "loot_table": {
@@ -325,9 +325,9 @@
     "attack_power": 3,
     "defense": 2,     
     "dialog": {
-      "greeting": "{name} chitters menacingly!",
-      "threat": "{name} raises its hairy legs!",
-      "flee": "{name} rapidly skitters away!"
+      "greeting": "The giant spider chitters menacingly!",
+      "threat": "The giant spider raises its hairy legs!",
+      "flee": "The giant spider rapidly skitters away!"
     },
     "default_dialog": "{name} clicks its mandibles.",
     "loot_table": {

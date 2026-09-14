@@ -35,6 +35,7 @@ from engine.server.system_providers import (
 )
 from engine.world.world import World
 from engine.world.region import Region
+from engine.items.item_factory import ItemFactory
 from engine.npcs.npc_factory import NPCFactory
 from engine.npcs.ai import initialize_npc_schedules
 from engine.utils.utils import _serialize_item_reference
@@ -3536,6 +3537,21 @@ class HeadlessServer:
         entries.sort(key=lambda q: q.get("title", ""))
         return entries
 
+    def _deliver_item_display_name(self, objective: Dict[str, Any]) -> str:
+        """Name a deliver objective's item without falling back to a bare,
+        tautological noun ("the delivery") or a raw internal template id."""
+        authored_name = str(objective.get("item_to_deliver_name", "")).strip()
+        if authored_name:
+            return authored_name
+        template_id = str(objective.get("item_template_id", "")).strip()
+        if template_id:
+            template = ItemFactory.get_template(template_id, self.world)
+            if template:
+                name = str(template.get("name", "")).strip()
+                if name:
+                    return name
+        return "the item"
+
     def _quest_objective_payload(self, quest: Dict[str, Any]) -> Dict[str, Any]:
         """Normalize the current quest stage for compact journal presentation."""
         stages = quest.get("stages", [])
@@ -3574,7 +3590,7 @@ class HeadlessServer:
             target = str(objective.get("item_name_plural", objective.get("item_name", "items")))
             description = f"Gather {target}."
         elif kind == "deliver":
-            target = str(objective.get("item_to_deliver_name", "the delivery"))
+            target = self._deliver_item_display_name(objective)
             recipient = str(objective.get("recipient_name", destination or "the recipient"))
             description = f"Deliver {target} to {recipient}."
             destination = recipient
@@ -3589,7 +3605,7 @@ class HeadlessServer:
         route_summaries = []
         for route in routes:
             if route.get("type") == "deliver":
-                route_summaries.append("Deliver %s to %s." % (route.get("item_to_deliver_name", "the delivery"), route.get("recipient_name", "the recipient")))
+                route_summaries.append("Deliver %s to %s." % (self._deliver_item_display_name(route), route.get("recipient_name", "the recipient")))
             else:
                 route_summaries.append(str(route.get("description", route.get("type", "Complete the objective"))))
         return {
