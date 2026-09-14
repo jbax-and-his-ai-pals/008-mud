@@ -3,6 +3,10 @@ from typing import Optional
 from engine.items.item import Item
 
 class Key(Item):
+    # target_id scopes a key to one specific object (a house region, a
+    # locked container) -- an internal linkage, not player-facing flavor.
+    HIDDEN_EXAMINE_PROPERTIES = {"target_id"}
+
     def __init__(self, obj_id: Optional[str] = None, name: str = "Unknown Key",
                  description: str = "No description", weight: float = 0.1,
                  value: int = 15, target_id: Optional[str] = None, **kwargs):

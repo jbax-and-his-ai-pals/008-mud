@@ -589,6 +589,69 @@ crime-severity modifiers (see the open question below, still open) would
 attach to the one `districts` entry, not require re-tagging every room
 in it.
 
+## Shipped: per-player housing
+
+Closes the "making houses genuinely per-player" follow-up flagged when the
+first slice shipped (above). The gap turned out to be real at every layer
+housing touches, not just a friendlier refusal for a second buyer:
+
+- **Region id.** The offer's `region_id` was one fixed string; a second
+  buyer was flatly turned away. Now derived per-player
+  (`f"{offer_region_id}_{player.obj_id}"`), keeping the existing
+  `dynamic_` prefix so `SaveManager` and the finite-adventure world
+  baseline -- both of which already generically collect every
+  `dynamic_`/`instance_`-prefixed region -- pick it up with zero changes
+  of their own.
+- **Keys.** Every key made from a template was interchangeable
+  (`ItemFactory` sets a created item's `obj_id` to the template id).
+  `Key` (`engine/items/key.py`) already has a `target_id` constructor
+  parameter -- built, apparently, for exactly this scoping, just never
+  actually set to anything. Each house's key is now created with
+  `target_id` pointing at that house's own region id, the same idiom
+  `Container.toggle_lock` already uses for locked containers.
+- **The shared door.** The entry exit was a literal per-owner destination
+  written onto the *shared, permanent* exterior room's `exits["in"]` --
+  only one destination can occupy that dict key at a time, so a second
+  owner's door would silently overwrite the first's. Rather than thread
+  player context through the whole generic movement system, the shared
+  exit now points at a single fixed sentinel (`HOUSE_ENTRY_SENTINEL`,
+  `engine/world/housing_manager.py`), resolved to *the acting player's
+  own* house destination inside `World.change_room` -- the one place in
+  the entire movement system that already has the player in scope, so no
+  new plumbing was needed anywhere else. `InstanceManager.build_region`
+  gained one generic optional parameter (`entry_destination_override`);
+  `apply_entry_exit` needed zero changes, which is also why this survives
+  save/load for free through the exact replay mechanism the first slice
+  built for this purpose.
+- **Recovery from lost access.** A new `replace house key` command
+  (content-authored `replacement_key_cost`, defaulting to 100) reissues a
+  correctly-`target_id`-scoped key for an owned house, mirroring
+  `buy_house`'s existing preflight-then-charge-then-issue shape.
+
+Two real, previously-unexercised bugs found and fixed along the way, both
+generically useful beyond housing:
+
+- `perform_wander` (`engine/npcs/ai/movement.py`) picked a uniformly
+  random exit direction with no check that the destination room actually
+  existed -- it already special-cased `instance_`-prefixed destinations
+  ("no npcs should enter instances randomly") but nothing else. The new
+  sentinel isn't a real destination outside of `World.change_room`'s
+  resolution, so a wandering NPC that randomly selected it would have had
+  its position silently corrupted. Now excluded the same way `instance_`
+  destinations already are.
+- `target_id` -- the exact property this whole design leans on -- was
+  silently dropped by item-reference serialization
+  (`engine/utils/utils.py::_serialize_item_reference`). Its "known
+  dynamic props" allowlist (the properties captured regardless of
+  whether they match the item's template) never included it, and a
+  *second*, separate skip-list explicitly excluded it from the generic
+  "differs from template" capture path too. A `target_id`-scoped key
+  survived fine in memory but lost its scoping the moment it survived a
+  save/load -- for any feature using this idiom, not just houses. Fixed
+  by moving `target_id` into the always-captured set, matching how
+  `durability`/`uses`/`is_open`/`locked`/`contains` are already handled
+  there.
+
 ## Open questions
 
 - **The ambient, multi-room threat-detection system.** Edge-triggered

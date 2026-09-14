@@ -15,6 +15,7 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.world.room import Room
 from engine.world.region import Region
 from engine.npcs.ai.movement import execute_move, perform_wander, perform_patrol, perform_follow, perform_schedule
+from engine.world.housing_manager import HOUSE_ENTRY_SENTINEL
 
 
 def _npc(world, template="goblin", instance_id="mv_npc"):
@@ -117,6 +118,27 @@ class TestPerformWander(GameTestBase):
         npc.current_room_id = "mv_instance_gate"
         result = perform_wander(npc, self.world, self.player)
         self.assertIsNone(result)
+
+    def test_avoids_the_house_entry_sentinel(self):
+        # The sentinel only resolves to a real destination per-player, in
+        # World.change_room. If perform_wander ever picked it, execute_move
+        # would assign the NPC a nonexistent room id (no colon, so treated
+        # as a same-region room literally named after the sentinel).
+        # Friendly NPC, matching test_malformed_exit_with_empty_region_prefix_is_skipped's
+        # own reasoning: a hostile avoids the safe "east" exit too, which
+        # would leave zero valid exits and mask what this test checks.
+        npc = _npc(self.world, template="village_elder", instance_id="mv_house_sentinel_wanderer")
+        npc.wander_chance = 1.0
+        region = self.world.get_region("town")
+        region.add_room("mv_house_gate", Room(
+            "Vacant Lot", "x", {"in": HOUSE_ENTRY_SENTINEL, "east": "town_square"}, obj_id="mv_house_gate",
+        ))
+        npc.current_region_id = "town"
+        npc.current_room_id = "mv_house_gate"
+        with patch("engine.npcs.ai.movement.random.choice", side_effect=lambda opts: opts[0]):
+            perform_wander(npc, self.world, self.player)
+        self.assertEqual("town", npc.current_region_id)
+        self.assertEqual("town_square", npc.current_room_id)
 
     def test_npc_inside_instance_only_wanders_within_it(self):
         instance_region = Region("Dungeon Instance", "x", obj_id="instance_dungeon_test")

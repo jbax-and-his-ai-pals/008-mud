@@ -50,7 +50,11 @@ def _serialize_item_reference(item: 'Item', quantity: int, world: 'World') -> Op
     template = ItemFactory.get_template(template_id, world)
 
     override_props: Dict[str, Any] = {}
-    known_dynamic_props = {"durability", "uses", "is_open", "locked", "contains"}
+    # target_id scopes one specific key instance to one specific target
+    # (a house region, a locked container) -- genuinely per-instance state
+    # with no other persistence path, the same reason durability/uses/etc.
+    # are here rather than relying on the generic template-diff check below.
+    known_dynamic_props = {"durability", "uses", "is_open", "locked", "contains", "target_id"}
 
     # --- Check for Core Attribute Overrides ---
     # These are stored on the instance, not always in properties, so we check explicitly.
@@ -82,7 +86,7 @@ def _serialize_item_reference(item: 'Item', quantity: int, world: 'World') -> Op
                 else:
                     override_props[key] = current_value
             elif key not in template_props or template_props.get(key) != current_value:
-                 if key not in ["weight", "value", "stackable", "name", "description", "equip_slot", "type", "max_durability", "max_uses", "effect_type", "effect_value", "damage", "defense", "target_id", "treasure_type"]:
+                 if key not in ["weight", "value", "stackable", "name", "description", "equip_slot", "type", "max_durability", "max_uses", "effect_type", "effect_value", "damage", "defense", "treasure_type"]:
                     override_props[key] = current_value
     else:
         print(f"Warning: Item template '{template_id}' not found during serialization of '{item.name}'. Saving only known dynamic state.")

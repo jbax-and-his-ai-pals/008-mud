@@ -2,6 +2,7 @@
 import random
 from typing import TYPE_CHECKING, Optional
 from engine.utils.utils import format_npc_departure_message, format_npc_arrival_message
+from engine.world.housing_manager import HOUSE_ENTRY_SENTINEL
 
 if TYPE_CHECKING:
     from engine.npcs.npc import NPC
@@ -62,6 +63,12 @@ def perform_wander(npc: 'NPC', world: 'World', player: 'Player') -> Optional[str
     is_in_instance = npc.current_region_id and npc.current_region_id.startswith("instance_")
 
     for direction, dest_id in room.exits.items():
+        # A personal-house sentinel isn't a real destination -- it only
+        # resolves per-player, in World.change_room. Picking it here would
+        # assign the NPC a nonexistent room id (no colon, so it'd be
+        # treated as a same-region room named after the sentinel itself).
+        if dest_id == HOUSE_ENTRY_SENTINEL: continue
+
         dest_region_id, dest_room_id = (dest_id.split(':') if ':' in dest_id else (npc.current_region_id, dest_id))
 
         if not dest_region_id: continue

@@ -2,6 +2,7 @@
 import copy
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
+from engine.config import FORMAT_ERROR, FORMAT_RESET
 from engine.items.item_factory import ItemFactory
 
 if TYPE_CHECKING:
@@ -9,6 +10,15 @@ if TYPE_CHECKING:
     from engine.player import Player
     from engine.world.region import Region
     from engine.world.world import World
+
+
+# The shared, permanent house-exterior room's entry exit always points at
+# this fixed sentinel rather than a literal per-owner destination -- only
+# one destination string can ever occupy one exits-dict key at a time, so
+# resolving "whose house is this" has to happen dynamically per player
+# (World.change_room), not by baking one buyer's destination into shared
+# room state. See HousingManager.resolve_personal_door.
+HOUSE_ENTRY_SENTINEL = "__owned_house_entry__"
 
 
 class HousingManager:
@@ -20,13 +30,12 @@ class HousingManager:
     that's never torn down -- separate from InstanceManager itself, so a
     bug here can't touch the well-covered quest-instance code paths.
 
-    This first slice deliberately supports only one house existing in the
-    world at a time: an offer's region_id is a single fixed string, so a
-    second buyer is turned away, and every buyer of a given offer receives
-    a key made from the same item template (ItemFactory sets a created
-    item's obj_id to the template id itself, so all such keys are
-    interchangeable). Making houses genuinely per-player -- a unique region
-    and key per owner -- is real follow-up work, not an oversight.
+    Houses are genuinely per-player: each buyer gets a region id derived
+    from their own player id and a key scoped to that specific house via
+    its target_id property (the same target_id idiom Container.toggle_lock
+    already uses for locked containers). The shared exterior's entry exit
+    is a single fixed sentinel (HOUSE_ENTRY_SENTINEL) that World.change_room
+    resolves to whichever house the acting player actually owns.
     """
 
     def __init__(self, world: 'World'):
@@ -68,11 +77,15 @@ class HousingManager:
                 f"but only have {player.runtime_state.gold}."
             )
 
-        region_id = str(offer.get("region_id", "")).strip()
-        if not region_id:
+        base_region_id = str(offer.get("region_id", "")).strip()
+        if not base_region_id:
             return False, "Unknown house offer configuration: missing region_id."
-        if region_id in self.world.regions:
-            return False, "That house is already spoken for."
+        # Per-player, not the offer's bare region_id: two buyers must never
+        # collide on one house. Keeps the offer's own "dynamic_" prefix so
+        # SaveManager and the finite-adventure world baseline -- both of
+        # which already generically collect every dynamic_/instance_
+        # region -- pick this up with no changes of their own.
+        region_id = f"{base_region_id}_{player.obj_id}"
 
         rooms_data = offer.get("rooms")
         entry_point = offer.get("entry_point")
@@ -87,10 +100,15 @@ class HousingManager:
         rooms_data = copy.deepcopy(rooms_data)
 
         key_item_id = offer.get("key_item_id")
-        exit_requirements = {"type": "locked", "key_id": key_item_id} if key_item_id else None
         key_item = None
         if key_item_id:
-            key_item = ItemFactory.create_item_from_template(key_item_id, self.world)
+            # target_id scopes this specific key instance to this specific
+            # house's region id -- the same idiom Container.toggle_lock
+            # already uses for locked containers -- instead of every key
+            # made from this template being interchangeable.
+            key_item = ItemFactory.create_item_from_template(
+                key_item_id, self.world, properties_override={"target_id": region_id},
+            )
             if key_item is None:
                 return False, "Unknown house offer configuration: missing key item template."
             can_add, space_message = player.inventory.can_add_item(key_item, 1)
@@ -103,7 +121,7 @@ class HousingManager:
             region_description=offer.get("region_description", "A modest house."),
             rooms_data=rooms_data,
             entry_point=entry_point,
-            exit_requirements=exit_requirements,
+            entry_destination_override=HOUSE_ENTRY_SENTINEL,
         )
         if not self.world.instance_manager.apply_entry_exit(region):
             del self.world.regions[region_id]
@@ -112,14 +130,16 @@ class HousingManager:
         region.properties["owner_player_id"] = player.obj_id
         region.properties["interior_room_id"] = entry_room_id
         region.properties["house_tier"] = 1
+        region.properties["key_item_id"] = key_item_id
 
         if key_item is not None:
             added, add_message = player.inventory.add_item(key_item, 1)
             if not added:
                 # The preflight above makes this unreachable without an
-                # external mutation. Roll back the newly materialized house
-                # rather than charge a player who did not receive its key.
-                self.world.instance_manager.remove_entry_exit(region)
+                # external mutation. Roll back this player's own house --
+                # but never the shared entry sentinel itself: it's the same
+                # fixed value for every owner, so tearing it down here
+                # could break another player who already owns a house.
                 del self.world.regions[region_id]
                 return False, f"Unable to issue the house key: {add_message}"
 
@@ -128,6 +148,68 @@ class HousingManager:
             f"You pay {cost} {self.world.currency_name()} and receive a key. "
             f"{agent.name} shows you to your new home."
         )
+
+    def resolve_personal_door(self, player: 'Player') -> Tuple[Optional[str], Optional[str]]:
+        """Resolve the shared HOUSE_ENTRY_SENTINEL exit to this specific
+        player's own house. Returns (destination, None) on success, or
+        (None, error_message) if they don't own a house here or aren't
+        carrying its key."""
+        house = self.get_owned_house(player)
+        if house is None:
+            return None, f"{FORMAT_ERROR}You don't own a house here.{FORMAT_RESET}"
+
+        key_item_id = house.properties.get("key_item_id")
+        if key_item_id:
+            has_key = any(
+                slot.item is not None and slot.item.get_property("target_id") == house.obj_id
+                for slot in player.inventory.slots
+            )
+            if not has_key:
+                return None, f"{FORMAT_ERROR}You don't have your house key with you.{FORMAT_RESET}"
+
+        interior_room_id = house.properties.get("interior_room_id")
+        return f"{house.obj_id}:{interior_room_id}", None
+
+    def replace_house_key(self, player: 'Player', agent: 'NPC') -> Tuple[bool, str]:
+        """Issue a fresh, correctly-scoped key for a house the player
+        already owns -- the recovery path for a lost, dropped, or stolen
+        key, since the original is never coming back on its own."""
+        house = self.get_owned_house(player)
+        if house is None:
+            return False, "You don't own a house to make a key for."
+
+        key_item_id = house.properties.get("key_item_id")
+        if not key_item_id:
+            return False, f"{agent.name} has no key on file for your house."
+
+        offer = agent.properties.get("house_offer")
+        offer = offer if isinstance(offer, dict) else {}
+        try:
+            cost = int(offer.get("replacement_key_cost", 100))
+        except (TypeError, ValueError):
+            return False, "Unknown house offer configuration: replacement_key_cost must be an integer."
+
+        if player.runtime_state.gold < cost:
+            return False, (
+                f"You need {cost} {self.world.currency_name()} for a replacement key, "
+                f"but only have {player.runtime_state.gold}."
+            )
+
+        key_item = ItemFactory.create_item_from_template(
+            key_item_id, self.world, properties_override={"target_id": house.obj_id},
+        )
+        if key_item is None:
+            return False, "Unknown house offer configuration: missing key item template."
+        can_add, space_message = player.inventory.can_add_item(key_item, 1)
+        if not can_add:
+            return False, f"You need room for the new key: {space_message}"
+
+        added, add_message = player.inventory.add_item(key_item, 1)
+        if not added:
+            return False, f"Unable to issue the replacement key: {add_message}"
+
+        player.runtime_state.gold -= cost
+        return True, f"{agent.name} cuts you a new key for {cost} {self.world.currency_name()}."
 
     def _next_tier_options(self, house: 'Region', contractor: 'NPC') -> Tuple[int, List[dict]]:
         """Return (next_tier_number, options_list). options_list is empty if

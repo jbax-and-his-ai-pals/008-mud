@@ -36,6 +36,7 @@ class InstanceManager:
         rooms_data: Dict[str, Any], entry_point: Dict[str, Any],
         region_properties: Optional[Dict[str, Any]] = None,
         exit_requirements: Optional[Dict[str, Any]] = None,
+        entry_destination_override: Optional[str] = None,
     ) -> Tuple['Region', str]:
         """Builds a Region from a {room_id: {name, description, exits}} dict
         (the shape both quest instances and houses use, including the
@@ -47,6 +48,12 @@ class InstanceManager:
         first (e.g. spawning NPCs into the new region) should call
         apply_entry_exit once everything else has succeeded, matching the
         order quest instantiation already relied on.
+
+        entry_destination_override replaces the normal per-region literal
+        destination with a caller-supplied string instead -- used by
+        per-player housing to wire a shared "personal door" sentinel onto
+        the permanent room rather than a destination that could only ever
+        point at one owner's instance at a time.
         """
         new_region = Region(obj_id=unique_region_id, name=region_name, description=region_description)
         new_region.properties = region_properties if region_properties is not None else {}
@@ -68,7 +75,7 @@ class InstanceManager:
             "region_id": entry_point['region_id'],
             "room_id": entry_point['room_id'],
             "exit_command": entry_point['exit_command'],
-            "destination": f"{unique_region_id}:{entry_room_id}",
+            "destination": entry_destination_override or f"{unique_region_id}:{entry_room_id}",
             "exit_requirements": exit_requirements,
         }
         return new_region, entry_room_id

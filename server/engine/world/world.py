@@ -27,7 +27,7 @@ from engine.world.save_manager import SaveManager
 from engine.world.definition_loader import load_all_definitions, initialize_new_world
 from engine.world.respawn_manager import RespawnManager
 from engine.world.instance_manager import InstanceManager
-from engine.world.housing_manager import HousingManager
+from engine.world.housing_manager import HousingManager, HOUSE_ENTRY_SENTINEL
 from engine.core.crime_manager import CrimeManager
 from engine.utils.pathfinding import find_path
 from engine.core.skill_system import SkillSystem
@@ -376,7 +376,13 @@ class World:
 
         destination_id = current_room.get_exit(direction)
         if not destination_id: return f"{FORMAT_ERROR}You cannot go {direction}.{FORMAT_RESET}"
-        
+
+        if destination_id == HOUSE_ENTRY_SENTINEL:
+            resolved_destination, failure_msg = self.housing_manager.resolve_personal_door(active_player)
+            if resolved_destination is None:
+                return failure_msg
+            destination_id = resolved_destination
+
         new_region_id, new_room_id = (destination_id.split(":") if ":" in destination_id else (old_region_id, destination_id))
         
         if not new_region_id:

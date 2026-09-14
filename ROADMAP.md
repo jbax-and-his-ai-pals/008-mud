@@ -176,9 +176,42 @@ number of new mechanics.
 - [ ] Add dependable, persistent home storage plus one player-selected utility
   (display, workstation, garden, pond, trophy space, or similar) before more
   decorative house tiers.
-- [ ] Make per-player housing safe for shared worlds: distinct ownership,
-  access, keys, save/load behavior, and recovery from lost access. Do not
-  present the one-fixed-house prototype as multiplayer-ready housing.
+- [x] **Make per-player housing safe for shared worlds.** The prototype's
+  gap was real at every layer, not just a friendlier refusal for a second
+  buyer: a single fixed region id (a second buy attempt was flatly
+  refused), a key made from `ItemFactory.create_item_from_template` (every
+  copy interchangeable, so any player holding any copy could open the one
+  house that existed), and a literal per-owner destination written onto
+  the *shared* exterior room's `exits["in"]` (only one destination can
+  occupy that dict key at a time). Fixed each: region ids are now derived
+  per-player; keys carry a `target_id` scoping them to one specific
+  house's region id (`Key` -- `engine/items/key.py` -- already had this
+  constructor parameter, just never set to anything); and the shared
+  door is now a single fixed sentinel (`HOUSE_ENTRY_SENTINEL`) that
+  `World.change_room` resolves to *the acting player's own* house at
+  move-time -- the one place in the whole movement system that already
+  has the player in scope, so no new plumbing was needed anywhere else.
+  `InstanceManager.build_region` gained one generic optional parameter
+  (`entry_destination_override`) to support this; `apply_entry_exit`
+  itself needed zero changes, which is also why this survives save/load
+  for free through the exact replay mechanism the original single-house
+  slice built. Found and fixed two real, previously-unexercised bugs
+  along the way: `perform_wander` (`engine/npcs/ai/movement.py`) picked
+  a uniformly random exit with no check that the destination actually
+  existed, so an NPC could randomly select the new sentinel and corrupt
+  its own position -- now excluded, mirroring the existing `instance_`
+  exclusion beside it. And `target_id` (the exact property this whole
+  design leans on) was silently dropped by item-reference serialization
+  (`engine/utils/utils.py::_serialize_item_reference`'s hardcoded
+  "known dynamic props" allowlist never included it, and a second,
+  separate skip-list explicitly excluded it from the generic
+  template-diff capture path too) -- meaning a `target_id`-scoped key
+  would lose its scoping the moment it survived a save/load, for
+  *any* feature using this idiom, not just houses. Also added recovery
+  from a lost/stolen/dropped key: a new `replace house key` command
+  (content-authored `replacement_key_cost`, defaulting to 100) reissues
+  a correctly-scoped key, mirroring `buy_house`'s existing
+  preflight-then-charge-then-issue shape.
 - [ ] Give gathering alternate sources, substitutions, and visible recovery
   information so a depleted shared resource creates a choice rather than an
   abandoned session. Consider whether partial harvests should contribute to

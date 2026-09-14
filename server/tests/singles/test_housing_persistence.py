@@ -15,6 +15,7 @@ from engine.items.item_factory import ItemFactory
 from engine.items.inventory import Inventory
 from engine.server.content_set import load_content_set
 from engine.server.headless_server import HeadlessServer
+from engine.world.housing_manager import HOUSE_ENTRY_SENTINEL
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -41,7 +42,7 @@ class TestHousingPersistence(unittest.TestCase):
 
             self.assertIn("room for the house key", "\n".join(str(event["payload"]) for event in result))
             self.assertEqual(1000, player.runtime_state.gold)
-            self.assertIsNone(server.world.get_region("dynamic_player_house"))
+            self.assertIsNone(server.world.housing_manager.get_owned_house(player))
             exterior = server.world.get_region("town").get_room("player_house_exterior")
             self.assertNotIn("in", exterior.exits)
         finally:
@@ -76,12 +77,14 @@ class TestHousingPersistence(unittest.TestCase):
                 self.assertEqual(500, player.runtime_state.gold)
                 self.assertEqual(1, player.inventory.count_item("item_house_key_starter"))
 
+                player_id_before = player.obj_id
+                expected_region_id = f"dynamic_player_house_{player_id_before}"
+
                 entered = server.execute_command(session.session_id, "in")
                 entered_text = "\n".join(str(event["payload"]) for event in entered)
                 self.assertIn("Your House", entered_text)
-                self.assertEqual(("dynamic_player_house", "interior"), (player.current_region_id, player.current_room_id))
+                self.assertEqual((expected_region_id, "interior"), (player.current_region_id, player.current_room_id))
 
-                player_id_before = player.obj_id
                 self.assertTrue(server.world.save_game("housetest.json"))
             finally:
                 server.shutdown()
@@ -108,15 +111,21 @@ class TestHousingPersistence(unittest.TestCase):
                 self.assertEqual(player_id_before, loaded_player.obj_id)
                 self.assertEqual(1, loaded_player.inventory.count_item("item_house_key_starter"))
 
-                house_region = server2.world.get_region("dynamic_player_house")
+                house_region = server2.world.get_region(expected_region_id)
                 self.assertIsNotNone(house_region)
                 self.assertEqual(loaded_player.obj_id, house_region.properties.get("owner_player_id"))
 
+                # The shared exterior's entry exit is a fixed sentinel,
+                # resolved per-player by World.change_room -- not a literal
+                # per-owner destination, and not a lock/key on the shared
+                # room (that can't be scoped to one owner).
                 vacant_lot = server2.world.get_region("town").get_room("player_house_exterior")
-                self.assertEqual("dynamic_player_house:interior", vacant_lot.exits.get("in"))
-                lock = vacant_lot.properties.get("exit_requirements", {}).get("in", {})
-                self.assertEqual("locked", lock.get("type"))
-                self.assertEqual("item_house_key_starter", lock.get("key_id"))
+                self.assertEqual(HOUSE_ENTRY_SENTINEL, vacant_lot.exits.get("in"))
+                self.assertNotIn("in", vacant_lot.properties.get("exit_requirements", {}))
+
+                restored_key = loaded_player.inventory.find_item_by_id("item_house_key_starter")
+                self.assertIsNotNone(restored_key)
+                self.assertEqual(house_region.obj_id, restored_key.get_property("target_id"))
             finally:
                 server2.shutdown()
 
@@ -157,6 +166,7 @@ class TestHousingPersistence(unittest.TestCase):
                 self.assertEqual(0, player.inventory.count_item("item_softwood"))
                 self.assertEqual(0, player.inventory.count_item("item_wild_herbs"))
 
+                expected_region_id = f"dynamic_player_house_{player.obj_id}"
                 self.assertTrue(server.world.save_game("housetest_tier2.json"))
             finally:
                 server.shutdown()
@@ -172,7 +182,7 @@ class TestHousingPersistence(unittest.TestCase):
                 success, _time_state, _weather_state = server2.world.load_save_game("housetest_tier2.json")
                 self.assertTrue(success)
 
-                house_region = server2.world.get_region("dynamic_player_house")
+                house_region = server2.world.get_region(expected_region_id)
                 self.assertIsNotNone(house_region)
                 self.assertEqual(2, house_region.properties.get("house_tier"))
                 self.assertEqual("garden", house_region.properties.get("house_branch"))
@@ -182,6 +192,89 @@ class TestHousingPersistence(unittest.TestCase):
                 self.assertIn("garden plot", interior.description)
             finally:
                 server2.shutdown()
+
+
+class TestPerPlayerHousingSafety(unittest.TestCase):
+    """Two players sharing one running world must never collide on a
+    single house, region, or key -- the gap this slice closes."""
+
+    def setUp(self) -> None:
+        self.server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+
+    def _new_owner(self, player_id: str, name: str):
+        session = self.server.create_session(player_id=player_id)
+        self.server.execute_command(session.session_id, f"char create {name}")
+        player = self.server.get_player_for_session(session.session_id)
+        player.runtime_state.gold = 1000
+        player.current_region_id = "town"
+        player.current_room_id = "player_house_exterior"
+        return session, player
+
+    def _text(self, session_id: str, command: str) -> str:
+        events = self.server.execute_command(session_id, command)
+        return "\n".join(str(event["payload"]) for event in events)
+
+    def test_two_players_can_each_own_a_distinct_house(self) -> None:
+        session_a, player_a = self._new_owner("house_buyer_a", "Ash")
+        session_b, player_b = self._new_owner("house_buyer_b", "Birch")
+
+        self.assertIn("You pay 500 gold", self._text(session_a.session_id, "buy house"))
+        self.assertIn("You pay 500 gold", self._text(session_b.session_id, "buy house"))
+
+        house_a = self.server.world.housing_manager.get_owned_house(player_a)
+        house_b = self.server.world.housing_manager.get_owned_house(player_b)
+        self.assertIsNotNone(house_a)
+        self.assertIsNotNone(house_b)
+        self.assertNotEqual(house_a.obj_id, house_b.obj_id)
+
+        self._text(session_a.session_id, "in")
+        self.assertEqual((house_a.obj_id, "interior"), (player_a.current_region_id, player_a.current_room_id))
+
+        self._text(session_b.session_id, "in")
+        self.assertEqual((house_b.obj_id, "interior"), (player_b.current_region_id, player_b.current_room_id))
+
+        key_a = player_a.inventory.find_item_by_id("item_house_key_starter")
+        key_b = player_b.inventory.find_item_by_id("item_house_key_starter")
+        self.assertNotEqual(key_a.get_property("target_id"), key_b.get_property("target_id"))
+        self.assertEqual(house_a.obj_id, key_a.get_property("target_id"))
+        self.assertEqual(house_b.obj_id, key_b.get_property("target_id"))
+
+    def test_owning_no_house_gives_a_clear_refusal_not_someone_elses_house(self) -> None:
+        owner_session, _owner = self._new_owner("house_owner", "Ash")
+        self._text(owner_session.session_id, "buy house")
+
+        visitor_session, visitor = self._new_owner("house_visitor", "Birch")
+        visitor.runtime_state.gold = 0
+
+        result = self._text(visitor_session.session_id, "in")
+        self.assertIn("don't own a house", result)
+        self.assertEqual(("town", "player_house_exterior"), (visitor.current_region_id, visitor.current_room_id))
+
+    def test_replacement_key_lets_owner_back_in_after_losing_the_original(self) -> None:
+        session, player = self._new_owner("house_owner_key_loss", "Ash")
+        self._text(session.session_id, "buy house")
+        self.assertEqual(500, player.runtime_state.gold)
+
+        self._text(session.session_id, "drop house key")
+        blocked = self._text(session.session_id, "in")
+        self.assertIn("don't have your house key", blocked)
+        self.assertEqual(("town", "player_house_exterior"), (player.current_region_id, player.current_room_id))
+
+        replaced = self._text(session.session_id, "replace house key")
+        self.assertIn("cuts you a new key", replaced)
+        self.assertEqual(400, player.runtime_state.gold)
+
+        house = self.server.world.housing_manager.get_owned_house(player)
+        entered = self._text(session.session_id, "in")
+        self.assertIn("Your House", entered)
+        self.assertEqual((house.obj_id, "interior"), (player.current_region_id, player.current_room_id))
+        new_key = player.inventory.find_item_by_id("item_house_key_starter")
+        self.assertEqual(house.obj_id, new_key.get_property("target_id"))
 
 
 if __name__ == "__main__":
