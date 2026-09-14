@@ -28,12 +28,18 @@ class ResourceNode(Item):
 
     def gather(self, player, world) -> str:
         charges = self.available_charges(world)
+        respawn_days = int(self.get_property("respawn_days", 0))
         if charges <= 0:
-            return f"The {self.name} has been depleted."
+            base_message = f"The {self.name} has been depleted."
+            depleted_day = self.get_property("depleted_day")
+            if respawn_days > 0 and depleted_day is not None:
+                days_left = respawn_days - (self._day_number(world) - int(depleted_day))
+                if days_left > 0:
+                    return f"{base_message} It should recover in about {days_left} day{'s' if days_left != 1 else ''}."
+            return base_message
 
         time_manager = getattr(getattr(world, "game", None), "time_manager", None)
         day_number = self._day_number(world)
-        respawn_days = int(self.get_property("respawn_days", 0))
 
         allowed_seasons = self.get_property("seasons", [])
         current_season = str(getattr(time_manager, "time_data", {}).get("season", "")) if time_manager else ""
@@ -53,7 +59,7 @@ class ResourceNode(Item):
                     has_tool = True; break
         
         if not has_tool:
-            return f"{FORMAT_ERROR}You need a {tool_req} to gather from this.{FORMAT_RESET}"
+            return f"{FORMAT_ERROR}You need a {tool_req} to gather from this. You don't seem to be carrying or wearing one.{FORMAT_RESET}"
             
         from engine.items.item_factory import ItemFactory
         resource_id = self.get_property("resource_item_id")

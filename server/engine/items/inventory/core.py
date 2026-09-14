@@ -22,7 +22,7 @@ class Inventory(InventoryDisplayMixin, InventoryPersistenceMixin):
          current_weight = self.get_total_weight()
          added_weight = item.weight * quantity
          if current_weight + added_weight > self.max_weight:
-             return False, f"Adding {item.name} would exceed your carry weight ({self.max_weight:.1f})."
+             return False, f"Adding {item.name} would exceed your carry weight ({self.max_weight:.1f}). Drop something to lighten your load."
 
          remaining_quantity = quantity
          # FIX: Use len(self.slots) to ensure list size matches iteration loop
@@ -45,7 +45,7 @@ class Inventory(InventoryDisplayMixin, InventoryPersistenceMixin):
                        empty_slots_available += 1
 
              if empty_slots_available < slots_needed:
-                  return False, f"You don't have enough empty inventory slots for {item.name}."
+                  return False, f"You don't have enough empty inventory slots for {item.name}. Drop something to make room."
 
          return True, ""
 

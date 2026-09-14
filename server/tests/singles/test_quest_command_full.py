@@ -73,6 +73,63 @@ class TestAcceptQuestArgParsing(_QuestBoardTestBase):
         self.assertIn("No one here has offered", result)
 
 
+class TestAcceptQuestRelationshipGate(_QuestBoardTestBase):
+    def setUp(self):
+        super().setUp()
+        self.world.quest_board.clear()
+        self.giver = NPCFactory.create_npc_from_template("village_elder", self.world)
+        self.world.add_npc(self.giver)
+        self.world.quest_board.append({
+            "instance_id": "q_gated", "title": "A Trusted Task",
+            "giver_instance_id": self.giver.obj_id, "relationship_min": 50,
+            "rewards": {}, "objective": {"type": "kill"},
+            "stages": [{"stage_index": 0, "objective": {"type": "kill"}}],
+        })
+
+    def test_refusal_names_the_real_giver(self):
+        result = self.game.process_command("accept quest 1")
+        self.assertIn(self.giver.name, result)
+        self.assertIn("doesn't trust you enough yet", result)
+        self.assertIn("0/50 relationship", result)
+
+    def test_refused_quest_is_restored_to_the_board(self):
+        self.game.process_command("accept quest 1")
+        self.assertEqual(1, len(self.world.quest_board))
+        self.assertEqual("q_gated", self.world.quest_board[0]["instance_id"])
+
+
+class TestAcceptQuestRelationshipGateByTemplateId(_QuestBoardTestBase):
+    """_add_authored_board_quests sets relationship_npc_id to the giver's
+    *template* id, not a live instance id (world.get_npc looks up by
+    instance id only) -- exactly the shape every real fantasy_frontier
+    commission uses. Without _resolve_relationship_npc's template-id
+    fallback, `giver` silently resolves to None here even though a real
+    matching NPC instance exists, and the refusal can never name them."""
+
+    def setUp(self):
+        super().setUp()
+        self.world.quest_board.clear()
+        self.giver = NPCFactory.create_npc_from_template("village_elder", self.world)
+        self.world.add_npc(self.giver)
+        self.assertNotEqual("village_elder", self.giver.obj_id)  # a real, uuid-suffixed instance id
+        self.world.quest_board.append({
+            "instance_id": "q_gated_by_template", "title": "A Trusted Task",
+            "giver_instance_id": self.giver.obj_id, "relationship_npc_id": "village_elder",
+            "relationship_min": 10,
+            "rewards": {}, "objective": {"type": "kill"},
+            "stages": [{"stage_index": 0, "objective": {"type": "kill"}}],
+        })
+
+    def test_board_listing_still_finds_the_real_trust_score(self):
+        result = self.game.process_command("look board")
+        self.assertIn("Trust: 0/10", result)
+
+    def test_accept_refusal_names_the_real_giver_via_template_id(self):
+        result = self.game.process_command("accept quest 1")
+        self.assertIn("Elder Thorne", result)
+        self.assertIn("doesn't trust you enough yet", result)
+
+
 class TestAcceptQuestInstanceHandling(_QuestBoardTestBase):
     def setUp(self):
         super().setUp()

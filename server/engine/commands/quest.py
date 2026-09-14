@@ -15,6 +15,20 @@ def _relationship_requirement(quest_data):
     except (TypeError, ValueError):
         return 0
 
+def _resolve_relationship_npc(world, relationship_npc_id: str):
+    """A board quest's `relationship_npc_id` is set from `giver_template_id`
+    (see QuestManager._add_authored_board_quests), a template id -- not a
+    live NPC's actual instance id, which `world.get_npc` looks up by. Fall
+    back to a template_id scan (the same pattern quest reward application
+    already uses) so board quests can still name the real giver NPC."""
+    npc = world.get_npc(relationship_npc_id)
+    if npc is not None:
+        return npc
+    return next(
+        (candidate for candidate in world.npcs.values() if getattr(candidate, "template_id", None) == relationship_npc_id),
+        None,
+    )
+
 # Need to import handle_accept_offer
 from engine.commands.interaction.npcs import handle_accept_offer
 
@@ -67,7 +81,7 @@ def look_board_handler(args, context):
         reward_summary = ", ".join(reward_parts) if reward_parts else "—"
         relationship_required = _relationship_requirement(quest_data)
         relationship_npc_id = str(quest_data.get("relationship_npc_id", giver_instance_id or ""))
-        giver_for_relationship = world.get_npc(relationship_npc_id)
+        giver_for_relationship = _resolve_relationship_npc(world, relationship_npc_id)
         bond_key = relationship_key(giver_for_relationship) if giver_for_relationship is not None else relationship_npc_id
         current_relationship = int(getattr(player, "npc_relationships", {}).get(bond_key, 0))
         trust_summary = ""
@@ -124,12 +138,13 @@ def accept_quest_handler(args, context):
     relationship_required = _relationship_requirement(quest_to_accept)
     relationship_npc_id = str(quest_to_accept.get("relationship_npc_id", quest_to_accept.get("giver_instance_id", "")))
     if relationship_required:
-        giver = world.get_npc(relationship_npc_id)
+        giver = _resolve_relationship_npc(world, relationship_npc_id)
         bond_key = relationship_key(giver) if giver is not None else relationship_npc_id
         current_relationship = int(getattr(player, "npc_relationships", {}).get(bond_key, 0))
         if current_relationship < relationship_required:
             world.quest_board.insert(quest_index, quest_to_accept)
-            return f"{FORMAT_ERROR}This task requires more trust ({current_relationship}/{relationship_required} relationship).{FORMAT_RESET}"
+            giver_name = giver.name if giver is not None else "whoever posted this"
+            return f"{FORMAT_ERROR}{giver_name} doesn't trust you enough yet ({current_relationship}/{relationship_required} relationship).{FORMAT_RESET}"
     quest_to_accept["state"] = "active"
     quest_instance_id = quest_to_accept.get("instance_id")
 

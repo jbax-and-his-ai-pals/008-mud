@@ -63,6 +63,27 @@ class TestAddItemWithStackableFlagMismatch(unittest.TestCase):
         self.assertIn("Not enough space", message)
 
 
+class TestCanAddItemRefusalsSuggestDropping(unittest.TestCase):
+    """A full-pack refusal should point at a recovery action (`drop`),
+    not just name the constraint that failed."""
+
+    def test_weight_refusal_points_at_drop(self):
+        inv = Inventory(max_slots=5, max_weight=10.0)
+        heavy = Item(name="Anvil", weight=20.0)
+        can_add, message = inv.can_add_item(heavy)
+        self.assertFalse(can_add)
+        self.assertIn("Drop something to lighten your load.", message)
+
+    def test_slot_refusal_points_at_drop(self):
+        inv = Inventory(max_slots=1, max_weight=1000.0)
+        inv.slots[0].item = Item(obj_id="occupied", name="Occupied", stackable=False)
+        inv.slots[0].quantity = 1
+        incoming = Item(obj_id="new_item", name="New Item", stackable=False)
+        can_add, message = inv.can_add_item(incoming)
+        self.assertFalse(can_add)
+        self.assertIn("Drop something to make room.", message)
+
+
 class TestRemoveItemWithCorruptedZeroQuantitySlot(unittest.TestCase):
     """A slot holding an item with quantity 0 (reachable via a corrupted
     save's InventorySlot.from_dict) makes total_available undercount what

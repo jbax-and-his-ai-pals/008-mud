@@ -78,17 +78,56 @@ meaningful progress, not only that the server state stayed valid.
 
 ### P0: first-hour experience
 
-- [ ] Keep the Journal, encounter panel, inventory, relationship display, and
-  crafting ledger contextually useful.
-- [ ] Turn failures into useful next actions. A locked route, a depleted node,
-  a full pack, a missing tool, and an unavailable commission should expose a
-  recovery option rather than a bare refusal.
+- [x] **Keep the Journal, encounter panel, inventory, relationship display,
+  and crafting ledger contextually useful.** Audited all five: the Journal
+  (destination, live objective progress, "ready to turn in", multi-route
+  breakdown), relationship display (next-milestone progress), and crafting
+  ledger (quality-tier preview with contributing materials) already do
+  this -- shipped in earlier slices. The "encounter panel" isn't a single
+  named surface; it's the combat payload's `suggested_actions` plus the
+  room payload's curated `interactions` list, both already functional.
+  Inventory is the one real gap (a flat list, no quest-relevance or
+  gift-preference annotations) -- deliberately left open as its own
+  follow-up slice rather than folded into this one; see below.
+- [x] **Turn failures into useful next actions.** All five named scenarios
+  now expose a recovery option instead of a bare refusal:
+  - A locked exit or door now names the key it needs (`World._locked_message`,
+    `engine/world/world.py`) when one is authored and resolvable, and
+    supports an authored `failure_message` override mirroring the
+    existing "skill"-type exit's own convention -- but never invents a
+    key for a deliberately pick-only lock (`key_id: null`).
+  - A depleted `ResourceNode` reports days until it recovers when
+    `respawn_days` is set, using data the node already tracked
+    (`depleted_day`) but never surfaced.
+  - `Inventory.can_add_item`'s weight/slot refusals now point at `drop`.
+  - A missing-tool refusal confirms neither equipped gear nor inventory
+    has the required tool, instead of a bare "you need a X".
+  - A commission's accept-time trust refusal now names the real giver
+    NPC. Found and fixed a real bug while wiring this up: every authored
+    board commission's `relationship_npc_id` is a *template* id (see
+    `QuestManager._add_authored_board_quests`), but `world.get_npc()`
+    looks up by instance id only -- `giver` silently resolved to `None`
+    for every real commission in the game. New `_resolve_relationship_npc`
+    helper (used by both the board listing and the accept handler) falls
+    back to a template_id scan, the same pattern quest-reward application
+    already uses elsewhere.
 - [ ] Signpost parallel orientation, gather/craft/social, trade, and
   exploration/combat paths from the opening without implying that one is
-  mandatory.
+  mandatory. Already true by construction (the opening scenario offers four
+  parallel, untracked, unranked paths) -- what's not yet decided is whether
+  a one-shot upfront message is a sufficient "signpost" or whether it should
+  be re-surfaceable later; left open rather than assumed.
 - [ ] Retain deterministic maker/economy and low-risk combat routes, but make
   them prove an actual completed goal, recovery from a disrupted plan, and no
-  prolonged repeated failure.
+  prolonged repeated failure. The "prove a completed goal" half already
+  holds for the `premium`/`opportunity`/`combat`/`first-hour` journey-runner
+  policies (real outcome checks: quest completion, gold gained, trust
+  thresholds) -- `explorer`/`guided`/`sweep` still have none. Neither
+  "recovery from a disrupted plan" (no route deliberately injects a
+  failure to recover from) nor "no prolonged repeated failure" (no
+  consecutive-failure/dead-end detector exists in `journey_runner.py` at
+  all) is built yet -- test-infrastructure work of a different kind,
+  sized for its own slice.
 
 ### Definition of done
 

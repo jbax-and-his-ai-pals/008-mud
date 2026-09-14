@@ -285,6 +285,20 @@ class World:
     def look(self, minimal: bool = False, player: Optional['Player'] = None) -> str:
         return generate_room_description(self, minimal, player=player)
 
+    def _locked_message(self, base_message: str, key_id: Optional[str]) -> str:
+        """A locked exit's default refusal, naming the required key when
+        one is actually set and resolvable -- never inventing a key that
+        doesn't exist (a `key_id: null` lock, e.g. a pick-only door, keeps
+        the plain base message)."""
+        if not key_id:
+            return base_message
+        template = self.item_templates.get(key_id)
+        if not template:
+            return base_message
+        key_name = str(template.get("name", key_id))
+        article = "an" if key_name[:1].lower() in "aeiou" else "a"
+        return f"{base_message} It looks like it needs {article} {key_name}."
+
     def _attempt_combat_retreat(self, player: 'Player') -> Tuple[bool, Optional[str]]:
         """Walking away mid-fight isn't free: a contested check against the
         toughest engaged hostile. Which skill governs it, and how the
@@ -356,7 +370,8 @@ class World:
                 key_id = dir_req.get("key_id")
                 has_key = any(slot.item and slot.item.obj_id == key_id for slot in active_player.inventory.slots)
                 if not has_key:
-                    return f"{FORMAT_ERROR}The way {direction} is locked.{FORMAT_RESET}"
+                    fail_msg = dir_req.get("failure_message") or self._locked_message(f"The way {direction} is locked.", key_id)
+                    return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
 
         destination_id = current_room.get_exit(direction)
         if not destination_id: return f"{FORMAT_ERROR}You cannot go {direction}.{FORMAT_RESET}"
@@ -378,7 +393,8 @@ class World:
         if target_lock_key:
              has_key = any(slot.item and slot.item.obj_id == target_lock_key for slot in active_player.inventory.slots)
              if not has_key:
-                  return f"{FORMAT_ERROR}The door to {target_room.name} is locked.{FORMAT_RESET}"
+                  fail_msg = self._locked_message(f"The door to {target_room.name} is locked.", target_lock_key)
+                  return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
 
         target_room.visited = True
         active_player.current_region_id = new_region_id
