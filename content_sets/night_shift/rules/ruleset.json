@@ -1,0 +1,74 @@
+{
+  "ruleset_id": "night_shift_core",
+  "world_mode": "single_player_slice",
+  "progression_model": "level_based",
+  "systems": {
+    "combat": { "enabled": true }
+  },
+  "combat": {
+    "retreat": {
+      "skill": "evasion",
+      "base_difficulty": 8,
+      "difficulty_per_hostile_level": 2
+    }
+  },
+  "locksmithing": {
+    "skill": "security"
+  },
+  "crime": {
+    "enabled": true,
+    "witness": {
+      "skill": "awareness",
+      "base_difficulty": 15,
+      "rank_attribute": "level",
+      "rank_multiplier": 3,
+      "authority_property": "is_authority",
+      "authority_bonus": 25,
+      "excluded_factions": ["hostile", "player_minion"],
+      "xp_success": 15,
+      "xp_caught": 3
+    },
+    "consequences": {
+      "reputation_key": "security_office",
+      "reputation_per_value": 0.5,
+      "custody_value_threshold": 100,
+      "custody_cumulative_threshold": 250,
+      "custody_reputation_threshold": -30,
+      "fine_rate": 2.0,
+      "fine_minimum": 10
+    },
+    "custody": {
+      "room_property": "is_holding_room",
+      "release_destination_property": "release_destination",
+      "base_seconds": 60,
+      "seconds_per_value": 0.5,
+      "concealed_tool_requirements": [
+        { "skill": "awareness", "minimum": 20 },
+        { "skill": "security", "minimum": 20 }
+      ],
+      "emergency_tool_item_id": "item_shim_card",
+      "emergency_tool_durability": 4,
+      "escape_alert_margin": 15,
+      "escape_sentence_penalty_seconds": 45,
+      "search_success_chance": 0.15,
+      "search_currency_min": 1,
+      "search_currency_max": 5
+    }
+  },
+  "skills": {
+    "stat_bonuses": {
+      "security": { "stat": "dexterity", "per_point": 2 },
+      "awareness": { "stat": "wisdom", "per_point": 2 },
+      "evasion": { "stat": "agility", "per_point": 2 }
+    }
+  },
+  "player_defaults": {
+    "player_class": "Attendant",
+    "starting_inventory": [
+      { "item_id": "item_box_cutter", "quantity": 1 }
+    ]
+  },
+  "economy": {
+    "currency_name": "credits"
+  }
+}

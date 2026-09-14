@@ -9,7 +9,6 @@ from engine.campaign.campaign_manager import CampaignManager
 from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, DEFAULT_SAVE_FILE, WORLD_UPDATE_INTERVAL,
     REP_KILL_PENALTY_SAME_FACTION, REP_KILL_REWARD_HOSTILE, FORMAT_SUCCESS, DEFAULT_CURRENCY_NAME,
-    JAIL_ESCAPE_ALERT_MARGIN_THRESHOLD, JAIL_ESCAPE_ALERT_PENALTY_SECONDS
 )
 # UPDATED IMPORT
 from engine.core.quests import QuestManager
@@ -288,8 +287,11 @@ class World:
 
     def _attempt_combat_retreat(self, player: 'Player') -> Tuple[bool, Optional[str]]:
         """Walking away mid-fight isn't free: a contested check against the
-        toughest engaged hostile, reusing the stealth skill (slipping away
-        from a fight is the same act as slipping away with stolen goods).
+        toughest engaged hostile. Which skill governs it, and how the
+        difficulty scales, is content-authored (ruleset "combat.retreat")
+        rather than assumed -- a content set may reuse the same skill it
+        uses for theft (slipping away from a fight is the same act as
+        slipping away with stolen goods), or name a distinct one.
         Returns (allowed_to_move, failure_message)."""
         combat_state = getattr(player.runtime_state, "combat", None)
         if combat_state is None or not combat_state.in_combat:
@@ -300,8 +302,16 @@ class World:
         ]
         if not live_hostiles:
             return True, None
-        difficulty = 10 + 2 * max(getattr(t, "level", 1) for t in live_hostiles)
-        success, _ = SkillSystem.attempt_check(player, "stealth", difficulty)
+        retreat_config = self.ruleset_section("combat").get("retreat", {})
+        if not isinstance(retreat_config, dict) or not retreat_config:
+            return True, None
+        skill = str(retreat_config.get("skill", "")).strip()
+        if not skill:
+            return True, None
+        base_difficulty = retreat_config.get("base_difficulty", 10)
+        per_level = retreat_config.get("difficulty_per_hostile_level", 2)
+        difficulty = base_difficulty + per_level * max(getattr(t, "level", 1) for t in live_hostiles)
+        success, _ = SkillSystem.attempt_check(player, skill, difficulty)
         if not success:
             return False, f"{FORMAT_ERROR}You can't break away from the fight!{FORMAT_RESET}"
         # Deliberately not forcing exit_combat here: a hostile left behind
@@ -424,10 +434,19 @@ class World:
         active_player = self.resolve_reference_player(player)
         current_room = self.get_current_room(active_player)
         if not current_room: return "You are nowhere."
-        
+
+        lockpicking_skill = str(self.ruleset_section("locksmithing").get("skill", "")).strip()
+        if not lockpicking_skill:
+            return "There is no way to pick a lock in this world."
+
+        custody = self.ruleset_section("crime").get("custody", {})
+        room_property = str(custody.get("room_property", "")).strip() if isinstance(custody, dict) else ""
+        escape_alert_margin = custody.get("escape_alert_margin", 0) if isinstance(custody, dict) else 0
+        escape_sentence_penalty = custody.get("escape_sentence_penalty_seconds", 0) if isinstance(custody, dict) else 0
+
         reqs = current_room.properties.get("exit_requirements", {})
         dir_req = reqs.get(direction)
-        
+
         if dir_req and dir_req.get("type") == "locked":
             difficulty = dir_req.get("pick_difficulty", 999)
             if difficulty > 100: return "This lock cannot be picked."
@@ -442,12 +461,12 @@ class World:
             if not lockpick_item:
                 return "You need a lockpick."
 
-            success, msg, margin = SkillSystem.attempt_check_with_margin(active_player, "lockpicking", difficulty)
-            is_jail_cell = bool(current_room.properties.get("is_jail_cell"))
+            success, msg, margin = SkillSystem.attempt_check_with_margin(active_player, lockpicking_skill, difficulty)
+            is_jail_cell = bool(room_property) and bool(current_room.properties.get(room_property))
             if success:
                 del reqs[direction]
                 current_room.update_property("exit_requirements", reqs)
-                SkillSystem.grant_xp(active_player, "lockpicking", difficulty)
+                SkillSystem.grant_xp(active_player, lockpicking_skill, difficulty)
                 escape_note = ""
                 if is_jail_cell and active_player.jailed_until is not None:
                     self.crime_manager.forfeit_confiscated_items(active_player)
@@ -456,8 +475,8 @@ class World:
             else:
                 wear_msg = lockpick_item.apply_wear(active_player, margin) or ""
                 alert_note = ""
-                if is_jail_cell and active_player.jailed_until is not None and abs(margin) >= JAIL_ESCAPE_ALERT_MARGIN_THRESHOLD:
-                    active_player.jailed_until += JAIL_ESCAPE_ALERT_PENALTY_SECONDS
+                if is_jail_cell and active_player.jailed_until is not None and abs(margin) >= escape_alert_margin:
+                    active_player.jailed_until += escape_sentence_penalty
                     alert_note = " The noise brings a guard running -- your sentence just got longer."
                 return f"{FORMAT_ERROR}You fail to pick the lock.{alert_note}{FORMAT_RESET}{wear_msg}"
 
@@ -480,10 +499,10 @@ class World:
                             break
 
                     if not lockpick_item: return "You need a lockpick."
-                    success, msg, margin = SkillSystem.attempt_check_with_margin(active_player, "lockpicking", difficulty)
+                    success, msg, margin = SkillSystem.attempt_check_with_margin(active_player, lockpicking_skill, difficulty)
                     if success:
                         room.properties["locked_by"] = None
-                        SkillSystem.grant_xp(active_player, "lockpicking", 10)
+                        SkillSystem.grant_xp(active_player, lockpicking_skill, 10)
                         return f"{FORMAT_SUCCESS}Click! You unlock the door to {room.name}.{FORMAT_RESET}"
                     else:
                         wear_msg = lockpick_item.apply_wear(active_player, margin) or ""

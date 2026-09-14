@@ -106,6 +106,7 @@ class TestJailWaitAndSearch(GameTestBase):
         result = self.game.process_command("rest")
         self.assertIn("returns your belongings", result)
         self.assertIsNone(self.player.jailed_until)
+        self.assertEqual(("town", "barracks_exterior"), (self.player.current_region_id, self.player.current_room_id))
 
     def test_wait_outside_jail_is_just_flavor(self):
         result = self.game.process_command("wait")

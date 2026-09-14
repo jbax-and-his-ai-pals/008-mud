@@ -5,6 +5,56 @@
   "systems": {
     "gathering": { "enabled": true }
   },
+  "combat": {
+    "retreat": {
+      "skill": "stealth",
+      "base_difficulty": 10,
+      "difficulty_per_hostile_level": 2
+    }
+  },
+  "locksmithing": {
+    "skill": "lockpicking"
+  },
+  "crime": {
+    "enabled": true,
+    "witness": {
+      "skill": "stealth",
+      "base_difficulty": 20,
+      "rank_attribute": "level",
+      "rank_multiplier": 3,
+      "authority_property": "is_guard",
+      "authority_bonus": 20,
+      "excluded_factions": ["hostile", "player_minion"],
+      "xp_success": 15,
+      "xp_caught": 3
+    },
+    "consequences": {
+      "reputation_key": "town_guard",
+      "reputation_per_value": 0.5,
+      "custody_value_threshold": 100,
+      "custody_cumulative_threshold": 250,
+      "custody_reputation_threshold": -30,
+      "fine_rate": 2.0,
+      "fine_minimum": 10
+    },
+    "custody": {
+      "room_property": "is_jail_cell",
+      "release_destination_property": "release_destination",
+      "base_seconds": 60,
+      "seconds_per_value": 0.5,
+      "concealed_tool_requirements": [
+        { "skill": "stealth", "minimum": 20 },
+        { "skill": "lockpicking", "minimum": 20 }
+      ],
+      "emergency_tool_item_id": "item_lockpick_shiv",
+      "emergency_tool_durability": 4,
+      "escape_alert_margin": 15,
+      "escape_sentence_penalty_seconds": 45,
+      "search_success_chance": 0.15,
+      "search_currency_min": 1,
+      "search_currency_max": 5
+    }
+  },
   "player_defaults": {
     "player_class": "Adventurer",
     "magic": { "known_spells": ["magic_missile", "minor_heal"] },

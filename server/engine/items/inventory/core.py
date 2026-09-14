@@ -1,5 +1,6 @@
 # engine/items/inventory/core.py
-from typing import List, Optional, Tuple
+from collections import Counter
+from typing import Callable, Iterable, List, Optional, Tuple
 from engine.items.item import Item
 from .slot import InventorySlot
 from .display import InventoryDisplayMixin
@@ -155,10 +156,123 @@ class Inventory(InventoryDisplayMixin, InventoryPersistenceMixin):
         return None
 
     def remove_item_instance(self, item_instance: Item) -> bool:
-        if not item_instance: return False
+        return self.remove_item_instances([item_instance])
 
-        for slot in self.slots:
-            if slot.item is item_instance:
-                removed_type, removed_count = slot.remove(1) 
-                return removed_type is not None and removed_count == 1
-        return False
+    def select_items(
+        self,
+        obj_id: str,
+        quantity: int,
+        *,
+        predicate: Optional[Callable[[Item], bool]] = None,
+        sort_key: Optional[Callable[[Item], object]] = None,
+    ) -> List[Item]:
+        """Select exact inventory instances without mutating the inventory.
+
+        A stack contributes the same instance once per requested unit.  That
+        representation lets callers later consume precisely the candidates
+        they inspected, whether they are unique quality-bearing items or an
+        ordinary stack.
+        """
+        if quantity <= 0:
+            return []
+        candidates = [
+            slot for slot in self.slots
+            if slot.item is not None and slot.item.obj_id == obj_id
+            and (predicate is None or predicate(slot.item))
+        ]
+        if sort_key is not None:
+            candidates.sort(key=lambda slot: sort_key(slot.item), reverse=True)
+
+        selected: List[Item] = []
+        for slot in candidates:
+            selected.extend([slot.item] * min(slot.quantity, quantity - len(selected)))
+            if len(selected) >= quantity:
+                break
+        return selected
+
+    def remove_item_instances(self, item_instances: Iterable[Item]) -> bool:
+        """Atomically remove the exact item units supplied by a caller.
+
+        The method validates every requested identity and quantity before
+        touching a slot.  Callers can therefore safely award a reward only
+        after this returns true; a stale or mismatched selection cannot cause
+        a partial spend.
+        """
+        requested = [item for item in item_instances if item is not None]
+        if not requested:
+            return False
+        removal_plan = self._exact_removal_plan(requested)
+        if removal_plan is None:
+            return False
+        slots_by_id = {id(slot): slot for slot in self.slots}
+        for slot_id, count in removal_plan.items():
+            removed_item, removed_count = slots_by_id[slot_id].remove(count)
+            if removed_item is None or removed_count != count:
+                # This is unreachable after the validation above unless an
+                # external mutation races the inventory; do not report a
+                # successful transaction in that case.
+                return False
+        return True
+
+    def _exact_removal_plan(self, item_instances: Iterable[Item]) -> Optional[dict[int, int]]:
+        """Return per-slot quantities for an exact-unit removal, or None."""
+        requested = [item for item in item_instances if item is not None]
+        if not requested:
+            return None
+        requested_counts = Counter(id(item) for item in requested)
+        candidates = {
+            item_id: [slot for slot in self.slots if slot.item is not None and id(slot.item) == item_id]
+            for item_id in requested_counts
+        }
+        if any(not slots or sum(slot.quantity for slot in slots) < requested_counts[item_id]
+               for item_id, slots in candidates.items()):
+            return None
+        plan: dict[int, int] = {}
+        for item_id, count in requested_counts.items():
+            remaining = count
+            for slot in candidates[item_id]:
+                removed_here = min(slot.quantity, remaining)
+                if removed_here:
+                    plan[id(slot)] = removed_here
+                    remaining -= removed_here
+                if remaining == 0:
+                    break
+        return plan
+
+    def can_add_item_after_removing(
+        self, item: Item, quantity: int, removed_items: Iterable[Item]
+    ) -> Tuple[bool, str]:
+        """Check output capacity against the inventory after an exact spend."""
+        if quantity <= 0:
+            return True, ""
+        selected = [entry for entry in removed_items if entry is not None]
+        # Recipes with no ingredients are valid authored rewards.  They do
+        # not spend anything, but still need the ordinary capacity check.
+        removal_plan = {} if not selected else self._exact_removal_plan(selected)
+        if removal_plan is None:
+            return False, "The selected ingredients are no longer available."
+
+        current_weight = self.get_total_weight()
+        slots_by_id = {id(slot): slot for slot in self.slots}
+        removed_weight = sum(slots_by_id[slot_id].item.weight * count for slot_id, count in removal_plan.items())
+        if current_weight - removed_weight + item.weight * quantity > self.max_weight:
+            return False, f"Adding {item.name} would exceed your carry weight ({self.max_weight:.1f})."
+
+        remaining_stack = any(
+            slot.item is not None
+            and slot.item.obj_id == item.obj_id
+            and slot.item.stackable
+            and slot.quantity - removal_plan.get(id(slot), 0) > 0
+            for slot in self.slots
+        )
+        if item.stackable and remaining_stack:
+            return True, ""
+        freed_slots = sum(
+            1 for slot in self.slots
+            if slot.item is not None and slot.quantity == removal_plan.get(id(slot), 0)
+        )
+        empty_slots = self.get_empty_slots() + freed_slots
+        slots_needed = 1 if item.stackable else quantity
+        if empty_slots < slots_needed:
+            return False, f"You don't have enough empty inventory slots for {item.name}."
+        return True, ""

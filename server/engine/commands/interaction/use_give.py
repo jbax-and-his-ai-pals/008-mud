@@ -186,8 +186,8 @@ def give_handler(args, context):
         quest_id, quest_data, _completed_objective = matching_quest
         
         # Remove item
-        rem_item, count, _ = player.inventory.remove_item(item.obj_id, 1)
-        if not rem_item: return f"{FORMAT_ERROR}Failed to remove item.{FORMAT_RESET}"
+        if not player.inventory.remove_item_instances([item]):
+            return f"{FORMAT_ERROR}Failed to remove item safely.{FORMAT_RESET}"
         
         # Complete Quest
         qm = world.quest_manager
@@ -207,23 +207,22 @@ def give_handler(args, context):
         today = _world_day_key(world)
         if player.npc_gift_days.get(npc_key) == today:
             return f"{FORMAT_HIGHLIGHT}{npc.name} appreciates the thought, but asks you to save another gift for another day.{FORMAT_RESET}"
-        rem_item, count, _ = player.inventory.remove_item(item.obj_id, 1)
-        if rem_item:
+        if player.inventory.remove_item_instances([item]):
             # Add to NPC inventory if possible
             if hasattr(npc, 'inventory'):
-                npc.inventory.add_item(rem_item)
+                npc.inventory.add_item(item)
             old_score = int(player.npc_relationships.get(npc_key, 0))
-            gained, affinity_reasons = _gift_affinity(npc, rem_item, world)
+            gained, affinity_reasons = _gift_affinity(npc, item, world)
             new_score = min(100, old_score + gained)
             player.npc_relationships[npc_key] = new_score
             player.npc_gift_days[npc_key] = today
             milestone_note = apply_relationship_milestones(player, npc, old_score, new_score, world)
-            crafted_note = " Your handiwork makes the gift feel personal." if rem_item.get_property("crafted_by_player", False) else ""
+            crafted_note = " Your handiwork makes the gift feel personal." if item.get_property("crafted_by_player", False) else ""
             preference_note = " It clearly suits their tastes." if "preferred" in affinity_reasons else ""
             disliked_note = " They accept it politely, but it misses the mark." if "disliked" in affinity_reasons else ""
             quality_note = " Its quality is immediately apparent." if "quality" in affinity_reasons else ""
             response = (
-                f"{FORMAT_SUCCESS}You give the {rem_item.name} to {npc.name}.{FORMAT_RESET}"
+                f"{FORMAT_SUCCESS}You give the {item.name} to {npc.name}.{FORMAT_RESET}"
                 f"{crafted_note}{preference_note}{disliked_note}{quality_note}\n"
                 f"Relationship: +{gained} ({new_score}/100, {relationship_tier(new_score, world)})."
             )

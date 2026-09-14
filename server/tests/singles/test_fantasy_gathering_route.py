@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from engine.items.resource_node import ResourceNode
 from engine.items.item_factory import ItemFactory
+from engine.items.inventory import Inventory
 from engine.player import Player
 from engine.server.content_set import load_content_set
 from engine.server.headless_server import HeadlessServer
@@ -16,6 +17,34 @@ FANTASY_FRONTIER = REPO_ROOT / "content_sets" / "fantasy_frontier"
 
 
 class TestFantasyGatheringRoute(unittest.TestCase):
+    def test_full_inventory_does_not_consume_a_resource_node_charge(self) -> None:
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="full_pack_gatherer")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+            player.inventory = Inventory(max_slots=1, max_weight=100.0)
+            knife = ItemFactory.create_item_from_template("item_foraging_knife", server.world)
+            self.assertIsNotNone(knife)
+            player.inventory.add_item(knife)
+            player.current_region_id = "town"
+            player.current_room_id = "community_garden"
+            node = next(
+                item for item in server.world.get_region("town").get_room("community_garden").items
+                if item.obj_id == "node_herb_bed"
+            )
+            charges_before = node.get_property("charges")
+
+            result = server.execute_command(session.session_id, "gather herb bed")
+
+            self.assertIn("cannot carry", "\n".join(str(event["payload"]) for event in result).lower())
+            self.assertEqual(charges_before, node.get_property("charges"))
+            self.assertEqual(0, player.inventory.count_item("item_wild_herbs"))
+        finally:
+            server.shutdown()
+
     def test_content_declares_gathering_and_the_first_hour_route_is_playable(self) -> None:
         definition, issues = load_content_set(FANTASY_FRONTIER)
         self.assertIsNotNone(definition, issues)
@@ -169,6 +198,106 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             self.assertIn("Craft quality: River Fine.", crafted_text)
             self.assertEqual("river_fine", token.get_property("craft_quality"))
             self.assertEqual(2, token.get_property("material_quality_score"))
+        finally:
+            server.shutdown()
+
+    def test_talisman_quality_uses_its_authored_primary_material_and_is_previewed(self) -> None:
+        """A required binding must not make a pristine primary material pointless."""
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="talisman_quality_player")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+            pristine_quartz = ItemFactory.create_item_from_template("item_rose_quartz", server.world)
+            leather = ItemFactory.create_item_from_template("item_leather_strip", server.world)
+            self.assertIsNotNone(pristine_quartz)
+            self.assertIsNotNone(leather)
+            pristine_quartz.properties.update({
+                "material_quality": "foothill_pristine",
+                "material_quality_label": "Pristine Foothill",
+                "material_quality_score": 3,
+            })
+            pristine_quartz.stackable = False
+            pristine_quartz.update_property("stackable", False)
+            player.inventory.add_item(pristine_quartz)
+            player.inventory.add_item(leather)
+            player.recipe_craft_counts["string_rose_quartz_talisman"] = 3
+
+            listing = server.execute_command(session.session_id, "recipes")
+            listing_text = "\n".join(str(event["payload"]) for event in listing)
+            talisman_preview = next(line for line in listing_text.splitlines() if "Quality preview: Masterwork" in line)
+            self.assertIn("Quality preview: Masterwork (material score 3", listing_text)
+            self.assertIn("quality inputs: 1 x rose quartz", listing_text.lower())
+            self.assertNotIn("next upgrade:", talisman_preview.lower())
+
+            crafted = server.execute_command(session.session_id, "craft string_rose_quartz_talisman")
+            talisman = player.inventory.find_item_by_name("rose quartz talisman")
+            self.assertIn("Craft quality: Masterwork.", "\n".join(str(event["payload"]) for event in crafted))
+            self.assertEqual("masterwork", talisman.get_property("craft_quality"))
+            self.assertEqual(3, talisman.get_property("material_quality_score"))
+        finally:
+            server.shutdown()
+
+    def test_crafting_consumes_the_fine_materials_that_determine_quality(self) -> None:
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="exact_quality_crafter")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+            for _ in range(2):
+                fine_clay = ItemFactory.create_item_from_template("item_river_clay", server.world)
+                fine_clay.properties["material_quality_score"] = 2
+                fine_clay.stackable = False
+                fine_clay.update_property("stackable", False)
+                player.inventory.add_item(fine_clay)
+            ordinary_clay = ItemFactory.create_item_from_template("item_river_clay", server.world)
+            player.inventory.add_item(ordinary_clay, 2)
+
+            crafted = server.execute_command(session.session_id, "craft press_river_token")
+
+            self.assertIn("Craft quality: River Fine.", "\n".join(str(event["payload"]) for event in crafted))
+            remaining_scores = [
+                slot.item.get_property("material_quality_score", 0)
+                for slot in player.inventory.slots
+                if slot.item is not None and slot.item.obj_id == "item_river_clay"
+            ]
+            self.assertEqual([0], remaining_scores)
+        finally:
+            server.shutdown()
+
+    def test_premium_delivery_consumes_the_qualifying_item_instance(self) -> None:
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="exact_quality_delivery")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+            player.npc_relationships["village_elder"] = 10
+            fine_token = ItemFactory.create_item_from_template("item_river_token", server.world)
+            fine_token.properties.update({"crafted_by_player": True, "material_quality_score": 2})
+            fine_token.stackable = False
+            fine_token.update_property("stackable", False)
+            ordinary_token = ItemFactory.create_item_from_template("item_river_token", server.world)
+            ordinary_token.properties["crafted_by_player"] = True
+            player.inventory.add_item(fine_token)
+            player.inventory.add_item(ordinary_token)
+
+            accepted = server.execute_command(session.session_id, "accept quest 3")
+            self.assertIn("Quest Accepted", "\n".join(str(event["payload"]) for event in accepted))
+            delivered = server.execute_command(session.session_id, "give river-clay token to Elder Thorne")
+
+            self.assertIn("Quest Complete", "\n".join(str(event["payload"]) for event in delivered))
+            remaining_scores = [
+                slot.item.get_property("material_quality_score", 0)
+                for slot in player.inventory.slots
+                if slot.item is not None and slot.item.obj_id == "item_river_token"
+            ]
+            self.assertEqual([0], remaining_scores)
         finally:
             server.shutdown()
 
@@ -447,6 +576,12 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             premium_text = "\n".join(str(event["payload"]) for event in premium)
             self.assertIn("Order fulfilled", premium_text)
             self.assertIn("28 gold", premium_text)
+            remaining_token_scores = [
+                slot.item.get_property("material_quality_score", 0)
+                for slot in player.inventory.slots
+                if slot.item is not None and slot.item.obj_id == "item_river_token"
+            ]
+            self.assertEqual([0], remaining_token_scores)
 
             restored = Player.from_dict(player.to_dict(server.world), server.world)
             self.assertIn("riverside_charm", restored.vendor_orders_completed.get("merchant", []))

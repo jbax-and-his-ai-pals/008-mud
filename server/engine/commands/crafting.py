@@ -57,6 +57,28 @@ def recipes_handler(args, context):
             milestone = recipe.familiarity_milestone(craft_count)
             familiarity = str(milestone.get("label", "")) if milestone else "Unpracticed"
             out.append(f"    Practice: {craft_count} craft{'s' if craft_count != 1 else ''} ({familiarity})")
+            if recipe.quality_tiers:
+                preview = manager.quality_preview(player, recipe)
+                tier = preview["tier"]
+                label = str(tier.get("label", "Standard")) if isinstance(tier, dict) else "Standard"
+                contributors = []
+                for ingredient in preview["contributors"]:
+                    template = ItemFactory.get_template(str(ingredient["item_id"]), world)
+                    name = template.get("name", ingredient["item_id"]) if template else ingredient["item_id"]
+                    contributors.append(f"{ingredient['quantity']} x {name}")
+                contribution_note = ", ".join(contributors) if contributors else "none"
+                preview_line = (
+                    f"    Quality preview: {label} (material score {preview['material_quality_score']}; "
+                    f"quality inputs: {contribution_note})"
+                )
+                next_tier = preview["next_tier"]
+                if isinstance(next_tier, dict):
+                    next_label = str(next_tier.get("label", "higher quality"))
+                    preview_line += (
+                        f"; next upgrade: {next_label} at {next_tier.get('min_crafts', 1)} crafts"
+                        f" and material score {next_tier.get('min_material_quality', 0)}"
+                    )
+                out.append(preview_line)
             out.append(f"    Command: craft {r_id}")
             available_count += 1
 

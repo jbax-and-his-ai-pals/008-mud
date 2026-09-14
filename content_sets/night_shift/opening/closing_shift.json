@@ -1,0 +1,9 @@
+{
+  "scenario_id": "closing_shift",
+  "heading": "Closing Shift",
+  "intro": "The depot is quiet this late. Check the supply room, mind the dog in the alley, and don't get caught taking what isn't logged.",
+  "objectives": [
+    { "id": "orient", "instruction": "Take in the loading dock and its exits", "command": "look" },
+    { "id": "meet_priya", "instruction": "Speak with Priya about the shift", "command": "talk priya" }
+  ]
+}

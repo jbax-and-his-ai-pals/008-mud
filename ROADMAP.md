@@ -20,23 +20,156 @@ These are complementary routes, not classes or mandatory checklists.
   player is shown first -- a room description, an interaction suggestion, or
   a highlighted panel entry.
 
-## Now: first-hour hardening
+## Now: trust, recovery, and first-hour truth
 
-**Goal:** a new player can look around, meet someone, choose an activity,
-complete a small goal, receive a visible reward, and see several compelling
-next paths in their first session.
+**Goal:** a new player can explore safely, recover from a mistake, understand
+what a system consumed or rewarded, and make progress through more than one
+route. A passing automated journey must mean the player actually made
+meaningful progress, not only that the server state stayed valid.
 
-- [x] Keep the Journal, encounter panel, inventory, relationship display, and
+### P0: player trust and recovery
+
+- [x] **Fix the innocent-jail soft lock.** Riverside's barracks no longer has
+  a public path into the cell. A served sentence now restores belongings and
+  moves the player to the jail cell's content-authored `release_destination`,
+  rather than telling them they are free while leaving its only exit locked.
+  Focused regressions cover ordinary access, sentence expiry, release,
+  confiscation, search, and escape.
+- [x] **Make inventory-changing actions transactional.** Inventory now selects
+  exact units, preflights post-spend capacity, and atomically removes the
+  selected units. Gathering validates space before depleting a node; crafting
+  and salvage account for freed slots; commissions, gifts, and vendor orders
+  consume their validated instances; house purchase preflights its key; and
+  jail release restores the original pack before placing unavoidable overflow
+  visibly at the release destination. Regression coverage includes full packs,
+  quality/provenance permutations, house keys, and restoration overflow.
+- [x] **Repair quality/provenance consumption.** Crafting now consumes the
+  high-quality materials that determine result quality, and premium deliveries
+  or orders consume qualifying instances rather than an arbitrary matching
+  copy. The inventory API supports exact-unit selections across stacks and
+  distinct instances.
+- [x] **Resolve the masterwork-material contract.** Recipe ingredients now
+  contribute to material grade by default, while content can explicitly mark
+  a required binding, container, fuel, or similar secondary input as
+  `quality_contributes: false`. The talisman therefore grades from its rose
+  quartz rather than its ordinary leather cord, and its existing pristine
+  quartz source can produce the authored masterwork once familiarity is met.
+  `recipes` and the headless-client payload preview the next craft's grade,
+  available material score, and the specific quality-setting inputs. Content
+  validation rejects malformed contributor flags and quality-gated recipes
+  with no contributor.
+- [x] **Keep the engine content-neutral.** `CrimeManager` already read its
+  reputation key, escape-item ID, and value/threshold tuning from a
+  content-authored `crime` ruleset section; the remaining hardcoded
+  fantasy assumptions lived just outside it -- `World._attempt_combat_retreat`
+  assumed a "stealth" skill, and `World.attempt_pick_lock_direction`,
+  `engine/commands/jail.py`, `engine/commands/interaction/traps.py`, and
+  `engine/items/lockpick.py` all assumed a "lockpicking" skill and an
+  `is_jail_cell` property literal instead of reading the same `crime.custody`
+  contract `CrimeManager` already used. Moved the retreat skill to a new
+  `combat.retreat` ruleset section and the shared lock-related skill to a
+  new `locksmithing` section; deleted `engine/config/config_crime.py`
+  outright once every constant it held moved to the ruleset. Added
+  `content_sets/night_shift`, a small real content set that renames every
+  configurable slot (skills, reputation key, jail-room property, emergency
+  item id, currency name) to prove none of it is assumed --
+  `test_content_set_crime_vocabulary.py` drives real theft/witness/custody/
+  escape/retreat flows against it end-to-end.
+
+### P0: first-hour experience
+
+- [ ] Keep the Journal, encounter panel, inventory, relationship display, and
   crafting ledger contextually useful.
-- [x] Turn failures into useful next actions; retain the journey runner's
-  gameplay-failure classification and outcome assertions.
-- [x] Signpost parallel orientation, gather/craft/social, trade, and
+- [ ] Turn failures into useful next actions. A locked route, a depleted node,
+  a full pack, a missing tool, and an unavailable commission should expose a
+  recovery option rather than a bare refusal.
+- [ ] Signpost parallel orientation, gather/craft/social, trade, and
   exploration/combat paths from the opening without implying that one is
   mandatory.
-- [x] Maintain a deterministic first-hour maker/economy route that proves two
-  commissions, a trust gain, a tool purchase, and a destination visit.
-- [x] Add an equally deterministic low-risk combat route with a confirmed
-  encounter resolution, then run it beside the existing route assertions.
+- [ ] Retain deterministic maker/economy and low-risk combat routes, but make
+  them prove an actual completed goal, recovery from a disrupted plan, and no
+  prolonged repeated failure.
+
+### Definition of done
+
+- A fresh player cannot become stuck through ordinary movement.
+- A player can inspect which specific materials will be spent and receives
+  exactly those outcomes after a successful action.
+- A full inventory causes a safe, actionable refusal rather than a lost
+  resource, payment, or key.
+- Solo and shared-world first-hour traces detect repeated failures, dead ends,
+  and uncompleted intended goals.
+- The first session presents at least three viable next activities, including
+  one non-combat route.
+
+## Next: connected lifestyles in existing places
+
+**Goal:** make existing systems feel like a world players can inhabit. Build
+depth and cross-system choices before broadening the map or adding a large
+number of new mechanics.
+
+### Homes, gathering, and crafting
+
+- [ ] Turn the garden/pond house branches into distinct functional choices:
+  a renewable garden with cultivation decisions, and a pond/fishing benefit
+  with its own useful output or social connection. Neither should be required
+  for progression.
+- [ ] Add dependable, persistent home storage plus one player-selected utility
+  (display, workstation, garden, pond, trophy space, or similar) before more
+  decorative house tiers.
+- [ ] Make per-player housing safe for shared worlds: distinct ownership,
+  access, keys, save/load behavior, and recovery from lost access. Do not
+  present the one-fixed-house prototype as multiplayer-ready housing.
+- [ ] Give gathering alternate sources, substitutions, and visible recovery
+  information so a depleted shared resource creates a choice rather than an
+  abandoned session. Consider whether partial harvests should contribute to
+  ecological recovery rather than blocking it.
+- [ ] Extend crafting through decisions, not recipe count: explicit ingredient
+  selection and previews, substitutions with trade-offs, recipe discovery,
+  useful tools/travel supplies/furnishings, and efficient batching for routine
+  work.
+- [ ] Expand fishing through optional location, season, bait, or target-catch
+  choices. Avoid a compulsory reaction minigame.
+
+### Relationships, quests, collecting, and trade
+
+- [ ] Deepen a small cast of named NPCs before adding broad generic social
+  content. Each should have discoverable preferences, a personal multi-step
+  situation, remembered dialogue, more than one way to earn trust, and a
+  concrete access/behavior/opportunity change.
+- [ ] Make gifts personal rather than merely valuable: preserve broad gem
+  appreciation, while letting preferences and remembered context distinguish
+  “valuable” from “thoughtful.”
+- [ ] Extend commissions and campaigns with multiple useful resolutions:
+  gathering, craft, combat, payment, exploration, social effort, or a
+  combination where appropriate. Each resolution should leave a visible
+  consequence in the world, access, prices, or dialogue.
+- [ ] Turn the 44-gem ledger into a series of attainable discoveries: regional
+  and family milestones, museum displays, appraisal leads, and specialist
+  commissions. Completion rewards should match the time and rarity involved;
+  the collection itself should create intermediate reasons to continue.
+- [ ] Measure peaceful, combat, trade, and collecting livelihoods over a real
+  session: earnings, travel, consumables, tool costs, gifts/donations, and
+  time to a meaningful purchase. Balance toward viable alternatives, not
+  identical profit rates.
+
+### Exploration, combat, and crime
+
+- [ ] Densify existing regions before creating new ones. Each meaningful
+  exploration cluster should combine a landmark, resource/discovery, person
+  or problem, a response choice, and a return reason.
+- [ ] Give elite encounters and major enemies readable behavioral identities,
+  not only higher statistics: supporters, defenses, warned attacks, retreats
+  toward allies, and non-combat bypasses or resolutions where fitting.
+- [ ] Audit progression pacing against intended play hours. In particular,
+  check whether skill gates such as the two skill-level-20 concealed-pick
+  requirement can be reached by normal play rather than repetitive grinding.
+- [ ] Complete the crime loop before adding more crime actions: localized
+  jurisdiction, clear risk signaling, fines/restitution/recovery, escape
+  options, and consequences that are interesting without blocking ordinary
+  play.
+- [ ] Treat ambient threat awareness and further patrol work as separate,
+  authored experience slices once recovery and local consequences are solid.
 
 ### Recently completed: opening-room and test-infrastructure hardening
 
@@ -252,17 +385,15 @@ existing authored candidates) -- see place-making below.
 - Recipe familiarity is persistent and visible in terminal/client crafting
   ledgers. Content may author deterministic quality tiers that retain their
   value and gift provenance.
-- Masterwork tiers are now live on all five gift/trade-good recipes (posy,
-  charm, river token, faceted rose quartz, rose quartz talisman), using the
-  engine's existing (already-generic, no code changes needed) combined
-  `min_crafts` + `min_material_quality` gate. The token and quartz recipes
-  require both sustained practice *and* their material's best available
-  grade, not just one or the other. Equipment/consumable recipes
-  (sword, cap, bandage, potion) deliberately don't get a tier yet: the
-  quality-tier system only affects an item's `value` and gift bonus, not
-  combat stats, so a "masterwork" sword would currently be identical in a
-  fight to a plain one -- giving equipment a real masterwork tier needs a
-  quality-affects-stats extension, which is a distinct, larger feature.
+- Masterwork tiers are now live on five gift/trade-good recipes (posy, charm,
+  river token, faceted rose quartz, rose quartz talisman), using the existing
+  combined `min_crafts` + `min_material_quality` gate. This is a capability,
+  not yet fully player-validated: the exact-material transaction and
+  multi-ingredient quality contract are P0 work above. Equipment/consumable
+  recipes (sword, cap, bandage, potion) deliberately do not yet have tiers:
+  the current quality system affects value and gift bonus, not combat stats.
+  Giving equipment a meaningful masterwork tier needs a distinct,
+  quality-affects-stats design.
 - Gatherable nodes may also author material quality. Recipes use the limiting
   score across their required inputs, demonstrated by fine river clay creating
   a premium token even before repeated practice unlocks later tiers.
@@ -575,6 +706,34 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
 - Persist traces, replay and minimize failures, and distinguish player-visible
   dead ends from invariant or protocol failures.
 - Maintain headless defaults for bulk test runs.
+- [ ] **Redefine passing playtests around progress.** Solo reports need
+  intentional outcome checks beyond state invariants; multi-agent reports
+  need equivalent per-agent outcomes. Treat repeated failed commands,
+  prolonged lack of location/goal progress, and an abandoned route with no
+  alternate plan as failures or prominently reported warnings. Expand the
+  classifier beyond its current narrow text patterns to include locked,
+  depleted, and missing-ingredient feedback.
+- [ ] **Separate simulated and real time.** A fast 30-minute journey advances
+  game/calendar time but some NPC, cooldown, spawn, and jail behavior still
+  uses wall-clock time. Establish a shared injectable clock for deterministic
+  simulation, then retain a genuinely real-time background soak mode for
+  timing/concurrency behavior.
+- [ ] **Strengthen shared-world playtesting.** Give every agent a goal and
+  evaluate resource contention, alternate recovery routes, party/reconnect
+  behavior, housing/access, shared doors, and transactions while another
+  player changes the same world. A run with gameplay failures must not be
+  summarized as a clean pass merely because no invariant failed.
+- [ ] **Add route-disruption tests.** Intentionally fill inventory, deplete a
+  resource, remove a tool, alter vendor/relationship availability, trigger
+  jail/death/recovery, and permute item order. Assert a useful recovery path,
+  correct state, and understandable player feedback.
+- [ ] **Run coached and uncoached human sessions.** Observe at least a maker,
+  explorer/collector, social player, and adventurer. Record where a player’s
+  intention fails to become an action, not just crashes or rules violations.
+- [ ] **Track player validation separately from implementation.** Every
+  feature should record: engine contract verified, authored content available,
+  automated player journey demonstrated, and human playtest completed. A
+  checked implementation box alone is not evidence of satisfying play.
 - No test may call `pygame.quit()`: it tears down the process-wide SDL font
   subsystem for every other test in the same run, not just the one that
   called it (see the segfault fix above). `pygame.init()` is idempotent and
@@ -592,9 +751,31 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   review or extend; worth splitting along those seams before it grows much
   further.
 
+## Content authoring, client, and maintenance
+
+- [ ] **Make the normal client a player experience.** Separate player-facing
+  panels and contextual actions from server/profile/authoring/operator
+  controls. Surface expected craft quality, qualifying delivery items,
+  resource leads, locked-content reasons, and recovery actions without
+  exposing internal schema language.
+- [ ] **Add generic text rendering validation.** Render every authored
+  dialogue, description, objective, and vendor template with representative
+  substitutions and fail on leftover placeholders or schema-flavored prose.
+  This should catch issues such as “Deliver the delivery” before playtest.
+- [ ] **Unify the editor path with content-set contracts.** The Godot world
+  editor still targets older unpackaged data conventions. Deliver a canonical
+  export, validator preflight, profile-aware linting, and a launchable
+  validate → run → test workflow before broadening authoring tools or adding
+  live collaboration.
+- [ ] **Keep the roadmap honest and usable.** Reconcile stale documentation,
+  counts, and implementation claims as systems change. Record whether a
+  feature is a proven engine mechanism, a thin authored example, or a
+  player-validated loop.
+
 ## Deliberately later
 
 - Advanced NPC use of playtester policies.
 - Large-scale economy simulation or mandatory player trading.
-- Deep housing expansion before the core loops and their first-hour guidance
-  are proven.
+- Decorative/deep housing tiers beyond a useful personal storage and one
+  functional branch, until the core loops and their first-hour guidance are
+  proven.

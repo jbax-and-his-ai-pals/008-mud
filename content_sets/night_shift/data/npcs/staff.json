@@ -1,0 +1,63 @@
+{
+  "dana": {
+    "name": "Dana",
+    "description": "A stock clerk restocking shelves for the morning shift.",
+    "health": 40,
+    "level": 1,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 8, "dexterity": 9, "constitution": 9, "agility": 9, "intelligence": 9, "wisdom": 9 },
+    "dialog": {
+      "greeting": "Hey. Grab what you need, just log it on the sheet."
+    },
+    "default_dialog": "Dana keeps stacking boxes.",
+    "properties": {
+      "is_vendor": true,
+      "sells_items": [
+        { "item_id": "item_multitool" }
+      ],
+      "buys_item_types": ["Item"]
+    }
+  },
+  "priya": {
+    "name": "Priya",
+    "description": "The overnight shift supervisor, keys clipped to her belt.",
+    "health": 45,
+    "level": 2,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 9, "dexterity": 10, "constitution": 10, "agility": 9, "intelligence": 10, "wisdom": 12 },
+    "dialog": {
+      "greeting": "Everything's accounted for on my shift."
+    },
+    "default_dialog": "Priya glances up from her clipboard.",
+    "properties": {
+      "is_authority": true
+    }
+  },
+  "stray_dog": {
+    "name": "stray dog",
+    "description": "A lean, wary dog that's claimed the alley as its own.",
+    "health": 22,
+    "level": 2,
+    "friendly": false,
+    "faction": "hostile",
+    "behavior_type": "aggressive",
+    "stats": { "strength": 8, "dexterity": 10, "constitution": 8, "agility": 12, "intelligence": 3, "wisdom": 6 },
+    "attack_power": 3,
+    "defense": 1,
+    "dialog": {
+      "greeting": "The dog growls low in its throat.",
+      "threat": "The dog snaps at you.",
+      "flee": "The dog yelps and bolts."
+    },
+    "default_dialog": "The dog paces near the dumpster.",
+    "loot_table": {},
+    "properties": {
+      "flee_threshold": 0.2,
+      "respawn_cooldown": 600
+    }
+  }
+}

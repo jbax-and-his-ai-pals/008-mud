@@ -3291,13 +3291,15 @@ class HeadlessServer:
                     "name": str(template.get("name", item_id)),
                     "have": int(player.inventory.count_item(item_id)),
                     "need": int(ingredient.get("quantity", 1)),
+                    "quality_contributes": ingredient.get("quality_contributes", True) is not False,
                 })
             craftable, blocker = manager.can_craft(player, recipe)
             result = self.world.item_templates.get(recipe.result_item_id, {})
             craft_count = int(getattr(player, "recipe_craft_counts", {}).get(recipe_id, 0))
             milestone = recipe.familiarity_milestone(craft_count)
-            material_quality_score = manager.ingredient_quality_score(player, recipe)
-            quality_tier = recipe.quality_tier(craft_count, material_quality_score)
+            quality_preview = manager.quality_preview(player, recipe)
+            material_quality_score = int(quality_preview["material_quality_score"])
+            quality_tier = quality_preview["tier"]
             recipes.append({
                 "recipe_id": recipe_id,
                 "name": str(recipe.name),
@@ -3312,6 +3314,8 @@ class HeadlessServer:
                 "familiarity_label": str(milestone.get("label", "Unpracticed")) if milestone else "Unpracticed",
                 "quality_label": str(quality_tier.get("label", "Standard")) if quality_tier else "Standard",
                 "material_quality_score": material_quality_score,
+                "quality_contributors": quality_preview["contributors"],
+                "next_quality_tier": quality_preview["next_tier"],
             })
         return {"stations": stations, "recipes": recipes}
 

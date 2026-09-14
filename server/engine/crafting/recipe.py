@@ -57,5 +57,29 @@ class Recipe:
         ]
         return max(
             reached,
-            key=lambda entry: int(entry.get("rank", int(entry["min_crafts"]) + int(entry.get("min_material_quality", 0)))),
+            key=self.quality_rank,
         ) if reached else None
+
+    @staticmethod
+    def quality_rank(entry: Dict[str, Any]) -> int:
+        return int(entry.get("rank", int(entry["min_crafts"]) + int(entry.get("min_material_quality", 0))))
+
+    def next_quality_tier(self, craft_count: int, material_quality_score: int = 0) -> Dict[str, Any] | None:
+        """Return the nearest authored tier above the next craft's outcome."""
+        current = self.quality_tier(craft_count, material_quality_score)
+        current_rank = self.quality_rank(current) if current else -1
+        higher = [tier for tier in self.quality_tiers if self.quality_rank(tier) > current_rank]
+        return min(higher, key=self.quality_rank) if higher else None
+
+    def quality_ingredients(self) -> List[Dict[str, Any]]:
+        """Return inputs which set the craft's material-grade outcome.
+
+        Ingredients contribute by default so existing content preserves its
+        behavior.  Content may set ``quality_contributes`` to false for a
+        binding, container, fuel, or other required input whose grade should
+        not diminish the authored primary material.
+        """
+        return [
+            ingredient for ingredient in self.ingredients
+            if ingredient.get("quality_contributes", True) is not False
+        ]

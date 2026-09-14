@@ -542,6 +542,55 @@ def _validate_resource_node_yields(content_root: Path, issues: list[ContentSetIs
                     validate_quality(candidate["material_quality"], path, entry)
 
 
+def _validate_crafting_quality_contracts(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate generic recipe metadata controlling material-grade outcomes."""
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    crafting_dir = content_root / "crafting"
+    if not crafting_dir.is_dir():
+        return
+    for path in sorted(crafting_dir.glob("*.json")):
+        payload = _load_json(path, issues, "crafting recipes")
+        if not isinstance(payload, dict):
+            continue
+        for recipe_id, recipe in payload.items():
+            if not isinstance(recipe, dict):
+                continue
+            label = f"recipe '{recipe_id}'"
+            ingredients = recipe.get("ingredients", [])
+            if not isinstance(ingredients, list):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.ingredients must be an array"))
+                continue
+            quality_contributors = 0
+            for index, ingredient in enumerate(ingredients):
+                entry = f"{label}.ingredients[{index}]"
+                if not isinstance(ingredient, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry} must be an object"))
+                    continue
+                item_id = ingredient.get("item_id")
+                if not isinstance(item_id, str) or item_id not in item_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{entry}.item_id references a missing item template"))
+                contributes = ingredient.get("quality_contributes", True)
+                if not isinstance(contributes, bool):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry}.quality_contributes must be a boolean"))
+                elif contributes:
+                    quality_contributors += 1
+            tiers = recipe.get("quality_tiers", [])
+            if not isinstance(tiers, list):
+                continue
+            requires_material_quality = any(
+                isinstance(tier, dict)
+                and isinstance(tier.get("min_material_quality"), int)
+                and not isinstance(tier.get("min_material_quality"), bool)
+                and int(tier["min_material_quality"]) > 0
+                for tier in tiers
+            )
+            if requires_material_quality and quality_contributors == 0:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"{label} requires material quality but has no quality-contributing ingredient",
+                ))
+
+
 def _validate_item_extension_data(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Validate optional generic item extension contracts used by the engine.
 
@@ -774,6 +823,7 @@ def load_content_set(
         _validate_discovery_references(content_root, issues)
         _validate_vendor_orders(content_root, issues)
         _validate_resource_node_yields(content_root, issues)
+        _validate_crafting_quality_contracts(content_root, issues)
         _validate_item_extension_data(content_root, issues)
 
     if any(issue.severity == "error" for issue in issues):

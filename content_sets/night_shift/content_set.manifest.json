@@ -1,0 +1,20 @@
+{
+  "id": "night_shift",
+  "title": "Night Shift",
+  "version": "0.1.0",
+  "manifest_schema_version": "1",
+  "engine_api_min": "1.0",
+  "engine_api_max": "1.0",
+  "paths": {
+    "content_root": "data",
+    "ruleset": "rules/ruleset.json",
+    "presentation": "presentation/default.json",
+    "opening": "opening/closing_shift.json"
+  },
+  "start": {
+    "scenario_id": "closing_shift",
+    "region_id": "depot",
+    "room_id": "loading_dock"
+  },
+  "capabilities": ["inventory", "dialogue", "combat"]
+}

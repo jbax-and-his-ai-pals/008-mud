@@ -89,8 +89,8 @@
       { "id": "masterwork", "label": "Masterwork", "min_crafts": 4, "min_material_quality": 3, "rank": 10, "value_multiplier": 1.75, "gift_bonus": 2 }
     ],
     "ingredients": [
-      { "item_id": "item_rose_quartz", "quantity": 1 },
-      { "item_id": "item_leather_strip", "quantity": 1 }
+      { "item_id": "item_rose_quartz", "quantity": 1, "quality_contributes": true },
+      { "item_id": "item_leather_strip", "quantity": 1, "quality_contributes": false }
     ]
   },
   "facet_rose_quartz": {

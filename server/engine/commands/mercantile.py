@@ -213,34 +213,43 @@ def fulfill_handler(args, context):
         return f"{FORMAT_ERROR}You have already completed that order.{FORMAT_RESET}"
     item_id = str(order.get("item_id", ""))
     quantity = max(1, int(order.get("quantity", 1)))
-    item = player.inventory.find_item_by_id(item_id)
-    if item is None or player.inventory.count_item(item_id) < quantity:
+    if player.inventory.count_item(item_id) < quantity:
         return f"{FORMAT_ERROR}You need {quantity} x {world.item_templates.get(item_id, {}).get('name', item_id)} for this order.{FORMAT_RESET}"
-    if bool(order.get("crafted_only", False)) and not bool(item.get_property("crafted_by_player", False)):
-        return f"{FORMAT_ERROR}This order requires an item crafted by you.{FORMAT_RESET}"
     quality_required = _order_material_quality_requirement(order)
-    if quality_required:
-        qualified_items = [
-            slot.item for slot in player.inventory.slots
-            if slot.item is not None and slot.item.obj_id == item_id
-            and isinstance(slot.item.get_property("material_quality_score", 0), int)
-            and not isinstance(slot.item.get_property("material_quality_score", 0), bool)
-            and slot.item.get_property("material_quality_score", 0) >= quality_required
-            and (not bool(order.get("crafted_only", False)) or bool(slot.item.get_property("crafted_by_player", False)))
-        ]
-        if len(qualified_items) < quantity:
-            return f"{FORMAT_ERROR}This order requires {quantity} item(s) with material quality {quality_required} or better.{FORMAT_RESET}"
-        removed_items = []
-        for qualified_item in qualified_items[:quantity]:
-            if not player.inventory.remove_item_instance(qualified_item):
-                return f"{FORMAT_ERROR}The order could not be fulfilled safely.{FORMAT_RESET}"
-            removed_items.append(qualified_item)
-        removed = removed_items[0]
-        count = len(removed_items)
-    else:
-        removed, count, _message = player.inventory.remove_item(item_id, quantity)
-    if removed is None or count != quantity:
+    crafted_only = bool(order.get("crafted_only", False))
+
+    def qualifies(candidate: Item) -> bool:
+        if crafted_only and not bool(candidate.get_property("crafted_by_player", False)):
+            return False
+        raw_quality = candidate.get_property("material_quality_score", 0)
+        quality = int(raw_quality) if isinstance(raw_quality, int) and not isinstance(raw_quality, bool) else 0
+        return quality >= quality_required
+
+    selected_items = player.inventory.select_items(
+        item_id,
+        quantity,
+        predicate=qualifies,
+        sort_key=lambda candidate: candidate.get_property("material_quality_score", 0),
+    )
+    if len(selected_items) != quantity:
+        if quality_required:
+            quality_items = player.inventory.select_items(
+                item_id,
+                quantity,
+                predicate=lambda candidate: (
+                    isinstance(candidate.get_property("material_quality_score", 0), int)
+                    and not isinstance(candidate.get_property("material_quality_score", 0), bool)
+                    and candidate.get_property("material_quality_score", 0) >= quality_required
+                ),
+            )
+            if len(quality_items) != quantity:
+                return f"{FORMAT_ERROR}This order requires {quantity} item(s) with material quality {quality_required} or better.{FORMAT_RESET}"
+        if crafted_only:
+            return f"{FORMAT_ERROR}This order requires an item crafted by you.{FORMAT_RESET}"
         return f"{FORMAT_ERROR}The order could not be fulfilled safely.{FORMAT_RESET}"
+    if not player.inventory.remove_item_instances(selected_items):
+        return f"{FORMAT_ERROR}The order could not be fulfilled safely.{FORMAT_RESET}"
+    removed = selected_items[0]
     reward = max(0, int(order.get("reward_gold", 0)))
     routing = _grant_party_sale_gold(world, player, reward)
     relationship = int(order.get("relationship_amount", 0))

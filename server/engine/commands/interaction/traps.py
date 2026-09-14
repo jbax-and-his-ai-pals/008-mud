@@ -34,16 +34,20 @@ def disarm_handler(args, context):
     if not lockpick_item:
         return f"{FORMAT_ERROR}You need a lockpick to disarm anything.{FORMAT_RESET}"
 
+    skill = str(world.ruleset_section("locksmithing").get("skill", "")).strip()
+    if not skill:
+        return f"{FORMAT_ERROR}There is no way to disarm anything in this world.{FORMAT_RESET}"
+
     difficulty = int(target.get_property("trap_difficulty", 20) or 20)
-    success, _, margin = SkillSystem.attempt_check_with_margin(player, "lockpicking", difficulty)
+    success, _, margin = SkillSystem.attempt_check_with_margin(player, skill, difficulty)
 
     if success:
         target.properties["trapped"] = False
-        xp_msg = SkillSystem.grant_xp(player, "lockpicking", max(10, difficulty // 2))
+        xp_msg = SkillSystem.grant_xp(player, skill, max(10, difficulty // 2))
         return f"{FORMAT_SUCCESS}You carefully disarm the trap on the {target.name}.{FORMAT_RESET}{xp_msg}"
 
     wear_msg = lockpick_item.apply_wear(player, margin) or ""
-    xp_msg = SkillSystem.grant_xp(player, "lockpicking", 2)
+    xp_msg = SkillSystem.grant_xp(player, skill, 2)
     if abs(margin) >= TRAP_DISARM_TRIGGER_MARGIN_THRESHOLD:
         trap_msg = target.trigger_trap(player) or ""
         return f"{FORMAT_ERROR}Your hand slips!{FORMAT_RESET}{trap_msg}{wear_msg}{xp_msg}"

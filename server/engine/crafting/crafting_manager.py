@@ -78,10 +78,45 @@ class CraftingManager:
 
         return True, "Ready to craft."
 
-    def ingredient_quality_score(self, player: 'Player', recipe: Recipe) -> int:
-        """Return the limiting score among the best required materials."""
+    @staticmethod
+    def _material_quality_score(item: Item) -> int:
+        raw_score = item.get_property("material_quality_score", 0)
+        return int(raw_score) if isinstance(raw_score, int) and not isinstance(raw_score, bool) else 0
+
+    def select_recipe_ingredients(self, player: 'Player', recipe: Recipe) -> Optional[List[Item]]:
+        """Choose the exact, highest-quality input units for a recipe."""
+        selected: List[Item] = []
+        for ingredient in recipe.ingredients:
+            item_id = str(ingredient.get("item_id", ""))
+            quantity = max(1, int(ingredient.get("quantity", 1)))
+            choices = player.inventory.select_items(
+                item_id, quantity, sort_key=self._material_quality_score
+            )
+            if len(choices) != quantity:
+                return None
+            selected.extend(choices)
+        return selected
+
+    def ingredient_quality_score(self, player: 'Player', recipe: Recipe, selected_items: Optional[List[Item]] = None) -> int:
+        """Return the limiting score among the exact quality-setting inputs."""
+        if selected_items is not None:
+            selected_scores: List[int] = []
+            offset = 0
+            for ingredient in recipe.ingredients:
+                quantity = max(1, int(ingredient.get("quantity", 1)))
+                chosen = selected_items[offset:offset + quantity]
+                if len(chosen) != quantity:
+                    return 0
+                if ingredient.get("quality_contributes", True) is not False:
+                    selected_scores.append(min(self._material_quality_score(item) for item in chosen))
+                offset += quantity
+            return min(selected_scores) if selected_scores else 0
+
+        # Compatibility path for callers that only need a preview.
         selected_scores: List[int] = []
         for ingredient in recipe.ingredients:
+            if ingredient.get("quality_contributes", True) is False:
+                continue
             item_id = str(ingredient.get("item_id", ""))
             quantity = max(1, int(ingredient.get("quantity", 1)))
             scores: List[int] = []
@@ -89,13 +124,37 @@ class CraftingManager:
                 item = slot.item
                 if item is None or str(getattr(item, "obj_id", "")) != item_id:
                     continue
-                raw_score = item.get_property("material_quality_score", 0)
-                score = int(raw_score) if isinstance(raw_score, int) and not isinstance(raw_score, bool) else 0
+                score = self._material_quality_score(item)
                 scores.extend([score] * min(quantity, int(slot.quantity)))
             if len(scores) < quantity:
                 return 0
             selected_scores.append(min(sorted(scores, reverse=True)[:quantity]))
         return min(selected_scores) if selected_scores else 0
+
+    def quality_preview(self, player: 'Player', recipe: Recipe) -> Dict[str, object]:
+        """Describe the next craft's material-grade outcome without spending.
+
+        This intentionally returns generic recipe/item identifiers and tier
+        metadata; presentation layers may use any genre vocabulary they need.
+        """
+        selected = self.select_recipe_ingredients(player, recipe)
+        material_score = self.ingredient_quality_score(player, recipe, selected) if selected else 0
+        next_craft_count = int(getattr(player, "recipe_craft_counts", {}).get(recipe.recipe_id, 0)) + 1
+        tier = recipe.quality_tier(next_craft_count, material_score)
+        contributors = [
+            {
+                "item_id": str(ingredient.get("item_id", "")),
+                "quantity": max(1, int(ingredient.get("quantity", 1))),
+            }
+            for ingredient in recipe.quality_ingredients()
+        ]
+        return {
+            "next_craft_count": next_craft_count,
+            "material_quality_score": material_score,
+            "tier": tier,
+            "next_tier": recipe.next_quality_tier(next_craft_count, material_score),
+            "contributors": contributors,
+        }
 
     def craft(self, player: 'Player', recipe_id: str) -> str:
         """Executes the crafting process: consume ingredients, create result."""
@@ -108,6 +167,9 @@ class CraftingManager:
 
         can_craft, msg = self.can_craft(player, recipe)
         if not can_craft: return msg
+        selected_ingredients = self.select_recipe_ingredients(player, recipe)
+        if selected_ingredients is None:
+            return "The selected ingredients are no longer available."
 
         # --- NEW: Skill Check Logic ---
         # By default, result value informs a skill check. Content can opt a
@@ -140,7 +202,7 @@ class CraftingManager:
         result_item.properties["crafted_recipe_id"] = recipe.recipe_id
         prior_crafts = int(getattr(player, "recipe_craft_counts", {}).get(recipe.recipe_id, 0))
         result_item.properties["crafted_recipe_count"] = prior_crafts + 1
-        material_quality_score = self.ingredient_quality_score(player, recipe)
+        material_quality_score = self.ingredient_quality_score(player, recipe, selected_ingredients)
         quality_tier = recipe.quality_tier(prior_crafts + 1, material_quality_score)
         quality_note = ""
         if quality_tier:
@@ -163,17 +225,24 @@ class CraftingManager:
             result_item.properties["gift_quality_bonus"] = gift_bonus
             quality_note = f"\nCraft quality: {quality_label}."
 
-        # 2. Check Inventory Space
-        can_add, space_msg = player.inventory.can_add_item(result_item, recipe.result_quantity)
+        # 2. Check output capacity after the exact ingredients are removed.
+        can_add, space_msg = player.inventory.can_add_item_after_removing(
+            result_item, recipe.result_quantity, selected_ingredients
+        )
         if not can_add:
             return f"Not enough inventory space: {space_msg}"
 
-        # 3. Consume Ingredients
-        for ing in recipe.ingredients:
-            player.inventory.remove_item(ing["item_id"], ing["quantity"])
+        # 3. Consume the same exact ingredients whose quality was evaluated.
+        if selected_ingredients and not player.inventory.remove_item_instances(selected_ingredients):
+            return "The selected ingredients are no longer available."
 
         # 4. Add Result
-        player.inventory.add_item(result_item, recipe.result_quantity)
+        added, add_message = player.inventory.add_item(result_item, recipe.result_quantity)
+        if not added:
+            # Capacity was preflighted against this exact spend, so reaching
+            # here requires an external mutation. Never present it as a
+            # successful craft.
+            return f"Unable to add the crafted item: {add_message}"
         player.recipe_craft_counts[recipe.recipe_id] = prior_crafts + 1
         discovery_manager = getattr(getattr(self.world, "game", None), "discovery_manager", None)
         discovery_note = discovery_manager.handle_item_discovery(player, result_item) if discovery_manager else ""
@@ -223,11 +292,13 @@ class CraftingManager:
         if not mat:
              return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"
              
-        # 3. Remove Item
-        # If stackable, we only salvage 1 unless we add qty logic. Assuming 1.
-        player.inventory.remove_item(item.obj_id, 1)
-        
-        # 4. Add Materials
-        player.inventory.add_item(mat, output_qty)
+        can_add, space_message = player.inventory.can_add_item_after_removing(mat, output_qty, [item])
+        if not can_add:
+            return f"{FORMAT_ERROR}You cannot salvage the {item.name}: {space_message}{FORMAT_RESET}"
+        if not player.inventory.remove_item_instances([item]):
+            return f"{FORMAT_ERROR}You cannot salvage the {item.name} safely.{FORMAT_RESET}"
+        added, add_message = player.inventory.add_item(mat, output_qty)
+        if not added:
+            return f"{FORMAT_ERROR}Unable to recover salvage: {add_message}{FORMAT_RESET}"
         
         return f"{FORMAT_SUCCESS}You salvage the {item.name} and recover {output_qty} {mat.name}.{FORMAT_RESET}"

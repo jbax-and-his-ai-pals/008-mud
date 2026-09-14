@@ -9,6 +9,7 @@ from tests.fixtures import GameTestBase
 from engine.npcs.npc import NPC
 from engine.items.lockpick import Lockpick
 from engine.items.item import Item
+from engine.items.inventory import Inventory
 from engine.player.core import Player
 
 
@@ -84,8 +85,8 @@ class TestResolveCrime(GameTestBase):
 
     def test_high_value_theft_goes_straight_to_jail(self):
         self.player.runtime_state.gold = 100000
-        from engine.config import CRIME_JAIL_VALUE_THRESHOLD
-        msg = self.world.crime_manager.resolve_crime(self.player, theft_value=CRIME_JAIL_VALUE_THRESHOLD)
+        jail_value_threshold = self.world.ruleset_section("crime")["consequences"]["custody_value_threshold"]
+        msg = self.world.crime_manager.resolve_crime(self.player, theft_value=jail_value_threshold)
         self.assertIn("cell", msg)
         self.assertIsNotNone(self.player.jailed_until)
 
@@ -96,7 +97,6 @@ class TestResolveCrime(GameTestBase):
         self.assertEqual(0, self.player.get_reputation("friendly"))
 
     def test_repeat_offenses_eventually_escalate_to_jail(self):
-        from engine.config import CRIME_JAIL_CUMULATIVE_THRESHOLD
         self.player.runtime_state.gold = 1000000
         msg = ""
         for _ in range(50):
@@ -133,6 +133,25 @@ class TestJailingAndRelease(GameTestBase):
         self.assertIsNone(self.player.jailed_until)
         self.assertIsNone(self.player.confiscated_inventory)
         self.assertTrue(any(s.item and s.item.name == "Trinket" for s in self.player.inventory.slots))
+        self.assertEqual(("town", "barracks_exterior"), (self.player.current_region_id, self.player.current_room_id))
+
+    def test_release_preserves_a_full_confiscated_pack_and_places_overflow_nearby(self):
+        self.player.inventory = Inventory(max_slots=1, max_weight=100.0)
+        self.player.inventory.add_item(Item(name="Packed Trinket"))
+        self.player.add_skill("stealth", 25)
+        self.player.add_skill("lockpicking", 25)
+        self.world.crime_manager.send_to_jail(self.player, sentence_seconds=60)
+
+        msg = self.world.crime_manager.release_from_jail(self.player)
+
+        self.assertTrue(any(slot.item and slot.item.name == "Packed Trinket" for slot in self.player.inventory.slots))
+        self.assertIn("sets aside", msg)
+        release_room = self.world.get_current_room(self.player)
+        self.assertTrue(any(isinstance(item, Lockpick) for item in release_room.items))
+
+    def test_jail_cell_is_not_an_ordinary_barracks_destination(self):
+        barracks = self.world.get_region("town").get_room("barracks_interior")
+        self.assertNotIn("down", barracks.exits)
 
     def test_forfeit_clears_state_without_restoring_items(self):
         self.player.inventory.add_item(Item(name="Trinket", value=5))

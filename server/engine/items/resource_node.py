@@ -90,10 +90,15 @@ class ResourceNode(Item):
                     resource.properties["material_source_label"] = self.name
                     resource.stackable = False
                     resource.update_property("stackable", False)
+            can_add, space_message = player.inventory.can_add_item(resource)
+            if not can_add:
+                return f"{FORMAT_ERROR}You cannot carry the {resource.name}: {space_message}{FORMAT_RESET}"
+            added, add_message = player.inventory.add_item(resource)
+            if not added:
+                return f"{FORMAT_ERROR}You cannot carry the {resource.name}: {add_message}{FORMAT_RESET}"
             self.update_property("charges", charges - 1)
             if charges - 1 <= 0 and respawn_days > 0:
                 self.update_property("depleted_day", day_number)
-            player.inventory.add_item(resource)
             discovery = ""
             collection_manager = getattr(getattr(world, "game", None), "collection_manager", None)
             if collection_manager is not None:

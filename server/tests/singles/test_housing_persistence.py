@@ -12,6 +12,7 @@ import unittest
 from pathlib import Path
 
 from engine.items.item_factory import ItemFactory
+from engine.items.inventory import Inventory
 from engine.server.content_set import load_content_set
 from engine.server.headless_server import HeadlessServer
 
@@ -21,6 +22,31 @@ FANTASY_FRONTIER = REPO_ROOT / "content_sets" / "fantasy_frontier"
 
 
 class TestHousingPersistence(unittest.TestCase):
+    def test_buy_house_requires_space_for_its_key_before_charging_or_building(self) -> None:
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="full_pack_house_buyer")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+            player.runtime_state.gold = 1000
+            player.inventory = Inventory(max_slots=1, max_weight=100.0)
+            filler = ItemFactory.create_item_from_template("item_starter_dagger", server.world)
+            player.inventory.add_item(filler)
+            player.current_region_id = "town"
+            player.current_room_id = "player_house_exterior"
+
+            result = server.execute_command(session.session_id, "buy house")
+
+            self.assertIn("room for the house key", "\n".join(str(event["payload"]) for event in result))
+            self.assertEqual(1000, player.runtime_state.gold)
+            self.assertIsNone(server.world.get_region("dynamic_player_house"))
+            exterior = server.world.get_region("town").get_room("player_house_exterior")
+            self.assertNotIn("in", exterior.exits)
+        finally:
+            server.shutdown()
+
     def test_buy_house_survives_save_and_a_fresh_server_load(self) -> None:
         definition, issues = load_content_set(FANTASY_FRONTIER)
         self.assertIsNotNone(definition, issues)

@@ -73,7 +73,7 @@
       "name": "Inside the Barracks",
       "description": "The barracks common room is simple and orderly. Bunks line the walls, and a long table is set for meals. A guard captain is reviewing a map.",
       "properties": { "outdoors": false },
-      "exits": { "out": "barracks_exterior", "down": "jail_cell" },
+      "exits": { "out": "barracks_exterior" },
       "initial_npcs": [ { "template_id": "guard_captain", "instance_id": "guard_captain_elara" } ]
     },
     "jail_cell": {
@@ -82,6 +82,7 @@
       "properties": {
         "outdoors": false,
         "is_jail_cell": true,
+        "release_destination": "town:barracks_exterior",
         "exit_requirements": { "up": { "type": "locked", "key_id": null, "pick_difficulty": 35 } }
       },
       "exits": { "up": "barracks_interior" }

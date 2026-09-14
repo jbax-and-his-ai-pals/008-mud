@@ -9,7 +9,7 @@ from unittest.mock import patch
 from engine.magic.spell_registry import get_spell
 from engine.server.headless_server import HeadlessServer
 from engine.player import Player
-from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_discovery_references, _validate_item_extension_data, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
+from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_crafting_quality_contracts, _validate_discovery_references, _validate_item_extension_data, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
 from poc_server import JsonLineMudServer
 from poc_ws_server import JsonWebSocketMudServer
 
@@ -85,6 +85,26 @@ class TestContentSetRuntime(unittest.TestCase):
         self.assertTrue(any("material_quality.id must be a non-empty string" in message for message in messages))
         self.assertTrue(any("chance must be a number from 0 to 1" in message for message in messages))
         self.assertTrue(any("material_quality must be an object" in message for message in messages))
+
+    def test_crafting_quality_contributor_contract_is_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir(); (content_root / "crafting").mkdir()
+            (content_root / "items" / "items.json").write_text(
+                json.dumps({"item_real": {}}), encoding="utf-8",
+            )
+            (content_root / "crafting" / "recipes.json").write_text(json.dumps({
+                "bad": {
+                    "ingredients": [{"item_id": "item_missing", "quality_contributes": "yes"}],
+                    "quality_tiers": [{"min_crafts": 1, "min_material_quality": 2}],
+                },
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_crafting_quality_contracts(content_root, issues)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("missing item template" in message for message in messages))
+        self.assertTrue(any("quality_contributes must be a boolean" in message for message in messages))
+        self.assertTrue(any("has no quality-contributing ingredient" in message for message in messages))
 
     def test_attachment_extensions_are_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

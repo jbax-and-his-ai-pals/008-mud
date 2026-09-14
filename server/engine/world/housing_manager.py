@@ -88,6 +88,14 @@ class HousingManager:
 
         key_item_id = offer.get("key_item_id")
         exit_requirements = {"type": "locked", "key_id": key_item_id} if key_item_id else None
+        key_item = None
+        if key_item_id:
+            key_item = ItemFactory.create_item_from_template(key_item_id, self.world)
+            if key_item is None:
+                return False, "Unknown house offer configuration: missing key item template."
+            can_add, space_message = player.inventory.can_add_item(key_item, 1)
+            if not can_add:
+                return False, f"You need room for the house key: {space_message}"
 
         region, entry_room_id = self.world.instance_manager.build_region(
             unique_region_id=region_id,
@@ -105,10 +113,15 @@ class HousingManager:
         region.properties["interior_room_id"] = entry_room_id
         region.properties["house_tier"] = 1
 
-        if key_item_id:
-            key_item = ItemFactory.create_item_from_template(key_item_id, self.world)
-            if key_item:
-                player.inventory.add_item(key_item, 1)
+        if key_item is not None:
+            added, add_message = player.inventory.add_item(key_item, 1)
+            if not added:
+                # The preflight above makes this unreachable without an
+                # external mutation. Roll back the newly materialized house
+                # rather than charge a player who did not receive its key.
+                self.world.instance_manager.remove_entry_exit(region)
+                del self.world.regions[region_id]
+                return False, f"Unable to issue the house key: {add_message}"
 
         player.runtime_state.gold -= cost
         return True, (
@@ -207,9 +220,18 @@ class HousingManager:
         if missing:
             return False, f"Missing materials: {', '.join(missing)}."
 
-        player.runtime_state.gold -= cost
+        selected_materials = []
         for material in materials:
-            player.inventory.remove_item(str(material.get("item_id", "")), int(material.get("quantity", 1)))
+            selected = player.inventory.select_items(
+                str(material.get("item_id", "")), int(material.get("quantity", 1))
+            )
+            if len(selected) != int(material.get("quantity", 1)):
+                return False, "The selected house materials are no longer available."
+            selected_materials.extend(selected)
+        if not player.inventory.remove_item_instances(selected_materials):
+            return False, "The selected house materials are no longer available."
+
+        player.runtime_state.gold -= cost
 
         room = house.get_room(house.properties.get("interior_room_id"))
         if room is not None:

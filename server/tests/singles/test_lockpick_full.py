@@ -29,17 +29,22 @@ class TestLockpickUse(GameTestBase):
         container = Container(name="Chest", locked=True)
         container.update_property("lock_difficulty", 30)
 
+        world = self.world
+
         class _NoInventoryUser:
             name = "Ghost User"
             def get_skill_level(self, skill_name):
                 return 0
+
+        no_inventory_user = _NoInventoryUser()
+        no_inventory_user.world = world  # needed to resolve the ruleset-configured lockpicking skill
 
         with patch(
             "engine.items.lockpick.SkillSystem.attempt_check_with_margin",
             return_value=(False, "roll failed", -20),
         ):
             with patch("engine.items.lockpick.SkillSystem.grant_xp", return_value=""):
-                result = pick.use(_NoInventoryUser(), target=container)  # must not raise
+                result = pick.use(no_inventory_user, target=container)  # must not raise
         self.assertIn("snaps in the mechanism", result)
 
 

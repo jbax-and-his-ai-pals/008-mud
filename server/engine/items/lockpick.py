@@ -63,17 +63,22 @@ class Lockpick(Item):
             if trap_msg and not getattr(user, "is_alive", True):
                 return trap_msg.strip()
 
+            world = getattr(user, "world", None)
+            skill = str(world.ruleset_section("locksmithing").get("skill", "")).strip() if world is not None else ""
+            if not skill:
+                return f"{FORMAT_ERROR}There is no way to pick locks in this world.{FORMAT_RESET}"
+
             difficulty = target.get_property("lock_difficulty", 30)
-            success, debug_msg, margin = SkillSystem.attempt_check_with_margin(user, "lockpicking", difficulty)
+            success, debug_msg, margin = SkillSystem.attempt_check_with_margin(user, skill, difficulty)
 
             wear_msg = ""
             if success:
                 xp_gain = max(10, difficulty // 2)
-                xp_msg = SkillSystem.grant_xp(user, "lockpicking", xp_gain)
+                xp_msg = SkillSystem.grant_xp(user, skill, xp_gain)
                 target_as_any.pick_lock(user)
                 msg = f"{FORMAT_SUCCESS}Click! You skillfully pick the lock on the {target.name}.{FORMAT_RESET}"
             else:
-                xp_msg = SkillSystem.grant_xp(user, "lockpicking", 2)
+                xp_msg = SkillSystem.grant_xp(user, skill, 2)
                 wear_msg = self.apply_wear(user, margin) or ""
                 msg = f"{FORMAT_ERROR}You fumble with the lock but fail to open it.{FORMAT_RESET}"
 

@@ -154,7 +154,7 @@ class TestGiveHandler(GameTestBase):
         recipient = self._recipient("give_recipient_removal_fail")
         item = Item(name="Gift Item")
         self.player.inventory.add_item(item)
-        with patch.object(self.player.inventory, "remove_item", return_value=(None, 0, "mock failure")):
+        with patch.object(self.player.inventory, "remove_item_instances", return_value=False):
             result = self.game.process_command(f"give Gift Item to {recipient.name}")
         self.assertIn("Failed to remove item", result)
 
@@ -212,7 +212,7 @@ class TestGiveHandler(GameTestBase):
     def test_quest_delivery_removal_failure_is_reported(self):
         recipient = self._recipient("quest_removal_fail_recipient")
         self._quest_setup("pkg_removal_fail", "quest_removal_fail_recipient")
-        with patch.object(self.player.inventory, "remove_item", return_value=(None, 0, "mock failure")):
+        with patch.object(self.player.inventory, "remove_item_instances", return_value=False):
             result = self.game.process_command(f"give Package to {recipient.name}")
         self.assertIn("Failed to remove item", result)
 
