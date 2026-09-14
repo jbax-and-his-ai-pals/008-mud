@@ -38,7 +38,9 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
         FantasyFrontierFirstHourPolicy,
         FantasyFrontierOpportunityPolicy,
         FantasyFrontierPremiumMaterialPolicy,
+        FantasyFrontierResilienceRoutePolicy,
         FantasyFrontierSystemSweepPolicy,
+        JailFault,
         JourneyRunner,
         MultiJourneyRunner,
         SessionReconnectFault,
@@ -46,6 +48,7 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
         fantasy_frontier_first_hour_outcome_checks,
         fantasy_frontier_premium_material_outcome_checks,
         fantasy_frontier_opportunity_route_outcome_checks,
+        fantasy_frontier_resilience_route_outcome_checks,
     )
 
     content_set = Path(args.content_set).resolve()
@@ -66,13 +69,17 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
                 "opportunity": FantasyFrontierOpportunityPolicy,
                 "premium": FantasyFrontierPremiumMaterialPolicy,
                 "sweep": FantasyFrontierSystemSweepPolicy,
+                "resilience": FantasyFrontierResilienceRoutePolicy,
             }
             selected_policies = args.agent_policy or [args.policy] * args.agents
+            if "resilience" in selected_policies:
+                hooks.append(JailFault(FantasyFrontierResilienceRoutePolicy.JAIL_TRIGGER_INDEX))
             outcome_check_factories = {
                 "first-hour": fantasy_frontier_first_hour_outcome_checks,
                 "combat": fantasy_frontier_combat_route_outcome_checks,
                 "premium": fantasy_frontier_premium_material_outcome_checks,
                 "opportunity": fantasy_frontier_opportunity_route_outcome_checks,
+                "resilience": fantasy_frontier_resilience_route_outcome_checks,
             }
             if args.agents > 1:
                 report = MultiJourneyRunner(
@@ -121,12 +128,12 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--content-set", default=str(REPOSITORY_ROOT / "content_sets" / "fantasy_frontier"))
-    parser.add_argument("--policy", choices=("explorer", "combat", "guided", "first-hour", "opportunity", "premium", "sweep"), default="guided")
+    parser.add_argument("--policy", choices=("explorer", "combat", "guided", "first-hour", "opportunity", "premium", "sweep", "resilience"), default="guided")
     parser.add_argument("--duration", type=float, default=1800.0, help="Simulated seconds per journey.")
     parser.add_argument("--action-interval", type=float, default=5.0, help="Simulated seconds per command.")
     parser.add_argument("--runs", type=int, default=1, help="Journeys per cycle.")
     parser.add_argument("--agents", type=int, default=1, help="Player-like agents sharing each journey world.")
-    parser.add_argument("--agent-policy", choices=("explorer", "combat", "guided", "first-hour", "opportunity", "premium", "sweep"), action="append", default=[], help="Per-agent policy; repeat once per shared-world agent.")
+    parser.add_argument("--agent-policy", choices=("explorer", "combat", "guided", "first-hour", "opportunity", "premium", "sweep", "resilience"), action="append", default=[], help="Per-agent policy; repeat once per shared-world agent.")
     parser.add_argument("--seed", type=int, default=1, help="First seed; later runs increment it.")
     parser.add_argument("--reconnect-at", type=int, nargs="*", default=[], help="Journey steps that inject disconnect/resume.")
     parser.add_argument("--trace-dir", default=str(SERVER_ROOT / "tmp" / "playtest_lab"))

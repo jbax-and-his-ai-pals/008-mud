@@ -849,10 +849,22 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   per-agent outcome checks, above) and one real contention finding to
   start from; still needed: alternate recovery routes, party/reconnect,
   housing/access, shared doors, and transaction interference specifically.
-- [ ] **Add route-disruption tests.** Intentionally fill inventory, deplete a
-  resource, remove a tool, alter vendor/relationship availability, trigger
-  jail/death/recovery, and permute item order. Assert a useful recovery path,
-  correct state, and understandable player feedback.
+- [x] **Add route-disruption tests.** "Remove a tool" already had journey
+  coverage (`FantasyFrontierPremiumMaterialPolicy`'s dropped-foraging-knife
+  beat). New `FantasyFrontierResilienceRoutePolicy`
+  (`server/tests/journey_runner.py`, `--policy resilience`) covers the
+  other five: fills the inventory to its slot cap and recovers by dropping
+  and retaking; gets refused buying relationship-gated vendor stock and
+  recovers by buying an unrestricted alternative; gathers a resource node
+  to exhaustion and gets its own recovery-window message; is jailed (via a
+  new deterministic `JailFault` hook that bypasses the theft witness roll
+  entirely) and released purely by the shared clock advancing -- the first
+  real proof the clock work above actually holds end-to-end; dies via the
+  `sethealth` debug command and recovers via `respawn`; and gathers a
+  single ingredient with unrelated commands interleaved between the two
+  pickups, proving a craft resolves by template id rather than pickup
+  order or slot adjacency. Each disruption's outcome check asserts both
+  the refusal text and the subsequent recovery.
 - [ ] **Run coached and uncoached human sessions.** Observe at least a maker,
   explorer/collector, social player, and adventurer. Record where a player’s
   intention fails to become an action, not just crashes or rules violations.

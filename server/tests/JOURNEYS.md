@@ -133,9 +133,26 @@ its agent id (e.g. `agent_2: ...`), and gate `passed` in the JSON summary's
 `opportunity` run. An `explorer`/`guided`/`sweep` agent has none, same as
 in a solo run.
 
-Use `--keep-passing-traces` when investigating a behavior change. The current
-fault hook covers authoritative disconnect/resume; future hooks should add
-restart/recovery and inventory-overflow cases only with explicit invariants.
+Use `--keep-passing-traces` when investigating a behavior change. Fault
+hooks cover authoritative disconnect/resume (`SessionReconnectFault`) and a
+deterministic jail sentence (`JailFault`, bypassing the theft witness roll
+entirely so a route doesn't depend on unseeded randomness to land the
+player in a cell).
+
+`FantasyFrontierResilienceRoutePolicy` (`--policy resilience`) rounds out
+route-disruption coverage: `FantasyFrontierPremiumMaterialPolicy` already
+proves recovery from a missing tool; this route deliberately triggers the
+other five named disruption types, each followed by its normal
+continuation -- a full inventory (`take all` hits the slot cap, `drop`
+frees one, a retry succeeds), a relationship-gated vendor refusal (buying
+reserved stock is refused, buying an unrestricted alternative succeeds), a
+jail sentence served and released purely by the shared clock advancing
+(see `engine/core/clock.py`), death and respawn via the `sethealth`/
+`respawn` debug commands, non-contiguous gathering (unrelated commands
+interleaved between two "gather herb bed" calls) still resolving a craft
+correctly, and a depleted resource node reporting its own recovery
+window. `fantasy_frontier_resilience_route_outcome_checks()` asserts both
+halves -- the refusal text and the subsequent recovery -- for each.
 
 Example for a half-hour simulated journey:
 

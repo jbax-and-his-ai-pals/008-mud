@@ -13,7 +13,9 @@ from tests.journey_runner import (
     FantasyFrontierFirstSessionPolicy,
     FantasyFrontierOpportunityPolicy,
     FantasyFrontierPremiumMaterialPolicy,
+    FantasyFrontierResilienceRoutePolicy,
     FantasyFrontierSystemSweepPolicy,
+    JailFault,
     JourneyRunner,
     LocationVisitedOutcome,
     MultiJourneyRunner,
@@ -24,6 +26,7 @@ from tests.journey_runner import (
     fantasy_frontier_combat_route_outcome_checks,
     fantasy_frontier_premium_material_outcome_checks,
     fantasy_frontier_opportunity_route_outcome_checks,
+    fantasy_frontier_resilience_route_outcome_checks,
     minimize_failing_commands,
 )
 
@@ -146,6 +149,22 @@ class TestJourneyRunner(unittest.TestCase):
             ).run(duration_s=400.0)
             self.assertTrue(report.passed, report.outcome_errors)
             self.assertEqual([], report.outcome_errors)
+        finally:
+            server.shutdown()
+
+    def test_resilience_route_recovers_from_every_disruption_type(self) -> None:
+        server = make_test_server()
+        try:
+            report = JourneyRunner(
+                server,
+                seed=31,
+                policy=FantasyFrontierResilienceRoutePolicy(),
+                hooks=[JailFault(FantasyFrontierResilienceRoutePolicy.JAIL_TRIGGER_INDEX)],
+                outcome_checks=fantasy_frontier_resilience_route_outcome_checks(),
+            ).run(duration_s=400.0)
+            self.assertTrue(report.passed, report.outcome_errors)
+            self.assertEqual([], report.outcome_errors)
+            self.assertEqual([], report.stall_errors)
         finally:
             server.shutdown()
 

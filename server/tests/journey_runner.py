@@ -58,6 +58,30 @@ class SessionReconnectFault:
         return "session_disconnect_resume"
 
 
+class JailFault:
+    """Force a deterministic jail sentence at a specific step.
+
+    Bypasses the theft witness roll and fine/jail threshold entirely --
+    calling CrimeManager.send_to_jail directly -- so a route-disruption
+    journey can prove jail/release recovers purely from the shared clock
+    advancing, without depending on unseeded randomness to land the player
+    in a cell in the first place.
+    """
+
+    def __init__(self, step_index: int, sentence_seconds: float = 12.0) -> None:
+        self._step_index = step_index
+        self._sentence_seconds = sentence_seconds
+
+    def before_step(self, server: Any, session_id: str, index: int) -> str | None:
+        if index != self._step_index:
+            return None
+        player = server.get_player_for_session(session_id)
+        if player is None:
+            return None
+        server.world.crime_manager.send_to_jail(player, self._sentence_seconds)
+        return "jail_fault"
+
+
 class ExplorerPolicy:
     """A conservative explorer that alternates observation and traversal.
 
@@ -628,6 +652,112 @@ def fantasy_frontier_opportunity_route_outcome_checks() -> List[JourneyOutcomeCh
         PlayerStateOutcome("prospecting capability acquired", owns_prospecting_tool),
         PlayerStateOutcome("museum commission complete", completed_museum_commission),
         PlayerStateOutcome("Curator Vane access earned", earned_curator_access),
+    ]
+
+
+class FantasyFrontierResilienceRoutePolicy:
+    """Deliberately triggers the five route-disruption types not already
+    covered by FantasyFrontierPremiumMaterialPolicy's missing-tool case: a
+    full inventory, a relationship-gated vendor refusal, jail and release,
+    death and respawn, and a depleted resource -- each followed by its
+    normal continuation, proving a real recovery path rather than only
+    ever succeeding. Jail is forced deterministically via a JailFault hook
+    (see JAIL_TRIGGER_INDEX) rather than the theft witness roll, and death
+    via the "sethealth" debug command rather than combat RNG, so the whole
+    route stays reproducible from its seed alone.
+    """
+
+    _INVENTORY_COMMANDS = (
+        "spawn item_iron_sword 25",
+        "take all",
+        "drop iron sword",
+        "take iron sword",
+        "drop all iron sword",
+    )
+    _VENDOR_COMMANDS = (
+        "setgold 100",
+        "trade Kaelan",
+        "buy mana potion",
+        "buy small mana potion",
+    )
+    _CRAFT_COMMANDS = (
+        "west",
+        "south",
+        "gather herb bed",
+        "inventory",
+        "relationship Elder Thorne",
+        "gather herb bed",
+        "craft tie_wildflower_posy",
+        "north",
+        "east",
+    )
+    _JAIL_TRIGGER_COMMANDS = ("look",)
+    _JAIL_RECOVERY_COMMANDS = ("wait", "wait", "wait", "wait", "wait")
+    _DEATH_COMMANDS = ("sethealth 0", "respawn")
+    _GATHER_NAV_COMMANDS = ("north", "north", "north", "north", "north", "east", "down")
+    _DEPLETE_COMMANDS = (
+        "gather river clay bank",
+        "gather river clay bank",
+        "gather river clay bank",
+        "gather river clay bank",
+        "gather river clay bank",
+    )
+
+    _COMMANDS = (
+        _INVENTORY_COMMANDS
+        + _VENDOR_COMMANDS
+        + _CRAFT_COMMANDS
+        + _JAIL_TRIGGER_COMMANDS
+        + _JAIL_RECOVERY_COMMANDS
+        + _DEATH_COMMANDS
+        + _GATHER_NAV_COMMANDS
+        + _DEPLETE_COMMANDS
+    )
+
+    # The step index JailFault must target: right before the placeholder
+    # "look" command, once the full-inventory/vendor/crafting beats are done.
+    JAIL_TRIGGER_INDEX = len(_INVENTORY_COMMANDS) + len(_VENDOR_COMMANDS) + len(_CRAFT_COMMANDS)
+
+    def __init__(self) -> None:
+        self._index = 0
+        self._fallback = ExplorerPolicy()
+
+    def next_command(self, server: Any, session_id: str, rng: random.Random) -> str:
+        if self._index >= len(self._COMMANDS):
+            return self._fallback.next_command(server, session_id, rng)
+        command = self._COMMANDS[self._index]
+        self._index += 1
+        return command
+
+
+def fantasy_frontier_resilience_route_outcome_checks() -> List[JourneyOutcomeCheck]:
+    """Outcomes proving each disruption both failed for a real reason and
+    recovered: a full pack, a relationship-gated refusal, jail/release,
+    death/respawn, and a depleted resource."""
+
+    def alive_after_respawn(player: Any) -> bool:
+        return bool(player.is_alive)
+
+    return [
+        RequiredCommandsOutcome(
+            ("drop iron sword", "take iron sword", "drop all iron sword"),
+            label="full-inventory recovery",
+        ),
+        TraceTextOutcome("cannot carry any more", label="full-inventory refusal"),
+        RequiredCommandsOutcome(
+            ("buy small mana potion",),
+            label="vendor relationship-gate recovery",
+        ),
+        TraceTextOutcome("reserves that for trusted friends", label="vendor relationship-gate refusal"),
+        RequiredCommandsOutcome(
+            ("gather herb bed", "craft tie_wildflower_posy"),
+            label="permuted-order crafting",
+        ),
+        TraceTextOutcome("sentence is served", label="jail release"),
+        TraceTextOutcome("spirit return", label="death recovery"),
+        PlayerStateOutcome("alive after respawn", alive_after_respawn),
+        TraceTextOutcome("has been depleted", label="depleted resource refusal"),
+        TraceTextOutcome("recover in about", label="depleted resource recovery info"),
     ]
 
 
