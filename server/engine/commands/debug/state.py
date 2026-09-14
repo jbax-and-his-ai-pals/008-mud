@@ -1,5 +1,4 @@
 # engine/commands/debug/state.py
-import time
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_HIGHLIGHT, FORMAT_RESET
 from engine.magic.debug_effects import DEBUG_EFFECTS
@@ -52,7 +51,7 @@ def applyeffect_handler(args, context):
     eff = DEBUG_EFFECTS.get(args[1].lower())
     if not eff: return "Effect not found."
     
-    target.apply_effect(eff, time.time())
+    target.apply_effect(eff, world.clock.now())
     return f"{FORMAT_SUCCESS}Applied {args[1]}.{FORMAT_RESET}"
 
 @command("removeeffect", ["cleareffect"], "debug", "Remove effect.\nUsage: removeeffect <target> <name>")

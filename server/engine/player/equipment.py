@@ -83,8 +83,8 @@ class PlayerEquipmentMixin:
         
         # Apply Equip Effects
         effect_data = item.get_property("equip_effect")
-        if effect_data and isinstance(effect_data, dict): 
-            p.apply_effect(effect_data, time.time())
+        if effect_data and isinstance(effect_data, dict):
+            p.apply_effect(effect_data, p.world.clock.now() if p.world else time.time())
             
         return True, f"{unequip_message}You equip the {item.name} in your {target_slot.replace('_', ' ')}."
 
@@ -109,7 +109,7 @@ class PlayerEquipmentMixin:
         success, add_message = p.inventory.add_item(item_to_unequip, 1)
         if not success: 
             # Re-apply effects if fail
-            if effect_data: p.apply_effect(effect_data, time.time())
+            if effect_data: p.apply_effect(effect_data, p.world.clock.now() if p.world else time.time())
             return False, f"Could not unequip {item_to_unequip.name}: {add_message}"
 
         p.equipment[slot_name] = None

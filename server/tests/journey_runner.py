@@ -12,7 +12,6 @@ import json
 from pathlib import Path
 import random
 import re
-import time
 from typing import Any, Callable, Dict, Iterable, List, Protocol, Sequence
 
 
@@ -57,17 +56,6 @@ class SessionReconnectFault:
             raise RuntimeError(f"session resume fault rejected: {reason}")
         server.mark_session_connected(session_id)
         return "session_disconnect_resume"
-
-
-class SimulatedCombatCadenceHook:
-    """Make real-time player attack cooldowns match headless journey time."""
-
-    def before_step(self, server: Any, session_id: str, index: int) -> str | None:
-        del index
-        player = server.get_player_for_session(session_id)
-        if player is not None:
-            player.last_attack_time = time.time() - player.get_effective_attack_cooldown()
-        return None
 
 
 class ExplorerPolicy:

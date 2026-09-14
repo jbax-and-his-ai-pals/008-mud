@@ -131,7 +131,8 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                 if effect_def.get("effect_data") and "tags" in effect_def["effect_data"]:
                     dot_payload["tags"] = effect_def["effect_data"]["tags"]
 
-                success, _ = getattr(target, 'apply_effect')(dot_payload, time.time())
+                target_world = getattr(target, "world", None)
+                success, _ = getattr(target, 'apply_effect')(dot_payload, target_world.clock.now() if target_world else time.time())
                 if success:
                     total_value += 1
                     messages.append(f"{target_name_raw} is afflicted by {dot_payload['name']}.")
@@ -197,7 +198,8 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                      elif "base_duration" in effect_def:
                           eff_data["base_duration"] = effect_def["base_duration"]
                 
-                success, _ = getattr(target, 'apply_effect')(eff_data, time.time())
+                target_world = getattr(target, "world", None)
+                success, _ = getattr(target, 'apply_effect')(eff_data, target_world.clock.now() if target_world else time.time())
                 if success:
                     total_value += 1
                     formatted_target = format_name_for_display(viewer, target, start_of_sentence=False) if viewer else target_name_raw
@@ -209,7 +211,7 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                   dur = effect_def.get("summon_duration", 0)
                   if tid and caster.world:
                        instance_id = f"sum_{uuid.uuid4().hex[:4]}"
-                       overrides = {"owner_id": caster.obj_id, "properties_override": {"summon_duration": dur, "creation_time": time.time(), "is_summoned": True}, "faction": "player_minion"}
+                       overrides = {"owner_id": caster.obj_id, "properties_override": {"summon_duration": dur, "creation_time": caster.world.clock.now(), "is_summoned": True}, "faction": "player_minion"}
                        npc = NPCFactory.create_npc_from_template(tid, caster.world, instance_id, **overrides)
                        if npc:
                             caster.world.add_npc(npc)

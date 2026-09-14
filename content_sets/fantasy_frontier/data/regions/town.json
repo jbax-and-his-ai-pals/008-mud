@@ -17,7 +17,7 @@
       "description": "The heart of Riverside Village. A large stone fountain gurgles peacefully in the center of the cobblestone square. Shops and lanes branch off in all directions, and the distant sound of the flowing river can be heard to the south. A sturdy Quest Board stands near the fountain.",
       "exits": { "north": "north_gate_road", "south": "river_road", "east": "east_market_road", "west": "west_lane", "northeast": "tavern_exterior", "southeast": "museum_exterior" },
       "initial_npcs": [
-        { "template_id": "village_elder" },
+        { "template_id": "village_elder", "instance_id": "elder_thorne_townsquare" },
         { "template_id": "alchemist" },
         { "template_id": "healer" },
         { "template_id": "town_guard", "instance_id": "guard_south_1", "overrides": { "patrol_points": ["town_square", "riverside_docks", "museum_exterior"] } },

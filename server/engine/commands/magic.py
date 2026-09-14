@@ -1,5 +1,4 @@
 # engine/commands/magic.py
-import time
 from typing import Any, Dict, List, Optional
 from engine.commands.command_system import command
 from engine.config import (
@@ -19,7 +18,7 @@ def cast_handler(args, context):
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
     if not player.is_alive: return f"{FORMAT_ERROR}You cannot cast spells while dead.{FORMAT_RESET}"
 
-    current_time = time.time()
+    current_time = world.clock.now()
 
     if not args:
         spells_known_text = player.get_status().split(f"{FORMAT_TITLE}SPELLS KNOWN{FORMAT_RESET}")
@@ -144,7 +143,7 @@ def spells_handler(args, context):
     player = context.get('player')
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
 
-    current_time = time.time()
+    current_time = world.clock.now()
 
     if player.runtime_state.magic is None:
         return f"{FORMAT_ERROR}Magic is not enabled for this game.{FORMAT_RESET}"

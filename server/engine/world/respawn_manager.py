@@ -2,7 +2,6 @@
 """
 Manages the respawning of NPCs after they have been defeated.
 """
-import time
 from typing import TYPE_CHECKING, List, Dict, Any, Tuple
 
 from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET, NAMED_NPC_RESPAWN_COOLDOWN
@@ -25,7 +24,7 @@ class RespawnManager:
             "name": npc.name,
             "home_region_id": npc.home_region_id,
             "home_room_id": npc.home_room_id,
-            "respawn_time": time.time() + NAMED_NPC_RESPAWN_COOLDOWN
+            "respawn_time": self.world.clock.now() + NAMED_NPC_RESPAWN_COOLDOWN
         }
         self.respawn_queue.append(respawn_data)
 

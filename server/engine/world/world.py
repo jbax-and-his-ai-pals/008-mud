@@ -1,7 +1,6 @@
 # engine/world/world.py
 import heapq
 import os
-import time
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 
@@ -12,6 +11,7 @@ from engine.config import (
 )
 # UPDATED IMPORT
 from engine.core.quests import QuestManager
+from engine.core.clock import Clock, WallClock
 
 from engine.items.item_factory import ItemFactory
 from engine.npcs.npc_factory import NPCFactory
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from engine.core.game_manager import GameManager
 
 class World:
-    def __init__(self, content_set: Any = None, save_directory: Optional[str] = None):
+    def __init__(self, content_set: Any = None, save_directory: Optional[str] = None, clock: Optional[Clock] = None):
         if content_set is None:
             raise ValueError("World requires a validated content set.")
         package_root = os.path.abspath(str(content_set.content_root))
@@ -76,6 +76,7 @@ class World:
         self.housing_manager = HousingManager(self)
         self.crime_manager = CrimeManager(self)
 
+        self.clock: Clock = clock or WallClock()
         self.last_update_time = 0.0
         self._simulation_has_started = False
         self.game: Optional['GameManager'] = None
@@ -220,7 +221,7 @@ class World:
         server can deliver it only to sessions actually watching that room
         instead of whichever session's poll happened to trigger this tick.
         """
-        current_time_abs = time.time()
+        current_time_abs = self.clock.now()
         messages: List[Tuple[Optional[Tuple[str, str]], str]] = []
 
         dt = current_time_abs - self.last_update_time
@@ -611,7 +612,7 @@ class World:
         return None
     
     def add_npc(self, npc: NPC) -> None:
-        npc.last_moved = time.time()
+        npc.last_moved = self.clock.now()
         npc.world = self
         self.npcs[npc.obj_id] = npc
     

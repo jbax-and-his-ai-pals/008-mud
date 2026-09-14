@@ -29,10 +29,13 @@ remain individual inventory instances, so later gifts and sales keep the
 correct value and social effects.
 
 `FantasyFrontierCombatRoutePolicy` takes the north road to a content-authored,
-stationary low-threat encounter, resolves it, and returns to town. The
-`SimulatedCombatCadenceHook` maps headless action intervals onto the existing
-real-time player attack cooldown; it does not change combat calculations or
-NPC behavior.
+stationary low-threat encounter, resolves it, and returns to town. Gameplay
+timers (attack/spell cooldowns, respawns, jail sentences, DOT ticks) read a
+shared, injectable clock (`engine.core.clock`) rather than the wall clock;
+`HeadlessServer` backs it with a `SimulatedClock` under
+`deterministic_test_mode`, advanced by each step's `action_interval_s` in
+lockstep with the game calendar, so a headless journey's attacks clear their
+real cooldown without sleeping real seconds or needing a dedicated hook.
 
 `FantasyFrontierPremiumMaterialPolicy` proves the next maker/economy rung:
 it earns the board's trust prerequisite, locates the premium commission by

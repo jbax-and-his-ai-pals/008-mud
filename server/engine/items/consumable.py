@@ -90,7 +90,8 @@ class Consumable(Item):
                         "damage_per_tick": dot_damage_per_tick, "tick_interval": dot_tick_interval,
                         "damage_type": dot_damage_type, "source_id": getattr(user, 'obj_id', None)
                     }
-                    success, _ = target.apply_effect(dot_data, time.time())
+                    target_world = getattr(target, "world", None)
+                    success, _ = target.apply_effect(dot_data, target_world.clock.now() if target_world else time.time())
                     if success:
                         message = f"You feel a sickly sensation as you use the {self.name}."
                     else:

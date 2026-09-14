@@ -42,7 +42,6 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
         JourneyRunner,
         MultiJourneyRunner,
         SessionReconnectFault,
-        SimulatedCombatCadenceHook,
         fantasy_frontier_combat_route_outcome_checks,
         fantasy_frontier_first_hour_outcome_checks,
         fantasy_frontier_premium_material_outcome_checks,
@@ -69,8 +68,6 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
                 "sweep": FantasyFrontierSystemSweepPolicy,
             }
             selected_policies = args.agent_policy or [args.policy] * args.agents
-            if "combat" in selected_policies:
-                hooks.append(SimulatedCombatCadenceHook())
             outcome_check_factories = {
                 "first-hour": fantasy_frontier_first_hour_outcome_checks,
                 "combat": fantasy_frontier_combat_route_outcome_checks,

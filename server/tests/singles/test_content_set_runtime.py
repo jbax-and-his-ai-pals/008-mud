@@ -6,6 +6,7 @@ from pathlib import Path
 import time
 from unittest.mock import patch
 
+from engine.core.clock import SimulatedClock
 from engine.magic.spell_registry import get_spell
 from engine.server.headless_server import HeadlessServer
 from engine.player import Player
@@ -189,12 +190,12 @@ class TestContentSetRuntime(unittest.TestCase):
             server.shutdown()
 
     def test_initial_population_waits_for_its_movement_cooldown(self) -> None:
-        with patch("engine.world.definition_loader.time.time", return_value=1234.5):
-            server = HeadlessServer(
-                db_path=":memory:",
-                content_set_path=str(FANTASY_FRONTIER),
-                deterministic_test_mode=True,
-            )
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(FANTASY_FRONTIER),
+            deterministic_test_mode=True,
+            clock=SimulatedClock(1234.5),
+        )
         try:
             self.assertTrue(server.world.npcs)
             npc_movement_times = [npc.last_moved for npc in server.world.npcs.values()]
@@ -210,8 +211,8 @@ class TestContentSetRuntime(unittest.TestCase):
             deterministic_test_mode=True,
         )
         try:
-            with patch("engine.world.world.time.time", return_value=4321.0):
-                server.world.update()
+            server.world.clock.set(4321.0)
+            server.world.update()
             self.assertTrue(server.world._simulation_has_started)
             self.assertTrue(all(npc.last_moved >= 4321.0 for npc in server.world.npcs.values()))
         finally:

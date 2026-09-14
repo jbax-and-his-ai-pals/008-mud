@@ -210,6 +210,7 @@ class Container(Item):
 
           if kind == "poison" and hasattr(user, "apply_effect"):
                damage_per_tick = max(1, round(difficulty * TRAP_POISON_DAMAGE_PER_DIFFICULTY))
+               user_world = getattr(user, "world", None)
                user.apply_effect({
                     "type": "dot",
                     "name": "Trap Venom",
@@ -217,7 +218,7 @@ class Container(Item):
                     "damage_per_tick": damage_per_tick,
                     "tick_interval": TRAP_POISON_TICK_INTERVAL,
                     "damage_type": "poison",
-               }, time.time())
+               }, user_world.clock.now() if user_world else time.time())
                return (f"\n{FORMAT_ERROR}A poisoned needle jabs your finger as you disturb the "
                        f"{self.name}! Venom seeps into the wound.{FORMAT_RESET}")
           elif hasattr(user, "take_damage"):

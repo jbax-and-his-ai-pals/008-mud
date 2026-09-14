@@ -177,9 +177,8 @@ def scan_for_targets(npc: 'NPC', world: 'World', player: 'Player', force_aggress
 
 def _execute_immediate_attack_msg(npc: 'NPC', world: 'World', target, player: 'Player') -> Optional[str]:
     """Helper to try an attack immediately and format the engage message."""
-    import time
-    current_time = time.time()
-    
+    current_time = world.clock.now()
+
     immediate_msg = npc_combat.try_attack(npc, world, current_time)
     
     engage_message = ""

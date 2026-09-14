@@ -2,7 +2,6 @@
 """
 Contains all commands related to player combat actions.
 """
-import time
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_RESET
 
@@ -43,8 +42,8 @@ def attack_handler(args, context):
 
         return f"{FORMAT_ERROR}No '{target_name}' here to attack.{FORMAT_RESET}"
 
-    current_time = time.time()
-    
+    current_time = world.clock.now()
+
     if not player.can_attack(current_time):
         effective_cooldown = player.get_effective_attack_cooldown()
         time_left = effective_cooldown - (current_time - player.last_attack_time)

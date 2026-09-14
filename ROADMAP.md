@@ -111,12 +111,14 @@ meaningful progress, not only that the server state stayed valid.
     helper (used by both the board listing and the accept handler) falls
     back to a template_id scan, the same pattern quest-reward application
     already uses elsewhere.
-- [ ] Signpost parallel orientation, gather/craft/social, trade, and
+- [x] **Signpost parallel orientation, gather/craft/social, trade, and
   exploration/combat paths from the opening without implying that one is
-  mandatory. Already true by construction (the opening scenario offers four
-  parallel, untracked, unranked paths) -- what's not yet decided is whether
-  a one-shot upfront message is a sufficient "signpost" or whether it should
-  be re-surfaceable later; left open rather than assumed.
+  mandatory.** Already true by construction (the opening scenario offers
+  four parallel, untracked, unranked paths). Resolved the open decision:
+  a one-shot message is not sufficient on its own, so `journal` now always
+  shows a "Getting Started" block reusing the same opening-guidance text,
+  alongside or in place of the active-quest listing -- reachable any time,
+  not just once at character creation.
 - [x] **Retain deterministic maker/economy and low-risk combat routes,
   but make them prove an actual completed goal, recovery from a
   disrupted plan, and no prolonged repeated failure.** "Prove a
@@ -805,11 +807,39 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   final-state-keyed outcome check can catch. That needs its own
   progress-over-a-window instrumentation and is a meaningfully larger,
   separate feature.
-- [ ] **Separate simulated and real time.** A fast 30-minute journey advances
-  game/calendar time but some NPC, cooldown, spawn, and jail behavior still
-  uses wall-clock time. Establish a shared injectable clock for deterministic
-  simulation, then retain a genuinely real-time background soak mode for
-  timing/concurrency behavior.
+- [x] **Separate simulated and real time.** `TimeManager` already advanced
+  the game calendar purely from a caller-supplied `dt`, but every absolute
+  cooldown/expiry timestamp (combat and spell cooldowns, NPC move and
+  respawn timers, jail sentences, DOT/buff ticks, summon expiry) called
+  `time.time()` directly, so a fast headless journey's world-tick gate
+  (`World.update()`'s own 0.5s `WORLD_UPDATE_INTERVAL` check) rarely
+  actually fired within the real milliseconds a test takes to run --
+  freezing NPC movement, spawns, and cooldowns in place regardless of how
+  much simulated time the calendar reported passing. `journey_runner.py`
+  even carried a documented workaround
+  (`SimulatedCombatCadenceHook`) solely to force combat cooldowns to
+  clear. New `engine/core/clock.py` (`Clock` protocol, `WallClock`,
+  `SimulatedClock`) is now the single source `World` and every one of
+  those call sites reads via `world.clock.now()`; `WallClock` is
+  byte-identical to the old `time.time()` behavior (the default for the
+  live server and desktop client -- zero behavior change there), while
+  `HeadlessServer` backs deterministic-test-mode sessions with a
+  `SimulatedClock` that `tick()` advances by each step's `dt` in lockstep
+  with the calendar. The workaround hook is gone -- attacks now clear
+  their real cooldown from simulated time alone. Fixing this surfaced a
+  second, previously invisible bug it depended on: `village_elder`'s
+  town-square placement had no explicit `instance_id`, so a random
+  per-boot UUID suffix fed into the (deterministic) formula that phases
+  NPC movement cooldowns, meaning Elder Thorne's *authored* daily
+  schedule (a generic ambient-life system matching any "elder"-keyword
+  template, previously never live long enough to matter) now
+  nondeterministically walked him away from his post mid-journey. Fixed
+  with a stable authored `instance_id` plus adding him to the schedule
+  system's existing `excluded_name_keywords` exclusion (the same
+  mechanism already keeping guards at their posts) -- a quest-critical
+  named NPC shouldn't wander off on a generic ambient routine. Full
+  regression suite (3,759 tests) and every journey-lab policy, including
+  a two-agent shared-world run, verified stable across repeated runs.
 - [ ] **Strengthen shared-world playtesting.** Give every agent a goal and
   evaluate resource contention, alternate recovery routes, party/reconnect
   behavior, housing/access, shared doors, and transactions while another

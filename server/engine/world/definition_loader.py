@@ -4,7 +4,6 @@ Handles loading all game definitions from JSON files and initializing a new worl
 """
 import json
 import os
-import time
 import uuid
 from typing import TYPE_CHECKING
 
@@ -250,7 +249,7 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
     # immediately attempt movement together on the first simulation tick.
     # Begin their normal cooldown now so a new arrival can read its opening
     # before the world starts producing ambient movement narration.
-    initial_movement_time = time.time()
+    initial_movement_time = world.clock.now()
     for npc in world.npcs.values():
         # Spread first moves across each NPC's normal cooldown instead of
         # releasing the whole bootstrap population on the same tick. The

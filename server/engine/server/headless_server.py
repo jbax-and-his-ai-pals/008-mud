@@ -12,6 +12,7 @@ import re
 
 import engine.commands  # noqa: F401 - force command module registration
 from engine.commands.command_system import CommandProcessor
+from engine.core.clock import Clock, SimulatedClock, WallClock
 from engine.core.collection_manager import CollectionManager
 from engine.core.discovery_manager import DiscoveryManager
 from engine.core.knowledge_manager import KnowledgeManager
@@ -97,6 +98,7 @@ class HeadlessServer:
         deterministic_test_mode: bool = False,
         require_character_creation: bool = True,
         boot_warning_fail_codes: Optional[List[str]] = None,
+        clock: Optional[Clock] = None,
     ) -> None:
         self.tick_rate_hz = tick_rate_hz
         self.tick_dt = 1.0 / self.tick_rate_hz
@@ -114,7 +116,13 @@ class HeadlessServer:
         self.content_set: ContentSetDefinition = definition
         self.content_set_path: str = str(definition.manifest_path)
         self.content_root = os.path.abspath(str(definition.content_root))
-        self.world = World(content_set=self.content_set, save_directory=save_directory)
+        if clock is None:
+            clock = SimulatedClock() if self.deterministic_test_mode else WallClock()
+        self.world = World(
+            content_set=self.content_set,
+            save_directory=save_directory,
+            clock=clock,
+        )
         setattr(self.world, "server", self)
         self.world.bootstrap_starter_items = list(starter_items) if starter_items else None
         self.command_processor = CommandProcessor()
@@ -2443,6 +2451,12 @@ class HeadlessServer:
             return []
         if dt is None or self.deterministic_test_mode:
             dt = self.tick_dt
+        # Advances the same shared clock that gameplay timers (combat/spell
+        # cooldowns, respawns, jail sentences, DOT ticks) read via
+        # world.clock.now() -- a no-op under WallClock (real time already
+        # passes on its own), and the sole thing that makes those timers
+        # move under SimulatedClock, in lockstep with this tick's dt.
+        self.world.clock.advance(dt)
 
         events: List[Dict[str, Any]] = []
         time_change = self.time_manager.update(dt)
@@ -2478,7 +2492,7 @@ class HeadlessServer:
 
         player = self.get_player_for_session(session_id)
         if player and player.is_alive:
-            for msg in player.update(time.time(), dt):
+            for msg in player.update(self.world.clock.now(), dt):
                 if self._is_combat_adjacent_message(msg):
                     continue
                 # Player regen/effect messages are player-facing — emit direct.

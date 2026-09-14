@@ -1,6 +1,5 @@
 # engine/commands/jail.py
 import random
-import time
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET
 
@@ -18,7 +17,7 @@ def wait_handler(args, context):
     if player.jailed_until is None:
         return "Time passes."
 
-    remaining = player.jailed_until - time.time()
+    remaining = player.jailed_until - world.clock.now()
     if remaining > 0:
         return f"You wait in your cell. It'll be a while yet -- about {int(remaining)} more seconds."
 

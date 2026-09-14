@@ -211,7 +211,8 @@ class PlayerCombatMixin:
             
             p._add_combat_message(result_message.replace(message, "").strip())
 
-        p.last_attack_time = float(time.time()) # Ensure float
+        resolved_world = world or p.world
+        p.last_attack_time = float(resolved_world.clock.now()) if resolved_world else float(time.time())
         return {"message": result_message}
     
     def take_damage(self, amount: int, damage_type: str = "physical") -> int:

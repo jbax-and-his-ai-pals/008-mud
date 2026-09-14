@@ -4,7 +4,6 @@
 All vocabulary, values, progression requirements, and emergency-item
 choices are authored under a content set's ``crime`` ruleset section.
 """
-import time
 from typing import TYPE_CHECKING, Optional
 
 from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS
@@ -154,7 +153,7 @@ class CrimeManager:
                     player.inventory.add_item(shiv)
 
         player.confiscated_inventory = confiscated
-        player.jailed_until = time.time() + sentence_seconds
+        player.jailed_until = self.world.clock.now() + sentence_seconds
 
         region_id, room_id = self._find_jail_cell()
         if region_id and room_id:

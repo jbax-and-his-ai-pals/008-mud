@@ -246,7 +246,7 @@
     "prefixes": ["Alpha", "Elder", "Ancient", "Dread", "Savage", "Greater", "Feral", "Grizzled"]
   },
   "npc_schedules": {
-    "excluded_name_keywords": ["guard"],
+    "excluded_name_keywords": ["guard", "thorne"],
     "room_categories": {
       "homes": ["home", "house", "cottage"],
       "taverns": ["tavern", "inn", "pub"],

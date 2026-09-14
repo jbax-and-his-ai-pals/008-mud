@@ -19,7 +19,6 @@ from tests.journey_runner import (
     MultiJourneyRunner,
     PlayerStateOutcome,
     SessionReconnectFault,
-    SimulatedCombatCadenceHook,
     commands_from_trace,
     fantasy_frontier_first_hour_outcome_checks,
     fantasy_frontier_combat_route_outcome_checks,
@@ -104,7 +103,6 @@ class TestJourneyRunner(unittest.TestCase):
                 server,
                 seed=26,
                 policy=FantasyFrontierCombatRoutePolicy(),
-                hooks=[SimulatedCombatCadenceHook()],
                 outcome_checks=fantasy_frontier_combat_route_outcome_checks(),
             ).run(duration_s=90.0)
             self.assertTrue(report.passed, report.outcome_errors)
