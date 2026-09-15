@@ -1,14 +1,27 @@
 # engine/utils/text_formatter.py
+from __future__ import annotations
+
 import re
-import pygame
 from typing import Dict, Tuple, List, Optional, Any, Union, TYPE_CHECKING
 
 from engine.config import (
-    DEFAULT_COLORS, FORMAT_RESET, FORMAT_PURPLE, FORMAT_RED, 
+    DEFAULT_COLORS, FORMAT_RESET, FORMAT_PURPLE, FORMAT_RED,
     FORMAT_ORANGE, FORMAT_YELLOW, FORMAT_CYAN, FORMAT_GREEN, FORMAT_GRAY
 )
 
+# This module is imported transitively by headless/server code (via
+# engine/utils/utils.py) that never touches pygame at all -- a module-scope
+# `import pygame` here made the whole chain (including HeadlessServer itself)
+# unimportable without the client rendering library installed, and silently
+# dropped several command modules (inventory, locksmithing, magic,
+# mercantile, quest, crafting, gathering, interaction, debug) from the
+# registry, since engine/commands/__init__.py logs an ImportError and moves
+# on rather than failing loudly. Only used for type annotations below except
+# inside render(), the one method that actually touches a live pygame
+# surface -- and which can only ever be called by client code that already
+# has pygame, since it requires a real pygame.Surface argument.
 if TYPE_CHECKING:
+    import pygame
     from engine.player import Player
     from engine.npcs.npc import NPC
 
@@ -59,8 +72,10 @@ class TextFormatter:
 
     def render(self, surface: pygame.Surface, text: str, position: Tuple[int, int],
                max_height: Optional[int] = None) -> int:
+        import pygame  # Only this method touches a live pygame object -- see the note near the top of this file.
+
         self.last_hotspots = []
-        
+
         if not text:
             return position[1]
 

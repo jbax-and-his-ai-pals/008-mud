@@ -1028,14 +1028,36 @@ more urgent.
   roadmap itself has flagged this for a while; it is now the main obstacle to
   adding protocol surface for new systems.
 - [ ] **Split `client/scripts/ui/main_controller.gd`** (2,993 lines).
-- [ ] **Break the pygame dependency for headless runs.**
-  `engine/utils/text_formatter.py:3` does `import pygame` at module scope and is
-  imported transitively by `container.py` → `item_factory.py` →
-  `crafting_manager.py` → `headless_server.py`. Consequence: the content-set
-  validator cannot start without the client rendering library, and the command
-  registry silently fails to load `inventory`, `locksmithing`, `magic`,
-  `mercantile`, and `quest`. The only pygame uses in that file are four type
-  annotations. A `TYPE_CHECKING` guard fixes it.
+- [x] **Break the pygame dependency for headless runs.** Reproduced the
+  claim first (`sys.modules['pygame'] = None` before importing) and it was
+  worse than described: not five command modules but nine (`inventory`,
+  `locksmithing`, `magic`, `mercantile`, `quest`, `crafting`, `gathering`,
+  the whole `interaction` package, and the whole `debug` package) failed to
+  load, and `engine.server.headless_server` itself could not be imported at
+  all -- `container.py` → `engine/utils/utils.py` →
+  `text_formatter.py`, not through `item_factory.py`/`crafting_manager.py`
+  as originally traced, but the same root cause. Three of `text_formatter`'s
+  four pygame uses really were bare type annotations (`pygame.Rect`,
+  `pygame.font.Font`, `pygame.Surface`); the fourth (`pygame.Rect(...)`
+  inside `render()`) is a genuine runtime construction, not just a hint, so
+  a bare `TYPE_CHECKING` guard on the import alone would have broken that
+  method. Fixed with `from __future__ import annotations` (making every
+  annotation lazy, so the three type-only uses need no `TYPE_CHECKING`
+  import at all) plus one local `import pygame` inside `render()` -- the one
+  method that touches a live surface, and which can only ever be called by
+  client code that already has pygame, since it requires a real
+  `pygame.Surface` argument. `engine/commands/__init__.py`'s loader logs an
+  `ImportError` and moves on rather than failing loudly, which is why this
+  shipped invisibly in the first place and why the fix needed a regression
+  guard rather than trusting "it imports now, so it's fixed":
+  `tests/singles/test_headless_import_without_pygame.py` has an AST check
+  that fails immediately if `text_formatter.py` ever imports pygame outside
+  `TYPE_CHECKING`/a function body again, plus a subprocess probe (a fresh
+  interpreter, not in-process `sys.modules` patching, since this test
+  suite's own process has already imported the real pygame) that imports
+  the headless server and the full command registry with pygame genuinely
+  unavailable and asserts nothing logged a load failure. Both tests
+  verified to fail against the unfixed code.
 - [x] **`torch`/`transformers` removed from `server/requirements.txt`.** The
   claim that `engine/ai/ai_manager.py` forces a ~1GB ML stack on every import
   was stale: the only torch imports in the engine sit inside
