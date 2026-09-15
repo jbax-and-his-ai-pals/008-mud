@@ -2,6 +2,7 @@
     "region_id": "coastal_path",
     "name": "Salt-Kissed Path",
     "description": "The fetid swamp gives way to brackish marshes and eventually sandy shores as the path winds towards the coast.",
+    "properties": { "level_band": { "min": 1, "max": 3 } },
     "spawner": {
         "monster_types": {
             "kobold_skirmisher": 5,
@@ -23,8 +24,13 @@
         },
         "shipwreck_debris": {
               "name": "Shipwreck Debris",
-              "description": "Fragments of a wrecked ship lie scattered across the mudflats, half-buried in the silt. Rotted timbers and rusted metal poke out from the muck.",
-              "exits": { "east": "mudflats" }
+              "description": "Fragments of a wrecked ship lie scattered across the mudflats, half-buried in the silt. Rotted timbers and rusted metal poke out from the muck, while a snapped lightning conductor spits blue sparks across the wet deck plates.",
+              "exits": { "east": "mudflats" },
+              "properties": {
+                "hazard_type": "electrified_floor",
+                "hazard_damage": 6,
+                "hazard_tick_interval": 5.0
+              }
         },
         "salt_marsh": {
             "name": "Salt Marsh",
@@ -37,10 +43,11 @@
         },
         "tidal_pools": {
               "name": "Tidal Pools",
-              "description": "Several shallow pools of seawater are trapped here among the marsh grasses. Small crabs scuttle for cover as you approach.",
+              "description": "Several shallow pools of seawater are trapped here among the marsh grasses. Small crabs scuttle for cover as you approach, and a sheltered channel gathers fish between the rocks.",
               "exits": { "west": "salt_marsh" },
               "items": [
-                   { "item_id": "item_seashell", "quantity": 2 }
+                   { "item_id": "item_seashell", "quantity": 2 },
+                   { "item_id": "node_sea_fishing_spot" }
               ]
         },
         "beach_approach": {

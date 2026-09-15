@@ -239,6 +239,7 @@
   "quest_missing_guard": {
     "title": "The Missing Guard",
     "type": "quest",
+    "description": "Guard Captain Elara needs help tracing the disappearance of a recruit along the river road.",
     "rewards": {
       "xp": 500,
       "gold": 100,
@@ -247,12 +248,13 @@
     "stages": [
       {
         "stage_index": 0,
-        "description": "Search for clues about the missing guard.",
+        "description": "Search the abandoned mill beyond Riverside Docks for the missing guard's tabard.",
         "objective": {
           "type": "fetch",
           "item_id": "item_bloody_tabard",
           "item_name": "Bloody Tabard",
-          "required_quantity": 1
+          "required_quantity": 1,
+          "consume_item": false
         },
         "turn_in_id": "guard_captain",
         "start_dialogue": "One of my recruits went missing near the river. Please, see if you can find any trace of him.",
@@ -260,13 +262,12 @@
       },
       {
         "stage_index": 1,
-        "description": "Show the Bloody Tabard to Kaelan the Alchemist.",
+        "description": "Show the Bloody Tabard to Kaelan the Alchemist in Riverside.",
         "objective": {
-          "type": "deliver",
-          "item_instance_id": "dynamic_check_inventory", 
+          "type": "fetch",
           "item_id": "item_bloody_tabard",
           "item_name": "Bloody Tabard",
-          "recipient_id": "alchemist"
+          "required_quantity": 1
         },
         "turn_in_id": "alchemist",
         "start_dialogue": "Go to Kaelan. He will know what creature left this slime.",
@@ -274,7 +275,14 @@
       },
       {
         "stage_index": 2,
-        "description": "Slay the River Troll.",
+        "description": "Find and slay the River Troll at the Stagnant Pool in Murkwater, downstream from Riverside.",
+        "spawn_on_entry": {
+          "template_id": "river_troll",
+          "region_id": "swamp",
+          "room_id": "stagnant_pool",
+          "name_override": "River Troll",
+          "behavior_type": "stationary"
+        },
         "objective": {
           "type": "kill",
           "target_template_id": "river_troll",

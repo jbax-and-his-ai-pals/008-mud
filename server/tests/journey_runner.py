@@ -158,10 +158,11 @@ class FantasyFrontierFirstSessionPolicy(CommandSequencePolicy):
 
     COMMANDS = (
         "look",
-        "talk Elder Thorne",
         "equip rusty dagger",
         "look board",
         "accept quest 1",
+        "talk Elder Thorne",
+        "reply commission",
         "north",
         "north",
         "north",
@@ -198,6 +199,8 @@ class FantasyFrontierSystemSweepPolicy(CommandSequencePolicy):
         "look",
         "look board",
         "accept quest 1",
+        "talk Elder Thorne",
+        "reply commission",
         "recipes all",
         "west",
         "south",
@@ -294,6 +297,8 @@ class FantasyFrontierPremiumMaterialPolicy:
     _COMMANDS = (
         "look board",
         "__accept_wildflower__",
+        "talk Elder Thorne",
+        "reply commission",
         "west",
         "south",
         "gather herb bed",

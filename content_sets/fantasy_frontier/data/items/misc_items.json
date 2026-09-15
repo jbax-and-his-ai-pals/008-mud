@@ -20,13 +20,21 @@
     "properties": { "category": "gift", "gift_tags": ["flower", "handmade"] }
   },
   "item_riverside_charm": {
-    "type": "Item",
+    "type": "Armor",
     "name": "carved riverside charm",
-    "description": "A small carved charm showing a river bend and three reeds. It is simple, but carefully finished.",
+    "description": "A small carved charm showing a river bend and three reeds, now strung on a cord to wear at the throat.",
     "weight": 0.2,
     "value": 12,
-    "stackable": true,
-    "properties": { "category": "gift", "gift_tags": ["handmade", "curio"] }
+    "stackable": false,
+    "properties": {
+      "defense": 1,
+      "durability": 20,
+      "max_durability": 20,
+      "equip_slot": ["neck"],
+      "category": "gift",
+      "gift_tags": ["handmade", "curio"],
+      "salvage_output": { "item_id": "item_softwood", "quantity_per_weight": 1.0 }
+    }
   },
   "item_river_token": {
     "type": "Item",
@@ -38,13 +46,27 @@
     "properties": { "category": "curio", "gift_tags": ["handmade", "curio"] }
   },
   "item_rose_quartz_talisman": {
-    "type": "Item",
+    "type": "Armor",
     "name": "rose quartz talisman",
-    "description": "A polished rose quartz set on a leather cord. It catches the light with a soft warmth.",
+    "description": "A polished rose quartz set on a leather cord. Its soft warmth steadies the mind against unsettling shadows.",
     "weight": 0.2,
     "value": 30,
-    "stackable": true,
-    "properties": { "category": "gift", "gift_tags": ["gem", "handmade", "curio"] }
+    "stackable": false,
+    "properties": {
+      "defense": 1,
+      "durability": 35,
+      "max_durability": 35,
+      "equip_slot": ["neck"],
+      "resistances": { "shadow": 10 },
+      "equip_effect": {
+        "type": "stat_mod",
+        "name": "Quartz Focus",
+        "modifiers": { "magic_resist": 2 }
+      },
+      "category": "gift",
+      "gift_tags": ["gem", "handmade", "curio"],
+      "salvage_output": { "item_id": "item_rose_quartz", "quantity_per_weight": 1.0 }
+    }
   },
   "item_town_notice": {
     "type": "Item",
@@ -175,13 +197,26 @@
     "properties": { "category": "contraband" }
   },
   "item_wolf_fang_necklace": {
-    "type": "Item",
+    "type": "Armor",
     "name": "wolf fang necklace",
-    "description": "A necklace of wolf fangs strung on a leather cord -- a small trophy, and a striking gift.",
+    "description": "A necklace of wolf fangs strung on a leather cord -- a small trophy that lends its wearer a hunter's confidence.",
     "weight": 0.3,
     "value": 14,
-    "stackable": true,
-    "properties": { "category": "gift", "gift_tags": ["trophy", "handmade"] }
+    "stackable": false,
+    "properties": {
+      "defense": 1,
+      "durability": 30,
+      "max_durability": 30,
+      "equip_slot": ["neck"],
+      "equip_effect": {
+        "type": "stat_mod",
+        "name": "Hunter's Confidence",
+        "modifiers": { "strength": 1 }
+      },
+      "category": "gift",
+      "gift_tags": ["trophy", "handmade"],
+      "salvage_output": { "item_id": "item_wolf_fang", "quantity_per_weight": 1.0 }
+    }
   },
   "item_house_storage_chest": {
     "type": "Container",

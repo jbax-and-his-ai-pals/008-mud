@@ -142,6 +142,58 @@
       { "item_id": "item_glass_vial", "quantity": 1 }
     ]
   },
+  "brew_marshguard_tonic": {
+    "name": "Brew Marshguard Tonic",
+    "aliases": ["marshguard", "poison tonic", "poison resistance", "marsh tonic"],
+    "description": "Steep gathered herbs into a bitter ward against poisonous air and venom.",
+    "result_item_id": "item_marshguard_tonic",
+    "result_quantity": 1,
+    "station_required": "alchemy_table",
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_wild_herbs", "quantity": 2 },
+      { "item_id": "item_glass_vial", "quantity": 1 }
+    ]
+  },
+  "brew_trailblazer_tonic": {
+    "name": "Brew Trailblazer Tonic",
+    "aliases": ["trailblazer", "agility tonic", "trail tonic"],
+    "description": "Distill forest berries into a sharp draught for a quick, light-footed edge.",
+    "result_item_id": "item_trailblazer_tonic",
+    "result_quantity": 1,
+    "station_required": "alchemy_table",
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_forest_berries", "quantity": 2 },
+      { "item_id": "item_glass_vial", "quantity": 1 }
+    ]
+  },
+  "brew_purifying_draught": {
+    "name": "Brew Purifying Draught",
+    "aliases": ["purifying draught", "antidote", "cleanse potion", "purge poison"],
+    "description": "Prepare a field antidote to clear poison and disease effects.",
+    "result_item_id": "item_purifying_draught",
+    "result_quantity": 1,
+    "station_required": "alchemy_table",
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_wild_herbs", "quantity": 2 },
+      { "item_id": "item_glass_vial", "quantity": 1 }
+    ]
+  },
+  "distill_sunfire_flask": {
+    "name": "Distill Sunfire Flask",
+    "aliases": ["sunfire", "fire flask", "throwing flask", "flask"],
+    "description": "Bind a rose-quartz spark in a fragile flask. Use it on a foe to throw it.",
+    "result_item_id": "item_sunfire_flask",
+    "result_quantity": 1,
+    "station_required": "alchemy_table",
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_rose_quartz", "quantity": 1 },
+      { "item_id": "item_glass_vial", "quantity": 1 }
+    ]
+  },
   "stitch_leather_cap": {
     "name": "Stitch Leather Cap",
     "aliases": ["cap", "leather cap", "hat", "helm"],
@@ -151,6 +203,32 @@
     "station_required": null,
     "ingredients": [
       { "item_id": "item_leather_strip", "quantity": 3 }
+    ]
+  },
+  "stitch_studded_leather_gloves": {
+    "name": "Stitch Studded Leather Gloves",
+    "aliases": ["studded gloves", "reinforced gloves", "combat gloves"],
+    "description": "Reinforce a pair of leather gloves with iron studs for a harder-wearing fighting grip.",
+    "result_item_id": "item_studded_leather_gloves",
+    "result_quantity": 1,
+    "station_required": "anvil",
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_leather_strip", "quantity": 3 },
+      { "item_id": "item_iron_ingot", "quantity": 1 }
+    ]
+  },
+  "stitch_trailwarden_boots": {
+    "name": "Stitch Trailwarden Boots",
+    "aliases": ["trailwarden boots", "warden boots", "waxed boots"],
+    "description": "Line sturdy boots with gathered herbs and wax them for rough, poisonous country.",
+    "result_item_id": "item_trailwarden_boots",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "ingredients": [
+      { "item_id": "item_leather_strip", "quantity": 4 },
+      { "item_id": "item_wild_herbs", "quantity": 1 }
     ]
   },
   "stitch_wolf_pelt_cloak": {

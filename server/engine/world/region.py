@@ -17,6 +17,29 @@ class Region(GameObject):
     def get_room(self, room_id: str) -> Optional[Room]:
         return self.rooms.get(room_id)
 
+    def get_level_band(self) -> Optional[tuple[int, int]]:
+        """Return this region's authored progression band, when it has one.
+
+        Regions intentionally own this data.  It is not inferred from graph
+        distance to a particular start room, so a future content set can add
+        another starting town without changing the runtime's idea of danger.
+        """
+        band = self.properties.get("level_band")
+        if not isinstance(band, dict):
+            return None
+        minimum = band.get("min")
+        maximum = band.get("max")
+        if (
+            isinstance(minimum, bool)
+            or isinstance(maximum, bool)
+            or not isinstance(minimum, int)
+            or not isinstance(maximum, int)
+            or minimum < 1
+            or maximum < minimum
+        ):
+            return None
+        return minimum, maximum
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize region definition."""
         data = super().to_dict()

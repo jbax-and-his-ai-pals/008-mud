@@ -157,16 +157,12 @@ not weeks — and everything else waits behind it.
   dependency (PyYAML) reported as a setup problem rather than a content failure.
   **All three gates verified to fail on a deliberately reintroduced defect.**
 
-- [ ] **Surface `quest_missing_guard` or shelve it deliberately.** It is the
-  largest authored quest in the game (3 stages, 500 XP, the only quest using
-  the alchemist and the river troll) and it is unreachable: it is referenced
-  only from `data/quests/campaigns.json`, whose `quest_chain` key has **zero**
-  readers in `server/engine`, and it is not in
-  `ruleset.json`'s `authored_board_templates`.
-  Cheapest correct fix: make it reachable. Second cheapest: move the file to a
-  `data/unused/` folder so the tree stops implying it ships.
-  *Not done in this pass — it is a content decision (wire it into a campaign or
-  shelve it), not a repair.*
+- [x] **Surface `quest_missing_guard`.** Guard Captain Elara now offers the
+  three-stage quest in a conditional dialogue graph. The old mill carries the
+  tabard, the Captain preserves it as evidence, Kaelan consumes it for the
+  diagnosis, and entering Murkwater's Stagnant Pool spawns the River Troll.
+  `tests/singles/test_p6_quest_flow.py` walks the whole route through the final
+  return, so this cannot regress into an offered-but-dead quest.
 
 - [x] **Fix `craft`'s multi-word matching** — done in P3, with the shared
   resolver the item asked for. `craft wildflower posy`, `craft posy`, and
@@ -215,11 +211,8 @@ same resolution instead of bare `python`.
 
 ### P0 status
 
-All P0 repair work is complete except one item explicitly deferred
-(`quest_missing_guard` is a content decision, not a repair). Seven defects fixed
-(the seventh, mojibaked content text, was found during P4 and fixed there), four
-regression suites added, three validation gates added and each proven to catch a
-reintroduced defect.
+All P0 repair work is complete. Its regression suites and validation gates have
+been added and proven to catch deliberately reintroduced defects.
 
 ### Definition of done
 
@@ -754,11 +747,10 @@ unreachable campaign giver: content that looks complete and can never be played.
 
 ### Still open
 
-- [ ] **Only one authored graph ships.** The system is exercised by one real
-  conversation plus two negotiations translated through it. P6 needs graphs for
-  the commission flow (talk → giver explains → grants the recipe → directions),
-  and P7's towns need givers with opinions. The engine is ready; the content is
-  the work.
+- [x] **Three authored graphs now ship.** Grenda teaches forge work, Elder
+  Thorne teaches the first commission's recipe and directions, and Guard Captain
+  Elara gives the Missing Guard route. P7 still needs a broader cast of distinct
+  town voices, but P5 is no longer demonstrated by a single conversation.
 - [ ] **Conditions cannot see the conversation.** There is no "you already asked
   me that" or "we discussed this last week" predicate, because the conversation
   history is not part of the condition language. `set_flag` covers the cases
@@ -803,18 +795,23 @@ unreachable campaign giver: content that looks complete and can never be played.
 **Goal:** quests are given by people, teach the player what to do, and the
 system scales to a world with many towns.
 
-Full target flow in `WORLD_DESIGN.md` §6. Today the flow is inverted: the
-player already knows the recipe before anyone teaches it, and the journal shows
-`?` instead of the authored instruction.
+Full target flow in `WORLD_DESIGN.md` §6. The first commission now follows that
+flow: it comes from the board, Elder Thorne teaches the recipe and points to the
+garden, and the journal renders its authored stage instruction.
 
-- [ ] **Reorder the commission flow:** accept on the board → **talk to the
+- [x] **Reorder the commission flow:** accept on the board → **talk to the
   giver** → they explain the need, **grant the recipe**, and say where the
-  materials are → gather → craft → return. This depends on P5 (dialogue
-  effects).
-- [ ] **Render authored stage prose** in the journal instead of template
+  materials are → gather → craft → return. The recipe is no longer granted by a
+  background; Elder Thorne grants it through dialogue effects.
+- [x] **Render authored stage prose** in the journal instead of template
   fallbacks.
-- [ ] **Support repeatable quests** with diegetic rate limiting (the giver is
-  busy, the board is picked over) rather than a visible cooldown.
+- [x] **Support repeatable quests** with diegetic rate limiting. Board entries
+  now opt in through an authored `repeatable` policy (`delay_seconds` and
+  in-world `unavailable_text`); an active notice never duplicates, completion
+  records the player's next availability in their save, and the board checks
+  the world clock when read. Riverside's commissions and elite bounties now
+  use that policy. Players see, for example, that the board is picked over or
+  a giver took down a notice — never a countdown or a cooldown value.
 - [ ] **Add objective types:** escort, defend/hold, timed, puzzle/mechanism,
   explore-region, discover-N, craft-to-quality, deliver-to-multiple,
   gather-N-types, social (raise relationship), trade (fulfil N orders),
@@ -825,16 +822,25 @@ player already knows the recipe before anyone teaches it, and the journal shows
   "rats invade a house in town, house is generated and destroyed on completion"
   design exactly. Extend to variable layout templates, boss rooms, level
   scaling, multiple entry towns, and instanced dungeons as well as interiors.
-- [ ] **Surface `bandit_rebellion` through normal play.** A complete campaign
-  (4 nodes, two endings: peace and war) with a properly hinted quest exists and
-  is currently reachable only via `campaign start` — a **debug**-category
-  command. This is the cheapest narrative win available.
+- [x] **Surface `bandit_rebellion` through normal play.** Asking Elder Thorne
+  about trouble starts the campaign's opening route; `campaign start` is no
+  longer required.
 
 ### Definition of done
 
-- A new player's first commission teaches them a recipe through a person.
-- Repeatable tasks exist and do not feel like a machine.
-- At least three non-combat objective types are live.
+- [x] A new player's first commission teaches them a recipe through a person.
+- [x] Repeatable tasks exist and do not feel like a machine.
+- [x] At least three non-combat objective types are live (fetch, deliver,
+  scout, and negotiate).
+
+### Verification
+
+- `tests/singles/test_p6_quest_flow.py` covers the recipe-less opening through
+  Elder Thorne's lesson and the full Missing Guard route through its quest-only
+  River Troll spawn.
+- `tests/singles/test_repeatable_board_quests.py` covers explicit opt-in,
+  active-task de-duplication, hidden re-post timing, and save/load state;
+  `test_content_set_runtime.py` rejects a malformed repeatable policy.
 
 ---
 
@@ -862,9 +868,13 @@ late still pays.
   economy), the existing seaside town (trade/tariffs/smuggling), a mountain
   town (mining/smithing), a desert town (caravan trade/water scarcity), and a
   large prosperous city (crafting guilds, museum, auction).
-- [ ] **Attach level bands to regions as authored data**, not derived from
-  distance-to-starter-town, so a future player-chosen starting town stays a
-  content change rather than an engine change.
+- [x] **Attach level bands to regions as authored data.** Every static Fantasy
+  Frontier region now declares `properties.level_band` (L1–3 around Riverside,
+  L2–6 through the middle ring, L5–8 Frostpeaks/Trial). The ruleset opts into
+  a validation gate requiring positive ordered bands and keeping explicit
+  spawn ranges inside them; the spawner uses the band when a new region omits a
+  duplicate range. No graph-distance or start-town identity is in the engine,
+  so another starting town remains a content change.
 - [ ] **Build biome and region-type palette into content templates** so new
   regions are cheap to author. Palette list in `WORLD_DESIGN.md` §4.3.
 - [ ] **Underground layer:** sewers, catacombs, mines, natural caverns,
@@ -873,11 +883,14 @@ late still pays.
   villages, bandit camps.
 - [ ] **Build guild-like constructs** — the places and factions that confer
   titles (P4). Content-authored names per profession.
-- [ ] **Densify `gathering`.** There are **9 resource nodes and each is placed
-  exactly once in the entire world** — one herb bed, one clay bank, one rose
-  quartz seam. Separately, **every `required_tool` is null**, so the four
-  gathering tools vendors sell do nothing. Either add many more nodes and give
-  tools a purpose, or remove tool requirements honestly.
+- [x] **Densify `gathering`.** The seven ordinary renewable node templates now
+  have **16 static sources across eight regions** (the garden plot and house
+  pond remain player-housing tools, not world placements). Every ordinary node
+  has at least two locations, and each vendor tool supports a route through at
+  least two regions: forage around town/farms/forest, cut wood through farm,
+  forest, and mountain spaces, prospect foothills and caves, or fish river and
+  coast. The placement test protects that baseline while allowing future node
+  templates and higher-tier resource materials to extend it.
 - [ ] **Expand the itemisation ladder.** Today: 14 weapons spanning damage 3→8;
   16 armour pieces across 7 slots, with **zero** neck items and exactly one
   each for head/hands/feet. 12 prefixes / 11 suffixes, one gated at level 10
@@ -885,23 +898,34 @@ late still pays.
   *types* with distinct behaviours, armour *types* with distinct tradeoffs
   (light/medium/heavy), and enough affix variety that generated items are
   worth comparing.
-- [ ] **Give crafted items reasons to exist** beyond "more content" — the
-  audit's core complaint. Consumables are currently 24 entries of which 15 are
-  `{uses, effect_value, heal}` food. No buff, resistance, antidote, or
-  throwable entries exist.
-- [ ] **Exercise the hazard system.** 6 hazard types are authored with flavour
-  text and resistances; **exactly one room in the world uses one**. A volcanic
-  ring should be hot, a glacial ring cold, catacombs should have bad air.
+- [x] **Give crafted items reasons to exist** beyond "more content." Field
+  alchemy now supplies four distinct answers at the existing alchemy station:
+  a three-minute Marshguard poison-resistance ward, a Trailblazer agility
+  buff, a Purifying Draught that cleanses poison/disease effects, and a
+  targeted Sunfire Flask (`use sunfire flask on <foe>`). The engine exposes
+  these as content-authored temporary effects, cleansing tags, and target
+  damage, so later content can add further preparations without bespoke item
+  classes.
+- [x] **Exercise the hazard system.** All six authored hazard types now have
+  clearly telegraphed rooms in distinct regions: volcanic heat, glacial cold,
+  poisoned mine air, a sparking shipwreck, an unholy ritual chamber, and the
+  existing quicksand pit. The Fantasy Frontier ruleset requires coverage from
+  its authored mapping, validates hazard timing/damage, and has a runtime test
+  that proves each damage type is active.
 - [ ] **Extend weather** so it varies meaningfully by region and interacts with
   hazards, travel, and gathering.
-- [ ] **Make exploration pay on its own** — discovery XP, discoveries/knowledge
-  entries, landmark rooms, rare sites. A player who walks 40 rooms and kills
-  nothing should still gain.
-- [ ] **Resolve the density contradiction.** The previous roadmap carried an
-  unchecked item: *"Densify existing regions before creating new ones."* The
-  new design commitment says sparse rooms are correct and the fix for "empty"
-  is better prose and more landmarks, not more objects. **Delete or rewrite
-  that item** — do not leave both standing.
+- [x] **Make exploration pay on its own.** The P4 ledger already awards 25 XP
+  for each first-time landmark room and 90 XP for each first region, alongside
+  its discovery/knowledge entries; the expanded gathering routes supply rare
+  sites without turning ordinary rooms into object piles. A headless P7 journey
+  now walks forty unique town rooms without combat, gathering, or talking and
+  earns at least 1,000 landmark XP. Revisits remain silent, so this is genuine
+  exploration rather than a route to farm.
+- [x] **Resolve the density contradiction.** The obsolete “densify existing
+  regions before creating new ones” instruction is no longer retained as open
+  work. Sparse rooms are deliberate; the work above adds better prose,
+  landmarks, hazards, and renewable rare sites rather than indiscriminate item
+  clutter. `WORLD_DESIGN.md` §4.4 is the source of truth for that choice.
 
 ### Definition of done
 
@@ -1035,7 +1059,7 @@ Recorded here so they are not lost when the detail scrolls off.
 | Journal shows literal `?` | `commands/quest.py:309`; live output |
 | Loot invisible after kills | live output; inventory unchanged |
 | 5 rooms unreachable incl. campaign giver | BFS over 206 rooms from `town:town_square` |
-| `quest_missing_guard` unreachable | `quest_chain` has 0 readers in `engine/` |
+| `quest_missing_guard` unreachable | Repaired: Guard Captain Elara's dialogue offers the complete route; `test_p6_quest_flow.py` walks it |
 | Debug commands ungated | live: `level 5`, `setgold`, `sethealth`, `teleport` |
 | `craft` multi-word matching broken | `commands/crafting.py:121-133` |
 | Classification unreachable in server path | applied only at `game_manager.py:255` |
@@ -1046,10 +1070,9 @@ Recorded here so they are not lost when the detail scrolls off.
 | 99 hardcoded content refs in engine | AST audit across 30 files |
 | Content prose mojibaked on Windows | `definition_loader.py` and 10 other engine modules opened UTF-8 content without `encoding=`; the cp1252 default turned U+2019 into `â€™` in live output |
 
-Every row above is fixed except three: the two `mage_set` refs, which stay
-allow-listed in the reference validator until that set has obtainable members,
-and `quest_missing_guard`, which is still the one open P0 item. The dialogue row
-is P5's work: `data/dialogue/` is loaded and validated now, which also retired
+Every row above is fixed except the two `mage_set` refs, which stay allow-listed
+in the reference validator until that set has obtainable members. The dialogue
+row is P5's work: `data/dialogue/` is loaded and validated now, which also retired
 `item_iron_ore` and `iron_shortage` (they existed only inside the dead graph)
 and `item_scrap` (the ruleset's generic loot fallback, now a real junk item). The
 mojibake row was found during P4 by a failing relationship test and fixed across

@@ -497,7 +497,10 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
                  item_label = objective.get("item_name", "item") if remaining == 1 else objective.get("item_name_plural", objective.get("item_name", "items"))
                  completion_error_msg = f"You still need {remaining} more {item_label}."
 
-    if can_complete and req_item_id:
+    # Fetch objectives normally consume what was turned in. Some investigation
+    # stages deliberately inspect evidence before a later recipient takes it;
+    # `consume_item: false` keeps that authored item in the player's pack.
+    if can_complete and req_item_id and objective.get("consume_item", True):
         if objective.get("type") == "deliver" and item_to_remove:
              player.inventory.remove_item_instance(item_to_remove)
         else:

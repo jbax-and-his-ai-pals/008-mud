@@ -68,8 +68,9 @@ take any one of them, or ignore all four and wander off on your own:
 
 1. **Get oriented.** `look` around, check your `inventory`, and note the
    exits from the room you're in.
-2. **Help Riverside.** Check the notice board (`look board`), then head
-   to the community garden to see what your neighbors need.
+2. **Help Riverside.** Check the notice board (`look board`), accept a
+   commission (`accept quest <#>`), then talk to Elder Thorne. He explains the
+   work, teaches the needed recipe, and points you to the community garden.
 3. **Trade and prepare.** Visit Talia at the market to see what's for
    sale before you go looking for trouble.
 4. **Explore and face danger.** Equip your weapon (`equip dagger`, `equip
@@ -77,6 +78,11 @@ take any one of them, or ignore all four and wander off on your own:
 
 None of these paths closes off the others. Riverside doesn't run out
 while you're busy elsewhere.
+
+Hazards are part of that warning. A yellow haze, sparking floor, killing cold,
+or oppressive shadow is a real environmental danger that can hurt at regular
+intervals while you remain there. `look` first, retreat if you are not
+prepared, and return with the right resistance when you have it.
 
 A few commands you'll use constantly from the very first minute:
 
@@ -399,6 +405,25 @@ what a given recipe would produce right now, and what would raise it.
 `attach` and `detach` handle equipment attachments, for gear that
 supports them.
 
+### Field alchemy
+
+Riverside's alchemist has an **alchemy kit** in the shop and sells empty
+glass vials. Gather herbs or berries, bring a vial, and use `recipes all` to
+see the small field preparations you can make there. They are useful choices,
+not merely differently named healing food:
+
+- `craft marshguard` makes a three-minute poison-resistance ward for bad air
+  and venom.
+- `craft trailblazer` grants a short agility buff.
+- `craft antidote` makes a purifying draught that clears poison and disease
+  effects from you (or use it `on <target>`).
+- `craft sunfire` makes a disposable thrown weapon; `use sunfire flask on
+  <foe>` hurls it at that foe.
+
+Active wards and buffs appear in `status`, including how long they have left.
+The useful habit is to make a preparation before entering the danger its
+description warns about, rather than attempting to out-heal an unseen hazard.
+
 ---
 
 ## 12. Coin & Commerce
@@ -426,6 +451,11 @@ opportunities as old ones are cleared. Track what you've taken on with
 `journal` (add `completed` to review what you've already finished),
 and turn a finished task in with `turnin quest`, `complete quest`, or
 by simply talking to whoever gave it to you and asking to `complete`.
+
+Some notices come around again, but never immediately. When a giver takes
+one down or the board is picked over, follow another lead and check back
+later; the world will tell you what is happening without turning it into a
+countdown timer.
 
 **The board shows what is actually available to you.** If a task needs
 a giver's trust and you have not earned it yet, the notice simply will

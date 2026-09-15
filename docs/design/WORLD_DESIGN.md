@@ -393,6 +393,13 @@ The design must not *preclude* it: region level bands should be **authored data
 attached to regions**, not derived from "distance from the starter town", so a
 future second start point is a content change rather than an engine change.
 
+The shipped contract is `properties.level_band: {"min": N, "max": N}` on
+every static region in a level-banded content set. The set opts into enforcing
+that coverage through `ruleset.world.regions.require_level_bands`; a region's
+spawner may use the band as its level range when it has no narrower local range.
+This is authoring metadata, not a player-facing level gate or a replacement for
+learning danger by travel and observation.
+
 ### 4.3 Biome and region-type palette
 
 A working list to author against. Not exhaustive; meant to be argued with.
@@ -611,9 +618,14 @@ without hand-authoring rooms, so this system should grow.
 
 The engine authors **6 hazard types** (`extreme_heat`, `extreme_cold`,
 `poison_gas`, `electrified_floor`, `unholy_aura`, `quicksand`) with flavour text
-and resistances. **Exactly one room in the shipped world uses one**
-(`swamp:quicksand_pit`). This is a large amount of finished capability with
-almost no content exercising it.
+and resistances. Each is now used by a distinct Fantasy Frontier region: the
+obsidian sanctum's heat, Frostpeak's inner ice chamber, a poisoned mine level,
+the sparking shipwreck, a ruin's ritual chamber, and the swamp's quicksand pit.
+These are telegraphed in room prose and placed in optional or late-route spaces
+rather than on the starter path. Fantasy Frontier opts into
+`ruleset.world.regions.require_hazard_coverage`, which derives the required
+names from its own `combat/elements.json` mapping and rejects an incomplete
+world at content-validation time.
 
 Goals:
 - Hazards become a defining feature of regions, not a one-off. A volcanic ring

@@ -1,0 +1,60 @@
+{
+  "id": "guard_captain_missing_guard",
+  "_comment": "A normal player-facing start for The Missing Guard. The quest keeps its own stage prose for the Captain, Kaelan, and the final return; this graph provides the offer and a truthful in-progress prompt.",
+  "root": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Guard Captain Elara studies a river map marked with more pins than she would like.",
+      "choices": [
+        {
+          "text": "I heard one of your guards is missing. I can help search.",
+          "aliases": ["missing guard", "help search", "looking for work", "i can help"],
+          "condition": {
+            "all": [
+              { "not": { "kind": "quest_active", "quest_id": "quest_missing_guard" } },
+              { "not": { "kind": "quest_completed", "quest_id": "quest_missing_guard" } }
+            ]
+          },
+          "next_node": "briefing"
+        },
+        {
+          "text": "What should I do about the missing guard?",
+          "aliases": ["what now", "the missing guard", "my assignment"],
+          "condition": { "kind": "quest_active", "quest_id": "quest_missing_guard" },
+          "next_node": "in_progress"
+        },
+        {
+          "text": "Has there been word of the missing guard?",
+          "aliases": ["any word", "after the search"],
+          "condition": { "kind": "quest_completed", "quest_id": "quest_missing_guard" },
+          "next_node": "resolved"
+        },
+        { "text": "I will leave you to it.", "end": true }
+      ]
+    },
+    "briefing": {
+      "text": "One of my recruits vanished while checking the river road. Start at the abandoned mill beyond Riverside Docks; it is the last place anyone saw them. Bring me anything you find before you go chasing rumors downstream.",
+      "choices": [
+        {
+          "text": "I will search the old mill.",
+          "aliases": ["i'll search", "search old mill", "accept", "i will help"],
+          "effects": { "start_quest": "quest_missing_guard" },
+          "end": true
+        },
+        { "text": "I need to prepare first.", "end": true }
+      ]
+    },
+    "in_progress": {
+      "text": "Follow the evidence, not the loudest rumor. The journal has the next person or place that needs you; bring the tabard to me before taking it elsewhere.",
+      "choices": [
+        { "text": "Understood.", "end": true }
+      ]
+    },
+    "resolved": {
+      "text": "Riverside remembers the people who go downriver when everyone else is looking away. You did right by my guard.",
+      "choices": [
+        { "text": "I am glad I could help.", "end": true }
+      ]
+    }
+  }
+}

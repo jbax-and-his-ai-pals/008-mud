@@ -17,7 +17,7 @@
     ],
     "spells": [],
     "skills": { "lockpicking": 0, "crafting": 0, "mercantile": 0, "stealth": 0 },
-    "recipes": ["tie_wildflower_posy", "pack_travel_rations"],
+    "recipes": ["pack_travel_rations"],
     "starting_gold": 0
   },
   "labourer": {
@@ -39,7 +39,7 @@
     ],
     "spells": [],
     "skills": { "crafting": 1 },
-    "recipes": ["tie_wildflower_posy", "carve_riverside_charm", "bind_herbal_bandage"],
+    "recipes": ["carve_riverside_charm", "bind_herbal_bandage"],
     "starting_gold": 10
   },
   "apprentice": {
@@ -61,7 +61,7 @@
     ],
     "spells": ["magic_missile"],
     "skills": { "crafting": 1 },
-    "recipes": ["tie_wildflower_posy", "bind_herbal_bandage"],
+    "recipes": ["bind_herbal_bandage"],
     "starting_gold": 0
   },
   "acolyte": {
@@ -83,7 +83,7 @@
     ],
     "spells": ["minor_heal"],
     "skills": { "crafting": 1, "mercantile": 1 },
-    "recipes": ["tie_wildflower_posy", "bind_herbal_bandage", "pack_travel_rations"],
+    "recipes": ["bind_herbal_bandage", "pack_travel_rations"],
     "starting_gold": 5
   },
   "pedlar": {
@@ -102,7 +102,7 @@
     ],
     "spells": [],
     "skills": { "mercantile": 2 },
-    "recipes": ["tie_wildflower_posy", "carve_riverside_charm"],
+    "recipes": ["carve_riverside_charm"],
     "starting_gold": 25
   },
   "poacher": {
@@ -123,7 +123,7 @@
     ],
     "spells": [],
     "skills": { "stealth": 2, "lockpicking": 1 },
-    "recipes": ["tie_wildflower_posy", "carve_riverside_charm"],
+    "recipes": ["carve_riverside_charm"],
     "starting_gold": 5
   }
 }

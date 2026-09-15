@@ -10,7 +10,7 @@ from engine.core.clock import SimulatedClock
 from engine.magic.spell_registry import get_spell
 from engine.server.headless_server import HeadlessServer
 from engine.player import Player
-from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_crafting_quality_contracts, _validate_discovery_references, _validate_item_extension_data, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
+from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_crafting_quality_contracts, _validate_discovery_references, _validate_item_extension_data, _validate_region_hazard_coverage, _validate_region_level_bands, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
 from poc_server import JsonLineMudServer
 from poc_ws_server import JsonWebSocketMudServer
 
@@ -26,12 +26,99 @@ class TestContentSetRuntime(unittest.TestCase):
         _validate_ruleset_references(
             FANTASY_FRONTIER / "data",
             {"quest_generation": {"authored_board_templates": [
-                {"template_id": "quest_wildflower_commission", "relationship_min": "ten"}
+                {
+                    "template_id": "quest_wildflower_commission",
+                    "relationship_min": "ten",
+                    "repeatable": {"delay_seconds": 0, "unavailable_text": ""},
+                }
             ]}},
             issues,
             FANTASY_FRONTIER / "rules.json",
         )
-        self.assertTrue(any("relationship_min must be an integer from 0 to 100" in issue.message for issue in issues))
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("relationship_min must be an integer from 0 to 100" in message for message in messages))
+        self.assertTrue(any("repeatable.delay_seconds must be a positive number" in message for message in messages))
+        self.assertTrue(any("repeatable.unavailable_text must be a non-empty string" in message for message in messages))
+
+    def test_required_region_level_bands_and_spawn_ranges_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            regions = content_root / "regions"
+            regions.mkdir()
+            (regions / "missing.json").write_text(
+                json.dumps({"region_id": "missing", "rooms": {}}), encoding="utf-8"
+            )
+            (regions / "misaligned.json").write_text(json.dumps({
+                "region_id": "misaligned",
+                "properties": {"level_band": {"min": 3, "max": 5}},
+                "spawner": {"level_range": [2, 6]},
+                "rooms": {},
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_region_level_bands(content_root, issues, required=True)
+
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("requires properties.level_band" in message for message in messages))
+        self.assertTrue(any("spawner.level_range must stay inside" in message for message in messages))
+
+    def test_required_region_hazard_coverage_and_schema_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            regions = content_root / "regions"
+            combat = content_root / "combat"
+            regions.mkdir()
+            combat.mkdir()
+            (combat / "elements.json").write_text(json.dumps({
+                "hazards": {"mapping": {"cold": "ice", "heat": "fire"}},
+            }), encoding="utf-8")
+            (regions / "bad_hazard.json").write_text(json.dumps({
+                "region_id": "bad_hazard",
+                "rooms": {
+                    "room": {
+                        "properties": {
+                            "hazard_type": "lightning",
+                            "hazard_damage": 0,
+                            "hazard_tick_interval": "often",
+                        },
+                    },
+                },
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_region_hazard_coverage(content_root, issues, required=True)
+
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("uses unknown hazard_type 'lightning'" in message for message in messages))
+        self.assertTrue(any("hazard 'cold'" in message for message in messages))
+        self.assertTrue(any("hazard 'heat'" in message for message in messages))
+
+    def test_hazard_timing_and_damage_must_be_positive_numbers(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            regions = content_root / "regions"
+            combat = content_root / "combat"
+            regions.mkdir()
+            combat.mkdir()
+            (combat / "elements.json").write_text(json.dumps({
+                "hazards": {"mapping": {"cold": "ice"}},
+            }), encoding="utf-8")
+            (regions / "invalid_values.json").write_text(json.dumps({
+                "region_id": "invalid_values",
+                "rooms": {
+                    "room": {
+                        "properties": {
+                            "hazard_type": "cold",
+                            "hazard_damage": 0,
+                            "hazard_tick_interval": True,
+                        },
+                    },
+                },
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_region_hazard_coverage(content_root, issues)
+
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("hazard_damage must be a positive number" in message for message in messages))
+        self.assertTrue(any("hazard_tick_interval must be a positive number" in message for message in messages))
 
     def test_ambient_loot_references_are_validated(self) -> None:
         issues: list[ContentSetIssue] = []
@@ -133,6 +220,12 @@ class TestContentSetRuntime(unittest.TestCase):
                     "slot": "",
                     "modifiers": {"attack": "one", "stats": {"strength": "two"}},
                 }}},
+                "item_effect": {"properties": {"effect_type": "apply_effect", "effect_data": {
+                    "name": "", "type": "stat_mod", "base_duration": 0,
+                    "modifiers": {"": "many"},
+                }}},
+                "item_cleanse": {"properties": {"effect_type": "cleanse", "effect_tags": []}},
+                "item_flask": {"properties": {"effect_type": "target_damage", "damage_amount": 0, "damage_type": ""}},
             }), encoding="utf-8")
             issues: list[ContentSetIssue] = []
             _validate_item_extension_data(content_root, issues)
@@ -141,6 +234,12 @@ class TestContentSetRuntime(unittest.TestCase):
         self.assertTrue(any("attachment.slot must be a non-empty string" in message for message in messages))
         self.assertTrue(any("attachment.modifiers.attack must be a number" in message for message in messages))
         self.assertTrue(any("attachment.modifiers.stats must map stat names to numbers" in message for message in messages))
+        self.assertTrue(any("effect_data.name must be a non-empty string" in message for message in messages))
+        self.assertTrue(any("effect_data.base_duration must be a positive number" in message for message in messages))
+        self.assertTrue(any("effect_data.modifiers must map stat names to numbers" in message for message in messages))
+        self.assertTrue(any("effect_tags must be a non-empty array of tags" in message for message in messages))
+        self.assertTrue(any("damage_amount must be a positive number" in message for message in messages))
+        self.assertTrue(any("damage_type must be a non-empty string" in message for message in messages))
 
     def test_discovery_references_are_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -324,25 +423,36 @@ class TestContentSetRuntime(unittest.TestCase):
             self.assertEqual(8, rat.health)
         finally:
             server.shutdown()
-    def test_fantasy_frontier_quicksand_hazard_is_runtime_active(self) -> None:
-        """A real authored hazard resolves through content-defined mappings."""
+    def test_fantasy_frontier_hazards_are_runtime_active(self) -> None:
+        """Every authored hazard resolves through the content-defined mapping."""
         server = HeadlessServer(
             db_path=":memory:",
             content_set_path=str(FANTASY_FRONTIER),
             deterministic_test_mode=True,
         )
         try:
-            session = server.create_session(player_id="quicksand_hazard_player")
+            session = server.create_session(player_id="hazard_player")
             server.execute_command(session.session_id, "char create HazardTester")
             player = server.get_player_for_session(session.session_id)
-            room = server.world.get_region("swamp").get_room("quicksand_pit")
-            starting_health = player.health
+            expected_hazards = {
+                "extreme_heat": ("obsidian_trial", "inner_sanctum", 6, "intense heat"),
+                "extreme_cold": ("mountains", "ice_cave_chamber", 5, "biting cold"),
+                "poison_gas": ("caves", "mine_lower_level", 6, "toxic fumes"),
+                "electrified_floor": ("coastal_path", "shipwreck_debris", 6, "Sparks"),
+                "unholy_aura": ("ruins", "ritual_chamber", 4, "oppressive darkness"),
+                "quicksand": ("swamp", "quicksand_pit", 4, "sucking mud"),
+            }
 
-            message = room.apply_hazards(player, time.time())
+            for hazard_type, (region_id, room_id, damage, flavor) in expected_hazards.items():
+                with self.subTest(hazard_type=hazard_type):
+                    room = server.world.get_region(region_id).get_room(room_id)
+                    starting_health = player.health
+                    message = room.apply_hazards(player, time.time())
 
-            self.assertEqual("quicksand", room.get_property("hazard_type"))
-            self.assertEqual(starting_health - 4, player.health)
-            self.assertIn("sucking mud", message)
+                    self.assertEqual(hazard_type, room.get_property("hazard_type"))
+                    self.assertEqual(damage, room.get_property("hazard_damage"))
+                    self.assertLess(player.health, starting_health)
+                    self.assertIn(flavor, message)
         finally:
             server.shutdown()
     def test_modern_capsule_is_a_playable_non_fantasy_slice(self) -> None:

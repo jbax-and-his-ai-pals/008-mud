@@ -2,7 +2,7 @@
     "region_id": "portbridge",
     "name": "Portbridge",
     "description": "A bustling port town built where the Silver River meets the sea. Its docks teem with sailors and merchants, and the smell of salt and fish hangs heavy in the air.",
-    "properties": { "safe_zone": true },
+    "properties": { "safe_zone": true, "level_band": { "min": 2, "max": 4 } },
     "rooms": {
         "town_gate_north": {
             "name": "Portbridge North Gate",

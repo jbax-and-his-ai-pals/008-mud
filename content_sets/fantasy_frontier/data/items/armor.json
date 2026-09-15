@@ -44,6 +44,27 @@
         "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
       }
     },
+    "item_studded_leather_gloves": {
+      "type": "Armor",
+      "name": "studded leather gloves",
+      "description": "Leather gloves reinforced across the knuckles with small iron studs. They trade a little flexibility for a firmer grip in a fight.",
+      "weight": 0.6,
+      "value": 28,
+      "stackable": false,
+      "properties": {
+        "defense": 2,
+        "durability": 45,
+        "max_durability": 45,
+        "equip_slot": ["hands"],
+        "requirements": { "dexterity": 11 },
+        "equip_effect": {
+          "type": "stat_mod",
+          "name": "Studded Grip",
+          "modifiers": { "dexterity": 1 }
+        },
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
+      }
+    },
     "item_leather_boots": {
       "type": "Armor",
       "name": "leather boots",
@@ -56,6 +77,23 @@
         "durability": 40,
         "max_durability": 40,
         "equip_slot": ["feet"],
+        "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
+      }
+    },
+    "item_trailwarden_boots": {
+      "type": "Armor",
+      "name": "trailwarden boots",
+      "description": "Tall, waxed boots packed with bitter herbs. Heavier than common leather boots, but made for bad ground and foul air.",
+      "weight": 1.8,
+      "value": 30,
+      "stackable": false,
+      "properties": {
+        "defense": 2,
+        "durability": 60,
+        "max_durability": 60,
+        "equip_slot": ["feet"],
+        "requirements": { "agility": 11 },
+        "resistances": { "poison": 12 },
         "salvage_output": { "item_id": "item_leather_strip", "quantity_per_weight": 1.0 }
       }
     },

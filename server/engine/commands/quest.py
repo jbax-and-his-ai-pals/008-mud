@@ -175,10 +175,18 @@ def look_board_handler(args, context):
     if not _is_player_at_quest_board(player, quest_manager):
         return f"{FORMAT_ERROR}You don't see a {world.quest_board_name().lower()} here.{FORMAT_RESET}"
 
+    # A repeatable notice reappears only after its authored, hidden delay.
+    # Looking at the board is the natural point to check that narrow condition;
+    # unlike a general refill, it never turns an intentionally empty board into
+    # a pile of newly generated work.
+    quest_manager.refresh_repeatable_board_tasks(player)
     available_quests = world.quest_board
 
     board_name = world.quest_board_name()
     if not available_quests:
+        notices = quest_manager.authored_board_unavailable_notices(player)
+        if notices:
+            return f"{board_name}\n" + "\n".join(notices)
         return f"The {board_name.lower()} is currently empty."
 
     # In player mode a task whose giver does not trust you yet is simply not
@@ -189,9 +197,16 @@ def look_board_handler(args, context):
     response = f"{FORMAT_TITLE}{board_name}{FORMAT_RESET}\n" + "-"*20 + "\nAvailable Tasks:\n\n"
     display_map = {}
     displayed = 0
+    unavailable_notices = []
     for i, quest_data in enumerate(available_quests):
         giver_instance_id = quest_data.get("giver_instance_id")
         rewards = quest_data.get("rewards", {})
+
+        board_available, unavailable_notice = quest_manager.authored_board_entry_available(player, quest_data)
+        if not board_available:
+            if unavailable_notice and unavailable_notice not in unavailable_notices:
+                unavailable_notices.append(unavailable_notice)
+            continue
 
         available, current_trust, required_trust = _board_availability(world, player, quest_data)
         if not available and player_mode:
@@ -232,12 +247,23 @@ def look_board_handler(args, context):
                     f"   Giver: {giver_name}\n"
                     f"   Reward: {reward_summary}\n{trust_summary}\n\n")
 
+    # A resting repeatable task is normally absent from the shared board, so
+    # it never passes through the per-notice loop above. Keep its authored
+    # explanation visible even when procedural work remains available.
+    for notice in quest_manager.authored_board_unavailable_notices(player):
+        if notice not in unavailable_notices:
+            unavailable_notices.append(notice)
+
     if displayed == 0:
         # Everything posted is gated. Say so in the world's voice, without
         # naming thresholds the player has no way to act on.
+        if unavailable_notices:
+            return f"{board_name}\n" + "\n".join(unavailable_notices)
         return f"The {board_name.lower()} has nothing for you just now."
 
     _store_board_mapping(world, context.get("session_id"), display_map)
+    if unavailable_notices:
+        response += "\n" + "\n".join(unavailable_notices) + "\n"
     response += f"Type '{FORMAT_HIGHLIGHT}accept quest <#>{FORMAT_RESET}' to take a task."
     return response
 
@@ -286,6 +312,11 @@ def accept_quest_handler(args, context):
     if quest_index < 0 or quest_index >= len(world.quest_board):
         return f"{FORMAT_ERROR}Invalid quest number.{FORMAT_RESET}"
 
+    quest_to_accept = world.quest_board[quest_index]
+    board_available, unavailable_notice = quest_manager.authored_board_entry_available(player, quest_to_accept)
+    if not board_available:
+        message = unavailable_notice or "That notice is no longer available."
+        return f"{FORMAT_ERROR}{message}{FORMAT_RESET}"
     quest_to_accept = world.quest_board.pop(quest_index)
     relationship_required = _relationship_requirement(quest_to_accept)
     relationship_npc_id = str(quest_to_accept.get("relationship_npc_id", quest_to_accept.get("giver_instance_id", "")))

@@ -125,7 +125,12 @@ class QuestManager:
             else:
                 break 
 
-    def _add_authored_board_quests(self, board: List[Dict[str, Any]], player) -> None:
+    def _add_authored_board_quests(
+        self,
+        board: List[Dict[str, Any]],
+        player,
+        only_template_ids: Optional[set[str]] = None,
+    ) -> None:
         """Seed opt-in, content-authored notices before procedural board fill.
 
         Content sets may declare ``quest_generation.authored_board_templates``.
@@ -142,7 +147,11 @@ class QuestManager:
             if not isinstance(entry, dict):
                 continue
             template_id = str(entry.get("template_id", "")).strip()
+            if only_template_ids is not None and template_id not in only_template_ids:
+                continue
             if not template_id or template_id in existing_template_ids:
+                continue
+            if not self.authored_board_entry_available(player, entry)[0]:
                 continue
             template = self.quest_templates.get(template_id)
             if not isinstance(template, dict):
@@ -172,6 +181,137 @@ class QuestManager:
                 quest["relationship_min"] = max(0, int(entry["relationship_min"]))
             board.append(quest)
             existing_template_ids.add(template_id)
+
+    def refresh_repeatable_board_tasks(self, player=None) -> None:
+        """Repost only a completed board notice whose hidden delay has passed.
+
+        This deliberately does *not* call ``ensure_initial_quests``.  A board
+        that authors no current work must still be allowed to say it is empty;
+        reading it should not manufacture procedural tasks.  Normal board
+        replenishment continues to happen on acceptance and completion.
+        """
+        player = self._resolve_reference_player(player)
+        quests = getattr(getattr(player, "runtime_state", None), "quests", None)
+        available_at = getattr(quests, "repeatable_available_at", {}) if quests is not None else {}
+        if not isinstance(available_at, dict) or not available_at:
+            return
+        ready_template_ids: set[str] = set()
+        for template_id in available_at:
+            entry = self._authored_board_entry(str(template_id))
+            if entry is not None and self.authored_board_entry_available(player, entry)[0]:
+                ready_template_ids.add(str(template_id))
+        if ready_template_ids:
+            self._add_authored_board_quests(self.world.quest_board, player, ready_template_ids)
+
+    def _authored_board_entry(self, template_id: str) -> Optional[Dict[str, Any]]:
+        """Return the board configuration that owns an authored template.
+
+        Board policy belongs in the ruleset rather than in a quest definition:
+        the same quest can be a one-off story reward in one content set and a
+        recurring notice in another.
+        """
+        configured = self.config.get("authored_board_templates", [])
+        if not isinstance(configured, list):
+            return None
+        for entry in configured:
+            if isinstance(entry, dict) and str(entry.get("template_id", "")).strip() == template_id:
+                return entry
+        return None
+
+    @staticmethod
+    def _repeatable_policy(entry: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        policy = entry.get("repeatable")
+        return policy if isinstance(policy, dict) else None
+
+    @staticmethod
+    def _quest_uses_template(quest_data: Any, template_id: str) -> bool:
+        return isinstance(quest_data, dict) and str(quest_data.get("template_id", "")) == template_id
+
+    def _player_has_active_template(self, player, template_id: str) -> bool:
+        quests = getattr(getattr(player, "runtime_state", None), "quests", None)
+        active = getattr(quests, "active", {}) if quests is not None else {}
+        return any(self._quest_uses_template(quest, template_id) for quest in active.values())
+
+    def _player_has_completed_template(self, player, template_id: str) -> bool:
+        quests = getattr(getattr(player, "runtime_state", None), "quests", None)
+        if quests is None:
+            return False
+        completed = {
+            **(getattr(quests, "completed", {}) or {}),
+            **(getattr(quests, "archived", {}) or {}),
+        }
+        return any(self._quest_uses_template(quest, template_id) for quest in completed.values())
+
+    def _world_now(self) -> float:
+        clock = getattr(self.world, "clock", None)
+        if clock is not None and hasattr(clock, "now"):
+            return float(clock.now())
+        return 0.0
+
+    def authored_board_entry_available(self, player, entry: Dict[str, Any]) -> tuple[bool, str]:
+        """Whether this player may take an authored board task right now.
+
+        The delay is intentionally internal.  Content authors provide a short
+        in-world explanation, never a number of seconds or a countdown, so a
+        board feels attended rather than like a vending machine.  Availability
+        is per player and stored with their quest state, which makes the rule
+        correct after a save/load and fair in a shared world.
+        """
+        template_id = str(entry.get("template_id", "")).strip()
+        if not template_id:
+            return True, ""
+        # Command rendering receives an instantiated board notice, while
+        # seeding receives the ruleset entry itself.  Resolve the canonical
+        # ruleset entry in both cases so procedural quests are untouched.
+        configured_entry = self._authored_board_entry(template_id)
+        if configured_entry is None:
+            return True, ""
+        policy = self._repeatable_policy(configured_entry)
+        notice = str((policy or {}).get("unavailable_text", "")).strip()
+
+        if self._player_has_active_template(player, template_id):
+            return False, notice
+        if policy is None:
+            return (not self._player_has_completed_template(player, template_id)), ""
+
+        quests = getattr(getattr(player, "runtime_state", None), "quests", None)
+        available_at = getattr(quests, "repeatable_available_at", {}).get(template_id, 0.0) if quests is not None else 0.0
+        try:
+            is_ready = float(available_at) <= self._world_now()
+        except (TypeError, ValueError):
+            is_ready = True
+        return is_ready, ("" if is_ready else notice)
+
+    def authored_board_unavailable_notices(self, player) -> List[str]:
+        """Distinct diegetic explanations for board tasks currently resting."""
+        configured = self.config.get("authored_board_templates", [])
+        if not isinstance(configured, list):
+            return []
+        notices: List[str] = []
+        for entry in configured:
+            if not isinstance(entry, dict) or self._repeatable_policy(entry) is None:
+                continue
+            available, notice = self.authored_board_entry_available(player, entry)
+            if not available and notice and notice not in notices:
+                notices.append(notice)
+        return notices
+
+    def _record_repeatable_board_completion(self, player, quest_data: Dict[str, Any]) -> None:
+        """Start a hidden re-post delay after an explicitly repeatable task."""
+        template_id = str(quest_data.get("template_id", "")).strip()
+        entry = self._authored_board_entry(template_id)
+        if entry is None:
+            return
+        policy = self._repeatable_policy(entry)
+        if policy is None:
+            return
+        try:
+            delay_seconds = max(0.0, float(policy.get("delay_seconds", 0.0)))
+        except (TypeError, ValueError):
+            delay_seconds = 0.0
+        quests = getattr(getattr(player, "runtime_state", None), "quests", None)
+        if quests is not None:
+            quests.repeatable_available_at[template_id] = self._world_now() + delay_seconds
 
     def replenish_board(self, completed_quest_instance_id: Optional[str], player=None):
         if not self.world:
@@ -230,6 +370,8 @@ class QuestManager:
         
         quest_data = player.runtime_state.quests.active.pop(quest_id)
         quest_data["state"] = "completed"
+
+        self._record_repeatable_board_completion(player, quest_data)
         
         reward_text = self._grant_rewards(player, quest_data.get("rewards", {}))
         

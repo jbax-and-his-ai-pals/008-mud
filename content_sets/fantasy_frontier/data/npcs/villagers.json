@@ -241,6 +241,7 @@
     "default_dialog": "The {name} considers your words carefully before responding.",
     "initial_inventory": [],
     "properties": {
+      "dialogue": "elder_thorne_commissions",
       "is_quest_giver": true,
       "wander_chance": 0.1,
       "move_cooldown": 120,
@@ -367,6 +368,7 @@
       "forest": "The woods are wild. We don't patrol beyond the tree line. That's adventurer's work."
     },
     "properties": {
+      "dialogue": "guard_captain_missing_guard",
       "is_guard": true,
       "can_give_generic_quests": true,
       "quest_interests": [

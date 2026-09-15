@@ -102,7 +102,8 @@ class TestGatheringWithANet(GameTestBase):
         survey = self.game.process_command("survey")
         self.assertIn("calm fishing hole: 0/4 (depleted)", survey)
         self.assertIn("recovers in about 1 day", survey)
-        self.assertIn("also at: sheltered fishing spot (Fishing Pier)", survey)
+        self.assertIn("sheltered fishing spot (Tidal Pools)", survey)
+        self.assertIn("sheltered fishing spot (Fishing Pier)", survey)
 
 
 class TestFishingDiscoverabilityHint(GameTestBase):

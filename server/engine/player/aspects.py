@@ -39,6 +39,11 @@ class QuestState:
     active: dict[str, Any] = field(default_factory=dict)
     completed: dict[str, Any] = field(default_factory=dict)
     archived: dict[str, Any] = field(default_factory=dict)
+    # Board-task availability is deliberately per player: a notice that has
+    # just been completed should not immediately return for that same person,
+    # while it can remain useful to somebody else in a shared world.  Values
+    # are clock timestamps keyed by authored quest template id.
+    repeatable_available_at: dict[str, float] = field(default_factory=dict)
     active_campaigns: dict[str, Any] = field(default_factory=dict)
     completed_campaigns: dict[str, Any] = field(default_factory=dict)
     finite_adventure: dict[str, Any] = field(default_factory=dict)

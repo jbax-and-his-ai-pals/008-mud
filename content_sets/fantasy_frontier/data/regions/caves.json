@@ -2,6 +2,7 @@
     "region_id": "caves",
     "name": "Shadow Caves",
     "description": "A network of caves in the hills beyond the forest. Few villagers venture this far, telling tales of strange echoes and mysterious lights.",
+    "properties": { "level_band": { "min": 3, "max": 6 } },
     "spawner": {
       "monster_types": {
         "goblin": 4,
@@ -78,10 +79,13 @@
       },
       "geode_cluster": {
           "name": "Geode Cluster",
-          "description": "Several large, cracked-open geodes line the walls of this small alcove. Their hollow interiors sparkle with thousands of tiny crystals.",
+          "description": "Several large, cracked-open geodes line the walls of this small alcove. Their hollow interiors sparkle with thousands of tiny crystals, including a few rose-colored seams worth prising free.",
           "properties": {},
           "exits": { "west": "crystal_chamber" },
-          "items": [ { "item_id": "item_crystal_shard", "quantity": 3 } ]
+          "items": [
+            { "item_id": "item_crystal_shard", "quantity": 3 },
+            { "item_id": "node_rose_quartz_seam" }
+          ]
       },
       "deep_tunnel": {
         "name": "Deep Tunnel",
@@ -121,8 +125,14 @@
       },
       "mine_lower_level": {
           "name": "Mine - Lower Level",
-          "description": "You are at the bottom of the main shaft. The air is stale and heavy. A large gold nugget glints from a crack in the wall.",
-          "properties": { "dark": true },
+          "description": "You are at the bottom of the main shaft. A yellow haze seeps from cracks around the flooded floor, making each breath feel heavy and unsafe. A large gold nugget glints from a crack in the wall.",
+          "properties": {
+            "dark": true,
+            "smell": "sulfur",
+            "hazard_type": "poison_gas",
+            "hazard_damage": 6,
+            "hazard_tick_interval": 5.0
+          },
           "exits": { "up": "forgotten_mine_shaft" },
           "items": [ { "item_id": "item_gold_nugget" } ]
       },

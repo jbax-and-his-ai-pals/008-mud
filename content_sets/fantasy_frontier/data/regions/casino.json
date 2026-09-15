@@ -2,7 +2,7 @@
   "region_id": "casino",
   "name": "The Gilded Lotus",
   "description": "An upscale establishment contrasting sharply with the rustic village outside. Thick carpets muffle footsteps, and the air smells of expensive perfume and cigar smoke.",
-  "properties": { "safe_zone": true, "indoors": true },
+  "properties": { "safe_zone": true, "indoors": true, "level_band": { "min": 1, "max": 3 } },
   "rooms": {
     "lobby": {
       "name": "Casino Lobby",

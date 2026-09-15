@@ -2,6 +2,7 @@
     "region_id": "mountains",
     "name": "Frostpeak Mountains",
     "description": "The jagged peaks of the Frostpeak range loom over the region. The air is thin and cold, and snow persists year-round on the higher slopes.",
+    "properties": { "level_band": { "min": 5, "max": 8 } },
     "spawner": {
         "monster_types": {
             "orc_grunt": 4,
@@ -94,13 +95,14 @@
         },
         "hidden_valley": {
             "name": "Verdant Hidden Valley",
-            "description": "Surprisingly sheltered from the harsh mountain weather, this small valley is lush and green. A clear stream runs through it, and unusual alpine flowers bloom.",
+            "description": "Surprisingly sheltered from the harsh mountain weather, this small valley is lush and green. A clear stream runs through it, unusual alpine flowers bloom, and a wind-felled bough lies beside the water.",
             "exits": {
                 "up": "hidden_valley_descent",
                 "north": "valley_cave"
             },
             "items": [
-               { "item_id": "item_frostpetal" }
+               { "item_id": "item_frostpetal" },
+               { "item_id": "node_fallen_bough" }
             ]
         },
         "valley_cave": {
@@ -139,9 +141,15 @@
         },
         "ice_cave_chamber": {
             "name": "Inner Ice Chamber",
-            "description": "Deeper within the ice cave, the ice walls seem ancient and impossibly thick. Something large appears to be frozen within the ice in the center of the chamber.",
+            "description": "Deeper within the ice cave, the ice walls seem ancient and impossibly thick. A killing chill flows from something large frozen within the ice at the chamber's center; exposed skin begins to numb within moments.",
             "exits": { "out": "ice_cave" },
-            "properties": {"dark": true}
+            "properties": {
+                "dark": true,
+                "temperature": "cold",
+                "hazard_type": "extreme_cold",
+                "hazard_damage": 5,
+                "hazard_tick_interval": 5.0
+            }
         }
     }
 }

@@ -4,6 +4,7 @@
   "description": "A bustling village nestled by the Silver River. The buildings are made of sturdy timber with thatched roofs, and the villagers are a mix of hardworking locals and wary travelers.",
   "properties": {
     "safe_zone": true,
+    "level_band": { "min": 1, "max": 3 },
     "districts": {
       "residential": {
         "name": "Residential District",
@@ -264,14 +265,16 @@
     },
     "old_mill_path": {
       "name": "Path to Old Mill",
-      "description": "A less-used path branching off towards an old, quiet structure by the river.",
-      "exits": { "west": "riverside_docks", "east": "old_mill" }
+      "description": "A less-used path branches toward an old, quiet structure by the river. The water has scoured a bank of fine clay beside the path.",
+      "exits": { "west": "riverside_docks", "east": "old_mill" },
+      "items": [ { "item_id": "node_river_clay_bank" } ]
     },
     "old_mill": {
       "name": "Abandoned Mill",
-      "description": "An old water mill stands silently beside the river, its large wheel still and covered in moss. The building looks unused.",
+      "description": "An old water mill stands silently beside the river, its large wheel still and covered in moss. The building looks unused, save for a torn guard's tabard snagged beneath the waterwheel.",
       "properties": { "smell": "damp wood" },
-      "exits": { "west": "old_mill_path" }
+      "exits": { "west": "old_mill_path" },
+      "items": [ { "item_id": "item_bloody_tabard" } ]
     },
     "alleyway": {
       "name": "Narrow Alley",

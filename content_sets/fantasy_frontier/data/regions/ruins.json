@@ -2,6 +2,7 @@
     "region_id": "ruins",
     "name": "Ancient Ruins",
     "description": "Deep within the Whispering Woods lie the crumbling remains of a long-forgotten civilization. Stone structures are overgrown with vines and moss, hinting at a mysterious past.",
+    "properties": { "level_band": { "min": 3, "max": 6 } },
     "spawner": {
       "monster_types": {
         "skeleton": 5,
@@ -76,8 +77,14 @@
       },
       "ritual_chamber": {
           "name": "Ritual Chamber",
-          "description": "This circular chamber has a large stone altar at its center, stained with something dark. Faded, unsettling symbols are etched into the floor and walls.",
-          "properties": {"dark": true, "smell": "dusty"},
+          "description": "This circular chamber has a large stone altar at its center, stained with something dark. Faded, unsettling symbols are etched into the floor and walls, and a cold shadow clings to anyone who approaches the altar.",
+          "properties": {
+            "dark": true,
+            "smell": "dust and old blood",
+            "hazard_type": "unholy_aura",
+            "hazard_damage": 4,
+            "hazard_tick_interval": 5.0
+          },
           "exits": { "south": "central_plaza" }
       },
       "shadowy_crypt_entrance": {

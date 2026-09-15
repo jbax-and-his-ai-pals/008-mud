@@ -2,6 +2,7 @@
   "region_id": "obsidian_trial",
   "name": "The Obsidian Trial",
   "description": "An ancient testing ground carved from volcanic rock. The air is hot and smells of sulfur.",
+  "properties": { "level_band": { "min": 6, "max": 8 } },
   "rooms": {
     "entrance": {
       "name": "Trial Entrance",
@@ -37,9 +38,15 @@
     },
     "inner_sanctum": {
       "name": "Inner Sanctum",
-      "description": "A massive circular chamber. In the center stands a construct of living stone.",
+      "description": "A massive circular chamber where heat bleeds from glowing fissures in the floor. The air burns in your lungs, and in the center stands a construct of living stone.",
       "exits": { "south": "hall_of_gates" },
-      "initial_npcs": [ { "template_id": "obsidian_construct" } ]
+      "initial_npcs": [ { "template_id": "obsidian_construct" } ],
+      "properties": {
+        "temperature": "hot",
+        "hazard_type": "extreme_heat",
+        "hazard_damage": 6,
+        "hazard_tick_interval": 5.0
+      }
     }
   }
 }

@@ -2,6 +2,7 @@
     "region_id": "forest",
     "name": "Whispering Woods",
     "description": "A dense forest that borders Riverside Village. The trees grow tall and close together, creating a canopy that filters the sunlight. Local legends speak of strange creatures living in its depths.",
+    "properties": { "level_band": { "min": 1, "max": 3 } },
     "spawner": {
       "monster_types": {
         "giant_rat": 4,
@@ -60,11 +61,12 @@
       },
       "western_thicket": {
         "name": "Western Thicket",
-        "description": "A dense thicket of thorny bushes blocks easy passage further west. A small, dark opening is visible at the base of a rocky outcrop to the south.",
+        "description": "A dense thicket of thorny bushes blocks easy passage further west. Several brambles are heavy with berries, and a small, dark opening is visible at the base of a rocky outcrop to the south.",
         "exits": {
           "east": "forest_path_1",
           "south": "wolf_den_entrance"
-        }
+        },
+        "items": [ { "item_id": "node_berry_bramble" } ]
       },
       "wolf_den_entrance": {
         "name": "Wolf Den Entrance",
@@ -168,11 +170,12 @@
       },
       "east_bank": {
         "name": "Eastern Bank",
-        "description": "You climb up from the stream bed onto its eastern bank. The forest seems older here, the path less distinct.",
+        "description": "You climb up from the stream bed onto its eastern bank. A quiet eddy below the roots holds fish, while the forest seems older here and the path less distinct.",
         "exits": {
           "west": "stream_crossing",
           "east": "ancient_path_1"
-        }
+        },
+        "items": [ { "item_id": "node_river_fishing_spot" } ]
       },
       "ancient_path_1": {
         "name": "Ancient Path",
@@ -200,13 +203,14 @@
       },
       "ancient_oak": {
         "name": "Ancient Oak",
-        "description": "A massive oak tree, its trunk wider than several people. There's a hollow at its base. A dark opening in the hillside to the east leads into the Shadow Caves.",
+        "description": "A massive oak tree, its trunk wider than several people. There's a hollow at its base and a sound fallen limb nearby. A dark opening in the hillside to the east leads into the Shadow Caves.",
         "exits": {
           "west": "ancient_path_2",
           "east": "caves:cave_entrance"
         },
         "items": [
-          { "item_id": "item_old_coin" }
+          { "item_id": "item_old_coin" },
+          { "item_id": "node_fallen_bough" }
         ]
       }
     }

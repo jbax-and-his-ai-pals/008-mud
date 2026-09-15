@@ -17,8 +17,14 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.commands.interaction.npcs import talk_handler, turnin_handler, follow_handler, guide_handler
 
 
-def _place_npc(world, template_id, instance_id, region_id, room_id, **overrides):
+def _place_npc(world, template_id, instance_id, region_id, room_id, with_authored_dialogue=False, **overrides):
     npc = NPCFactory.create_npc_from_template(template_id, world, instance_id=instance_id, **overrides)
+    # This module exercises the generic command fallbacks. Content-authored
+    # conversations have their own focused suite; opt in here only when a test
+    # explicitly needs one, so adding a graph to a production template cannot
+    # silently replace the fallback behaviour under test.
+    if not with_authored_dialogue:
+        npc.properties.pop("dialogue", None)
     npc.current_region_id = region_id
     npc.current_room_id = room_id
     world.add_npc(npc)

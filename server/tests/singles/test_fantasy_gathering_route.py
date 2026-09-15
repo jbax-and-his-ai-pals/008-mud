@@ -1,5 +1,6 @@
-"""End-to-end coverage for the authored early gather -> craft -> gift route."""
+"""End-to-end coverage for the authored gathering routes and commissions."""
 
+import json
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -17,6 +18,46 @@ FANTASY_FRONTIER = REPO_ROOT / "content_sets" / "fantasy_frontier"
 
 
 class TestFantasyGatheringRoute(unittest.TestCase):
+    def test_static_gathering_sources_form_multi_region_tool_routes(self) -> None:
+        """The reusable outdoor nodes are not single-room curiosities.
+
+        Housing nodes deliberately stay out of this check: they are placed by
+        the player after buying a home, not by the authored world. Every normal
+        node needs two static sources, and every vendor tool needs a route
+        spanning at least two regions.
+        """
+        resources_path = FANTASY_FRONTIER / "data" / "items" / "resources.json"
+        resources = json.loads(resources_path.read_text(encoding="utf-8"))
+        static_nodes = {
+            node_id: definition
+            for node_id, definition in resources.items()
+            if definition.get("type") == "ResourceNode"
+            and "home" not in definition.get("properties", {}).get("resource_tags", [])
+        }
+        placements: dict[str, list[tuple[str, str]]] = {}
+        for region_path in (FANTASY_FRONTIER / "data" / "regions").glob("*.json"):
+            region = json.loads(region_path.read_text(encoding="utf-8"))
+            for room_id, room in region.get("rooms", {}).items():
+                for item in room.get("items", []):
+                    node_id = item.get("item_id") if isinstance(item, dict) else None
+                    if node_id in static_nodes:
+                        placements.setdefault(node_id, []).append((region["region_id"], room_id))
+
+        self.assertEqual(set(static_nodes), set(placements))
+        self.assertGreaterEqual(sum(len(sources) for sources in placements.values()), 16)
+        for node_id, sources in placements.items():
+            with self.subTest(node_id=node_id):
+                self.assertGreaterEqual(len(sources), 2)
+
+        regions_by_tool: dict[str, set[str]] = {}
+        for node_id, sources in placements.items():
+            tool = static_nodes[node_id]["properties"]["tool_required"]
+            regions_by_tool.setdefault(tool, set()).update(region_id for region_id, _ in sources)
+        self.assertEqual({"foraging_knife", "hand_axe", "pickaxe", "fishing_net"}, set(regions_by_tool))
+        for tool, regions in regions_by_tool.items():
+            with self.subTest(tool=tool):
+                self.assertGreaterEqual(len(regions), 2)
+
     def test_full_inventory_does_not_consume_a_resource_node_charge(self) -> None:
         server = HeadlessServer(
             db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
@@ -65,6 +106,14 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             # starter list. The gathering route only needs the knife to be there.
             self.assertEqual("wanderer", player.background_id)
             self.assertEqual(1, player.inventory.count_item("item_foraging_knife"))
+            self.assertNotIn("tie_wildflower_posy", player.known_recipe_ids)
+
+            server.execute_command(session.session_id, "accept quest 1")
+            briefing = server.execute_command(session.session_id, "talk Elder Thorne")
+            briefing += server.execute_command(session.session_id, "reply commission")
+            briefing_text = "\n".join(str(event["payload"]) for event in briefing)
+            self.assertIn("community garden", briefing_text.lower())
+            self.assertIn("tie_wildflower_posy", player.known_recipe_ids)
 
             garden = server.world.get_region("town").get_room("community_garden")
             self.assertTrue(any(isinstance(item, ResourceNode) for item in garden.items))
@@ -91,7 +140,7 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             server.execute_command(session.session_id, "east")
             gifted = server.execute_command(session.session_id, "give wildflower posy to Elder Thorne")
             gifted_text = "\n".join(str(event["payload"]) for event in gifted)
-            self.assertIn("Relationship: +5", gifted_text)
+            self.assertIn("Quest Complete", gifted_text)
         finally:
             server.shutdown()
 
@@ -110,6 +159,13 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             accepted = server.execute_command(session.session_id, "accept quest 1")
             self.assertIn("Quest Accepted", "\n".join(str(event["payload"]) for event in accepted))
             self.assertEqual(0, player.inventory.count_item("item_wildflower_posy"))
+            self.assertNotIn("tie_wildflower_posy", player.known_recipe_ids)
+
+            taught = server.execute_command(session.session_id, "talk Elder Thorne")
+            taught += server.execute_command(session.session_id, "reply commission")
+            taught_text = "\n".join(str(event["payload"]) for event in taught)
+            self.assertIn("community garden", taught_text.lower())
+            self.assertIn("tie_wildflower_posy", player.known_recipe_ids)
 
             server.execute_command(session.session_id, "west")
             server.execute_command(session.session_id, "south")
@@ -682,6 +738,8 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             player = server.get_player_for_session(session.session_id)
 
             server.execute_command(session.session_id, "accept quest 1")
+            server.execute_command(session.session_id, "talk Elder Thorne")
+            server.execute_command(session.session_id, "reply commission")
             for command in ("west", "south", "gather herb bed", "gather herb bed", "craft tie_wildflower_posy", "north", "east"):
                 server.execute_command(session.session_id, command)
             first_delivery = server.execute_command(session.session_id, "give wildflower posy to Elder Thorne")

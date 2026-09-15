@@ -2,6 +2,12 @@
   "ruleset_id": "fantasy_frontier_core",
   "world_mode": "single_player_story",
   "progression_model": "level_based",
+  "world": {
+    "regions": {
+      "require_level_bands": true,
+      "require_hazard_coverage": true
+    }
+  },
   "systems": {
     "gathering": { "enabled": true }
   },
@@ -68,12 +74,57 @@
     "quest_board_locations": ["town:town_square", "portbridge:harbor_district"],
     "delivery_package_item_id": "quest_package_generic",
     "authored_board_templates": [
-      { "template_id": "quest_wildflower_commission", "giver_template_id": "village_elder" },
-      { "template_id": "quest_riverside_charm_commission", "giver_template_id": "village_elder", "relationship_min": 10 },
-      { "template_id": "quest_river_fine_token_commission", "giver_template_id": "village_elder", "relationship_min": 10 },
-      { "template_id": "quest_museum_showcase_commission", "giver_template_id": "curator", "relationship_min": 5 },
-      { "template_id": "quest_bounty_dire_wolf_alpha", "giver_template_id": "guard_captain" },
-      { "template_id": "quest_bounty_troll_elder", "giver_template_id": "guard_captain" }
+      {
+        "template_id": "quest_wildflower_commission",
+        "giver_template_id": "village_elder",
+        "repeatable": {
+          "delay_seconds": 900,
+          "unavailable_text": "Elder Thorne has taken down today's notice; the board is picked over for now."
+        }
+      },
+      {
+        "template_id": "quest_riverside_charm_commission",
+        "giver_template_id": "village_elder",
+        "relationship_min": 10,
+        "repeatable": {
+          "delay_seconds": 1200,
+          "unavailable_text": "Elder Thorne has taken down today's notice; the board is picked over for now."
+        }
+      },
+      {
+        "template_id": "quest_river_fine_token_commission",
+        "giver_template_id": "village_elder",
+        "relationship_min": 10,
+        "repeatable": {
+          "delay_seconds": 1200,
+          "unavailable_text": "Elder Thorne has taken down today's notice; the board is picked over for now."
+        }
+      },
+      {
+        "template_id": "quest_museum_showcase_commission",
+        "giver_template_id": "curator",
+        "relationship_min": 5,
+        "repeatable": {
+          "delay_seconds": 1800,
+          "unavailable_text": "Curator Vane has filled the museum's current request; a fresh notice will appear in time."
+        }
+      },
+      {
+        "template_id": "quest_bounty_dire_wolf_alpha",
+        "giver_template_id": "guard_captain",
+        "repeatable": {
+          "delay_seconds": 1800,
+          "unavailable_text": "The Guard Captain has removed the bounty while the roads settle. Check the board again later."
+        }
+      },
+      {
+        "template_id": "quest_bounty_troll_elder",
+        "giver_template_id": "guard_captain",
+        "repeatable": {
+          "delay_seconds": 1800,
+          "unavailable_text": "The Guard Captain has removed the bounty while the roads settle. Check the board again later."
+        }
+      }
     ],
     "board_display_name": "Quest Board",
     "turn_in_phrases": ["complete quest", "report quest", "finish quest", "turnin quest", "complete", "turnin", "negotiate", "parley"],

@@ -2,7 +2,7 @@
     "region_id": "farmland",
     "name": "Riverside Farmlands",
     "description": "Fertile fields and rolling pastures stretch out under an open sky, tended by hardworking farmers. The air smells of crops and rich earth.",
-    "properties": { "safe_zone": true },
+    "properties": { "safe_zone": true, "level_band": { "min": 1, "max": 3 } },
     "rooms": {
         "farm_bridge": {
             "name": "West End of Stone Bridge",
@@ -81,12 +81,13 @@
         },
         "pumpkin_patch": {
             "name": "Pumpkin Patch",
-            "description": "Large orange pumpkins lie scattered amongst tangled vines in this fertile patch of ground. Some look ripe for picking.",
+            "description": "Large orange pumpkins lie scattered amongst tangled vines in this fertile patch of ground. Some look ripe for picking, and a tended bed of culinary herbs grows along the sunny edge.",
             "exits": {
                 "north": "wheat_field_south"
             },
             "items": [
-                { "item_id": "item_pumpkin" }
+                { "item_id": "item_pumpkin" },
+                { "item_id": "node_herb_bed" }
             ]
         },
         "scarecrow_field": {

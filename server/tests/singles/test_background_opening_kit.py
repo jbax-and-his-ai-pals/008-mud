@@ -3,9 +3,10 @@
 The design rule is that a background decides where you *begin* and never what
 you can do. P4 shipped six backgrounds and broke that rule by accident: three
 of them (apprentice, acolyte, pedlar) had no foraging knife, and the opening
-commission -- "A Posy for Riverside", the first thing Elder Thorne asks for --
-cannot be started without one. A player who picked Acolyte was told, at minute
-one, that they needed a tool they had no obvious way to recognise or obtain.
+commission -- "A Posy for Riverside" -- cannot be finished without one. A
+player who picked Acolyte was told, at minute one, that they needed a tool they
+had no obvious way to recognise or obtain. Conversely, the posy recipe is Elder
+Thorne's lesson, not a background perk.
 
 Content could drift again the same way, so this test walks each authored
 background through the opening move rather than trusting the kit by eye.
@@ -63,6 +64,11 @@ class TestEveryBackgroundCanStart(unittest.TestCase):
 
                     player = server.get_player_for_session(session.session_id)
                     self.assertEqual(background_id, player.background_id)
+                    self.assertNotIn(
+                        "tie_wildflower_posy",
+                        player.known_recipe_ids,
+                        "background %r pre-teaches Elder Thorne's opening lesson" % background_id,
+                    )
 
                     # A weapon to fight with, and the tool the opening
                     # commission needs. Weapons ship carried rather than

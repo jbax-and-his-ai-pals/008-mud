@@ -194,6 +194,215 @@ def _load_definition_ids(directory: Path, label: str, issues: list[ContentSetIss
     return definition_ids
 
 
+def _region_level_bands_required(
+    ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path
+) -> bool:
+    """Read the optional content-set policy that requires region bands.
+
+    Level bands are a world-design commitment for a level-based set, not a
+    universal runtime requirement: a modern social capsule or a set without
+    progression should be free to omit them. Opting in makes every static
+    region carry the same explicit, portable progression metadata.
+    """
+    world_config = ruleset.get("world", {})
+    if world_config is None:
+        return False
+    if not isinstance(world_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world must be an object"))
+        return False
+    regions_config = world_config.get("regions", {})
+    if regions_config is None:
+        return False
+    if not isinstance(regions_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world.regions must be an object"))
+        return False
+    required = regions_config.get("require_level_bands", False)
+    if not isinstance(required, bool):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world.regions.require_level_bands must be a boolean"))
+        return False
+    return required
+
+
+def _region_hazard_coverage_required(
+    ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path
+) -> bool:
+    """Read the optional policy that requires every authored hazard in play.
+
+    A set can define hazards without making all of them part of its world. A
+    set built around environmental danger can opt into this check, which
+    derives the required names from its own combat content rather than from an
+    engine-maintained list.
+    """
+    world_config = ruleset.get("world", {})
+    if world_config is None:
+        return False
+    if not isinstance(world_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world must be an object"))
+        return False
+    regions_config = world_config.get("regions", {})
+    if regions_config is None:
+        return False
+    if not isinstance(regions_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world.regions must be an object"))
+        return False
+    required = regions_config.get("require_hazard_coverage", False)
+    if not isinstance(required, bool):
+        issues.append(ContentSetIssue(
+            "error", str(ruleset_path),
+            "ruleset.world.regions.require_hazard_coverage must be a boolean",
+        ))
+        return False
+    return required
+
+
+def _validate_region_level_bands(
+    content_root: Path, issues: list[ContentSetIssue], *, required: bool = False
+) -> None:
+    """Validate portable authored progression bands and their spawn alignment."""
+    for path in sorted((content_root / "regions").glob("*.json")):
+        payload = _load_json(path, issues, "region")
+        if not isinstance(payload, dict) or isinstance(payload.get("themes"), dict):
+            continue
+        region_id = str(payload.get("region_id", "")).strip() or path.stem
+        properties = payload.get("properties", {})
+        if not isinstance(properties, dict):
+            if required:
+                issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' properties must be an object containing level_band"))
+            continue
+        band = properties.get("level_band")
+        if band is None:
+            if required:
+                issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' requires properties.level_band"))
+            continue
+        if not isinstance(band, dict):
+            issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' properties.level_band must be an object"))
+            continue
+        minimum = band.get("min")
+        maximum = band.get("max")
+        if (
+            isinstance(minimum, bool)
+            or isinstance(maximum, bool)
+            or not isinstance(minimum, int)
+            or not isinstance(maximum, int)
+            or minimum < 1
+            or maximum < minimum
+        ):
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"region '{region_id}' properties.level_band requires positive integer min/max with min <= max",
+            ))
+            continue
+        spawner = payload.get("spawner", {})
+        level_range = spawner.get("level_range") if isinstance(spawner, dict) else None
+        if level_range is None:
+            continue
+        if (
+            not isinstance(level_range, list)
+            or len(level_range) != 2
+            or any(isinstance(value, bool) or not isinstance(value, int) for value in level_range)
+            or level_range[0] < 1
+            or level_range[1] < level_range[0]
+        ):
+            issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' spawner.level_range must be [min, max] positive integers"))
+        elif level_range[0] < minimum or level_range[1] > maximum:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"region '{region_id}' spawner.level_range must stay inside properties.level_band",
+            ))
+
+
+def _validate_region_hazard_coverage(
+    content_root: Path, issues: list[ContentSetIssue], *, required: bool = False
+) -> None:
+    """Validate room hazards against content-defined mappings and coverage.
+
+    Only a ruleset that opts in has to place every mapped hazard. Whenever an
+    elements file exists, individual room hazards are still checked for valid
+    names and safe numeric timing/damage values.
+    """
+    elements_path = content_root / "combat" / "elements.json"
+    if not elements_path.is_file():
+        if required:
+            issues.append(ContentSetIssue(
+                "error", str(elements_path),
+                "hazard coverage requires data/combat/elements.json with hazards.mapping",
+            ))
+        return
+
+    elements_payload = _load_json(elements_path, issues, "combat elements")
+    if not isinstance(elements_payload, dict):
+        return
+    hazards = elements_payload.get("hazards")
+    mapping = hazards.get("mapping") if isinstance(hazards, dict) else None
+    if not isinstance(mapping, dict):
+        if required:
+            issues.append(ContentSetIssue(
+                "error", str(elements_path),
+                "hazard coverage requires hazards.mapping to be an object",
+            ))
+        return
+
+    valid_hazards: set[str] = set()
+    for hazard_type in mapping:
+        if isinstance(hazard_type, str) and hazard_type.strip():
+            valid_hazards.add(hazard_type.strip())
+        else:
+            issues.append(ContentSetIssue(
+                "error", str(elements_path), "hazards.mapping keys must be non-empty strings",
+            ))
+    if required and not valid_hazards:
+        issues.append(ContentSetIssue(
+            "error", str(elements_path), "hazard coverage requires at least one hazards.mapping entry",
+        ))
+
+    authored_locations: dict[str, list[str]] = {}
+    for path in sorted((content_root / "regions").glob("*.json")):
+        payload = _load_json(path, issues, "region")
+        if not isinstance(payload, dict) or isinstance(payload.get("themes"), dict):
+            continue
+        region_id = str(payload.get("region_id", "")).strip() or path.stem
+        rooms = payload.get("rooms")
+        if not isinstance(rooms, dict):
+            continue
+        for room_id, room in rooms.items():
+            if not isinstance(room, dict):
+                continue
+            properties = room.get("properties", {})
+            if not isinstance(properties, dict) or "hazard_type" not in properties:
+                continue
+            room_label = f"room '{region_id}:{room_id}'"
+            hazard_type = properties.get("hazard_type")
+            if not isinstance(hazard_type, str) or not hazard_type.strip():
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"{room_label} hazard_type must be a non-empty string",
+                ))
+                continue
+            hazard_type = hazard_type.strip()
+            if hazard_type not in valid_hazards:
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"{room_label} uses unknown hazard_type '{hazard_type}'",
+                ))
+                continue
+            authored_locations.setdefault(hazard_type, []).append(f"{region_id}:{room_id}")
+            for property_name in ("hazard_damage", "hazard_tick_interval"):
+                value = properties.get(property_name)
+                if value is None:
+                    continue
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+                    issues.append(ContentSetIssue(
+                        "error", str(path),
+                        f"{room_label} {property_name} must be a positive number",
+                    ))
+
+    if required:
+        for hazard_type in sorted(valid_hazards):
+            if hazard_type not in authored_locations:
+                issues.append(ContentSetIssue(
+                    "error", str(elements_path),
+                    f"hazard '{hazard_type}' is defined in hazards.mapping but is not used by any room",
+                ))
+
+
 def _validate_authored_world(
     content_root: Path,
     start_region_id: str,
@@ -361,6 +570,17 @@ def _validate_ruleset_references(content_root: Path, ruleset: dict[str, Any], is
             relationship_min = entry["relationship_min"]
             if isinstance(relationship_min, bool) or not isinstance(relationship_min, int) or relationship_min < 0 or relationship_min > 100:
                 issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.relationship_min must be an integer from 0 to 100"))
+        if "repeatable" in entry:
+            repeatable = entry["repeatable"]
+            if not isinstance(repeatable, dict):
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.repeatable must be an object"))
+                continue
+            delay_seconds = repeatable.get("delay_seconds")
+            if isinstance(delay_seconds, bool) or not isinstance(delay_seconds, (int, float)) or delay_seconds <= 0:
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.repeatable.delay_seconds must be a positive number"))
+            unavailable_text = repeatable.get("unavailable_text")
+            if not isinstance(unavailable_text, str) or not unavailable_text.strip():
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.repeatable.unavailable_text must be a non-empty string"))
 
 
 def _validate_ambient_loot_references(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
@@ -1243,6 +1463,57 @@ def _validate_item_extension_data(content_root: Path, issues: list[ContentSetIss
             if not isinstance(properties, dict):
                 continue
             label = f"item '{item_id}'"
+            effect_type = properties.get("effect_type")
+            if effect_type == "apply_effect":
+                effect_data = properties.get("effect_data")
+                if not isinstance(effect_data, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_data must be an object"))
+                else:
+                    effect_name = effect_data.get("name")
+                    effect_kind = effect_data.get("type")
+                    if not isinstance(effect_name, str) or not effect_name.strip():
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_data.name must be a non-empty string"))
+                    if not isinstance(effect_kind, str) or not effect_kind.strip():
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_data.type must be a non-empty string"))
+                    if "base_duration" in effect_data and (
+                        isinstance(effect_data["base_duration"], bool)
+                        or not isinstance(effect_data["base_duration"], (int, float))
+                        or effect_data["base_duration"] <= 0
+                    ):
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_data.base_duration must be a positive number"))
+                    if effect_kind == "stat_mod":
+                        modifiers = effect_data.get("modifiers")
+                        if (
+                            not isinstance(modifiers, dict)
+                            or not modifiers
+                            or any(
+                                not isinstance(stat_name, str)
+                                or not stat_name.strip()
+                                or isinstance(amount, bool)
+                                or not isinstance(amount, (int, float))
+                                for stat_name, amount in modifiers.items()
+                            )
+                        ):
+                            issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_data.modifiers must map stat names to numbers"))
+            elif effect_type == "cleanse":
+                effect_tags = properties.get("effect_tags")
+                if (
+                    not isinstance(effect_tags, list)
+                    or not effect_tags
+                    or any(not isinstance(tag, str) or not tag.strip() for tag in effect_tags)
+                ):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_tags must be a non-empty array of tags"))
+            elif effect_type == "target_damage":
+                damage_amount = properties.get("damage_amount")
+                damage_type = properties.get("damage_type")
+                if (
+                    isinstance(damage_amount, bool)
+                    or not isinstance(damage_amount, (int, float))
+                    or damage_amount <= 0
+                ):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.damage_amount must be a positive number"))
+                if not isinstance(damage_type, str) or not damage_type.strip():
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.damage_type must be a non-empty string"))
             if "attachment_slots" in properties:
                 slots = properties["attachment_slots"]
                 if (
@@ -1451,6 +1722,18 @@ def load_content_set(
         _validate_authored_world(content_root, start_region_id, start_room_id, issues)
         ruleset_source_path = resolved_paths.get("ruleset")
         if ruleset_source_path is not None:
+            require_region_level_bands = _region_level_bands_required(
+                ruleset_payload, issues, ruleset_source_path
+            )
+            require_region_hazard_coverage = _region_hazard_coverage_required(
+                ruleset_payload, issues, ruleset_source_path
+            )
+            _validate_region_level_bands(
+                content_root, issues, required=require_region_level_bands
+            )
+            _validate_region_hazard_coverage(
+                content_root, issues, required=require_region_hazard_coverage
+            )
             _validate_ruleset_references(content_root, ruleset_payload, issues, ruleset_source_path)
             _validate_ambient_loot_references(content_root, ruleset_payload, issues, ruleset_source_path)
             _validate_advancement_content(content_root, ruleset_payload, issues, ruleset_source_path)

@@ -22,6 +22,73 @@
       "effect_type": "heal"
     }
   },
+  "item_marshguard_tonic": {
+    "type": "Consumable",
+    "name": "marshguard tonic",
+    "description": "A bitter green tonic of crushed herbs. It leaves a resinous taste and wards the lungs against poison for a short while.",
+    "weight": 0.3,
+    "value": 18,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "apply_effect",
+      "effect_data": {
+        "name": "Marshguard",
+        "type": "stat_mod",
+        "base_duration": 180.0,
+        "modifiers": { "resist_poison": 60 }
+      }
+    }
+  },
+  "item_trailblazer_tonic": {
+    "type": "Consumable",
+    "name": "trailblazer tonic",
+    "description": "A bright, sharp draught that puts spring in your step for a few useful minutes.",
+    "weight": 0.3,
+    "value": 16,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "apply_effect",
+      "effect_data": {
+        "name": "Trailblazer",
+        "type": "stat_mod",
+        "base_duration": 180.0,
+        "modifiers": { "agility": 4 }
+      }
+    }
+  },
+  "item_purifying_draught": {
+    "type": "Consumable",
+    "name": "purifying draught",
+    "description": "A clean, sour remedy meant to purge poisons and common diseases before they settle in.",
+    "weight": 0.3,
+    "value": 15,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "cleanse",
+      "effect_tags": ["poison", "disease"]
+    }
+  },
+  "item_sunfire_flask": {
+    "type": "Consumable",
+    "name": "sunfire flask",
+    "description": "A sealed flask of volatile alchemical light. Use it on a foe to hurl it and break the seal.",
+    "weight": 0.4,
+    "value": 24,
+    "stackable": true,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "target_damage",
+      "damage_amount": 18,
+      "damage_type": "fire"
+    }
+  },
   "item_hunk_bread": {
     "type": "Consumable",
     "name": "hunk of bread",

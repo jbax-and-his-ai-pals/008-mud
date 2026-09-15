@@ -110,6 +110,89 @@ class Consumable(Item):
                         message = f"You use the {self.name}, but nothing seems to happen."
                 else:
                     message = f"You can't seem to apply the effect of {self.name}."
+
+        elif effect_type == "apply_effect":
+            # Keep temporary consumable effects content-authored.  The same
+            # status-effect representation powers spells and equipment, so a
+            # tonic can grant resist_poison without a one-off item class or a
+            # second expiry system.
+            effect_data = self.get_property("effect_data")
+            if (
+                not isinstance(effect_data, dict)
+                or not isinstance(effect_data.get("name"), str)
+                or not effect_data["name"].strip()
+                or not isinstance(effect_data.get("type"), str)
+                or not effect_data["type"].strip()
+            ):
+                consumed = False
+                message = f"The {self.name} seems improperly configured."
+            elif not hasattr(user, "apply_effect"):
+                consumed = False
+                message = f"You can't seem to apply the effect of the {self.name}."
+            else:
+                target_world = getattr(user, "world", None)
+                current_time = target_world.clock.now() if target_world else time.time()
+                success, _ = user.apply_effect(effect_data, current_time)
+                if success:
+                    message = f"You consume the {self.name}. {effect_data['name']} takes hold."
+                else:
+                    consumed = False
+                    message = f"You use the {self.name}, but nothing seems to happen."
+
+        elif effect_type == "cleanse":
+            # Antidotes are deliberately data-driven too.  use already
+            # supplies a target for "use <item> on <name>"; otherwise a
+            # draught treats its user.
+            effect_tags = self.get_property("effect_tags")
+            target = kwargs.get("target") or user
+            if (
+                not isinstance(effect_tags, list)
+                or not effect_tags
+                or any(not isinstance(tag, str) or not tag.strip() for tag in effect_tags)
+            ):
+                consumed = False
+                message = f"The {self.name} seems improperly configured."
+            elif not hasattr(target, "remove_effects_by_tag"):
+                consumed = False
+                message = f"The {self.name} cannot be applied to that target."
+            else:
+                removed = []
+                for tag in effect_tags:
+                    removed.extend(target.remove_effects_by_tag(tag))
+                if removed:
+                    message = f"You use the {self.name} and cleanse {getattr(target, 'name', 'the target')} of {len(removed)} affliction(s)."
+                else:
+                    message = f"You use the {self.name}, but find no matching affliction."
+
+        elif effect_type == "target_damage":
+            # A consumable can be used on an NPC in the room, which gives
+            # authored flasks and similar throwables a real targeted action
+            # while preserving the normal "use <item> on <target>" grammar.
+            target = kwargs.get("target")
+            damage_amount = self.get_property("damage_amount")
+            damage_type = self.get_property("damage_type")
+            if target is None:
+                consumed = False
+                message = f"Use the {self.name} on whom?"
+            elif (
+                isinstance(damage_amount, bool)
+                or not isinstance(damage_amount, (int, float))
+                or damage_amount <= 0
+                or not isinstance(damage_type, str)
+                or not damage_type.strip()
+            ):
+                consumed = False
+                message = f"The {self.name} seems improperly configured."
+            elif not hasattr(target, "take_damage"):
+                consumed = False
+                message = f"The {self.name} cannot harm that target."
+            else:
+                damage_taken = target.take_damage(int(damage_amount), damage_type)
+                target_name = getattr(target, "name", "the target")
+                if damage_taken > 0:
+                    message = f"You hurl the {self.name} at {target_name}, dealing {damage_taken} {damage_type} damage."
+                else:
+                    message = f"You hurl the {self.name} at {target_name}, but it does no damage."
         
         if consumed:
             self.update_property("uses", current_uses - 1)

@@ -180,15 +180,15 @@ This engine is built on a Component-Entity-System architecture heavily reliant o
 You start in the Town Square. You check your status and gear up.
 ```text
 > status
-Name: Adventurer | Class: Warrior | Level: 1
+Name: Adventurer | Background: Wanderer | Level: 1
 Health: 100/100 | Mana: 50/50
 Stats: STR 12, DEX 10, INT 8
-Equipped: Worn Sword (Main Hand)
+Equipped: (nothing)
 
 > i
 You are carrying:
-- 2x Small Healing Potion
-- 1x Iron Ration
+- Rusty Dagger
+- Foraging Knife
 ```
 
 **2. Getting a Quest**
@@ -250,8 +250,8 @@ You sell Rat Tail for 2 gold.
 > craft
 Nearby: Anvil
 Recipes:
-- Iron Dagger (Requires: 2x Iron Scrap, 1x Leather Scrap) [Locked]
-- Iron Sword (Requires: 3x Iron Scrap, 1x Leather Scrap) [Ready]
+- Iron Dagger (Requires: 2x Iron Scrap, 1x Leather Scrap)
+- Iron Sword (Requires: 3x Iron Scrap, 1x Leather Scrap)
 
 > craft craft_iron_sword
 You hammer the metal violently... (Rolled 45 vs DC 20)
@@ -266,31 +266,35 @@ You equip the Iron Sword in your Main Hand.
 
 ## 📂 Project Structure
 
-The engine is designed to be data-driven. Logic resides in `engine/`, while content resides in `data/`.
+The engine is designed to be data-driven. Logic resides in `server/engine/`,
+while playable content resides in `content_sets/<set>/data/`.
 
 ```text
-├── main.py                 # Entry point
-├── engine/
-│   ├── config/             # Configuration constants (combat, display, etc.)
-│   ├── core/               # Main game loop, input handling, time, weather
-│   ├── commands/           # Command parsing and logic handlers
-│   ├── items/              # Item classes, Inventory, Loot Generation
-│   ├── magic/              # Spells, Effects, and Registry
-│   ├── npcs/               # NPC logic, AI, and pathfinding
-│   ├── player/             # Player class and persistence logic
-│   ├── ui/                 # Pygame rendering, panels, and menus
-│   ├── utils/              # Pathfinding (A*), text formatting
-│   └── world/              # Room, Region, and Spawner logic
-├── data/
-│   ├── combat/             # Elemental relationships and flavor text
-│   ├── crafting/           # Recipe definitions (*.json)
-│   ├── items/              # Item templates (*.json) & Sets
-│   ├── magic/              # Spell definitions (*.json)
-│   ├── npcs/               # NPC templates (*.json)
-│   ├── player/             # Class definitions (Warrior, Mage, etc.)
-│   ├── quests/             # Instance quest templates
-│   └── regions/            # Region definitions and dynamic themes
-└── tests/                  # Unit and integration tests
+├── server/
+│   ├── main.py             # Entry point
+│   ├── engine/
+│   │   ├── config/         # Configuration constants (combat, display, etc.)
+│   │   ├── core/           # Main game loop, input handling, time, weather
+│   │   ├── commands/       # Command parsing and logic handlers
+│   │   ├── items/          # Item classes, Inventory, Loot Generation
+│   │   ├── magic/          # Spells, Effects, and Registry
+│   │   ├── npcs/           # NPC logic, AI, and pathfinding
+│   │   ├── player/         # Player class and persistence logic
+│   │   ├── ui/             # Pygame rendering, panels, and menus
+│   │   ├── utils/          # Pathfinding (A*), text formatting
+│   │   └── world/          # Room, Region, and Spawner logic
+│   └── tests/              # Unit and integration tests
+├── content_sets/
+│   └── fantasy_frontier/data/
+│       ├── combat/         # Elemental relationships and flavor text
+│       ├── crafting/       # Recipe definitions (*.json)
+│       ├── dialogue/       # NPC conversation graphs
+│       ├── items/          # Item templates (*.json) & Sets
+│       ├── magic/          # Spell definitions (*.json)
+│       ├── npcs/           # NPC templates (*.json)
+│       ├── player/         # Background definitions and starter kits
+│       ├── quests/         # Instance quest templates
+│       └── regions/        # Region definitions and dynamic themes
 ```
 
 ---
@@ -300,7 +304,7 @@ The engine is designed to be data-driven. Logic resides in `engine/`, while cont
 Because the engine uses JSON for almost all content, you can add new items, monsters, and spells without writing Python code.
 
 ### 1. Adding a New Item
-Create a file in `data/items/my_items.json`:
+Create a file in `content_sets/fantasy_frontier/data/items/my_items.json`:
 ```json
 {
   "item_fire_brand": {
@@ -322,7 +326,7 @@ Create a file in `data/items/my_items.json`:
 ```
 
 ### 2. Adding a New Spell
-Create a file in `data/magic/my_spells.json`:
+Create a file in `content_sets/fantasy_frontier/data/magic/my_spells.json`:
 ```json
 {
   "meteor_swarm": {
@@ -341,7 +345,7 @@ Create a file in `data/magic/my_spells.json`:
 ```
 
 ### 3. Creating a New Region
-Create `data/regions/my_dungeon.json`:
+Create `content_sets/fantasy_frontier/data/regions/my_dungeon.json`:
 ```json
 {
   "name": "The Dark Hold",
@@ -417,7 +421,7 @@ Legacy server-fixture operator flow:
 ### Guiding Product/Tech Decisions
 * Keep simulation logic authoritative on the server.
 * Treat the Godot client as a view/controller layer over networked game state.
-* Preserve data-driven content pipelines (`data/*.json`) as long as possible to reduce rewrite risk.
+* Preserve data-driven content pipelines (`content_sets/<set>/data/*.json`) as long as possible to reduce rewrite risk.
 * Use existing tests as migration safety rails before replacing systems.
 
 ### Current State (What Helps Us)
@@ -498,7 +502,7 @@ Exit gate:
 
 ### Phase 4: Content Pipeline and Tooling for Scale (ongoing)
 Deliverables:
-* Content schema validation and CI checks for `data/`.
+* Content schema validation and CI checks for each content set's `data/` tree.
 * World/content editor integration path (`mud-world-editor`) with export contracts.
 * Regression harness for command transcripts and deterministic combat/world snapshots.
 * Authoring docs for designers (items/spells/regions/quests conventions).

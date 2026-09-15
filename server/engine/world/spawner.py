@@ -108,7 +108,18 @@ class Spawner:
         monster_template_id = weighted_choice(region_monster_weights)
         if not monster_template_id or monster_template_id not in self.world.npc_templates: return
 
-        level_range = region.spawner_config.get("level_range", [1, 1])
+        level_range = region.spawner_config.get("level_range")
+        if (
+            not isinstance(level_range, (list, tuple))
+            or len(level_range) != 2
+            or any(isinstance(value, bool) or not isinstance(value, int) for value in level_range)
+            or level_range[0] < 1
+            or level_range[1] < level_range[0]
+        ):
+            # New regions can express a single progression truth and omit the
+            # duplicate spawn range. Older content keeps its explicit range,
+            # and content with neither remains safely at the legacy L1 default.
+            level_range = region.get_level_band() or (1, 1)
         level = random.randint(level_range[0], level_range[1])
         
         overrides = {

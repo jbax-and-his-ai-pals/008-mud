@@ -80,7 +80,7 @@ class PlayerPersistenceMixin:
         if p.runtime_state.gold is not None:
             gameplay["economy"] = {"gold": p.runtime_state.gold}
         if p.runtime_state.quests is not None:
-            gameplay["quests"] = {"active": p.runtime_state.quests.active, "completed": p.runtime_state.quests.completed, "archived": p.runtime_state.quests.archived, "active_campaigns": p.runtime_state.quests.active_campaigns, "completed_campaigns": p.runtime_state.quests.completed_campaigns, "finite_adventure_state": p.runtime_state.quests.finite_adventure}
+            gameplay["quests"] = {"active": p.runtime_state.quests.active, "completed": p.runtime_state.quests.completed, "archived": p.runtime_state.quests.archived, "repeatable_available_at": p.runtime_state.quests.repeatable_available_at, "active_campaigns": p.runtime_state.quests.active_campaigns, "completed_campaigns": p.runtime_state.quests.completed_campaigns, "finite_adventure_state": p.runtime_state.quests.finite_adventure}
         return data
 
     @classmethod
@@ -132,6 +132,14 @@ class PlayerPersistenceMixin:
         player.runtime_state.quests.active = quests.get("active", {})
         player.runtime_state.quests.completed = quests.get("completed", {})
         player.runtime_state.quests.archived = quests.get("archived", {})
+        raw_repeatable_available_at = quests.get("repeatable_available_at", {})
+        if not isinstance(raw_repeatable_available_at, dict):
+            raise ValueError("Player gameplay.quests.repeatable_available_at must be an object")
+        player.runtime_state.quests.repeatable_available_at = {
+            str(template_id): float(available_at)
+            for template_id, available_at in raw_repeatable_available_at.items()
+            if isinstance(template_id, str) and isinstance(available_at, (int, float))
+        }
         player.runtime_state.quests.active_campaigns = quests.get("active_campaigns", {})
         player.runtime_state.quests.completed_campaigns = quests.get("completed_campaigns", {})
         player.runtime_state.quests.finite_adventure = quests.get("finite_adventure_state", {})

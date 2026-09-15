@@ -2,6 +2,7 @@
     "region_id": "foothills",
     "name": "Windy Foothills",
     "description": "The land rises from the fertile farms into rolling, grassy hills dotted with rocky outcrops. Sheep graze on the slopes, watched over by solitary shepherds. The wind is a constant presence here.",
+    "properties": { "level_band": { "min": 2, "max": 5 } },
     "spawner": {
         "monster_types": {
             "goblin": 4,
@@ -81,11 +82,12 @@
         },
         "hilltop_cave": {
             "name": "Hilltop Cave",
-            "description": "A small, damp cave inside the hill. It doesn't seem to go very deep.",
+            "description": "A small, damp cave inside the hill. It doesn't seem to go very deep, but rose-colored crystal veins catch the light along one wall.",
             "properties": {"dark": true},
             "exits": {
                 "out": "hilltop_cave_entrance"
-            }
+            },
+            "items": [ { "item_id": "node_rose_quartz_seam" } ]
         },
         "standing_stone": {
             "name": "Standing Stone",
