@@ -252,6 +252,18 @@ class QuestManager:
         full_msg = reward_text
         if campaign_update_msg:
             full_msg += "\n" + campaign_update_msg
+
+        # Completing a quest is a recognised activity; the ledger records it
+        # once per quest *template* so a repeatable board task does not pay
+        # advancement XP forever (ROADMAP P4).
+        from engine.core import advancement
+        template_id = str(quest_data.get("template_id", "") or quest_id)
+        quest_note = advancement.award(
+            player, advancement.KIND_QUEST, template_id, payload={"quest_id": template_id}
+        )
+        if quest_note:
+            full_msg += "\n" + quest_note
+
         server = getattr(self.world, "server", None)
         if server is not None and hasattr(server, "sync_party_quest_completion"):
             for event in server.sync_party_quest_completion(player, quest_data):
@@ -323,8 +335,18 @@ class QuestManager:
         if (objective.get("type") in ["dialogue_choice", "negotiate"]) and choice_id:
              choices = objective.get("choices", {})
              if choice_id in choices:
-                 next_index = choices[choice_id].get("next_stage", next_index)
-                 completion_text = choices[choice_id].get("description", completion_text)
+                 branch = choices[choice_id]
+                 if branch.get("complete"):
+                     # An outcome that ends the quest outright. Content needs
+                     # this: without it the only way to say "and that finishes
+                     # it" was `next_stage` past the end, and *forgetting* to
+                     # say anything silently advanced to the next stage -- which
+                     # for a negotiation whose next stage is "kill him" turned a
+                     # successful truce into an order to commit murder, and made
+                     # the campaign's PEACEFUL_SUCCESS branch unreachable.
+                     return "QUEST_COMPLETE"
+                 next_index = branch.get("next_stage", next_index)
+                 completion_text = branch.get("description", completion_text)
 
         if next_index >= len(stages): return "QUEST_COMPLETE"
             

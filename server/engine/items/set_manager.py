@@ -22,7 +22,7 @@ class SetManager:
             return
 
         try:
-            with open(path, 'r') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 self.sets = json.load(f)
         except Exception as e:
             print(f"{FORMAT_ERROR}Error loading item sets: {e}{FORMAT_RESET}")

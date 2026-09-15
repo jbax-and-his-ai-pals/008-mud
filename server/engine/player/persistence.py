@@ -45,11 +45,19 @@ class PlayerPersistenceMixin:
             },
             "conversation_history": p.conversation.to_dict(),
             "last_talked_to": p.last_talked_to,
+            # P5: markers a conversation set and another conversation reads.
+            "flags": getattr(p, "flags", None) or {},
             "collections_progress": p.collections_progress,
             "collections_completed": p.collections_completed,
             "discoveries": p.discoveries,
             "recipe_craft_counts": p.recipe_craft_counts,
             "known_recipe_ids": list(p.known_recipe_ids),
+            # P4 progression spine. Sorted so two saves of the same state are
+            # byte-identical, which keeps save-comparison tests meaningful.
+            "advancement_entries": sorted(getattr(p, "advancement_entries", None) or []),
+            "earned_titles": sorted(getattr(p, "earned_titles", None) or []),
+            "active_title": getattr(p, "active_title", "") or "",
+            "background_id": getattr(p, "background_id", "") or "",
             "follow_target": p.follow_target,
             "reputation": p.reputation,
             "npc_relationships": p.npc_relationships,
@@ -183,6 +191,9 @@ class PlayerPersistenceMixin:
         player.collections_progress = data.get("collections_progress", {})
         player.collections_completed = data.get("collections_completed", {})
         player.discoveries = data.get("discoveries", {})
+        # P5 conversation flags. Tolerant of saves written before they existed.
+        raw_flags = data.get("flags", {})
+        player.flags = dict(raw_flags) if isinstance(raw_flags, dict) else {}
         raw_recipe_counts = data.get("recipe_craft_counts", {})
         player.recipe_craft_counts = {
             str(recipe_id): max(0, int(count))
@@ -193,6 +204,19 @@ class PlayerPersistenceMixin:
         player.known_recipe_ids = {
             str(recipe_id) for recipe_id in raw_known_recipes if isinstance(recipe_id, str)
         } if isinstance(raw_known_recipes, list) else set()
+
+        # P4 progression spine. Absent in saves written before these existed, so
+        # every read is tolerant of a missing key and an empty ledger.
+        raw_entries = data.get("advancement_entries", [])
+        player.advancement_entries = {
+            str(entry) for entry in raw_entries if isinstance(entry, str)
+        } if isinstance(raw_entries, list) else set()
+        raw_titles = data.get("earned_titles", [])
+        player.earned_titles = {
+            str(title) for title in raw_titles if isinstance(title, str)
+        } if isinstance(raw_titles, list) else set()
+        player.active_title = str(data.get("active_title", "") or "")
+        player.background_id = str(data.get("background_id", "") or "")
         player.follow_target = data.get("follow_target")
         player.reputation = data.get("reputation", {})
         player.npc_relationships = data.get("npc_relationships", {})

@@ -105,6 +105,14 @@ class Player(
         self.conversation = ConversationHistory()
         self.last_talked_to: Optional[str] = None 
 
+        # Named world-state markers a player carries: "I have heard about the
+        # caravan", "the guard knows my face". The `flag` condition kind reads
+        # them and the `set_flag` dialogue effect writes them (ROADMAP P5), so
+        # what one conversation establishes another can refer to. Persisted
+        # with the character, because a promise made in chapter one should
+        # still be remembered in chapter two.
+        self.flags: Dict[str, Any] = {}
+
         self.collections_progress: Dict[str, List[str]] = {} 
         self.collections_completed: Dict[str, bool] = {} 
         # Content-authored journal entries unlocked by generic discovery hooks.
@@ -115,6 +123,20 @@ class Player(
         # Recipes flagged requires_discovery are unusable until learned
         # (see learn_recipe); every other recipe is known from the start.
         self.known_recipe_ids: Set[str] = set()
+
+        # --- P4 progression spine ---
+        # Everything this player has seen or done, as "<kind>:<identifier>"
+        # keys. The advancement ledger records into it and pays XP the first
+        # time only; it is also the field journal a player reads.
+        self.advancement_entries: Set[str] = set()
+        # Titles whose authored conditions this player currently meets. A title
+        # is *entitled* here and *worn* via active_title; it can be revoked if
+        # the conditions stop holding.
+        self.earned_titles: Set[str] = set()
+        self.active_title: str = ""
+        # Where this character began. Deliberately not a class: it grants no
+        # exclusive content and locks nothing (see engine/core/backgrounds.py).
+        self.background_id: str = ""
 
         self.reputation: Dict[str, int] = {} 
         # Personal bonds are intentionally distinct from faction reputation:
@@ -242,7 +264,7 @@ class Player(
         old = self.runtime_state.magic.mana; self.runtime_state.magic.mana = min(self.runtime_state.magic.mana + amount, self.runtime_state.magic.max_mana)
         return int(self.runtime_state.magic.mana - old)
 
-    def learn_recipe(self, recipe_id: str) -> Tuple[bool, str]:
+    def learn_recipe(self, recipe_id: str, award: bool = True) -> Tuple[bool, str]:
         crafting_manager = getattr(getattr(self.world, "game", None), "crafting_manager", None)
         recipe = crafting_manager.recipes.get(recipe_id) if crafting_manager else None
         if not recipe:
@@ -250,6 +272,23 @@ class Player(
         if recipe_id in self.known_recipe_ids:
             return False, f"You already know how to craft {recipe.name}."
         self.known_recipe_ids.add(recipe_id)
-        return True, f"You study the pattern and successfully learn to craft {recipe.name}!"
+        # Learning a pattern is a recognised activity, recorded once (ROADMAP P4).
+        # Whichever comes first -- being taught it, reading a pattern, or making
+        # the thing -- pays the `recipe` grant, and the ledger's first-time-only
+        # rule means the others pay nothing extra.
+        #
+        # `award=False` is the starting kit: a background's recipes are where the
+        # character begins, so they are seeded (in the journal, worth nothing).
+        # Paying them gave a fresh wanderer 50 XP for two recipes it never
+        # learned to make.
+        from engine.core import advancement
+
+        if award:
+            note = advancement.award(self, advancement.KIND_RECIPE, recipe_id, payload={"recipe_id": recipe_id})
+        else:
+            advancement.seed_entry(self, advancement.KIND_RECIPE, recipe_id)
+            note = ""
+        message = f"You study the pattern and successfully learn to craft {recipe.name}!"
+        return True, ("%s\n%s" % (message, note)) if note else message
 
 

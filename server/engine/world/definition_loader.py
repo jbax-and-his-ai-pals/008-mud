@@ -73,7 +73,7 @@ def _load_item_templates(world: 'World', content_root: str) -> dict[str, int]:
                 continue
             path = os.path.join(item_template_dir, filename)
             try:
-                with open(path, 'r') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     stats["files_loaded"] += 1
                     for item_id, template_data in data.items():
@@ -113,7 +113,7 @@ def _load_npc_templates(world: 'World', content_root: str) -> dict[str, int]:
         if filename.endswith(".json"):
             path = os.path.join(npc_template_dir, filename)
             try:
-                with open(path, 'r') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     stats["files_loaded"] += 1
                     for template_id, template_data in data.items():
@@ -146,7 +146,7 @@ def _load_regions(world: 'World', content_root: str):
         if filename.endswith(".json"):
             path = os.path.join(region_dir, filename)
             try:
-                with open(path, 'r') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     region_data = json.load(f)
                     region_id = filename[:-5]
                     region_data['obj_id'] = region_id

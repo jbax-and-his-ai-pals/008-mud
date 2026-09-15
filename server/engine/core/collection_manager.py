@@ -21,7 +21,7 @@ class CollectionManager:
         path = os.path.join(self.content_root, "collections.json")
         if os.path.exists(path):
             try:
-                with open(path, 'r') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     self.collections = json.load(f)
             except Exception as e:
                 print(f"Error loading collections: {e}")
@@ -126,6 +126,13 @@ class CollectionManager:
             player.collections_completed[col_id] = True
             rewards_msg = self._grant_rewards(player, col_def)
             messages.append(f"\n{FORMAT_TITLE}COLLECTION COMPLETE: {col_def.get('name')}{FORMAT_RESET}\n{rewards_msg}")
+            # Completing a set is a recognised activity (ROADMAP P4).
+            from engine.core import advancement
+            note = advancement.award(
+                player, advancement.KIND_COLLECTION, col_id, payload={"collection_id": col_id}
+            )
+            if note:
+                messages.append(note)
 
     def _grant_rewards(self, player: 'Player', col_def: Dict) -> str:
         rewards = col_def.get("rewards", {})

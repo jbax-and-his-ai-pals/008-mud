@@ -12,7 +12,7 @@ def load_quest_templates(data_dir: str) -> Dict[str, Any]:
         if not os.path.exists(path): continue
         
         try:
-            with open(path, 'r') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 for q_id, q_data in data.items():
                     # Normalization

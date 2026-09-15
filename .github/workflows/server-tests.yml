@@ -21,12 +21,11 @@ jobs:
           cache: "pip"
           cache-dependency-path: server/requirements-dev.txt
 
-      - name: Install CPU-only torch
-        # engine/ai/ai_manager.py imports torch/transformers unconditionally
-        # at module scope (see requirements.txt). Installing the CPU wheel
-        # first keeps CI from pulling a multi-GB CUDA build it will never use.
-        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
-
+      # No torch step: nothing imports torch at module scope. The only torch
+      # imports in the engine are inside `LLMInterface._load_model`, after an
+      # unconditional early `return`, so the ~1GB CPU wheel this job used to
+      # install was never imported by the tests it was paying for. See the note
+      # at the bottom of server/requirements.txt.
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
 

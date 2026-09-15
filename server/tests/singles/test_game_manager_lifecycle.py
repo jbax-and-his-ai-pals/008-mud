@@ -15,14 +15,37 @@ from engine.utils.logger import Logger, LogLevel
 
 
 class TestLoadClassDefinitions(GameTestBase):
-    def test_malformed_classes_json_falls_back_to_empty(self):
+    """The desktop screen's starting-choice list.
+
+    P4 replaced classes with backgrounds, so this now reads
+    `player/backgrounds.json`; the method and attribute names are unchanged
+    because the pygame screen and these tests address them.
+    """
+
+    def test_loads_backgrounds_from_content(self):
+        self.game._load_class_definitions()
+        self.assertTrue(self.game.available_classes, "no backgrounds were loaded")
+        self.assertIn("wanderer", self.game.available_classes)
+        loaded = self.game.class_definitions["wanderer"]
+        self.assertEqual("Wanderer", loaded["name"])
+        self.assertIn("stats", loaded)
+
+    def test_authoring_comment_keys_are_not_offered_as_choices(self):
+        """`_comment`-style keys document a file; they are not backgrounds."""
+        self.game._load_class_definitions()
+        self.assertFalse([k for k in self.game.available_classes if k.startswith("_")],
+                         "an underscore-prefixed key leaked into the choice list")
+
+    def test_malformed_backgrounds_json_falls_back_to_empty(self):
         with patch(
             "engine.core.game_manager.json.load",
             side_effect=json.JSONDecodeError("bad payload", "{not valid json", 1),
         ):
             self.game._load_class_definitions()
         self.assertEqual({}, self.game.class_definitions)
-    def test_missing_classes_json_falls_back_to_default_adventurer(self):
+        self.assertEqual([], self.game.available_classes)
+
+    def test_missing_backgrounds_json_falls_back_to_default_adventurer(self):
         real_content_root = self.world.content_root
         try:
             self.world.content_root = os.path.join(real_content_root, "does_not_exist")

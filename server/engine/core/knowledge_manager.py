@@ -35,7 +35,7 @@ class KnowledgeManager:
             
         if os.path.exists(path):
             try:
-                with open(path, 'r') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 if isinstance(data, dict):
                     common = data.pop("__common_topics__", None)
@@ -299,59 +299,18 @@ class KnowledgeManager:
         return messages
 
     def _process_response_effects(self, response_data: Dict, player: 'Player') -> List[str]:
-        """Handles side effects defined in topics.json responses."""
+        """Handles side effects defined in topics.json responses.
+
+        Delegates to the dialogue effect interpreter (ROADMAP P5). Topic
+        responses and dialogue choices carry the same `effects` shape, and the
+        topics path used to implement a private five-key subset of it -- which
+        meant `start_quest` behaved one way when a topic said it and another way
+        when a conversation did. One interpreter, one meaning.
+        """
+        from engine.dialogue.effects import apply_effects
+
         effects = response_data.get("effects", {})
-        messages: List[str] = []
-        server = getattr(self.world, "server", None)
-        
-        # 1. Start Quest
-        if "start_quest" in effects:
-            quest_id = effects["start_quest"]
-            if self.world.quest_manager:
-                self.world.quest_manager.start_quest(quest_id, player)
-            
-        # 2. Start Campaign
-        if "start_campaign" in effects:
-            campaign_id = effects["start_campaign"]
-            if self.world.campaign_manager:
-                self.world.campaign_manager.start_campaign(campaign_id, player)
-            
-        # 3. Give Item
-        if "give_item" in effects:
-            from engine.items.item_factory import ItemFactory
-
-            item_id = effects["give_item"]
-            item = ItemFactory.create_item_from_template(item_id, self.world)
-            if item:
-                recipient = player
-                if server is not None and hasattr(server, "distribute_party_loot"):
-                    recipient, _note = server.distribute_party_loot(player, item)
-                recipient.inventory.add_item(item)
-                if recipient is player:
-                    messages.append(f"You receive {item.name}.")
-                else:
-                    messages.append(f"{recipient.name} receives {item.name}.")
-
-        # 4. Give Gold
-        if "give_gold" in effects:
-            amount = int(effects.get("give_gold", 0) or 0)
-            if amount > 0:
-                if server is not None and hasattr(server, "grant_party_gold"):
-                    routing = str(server.grant_party_gold(player, amount))
-                    if routing:
-                        messages.append(f"Rewards: {routing}")
-                elif player.runtime_state.gold is not None:
-                    player.runtime_state.gold += amount
-                    messages.append(f"You receive {amount} {self.world.currency_name().capitalize()}.")
-
-        # 5. Give Structured Rewards
-        structured_rewards = effects.get("give_rewards")
-        if isinstance(structured_rewards, dict):
-            if server is not None and hasattr(server, "grant_party_rewards"):
-                reward_text = str(server.grant_party_rewards(player, structured_rewards))
-                if reward_text:
-                    messages.append(reward_text)
-            else:
-                messages.extend(self._apply_local_reward_bundle(player, structured_rewards))
-
-        return messages
+        if not effects:
+            return []
+        report = apply_effects(effects, {"player": player, "world": self.world})
+        return list(report.messages)

@@ -36,6 +36,30 @@ class ResourceNode(Item):
         """Minimal context for resolving the viewer's presentation mode."""
         return {"world": world, "player": player}
 
+    def _tool_display_name(self, tool_req, world) -> str:
+        """What this content set calls the tool that matches `tool_required`.
+
+        The first item template whose `tool_type` matches supplies the name, so
+        a content set names its own tools. Falling back to the raw value with
+        underscores opened out keeps the sentence readable even when the
+        requirement names a tool nothing provides -- which is itself worth
+        seeing rather than hiding.
+        """
+        templates = getattr(world, "item_templates", None)
+        if isinstance(templates, dict):
+            for template in templates.values():
+                if not isinstance(template, dict):
+                    continue
+                properties = template.get("properties")
+                if not isinstance(properties, dict):
+                    continue
+                if str(properties.get("tool_type", "")) != str(tool_req):
+                    continue
+                name = str(template.get("name", "") or "").strip()
+                if name:
+                    return name
+        return str(tool_req).replace("_", " ")
+
     def _depleted_message(self, world, player=None) -> str:
         """What a viewer is told when there is nothing left here.
 
@@ -79,7 +103,15 @@ class ResourceNode(Item):
                     has_tool = True; break
         
         if not has_tool:
-            return f"{FORMAT_ERROR}You need a {tool_req} to gather from this. You don't seem to be carrying or wearing one.{FORMAT_RESET}"
+            # A player should read "a foraging knife", not "a foraging_knife":
+            # the tool requirement is an authored property value, and the id
+            # form of it is engine-internal spelling. Testers keep the exact
+            # value so an author can see which tool_type they mistyped.
+            if is_player_mode(self._presentation_context(world, player)):
+                tool_label = self._tool_display_name(tool_req, world)
+            else:
+                tool_label = str(tool_req)
+            return f"{FORMAT_ERROR}You need a {tool_label} to gather from this. You don't seem to be carrying or wearing one.{FORMAT_RESET}"
             
         from engine.items.item_factory import ItemFactory
         resource_id = self.get_property("resource_item_id")

@@ -4,6 +4,7 @@ from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET, FORMAT_HIGHLIGHT, GET_COMMAND_PREPOSITION
 from engine.items.container import Container
 from engine.items.item_factory import ItemFactory
+from engine.core import advancement
 from engine.utils.utils import get_article, simple_plural
 
 def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_verb: str) -> str:
@@ -92,6 +93,15 @@ def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_v
              if discovery_manager:
                   hint = discovery_manager.handle_item_discovery(recipient, item)
                   if hint: hints.append(hint)
+             # First time a player obtains a given kind of thing -- a material,
+             # a gem, a curio -- is recorded once and pays once (ROADMAP P4).
+             # Keyed by template so a stack of the same thing pays a single time.
+             material_note = advancement.award(
+                 recipient, advancement.KIND_ITEM, str(getattr(item, "obj_id", "") or ""),
+                 payload=advancement.item_payload(item),
+             )
+             if material_note:
+                  hints.append(material_note)
              if route_note:
                   hints.append(route_note)
              

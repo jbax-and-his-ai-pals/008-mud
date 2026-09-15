@@ -60,6 +60,10 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             session = server.create_session(player_id="gathering_route_player")
             server.execute_command(session.session_id, "char create Rowan")
             player = server.get_player_for_session(session.session_id)
+            # P4: the starting kit comes from the character's background (the
+            # content default is "wanderer"), not from the ruleset's old generic
+            # starter list. The gathering route only needs the knife to be there.
+            self.assertEqual("wanderer", player.background_id)
             self.assertEqual(1, player.inventory.count_item("item_foraging_knife"))
 
             garden = server.world.get_region("town").get_room("community_garden")

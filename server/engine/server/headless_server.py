@@ -13,10 +13,14 @@ import re
 import engine.commands  # noqa: F401 - force command module registration
 from engine.commands.command_system import CommandProcessor
 from engine.core.clock import Clock, SimulatedClock, WallClock
+from engine.core.advancement import AdvancementManager
+from engine.core.backgrounds import BackgroundManager
 from engine.core.collection_manager import CollectionManager
 from engine.core.discovery_manager import DiscoveryManager
 from engine.core.knowledge_manager import KnowledgeManager
+from engine.core.titles import TitleManager
 from engine.core.plugin_manager import PluginManager
+from engine.dialogue.manager import DialogueManager
 from engine.core.time_manager import TimeManager
 from engine.core.weather_manager import WeatherManager
 from engine.crafting.crafting_manager import CraftingManager
@@ -153,6 +157,30 @@ class HeadlessServer:
         )
         self.collection_manager = CollectionManager(self.world)
         self.discovery_manager = DiscoveryManager(self.world)
+        # P4 progression spine. The advancement ledger is the player's record
+        # of what they have seen and done, and the source of most XP; titles are
+        # the identity earned from it; backgrounds are where a character began.
+        self.advancement_manager = AdvancementManager(self.world)
+        self.title_manager = TitleManager(self.world)
+        self.background_manager = BackgroundManager(self.world)
+        # P5 dialogue. Content-authored conversation graphs, loaded from
+        # `data/dialogue/`. Structural problems (a root that does not exist, a
+        # `next_node` pointing at nothing) surface here as boot warnings and, in
+        # CI, as content-validation errors.
+        self.dialogue_manager = DialogueManager(self.world)
+        for manager in (self.advancement_manager, self.title_manager, self.background_manager,
+                        self.dialogue_manager):
+            for issue in getattr(manager, "issues", []):
+                self.add_boot_warning("content", "advancement", str(issue))
+        # The world needs these reachable from gameplay code that only has a
+        # world or a player (region entry, item pickup, quest completion).
+        # `world.server` is what display and progression code uses to find the
+        # session's presentation mode and the authored XP curve; tests set it
+        # themselves, but nothing on the real path did.
+        self.world.advancement_manager = self.advancement_manager
+        self.world.title_manager = self.title_manager
+        self.world.dialogue_manager = self.dialogue_manager
+        self.world.server = self
         self.renderer = _NullRenderer()
         self.input_handler = _NullInputHandler()
         self.current_save_file = save_file
@@ -1445,7 +1473,11 @@ class HeadlessServer:
         normalized = str(text).strip()
         lowered = normalized.lower()
         if lowered in {"help", "?", "char help", "character help"}:
-            return True, "Create your character with: char create <name>", False
+            return True, (
+                "Create your character with: char create <name>\n"
+                "Choose where you begin with: char create <name> as <background>\n"
+                "Type 'backgrounds' to see the options."
+            ), False
 
         prefix = None
         if lowered.startswith("char create "):
@@ -1456,10 +1488,32 @@ class HeadlessServer:
             return False, "", False
 
         raw_name = normalized[len(prefix):].strip()
+
+        # Optional "as <background>". A background decides where you begin --
+        # stats, kit, a couple of skills -- and locks nothing, so omitting it is
+        # perfectly valid and gets the content set's default.
+        background_query = ""
+        if " as " in raw_name.lower():
+            split_index = raw_name.lower().rindex(" as ")
+            background_query = raw_name[split_index + 4:].strip()
+            raw_name = raw_name[:split_index].strip()
+
         if len(raw_name) < 3 or len(raw_name) > 24:
             return True, "Character name must be 3-24 characters.", False
         if not re.fullmatch(r"[A-Za-z0-9 _'\-]+", raw_name):
             return True, "Character name contains unsupported characters.", False
+
+        background = None
+        if background_query:
+            background = self.background_manager.resolve(background_query)
+            if background is None:
+                names = ", ".join(b.name for b in self.background_manager.available()) or "none defined"
+                return True, (
+                    "There is no background called '%s'. Available: %s."
+                    % (background_query, names)
+                ), False
+        else:
+            background = self.background_manager.default_background()
 
         session = self.sessions.get(session_id)
         if session is None:
@@ -1478,8 +1532,25 @@ class HeadlessServer:
         new_player.obj_id = session.player_id
         new_player.world = self.world
         self.world.initialize_content_player(new_player)
-        from engine.world.definition_loader import grant_starting_inventory
-        grant_starting_inventory(self.world, new_player, self.world.bootstrap_starter_items)
+        # Applied after content defaults so a background's stats and kit are
+        # not overwritten by them.
+        background_applied = background is not None and background.background_id
+        if background_applied and new_player.runtime_state.magic is not None:
+            # Start from nothing so the background's spell list is the whole
+            # list. Without this the ruleset's generic defaults stayed and every
+            # background inherited them.
+            new_player.runtime_state.magic.known_spells = set()
+        self.background_manager.apply(new_player, background)
+
+        # A background owns the *whole* starting kit -- stats, gear, spells,
+        # skills, recipes. The ruleset's generic `player_defaults.starting_inventory`
+        # and default spell list stay as the fallback for a content set that
+        # defines no backgrounds, but are not granted on top of one; doing both
+        # gave every character two foraging knives and two healing potions, each
+        # from a different system.
+        if not background_applied:
+            from engine.world.definition_loader import grant_starting_inventory
+            grant_starting_inventory(self.world, new_player, self.world.bootstrap_starter_items)
         start_region = str(getattr(self.world, "bootstrap_start_region", "") or self.content_set.start_region_id)
         start_room = str(getattr(self.world, "bootstrap_start_room", "") or self.content_set.start_room_id)
         new_player.current_region_id = start_region
@@ -1494,7 +1565,15 @@ class HeadlessServer:
             # The first character to ever exist gives it a real player to
             # scale quests against.
             self.world.quest_manager.ensure_initial_quests(new_player)
-        return True, f"Character created: {raw_name}", True
+
+        # Record the starting region, so "where have I been" is true from the
+        # first moment rather than only after the first walk -- but seed it
+        # silently. Waking up in the town you spawned in is not a discovery, and
+        # paying the region grant for it put every new character at 90/100 XP
+        # for their first level before they had done anything.
+        self.advancement_manager.ingest_legacy_discoveries(new_player)
+        self.advancement_manager.seed(new_player, "region", start_region)
+        return True, f"Character created: {raw_name} ({background.name})", True
 
     def build_opening_guidance(self) -> str:
         """Format the selected content set's optional first-session brief."""

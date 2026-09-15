@@ -26,6 +26,15 @@
     "stackable": false,
     "properties": { "tool_type": "pickaxe", "category": "tool" }
   },
+  "item_work_axe": {
+    "type": "Weapon",
+    "name": "work axe",
+    "description": "A labourer's axe: blunt enough to split kindling, heavy enough to settle an argument. It has been re-hafted at least twice.",
+    "weight": 2.2,
+    "value": 14,
+    "stackable": false,
+    "properties": { "damage": 4, "equip_slot": ["main_hand"], "tool_type": "hand_axe", "category": "tool" }
+  },
   "item_lockpick": {
     "type": "Lockpick",
     "name": "iron lockpick",

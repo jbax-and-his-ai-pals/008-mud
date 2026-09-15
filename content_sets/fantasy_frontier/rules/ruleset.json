@@ -141,6 +141,26 @@
   "economy": {
     "currency_name": "gold"
   },
+  "advancement": {
+    "curve": { "base": 100, "multiplier": 1.25 },
+    "grants": [
+      { "id": "region_entry", "match": { "kind": "region" }, "xp": 90, "message": "You have not been this way before." },
+      { "id": "landmark", "match": { "kind": "landmark" }, "xp": 25, "message": "You commit the place to memory." },
+      { "id": "creature_first", "match": { "kind": "creature" }, "xp": 15, "message": "You will know that one again." },
+      { "id": "item_material", "match": { "kind": "item", "item_type": "Item" }, "xp": 8 },
+      { "id": "item_gem", "match": { "kind": "item", "item_type": "Gem" }, "xp": 15, "message": "A stone worth cataloguing." },
+      { "id": "item_treasure", "match": { "kind": "item", "item_type": "Treasure" }, "xp": 10 },
+      { "id": "item_curio", "match": { "kind": "item", "item_type": "Junk" }, "xp": 3 },
+      { "id": "item_consumable", "match": { "kind": "item", "item_type": "Consumable" }, "xp": 5 },
+      { "id": "recipe_first", "match": { "kind": "recipe" }, "xp": 25, "message": "You have learned the shape of a new thing." },
+      { "id": "spell_first", "match": { "kind": "spell" }, "xp": 30, "message": "The words settle into place." },
+      { "id": "npc_met", "match": { "kind": "npc" }, "xp": 10 },
+      { "id": "relationship_tier", "match": { "kind": "relationship" }, "xp": 40, "message": "They will remember your name." },
+      { "id": "quest_done", "match": { "kind": "quest" }, "xp": 40 },
+      { "id": "collection_done", "match": { "kind": "collection" }, "xp": 150, "message": "The set is complete." },
+      { "id": "discovery_made", "match": { "kind": "discovery" }, "xp": 15 }
+    ]
+  },
   "loot": {
     "take_hint": "Type 'take {items}' to pick it up.",
     "chest_materials": ["item_chest_wooden", "item_chest_iron_bound", "item_chest_gilded"],

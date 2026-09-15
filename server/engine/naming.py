@@ -165,8 +165,43 @@ def candidate_score(
     return best
 
 
+def _field_of(obj: Any, attribute: str, *keys: str) -> str:
+    """Read one identity field from an object *or* a mapping.
+
+    Callers hand this resolver whatever they have: NPCs, items, recipes, and
+    sometimes plain dicts built on the spot. Reading only attributes meant a
+    dict candidate silently scored zero -- no error, just a choice that never
+    matched anything a player typed. Both shapes are cheap to support.
+    """
+    if isinstance(obj, dict):
+        for key in keys:
+            value = obj.get(key)
+            if isinstance(value, str) and value.strip():
+                return value
+        return ""
+    value = getattr(obj, attribute, None)
+    return str(value) if isinstance(value, str) else ""
+
+
+def _name_of(obj: Any) -> str:
+    return _field_of(obj, "name", "name", "display_name", "title")
+
+
+def _id_of(obj: Any) -> str:
+    return _field_of(obj, "obj_id", "obj_id", "id", "template_id")
+
+
 def _aliases_of(obj: Any) -> List[str]:
     """Authored alternative names for an object, if it carries any."""
+    if isinstance(obj, dict):
+        for key in ("aliases", "aka"):
+            value = obj.get(key)
+            if isinstance(value, str):
+                return [value]
+            if isinstance(value, (list, tuple)):
+                return [str(v) for v in value if isinstance(v, (str, int))]
+        return []
+
     for source in (getattr(obj, "properties", None), getattr(obj, "aliases", None)):
         if isinstance(source, dict):
             value = source.get("aliases") or source.get("aka")
@@ -192,8 +227,8 @@ def resolve_all(
     Returns an empty list when nothing matched. `how` records which field won,
     which is useful for explaining a resolution in test mode.
     """
-    name_of = name_of or (lambda obj: str(getattr(obj, "name", "") or ""))
-    id_of = id_of or (lambda obj: str(getattr(obj, "obj_id", "") or ""))
+    name_of = name_of or _name_of
+    id_of = id_of or _id_of
     aliases_of = aliases_of or _aliases_of
 
     matches: List[Match] = []

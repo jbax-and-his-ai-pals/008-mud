@@ -86,7 +86,7 @@ class SaveManager:
             }
             
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            with open(save_path, 'w') as f: json.dump(save_data, f, indent=2, default=str)
+            with open(save_path, 'w', encoding='utf-8') as f: json.dump(save_data, f, indent=2, default=str)
             Logger.info("SaveManager", f"Game saved successfully to {save_path}.")
             return True
         except Exception as e:
@@ -107,7 +107,7 @@ class SaveManager:
 
         Logger.info("SaveManager", f"Loading save game from {save_path}...")
         try:
-            with open(save_path, 'r') as f: save_data = json.load(f)
+            with open(save_path, 'r', encoding='utf-8') as f: save_data = json.load(f)
 
             saved_content_set = save_data.get("content_set")
             current_content_set = getattr(self.world, "content_set", None)

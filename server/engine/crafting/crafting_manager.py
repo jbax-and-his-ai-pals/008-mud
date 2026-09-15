@@ -8,6 +8,7 @@ from engine.crafting.recipe import Recipe
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.core.skill_system import SkillSystem
+from engine.core import advancement
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -30,7 +31,7 @@ class CraftingManager:
             if filename.endswith(".json"):
                 file_path = os.path.join(crafting_dir, filename)
                 try:
-                    with open(file_path, 'r') as f:
+                    with open(file_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
                         for r_id, r_data in data.items():
                             self.recipes[r_id] = Recipe(r_id, r_data)
@@ -279,14 +280,23 @@ class CraftingManager:
         # Grant XP
         xp_gain = max(10, item_value // 2)
         xp_msg = SkillSystem.grant_xp(player, "crafting", xp_gain)
-        
+
+        # A recipe made for the first time is a recognised activity and pays
+        # advancement XP once. Distinct from the crafting *skill* XP above,
+        # which is the repetition-rewarding track.
+        recipe_id = str(getattr(recipe, "recipe_id", "") or "")
+        first_craft_note = advancement.award(
+            player, advancement.KIND_RECIPE, recipe_id, payload={"recipe_id": recipe_id}
+        )
+
         familiarity_note = ""
         milestone = recipe.familiarity_milestone(prior_crafts + 1)
         if milestone and int(milestone["count"]) == prior_crafts + 1:
             message = str(milestone.get("message", "")).strip()
             familiarity_note = f"\n{message}" if message else f"\nFamiliarity milestone: {prior_crafts + 1} crafts."
         result = f"{FORMAT_SUCCESS}Successfully crafted {recipe.result_quantity} x {result_item.name}.{FORMAT_RESET} {roll_msg}{xp_msg}{familiarity_note}{quality_note}"
-        return f"{result}\n{discovery_note}" if discovery_note else result
+        notes = [note for note in (discovery_note, first_craft_note) if note]
+        return f"{result}\n" + "\n".join(notes) if notes else result
 
     def salvage(self, player: 'Player', item: Item) -> str:
         """Breaks down an item into basic materials.

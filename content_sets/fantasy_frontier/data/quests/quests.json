@@ -153,9 +153,18 @@
           "target_npc_id": "bandit_leader",
           "skill": "diplomacy",
           "difficulty": 10,
+          "approach": "\"The village sent me. But I would rather hear your side than draw on you.\"",
           "choices": {
-            "success": { "description": "You convinced him to stand down. Peace is possible." },
-            "fail": { "next_stage": 1, "description": "Negotiations failed. Kill him." }
+            "success": {
+              "complete": true,
+              "description": "You convinced him to stand down. Peace is possible.",
+              "dialogue": "He lowers his blade and spits into the dirt. Fine -- tell them we are done here. For now."
+            },
+            "fail": {
+              "next_stage": 1,
+              "description": "Negotiations failed. Kill him.",
+              "dialogue": "He laughs and steps in. Wrong answer, then."
+            }
           }
         }
       },
@@ -324,9 +333,18 @@
           "target_npc_id": "smuggler_leader",
           "skill": "mercantile",
           "difficulty": 15,
+          "approach": "\"I did not come here to make trouble. I came here to make a deal.\"",
           "choices": {
-            "success": { "next_stage": 2, "description": "You strike a deal. Welcome to the crew." },
-            "fail": { "next_stage": 1, "description": "She doesn't like your terms. Steel is drawn." }
+            "success": {
+              "next_stage": 2,
+              "description": "You strike a deal. Welcome to the crew.",
+              "dialogue": "She grins and spreads her hands. Now that is the language I speak."
+            },
+            "fail": {
+              "next_stage": 1,
+              "description": "She doesn't like your terms. Steel is drawn.",
+              "dialogue": "Her smile goes flat. Pity. I liked you."
+            }
           }
         },
         "turn_in_id": "smuggler_leader"

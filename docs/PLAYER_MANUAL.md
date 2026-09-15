@@ -45,10 +45,26 @@ expects of you, and where to start looking if you want more.
 
 ## 2. Getting Started
 
-When you first arrive, you'll be asked to name your character and given
-a moment to get your bearings in the town square. From there, four paths
-are laid out for you — take any one of them, or ignore all four and
-wander off on your own:
+When you first arrive, you'll be asked to name your character — and,
+if you like, to say where you came from:
+
+```
+char create Rowan
+char create Rowan as acolyte
+```
+
+Six beginnings are on offer (`backgrounds` lists them): a **wanderer** who
+arrived with a knife and a bedroll, a **labourer** with a work axe and a
+season of hard graft behind them, an **apprentice** who has read a page and
+cast a spell, an **acolyte** with the words that mend, a **pedlar** who knows
+what things are worth, and a **poacher** who knows what runs where. Each
+decides where you start — stats, kit, a couple of skills, a recipe or two —
+and none of them decides what you can become. Take any background and any
+path later; nothing is closed to you. If you'd rather not choose, `char
+create Rowan` alone gives you the wanderer.
+
+Once you're standing in the town square, four paths are laid out for you —
+take any one of them, or ignore all four and wander off on your own:
 
 1. **Get oriented.** `look` around, check your `inventory`, and note the
    exits from the room you're in.
@@ -56,8 +72,8 @@ wander off on your own:
    to the community garden to see what your neighbors need.
 3. **Trade and prepare.** Visit Talia at the market to see what's for
    sale before you go looking for trouble.
-4. **Explore and face danger.** Equip your rusty dagger and take the
-   north road into the woods.
+4. **Explore and face danger.** Equip your weapon (`equip dagger`, `equip
+   axe`, `equip bow`) and take the north road into the woods.
 
 None of these paths closes off the others. Riverside doesn't run out
 while you're busy elsewhere.
@@ -93,8 +109,21 @@ attributes:
 Beyond these, you track **Health** (how much punishment you can take
 before you fall), and, if you take up the practice of magic, **Mana**
 (the well you draw spells from). Both grow as you gain experience and
-rise in level. Defeating enemies, completing quests, and — in some
-cases — simply succeeding at a difficult task all grant experience.
+rise in level.
+
+Experience comes from *doing*, not from any one thing. You are paid the
+first time you walk into a region you've never seen, meet a creature or a
+person you've never met, pick up a material you've never held, learn a
+recipe or a spell, cross a threshold of trust with someone, finish a
+commission, or complete a collection. Killing things pays too — but a
+return trip to a place you know pays nothing, so there is no incentive to
+farm the same room, and a curious traveller advances at least as quickly as
+a busy one.
+
+`advancement` (also `progress` or `fieldjournal`) opens your field journal:
+everything you have seen and done, sorted by kind. It is the honest record
+of your travels, and it is worth a look when you're not sure what to do
+next — the gaps are the map.
 
 Type `status` any time to check where you stand.
 
@@ -161,6 +190,35 @@ monsters. Use `talk <name>` to strike up a conversation, or `ask <name>
 about <topic>` once you know what to ask about — new topics reveal
 themselves as you learn more.
 
+Some people have a great deal to say. When you `talk` to them you get a
+**conversation**: what they say, and below it a numbered list of what you
+can say back.
+
+```
+> talk grenda
+CONVERSATION WITH GRENDA THE BLACKSMITH
+
+"Well met. The forge is hot, but my supplies are low."
+
+1. What are you working on?
+2. I could use some iron.
+3. No time. Goodbye.
+```
+
+`reply <number>` picks one — or type the words of the reply, or enough of
+them to be clear: `reply 1`, `reply what are you working on`, and
+`reply the forge` all work if they mean the same thing. If two replies fit
+what you typed, you'll be asked again rather than have words put in your
+mouth. Typing an unrelated `talk <name> <topic>` in the middle of a
+conversation asks the question instead of ending it.
+
+**Some replies only appear when they should.** A smith won't offer to teach
+you a pattern while your hands are empty, and won't discuss her private
+business with a stranger. She also *remembers* — tell her you'll look into
+something and she'll expect you to, because what you say to people is part
+of the world. You never see a locked list; the conversation simply has more
+in it once you've earned it.
+
 **Relationships** matter here. Every named NPC you deal with keeps a
 private opinion of you, visible with `relationship <name>` (or
 `relationships` for the full ledger). Give someone a **gift** they'd
@@ -176,6 +234,11 @@ work they have going, and the notice board will have less on it. There
 is no locked list to work through — people who trust you offer you
 more, and the surest way to be trusted is to be useful and to
 remember what people like.
+
+**Negotiations are conversations too.** When a commission comes down to
+talking someone round, you'll be offered your approach as a reply, and your
+nerve and your manner decide how it lands. Pick your words badly and you may
+have to finish the job another way.
 
 To do business: `trade <name>` with anyone who deals in goods, then
 `list` their wares, `buy <item>`, or `sell <item>`. Some vendors also
@@ -235,6 +298,12 @@ and `spells` lists everything you currently know. Spells cost
 **mana**, which regenerates over time (faster when you're not in a
 fight), and most have a minimum level before you can learn them.
 
+Spells are learned from the world, not handed out at level-up: an
+apprentice or an acolyte begins knowing one, and the rest are found —
+scribbled on scrolls and runes that teach the reader, or taught by
+whoever in the world has reason to teach you. If you started with none,
+nothing is closed to you but the finding.
+
 The schools of magic on offer include:
 
 - **Offense** — Magic Missile, Zap, Ice Shard, Bone Shard, Ember Bolt,
@@ -264,7 +333,27 @@ own skills, sharpened by use and backed by a particular attribute:
 - **Stealth** (Agility) — slipping away unnoticed, whether that's from
   a fight or from the scene of a theft.
 
+Skills rise by being used, not by being chosen: pick a lock, make a
+thing, haggle a price, slip out of a fight, and the skill behind it
+grows — including when the attempt fails, because a failed attempt is
+still practice. Some of your background's skills start above zero, but
+nothing you didn't start with is closed to you.
+
 Type `skills` to see where you currently stand in each.
+
+### Titles
+
+What you're *called* is earned, not chosen at the start. Keep at a
+trade, keep your word with the right people, and someone will eventually
+have a name for what you've become — **Hand** of the workward, **Trader**
+of the market row, **Pathfinder** on the roads, **Hedge Healer** of the
+Order of the Dawn, and others besides.
+
+Type `titles` to see what you've earned, what's within reach, and what
+each one wants from you. When you've earned one, `title <name>` wears
+it — the name appears when others look at you. Titles grant no powers;
+they are what people call you, which in a village that remembers faces
+is worth something on its own. Stop living up to one and it can lapse.
 
 ---
 
@@ -406,6 +495,11 @@ Keep an eye out for gems, curiosities, and specimens worth cataloguing
 you've picked up along the way — recipes learned, materials identified,
 places and creatures catalogued as you encounter them.
 
+`advancement` (also `progress`) is the same record read the other way
+round: not *what* you know but *what it was worth*, sorted by kind, with
+the things you haven't met yet conspicuous by their absence. It is the
+closest thing this game has to a quest log for your own curiosity.
+
 ---
 
 ## 17. Games of Chance
@@ -423,8 +517,8 @@ you're up against.
 | Category | Commands |
 |---|---|
 | **Movement** | `north` `south` `east` `west` `northeast` `northwest` `southeast` `southwest` `up` `down` `in` `out` `go <dir>` |
-| **Information** | `look` `status` `skills` `journal` `discoveries` `collection` `relationship(s)` `survey` `appraise` `calendar` `time` `weather` |
-| **Interaction** | `talk` `ask` `say` `yell` `give` `take/get` `drop` `use` `read` `examine` `open` `close` `unlock` `pick` `pull` `search` `follow` `guide` `wait` |
+| **Information** | `look` `status` `skills` `titles` `title` `advancement` `background` `backgrounds` `journal` `discoveries` `collection` `relationship(s)` `survey` `appraise` `calendar` `time` `weather` |
+| **Interaction** | `talk` `reply/respond/choose` `ask` `say` `yell` `give` `take/get` `drop` `use` `read` `examine` `open` `close` `unlock` `pick` `pull` `search` `follow` `guide` `wait` |
 | **Combat** | `attack` `flee`/`retreat` `combat` |
 | **Magic** | `cast` `spells` |
 | **Crafting** | `craft` `recipes` `salvage` `attach` `detach` |
@@ -455,6 +549,9 @@ Type `help <command>` any time for the full details on any of these.
   today, come back tomorrow.
 - **Nothing valuable stays a secret for long.** If a rumor points
   somewhere, it's usually worth a look.
+- **Go somewhere you've never been.** A new road, a new face, a new
+  stone in your pack: the first time is the only time it pays, so the
+  fastest way to grow is to keep moving rather than to keep killing.
 
 Good luck out there.
 

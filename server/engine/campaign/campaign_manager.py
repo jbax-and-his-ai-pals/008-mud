@@ -26,7 +26,7 @@ class CampaignManager:
         for fname in os.listdir(path):
             if fname.endswith(".json"):
                 try:
-                    with open(os.path.join(path, fname), 'r') as f:
+                    with open(os.path.join(path, fname), 'r', encoding='utf-8') as f:
                         data = json.load(f)
                         defn = CampaignDefinition.from_dict(data)
                         self.definitions[defn.campaign_id] = defn

@@ -5,9 +5,12 @@
         "audit": "stale_refs",
         "clean": true,
         "error_count": 0,
-        "issues": [],
+        "issues": [
+          "[WARN] <REPO_ROOT>/content_sets/fantasy_frontier/data/items/sets.json:mage_set.items[0]: set 'mage_set' references missing item 'item_wizard_hat' (known dangling; listed in KNOWN_DANGLING_REFERENCES)",
+          "[WARN] <REPO_ROOT>/content_sets/fantasy_frontier/data/items/sets.json:mage_set.items[1]: set 'mage_set' references missing item 'item_robe' (known dangling; listed in KNOWN_DANGLING_REFERENCES)"
+        ],
         "root": "<content_root>",
-        "warn_count": 0
+        "warn_count": 2
       },
       "protocol_version": "0.2.0",
       "type": "audit_result"

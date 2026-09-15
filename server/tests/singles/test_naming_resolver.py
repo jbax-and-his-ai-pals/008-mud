@@ -198,6 +198,26 @@ class TestResolution(unittest.TestCase):
         second = [m.obj.obj_id for m in resolve_all("iron sword", [b, a])]
         self.assertEqual(first, second)
 
+    def test_dict_candidates_are_matched_by_default(self):
+        """Mappings are a normal candidate shape, not a silent no-match.
+
+        The default accessors read `getattr(obj, "name")`, so a caller who
+        passed dicts got zero matches and *no error* -- `reply <words>` in a
+        conversation matched nothing at all before this was fixed.
+        """
+        rows = [{"name": "What are you working on?", "obj_id": "work"},
+                {"name": "Goodbye.", "obj_id": "bye"}]
+        self.assertEqual("work", resolve_one("what are you working on", rows)["obj_id"])
+        self.assertEqual("bye", resolve_best("goodbye", rows)["obj_id"])
+
+    def test_dict_candidates_honour_display_name_and_aliases(self):
+        rows = [
+            {"display_name": "Talia the Merchant", "id": "merchant"},
+            {"name": "A Posy for Riverside", "id": "posy", "aliases": ["flowers", "bouquet"]},
+        ]
+        self.assertEqual("merchant", resolve_one("talia", rows)["id"])
+        self.assertEqual("posy", resolve_one("bouquet", rows)["id"])
+
 
 if __name__ == "__main__":
     unittest.main()

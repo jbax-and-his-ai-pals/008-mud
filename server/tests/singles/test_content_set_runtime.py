@@ -199,9 +199,22 @@ class TestContentSetRuntime(unittest.TestCase):
             player = server.get_player_for_session(session.session_id)
             self.assertEqual("town", player.current_region_id)
             self.assertEqual("town_square", player.current_room_id)
-            self.assertEqual({"magic_missile", "minor_heal"}, player.runtime_state.magic.known_spells)
+            # P4: a background owns the whole starting kit -- stats, gear,
+            # spells, skills, recipes. With no background named at creation the
+            # content set's declared default applies (fantasy_frontier sets
+            # `_default: wanderer`), so these are the wanderer's item counts
+            # rather than the ruleset's old generic starter kit. A content set
+            # that defines no backgrounds still falls back to
+            # `player_defaults.starting_inventory`.
+            self.assertEqual("wanderer", player.background_id)
+            # The wanderer's kit is authored, not generated: dagger in the
+            # pack, two potions and a knife beside it. Nothing is granted
+            # twice. Weapons ship *carried*, not equipped -- the first-ten-
+            # minutes contract is that `inventory` shows what you own.
+            self.assertIsNone(player.equipment["main_hand"])
             self.assertEqual(1, player.inventory.count_item("item_starter_dagger"))
             self.assertEqual(2, player.inventory.count_item("item_healing_potion_small"))
+            self.assertEqual(1, player.inventory.count_item("item_foraging_knife"))
         finally:
             server.shutdown()
 
@@ -250,7 +263,15 @@ class TestContentSetRuntime(unittest.TestCase):
         try:
             session = server.create_session(player_id="opening_journey_player")
             creation_events = server.execute_command(session.session_id, "char create Rowan")
-            self.assertIn("Character created: Rowan", [event["payload"] for event in creation_events])
+            # P4: the creation line now names the background the character
+            # began with, so a player can see what they got.
+            created_line = next(
+                (str(event["payload"]) for event in creation_events
+                 if "Character created" in str(event["payload"])),
+                "",
+            )
+            self.assertTrue(created_line.startswith("Character created: Rowan"), created_line)
+            self.assertIn("Wanderer", created_line)
             self.assertIn("Welcome to Riverside", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("talk Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
@@ -460,7 +481,11 @@ class TestContentSetRuntime(unittest.TestCase):
             )
         try:
             magic_session = magic_server.create_session(player_id="magic_only_player")
-            magic_server.execute_command(magic_session.session_id, "char create Morgan")
+            # P4: the content set's default background (wanderer) starts with no
+            # spells on purpose -- magic is learned in play from scrolls and
+            # teachers, not handed out with the bedroll. This test is about
+            # contract composition, so it names a background that does know one.
+            magic_server.execute_command(magic_session.session_id, "char create Morgan as acolyte")
             magic_player = magic_server.get_player_for_session(magic_session.session_id)
             self.assertIsNotNone(magic_player.runtime_state.magic)
             self.assertIsNone(magic_player.runtime_state.combat)

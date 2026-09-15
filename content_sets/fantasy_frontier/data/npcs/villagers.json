@@ -175,6 +175,7 @@
     "default_dialog": "The {name} nods but continues working at the forge.",
     "initial_inventory": [],
     "properties": {
+      "dialogue": "grenda_forge",
       "is_vendor": true,
       "can_repair": true,
       "can_unlock_chests": true,

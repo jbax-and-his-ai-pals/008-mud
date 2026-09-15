@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class PlayerMagicMixin:
     """Mixin for handling player magic and spellcasting."""
 
-    def learn_spell(self, spell_id: str) -> Tuple[bool, str]:
+    def learn_spell(self, spell_id: str, award: bool = True) -> Tuple[bool, str]:
         p = cast('Player', self)
         if p.runtime_state.magic is None:
             return False, "Magic is not enabled for this game."
@@ -28,6 +28,18 @@ class PlayerMagicMixin:
         if p.runtime_state.progression is not None and p.runtime_state.progression.level < spell.level_required: return False, f"You lack the experience to grasp {spell.name} (requires level {spell.level_required})."
         
         p.runtime_state.magic.known_spells.add(spell_id)
+        # Learning a spell is a recognised activity and pays advancement XP once
+        # (ROADMAP P4), independently of what casting it later earns.
+        #
+        # `award=False` is for the *starting kit*: a background that begins with
+        # a spell is where the character starts, not something they achieved, so
+        # the entry is seeded -- recorded in the journal, worth nothing. Paying
+        # it handed a fresh acolyte 30 XP for existing.
+        from engine.core import advancement
+        if award:
+            advancement.award(p, advancement.KIND_SPELL, spell_id, payload={"spell_id": spell_id})
+        else:
+            advancement.seed_entry(p, advancement.KIND_SPELL, spell_id)
         return True, f"You study the technique and successfully learn {spell.name}!"
 
     def forget_spell(self, spell_id: str) -> bool:

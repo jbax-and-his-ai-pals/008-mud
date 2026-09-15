@@ -484,6 +484,425 @@ def _validate_discovery_references(content_root: Path, issues: list[ContentSetIs
             issues.append(ContentSetIssue("error", str(path), f"{label}.item_tags must contain non-empty tags"))
 
 
+def _condition_issues(node: Any, where: str, path: Path) -> list[ContentSetIssue]:
+    """Walk a condition tree and report every malformed or unknown node.
+
+    Shared by titles (P4) and dialogue (P5): both gate content on the same
+    predicate language, and a typo in either must fail validation rather than
+    silently leave a gate shut (or, worse, open).
+    """
+    from engine.conditions import KNOWN_KINDS
+
+    found: list[ContentSetIssue] = []
+
+    def walk(current: Any, label: str) -> None:
+        if current is None or isinstance(current, (str, int, float, bool)):
+            return
+        if isinstance(current, list):
+            for index, child in enumerate(current):
+                walk(child, "%s[%d]" % (label, index))
+            return
+        if not isinstance(current, dict):
+            found.append(ContentSetIssue("error", str(path), f"{label} must be a condition object"))
+            return
+        for composite in ("all", "any"):
+            if composite in current:
+                walk(current[composite], "%s.%s" % (label, composite))
+                return
+        if "not" in current:
+            walk(current["not"], "%s.not" % label)
+            return
+        kind = str(current.get("kind", "")).strip()
+        if not kind:
+            found.append(ContentSetIssue("error", str(path), f"{label} has no 'kind'"))
+        elif kind not in KNOWN_KINDS:
+            found.append(ContentSetIssue(
+                "error", str(path),
+                f"{label} uses unknown condition kind '{kind}' "
+                f"(known: {', '.join(sorted(KNOWN_KINDS))})",
+            ))
+
+    walk(node, where)
+    return found
+
+
+def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) -> dict[str, set[str]]:
+    """Every id a dialogue line might name, gathered once."""
+    from engine.magic.spell_registry import SPELL_REGISTRY
+
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    recipe_ids: set[str] = set()
+    crafting_dir = content_root / "crafting"
+    if crafting_dir.is_dir():
+        for path in sorted(crafting_dir.glob("*.json")):
+            payload = _load_json(path, issues, "crafting recipes")
+            if isinstance(payload, dict):
+                recipe_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+
+    quest_ids: set[str] = set()
+    quest_path = content_root / "quests" / "quests.json"
+    if quest_path.is_file():
+        payload = _load_json(quest_path, issues, "quest definitions")
+        if isinstance(payload, dict):
+            quest_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+
+    campaign_ids: set[str] = set()
+    campaigns_dir = content_root / "quests" / "campaigns"
+    if campaigns_dir.is_dir():
+        for path in sorted(campaigns_dir.glob("*.json")):
+            payload = _load_json(path, issues, "campaign definitions")
+            if isinstance(payload, dict):
+                campaign_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+        index_path = content_root / "quests" / "campaigns.json"
+        if index_path.is_file():
+            payload = _load_json(index_path, issues, "campaign index")
+            if isinstance(payload, dict):
+                campaign_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+
+    discovery_ids: set[str] = set()
+    discoveries_path = content_root / "discoveries.json"
+    if discoveries_path.is_file():
+        payload = _load_json(discoveries_path, issues, "discoveries")
+        if isinstance(payload, dict):
+            discovery_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+
+    region_ids: set[str] = set()
+    regions_dir = content_root / "regions"
+    if regions_dir.is_dir():
+        for path in sorted(regions_dir.glob("*.json")):
+            payload = _load_json(path, issues, "region definitions")
+            if isinstance(payload, dict):
+                region_id = payload.get("region_id")
+                if isinstance(region_id, str) and region_id.strip():
+                    region_ids.add(region_id)
+                else:
+                    region_ids.add(path.stem)
+
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    return {
+        "items": item_ids,
+        "recipes": recipe_ids,
+        "quests": quest_ids,
+        "campaigns": campaign_ids,
+        "discoveries": discovery_ids,
+        "regions": region_ids,
+        "npcs": npc_ids,
+        "spells": {str(sid) for sid in SPELL_REGISTRY},
+    }
+
+
+def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate authored conversations, their references, and their wiring.
+
+    The point is the P5 definition of done: a missing graph, a `next_node` that
+    does not exist, a condition kind the engine cannot evaluate, or an effect
+    naming an item nobody authored must fail *validation*, never a conversation.
+    A player should not be the one who discovers that a choice leads nowhere.
+    """
+    from engine.dialogue.effects import KNOWN_EFFECTS
+    from engine.dialogue.manager import parse_graph
+
+    dialogue_dir = content_root / "dialogue"
+    graphs: dict[str, Any] = {}
+    graph_paths: dict[str, Path] = {}
+
+    if dialogue_dir.is_dir():
+        for path in sorted(dialogue_dir.glob("*.json")):
+            payload = _load_json(path, issues, "dialogue graphs")
+            if payload is None:
+                continue
+            graph_id = str(payload.get("id") or path.stem) if isinstance(payload, dict) else path.stem
+            graph, graph_issues = parse_graph(payload, graph_id, path.name)
+            for issue in graph_issues:
+                issues.append(ContentSetIssue("error", str(path), issue))
+            if graph is None:
+                continue
+            if graph_id in graphs:
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"duplicate dialogue graph id '{graph_id}'"
+                ))
+                continue
+            graphs[graph_id] = graph
+            graph_paths[graph_id] = path
+
+    ids = _content_identifier_sets(content_root, issues)
+
+    # A graph nobody points at is dead content; a pointer to no graph is a
+    # broken conversation. The second is an error, the first a warning.
+    referenced: set[str] = set()
+    for path in sorted((content_root / "npcs").glob("*.json")):
+        payload = _load_json(path, issues, "NPC definitions")
+        if not isinstance(payload, dict):
+            continue
+        for template_id, template in payload.items():
+            if str(template_id).startswith("_") or not isinstance(template, dict):
+                continue
+            properties = template.get("properties")
+            if not isinstance(properties, dict):
+                continue
+            graph_id = str(properties.get("dialogue", "") or "").strip()
+            if not graph_id:
+                continue
+            referenced.add(graph_id)
+            if graph_id not in graphs:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"NPC '{template_id}' references missing dialogue graph '{graph_id}'",
+                ))
+
+    for graph_id, graph in graphs.items():
+        path = graph_paths[graph_id]
+        label = f"dialogue graph '{graph_id}'"
+        if graph_id not in referenced:
+            issues.append(ContentSetIssue(
+                "warning", str(path),
+                f"{label} is not referenced by any NPC template",
+            ))
+        for node in graph.nodes.values():
+            where = f"{label} node '{node.node_id}'"
+
+            def check_condition(node_or_block, where_label):
+                for issue in _condition_issues(node_or_block, where_label, path):
+                    issues.append(issue)
+                for kind, key, bucket in (
+                    ("has_item", "item_id", "items"),
+                    ("knows_recipe", "recipe_id", "recipes"),
+                    ("spell_known", "spell_id", "spells"),
+                    ("quest_completed", "quest_id", "quests"),
+                    ("quest_active", "quest_id", "quests"),
+                    ("discovery", "discovery_id", "discoveries"),
+                    ("visited_region", "region_id", "regions"),
+                    ("in_region", "region_id", "regions"),
+                    ("relationship_at_least", "npc_id", "npcs"),
+                ):
+                    current = node_or_block
+                    if not isinstance(current, dict) or str(current.get("kind", "")) != kind:
+                        continue
+                    identifier = str(current.get(key, "") or "").strip()
+                    if identifier and ids[bucket] and identifier not in ids[bucket]:
+                        issues.append(ContentSetIssue(
+                            "error", str(path),
+                            f"{where_label} names {key} '{identifier}', which is not defined in this content set",
+                        ))
+
+            def check_effects(block, where_label):
+                if not isinstance(block, dict):
+                    return
+                for key in sorted(block):
+                    if key not in KNOWN_EFFECTS:
+                        issues.append(ContentSetIssue(
+                            "error", str(path),
+                            f"{where_label} has unknown effect '{key}' "
+                            f"(known: {', '.join(sorted(KNOWN_EFFECTS))})",
+                        ))
+                for key, bucket in (
+                    ("grant_recipe", "recipes"),
+                    ("teach_spell", "spells"),
+                    ("grant_discovery", "discoveries"),
+                    ("start_quest", "quests"),
+                    ("advance_quest", "quests"),
+                    ("complete_quest", "quests"),
+                    ("start_campaign", "campaigns"),
+                    ("give_item", "items"),
+                    ("take_item", "items"),
+                ):
+                    if key not in block:
+                        continue
+                    for identifier in _effect_identifiers(block[key]):
+                        if ids[bucket] and identifier not in ids[bucket]:
+                            issues.append(ContentSetIssue(
+                                "error", str(path),
+                                f"{where_label} effect {key} names '{identifier}', "
+                                f"which is not defined in this content set",
+                            ))
+                rewards = block.get("give_rewards")
+                if isinstance(rewards, dict):
+                    for entry in rewards.get("items", []) or []:
+                        identifier = entry.get("item_id") if isinstance(entry, dict) else entry
+                        if isinstance(identifier, str) and ids["items"] and identifier not in ids["items"]:
+                            issues.append(ContentSetIssue(
+                                "error", str(path),
+                                f"{where_label} effect give_rewards names item '{identifier}', "
+                                f"which is not defined in this content set",
+                            ))
+                relationship = block.get("adjust_relationship")
+                if isinstance(relationship, dict):
+                    npc_id = str(relationship.get("npc", "") or "").strip()
+                    if npc_id and ids["npcs"] and npc_id not in ids["npcs"]:
+                        issues.append(ContentSetIssue(
+                            "error", str(path),
+                            f"{where_label} effect adjust_relationship names NPC '{npc_id}', "
+                            f"which is not defined in this content set",
+                        ))
+                move = block.get("move_npc")
+                if isinstance(move, dict):
+                    npc_id = str(move.get("npc", "") or "").strip()
+                    region_id = str(move.get("region", "") or "").strip()
+                    if npc_id and ids["npcs"] and npc_id not in ids["npcs"]:
+                        issues.append(ContentSetIssue(
+                            "error", str(path),
+                            f"{where_label} effect move_npc names NPC '{npc_id}', "
+                            f"which is not defined in this content set",
+                        ))
+                    if region_id and ids["regions"] and region_id not in ids["regions"]:
+                        issues.append(ContentSetIssue(
+                            "error", str(path),
+                            f"{where_label} effect move_npc names region '{region_id}', "
+                            f"which is not defined in this content set",
+                        ))
+                reveal = block.get("reveal_exit")
+                if isinstance(reveal, dict):
+                    _check_reveal_exit(reveal, where_label, content_root, path, issues)
+
+            check_effects(node.effects, f"{where}.effects")
+            for choice in node.choices:
+                choice_where = f"{where}.choices[{choice.index}]"
+                check_condition(choice.condition, f"{choice_where}.condition")
+                check_effects(choice.effects, f"{choice_where}.effects")
+                if choice.check:
+                    check_effects(choice.check.get("success_effects"), f"{choice_where}.check.success_effects")
+                    check_effects(choice.check.get("fail_effects"), f"{choice_where}.check.fail_effects")
+
+
+def _effect_identifiers(value: Any) -> list[str]:
+    """Ids named by one effect value, in any of its accepted shapes."""
+    found: list[str] = []
+    entries = value if isinstance(value, (list, tuple)) else [value]
+    for entry in entries:
+        if isinstance(entry, str):
+            if entry.strip():
+                found.append(entry.strip())
+            continue
+        if isinstance(entry, dict):
+            identifier = str(
+                entry.get("item_id") or entry.get("id") or entry.get("recipe_id")
+                or entry.get("spell_id") or entry.get("discovery_id") or entry.get("quest_id") or ""
+            ).strip()
+            if identifier:
+                found.append(identifier)
+    return found
+
+
+def _check_reveal_exit(
+    reveal: dict[str, Any], where: str, content_root: Path, path: Path, issues: list[ContentSetIssue]
+) -> None:
+    """A `reveal_exit` must name a room that really has that hidden exit."""
+    room_ref = str(reveal.get("room", "") or "").strip()
+    direction = str(reveal.get("direction", "") or "").strip().lower()
+    if not room_ref or not direction:
+        issues.append(ContentSetIssue("error", str(path), f"{where} effect reveal_exit needs room and direction"))
+        return
+    region_id, _, room_id = room_ref.partition(":")
+    if not room_id:
+        issues.append(ContentSetIssue(
+            "error", str(path),
+            f"{where} effect reveal_exit.room must be 'region:room', got '{room_ref}'",
+        ))
+        return
+    region_path = content_root / "regions" / f"{region_id}.json"
+    if not region_path.is_file():
+        issues.append(ContentSetIssue(
+            "error", str(path), f"{where} effect reveal_exit names missing region '{region_id}'"
+        ))
+        return
+    payload = _load_json(region_path, issues, "region definitions")
+    rooms = payload.get("rooms", {}) if isinstance(payload, dict) else {}
+    room = rooms.get(room_id) if isinstance(rooms, dict) else None
+    if not isinstance(room, dict):
+        issues.append(ContentSetIssue(
+            "error", str(path), f"{where} effect reveal_exit names missing room '{room_ref}'"
+        ))
+        return
+    hidden = (room.get("properties") or {}).get("hidden_exits", {})
+    if not isinstance(hidden, dict) or direction not in hidden:
+        issues.append(ContentSetIssue(
+            "error", str(path),
+            f"{where} effect reveal_exit opens '{direction}' in '{room_ref}', "
+            f"but that room declares no hidden exit there",
+        ))
+
+
+def _validate_quest_choice_outcomes(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """A branching objective must say where each of its outcomes leads.
+
+    `negotiate` and `dialogue_choice` objectives resolve to one of several
+    authored outcomes, and each outcome decides what happens next. Omitting
+    `next_stage` used to fall back to "the stage after this one", which is a
+    silent *lie* whenever the next stage is the violent option: a successful
+    truce in `quest_bandit_lieutenant` advanced to "Kill the Lieutenant", and
+    the campaign's PEACEFUL_SUCCESS transition on that node could never fire.
+
+    So: every outcome must declare `next_stage` (move on), or `complete: true`
+    (this ends the quest). Anything else is an authoring error rather than a
+    default the author never chose.
+    """
+    quests_path = content_root / "quests" / "quests.json"
+    if not quests_path.is_file():
+        return
+    payload = _load_json(quests_path, issues, "quest definitions")
+    if not isinstance(payload, dict):
+        return
+
+    for quest_id, quest in payload.items():
+        if str(quest_id).startswith("_") or not isinstance(quest, dict):
+            continue
+        stages = quest.get("stages")
+        if not isinstance(stages, list):
+            continue
+        for index, stage in enumerate(stages):
+            if not isinstance(stage, dict):
+                continue
+            for objective in _stage_objectives(stage):
+                if str(objective.get("type", "")) not in ("negotiate", "dialogue_choice"):
+                    continue
+                choices = objective.get("choices")
+                label = f"quest '{quest_id}' stage {index} ({objective.get('type')})"
+                if not isinstance(choices, dict) or not choices:
+                    issues.append(ContentSetIssue(
+                        "error", str(quests_path),
+                        f"{label} has no choices to resolve",
+                    ))
+                    continue
+                for outcome, branch in choices.items():
+                    where = f"{label} outcome '{outcome}'"
+                    if not isinstance(branch, dict):
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{where} must be an object"))
+                        continue
+                    next_stage = branch.get("next_stage")
+                    completes = bool(branch.get("complete", False))
+                    if next_stage is None and not completes:
+                        issues.append(ContentSetIssue(
+                            "error", str(quests_path),
+                            f"{where} must declare next_stage or complete: true -- "
+                            f"otherwise it silently advances to the next stage",
+                        ))
+                        continue
+                    if next_stage is not None:
+                        if isinstance(next_stage, bool) or not isinstance(next_stage, int):
+                            issues.append(ContentSetIssue(
+                                "error", str(quests_path), f"{where}.next_stage must be an integer",
+                            ))
+                        elif not (0 <= next_stage <= len(stages)):
+                            issues.append(ContentSetIssue(
+                                "error", str(quests_path),
+                                f"{where}.next_stage {next_stage} is outside this quest's "
+                                f"{len(stages)} stages",
+                            ))
+
+
+def _stage_objectives(stage: dict) -> list[dict]:
+    """Every objective a stage routes through (compact `objective` or
+    `objectives_any`)."""
+    found: list[dict] = []
+    objective = stage.get("objective")
+    if isinstance(objective, dict):
+        found.append(objective)
+    alternatives = stage.get("objectives_any")
+    if isinstance(alternatives, list):
+        found.extend(entry for entry in alternatives if isinstance(entry, dict))
+    return found
+
+
 def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Validate optional, setting-agnostic vendor delivery orders."""
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
@@ -590,6 +1009,126 @@ def _validate_resource_node_yields(content_root: Path, issues: list[ContentSetIs
                     issues.append(ContentSetIssue("error", str(path), f"{entry}.chance must be a number from 0 to 1"))
                 if "material_quality" in candidate:
                     validate_quality(candidate["material_quality"], path, entry)
+
+
+def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """Validate the authored activity-XP table.
+
+    Two mistakes are worth catching here rather than in play, because both fail
+    *silently*: a rule whose kind no engine system records pays nothing forever,
+    and a rule whose kind is unrecognised is rejected outright. Either way the
+    activity looks supported in the ruleset and rewards nothing in the game.
+    """
+    from engine.core.advancement import KNOWN_ENTRY_KINDS
+
+    section = ruleset.get("advancement", {})
+    if section is None:
+        return
+    if not isinstance(section, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "advancement must be an object"))
+        return
+
+    curve = section.get("curve")
+    if curve is not None:
+        if not isinstance(curve, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.curve must be an object"))
+        else:
+            base = curve.get("base")
+            if base is not None and (isinstance(base, bool) or not isinstance(base, (int, float)) or base <= 0):
+                issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.curve.base must be a positive number"))
+            multiplier = curve.get("multiplier")
+            if multiplier is not None and (isinstance(multiplier, bool) or not isinstance(multiplier, (int, float)) or multiplier <= 1):
+                issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.curve.multiplier must be greater than 1"))
+
+    grants = section.get("grants")
+    if grants is None:
+        return
+    if not isinstance(grants, list):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.grants must be an array"))
+        return
+
+    for index, grant in enumerate(grants):
+        label = f"advancement.grants[{index}]"
+        if not isinstance(grant, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} must be an object"))
+            continue
+        rule_id = str(grant.get("id", "")).strip()
+        if not rule_id:
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} requires an id"))
+        xp = grant.get("xp", 0)
+        if isinstance(xp, bool) or not isinstance(xp, (int, float)):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.xp must be a number"))
+        match = grant.get("match", {})
+        if not isinstance(match, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.match must be an object"))
+            continue
+        raw_kind = match.get("kind")
+        kinds = [raw_kind] if isinstance(raw_kind, str) else (raw_kind if isinstance(raw_kind, list) else [])
+        if not kinds:
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.match.kind is required"))
+            continue
+        for kind in kinds:
+            text = str(kind).strip()
+            if text not in KNOWN_ENTRY_KINDS:
+                issues.append(ContentSetIssue(
+                    "error", str(ruleset_path),
+                    f"{label}.match.kind '{text}' is not an entry kind the engine records "
+                    f"(known: {', '.join(sorted(KNOWN_ENTRY_KINDS))})",
+                ))
+
+
+def _validate_starting_content(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate backgrounds and titles -- the two P4 content files."""
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    recipe_path = content_root / "crafting"
+    recipe_ids: set[str] = set()
+    if recipe_path.is_dir():
+        for path in sorted(recipe_path.glob("*.json")):
+            payload = _load_json(path, issues, "crafting recipes")
+            if isinstance(payload, dict):
+                recipe_ids |= {str(k) for k in payload}
+
+    backgrounds_path = content_root / "player" / "backgrounds.json"
+    if backgrounds_path.is_file():
+        payload = _load_json(backgrounds_path, issues, "backgrounds")
+        if isinstance(payload, dict):
+            for background_id, background in payload.items():
+                if str(background_id).startswith("_"):
+                    continue
+                if not isinstance(background, dict):
+                    issues.append(ContentSetIssue("error", str(backgrounds_path), f"background '{background_id}' must be an object"))
+                    continue
+                label = f"background '{background_id}'"
+                if not str(background.get("name", "")).strip():
+                    issues.append(ContentSetIssue("error", str(backgrounds_path), f"{label} requires a name"))
+                equipment = background.get("equipment", {})
+                if isinstance(equipment, dict):
+                    for slot, item_id in equipment.items():
+                        if str(item_id) not in item_ids:
+                            issues.append(ContentSetIssue("error", str(backgrounds_path), f"{label}.equipment.{slot} references missing item '{item_id}'"))
+                for index, entry in enumerate(background.get("inventory", []) or []):
+                    if not isinstance(entry, dict) or str(entry.get("item_id", "")) not in item_ids:
+                        issues.append(ContentSetIssue("error", str(backgrounds_path), f"{label}.inventory[{index}] references a missing item template"))
+                for index, recipe_id in enumerate(background.get("recipes", []) or []):
+                    if recipe_ids and str(recipe_id) not in recipe_ids:
+                        issues.append(ContentSetIssue("error", str(backgrounds_path), f"{label}.recipes[{index}] references missing recipe '{recipe_id}'"))
+
+    titles_path = content_root / "titles.json"
+    if titles_path.is_file():
+        payload = _load_json(titles_path, issues, "titles")
+        if isinstance(payload, dict):
+            for title_id, title in payload.items():
+                if str(title_id).startswith("_"):
+                    continue
+                if not isinstance(title, dict):
+                    issues.append(ContentSetIssue("error", str(titles_path), f"title '{title_id}' must be an object"))
+                    continue
+                label = f"title '{title_id}'"
+                if not str(title.get("name", "")).strip():
+                    issues.append(ContentSetIssue("error", str(titles_path), f"{label} requires a name"))
+                issues.extend(_condition_issues(title.get("condition"), f"{label}.condition", titles_path))
+                for index, requirement in enumerate(title.get("requirements", []) or []):
+                    issues.extend(_condition_issues(requirement, f"{label}.requirements[{index}]", titles_path))
 
 
 def _validate_crafting_quality_contracts(content_root: Path, issues: list[ContentSetIssue]) -> None:
@@ -914,6 +1453,10 @@ def load_content_set(
         if ruleset_source_path is not None:
             _validate_ruleset_references(content_root, ruleset_payload, issues, ruleset_source_path)
             _validate_ambient_loot_references(content_root, ruleset_payload, issues, ruleset_source_path)
+            _validate_advancement_content(content_root, ruleset_payload, issues, ruleset_source_path)
+        _validate_starting_content(content_root, issues)
+        _validate_dialogue_content(content_root, issues)
+        _validate_quest_choice_outcomes(content_root, issues)
         _validate_collection_references(content_root, issues)
         _validate_discovery_references(content_root, issues)
         _validate_vendor_orders(content_root, issues)

@@ -52,7 +52,7 @@ class LLMInterface:
         """Loads prompt templates from the prompts.json file."""
         prompt_path = os.path.join(os.path.dirname(__file__), "prompts.json")
         try:
-            with open(prompt_path, 'r') as f:
+            with open(prompt_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
             print(f"Warning: Could not load prompts from {prompt_path}: {e}")

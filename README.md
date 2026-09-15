@@ -5,9 +5,56 @@ A robust, modular, and data-driven Text-Based RPG engine built with Python and P
 ## 🚀 Getting Started
 
 ### Prerequisites
-*   Python 3.11+
-*   Pygame (`pip install pygame`)
-*   Transformers / PyTorch (Optional, for LLM-based ambient flavor text)
+*   Python 3.11+ — **3.11 or 3.12 recommended.** CI pins 3.11. On 3.14 plain
+    `pygame` has no wheel yet, so use `pygame-ce` there (it installs the same
+    `pygame` module) or stay on 3.12.
+*   Pygame (`pip install pygame`, or `pygame-ce` on 3.14)
+*   PyYAML and msgpack (`pip install PyYAML msgpack`) — PyYAML for the theme-pack
+    and content validators, msgpack so the transport codec tests run for real
+    instead of skipping.
+*   PyTorch / Transformers — **not needed.** Local-LLM ambient dialogue is
+    disabled (`_load_model` returns early); install them only if you want to
+    switch it on.
+
+### Setting up
+```bash
+# Linux / macOS (what this project was developed on):
+python3 -m pip install -r server/requirements.txt
+
+# Windows, where several Pythons may be installed — be explicit, because
+# "the wheels are missing" is usually "a different interpreter is running":
+py -3.12 -m pip install -r server/requirements.txt
+```
+
+### Running the tests
+The runners are Python, so they behave the same on every platform; the
+`run_*.ps1` files of the same name are thin Windows launchers that pick a
+versioned interpreter and hand over to them.
+
+```bash
+python3 run_tests.py                       # all three suites
+python3 run_tests.py --suite singles       # just tests/singles
+python3 run_tests.py --target tests.singles.test_p4_progression
+python3 run_tests.py --check-dependencies  # what is missing, and for which Python
+python3 run_content_checks.py              # content gates + validators
+```
+
+```powershell
+# Windows PowerShell (what ships with Windows):
+powershell -ExecutionPolicy Bypass -File run_tests.ps1
+powershell -ExecutionPolicy Bypass -File run_content_checks.ps1
+# PowerShell 7+, where `pwsh` exists:
+pwsh -File run_tests.ps1
+```
+`-ExecutionPolicy Bypass` is only needed while this machine's policy blocks
+local scripts.
+
+`run_tests.py` runs under whatever interpreter invoked it, checks
+PyYAML/msgpack/pygame before running anything, and refuses to start without
+them — a suite missing a dependency reports failures that are not defects.
+Logs land in `tmp/test-results/`. On Windows the launcher prefers 3.12, then
+3.11, then 3.13; pass `-Interpreter "py -3.14"` to see the dependency gate in
+action.
 
 ### Running the Game
 ```bash

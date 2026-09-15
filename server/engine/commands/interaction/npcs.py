@@ -7,6 +7,8 @@ from engine.config import (
 )
 from engine.config.config_display import FORMAT_CATEGORY
 from engine.core.skill_system import SkillSystem
+from engine.core import advancement
+from engine.dialogue import runner as dialogue_runner
 from engine.naming import resolve_best, resolve_exact
 from engine.utils.utils import format_name_for_display
 
@@ -18,22 +20,13 @@ def _has_pending_negotiation(player, target_npc) -> bool:
     (quest bosses are almost always spawned from a hostile template) is
     unreachable: the generic hostile-refusal check below would always
     fire first, regardless of phrasing ("talk", "talk ... complete",
-    or the "negotiate" alias -- all three reach this same function)."""
-    quests = getattr(player.runtime_state, "quests", None)
-    if quests is None:
-        return False
-    for q_data in quests.active.values():
-        stages = q_data.get("stages", [])
-        idx = q_data.get("current_stage_index", 0)
-        if not (0 <= idx < len(stages)):
-            continue
-        objective = stages[idx].get("objective", {})
-        if objective.get("type") != "negotiate":
-            continue
-        target_id = objective.get("target_npc_id")
-        if target_id == target_npc.template_id or target_id == target_npc.obj_id:
-            return True
-    return False
+    or the "negotiate" alias -- all three reach this same function).
+
+    The rule itself lives in the dialogue runner (ROADMAP P5) so that the
+    presentation of a negotiation and the gate that allows one cannot
+    disagree about whether a negotiation is pending.
+    """
+    return dialogue_runner.has_pending_negotiation(player, target_npc)
 
 def _resolve_target_npc(world, args, player):
     """Resolve an NPC target from the leading words of a command.
@@ -103,6 +96,16 @@ def talk_handler(args, context):
 
     player.last_talked_to = target_npc.obj_id
 
+    # Meeting a named person is a recognised activity, recorded once per
+    # template so introductions to a generic guard do not pay repeatedly
+    # (ROADMAP P4). Recorded here, before any dialogue branching, so it counts
+    # however the conversation goes.
+    _meeting_note = advancement.award(
+        player, advancement.KIND_NPC,
+        str(getattr(target_npc, "template_id", "") or target_npc.obj_id),
+        payload={"npc_tags": [], "npc_id": str(getattr(target_npc, "template_id", "") or "")},
+    )
+
     remaining_args = args[match_len:]
     topic = None
     is_quest_turn_in = False
@@ -128,7 +131,23 @@ def talk_handler(args, context):
 
     if is_quest_turn_in:
         return _handle_quest_dialogue(player, target_npc, world)
-    
+
+    # P5: an authored dialogue graph, or a quest negotiation, is a conversation
+    # -- it takes precedence over the flat topic lookup, because an NPC who has
+    # something to say says it in the conversation the author wrote. A reply
+    # typed alongside the name ("talk grenda show me how") is resolved against
+    # the open conversation.
+    if topic:
+        session = _open_dialogue_session(world, player, target_npc)
+        if session is not None:
+            response = dialogue_runner.respond(world, player, target_npc, topic)
+            if response is not None:
+                return response
+        if _is_negotiation_request(topic) and dialogue_runner.has_pending_negotiation(player, target_npc):
+            opened = dialogue_runner.start(world, player, target_npc)
+            if opened:
+                return opened
+
     if topic:
          manager = world.game.knowledge_manager
          player.conversation.mark_discussed(target_npc.obj_id, topic)
@@ -136,15 +155,25 @@ def talk_handler(args, context):
          if not topic_id: topic_id = topic.lower().replace(" ", "_")
          
          raw_response = manager.get_response(target_npc, topic_id, player)
-         
+
          if raw_response is None:
+             # The NPC's own flat `dialog` dict, then the topic display name.
+             flat = _flat_dialog_response(world, player, target_npc, topic)
+             if flat is not None:
+                 return flat
              topic_display = manager.topics.get(topic_id, {}).get("display_name", topic)
              return f"{target_npc.name} has nothing to say about {topic_display}."
 
          formatted_response = manager.parse_and_highlight(raw_response, player, source_npc=target_npc, exclude_topic_id=topic_id)
          return f"{FORMAT_TITLE}{target_npc.name}{FORMAT_RESET}: {formatted_response}"
 
-    # Default Greeting / Status Check
+    # Default Greeting / Status Check. A conversation the author wrote, or a
+    # negotiation the quest is waiting on, comes first; the flat greeting below
+    # is what an NPC with neither has.
+    opened = dialogue_runner.start(world, player, target_npc)
+    if opened is not None:
+        return opened
+
     ready_quests_for_npc = []
     active_quests_for_npc = []
     
@@ -186,6 +215,80 @@ def talk_handler(args, context):
         
     return output
 
+def _is_negotiation_request(topic: str) -> bool:
+    """Whether a typed topic means "let us talk terms"."""
+    return str(topic or "").strip().lower() in {"negotiate", "negotiation", "talk terms", "parley"}
+
+def _flat_dialog_response(world, player, target_npc, raw_input: str) -> Optional[str]:
+    """Answer from the NPC's own `dialog` keyword dict.
+
+    NPC templates ship a flat `dialog` mapping (`patterns`, `missing_supplies`,
+    `weapons`, ...) and, until P5, **nothing read it with a topic**: `npc.talk()`
+    was only ever called with no argument, so `greeting` worked and every other
+    line was unreachable. A content author could write eleven lines for a smith
+    and have ten of them be dead text.
+
+    Lookup goes through the shared resolver, so `missing supplies` finds
+    `missing_supplies` and a key may carry authored `aliases` like anything
+    else. Returns None when this NPC has nothing on the subject.
+    """
+    dialog = getattr(target_npc, "dialog", None)
+    if not isinstance(dialog, dict) or not dialog or not str(raw_input or "").strip():
+        return None
+
+    keys = [str(key) for key in dialog if isinstance(key, str) and not str(key).startswith("_")]
+    if not keys:
+        return None
+    match = resolve_best(
+        raw_input,
+        [{"name": key.replace("_", " "), "obj_id": key} for key in keys],
+    )
+    if not isinstance(match, dict):
+        return None
+    key = str(match.get("obj_id", "") or "")
+    line = dialog.get(key)
+    if not isinstance(line, str) or not line.strip():
+        return None
+
+    player.conversation.mark_discussed(target_npc.obj_id, key)
+    formatted = world.game.knowledge_manager.parse_and_highlight(
+        line, player, source_npc=target_npc, exclude_topic_id=key,
+    )
+    return f"{FORMAT_TITLE}{target_npc.name}{FORMAT_RESET}: {formatted}"
+
+def _open_dialogue_session(world, player, target_npc):
+    """The player's open conversation with this NPC, if there is one (P5)."""
+    manager = dialogue_runner.manager_for(world)
+    if manager is None:
+        return None
+    session = manager.current(player)
+    if session is None:
+        return None
+    if session.npc_id != str(getattr(target_npc, "obj_id", "") or ""):
+        return None
+    return session
+
+@command("reply", ["respond", "choose"], "interaction",
+         "Reply in an open conversation.\nUsage: reply <number | words>")
+def reply_handler(args, context):
+    """Continue whatever conversation is open, by number or by words.
+
+    Separate from `talk` because once you are in a conversation, naming the
+    person again is noise -- and because a reply is often just a number.
+    """
+    world = context["world"]
+    player = context.get('player')
+    if not player:
+        return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    if not args:
+        return f"{FORMAT_ERROR}Reply with what? Usage: reply <number | words>{FORMAT_RESET}"
+
+    query = " ".join(args)
+    # Whoever the session is with; `talk` established that, and the runner can
+    # recover them from the session, so a bare "reply 2" works.
+    return dialogue_runner.continue_or_report(world, player, None, query)
+
+
 @command("ask", ["topic", "query"], "interaction", "Ask an NPC about a topic.\nUsage: ask [npc_name] [about] <topic>")
 def ask_handler(args, context):
     world = context["world"]
@@ -215,6 +318,9 @@ def ask_handler(args, context):
     raw_response = manager.get_response(target_npc, topic_id, player)
     
     if raw_response is None:
+        flat = _flat_dialog_response(world, player, target_npc, raw_input)
+        if flat is not None:
+            return flat
         topic_display = manager.topics.get(topic_id, {}).get("display_name", raw_input)
         return f"{target_npc.name} has nothing to say about {topic_display}."
 

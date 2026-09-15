@@ -94,6 +94,22 @@ def apply_relationship_milestones(player, npc, old_score: int, new_score: int, w
             message = str(milestone.get("message", "")).strip()
             summary = ", ".join(granted) if granted else "a new bond"
             messages.append((message + " " if message else "") + f"Milestone reached: {summary}.")
+
+    # Crossing into a new friendship tier is a recognised activity and pays
+    # advancement XP once per tier (ROADMAP P4). Recorded separately from
+    # authored milestones: the tier is the engine-visible relationship band,
+    # while a milestone is a specific authored threshold.
+    old_tier = relationship_tier(old_score, world)
+    new_tier = relationship_tier(new_score, world)
+    if new_tier != old_tier:
+        from engine.core import advancement
+        tier_note = advancement.award(
+            player, advancement.KIND_RELATIONSHIP, new_tier,
+            payload={"npc_id": str(getattr(npc, "template_id", "") or ""), "tier": new_tier},
+        )
+        if tier_note:
+            messages.append(tier_note)
+
     return "\n".join(messages)
 
 

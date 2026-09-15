@@ -168,16 +168,22 @@ not weeks — and everything else waits behind it.
   *Not done in this pass — it is a content decision (wire it into a campaign or
   shelve it), not a repair.*
 
-- [ ] **Fix `craft`'s multi-word matching.** `commands/crafting.py:121-133`
-  searches with only `args[0]`, so the natural phrasing the design calls for
-  does not work: `craft river clay token` resolves to
-  `press_river_token` only by accident, and `craft wildflower posy` does not
+- [x] **Fix `craft`'s multi-word matching** — done in P3, with the shared
+  resolver the item asked for. `craft wildflower posy`, `craft posy`, and
+  `craft tie_wildflower_posy` all resolve, and no command silently takes the
+  first of several matches. Original note follows, kept for the record.
+  `commands/crafting.py:121-133`
+  searched with only `args[0]`, so the natural phrasing the design calls for did
+  not work: `craft river clay token` resolved to
+  `press_river_token` only by accident, and `craft wildflower posy` did not
   resolve at all (`"wildflower posy"` is an underscore id and the recipe's
-  display name is `"Tie Wildflower Posy"`). Substring matching is also
-  order-dependent and only reports the first collision.
-  **Replace with a shared name-resolution service** (see P3) — this is not a
-  one-line patch, it is a missing subsystem.
-  *Deferred to P3, where it belongs.*
+  display name is `"Tie Wildflower Posy"`). Substring matching was also
+  order-dependent and only reported the first collision.
+- [x] **The five dangling references are gone.** `smite` and `item_smoke_bomb`
+  went with `classes.json` (P4); `item_iron_ore` and `iron_shortage` lived in
+  the dead dialogue graph P5 replaced; `item_scrap` was the ruleset's loot
+  fallback and is defined. Nothing references a missing id except the two
+  allow-listed `mage_set` members.
 
 ### Verification notes
 
@@ -188,18 +194,32 @@ The suite cannot be run cleanly from a fresh checkout, and that is a P8 item:
 - `PyYAML` and `msgpack` are declared in `server/requirements.txt` but their
   absence is an import *error*, not a skip: without them two test modules fail
   to import entirely and the msgpack transport snapshots fail.
-- In this environment (Python 3.14, no pygame wheel, no PyYAML, no msgpack)
-  `tests/singles` reports 41 failures/errors, all of them from those missing
-  dependencies or from the local pygame test stub. **None are in a module
-  touched by this work.** `tests/batch` (280) and `tests/current` (3) pass
-  fully.
+
+**Resolved, and the original diagnosis was wrong.** Those failures were blamed
+on dependencies that "cannot be installed here". They were installed — for
+Python 3.12 — while the shell was running Python 3.14, which has none of them.
+Measured both ways on the same checkout:
+
+| Interpreter | `tests/singles` | Cause of failures |
+|---|---|---|
+| Python 3.14 (no deps) | 3,554 tests, 40 failures/errors | 3 modules fail to import; pygame stub stands in for the real client library |
+| Python 3.12 (deps present) | **3,649 tests, 0 failures** | — |
+
+The 95-test difference is the coverage that was silently missing: modules that
+could not even import, plus transport snapshot tests that were skipping. So the
+"41 failures" recorded through P0–P4 were never defects and never a reason to
+distrust a green run elsewhere; they were an interpreter mismatch. `README.md`
+now names the supported versions, `run_tests.ps1` resolves the interpreter and
+checks the three packages before running, and `run_content_checks.ps1` uses the
+same resolution instead of bare `python`.
 
 ### P0 status
 
-All P0 repair work is complete except the two items explicitly deferred above
-(`quest_missing_guard` is a content decision; `craft` matching is P3). Six
-defects fixed, four regression suites added (27 tests), three validation gates
-added and each proven to catch a reintroduced defect.
+All P0 repair work is complete except one item explicitly deferred
+(`quest_missing_guard` is a content decision, not a repair). Seven defects fixed
+(the seventh, mojibaked content text, was found during P4 and fixed there), four
+regression suites added, three validation gates added and each proven to catch a
+reintroduced defect.
 
 ### Definition of done
 
@@ -345,16 +365,13 @@ followed the same shape: author the choice in the ruleset, then fall back to a
   author knows `healer` is special and a typo means "no AI routine".
 - [ ] **`game_object.py:147`** — `self.__class__.__name__ == "Player"` as a type
   check. Fragile; use `isinstance`. Not a content leak, hence not blocking.
-- [ ] **Move XP curve constants into the ruleset** (see P4) so pacing is
-  authored, not compiled.
-- [ ] **Replace `data/player/classes.json`.** It authors four classes with
-  distinct stats, gear, and spells and is **unreachable from the server path** —
-  applied only by `engine/core/game_manager.py:255`, the legacy pygame screen.
-  Every server-side character is `Adventurer` with all stats 10. It also holds
-  two of the repo's dangling refs (`smite`, `item_smoke_bomb`). The replacement
-  is decided (backgrounds + skills + titles, P4); this item is about removing
-  the legacy file and its pygame-only wiring rather than leaving dead design in
-  the tree.
+- [x] **Move XP curve constants into the ruleset** (done in P4:
+  `advancement.curve` in `rules/ruleset.json`, read by
+  `engine/core/advancement.py`).
+- [x] **Replace `data/player/classes.json`** (done in P4). The file and its
+  pygame-only wiring in `engine/core/game_manager.py` are gone; backgrounds
+  replace it, and the dangling `smite` / `item_smoke_bomb` refs went with it.
+  `game_manager.py` now loads `player/backgrounds.json` for the legacy screen.
 
 ### Definition of done
 
@@ -476,94 +493,308 @@ new. Batch (280) and current (3) pass fully. Content checks: 14 steps, all pass.
 
 **Goal:** make progression authorable, make it work for any playstyle, and
 replace classes with something that fits a hybrid game. Full rationale and
-tables in `WORLD_DESIGN.md` §3.
+tables in `WORLD_DESIGN.md` §3. **Complete.**
 
 **Decided:** progression is **hybrid** — XP flows from any recognised activity,
 so no single profession carries the game and no content silo has to stand
 alone. Exploration is one source among several.
 
-- [ ] **Change the XP curve from ×1.5 to ×1.25** (configurable, ruleset-driven).
-  Still load-bearing even under the hybrid model: Ring 3 (L11–15) needs ~11
-  regions at ×1.25 versus ~97 at ×1.5.
-- [ ] **Add activity XP** from an authored ledger. Generalise the existing
-  `DiscoveryManager` from "notable things found" into the advancement record.
-  Grant, first time only, for: region first-entry · landmark room · creature
-  template encountered · material/item/gem obtained · recipe learned · spell
-  learned · named NPC met · relationship tier crossed · quest completed ·
-  collection set completed. Values content-authored, not implied.
-- [ ] **Set the per-grant values.** `WORLD_DESIGN.md` §3.2 uses placeholders
-  (region 120, discovery 15, quest 60, craft 25, tier 40, set 150) and needs
-  tuning against real play.
-- [ ] **Decide diminishing returns** for repeat kills and repeat gathers, and
-  implement it.
-- [ ] **Keep the multiplier tunable.** ×1.25 is a starting value, not a
-  decision. The ruleset value must be easy to vary during testing so pacing can
-  be explored as systems land. Do not chase the long tail — a completionist
-  plateaus around level 26 in a large world, and that is intended.
-- [ ] **Replace `classes.json` with backgrounds.** A light creation-time choice:
-  starting stats, gear, a couple of skills, maybe a recipe or discovery. It
-  decides where you begin, not what you can become. Removes the dangling
-  `smite` / `item_smoke_bomb` refs with it.
-- [ ] **Wire skills to use.** `add_skill` is called only from tests, so `skills`
-  always reports "no specialized skills yet" — while `retreat` performs a
-  stealth check against a skill no player can ever raise. Wire gain via the
-  existing `SkillSystem`, or remove the check.
-- [ ] **Add earned titles.** Authored id, display name, and conditions; conferred
-  by guild-like constructs that take profession-appropriate names per content
-  set. Titles are self-applied, mechanically inert, and revocable if the
-  conditions stop holding. Reuses machinery that already exists: spells known,
-  faction reputation, relationship tiers, the discovery ledger.
-- [ ] **Build one shared condition evaluator** serving dialogue choice
-  conditions (P5), title gates, and quest availability. Build it once.
-- [ ] **Add a `title` command** to list earned titles and set the active one.
-- [ ] **Confirm level-ups stay automatic.** Decided: no per-level choice —
-  identity comes from backgrounds, skills, and titles. Revisit only if
-  playtesting says levelling feels empty.
+- [x] **Changed the XP curve from ×1.5 to ×1.25, ruleset-driven.**
+  `engine/core/advancement.py` owns `xp_to_reach_level` /
+  `xp_for_next_level`, reads `advancement.curve` from the ruleset, and
+  `player/progression.py` asks it instead of holding a constant. `base: 100`,
+  `multiplier: 1.25` in `fantasy_frontier`; a content set that authors nothing
+  gets those as the documented default. L15 costs **8,694** cumulative XP
+  against **57,952** at ×1.5 — the difference between "a designed world can
+  carry you there" and "only a grind can".
+- [x] **Activity XP, from an authored ledger.** `AdvancementManager` replaces
+  the kill-only model. It generalises `DiscoveryManager` rather than running
+  beside it: discoveries are now one *kind* of ledger entry (imported once from
+  the old `player.discoveries` so nobody loses their history), and the field
+  journal is the same record. Entry keys are `"<kind>:<identifier>"`; kinds are
+  region · landmark · creature · item · recipe · spell · npc · relationship ·
+  quest · collection · discovery. `advancement.award(player, kind, id, ...)` is
+  the one call gameplay code makes, and it is total — no ledger, no world, or a
+  raising rule cannot break the movement or combat path that triggered it.
+- [x] **Per-grant values are authored, and one rule table matches by fact.**
+  Fifteen rules ship in the ruleset: region 90 · landmark 25 · creature 15 ·
+  recipe 25 · spell 30 · named NPC 10 · relationship tier 40 · quest 40 ·
+  collection set 150 · discovery 15, plus item rules split by type (material 8,
+  gem 15, treasure 10, curios 3, consumable 5). Rules narrow on
+  `region_id` / `npc_tags` / `item_type` / `item_tags` / `entry_ids`, and
+  `once_per_kind` pays a rule only once ever. Values are deliberately
+  provisional: they are content, so tuning them is a data edit, and playtesting
+  will move them.
+- [x] **Diminishing returns are structural.** A ledger entry pays once and never
+  again, so the tenth rat is worth its combat XP and nothing more; the first
+  region, recipe, gem, and quest are worth something on their own. No separate
+  decay curve to tune or explain, and nothing to grind: repeat content pays the
+  ordinary reward and the journal has already stopped being impressed. Existing
+  combat and quest XP stay as they were — advancement XP is **additive** on top
+  as a first-encounter bonus, which is why tests assert floors, not exact sums.
+- [x] **The multiplier is one number in one file.** No engine constant, no code
+  change to vary pacing mid-test; `advancement.json` is also read if a content
+  set would rather keep a larger table in its own file, with the ruleset section
+  winning for anything both define. A malformed curve or an unknown
+  `match.kind` is reported as an issue and the rule is skipped rather than left
+  in the table looking live.
+- [x] **`classes.json` is gone; backgrounds replace it.**
+  `data/player/backgrounds.json` authors six (wanderer, labourer, apprentice,
+  acolyte, pedlar, poacher) with `_default: wanderer`. Each is stats, a kit, a
+  couple of starting skills, and a recipe or two — a place to begin, never a
+  gate. Chosen at creation with `char create <name> as <background>`, listed
+  with `backgrounds`, reviewed with `background`. A background owns the *whole*
+  starting kit, so the ruleset's generic starter inventory is the fallback for
+  a content set with no backgrounds rather than something to be stacked on top
+  of one (doing both gave every character two foraging knives from two systems).
+  Two kit conventions came out of walking the opening as each background:
+  **weapons ship carried, not equipped** (a new player's first `inventory`
+  should show the weapon they own, and drawing it is the first thing the game
+  teaches), and **every background carries a foraging knife**, because the
+  opening commission cannot be started without one. The legacy pygame-only
+  `classes.json` and its `smite` / `item_smoke_bomb` refs are deleted.
+- [x] **Skills are wired to use.** `SkillSystem.practice_check` performs the
+  check *and* trains the skill on the attempt, so the paths that were dead —
+  `retreat`'s stealth check and skill-gated exits — raise the skill they test.
+  Crafting, lockpicking, theft, and traps already called `attempt_check` +
+  `grant_xp`; that is now the same helper. `_ensure_skill` means a skill at
+  level 0 reports as known-but-untrained rather than missing, and the crafting
+  and merchant paths that grant skill XP now show up in `skills`.
+- [x] **Earned titles, self-applied and revocable.** `data/titles.json` authors
+  thirteen with conditions over spells known, skills, relationship tiers, quests,
+  the ledger, and level. `TitleManager.sync` grants *and* revokes, so a title
+  reflects what is true now. Titles are mechanically inert — nothing reads them
+  for a bonus — and the player chooses which to wear with `title <name>`.
+  Player mode says "Not yet yours: …" instead of printing the numeric threshold;
+  test mode still shows the condition, because that is the authoring surface.
+- [x] **One condition evaluator, built once.** `engine/conditions.py` serves
+  dialogue choice conditions (P5), title gates, and quest availability, with
+  composites (`all` / `any` / `not`) and **unknown kinds failing closed** so a
+  typo in content cannot open a gate. `explain()` is the test-mode counterpart
+  that says why.
+- [x] **`advancement` (the field journal) and `title` commands ship.**
+  `advancement` lists earned entries by kind with `progress` and `fieldjournal`
+  as aliases; `title` lists earned titles, `title <name>` wears one, and
+  `titles`/`mytitle`/`wearth` alias it. `journal` was left alone — it belongs to
+  the quest log.
+- [x] **Level-ups stay automatic.** No per-level choice, no level cap. The
+  exponential curve is the brake, and identity comes from background, skills,
+  and title instead of from a build.
+
+### Still open
+
+- [ ] **Tune the grant values against real play.** They are authored and
+  editable; they are not yet *tuned*. Expect region and quest values to move
+  once there is a world big enough to walk, and revisit the level-26-ish
+  completionist plateau then. The ×1.25 multiplier is also a starting value —
+  vary it freely during testing, it is one number in the ruleset.
+- [ ] **Decide whether a mirrored party quest should pay every member the
+  first-completion bonus.** Today it does, because each member's ledger entry is
+  their own. Defensible ("you were there"), but it means a party levels faster
+  than a solo player on the same content; revisit once party play is exercised
+  at scale.
+- [ ] **`advancement.json` is supported but unused.** All configuration
+  currently lives in the ruleset. Either split the fifteen rules out into a
+  content file when the table grows, or drop the alternative path so there is
+  only one place to look.
+- [ ] **Backgrounds are chosen blind.** `char create <name> as <background>` and
+  `backgrounds` both work, but a player is told *"Choose where you begin with
+  ..."* without being shown the options at the moment of creation, and no
+  background is earmarked per town (open decision 10 wants a chosen starting
+  town later). Worth revisiting when character creation is given a proper
+  screen rather than a command.
+- [ ] **Rule out the same class of blockout for later content.** The opening
+  commission needs a foraging knife, and three of the six shipped backgrounds
+  did not carry one — a creation choice that locked a player out of the first
+  thing the game asks them to do, which is exactly what the design says must
+  never happen. `tests/singles/test_background_opening_kit.py` now walks every
+  background through the opening move, so the mechanical half is covered. What
+  is not covered is a *later* gate — a region reachable only with a tool, a
+  quest completable only with a spell. Re-run that reasoning when P7 adds
+  regions and tools.
 
 ### Definition of done
 
-- A pacifist, a merchant, and a monster-hunter can each advance steadily by
-  different routes in a designed world.
-- No skill check exists against a skill that cannot be raised.
-- A player can earn and wear a title that reflects what they actually did.
-- Curve, grant values, and per-grant tuning are authored content, not engine
+- [x] A pacifist, a merchant, and a monster-hunter can each advance steadily by
+  different routes in a designed world. Fourteen of the fifteen grant rules pay
+  for something other than killing; the only combat-shaped one (creature 15) is
+  worth less than a single region (90) and pays once per species.
+- [x] No skill check exists against a skill that cannot be raised.
+  `practice_check` is now the only check-then-train path, and `_ensure_skill`
+  reports untrained skills at level 0 instead of omitting them.
+- [x] A player can earn and wear a title that reflects what they actually did.
+  Thirteen authored titles, granted and revoked by condition, worn with
+  `title <name>`.
+- [x] Curve, grant values, and per-grant tuning are authored content, not engine
   constants, and the multiplier can be varied without a code change.
+- [ ] The routes are *balanced*, not merely present. Adventuring still pays best
+  in absolute terms because combat XP and quest XP stack with the ledger; making
+  a pure gatherer-and-crafter comparable needs the P7 economy, so this stays
+  open deliberately rather than being tuned twice.
+
+### Verification
+
+- `tests/singles/test_p4_progression.py` — 40 tests over the ledger, the curve,
+  backgrounds, titles, the condition evaluator, and the two new commands.
+- `tests/singles/test_background_opening_kit.py` — every authored background
+  creates a character, carries a weapon, and gathers from the herb bed the
+  opening commission sends them to. This is the test that would have caught the
+  knife-less kits.
+- Full suite re-run against the pre-P4 baseline: **41 failing tests before, 40
+  after, zero new**. Those 40 turned out to be an interpreter mismatch rather
+  than missing dependencies, and are now **0**: on Python 3.12 the suite runs
+  3,649 + 280 + 3 tests with nothing failing. One pre-existing failure was
+  *fixed* on the way through (below).
+- `run_tests.py` (new) is the test entry point on every platform: it runs under
+  the interpreter that invoked it, checks PyYAML/msgpack/pygame before running
+  anything, and refuses to start without them, because a suite missing a
+  dependency reports failures that are not defects. `run_content_checks.py`
+  (new) does the same for the content gates, which until now had no Linux path
+  at all — the fourteen steps only existed as a PowerShell script. The `.ps1`
+  files of both names are thin Windows launchers that resolve 3.12 → 3.11 →
+  3.13 → `python` and hand over.
+- `.github/workflows/server-tests.yml` no longer installs a CPU-only torch. It
+  was there because `requirements.txt` claimed a module-scope import chain
+  forced it; nothing imports torch at module scope, and the suite passes on an
+  interpreter without it.
+- `tests/singles/snapshot_assertions.py` now rewrites the repo root wherever it
+  appears in a payload, not only at the start of a string. Two audit snapshots
+  had been failing because the stale-reference audit warns about the two
+  allow-listed `mage_set` refs and embedded the absolute repo path in that
+  warning; the snapshots were re-recorded with `<REPO_ROOT>` normalization, so
+  they are no longer machine-specific. Pre-existing, not a P4 regression.
+- `tests/singles/test_encoding_hygiene.py` — new tripwire. A pre-existing
+  relationship test was failing because the engine read `villagers.json`
+  without `encoding="utf-8"`, so Windows' cp1252 default turned a U+2019 into
+  `â€™` in player-visible text. Eleven engine modules were fixed; the tripwire
+  parses the engine with `ast` and fails on any future text-mode `open()`,
+  `read_text()`, or `write_text()` that does not pin an encoding.
+- `run_content_checks.ps1` — all 14 steps pass after the content changes,
+  including neutrality (`0 issues`, empty allowlist) and reference integrity
+  (2 allow-listed `mage_set` warnings, 0 errors).
+- `tmp/verify_p4.py` drove a live server: background chosen at creation, region
+  and landmark entries paying on first encounter and paying nothing on repeat,
+  a crafted recipe paying once, the starting region seeded *without* paying,
+  the field journal rendering, `skills` non-empty after crafting and trading,
+  thirteen titles listing their conditions, and the curve table (L15 = 8,694
+  cumulative, against 57,952 at ×1.5).
 
 ---
 
 ## P5: Dialogue system
 
 **Goal:** conversations, and the delivery mechanism for quests, recipes, and
-directions. Requirements in `WORLD_DESIGN.md` §5.
+directions. Requirements in `WORLD_DESIGN.md` §5. **Complete.**
 
-Current state: `data/dialogue/` is **never loaded**. The content loader globs
-`regions/ npcs/ items/ crafting/` and nothing else, so the only branching
-conversation in the game (`blacksmith.json`, 3 nodes, 6 choices) is dead code —
-and it is also broken, referencing `item_iron_ore` and quest `iron_shortage`,
-neither of which exists. What actually works is a flat `dialog`
-keyword→line dict: 124 lines across 36 of 62 NPCs, and 26 NPCs with nothing
-beyond a `default_dialog` one-liner.
+What it replaced: `data/dialogue/` was **never loaded** — the content loader
+globbed `regions/ npcs/ items/ crafting/` and nothing else — so the only
+branching conversation in the game (`blacksmith.json`, 3 nodes, 6 choices) was
+dead code, and it referenced `item_iron_ore` and quest `iron_shortage`, neither
+of which existed. What worked was a flat `dialog` keyword dict, and even that
+only half worked: `npc.talk()` was only ever called with no argument, so
+`greeting` was reachable and the other ten lines of a smith's dialogue were not.
 
-- [ ] **Load and validate `data/dialogue/`** with a documented graph schema;
-  NPC templates reference a graph id.
-- [ ] **Conditions** on choices: has item, has discovery, relationship tier,
-  quest state, class, level, time of day, region visited, reputation.
-- [ ] **Effects** on choices: start/advance/complete quest, **grant recipe**,
-  grant discovery, teach spell, give/take item, adjust relationship, reveal
-  exit, move NPC, set flag.
-- [ ] **Mode-aware text** so test mode can display conditions and effects.
-- [ ] **Fail loudly at validation time** on a missing graph, dangling condition
-  target, or unknown effect — never a player-visible crash or a `?`.
-- [ ] **Absorb the existing quest-negotiation dialogue path**
-  (`commands/interaction/npcs.py`) rather than sitting beside it.
-- [ ] **Keep the flat keyword dict** for minor NPCs; it is a good lightweight
-  option.
+- [x] **`data/dialogue/` is loaded and validated** with a documented graph
+  schema. `parse_graph` builds nodes and choices from `dialogue/*.json`; an NPC
+  template points at one with `properties.dialogue`. Structural problems — a
+  root that is not a node, a `next_node` pointing at nothing, a choice that
+  goes nowhere, a `check` missing a branch, an unknown effect — are reported
+  rather than discovered mid-sentence, and are **errors in content validation**.
+- [x] **Conditions on choices**, via `engine/conditions.py` — the evaluator P4
+  built for titles. All sixteen kinds work unchanged: has item, knows recipe,
+  spell known, relationship tier, quest state, discovery, region visited, in
+  region, level, gold, title, background, flag, time of day, season. Unknown
+  kinds fail closed.
+- [x] **Effects on choices**, in one interpreter shared with the topic path
+  (`engine/dialogue/effects.py`): start quest, start/advance/complete campaign
+  and quest, grant recipe, grant discovery, teach spell, give/take item, give
+  gold, adjust relationship, set flag, reveal exit, move NPC, and the structured
+  `give_rewards` bundle. The topics path used to implement a private five-key
+  subset, so `start_quest` behaved one way when a topic said it and another when
+  a conversation did; it now delegates to the same interpreter.
+- [x] **Mode-aware text.** `text` may be a string or a `{"player": …, "test": …}`
+  mapping. Test mode annotates every choice with its destination, check, and
+  effects, and lists gated replies as `- … (unavailable: needs 2 x iron ingot)`;
+  player mode shows the conversation and nothing else.
+- [x] **Nothing is discovered by the player.** Every failure mode above is a
+  content-validation error, tested with a real content set and one deliberate
+  break. A missing graph fails the build; it cannot reach a conversation.
+- [x] **The quest-negotiation path is absorbed.** A `negotiate` objective is now
+  *played*: the quest authors the stakes (`approach`, `choices`), and the
+  dialogue system presents the approach as a reply, rolls the skill through
+  `practice_check` (so the attempt trains the skill), and reports the authored
+  outcome. Same machinery, same rendering, same command as any other
+  conversation — not a dice roll hidden behind the word "complete".
+- [x] **The flat keyword dict is kept** for minor NPCs, and now actually
+  reachable: `ask grenda about missing supplies` reads her own `dialog` dict
+  through the shared resolver, so `missing supplies` finds `missing_supplies`.
+  Twenty-one templates keep their one-line answers; nobody has to author a graph
+  to say hello.
+
+### A content defect this uncovered
+
+`quest_bandit_lieutenant` stage 0 is a negotiation whose success outcome said
+nothing about what happened next, so the engine's default — "advance to the
+next stage" — sent a **successful truce to "Kill the Lieutenant"**. The
+`bandit_rebellion` campaign branches on `PEACEFUL_SUCCESS` at exactly that node,
+so a two-ending campaign had one ending, and the peaceful half of it was
+unreachable. Outcomes must now declare `next_stage` or `complete: true`, and the
+validator refuses them otherwise. This is the same class of defect as P0's
+unreachable campaign giver: content that looks complete and can never be played.
 
 ### Definition of done
 
-- An NPC can teach a recipe and explain where to use it, entirely from content.
-- Removing a dialogue file or referencing a missing one fails content
+- [x] An NPC can teach a recipe and explain where to use it, entirely from
+  content. Grenda's graph teaches `forge_travelers_hatchet` when you bring her
+  the iron, and explains the whole route: two ingots (she sells them, or salvage
+  a blade), softwood from the fallen boughs in the woods, and her anvil — which
+  the recipe requires.
+- [x] Removing a dialogue file or referencing a missing one fails content
   validation, not the game.
+
+### Still open
+
+- [ ] **Only one authored graph ships.** The system is exercised by one real
+  conversation plus two negotiations translated through it. P6 needs graphs for
+  the commission flow (talk → giver explains → grants the recipe → directions),
+  and P7's towns need givers with opinions. The engine is ready; the content is
+  the work.
+- [ ] **Conditions cannot see the conversation.** There is no "you already asked
+  me that" or "we discussed this last week" predicate, because the conversation
+  history is not part of the condition language. `set_flag` covers the cases
+  that matter today; revisit if authors start hand-rolling one flag per line.
+- [ ] **`reveal_exit` is world state, not player state.** Opening a hidden exit
+  from a conversation opens it for everyone on the server, exactly as a lever
+  does. Correct for "the guard unlocks the gate", wrong for "he tells you where
+  the smugglers' tunnel is" — that should be a discovery or a flag until exits
+  can be per-player.
+- [ ] **No dialogue for hostile NPCs** beyond negotiation. Talking is refused
+  unless a quest stage is waiting on a negotiation, so a bandit cannot be
+  taunted, bribed, or warned off.
+
+### Verification
+
+- `tests/singles/test_p5_dialogue.py` — 57 tests: graph parsing and its failure
+  modes, loading and broken files, five validation gates (each proven by
+  breaking a real content set), condition gating, every effect, choice matching
+  including authored aliases and ambiguity, mode-aware rendering, the flat
+  `dialog` dict, and the absorbed negotiation.
+- Full suite: **3,706 + 280 + 3 tests, nothing failing**. Two real defects were
+  found and fixed on the way, both of the "content that looks fine and is not"
+  class:
+  - the unreachable peaceful ending of `bandit_rebellion` (above);
+  - the shared name resolver silently ignoring dict candidates, which made
+    `reply <words>` match nothing at all — it read identity with `getattr`
+    only, so a mapping scored zero and no error was raised anywhere.
+- `run_content_checks.py` — all 14 steps pass, including the two new gates
+  (dialogue references, quest outcome routing).
+- `tmp/verify_p5.py` and `tmp/verify_p5_negotiation.py` drove live servers:
+  a conversation opened by name, replies matched by number, by words, and by
+  authored alias; a gated reply invisible to a player and explained to a tester;
+  a recipe taught mid-conversation (with its ledger entry and XP); a flag set
+  and read back by a later condition; the flat `dialog` dict answering `ask`;
+  and a negotiation played, rolled, and completed into the campaign's peaceful
+  resolution.
 
 ---
 
@@ -702,12 +933,32 @@ more urgent.
   registry silently fails to load `inventory`, `locksmithing`, `magic`,
   `mercantile`, and `quest`. The only pygame uses in that file are four type
   annotations. A `TYPE_CHECKING` guard fixes it.
-- [ ] **Make the dependency stack installable.** `torch`/`transformers` are
-  unconditional because `engine/ai/ai_manager.py` imports `LLMInterface` at
-  module scope — a ~1GB ML stack is a hard requirement to import
-  `engine.world.world`, for a feature that is off by default. `requirements.txt`
-  documents this itself. Add a venv/lockfile story; there are no pinned
-  versions, and on Python 3.14 `pygame` has no wheel.
+- [x] **`torch`/`transformers` removed from `server/requirements.txt`.** The
+  claim that `engine/ai/ai_manager.py` forces a ~1GB ML stack on every import
+  was stale: the only torch imports in the engine sit inside
+  `LLMInterface._load_model`, *after* an unconditional early `return`, and there
+  is no module-scope torch import anywhere under `server/`. Verified by running
+  the whole suite on an interpreter with neither installed. The requirements
+  file now explains why they are absent and what to install to switch local-LLM
+  dialogue back on.
+- [ ] **Pin the interpreter, and stop blaming the wheels.** The remaining
+  installability problem is not missing packages, it is an ambiguous
+  `python`. This project was developed on Linux, where CI and a single system
+  interpreter meant `pip install -r requirements.txt` always lined up. On the
+  Windows checkout, three runtime dependencies were all present — for Python
+  3.12 — while the shell ran 3.14, which has none, so three test modules failed
+  to import, a pygame stub stood in for the real library, and 40 "failures"
+  appeared that were not defects. Two things follow. **Done:** `run_tests.py`
+  and `run_content_checks.py` are the real implementations (stdlib only, same
+  behaviour on every platform), the `.ps1` files are thin Windows launchers that
+  pick a versioned interpreter, the test runner checks the three packages and
+  refuses to run without them, `README.md` documents both platforms, and CI no
+  longer installs a CPU-only torch it never imported. **Still open:** a
+  committed `.python-version` or venv story, and pinned versions — there is
+  still no lockfile. Facts worth keeping: plain `pygame` has **no cp314 wheel**
+  (`pygame-ce` does, and provides the same `pygame` module), while PyYAML and
+  msgpack both ship cp314 wheels, so on 3.14 the only genuinely awkward package
+  is pygame.
 - [ ] **Make the normal client a player experience.** Separate player-facing
   panels and contextual actions from server/profile/authoring/operator
   controls. (Unchanged from before; still true.)
@@ -793,6 +1044,17 @@ Recorded here so they are not lost when the detail scrolls off.
 | 5 dangling refs (`smite`, `item_smoke_bomb`, `item_iron_ore`, `iron_shortage`, `item_scrap`) | each referenced once, defined nowhere |
 | pygame blocks headless content validation | transitive import chain; validator cannot start |
 | 99 hardcoded content refs in engine | AST audit across 30 files |
+| Content prose mojibaked on Windows | `definition_loader.py` and 10 other engine modules opened UTF-8 content without `encoding=`; the cp1252 default turned U+2019 into `â€™` in live output |
+
+Every row above is fixed except three: the two `mage_set` refs, which stay
+allow-listed in the reference validator until that set has obtainable members,
+and `quest_missing_guard`, which is still the one open P0 item. The dialogue row
+is P5's work: `data/dialogue/` is loaded and validated now, which also retired
+`item_iron_ore` and `iron_shortage` (they existed only inside the dead graph)
+and `item_scrap` (the ruleset's generic loot fallback, now a real junk item). The
+mojibake row was found during P4 by a failing relationship test and fixed across
+eleven engine modules; `tests/singles/test_encoding_hygiene.py` is the tripwire
+that keeps it fixed.
 
 ### Content volume (as of audit)
 

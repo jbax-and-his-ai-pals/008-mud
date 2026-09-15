@@ -12,9 +12,13 @@ from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_TITLE, SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS,
     DEBUG_IGNORE_PLAYER_COMBAT, DEFAULT_SAVE_FILE
 )
+from engine.core.advancement import AdvancementManager
+from engine.core.backgrounds import BackgroundManager
 from engine.core.collection_manager import CollectionManager
 from engine.core.discovery_manager import DiscoveryManager
 from engine.core.knowledge_manager import KnowledgeManager
+from engine.core.titles import TitleManager
+from engine.dialogue.manager import DialogueManager
 from engine.core.time_manager import TimeManager
 from engine.core.weather_manager import WeatherManager
 from engine.core.input_handler import InputHandler
@@ -103,21 +107,49 @@ class GameManager:
         self.knowledge_manager = KnowledgeManager(self.world)
         self.collection_manager = CollectionManager(self.world)
         self.discovery_manager = DiscoveryManager(self.world)
+        # P4 progression spine, wired here as well as in HeadlessServer so the
+        # desktop path and the server path expose the same managers.
+        self.advancement_manager = AdvancementManager(self.world)
+        self.title_manager = TitleManager(self.world)
+        self.background_manager = BackgroundManager(self.world)
+        # P5 dialogue graphs, wired here too so the desktop path and the server
+        # path expose the same managers.
+        self.dialogue_manager = DialogueManager(self.world)
+        self.world.advancement_manager = self.advancement_manager
+        self.world.title_manager = self.title_manager
+        self.world.dialogue_manager = self.dialogue_manager
+        self.world.server = self
 
     def _handle_ui_command(self, text: str) -> None:
         self.process_command(text)
 
     def _load_class_definitions(self):
-        path = os.path.join(self.world.content_root, "player", "classes.json")
-        
+        """Load the starting choices shown on the desktop character screen.
+
+        Reads `player/backgrounds.json`. Backgrounds replaced classes (ROADMAP
+        P4): the desktop screen's "class list" is now a background list, and the
+        same file the server-side character creation uses is the one shown
+        here, so the two paths cannot drift apart.
+
+        The attribute names (`class_definitions`, `available_classes`) are kept
+        because the pygame screen and its tests address them.
+        """
+        path = os.path.join(self.world.content_root, "player", "backgrounds.json")
+
         if os.path.exists(path):
             try:
-                with open(path, 'r') as f:
-                    self.class_definitions = json.load(f)
-                    self.available_classes = list(self.class_definitions.keys())
+                with open(path, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                # Keys starting with `_` are authoring comments, not choices.
+                self.class_definitions = {
+                    k: v for k, v in loaded.items()
+                    if isinstance(v, dict) and not str(k).startswith("_")
+                } if isinstance(loaded, dict) else {}
+                self.available_classes = list(self.class_definitions.keys())
             except Exception as e:
-                Logger.error("GameManager", f"Error loading classes: {e}")
+                Logger.error("GameManager", f"Error loading backgrounds: {e}")
                 self.class_definitions = {}
+                self.available_classes = []
         else:
             self.class_definitions = {
                 "adventurer": {

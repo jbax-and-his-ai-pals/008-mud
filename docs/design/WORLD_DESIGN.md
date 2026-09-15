@@ -110,11 +110,16 @@ Proposed curve and the same bands:
 escalation, makes a 20-level arc authorable, and leaves room to go past 20
 without re-tuning.
 
+**Built.** `advancement.curve` in `rules/ruleset.json` carries `{"base": 100,
+"multiplier": 1.25}`, `engine/core/advancement.py` owns the two curve functions,
+and `player/progression.py` asks the manager instead of holding a constant. The
+table above is now the shipped behaviour: cumulative cost to L15 is **8,694 XP**
+(against 57,952 at ×1.5).
+
 **This does not have to be right yet, and it should not be frozen.** The correct
 process is to build the advancement ledger (§3.2) and the content, then tune
-the multiplier against real play. The multiplier must live in the ruleset so
-content sets choose their own pacing and so it can be varied during testing.
-Treat ×1.25 as the starting value, not a decision.
+the multiplier against real play. Treat ×1.25 as the starting value, not a
+decision.
 
 ### 3.2 Hybrid advancement — no profession carries the game alone
 
@@ -149,6 +154,32 @@ for it.
 affordable; the ×1.25 curve is what makes the hybrid mix affordable. Both are
 needed.
 
+**As shipped** (`ruleset.json` → `advancement.grants`, fifteen rules; the
+planner numbers above are still the design target, these are the starting
+values):
+
+| Entry kind | XP | Narrowing |
+|---|---|---|
+| Region first entry | 90 | — |
+| Landmark room | 25 | — |
+| Recipe learned | 25 | — |
+| Spell learned | 30 | — |
+| Relationship tier crossed | 40 | — |
+| Quest completed | 40 | — |
+| Named NPC met | 10 | — |
+| Creature template encountered | 15 | — |
+| Discovery | 15 | — |
+| Collection set completed | 150 | — |
+| Item obtained | 8 / 15 / 10 / 5 / 3 | by `item_type`: material · gem · treasure · consumable · curio |
+
+Two properties worth keeping when these are tuned: a **region is worth more
+than a creature** (90 vs 15, and the creature pays once per species) so walking
+beats farming, and the **starting region is seeded silently** — a character is
+recorded as having been to the town they spawned in, but is not paid for it.
+Paying it put every new character at 90/100 XP for their first level before
+they had done anything, which made the first level-up meaningless and broke the
+early quest-share arithmetic in several tests.
+
 ### 3.3 What counts as a recognised activity
 
 The existing `DiscoveryManager` already has the right shape and should be
@@ -169,14 +200,25 @@ what it is worth. The ledger is player-visible as a field journal, which is
 also the natural home for the "exploration pays on its own" requirement in
 §4.4 — a player who walks forty rooms and kills nothing still fills pages.
 
+**Built.** `engine/core/advancement.py`. Entry keys are `"<kind>:<identifier>"`,
+the eleven kinds above are the namespace, and gameplay code calls one total
+helper — `advancement.award(player, kind, identifier, payload=...)` — which
+returns player-facing feedback and never raises into the calling path. The old
+`player.discoveries` dict is imported once so existing characters keep their
+history, and `discovery` remains a condition kind (§5, titles).
+
 Guardrails:
 - **Diminishing, not zero.** Repeat entries pay nothing, but a returned-to
   place should still be worth visiting for other reasons (nodes, NPCs, quests).
+  This is structural rather than a decay curve: the ledger is a set, so there is
+  no rate to tune and nothing to grind.
 - **No single source may be required.** A pacifist, a merchant, and a
   monster-hunter should each be able to advance steadily, by different
   routes, in a designed world.
 - **Grants are authored, not implied.** The engine records; content sets the
-  values.
+  values. An entry no rule matches is still recorded — the journal shows it —
+  and a malformed rule is reported as an authoring issue rather than silently
+  paying nothing.
 
 ### 3.4 No level cap — the curve is the brake
 
@@ -269,6 +311,24 @@ Requirements for the engine:
 - Titles must be **revocable** if conditions stop holding (a falling-out with a
   guild should cost you the name).
 
+**Built** (P4): `data/player/backgrounds.json` (six backgrounds, `_default:
+wanderer`), `data/titles.json` (thirteen titles), `engine/core/backgrounds.py`,
+`engine/core/titles.py`, and `engine/conditions.py` — the shared evaluator
+described above, serving titles today and dialogue and quest availability when
+P5 and P6 get there. Commands: `backgrounds`, `background`, `titles`, `title`.
+Conditions are authored over the same facts the ledger records, so a title can
+be earned by travelling, crafting, trading, collecting, or knowing the right
+people, not only by fighting. Unknown condition kinds **fail closed** — a typo
+in content cannot open a gate — and player mode says "not yet yours" instead of
+printing the threshold.
+
+Two kit conventions the shipped content settled on, both learned the hard way
+(see the roadmap's P4 notes): **weapons ship carried rather than equipped**, so
+a new player's first `inventory` shows them the weapon they own; and **every
+background carries the tool the opening commission needs**, because no
+creation-time choice may lock a player out of the first thing the game asks
+them to do. `tests/singles/test_background_opening_kit.py` holds both.
+
 ### 3.6 Skills must actually exist
 
 `add_skill` is currently called only from tests, so `skills` always reports
@@ -277,6 +337,13 @@ a skill no player can raise. Either wire skill gain to use (the
 `SkillSystem` already exists and has a `stat_bonuses` ruleset section), or
 remove the skill check from retreat. A check that cannot be improved is worse
 than no check.
+
+**Built** (P4): `SkillSystem.practice_check` is now the single check-then-train
+path, and the two dead call sites (retreat's stealth check and skill-gated
+exits) use it, so the paths that test a skill also raise it. `_ensure_skill`
+reports an untrained skill at level 0 rather than omitting it, so `skills` no
+longer claims a character has no trades. Crafting, lockpicking, theft, and
+traps already granted skill XP; they now share the same helper.
 
 ---
 
@@ -421,6 +488,50 @@ The existing `server/engine/commands/interaction/npcs.py` quest-dialogue path
 already handles negotiation choices; the general dialogue system should absorb
 and generalize that rather than sit beside it.
 
+### Built (P5)
+
+`engine/dialogue/` — `graph.py` (the model), `manager.py` (loading, sessions,
+rendering, choice matching), `effects.py` (what a line *does*), `runner.py` (the
+flow a command drives). Content lives in `data/dialogue/*.json`; an NPC template
+points at a graph with `properties.dialogue`.
+
+A conversation is a small directed graph: nodes are what the NPC says, choices
+are what the player can say back. A choice may carry a `condition` (the same
+`engine/conditions.py` predicate language that gates titles), an `effects`
+mapping, a `check` (skill, difficulty, and the two branches it leads to), and
+`aliases` — because a player who types "show me the pattern" when the author
+wrote "Show me how to make one" should be understood.
+
+Three decisions worth keeping:
+
+- **The player is never the one who finds the bug.** A root that is not a node,
+  a `next_stage` pointing at nothing, a condition kind the engine cannot
+  evaluate, an effect naming an item nobody authored: all of it is a
+  content-validation error. Conversations cannot crash because they cannot load
+  broken.
+- **Mode awareness is presentation, not logic.** Test mode annotates each reply
+  with its destination, check and effects, and lists gated replies as
+  `- … (unavailable: needs 2 x item_iron_ingot)`; player mode shows the
+  conversation and nothing else. The same graph serves both.
+- **Negotiation is a conversation.** A quest's `negotiate` objective supplies the
+  stakes (`approach`, `choices`); the dialogue system presents the approach as a
+  reply, rolls the skill through `practice_check` (so the attempt trains the
+  skill), and applies the authored outcome. What used to be a dice roll behind
+  the word "complete" is now something the player can see themselves choosing.
+
+The flat `dialog` keyword dict stays, and now actually works: `npc.talk()` was
+only ever called without a topic, so `greeting` was reachable and every other
+authored line was dead text. `ask <npc> about <topic>` reads the NPC's own dict
+through the shared name resolver.
+
+**One content rule came out of this.** A branching objective must say where each
+outcome leads — `next_stage`, or `complete: true`. The default used to be "the
+stage after this one", which silently turned a successful truce in
+`quest_bandit_lieutenant` into an order to kill the man, and made the
+`bandit_rebellion` campaign's `PEACEFUL_SUCCESS` branch unreachable. Half of a
+two-ending campaign could not be played. Authors now have to mean it, and the
+validator refuses them otherwise.
+
 ---
 
 ## 6. Quests
@@ -546,15 +657,26 @@ Goals:
    and there is real play data. (§3.1)
 10. **Per-grant XP values** — the table in §3.2 uses placeholders (region 120,
     discovery 15, quest 60, craft 25, tier 40, set 150). These need tuning
-    against real play.
+    against real play. As shipped they are region 90 / landmark 25 / recipe 25 /
+    spell 30 / tier 40 / quest 40 / NPC 10 / creature 15 / discovery 15 /
+    set 150, with items split 8 · 15 · 10 · 5 · 3 by type.
 11. **Test mode surface** — a launch flag, a per-session request, or both?
+    *(Resolved in practice: both. `presentation_mode` resolves per session, the
+    server has a default, and real entry points default to `player` while
+    test/operator paths default to `test`. Kept here only as a note that the
+    default is a deliberate choice, not an accident.)*
 12. **Town count and identity** — which 4–5, and each one's economy focal point
     and personality? Seeds in §4.2 and the roadmap's P7.
 13. **Guild model** — how many, how they are joined, whether a player may hold
     titles from several, and whether guilds have places (halls) or are purely
-    social.
-14. **Diminishing returns shape** — repeat grants pay nothing (§3.3), but should
-    repeat *kills* and repeat *gathers* also diminish, and how sharply?
+    social. Titles already carry a `guild` attribution in `titles.json`, so the
+    naming half exists; joining, membership, and places do not.
+14. **Diminishing returns shape** — settled structurally for ledger grants
+    (repeat entries pay nothing, §3.3). Still open for repeat *kills* and repeat
+    *gathers*, which currently pay their ordinary reward every time. Watch it in
+    play: the ledger removes the incentive to farm, but not the possibility.
+15. **Whether a party share should include first-completion bonuses** for every
+    member of a mirrored quest, or only the player who completed it. (§3.2)
 
 ---
 

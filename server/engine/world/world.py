@@ -10,6 +10,7 @@ from engine.config import (
     REP_KILL_PENALTY_SAME_FACTION, REP_KILL_REWARD_HOSTILE, FORMAT_SUCCESS, DEFAULT_CURRENCY_NAME,
 )
 # UPDATED IMPORT
+from engine.core import advancement
 from engine.core.quests import QuestManager
 from engine.core.clock import Clock, WallClock
 
@@ -327,7 +328,7 @@ class World:
         base_difficulty = retreat_config.get("base_difficulty", 10)
         per_level = retreat_config.get("difficulty_per_hostile_level", 2)
         difficulty = base_difficulty + per_level * max(getattr(t, "level", 1) for t in live_hostiles)
-        success, _ = SkillSystem.attempt_check(player, skill, difficulty)
+        success, _ = SkillSystem.practice_check(player, skill, difficulty)
         if not success:
             return False, f"{FORMAT_ERROR}You can't break away from the fight!{FORMAT_RESET}"
         # Deliberately not forcing exit_combat here: a hostile left behind
@@ -364,7 +365,7 @@ class World:
                 difficulty = dir_req.get("difficulty", 10)
                 fail_msg = dir_req.get("failure_message", "You fail to traverse the path.")
                 
-                success, roll_msg = SkillSystem.attempt_check(active_player, skill, difficulty)
+                success, roll_msg = SkillSystem.practice_check(active_player, skill, difficulty)
                 if not success:
                     return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET} (Requires {skill} {difficulty}+)"
             
@@ -423,7 +424,27 @@ class World:
         
         # Assemble Final Output
         output = region_change_msg + self.look(minimal=True, player=active_player)
-        
+
+        # First arrival somewhere new is worth something, so the world itself is
+        # the progress curve (ROADMAP P4). Region and landmark entries pay once;
+        # a repeat visit is silent.
+        arrival_notes = []
+        region_note = advancement.award(
+            active_player, advancement.KIND_REGION, new_region_id,
+            payload={"region_id": new_region_id},
+        )
+        if region_note:
+            arrival_notes.append(region_note)
+        landmark_note = advancement.award(
+            active_player, advancement.KIND_LANDMARK,
+            "%s:%s" % (new_region_id, new_room_id),
+            payload={"region_id": new_region_id, "room_id": new_room_id},
+        )
+        if landmark_note:
+            arrival_notes.append(landmark_note)
+        if arrival_notes:
+            output += "\n\n" + "\n".join(arrival_notes)
+
         # Append quest updates at the bottom so they are seen last
         if quest_updates:
             output += "\n\n" + "\n\n".join(quest_updates)
@@ -434,9 +455,22 @@ class World:
         if event_type == "npc_killed":
             quest_msg = self.quest_manager.handle_npc_killed(event_type, data) if self.quest_manager else None
             rep_msg = self._handle_reputation_on_kill(data)
-            
-            if quest_msg and rep_msg: return f"{quest_msg}\n{rep_msg}"
-            return quest_msg or rep_msg
+
+            # Meeting a kind of creature for the first time is recorded once, so
+            # the ledger reflects what a player has encountered rather than how
+            # much they have ground. Keyed by template, not instance.
+            player = data.get("player")
+            npc = data.get("npc")
+            encounter_msg = ""
+            if player is not None and npc is not None:
+                template_id = str(getattr(npc, "template_id", "") or getattr(npc, "name", "") or "")
+                encounter_msg = advancement.award(
+                    player, advancement.KIND_CREATURE, template_id,
+                    payload=advancement.npc_payload(npc),
+                )
+
+            parts = [m for m in (quest_msg, rep_msg, encounter_msg) if m]
+            return "\n".join(parts) if parts else None
         return None
 
     def _handle_reputation_on_kill(self, data: Dict[str, Any]) -> Optional[str]:

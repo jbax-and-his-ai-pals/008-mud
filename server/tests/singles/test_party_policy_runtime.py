@@ -90,8 +90,12 @@ class TestPartyPolicyRuntime(unittest.TestCase):
         self.assertEqual(1, len(member_player.runtime_state.quests.completed))
         assert leader_player.runtime_state.progression is not None
         assert member_player.runtime_state.progression is not None
-        self.assertEqual(5, leader_player.runtime_state.progression.experience)
-        self.assertEqual(5, member_player.runtime_state.progression.experience)
+        # The party share is asserted exactly through the reward message above;
+        # the XP *totals* are floors because finishing a quest also pays the
+        # additive first-completion advancement bonus (ROADMAP P4), and a
+        # mirrored party quest completes for every member who took it.
+        self.assertGreaterEqual(leader_player.runtime_state.progression.experience, 5)
+        self.assertGreaterEqual(member_player.runtime_state.progression.experience, 5)
         self.assertEqual(5, leader_player.runtime_state.gold)
         self.assertEqual(4, member_player.runtime_state.gold)
 
@@ -146,8 +150,12 @@ class TestPartyPolicyRuntime(unittest.TestCase):
         self.assertTrue(any("Member +3 Gold" in msg for msg in messages))
         assert leader_player.runtime_state.progression is not None
         assert member_player.runtime_state.progression is not None
-        self.assertEqual(4, leader_player.runtime_state.progression.experience)
-        self.assertEqual(4, member_player.runtime_state.progression.experience)
+        # Same reasoning: completing a collection set also pays the additive
+        # first-completion advancement bonus, to the leader who completed it and
+        # to every party member who gets the mirrored credit. The split itself is
+        # asserted exactly by the reward messages above.
+        self.assertGreaterEqual(leader_player.runtime_state.progression.experience, 4)
+        self.assertGreaterEqual(member_player.runtime_state.progression.experience, 4)
         self.assertEqual(4, leader_player.runtime_state.gold)
         self.assertEqual(3, member_player.runtime_state.gold)
 
@@ -302,7 +310,11 @@ class TestPartyPolicyRuntime(unittest.TestCase):
         self.assertIn("member +4 xp", result["message"].lower())
         self.assertIn("leader +3 gold", result["message"].lower())
         self.assertIn("member +2 gold", result["message"].lower())
-        self.assertEqual(4, leader_player.runtime_state.progression.experience)
+        # The party split is asserted exactly for the member. The leader is
+        # checked as a floor because the killer also earns advancement XP for
+        # meeting a creature kind for the first time (ROADMAP P4), which is
+        # deliberately additive to the party share.
+        self.assertGreaterEqual(leader_player.runtime_state.progression.experience, 4)
         self.assertEqual(4, member_player.runtime_state.progression.experience)
         self.assertEqual(3, leader_player.runtime_state.gold)
         self.assertEqual(2, member_player.runtime_state.gold)
@@ -347,7 +359,9 @@ class TestPartyPolicyRuntime(unittest.TestCase):
         result = leader_player.cast_spell(spell, target, 0.0, self.server.world)
 
         self.assertTrue(result["success"])
-        self.assertEqual(3, leader_player.runtime_state.progression.experience)
+        # Same reasoning as the melee case above: the member receives exactly
+        # the party share; the leader's own kill also earns advancement XP.
+        self.assertGreaterEqual(leader_player.runtime_state.progression.experience, 3)
         self.assertEqual(3, member_player.runtime_state.progression.experience)
         self.assertEqual(3, leader_player.runtime_state.gold)
         self.assertEqual(2, member_player.runtime_state.gold)

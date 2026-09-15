@@ -1,4 +1,13 @@
 {
+  "item_scrap": {
+    "type": "Junk",
+    "name": "scrap",
+    "description": "A handful of bent metal and offcuts. Nothing useful on its own, which is rather the point of it.",
+    "weight": 0.2,
+    "value": 0,
+    "stackable": true,
+    "properties": {}
+  },
   "item_empty_crate": {
     "type": "Junk",
     "name": "empty crate",

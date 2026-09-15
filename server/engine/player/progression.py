@@ -16,6 +16,24 @@ if TYPE_CHECKING:
 class PlayerProgressionMixin:
     """Mixin for leveling, skills, and reputation."""
 
+    def _next_level_cost(self, level: int) -> int:
+        """XP needed to advance from `level` to `level + 1`.
+
+        Prefers the content set's authored curve; the advancement manager
+        already resolves and validates it. Falls back to the engine constant so
+        a player with no world (unit tests, tooling) still levels.
+        """
+        p = cast('Player', self)
+        world = getattr(p, "world", None)
+        server = getattr(world, "server", None) if world is not None else None
+        manager = getattr(server, "advancement_manager", None) if server is not None else None
+        getter = getattr(manager, "xp_for_next_level", None)
+        if callable(getter):
+            cost = getter(level)
+            if isinstance(cost, int) and cost > 0:
+                return cost
+        return int(PLAYER_BASE_XP_TO_LEVEL * (PLAYER_XP_TO_LEVEL_MULTIPLIER ** (level - 1)))
+
     def gain_experience(self, amount: int) -> Tuple[bool, str]:
         p = cast('Player', self)
         if p.runtime_state.progression is None:
@@ -38,10 +56,17 @@ class PlayerProgressionMixin:
         old_stats = p.stats.copy()
         old_max_health = p.max_health
         old_max_mana = p.runtime_state.magic.max_mana if p.runtime_state.magic is not None else None
-        
+
         p.runtime_state.progression.level += 1
         p.runtime_state.progression.experience -= p.runtime_state.progression.experience_to_level
-        p.runtime_state.progression.experience_to_level = int(p.runtime_state.progression.experience_to_level * PLAYER_XP_TO_LEVEL_MULTIPLIER)
+        # The curve is content-authored (`advancement.curve` in the ruleset), so
+        # a content set can pace its own game. x1.25 is the shipped default;
+        # the old hardcoded x1.5 needed hundreds of regions to reach level 15
+        # (WORLD_DESIGN.md 3.1). Falls back to the config constant when no
+        # content set is loaded.
+        p.runtime_state.progression.experience_to_level = int(
+            self._next_level_cost(p.runtime_state.progression.level)
+        )
         
         # Increase Core Stats
         for stat in ["strength", "dexterity", "intelligence", "wisdom", "constitution", "agility"]:
@@ -72,6 +97,24 @@ class PlayerProgressionMixin:
                 message += f"  - {stat_name.capitalize()}: {old_value} -> {new_value} (+{new_value - old_value})\n"
                 
         return message.strip()
+
+    def total_experience(self) -> int:
+        """Lifetime XP earned, independent of level-ups.
+
+        `runtime_state.progression.experience` is XP *toward the next level* and
+        resets on level-up, so it is not monotonic: a player who gains 100 XP
+        and levels can end with less banked XP than they started with. Anything
+        asking "did this award XP?" -- a test, a summary, a leaderboard -- needs
+        this instead.
+        """
+        p = cast('Player', self)
+        progression = p.runtime_state.progression if p.runtime_state is not None else None
+        if progression is None:
+            return 0
+        spent = 0
+        for level in range(1, max(1, int(progression.level))):
+            spent += self._next_level_cost(level)
+        return spent + int(progression.experience or 0)
 
     def add_skill(self, skill_name: str, level: int = 1) -> None:
         p = cast('Player', self)

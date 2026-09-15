@@ -40,7 +40,7 @@ def load_spells_from_json(content_root: str) -> dict[str, int]:
         if filename.endswith(".json"):
             file_path = os.path.join(magic_dir, filename)
             try:
-                with open(file_path, 'r') as f:
+                with open(file_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     stats["files_loaded"] += 1
                     for spell_id, spell_data in data.items():

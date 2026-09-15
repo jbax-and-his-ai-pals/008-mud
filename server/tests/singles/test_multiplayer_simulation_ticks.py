@@ -144,14 +144,14 @@ class TestMultiplayerSimulationTicks(unittest.TestCase):
         minion.last_attack_time = 0.0
         minion.last_combat_action = 0.0
 
-        start_owner_xp = self.player_a.runtime_state.progression.experience
-        start_viewer_xp = self.player_b.runtime_state.progression.experience
+        start_owner_xp = self.player_a.total_experience()
+        start_viewer_xp = self.player_b.total_experience()
 
         self._force_tick()
 
         self.assertFalse(target.is_alive)
-        self.assertGreater(self.player_a.runtime_state.progression.experience, start_owner_xp)
-        self.assertEqual(start_viewer_xp, self.player_b.runtime_state.progression.experience)
+        self.assertGreater(self.player_a.total_experience(), start_owner_xp)
+        self.assertEqual(start_viewer_xp, self.player_b.total_experience())
 
 
 if __name__ == "__main__":

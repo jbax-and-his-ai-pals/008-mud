@@ -13,12 +13,20 @@ _UUID_RE = re.compile(r"^[0-9a-f]{32}$")
 # before snapshot comparison or every clone/move breaks every snapshot test.
 _REPO_ROOT = str(Path(__file__).resolve().parents[3])
 
+# Repo paths also appear *inside* prose -- an audit warning reads
+# "[WARN] C:\...\content_sets\fantasy_frontier\data\items\sets.json:mage_set...:
+# set 'mage_set' references missing item ...". Anchoring on the start of the
+# string only (as this used to) left those absolute and made the snapshot
+# machine-specific, so the whole path token is rewritten wherever it appears.
+_REPO_ROOT_RE = re.compile(re.escape(_REPO_ROOT) + r"([^\s\"']*)") if _REPO_ROOT else None
+
 
 def _normalize_path_prefix(value: str) -> str:
-    if _REPO_ROOT and value.startswith(_REPO_ROOT):
-        rest = value[len(_REPO_ROOT):].replace("\\", "/")
-        return "<REPO_ROOT>" + rest
-    return value
+    if not _REPO_ROOT_RE:
+        return value
+    return _REPO_ROOT_RE.sub(
+        lambda match: "<REPO_ROOT>" + match.group(1).replace("\\", "/"), value
+    )
 
 
 def _normalize(value: Any) -> Any:

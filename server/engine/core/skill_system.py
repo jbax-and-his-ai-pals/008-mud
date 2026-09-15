@@ -76,27 +76,68 @@ class SkillSystem:
         return success, f"(Rolled {total_score} vs DC {difficulty})", margin
 
     @staticmethod
+    def _ensure_skill(player, skill_name: str) -> dict:
+        """Get or create a skill record, starting at level 0.
+
+        Level 0 rather than 1: a skill a player has never used is not a skill
+        they have. The old default of 1 meant `grant_xp` silently started
+        everything at journeyman, and meant a skill list could not distinguish
+        "never tried" from "novice".
+        """
+        progression = player.runtime_state.progression
+        existing = progression.skills.get(skill_name)
+        if isinstance(existing, dict):
+            return existing
+        created = {"level": 0, "xp": 0}
+        progression.skills[skill_name] = created
+        return created
+
+    @staticmethod
     def grant_xp(player, skill_name: str, amount: int) -> str:
         """Adds XP to a skill and handles leveling up."""
         progression = player.runtime_state.progression
         if progression is None:
             return ""
-        if skill_name not in progression.skills:
-            progression.skills[skill_name] = {"level": 1, "xp": 0}
-
-        data = progression.skills[skill_name]
-        if data["level"] >= MAX_SKILL_LEVEL:
+        if not skill_name or amount is None:
             return ""
 
-        data["xp"] += amount
+        data = SkillSystem._ensure_skill(player, skill_name)
+        if data.get("level", 0) >= MAX_SKILL_LEVEL:
+            return ""
+
+        try:
+            amount = int(amount)
+        except (TypeError, ValueError):
+            return ""
+        if amount <= 0:
+            return ""
+
+        data["xp"] = int(data.get("xp", 0)) + amount
         msg = ""
 
         # Check for level up
-        required = SkillSystem.get_xp_for_next_level(data["level"])
+        required = SkillSystem.get_xp_for_next_level(max(1, int(data["level"])))
         while data["xp"] >= required and data["level"] < MAX_SKILL_LEVEL:
             data["xp"] -= required
             data["level"] += 1
-            required = SkillSystem.get_xp_for_next_level(data["level"])
+            required = SkillSystem.get_xp_for_next_level(max(1, data["level"]))
             msg += f"\n{FORMAT_HIGHLIGHT}Your {skill_name} skill has increased to {data['level']}!{FORMAT_RESET}"
 
         return msg
+
+    @staticmethod
+    def practice_check(player, skill_name: str, difficulty: int) -> Tuple[bool, str]:
+        """A skill check that also improves the skill.
+
+        Every check should be able to raise what it tests, otherwise a gate
+        exists that a player can never grow past. `attempt_check` remains for
+        read-only probes; gameplay checks that represent *doing the work*
+        should use this (or call `grant_xp` explicitly, as lockpicking and
+        theft already do).
+        """
+        success, message = SkillSystem.attempt_check(player, skill_name, difficulty)
+        # Deliberately modest, and lower on failure: practice still teaches, but
+        # success teaches more.
+        award = max(1, int(difficulty) // (2 if success else 6))
+        SkillSystem.grant_xp(player, skill_name, award)
+        return success, message
