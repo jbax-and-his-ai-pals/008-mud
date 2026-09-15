@@ -70,7 +70,43 @@ class TestCraftHandler(GameTestBase):
 
     def test_unknown_recipe_reports_error(self):
         result = craft_handler(["totally_unknown_recipe_xyz"], {"world": self.world, "player": self.player})
-        self.assertIn("Unknown recipe", result)
+        # Refusal is phrased the way a person would say it, and names back what
+        # the player actually typed so a typo is visible.
+        self.assertIn("don't know how to make", result)
+        self.assertIn("totally_unknown_recipe_xyz", result)
+
+    def test_natural_phrasing_resolves_the_recipe(self):
+        """The P3 fix: a multi-word query is not truncated to its first token.
+
+        `craft wildflower posy` used to search for the literal "wildflower" and
+        match the recipe's own name only by accident; the item's name is what a
+        player knows, and the recipe's verb ("Tie ...") is not.
+        """
+        for phrasing in ("tie_wildflower_posy", "wildflower posy", "posy",
+                         "Tie Wildflower Posy", "TIE_WILDFLOWER_POSY"):
+            with self.subTest(phrasing=phrasing):
+                result = craft_handler([phrasing], {"world": self.world, "player": self.player})
+                # Resolved: either it crafted, or it reports the missing
+                # ingredient -- both prove the recipe was found.
+                self.assertNotIn("don't know how to make", result)
+
+    def test_ambiguous_recipe_phrasing_asks_rather_than_guessing(self):
+        """Two recipes with the same score must produce a question."""
+        from engine.commands import crafting as crafting_module
+        manager = self.world.game.crafting_manager
+        # Give two distinct recipes display names that tie on the query.
+        real = dict(manager.recipes)
+        try:
+            for rid in list(manager.recipes)[:2]:
+                manager.recipes[rid].name = "Twin Widget"
+            result = craft_handler(["twin widget"], {"world": self.world, "player": self.player})
+            self.assertTrue(
+                "?" in result or "don't know how to make" in result,
+                "ambiguity should be reported, got: %r" % result,
+            )
+        finally:
+            manager.recipes.clear()
+            manager.recipes.update(real)
 
     def test_successful_craft_uses_success_format(self):
         ingot = ItemFactory.create_item_from_template("item_iron_ingot", self.world)

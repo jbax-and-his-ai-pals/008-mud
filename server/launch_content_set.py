@@ -25,6 +25,15 @@ def main() -> None:
         help="Content-set directory or manifest path (defaults to Fantasy Frontier).",
     )
     parser.add_argument("--config", default=str(DEFAULT_CONFIG), help="Server configuration JSON path.")
+    parser.add_argument(
+        "--presentation-mode",
+        choices=["player", "test"],
+        default="player",
+        help=(
+            "'player' (default) hides debug/GM commands from connected clients; "
+            "'test' exposes them for development and operator work."
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print the resolved launch command without starting it.")
     args, passthrough = parser.parse_known_args()
 
@@ -42,6 +51,8 @@ def main() -> None:
         str(Path(args.config).resolve()),
         "--content-set",
         str(content_set_path),
+        "--presentation-mode",
+        str(args.presentation_mode),
         *passthrough,
     ]
     print(

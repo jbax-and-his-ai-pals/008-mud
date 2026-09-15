@@ -18,9 +18,10 @@
         },
         "town_gate_south": {
             "name": "Portbridge South Gate",
-            "description": "The southern gate of the city looks out over the open ocean. The road ends here at a small overlook. To the north lies the Harbor District.",
+            "description": "The southern gate of the city looks out over the open ocean. The road ends here at a small overlook. To the north lies the Harbor District, and a lane east leads up into the town center.",
             "exits": {
-                "north": "harbor_district"
+                "north": "harbor_district",
+                "east": "town_center_portbridge"
             }
         },
         "harbor_road": {

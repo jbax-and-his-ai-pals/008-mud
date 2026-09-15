@@ -7,6 +7,7 @@ from engine.config import (
 )
 from engine.config.config_display import FORMAT_CATEGORY
 from engine.core.skill_system import SkillSystem
+from engine.naming import resolve_best, resolve_exact
 from engine.utils.utils import format_name_for_display
 
 def _has_pending_negotiation(player, target_npc) -> bool:
@@ -35,33 +36,50 @@ def _has_pending_negotiation(player, target_npc) -> bool:
     return False
 
 def _resolve_target_npc(world, args, player):
-    """Helper to resolve NPC target based on arguments or context."""
+    """Resolve an NPC target from the leading words of a command.
+
+    Returns (npc, consumed_token_count) so the caller can treat whatever
+    follows the name as a separate argument.
+
+    Two phases, deliberately:
+
+      1. the longest leading phrase that *names* someone here -- an exact name
+         or instance id, via the shared resolver's strict `resolve_one`;
+      2. failing that, the longest leading phrase that loosely resembles a name.
+
+    The phase split is not cosmetic. "ask Guard job" must reach the NPC
+    actually called "Guard" rather than the alphabetically-earlier "Guard
+    Captain Elara", and a loose single-pass match would take the latter. This
+    mirrors what the previous hand-written matcher did (exact pass, then
+    substring pass) but now shares one scoring implementation.
+    """
     npcs_in_room = world.get_npcs_for_player(player)
-    
-    # 1. Try fuzzy match from args
+
     if args:
         for i in range(len(args), 0, -1):
-            potential_name = " ".join(args[:i]).lower()
-            for npc in npcs_in_room:
-                if npc.name.lower() == potential_name or npc.obj_id == potential_name:
-                    return npc, i
-            for npc in npcs_in_room:
-                if potential_name in npc.name.lower():
-                    return npc, i
-    
-    # 2. Fallback to context
+            potential_name = " ".join(args[:i])
+            exact = resolve_exact(potential_name, npcs_in_room)
+            if exact is not None:
+                return exact, i
+        for i in range(len(args), 0, -1):
+            potential_name = " ".join(args[:i])
+            loose = resolve_best(potential_name, npcs_in_room, prefer_shortest_name=True)
+            if loose is not None:
+                return loose, i
+
+    # Fallback to context
     if player.trading_with:
         return world.get_npc(player.trading_with), 0
     elif player.last_talked_to:
         candidate = world.get_npc(player.last_talked_to)
         if candidate and candidate.current_region_id == player.current_region_id and candidate.current_room_id == player.current_room_id:
             return candidate, 0
-            
-    # 3. Fallback to any valid NPC
+
+    # Fallback to any valid NPC
     valid_npcs = [n for n in npcs_in_room if n.faction != "hostile" and n.faction != "player_minion"]
     if valid_npcs:
         return valid_npcs[0], 0
-        
+
     return None, 0
 
 # "ask" is intentionally not an alias here -- the dedicated "ask <npc>

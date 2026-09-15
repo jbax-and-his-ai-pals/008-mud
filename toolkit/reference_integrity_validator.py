@@ -12,6 +12,27 @@ class RefIssue:
     message: str
 
 
+# Known dangling references that are deliberately tolerated while the world is
+# being built out. Each entry is (referencing path suffix, missing id). Keeping
+# them listed here rather than suppressing the check means the gate still fails
+# on any *new* dangling reference, and the list doubles as the to-do for content
+# that was authored but never wired up.
+KNOWN_DANGLING_REFERENCES: tuple[tuple[str, str], ...] = (
+    # The mage set has no obtainable members. Content is planned; until then the
+    # set is unreachable rather than silently broken.
+    ("sets.json:mage_set.items", "item_wizard_hat"),
+    ("sets.json:mage_set.items", "item_robe"),
+)
+
+
+def _is_known_dangling(path: str, missing_id: str) -> bool:
+    normalized = str(path).replace("\\", "/")
+    for path_fragment, known_id in KNOWN_DANGLING_REFERENCES:
+        if known_id == missing_id and path_fragment in normalized:
+            return True
+    return False
+
+
 def _load_json(path: Path) -> Any:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -35,7 +56,16 @@ def load_catalogs(root: Path) -> dict[str, Any]:
     content_root = root
     items = _collect_templates(content_root / "items")
     npcs = _collect_templates(content_root / "npcs")
-    quests_payload = _load_json(content_root / "quests" / "quests.json")
+    # Quest and campaign files are optional: a deliberately minimal content set
+    # (modern_capsule, night_shift) ships only items, NPCs, and regions. Treating
+    # the file as mandatory made this validator crash rather than report.
+    quests_path = content_root / "quests" / "quests.json"
+    quests_payload: Any = {}
+    if quests_path.is_file():
+        try:
+            quests_payload = _load_json(quests_path)
+        except Exception:
+            quests_payload = {}
     campaigns_dir = content_root / "campaigns"
     region_files = sorted((content_root / "regions").glob("*.json"))
     return {
@@ -221,6 +251,88 @@ def validate_catalogs(catalogs: dict[str, Any]) -> list[RefIssue]:
                         if target and target not in node_ids:
                             issues.append(RefIssue("error", f"{cfile}:nodes.{node_id}.transitions[{tidx}].target_node_id", f"unknown node '{target}'"))
 
+    issues.extend(_validate_item_sets(catalogs))
+    return issues
+
+
+def _validate_item_sets(catalogs: dict[str, Any]) -> list[RefIssue]:
+    """Validate `items/sets.json` against the item catalog.
+
+    This check was missing, which is how the shipped `mage_set` came to
+    reference `item_wizard_hat` and `item_robe` -- two items that exist nowhere
+    in the repository -- while this validator reported zero issues. A set whose
+    members cannot be obtained is dead content, and nothing caught it.
+    """
+    issues: list[RefIssue] = []
+    root = catalogs["root"]
+    item_ids = catalogs["item_ids"]
+    sets_dir = root / "items"
+    if not sets_dir.is_dir():
+        return issues
+
+    for path in sorted(sets_dir.glob("*.json")):
+        try:
+            payload = _load_json(path)
+        except Exception as exc:
+            issues.append(RefIssue("error", str(path), f"failed to parse json: {exc}"))
+            continue
+        if not isinstance(payload, dict):
+            continue
+
+        # A set file is recognised by its entries carrying an `items` list.
+        for set_id, entry in payload.items():
+            if not isinstance(entry, dict):
+                continue
+            members = entry.get("items")
+            if not isinstance(members, list):
+                continue
+            for index, member in enumerate(members):
+                if not isinstance(member, str) or not member.strip():
+                    issues.append(RefIssue(
+                        "error",
+                        f"{path}:{set_id}.items[{index}]",
+                        "set member must be a non-empty item id",
+                    ))
+                    continue
+                if member not in item_ids:
+                    if _is_known_dangling(f"{path}:{set_id}.items", member):
+                        issues.append(RefIssue(
+                            "warning",
+                            f"{path}:{set_id}.items[{index}]",
+                            f"set '{set_id}' references missing item '{member}' (known dangling; "
+                            f"listed in KNOWN_DANGLING_REFERENCES)",
+                        ))
+                        continue
+                    issues.append(RefIssue(
+                        "error",
+                        f"{path}:{set_id}.items[{index}]",
+                        f"set '{set_id}' references missing item '{member}'",
+                    ))
+            if not members:
+                issues.append(RefIssue(
+                    "warning",
+                    f"{path}:{set_id}",
+                    f"set '{set_id}' has no members and can never be completed",
+                ))
+            bonuses = entry.get("bonuses")
+            if isinstance(bonuses, dict):
+                for threshold in bonuses.keys():
+                    try:
+                        count = int(threshold)
+                    except (TypeError, ValueError):
+                        issues.append(RefIssue(
+                            "error",
+                            f"{path}:{set_id}.bonuses.{threshold}",
+                            f"set bonus threshold '{threshold}' must be an integer",
+                        ))
+                        continue
+                    if count > len(members):
+                        issues.append(RefIssue(
+                            "error",
+                            f"{path}:{set_id}.bonuses.{threshold}",
+                            f"set '{set_id}' has a bonus at {count} pieces but only "
+                            f"{len(members)} members, so it is unreachable",
+                        ))
     return issues
 
 

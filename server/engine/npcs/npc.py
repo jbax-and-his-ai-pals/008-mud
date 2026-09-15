@@ -129,7 +129,7 @@ class NPC(GameObject):
             self.faction in ["friendly", "neutral"] and
             self.home_room_id is not None and
             self.template_id and
-            "wandering_villager" not in self.template_id
+            not self.properties.get("ambient_wanderer", False)
         )
         if is_respawnable:
             world.add_to_respawn_queue(self)

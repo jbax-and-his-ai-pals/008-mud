@@ -169,7 +169,10 @@ def main():
     
     val_parser = subparsers.add_parser("validate", help="Validate a theme pack.")
     val_parser.add_argument("target", nargs="?", default="client/themes", help="Path to JSON file or directory.")
-    val_parser.add_argument("--strict", action="store_true", help="Enforce 100% key coverage matching default.json.")
+    # NB: the doubled %% is required -- argparse treats help text as a format
+    # string from Python 3.12 onward and rejects a bare '%' with "badly formed
+    # help string", which made this whole validate subcommand unrunnable.
+    val_parser.add_argument("--strict", action="store_true", help="Enforce 100%% key coverage matching default.json.")
     val_parser.add_argument("--reference", default=str(DEFAULT_THEME_PATH), help="Path to the reference pack.")
     val_parser.add_argument("--runtime-api", default=CURRENT_RUNTIME_API, help="Runtime API version to validate against.")
     val_parser.add_argument("--allow-missing-compat", action="store_true", help="Downgrade missing compatibility fields to warnings.")

@@ -71,6 +71,9 @@ class Session:
     entitlements: List[str] = field(default_factory=list)
     connected: bool = False
     disconnected_at: float | None = None
+    # "player" or "test". Controls whether debug/GM tooling is reachable and
+    # (later) whether engine internals are shown. See docs/design/WORLD_DESIGN.md §2.
+    presentation_mode: str = "test"
 
 
 @dataclass
@@ -99,10 +102,15 @@ class HeadlessServer:
         require_character_creation: bool = True,
         boot_warning_fail_codes: Optional[List[str]] = None,
         clock: Optional[Clock] = None,
+        default_presentation_mode: str = "test",
     ) -> None:
         self.tick_rate_hz = tick_rate_hz
         self.tick_dt = 1.0 / self.tick_rate_hz
         self.deterministic_test_mode = deterministic_test_mode
+        resolved_presentation_mode = str(default_presentation_mode or "test").strip().lower()
+        self.default_presentation_mode = (
+            resolved_presentation_mode if resolved_presentation_mode in {"player", "test"} else "test"
+        )
         if self.deterministic_test_mode:
             import random
             random.seed(42)
@@ -431,7 +439,12 @@ class HeadlessServer:
                 self.default_field_id, self._classify_polarity(self.default_field_id)
             )
 
-    def create_session(self, player_id: Optional[str] = None, entitlements: Optional[List[str]] = None) -> Session:
+    def create_session(
+        self,
+        player_id: Optional[str] = None,
+        entitlements: Optional[List[str]] = None,
+        presentation_mode: Optional[str] = None,
+    ) -> Session:
         session_id = uuid.uuid4().hex
         resolved_player_id = str(player_id or "").strip()
         if resolved_player_id == "":
@@ -439,6 +452,8 @@ class HeadlessServer:
         granted = self.entitlement_guard.apply_defaults(list(entitlements or []))
         session = Session(session_id=session_id, player_id=resolved_player_id)
         session.entitlements = granted
+        resolved_mode = str(presentation_mode or self.default_presentation_mode).strip().lower()
+        session.presentation_mode = resolved_mode if resolved_mode in {"player", "test"} else "player"
         self.sessions[session_id] = session
         if self.feature_profile.resolved_world_mode() == "single_player_story" and self._story_primary_session_id is None:
             self._story_primary_session_id = session_id
@@ -2754,6 +2769,8 @@ class HeadlessServer:
                             return False
                         if self._combat_command_blocked(cmd_data, raw_command_text):
                             return False
+                        if self._presentation_mode_blocked(cmd_data, session_obj):
+                            return False
                         caps = cmd_data.get("capabilities", [])
                         session_caps = getattr(session_obj, "capabilities", [])
                         for cap in caps:
@@ -2882,6 +2899,31 @@ class HeadlessServer:
             "summon",
         }
         return cmd_name in blocked_names or first_token in blocked_names
+
+    def _presentation_mode_blocked(self, cmd_data: Dict[str, Any], session_obj: Any = None) -> bool:
+        """Whether this command is hidden from the session's presentation mode.
+
+        A player-mode session must never reach the `debug` category. Before
+        this guard existed, every debug command that did not declare an
+        entitlement was reachable by a brand-new level-1 character --
+        `level 5`, `setgold 1000`, `sethealth 9999`, and
+        `teleport forest forest_edge` all succeeded, because the five commands
+        that *did* declare `operator.world.debug` were protected only when a
+        server config happened to define that gate, and
+        `EntitlementGuard.check()` returns allow for an undefined gate.
+
+        Session-level `presentation_mode` is the authority here rather than the
+        entitlement list, because it is the same switch that decides whether
+        engine internals are shown at all (docs/design/WORLD_DESIGN.md §2), and
+        because it must default to closed for anything claiming to be a player.
+
+        A session in `test` mode is unaffected, which keeps the whole existing
+        test suite, the journey lab, and operator tooling working unchanged.
+        """
+        mode = str(getattr(session_obj, "presentation_mode", "test") or "test").strip().lower()
+        if mode != "player":
+            return False
+        return str(cmd_data.get("category", "")).strip().lower() == "debug"
 
     def _combat_command_blocked(self, cmd_data: Dict[str, Any], raw_command_text: str = "") -> bool:
         if str(self.feature_profile.combat_mode).strip().lower() != "disabled":

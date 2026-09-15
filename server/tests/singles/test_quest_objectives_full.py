@@ -26,14 +26,31 @@ class _FakeNPC:
 
 
 class _FakeWorld:
-    def __init__(self):
+    def __init__(self, ruleset=None):
         self.npc_templates = {}
         self.item_templates = {}
         self.npcs = {}
         self.regions = {}
+        # Which item a generated delivery carries is content-authored
+        # (`quest_generation.delivery_package_item_id`) rather than hardcoded,
+        # so the fake world has to express that contract.
+        self._ruleset = ruleset if ruleset is not None else {}
 
     def get_region(self, region_id):
         return self.regions.get(region_id)
+
+    def ruleset_section(self, name):
+        return self._ruleset.get(name, {}) if isinstance(self._ruleset, dict) else {}
+
+
+def _world_with_package(package_item_id="quest_package_generic", **extra_items):
+    """A fake world whose ruleset names a delivery package item."""
+    world = _FakeWorld(ruleset={
+        "quest_generation": {"delivery_package_item_id": package_item_id},
+    })
+    world.item_templates[package_item_id] = {"name": "Package"}
+    world.item_templates.update(extra_items)
+    return world
 
 
 class TestGenerateKillObjective(unittest.TestCase):
@@ -105,15 +122,25 @@ class TestGenerateDeliverObjective(unittest.TestCase):
         self.assertIsNone(generate_deliver_objective(world, 1, giver, {}))
 
     def test_no_package_template_returns_none(self):
+        """No authored package item means this generator declines."""
         world = _FakeWorld()
         recipient = _FakeNPC(obj_id="recipient_1", faction="neutral", is_alive=True)
         world.npcs["recipient_1"] = recipient
         giver = _FakeNPC(obj_id="giver_1")
         self.assertIsNone(generate_deliver_objective(world, 1, giver, {}))
 
+    def test_authored_package_id_not_in_content_returns_none(self):
+        """Naming an item the content set does not define declines cleanly."""
+        world = _FakeWorld(ruleset={
+            "quest_generation": {"delivery_package_item_id": "item_not_in_content"},
+        })
+        recipient = _FakeNPC(obj_id="recipient_1", faction="neutral", is_alive=True)
+        world.npcs["recipient_1"] = recipient
+        giver = _FakeNPC(obj_id="giver_1")
+        self.assertIsNone(generate_deliver_objective(world, 1, giver, {}))
+
     def test_successful_generation_with_region(self):
-        world = _FakeWorld()
-        world.item_templates["quest_package_generic"] = {"name": "Package"}
+        world = _world_with_package()
         world.regions["town"] = _FakeRegion("Town")
         recipient = _FakeNPC(obj_id="recipient_1", region_id="town", faction="neutral", name="Recipient")
         world.npcs["recipient_1"] = recipient
@@ -121,10 +148,11 @@ class TestGenerateDeliverObjective(unittest.TestCase):
         result = generate_deliver_objective(world, 1, giver, {})
         self.assertEqual("recipient_1", result["recipient_instance_id"])
         self.assertEqual("Town", result["recipient_location_description"])
+        # The package id comes from content, not from a hardcoded literal.
+        self.assertEqual("quest_package_generic", result["item_template_id"])
 
     def test_recipient_without_region_uses_unknown(self):
-        world = _FakeWorld()
-        world.item_templates["quest_package_generic"] = {"name": "Package"}
+        world = _world_with_package()
         recipient = _FakeNPC(obj_id="recipient_1", region_id=None, faction="neutral")
         world.npcs["recipient_1"] = recipient
         giver = _FakeNPC(obj_id="giver_1")
@@ -132,8 +160,7 @@ class TestGenerateDeliverObjective(unittest.TestCase):
         self.assertEqual("Unknown", result["recipient_location_description"])
 
     def test_hostile_and_self_recipients_are_excluded(self):
-        world = _FakeWorld()
-        world.item_templates["quest_package_generic"] = {"name": "Package"}
+        world = _world_with_package()
         hostile = _FakeNPC(obj_id="hostile_1", faction="hostile")
         world.npcs["hostile_1"] = hostile
         giver = _FakeNPC(obj_id="giver_1")

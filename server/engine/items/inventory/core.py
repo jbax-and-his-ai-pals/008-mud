@@ -2,6 +2,7 @@
 from collections import Counter
 from typing import Callable, Iterable, List, Optional, Tuple
 from engine.items.item import Item
+from engine.naming import normalize, resolve_best
 from .slot import InventorySlot
 from .display import InventoryDisplayMixin
 from .persistence import InventoryPersistenceMixin
@@ -129,18 +130,24 @@ class Inventory(InventoryDisplayMixin, InventoryPersistenceMixin):
         return sum(1 for slot in self.slots if not slot.item)
 
     def find_item_by_name(self, name: str, partial: bool = True, exclude: Optional[Item] = None) -> Optional[Item]:
-        name_lower = name.lower()
-        for slot in self.slots:
-            if slot.item:
-                if exclude and slot.item is exclude: continue
+        """Find a carried item by what the player called it.
 
-                match = False
-                if partial and name_lower in slot.item.name.lower(): match = True
-                elif not partial and name_lower == slot.item.name.lower(): match = True
-                elif name_lower == slot.item.obj_id: match = True
-
-                if match: return slot.item
-        return None
+        Uses the shared resolver rather than a bare substring test, so an exact
+        name outranks a substring ("rat tail" no longer loses to "rat tail
+        bone"), authored aliases work, and the id is matched alongside the
+        name. `partial=False` still means "exact name or id only".
+        """
+        candidates = [
+            slot.item for slot in self.slots
+            if slot.item is not None and (exclude is None or slot.item is not exclude)
+        ]
+        if not partial:
+            wanted = normalize(name)
+            for item in candidates:
+                if wanted in (normalize(item.name), normalize(item.obj_id)):
+                    return item
+            return None
+        return resolve_best(name, candidates)
 
     def count_item(self, obj_id: str) -> int:
         count = 0

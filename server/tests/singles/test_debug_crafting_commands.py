@@ -56,7 +56,31 @@ class TestSpawnstationCommand(GameTestBase):
 
     def test_unknown_type_is_reported(self):
         result = self.game.process_command("spawnstation not_a_station")
-        self.assertEqual("Unknown station type.", result)
+        self.assertIn("Unknown station type", result)
+        # The refusal names the station types this content set actually has,
+        # because which items are stations is content-authored rather than a
+        # fixed list in the engine.
+        self.assertIn("anvil", result)
+        self.assertIn("alchemy", result)
+
+    def test_station_types_come_from_content(self):
+        """Any item carrying a crafting_station_type is spawnable.
+
+        `spawnable_stations` is authored in the ruleset; this asserts the
+        engine resolves from that rather than from hardcoded item ids.
+        """
+        ruleset_stations = (self.world.ruleset_section("debug") or {}).get("spawnable_stations")
+        self.assertIsInstance(ruleset_stations, dict)
+        self.assertEqual(ruleset_stations.get("anvil"), "item_anvil")
+
+        for label, item_id in ruleset_stations.items():
+            with self.subTest(station=label):
+                template = self.world.item_templates.get(item_id)
+                self.assertIsNotNone(template, "%s names missing item %s" % (label, item_id))
+                self.assertTrue(
+                    template.get("properties", {}).get("crafting_station_type"),
+                    "%s is not actually a crafting station" % item_id,
+                )
 
     def test_spawns_anvil(self):
         result = self.game.process_command("spawnstation anvil")

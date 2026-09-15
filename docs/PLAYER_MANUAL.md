@@ -168,8 +168,14 @@ appreciate — with `give <item> to <name>` — and that opinion improves;
 give them something they dislike, and it won't. Climb high enough and
 you'll cross a **friendship tier** (Stranger, Acquaintance, Friend,
 Close Friend), each one unlocking a small vendor discount and, in
-some cases, wares or trust-gated opportunities that aren't available
-to a stranger.
+some cases, wares or opportunities that aren't offered to a stranger.
+
+You will notice that second part by its absence rather than its
+presence: someone who doesn't know you yet simply won't mention the
+work they have going, and the notice board will have less on it. There
+is no locked list to work through — people who trust you offer you
+more, and the surest way to be trusted is to be useful and to
+remember what people like.
 
 To do business: `trade <name>` with anyone who deals in goods, then
 `list` their wares, `buy <item>`, or `sell <item>`. Some vendors also
@@ -182,8 +188,18 @@ are repeatable income if you keep the right materials coming.
 ## 7. Combat
 
 `attack <target>` (or `kill`/`fight`) starts a fight, or joins one
-already underway. Combat continues automatically as you exchange blows
-— keep attacking, or make a choice about how to get out of it.
+already underway.
+
+**You swing when you type, and they swing back while you decide.** Combat is
+not automatic: each `attack` is one exchange, and your weapon has a short
+cooldown between blows (`combat` shows your current fight, including whether
+you are ready). In between, anything fighting you keeps attacking on its own —
+so standing in a fight doing nothing is a way to lose one. `status` shows your
+health; a creature that is badly hurt will say so when you look at it.
+
+Some creatures are worth sizing up before you commit. You will not be told a
+monster's level or its exact hit points; what you can see is how it looks and
+how the fight is going.
 
 **Retreating is not free.** Walking away from an active fight — whether
 you use ordinary movement or the dedicated `flee` (or `retreat`)
@@ -200,8 +216,15 @@ version of an otherwise familiar threat ("Alpha wolf," "Dread orc,"
 kin. The town guard occasionally posts **bounties** on these elites
 specifically — check the notice board.
 
+**When you win, look down.** A defeated creature drops what it was carrying on
+the ground where it fell; it does not go into your pack by itself. The game
+will tell you what fell and how to pick it up.
+
 Check `combat` (or `cstat`/`fightstatus`) at any time for a status
 readout of your current fight.
+
+**If you fall**, you are not out of the game — you can `respawn` and carry on.
+Dying costs you the fight, not your progress.
 
 ---
 
@@ -250,10 +273,16 @@ Type `skills` to see where you currently stand in each.
 The land provides, if you know how to ask. Use `gather` (also
 `mine`, `harvest`, or `chop`, depending on what feels right for the
 material) on a resource node to collect from it — clay banks, ore
-veins, herb patches, fishing spots, and more, each requiring the right
-tool and each with a limited number of charges before it needs time to
-recover. `survey` will tell you what's available in your current
-surroundings, what tool it needs, and how it's holding up.
+veins, herb patches, fishing spots, and more. Any tool a patch needs is
+noted when you survey it, and every patch has a limit on how much it
+will give before it needs time to recover.
+
+You won't be told exactly how many gathers are left in a patch, or the
+day it will come back — someone working a hillside knows when it has
+been picked over, not the schedule behind it. What the game will tell
+you is when there is nothing left to take, and where else to look:
+patches of the same material elsewhere, or something else that will do
+instead. Learning the good spots is part of the game.
 
 Some finds are simply better than others — gathered materials can
 carry a **quality grade**, and a rare, pristine specimen is worth
@@ -264,17 +293,19 @@ something meant to last.
 
 ## 11. Crafting
 
-`recipes` shows what you're currently able to make (add `all` to see
-recipes you haven't unlocked the materials for yet), and `craft
-<recipe>` makes it, provided you're carrying the ingredients and, for
-some recipes, standing near the right station. `salvage <item>` breaks
-an item back down into raw materials, if you'd rather reclaim than
-keep.
+`recipes` shows what you know how to make (add `all` to include
+recipes you're still missing materials for), and `craft <recipe>`
+makes it, provided you're carrying the ingredients and, for some
+recipes, standing near the right station. Each entry lists the
+materials it needs and its own command line, which is the surest thing
+to type. `salvage <item>` breaks an item back down into raw materials,
+if you'd rather reclaim than keep.
 
 Practice matters: crafting the same recipe repeatedly can unlock
 higher **quality tiers** — Simple, Fine, Masterwork — each worth more
 and, for gifts, more appreciated by the person you hand it to. Using
-finer raw materials pushes the ceiling even higher.
+finer raw materials pushes the ceiling even higher. `recipes` tells you
+what a given recipe would produce right now, and what would raise it.
 
 `attach` and `detach` handle equipment attachments, for gear that
 supports them.
@@ -307,6 +338,13 @@ opportunities as old ones are cleared. Track what you've taken on with
 and turn a finished task in with `turnin quest`, `complete quest`, or
 by simply talking to whoever gave it to you and asking to `complete`.
 
+**The board shows what is actually available to you.** If a task needs
+a giver's trust and you have not earned it yet, the notice simply will
+not be there — you are not shown a list of things you are barred from.
+That also means the board is worth re-reading after you have done
+someone a good turn: new notices appear as people decide they can rely
+on you.
+
 Not every quest is solved the same way — some accept combat, some
 favor a gathered or crafted solution, and a few will let you `negotiate`
 your way through instead of fighting. If an NPC offers to walk you
@@ -316,7 +354,8 @@ being guided (or any other automated action) early.
 Some threads run deeper than a single task — multi-stage **campaigns**
 with branching outcomes, started through conversation rather than the
 board. Choose carefully; these don't always have a clean, single "right"
-answer.
+answer. Talking to people is how most of them begin, so it is worth
+asking the people in charge what is worrying them.
 
 ---
 

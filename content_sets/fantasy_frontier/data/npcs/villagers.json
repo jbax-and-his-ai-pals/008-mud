@@ -27,6 +27,7 @@
     "default_dialog": "The {name} gives you a simple nod.",
     "initial_inventory": [],
     "properties": {
+      "ambient_wanderer": true,
       "wander_chance": 0.8,
       "move_cooldown": 5,
       "can_give_generic_quests": false,

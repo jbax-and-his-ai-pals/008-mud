@@ -198,8 +198,22 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
                 world.dispatch_event("npc_killed", {"player": owner, "npc": target})
 
             if xp_gainer:
-                xp = calculate_xp_gain(_progression_level(xp_gainer), target.level, target.max_health)
-                if xp > 0:
+                # Both the killer and the victim need a resolved level. An NPC
+                # can now land the killing blow on a *player* (and on a player's
+                # minions), and Player has no `.level` attribute -- level lives
+                # at runtime_state.progression.level. Passing a bare
+                # `target.level` here raised AttributeError on the world tick,
+                # so the command never returned to the player.
+                #
+                # Gaining XP when the victim is a player is intentional (see the
+                # faction XP tests): the hostile that wins a fight gets tougher,
+                # which makes leaving a dangerous region alone matter.
+                victim_level = _progression_level(target)
+                victim_max_health = getattr(target, "max_health", 0) or 0
+                xp = calculate_xp_gain(
+                    _progression_level(xp_gainer), victim_level, victim_max_health
+                )
+                if xp > 0 and hasattr(xp_gainer, "gain_experience"):
                     leveled, level_msg = xp_gainer.gain_experience(xp)
                     if leveled: messages.append(level_msg)
             
@@ -208,11 +222,25 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
                 if possible_loot: messages.append(format_loot_drop_message(player, target, possible_loot))
         
         final_message = "\n".join(filter(None, messages))
-        if (
-            player
-            and player.is_alive
+        # Whose screen does this belong on? Normally the co-located player, and
+        # only while they are alive -- a combat message from a room the player
+        # is not watching must not leak.
+        #
+        # The one exception is the player *being killed*: by the time we get
+        # here `target` is already dead, so the old `player.is_alive` guard
+        # discarded the "You have been defeated!" line and the player died in
+        # total silence. The victim must always be told.
+        player_was_killed = (
+            player is not None
+            and target is player
+            and not getattr(player, "is_alive", True)
+        )
+        player_is_watching = (
+            player is not None
+            and getattr(player, "is_alive", False)
             and player.current_region_id == npc.current_region_id
             and player.current_room_id == npc.current_room_id
-        ):
+        )
+        if player_was_killed or player_is_watching:
             return final_message
     return None

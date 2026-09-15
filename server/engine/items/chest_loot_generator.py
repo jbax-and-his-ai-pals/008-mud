@@ -26,7 +26,61 @@ if TYPE_CHECKING:
     from engine.world.world import World
 
 
-_CHEST_MATERIALS = ("item_chest_wooden", "item_chest_iron_bound", "item_chest_gilded")
+def _loot_rules(world: 'World') -> dict:
+    """The content set's `loot` ruleset section, or an empty mapping.
+
+    Defensive because this generator is exercised against lightweight test
+    doubles that expose `item_templates` but not the full world API.
+    """
+    getter = getattr(world, "ruleset_section", None)
+    if not callable(getter):
+        return {}
+    try:
+        return getter("loot") or {}
+    except Exception:
+        return {}
+
+
+def _chest_material_ids(world: 'World') -> list:
+    """Which chest templates this content set uses, rarest last.
+
+    Authored under the ruleset as `loot.chest_materials`, in ascending order of
+    quality. When a content set does not name them, any Container template
+    qualifies -- so a setting with no wooden or gilded chests still works
+    without an engine change.
+    """
+    configured = _loot_rules(world).get("chest_materials")
+    if isinstance(configured, list) and configured:
+        available = [str(m) for m in configured if str(m) in world.item_templates]
+        if available:
+            return available
+
+    discovered = [
+        item_id
+        for item_id, template in world.item_templates.items()
+        if isinstance(template, dict) and template.get("type") == "Container"
+    ]
+    return sorted(discovered)
+
+
+def _currency_item_id(world: 'World') -> Optional[str]:
+    """The item representing coin, if this content set has one.
+
+    Authored under the ruleset as `loot.currency_item_id`. Failing that, an item
+    whose `treasure_type` is `coin` is used -- an existing convention in the
+    shipped content, not a new one. A content set with no coin item simply has
+    no currency slot in its chests.
+    """
+    configured = _loot_rules(world).get("currency_item_id")
+    if isinstance(configured, str) and configured in world.item_templates:
+        return configured
+    for item_id, template in world.item_templates.items():
+        if not isinstance(template, dict):
+            continue
+        if template.get("properties", {}).get("treasure_type") == "coin":
+            return item_id
+    return None
+
 
 # Score -> (id, label), mirroring the gathering system's material-quality
 # convention (engine/items/resource_node.py) so a chest-found gem behaves
@@ -44,6 +98,9 @@ class ChestLootGenerator:
         level = max(1, int(level))
 
         material_id = ChestLootGenerator._roll_material(world, level)
+        if not material_id:
+            # No chest-like container in this content set: nothing to generate.
+            return None
         difficulty = round(roll_around(10 + level * 3, 4 + level * 0.5, minimum=5))
         trapped, trap_kind, trap_difficulty = ChestLootGenerator._roll_trap(level)
         overrides = {"lock_difficulty": difficulty, "trapped": trapped}
@@ -89,10 +146,10 @@ class ChestLootGenerator:
                 contents.append(item)
 
     @staticmethod
-    def _roll_material(world: 'World', level: int) -> str:
-        available = [m for m in _CHEST_MATERIALS if m in world.item_templates]
+    def _roll_material(world: 'World', level: int) -> Optional[str]:
+        available = _chest_material_ids(world)
         if not available:
-            return _CHEST_MATERIALS[0]
+            return None
         # Weight shifts toward rarer materials as level rises, without ever
         # making the common case disappear entirely.
         weights = {}
@@ -116,12 +173,20 @@ class ChestLootGenerator:
         item: Optional[Item] = None
 
         if category == "currency":
-            quantity = max(1, round(roll_around(5 + level * 4, 3 + level, minimum=1)))
-            item = ItemFactory.create_item_from_template("item_gold_coin", world)
-            if item:
-                item.value = max(1, int(item.value)) * quantity
-                item.update_property("value", item.value)
-                item.description = f"{item.description} ({quantity} coins)"
+            currency_id = _currency_item_id(world)
+            if currency_id is None:
+                # A content set with no coin item simply has no currency slot;
+                # fall back to junk rather than inventing an item.
+                junk_id = ChestLootGenerator._pick_template(world, "Junk", "Treasure")
+                if junk_id:
+                    item = ItemFactory.create_item_from_template(junk_id, world)
+            else:
+                quantity = max(1, round(roll_around(5 + level * 4, 3 + level, minimum=1)))
+                item = ItemFactory.create_item_from_template(currency_id, world)
+                if item:
+                    item.value = max(1, int(item.value)) * quantity
+                    item.update_property("value", item.value)
+                    item.description = f"{item.description} ({quantity} coins)"
         elif category == "gem":
             gem_id = ChestLootGenerator._pick_template(world, "Gem")
             if gem_id:

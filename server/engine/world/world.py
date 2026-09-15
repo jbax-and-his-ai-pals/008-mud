@@ -14,6 +14,7 @@ from engine.core.quests import QuestManager
 from engine.core.clock import Clock, WallClock
 
 from engine.items.item_factory import ItemFactory
+from engine.naming import resolve_best
 from engine.npcs.npc_factory import NPCFactory
 from engine.player import Player
 from engine.player.aspects import PlayerGameAspects
@@ -736,22 +737,10 @@ class World:
          return None
 
     def find_npc_in_room(self, name: str, player: Optional['Player'] = None) -> Optional[NPC]:
-         npcs = self.get_current_room_npcs(player)
-         name_lower = name.lower()
-         for npc in npcs:
-              if name_lower == npc.name.lower() or name_lower == npc.obj_id: return npc
-         for npc in npcs:
-              if name_lower in npc.name.lower(): return npc
-         return None
+         return resolve_best(name, self.get_current_room_npcs(player))
 
     def find_npc_in_room_for_player(self, name: str, player: Optional['Player']) -> Optional[NPC]:
-         npcs = self.get_npcs_for_player(player)
-         name_lower = name.lower()
-         for npc in npcs:
-              if name_lower == npc.name.lower() or name_lower == npc.obj_id: return npc
-         for npc in npcs:
-              if name_lower in npc.name.lower(): return npc
-         return None
+         return resolve_best(name, self.get_npcs_for_player(player))
     
     def get_player_status(self) -> str:
         if not self.player: return "Player not loaded."

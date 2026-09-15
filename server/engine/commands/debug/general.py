@@ -61,13 +61,45 @@ def test_refactor_handler(args, context):
 
     load_spells_from_json(world.content_root)
     key_id = "debug_key_999"
-    k_success, k_msg = player.learn_spell("knock")
-    al_success, al_msg = player.learn_spell("arcane_lock")
+
+    # Which spells this probe teaches is content-authored under
+    # `debug.lock_test_spells`. Without a list, any registered spell that
+    # manipulates a lock qualifies -- discovered from spell data, not from
+    # naming specific spell ids, which are a content set's to choose.
+    configured = (world.ruleset_section("debug") or {}).get("lock_test_spells")
+    if isinstance(configured, list) and configured:
+        lock_spells = [str(s) for s in configured]
+    else:
+        registry = getattr(world, "spell_registry", None) or {}
+        candidates = []
+        for spell_id, spell in registry.items():
+            effect_types = {
+                str(effect.get("type", "")).lower()
+                for effect in (getattr(spell, "effects", None) or [])
+                if isinstance(effect, dict)
+            }
+            if effect_types & {"unlock", "lock"}:
+                candidates.append(str(spell_id))
+        lock_spells = sorted(candidates)
+
+    if not lock_spells:
+        return (
+            "No lock-manipulating spells are registered for this content set. "
+            "Author them under debug.lock_test_spells to run this probe."
+        )
+
+    learned_messages = []
+    for spell_id in lock_spells:
+        _ok, msg = player.learn_spell(spell_id)
+        if msg:
+            learned_messages.append(msg)
 
     loot = Item(name="Victory Token", description="You successfully unlocked it!", weight=0.1, value=1000)
     chest = Container(obj_id="debug_chest_999", name="Refactor Chest", description="Test chest.", locked=True, key_id=key_id, capacity=100, contents=[loot])
     key = Key(obj_id=key_id, name="Refactor Key", description="Opens the chest.", weight=0.1)
-    lockpick = Lockpick(obj_id="debug_lockpick_01", name="debug lockpick", description="A flimsy tool.", weight=0.1)
+    # No hardcoded content id here: the probe's tool is an ephemeral object, not
+    # a template the content set has to own.
+    lockpick = Lockpick(name="debug lockpick", description="A flimsy tool.", weight=0.1)
     if not player.current_region_id or not player.current_room_id:
         return "Player location unavailable."
 
@@ -84,8 +116,9 @@ def test_refactor_handler(args, context):
         f"{FORMAT_TITLE}--- LOCK/UNLOCK TEST INITIALIZED ---{FORMAT_RESET}",
         f"1. Placed {FORMAT_HIGHLIGHT}Refactor Chest{FORMAT_RESET} (Locked).",
         f"2. Added {FORMAT_HIGHLIGHT}Refactor Key{FORMAT_RESET} and {FORMAT_HIGHLIGHT}debug lockpick{FORMAT_RESET}.",
-        f"3. Learned 'Knock': {k_success}",
-        f"4. Learned 'Arcane Lock': {al_success}",
-        f"\nTry: use refactor key on chest, cast knock on chest, use lockpick on chest"
+        f"3. Learned lock spells: {', '.join(lock_spells)}",
+        f"\nTry: use refactor key on chest, cast {lock_spells[0]} on chest, use lockpick on chest"
     ]
+    if learned_messages:
+        msgs.insert(3, "   " + " / ".join(learned_messages[:2]))
     return "\n".join(msgs)

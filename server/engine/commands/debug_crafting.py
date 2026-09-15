@@ -37,22 +37,36 @@ def givemats_handler(args, context):
                 
     return f"{FORMAT_SUCCESS}Added ingredients for {recipe.name} ({added_count} items).{FORMAT_RESET}"
 
-@command("spawnstation", ["station"], "debug", "Spawn a crafting station in the room.\nUsage: spawnstation <type> (anvil/alchemy)")
+@command("spawnstation", ["station"], "debug", "Spawn a crafting station in the room.\nUsage: spawnstation <type>")
 def spawnstation_handler(args, context):
     world = context["world"]
     player = context.get("player")
-    if not args: return "Usage: spawnstation <anvil|alchemy>"
+    if not args: return "Usage: spawnstation <type>"
     if not player or not player.current_region_id or not player.current_room_id:
         return "Player location is unavailable."
-    
+
+    # Which items are spawnable stations is content-authored, matching the
+    # engine's general neutrality rule. A content set lists them under
+    # `debug.spawnable_stations` as name -> item id; without that, any item
+    # carrying a `crafting_station_type` property is a candidate.
     st_type = args[0].lower()
-    item_id = None
-    
-    if "anvil" in st_type: item_id = "item_anvil"
-    elif "alch" in st_type: item_id = "item_alchemy_kit"
-    
-    if not item_id: return "Unknown station type."
-    
+    configured = (world.ruleset_section("debug") or {}).get("spawnable_stations")
+    candidates = {}
+    if isinstance(configured, dict):
+        candidates = {str(k).lower(): str(v) for k, v in configured.items()}
+    else:
+        for item_id, template in world.item_templates.items():
+            if not isinstance(template, dict):
+                continue
+            station_type = template.get("properties", {}).get("crafting_station_type")
+            if station_type:
+                candidates[str(station_type).lower().replace("_", " ")] = item_id
+
+    item_id = next((iid for key, iid in candidates.items() if key in st_type), None)
+    if not item_id:
+        known = ", ".join(sorted(candidates)) or "none configured"
+        return f"Unknown station type. Known types: {known}"
+
     item = ItemFactory.create_item_from_template(item_id, world)
     if item:
         world.add_item_to_room(player.current_region_id, player.current_room_id, item)

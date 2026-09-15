@@ -3,6 +3,7 @@ from typing import List, Optional
 import random
 from engine.items.item import Item
 from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET
+from engine.presentation import is_player_mode, show_internals
 
 def _is_public_region(region_id: str) -> bool:
     """Exclude per-player houses and quest instances from world-wide
@@ -31,15 +32,31 @@ class ResourceNode(Item):
         self.update_property("charges", charges)
         self.update_property("max_charges", charges)
 
+    def _presentation_context(self, world, player=None) -> dict:
+        """Minimal context for resolving the viewer's presentation mode."""
+        return {"world": world, "player": player}
+
+    def _depleted_message(self, world, player=None) -> str:
+        """What a viewer is told when there is nothing left here.
+
+        A player is told the patch is picked clean; a tester also gets the
+        exact recovery window. `(recovers in N days)` is engine internals --
+        precise, actionable-to-a-tester, and not something a forager in the
+        world would know.
+        """
+        if is_player_mode(self._presentation_context(world, player)):
+            return f"You've gathered all you can from the {self.name} for now."
+        base_message = f"The {self.name} has been depleted."
+        days_left = self.recovery_days_left(world)
+        if days_left is not None:
+            base_message += f" It should recover in about {days_left} day{'s' if days_left != 1 else ''}."
+        return base_message
+
     def gather(self, player, world) -> str:
         charges = self.available_charges(world)
         respawn_days = int(self.get_property("respawn_days", 0))
         if charges <= 0:
-            base_message = f"The {self.name} has been depleted."
-            days_left = self.recovery_days_left(world)
-            if days_left is not None:
-                base_message += f" It should recover in about {days_left} day{'s' if days_left != 1 else ''}."
-            return base_message + self._alternatives_note(world)
+            return self._depleted_message(world, player) + self._alternatives_note(world)
 
         time_manager = getattr(getattr(world, "game", None), "time_manager", None)
         day_number = self._day_number(world)
@@ -119,7 +136,11 @@ class ResourceNode(Item):
             discovery_manager = getattr(getattr(world, "game", None), "discovery_manager", None)
             journal_note = discovery_manager.handle_item_discovery(player, resource) if discovery_manager else ""
             quality_note = f" ({resource.get_property('material_quality_label')} quality)" if resource.get_property("material_quality_score", 0) else ""
-            message = f"{FORMAT_SUCCESS}You gather {resource.name}{quality_note} from the {self.name}.{FORMAT_RESET} ({charges-1} remaining)"
+            message = f"{FORMAT_SUCCESS}You gather {resource.name}{quality_note} from the {self.name}.{FORMAT_RESET}"
+            # Charge counts are engine internals: a tester needs them, a player
+            # should not be counting the world's resets.
+            if show_internals(self._presentation_context(world, player)):
+                message += f" ({charges - 1} remaining)"
             notes = [note for note in (discovery, journal_note) if note]
             return message + "\n" + "\n".join(notes) if notes else message
         

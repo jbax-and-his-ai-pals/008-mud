@@ -32,6 +32,7 @@ class JsonWebSocketMudServer:
         starter_items: list[dict[str, Any] | str] | None = None,
         require_character_creation: bool = False,
         boot_warning_fail_codes: list[str] | None = None,
+        presentation_mode: str = "player",
     ):
         self.host = host
         self.port = port
@@ -54,6 +55,7 @@ class JsonWebSocketMudServer:
             starter_items=starter_items,
             require_character_creation=require_character_creation,
             boot_warning_fail_codes=boot_warning_fail_codes,
+            presentation_mode=presentation_mode,
         )
         # Values are WebSocketTransport instances (not raw sockets) so that
         # each session's codec preference is respected during broadcast.
@@ -737,6 +739,12 @@ def main() -> None:
     parser.add_argument("--save", "-s", default=None)
     parser.add_argument("--asset-db", default=None)
     parser.add_argument("--content-set", required=True, help="Content-set directory or manifest path.")
+    parser.add_argument(
+        "--presentation-mode",
+        choices=["player", "test"],
+        default="player",
+        help="'player' (default) hides debug/GM commands; 'test' exposes them.",
+    )
     args = parser.parse_args()
     config_payload = load_server_config(args.config)
     settings = resolve_server_settings(
@@ -767,6 +775,7 @@ def main() -> None:
         starter_items=settings.world_bootstrap_starter_items,
         require_character_creation=settings.session_require_character_creation,
         boot_warning_fail_codes=settings.boot_warning_fail_codes,
+        presentation_mode=args.presentation_mode,
     )
     for warning in app.core.server.boot_warnings:
         print("Feature profile warning:", warning)

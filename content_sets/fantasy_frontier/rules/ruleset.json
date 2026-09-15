@@ -66,6 +66,7 @@
   },
   "quest_generation": {
     "quest_board_locations": ["town:town_square", "portbridge:harbor_district"],
+    "delivery_package_item_id": "quest_package_generic",
     "authored_board_templates": [
       { "template_id": "quest_wildflower_commission", "giver_template_id": "village_elder" },
       { "template_id": "quest_riverside_charm_commission", "giver_template_id": "village_elder", "relationship_min": 10 },
@@ -141,6 +142,9 @@
     "currency_name": "gold"
   },
   "loot": {
+    "take_hint": "Type 'take {items}' to pick it up.",
+    "chest_materials": ["item_chest_wooden", "item_chest_iron_bound", "item_chest_gilded"],
+    "currency_item_id": "item_gold_coin",
     "ambient_pools": [
       {
         "chance": 0.18,
@@ -338,6 +342,13 @@
     "economy": { "enabled": true }
   },
   "debug": {
-    "gear_item_ids": ["debug_sword", "debug_shield", "debug_armor", "debug_helmet", "debug_gauntlets", "debug_boots", "debug_amulet"]
+    "gear_item_ids": ["debug_sword", "debug_shield", "debug_armor", "debug_helmet", "debug_gauntlets", "debug_boots", "debug_amulet"],
+    "spawnable_stations": {
+      "anvil": "item_anvil",
+      "alchemy": "item_alchemy_kit",
+      "lapidary": "item_lapidary_wheel",
+      "carpentry": "item_carpentry_bench"
+    },
+    "lock_test_spells": ["knock", "arcane_lock"]
   }
 }

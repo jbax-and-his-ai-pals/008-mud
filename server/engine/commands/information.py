@@ -7,6 +7,7 @@ from engine.config import (
 from engine.config.config_display import FORMAT_HIGHLIGHT
 from engine.core.skill_system import MAX_SKILL_LEVEL, SkillSystem
 from engine.items.resource_node import ResourceNode
+from engine.presentation import show_internals
 
 
 @command("appraise", ["assess"], "information", "Inspect content-authored appraisal details for an item.\nUsage: appraise <item>")
@@ -65,6 +66,10 @@ def survey_handler(args, context):
     time_manager = getattr(getattr(world, "game", None), "time_manager", None)
     current_season = str(getattr(time_manager, "time_data", {}).get("season", "")).strip()
     lines = [f"{FORMAT_TITLE}Resource Survey{FORMAT_RESET}"]
+    # Charge counts, reset timers, and season windows are engine internals. A
+    # player is told what they can gather and what they would need; a tester
+    # also gets the numbers behind it.
+    internals = show_internals(context)
     for node in nodes:
         charges = node.available_charges(world)
         maximum = int(node.get_property("max_charges", charges))
@@ -87,6 +92,25 @@ def survey_handler(args, context):
         quality_note = ""
         if isinstance(material_quality, dict) and isinstance(material_quality.get("score"), int) and material_quality["score"] > 0:
             quality_note = f"; material quality: {material_quality.get('label', material_quality.get('id', 'notable'))}"
+
+        if not internals:
+            # Player voice: what is here, whether it is worth trying, and what
+            # you would need -- no counters, no timers. The "try instead" hints
+            # are genuinely useful and are authored for exactly this case, so
+            # they stay.
+            if charges > 0:
+                lines.append(f"- {node.name}: ready to gather; tool: {required_tool}")
+            else:
+                hint = f"You've gathered all you can from the {node.name} for now."
+                substitutes = node.find_substitutes(world)
+                alternates = node.find_alternate_sources(world)
+                if alternates:
+                    hint += f" It also grows at: {', '.join(alternates)}."
+                if substitutes:
+                    hint += f" You could try instead: {', '.join(substitutes)}."
+                lines.append(f"- {hint}")
+            continue
+
         alternatives_note = ""
         if charges <= 0:
             alternates = node.find_alternate_sources(world)

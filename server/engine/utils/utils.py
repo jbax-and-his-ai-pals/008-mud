@@ -13,6 +13,7 @@ from engine.items.item import Item
 from typing import Dict, Any, List, Optional, Union, TYPE_CHECKING, Tuple
 
 from engine.utils.text_formatter import LEVEL_DIFF_COLORS, get_level_diff_category
+from engine.presentation import is_player_mode_for_player
 
 DEPARTURE_VERBS = [
     "leaves", "heads", "departs", "goes", "wanders",
@@ -149,6 +150,12 @@ def format_name_for_display(
     is_npc = isinstance(target, NPC)
     is_item = isinstance(target, Item)
 
+    # Whether engine internals (level, exact HP/MP, the difficulty colour keyed
+    # to the level gap) may be shown for this viewer. Resolved once, up front,
+    # because it affects both the colour choice and the detail suffix.
+    world = getattr(viewer, 'world', None) or getattr(target, 'world', None)
+    player_voice = is_player_mode_for_player(world, viewer) if viewer is not None else False
+
     # 1. Initialize Colors
     # article_color and suffix_color inherit from parent to maintain message flow
     article_color = parent_color
@@ -162,7 +169,7 @@ def format_name_for_display(
         faction = getattr(target, 'faction', 'neutral')
         if faction == 'hostile':
             # Hostile Logic:
-            if viewer and target_level is not None:
+            if viewer and target_level is not None and not player_voice:
                 # Name & Level Text get colored by difficulty
                 viewer_level = getattr(viewer, 'level', 1)
                 color_category = get_level_diff_category(viewer_level, target_level)
@@ -171,6 +178,10 @@ def format_name_for_display(
                 inner_color = diff_color
                 level_color = diff_color
             else:
+                # Player voice, or no viewer: a hostile is simply a hostile.
+                # The difficulty colour encodes the level gap, which is a
+                # judgement the player should be making from the world rather
+                # than reading off a hue.
                 inner_color = FORMAT_ERROR
                 level_color = FORMAT_ERROR
                 
@@ -185,9 +196,9 @@ def format_name_for_display(
     # Only show a level/HP readout when the selected game actually presents
     # progression or combat -- otherwise every NPC (a barista, a commuter)
     # displays a level and hit-point bar regardless of theme.
-    world = getattr(viewer, 'world', None) or getattr(target, 'world', None)
     show_vitals = (world.uses_progression() or world.has_capability("combat")) if world is not None else DEBUG_SHOW_LEVEL
     detail_suffix = ""
+
     if is_npc and target_level is not None and show_vitals:
         hp = int(getattr(target, 'health', 0))
         max_hp = int(getattr(target, 'max_health', 1))
@@ -199,20 +210,28 @@ def format_name_for_display(
             hp_color = FORMAT_YELLOW
         else:
             hp_color = FORMAT_SUCCESS
-        
-        # Stats: HP Color + HP Text + Parent Color (comma) + MP Color + MP Text + Parent Color
-        hp_text = f"{hp_color}{hp}/{max_hp} HP{suffix_color}"
-        mp_text = ""
-        max_mp = int(getattr(target, 'max_mana', 0))
-        if max_mp > 0:
-            mp = int(getattr(target, 'mana', 0))
-            mp_color = FORMAT_CYAN
-            mp_text = f", {mp_color}{mp}/{max_mp} MP{suffix_color}"
 
-        # "Level X": Uses level_color (same as name usually), rest uses suffix_color (parent)
-        level_str = f"{level_color}Level {target_level}{suffix_color}"
-        
-        detail_suffix = f" ({level_str}, {hp_text}{mp_text})"
+        if player_voice:
+            if hp_percent <= PLAYER_STATUS_HEALTH_CRITICAL_THRESHOLD:
+                detail_suffix = " (badly wounded)"
+            elif hp_percent <= PLAYER_STATUS_HEALTH_LOW_THRESHOLD:
+                detail_suffix = " (wounded)"
+            else:
+                detail_suffix = ""
+        else:
+            # Stats: HP Color + HP Text + Parent Color (comma) + MP Color + MP Text + Parent Color
+            hp_text = f"{hp_color}{hp}/{max_hp} HP{suffix_color}"
+            mp_text = ""
+            max_mp = int(getattr(target, 'max_mana', 0))
+            if max_mp > 0:
+                mp = int(getattr(target, 'mana', 0))
+                mp_color = FORMAT_CYAN
+                mp_text = f", {mp_color}{mp}/{max_mp} MP{suffix_color}"
+
+            # "Level X": Uses level_color (same as name usually), rest uses suffix_color (parent)
+            level_str = f"{level_color}Level {target_level}{suffix_color}"
+
+            detail_suffix = f" ({level_str}, {hp_text}{mp_text})"
 
     # 3. Construct String
     is_generic = not base_name[0].isupper() if base_name else True
@@ -328,6 +347,79 @@ def calculate_xp_gain(killer_level: int, target_level: int, target_max_health: i
     final_xp_gained = max(MIN_XP_GAIN, final_xp_gained)
     return final_xp_gained
 
+def _viewer_player(viewer):
+    """Resolve the Player a viewer-generated message is addressed to, if any.
+
+    Called with the `viewer` passed down from the combat paths, which is either
+    a Player (their own kill) or an NPC (a kill they watched, possibly their
+    summon's). Returns None when the message is not for a player's eyes.
+    """
+    if viewer is None:
+        return None
+    try:
+        from engine.player import Player
+    except Exception:
+        return None
+    if isinstance(viewer, Player):
+        return viewer
+    owner_id = None
+    properties = getattr(viewer, "properties", None)
+    if isinstance(properties, dict):
+        owner_id = properties.get("owner_id")
+    if owner_id:
+        world = getattr(viewer, "world", None)
+        if world is not None and hasattr(world, "get_player_by_id"):
+            return world.get_player_by_id(owner_id)
+    return None
+
+
+def _loot_take_hint(viewer, target, dropped_items: List[Item], loot_count: int) -> str:
+    """Suggest picking up loot the player may not have noticed.
+
+    Killing something reported the drop but never said where it went or that it
+    could be picked up, so a player's inventory stayed unchanged after a kill
+    and the reward moment read as a bug. The wording is content-authored under
+    the ruleset's `loot.take_hint`; a content set can set it to false to
+    suppress the hint entirely.
+
+    Shown only for kills the player is credited with directly -- the monster
+    they killed is already dead when this runs, so the "am I the one who got
+    the loot?" question is answered by the *viewer*, not by comparing against
+    the target.
+    """
+    player = _viewer_player(viewer)
+    if player is None:
+        return ""
+    world = getattr(player, "world", None)
+    if world is None or not hasattr(world, "ruleset_section"):
+        return ""
+    try:
+        loot_rules = world.ruleset_section("loot") or {}
+    except Exception:
+        return ""
+    hint = loot_rules.get("take_hint", "You can 'take' it.")
+    if not hint:
+        return ""
+
+    # `items` -> the item names just dropped; `count` -> how many dropped.
+    names = []
+    for item in dropped_items:
+        name = str(getattr(item, "name", "") or "").strip()
+        if name and name not in names:
+            names.append(name)
+    if len(names) == 1 and loot_count == 1:
+        items_text = names[0]
+    elif names:
+        items_text = " or ".join(names[:3])
+    else:
+        items_text = "it"
+    try:
+        return str(hint).format(items=items_text, count=loot_count)
+    except (KeyError, IndexError, ValueError):
+        # An authored hint with an unexpected placeholder must not break a kill.
+        return str(hint)
+
+
 def format_loot_drop_message(viewer: Optional[Union['Player', 'NPC']], target: Union['Player', 'NPC'], dropped_items: List[Item]) -> str:
     """Formats the message indicating what loot a target dropped."""
     if not dropped_items:
@@ -361,6 +453,7 @@ def format_loot_drop_message(viewer: Optional[Union['Player', 'NPC']], target: U
     loot_str = ""
     formatted_target_name_start = format_name_for_display(viewer, target, start_of_sentence=True)
 
+    total_dropped = sum(data["count"] for data in loot_counts.values())
     if not loot_message_parts:
         return ""
     elif len(loot_message_parts) == 1:
@@ -371,6 +464,10 @@ def format_loot_drop_message(viewer: Optional[Union['Player', 'NPC']], target: U
         all_but_last = ", ".join(loot_message_parts[:-1])
         last_item = loot_message_parts[-1]
         loot_str = f"{formatted_target_name_start} dropped {all_but_last}, and {last_item}."
+
+    hint = _loot_take_hint(viewer, target, dropped_items, total_dropped)
+    if hint:
+        loot_str += f" {hint}"
 
     return loot_str
 

@@ -37,10 +37,18 @@ class JsonLineMudServer:
         starter_items: list[dict[str, Any] | str] | None = None,
         require_character_creation: bool = False,
         boot_warning_fail_codes: list[str] | None = None,
+        presentation_mode: str = "player",
     ):
         self.host = host
         self.port = port
         self.content_set_path = content_set_path
+        # "player" hides debug/GM tooling from connected clients; "test" exposes
+        # it. Defaults to player here because this class is the actual game
+        # server. See docs/design/WORLD_DESIGN.md §2.
+        resolved_presentation_mode = str(presentation_mode or "player").strip().lower()
+        self.presentation_mode = (
+            resolved_presentation_mode if resolved_presentation_mode in {"player", "test"} else "player"
+        )
         self.server = HeadlessServer(
             save_file=save_file,
             db_path=":memory:",
@@ -49,6 +57,7 @@ class JsonLineMudServer:
             starter_items=starter_items,
             require_character_creation=require_character_creation,
             boot_warning_fail_codes=boot_warning_fail_codes,
+            default_presentation_mode=self.presentation_mode,
         )
         self._tcp_server: asyncio.AbstractServer | None = None
         self._background_tick_task: asyncio.Task[None] | None = None
@@ -814,6 +823,7 @@ class JsonLineMudServer:
         session = self.server.create_session(
             player_id=unique_player_id,
             entitlements=self.session_default_entitlements,
+            presentation_mode=self.presentation_mode,
         )
         self.server.mark_session_connected(session.session_id)
         session.capabilities = list(self.session_default_capabilities)
@@ -1609,6 +1619,12 @@ def main() -> None:
     parser.add_argument("--save", "-s", default=None)
     parser.add_argument("--asset-db", default=None)
     parser.add_argument("--content-set", required=True, help="Content-set directory or manifest path.")
+    parser.add_argument(
+        "--presentation-mode",
+        choices=["player", "test"],
+        default="player",
+        help="'player' (default) hides debug/GM commands; 'test' exposes them.",
+    )
     args = parser.parse_args()
     config_payload = load_server_config(args.config)
     settings = resolve_server_settings(
@@ -1639,6 +1655,7 @@ def main() -> None:
         starter_items=settings.world_bootstrap_starter_items,
         require_character_creation=settings.session_require_character_creation,
         boot_warning_fail_codes=settings.boot_warning_fail_codes,
+        presentation_mode=args.presentation_mode,
     )
     for warning in app.server.boot_warnings:
         print("Feature profile warning:", warning)

@@ -1,5 +1,19 @@
 # Roadmap
 
+Companion documents:
+- [`docs/design/WORLD_DESIGN.md`](docs/design/WORLD_DESIGN.md) — target world shape, design pillars, open decisions.
+- [`docs/PLAYER_MANUAL.md`](docs/PLAYER_MANUAL.md) — player-facing handbook (needs revision; see P1).
+- Completed-work archive: [`docs/roadmap/archive-2026-09.md`](docs/roadmap/archive-2026-09.md).
+
+Roadmap rewritten 2026-09-14 after a full engine + content audit. The previous
+roadmap is preserved in the archive; every completed item it recorded is still
+recorded there. What changed is the *order of work*: the audit found that the
+engine is in far better shape than the world it holds, and that several defects
+sit directly on the new-player path. Expansion now happens behind a short,
+non-negotiable repair phase.
+
+---
+
 ## Product direction
 
 Build a game in which players can pursue combat, exploration, gathering,
@@ -9,1101 +23,790 @@ These are complementary routes, not classes or mandatory checklists.
 ### Design commitments
 
 - The engine stays content-neutral. Mechanics and contracts live in
-  `server/engine`; names, values, lore, preferences, recipes, drops, and
-  world layouts live in content sets.
+  `server/engine`; names, values, lore, preferences, recipes, drops, and world
+  layouts live in content sets.
+- **The world is the progress curve.** XP comes primarily from seeing and
+  doing, not from re-killing the same spawn — and from *any* recognised
+  activity, so no single playstyle has to carry progression.
+- **Gating is invisible.** The world grows richer as you do. Players are not
+  shown menus of things they may not have yet.
+- **Failure is diegetic.** Refusals speak in the world's voice, not the
+  engine's. Timers, counters, and lock reasons are test-mode affordances.
+- **Distance is difficulty.** How far you are from a safe town is a learnable
+  proxy for danger.
 - Every major activity should create value for at least two others.
 - Basic progression must not require a single preferred playstyle.
-- Systems should offer optional depth, not punish players for ignoring them.
+- **Sparse rooms in a dense world.** Most rooms carry prose and exits.
+  Interest comes from the region, its landmarks, and what a curious player
+  finds by looking — not from filling every room with objects.
 - New work ships as a small playable vertical slice with automated coverage.
-- Generic/decorative filler content (ambient wanderers, flavor-only NPCs)
-  must never crowd out or outrank named, story-relevant content in what a
-  player is shown first -- a room description, an interaction suggestion, or
-  a highlighted panel entry.
 
-## Now: trust, recovery, and first-hour truth
+---
 
-**Goal:** a new player can explore safely, recover from a mistake, understand
-what a system consumed or rewarded, and make progress through more than one
-route. A passing automated journey must mean the player actually made
-meaningful progress, not only that the server state stayed valid.
+## P0: Repair the new-player path
 
-### P0: player trust and recovery
+**Goal:** a player following the game's own advice can play for an hour without
+hitting a crash, a lie, or a dead end. This phase is small — measured in days,
+not weeks — and everything else waits behind it.
 
-- [x] **Fix the innocent-jail soft lock.** Riverside's barracks no longer has
-  a public path into the cell. A served sentence now restores belongings and
-  moves the player to the jail cell's content-authored `release_destination`,
-  rather than telling them they are free while leaving its only exit locked.
-  Focused regressions cover ordinary access, sentence expiry, release,
-  confiscation, search, and escape.
-- [x] **Make inventory-changing actions transactional.** Inventory now selects
-  exact units, preflights post-spend capacity, and atomically removes the
-  selected units. Gathering validates space before depleting a node; crafting
-  and salvage account for freed slots; commissions, gifts, and vendor orders
-  consume their validated instances; house purchase preflights its key; and
-  jail release restores the original pack before placing unavoidable overflow
-  visibly at the release destination. Regression coverage includes full packs,
-  quality/provenance permutations, house keys, and restoration overflow.
-- [x] **Repair quality/provenance consumption.** Crafting now consumes the
-  high-quality materials that determine result quality, and premium deliveries
-  or orders consume qualifying instances rather than an arbitrary matching
-  copy. The inventory API supports exact-unit selections across stacks and
-  distinct instances.
-- [x] **Resolve the masterwork-material contract.** Recipe ingredients now
-  contribute to material grade by default, while content can explicitly mark
-  a required binding, container, fuel, or similar secondary input as
-  `quality_contributes: false`. The talisman therefore grades from its rose
-  quartz rather than its ordinary leather cord, and its existing pristine
-  quartz source can produce the authored masterwork once familiarity is met.
-  `recipes` and the headless-client payload preview the next craft's grade,
-  available material score, and the specific quality-setting inputs. Content
-  validation rejects malformed contributor flags and quality-gated recipes
-  with no contributor.
-- [x] **Keep the engine content-neutral.** `CrimeManager` already read its
-  reputation key, escape-item ID, and value/threshold tuning from a
-  content-authored `crime` ruleset section; the remaining hardcoded
-  fantasy assumptions lived just outside it -- `World._attempt_combat_retreat`
-  assumed a "stealth" skill, and `World.attempt_pick_lock_direction`,
-  `engine/commands/jail.py`, `engine/commands/interaction/traps.py`, and
-  `engine/items/lockpick.py` all assumed a "lockpicking" skill and an
-  `is_jail_cell` property literal instead of reading the same `crime.custody`
-  contract `CrimeManager` already used. Moved the retreat skill to a new
-  `combat.retreat` ruleset section and the shared lock-related skill to a
-  new `locksmithing` section; deleted `engine/config/config_crime.py`
-  outright once every constant it held moved to the ruleset. Added
-  `content_sets/night_shift`, a small real content set that renames every
-  configurable slot (skills, reputation key, jail-room property, emergency
-  item id, currency name) to prove none of it is assumed --
-  `test_content_set_crime_vocabulary.py` drives real theft/witness/custody/
-  escape/retreat flows against it end-to-end.
+- [x] **Fix the player-death crash.** `server/engine/npcs/combat.py:201` read
+  `target.level` when an NPC landed a killing blow on a player, but `Player`
+  has no `.level` (it lives at `runtime_state.progression.level`).
+  `_progression_level()` guarded the *killer*, not the *victim*.
+  Result: `AttributeError: 'Player' object has no attribute 'level'`, the world
+  tick raised, and the command never returned to the player.
+  **Fixed.** Both the killer and the victim now resolve through
+  `_progression_level`, and `max_health` is read defensively.
+  **A second defect was found on the same path:** the message carrying
+  "You have been defeated!" was assembled and then discarded, because the
+  delivery guard required `player.is_alive` and the player had just died — so
+  the player died in total silence. The victim is now always told.
+  Regression coverage: `tests/singles/test_npc_kills_player.py` (6 tests,
+  deterministic via `always_hit`, verified to fail against the unfixed code).
 
-### P0: first-hour experience
+- [x] **Stop the journal from withholding instructions.** `commands/quest.py`
+  rendered missing optional objective fields as a literal `?`
+  (`... to Elder Thorne in ?.`), and the authored stage description that
+  actually explains the task was only shown by the generic fallback branch, so
+  every typed objective (kill/fetch/deliver) hid it.
+  **Fixed.** Unknown detail is omitted rather than placeholder-rendered, the
+  authored stage instruction is always shown, and named kill targets read as
+  "Defeat an elite troll" instead of "Defeat 0/1 targets".
+  Regression coverage: `tests/singles/test_quest_journal_instructions.py`
+  (6 tests, verified to fail against the unfixed code).
 
-- [x] **Keep the Journal, encounter panel, inventory, relationship display,
-  and crafting ledger contextually useful.** Audited all five: the Journal
-  (destination, live objective progress, "ready to turn in", multi-route
-  breakdown), relationship display (next-milestone progress), and crafting
-  ledger (quality-tier preview with contributing materials) already do
-  this -- shipped in earlier slices. The "encounter panel" isn't a single
-  named surface; it's the combat payload's `suggested_actions` plus the
-  room payload's curated `interactions` list, both already functional.
-  Inventory is the one real gap (a flat list, no quest-relevance or
-  gift-preference annotations) -- deliberately left open as its own
-  follow-up slice rather than folded into this one; see below.
-- [x] **Turn failures into useful next actions.** All five named scenarios
-  now expose a recovery option instead of a bare refusal:
-  - A locked exit or door now names the key it needs (`World._locked_message`,
-    `engine/world/world.py`) when one is authored and resolvable, and
-    supports an authored `failure_message` override mirroring the
-    existing "skill"-type exit's own convention -- but never invents a
-    key for a deliberately pick-only lock (`key_id: null`).
-  - A depleted `ResourceNode` reports days until it recovers when
-    `respawn_days` is set, using data the node already tracked
-    (`depleted_day`) but never surfaced.
-  - `Inventory.can_add_item`'s weight/slot refusals now point at `drop`.
-  - A missing-tool refusal confirms neither equipped gear nor inventory
-    has the required tool, instead of a bare "you need a X".
-  - A commission's accept-time trust refusal now names the real giver
-    NPC. Found and fixed a real bug while wiring this up: every authored
-    board commission's `relationship_npc_id` is a *template* id (see
-    `QuestManager._add_authored_board_quests`), but `world.get_npc()`
-    looks up by instance id only -- `giver` silently resolved to `None`
-    for every real commission in the game. New `_resolve_relationship_npc`
-    helper (used by both the board listing and the accept handler) falls
-    back to a template_id scan, the same pattern quest-reward application
-    already uses elsewhere.
-- [x] **Signpost parallel orientation, gather/craft/social, trade, and
-  exploration/combat paths from the opening without implying that one is
-  mandatory.** Already true by construction (the opening scenario offers
-  four parallel, untracked, unranked paths). Resolved the open decision:
-  a one-shot message is not sufficient on its own, so `journal` now always
-  shows a "Getting Started" block reusing the same opening-guidance text,
-  alongside or in place of the active-quest listing -- reachable any time,
-  not just once at character creation.
-- [x] **Retain deterministic maker/economy and low-risk combat routes,
-  but make them prove an actual completed goal, recovery from a
-  disrupted plan, and no prolonged repeated failure.** "Prove a
-  completed goal" already held for `premium`/`opportunity`/`combat`/
-  `first-hour` (real outcome checks). The two missing pieces:
-  - **Recovery from a disrupted plan.** `FantasyFrontierPremiumMaterialPolicy`
-    (inherited by `FantasyFrontierOpportunityPolicy`) now deliberately
-    drops its starting foraging knife, attempts to gather river clay
-    without it -- a real, fully deterministic, zero-RNG failure hitting
-    last slice's improved missing-tool message -- then picks the knife
-    back up and completes the same four gathers and full delivery chain
-    as before. The low-risk combat route's own disruption is
-    deliberately deferred: `flee`'s success is a genuine unmocked skill
-    roll in a live run, and a successful flee relocates the player to
-    an unpredictable neighboring room, both meaningfully complicating
-    deterministic scripting for no clear gain over the maker-route
-    proof already shipped.
-  - **No prolonged repeated failure.** `gameplay_failure_count` was
-    only ever a raw sum across a whole run -- a player failing once
-    every ten steps looked identical to one stuck repeating the same
-    failing action forever. New `_detect_repeated_failure_stalls`
-    (`journey_runner.py`) flags any run of 4-or-more consecutive
-    failure-classified steps with no intervening success; both
-    `JourneyReport` and `MultiJourneyReport` gained a `stall_errors`
-    field that now also gates `passed`, and `run_playtest_lab.py`
-    surfaces it in every run's JSON summary.
-  `explorer`/`guided`/`sweep` still have no outcome checks -- untouched,
-  since the ROADMAP wording names only the maker/economy and combat
-  routes specifically.
+- [x] **Make loot visible.** Killing something printed "dropped a rat tail and a
+  rat fur" while the inventory stayed unchanged — the items were correctly
+  placed in the room, but nothing said where they went or that they could be
+  picked up, so the reward moment read as a bug.
+  **Fixed.** The drop message now names the pickup command, with the wording
+  authored by the content set (`ruleset.loot.take_hint`, `{items}` expands to
+  the dropped names); `false` suppresses it. The hint is shown only to a player
+  credited with the kill, not to a bystander watching someone else's fight.
+  Regression coverage: `tests/singles/test_loot_visibility.py`
+  (7 tests, including a check that the suggested command actually works).
+
+- [x] **Gate debug commands behind test mode.** A brand-new level-1 character
+  could run `level 5`, `setgold 1000`, `sethealth 9999`, and
+  `teleport forest forest_edge` from the real game server. Five debug commands
+  declared an `operator.world.debug` entitlement, but that gate exists only when
+  a setup-wizard-generated server config is in use
+  (`server/config/server_config.json` is not in the tree) and
+  `EntitlementGuard.check()` returns *allow* for an undefined gate; everything
+  else in the `debug` category declared no gate at all.
+  **Fixed.** Sessions now carry a `presentation_mode` (`player`/`test`) and the
+  whole `debug` category is blocked for `player` sessions. The game entry points
+  — `JsonLineMudServer`, `JsonWebSocketMudServer`, `launch_content_set.py`
+  (`--presentation-mode`, default `player`) — default to `player`; a directly
+  constructed `HeadlessServer` still defaults to `test` so the existing suite,
+  the journey lab, and operator tooling are unchanged. Unrecognised modes fail
+  closed to `player`.
+  Regression coverage: `tests/singles/test_presentation_mode_gating.py`
+  (8 tests, including that ordinary commands still work and that a denied
+  command does not change state).
+
+- [x] **Open the Portbridge quarter.** Five rooms were unreachable from the
+  start room (`town_center_portbridge`, `port_authority_office`,
+  `shipwright_road`, `shipwright_yard`, `lumber_storage`), orphaning
+  `harbourmaster_voss` — the only quest giver for the entire **Portbridge
+  Smugglers campaign** — plus a vendor and two stock lines.
+  **Fixed** with a single east exit from `town_gate_south`, restoring the loop
+  that the guard's own authored patrol route
+  (`["harbor_district", "town_center_portbridge", "harbor_road"]`) already
+  assumed. Verified by walking the route and starting the campaign: it now
+  appears in the journal as an active campaign.
+  (`town:jail_cell` and `night_shift:depot:holding_room` are *intentionally*
+  unreachable — entered via custody — and now declare
+  `properties.entered_by_system` so the validator knows that is deliberate.)
+
+- [x] **Add a reachability gate to `run_content_checks.ps1` — and fix the reason
+  it never worked.** The check existed as a *warning* and, more importantly, was
+  **structurally incapable of detecting a closed zone**: it appended every
+  room's exit targets to the traversal queue while still validating those rooms,
+  so any room named as an exit target counted as reachable no matter how it was
+  reached. That is precisely why five Portbridge rooms and an entire campaign
+  shipped with no way in while the validator reported the content set clean.
+  **Fixed.** Traversal now builds an adjacency map and walks outwards from the
+  start room only; `properties.hidden_exits` count as edges so a lever-gated
+  room is not a false positive; and an unreachable room is now an **error**
+  unless it declares `properties.entered_by_system`. The gate caught a real
+  second orphan in `night_shift` on its first run.
+  Regression coverage: `tests/singles/test_content_set_direct.py`
+  (error severity, edge-only traversal, and the `entered_by_system` exemption).
+
+- [x] **Add a set-reference gate, and a content-neutrality gate.** Both are now
+  in `run_content_checks.ps1` for all three content sets.
+  `reference_integrity_validator.py` validates `items/sets.json` members against
+  the item catalog and flags bonus thresholds above the member count — it
+  immediately found `mage_set`'s two nonexistent members, which it had reported
+  as "0 issues" before. `toolkit/content_neutrality_validator.py` parses engine
+  source with `ast` and reports content ids appearing as string literals; it
+  independently reproduced the P2 audit's leak list (7 real leaks + 5 debug-only).
+  Both use explicit allowlists (`KNOWN_DANGLING_REFERENCES`,
+  `KNOWN_NEUTRALITY_LEAKS`) rather than an error-count threshold, so a **new**
+  instance of either mistake still fails the build while the known gaps stay
+  documented and visible in the output.
+
+- [x] **`run_content_checks.ps1` now actually runs.** It was broken three ways
+  and stopped at the first step: `pack_tool.py` had a bare `%` in an argparse
+  help string (rejected from Python 3.12 onward, so the `validate` subcommand
+  could not start at all); the `server/data` steps pointed at a directory
+  deleted in `ce625bd` when content moved to `content_sets/`; and the fixture
+  block hard-failed because the committed `LATEST_REFRESH.json` points at a
+  different checkout. All swept: 14 steps pass, with a missing optional
+  dependency (PyYAML) reported as a setup problem rather than a content failure.
+  **All three gates verified to fail on a deliberately reintroduced defect.**
+
+- [ ] **Surface `quest_missing_guard` or shelve it deliberately.** It is the
+  largest authored quest in the game (3 stages, 500 XP, the only quest using
+  the alchemist and the river troll) and it is unreachable: it is referenced
+  only from `data/quests/campaigns.json`, whose `quest_chain` key has **zero**
+  readers in `server/engine`, and it is not in
+  `ruleset.json`'s `authored_board_templates`.
+  Cheapest correct fix: make it reachable. Second cheapest: move the file to a
+  `data/unused/` folder so the tree stops implying it ships.
+  *Not done in this pass — it is a content decision (wire it into a campaign or
+  shelve it), not a repair.*
+
+- [ ] **Fix `craft`'s multi-word matching.** `commands/crafting.py:121-133`
+  searches with only `args[0]`, so the natural phrasing the design calls for
+  does not work: `craft river clay token` resolves to
+  `press_river_token` only by accident, and `craft wildflower posy` does not
+  resolve at all (`"wildflower posy"` is an underscore id and the recipe's
+  display name is `"Tie Wildflower Posy"`). Substring matching is also
+  order-dependent and only reports the first collision.
+  **Replace with a shared name-resolution service** (see P3) — this is not a
+  one-line patch, it is a missing subsystem.
+  *Deferred to P3, where it belongs.*
+
+### Verification notes
+
+The suite cannot be run cleanly from a fresh checkout, and that is a P8 item:
+
+- `engine/utils/text_formatter.py` imports `pygame` at module scope, so the
+  whole suite and the content validators need pygame installed just to import.
+- `PyYAML` and `msgpack` are declared in `server/requirements.txt` but their
+  absence is an import *error*, not a skip: without them two test modules fail
+  to import entirely and the msgpack transport snapshots fail.
+- In this environment (Python 3.14, no pygame wheel, no PyYAML, no msgpack)
+  `tests/singles` reports 41 failures/errors, all of them from those missing
+  dependencies or from the local pygame test stub. **None are in a module
+  touched by this work.** `tests/batch` (280) and `tests/current` (3) pass
+  fully.
+
+### P0 status
+
+All P0 repair work is complete except the two items explicitly deferred above
+(`quest_missing_guard` is a content decision; `craft` matching is P3). Six
+defects fixed, four regression suites added (27 tests), three validation gates
+added and each proven to catch a reintroduced defect.
 
 ### Definition of done
 
-- A fresh player cannot become stuck through ordinary movement.
-- A player can inspect which specific materials will be spent and receives
-  exactly those outcomes after a successful action.
-- A full inventory causes a safe, actionable refusal rather than a lost
-  resource, payment, or key.
-- Solo and shared-world first-hour traces detect repeated failures, dead ends,
-  and uncompleted intended goals.
-- The first session presents at least three viable next activities, including
-  one non-combat route.
+- Following the manual's four starting paths for one hour produces no
+  traceback, no `?`, no `(locked)`, and no unexplained dead end.
+- A level-1 player cannot invoke any debug command.
+- Every room in every content set is reachable from its declared start, or is
+  explicitly declared as conditionally reachable.
+- Content validation runs in CI and fails on unreachable rooms, dangling set
+  references, and hardcoded content ids in the engine.
 
-## Next: connected lifestyles in existing places
+---
 
-**Goal:** make existing systems feel like a world players can inhabit. Build
-depth and cross-system choices before broadening the map or adding a large
-number of new mechanics.
+## P1: Test mode vs player mode
 
-### Homes, gathering, and crafting
+**Goal:** the server knows whether it is talking to a player or a tester, and
+never shows one what belongs to the other. Full specification in
+`WORLD_DESIGN.md` §2. **Complete.**
 
-- [x] **Turn the garden/pond house branches into distinct functional
-  choices.** Both reuse the existing gathering system entirely --
-  `ResourceNode` is a plain `Item`, so both are placed into the house
-  interior exactly like the new workstation's carpentry bench, via
-  `HousingManager.expand_house`'s `room_item_id` mechanism. **Pond**:
-  authored to mirror the shipped fishing feature's own resource node
-  (`node_river_fishing_spot`) exactly -- a private `node_house_pond`
-  requiring a fishing net, with its own rare-pearl yield-table entry.
-  **Garden**: a real cultivation decision, not just passive respawn --
-  `node_garden_plot` starts with zero charges (nothing planted yet); a
-  new `plant <crop>` command (`engine/commands/gathering.py`) picks from
-  a content-authored `plantable_crops` list (wild herbs, faster but
-  lower-yield, vs. forest berries, slower but higher-yield), consumes a
-  matching seed item (`item_herb_seeds`/`item_berry_seeds`, sold by the
-  property agent), then reconfigures that *same* node's
-  `resource_item_id`/`charges`/`respawn_days` at runtime. `gather`
-  (already aliased to `harvest`) then runs completely unmodified --
-  nothing in `ResourceNode`'s charge/respawn tracking caches
-  `resource_item_id`, so replanting a different crop next cycle needs no
-  engine changes at all. Neither branch touches progression; both are
-  purely optional amenities alongside garden/pond's original flavor.
-- [x] **Add dependable, persistent home storage plus one player-selected
-  utility.** Garden/pond (tier 2) were already decorative-only (name/
-  description reflavor, no mechanical effect) -- their real depth is the
-  next item below, so "one player-selected utility" meant a genuinely
-  functional third branch. Picked **workstation** over display/trophy
-  space: it reuses the most existing, already-tested machinery
-  (`CraftingManager.get_nearby_stations`, the same `crafting_station_type`
-  property `item_lapidary_wheel` already uses), where a "display" would
-  have needed brand-new engine mechanics (`CollectionManager.turn_in_items`
-  is donation -- it permanently removes the item and is coupled to a
-  collector NPC, not a reusable display primitive). A fixed, unlocked
-  `item_house_storage_chest` (`can_take: false`) is placed in every new
-  house at purchase automatically; `expand house workstation` (a third,
-  mutually-exclusive tier-2 branch alongside garden/pond) places an
-  `item_carpentry_bench` the same way, and a new `build_wooden_toolbox`
-  recipe (station-gated, ordinary softwood/iron-ingot materials) gives it
-  real value -- a craftable, portable second container, so "more storage"
-  stays a normal crafted item rather than a bespoke "attach to house"
-  mechanic. Both reuse the exact same one-line gap fix: `InstanceManager.
-  build_region` only sets `initial_item_refs` from static content, never
-  instantiates them into live `room.items` for a region built mid-session
-  (only world-bootstrap does that) -- so both create their item via
-  `ItemFactory` and `room.add_item(...)` directly in `HousingManager`,
-  mirroring how it already creates the house key. Room-item persistence
-  needed zero new code: `_serialize_item_reference` already
-  recursively serializes a `Container`'s contents for any room, the same
-  path `item_old_trunk` already proved.
-- [x] **Make per-player housing safe for shared worlds.** The prototype's
-  gap was real at every layer, not just a friendlier refusal for a second
-  buyer: a single fixed region id (a second buy attempt was flatly
-  refused), a key made from `ItemFactory.create_item_from_template` (every
-  copy interchangeable, so any player holding any copy could open the one
-  house that existed), and a literal per-owner destination written onto
-  the *shared* exterior room's `exits["in"]` (only one destination can
-  occupy that dict key at a time). Fixed each: region ids are now derived
-  per-player; keys carry a `target_id` scoping them to one specific
-  house's region id (`Key` -- `engine/items/key.py` -- already had this
-  constructor parameter, just never set to anything); and the shared
-  door is now a single fixed sentinel (`HOUSE_ENTRY_SENTINEL`) that
-  `World.change_room` resolves to *the acting player's own* house at
-  move-time -- the one place in the whole movement system that already
-  has the player in scope, so no new plumbing was needed anywhere else.
-  `InstanceManager.build_region` gained one generic optional parameter
-  (`entry_destination_override`) to support this; `apply_entry_exit`
-  itself needed zero changes, which is also why this survives save/load
-  for free through the exact replay mechanism the original single-house
-  slice built. Found and fixed two real, previously-unexercised bugs
-  along the way: `perform_wander` (`engine/npcs/ai/movement.py`) picked
-  a uniformly random exit with no check that the destination actually
-  existed, so an NPC could randomly select the new sentinel and corrupt
-  its own position -- now excluded, mirroring the existing `instance_`
-  exclusion beside it. And `target_id` (the exact property this whole
-  design leans on) was silently dropped by item-reference serialization
-  (`engine/utils/utils.py::_serialize_item_reference`'s hardcoded
-  "known dynamic props" allowlist never included it, and a second,
-  separate skip-list explicitly excluded it from the generic
-  template-diff capture path too) -- meaning a `target_id`-scoped key
-  would lose its scoping the moment it survived a save/load, for
-  *any* feature using this idiom, not just houses. Also added recovery
-  from a lost/stolen/dropped key: a new `replace house key` command
-  (content-authored `replacement_key_cost`, defaulting to 100) reissues
-  a correctly-scoped key, mirroring `buy_house`'s existing
-  preflight-then-charge-then-issue shape.
-- [x] **Give gathering alternate sources, substitutions, and visible recovery
-  information.** `survey` already showed `charges/max` and a static
-  "recovers in N day(s)" cadence for every renewable node, but never told you
-  *when* a currently-depleted node actually comes back -- that math was
-  inlined in `gather()`'s own depleted message and unused elsewhere.
-  Extracted it into `ResourceNode.recovery_days_left(world)`, shared by both
-  `gather()` and `survey`, so a depleted node now reports real days-left
-  instead of just its cadence. **Alternate sources**: a new
-  `find_alternate_sources(world)` scans all public regions for other nodes
-  yielding the identical `resource_item_id` -- zero new content needed, since
-  the two fishing spots (river/sea) already shared one. **Substitutions**: a
-  new, explicit, optional `substitute_resource_ids` content field (not the
-  existing free-form `resource_tags`, which mixes category and location
-  descriptors with no distinction the engine could safely act on --
-  reusing it would have linked nonsense pairs, e.g. river clay bank and
-  river fishing spot sharing `"river"`). Authored on the one clear,
-  justified pair: the herb bed and berry bramble, both foraging-knife plant
-  gathers already informally linked (the bramble's own `yield_table` already
-  had a chance of bonus herbs). Both cross-references exclude per-player
-  house regions and quest instances (private, not generally-accessible
-  "alternate" locations) and render as an optional appendix -- "Also found
-  at: ..." / "You could gather instead from: ..." -- only when matches
-  exist, on both `gather()`'s depleted message and `survey`'s per-node line.
-  **Partial-harvest recovery** (the "consider whether..." ask): reading
-  `available_charges()` showed a real gap -- a node only ever started its
-  respawn clock when a gather drove `charges` to exactly 0; one left
-  partially harvested (say 4/6) sat frozen forever, worse than full
-  depletion, which at least guarantees eventual recovery. Left the existing,
-  tuned full-depletion-to-max-after-`respawn_days` timing completely
-  unchanged, and added new, purely additive trickle recovery for the
-  previously-dead partial case: each gather that doesn't fully empty a node
-  stamps `last_partial_gather_day`, and `available_charges()` now regenerates
-  `elapsed // respawn_days` charges (capped at max) since that stamp. A
-  lightly-tapped node now slowly heals back toward full instead of staying
-  frozen at a partial count indefinitely. Extended
-  `_validate_resource_node_yields` to validate `substitute_resource_ids`
-  references real item templates, matching the existing `resource_item_id`/
-  `yield_table` checks beside it.
-- [x] **Extend crafting through decisions, not recipe count.** Ingredient
-  selection and previews already existed (`select_recipe_ingredients` already
-  picked the exact highest-quality instances to spend; `quality_preview`/
-  `recipes` already showed the next craft's outcome before spending) --
-  nothing to add there beyond making it reflect the new mechanics below,
-  which it does automatically since both route through the same methods.
-  **Substitutions with trade-offs**: every ingredient was a single fixed
-  `item_id`; added an optional `alternatives: [{item_id, quality_penalty}]`
-  list per ingredient (`Recipe.ingredient_options`). `can_craft`/
-  `select_recipe_ingredients` now accept any authored alternative (primary
-  always preferred when available), and `ingredient_quality_score` docks the
-  authored penalty only when a substitute was actually the one spent --
-  `craft()` itself needed zero changes, since it already threads both
-  methods' results together. Authored on `pack_travel_rations` (wild herbs,
-  or forest berries at a quality cost), deliberately reusing the exact pair
-  the gathering system already established as informal substitutes
-  (`node_herb_bed`/`node_berry_bramble`, see the "alternate sources" entry
-  above) -- crafting now has the same decision at the recipe layer.
-  **Recipe discovery**: every recipe was craftable by every player from the
-  start. Added `Recipe.requires_discovery` (default `False` -- every
-  existing recipe stays known-by-default, zero behavior change, zero test
-  breakage) and a plain `Player.known_recipe_ids` set gating `can_craft`,
-  mirroring the *exact* precedent already in the engine for spells: found
-  `Consumable`'s `effect_type == "learn_spell"` branch calling
-  `player.learn_spell(id)`, and mirrored it line-for-line with a new
-  `"learn_recipe"` effect type and `Player.learn_recipe`. A gated recipe
-  stays entirely hidden from `recipes`/`recipes all` until learned -- no
-  spoiler, no dead "Locked" entry for a recipe the player doesn't know
-  exists. Authored on a new `forge_travelers_hatchet` (anvil, a
-  `item_travelers_hatchet` weapon that doubles as the existing `hand_axe`
-  gathering tool -- "useful tools/travel supplies" that ties back to the
-  wood-gathering system too), taught by a new
-  `item_smithing_pattern_hatchet` scroll sold by Grenda the Blacksmith, who
-  already deals in anvil goods. **Batching**: `craft <recipe_id>` only ever
-  made one item per command; `craft <recipe_id> <count>` (clamped 1-20) now
-  loops, stopping at the first non-success (out of materials/space, or a
-  failed skill check) and reporting how far it got -- simple and never
-  silently loops forever. Content validator
-  (`_validate_crafting_quality_contracts`) extended to check
-  `alternatives[].item_id`/`quality_penalty`, matching the existing
-  `item_id`/`quality_contributes` checks beside it.
-- [ ] Expand fishing through optional location, season, bait, or target-catch
-  choices. Avoid a compulsory reaction minigame.
+- [x] **Introduced `presentation_mode`** (`player`/`test`) — done as part of
+  P0's debug gating. Session field, resolved from an explicit launch flag or
+  session parameter; unrecognised values fail closed.
+- [x] **Added `engine/presentation.py`** as the single place that answers "may
+  this viewer see engine internals?". Resolution order is session -> world ->
+  default, with `test` as the fallback so test worlds, the journey lab, and
+  operator tooling keep today's exact output, while the game entry points
+  default to `player`. Deliberately not under `engine/server/`, whose
+  `__init__` imports the whole runtime and would create an import cycle with
+  `engine/items/resource_node.py`.
+- [x] **Moved board gating behind the mode.** A task behind a trust gate is now
+  simply *not offered* to a player rather than shown as `Trust: 0/10 (locked)`.
+  Because `accept quest <#>` resolves by board position, the handler keeps a
+  per-session displayed-number -> board-index map (fingerprinted against the
+  board contents) so a player's contiguous numbering stays correct and cannot
+  be applied to a board that changed underneath it. Verified end to end: the
+  hidden entries leave no gaps and `accept 1` takes the task shown as #1.
+- [x] **Moved resource-node telemetry behind the mode.** `(5 remaining)` and
+  "(recovers in about N days)" are gone for players; a picked-over patch says
+  so in the world's voice and points at alternatives, which are kept because
+  they are genuinely useful. `survey` likewise drops the `charges/max`, reset
+  timers, and season windows for players.
+- [x] **Moved NPC vitals and difficulty colouring behind the mode.** A player
+  sees "a wolf", or "a wolf (wounded)" when it is hurt — not
+  `(Level 6, 95/95 HP, 40/40 MP)` in a hue keyed to the level gap. Reading a
+  number off a colour is the opposite of the world teaching you what is
+  dangerous. Test mode keeps the full readout.
+- [x] **Moved crafting internals behind the mode.** A player no longer sees
+  `[Locked]`, the `has/req` ingredient counters, the craft counter, or the
+  `material score` formula; they see the materials a recipe needs, the quality
+  it would produce now, and what would raise it.
+- [x] **Content can author both voices.** `presentation.variant()` selects a
+  `player`/`test` sub-key from an authored `text` block, falling back to
+  `default` then any string. Systems with authored strings can now vary their
+  wording per mode rather than the engine hardcoding two versions.
+- [x] **Test-mode output is unchanged.** This was the safety rail for the whole
+  change and it held: `tests/batch` (280) and `tests/current` (3) pass fully,
+  every affected singles suite passes, and the journey lab's `first-hour`
+  policy still reports `passed: true` with no gameplay failures. The failing
+  singles modules are the same six that failed before P1 started — missing
+  `PyYAML`/`msgpack` and the local pygame stub — with **zero** new failures.
+- [x] **Revised `docs/PLAYER_MANUAL.md`.** It no longer claims combat
+  "continues automatically as you exchange blows" (it does not: each `attack`
+  is one exchange and your opponent keeps swinging), no longer documents
+  `Trust: 0/10` gating, and no longer promises charge counts or reset timers
+  from `survey`. Added what is actually true and useful: loot falls on the
+  ground and must be picked up; death is recoverable; the board simply shows
+  less until people trust you; creatures do not display their level.
 
-### Relationships, quests, collecting, and trade
+### Definition of done
 
-- [ ] Deepen a small cast of named NPCs before adding broad generic social
-  content. Each should have discoverable preferences, a personal multi-step
-  situation, remembered dialogue, more than one way to earn trust, and a
-  concrete access/behavior/opportunity change.
-- [ ] Make gifts personal rather than merely valuable: preserve broad gem
-  appreciation, while letting preferences and remembered context distinguish
-  “valuable” from “thoughtful.”
-- [ ] Extend commissions and campaigns with multiple useful resolutions:
-  gathering, craft, combat, payment, exploration, social effort, or a
-  combination where appropriate. Each resolution should leave a visible
-  consequence in the world, access, prices, or dialogue.
-- [ ] Turn the 44-gem ledger into a series of attainable discoveries: regional
-  and family milestones, museum displays, appraisal leads, and specialist
-  commissions. Completion rewards should match the time and rarity involved;
-  the collection itself should create intermediate reasons to continue.
-- [ ] Measure peaceful, combat, trade, and collecting livelihoods over a real
-  session: earnings, travel, consumables, tool costs, gifts/donations, and
-  time to a meaningful purchase. Balance toward viable alternatives, not
-  identical profit rates.
+- [x] No player-mode output contains `(locked)`, `[Locked]`, `remaining)`,
+  `depleted`, `Trust:`, or a bare `?` — asserted directly by
+  `tests/singles/test_presentation_mode_displays.py` (16 tests) and confirmed
+  by side-by-side live renders.
+- [x] Test mode reproduces current output; all previously-passing tests still
+  pass.
+- [x] `docs/PLAYER_MANUAL.md` revised.
 
-### Exploration, combat, and crime
+Regression coverage: `tests/singles/test_presentation_mode_displays.py`
+(16 tests) covers mode resolution, the player-mode-wins tie-break, content
+variants, and end-to-end renders of the board, survey, recipes, and NPC
+display in both modes. `tests/singles/test_presentation_mode_gating.py`
+(8 tests) covers command access.
 
-- [ ] Densify existing regions before creating new ones. Each meaningful
-  exploration cluster should combine a landmark, resource/discovery, person
-  or problem, a response choice, and a return reason.
-- [ ] Give elite encounters and major enemies readable behavioral identities,
-  not only higher statistics: supporters, defenses, warned attacks, retreats
-  toward allies, and non-combat bypasses or resolutions where fitting.
-- [ ] Audit progression pacing against intended play hours. In particular,
-  check whether skill gates such as the two skill-level-20 concealed-pick
-  requirement can be reached by normal play rather than repetitive grinding.
-- [ ] Complete the crime loop before adding more crime actions: localized
-  jurisdiction, clear risk signaling, fines/restitution/recovery, escape
-  options, and consequences that are interesting without blocking ordinary
-  play.
-- [ ] Treat ambient threat awareness and further patrol work as separate,
-  authored experience slices once recovery and local consequences are solid.
+---
 
-### Recently completed: opening-room and test-infrastructure hardening
+## P2: Content neutrality cleanup
 
-- Randomized-name NPCs (ambient wandering villagers) no longer collide within
-  the same room; the factory now prefers an unused first name over the
-  content-authored pool before falling back to a repeat.
-- The "nearby" interaction hint now prefers named/authored NPCs over generic
-  randomized-name filler when picking who gets a "talk" suggestion, so a
-  room full of decorative extras can't crowd out the NPC a new player
-  actually needs to notice (this is how the villager fix above surfaced --
-  the suggestion list is alphabetical among whoever's offered, so it was
-  effectively a coin flip whether Elder Thorne made the cut).
-- The disabled local-LLM integration no longer imports `torch`/`transformers`
-  at module scope, since `AI_AMBIENT_ENABLED` defaults on and every
-  `GameManager` construction (including each of the ~3,500 legacy unit
-  tests) was paying that import cost for a feature that is currently a no-op.
-- Root-caused and fixed a reproducible segfault in the full legacy
-  (`unittest discover`) run: a few UI tests called `pygame.quit()` in
-  `tearDown`, which tears down the process-wide SDL font subsystem and left
-  `engine/ui/panel_content.py`'s module-level font cache holding dangling
-  `Font` objects for the rest of the suite. `GameManager` also now reuses an
-  existing display surface instead of recreating one on every construction.
-  The full suite (3,520 tests) now runs clean in under a minute.
-- `content_set.py`'s ruleset/ambient-loot reference validation no longer
-  crashes with a `KeyError` when a manifest's `ruleset` path entry is itself
-  invalid; it now degrades to reporting that error instead of masking it.
+**Goal:** no content identifiers hardcoded in engine code; every mechanic a
+content set might want to rename is authored.
 
-### Recently completed: collectable gem loop
+**The engine-side leaks are done.** `content_neutrality_validator.py` now reports
+**0 issues against an empty allowlist**, for all three content sets. Every fix
+followed the same shape: author the choice in the ruleset, then fall back to a
+*structural* signal that already exists rather than to another content id.
 
-- Generic collections are now an explicit content capability, with a
-  contract-gated client ledger rather than a fantasy-specific panel.
-- Static collection membership is authored in `collections.json`; item
-  annotations remain available for broader families of collectables.
-- A collection unlocks on discovery, records inventory versus donated items,
-  and accepts turn-ins through any content-authored collector NPC.
-- Content validation catches malformed collection definitions, duplicate
-  members, and missing item templates before runtime.
-- The fantasy slice includes a 44-item gem ledger, a mineable rose-quartz
-  seam, and an end-to-end museum donation route covered by headless tests.
-- The first refinement hook is live: generic `appraise` metadata and a
-  content-authored station/recipe turn a rough specimen into a faceted trade
-  good. Further cutting and socketing can build on this contract.
-- NPC gift preferences can now target generic item tags, with transparent
-  player-facing feedback; refined goods can therefore bridge crafting,
-  collecting, and relationship progression.
-- The first museum commission is relationship-gated and requires a player
-  crafted refined item, closing the loop from discovery through reward.
+- [x] `commands/debug/general.py` — `"knock"` / `"arcane_lock"` replaced by an
+  authored `debug.lock_test_spells` list, falling back to any registered spell
+  whose effects include an `unlock` or `lock` type.
+- [x] `commands/debug_crafting.py` — `"item_anvil"` / `"item_alchemy_kit"`
+  replaced by an authored `debug.spawnable_stations` map, falling back to any
+  item carrying a `crafting_station_type` property (all four stations do).
+  The refusal now names the types the content set actually has.
+- [x] `items/chest_loot_generator.py` — `_CHEST_MATERIALS` and
+  `"item_gold_coin"` replaced by authored `loot.chest_materials` and
+  `loot.currency_item_id`, falling back to any `Container` template and to any
+  item whose `treasure_type` is `coin` (an existing content convention, not a
+  new one). Verified both paths: with config it uses the authored chests, and
+  without it still generates chests. A content set with no coin item now
+  produces no currency slot instead of a broken one.
+- [x] `core/quest_generation/objectives.py` — `"quest_package_generic"`
+  replaced by an authored `quest_generation.delivery_package_item_id`. Unlike
+  the others this has **no fallback**, deliberately: there is no structural
+  signal for "the item you carry on a delivery", so the generator declines
+  rather than guessing. A content set that wants generated delivery quests
+  declares its package.
+- [x] `npcs/npc.py` — `"wandering_villager"` replaced by an authored
+  `properties.ambient_wanderer` flag, set on that template. Behaviour is
+  identical; respawn tests confirm it.
+- [x] `npcs/ai/dispatcher.py` — `behavior_type` documented as a closed set the
+  engine owns and the validator therefore treats as shared vocabulary, alongside
+  factions and damage types. (The full behaviour-type list is still only
+  discoverable by reading the dispatcher; see the open item below.)
+- [x] **The neutrality gate itself**, with an explicit allowlist that is now
+  empty, so any new leak fails the build.
+- [x] `toolkit/reference_integrity_validator.py` — validates `items/sets.json`
+  members and bonus thresholds (this is what found `mage_set`'s two nonexistent
+  members), and no longer crashes on a minimal content set with no
+  `quests/quests.json`.
 
-## Completed vertical slice: Riverlands Craft & Kinship
+### Still open
 
-**Goal:** make gathering, crafting, gifts, and commissions a complete early
-route alongside combat and exploration.
+- [ ] **Consolidate the faction model behind an accessor.** `== "hostile"` is
+  still compared inline in ~25 places across commands, UI, AI, world, and utils.
+  The validator treats faction *values* as shared engine vocabulary, so this is
+  not a leak — but a content set that extends or renames its factions still
+  requires editing many call sites. Introduce something like
+  `world.is_hostile(a, b)`.
+- [ ] **Document the reserved `behavior_type` values.** They are an engine-owned
+  closed set (`aggressive`, `stationary`, `wanderer`, `scheduled`, `patrol`,
+  `healer`, `minion`, …), currently knowable only by reading
+  `npcs/ai/dispatcher.py`. Put them in the content-authoring guidelines so an
+  author knows `healer` is special and a typo means "no AI routine".
+- [ ] **`game_object.py:147`** — `self.__class__.__name__ == "Player"` as a type
+  check. Fragile; use `isinstance`. Not a content leak, hence not blocking.
+- [ ] **Move XP curve constants into the ruleset** (see P4) so pacing is
+  authored, not compiled.
+- [ ] **Replace `data/player/classes.json`.** It authors four classes with
+  distinct stats, gear, and spells and is **unreachable from the server path** —
+  applied only by `engine/core/game_manager.py:255`, the legacy pygame screen.
+  Every server-side character is `Adventurer` with all stats 10. It also holds
+  two of the repo's dangling refs (`smite`, `item_smoke_bomb`). The replacement
+  is decided (backgrounds + skills + titles, P4); this item is about removing
+  the legacy file and its pygame-only wiring rather than leaving dead design in
+  the tree.
 
-- [x] Formalize gathering as a content capability and author real resource
-  nodes in two approachable regions.
-- [x] Add 8-12 recipes spanning utility, equipment, trade goods, and gifts
-  (9 authored: posy, charm, token, bandage, talisman, faceted quartz, iron
-  sword, healing brew, leather cap).
-- [x] Give three NPCs preferences, visible relationship milestones, and
-  small reward or access changes (five NPCs author gift preferences:
-  blacksmith, merchant, healer, alchemist, curator).
-- [x] Add craft/gather/delivery commissions and at least one
-  relationship-gated quest or item (four commissions; the museum showcase
-  is relationship- and craft-gated).
-- [x] Give gems regional sources, appraisal/cutting hooks, and collection
-  value.
-- [x] Expand the journey runner with real (not debug-provisioned) gathering
-  and outcome assertions for each route.
+### Definition of done
 
-## Completed vertical slice: Portbridge comes alive
+- [x] The neutrality validator passes: no engine string literal matches a
+  content id. (`0 issues`, empty allowlist, all three content sets.)
+- [ ] `night_shift` exercises the newly neutralised systems. The renames-everything
+  content set predates this pass and does not yet cover chest generation,
+  delivery quests, or debug stations; worth extending so the next such change is
+  caught by an existing test rather than by the validator alone.
 
-**Goal:** turn a fully-mapped but nearly empty 21-room second town into a
-real, playable place, closing the biggest dormant-content gap found in a
-survey of existing playstyles.
+### Verification
 
-- [x] Populated the harbor/inn/town-center core with named NPCs (a
-  harbourmaster, an innkeeper, a fisherman, a shipwright, three guards --
-  two fixed at the north gate, one on patrol -- and randomized-name
-  dockhands for ambient life), reusing every existing NPC-authoring
-  pattern (vendor `sells_items`/`buys_item_types`, `is_guard`, the guard
-  patrol mechanism) with zero new engine mechanics for placement itself.
-- [x] Gave the previously-decorative smuggler's tunnel real teeth: two
-  tunnel hostiles, and a branching "bust or join the smugglers" campaign
-  (`portbridge_smugglers`) mirroring the existing Bandit Rebellion
-  campaign's exact shape -- a negotiate-or-fight quest stage whose
-  outcome (`PEACEFUL_SUCCESS` vs. `VIOLENT_SUCCESS`) drives the campaign
-  branch, reusing the same objective-type-decides-resolution mechanism.
-  The previously-unclaimed "dubious cargo" loot in the tunnel's
-  underground cache now has real narrative purpose (the join path's
-  delivery quest target).
-- [x] No fence NPC or "this item is stolen" tracking -- explicitly
-  deferred; vendors don't currently know or care whether an item was
-  stolen, and that's a separate design question for later.
+- Content checks: 14 steps pass, including the neutrality gate and the new
+  set-reference check.
+- Full suite: 41 failures, **identical to the pre-P2 baseline**, with zero new
+  failures. `tests/batch` (280) and `tests/current` (3) pass fully.
+- Two regressions were caught and fixed during the pass: three
+  `test_quest_objectives_full` tests broke because their `_FakeWorld` double had
+  no `ruleset_section` (now expresses the authored-package contract), and one
+  `test_debug_crafting_commands` test asserted the old bare refusal string (the
+  message is deliberately richer now).
+- One near-miss worth recording: adding `properties.ambient_wanderer` to
+  `wandering_villager` initially created a **duplicate `properties` key** in the
+  JSON, which `json.load` silently collapses — the original block won and the
+  flag vanished. Caught by explicitly checking for duplicate keys. The content
+  integrity validator does not currently detect duplicate keys; see below.
 
-Found and fixed three real, pre-existing engine gaps while authoring the
-negotiate-driven branch -- none specific to Portbridge, all now benefit
-the existing Bandit Rebellion campaign too:
-- `spawn_on_entry`'s `dialog` override was silently dead: the JSON
-  supports it (and Bandit Rebellion's bandit_leader spawn already
-  authored one), but the engine never read it, so a quest boss always
-  showed its generic combat greeting instead of the negotiation-specific
-  line an author wrote for it. Fixed to merge onto the base template's
-  dialog rather than replace it, so threat/flee lines survive.
-- `talk`'s hostile-faction refusal ("refuses to listen and prepares to
-  attack!") fired unconditionally, with no exception for a spawned quest
-  NPC waiting on a negotiation -- meaning a `"negotiate"` objective
-  targeting any hostile-template NPC (which is all of them, quest bosses
-  are always spawned from combat templates) was **unreachable by a real
-  player** through any phrasing, including the dedicated `negotiate`
-  command. Fixed with a narrow, quest-scoped exception.
-- A successful negotiation's own completion branch never computed or
-  passed a `resolution` to `complete_quest`, silently defaulting to plain
-  `SUCCESS` -- meaning a campaign transition keyed on `PEACEFUL_SUCCESS`
-  could never fire. This is very likely why Bandit Rebellion's own
-  peaceful ending has never actually been reachable in real play. Fixed
-  to compute `PEACEFUL_SUCCESS`/`VIOLENT_SUCCESS` from which choice
-  branch actually completed the quest.
+- [ ] **Consider a duplicate-JSON-key check.** `json.load` silently keeps the
+  last of any duplicated key, which turns an authoring mistake into a silent
+  behaviour change. The near-miss above is exactly that failure mode. A cheap
+  `object_pairs_hook` pass over content files would catch it.
 
-## Completed vertical slice: the smuggler-crew follow-up
+---
 
-**Goal:** the Portbridge smuggling campaign's join path ("You're one of
-them now.") was a dead end with no ongoing payoff, and the busted path
-had no closure with Voss beyond the quest's own reward. This gives both
-endings real weight and answers the fence/stolen-goods question deferred
-when Portbridge shipped -- narrowly, on purpose.
+## P3: Shared name resolution
 
-- [x] The smuggler leader (a permanent, stationary NPC once negotiation
-  succeeds -- nothing in the engine ever despawns a `spawn_on_entry`
-  NPC) is now a repeatable fence: a new `item_contraband_bundle`
-  (worthless to any ordinary vendor) drops from the tunnel's
-  already-respawning `smuggler_thug`s, and she'll buy it via a
-  repeatable vendor buy order for a flat 35 gold, unlocked the moment
-  "Cutting You In" pays out its new relationship reward. No global
-  stolen-item-tracking system was added -- deliberately narrower in
-  scope than that would be; contraband is just an item type no honest
-  merchant wants.
-- [x] Both campaign endings now get a real reaction from Harbourmaster
-  Voss on asking about smuggling again: grateful closure if busted,
-  frustrated dramatic irony if you joined and he never found out.
-- [x] Two small, generically useful engine gaps closed to support this:
-  a new `campaign_outcome` dialogue condition (`knowledge_manager.py`)
-  checks *which* END node a completed campaign reached, not just
-  whether it's completed -- `campaign_state` couldn't do this, and
-  nothing else did either. And vendor `buy_orders` can now carry a
-  `relationship_min` gate, reusing the same mechanism `sells_items`
-  already had; a buy-orders-only vendor no longer gets misreported as
-  "has nothing to sell right now" with the `orders` hint unreachable.
-- [x] **Portbridge tariffs.** All three of Portbridge's honest vendors
-  (innkeeper, fisherman, shipwright) carry a flat 10% penalty on both
-  buying and selling until `portbridge_smugglers` is completed, either
-  ending -- mechanical teeth for Voss's "the tariffs never add up" line,
-  and a felt reward for finishing the questline regardless of which way
-  you resolved it. A new generic `tariff` vendor property (distinct from
-  the existing `economy_impact`, which is a *timed* modifier that
-  expires on its own and so can't be gated on quest state) is evaluated
-  live against the player's `completed_campaigns`, reusing the
-  `campaign_outcome` groundwork above. A `(Portbridge Tariff in
-  Effect!)` banner mirrors the existing discount banner so a worse price
-  is never unexplained. The smuggler leader's fence deal is untouched --
-  her payout is a flat `reward_gold`, a separate code path from ordinary
-  buy/sell pricing, so dealing with a smuggler isn't taxed.
+**Goal:** players type what they see. **Complete for the resolver and all five
+original call sites.**
 
-## Resolved design question: procedural world placement
+`engine/naming.py` now holds one resolver used everywhere. Five ad-hoc matchers
+are gone: `commands/crafting.py`, `commands/interaction/npcs.py`,
+`items/inventory/core.py`, and `world/world.py::find_npc_in_room*` all delegate
+to it.
 
-Raised while scoping place-making: should more of the world be seeded
-procedurally at world-init time (bandit camp locations, mineral vein
-placement, other landmarks), not just the player's home? Resolved: no --
-the static, fully-authored content is the point (it's what "authored
-resource placement rather than generic random abundance," below, already
-commits to), and generating variance from it works against that reason for
-being static in the first place. Bandit camps, mineral veins, and other
-world content stay exactly as authored. Only the player-home placement
-question remains open, and it turned out to need a different mechanism
-entirely (materializing a new, persistent room rather than picking among
-existing authored candidates) -- see place-making below.
+- [x] **One resolver** (`engine/naming.py`) matching display name, id, and
+      authored aliases; scoring so the most specific match wins; resolving the
+      whole input rather than the first token; and reporting ambiguity as a
+      question. Two deliberately distinct entry points: `resolve_one` returns
+      None on a tie (ask the player), `resolve_best` picks one (for commands
+      where refusing is worse). `resolve_exact` adds a strict equality tier for
+      two-phase lookups.
+- [x] **The crafting bug is fixed.** `craft` joined its arguments before
+      searching, so `river clay token` no longer relies on dict ordering and
+      `wildflower posy` no longer fails. Recipes are matched by their **output
+      item's name** as well as the recipe name and id, because the item is what
+      a player knows and the recipe's authored verb ("Tie …") is not.
+- [x] **Authored aliases.** 15 recipes gained an `aliases` list naming what a
+      player would actually ask for — `posy`, `flowers`, `bouquet`, `sword`,
+      `healing potion`, `rations`. Verified: all of those now resolve, including
+      aliases that appear in no name or id.
+- [x] **Alias validation** in the content-set loader: wrong type, blank entry,
+      duplicates, and too-short-to-match aliases are reported, with a negative
+      test confirming the gate fails on a bad alias.
+- [x] **`Recipe.aliases`** added; the resolver reads aliases from
+      `properties.aliases`, `obj_id`, or a plain `.aliases` attribute, so items,
+      NPCs, and recipes all work without special cases.
 
-## Connected progression
+### Two design decisions worth recording
 
-### Exploration and gathering
+**Subsequence ("fuzzy") matching was built, then removed.** It was meant to
+forgive typos, but it resolved the query `chest` to the NPC **"Kaelan the
+Alchemist"** — the letters c-h-e-s-t do appear in order across that name. It
+turned "look in chest" into a conversation with an alchemist, and broke a
+batch loot test. Word-boundary matching already supplies the useful forgiveness
+("elder" finds "Elder Thorne"), so fuzzy matching is gone and the module
+docstring explains why it must not come back by default.
 
-- Regional resource identities, seasonal availability, node quality, rare
-  finds, landmarks, and a discovery journal.
-- Ecological regeneration and authored resource placement rather than generic
-  random abundance.
-- A first generic `survey` command now exposes a node's availability, tool,
-  recovery cadence, and seasonal constraints using the same state as harvest.
-- [x] **Fishing shipped, at zero engine cost.** Four fish-themed rooms
-  across both towns (`fish_stall`/`fishing_hut` in town,
-  `fish_market`/`fishing_pier` in Portbridge) were pure flavor text with
-  no mechanics; two new `ResourceNode` fishing spots (one per town, at
-  the actual gathering room rather than the market) turn them into a
-  real activity using entirely existing gathering machinery -- no new
-  command, no new engine code. The already-authored (but unwired)
-  `item_fishing_net` became the required tool for the first time. Each
-  spot's rare-catch `yield_table` entry gives `item_pearl`/
-  `item_coral_gem` -- both already listed in the 44-item Riverside Gem
-  Ledger collection with **no drop source anywhere in the game** -- their
-  first home, so a lucky catch now surfaces a real, immediate collection
-  discovery. Fenn the Fisherman's existing "if you're fishing yourself"
-  greeting line finally pays off with a dialogue hint pointing at the pier.
-  Caught along the way: an unrelated pre-existing test
-  (`test_batch_enhancements.py::test_pick_door_direction`) patched
-  `SkillSystem.attempt_check`, but `attempt_pick_lock_direction` has
-  called `attempt_check_with_margin` since this session's lockpick
-  durability rework -- a silent no-op that left the test dependent on a
-  real, unseeded dice roll and occasionally failing under full-suite
-  ordering. Fixed to patch the method actually called.
+**Ties break on specificity, not on sort order.** Two guards in the town square
+made `ask Guard job` reach "Guard Captain Elara" rather than the guard actually
+called "Guard". `resolve_best(..., prefer_shortest_name=True)` now prefers the
+candidate the query describes most completely, which is what a person means.
 
-### Crafting and economy
+### Definition of done
 
-- Recipe familiarity, ingredient quality, stations, salvage, and optional
-  masterwork variants.
-- Recipe familiarity is persistent and visible in terminal/client crafting
-  ledgers. Content may author deterministic quality tiers that retain their
-  value and gift provenance.
-- Masterwork tiers are now live on five gift/trade-good recipes (posy, charm,
-  river token, faceted rose quartz, rose quartz talisman), using the existing
-  combined `min_crafts` + `min_material_quality` gate. This is a capability,
-  not yet fully player-validated: the exact-material transaction and
-  multi-ingredient quality contract are P0 work above. Equipment/consumable
-  recipes (sword, cap, bandage, potion) deliberately do not yet have tiers:
-  the current quality system affects value and gift bonus, not combat stats.
-  Giving equipment a meaningful masterwork tier needs a distinct,
-  quality-affects-stats design.
-- Gatherable nodes may also author material quality. Recipes use the limiting
-  score across their required inputs, demonstrated by fine river clay creating
-  a premium token even before repeated practice unlocks later tiers.
-- Resource-node yield entries can now replace the regional baseline with an
-  authored rare material grade. The engine records its neutral grade and
-  source provenance, while Riverside demonstrates a rare pristine foothill
-  rose quartz find alongside ordinary rough specimens.
-- A state-driven opportunity journey now crosses economy, prospecting,
-  appraisal, social access, and a museum craft commission. It is deliberately
-  a content-level policy over neutral runner contracts, providing a useful
-  precursor to later NPC intent selection without coupling NPCs to commands.
-- Crafted equipment, tools, furnishings, gifts, curios, and commission goods.
-- Vendor specialties, buy orders, local needs, and quality/provenance-aware
-  trade—without punitive market simulation.
-- Content-authored vendor buy orders now provide repeatable or one-time
-  delivery outlets with item, quantity, provenance, gold, and relationship
-  terms. The first merchant orders connect river gathering and crafted charms
-  to trade and social progression.
-- Premium orders and commissions can optionally require a minimum material
-  quality score. Riverside keeps its ordinary clay outlet while offering a
-  higher-value fine-token trade order and trust-gated delivery commission.
-- The premium-material route is now an outcome-asserted journey: it validates
-  trust gating, fine gathering, quality-aware crafting, merchant fulfillment,
-  and the separate commissioned delivery in one headless pass.
+- [x] `craft wildflower posy`, `craft posy`, and `craft tie_wildflower_posy` all
+  work — verified live, along with `flowers` (an alias in no name), the recipe
+  display name, mixed case, and messy whitespace.
+- [x] No command resolves an ambiguous input by silently taking the first match.
+  Ties are detectable (`resolve_all`), refusable (`resolve_one`), or explicitly
+  resolved by a caller that has opted into a tie-break.
 
-### Relationships and quests
+### Still open
 
-- NPC preferences, daily gifts, milestones, favors, story arcs, prices,
-  training, access, and rumours.
-- Relationship ledger commands now show known bonds and their next authored
-  milestone, keeping social progression legible without a hidden checklist.
-- Quests that can accept multiple solutions: fighting, gathering, crafting,
-  exploring, social effort, or payment where appropriate.
-- The first reusable alternative-resolution contract is live for quest stages:
-  an authored `objectives_any` list accepts any one valid route. The museum
-  commission demonstrates a player-refined or sourced-specimen resolution.
+- [ ] **`items/container.py`'s key-vs-container fuzzy match** (the one that
+      strips "key" from a key's name to match a strongbox) still uses its own
+      bespoke logic. It is a *property* comparison rather than a player-facing
+      name lookup, so it was left alone rather than forced through the resolver.
+      Worth revisiting if key matching produces a confusing failure.
+- [ ] **Route `take`/`drop`/`use`/`equip`/`buy`/`sell` through the resolver
+      explicitly.** They reach it today via `Inventory.find_item_by_name`,
+      `World.find_item_in_room_for_player`, and `find_npc_in_room_for_player`,
+      which is the intended path — but the commands that build a target phrase
+      themselves should be audited for the same "only the first token" mistake
+      that `craft` had.
 
-### Combat and adventure
+### Verification
 
-- [x] **Meaningful retreat shipped.** Fleeing combat was previously free
-  and guaranteed: any ordinary movement command while `in_combat` walked
-  the player out with no roll, no cost, and no risk
-  (`test_combat_flee_mechanics.py` used to document exactly this).
-  `World._attempt_combat_retreat` now gates every room change while
-  engaged with a live hostile behind a contested `stealth` skill check
-  (difficulty scales off the toughest engaged hostile's level) --
-  reusing the exact skill this session's crime system already added,
-  giving it a second real use. Failure blocks the move outright and
-  costs nothing extra: NPCs already auto-attack every tick while
-  `in_combat` (`engine/npcs/ai/dispatcher.py`), so simply not letting
-  the player leave is the entire "cost," no new combat code needed. A
-  new `flee`/`retreat` command auto-picks an exit (preferring a safe
-  destination, the mirror image of a hostile NPC's own `try_flee`,
-  which prefers *unsafe* ones) and funnels through the identical check
-  -- no second formula. Deliberately does **not** force combat to end on
-  a successful retreat: a hostile left behind keeps remembering the
-  fight, matching existing, intentional aggro-persistence behavior
-  (`test_npc_aggro_persistence.py`), and cleans up its own combat state
-  naturally once it finds no same-room target on its next turn.
-- [x] **Elite encounters shipped, then generalized.** Originally two
-  hand-authored templates (`dire_wolf_alpha`, `troll_elder`); per
-  follow-up request, folded into one generic system instead:
-  `engine/npcs/elite.py`'s `roll_elite_overrides` gives **any** hostile
-  template a content-configured chance (`ruleset.json`'s new `"elites"`
-  section: chance, stat multiplier, loot guarantee/quantity multiplier,
-  a naming prefix pool) to spawn as a boosted, guaranteed-bonus-loot,
-  randomly-named variant -- "Alpha dire wolf," "Dread orc grunt,"
-  "Ancient harpy" all fall out of the same small config block, wired
-  into the ambient `Spawner`'s existing per-region weighted pool with
-  one call site and zero per-species content. `NPCFactory`'s override
-  plumbing needed no changes at all -- `stats`/`attack_power`/`defense`/
-  `loot_table` overrides and the `properties_override` merge (not a
-  destructive replace) already existed exactly as needed. Deliberately
-  scoped to the ambient `Spawner` only, not a global `NPCFactory` hook
-  -- promoting arbitrarily-placed named villagers or quest bosses to
-  "elite" would risk breaking scripted encounters. Found along the way:
-  `troll` itself (already a fully-defined, level-5 template with
-  "regenerative abilities" flavor) was never placed in any static
-  hand-authored region -- only in `dynamic_themes.json`'s
-  procedurally-generated-region pool. It now has a genuine home in the
-  mountains.
-- [x] **Bounties shipped.** Two hand-authored kill quests
-  (`quest_bounty_dire_wolf_alpha`, `quest_bounty_troll_elder`) posted to
-  the quest board via the existing `authored_board_templates` mechanism,
-  turned in to Guard Captain Elara. Retargeted once elites went generic:
-  a bounty now names a base species (`target_template_id: "dire_wolf"`/
-  `"troll"`) plus a new `require_elite` flag on the `kill` objective
-  (`engine/core/quests/tracker.py`, one extra condition on the existing
-  template-id match) rather than a since-deleted fixed template id --
-  "kill an elite dire wolf," not one specific creature. Confirmed the
-  procedural kill-quest generator (`generate_kill_objective`) was
-  already a bounty system in everything but name -- reward scaling
-  already keys off the target's own level -- but these stay
-  hand-authored (like every other named-boss quest) so they can require
-  the elite roll specifically. Because authored board seeding only
-  checks "already on the board," never "already completed," a bounty
-  against a rare elite naturally reposts once cleared -- a real "hunt
-  it down again when it reappears" loop with zero extra code. Found and
-  fixed along the way: two tests (`test_batch_21.py`'s quest-board-overflow
-  test, `test_quest_manager_lifecycle.py`'s board-already-full test)
-  hardcoded the assumption that authored board quests would never
-  outnumber `MAX_QUESTS_ON_BOARD` -- true by coincidence at 4 authored
-  templates, false the moment a 5th and 6th were added, even though the
-  engine has explicitly treated authored quests as cap-exempt since
-  before this session. Fixed both to assert the actual intended
-  invariant (no unbounded/duplicate growth) instead of a stale headcount.
-- [x] **Combat-derived crafting inputs shipped.** `item_wolf_pelt`,
-  `item_wolf_fang`, and `item_troll_hide` were already dropping from
-  existing hostile loot tables with **zero recipes consuming any of
-  them** -- the same "authored but orphaned" shape this session already
-  closed twice (fishing's gem-ledger gap, the smuggler fence's
-  contraband). Three new recipes close it: a wolf pelt cloak, a wolf
-  fang trophy necklace (a new gift-economy curio), and a trollhide vest
-  (the toughest basic body armor in the game). An elite kill now has an
-  immediate, legible crafting payoff on top of gold.
-- Ensure ambient loot selectors distinguish appropriate NPC categories using
-  content-authored tags.
-- Fixed a real bug found while pursuing this: `NPCFactory` only ever read
-  spell lists from `properties.required_spells`/`properties.random_spells`,
-  never from a template's own top-level `usable_spells` field. Five
-  templates author that field directly (`goblin`, `skeleton`, `dark_cultist`,
-  `orc_shaman`, `wraith`), plus the player-summonable `skeletal_mage_minion`
-  -- every one of them has been silently mute (never casting) since spawn.
-  The factory now reads both.
-- `orc_shaman` (found alongside `orc_grunt`/`hobgoblin_soldier` in the
-  mountains region's spawner) now authors `behavior_type: healer` and knows
-  `minor_heal`, so it prioritizes healing a wounded ally over attacking --
-  the engine's existing `healer` behavior applied to a hostile for the first
-  time, giving mountain encounters a real "kill the healer first" dynamic.
-  Verified directly (a wounded orc_grunt gets healed before the shaman
-  attacks) and against the full journey-runner suite across multiple seeds.
-- `scheduled` and `minion` turned out not to be equally cheap next steps:
-  `scheduled` needs a real authored patrol route (multi-room, time-of-day),
-  and there's no existing fixed hostile camp to attach one to without new
-  room content; `minion` is player-summon-only infrastructure (a hostile
-  "summoner" archetype would need engine work, not just authoring, to spawn
-  and own a minion itself). Both remain open for a dedicated slice rather
-  than a quick addition.
-- `retreating_for_mana` is not an authored `behavior_type` choice at all --
-  it's a transient state any NPC with `max_mana > 0` and `usable_spells`
-  already enters automatically mid-combat when low on mana. With the spell
-  wiring fixed above, `dark_cultist`, `orc_shaman`, and `wraith` now get this
-  for free.
+`tests/singles/test_naming_resolver.py` (26 tests) covers normalization,
+scoring bands, whole-input matching, aliases, ambiguity, deterministic tie
+ordering, custom accessors, and the deliberate absence of fuzzy matching.
+`test_crafting_commands.py` gained natural-phrasing and ambiguity coverage.
 
-### Gems, collections, and knowledge
+Full suite after P3: 41 failures, **identical to the pre-P3 baseline**, zero
+new. Batch (280) and current (3) pass fully. Content checks: 14 steps, all pass.
 
-- Gem veins, cutting, appraisal, socketing, gifts, displays, and regional
-  provenance.
-- Bestiary, flora/mineral catalogues, recipes, landmarks, archive donations,
-  and optional collection rewards.
-- Initial attachment support is now generic: authored hosts expose slots and
-  authored tokens expose modifiers; installation, combat/stat effects, save
-  persistence, client inventory presentation, and safe detachment are
-  engine-level. Content validation rejects malformed attachment contracts at
-  load time.
-- A generic discovery journal now records authored, item- or tag-triggered
-  entries across pickup, gathering, and crafting. It is persistent,
-  contract-gated, structured for clients, and validated at content load; the
-  fantasy slice uses it to connect field materials, clay, prospecting, and
-  lapidary work.
+---
 
-### Place-making
+## P4: Progression spine
 
-Grew in conversation into a combined housing/theft/town-security design (a
-home worth having implies things worth stealing, which implies guards and a
-place for them to patrol). Full decision log, engine-fact grounding, and
-open questions: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+**Goal:** make progression authorable, make it work for any playstyle, and
+replace classes with something that fits a hybrid game. Full rationale and
+tables in `WORLD_DESIGN.md` §3.
 
-- [x] **First implementation slice shipped: a persistent, player-owned
-  house.** A property agent (`town:player_house_exterior`, off the
-  Residential Street) sells a house for gold via `buy house`; the door is
-  key-locked to everyone else and survives save/load. This proved the
-  riskiest unproven part of the whole design and fixed a real, pre-existing
-  bug along the way: `InstanceManager`'s quest-dungeon doors were silently
-  losing their wiring on every save/load round trip, because the permanent
-  room they're wired onto is always rebuilt fresh from static content-set
-  JSON before a save is loaded, and nothing replayed the wiring afterward.
-  `InstanceManager.apply_entry_exit` now does, for both quests and houses.
-  Deliberately scoped to exactly one house existing in the world for now
-  (a single fixed offer/region id, one shared key template) -- making
-  houses genuinely per-player is real follow-up work, not an oversight.
-- [x] **Tier 2 shipped: a branching garden/pond expansion.** `expand house
-  <garden|pond>` (same property agent, now doubling as contractor) reflavors
-  the house's interior room and records `house_tier`/`house_branch` on the
-  region, gated on gold plus distinct materials per branch; a new `house`
-  command shows current tier/branch and, near the contractor, the next
-  tier's options. Confirmed content alone can't wire quest completion to an
-  arbitrary side effect like a tier bump -- `_grant_rewards`/
-  `grant_party_rewards` only support `xp`/`gold`/`items`/`relationships` --
-  so this reuses a direct command (mirroring `buy_house`) rather than a
-  quest, the same way `CraftingManager`'s multi-ingredient check/deduct
-  loop was reused for the materials cost. A real, multi-stage delegated
-  commission (contractor sends you to the blacksmith, then the wood shop)
-  remains real follow-up work, not yet built.
-- [x] **Chest loot slice 1 shipped: findable, lockable, randomized-content
-  chests.** Three chest materials drop from five "hoarder" hostiles with
-  contents and lock difficulty generated per-drop (junk/currency/gem/
-  equipment via `weighted_choice`, a new `roll_around` distribution utility
-  for the "usually expected, rarely a big swing" shape, and a recursive
-  per-item value roll on top) -- reusing the existing affix system for
-  equipment and the gathering system's quality-score convention for gems
-  rather than inventing new mechanics. A locksmith opens a chest for a fee;
-  opening/looking-inside/taking already worked with zero new command code.
-  Caught and fixed along the way: dynamic template-pool discovery surfaced
-  test-only debug gear into real loot, now excluded via a `debug_only` flag.
-- [x] **General-store economy overhaul shipped.** Vendors now support a
-  per-vendor `sell_rate_multiplier` (default 0.4 preserved for anyone who
-  doesn't set one), a weight-only price for a still-*locked* container
-  (ignores value/contents, worse than unlocking first), and a universal
-  quest-item sale exclusion. Talia is now the general store: broadest
-  `buys_item_types` of any vendor, worst rate (0.2) of any vendor -- no new
-  NPC. Reconciled two dead, redundant "unique quest item" property flags
-  in content down to one (`quest_item`) while wiring the check up. Nine
-  pre-existing unit tests that used Talia's template as a generic
-  stand-in vendor needed an explicit rate override to keep testing the
-  *default* rate rather than her now-intentionally-different one.
-- [x] **Lockpick durability rework shipped.** `Lockpick` now carries a
-  `durability`/`max_durability` pool that only depletes on a *failed* pick
-  attempt, scaled by how badly the attempt missed (a new
-  `SkillSystem.attempt_check_with_margin`, additive alongside the unchanged
-  `attempt_check`). Lockpicks are no longer stackable (durability requires
-  per-instance uniqueness). A real crude/fine x bronze/steel quality
-  matrix now exists as four new blacksmith-sold templates. Room-exit
-  picking (`World.attempt_pick_lock_direction`), previously a totally
-  separate code path that never touched a `Lockpick` object, now shares
-  the same wear logic as chest-picking. Caught along the way: the old
-  master lockpick's `break_chance` was nested under a `"properties"` block
-  in content and never actually reached the constructor -- a latent,
-  harmless bug now moot since `break_chance` is gone.
-- [x] **Chest traps and disarming shipped -- closes out the chest-locking
-  design.** Chest generation now rolls a trap as a fourth independent
-  draw (kind -- damage or poison, both reusing existing primitives -- plus
-  its own difficulty). Traps are hidden from `examine` (a new, reusable
-  `HIDDEN_EXAMINE_PROPERTIES` opt-out on `Item`). `Container.trigger_trap`
-  is the one place a trap's consequence fires, called from every way a
-  lock can be forced: picking blind (always sets it off, win or lose), a
-  bad-enough `disarm` failure, and a "Knock" spell that turned out to
-  already exist as a live alternative to lockpicking (previously
-  undocumented, and a free trap-bypass until now). A new `disarm` command
-  reuses the lockpicking skill exactly as designed -- a narrow miss is
-  safe and retryable, a bad one sets the trap off -- and paying the
-  locksmith safely defuses any trap at no risk, real extra value over DIY
-  picking. Keys stay out of the normal loop, reserved for one-off
-  quest/exploration treasure. Deliberately not built: a trap that
-  permanently ruins the lock -- a real idea, but what happens to that
-  chest afterward needs more thought first (open question in the design
-  doc). Full detail:
-  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
-- [x] **Crime and notoriety system shipped.** A `steal` command covers
-  both robbing a vendor's shop stock and burgling an NPC's home, either
-  way resolved by one perception-vs-stealth witness roll against NPCs
-  actually present (a new `stealth` skill; NPC "perception" is a derived
-  difficulty, not a tracked skill, with a `is_guard` bonus for
-  `town_guard`/`guard_captain`). Getting caught is multi-factor (this
-  theft's value, running total stolen, `"town_guard"` notoriety in the
-  existing `reputation` dict) deciding fine vs. jail. Jailing strips the
-  full backpack, held until release; crossing a stealth+lockpicking
-  bottleneck exempts or freshly issues one escape lockpick, so an attempt
-  is always available once earned. Escape reuses the existing
-  `pick <direction>` mechanism with zero new command -- a success forfeits
-  confiscated items (a new asymmetry vs. waiting out the sentence, which
-  returns everything), a severe-enough failure extends the sentence. One
-  home (Mira the Weaver's cottage, reusing a previously-decorative,
-  unused room) and one lazily-loot-generated furniture container were
-  authored as the concrete first burglary case. Deliberately out of scope:
-  the ambient multi-room threat-detection system from the original
-  brainstorm (a separate exploration-awareness feature, not a crime
-  prerequisite) and guard patrol AI (guards remain stationary). Full
-  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
-- [x] **Guard patrol AI shipped.** Turned out to be almost entirely a
-  content task -- a `"patrol"` NPC behavior already existed end-to-end in
-  the engine (dispatcher routing, pathfinding movement, three pre-existing
-  unit tests) but no content had ever used it. All four `town_guard`
-  instances now walk short, overlapping routes hubbed at `town_square`
-  (route shape was explicitly left "iterate on it"); both Guard Captains
-  stay stationary at their posts. One small engine addition: per-NPC-
-  placement route overrides, extending an existing room-level NPC-override
-  allow-list that already supported per-instance `behavior_type`. Full
-  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
-- [x] **Residential district shipped -- closes the original housing/theft/
-  guards/district trio.** Needed zero new engine mechanics: a "gate" is
-  just an exit keyed `in`/`out` instead of a compass direction (already
-  fully registered movement verbs), and a district is a plain
-  `{"name", "rooms"}` entry in a new `districts` key on a region's
-  existing, schema-free `properties` dict. The existing residential
-  street (plus Mira the Weaver's home from the crime slice) became the
-  first district; its old compass-direction link to the rest of town was
-  changed outright to a non-directional gate, per the design's explicit
-  "not a compass direction." One new `World.get_district` lookup powers
-  the entire player-visible effect: the room header names the district
-  when you're in one. No mechanical behavior yet -- deliberately, per
-  design -- but the registry shape leaves room for future patrol routes
-  or encounter posture to attach to a district without re-tagging every
-  room in it. Full detail:
-  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
-- Still to build: further house tiers beyond 2 (a Manor-level tier, and
-  whether a later tier lets a player pick up the branch they didn't
-  originally choose); the ambient perception/threat-detection system.
+**Decided:** progression is **hybrid** — XP flows from any recognised activity,
+so no single profession carries the game and no content silo has to stand
+alone. Exploration is one source among several.
 
-- A modest player home, camp, or workshop: storage, displays, workstations,
-  gardens, trophies, and furnishings.
-- It should strengthen many playstyles without becoming required progression.
+- [ ] **Change the XP curve from ×1.5 to ×1.25** (configurable, ruleset-driven).
+  Still load-bearing even under the hybrid model: Ring 3 (L11–15) needs ~11
+  regions at ×1.25 versus ~97 at ×1.5.
+- [ ] **Add activity XP** from an authored ledger. Generalise the existing
+  `DiscoveryManager` from "notable things found" into the advancement record.
+  Grant, first time only, for: region first-entry · landmark room · creature
+  template encountered · material/item/gem obtained · recipe learned · spell
+  learned · named NPC met · relationship tier crossed · quest completed ·
+  collection set completed. Values content-authored, not implied.
+- [ ] **Set the per-grant values.** `WORLD_DESIGN.md` §3.2 uses placeholders
+  (region 120, discovery 15, quest 60, craft 25, tier 40, set 150) and needs
+  tuning against real play.
+- [ ] **Decide diminishing returns** for repeat kills and repeat gathers, and
+  implement it.
+- [ ] **Keep the multiplier tunable.** ×1.25 is a starting value, not a
+  decision. The ruleset value must be easy to vary during testing so pacing can
+  be explored as systems land. Do not chase the long tail — a completionist
+  plateaus around level 26 in a large world, and that is intended.
+- [ ] **Replace `classes.json` with backgrounds.** A light creation-time choice:
+  starting stats, gear, a couple of skills, maybe a recipe or discovery. It
+  decides where you begin, not what you can become. Removes the dangling
+  `smite` / `item_smoke_bomb` refs with it.
+- [ ] **Wire skills to use.** `add_skill` is called only from tests, so `skills`
+  always reports "no specialized skills yet" — while `retreat` performs a
+  stealth check against a skill no player can ever raise. Wire gain via the
+  existing `SkillSystem`, or remove the check.
+- [ ] **Add earned titles.** Authored id, display name, and conditions; conferred
+  by guild-like constructs that take profession-appropriate names per content
+  set. Titles are self-applied, mechanically inert, and revocable if the
+  conditions stop holding. Reuses machinery that already exists: spells known,
+  faction reputation, relationship tiers, the discovery ledger.
+- [ ] **Build one shared condition evaluator** serving dialogue choice
+  conditions (P5), title gates, and quest availability. Build it once.
+- [ ] **Add a `title` command** to list earned titles and set the active one.
+- [ ] **Confirm level-ups stay automatic.** Decided: no per-level choice —
+  identity comes from backgrounds, skills, and titles. Revisit only if
+  playtesting says levelling feels empty.
 
-## Quality bar and playtesting
+### Definition of done
 
-- Unit and contract tests for engine behavior; content validation for authored
-  references and capabilities; headless client smoke tests.
-- Journey runner policies for explorer, combat/quest, gather/craft, social,
-  and economy routes; multi-agent shared-world runs for interaction coverage.
-- Persist traces, replay and minimize failures, and distinguish player-visible
-  dead ends from invariant or protocol failures.
-- Maintain headless defaults for bulk test runs.
-- [x] **Redefine passing playtests around progress.** Solo outcome checks
-  and "repeated failed commands" (the stall detector) already shipped in
-  earlier slices. Two real gaps remained, both closed:
-  - **The classifier was missing exactly the three named patterns.**
-    `_GAMEPLAY_FAILURE_PATTERN` (`journey_runner.py`) had no match for a
-    locked exit/container, a depleted resource node, or a missing
-    crafting ingredient -- all three previously passed through as
-    ordinary, non-failure text with zero effect on `gameplay_failure_count`
-    or stall detection. Added narrow phrase matches (`is locked`,
-    `has been depleted`, `missing ingredient`) rather than the bare words,
-    since each bare word also appears in genuinely informational,
-    non-failure text: a container's `examine` status line ("It's locked.",
-    a `[Locked]` tag), the quest-trust display's `"(locked)"` annotation,
-    and the `survey` command's bare `"(depleted)"` status tag for any
-    exhausted node in view. Verified both the true positives and these
-    specific false-positive candidates with dedicated unit tests.
-  - **Multi-agent reports had zero outcome-check support.**
-    `MultiJourneyRunner` only ever computed invariant and stall errors;
-    `JourneyRunner`'s `outcome_checks` had no multi-agent equivalent at
-    all. Added `outcome_checks_factory`/`agent_outcome_check_factories`,
-    mirroring the existing `policy_factory`/`agent_policy_factories`
-    two-tier shape exactly, plus a new `outcome_errors` field on
-    `MultiJourneyReport` that gates `passed`, each message prefixed by
-    agent id like the stall detector already does. `run_playtest_lab.py`'s
-    multi-agent branch now selects per-agent outcome checks by policy name,
-    reusing the same four `fantasy_frontier_*_outcome_checks` functions the
-    solo branch already used.
-  This immediately paid off: running two `opportunity`-policy agents in one
-  shared world (previously invisible to any outcome check) now correctly
-  reports both agents failing their museum-commission and curator-access
-  goals, because they contend for the same single-instance rose quartz
-  seam and the second agent's fixed script has no way to notice or adapt.
-  Real evidence for the not-yet-started "Strengthen shared-world
-  playtesting" item below, not something fixed here.
-  Deliberately not attempted: "prolonged lack of location/goal progress"
-  and "an abandoned route with no alternate plan." Both describe a
-  fuzzier condition than either fix above -- a policy could issue
-  successful-looking commands (`look`, `wait`) forever without advancing
-  any goal, which neither a failure-keyed stall detector nor a
-  final-state-keyed outcome check can catch. That needs its own
-  progress-over-a-window instrumentation and is a meaningfully larger,
-  separate feature.
-- [x] **Separate simulated and real time.** `TimeManager` already advanced
-  the game calendar purely from a caller-supplied `dt`, but every absolute
-  cooldown/expiry timestamp (combat and spell cooldowns, NPC move and
-  respawn timers, jail sentences, DOT/buff ticks, summon expiry) called
-  `time.time()` directly, so a fast headless journey's world-tick gate
-  (`World.update()`'s own 0.5s `WORLD_UPDATE_INTERVAL` check) rarely
-  actually fired within the real milliseconds a test takes to run --
-  freezing NPC movement, spawns, and cooldowns in place regardless of how
-  much simulated time the calendar reported passing. `journey_runner.py`
-  even carried a documented workaround
-  (`SimulatedCombatCadenceHook`) solely to force combat cooldowns to
-  clear. New `engine/core/clock.py` (`Clock` protocol, `WallClock`,
-  `SimulatedClock`) is now the single source `World` and every one of
-  those call sites reads via `world.clock.now()`; `WallClock` is
-  byte-identical to the old `time.time()` behavior (the default for the
-  live server and desktop client -- zero behavior change there), while
-  `HeadlessServer` backs deterministic-test-mode sessions with a
-  `SimulatedClock` that `tick()` advances by each step's `dt` in lockstep
-  with the calendar. The workaround hook is gone -- attacks now clear
-  their real cooldown from simulated time alone. Fixing this surfaced a
-  second, previously invisible bug it depended on: `village_elder`'s
-  town-square placement had no explicit `instance_id`, so a random
-  per-boot UUID suffix fed into the (deterministic) formula that phases
-  NPC movement cooldowns, meaning Elder Thorne's *authored* daily
-  schedule (a generic ambient-life system matching any "elder"-keyword
-  template, previously never live long enough to matter) now
-  nondeterministically walked him away from his post mid-journey. Fixed
-  with a stable authored `instance_id` plus adding him to the schedule
-  system's existing `excluded_name_keywords` exclusion (the same
-  mechanism already keeping guards at their posts) -- a quest-critical
-  named NPC shouldn't wander off on a generic ambient routine. Full
-  regression suite (3,759 tests) and every journey-lab policy, including
-  a two-agent shared-world run, verified stable across repeated runs.
-- [ ] **Strengthen shared-world playtesting.** Give every agent a goal and
-  evaluate resource contention, alternate recovery routes, party/reconnect
-  behavior, housing/access, shared doors, and transactions while another
-  player changes the same world. A run with gameplay failures must not be
-  summarized as a clean pass merely because no invariant failed.
-  "Give every agent a goal" now has the mechanism (`MultiJourneyRunner`'s
-  per-agent outcome checks, above) and one real contention finding to
-  start from; still needed: alternate recovery routes, party/reconnect,
-  housing/access, shared doors, and transaction interference specifically.
-- [x] **Add route-disruption tests.** "Remove a tool" already had journey
-  coverage (`FantasyFrontierPremiumMaterialPolicy`'s dropped-foraging-knife
-  beat). New `FantasyFrontierResilienceRoutePolicy`
-  (`server/tests/journey_runner.py`, `--policy resilience`) covers the
-  other five: fills the inventory to its slot cap and recovers by dropping
-  and retaking; gets refused buying relationship-gated vendor stock and
-  recovers by buying an unrestricted alternative; gathers a resource node
-  to exhaustion and gets its own recovery-window message; is jailed (via a
-  new deterministic `JailFault` hook that bypasses the theft witness roll
-  entirely) and released purely by the shared clock advancing -- the first
-  real proof the clock work above actually holds end-to-end; dies via the
-  `sethealth` debug command and recovers via `respawn`; and gathers a
-  single ingredient with unrelated commands interleaved between the two
-  pickups, proving a craft resolves by template id rather than pickup
-  order or slot adjacency. Each disruption's outcome check asserts both
-  the refusal text and the subsequent recovery.
-- [ ] **Run coached and uncoached human sessions.** Observe at least a maker,
-  explorer/collector, social player, and adventurer. Record where a player’s
-  intention fails to become an action, not just crashes or rules violations.
-- [ ] **Track player validation separately from implementation.** Every
-  feature should record: engine contract verified, authored content available,
-  automated player journey demonstrated, and human playtest completed. A
-  checked implementation box alone is not evidence of satisfying play.
-- No test may call `pygame.quit()`: it tears down the process-wide SDL font
-  subsystem for every other test in the same run, not just the one that
-  called it (see the segfault fix above). `pygame.init()` is idempotent and
-  safe to leave initialized for the life of the process.
-- [x] **Generic text-rendering validation shipped** -- see the Content
-  authoring section below for full detail.
-- `engine/server/headless_server.py` has grown into a single ~3,600-line,
+- A pacifist, a merchant, and a monster-hunter can each advance steadily by
+  different routes in a designed world.
+- No skill check exists against a skill that cannot be raised.
+- A player can earn and wear a title that reflects what they actually did.
+- Curve, grant values, and per-grant tuning are authored content, not engine
+  constants, and the multiplier can be varied without a code change.
+
+---
+
+## P5: Dialogue system
+
+**Goal:** conversations, and the delivery mechanism for quests, recipes, and
+directions. Requirements in `WORLD_DESIGN.md` §5.
+
+Current state: `data/dialogue/` is **never loaded**. The content loader globs
+`regions/ npcs/ items/ crafting/` and nothing else, so the only branching
+conversation in the game (`blacksmith.json`, 3 nodes, 6 choices) is dead code —
+and it is also broken, referencing `item_iron_ore` and quest `iron_shortage`,
+neither of which exists. What actually works is a flat `dialog`
+keyword→line dict: 124 lines across 36 of 62 NPCs, and 26 NPCs with nothing
+beyond a `default_dialog` one-liner.
+
+- [ ] **Load and validate `data/dialogue/`** with a documented graph schema;
+  NPC templates reference a graph id.
+- [ ] **Conditions** on choices: has item, has discovery, relationship tier,
+  quest state, class, level, time of day, region visited, reputation.
+- [ ] **Effects** on choices: start/advance/complete quest, **grant recipe**,
+  grant discovery, teach spell, give/take item, adjust relationship, reveal
+  exit, move NPC, set flag.
+- [ ] **Mode-aware text** so test mode can display conditions and effects.
+- [ ] **Fail loudly at validation time** on a missing graph, dangling condition
+  target, or unknown effect — never a player-visible crash or a `?`.
+- [ ] **Absorb the existing quest-negotiation dialogue path**
+  (`commands/interaction/npcs.py`) rather than sitting beside it.
+- [ ] **Keep the flat keyword dict** for minor NPCs; it is a good lightweight
+  option.
+
+### Definition of done
+
+- An NPC can teach a recipe and explain where to use it, entirely from content.
+- Removing a dialogue file or referencing a missing one fails content
+  validation, not the game.
+
+---
+
+## P6: Quest flow and scaling
+
+**Goal:** quests are given by people, teach the player what to do, and the
+system scales to a world with many towns.
+
+Full target flow in `WORLD_DESIGN.md` §6. Today the flow is inverted: the
+player already knows the recipe before anyone teaches it, and the journal shows
+`?` instead of the authored instruction.
+
+- [ ] **Reorder the commission flow:** accept on the board → **talk to the
+  giver** → they explain the need, **grant the recipe**, and say where the
+  materials are → gather → craft → return. This depends on P5 (dialogue
+  effects).
+- [ ] **Render authored stage prose** in the journal instead of template
+  fallbacks.
+- [ ] **Support repeatable quests** with diegetic rate limiting (the giver is
+  busy, the board is picked over) rather than a visible cooldown.
+- [ ] **Add objective types:** escort, defend/hold, timed, puzzle/mechanism,
+  explore-region, discover-N, craft-to-quality, deliver-to-multiple,
+  gather-N-types, social (raise relationship), trade (fulfil N orders),
+  theft/smuggling. Today: 8 deliver, 6 kill, 2 negotiate, 2 scout, 1 fetch.
+- [ ] **Extend instanced quests.** The system already works
+  (`instance_generic_infestation`: worried homeowner → clear rats → relieved
+  homeowner, with a dynamically generated 2–4 room interior) and matches the
+  "rats invade a house in town, house is generated and destroyed on completion"
+  design exactly. Extend to variable layout templates, boss rooms, level
+  scaling, multiple entry towns, and instanced dungeons as well as interiors.
+- [ ] **Surface `bandit_rebellion` through normal play.** A complete campaign
+  (4 nodes, two endings: peace and war) with a properly hinted quest exists and
+  is currently reachable only via `campaign start` — a **debug**-category
+  command. This is the cheapest narrative win available.
+
+### Definition of done
+
+- A new player's first commission teaches them a recipe through a person.
+- Repeatable tasks exist and do not feel like a machine.
+- At least three non-combat objective types are live.
+
+---
+
+## P7: World expansion
+
+**Goal:** build the world described in `WORLD_DESIGN.md` §4 — concentric
+difficulty rings anchored by 4–5 towns.
+
+This is where the bulk of the work goes once P0–P6 have made it safe to add
+content. Sizing from the hybrid advancement model (`WORLD_DESIGN.md` §3.2), at
+×1.25 with a balanced source mix:
+
+| Ring | Levels | Regions | Discoveries | Quests | Recipes |
+|---|---|---|---|---|---|
+| 1 (starter town) | 1–5 | 1–3 | ~10 | ~2 | ~2 |
+| 2 | 6–10 | 4–6 | ~29 | ~6 | ~7 |
+| 3 | 11–15 | 11–13 | ~88 | ~18 | ~21 |
+
+No single column has to be complete for the ring to work — that is the point of
+the hybrid. Author in whatever order the world wants; a region that arrives
+late still pays.
+
+- [ ] **Pick and specify the towns** (open decision 10). Tiered with soft
+  gating (decided). Candidate identities: the starter village (neutral, mixed
+  economy), the existing seaside town (trade/tariffs/smuggling), a mountain
+  town (mining/smithing), a desert town (caravan trade/water scarcity), and a
+  large prosperous city (crafting guilds, museum, auction).
+- [ ] **Attach level bands to regions as authored data**, not derived from
+  distance-to-starter-town, so a future player-chosen starting town stays a
+  content change rather than an engine change.
+- [ ] **Build biome and region-type palette into content templates** so new
+  regions are cheap to author. Palette list in `WORLD_DESIGN.md` §4.3.
+- [ ] **Underground layer:** sewers, catacombs, mines, natural caverns,
+  undercities, subterranean water.
+- [ ] **Crude monster settlements:** kobold warrens, goblin camps, lizardfolk
+  villages, bandit camps.
+- [ ] **Build guild-like constructs** — the places and factions that confer
+  titles (P4). Content-authored names per profession.
+- [ ] **Densify `gathering`.** There are **9 resource nodes and each is placed
+  exactly once in the entire world** — one herb bed, one clay bank, one rose
+  quartz seam. Separately, **every `required_tool` is null**, so the four
+  gathering tools vendors sell do nothing. Either add many more nodes and give
+  tools a purpose, or remove tool requirements honestly.
+- [ ] **Expand the itemisation ladder.** Today: 14 weapons spanning damage 3→8;
+  16 armour pieces across 7 slots, with **zero** neck items and exactly one
+  each for head/hands/feet. 12 prefixes / 11 suffixes, one gated at level 10
+  and therefore unreachable. Target: gear tiers that track the rings, weapon
+  *types* with distinct behaviours, armour *types* with distinct tradeoffs
+  (light/medium/heavy), and enough affix variety that generated items are
+  worth comparing.
+- [ ] **Give crafted items reasons to exist** beyond "more content" — the
+  audit's core complaint. Consumables are currently 24 entries of which 15 are
+  `{uses, effect_value, heal}` food. No buff, resistance, antidote, or
+  throwable entries exist.
+- [ ] **Exercise the hazard system.** 6 hazard types are authored with flavour
+  text and resistances; **exactly one room in the world uses one**. A volcanic
+  ring should be hot, a glacial ring cold, catacombs should have bad air.
+- [ ] **Extend weather** so it varies meaningfully by region and interacts with
+  hazards, travel, and gathering.
+- [ ] **Make exploration pay on its own** — discovery XP, discoveries/knowledge
+  entries, landmark rooms, rare sites. A player who walks 40 rooms and kills
+  nothing should still gain.
+- [ ] **Resolve the density contradiction.** The previous roadmap carried an
+  unchecked item: *"Densify existing regions before creating new ones."* The
+  new design commitment says sparse rooms are correct and the fix for "empty"
+  is better prose and more landmarks, not more objects. **Delete or rewrite
+  that item** — do not leave both standing.
+
+### Definition of done
+
+- A player can progress from level 1 to 15 by exploring a designed world
+  without repeating content.
+- No ring is reachable "early" in a way that trivialises it, or late in a way
+  that makes it pointless.
+- Every hazard type is used by at least one region.
+- A new region can be authored from templates without engine changes.
+
+---
+
+## P8: Engine health
+
+Deliberately after P0–P4, because these are refactors and the repair phase is
+more urgent.
+
+- [ ] **Split `engine/server/headless_server.py`.** One ~3,374-line,
   ~140-method class covering session lifecycle, TCP/WS/msgpack framing,
-  capability negotiation, the operator catalog, and world-effects policy.
-  It still works, but it's the file most likely to become hard to safely
-  review or extend; worth splitting along those seams before it grows much
-  further.
-
-## Content authoring, client, and maintenance
-
+  capability negotiation, the operator catalog, and world-effects policy. The
+  roadmap itself has flagged this for a while; it is now the main obstacle to
+  adding protocol surface for new systems.
+- [ ] **Split `client/scripts/ui/main_controller.gd`** (2,993 lines).
+- [ ] **Break the pygame dependency for headless runs.**
+  `engine/utils/text_formatter.py:3` does `import pygame` at module scope and is
+  imported transitively by `container.py` → `item_factory.py` →
+  `crafting_manager.py` → `headless_server.py`. Consequence: the content-set
+  validator cannot start without the client rendering library, and the command
+  registry silently fails to load `inventory`, `locksmithing`, `magic`,
+  `mercantile`, and `quest`. The only pygame uses in that file are four type
+  annotations. A `TYPE_CHECKING` guard fixes it.
+- [ ] **Make the dependency stack installable.** `torch`/`transformers` are
+  unconditional because `engine/ai/ai_manager.py` imports `LLMInterface` at
+  module scope — a ~1GB ML stack is a hard requirement to import
+  `engine.world.world`, for a feature that is off by default. `requirements.txt`
+  documents this itself. Add a venv/lockfile story; there are no pinned
+  versions, and on Python 3.14 `pygame` has no wheel.
 - [ ] **Make the normal client a player experience.** Separate player-facing
   panels and contextual actions from server/profile/authoring/operator
-  controls. Surface expected craft quality, qualifying delivery items,
-  resource leads, locked-content reasons, and recovery actions without
-  exposing internal schema language.
-- [x] **Add generic text rendering validation.** Investigating this found
-  the bug class was worse than the roadmap's own illustrative example:
-  - **`NPC.talk()` only ever calls `.format()` on the `default_dialog`
-    fallback** -- every other `dialog` key (`greeting`, `threat`, `flee`,
-    any custom topic) was returned completely verbatim. `hostiles.json`
-    authored `{name}` inside `greeting`/`threat`/`flee` for all seven
-    hostile templates (wolf, giant rat, bandit, both smuggler templates,
-    troll, giant spider); fixed by writing the creature name directly into
-    each line instead. Currently latent rather than reachable through
-    ordinary play (`talk` refuses hostile-faction NPCs before reaching
-    `.talk()`, and `threat`/`flee` are read nowhere at all today), but a
-    real content-authoring mistake the very next dialogue feature to read
-    one of these fields would have shipped straight to players.
-  - **"Deliver the delivery" was real and live**, not hypothetical:
-    `quest_wildflower_commission` -- one of the earliest quests a new
-    player sees -- authors `recipient_name` but not `item_to_deliver_name`,
-    and the Journal/board-listing code fell back to the literal noun "the
-    delivery" (or a raw `item_template_id`) when that field was absent.
-    Fixed at the source in both `headless_server.py`'s objective-payload
-    builder and `commands/quest.py`'s board-listing line: derive a real
-    display name from the item's own template via `ItemFactory.get_template`
-    (the same pattern `crafting_manager.py`'s missing-ingredient message
-    already used) instead of requiring every author to duplicate the name.
-  - **Building the validator caught a genuine crash bug**, not just
-    cosmetic text: `immolate`'s `cast_message` referenced `{target_name}`,
-    but `Spell.format_cast_message` only ever supplies `caster_name`/
-    `spell_name` and neither call site (`npcs/combat.py`, `player/magic.py`)
-    catches the resulting exception -- any player who learned Immolate
-    (level-4 gate, no other prerequisite) and cast it would have hit an
-    unhandled `KeyError`. Fixed the content; added a standing regression
-    test that renders every registered spell's `cast_message` against the
-    engine's real supplied keys, not just this one spell.
-  - New `toolkit/template_placeholder_validator.py` (mirrors
-    `reference_integrity_validator.py`'s conventions) checks three
-    categories against a content-set root: dialog fields the engine never
-    formats must contain no `{placeholder}`; fields with a fixed, known
-    substitution key set (spell messages, procedural item names, affix
-    name patterns, `default_dialog`/`trade`/`greeting_extended`) must
-    format cleanly against those exact keys; and quest procedural text
-    templates (engine defaults plus any content-set
-    `quest_generation.text_templates` override) must resolve against
-    `format_quest_text`'s real key set. All three content sets
-    (fantasy_frontier, modern_capsule, night_shift) pass with zero issues.
-  - Deliberately out of scope: campaign/saga stage `description` templates
-    that draw on a dynamically-accumulated `saga_context` (validating
-    those correctly means replicating that generator's stateful,
-    order-dependent control flow outside of it -- a meaningfully larger
-    undertaking) and procedural region `dynamic_themes.json` templates
-    (flavor-only, procedurally generated, lowest value of everything
-    found). Detecting *semantic* "schema-flavored prose" in general
-    (beyond the one concrete tautology fixed above) was also deliberately
-    not attempted -- there's no reliable syntactic signal for it short of
-    a brittle, low-confidence phrase blocklist.
-- [ ] **Unify the editor path with content-set contracts.** The Godot world
-  editor still targets older unpackaged data conventions. Deliver a canonical
-  export, validator preflight, profile-aware linting, and a launchable
-  validate → run → test workflow before broadening authoring tools or adding
-  live collaboration.
-- [ ] **Keep the roadmap honest and usable.** Reconcile stale documentation,
-  counts, and implementation claims as systems change. Record whether a
-  feature is a proven engine mechanism, a thin authored example, or a
-  player-validated loop.
+  controls. (Unchanged from before; still true.)
+- [ ] **Strengthen shared-world playtesting** — per-agent goals, contention,
+  party/reconnect, housing/access, shared doors, transactions.
+- [ ] **Run coached and uncoached human sessions** across maker, explorer,
+  social, and adventurer playstyles.
+- [ ] **Track player validation separately from implementation.** Every feature
+  records: engine contract verified, authored content available, automated
+  journey demonstrated, human playtest completed. A checked box is not evidence
+  of satisfying play.
+- [ ] **Unify the editor path with content-set contracts.** The Godot editor
+  targets older unpacked conventions; `mud-world-editor/data` is a stale fork
+  missing `casino.json`, `interactive.json`, `materials.json`, `resources.json`,
+  `sets.json`, `affixes.json`, `collections.json`, `discoveries.json`,
+  `campaigns/`, and much of `magic/`.
+
+---
 
 ## Deliberately later
 
 - Advanced NPC use of playtester policies.
 - Large-scale economy simulation or mandatory player trading.
-- Decorative/deep housing tiers beyond a useful personal storage and one
-  functional branch, until the core loops and their first-hour guidance are
-  proven.
+- Housing tiers beyond a useful personal storage and one functional branch.
+- Planar / cross-world content.
+- Anything requiring production auth, billing, or live-service operations —
+  the operator/authoring/entitlement layer already exists and has no audience
+  yet. Do not extend it while the player path is the constraint.
+
+---
+
+## Decisions
+
+### Settled
+
+- **Progression is hybrid.** XP from any recognised activity; no single
+  profession carries the game. Discovery is one source among several.
+- **No level cap.** The exponential curve is the brake — levels stay available
+  and simply become very slow past the content's band.
+- **No level-up choices.** Automatic stat growth. Identity comes from
+  backgrounds, skills, and earned titles instead.
+- **Classes are replaced** by backgrounds + use-based skills + earned, gated,
+  self-applied titles, conferred by guild-like constructs.
+- **Curve ×1.25 as a starting value, explicitly tunable** — not frozen. Build
+  the ledger and content, then tune against play.
+- **Tiered towns with soft gating.** Rings gated by danger alone. Player-chosen
+  starting towns earmarked for later and not precluded by the design.
+- **Extend `fantasy_frontier`**, not a new content set.
+- **Distance is difficulty.** No hard level doors or invisible walls.
+
+### Still open
+
+1. **Final curve multiplier** — ×1.25 to start; revisit with real play data.
+2. **Per-grant XP values** and the shape of diminishing returns. *(blocks P4)*
+3. **Test mode surface** — launch flag, per-session, or both? *(blocks P1)*
+4. **Which 4–5 towns**, and each one's economy focal point and personality?
+   *(blocks P7)*
+5. **Guild model** — how many, how joined, may a player hold titles from
+   several, do guilds have halls? *(blocks P4/P7)*
+6. **Condition language** — the shared evaluator serving dialogue, titles, and
+   quest availability needs a schema. *(blocks P4/P5)*
+
+---
+
+## Audit findings reference
+
+Recorded here so they are not lost when the detail scrolls off.
+
+### Verified defects
+
+| Finding | Evidence |
+|---|---|
+| Death crash on NPC killing blow | `npcs/combat.py:201`; full traceback reproduced |
+| Journal shows literal `?` | `commands/quest.py:309`; live output |
+| Loot invisible after kills | live output; inventory unchanged |
+| 5 rooms unreachable incl. campaign giver | BFS over 206 rooms from `town:town_square` |
+| `quest_missing_guard` unreachable | `quest_chain` has 0 readers in `engine/` |
+| Debug commands ungated | live: `level 5`, `setgold`, `sethealth`, `teleport` |
+| `craft` multi-word matching broken | `commands/crafting.py:121-133` |
+| Classification unreachable in server path | applied only at `game_manager.py:255` |
+| `data/dialogue/` never loaded | loader globs exclude it |
+| `mage_set` references 2 nonexistent items | `items/sets.json`; validator reports 0 issues |
+| 5 dangling refs (`smite`, `item_smoke_bomb`, `item_iron_ore`, `iron_shortage`, `item_scrap`) | each referenced once, defined nowhere |
+| pygame blocks headless content validation | transitive import chain; validator cannot start |
+| 99 hardcoded content refs in engine | AST audit across 30 files |
+
+### Content volume (as of audit)
+
+| | Count |
+|---|---|
+| Regions / rooms | 12 / 206 (200 reachable) |
+| Item templates | 219 (45 gems, 38 junk, 41 misc, 14 weapons, 16 armour) |
+| Spells | 23 |
+| NPC templates | 62 (31 hostile, levels 1–8) |
+| Quests | 14 authored + 1 instance seed |
+| Campaigns | 2 (one unplayable) |
+| Recipes | 15 |
+| Affixes | 12 prefixes / 11 suffixes |
+| Knowledge topics | 13 |
+| Dialogue graphs | 1 (unloaded) |
+| Resource nodes | 9, each placed once; no tool requirements |
+| Hazard types | 6 authored, 1 used |

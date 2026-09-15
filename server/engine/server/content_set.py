@@ -226,8 +226,17 @@ def _validate_authored_world(
 
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
     npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
-    reachable: set[tuple[str, str]] = set()
-    pending = [(start_region_id, start_room_id)]
+
+    # Build an adjacency map first, then traverse outwards from the start room.
+    #
+    # The previous version of this check appended every room's exit targets to
+    # the traversal queue while it was still *validating* those rooms. Anything
+    # named as an exit target was therefore treated as reachable even when the
+    # room it led from was itself unreachable -- so the check could never detect
+    # a closed-off zone. That is exactly how five Portbridge rooms (including
+    # the only quest giver for an entire campaign) shipped with no way in while
+    # this validator reported the content set clean.
+    adjacency: dict[tuple[str, str], list[tuple[str, str]]] = {}
 
     for region_id, rooms in regions.items():
         for room_id, room in rooms.items():
@@ -238,6 +247,8 @@ def _validate_authored_world(
             if not isinstance(exits, dict):
                 issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' exits must be an object"))
                 continue
+
+            neighbours: list[tuple[str, str]] = []
             for direction, destination in exits.items():
                 if not isinstance(destination, str) or not destination.strip():
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"exit '{region_id}:{room_id}:{direction}' must name a destination room"))
@@ -248,7 +259,26 @@ def _validate_authored_world(
                 if target_region not in regions or target_room not in regions[target_region]:
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"exit '{region_id}:{room_id}:{direction}' targets missing room '{destination}'"))
                 else:
-                    pending.append((target_region, target_room))
+                    neighbours.append((target_region, target_room))
+
+            # `properties.hidden_exits` are real traversable links (a lever
+            # opens one, for example). Treating them as edges keeps a
+            # mechanism-gated room from being reported as unreachable.
+            hidden_exits = (room.get("properties") or {}).get("hidden_exits", {})
+            if isinstance(hidden_exits, dict):
+                for direction, destination in hidden_exits.items():
+                    if not isinstance(destination, str) or not destination.strip():
+                        issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"hidden exit in '{region_id}:{room_id}' must name a destination room"))
+                        continue
+                    target_region, separator, target_room = destination.partition(":")
+                    if not separator:
+                        target_region, target_room = region_id, target_region
+                    if target_region not in regions or target_room not in regions[target_region]:
+                        issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"hidden exit in '{region_id}:{room_id}' targets missing room '{destination}'"))
+                    else:
+                        neighbours.append((target_region, target_room))
+
+            adjacency[(region_id, room_id)] = neighbours
 
             for npc in room.get("initial_npcs", []):
                 if not isinstance(npc, dict) or not isinstance(npc.get("template_id"), str):
@@ -263,28 +293,40 @@ def _validate_authored_world(
                 elif item["item_id"] not in item_ids:
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' references missing item '{item['item_id']}'"))
 
+    reachable: set[tuple[str, str]] = set()
+    pending = [(start_region_id, start_room_id)]
     while pending:
         location = pending.pop()
         if location in reachable:
             continue
         reachable.add(location)
-        region_id, room_id = location
-        room = regions.get(region_id, {}).get(room_id)
-        if not isinstance(room, dict):
-            continue
-        exits = room.get("exits", {})
-        if not isinstance(exits, dict):
-            continue
-        for destination in exits.values():
-            if not isinstance(destination, str):
-                continue
-            target_region, separator, target_room = destination.partition(":")
-            pending.append((target_region, target_room) if separator else (region_id, target_region))
+        pending.extend(adjacency.get(location, ()))
 
     for region_id, rooms in regions.items():
-        for room_id in rooms:
-            if (region_id, room_id) not in reachable:
-                issues.append(ContentSetIssue("warning", str(region_paths[region_id]), f"room '{region_id}:{room_id}' is not reachable from the declared start"))
+        for room_id, room in rooms.items():
+            if (region_id, room_id) in reachable:
+                continue
+            # A room may legitimately be entered by a system rather than by
+            # walking: a jail cell is reached through the custody flow, with no
+            # public exit leading in. Such a room must say so explicitly, so an
+            # accidental omission (a zone with no door, which once orphaned five
+            # Portbridge rooms and an entire campaign) is an error rather than
+            # something that quietly ships.
+            entered_by_system = None
+            if isinstance(room, dict):
+                entered_by_system = (room.get("properties") or {}).get("entered_by_system")
+            if isinstance(entered_by_system, str) and entered_by_system.strip():
+                continue
+            issues.append(ContentSetIssue(
+                "error",
+                str(region_paths[region_id]),
+                (
+                    f"room '{region_id}:{room_id}' is not reachable from the declared start "
+                    f"'{start_region_id}:{start_room_id}'. Add an exit leading to it, or declare "
+                    f'properties.entered_by_system (e.g. "custody") if another system places the '
+                    f"player there."
+                ),
+            ))
 
 
 def _validate_ruleset_references(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
@@ -565,6 +607,34 @@ def _validate_crafting_quality_contracts(content_root: Path, issues: list[Conten
                 continue
             label = f"recipe '{recipe_id}'"
             ingredients = recipe.get("ingredients", [])
+
+            # `aliases` are alternative names a player might type, resolved by
+            # engine/naming.py. A malformed entry would silently never match, so
+            # validate the shape here rather than letting it fail quietly in play.
+            if "aliases" in recipe:
+                aliases = recipe["aliases"]
+                if not isinstance(aliases, list):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.aliases must be an array"))
+                else:
+                    seen_aliases = set()
+                    for alias_index, alias in enumerate(aliases):
+                        alias_entry = f"{label}.aliases[{alias_index}]"
+                        if isinstance(alias, bool) or not isinstance(alias, (str, int)):
+                            issues.append(ContentSetIssue("error", str(path), f"{alias_entry} must be a string"))
+                            continue
+                        text = str(alias).strip()
+                        if not text:
+                            issues.append(ContentSetIssue("error", str(path), f"{alias_entry} must not be blank"))
+                            continue
+                        # Shorter than the resolver's minimum loose-match length
+                        # means the alias can only ever match exactly.
+                        if len(text) < 2:
+                            issues.append(ContentSetIssue("warning", str(path), f"{alias_entry} is too short to match loosely: {text!r}"))
+                        normalized = " ".join(text.replace("_", " ").replace("-", " ").lower().split())
+                        if normalized in seen_aliases:
+                            issues.append(ContentSetIssue("warning", str(path), f"{alias_entry} duplicates another alias: {text!r}"))
+                        seen_aliases.add(normalized)
+
             if not isinstance(ingredients, list):
                 issues.append(ContentSetIssue("error", str(path), f"{label}.ingredients must be an array"))
                 continue

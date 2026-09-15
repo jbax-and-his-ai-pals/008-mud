@@ -23,6 +23,15 @@ class Recipe:
         
         # List of dicts: {"item_id":Str, "quantity":Int}
         self.ingredients: List[Dict[str, Any]] = data.get("ingredients", [])
+        # Alternative names a player might type for this recipe, resolved by
+        # engine/naming.py. The recipe's own `name` is authored as an
+        # instruction ("Tie Wildflower Posy"); an alias is what someone would
+        # actually ask for ("posy", "flowers").
+        raw_aliases = data.get("aliases", [])
+        self.aliases: List[str] = [
+            str(alias).strip() for alias in raw_aliases
+            if isinstance(alias, (str, int)) and str(alias).strip()
+        ] if isinstance(raw_aliases, list) else []
         # Optional content metadata. The engine records familiarity for every
         # recipe, but only authored milestones turn it into player feedback.
         raw_milestones = data.get("familiarity_milestones", [])

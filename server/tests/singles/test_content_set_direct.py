@@ -452,7 +452,13 @@ class TestAuthoredWorldValidation(ContentSetDirectTestBase):
         self.assertIsNone(definition)  # the malformed exit is still a structural error
         self.assertTrue(any("must name a destination room" in i.message for i in issues))
 
-    def test_unreachable_room_reports_warning(self):
+    def test_unreachable_room_reports_error(self):
+        """An unreachable room is an error, not a warning.
+
+        This was a warning until five Portbridge rooms -- including the only
+        quest giver for an entire campaign -- shipped with no way in. A closed
+        zone is a gameplay-breaking defect, so it now fails validation.
+        """
         package = self._write_package(self._case_root())
         self._write_region(package, {
             "region_id": "town",
@@ -462,10 +468,63 @@ class TestAuthoredWorldValidation(ContentSetDirectTestBase):
             },
         })
         definition, issues = cs.load_content_set(package)
-        self.assertIsNotNone(definition)
+        self.assertIsNone(definition)
         self.assertTrue(any(
-            i.severity == "warning" and "isolated" in i.message and "not reachable" in i.message for i in issues
+            i.severity == "error" and "isolated" in i.message and "not reachable" in i.message for i in issues
         ))
+
+    def test_reachability_follows_edges_only_from_reachable_rooms(self):
+        """A room named by an *unreachable* room's exit is still unreachable.
+
+        Regression for the bug that hid the Portbridge defect: the traversal
+        used to seed itself from every room's exits while validating them, so
+        any exit target counted as reachable no matter how it was reached. A
+        closed zone could therefore never be detected.
+        """
+        package = self._write_package(self._case_root())
+        self._write_region(package, {
+            "region_id": "town",
+            "rooms": {
+                "square": {"exits": {"north": "lane"}},
+                "lane": {"exits": {"south": "square"}},
+                # This pair is walled off: nothing reachable leads to them.
+                "cut_off": {"exits": {"north": "beyond"}},
+                "beyond": {"exits": {"south": "cut_off"}},
+            },
+        })
+        definition, issues = cs.load_content_set(package)
+        self.assertIsNone(definition)
+        unreachable = [i.message for i in issues if "not reachable" in i.message]
+        self.assertTrue(any("cut_off" in m for m in unreachable),
+                        "the cut-off room was not reported: %s" % unreachable)
+        self.assertTrue(any("beyond" in m for m in unreachable),
+                        "the room behind the cut-off room must also be unreachable: %s" % unreachable)
+        self.assertFalse(any("'town:lane'" in m for m in unreachable),
+                         "a genuinely reachable room was reported unreachable")
+
+    def test_entered_by_system_room_is_allowed_to_be_unreachable(self):
+        """A room a system places the player in may have no walkable way in.
+
+        The cell has an exit *out* but nothing leads *in*, exactly like the
+        shipped jail cell: the custody system puts the player there. Declaring
+        that is what keeps the room from being reported as a closed zone.
+        """
+        package = self._write_package(self._case_root())
+        self._write_region(package, {
+            "region_id": "town",
+            "rooms": {
+                "square": {"exits": {"north": "lane"}},
+                "lane": {"exits": {"south": "square"}},
+                "cell": {
+                    "properties": {"entered_by_system": "custody"},
+                    "exits": {"south": "lane"},
+                },
+            },
+        })
+        definition, issues = cs.load_content_set(package)
+        self.assertIsNotNone(definition, [i.message for i in issues])
+        self.assertFalse([i for i in issues if i.severity == "error"],
+                         [i.message for i in issues if i.severity == "error"])
 
 
 class TestValidateContentSetWrapper(ContentSetDirectTestBase):

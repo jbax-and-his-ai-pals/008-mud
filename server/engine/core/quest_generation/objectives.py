@@ -52,19 +52,36 @@ def generate_fetch_objective(world, player_level, giver_npc, config) -> Optional
         "location_hint": "nearby areas", "difficulty_level": source_mob_template.get("level", 1)
     }
 
+def _delivery_package_item_id(world) -> Optional[str]:
+    """Which item a generated delivery quest asks the player to carry.
+
+    Authored under the ruleset as `quest_generation.delivery_package_item_id`.
+    Without one, this generator cannot invent a package: there is no reliable
+    structural signal for "the thing you carry on a delivery", so it declines
+    rather than guessing at an item id. A content set that wants generated
+    delivery quests declares its package item.
+    """
+    generation = getattr(world, "ruleset_section", lambda _name: {})("quest_generation") or {}
+    configured = generation.get("delivery_package_item_id")
+    if isinstance(configured, str) and configured in world.item_templates:
+        return configured
+    return None
+
+
 def generate_deliver_objective(world, player_level, giver_npc, config) -> Optional[Dict[str, Any]]:
     recipients = [npc for npc in world.npcs.values() if npc.is_alive and npc.faction != "hostile" and npc.obj_id != giver_npc.obj_id]
     if not recipients: return None
     recipient_npc = random.choice(recipients)
-    package_template = world.item_templates.get("quest_package_generic")
-    if not package_template: return None
-    
+    package_item_id = _delivery_package_item_id(world)
+    if not package_item_id: return None
+    package_template = world.item_templates.get(package_item_id) or {}
+
     item_name = package_template.get("name", "Package")
     item_desc = f"A package for {recipient_npc.name} from {giver_npc.name}."
     region_name = world.regions[recipient_npc.current_region_id].name if recipient_npc.current_region_id else "Unknown"
     return {
         "type": "deliver",
-        "item_template_id": "quest_package_generic",
+        "item_template_id": package_item_id,
         "item_instance_id": f"delivery_{uuid.uuid4().hex[:4]}",
         "item_to_deliver_name": item_name, "item_to_deliver_description": item_desc,
         "recipient_instance_id": recipient_npc.obj_id, "recipient_name": recipient_npc.name,

@@ -82,6 +82,7 @@
       "properties": {
         "outdoors": false,
         "is_jail_cell": true,
+        "entered_by_system": "custody",
         "release_destination": "town:barracks_exterior",
         "exit_requirements": { "up": { "type": "locked", "key_id": null, "pick_difficulty": 35 } }
       },

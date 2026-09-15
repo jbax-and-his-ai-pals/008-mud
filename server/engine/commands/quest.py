@@ -6,6 +6,7 @@ from engine.items.item_factory import ItemFactory
 from engine.player import Player
 from engine.world import world
 from engine.social.relationships import relationship_key
+from engine.presentation import is_player_mode, show_internals
 
 
 def _getting_started_block(world) -> str:
@@ -23,6 +24,37 @@ def _getting_started_block(world) -> str:
     if not guidance:
         return ""
     return f"{FORMAT_TITLE}Getting Started{FORMAT_RESET}\n{'-'*20}\n\n{guidance}"
+
+
+def _optional(value) -> str:
+    """Normalize an optional authored field for display.
+
+    The journal used to render missing optional objective fields as a literal
+    `?` (e.g. `... in ?.`), because the f-strings defaulted straight to "?".
+    A player has no way to read that, and for `deliver` objectives it appeared
+    on the very first quest a new player accepts. Missing detail is now simply
+    omitted; callers only add the clause when this returns something.
+    """
+    return str(value).strip() if value is not None else ""
+
+
+def _stage_instruction(quest_data, stage_index) -> str:
+    """The authored, player-facing instruction for the quest's current stage.
+
+    `quests.json` authors this per stage ("Gather herbs, craft a wildflower
+    posy, and deliver it to Elder Thorne."), and it is the text a player
+    actually needs. It was previously only shown by the generic fallback
+    branch, so typed objectives -- kill, fetch, deliver -- all rendered a
+    degraded templated line instead and the authored prose was never seen.
+    """
+    stages = quest_data.get("stages") or []
+    try:
+        index = int(stage_index)
+    except (TypeError, ValueError):
+        return ""
+    if 0 <= index < len(stages):
+        return _optional(stages[index].get("description"))
+    return ""
 
 
 def _deliver_item_display_name(world, objective) -> str:
@@ -70,6 +102,70 @@ def _is_player_at_quest_board(player: Player, quest_manager) -> bool:
     player_location_str = f"{player.current_region_id}:{player.current_room_id}"
     return player_location_str in board_locations
 
+def _board_availability(world, player, quest_data):
+    """Whether a board entry is offered, and the trust figures behind it.
+
+    Returns (available, current_trust, required_trust). A quest with no
+    relationship gate is always available.
+    """
+    relationship_required = _relationship_requirement(quest_data)
+    if not relationship_required:
+        return True, 0, 0
+    relationship_npc_id = str(
+        quest_data.get("relationship_npc_id", quest_data.get("giver_instance_id", ""))
+    )
+    giver = _resolve_relationship_npc(world, relationship_npc_id)
+    bond_key = relationship_key(giver) if giver is not None else relationship_npc_id
+    current = int(getattr(player, "npc_relationships", {}).get(bond_key, 0))
+    return current >= relationship_required, current, relationship_required
+
+
+def _board_fingerprint(world) -> str:
+    """A cheap identity for the current board contents.
+
+    Used to detect that the board changed between `look board` and
+    `accept quest <n>`, so a stored display mapping is never applied to a
+    different list.
+    """
+    return "|".join(str(q.get("instance_id", "")) for q in world.quest_board)
+
+
+def _store_board_mapping(world, session_id, mapping):
+    """Remember displayed-number -> board-index for this viewer.
+
+    Stored per session rather than per world: two players looking at the same
+    board may legitimately see different tasks.
+    """
+    if not session_id:
+        return
+    store = getattr(world, "_board_display_maps", None)
+    if not isinstance(store, dict):
+        store = {}
+        world._board_display_maps = store
+    store[session_id] = {"fingerprint": _board_fingerprint(world), "map": dict(mapping)}
+
+
+def _resolve_board_index(world, session_id, displayed_number):
+    """Map a displayed board number to a board list index.
+
+    In test mode the mapping is the identity and this is unnecessary, but it is
+    still consulted so both modes follow one code path. Returns None when the
+    board has changed since it was displayed, so the caller can fall back.
+    """
+    store = getattr(world, "_board_display_maps", None)
+    if not isinstance(store, dict) or not session_id:
+        return None
+    entry = store.get(session_id)
+    if not isinstance(entry, dict):
+        return None
+    if entry.get("fingerprint") != _board_fingerprint(world):
+        return None
+    mapping = entry.get("map")
+    if not isinstance(mapping, dict):
+        return None
+    return mapping.get(displayed_number)
+
+
 @command(name="look board", aliases=QUEST_BOARD_ALIASES, category="interaction", help_text="Look at the quest board for available tasks.", content_capability="quests")
 def look_board_handler(args, context):
     world = context["world"]
@@ -85,10 +181,21 @@ def look_board_handler(args, context):
     if not available_quests:
         return f"The {board_name.lower()} is currently empty."
 
+    # In player mode a task whose giver does not trust you yet is simply not
+    # offered -- the world gets richer as you earn it, rather than presenting a
+    # menu of things you are not allowed to have.
+    player_mode = is_player_mode(context)
+
     response = f"{FORMAT_TITLE}{board_name}{FORMAT_RESET}\n" + "-"*20 + "\nAvailable Tasks:\n\n"
+    display_map = {}
+    displayed = 0
     for i, quest_data in enumerate(available_quests):
         giver_instance_id = quest_data.get("giver_instance_id")
         rewards = quest_data.get("rewards", {})
+
+        available, current_trust, required_trust = _board_availability(world, player, quest_data)
+        if not available and player_mode:
+            continue
 
         giver_name = f"{board_name} Notice"
         if giver_instance_id != "quest_board":
@@ -111,21 +218,26 @@ def look_board_handler(args, context):
         if world.ruleset_system_enabled("economy"):
             reward_parts.append(f"{rewards.get('gold', 0)} {world.currency_name().capitalize()}")
         reward_summary = ", ".join(reward_parts) if reward_parts else "—"
-        relationship_required = _relationship_requirement(quest_data)
-        relationship_npc_id = str(quest_data.get("relationship_npc_id", giver_instance_id or ""))
-        giver_for_relationship = _resolve_relationship_npc(world, relationship_npc_id)
-        bond_key = relationship_key(giver_for_relationship) if giver_for_relationship is not None else relationship_npc_id
-        current_relationship = int(getattr(player, "npc_relationships", {}).get(bond_key, 0))
+
+        # Trust progress is engine internals; players only see it in test mode.
         trust_summary = ""
-        if relationship_required:
-            trust_summary = f"   Trust: {current_relationship}/{relationship_required}"
-            if current_relationship < relationship_required:
+        if required_trust and not player_mode:
+            trust_summary = f"   Trust: {current_trust}/{required_trust}"
+            if not available:
                 trust_summary += " (locked)"
 
-        response += (f"{FORMAT_CATEGORY}[{i + 1}]{FORMAT_RESET} {quest_data.get('title', 'Unnamed Quest')}{FORMAT_HIGHLIGHT}{quantity_summary}{FORMAT_RESET}\n"
+        displayed += 1
+        display_map[displayed] = i
+        response += (f"{FORMAT_CATEGORY}[{displayed}]{FORMAT_RESET} {quest_data.get('title', 'Unnamed Quest')}{FORMAT_HIGHLIGHT}{quantity_summary}{FORMAT_RESET}\n"
                     f"   Giver: {giver_name}\n"
                     f"   Reward: {reward_summary}\n{trust_summary}\n\n")
-        
+
+    if displayed == 0:
+        # Everything posted is gated. Say so in the world's voice, without
+        # naming thresholds the player has no way to act on.
+        return f"The {board_name.lower()} has nothing for you just now."
+
+    _store_board_mapping(world, context.get("session_id"), display_map)
     response += f"Type '{FORMAT_HIGHLIGHT}accept quest <#>{FORMAT_RESET}' to take a task."
     return response
 
@@ -163,6 +275,14 @@ def accept_quest_handler(args, context):
         return handle_accept_offer(args, context)
 
     # --- 3. QUEST BOARD LOGIC ---
+    # Translate the number the player saw into a board index. In player mode
+    # gated tasks are not displayed, so the visible numbering is contiguous and
+    # differs from the underlying list order. In test mode the mapping is the
+    # identity, but it is consulted either way so both modes share one path.
+    mapped_index = _resolve_board_index(world, context.get("session_id"), quest_index + 1)
+    if mapped_index is not None:
+        quest_index = mapped_index
+
     if quest_index < 0 or quest_index >= len(world.quest_board):
         return f"{FORMAT_ERROR}Invalid quest number.{FORMAT_RESET}"
 
@@ -176,6 +296,13 @@ def accept_quest_handler(args, context):
         if current_relationship < relationship_required:
             world.quest_board.insert(quest_index, quest_to_accept)
             giver_name = giver.name if giver is not None else "whoever posted this"
+            if is_player_mode(context):
+                # A giver speaks for themselves; relationship thresholds are
+                # engine internals a player cannot act on directly.
+                return (
+                    f"{FORMAT_ERROR}{giver_name} isn't ready to trust you with that yet."
+                    f"{FORMAT_RESET}"
+                )
             return f"{FORMAT_ERROR}{giver_name} doesn't trust you enough yet ({current_relationship}/{relationship_required} relationship).{FORMAT_RESET}"
     quest_to_accept["state"] = "active"
     quest_instance_id = quest_to_accept.get("instance_id")
@@ -316,8 +443,31 @@ def journal_handler(args, context):
                      else:
                          response += f"    - {route.get('description', 'Complete this route.')}\n"
              
-             if obj_type == "kill": 
-                 response += f"  Task: Defeat {objective.get('current_quantity', 0)}/{objective.get('required_quantity', '?')} {objective.get('target_name_plural', '?')} in {objective.get('location_hint', '?')}.\n"
+             if obj_type == "kill":
+                 # Authored kill objectives name the target in the singular
+                 # ("an elite troll", "the Bandit King"); procedural ones only
+                 # have a plural template name. Prefer whichever reads properly:
+                 # a one-off named target should not be described as "1 targets".
+                 target_plural = _optional(objective.get("target_name_plural"))
+                 target_singular = _optional(objective.get("target_name"))
+                 required = objective.get("required_quantity")
+                 try:
+                     required_int = int(required) if required not in (None, "") else None
+                 except (TypeError, ValueError):
+                     required_int = None
+
+                 if target_singular and (required_int is None or required_int <= 1):
+                     task = f"  Task: Defeat {target_singular}"
+                 else:
+                     target_label = target_plural or target_singular or "your targets"
+                     progress = ""
+                     if required_int is not None:
+                         progress = f"{objective.get('current_quantity', 0)}/{required_int} "
+                     task = f"  Task: Defeat {progress}{target_label}"
+                 location = _optional(objective.get("location_hint"))
+                 if location:
+                     task += f" in {location}"
+                 response += task + ".\n"
              
              elif obj_type == "group_kill":
                  response += f"  Task: Hunt the following targets:\n"
@@ -331,12 +481,27 @@ def journal_handler(args, context):
 
              elif obj_type == "fetch":
                   required_item_id = objective.get("item_id", ""); current_have = player.inventory.count_item(required_item_id)
-                  response += f"  Task: Gather {current_have}/{objective.get('required_quantity', '?')} {objective.get('item_name_plural', '?')} (from {objective.get('source_enemy_name_plural', '?')} in {objective.get('location_hint', '?')}).\n"
+                  item_plural = _optional(objective.get("item_name_plural")) or "the required items"
+                  required = objective.get("required_quantity")
+                  progress = f"{current_have}/{required} " if required not in (None, "") else f"{current_have} "
+                  task = f"  Task: Gather {progress}{item_plural}"
+                  source = _optional(objective.get("source_enemy_name_plural"))
+                  if source:
+                      task += f" (from {source})"
+                  location = _optional(objective.get("location_hint"))
+                  if location:
+                      task += f" in {location}"
+                  response += task + ".\n"
              
              elif obj_type == "deliver":
                   package_instance_id = objective.get("item_instance_id", ""); has_package = player.inventory.find_item_by_id(package_instance_id) is not None
                   package_status = f"{FORMAT_HIGHLIGHT}(You have the package){FORMAT_RESET}" if has_package else f"{FORMAT_ERROR}(You don't have the package!){FORMAT_RESET}"
-                  response += f"  Task: Deliver {_deliver_item_display_name(context['world'], objective)} to {objective.get('recipient_name', '?')} in {objective.get('recipient_location_description', '?')}. {package_status}\n"
+                  recipient = _optional(objective.get("recipient_name")) or "the recipient"
+                  task = f"  Task: Deliver {_deliver_item_display_name(context['world'], objective)} to {recipient}"
+                  location = _optional(objective.get("recipient_location_description"))
+                  if location:
+                      task += f" in {location}"
+                  response += f"{task}. {package_status}\n"
              
              else: 
                   # Generic fallback
@@ -345,6 +510,14 @@ def journal_handler(args, context):
                       desc = stages[idx].get("description")
                   
                   response += f"  Task: {desc or 'Complete the objective.'}\n"
+
+             # The authored stage instruction is the clearest statement of what
+             # to do, so always show it when the objective's own condition text
+             # cannot carry the whole picture (which is every typed objective
+             # without a location_hint, i.e. the starting commissions).
+             instruction = _stage_instruction(quest_data, idx)
+             if instruction and obj_type != "unknown":
+                 response += f"  {FORMAT_HIGHLIGHT}{instruction}{FORMAT_RESET}\n"
              
              if quest_data.get('state') == "ready_to_complete": response += f"  {FORMAT_HIGHLIGHT}Ready to turn in!{FORMAT_RESET}\n"
              response += "\n"

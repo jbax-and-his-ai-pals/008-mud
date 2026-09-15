@@ -3,6 +3,8 @@ from engine.commands.command_system import command
 from engine.config import FORMAT_TITLE, FORMAT_RESET, FORMAT_HIGHLIGHT, FORMAT_CATEGORY, FORMAT_SUCCESS, FORMAT_ERROR
 from engine.items.attachments import installed_attachments
 from engine.items.item_factory import ItemFactory
+from engine.naming import ambiguity_message, resolve_all
+from engine.presentation import show_internals
 
 @command("recipes", ["craftlist"], "crafting", "List available recipes and crafting stations.\nUsage: recipes [all]", content_capability="crafting")
 def recipes_handler(args, context):
@@ -39,10 +41,20 @@ def recipes_handler(args, context):
         has_station = not recipe.station_required or recipe.station_required in nearby_stations
 
         if show_all or has_station:
-            prefix = f"{FORMAT_SUCCESS}[Ready]{FORMAT_RESET}" if can_do else f"{FORMAT_ERROR}[Locked]{FORMAT_RESET}"
+            # In player mode a recipe the player cannot yet make is shown as
+            # something they are working toward, not as a locked slot with a
+            # missing-materials ledger. The requirement list is what tells them
+            # what to gather, so it stays; the "[Locked]" tag and the has/req
+            # counters are engine internals and do not.
+            internals = show_internals(context)
+            if internals:
+                prefix = f"{FORMAT_SUCCESS}[Ready]{FORMAT_RESET}" if can_do else f"{FORMAT_ERROR}[Locked]{FORMAT_RESET}"
+            else:
+                prefix = FORMAT_SUCCESS + "[Ready]" + FORMAT_RESET if can_do else ""
 
             # Format Ingredients string
             ing_list = []
+            missing = []
             for ing in recipe.ingredients:
                 # Get name from factory/template for display
                 from engine.items.item_factory import ItemFactory
@@ -52,8 +64,16 @@ def recipes_handler(args, context):
 
                 has = player.inventory.count_item(ing['item_id'])
                 req = ing['quantity']
-                color = FORMAT_SUCCESS if has >= req else FORMAT_ERROR
-                entry = f"{color}{has}/{req} {i_name}{FORMAT_RESET}"
+                if internals:
+                    color = FORMAT_SUCCESS if has >= req else FORMAT_ERROR
+                    entry = f"{color}{has}/{req} {i_name}{FORMAT_RESET}"
+                else:
+                    # Need only what is still outstanding.
+                    if has >= req:
+                        entry = f"{FORMAT_SUCCESS}{i_name}{FORMAT_RESET}"
+                    else:
+                        entry = f"{FORMAT_ERROR}{i_name}{FORMAT_RESET}"
+                        missing.append(i_name)
                 alt_names = []
                 for opt in Recipe.ingredient_options(ing)[1:]:
                     alt_template = ItemFactory.get_template(opt['item_id'], world)
@@ -64,35 +84,50 @@ def recipes_handler(args, context):
 
             req_str = ", ".join(ing_list)
             station_str = f" ({recipe.station_display})" if recipe.station_required else ""
-            
-            out.append(f"{prefix} {FORMAT_HIGHLIGHT}{recipe.name}{FORMAT_RESET} {station_str}")
-            out.append(f"    Requires: {req_str}")
+
+            out.append(f"{prefix} {FORMAT_HIGHLIGHT}{recipe.name}{FORMAT_RESET} {station_str}".lstrip())
+            out.append(f"    {'Needs' if internals else 'Materials'}: {req_str}")
             craft_count = int(getattr(player, "recipe_craft_counts", {}).get(r_id, 0))
             milestone = recipe.familiarity_milestone(craft_count)
             familiarity = str(milestone.get("label", "")) if milestone else "Unpracticed"
-            out.append(f"    Practice: {craft_count} craft{'s' if craft_count != 1 else ''} ({familiarity})")
+            if internals:
+                out.append(f"    Practice: {craft_count} craft{'s' if craft_count != 1 else ''} ({familiarity})")
+            elif familiarity != "Unpracticed":
+                # The earned label is encouragement; the craft counter is not.
+                out.append(f"    Practice: {familiarity}")
             if recipe.quality_tiers:
                 preview = manager.quality_preview(player, recipe)
                 tier = preview["tier"]
                 label = str(tier.get("label", "Standard")) if isinstance(tier, dict) else "Standard"
-                contributors = []
-                for ingredient in preview["contributors"]:
-                    template = ItemFactory.get_template(str(ingredient["item_id"]), world)
-                    name = template.get("name", ingredient["item_id"]) if template else ingredient["item_id"]
-                    contributors.append(f"{ingredient['quantity']} x {name}")
-                contribution_note = ", ".join(contributors) if contributors else "none"
-                preview_line = (
-                    f"    Quality preview: {label} (material score {preview['material_quality_score']}; "
-                    f"quality inputs: {contribution_note})"
-                )
                 next_tier = preview["next_tier"]
-                if isinstance(next_tier, dict):
-                    next_label = str(next_tier.get("label", "higher quality"))
-                    preview_line += (
-                        f"; next upgrade: {next_label} at {next_tier.get('min_crafts', 1)} crafts"
-                        f" and material score {next_tier.get('min_material_quality', 0)}"
+                if internals:
+                    contributors = []
+                    for ingredient in preview["contributors"]:
+                        template = ItemFactory.get_template(str(ingredient["item_id"]), world)
+                        name = template.get("name", ingredient["item_id"]) if template else ingredient["item_id"]
+                        contributors.append(f"{ingredient['quantity']} x {name}")
+                    contribution_note = ", ".join(contributors) if contributors else "none"
+                    preview_line = (
+                        f"    Quality preview: {label} (material score {preview['material_quality_score']}; "
+                        f"quality inputs: {contribution_note})"
                     )
-                out.append(preview_line)
+                    if isinstance(next_tier, dict):
+                        next_label = str(next_tier.get("label", "higher quality"))
+                        preview_line += (
+                            f"; next upgrade: {next_label} at {next_tier.get('min_crafts', 1)} crafts"
+                            f" and material score {next_tier.get('min_material_quality', 0)}"
+                        )
+                    out.append(preview_line)
+                else:
+                    # A player learns that better materials and more practice
+                    # raise quality -- not the scoring formula behind it.
+                    quality_line = f"    Quality: {label}"
+                    if isinstance(next_tier, dict):
+                        quality_line += (
+                            f" (better materials and more practice will raise it to "
+                            f"{next_tier.get('label', 'a higher grade')})"
+                        )
+                    out.append(quality_line)
             out.append(f"    Command: craft {r_id}")
             available_count += 1
 
@@ -105,7 +140,45 @@ def recipes_handler(args, context):
 
 MAX_CRAFT_BATCH = 20
 
-@command("craft", ["make"], "crafting", "Craft an item, optionally several at once.\nUsage: craft <recipe_id> [count]", content_capability="crafting")
+
+def _recipe_result_item_id(recipe) -> str:
+    """The template id of the item a recipe produces, if it is known."""
+    for attribute in ("result_item_id", "result_id", "output_item_id"):
+        value = getattr(recipe, attribute, None)
+        if isinstance(value, str) and value:
+            return value
+    result = getattr(recipe, "result", None)
+    if isinstance(result, dict):
+        return str(result.get("item_id", "") or "")
+    if isinstance(result, str):
+        return result
+    return ""
+
+
+def _recipe_names(recipe) -> str:
+    """Everything a player might type to name this recipe.
+
+    The recipe's own display name ("Tie Wildflower Posy") plus the name of the
+    item it makes ("wildflower posy"). A player asking to make a wildflower
+    posy should not have to know the verb the author chose.
+    """
+    names = [str(getattr(recipe, "name", "") or "")]
+    for attribute in ("result_item_name", "output_item_name"):
+        value = getattr(recipe, attribute, None)
+        if isinstance(value, str) and value:
+            names.append(value)
+    item_id = _recipe_result_item_id(recipe)
+    if item_id:
+        # "item_wildflower_posy" -> "wildflower posy"
+        names.append(item_id[5:] if item_id.startswith("item_") else item_id)
+    return " ".join(n for n in names if n)
+
+
+def _recipe_aliases(recipe) -> list:
+    return list(getattr(recipe, "aliases", None) or [])
+
+
+@command("craft", ["make"], "crafting", "Craft an item, optionally several at once.\nUsage: craft <recipe> [count]", content_capability="crafting")
 def craft_handler(args, context):
     world = context["world"]
     player = context.get('player')
@@ -118,19 +191,31 @@ def craft_handler(args, context):
     if len(args) >= 2 and args[-1].isdigit():
         count = max(1, min(MAX_CRAFT_BATCH, int(args[-1])))
 
-    recipe_id = args[0].lower()
-
-    # Fuzzy match for recipe name/id
-    if recipe_id not in manager.recipes:
-        found = None
-        for rid, r in manager.recipes.items():
-            if recipe_id in rid.lower() or recipe_id in r.name.lower():
-                found = rid
-                break
-        if found:
-            recipe_id = found
-        else:
-            return f"{FORMAT_ERROR}Unknown recipe '{recipe_id}'.{FORMAT_RESET}"
+    # Resolve the recipe from the whole typed phrase, not just the first word.
+    #
+    # The previous version searched with `args[0]` alone, so `craft river clay
+    # token` searched for the literal "river" (matching `press_river_token`
+    # only by dict-ordering luck) and `craft wildflower posy` searched for
+    # "wildflower" and matched nothing, because the recipe's display name is
+    # "Tie Wildflower Posy". Matching also considers the item the recipe
+    # produces, which is what a player actually names.
+    query = " ".join(str(a) for a in args if not str(a).isdigit()).strip()
+    recipe_id = ""
+    if query.lower() in manager.recipes:
+        recipe_id = query.lower()
+    else:
+        matches = resolve_all(
+            query,
+            list(manager.recipes.items()),
+            name_of=lambda pair: _recipe_names(pair[1]),
+            id_of=lambda pair: pair[0],
+            aliases_of=lambda pair: _recipe_aliases(pair[1]),
+        )
+        if not matches:
+            return f"{FORMAT_ERROR}You don't know how to make '{query}'.{FORMAT_RESET}"
+        if len(matches) > 1 and matches[1].score >= matches[0].score:
+            return f"{FORMAT_ERROR}{ambiguity_message(query, matches)}{FORMAT_RESET}"
+        recipe_id = matches[0].obj[0]
 
     if count == 1:
         result = manager.craft(player, recipe_id)
