@@ -10,7 +10,7 @@ from engine.core.clock import SimulatedClock
 from engine.magic.spell_registry import get_spell
 from engine.server.headless_server import HeadlessServer
 from engine.player import Player
-from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_crafting_quality_contracts, _validate_discovery_references, _validate_item_extension_data, _validate_region_hazard_coverage, _validate_region_level_bands, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
+from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_crafting_quality_contracts, _validate_discovery_references, _validate_item_extension_data, _validate_new_quest_objective_types, _validate_region_hazard_coverage, _validate_region_level_bands, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
 from poc_server import JsonLineMudServer
 from poc_ws_server import JsonWebSocketMudServer
 
@@ -209,6 +209,108 @@ class TestContentSetRuntime(unittest.TestCase):
         self.assertTrue(any("alternatives[0].item_id references a missing item template" in message for message in messages))
         self.assertTrue(any("alternatives[0].quality_penalty must be a non-negative integer" in message for message in messages))
         self.assertTrue(any("alternatives must be an array" in message for message in messages))
+
+    def test_new_quest_objective_types_are_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir()
+            (content_root / "npcs").mkdir()
+            (content_root / "crafting").mkdir()
+            (content_root / "quests").mkdir()
+            (content_root / "items" / "items.json").write_text(
+                json.dumps({"item_real": {}}), encoding="utf-8",
+            )
+            (content_root / "npcs" / "npcs.json").write_text(
+                json.dumps({"npc_real": {}}), encoding="utf-8",
+            )
+            (content_root / "crafting" / "recipes.json").write_text(json.dumps({
+                "recipe_real": {"quality_tiers": [{"id": "fine", "min_crafts": 1}]},
+            }), encoding="utf-8")
+            (content_root / "quests" / "quests.json").write_text(json.dumps({
+                "quest_bad_relationship": {
+                    "stages": [{"objective": {
+                        "type": "relationship", "target_npc_template_id": "npc_missing", "required_score": "not_an_int",
+                    }}],
+                },
+                "quest_bad_discover": {
+                    "stages": [{"objective": {"type": "discover_n", "kind": "not_a_real_kind", "required_count": 0}}],
+                },
+                "quest_bad_craft_recipe": {
+                    "stages": [{"objective": {
+                        "type": "craft_quality", "recipe_id": "recipe_missing", "required_quality_id": "masterwork",
+                    }}],
+                },
+                "quest_bad_craft_tier": {
+                    "stages": [{"objective": {
+                        "type": "craft_quality", "recipe_id": "recipe_real", "required_quality_id": "not_a_real_tier",
+                    }}],
+                },
+                "quest_bad_gather_empty": {
+                    "stages": [{"objective": {"type": "gather_types", "required_item_ids": []}}],
+                },
+                "quest_bad_gather_missing_item": {
+                    "stages": [{"objective": {"type": "gather_types", "required_item_ids": ["item_missing"]}}],
+                },
+                "quest_bad_deliver_multi": {
+                    "stages": [{"objective": {
+                        "type": "deliver_multi", "item_template_id": "item_missing",
+                        "recipients": [{"template_id": "npc_missing"}],
+                    }}],
+                },
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_new_quest_objective_types(content_root, issues)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("target_npc_template_id references a missing NPC template" in m for m in messages))
+        self.assertTrue(any("required_score must be an integer" in m for m in messages))
+        self.assertTrue(any("kind must be one of" in m for m in messages))
+        self.assertTrue(any("required_count must be a positive integer" in m for m in messages))
+        self.assertTrue(any("recipe_id references a missing recipe" in m for m in messages))
+        self.assertTrue(any("required_quality_id must name one of" in m for m in messages))
+        self.assertTrue(any("required_item_ids must be a non-empty array" in m for m in messages))
+        self.assertTrue(any("required_item_ids references a missing item template" in m for m in messages))
+        self.assertTrue(any("item_template_id references a missing item template" in m for m in messages))
+        self.assertTrue(any("recipients must be an array of at least 2 entries" in m for m in messages))
+
+    def test_well_formed_new_objective_types_produce_no_issues(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "items").mkdir()
+            (content_root / "npcs").mkdir()
+            (content_root / "crafting").mkdir()
+            (content_root / "quests").mkdir()
+            (content_root / "items" / "items.json").write_text(
+                json.dumps({"item_real": {}, "item_other": {}}), encoding="utf-8",
+            )
+            (content_root / "npcs" / "npcs.json").write_text(
+                json.dumps({"npc_a": {}, "npc_b": {}}), encoding="utf-8",
+            )
+            (content_root / "crafting" / "recipes.json").write_text(json.dumps({
+                "recipe_real": {"quality_tiers": [{"id": "fine", "min_crafts": 1}]},
+            }), encoding="utf-8")
+            (content_root / "quests" / "quests.json").write_text(json.dumps({
+                "quest_relationship": {
+                    "stages": [{"objective": {"type": "relationship", "target_npc_template_id": "npc_a", "required_score": 30}}],
+                },
+                "quest_discover": {
+                    "stages": [{"objective": {"type": "discover_n", "kind": "discovery", "required_count": 2}}],
+                },
+                "quest_craft": {
+                    "stages": [{"objective": {"type": "craft_quality", "recipe_id": "recipe_real", "required_quality_id": "fine"}}],
+                },
+                "quest_gather": {
+                    "stages": [{"objective": {"type": "gather_types", "required_item_ids": ["item_real", "item_other"]}}],
+                },
+                "quest_deliver_multi": {
+                    "stages": [{"objective": {
+                        "type": "deliver_multi", "item_template_id": "item_real",
+                        "recipients": [{"template_id": "npc_a"}, {"template_id": "npc_b"}],
+                    }}],
+                },
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_new_quest_objective_types(content_root, issues)
+        self.assertEqual([], issues)
 
     def test_attachment_extensions_are_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

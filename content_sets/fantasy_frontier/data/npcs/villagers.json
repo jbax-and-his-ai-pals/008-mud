@@ -282,6 +282,7 @@
     "initial_inventory": [],
     "properties": {
       "is_vendor": true,
+      "dialogue": "talia_provisions",
       "wander_chance": 0.0,
       "move_cooldown": 60,
       "spell_cast_chance": 0.0,

@@ -140,6 +140,37 @@ class TestSelectGiverNpc(GameTestBase):
         self.assertEqual(npc.obj_id, self.gen._select_giver_npc("kill"))
 
 
+class TestPickLevelScaledCreature(GameTestBase):
+    def setUp(self):
+        super().setUp()
+        self.gen = self.world.quest_manager.generator
+        self.world.npc_templates["low_level_creature"] = {"level": 1}
+        self.world.npc_templates["high_level_creature"] = {"level": 20}
+
+    def test_a_single_candidate_is_always_returned(self):
+        self.assertEqual(
+            "low_level_creature",
+            self.gen._pick_level_scaled_creature(["low_level_creature"], 1),
+        )
+
+    def test_strongly_favors_the_closer_level_over_many_trials(self):
+        picks = [
+            self.gen._pick_level_scaled_creature(["low_level_creature", "high_level_creature"], 1)
+            for _ in range(200)
+        ]
+        self.assertGreater(picks.count("low_level_creature"), picks.count("high_level_creature"))
+
+    def test_missing_level_falls_back_to_player_level_without_raising(self):
+        self.world.npc_templates["no_level_creature"] = {}
+        result = self.gen._pick_level_scaled_creature(["no_level_creature"], 5)
+        self.assertEqual("no_level_creature", result)
+
+    def test_non_integer_level_falls_back_to_player_level_without_raising(self):
+        self.world.npc_templates["bad_level_creature"] = {"level": "not_a_number"}
+        result = self.gen._pick_level_scaled_creature(["bad_level_creature"], 5)
+        self.assertEqual("bad_level_creature", result)
+
+
 class TestGenerateInstanceQuest(GameTestBase):
     def setUp(self):
         super().setUp()

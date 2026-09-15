@@ -3,6 +3,7 @@ import random
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET
+from engine.npcs.elite import compute_elite_overrides
 from engine.npcs.npc_factory import NPCFactory
 from engine.world.region import Region
 from engine.world.room import Room
@@ -150,13 +151,29 @@ class InstanceManager:
             spawnable_room_ids = [rid for rid in new_region.rooms.keys() if rid != entry_room_id]
             
             if not target_template_id: return False, f"Quest '{quest_instance_id}' has no target creature.", None
-            
-            for _ in range(num_to_spawn):
-                if not spawnable_room_ids: break 
-                chosen_room_id = random.choice(spawnable_room_ids)
+
+            # A boss room: the deepest generated room gets a guaranteed
+            # stronger spawn instead of an ordinary one, distinguishing the
+            # encounter's climax from its trash -- but only when there is
+            # room to draw that distinction. A single-target instance
+            # (target_count [1, 1], the smallest/oldest shape) stays exactly
+            # as it was: one ordinary spawn, no boss.
+            boss_room_id = spawnable_room_ids[-1] if len(spawnable_room_ids) >= 2 and num_to_spawn >= 2 else None
+
+            for spawn_index in range(num_to_spawn):
+                if not spawnable_room_ids: break
+                if boss_room_id is not None and spawn_index == num_to_spawn - 1:
+                    chosen_room_id = boss_room_id
+                else:
+                    ordinary_room_ids = [rid for rid in spawnable_room_ids if rid != boss_room_id] or spawnable_room_ids
+                    chosen_room_id = random.choice(ordinary_room_ids)
+                npc_overrides = {}
+                if chosen_room_id == boss_room_id:
+                    npc_overrides = compute_elite_overrides(self.world.npc_templates.get(target_template_id, {}), self.world)
                 npc = NPCFactory.create_npc_from_template(
                     target_template_id, self.world,
-                    current_region_id=unique_region_id, current_room_id=chosen_room_id
+                    current_region_id=unique_region_id, current_room_id=chosen_room_id,
+                    **npc_overrides
                 )
                 if not npc:
                     # The quest hasn't been marked completed yet, so

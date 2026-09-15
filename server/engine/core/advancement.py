@@ -83,6 +83,16 @@ def parse_entry_key(key: str) -> Tuple[str, str]:
     return kind, identifier
 
 
+def ledger_entries_of_kind(player, kind: str) -> int:
+    """Count a player's ledger entries of one kind directly off the raw
+    attribute, for callers (e.g. a passive quest-objective check) that only
+    have a player reference and don't need an AdvancementManager instance."""
+    entries = getattr(player, "advancement_entries", None)
+    if not isinstance(entries, (set, list, tuple)):
+        return 0
+    return sum(1 for key in entries if parse_entry_key(key)[0] == kind)
+
+
 @dataclass
 class GrantRule:
     """One authored rule: which entries pay, and how much."""

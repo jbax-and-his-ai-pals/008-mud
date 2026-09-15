@@ -90,7 +90,7 @@ class QuestGenerator:
         
         possible_creatures = chosen_template.get("objective", {}).get("possible_target_template_ids", [])
         if not possible_creatures: return None
-        chosen_creature_id = random.choice(possible_creatures)
+        chosen_creature_id = self._pick_level_scaled_creature(possible_creatures, player_level)
         
         objective_data = chosen_template.get("objective", {}).copy()
         objective_data["target_template_id"] = chosen_creature_id
@@ -158,6 +158,36 @@ class QuestGenerator:
         generated_region_ids = []
 
         return self._instantiate_quest_logic(quest_instance, quest_template, player_level, saga_context, generated_region_ids)
+
+    def _pick_level_scaled_creature(self, possible_creatures: List[str], player_level: int) -> str:
+        """Weighted pick biased toward creatures near the player's level.
+
+        Stays non-deterministic (an even level-1 spread among the pool would
+        otherwise always pick the same lowest-distance entry) -- it prefers a
+        close match rather than guaranteeing one, matching how the ambient
+        spawner already rolls a *range* rather than an exact level.
+        """
+        weighted = []
+        for template_id in possible_creatures:
+            template = self.world.npc_templates.get(template_id, {})
+            try:
+                creature_level = int(template.get("level", player_level))
+            except (TypeError, ValueError):
+                creature_level = player_level
+            distance = abs(creature_level - player_level)
+            weighted.append((template_id, 1.0 / (1 + distance)))
+
+        total_weight = sum(weight for _, weight in weighted)
+        if total_weight <= 0:
+            return random.choice(possible_creatures)
+
+        roll = random.uniform(0, total_weight)
+        running_total = 0.0
+        for template_id, weight in weighted:
+            running_total += weight
+            if roll <= running_total:
+                return template_id
+        return weighted[-1][0]
 
     def _select_giver_npc(self, quest_type: str) -> Optional[str]:
         if not self.world: return None

@@ -297,6 +297,28 @@
     ]
   },
 
+  "quest_local_provisions": {
+    "title": "Local Provisions",
+    "type": "quest",
+    "description": "Talia wants a sample of local herbs and softwood to show buyers upriver.",
+    "completion_check_enabled": true,
+    "rewards": { "xp": 60, "gold": 20 },
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Gather a sample of wild herbs and softwood from anywhere in the region.",
+        "objective": {
+          "type": "gather_types",
+          "required_item_ids": ["item_wild_herbs", "item_softwood"],
+          "gathered_item_ids": []
+        },
+        "turn_in_id": "merchant",
+        "start_dialogue": "Bring me a sample of local herbs and softwood, from wherever you find them.",
+        "completion_dialogue": "Just what I needed. This'll do nicely for upriver."
+      }
+    ]
+  },
+
   "quest_investigate_smuggling": {
     "title": "Something's Not Right at the Docks",
     "type": "quest",

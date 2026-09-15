@@ -274,6 +274,8 @@ class CraftingManager:
             # successful craft.
             return f"Unable to add the crafted item: {add_message}"
         player.recipe_craft_counts[recipe.recipe_id] = prior_crafts + 1
+        if self.world.quest_manager:
+            self.world.quest_manager.handle_item_crafted(player, recipe, quality_tier)
         discovery_manager = getattr(getattr(self.world, "game", None), "discovery_manager", None)
         discovery_note = discovery_manager.handle_item_discovery(player, result_item) if discovery_manager else ""
         

@@ -118,6 +118,44 @@ class TestInstantiateQuestRegionGuards(GameTestBase):
         spawned = [n for n in self.world.npcs.values() if n.current_region_id == data["instance_region_id"]]
         self.assertEqual(2, len(spawned))
 
+    def test_boss_room_guarantees_one_elite_spawn_when_there_are_multiple_targets(self):
+        data = _quest_data(
+            layout_generation_config={"target_count": [2, 2]},
+            instance_region={
+                "region_name": "Test Place", "region_description": "x",
+                "rooms": {
+                    "entry": {"name": "Entry", "description": "x", "exits": {"out": "dynamic_exit"}},
+                    "hall": {"name": "Hall", "description": "x", "exits": {}},
+                    "lair": {"name": "Lair", "description": "x", "exits": {}},
+                },
+            },
+        )
+        success, msg, giver_id = self.im.instantiate_quest_region(data)
+        self.assertTrue(success)
+        spawned = [n for n in self.world.npcs.values() if n.current_region_id == data["instance_region_id"]]
+        self.assertEqual(2, len(spawned))
+        elites = [n for n in spawned if n.properties.get("is_elite")]
+        self.assertEqual(1, len(elites))
+        self.assertEqual("lair", elites[0].current_room_id)
+
+    def test_single_target_instance_never_gets_a_boss_room(self):
+        data = _quest_data(
+            layout_generation_config={"target_count": [1, 1]},
+            instance_region={
+                "region_name": "Test Place", "region_description": "x",
+                "rooms": {
+                    "entry": {"name": "Entry", "description": "x", "exits": {"out": "dynamic_exit"}},
+                    "lair": {"name": "Lair", "description": "x", "exits": {}},
+                    "second_lair": {"name": "Second Lair", "description": "x", "exits": {}},
+                },
+            },
+        )
+        success, msg, giver_id = self.im.instantiate_quest_region(data)
+        self.assertTrue(success)
+        spawned = [n for n in self.world.npcs.values() if n.current_region_id == data["instance_region_id"]]
+        self.assertEqual(1, len(spawned))
+        self.assertFalse(spawned[0].properties.get("is_elite", False))
+
     def test_no_target_template_id_returns_false(self):
         data = _quest_data(objective={})
         success, msg, giver_id = self.im.instantiate_quest_region(data)

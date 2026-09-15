@@ -11,7 +11,7 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.social.relationships import apply_relationship_milestones, relationship_key
 from engine.utils.logger import Logger
 from .loader import load_quest_templates
-from .tracker import check_quest_completion, handle_npc_killed
+from .tracker import check_quest_completion, handle_npc_killed, handle_item_crafted, handle_resource_gathered
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -631,6 +631,12 @@ class QuestManager:
 
     def handle_npc_killed(self, event_type: str, data: Dict[str, Any]) -> Optional[str]:
         return handle_npc_killed(self, event_type, data)
+
+    def handle_item_crafted(self, player, recipe, quality_tier: Optional[Dict[str, Any]]) -> Optional[str]:
+        return handle_item_crafted(self, player, recipe, quality_tier)
+
+    def handle_resource_gathered(self, player, resource_item_id: str) -> Optional[str]:
+        return handle_resource_gathered(self, player, resource_item_id)
 
     def check_quest_completion(self, player=None):
         check_quest_completion(self, player)

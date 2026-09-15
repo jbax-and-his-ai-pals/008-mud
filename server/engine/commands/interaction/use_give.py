@@ -129,6 +129,43 @@ def give_handler(args, context):
     npc = world.find_npc_in_room_for_player(npc_name, player)
     if not npc: return f"{FORMAT_ERROR}NPC '{npc_name}' not found.{FORMAT_RESET}"
 
+    # deliver_multi: one copy to each of several recipients, tracked
+    # separately from ordinary "deliver" since giving to one recipient must
+    # not complete the whole quest.
+    quests_active_for_multi = player.runtime_state.quests.active if player.runtime_state.quests is not None else {}
+    npc_template_id = getattr(npc, "template_id", None)
+    for q_id, q_data in quests_active_for_multi.items():
+        if q_data.get("state") != "active":
+            continue
+        for objective in world.quest_manager.get_active_objectives(q_data):
+            if objective.get("type") != "deliver_multi" or objective.get("item_template_id") != item.obj_id:
+                continue
+            recipients = [r for r in objective.get("recipients", []) if isinstance(r, dict)]
+            recipient = next((r for r in recipients if r.get("template_id") == npc_template_id), None)
+            if recipient is None:
+                continue
+            delivered = objective.setdefault("delivered_to", [])
+            if npc_template_id in delivered:
+                return f"{FORMAT_ERROR}You've already given {recipient.get('name', npc.name)} their {item.name}.{FORMAT_RESET}"
+            if not player.inventory.remove_item_instances([item]):
+                return f"{FORMAT_ERROR}Failed to remove item safely.{FORMAT_RESET}"
+            delivered.append(npc_template_id)
+            title = q_data.get("title", "Task")
+            required_ids = {r.get("template_id") for r in recipients}
+            if required_ids <= set(delivered):
+                rewards_msg = world.quest_manager.complete_quest(player, q_id)
+                npc_response = npc.dialog.get(f"complete_{q_id}", npc.dialog.get("quest_complete", "Thank you!"))
+                msg = f"{FORMAT_SUCCESS}[Quest Complete] {title}{FORMAT_RESET}\n"
+                msg += f"{FORMAT_HIGHLIGHT}\"{npc_response}\"{FORMAT_RESET}\n"
+                if rewards_msg: msg += rewards_msg
+                return msg
+            remaining_names = [r.get("name", r.get("template_id")) for r in recipients if r.get("template_id") not in delivered]
+            return (
+                f"{FORMAT_SUCCESS}{npc.name} accepts the {item.name}.{FORMAT_RESET}\n"
+                f"{FORMAT_HIGHLIGHT}[Quest Update] {title}: ({len(delivered)}/{len(recipients)} delivered; "
+                f"still need: {', '.join(str(n) for n in remaining_names)}).{FORMAT_RESET}"
+            )
+
     # Quest Delivery Logic
     matching_quest = None
 

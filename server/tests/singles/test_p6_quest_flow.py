@@ -49,6 +49,45 @@ class TestP6QuestFlow(unittest.TestCase):
         self.assertIn("community garden", teaching.lower())
         self.assertIn("tie_wildflower_posy", self.player.known_recipe_ids)
 
+    def test_local_provisions_demonstrates_gather_types_end_to_end(self) -> None:
+        """Talia's quest -- authored content proving the new gather_types
+        objective type works through the real dialogue/gathering/turn-in
+        path, not just direct unit injection (see
+        test_p6_new_objective_types.py for the isolated engine coverage)."""
+        self.player.current_region_id = "town"
+        self.player.current_room_id = "market_square"
+        opening = self.command("talk Talia")
+        offer = self.command("reply provisions")
+        accepted = self.command("reply gather them")
+        self.assertIn("gathered from around here", opening.lower())
+        self.assertIn("wild herbs", offer.lower())
+        self.assertIn("softwood", offer.lower())
+        quest_id, quest = self._active("quest_local_provisions")
+        self.assertEqual("active", quest["state"])
+
+        from engine.items.item_factory import ItemFactory
+        knife = ItemFactory.create_item_from_template("item_foraging_knife", self.server.world)
+        axe = ItemFactory.create_item_from_template("item_hand_axe", self.server.world)
+        self.player.inventory.add_item(knife)
+        self.player.inventory.add_item(axe)
+
+        self.player.current_region_id = "town"
+        self.player.current_room_id = "community_garden"
+        self.command("gather herb bed")
+        self.assertEqual("active", quest["state"])
+
+        self.player.current_region_id = "farmland"
+        self.player.current_room_id = "orchard_west"
+        self.command("gather fallen bough")
+        self.assertEqual("ready_to_complete", quest["state"])
+
+        self.player.current_region_id = "town"
+        self.player.current_room_id = "market_square"
+        completed = self.command("talk Talia complete")
+        self.assertIn("Quest Complete", completed)
+        self.assertNotIn(quest_id, self.player.runtime_state.quests.active)
+        self.assertIn(quest_id, self.player.runtime_state.quests.completed)
+
     def test_missing_guard_is_given_by_elara_and_playable_to_the_final_return(self) -> None:
         self.command("talk Guard Captain Elara")
         briefing = self.command("reply missing guard")

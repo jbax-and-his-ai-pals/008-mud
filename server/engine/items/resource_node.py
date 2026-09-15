@@ -167,13 +167,15 @@ class ResourceNode(Item):
                 discovery = collection_manager.handle_collection_discovery(player, resource)
             discovery_manager = getattr(getattr(world, "game", None), "discovery_manager", None)
             journal_note = discovery_manager.handle_item_discovery(player, resource) if discovery_manager else ""
+            quest_manager = getattr(world, "quest_manager", None)
+            quest_note = quest_manager.handle_resource_gathered(player, resource.obj_id) if quest_manager else ""
             quality_note = f" ({resource.get_property('material_quality_label')} quality)" if resource.get_property("material_quality_score", 0) else ""
             message = f"{FORMAT_SUCCESS}You gather {resource.name}{quality_note} from the {self.name}.{FORMAT_RESET}"
             # Charge counts are engine internals: a tester needs them, a player
             # should not be counting the world's resets.
             if show_internals(self._presentation_context(world, player)):
                 message += f" ({charges - 1} remaining)"
-            notes = [note for note in (discovery, journal_note) if note]
+            notes = [note for note in (discovery, journal_note, quest_note) if note]
             return message + "\n" + "\n".join(notes) if notes else message
         
         return "You find nothing useful."

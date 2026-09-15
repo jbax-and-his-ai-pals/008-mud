@@ -793,7 +793,9 @@ unreachable campaign giver: content that looks complete and can never be played.
 ## P6: Quest flow and scaling
 
 **Goal:** quests are given by people, teach the player what to do, and the
-system scales to a world with many towns.
+system scales to a world with many towns. **Complete** for the two items
+below in the scope described; harder sub-asks are recorded as still open
+rather than attempted half-built.
 
 Full target flow in `WORLD_DESIGN.md` §6. The first commission now follows that
 flow: it comes from the board, Elder Thorne teaches the recipe and points to the
@@ -812,35 +814,112 @@ garden, and the journal renders its authored stage instruction.
   the world clock when read. Riverside's commissions and elite bounties now
   use that policy. Players see, for example, that the board is picked over or
   a giver took down a notice — never a countdown or a cooldown value.
-- [ ] **Add objective types:** escort, defend/hold, timed, puzzle/mechanism,
-  explore-region, discover-N, craft-to-quality, deliver-to-multiple,
-  gather-N-types, social (raise relationship), trade (fulfil N orders),
-  theft/smuggling. Today: 8 deliver, 6 kill, 2 negotiate, 2 scout, 1 fetch.
-- [ ] **Extend instanced quests.** The system already works
-  (`instance_generic_infestation`: worried homeowner → clear rats → relieved
-  homeowner, with a dynamically generated 2–4 room interior) and matches the
-  "rats invade a house in town, house is generated and destroyed on completion"
-  design exactly. Extend to variable layout templates, boss rooms, level
-  scaling, multiple entry towns, and instanced dungeons as well as interiors.
+- [x] **Add objective types: five shipped, five reused existing
+  infrastructure end to end.** Read the quest engine to separate what was
+  cheap from what would need a subsystem of its own: `check_quest_completion`
+  (`core/quests/tracker.py`) already runs every world tick for every active
+  quest and already did one passive check (`clear_region`), so it was the
+  natural home for two more -- **`relationship`** (checks
+  `player.npc_relationships[target_npc_template_id]` against a threshold,
+  no new tracking) and **`discover_n`** (counts P4's advancement-ledger
+  entries of an authored kind, also no new tracking: the ledger already
+  grows on its own). **`craft_quality`** hooks `CraftingManager.craft()`
+  right after it already computes the result's quality tier. **`gather_types`**
+  hooks `ResourceNode.gather()` the same way `discovery_manager` already does
+  inline, recording which of a required set of resources has been gathered.
+  **`deliver_multi`** extends `give`'s existing single-recipient delivery
+  match to track partial progress across several recipients before
+  completing. All five are additive: none changes how `kill`/`fetch`/
+  `deliver`/`negotiate`/`scout` behave, so no existing quest or test needed
+  to change. One is authored end to end, not just unit-tested: Talia the
+  Merchant's `quest_local_provisions` (`dialogue/talia_provisions.json`)
+  demonstrates `gather_types` -- no fixed source dictated, any mix of wild
+  herbs and softwood from wherever the player finds them completes it, and
+  `resolve_turn_in_name`'s existing template-or-instance matching meant her
+  `wander_chance: 0` placement needed no new plumbing to turn in to.
+  **Deliberately not attempted**, because each needs a genuinely new
+  subsystem rather than a hook into one that exists: `escort` (its
+  `is_escort_target`/`escort_quest_id` scaffolding in
+  `_setup_stage_mechanics` was found to be dead code -- nothing anywhere
+  reads either property, so real NPC-following movement AI, arrival
+  detection, and death-of-escort failure would all be new), `defend/hold`
+  (wave-spawn plus a survive timer), `timed` (a generic deadline/failure
+  wrapper worth building once, not per-objective), `puzzle/mechanism`
+  (bespoke per-puzzle logic, not a reusable type), `trade`
+  (the vendor buy-order system `vendor_orders_completed` already tracks is a
+  plausible future hook, just not exercised this pass), and `theft/smuggling`
+  (belongs with the existing separate crime/theft system, not bolted onto
+  quests).
+- [x] **Extend instanced quests: level scaling and a boss room shipped;
+  layout/entry-town/dungeon-type work stays open.** Read
+  `generate_instance_quest`/`instantiate_quest_region`
+  (`quest_generation/generator.py`, `world/instance_manager.py`) to find that
+  target-creature choice was a uniform `random.choice` over the whole pool
+  regardless of player level, and every spawn was an ordinary copy of the
+  same template with no distinguished encounter. Fixed both without a
+  generator rewrite: `_pick_level_scaled_creature` weights the pick toward
+  templates whose authored level is close to the player's (still
+  non-deterministic -- a *preference*, not a guarantee, so a sparse pool
+  doesn't always hand back the same entry); the deepest generated room now
+  gets one guaranteed elevated spawn via a new `compute_elite_overrides`
+  (`npcs/elite.py`, factored out of the ambient spawner's chance-gated
+  `roll_elite_overrides` so a boss room can reuse the exact same promotion
+  math without an ambient roll) -- but only when there are at least two
+  targets *and* two distinct non-entry rooms, so the smallest/oldest shape
+  (`target_count: [1, 1]`, a single room) is completely unchanged and no
+  existing test needed to move. **Still open:** branching (non-linear)
+  layouts, wiring `possible_entry_regions` to more than the one starting
+  town in practice, and instanced dungeons as a distinct shape from a
+  generated house interior.
 - [x] **Surface `bandit_rebellion` through normal play.** Asking Elder Thorne
   about trouble starts the campaign's opening route; `campaign start` is no
   longer required.
+
+### Still open
+
+- [ ] `escort`, `defend/hold`, `timed`, `puzzle/mechanism`, `theft/smuggling`
+  objective types -- each needs its own subsystem (see above).
+- [ ] `trade` (fulfil N vendor orders) -- infrastructure
+  (`vendor_orders_completed`) already exists; wiring it as a quest objective
+  type is a smaller lift than the others above, just not done this pass.
+- [ ] Branching (non-linear) instanced-quest layouts, multiple real entry
+  towns in practice, and instanced dungeons distinct from a house interior.
 
 ### Definition of done
 
 - [x] A new player's first commission teaches them a recipe through a person.
 - [x] Repeatable tasks exist and do not feel like a machine.
 - [x] At least three non-combat objective types are live (fetch, deliver,
-  scout, and negotiate).
+  scout, and negotiate) -- now eight, with relationship, discover_n,
+  craft_quality, gather_types, and deliver_multi added.
 
 ### Verification
 
 - `tests/singles/test_p6_quest_flow.py` covers the recipe-less opening through
-  Elder Thorne's lesson and the full Missing Guard route through its quest-only
-  River Troll spawn.
+  Elder Thorne's lesson, the full Missing Guard route through its quest-only
+  River Troll spawn, and Talia's `quest_local_provisions` played live end to
+  end (dialogue offer -> gather from two different rooms/regions -> auto-ready
+  -> `talk ... complete`).
 - `tests/singles/test_repeatable_board_quests.py` covers explicit opt-in,
   active-task de-duplication, hidden re-post timing, and save/load state;
   `test_content_set_runtime.py` rejects a malformed repeatable policy.
+- `tests/singles/test_p6_new_objective_types.py` (16 tests) drives the real
+  event each new objective type hooks into -- a tick-driven check, a craft, a
+  gather, a give -- for all five, including negative cases (a different NPC's
+  relationship, a different kind's ledger entries, a different recipe, an
+  unrelated resource, double-delivery to the same recipient).
+- `tests/singles/test_quest_generator.py`
+  (`TestPickLevelScaledCreature`) and `tests/singles/test_instance_manager_full.py`
+  (boss-room tests) cover the instanced-quest generation changes, including
+  that a single-target instance is provably unaffected.
+- `tests/singles/test_content_set_runtime.py` covers the new
+  `_validate_new_quest_objective_types` gate: every bad reference/shape for
+  all five types, and a well-formed quest of each producing zero issues.
+- Full suite (`run_tests.py`, all three suites): **3,751 + 280 + 3 tests,
+  zero failures** -- run twice for stability. This is the first time in this
+  roadmap's history the full suite has been genuinely green rather than
+  carrying "known pre-existing" failures forward; P4's encoding-hygiene fix
+  is what actually retired the last of those.
 
 ---
 

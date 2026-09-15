@@ -14,7 +14,15 @@ def roll_elite_overrides(template: Dict[str, Any], world) -> Optional[Dict[str, 
     chance = float(config.get("chance", 0.0))
     if chance <= 0.0 or random.random() >= chance:
         return None
+    return compute_elite_overrides(template, world)
 
+
+def compute_elite_overrides(template: Dict[str, Any], world) -> Dict[str, Any]:
+    """The override math `roll_elite_overrides` applies once its ambient
+    chance gate passes -- factored out so a guaranteed elite (e.g. an
+    instanced quest's boss room) can reuse the same promotion without an
+    ambient roll."""
+    config = world.ruleset_section("elites")
     multiplier = float(config.get("stat_multiplier", 1.5))
     stats = {key: max(1, int(value * multiplier)) for key, value in template.get("stats", {}).items()}
     attack_power = max(1, int(template.get("attack_power", 3) * multiplier))

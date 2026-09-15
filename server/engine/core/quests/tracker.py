@@ -2,6 +2,7 @@
 from typing import Dict, Any, Optional
 from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET
 from engine.npcs.npc_factory import NPCFactory
+from engine.core.advancement import ledger_entries_of_kind
 
 def handle_npc_killed(manager, event_type: str, data: Dict[str, Any]) -> Optional[str]:
     player = data.get("player")
@@ -65,6 +66,69 @@ def _update_standard_kill(manager, quest_data, objective, messages):
     else:
         messages.append(f"{FORMAT_HIGHLIGHT}[Quest Update]{FORMAT_RESET} {title}: ({objective['current_quantity']}/{required} killed).")
 
+def handle_item_crafted(manager, player, recipe, quality_tier: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not manager.world or not player or player.runtime_state.quests is None:
+        return None
+    recipe_id = str(getattr(recipe, "recipe_id", "") or "")
+    if not recipe_id:
+        return None
+    achieved_rank = recipe.quality_rank(quality_tier) if quality_tier else -1
+
+    messages = []
+    for quest_id, quest_data in list(player.runtime_state.quests.active.items()):
+        if quest_data.get("state") != "active":
+            continue
+        for objective in manager.get_active_objectives(quest_data):
+            if objective.get("type") != "craft_quality" or objective.get("recipe_id") != recipe_id:
+                continue
+            required_quality_id = objective.get("required_quality_id")
+            required_tier = next((tier for tier in recipe.quality_tiers if tier.get("id") == required_quality_id), None)
+            required_rank = recipe.quality_rank(required_tier) if required_tier else 0
+            if achieved_rank < required_rank:
+                continue
+            quest_data["state"] = "ready_to_complete"
+            turn_in_name = manager.resolve_turn_in_name(quest_data)
+            messages.append(
+                f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: You've crafted it to the quality "
+                f"required. Report back to {turn_in_name}.{FORMAT_RESET}"
+            )
+    return "\n".join(messages) if messages else None
+
+
+def handle_resource_gathered(manager, player, resource_item_id: str) -> Optional[str]:
+    if not manager.world or not player or player.runtime_state.quests is None or not resource_item_id:
+        return None
+
+    messages = []
+    for quest_id, quest_data in list(player.runtime_state.quests.active.items()):
+        if quest_data.get("state") != "active":
+            continue
+        for objective in manager.get_active_objectives(quest_data):
+            if objective.get("type") != "gather_types":
+                continue
+            required_ids = objective.get("required_item_ids", [])
+            if resource_item_id not in required_ids:
+                continue
+            gathered = objective.setdefault("gathered_item_ids", [])
+            if resource_item_id in gathered:
+                continue
+            gathered.append(resource_item_id)
+            title = quest_data.get("title", "Task")
+            if set(gathered) >= set(required_ids):
+                quest_data["state"] = "ready_to_complete"
+                turn_in_name = manager.resolve_turn_in_name(quest_data)
+                messages.append(
+                    f"{FORMAT_HIGHLIGHT}[Quest Update] {title}: You have gathered everything needed. "
+                    f"Report back to {turn_in_name}.{FORMAT_RESET}"
+                )
+            else:
+                messages.append(
+                    f"{FORMAT_HIGHLIGHT}[Quest Update] {title}: "
+                    f"({len(gathered)}/{len(required_ids)} materials gathered).{FORMAT_RESET}"
+                )
+    return "\n".join(messages) if messages else None
+
+
 def check_quest_completion(manager, player=None):
     """
     Checks for quests that auto-complete based on world state (e.g., Clear Region).
@@ -96,7 +160,34 @@ def check_quest_completion(manager, player=None):
             if not objective:
                 objective = quest_data.get("objective", {})
 
-            if objective.get("type") != "clear_region":
+            obj_type = objective.get("type")
+
+            if obj_type == "relationship":
+                target_template_id = objective.get("target_npc_template_id")
+                required_score = int(objective.get("required_score", 0) or 0)
+                if target_template_id and tracked_player.npc_relationships.get(target_template_id, 0) >= required_score:
+                    quest_data["state"] = "ready_to_complete"
+                    turn_in_name = manager.resolve_turn_in_name(quest_data)
+                    if manager.world.game and manager.world.game.renderer:
+                        npc_name = objective.get("npc_name", target_template_id)
+                        manager.world.game.renderer.add_message(
+                            f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: {npc_name} trusts you enough now. Report back to {turn_in_name}.{FORMAT_RESET}"
+                        )
+                continue
+
+            if obj_type == "discover_n":
+                kind = str(objective.get("kind", ""))
+                required_count = int(objective.get("required_count", 0) or 0)
+                if kind and ledger_entries_of_kind(tracked_player, kind) >= required_count:
+                    quest_data["state"] = "ready_to_complete"
+                    turn_in_name = manager.resolve_turn_in_name(quest_data)
+                    if manager.world.game and manager.world.game.renderer:
+                        manager.world.game.renderer.add_message(
+                            f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: You have learned enough. Report back to {turn_in_name}.{FORMAT_RESET}"
+                        )
+                continue
+
+            if obj_type != "clear_region":
                 continue
 
             instance_region_id = quest_data.get("instance_region_id")

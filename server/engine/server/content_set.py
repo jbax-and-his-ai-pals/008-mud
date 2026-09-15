@@ -1123,6 +1123,106 @@ def _stage_objectives(stage: dict) -> list[dict]:
     return found
 
 
+def _load_recipes(content_root: Path, issues: list[ContentSetIssue]) -> dict[str, dict]:
+    recipes: dict[str, dict] = {}
+    crafting_dir = content_root / "crafting"
+    if not crafting_dir.is_dir():
+        return recipes
+    for path in sorted(crafting_dir.glob("*.json")):
+        payload = _load_json(path, issues, "crafting recipes")
+        if not isinstance(payload, dict):
+            continue
+        for recipe_id, recipe in payload.items():
+            if isinstance(recipe, dict) and not str(recipe_id).startswith("_"):
+                recipes[str(recipe_id)] = recipe
+    return recipes
+
+
+def _validate_new_quest_objective_types(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate the five reused-infrastructure objective types added in P6:
+    relationship, discover_n, craft_quality, gather_types, deliver_multi.
+
+    Each reuses an existing tracked value (relationship score, advancement
+    ledger, recipe quality tiers, resource item ids, NPC templates) rather
+    than inventing new player state, so validation is mostly "does this
+    reference something real."
+    """
+    from engine.core.advancement import KNOWN_ENTRY_KINDS
+
+    quests_path = content_root / "quests" / "quests.json"
+    if not quests_path.is_file():
+        return
+    payload = _load_json(quests_path, issues, "quest definitions")
+    if not isinstance(payload, dict):
+        return
+
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    recipes = _load_recipes(content_root, issues)
+
+    for quest_id, quest in payload.items():
+        if str(quest_id).startswith("_") or not isinstance(quest, dict):
+            continue
+        stages = quest.get("stages")
+        if not isinstance(stages, list):
+            continue
+        for index, stage in enumerate(stages):
+            if not isinstance(stage, dict):
+                continue
+            for objective in _stage_objectives(stage):
+                obj_type = str(objective.get("type", ""))
+                label = f"quest '{quest_id}' stage {index} ({obj_type})"
+
+                if obj_type == "relationship":
+                    target = objective.get("target_npc_template_id")
+                    if not isinstance(target, str) or target not in npc_ids:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.target_npc_template_id references a missing NPC template"))
+                    score = objective.get("required_score")
+                    if isinstance(score, bool) or not isinstance(score, int):
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.required_score must be an integer"))
+
+                elif obj_type == "discover_n":
+                    kind = objective.get("kind")
+                    if kind not in KNOWN_ENTRY_KINDS:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.kind must be one of {sorted(KNOWN_ENTRY_KINDS)}"))
+                    count = objective.get("required_count")
+                    if isinstance(count, bool) or not isinstance(count, int) or count < 1:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.required_count must be a positive integer"))
+
+                elif obj_type == "craft_quality":
+                    recipe_id = objective.get("recipe_id")
+                    recipe = recipes.get(recipe_id) if isinstance(recipe_id, str) else None
+                    if recipe is None:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.recipe_id references a missing recipe"))
+                        continue
+                    required_quality_id = objective.get("required_quality_id")
+                    tiers = recipe.get("quality_tiers", [])
+                    tier_ids = {tier.get("id") for tier in tiers if isinstance(tier, dict)}
+                    if not isinstance(required_quality_id, str) or required_quality_id not in tier_ids:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.required_quality_id must name one of {recipe_id}'s quality_tiers ids"))
+
+                elif obj_type == "gather_types":
+                    required_ids = objective.get("required_item_ids")
+                    if not isinstance(required_ids, list) or not required_ids:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.required_item_ids must be a non-empty array"))
+                    else:
+                        for item_id in required_ids:
+                            if not isinstance(item_id, str) or item_id not in item_ids:
+                                issues.append(ContentSetIssue("error", str(quests_path), f"{label}.required_item_ids references a missing item template: {item_id!r}"))
+
+                elif obj_type == "deliver_multi":
+                    item_template_id = objective.get("item_template_id")
+                    if not isinstance(item_template_id, str) or item_template_id not in item_ids:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.item_template_id references a missing item template"))
+                    recipients = objective.get("recipients")
+                    if not isinstance(recipients, list) or len(recipients) < 2:
+                        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.recipients must be an array of at least 2 entries"))
+                    else:
+                        for r_index, recipient in enumerate(recipients):
+                            if not isinstance(recipient, dict) or recipient.get("template_id") not in npc_ids:
+                                issues.append(ContentSetIssue("error", str(quests_path), f"{label}.recipients[{r_index}].template_id references a missing NPC template"))
+
+
 def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Validate optional, setting-agnostic vendor delivery orders."""
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
@@ -1740,6 +1840,7 @@ def load_content_set(
         _validate_starting_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_quest_choice_outcomes(content_root, issues)
+        _validate_new_quest_objective_types(content_root, issues)
         _validate_collection_references(content_root, issues)
         _validate_discovery_references(content_root, issues)
         _validate_vendor_orders(content_root, issues)
