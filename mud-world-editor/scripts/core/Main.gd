@@ -74,6 +74,28 @@ func _bootstrap_ui():
 		btn_reg.pressed.connect(func(): inspector.load_region_root(region_mgr.data))
 	if not DirAccess.dir_exists_absolute("res://data/regions/"): DirAccess.make_dir_recursive_absolute("res://data/regions/")
 	_update_db_ui()
+	_load_region_vocab_into_creator()
+
+# Populates the New Region wizard's biome/region_type dropdowns and NPC
+# population list from real data (the synced ruleset's classification
+# vocabulary, and every currently-loaded NPC template) instead of a
+# hardcoded list that would drift from whatever content set this data
+# actually belongs to.
+func _load_region_vocab_into_creator():
+	var biomes: Array = []
+	var region_types: Array = []
+	if FileAccess.file_exists("res://data/ruleset.json"):
+		var f = FileAccess.open("res://data/ruleset.json", FileAccess.READ)
+		if f:
+			var json = JSON.new()
+			if json.parse(f.get_as_text()) == OK:
+				var ruleset = json.get_data()
+				var regions_cfg = ruleset.get("world", {}).get("regions", {}) if typeof(ruleset) == TYPE_DICTIONARY else {}
+				biomes = regions_cfg.get("biomes", [])
+				region_types = regions_cfg.get("region_types", [])
+	ui_mgr.creator_modal.set_vocab(biomes, region_types)
+	var npc_ids: Array = database_mgr.npcs.keys(); npc_ids.sort()
+	ui_mgr.creator_modal.set_npc_options(npc_ids)
 
 func _update_db_ui():
 	ui_mgr.update_db_lists(
@@ -87,7 +109,8 @@ func _update_db_ui():
 
 func _connect_ui_signals():
 	ui_mgr.request_load_region.connect(_load_region)
-	ui_mgr.request_validate.connect(func(): ui_mgr.show_validation_results(world_mgr.validate_world_links())) 
+	ui_mgr.request_validate.connect(func(): ui_mgr.show_validation_results(world_mgr.validate_world_links()))
+	ui_mgr.request_validate_region_policy.connect(_validate_region_policy)
 	ui_mgr.request_create_connection.connect(action_handler.create_connection)
 	ui_mgr.request_create_region.connect(_create_region)
 	ui_mgr.context_action.connect(action_handler.handle_context_action)
@@ -375,12 +398,79 @@ func _load_region(file, force_reload: bool = false, keep_ui_visible: bool = fals
 		ui_mgr.update_status_info(region_mgr.data.get("name", file), rooms.size(), "", exit_count)
 		ui_mgr.call_deferred("refresh_explorer", world_mgr.get_global_hierarchy(), file, "")
 
-func _create_region(name, rooms_data):
+func _create_region(name, rooms_data, region_meta: Dictionary = {}):
 	if not name.ends_with(".json"): name += ".json"
-	var new_data = { "region_id": name.replace(".json", ""), "description": "New region", "rooms": rooms_data }
+	var properties: Dictionary = {}
+	var biome = String(region_meta.get("biome", ""))
+	var region_type = String(region_meta.get("region_type", ""))
+	if biome != "": properties["biome"] = biome
+	if region_type != "": properties["region_type"] = region_type
+	var level_min = int(region_meta.get("level_min", 0))
+	var level_max = int(region_meta.get("level_max", 0))
+	var spawner: Dictionary = {}
+	if level_min > 0 and level_max >= level_min:
+		properties["level_band"] = {"min": level_min, "max": level_max}
+		spawner["level_range"] = [level_min, level_max]
+
+	var npc_ids: Array = region_meta.get("npc_ids", [])
+	var density: float = float(region_meta.get("population_density", 0.0))
+	if npc_ids.size() > 0 and density > 0.0:
+		spawner["monster_types"] = {}
+		for npc_id in npc_ids: spawner["monster_types"][npc_id] = 1
+		_populate_rooms_with_npcs(rooms_data, npc_ids, density)
+
+	var new_data: Dictionary = { "region_id": name.replace(".json", ""), "description": "New region", "rooms": rooms_data }
+	if not properties.is_empty(): new_data["properties"] = properties
+	if not spawner.is_empty(): new_data["spawner"] = spawner
+
 	var file = FileAccess.open("res://data/regions/" + name, FileAccess.WRITE)
 	if file: file.store_string(JSON.stringify(new_data, "\t")); file.close()
 	_load_region(name)
+
+# Scatters the chosen NPC templates across roughly `density` (0-1) of the
+# generated rooms as initial_npcs entries, so a generated region ships with
+# some population instead of standing completely empty. One instance_id
+# suffix per placement keeps ids unique if the same template is placed more
+# than once (the runtime NPC factory requires unique instance ids).
+func _populate_rooms_with_npcs(rooms_data: Dictionary, npc_ids: Array, density: float):
+	var room_ids: Array = rooms_data.keys()
+	room_ids.shuffle()
+	var target_count = int(ceil(room_ids.size() * clamp(density, 0.0, 1.0)))
+	var placed = 0
+	for room_id in room_ids:
+		if placed >= target_count: break
+		var npc_id = npc_ids[randi() % npc_ids.size()]
+		var room = rooms_data[room_id]
+		if not room.has("initial_npcs"): room["initial_npcs"] = []
+		room["initial_npcs"].append({"template_id": npc_id, "instance_id": "%s_%s" % [npc_id, room_id]})
+		placed += 1
+
+func _validate_region_policy():
+	var project_root: String = ProjectSettings.globalize_path("res://")
+	var repo_root: String = project_root.trim_suffix("/").get_base_dir()
+	var python_exe: String = repo_root.path_join(".venv/Scripts/python.exe")
+	var validator_script: String = repo_root.path_join("toolkit/region_policy_validator.py")
+	var content_root: String = project_root.path_join("data")
+	var ruleset_path: String = project_root.path_join("data/ruleset.json")
+
+	if not FileAccess.file_exists(python_exe):
+		ui_mgr.show_region_policy_results(false, [], "Python venv not found at %s -- run bootstrap.ps1 in the repo root first." % python_exe)
+		return
+	if not FileAccess.file_exists(ruleset_path):
+		ui_mgr.show_region_policy_results(false, [], "No data/ruleset.json found -- copy your content set's rules/ruleset.json there first.")
+		return
+
+	var output: Array = []
+	var exit_code = OS.execute(python_exe, [validator_script, content_root, "--ruleset", ruleset_path, "--json"], output, false)
+	var raw: String = output[0] if output.size() > 0 else ""
+	var json_line: String = ""
+	for line in raw.split("\n"):
+		if line.strip_edges() != "": json_line = line
+	var parsed = JSON.parse_string(json_line)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		ui_mgr.show_region_policy_results(false, [], "Could not parse validator output (exit code %d):\n%s" % [exit_code, raw])
+		return
+	ui_mgr.show_region_policy_results(bool(parsed.get("ok", false)), parsed.get("issues", []))
 
 func _on_node_click(id: String, shift_mod: bool):
 	if state.is_world_view: return

@@ -2,7 +2,7 @@
 class_name CreatorModal
 extends Control
 
-signal request_create_region(name, room_data)
+signal request_create_region(name, room_data, region_meta)
 
 var widgets: Dictionary = {}
 var _temp_generated_rooms: Dictionary = {}
@@ -65,6 +65,38 @@ func setup():
 	seed_hbox.add_child(btn_reroll_seed)
 	vbox.add_child(seed_hbox); vbox.add_child(HSeparator.new())
 
+	vbox.add_child(_lbl("Classification (required by the ruleset's region policy)"))
+	var class_hbox = HBoxContainer.new()
+	var vb_biome = VBoxContainer.new(); vb_biome.size_flags_horizontal = 3
+	vb_biome.add_child(_lbl("Biome:")); widgets.biome = OptionButton.new(); _apply_style(widgets.biome); vb_biome.add_child(widgets.biome)
+	class_hbox.add_child(vb_biome)
+	var vb_rtype = VBoxContainer.new(); vb_rtype.size_flags_horizontal = 3
+	vb_rtype.add_child(_lbl("Region Type:")); widgets.region_type = OptionButton.new(); _apply_style(widgets.region_type); vb_rtype.add_child(widgets.region_type)
+	class_hbox.add_child(vb_rtype)
+	vbox.add_child(class_hbox)
+
+	var level_hbox = HBoxContainer.new()
+	var vb_lmin = VBoxContainer.new(); vb_lmin.size_flags_horizontal = 3
+	vb_lmin.add_child(_lbl("Level Min:")); widgets.level_min = SpinBox.new(); widgets.level_min.min_value = 1; widgets.level_min.max_value = 30; widgets.level_min.value = 1; _apply_style(widgets.level_min); vb_lmin.add_child(widgets.level_min)
+	level_hbox.add_child(vb_lmin)
+	var vb_lmax = VBoxContainer.new(); vb_lmax.size_flags_horizontal = 3
+	vb_lmax.add_child(_lbl("Level Max:")); widgets.level_max = SpinBox.new(); widgets.level_max.min_value = 1; widgets.level_max.max_value = 30; widgets.level_max.value = 3; _apply_style(widgets.level_max); vb_lmax.add_child(widgets.level_max)
+	level_hbox.add_child(vb_lmax)
+	vbox.add_child(level_hbox); vbox.add_child(HSeparator.new())
+
+	vbox.add_child(_lbl("Population (optional -- scatters these NPCs across generated rooms)"))
+	widgets.npc_list = ItemList.new(); widgets.npc_list.custom_minimum_size = Vector2(0, 90)
+	widgets.npc_list.select_mode = ItemList.SELECT_MULTI
+	_apply_style(widgets.npc_list); vbox.add_child(widgets.npc_list)
+	var pop_hbox = HBoxContainer.new()
+	pop_hbox.add_child(_lbl("Rooms Populated:"))
+	widgets.population_density = HSlider.new(); widgets.population_density.size_flags_horizontal = 3
+	widgets.population_density.min_value = 0.0; widgets.population_density.max_value = 1.0; widgets.population_density.step = 0.05; widgets.population_density.value = 0.0
+	var lbl_pop_val = _lbl("0%"); lbl_pop_val.custom_minimum_size.x = 40
+	widgets.population_density.value_changed.connect(func(v): lbl_pop_val.text = "%d%%" % int(v * 100))
+	pop_hbox.add_child(widgets.population_density); pop_hbox.add_child(lbl_pop_val)
+	vbox.add_child(pop_hbox); vbox.add_child(HSeparator.new())
+
 	vbox.add_child(_lbl("Algorithm"))
 	widgets.algo = OptionButton.new()
 	var algos = ["Grid", "Maze", "Hub", "Crescent", "Ring", "Cavern", "Sector", "Highway", "Spiral", "Fractal", "River", "Target", "House", "Town", "City", "Castle"]
@@ -115,9 +147,9 @@ func setup():
 	btn_gen.pressed.connect(_update_gen_preview); vbox.add_child(btn_gen)
 	
 	var btn_create = Button.new(); btn_create.text = "Accept & Create"; btn_create.size_flags_vertical = 10
-	_apply_style(btn_create, Color(0.2, 0.3, 0.2)); btn_create.pressed.connect(func(): 
-		if _temp_generated_rooms.is_empty() and widgets.algo.get_item_id(widgets.algo.selected) != RegionGenerator.Algo.EMPTY: _update_gen_preview() 
-		request_create_region.emit(widgets.name.text, _temp_generated_rooms); hide())
+	_apply_style(btn_create, Color(0.2, 0.3, 0.2)); btn_create.pressed.connect(func():
+		if _temp_generated_rooms.is_empty() and widgets.algo.get_item_id(widgets.algo.selected) != RegionGenerator.Algo.EMPTY: _update_gen_preview()
+		request_create_region.emit(widgets.name.text, _temp_generated_rooms, _get_region_meta()); hide())
 	vbox.add_child(btn_create)
 	
 	var btn_c = Button.new(); btn_c.text = "Cancel"; btn_c.pressed.connect(func(): hide()); _apply_style(btn_c); vbox.add_child(btn_c)
@@ -131,6 +163,28 @@ func setup():
 	lbl_counts = _lbl("0 Rooms, 0 Connections", Color.GRAY); lbl_counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; preview_vbox.add_child(lbl_counts)
 	
 	_update_ui_for_algo(); visibility_changed.connect(func(): if visible: _update_gen_preview())
+
+func set_vocab(biomes: Array, region_types: Array):
+	widgets.biome.clear(); widgets.biome.add_item("(none)")
+	for b in biomes: widgets.biome.add_item(b)
+	widgets.region_type.clear(); widgets.region_type.add_item("(none)")
+	for rt in region_types: widgets.region_type.add_item(rt)
+
+func set_npc_options(npc_ids: Array):
+	widgets.npc_list.clear()
+	for npc_id in npc_ids: widgets.npc_list.add_item(npc_id)
+
+func _get_region_meta() -> Dictionary:
+	var meta: Dictionary = {}
+	if widgets.biome.selected > 0: meta["biome"] = widgets.biome.get_item_text(widgets.biome.selected)
+	if widgets.region_type.selected > 0: meta["region_type"] = widgets.region_type.get_item_text(widgets.region_type.selected)
+	meta["level_min"] = int(widgets.level_min.value)
+	meta["level_max"] = int(widgets.level_max.value)
+	var npc_ids: Array = []
+	for idx in widgets.npc_list.get_selected_items(): npc_ids.append(widgets.npc_list.get_item_text(idx))
+	meta["npc_ids"] = npc_ids
+	meta["population_density"] = widgets.population_density.value
+	return meta
 
 func _get_gen_params() -> Dictionary:
 	var p1_val = widgets.p1.value if widgets.p1.visible else slider_p1.value

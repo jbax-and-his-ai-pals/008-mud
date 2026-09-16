@@ -5,6 +5,7 @@ extends RefCounted
 signal request_load_region(filename)
 signal request_jump_to_room(id)
 signal request_validate
+signal request_validate_region_policy
 signal snap_toggled(is_on)
 signal request_create_connection(src, dir, target, twoway)
 signal request_create_region(name, room_data)
@@ -37,6 +38,8 @@ var creator_modal: CreatorModal
 var context_menu: PopupMenu
 var creation_menu: PopupMenu
 var validation_modal: ValidationModal
+var region_policy_modal: AcceptDialog
+var region_policy_label: RichTextLabel
 
 # Search Component
 var search_modal: SearchModal
@@ -83,6 +86,7 @@ func _forward_side_panel_signals():
 	side_panel.request_jump_to_room.connect(func(id): request_jump_to_room.emit(id))
 	side_panel.snap_toggled.connect(func(b): snap_toggled.emit(b); update_status_snap(b))
 	side_panel.request_validate.connect(func(): request_validate.emit())
+	side_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
 	side_panel.tool_changed.connect(func(m, d): tool_changed.emit(m, d))
 	side_panel.request_create_db_entry.connect(func(t): request_create_db_entry.emit(t))
 	side_panel.request_delete_db_entry.connect(func(t, id): request_delete_db_entry.emit(t, id))
@@ -206,6 +210,18 @@ func _setup_modals_and_popups():
 	ui_layer.add_child(delete_confirm_modal)
 	delete_confirm_modal.confirmed.connect(func(): request_delete_room_confirm.emit(_pending_delete_id, delete_chk_reciprocal.button_pressed))
 
+	region_policy_modal = AcceptDialog.new()
+	region_policy_modal.title = "Region Policy Check"
+	region_policy_modal.min_size = Vector2i(560, 420)
+	var rp_scroll = ScrollContainer.new(); rp_scroll.custom_minimum_size = Vector2(540, 380)
+	region_policy_label = RichTextLabel.new()
+	region_policy_label.bbcode_enabled = true
+	region_policy_label.fit_content = true
+	region_policy_label.custom_minimum_size = Vector2(520, 0)
+	rp_scroll.add_child(region_policy_label)
+	region_policy_modal.add_child(rp_scroll)
+	ui_layer.add_child(region_policy_modal)
+
 func show_delete_room_prompt(id: String):
 	_pending_delete_id = id
 	delete_confirm_modal.popup_centered()
@@ -235,6 +251,24 @@ func show_creation_menu(position: Vector2): creation_menu.position = position; c
 
 func show_validation_results(errors: Array):
 	validation_modal.populate_and_show(errors)
+
+func show_region_policy_results(ok: bool, issues: Array, run_error: String = ""):
+	if run_error != "":
+		region_policy_modal.title = "Region Policy Check -- Could Not Run"
+		region_policy_label.text = "[color=orange]%s[/color]" % run_error.replace("[", "[lb]")
+	elif ok:
+		region_policy_modal.title = "Region Policy Check -- Passed"
+		region_policy_label.text = "[color=lime]No policy issues found across every region under data/regions/.[/color]"
+	else:
+		region_policy_modal.title = "Region Policy Check -- %d Issue(s)" % issues.size()
+		var lines: Array = []
+		for issue in issues:
+			var color = "salmon" if issue.get("severity", "error") == "error" else "orange"
+			var path = String(issue.get("path", "")).replace("[", "[lb]")
+			var message = String(issue.get("message", "")).replace("[", "[lb]")
+			lines.append("[color=%s]%s[/color] -- %s" % [color, message, path])
+		region_policy_label.text = "\n".join(lines)
+	region_policy_modal.popup_centered()
 
 func is_mouse_over_ui() -> bool:
 	if creator_modal.visible: return true

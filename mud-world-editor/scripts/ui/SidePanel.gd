@@ -7,6 +7,7 @@ signal request_load_region(filename)
 signal request_jump_to_room(id)
 signal snap_toggled(is_on)
 signal request_validate
+signal request_validate_region_policy
 signal tool_changed(mode, data)
 signal request_create_db_entry(type) 
 signal request_delete_db_entry(type, id)
@@ -86,6 +87,7 @@ func _setup_explorer_tab(tabs: TabContainer):
 	explorer_panel.request_jump_to_room.connect(func(id): request_jump_to_room.emit(id))
 	explorer_panel.request_create_modal_open.connect(func(): request_create_modal_open.emit())
 	explorer_panel.request_validate.connect(func(): request_validate.emit())
+	explorer_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
 	explorer_panel.request_auto_layout.connect(func(): request_auto_layout.emit())
 	explorer_panel.snap_toggled.connect(func(b): snap_toggled.emit(b))
 	explorer_panel.request_context_menu.connect(func(p, m): request_context_menu.emit(p, m))

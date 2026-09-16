@@ -5,6 +5,7 @@ signal request_load_region(filename)
 signal request_jump_to_room(id)
 signal request_create_modal_open
 signal request_validate
+signal request_validate_region_policy
 signal request_auto_layout
 signal snap_toggled(enabled)
 signal request_context_menu(global_pos, meta)
@@ -61,6 +62,12 @@ func setup():
 	_apply_style(btn_val)
 	btn_row.add_child(btn_val)
 	add_child(btn_row)
+
+	var btn_policy = Button.new(); btn_policy.text="Validate Region Policy"
+	btn_policy.tooltip_text = "Check every region under data/ against the ruleset's biome/region_type/level_band/hazard-coverage policy (fast -- doesn't need a full loadable world)."
+	_apply_style(btn_policy, Color(0.2, 0.25, 0.3))
+	btn_policy.pressed.connect(func(): request_validate_region_policy.emit())
+	add_child(btn_policy)
 	
 	var btn_layout = Button.new(); btn_layout.text="Auto-Arrange Layout"
 	_apply_style(btn_layout, Color(0.2, 0.25, 0.3))

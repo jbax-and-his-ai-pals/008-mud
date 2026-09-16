@@ -1,0 +1,448 @@
+{
+  "ruleset_id": "fantasy_frontier_core",
+  "world_mode": "single_player_story",
+  "progression_model": "level_based",
+  "world": {
+    "regions": {
+      "require_level_bands": true,
+      "require_hazard_coverage": true,
+      "require_classification": true,
+      "biomes": ["temperate_forest", "farmland", "foothills", "alpine", "coast", "swamp", "desert", "natural_caverns", "catacombs", "underground", "volcanic", "settled"],
+      "region_types": ["settlement", "wilderness", "dungeon", "underground", "landmark", "interior"]
+    }
+  },
+  "weather": {
+    "descriptions": {
+      "windy": "A hard wind worries loose cloth and carries grit along the road.",
+      "mist": "Low mist clings to the ground and blurs the distance.",
+      "blizzard": "Snow and wind erase the far country behind a white wall.",
+      "sandstorm": "A wall of sand rasps across the open country and blots out the horizon.",
+      "dappled": "Sunlight breaks through the canopy in shifting patches of light and shade.",
+      "muddy": "Rain has turned the open ground to thick, sucking mud."
+    },
+    "profiles": {
+      "coast": { "map": { "clear": "windy" }, "travel_notes": { "storm": "The coastal road is slick and exposed beneath the storm." } },
+      "alpine": { "map": { "clear": "windy", "rain": "snow", "storm": "blizzard" }, "travel_notes": { "windy": "The high-country wind makes every exposed step deliberate.", "blizzard": "The mountain route is barely visible through the blowing snow." } },
+      "swamp": { "map": { "clear": "mist", "cloudy": "mist" }, "travel_notes": { "mist": "The marsh trail fades into the mist; keep to the firmer ground." } },
+      "desert": { "map": { "clear": "windy", "storm": "sandstorm" }, "travel_notes": { "windy": "The dry wind steals moisture faster than it seems.", "sandstorm": "Shelter and a wrapped face are worth more than speed in the sandstorm." } },
+      "forest": { "map": { "clear": "dappled" }, "travel_notes": { "dappled": "Sunlight breaks through the canopy in shifting patches; the deeper trails are easy to lose.", "storm": "Wind lashes the canopy overhead, and fallen branches litter the trail." } },
+      "foothills": { "map": { "clear": "windy" }, "travel_notes": { "windy": "The open foothill trails offer no windbreak; every gust tests your footing." } },
+      "farmland": { "map": { "rain": "muddy" }, "travel_notes": { "muddy": "The furrowed fields turn to mud in the rain; the road here is little better." } },
+      "underground": { "map": {} }
+    }
+  },
+  "systems": {
+    "gathering": { "enabled": true }
+  },
+  "combat": {
+    "retreat": {
+      "skill": "stealth",
+      "base_difficulty": 10,
+      "difficulty_per_hostile_level": 2
+    }
+  },
+  "locksmithing": {
+    "skill": "lockpicking"
+  },
+  "crime": {
+    "enabled": true,
+    "witness": {
+      "skill": "stealth",
+      "base_difficulty": 20,
+      "rank_attribute": "level",
+      "rank_multiplier": 3,
+      "authority_property": "is_guard",
+      "authority_bonus": 20,
+      "excluded_factions": ["hostile", "player_minion"],
+      "xp_success": 15,
+      "xp_caught": 3
+    },
+    "consequences": {
+      "reputation_key": "town_guard",
+      "reputation_per_value": 0.5,
+      "custody_value_threshold": 100,
+      "custody_cumulative_threshold": 250,
+      "custody_reputation_threshold": -30,
+      "fine_rate": 2.0,
+      "fine_minimum": 10
+    },
+    "custody": {
+      "room_property": "is_jail_cell",
+      "release_destination_property": "release_destination",
+      "base_seconds": 60,
+      "seconds_per_value": 0.5,
+      "concealed_tool_requirements": [
+        { "skill": "stealth", "minimum": 20 },
+        { "skill": "lockpicking", "minimum": 20 }
+      ],
+      "emergency_tool_item_id": "item_lockpick_shiv",
+      "emergency_tool_durability": 4,
+      "escape_alert_margin": 15,
+      "escape_sentence_penalty_seconds": 45,
+      "search_success_chance": 0.15,
+      "search_currency_min": 1,
+      "search_currency_max": 5
+    }
+  },
+  "player_defaults": {
+    "player_class": "Adventurer",
+    "magic": { "known_spells": ["magic_missile", "minor_heal"] },
+    "starting_inventory": [
+      { "item_id": "item_starter_dagger", "quantity": 1 },
+      { "item_id": "item_foraging_knife", "quantity": 1 },
+      { "item_id": "item_healing_potion_small", "quantity": 2 }
+    ]
+  },
+  "quest_generation": {
+    "quest_board_locations": ["town:town_square", "portbridge:harbor_district"],
+    "delivery_package_item_id": "quest_package_generic",
+    "authored_board_templates": [
+      {
+        "template_id": "quest_wildflower_commission",
+        "giver_template_id": "village_elder",
+        "repeatable": {
+          "delay_seconds": 900,
+          "unavailable_text": "Elder Thorne has taken down today's notice; the board is picked over for now."
+        }
+      },
+      {
+        "template_id": "quest_riverside_charm_commission",
+        "giver_template_id": "village_elder",
+        "relationship_min": 10,
+        "repeatable": {
+          "delay_seconds": 1200,
+          "unavailable_text": "Elder Thorne has taken down today's notice; the board is picked over for now."
+        }
+      },
+      {
+        "template_id": "quest_river_fine_token_commission",
+        "giver_template_id": "village_elder",
+        "relationship_min": 10,
+        "repeatable": {
+          "delay_seconds": 1200,
+          "unavailable_text": "Elder Thorne has taken down today's notice; the board is picked over for now."
+        }
+      },
+      {
+        "template_id": "quest_museum_showcase_commission",
+        "giver_template_id": "curator",
+        "relationship_min": 5,
+        "repeatable": {
+          "delay_seconds": 1800,
+          "unavailable_text": "Curator Vane has filled the museum's current request; a fresh notice will appear in time."
+        }
+      },
+      {
+        "template_id": "quest_bounty_dire_wolf_alpha",
+        "giver_template_id": "guard_captain",
+        "repeatable": {
+          "delay_seconds": 1800,
+          "unavailable_text": "The Guard Captain has removed the bounty while the roads settle. Check the board again later."
+        }
+      },
+      {
+        "template_id": "quest_bounty_troll_elder",
+        "giver_template_id": "guard_captain",
+        "repeatable": {
+          "delay_seconds": 1800,
+          "unavailable_text": "The Guard Captain has removed the bounty while the roads settle. Check the board again later."
+        }
+      }
+    ],
+    "board_display_name": "Quest Board",
+    "turn_in_phrases": ["complete quest", "report quest", "finish quest", "turnin quest", "complete", "turnin", "negotiate", "parley"],
+    "npc_quest_interests": {
+      "blacksmith": ["kill", "deliver", "fetch", "kill_nearby_threats", "fetch_materials_metal", "fetch_materials_ore", "fetch_materials_hide", "fetch_simple", "kill_pests"],
+      "tavern_keeper": ["kill", "deliver", "fetch", "fetch_ingredients", "fetch_consumables", "kill_pests", "deliver_messages", "fetch_simple"],
+      "merchant": ["kill", "deliver", "fetch", "fetch_trade_goods", "deliver_cargo", "kill_bandits", "fetch_materials_rare", "fetch_simple", "deliver_local"],
+      "village_elder": ["kill", "deliver", "fetch", "kill_major_threats", "investigate_problems", "deliver_official", "fetch_historical", "kill_nearby_threats", "deliver_local"],
+      "guard": ["kill", "deliver", "fetch", "kill_any_hostile", "patrol_area", "deliver_reports", "kill_nearby_threats"],
+      "villager": ["kill", "deliver", "fetch", "fetch_simple", "kill_pests", "deliver_local", "fetch_ingredients"]
+    },
+    "procedural_naming": {
+      "adjectives": ["Forgotten", "Cursed", "Shining", "Ancient", "Broken", "Whispering"],
+      "nouns": ["Hope", "Despair", "Light", "Shadow", "King", "Truth"],
+      "default_name_pattern": "Artifact of {Noun}",
+      "default_base_template_id": "item_ancient_amulet"
+    },
+    "instance_quest": {
+      "entry_exit_command": "house",
+      "entry_description_when_visible": "A previously unnoticed, rundown house stands here.",
+      "title_pattern": "Bounty: {creature_name} Infestation",
+      "description_pattern": "Clear the infestation of {creature_name}.",
+      "default_procedural_theme": "caves"
+    },
+    "text_templates": {
+      "kill": {
+        "title": "Bounty: {target_name_plural}",
+        "description": "{giver_name} is offering a bounty for slaying {quantity} {target_name_plural} sighted in {location_description}."
+      },
+      "fetch": {
+        "title": "Gather: {item_name_plural}",
+        "description": "{giver_name} needs {quantity} {item_name_plural}. They believe {source_enemy_name_plural} in {location_description} may carry them."
+      },
+      "deliver": {
+        "title": "Delivery: {item_to_deliver_name} to {recipient_name}",
+        "description": "{giver_name} asks you to deliver a {item_to_deliver_name} to {recipient_name}, who can be found in {recipient_location_description}."
+      }
+    }
+  },
+  "crafting": {
+    "salvage_rules": {
+      "Weapon": { "item_id": "item_iron_ingot", "quantity_per_weight": 0.5 },
+      "Armor": { "item_id": "item_iron_ingot", "quantity_per_weight": 0.5 },
+      "default_item_id": "item_scrap"
+    }
+  },
+  "social": {
+    "gift_tag_values": { "gem": 1 },
+    "gift_values": {
+      "ordinary": 1,
+      "crafted": 5,
+      "preferred_item": 4,
+      "preferred_category": 2,
+      "preferred_tag": 3,
+      "disliked_item": -3,
+      "disliked_tag": -2
+    },
+    "tiers": [
+      { "min": 60, "label": "Close Friend", "vendor_discount": 0.15 },
+      { "min": 30, "label": "Friend", "vendor_discount": 0.10 },
+      { "min": 10, "label": "Acquaintance", "vendor_discount": 0.05 },
+      { "min": 0, "label": "Stranger", "vendor_discount": 0.0 }
+    ]
+  },
+  "economy": {
+    "currency_name": "gold"
+  },
+  "advancement": {
+    "curve": { "base": 100, "multiplier": 1.25 },
+    "grants": [
+      { "id": "region_entry", "match": { "kind": "region" }, "xp": 90, "message": "You have not been this way before." },
+      { "id": "landmark", "match": { "kind": "landmark" }, "xp": 25, "message": "You commit the place to memory." },
+      { "id": "creature_first", "match": { "kind": "creature" }, "xp": 15, "message": "You will know that one again." },
+      { "id": "item_material", "match": { "kind": "item", "item_type": "Item" }, "xp": 8 },
+      { "id": "item_gem", "match": { "kind": "item", "item_type": "Gem" }, "xp": 15, "message": "A stone worth cataloguing." },
+      { "id": "item_treasure", "match": { "kind": "item", "item_type": "Treasure" }, "xp": 10 },
+      { "id": "item_curio", "match": { "kind": "item", "item_type": "Junk" }, "xp": 3 },
+      { "id": "item_consumable", "match": { "kind": "item", "item_type": "Consumable" }, "xp": 5 },
+      { "id": "recipe_first", "match": { "kind": "recipe" }, "xp": 25, "message": "You have learned the shape of a new thing." },
+      { "id": "spell_first", "match": { "kind": "spell" }, "xp": 30, "message": "The words settle into place." },
+      { "id": "npc_met", "match": { "kind": "npc" }, "xp": 10 },
+      { "id": "relationship_tier", "match": { "kind": "relationship" }, "xp": 40, "message": "They will remember your name." },
+      { "id": "quest_done", "match": { "kind": "quest" }, "xp": 40 },
+      { "id": "collection_done", "match": { "kind": "collection" }, "xp": 150, "message": "The set is complete." },
+      { "id": "discovery_made", "match": { "kind": "discovery" }, "xp": 15 }
+    ]
+  },
+  "loot": {
+    "take_hint": "Type 'take {items}' to pick it up.",
+    "chest_materials": ["item_chest_wooden", "item_chest_iron_bound", "item_chest_gilded"],
+    "currency_item_id": "item_gold_coin",
+    "ambient_pools": [
+      {
+        "chance": 0.18,
+        "npc_tags_any": ["living"],
+        "entries": [
+          { "item_id": "item_amber", "weight": 12 },
+          { "item_id": "item_serpentine", "weight": 11 },
+          { "item_id": "item_obsidian_shard", "weight": 10 },
+          { "item_id": "item_rose_quartz", "weight": 10 },
+          { "item_id": "item_carnelian", "weight": 9 },
+          { "item_id": "item_citrine", "weight": 8 },
+          { "item_id": "item_malachite", "weight": 8 },
+          { "item_id": "item_coral_gem", "weight": 7 },
+          { "item_id": "item_lapis_lazuli", "weight": 6 },
+          { "item_id": "item_rhodonite", "weight": 6 },
+          { "item_id": "item_labradorite", "weight": 5 },
+          { "item_id": "item_iolite", "weight": 4 },
+          { "item_id": "item_zircon", "weight": 3 },
+          { "item_id": "item_chrysoberyl", "weight": 2 },
+          { "item_id": "item_alexandrite", "weight": 1 }
+        ]
+      },
+      {
+        "chance": 0.10,
+        "npc_tags_all": ["living", "beast"],
+        "entries": [
+          { "item_id": "item_quartz_crystal", "weight": 12 },
+          { "item_id": "item_tiger_eye", "weight": 10 },
+          { "item_id": "item_agate", "weight": 10 },
+          { "item_id": "item_jet", "weight": 9 },
+          { "item_id": "item_turquoise", "weight": 8 },
+          { "item_id": "item_bloodstone", "weight": 7 },
+          { "item_id": "item_moonstone", "weight": 6 },
+          { "item_id": "item_peridot", "weight": 5 },
+          { "item_id": "item_pearl", "weight": 3 }
+        ]
+      },
+      {
+        "chance": 0.10,
+        "npc_tags_all": ["living", "humanoid"],
+        "entries": [
+          { "item_id": "item_garnet", "weight": 10 },
+          { "item_id": "item_amethyst", "weight": 9 },
+          { "item_id": "item_jade", "weight": 8 },
+          { "item_id": "item_topaz", "weight": 7 },
+          { "item_id": "item_aquamarine", "weight": 6 },
+          { "item_id": "item_opal", "weight": 5 },
+          { "item_id": "item_spinel", "weight": 4 },
+          { "item_id": "item_sunstone", "weight": 3 },
+          { "item_id": "item_stormstone", "weight": 2 },
+          { "item_id": "item_tourmaline", "weight": 2 },
+          { "item_id": "item_shadowquartz", "weight": 1 }
+        ]
+      },
+      {
+        "chance": 0.04,
+        "npc_tags_all": ["living", "giant"],
+        "entries": [
+          { "item_id": "item_fey_opal", "weight": 6 },
+          { "item_id": "item_star_sapphire", "weight": 5 },
+          { "item_id": "item_soulgem", "weight": 3 },
+          { "item_id": "item_sapphire", "weight": 3 },
+          { "item_id": "item_ruby", "weight": 2 },
+          { "item_id": "item_emerald", "weight": 2 },
+          { "item_id": "item_diamond", "weight": 1 },
+          { "item_id": "item_black_diamond", "weight": 1 },
+          { "item_id": "item_dragons_eye", "weight": 1 }
+        ]
+      }
+    ]
+  },
+  "skills": {
+    "stat_bonuses": {
+      "lockpicking": { "stat": "dexterity", "per_point": 2 },
+      "crafting": { "stat": "intelligence", "per_point": 2 },
+      "mercantile": { "stat": "wisdom", "per_point": 2 },
+      "stealth": { "stat": "agility", "per_point": 2 }
+    }
+  },
+  "npc_naming": {
+    "random_name_pattern": "{first_name} the {title}",
+    "first_names": [
+      "Alex", "Avery", "Cameron", "Casey", "Drew", "Elliot", "Harper", "Jamie", "Jordan", "Lee",
+      "Logan", "Morgan", "Parker", "Quinn", "Reese", "Robin", "Rowan", "Sage", "Taylor", "Terry", "Wes", "Zane",
+      "Alex", "Avery", "Cameron", "Casey", "Drew", "Emery", "Harper", "Jamie", "Jordan", "Kai",
+      "Logan", "Morgan", "Parker", "Quinn", "Reese", "Robin", "Rowan", "Sage", "Taylor", "Terry", "Wren", "Zoe"
+    ]
+  },
+  "calendar": {
+    "day_names": ["Moonday", "Tideday", "Windday", "Thunderday", "Fireday", "Starday", "Sunday"],
+    "month_names": ["Deepwinter", "Icemelt", "Springbloom", "Rainshower", "Meadowgrow", "Highsun", "Fireheat", "Goldenfield", "Harvestide", "Leaffall", "Frostwind", "Darknight"],
+    "start_time": { "hour": 9, "minute": 0 }
+  },
+  "spawning": {
+    "no_spawn_keywords": ["town_square", "tavern", "inn", "shop", "temple", "shrine", "home", "general_store", "blacksmith", "farmhouse_yard", "shepherds_hut"]
+  },
+  "elites": {
+    "chance": 0.05,
+    "stat_multiplier": 1.6,
+    "loot_guaranteed_chance": 1.0,
+    "loot_quantity_multiplier": 1.5,
+    "name_pattern": "{prefix} {name}",
+    "prefixes": ["Alpha", "Elder", "Ancient", "Dread", "Savage", "Greater", "Feral", "Grizzled"]
+  },
+  "npc_schedules": {
+    "excluded_name_keywords": ["guard", "thorne"],
+    "room_categories": {
+      "homes": ["home", "house", "cottage"],
+      "taverns": ["tavern", "inn", "pub"],
+      "markets": ["market", "bazaar"],
+      "civic_area": ["square", "plaza", "center"],
+      "gardens": ["garden", "park"],
+      "work_areas": ["workshop", "forge", "mill"]
+    },
+    "roles": [
+      {
+        "id": "merchant",
+        "template_keywords": ["merchant", "shopkeeper"],
+        "location_slots": {
+          "work": { "type": "property_or_self", "property": "work_location" },
+          "home": { "type": "category", "categories": ["homes"], "exclude": "work", "fallback": "work" },
+          "social": { "type": "category", "categories": ["taverns"], "fallback": "home" }
+        },
+        "schedule": {
+          "7": { "activity": "waking up", "slot": "home" },
+          "8": { "activity": "opening shop", "slot": "work" },
+          "9": { "activity": "working", "slot": "work" },
+          "17": { "activity": "closing up", "slot": "work" },
+          "18": { "activity": "eating dinner", "slot": "social" },
+          "20": { "activity": "heading home", "slot": "home" },
+          "22": { "activity": "sleeping", "slot": "home" }
+        }
+      },
+      {
+        "id": "bartender",
+        "template_keywords": ["bartender"],
+        "location_slots": {
+          "work": { "type": "property_or_self", "property": "work_location" },
+          "home": { "type": "category", "categories": ["homes"], "exclude": "work", "fallback": "work" },
+          "market": { "type": "category", "categories": ["markets"], "fallback": "work" }
+        },
+        "schedule": {
+          "9": { "activity": "waking up", "slot": "home" },
+          "11": { "activity": "getting supplies", "slot": "market" },
+          "12": { "activity": "preparing the bar", "slot": "work" },
+          "14": { "activity": "working", "slot": "work" },
+          "23": { "activity": "closing up", "slot": "work" },
+          "0": { "activity": "walking home", "slot": "home" },
+          "1": { "activity": "sleeping", "slot": "home" }
+        }
+      },
+      {
+        "id": "elder",
+        "template_keywords": ["elder"],
+        "location_slots": {
+          "home": { "type": "self" },
+          "square": { "type": "category", "categories": ["civic_area"], "fallback": "home" },
+          "garden": { "type": "category", "categories": ["gardens"], "fallback": "square" }
+        },
+        "schedule": {
+          "8": { "activity": "meditating", "slot": "home" },
+          "10": { "activity": "counseling villagers", "slot": "square" },
+          "15": { "activity": "walking in the garden", "slot": "garden" },
+          "17": { "activity": "returning home", "slot": "home" },
+          "21": { "activity": "sleeping", "slot": "home" }
+        }
+      },
+      {
+        "id": "villager",
+        "template_keywords": ["villager"],
+        "location_slots": {
+          "home": { "type": "category", "categories": ["homes"] },
+          "work": { "type": "category", "categories": ["work_areas", "markets"], "exclude": "home", "fallback": "home" },
+          "social": { "type": "category", "categories": ["taverns", "civic_area"], "exclude": "home", "fallback": "home" }
+        },
+        "schedule": {
+          "7": { "activity": "waking up", "slot": "home" },
+          "8": { "activity": "eating", "slot": "home" },
+          "9": { "activity": "going to work", "slot": "work" },
+          "10": { "activity": "working", "slot": "work" },
+          "13": { "activity": "lunch break", "slot": "social" },
+          "14": { "activity": "working", "slot": "work" },
+          "18": { "activity": "socializing", "slot": "social" },
+          "21": { "activity": "relaxing", "slot": "home" },
+          "22": { "activity": "sleeping", "slot": "home" }
+        }
+      }
+    ]
+  },
+  "systems": {
+    "combat": { "enabled": true },
+    "magic": { "enabled": true },
+    "crafting": { "enabled": true },
+    "quests": { "enabled": true },
+    "economy": { "enabled": true }
+  },
+  "debug": {
+    "gear_item_ids": ["debug_sword", "debug_shield", "debug_armor", "debug_helmet", "debug_gauntlets", "debug_boots", "debug_amulet"],
+    "spawnable_stations": {
+      "anvil": "item_anvil",
+      "alchemy": "item_alchemy_kit",
+      "lapidary": "item_lapidary_wheel",
+      "carpentry": "item_carpentry_bench"
+    },
+    "lock_test_spells": ["knock", "arcane_lock"]
+  }
+}
