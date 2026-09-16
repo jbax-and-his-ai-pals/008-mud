@@ -33,7 +33,7 @@
     "weight": 2.2,
     "value": 14,
     "stackable": false,
-    "properties": { "damage": 4, "equip_slot": ["main_hand"], "tool_type": "hand_axe", "category": "tool" }
+    "properties": { "damage": 4, "weapon_damage_type": "slashing", "equip_slot": ["main_hand"], "tool_type": "hand_axe", "category": "tool" }
   },
   "item_lockpick": {
     "type": "Lockpick",
