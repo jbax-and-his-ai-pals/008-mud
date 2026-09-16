@@ -101,8 +101,13 @@ class TestBatch28(GameTestBase):
         
         # Apply the patch to the specific instance
         self.game.renderer.add_floating_text = mock_add_text # type: ignore
-        
-        # 2. Player takes damage
+
+        # 2. Player takes damage (zero defense so the full 5 damage lands --
+        # this test is about the floating-text side effect, not defense math)
+        self.player.stats["defense"] = 0
+        if self.player.runtime_state.combat is not None:
+            self.player.runtime_state.combat.defense = 0
+        self.player.stats["dexterity"] = 0
         self.player.take_damage(5, "physical")
         
         # 3. Assert

@@ -56,6 +56,34 @@ class TestEquipmentIntegration(GameTestBase):
         # Old cap should be back in inventory
         self.assertIsNotNone(self.player.inventory.find_item_by_name("Old Cap"))
 
+    def test_equipped_armor_reduces_damage_taken(self):
+        """Equipping armor with a "defense" property must actually reduce
+        physical damage taken, not just the get_defense() display number.
+        (Regression coverage: this property used to be summed only for
+        display -- see Player.get_effective_stat("defense") in
+        engine/player/core.py -- and never reached GameObject.take_damage.)"""
+        self.player.stats["defense"] = 0
+        if self.player.runtime_state.combat is not None:
+            self.player.runtime_state.combat.defense = 0
+        self.player.stats["dexterity"] = 0
+        self.player.max_health = 100
+        self.player.health = 100
+
+        unarmored_damage = self.player.take_damage(10, "physical")
+        self.assertEqual(unarmored_damage, 10)
+
+        cap = ItemFactory.create_item_from_template("item_leather_cap", self.world)
+        self.assertIsNotNone(cap)
+        if not cap:
+            return
+        self.player.inventory.add_item(cap)
+        success, _ = self.player.equip_item(cap, "head")
+        self.assertTrue(success)
+
+        self.player.health = 100
+        armored_damage = self.player.take_damage(10, "physical")
+        self.assertEqual(armored_damage, 9)  # 10 - 1 defense from the cap
+
     def test_slot_validation_command(self):
         """Verify 'equip' command prevents invalid slot usage."""
         sword = ItemFactory.create_item_from_template("item_iron_sword", self.world)

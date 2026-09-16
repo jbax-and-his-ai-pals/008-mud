@@ -57,6 +57,25 @@ class TestCreateNpcFromTemplateGuards(GameTestBase):
             result = NPCFactory.create_npc_from_template("goblin", self.world, instance_id="factory_boom_test")
         self.assertIsNone(result)
 
+    def test_authored_defense_reduces_damage_taken(self):
+        """The template's flat "defense" field (npc.defense) must actually
+        mitigate physical damage, not just sit on a bare attribute nothing
+        reads. (Regression coverage: this used to never reach npc.stats, so
+        GameObject.take_damage's get_effective_stat("defense") saw 0 for
+        every NPC regardless of what was authored.)"""
+        goblin = NPCFactory.create_npc_from_template("goblin", self.world, instance_id="defense_test_goblin")
+        self.assertIsNotNone(goblin)
+        if not goblin:
+            return
+        authored_defense = goblin.defense
+        self.assertGreater(authored_defense, 0)
+        self.assertEqual(goblin.get_effective_stat("defense"), authored_defense)
+
+        goblin.max_health = 100
+        goblin.health = 100
+        damage_taken = goblin.take_damage(10, "physical")
+        self.assertEqual(damage_taken, 10 - authored_defense)
+
 
 class TestRequiredAndRandomSpells(GameTestBase):
     def test_duplicate_required_spell_ids_are_not_added_twice(self):

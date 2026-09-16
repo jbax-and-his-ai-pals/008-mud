@@ -124,6 +124,11 @@ class NPCFactory:
             npc.behavior_type = creation_args.get("behavior_type", npc.behavior_type)
             npc.attack_power = creation_args.get("attack_power", 3) + npc.stats.get('strength', 8) // 3
             npc.defense = creation_args.get("defense", 2)
+            # get_effective_stat("defense") (used by GameObject.take_damage
+            # to mitigate incoming damage) reads npc.stats, not this bare
+            # attribute -- keep them in sync so authored defense actually
+            # applies in combat.
+            npc.stats["defense"] = npc.defense
 
             npc.current_region_id = creation_args.get("current_region_id")
             npc.current_room_id = creation_args.get("current_room_id")

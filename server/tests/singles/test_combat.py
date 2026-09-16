@@ -7,10 +7,15 @@ class TestCombat(GameTestBase):
     def setUp(self):
         super().setUp()
         # CRITICAL: Zero out base stats to ensure combat math is deterministic for tests.
-        # Default stats usually have defense: 3, magic_resist: 2.
+        # Default stats usually have defense: 3, magic_resist: 2. Player defense also
+        # draws on runtime_state.combat.defense and a dexterity bonus (see
+        # Player.get_effective_stat("defense")), so those need zeroing too.
         self.player.stats["defense"] = 0
         self.player.stats["magic_resist"] = 0
         self.player.stats["resistances"] = {} # Clear any innate resistances
+        if self.player.runtime_state.combat is not None:
+            self.player.runtime_state.combat.defense = 0
+        self.player.stats["dexterity"] = 0
         
         # Reset health/mana
         self.player.max_health = 100

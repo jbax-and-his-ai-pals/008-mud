@@ -5,7 +5,7 @@ from typing import Dict, Any, Optional, Set, TYPE_CHECKING, cast
 
 from engine.config import (
     PLAYER_BASE_ATTACK_POWER, PLAYER_ATTACK_POWER_STR_DIVISOR,
-    PLAYER_BASE_DEFENSE, PLAYER_DEFENSE_DEX_DIVISOR,
+    PLAYER_BASE_DEFENSE,
     PLAYER_BASE_ATTACK_COOLDOWN, MIN_ATTACK_COOLDOWN,
     ITEM_DURABILITY_LOSS_ON_HIT,
     FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET
@@ -34,13 +34,11 @@ class PlayerCombatMixin:
         return attack
 
     def get_defense(self) -> int:
+        """Total defense (base + dex bonus + equipped armor + buffs). Single
+        source of truth shared with the damage-mitigation path -- see
+        Player.get_effective_stat("defense") in engine/player/core.py."""
         p = cast('Player', self)
-        defense = (p.runtime_state.combat.defense if p.runtime_state.combat is not None else 0) + p.get_effective_stat("dexterity") // PLAYER_DEFENSE_DEX_DIVISOR
-        for item in p.equipment.values():
-            if isinstance(item, Item) and item.get_property("durability", 1) > 0:
-                defense += item.get_property("defense", 0)
-                defense += attachment_modifier(item, "defense")
-        return defense
+        return p.get_effective_stat("defense")
     
     def get_effective_attack_cooldown(self) -> float:
         p = cast('Player', self)

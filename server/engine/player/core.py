@@ -10,14 +10,15 @@ from engine.config import (
     PLAYER_BASE_MANA_REGEN_RATE, PLAYER_BASE_XP_TO_LEVEL, PLAYER_CON_HEALTH_MULTIPLIER,
     PLAYER_DEFAULT_MAX_MANA, PLAYER_DEFAULT_MAX_TOTAL_SUMMONS, PLAYER_DEFAULT_NAME,
     PLAYER_DEFAULT_STATS, PLAYER_MANA_REGEN_WISDOM_DIVISOR, DEFAULT_PLAYER_CLASS_NAME,
-    PLAYER_MAX_COMBAT_MESSAGES, PLAYER_REGEN_TICK_INTERVAL, PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR
+    PLAYER_MAX_COMBAT_MESSAGES, PLAYER_REGEN_TICK_INTERVAL, PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR,
+    PLAYER_DEFENSE_DEX_DIVISOR
 )
 from engine.game_object import GameObject
 from engine.items.inventory import Inventory
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.set_manager import SetManager
-from engine.items.attachments import attachment_stat_modifier
+from engine.items.attachments import attachment_stat_modifier, attachment_modifier
 from engine.core.conversation_history import ConversationHistory
 
 # Import Mixins
@@ -168,7 +169,19 @@ class Player(
     def get_effective_stat(self, stat_name: str) -> int:
         """Calculates stat including base, buffs, equipment, AND set bonuses."""
         val = super().get_effective_stat(stat_name)
-        
+
+        if stat_name == "defense":
+            # Player defense isn't tracked in self.stats -- it lives on
+            # runtime_state.combat.defense, with a dex bonus and equipped
+            # armor's own "defense" property layered on top (this is also
+            # what get_defense() reports for the status display).
+            val += self.runtime_state.combat.defense if self.runtime_state.combat is not None else 0
+            val += self.get_effective_stat("dexterity") // PLAYER_DEFENSE_DEX_DIVISOR
+            for item in self.equipment.values():
+                if isinstance(item, Item) and item.get_property("durability", 1) > 0:
+                    val += item.get_property("defense", 0)
+                    val += attachment_modifier(item, "defense")
+
         equipped_ids = [item.obj_id for item in self.equipment.values() if item]
         bonuses = self.set_manager.get_active_bonuses(equipped_ids)
         

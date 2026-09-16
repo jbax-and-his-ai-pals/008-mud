@@ -536,6 +536,15 @@ class TestContentSetRuntime(unittest.TestCase):
             session = server.create_session(player_id="hazard_player")
             server.execute_command(session.session_id, "char create HazardTester")
             player = server.get_player_for_session(session.session_id)
+            # Zero defense: this test is about every hazard_type resolving
+            # through HAZARD_TYPE_MAP and dealing nonzero damage, not about
+            # defense math -- quicksand's 4 damage (not in the elemental
+            # map, so it defaults to "physical") would otherwise be fully
+            # absorbed by a fresh player's base+dex defense.
+            player.stats["defense"] = 0
+            if player.runtime_state.combat is not None:
+                player.runtime_state.combat.defense = 0
+            player.stats["dexterity"] = 0
             expected_hazards = {
                 "extreme_heat": ("obsidian_trial", "inner_sanctum", 6, "intense heat"),
                 "extreme_cold": ("mountains", "ice_cave_chamber", 5, "biting cold"),

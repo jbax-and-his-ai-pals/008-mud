@@ -7,10 +7,15 @@ class TestCombatExtended(GameTestBase):
         super().setUp()
         # CRITICAL FIX: Zero out base stats to ensure deterministic combat math.
         # Default stats: defense=3, magic_resist=2. These mess up exact assertions.
+        # Player defense also draws on runtime_state.combat.defense and a
+        # dexterity bonus (see Player.get_effective_stat("defense")).
         self.player.stats["defense"] = 0
         self.player.stats["magic_resist"] = 0
-        self.player.stats["resistances"] = {} 
+        self.player.stats["resistances"] = {}
         self.player.stat_modifiers = {}
+        if self.player.runtime_state.combat is not None:
+            self.player.runtime_state.combat.defense = 0
+        self.player.stats["dexterity"] = 0
         
         self.player.max_health = 100
         self.player.health = 100
