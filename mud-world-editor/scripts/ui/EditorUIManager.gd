@@ -6,6 +6,7 @@ signal request_load_region(filename)
 signal request_jump_to_room(id)
 signal request_validate
 signal request_validate_region_policy
+signal request_open_creator_modal
 signal snap_toggled(is_on)
 signal request_create_connection(src, dir, target, twoway)
 signal request_create_region(name, room_data)
@@ -92,9 +93,10 @@ func _forward_side_panel_signals():
 	side_panel.request_delete_db_entry.connect(func(t, id): request_delete_db_entry.emit(t, id))
 	side_panel.request_select_db_entry.connect(func(t, id): request_select_db_entry.emit(t, id))
 	side_panel.request_auto_layout.connect(func(): request_auto_layout.emit())
-	side_panel.request_create_modal_open.connect(func(): 
+	side_panel.request_create_modal_open.connect(func():
+		request_open_creator_modal.emit()
 		creator_modal.show()
-		creator_modal.move_to_front() 
+		creator_modal.move_to_front()
 	)
 	side_panel.request_context_menu.connect(func(p, m): request_context_menu.emit(p, m))
 

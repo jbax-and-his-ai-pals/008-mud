@@ -6,6 +6,7 @@ signal request_create_region(name, room_data, region_meta)
 
 var widgets: Dictionary = {}
 var _temp_generated_rooms: Dictionary = {}
+var _world_hierarchy: Dictionary = {}
 
 # UI Refs
 var window_panel: Panel
@@ -97,6 +98,32 @@ func setup():
 	pop_hbox.add_child(widgets.population_density); pop_hbox.add_child(lbl_pop_val)
 	vbox.add_child(pop_hbox); vbox.add_child(HSeparator.new())
 
+	vbox.add_child(_lbl("Connect To Existing World (optional)"))
+	var conn_region_hbox = HBoxContainer.new()
+	var vb_creg = VBoxContainer.new(); vb_creg.size_flags_horizontal = 3
+	vb_creg.add_child(_lbl("Target Region:")); widgets.connect_region = OptionButton.new(); _apply_style(widgets.connect_region)
+	widgets.connect_region.item_selected.connect(_on_connect_region_changed)
+	vb_creg.add_child(widgets.connect_region)
+	conn_region_hbox.add_child(vb_creg)
+	var vb_crm = VBoxContainer.new(); vb_crm.size_flags_horizontal = 3
+	vb_crm.add_child(_lbl("Target Room:")); widgets.connect_room = OptionButton.new(); _apply_style(widgets.connect_room)
+	vb_crm.add_child(widgets.connect_room)
+	conn_region_hbox.add_child(vb_crm)
+	vbox.add_child(conn_region_hbox)
+
+	var conn_dir_hbox = HBoxContainer.new()
+	var vb_cdir = VBoxContainer.new(); vb_cdir.size_flags_horizontal = 3
+	vb_cdir.add_child(_lbl("Direction (entrance -> target):")); widgets.connect_direction = OptionButton.new(); _apply_style(widgets.connect_direction)
+	for d in ["north","south","east","west","northeast","northwest","southeast","southwest","up","down","in","out"]:
+		widgets.connect_direction.add_item(d)
+	vb_cdir.add_child(widgets.connect_direction)
+	conn_dir_hbox.add_child(vb_cdir)
+	var vb_entrance = VBoxContainer.new(); vb_entrance.size_flags_horizontal = 3
+	vb_entrance.add_child(_lbl("This Region's Entrance Room:")); widgets.entrance_room = OptionButton.new(); _apply_style(widgets.entrance_room)
+	vb_entrance.add_child(widgets.entrance_room)
+	conn_dir_hbox.add_child(vb_entrance)
+	vbox.add_child(conn_dir_hbox); vbox.add_child(HSeparator.new())
+
 	vbox.add_child(_lbl("Algorithm"))
 	widgets.algo = OptionButton.new()
 	var algos = ["Grid", "Maze", "Hub", "Crescent", "Ring", "Cavern", "Sector", "Highway", "Spiral", "Fractal", "River", "Target", "House", "Town", "City", "Castle"]
@@ -174,6 +201,34 @@ func set_npc_options(npc_ids: Array):
 	widgets.npc_list.clear()
 	for npc_id in npc_ids: widgets.npc_list.add_item(npc_id)
 
+func set_target_options(hierarchy: Dictionary):
+	_world_hierarchy = hierarchy
+	widgets.connect_region.clear(); widgets.connect_region.add_item("(none)")
+	var region_ids: Array = hierarchy.keys(); region_ids.sort()
+	for rid in region_ids: widgets.connect_region.add_item(rid)
+	widgets.connect_room.clear()
+
+func _on_connect_region_changed(idx: int):
+	widgets.connect_room.clear()
+	if idx <= 0: return
+	var region_id = widgets.connect_region.get_item_text(idx)
+	var rooms: Dictionary = _world_hierarchy.get(region_id, {}).get("rooms", {})
+	var room_ids: Array = rooms.keys(); room_ids.sort()
+	for rid in room_ids:
+		widgets.connect_room.add_item("%s (%s)" % [rooms[rid], rid])
+		widgets.connect_room.set_item_metadata(widgets.connect_room.item_count - 1, rid)
+
+func _refresh_entrance_room_options():
+	var previously_selected := ""
+	if widgets.entrance_room.selected >= 0 and widgets.entrance_room.item_count > 0:
+		previously_selected = widgets.entrance_room.get_item_text(widgets.entrance_room.selected)
+	widgets.entrance_room.clear()
+	var room_ids: Array = _temp_generated_rooms.keys(); room_ids.sort()
+	for rid in room_ids: widgets.entrance_room.add_item(rid)
+	for i in range(widgets.entrance_room.item_count):
+		if widgets.entrance_room.get_item_text(i) == previously_selected:
+			widgets.entrance_room.select(i); break
+
 func _get_region_meta() -> Dictionary:
 	var meta: Dictionary = {}
 	if widgets.biome.selected > 0: meta["biome"] = widgets.biome.get_item_text(widgets.biome.selected)
@@ -184,6 +239,14 @@ func _get_region_meta() -> Dictionary:
 	for idx in widgets.npc_list.get_selected_items(): npc_ids.append(widgets.npc_list.get_item_text(idx))
 	meta["npc_ids"] = npc_ids
 	meta["population_density"] = widgets.population_density.value
+
+	if widgets.connect_region.selected > 0 and widgets.connect_room.selected >= 0 and widgets.entrance_room.selected >= 0 and widgets.connect_room.item_count > 0:
+		meta["connect"] = {
+			"target_region": widgets.connect_region.get_item_text(widgets.connect_region.selected),
+			"target_room": widgets.connect_room.get_item_metadata(widgets.connect_room.selected),
+			"direction": widgets.connect_direction.get_item_text(widgets.connect_direction.selected),
+			"entrance_room": widgets.entrance_room.get_item_text(widgets.entrance_room.selected),
+		}
 	return meta
 
 func _get_gen_params() -> Dictionary:
@@ -198,6 +261,7 @@ func _update_gen_preview():
 	var params = _get_gen_params()
 	_temp_generated_rooms = RegionGenerator.generate(algo, params)
 	generator_preview.update_preview(_temp_generated_rooms)
+	_refresh_entrance_room_options()
 	var r_count = _temp_generated_rooms.size()
 	var c_count = 0
 	for rid in _temp_generated_rooms: c_count += _temp_generated_rooms[rid].get("exits", {}).size()

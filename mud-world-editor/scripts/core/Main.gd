@@ -111,6 +111,7 @@ func _connect_ui_signals():
 	ui_mgr.request_load_region.connect(_load_region)
 	ui_mgr.request_validate.connect(func(): ui_mgr.show_validation_results(world_mgr.validate_world_links()))
 	ui_mgr.request_validate_region_policy.connect(_validate_region_policy)
+	ui_mgr.request_open_creator_modal.connect(func(): ui_mgr.creator_modal.set_target_options(world_mgr.get_global_hierarchy()))
 	ui_mgr.request_create_connection.connect(action_handler.create_connection)
 	ui_mgr.request_create_region.connect(_create_region)
 	ui_mgr.context_action.connect(action_handler.handle_context_action)
@@ -419,7 +420,12 @@ func _create_region(name, rooms_data, region_meta: Dictionary = {}):
 		for npc_id in npc_ids: spawner["monster_types"][npc_id] = 1
 		_populate_rooms_with_npcs(rooms_data, npc_ids, density)
 
-	var new_data: Dictionary = { "region_id": name.replace(".json", ""), "description": "New region", "rooms": rooms_data }
+	var new_region_id: String = name.replace(".json", "")
+	var connect: Dictionary = region_meta.get("connect", {})
+	if not connect.is_empty():
+		_wire_entrance_connection(new_region_id, rooms_data, connect)
+
+	var new_data: Dictionary = { "region_id": new_region_id, "description": "New region", "rooms": rooms_data }
 	if not properties.is_empty(): new_data["properties"] = properties
 	if not spawner.is_empty(): new_data["spawner"] = spawner
 
@@ -444,6 +450,58 @@ func _populate_rooms_with_npcs(rooms_data: Dictionary, npc_ids: Array, density: 
 		if not room.has("initial_npcs"): room["initial_npcs"] = []
 		room["initial_npcs"].append({"template_id": npc_id, "instance_id": "%s_%s" % [npc_id, room_id]})
 		placed += 1
+
+# Wires the new region's chosen entrance room to an existing region/room in
+# both directions, so a generated region doesn't have to be stitched into
+# the world by hand afterward. The forward exit is written straight into
+# rooms_data (this region's own file, not yet on disk). The reciprocal exit
+# has to land in a *different* region's data -- if that region happens to
+# be the one currently open in the editor, patch region_mgr's in-memory
+# copy and mark it dirty (so an unsaved edit there isn't clobbered by a
+# direct file write, and the reciprocal exit is included whenever it's next
+# saved); otherwise read-modify-write its file directly, the same technique
+# RegionManager._patch_external_references already uses for rename-patching
+# other regions' files.
+func _wire_entrance_connection(new_region_id: String, rooms_data: Dictionary, connect: Dictionary):
+	var entrance_room: String = String(connect.get("entrance_room", ""))
+	var direction: String = String(connect.get("direction", ""))
+	var target_region: String = String(connect.get("target_region", ""))
+	var target_room: String = String(connect.get("target_room", ""))
+	if entrance_room == "" or direction == "" or target_region == "" or target_room == "": return
+	if not rooms_data.has(entrance_room): return
+
+	if not rooms_data[entrance_room].has("exits"): rooms_data[entrance_room]["exits"] = {}
+	rooms_data[entrance_room]["exits"][direction] = "%s:%s" % [target_region, target_room]
+
+	var inv_dir: String = Constants.INV_DIR_MAP.get(direction, "")
+	if inv_dir == "": return
+	var reciprocal_exit: String = "%s:%s" % [new_region_id, entrance_room]
+
+	if region_mgr.current_filename != "" and region_mgr.data.get("region_id", "") == target_region:
+		if region_mgr.data.get("rooms", {}).has(target_room):
+			if not region_mgr.data.rooms[target_room].has("exits"): region_mgr.data.rooms[target_room]["exits"] = {}
+			region_mgr.data.rooms[target_room]["exits"][inv_dir] = reciprocal_exit
+			region_mgr.mark_room_dirty(target_room)
+			# _create_region switches the open region to the newly created
+			# one right after this call returns, so an edit left merely
+			# "dirty" here would be silently discarded rather than waiting
+			# for a save that's never coming -- persist it immediately.
+			region_mgr.save_region()
+		return
+
+	var target_filename: String = String(world_mgr.get_global_hierarchy().get(target_region, {}).get("filename", ""))
+	if target_filename == "": return
+	var full_path: String = "res://data/regions/" + target_filename
+	var f = FileAccess.open(full_path, FileAccess.READ)
+	if not f: return
+	var json = JSON.new()
+	if json.parse(f.get_as_text()) != OK: return
+	var data = json.get_data()
+	if typeof(data) != TYPE_DICTIONARY or not data.get("rooms", {}).has(target_room): return
+	if not data["rooms"][target_room].has("exits"): data["rooms"][target_room]["exits"] = {}
+	data["rooms"][target_room]["exits"][inv_dir] = reciprocal_exit
+	var fw = FileAccess.open(full_path, FileAccess.WRITE)
+	if fw: fw.store_string(JSON.stringify(data, "\t"))
 
 func _validate_region_policy():
 	var project_root: String = ProjectSettings.globalize_path("res://")
