@@ -481,6 +481,43 @@ def _validate_region_hazard_coverage(
                 ))
 
 
+def validate_region_policy(content_root: Path | str, ruleset_path: Path | str) -> list[ContentSetIssue]:
+    """Check every static region under ``content_root/regions`` against the
+    region-authoring policy declared in ``ruleset_path`` (the same
+    ``require_level_bands``/``require_classification``/
+    ``require_hazard_coverage`` flags and biome/region_type vocabulary
+    ``load_content_set`` reads), without requiring a full, loadable content
+    set -- no manifest, no start room, no cross-file reference/reachability
+    checks. Reuses the exact same per-region validators
+    ``load_content_set`` calls internally; this only skips the checks that
+    are inherently about the *whole* world (reachability from a start room,
+    a hazard type defined but unused by any region anywhere) rather than
+    about one region's own authored data.
+
+    Meant for fast, standalone feedback while a region is still being
+    authored or generated -- an editor's "validate before it's wired into
+    the world" step. ``validate_content_set``/``load_content_set`` remain
+    the complete, authoritative check once a full content set exists.
+    """
+    content_root = Path(content_root)
+    ruleset_path = Path(ruleset_path)
+    issues: list[ContentSetIssue] = []
+
+    ruleset_payload = _load_json(ruleset_path, issues, "ruleset")
+    if not isinstance(ruleset_payload, dict):
+        return issues
+
+    require_level_bands = _region_level_bands_required(ruleset_payload, issues, ruleset_path)
+    require_hazard_coverage = _region_hazard_coverage_required(ruleset_payload, issues, ruleset_path)
+    require_classification, biomes, region_types = _region_classification_policy(ruleset_payload, issues, ruleset_path)
+
+    _validate_region_level_bands(content_root, issues, required=require_level_bands)
+    _validate_region_classification(content_root, issues, required=require_classification, biomes=biomes, region_types=region_types)
+    _validate_region_hazard_coverage(content_root, issues, required=require_hazard_coverage)
+
+    return issues
+
+
 def _validate_authored_world(
     content_root: Path,
     start_region_id: str,
