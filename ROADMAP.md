@@ -1362,6 +1362,63 @@ more urgent.
   technique used to verify the `main_controller.gd` split. No native-GUI
   automation is available to click through the editor interactively, so a
   live spot-check of a newly-synced region is left for a human to confirm.
+- [x] **Give the world editor bulk-generation tools for scaling a world.**
+  Follow-on to the item above, aimed at end-user builders/modders rather
+  than just closing a staleness gap. The editor already had a working
+  17-algorithm room-topology generator, but it only ever produced bare
+  rooms -- empty `properties`, no `spawner`, no NPCs/items, unseeded (so
+  nothing was reproducible), and no way to wire a new region into the rest
+  of the world except by hand, one exit at a time. Four additions:
+  - **Seeded generation.** Every generator calls the bare global
+    `randf()`/`randi()`, which Godot backs with one shared RNG --
+    `RegionGenerator.generate()` now seeds it once before dispatch, making
+    the whole call chain reproducible for a given (algo, params, seed)
+    without touching any of the five generator files individually.
+  - **A standalone region-policy validator**,
+    `engine.server.content_set.validate_region_policy()` (plus a
+    `toolkit/region_policy_validator.py` CLI), reusing the exact same
+    per-region checks `load_content_set` already runs internally
+    (classification, level bands, hazard coverage) without needing a full
+    manifest-driven content set -- fast, targeted feedback while a region
+    is still being authored or bulk-generated.
+  - **Real content on generation**, not just a room graph: the New Region
+    wizard now has a classification section (biome/region_type/level band,
+    read from the ruleset's real vocabulary) and a population section
+    (multi-select NPC templates + a density slider) that write
+    `properties`/`spawner`/`initial_npcs` into the generated region, plus
+    a one-click "Validate Region Policy" button wired to the new validator.
+  - **One-step region-to-region connection**: an optional section in the
+    same wizard picks a target region/room and direction and wires a real
+    bidirectional exit at creation time -- the existing manual connection
+    tool only handles true two-way linking for same-region exits, so this
+    writes the reciprocal side itself (patching the target region's file
+    directly, or its in-memory data plus an immediate save if that region
+    happens to be the one currently open, since the view switches away to
+    the new region right after and a merely-dirty edit would otherwise be
+    silently lost).
+
+  Also removed `data/regions/new_region.json`, confirmed generator debris
+  from before this work, since it permanently failed the very
+  classification check being added and would have been the first thing
+  "Validate Region Policy" ever complained about; synced
+  `rules/ruleset.json` and `data/combat/elements.json` into the editor's
+  data so the classification vocabulary and hazard mapping are real, not
+  invented. Verified throughout via the Godot 4.7.2 binary: deterministic-
+  seed checks across all four generator families, a direct
+  `_create_region` call producing correct classification/spawner/
+  population (checked against the raw JSON on disk, not a round-trip
+  through GDScript's own JSON parser, which silently turns every number
+  into a float), the exact `OS.execute()` validator call path exercised
+  standalone, and all three connection-wiring cases (forward exit,
+  cross-file reciprocal patch, same-region persist-immediately) --
+  including a real bug the verification script itself caught and a fix
+  confirmed before it shipped. Full headless scene boot: zero script
+  errors throughout. Deliberately out of scope: an addon/mod-content
+  layering system (no `extends`/`depends_on` manifest concept exists
+  anywhere in the engine today -- a real engine-architecture question, not
+  an editor feature) and a full manifest-authoring/one-click-package export
+  path, both flagged as necessary follow-on work for this audience to ever
+  ship something, not attempted here.
 
 ---
 
