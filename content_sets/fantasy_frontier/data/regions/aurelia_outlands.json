@@ -4,6 +4,7 @@
   "description": "The desert loosens into dry, cultivated country around the prosperous city of Aurelia. Imperial milestones, old aqueducts, and scattered estates promise order, but the abandoned works beyond the road hold dangers that wealth has not solved.",
   "properties": {
     "biome": "foothills",
+    "weather_profile": "desert",
     "region_type": "wilderness",
     "level_band": { "min": 11, "max": 14 }
   },

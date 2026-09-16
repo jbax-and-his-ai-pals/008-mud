@@ -1090,14 +1090,30 @@ late still pays.
   existing quicksand pit. The Fantasy Frontier ruleset requires coverage from
   its authored mapping, validates hazard timing/damage, and has a runtime test
   that proves each damage type is active.
-- [~] **Extend weather.** Weather now resolves through optional content-owned
+- [x] **Extend weather.** Weather resolves through optional content-owned
   regional profiles: coast turns clear conditions windy, alpine rain to snow
-  and storms to blizzards, and swamp clear/cloudy conditions to mist; authored
-  room climates still win. Exposed travel receives region-specific advisory
-  text, while sea/river fishing, river-clay banks, forest berry brambles, and
-  alpine fallen wood are genuinely unavailable in their dangerous conditions.
-  Broader hazard interactions now include content-authored storm-amplified
+  and storms to blizzards, desert clear to windy and storms to sandstorms,
+  and swamp clear/cloudy conditions to mist; authored room climates still
+  win. Exposed travel receives region-specific advisory text, while
+  sea/river fishing, river-clay banks, forest berry brambles, and alpine
+  fallen wood are genuinely unavailable in their dangerous conditions.
+  Broader hazard interactions include content-authored storm-amplified
   electrical hazards on the coast and mist-amplified quicksand in the swamp.
+  Closed the remaining gap -- every outdoor wilderness/dungeon region now
+  has a deliberate weather treatment, not just the original four: forest
+  (and the woods-set ruins) gets dappled canopy light and storm-felled
+  branches, foothills gets its already-described constant wind, farmland
+  turns rainy fields to mud, the Aurelian Outlands reuses the desert profile
+  (its own text already calls it desert country loosening into farmland),
+  and the two remaining unlabeled dungeons (Starwell Archive, Obsidian
+  Trial) got the existing no-op "underground" profile for consistency
+  rather than staying unclassified. Deliberately did **not** remap any
+  region's "storm" condition unless a matching gathering-node
+  `weather_blocked_by` was already authored against the mapped value
+  (alpine's blizzard-blocked fallen wood is the existing example) --
+  forest's own storm text stays a pass-through so the berry bramble's
+  existing `weather_blocked_by: ["storm"]` keeps working exactly as before.
+  Verified with the full suite and `run_content_checks.py`, both clean.
 - [x] **Make exploration pay on its own.** The P4 ledger already awards 25 XP
   for each first-time landmark room and 90 XP for each first region, alongside
   its discovery/knowledge entries; the expanded gathering routes supply rare

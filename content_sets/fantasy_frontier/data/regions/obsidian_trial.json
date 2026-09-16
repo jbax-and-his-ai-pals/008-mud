@@ -2,7 +2,7 @@
   "region_id": "obsidian_trial",
   "name": "The Obsidian Trial",
   "description": "An ancient testing ground carved from volcanic rock. The air is hot and smells of sulfur.",
-  "properties": { "biome": "volcanic", "region_type": "dungeon", "level_band": { "min": 6, "max": 8 } },
+  "properties": { "biome": "volcanic", "weather_profile": "underground", "region_type": "dungeon", "level_band": { "min": 6, "max": 8 } },
   "rooms": {
     "entrance": {
       "name": "Trial Entrance",

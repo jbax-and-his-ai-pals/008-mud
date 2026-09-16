@@ -4,6 +4,7 @@
   "description": "The oldest vault beneath Aurelia's museum, built around an imperial instrument that once charted the sky and now answers only to its own damaged calculations.",
   "properties": {
     "biome": "underground",
+    "weather_profile": "underground",
     "region_type": "dungeon",
     "level_band": { "min": 14, "max": 15 },
     "spawn_templates": ["ash_warden", "astral_sentinel"],

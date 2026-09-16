@@ -2,7 +2,7 @@
     "region_id": "forest",
     "name": "Whispering Woods",
     "description": "A dense forest that borders Riverside Village. The trees grow tall and close together, creating a canopy that filters the sunlight. Local legends speak of strange creatures living in its depths.",
-    "properties": { "biome": "temperate_forest", "region_type": "wilderness", "level_band": { "min": 1, "max": 3 } },
+    "properties": { "biome": "temperate_forest", "weather_profile": "forest", "region_type": "wilderness", "level_band": { "min": 1, "max": 3 } },
     "spawner": {
       "monster_types": {
         "giant_rat": 4,
