@@ -1069,8 +1069,65 @@ more urgent.
   a same-class mixin composition preserves every one of these unchanged,
   since it's still one class and one `self`. Full suite run twice
   (`run_tests.py`): identical pass count before and after at every step.
-- [ ] **Split `client/scripts/ui/main_controller.gd`** (2,993 lines).
-- [ ] **Split `client/scripts/ui/main_controller.gd`** (2,993 lines).
+- [x] **Split `client/scripts/ui/main_controller.gd`.** Was 3,218 lines, ~138
+  functions, one script. There is no Godot test infrastructure in this repo
+  at all, so verification leaned on Godot 4.7.2 itself (confirmed available
+  locally) rather than a test suite: a fast per-file `load()`/`reload()`
+  probe script (much quicker than a whole-project `--headless --check-only`,
+  which took minutes and once had to be killed), plus an actual headless
+  launch of `scenes/main.tscn` compared side by side against the pre-split
+  file to confirm zero new runtime errors.
+  Godot allows exactly one script per node, so the ~110 `@onready` bindings
+  and the `_ready`/`_process`/`_input`/`_notification` entry points can't
+  leave this file without restructuring `main.tscn` -- kept that file
+  untouched (your call over reparenting nodes into new scene-tree children,
+  the codebase's own dominant convention for Onboarding/CrashRecovery/etc.,
+  which would have been a bigger, scene-file-touching diff with no test
+  suite to catch a mistake). Instead, ~114 of the ~138 functions moved into
+  nine `RefCounted` helper classes under a new `scripts/ui/main/` directory
+  (network lifecycle, operator console, profiles, GM auth, authoring/locks,
+  finite-adventure UI, theme, accessibility, game-state-payload rendering),
+  each holding a `main: MainController` reference and instantiated in
+  `_ready()`; the other ~24 (entry points, the central `_on_line_received`
+  dispatch switch, and small generic utilities like `_bbcode_escape`/
+  `_to_float` used across concerns) stayed on Main. The ~330 top-level
+  member/function references inside every moved function body were
+  reference-qualified mechanically (a Python script parsing top-level
+  declarations, computing per-function local/parameter exclusions, and
+  rewriting bare references to `main.X` / `main.<controller>.X` /
+  `<same-controller-method>` as appropriate) rather than by hand at this
+  scale -- verified by re-reading every generated file. Two real defects the
+  mechanical pass caught or would have shipped silently:
+  - `theme` was the chosen name for the theme controller's instance
+    variable -- `Control` already has a built-in `theme: Theme` property,
+    so declaring `var theme: ThemeController` would have silently shadowed
+    it. Caught by writing a throwaway script that instantiates a `Control`
+    and lists `get_property_list()`/`get_method_list()`, checking all nine
+    candidate names against it before generating anything; renamed to
+    `theme_controller`.
+  - `_apply_text_scale` (now in `theme_controller.gd`) called `get_window()`
+    bare -- a `Control` method inherited on the original `MainController`,
+    invisible to a script scanning only this *file's own* top-level
+    declarations. Found by grepping the original file for a short list of
+    common `Node`/`Control` methods (`get_window`, `get_tree`,
+    `get_viewport`, `add_child`, ...) restricted to lines inside moved
+    functions; fixed to `main.get_window()`. The rest of that grep came back
+    clean.
+  A third issue was a `main: Control` typing choice, not a functional bug:
+  every controller originally typed its back-reference as the generic
+  `Control` base, which made GDScript's static analyzer unable to infer the
+  type of `main.<main-only-property>` chains (`Cannot infer the type of
+  "host"` etc.) since `Control` doesn't declare `main`'s actual properties.
+  Fixed by adding `class_name MainController` to `main_controller.gd` and
+  typing every controller's `main` as `MainController` instead.
+  **Found and deliberately not fixed, since it's unrelated to this file
+  split**: `_is_connected_to_game_server()`'s `tcp_client.is_connected_to_
+  server()` call spams `Nonexistent function 'is_connected_to_server'` from
+  `_ready()` onward on every headless launch -- reproduced identically
+  against the pre-split file at the same commit, so it predates this work.
+  Flagged as a separate suggested task rather than folded in here.
+  `main_controller.gd`: 3,218 -> 969 lines. The nine new files range from 79
+  (`gm_auth.gd`) to 470 (`game_state_payloads.gd`) lines.
 - [x] **Break the pygame dependency for headless runs.** Reproduced the
   claim first (`sys.modules['pygame'] = None` before importing) and it was
   worse than described: not five command modules but nine (`inventory`,
