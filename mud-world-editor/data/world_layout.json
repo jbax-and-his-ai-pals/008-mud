@@ -47,6 +47,62 @@
 		"town": [
 			-15175.5048828125,
 			-772.519775390625
+		],
+		"aurelia_city": [
+			5000.0,
+			-8000.0
+		],
+		"aurelia_outlands": [
+			8000.0,
+			-8000.0
+		],
+		"casino": [
+			11000.0,
+			-8000.0
+		],
+		"frostpeak_outpost": [
+			14000.0,
+			-8000.0
+		],
+		"gallows_hollow": [
+			5000.0,
+			-5000.0
+		],
+		"goblin_scrapcamp": [
+			8000.0,
+			-5000.0
+		],
+		"kobold_warren": [
+			11000.0,
+			-5000.0
+		],
+		"obsidian_trial": [
+			14000.0,
+			-5000.0
+		],
+		"reedscale_village": [
+			5000.0,
+			-2000.0
+		],
+		"riverside_catacombs": [
+			8000.0,
+			-2000.0
+		],
+		"starwell_archive": [
+			11000.0,
+			-2000.0
+		],
+		"sunscorch_caravanserai": [
+			14000.0,
+			-2000.0
+		],
+		"sunscorch_road": [
+			5000.0,
+			1000.0
+		],
+		"tidewell_underworks": [
+			8000.0,
+			1000.0
 		]
 	}
 }

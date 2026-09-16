@@ -30,6 +30,7 @@ func load_region(filename: String) -> bool:
 			data = json.get_data()
 			if not data.has("rooms"): data["rooms"] = {}
 			if not data.has("region_id"): data["region_id"] = filename.replace(".json", "")
+			_backfill_missing_editor_positions()
 			return true
 		else:
 			push_error("JSON Parse Error: " + json.get_error_message())
@@ -42,6 +43,34 @@ func save_region():
 	var file = FileAccess.open(REGIONS_DIR + current_filename, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(data, "\t"))
+
+# Content-set-authored rooms (content_sets/fantasy_frontier/data/regions/*)
+# carry no "_editor_pos" -- it is purely editor layout metadata, never
+# written by the game server. Most read sites default safely
+# (data.get("_editor_pos", [0,0])), but several on the main interaction
+# path (GraphController.update_specific_node, Main.gd's drag/select
+# handlers) index it directly and would throw on a missing key. Backfilling
+# it once here, right after load, is cheaper and safer than auditing every
+# call site: from this point on every room in `data.rooms` is guaranteed to
+# have one. Mirrors the same fallback QuestViewBuilder already does per
+# quest stage ("if not s.has(_editor_pos): s._editor_pos = [i * 250, 0]").
+const _BACKFILL_GRID_SPACING: float = 250.0
+const _BACKFILL_GRID_COLUMNS: int = 12
+const _BACKFILL_ORIGIN: Vector2 = Vector2(3000.0, -3000.0)
+
+func _backfill_missing_editor_positions():
+	var rooms: Dictionary = data.get("rooms", {})
+	var unpositioned_ids: Array = []
+	for room_id in rooms:
+		var room = rooms[room_id]
+		if room is Dictionary and not room.has("_editor_pos"):
+			unpositioned_ids.append(room_id)
+	unpositioned_ids.sort()
+	for i in range(unpositioned_ids.size()):
+		var col = i % _BACKFILL_GRID_COLUMNS
+		var row = i / _BACKFILL_GRID_COLUMNS
+		var pos = _BACKFILL_ORIGIN + Vector2(col, row) * _BACKFILL_GRID_SPACING
+		rooms[unpositioned_ids[i]]["_editor_pos"] = [pos.x, pos.y]
 
 # --- MUTATION METHODS ---
 

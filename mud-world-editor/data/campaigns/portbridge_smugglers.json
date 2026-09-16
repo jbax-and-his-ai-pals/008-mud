@@ -1,0 +1,44 @@
+{
+  "campaign_id": "portbridge_smugglers",
+  "name": "The Portbridge Smugglers",
+  "description": "Someone is running contraband through Portbridge's harbor. Will you bust the operation or join it?",
+  "start_node_id": "investigate_docks",
+  "nodes": {
+    "investigate_docks": {
+      "description": "Investigate the smuggling rumors around the harbor.",
+      "quest_template_id": "quest_investigate_smuggling",
+      "transitions": [
+        {
+          "trigger": "SUCCESS",
+          "target_node_id": "confront_smugglers",
+          "narrative_text": "You found the smugglers' cache. Now you must confront whoever runs it."
+        }
+      ]
+    },
+    "confront_smugglers": {
+      "description": "Confront the smugglers' leader.",
+      "quest_template_id": "quest_smuggler_contact",
+      "transitions": [
+        {
+          "trigger": "PEACEFUL_SUCCESS",
+          "target_node_id": "join_smugglers",
+          "narrative_text": "She's willing to cut you in -- if you prove it's not a trap."
+        },
+        {
+          "trigger": "VIOLENT_SUCCESS",
+          "target_node_id": "end_busted",
+          "narrative_text": "The smuggling ring is broken."
+        }
+      ]
+    },
+    "join_smugglers": {
+      "description": "Deliver the dubious cargo to seal the deal.",
+      "quest_template_id": "quest_smuggler_delivery",
+      "transitions": [
+        { "trigger": "SUCCESS", "target_node_id": "end_joined", "narrative_text": "You're one of them now." }
+      ]
+    },
+    "end_busted": { "type": "END", "outcome": "SMUGGLING_BUSTED" },
+    "end_joined": { "type": "END", "outcome": "JOINED_SMUGGLERS" }
+  }
+}

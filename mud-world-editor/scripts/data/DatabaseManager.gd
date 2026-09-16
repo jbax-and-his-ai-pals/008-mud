@@ -7,6 +7,15 @@ const ITEM_DIR = "res://data/items/"
 const MAGIC_DIR = "res://data/magic/"
 const QUEST_DIR = "res://data/quests/"
 const TEMPLATE_DIR = "res://data/templates/"
+# Branching campaign graphs (CampaignDefinition/CampaignNode) -- distinct
+# from the simple linear quest-chain list in quests/campaigns.json, which
+# QUEST_DIR already picks up since it lives inside quests/.
+const CAMPAIGNS_DIR = "res://data/campaigns/"
+# Single content-root files, not directories -- no editor UI edits these
+# yet, but they're real content-set data the editor should at least load
+# rather than silently not know about.
+const COLLECTIONS_FILE = "res://data/collections.json"
+const DISCOVERIES_FILE = "res://data/discoveries.json"
 
 # Data stores
 var npcs: Dictionary = {}
@@ -14,6 +23,9 @@ var items: Dictionary = {}
 var magic: Dictionary = {}
 var quests: Dictionary = {}
 var templates: Dictionary = {}
+var campaigns: Dictionary = {}
+var collections: Dictionary = {}
+var discoveries: Dictionary = {}
 
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
@@ -26,6 +38,7 @@ func _init():
 	_ensure_dir(MAGIC_DIR)
 	_ensure_dir(QUEST_DIR)
 	_ensure_dir(TEMPLATE_DIR)
+	_ensure_dir(CAMPAIGNS_DIR)
 	load_all()
 
 func _ensure_dir(path):
@@ -33,12 +46,42 @@ func _ensure_dir(path):
 
 func load_all():
 	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear()
+	campaigns.clear(); collections.clear(); discoveries.clear()
 	mark_clean()
 	_load_recursive(NPC_DIR, "", npcs)
 	_load_recursive(ITEM_DIR, "", items)
 	_load_recursive(MAGIC_DIR, "", magic)
 	_load_recursive(QUEST_DIR, "", quests)
 	_load_recursive(TEMPLATE_DIR, "", templates)
+	_load_campaigns()
+	if FileAccess.file_exists(COLLECTIONS_FILE): _load_file(COLLECTIONS_FILE, "collections.json", collections)
+	if FileAccess.file_exists(DISCOVERIES_FILE): _load_file(DISCOVERIES_FILE, "discoveries.json", discoveries)
+
+# Each file under CAMPAIGNS_DIR is one whole CampaignDefinition (campaign_id,
+# name, start_node_id, nodes{...}) -- not a library of several entries the
+# way an items/npcs file is. _load_file's single-vs-library heuristic keys
+# off a "type" field these files don't have, and would otherwise misread the
+# campaign's own "nodes" dictionary as if it were a second top-level entry.
+# Load each file as exactly one campaign, keyed by its own campaign_id.
+func _load_campaigns():
+	var dir = DirAccess.open(CAMPAIGNS_DIR)
+	if not dir: return
+	dir.list_dir_begin()
+	var file_name = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with(".json"):
+			var f = FileAccess.open(CAMPAIGNS_DIR.path_join(file_name), FileAccess.READ)
+			if f:
+				var json = JSON.new()
+				if json.parse(f.get_as_text()) == OK:
+					var data = json.get_data()
+					if typeof(data) == TYPE_DICTIONARY and not data.is_empty():
+						var id = data.get("campaign_id", file_name.replace(".json", ""))
+						data["_filename"] = file_name
+						campaigns[id] = data
+				else:
+					print("Error parsing JSON in %s: %s" % [file_name, json.get_error_message()])
+		file_name = dir.get_next()
 
 func _load_recursive(root_dir: String, current_subdir: String, target_dict: Dictionary):
 	var full_current_path = root_dir.path_join(current_subdir)

@@ -1322,11 +1322,46 @@ more urgent.
   records: engine contract verified, authored content available, automated
   journey demonstrated, human playtest completed. A checked box is not evidence
   of satisfying play.
-- [ ] **Unify the editor path with content-set contracts.** The Godot editor
-  targets older unpacked conventions; `mud-world-editor/data` is a stale fork
-  missing `casino.json`, `interactive.json`, `materials.json`, `resources.json`,
-  `sets.json`, `affixes.json`, `collections.json`, `discoveries.json`,
-  `campaigns/`, and much of `magic/`.
+- [x] **Unify the editor path with content-set contracts.** The audit went
+  deeper than the stale-file list suggested: `mud-world-editor/data` was a
+  hand-copied snapshot from before the whole P4-P7 content push -- 12 of 25
+  real regions, and every item/npc/magic/quest file added since. A real bug
+  blocked a naive copy: every editor-authored room carries an `_editor_pos`
+  layout field real content rooms never have, and while most read sites
+  default safely, several on the main interaction path
+  (`GraphController.update_specific_node`, `Main.gd`'s drag/select
+  handlers) index it directly -- every synced room would have crashed the
+  editor the moment its node needed to redraw. Fixed at the one choke point
+  that matters: `RegionManager.load_region()` now backfills a deterministic
+  grid position for any room missing one right after parse (mirroring the
+  same fallback `QuestViewBuilder.gd` already used per quest stage), so
+  none of the ~15 call sites that assume it exists needed auditing
+  individually. `DatabaseManager.gd` gained the two genuinely-missing
+  categories: a dedicated single-campaign-per-file loader for the
+  branching-campaign directory `campaigns/` (its generic single-vs-library
+  heuristic would have silently misread a campaign's own `nodes` dict as a
+  second top-level entry -- caught by a verification script, not assumed),
+  and simple single-file loads for root-level `collections.json`/
+  `discoveries.json`. All 39 missing content files copied in (every
+  `items/`/`magic/`/`npcs/`/`campaigns/` file, `collections.json`,
+  `discoveries.json`, `quests/quests.json`, `quests/campaigns.json`, 14
+  brand-new region files); the 11 regions that existed in both places were
+  merged rather than overwritten -- real content as the base, but every
+  room id already known to the editor keeps its existing hand-placed
+  `_editor_pos` (up to 46/46 rooms carried for `town.json`), so nothing a
+  human previously laid out was discarded. Removed a confirmed-dead
+  `town.json.old` backup while in there; left the empty stray top-level
+  `data/quests.json` and the scratch `new_region.json` alone since neither
+  is content-set data. Added default world-map positions for the 14 new
+  regions to `world_layout.json` as a finishing touch (not required --
+  `WorldViewBuilder` already degrades gracefully for an unlisted region).
+  Verified with a GDScript script run through the actual Godot 4.7.2
+  binary (`RegionManager`/`DatabaseManager` loading all 26 region files and
+  every data category with zero errors, every room confirmed to carry a
+  valid `_editor_pos` after the backfill) -- the same headless-launch
+  technique used to verify the `main_controller.gd` split. No native-GUI
+  automation is available to click through the editor interactively, so a
+  live spot-check of a newly-synced region is left for a human to confirm.
 
 ---
 
