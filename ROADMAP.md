@@ -2,7 +2,7 @@
 
 Companion documents:
 - [`docs/design/WORLD_DESIGN.md`](docs/design/WORLD_DESIGN.md) — target world shape, design pillars, open decisions.
-- [`docs/PLAYER_MANUAL.md`](docs/PLAYER_MANUAL.md) — player-facing handbook (needs revision; see P1).
+- [`docs/PLAYER_MANUAL.md`](docs/PLAYER_MANUAL.md) — player-facing handbook, kept current through P7's world expansion (five towns, the underground layer, weather, weapon/armor materials).
 - Completed-work archive: [`docs/roadmap/archive-2026-09.md`](docs/roadmap/archive-2026-09.md).
 
 Roadmap rewritten 2026-09-14 after a full engine + content audit. The previous

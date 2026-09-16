@@ -79,10 +79,12 @@ take any one of them, or ignore all four and wander off on your own:
 None of these paths closes off the others. Riverside doesn't run out
 while you're busy elsewhere.
 
-Hazards are part of that warning. A yellow haze, sparking floor, killing cold,
-or oppressive shadow is a real environmental danger that can hurt at regular
-intervals while you remain there. `look` first, retreat if you are not
-prepared, and return with the right resistance when you have it.
+Hazards are part of that warning. A yellow haze, sparking floor, killing
+cold, blistering heat, oppressive shadow, or a patch of sucking mud is a
+real environmental danger that can hurt at regular intervals while you
+remain there — and weather can make a bad spot worse, not just miserable
+to walk through. `look` first, retreat if you are not prepared, and return
+with the right resistance when you have it.
 
 A few commands you'll use constantly from the very first minute:
 
@@ -137,37 +139,86 @@ Type `status` any time to check where you stand.
 
 ## 4. The Lay of the Land
 
-The world beyond your front door is bigger than it first appears.
-Here's what's known to be out there:
+The world beyond your front door is bigger than it first appears — five
+towns' worth of bigger, each one an anchor for the danger and the
+opportunity around it. You won't see all of this on your first day.
+That's rather the point.
+
+### Around Riverside (the gentle end)
 
 - **Riverside Village** — home. Market, tavern, shrine, museum,
   blacksmith, and a scattering of houses along a quiet residential lane.
+- **Riverside Catacombs** — a neglected burial network under the shrine
+  and the tavern cellar, where old foundations meet a natural cave. Gentle
+  enough for a first dungeon, with two ways back to the surface.
 - **Whispering Woods** — the forest north of the village. Wolves, goblins,
-  and bandits keep to its shadows; local legend says the woods hide
-  something older still.
-- **Windy Foothills** — grassy highlands east of the farms, home to
-  goblin and orc raiding parties.
-- **Frostpeak Mountains** — the high, cold country beyond the foothills.
-  Orcs, harpies, trolls, and worse make their homes among the peaks.
-  Not a place for the underprepared.
-- **Shadow Caves** — a cave network in the hills, seldom visited, full
-  of stories nobody can quite confirm.
+  and bandits keep to its shadows, and **Briarhook Scrapcamp** — a proper
+  goblin settlement, not just a wandering pack — is dug in among the
+  briars. Local legend says the woods hide something older still.
 - **Ancient Ruins** — the crumbling remains of a forgotten civilization,
   buried deep in the Whispering Woods.
-- **Murkwater Swamp** — a humid, treacherous bog south of the river.
-  Lizardfolk territory, and none too welcoming.
-- **Salt-Kissed Path** — the coastal road where the swamp finally gives
-  way to open shore.
+- **Windy Foothills** — grassy highlands east of the farms, home to
+  goblin and orc raiding parties and, tucked into a fold of the hills,
+  **Gallows Hollow** — a watched, supplied bandit camp, not an easy mark.
+- **Murkwater Swamp** — a humid, treacherous bog south of the river, home
+  to **Reedscale Village**, a lizardfolk settlement raised on root-bound
+  platforms above the deeper channels.
 - **Riverside Farmlands** — the fields and pastures that feed the village.
+- **The Gilded Lotus** — an unexpectedly lavish casino, for those who'd
+  rather test their luck than their sword arm.
+
+### The Coast
+
 - **Portbridge** — a harbor town where the Silver River meets the sea.
   Sailors, merchants, a harbourmaster with a tariff problem, and — if
   rumor is to be believed — smugglers working the tunnels beneath it.
-- **The Gilded Lotus** — an unexpectedly lavish casino, for those who'd
-  rather test their luck than their sword arm.
-- **The Obsidian Trial** — an ancient volcanic proving ground, for those
-  who've already tested everything else.
+- **Tidewell Underworks** — a drowned tangle of old drainage works,
+  smuggler storehouses, and failing tide machinery under Portbridge's
+  harbor. The sea reaches every low point eventually.
+- **Salt-Kissed Path** — the coastal road where the swamp finally gives
+  way to open shore, with **Tideglass Warren** — a kobold settlement dug
+  into the dry rock behind the sea caves — tucked along it.
 
-You won't see all of this on your first day. That's rather the point.
+### The High Country
+
+- **Frostpeak Mountains** — the high, cold country beyond the foothills.
+  Orcs, harpies, trolls, and worse make their homes among the peaks. Not a
+  place for the underprepared.
+- **Frostpeak Outpost** — a mining town where the foothill road meets the
+  high pass: a forge, a supply yard, and the Mining Lodge, built for
+  people who work the mountain rather than just pass through it.
+- **Shadow Caves** — a cave network in the hills, including a sunken lake
+  far below the old mine shafts that the miners broke into by accident.
+  Seldom visited, full of stories nobody can quite confirm.
+- **The Obsidian Trial** — an ancient volcanic proving ground, reached
+  through the caves, for those who've already tested everything else.
+
+### The Desert Road
+
+- **Sunscorch Expanse** — beyond Frostpeak's dry eastern pass, broken
+  highland gives way to salt flats, wind-cut stone, and distant dunes. The
+  caravan road is the only reliable way across.
+- **Sunscorch Caravanserai** — a walled desert town built around a
+  dependable spring, trading water, repairs, news, and safe passage in
+  equal measure.
+
+### Aurelia and Beyond
+
+- **Aurelian Outlands** — where the desert loosens into dry, cultivated
+  country around Aurelia. Imperial milestones and old aqueducts promise
+  order; the abandoned works beyond the road have not gotten the message.
+- **Aurelia** — the prosperous-city anchor at the far end of the road:
+  guild halls, a museum, an auction house, and institutions old enough to
+  believe they'll outlast every traveller who needs them.
+- **Starwell Archive** — the oldest vault beneath Aurelia's museum, built
+  around a damaged imperial instrument that once charted the sky. Not a
+  place for a first adventure.
+
+Each town serves a rough band of danger — Riverside for the newly
+arrived, Portbridge and Frostpeak Outpost for the proven, Sunscorch
+Caravanserai and Aurelia for the seasoned — but nothing stops you from
+seeing a further town before you're ready for what's around it. The
+world doesn't gate you; the danger speaks for itself.
 
 ---
 
@@ -186,6 +237,14 @@ practiced. The game will tell you what's missing when you try.
 Within a region, `survey` will tell you what's gatherable nearby, and
 `minimap` toggles a visual map if you'd rather see the shape of things
 than read about them.
+
+The sky matters too. `weather` tells you what's happening overhead, and
+it isn't just flavor — a coastal road turns windy, an alpine pass buries
+itself in snow or blinds you in a blizzard, a desert clear day turns
+windy and a storm turns to a blinding sandstorm, marshland fills with
+mist, and open fields turn to mud in the rain. Exposed travel will warn
+you when conditions are bad, and some gathering spots (a sea-fishing
+line in a storm, say) simply won't work until the weather clears.
 
 ---
 
@@ -289,6 +348,15 @@ specifically — check the notice board.
 the ground where it fell; it does not go into your pack by itself. The game
 will tell you what fell and how to pick it up.
 
+**Steel matters as much as skill.** Every weapon cuts, stabs, or crushes,
+and every suit of body armor is cloth, leather, chain, or plate — and the
+two interact the way you'd expect from the real thing. A blade opens up
+unarmored cloth and leather but glances off plate; a thrusting weapon
+(a spear, a rapier) finds the gaps in mail that a slash can't; a mace or
+hammer doesn't care what it's hitting through, and plate is exactly what
+it's built to answer. There's no in-game readout for this — it's
+something you learn by noticing what works, same as sizing up a fight.
+
 Check `combat` (or `cstat`/`fightstatus`) at any time for a status
 readout of your current fight.
 
@@ -353,7 +421,10 @@ What you're *called* is earned, not chosen at the start. Keep at a
 trade, keep your word with the right people, and someone will eventually
 have a name for what you've become — **Hand** of the workward, **Trader**
 of the market row, **Pathfinder** on the roads, **Hedge Healer** of the
-Order of the Dawn, and others besides.
+Order of the Dawn, and — if you make it as far as Aurelia — an
+**Aurelian Surveyor** or **Aurelian Artificer** of that city's own guild
+halls, and others besides. A trade name follows you home; it isn't tied
+to where you earned it.
 
 Type `titles` to see what you've earned, what's within reach, and what
 each one wants from you. When you've earned one, `title <name>` wears
@@ -571,8 +642,10 @@ Type `help <command>` any time for the full details on any of these.
   people remember you.
 - **A gift costs little and buys a lot.** Figure out what someone
   likes before you need a favor from them.
-- **Don't run into the mountains at level two.** The Frostpeaks don't
-  scale down to meet you.
+- **Don't run into the mountains — or the desert, or Aurelia — before
+  you're ready.** Nothing out there scales down to meet you.
+- **Know what you're swinging at.** A mace beats plate; a blade beats an
+  unarmored foe. Carrying more than one weapon type is rarely wasted.
 - **Retreat is a gamble, not a button.** Don't pick a fight you're not
   prepared to either win or lose.
 - **The notice board refreshes.** If nothing on it appeals to you
