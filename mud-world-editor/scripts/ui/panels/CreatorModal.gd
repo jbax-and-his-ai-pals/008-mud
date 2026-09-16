@@ -53,7 +53,18 @@ func setup():
 	vbox.add_child(_lbl("Region Configuration"))
 	widgets.name = LineEdit.new(); widgets.name.text = "new_region"; widgets.name.placeholder_text = "Region ID (Filename)"; _apply_style(widgets.name)
 	vbox.add_child(widgets.name); vbox.add_child(HSeparator.new())
-	
+
+	vbox.add_child(_lbl("Seed (same seed + params = same layout)"))
+	var seed_hbox = HBoxContainer.new()
+	widgets.seed_field = LineEdit.new(); widgets.seed_field.text = str(randi()); widgets.seed_field.placeholder_text = "Seed"
+	widgets.seed_field.size_flags_horizontal = 3; _apply_style(widgets.seed_field)
+	widgets.seed_field.text_submitted.connect(func(_t): _update_gen_preview())
+	seed_hbox.add_child(widgets.seed_field)
+	var btn_reroll_seed = Button.new(); btn_reroll_seed.text = "Randomize"; _apply_style(btn_reroll_seed)
+	btn_reroll_seed.pressed.connect(func(): widgets.seed_field.text = str(randi()); _update_gen_preview())
+	seed_hbox.add_child(btn_reroll_seed)
+	vbox.add_child(seed_hbox); vbox.add_child(HSeparator.new())
+
 	vbox.add_child(_lbl("Algorithm"))
 	widgets.algo = OptionButton.new()
 	var algos = ["Grid", "Maze", "Hub", "Crescent", "Ring", "Cavern", "Sector", "Highway", "Spiral", "Fractal", "River", "Target", "House", "Town", "City", "Castle"]
@@ -124,7 +135,9 @@ func setup():
 func _get_gen_params() -> Dictionary:
 	var p1_val = widgets.p1.value if widgets.p1.visible else slider_p1.value
 	var p2_val = widgets.p2.value if widgets.p2.visible else slider_p2.value
-	return { "rows": int(p1_val), "cols": int(p2_val), "room_density": slider_density.value, "conn_density": slider_conns.value }
+	var seed_text: String = widgets.seed_field.text.strip_edges()
+	var seed_value: int = seed_text.hash() if seed_text != "" else 0
+	return { "rows": int(p1_val), "cols": int(p2_val), "room_density": slider_density.value, "conn_density": slider_conns.value, "seed": seed_value }
 
 func _update_gen_preview():
 	var algo = widgets.algo.get_item_id(widgets.algo.selected)

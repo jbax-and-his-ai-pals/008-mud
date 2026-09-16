@@ -12,6 +12,13 @@ const GRAPH_BASED = preload("res://scripts/generators/GraphBasedGenerators.gd")
 const STRUCT_BASED = preload("res://scripts/generators/StructureGenerators.gd")
 
 static func generate(algo: int, params: Dictionary) -> Dictionary:
+	# Every sub-generator calls the bare global randf()/randi()/etc, which
+	# Godot backs with a single global RNG -- seeding it here, once, before
+	# dispatch is enough to make the whole call chain reproducible for a
+	# given (algo, params, seed) without threading an RNG object through
+	# every generator file. A builder can note or share a seed and get the
+	# exact same layout back.
+	seed(int(params.get("seed", 0)))
 	var rooms = {}
 	match algo:
 		Algo.EMPTY: rooms = {}
