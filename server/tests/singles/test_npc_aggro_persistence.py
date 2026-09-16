@@ -1,4 +1,6 @@
 # tests/singles/test_npc_aggro_persistence.py
+from unittest.mock import patch
+
 from tests.fixtures import GameTestBase
 from engine.npcs.npc_factory import NPCFactory
 from engine.world.room import Room
@@ -6,7 +8,12 @@ from engine.world.room import Room
 class TestNPCAggroPersistence(GameTestBase):
 
     def test_aggro_remains_on_return(self):
-        """Verify NPC stays angry if player leaves room and comes back."""
+        """Verify NPC stays angry if player leaves room and comes back.
+
+        world.change_room now gates a mid-combat move behind a "stealth"
+        retreat check (ruleset combat.retreat) that can fail on a fresh
+        player -- forced to succeed here since this test is about aggro
+        persisting across the move, not about the retreat roll itself."""
         # 1. Setup Rooms (Square <-> Lane)
         region = self.world.get_region("town")
         if not region: return
@@ -36,11 +43,12 @@ class TestNPCAggroPersistence(GameTestBase):
         self.assertTrue(goblin.in_combat)
         
         # 4. Player Leaves
-        self.world.change_room("east")
-        self.assertEqual(self.player.current_room_id, "Lane")
-        
-        # 5. Player Returns
-        self.world.change_room("west")
+        with patch("engine.world.world.SkillSystem.practice_check", return_value=(True, "forced success")):
+            self.world.change_room("east")
+            self.assertEqual(self.player.current_room_id, "Lane")
+
+            # 5. Player Returns
+            self.world.change_room("west")
         self.assertEqual(self.player.current_room_id, "Square")
         
         # 6. Assert Goblin still angry

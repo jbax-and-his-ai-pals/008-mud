@@ -98,7 +98,7 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             player.inventory.add_item(ItemFactory.create_item_from_template("item_hand_axe", server.world))
             player.current_region_id = "mountains"
             player.current_room_id = "hidden_valley"
-            server.game.weather_manager.current_weather = "storm"
+            server.weather_manager.current_weather = "storm"
             node = next(
                 item for item in server.world.get_region("mountains").get_room("hidden_valley").items
                 if item.obj_id == "node_fallen_bough"
