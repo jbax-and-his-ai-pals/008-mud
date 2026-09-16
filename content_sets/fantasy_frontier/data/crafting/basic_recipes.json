@@ -316,5 +316,133 @@
       { "item_id": "item_softwood", "quantity": 4 },
       { "item_id": "item_iron_ingot", "quantity": 1 }
     ]
+  },
+
+  "forge_war_mace": {
+    "name": "Forge War Mace", "aliases": ["war mace", "mace"],
+    "description": "Forge a flanged mace head and fit it to a solid haft.",
+    "result_item_id": "item_war_mace", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 3 }, { "item_id": "item_softwood", "quantity": 1 } ]
+  },
+  "forge_battle_hammer": {
+    "name": "Forge Battle Hammer", "aliases": ["battle hammer", "war hammer"],
+    "description": "Forge a heavy two-handed hammer head, weighted to punch through armor.",
+    "result_item_id": "item_battle_hammer", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 4 }, { "item_id": "item_softwood", "quantity": 2 } ]
+  },
+  "craft_hunting_spear": {
+    "name": "Craft Hunting Spear", "aliases": ["hunting spear", "spear"],
+    "description": "Fit a leaf-shaped steel head to a long, balanced shaft.",
+    "result_item_id": "item_hunting_spear", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 2 }, { "item_id": "item_softwood", "quantity": 2 } ]
+  },
+  "forge_steel_rapier": {
+    "name": "Forge Steel Rapier", "aliases": ["steel rapier", "rapier"],
+    "description": "Grind a slender blade down to a fast, precise point.",
+    "result_item_id": "item_steel_rapier", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 3 } ]
+  },
+  "forge_broadsword": {
+    "name": "Forge Broadsword", "aliases": ["broadsword"],
+    "description": "Forge a wide, double-edged blade for powerful cutting strokes.",
+    "result_item_id": "item_broadsword", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 4 } ]
+  },
+  "forge_waraxe": {
+    "name": "Forge Waraxe", "aliases": ["waraxe", "war axe"],
+    "description": "Forge a double-bitted axe head and haft it for war rather than woodcutting.",
+    "result_item_id": "item_waraxe", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 4 }, { "item_id": "item_softwood", "quantity": 1 } ]
+  },
+  "forge_chain_coif": {
+    "name": "Forge Chain Coif", "aliases": ["chain coif", "mail coif"],
+    "description": "Rivet a hood of interlocking iron rings over a padded lining.",
+    "result_item_id": "item_chain_coif", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 2 }, { "item_id": "item_leather_strip", "quantity": 1 } ]
+  },
+  "forge_chain_hauberk": {
+    "name": "Forge Chain Hauberk", "aliases": ["chain hauberk", "chainmail", "mail shirt"],
+    "description": "Rivet thousands of small iron rings into a knee-length mail shirt.",
+    "result_item_id": "item_chain_hauberk", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 5 }, { "item_id": "item_leather_strip", "quantity": 2 } ]
+  },
+  "forge_chain_gauntlets": {
+    "name": "Forge Chain Gauntlets", "aliases": ["chain gauntlets", "mail gloves"],
+    "description": "Rivet mail plates over a leather glove.",
+    "result_item_id": "item_chain_gauntlets", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 2 }, { "item_id": "item_leather_strip", "quantity": 1 } ]
+  },
+  "forge_chain_sabatons": {
+    "name": "Forge Chain Sabatons", "aliases": ["chain sabatons", "mail boots"],
+    "description": "Rivet mail plates over a sturdy boot.",
+    "result_item_id": "item_chain_sabatons", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 2 }, { "item_id": "item_leather_strip", "quantity": 1 } ]
+  },
+  "craft_warding_torc": {
+    "name": "Craft Warding Torc", "aliases": ["warding torc", "torc"],
+    "description": "Twist an iron torc and bind it with warding herbs against foul air.",
+    "result_item_id": "item_warding_torc", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 1 }, { "item_id": "item_wild_herbs", "quantity": 2 } ]
+  },
+  "weave_acolytes_mantle": {
+    "name": "Weave Acolyte's Mantle", "aliases": ["acolyte's mantle", "acolyte mantle", "mantle"],
+    "description": "Weave spider silk into a light mantle that won't tangle a spellcaster's hands.",
+    "result_item_id": "item_acolytes_mantle", "result_quantity": 1, "station_required": null,
+    "ingredients": [ { "item_id": "item_spider_silk", "quantity": 3 }, { "item_id": "item_wild_herbs", "quantity": 1 } ]
+  },
+
+  "forge_greatsword": {
+    "name": "Forge Greatsword", "aliases": ["greatsword", "great sword"],
+    "description": "Forge and temper an enormous two-handed blade, its length wrapped in cured hide for grip.",
+    "result_item_id": "item_greatsword", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 6 }, { "item_id": "item_troll_hide", "quantity": 1 } ]
+  },
+  "forge_warhammer": {
+    "name": "Forge Warhammer", "aliases": ["warhammer"],
+    "description": "Forge a massive hammer head and set a core of living rock into it for extra mass.",
+    "result_item_id": "item_warhammer", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 7 }, { "item_id": "item_living_rock", "quantity": 1 } ]
+  },
+  "forge_halberd": {
+    "name": "Forge Halberd", "aliases": ["halberd", "poleaxe"],
+    "description": "Forge an axe blade, spike, and hook onto a single long haft, its grip wrapped in cured hide.",
+    "result_item_id": "item_halberd", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 5 }, { "item_id": "item_troll_hide", "quantity": 1 } ]
+  },
+  "forge_masterwork_estoc": {
+    "name": "Forge Masterwork Estoc", "aliases": ["masterwork estoc", "estoc"],
+    "description": "Grind a rigid, edgeless blade down to a single needle point, purely by skill rather than material.",
+    "result_item_id": "item_masterwork_estoc", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 6 } ]
+  },
+  "forge_plate_helm": {
+    "name": "Forge Plate Helm", "aliases": ["plate helm"],
+    "description": "Hammer a close helm from curved steel plate, its core reinforced with a fragment of living rock.",
+    "result_item_id": "item_plate_helm", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 6 }, { "item_id": "item_living_rock", "quantity": 1 } ]
+  },
+  "forge_plate_cuirass": {
+    "name": "Forge Plate Cuirass", "aliases": ["plate cuirass", "breastplate"],
+    "description": "Hammer a full breastplate and backplate, layering scavenged chitin plating between the steel for extra rigidity.",
+    "result_item_id": "item_plate_cuirass", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 10 }, { "item_id": "item_chitin_plate", "quantity": 2 } ]
+  },
+  "forge_plate_gauntlets": {
+    "name": "Forge Plate Gauntlets", "aliases": ["plate gauntlets"],
+    "description": "Hammer articulated steel plates over a mail glove, backed with a sliver of chitin plating.",
+    "result_item_id": "item_plate_gauntlets", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 5 }, { "item_id": "item_chitin_plate", "quantity": 1 } ]
+  },
+  "forge_plate_sabatons": {
+    "name": "Forge Plate Sabatons", "aliases": ["plate sabatons"],
+    "description": "Hammer segmented steel plates over a sturdy boot, backed with a sliver of chitin plating.",
+    "result_item_id": "item_plate_sabatons", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 5 }, { "item_id": "item_chitin_plate", "quantity": 1 } ]
+  },
+  "forge_vanguards_signet": {
+    "name": "Forge Vanguard's Signet", "aliases": ["vanguard's signet", "vanguard signet", "signet"],
+    "description": "Set a fragment of humming living rock into a heavy iron signet.",
+    "result_item_id": "item_vanguards_signet", "result_quantity": 1, "station_required": "anvil",
+    "ingredients": [ { "item_id": "item_iron_ingot", "quantity": 2 }, { "item_id": "item_living_rock", "quantity": 1 } ]
   }
 }

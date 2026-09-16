@@ -970,13 +970,57 @@ late still pays.
   forest, and mountain spaces, prospect foothills and caves, or fish river and
   coast. The placement test protects that baseline while allowing future node
   templates and higher-tier resource materials to extend it.
-- [ ] **Expand the itemisation ladder.** Today: 14 weapons spanning damage 3→8;
-  16 armour pieces across 7 slots, with **zero** neck items and exactly one
-  each for head/hands/feet. 12 prefixes / 11 suffixes, one gated at level 10
-  and therefore unreachable. Target: gear tiers that track the rings, weapon
-  *types* with distinct behaviours, armour *types* with distinct tradeoffs
-  (light/medium/heavy), and enough affix variety that generated items are
-  worth comparing.
+- [x] **Expand the itemisation ladder.** Was 14 weapons spanning damage 3→8,
+  11 armour pieces (the ladder's real count -- the roadmap's own "16" and "one
+  each for head/hands/feet" had already drifted stale) with zero neck items,
+  and 12 prefixes / 11 suffixes with "of Vampirism" gated at level 10.
+  **A blocking bug surfaced first**: neither a player's equipped armour nor
+  an NPC's authored `defense` stat actually reduced damage taken in combat --
+  `GameObject.take_damage`'s `get_effective_stat("defense")` read a value
+  nothing populated (a player's real defense lived in the separate
+  `runtime_state.combat.defense`; an NPC's lived in a bare `npc.defense`
+  attribute never copied into `npc.stats`). Every hit in the game had been
+  landing at full raw damage minus only explicit buffs. Fixed in
+  `engine/player/core.py`/`engine/npcs/npc_factory.py` before any of the new
+  mechanic work could mean anything; verified with new equip-a-real-item and
+  real-NPC-template regression tests plus the full suite run twice.
+  **New mechanic**: weapon `weapon_damage_type` (slashing/piercing/crushing)
+  vs. armour `armor_material` (cloth/leather/chain/plate), a real-world-
+  grounded 3×4 multiplier table in `engine/config/config_combat.py` --
+  slashing beats cloth but loses to plate, piercing beats chain (mail's
+  historical weakness to a thrusting point) but loses to plate, crushing
+  beats plate/chain (concussive force ignores what it can't cut) but is
+  weakest against padding. Both fields are optional with a neutral 1× default
+  (only the body slot drives the matchup), so every pre-existing item and any
+  content set that never sets them is unaffected; threaded through
+  `CombatSystem.execute_attack` and `GameObject.take_damage` as a new
+  optional parameter alongside the existing elemental-resistance multiplier.
+  All 14 existing weapons, 11 existing armour pieces, and all 31 hostile NPC
+  templates were tagged in a pure-data pass.
+  **Content**: ring 2 (levels 6–10) adds 6 weapons (rounding out the
+  crushing gap: war mace, battle hammer, hunting spear, steel rapier,
+  broadsword, waraxe) and introduces **chain** armour (coif/hauberk/
+  gauntlets/sabatons) plus the ladder's first **neck** item (a warding torc)
+  and a cloth option (an acolyte's mantle trading defense for spell power).
+  Ring 3 (levels 11–15) adds 4 more weapons and introduces **plate**
+  (helm/cuirass/gauntlets/sabatons, the cuirass carrying a real tradeoff via
+  an agility-penalty `equip_effect`) plus a second neck item. Since authored
+  hostile NPCs still cap at level 8, ring-3 gear is deliberately delivered
+  through crafting recipes gated behind rare monster-drop materials
+  (`item_chitin_plate` from giant scorpions armors the plate line,
+  `item_troll_hide`/`item_living_rock` gate the ring-3 weapons) rather than
+  invented high-level monsters -- 21 new recipes total across both rings,
+  following the existing minimal recipe shape. Added 4 new affixes (Brutal/
+  Adamant prefixes, of the Serpent/of Stoneskin suffixes) at level_min 6–7,
+  reachable within the actual NPC level ceiling unlike the pre-existing
+  "of Vampirism" -- which stays gated at 10 rather than fixed here, since
+  fixing it properly needs a live level≥10 loot-generation path that doesn't
+  exist in this content set yet (flagged separately). Verified with
+  `run_content_checks.py` (clean, zero dangling references), the full suite
+  run after every step, and 15 new tests covering the tier tagging, the two
+  new materials, the neck-slot fix, the cuirass's tradeoff, the new affixes'
+  reachability, and two real end-to-end crafts (including the rare-material
+  gate).
 - [x] **Give crafted items reasons to exist** beyond "more content." Field
   alchemy now supplies four distinct answers at the existing alchemy station:
   a three-minute Marshguard poison-resistance ward, a Trailblazer agility

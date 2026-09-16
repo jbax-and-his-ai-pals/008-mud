@@ -71,6 +71,18 @@
       "level_min": 5,
       "equip_stats": { "resist_magic": 15, "resist_poison": 15 },
       "value_mult": 1.5
+    },
+    "Brutal": {
+      "allowed_types": ["Weapon"],
+      "level_min": 6,
+      "modifiers": { "damage": 7 },
+      "value_mult": 1.7
+    },
+    "Adamant": {
+      "allowed_types": ["Armor"],
+      "level_min": 6,
+      "modifiers": { "defense": 6, "durability": 25 },
+      "value_mult": 1.6
     }
   },
   "suffixes": {
@@ -138,6 +150,18 @@
       "allowed_types": ["Armor"],
       "level_min": 4,
       "equip_stats": { "resist_fire": 30, "resist_water": 30 },
+      "value_mult": 1.6
+    },
+    "of the Serpent": {
+      "allowed_types": ["Weapon"],
+      "level_min": 6,
+      "equip_effect": { "type": "stat_mod", "name": "Serpent's Bite", "modifiers": { "damage_poison": 6 } },
+      "value_mult": 1.6
+    },
+    "of Stoneskin": {
+      "allowed_types": ["Armor"],
+      "level_min": 7,
+      "equip_stats": { "defense": 4, "constitution": 2 },
       "value_mult": 1.6
     }
   },
