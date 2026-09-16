@@ -2,7 +2,7 @@
     "region_id": "ruins",
     "name": "Ancient Ruins",
     "description": "Deep within the Whispering Woods lie the crumbling remains of a long-forgotten civilization. Stone structures are overgrown with vines and moss, hinting at a mysterious past.",
-    "properties": { "level_band": { "min": 3, "max": 6 } },
+    "properties": { "biome": "temperate_forest", "region_type": "dungeon", "level_band": { "min": 3, "max": 6 } },
     "spawner": {
       "monster_types": {
         "skeleton": 5,

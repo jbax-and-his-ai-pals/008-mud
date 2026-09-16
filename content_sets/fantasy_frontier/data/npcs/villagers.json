@@ -625,6 +625,7 @@
     },
     "default_dialog": "The {name} scans the harbor traffic, missing nothing.",
     "properties": {
+      "dialogue": "voss_tidewell",
       "wander_chance": 0.0,
       "move_cooldown": 9999,
       "work_location": "portbridge:port_authority_office",

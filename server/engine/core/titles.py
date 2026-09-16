@@ -56,6 +56,7 @@ class Title:
     description: str = ""
     guild_name: str = ""
     guild_id: str = ""
+    guild_place: str = ""
     condition: Any = None
     requirements: List[Any] = field(default_factory=list)
 
@@ -92,6 +93,11 @@ class TitleManager:
             self.issues.append("%s must contain an object" % DEFAULT_TITLES_FILE)
             return
 
+        guilds = payload.get("_guilds", {})
+        if not isinstance(guilds, dict):
+            self.issues.append("_guilds must be an object")
+            guilds = {}
+
         for title_id, raw in payload.items():
             if str(title_id).startswith("_"):
                 continue
@@ -109,6 +115,10 @@ class TitleManager:
             elif isinstance(conferred, dict):
                 guild_name = str(conferred.get("name", "") or "")
                 guild_id = str(conferred.get("guild_id", "") or "")
+            guild_place = ""
+            guild = guilds.get(guild_id)
+            if isinstance(guild, dict):
+                guild_place = str(guild.get("place", "") or "")
             requirements = raw.get("requirements", [])
             if not isinstance(requirements, list):
                 self.issues.append("title '%s'.requirements must be an array" % title_id)
@@ -119,6 +129,7 @@ class TitleManager:
                 description=str(raw.get("description", "") or ""),
                 guild_name=guild_name,
                 guild_id=guild_id,
+                guild_place=guild_place,
                 condition=raw.get("condition"),
                 requirements=[r for r in requirements if r],
             )
@@ -194,7 +205,9 @@ class TitleManager:
             for title in self._ordered():
                 if title.title_id in earned:
                     marker = " (worn)" if title.title_id == active else ""
-                    lines.append("  %s%s%s%s" % (FORMAT_HIGHLIGHT, title.name, FORMAT_RESET, marker))
+                    source = " — %s" % title.guild_name if title.guild_name else ""
+                    place = " at %s" % title.guild_place.replace(":", ", ") if title.guild_place else ""
+                    lines.append("  %s%s%s%s%s%s" % (FORMAT_HIGHLIGHT, title.name, FORMAT_RESET, marker, source, place))
             lines.append("")
 
         unearned = [t for t in self._ordered() if t.title_id not in earned]

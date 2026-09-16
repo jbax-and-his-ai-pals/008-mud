@@ -1,0 +1,58 @@
+{
+  "region_id": "riverside_catacombs",
+  "name": "Riverside Catacombs",
+  "description": "A neglected burial network beneath Riverside, where old shrine foundations meet a natural water-cut cave. It is a starter dungeon with two ways back to town, not an isolated instance.",
+  "properties": {
+    "biome": "catacombs",
+    "weather_profile": "underground",
+    "region_type": "underground",
+    "level_band": { "min": 1, "max": 3 }
+  },
+  "spawner": {
+    "monster_types": { "giant_rat": 6, "skeleton": 3, "zombie": 1 },
+    "level_range": [1, 2]
+  },
+  "rooms": {
+    "shrine_stairs": {
+      "name": "Shrine Understairs",
+      "description": "Narrow stone steps descend from behind the shrine altar. The incense smell fades into cold earth, and the careful masonry gives way to much older stone below.",
+      "properties": { "dark": true },
+      "exits": { "up": "town:shrine_interior", "down": "names_hall" }
+    },
+    "names_hall": {
+      "name": "Hall of Names",
+      "description": "Faded memorial tablets line this long chamber. Most names are worn smooth, but someone has recently set a fresh candle beside one of the empty niches.",
+      "properties": { "dark": true },
+      "exits": { "up": "shrine_stairs", "west": "burial_niches", "east": "root_cavern" },
+      "items": [ { "item_id": "item_burnt_scroll" } ]
+    },
+    "burial_niches": {
+      "name": "Disturbed Niches",
+      "description": "Small burial recesses fill these walls from knee height to the ceiling. Several have been opened by roots and scavengers, leaving old bones scattered in the dust.",
+      "properties": { "dark": true },
+      "exits": { "east": "names_hall", "south": "sealed_chapel" },
+      "items": [ { "item_id": "item_bone", "quantity": 2 } ],
+      "initial_npcs": [ { "template_id": "skeleton", "instance_id": "catacomb_niche_skeleton" } ]
+    },
+    "sealed_chapel": {
+      "name": "Sealed Chapel",
+      "description": "A low chapel survives beneath the town, its altar cracked but still marked with a sunburst. The wall behind it has split open into a rough natural tunnel.",
+      "properties": { "dark": true },
+      "exits": { "north": "burial_niches", "east": "root_cavern" },
+      "items": [ { "item_id": "item_old_coin" } ]
+    },
+    "root_cavern": {
+      "name": "Root Cavern",
+      "description": "Tree roots knot through a natural cavern, drinking from a thin stream that has undercut the catacomb floor. There is enough room here for rats to nest and for water to find another way out.",
+      "properties": { "dark": true, "smell": "wet earth" },
+      "exits": { "west": "names_hall", "southwest": "sealed_chapel", "east": "cellar_breach" },
+      "initial_npcs": [ { "template_id": "giant_rat", "instance_id": "catacomb_root_rat" } ]
+    },
+    "cellar_breach": {
+      "name": "Cellar Breach",
+      "description": "A low natural tunnel rises into a patched brick breach behind stacked tavern barrels. The way is tight but passable; rainwater has been using it for years.",
+      "properties": { "dark": true },
+      "exits": { "west": "root_cavern", "up": "town:tavern_cellar" }
+    }
+  }
+}

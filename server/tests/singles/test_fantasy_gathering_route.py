@@ -86,6 +86,34 @@ class TestFantasyGatheringRoute(unittest.TestCase):
         finally:
             server.shutdown()
 
+    def test_alpine_blizzard_closes_an_exposed_gathering_site_without_using_it(self) -> None:
+        """Regional weather profiles affect gathering through authored data."""
+        server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(FANTASY_FRONTIER), deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="blizzard_woodcutter")
+            server.execute_command(session.session_id, "char create Rowan")
+            player = server.get_player_for_session(session.session_id)
+            player.inventory.add_item(ItemFactory.create_item_from_template("item_hand_axe", server.world))
+            player.current_region_id = "mountains"
+            player.current_room_id = "hidden_valley"
+            server.game.weather_manager.current_weather = "storm"
+            node = next(
+                item for item in server.world.get_region("mountains").get_room("hidden_valley").items
+                if item.obj_id == "node_fallen_bough"
+            )
+            charges_before = node.get_property("charges")
+
+            result = server.execute_command(session.session_id, "gather fallen bough")
+
+            text = "\n".join(str(event["payload"]) for event in result).lower()
+            self.assertIn("cannot be worked safely", text)
+            self.assertIn("blizzard", text)
+            self.assertEqual(charges_before, node.get_property("charges"))
+        finally:
+            server.shutdown()
+
     def test_content_declares_gathering_and_the_first_hour_route_is_playable(self) -> None:
         definition, issues = load_content_set(FANTASY_FRONTIER)
         self.assertIsNotNone(definition, issues)

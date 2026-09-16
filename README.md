@@ -5,25 +5,22 @@ A robust, modular, and data-driven Text-Based RPG engine built with Python and P
 ## 🚀 Getting Started
 
 ### Prerequisites
-*   Python 3.11+ — **3.11 or 3.12 recommended.** CI pins 3.11. On 3.14 plain
-    `pygame` has no wheel yet, so use `pygame-ce` there (it installs the same
-    `pygame` module) or stay on 3.12.
-*   Pygame (`pip install pygame`, or `pygame-ce` on 3.14)
-*   PyYAML and msgpack (`pip install PyYAML msgpack`) — PyYAML for the theme-pack
-    and content validators, msgpack so the transport codec tests run for real
-    instead of skipping.
+*   Python **3.12**. It is pinned in `.python-version`, used by CI, and is the
+    only interpreter supported by the project bootstrap.
+*   Internet access on first setup, to install the locked Pygame, PyYAML,
+    msgpack, and coverage wheels into the project-local virtual environment.
 *   PyTorch / Transformers — **not needed.** Local-LLM ambient dialogue is
     disabled (`_load_model` returns early); install them only if you want to
     switch it on.
 
 ### Setting up
 ```bash
-# Linux / macOS (what this project was developed on):
-python3 -m pip install -r server/requirements.txt
+# Windows: creates .venv with Python 3.12 and installs server/requirements.lock
+powershell -ExecutionPolicy Bypass -File bootstrap.ps1
 
-# Windows, where several Pythons may be installed — be explicit, because
-# "the wheels are missing" is usually "a different interpreter is running":
-py -3.12 -m pip install -r server/requirements.txt
+# Linux / macOS:
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r server/requirements.lock
 ```
 
 ### Running the tests
@@ -49,12 +46,11 @@ pwsh -File run_tests.ps1
 `-ExecutionPolicy Bypass` is only needed while this machine's policy blocks
 local scripts.
 
-`run_tests.py` runs under whatever interpreter invoked it, checks
-PyYAML/msgpack/pygame before running anything, and refuses to start without
-them — a suite missing a dependency reports failures that are not defects.
-Logs land in `tmp/test-results/`. On Windows the launcher prefers 3.12, then
-3.11, then 3.13; pass `-Interpreter "py -3.14"` to see the dependency gate in
-action.
+After bootstrap, the Windows launchers use `.venv\Scripts\python.exe` and
+refuse to fall back to PATH. `run_tests.py` still checks PyYAML/msgpack/pygame
+before running anything, so a damaged environment reports setup failure rather
+than misleading test failures. Logs land in `tmp/test-results/`. Pass
+`-Interpreter "py -3.14"` only when intentionally diagnosing another Python.
 
 ### Running the Game
 ```bash

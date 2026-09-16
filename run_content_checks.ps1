@@ -3,7 +3,8 @@
 # The gates live in run_content_checks.py so they behave identically on Linux,
 # macOS and Windows. This wrapper exists only to solve the Windows-specific
 # problem: several Pythons installed side by side, and `python` meaning whichever
-# one is first on PATH. It picks a versioned interpreter, then hands over.
+# one is first on PATH. It uses the committed Python-3.12 project virtual
+# environment, then hands over.
 #
 # These steps used to call bare `python`, which meant that on a machine with both
 # 3.12 and 3.14 the gates ran under 3.14 -- which has no pygame wheel -- and
@@ -11,6 +12,7 @@
 # reads like broken content and is actually a broken interpreter choice.
 #
 #   powershell -ExecutionPolicy Bypass -File run_content_checks.ps1
+#   powershell -ExecutionPolicy Bypass -File bootstrap.ps1  # first checkout
 #
 # On Linux/macOS:  python3 run_content_checks.py
 
@@ -46,20 +48,14 @@ function Resolve-ProjectPython {
         }
         return [pscustomobject]@{ Exe = $exe; Args = $exeArgs }
     }
-    if (Get-Command py -ErrorAction SilentlyContinue) {
-        foreach ($version in @("-3.12", "-3.11", "-3.13")) {
-            if (Test-PythonQuietly -Exe "py" -Arguments @($version, "-c", "import sys")) {
-                return [pscustomobject]@{ Exe = "py"; Args = @($version) }
-            }
+    $venvPython = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
+    if (Test-Path -LiteralPath $venvPython) {
+        if (-not (Test-PythonQuietly -Exe $venvPython -Arguments @("-c", "import sys; assert sys.version_info[:2] == (3, 12)"))) {
+            throw "The project .venv is not a usable Python 3.12 environment. Remove only '.venv' and run bootstrap.ps1 again."
         }
+        return [pscustomobject]@{ Exe = $venvPython; Args = @() }
     }
-    if (Get-Command python -ErrorAction SilentlyContinue) {
-        return [pscustomobject]@{ Exe = "python"; Args = @() }
-    }
-    if (Get-Command python3 -ErrorAction SilentlyContinue) {
-        return [pscustomobject]@{ Exe = "python3"; Args = @() }
-    }
-    throw "No Python interpreter found. Install Python 3.11 or 3.12."
+    throw "No project .venv found. Run 'powershell -ExecutionPolicy Bypass -File bootstrap.ps1' first, or pass -Interpreter explicitly for diagnostics."
 }
 
 $python = Resolve-ProjectPython

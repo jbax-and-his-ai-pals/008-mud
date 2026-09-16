@@ -5,7 +5,25 @@
   "world": {
     "regions": {
       "require_level_bands": true,
-      "require_hazard_coverage": true
+      "require_hazard_coverage": true,
+      "require_classification": true,
+      "biomes": ["temperate_forest", "farmland", "foothills", "alpine", "coast", "swamp", "desert", "natural_caverns", "catacombs", "underground", "volcanic", "settled"],
+      "region_types": ["settlement", "wilderness", "dungeon", "underground", "landmark", "interior"]
+    }
+  },
+  "weather": {
+    "descriptions": {
+      "windy": "A hard wind worries loose cloth and carries grit along the road.",
+      "mist": "Low mist clings to the ground and blurs the distance.",
+      "blizzard": "Snow and wind erase the far country behind a white wall.",
+      "sandstorm": "A wall of sand rasps across the open country and blots out the horizon."
+    },
+    "profiles": {
+      "coast": { "map": { "clear": "windy" }, "travel_notes": { "storm": "The coastal road is slick and exposed beneath the storm." } },
+      "alpine": { "map": { "clear": "windy", "rain": "snow", "storm": "blizzard" }, "travel_notes": { "windy": "The high-country wind makes every exposed step deliberate.", "blizzard": "The mountain route is barely visible through the blowing snow." } },
+      "swamp": { "map": { "clear": "mist", "cloudy": "mist" }, "travel_notes": { "mist": "The marsh trail fades into the mist; keep to the firmer ground." } },
+      "desert": { "map": { "clear": "windy", "storm": "sandstorm" }, "travel_notes": { "windy": "The dry wind steals moisture faster than it seems.", "sandstorm": "Shelter and a wrapped face are worth more than speed in the sandstorm." } },
+      "underground": { "map": {} }
     }
   },
   "systems": {

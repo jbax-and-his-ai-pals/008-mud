@@ -942,11 +942,12 @@ No single column has to be complete for the ring to work — that is the point o
 the hybrid. Author in whatever order the world wants; a region that arrives
 late still pays.
 
-- [ ] **Pick and specify the towns** (open decision 10). Tiered with soft
-  gating (decided). Candidate identities: the starter village (neutral, mixed
-  economy), the existing seaside town (trade/tariffs/smuggling), a mountain
-  town (mining/smithing), a desert town (caravan trade/water scarcity), and a
-  large prosperous city (crafting guilds, museum, auction).
+- [~] **Pick and specify the towns** (open decision 10). Tiered with soft
+  gating (decided). Riverside (L1–3, neutral/mixed), Portbridge (L2–4,
+  trade/tariffs/smuggling), and Frostpeak (L5–8, mining/smithing) are live.
+  Sunscorch Caravanserai (L9–12, desert water and caravan trade) is now live,
+  connected through the Sunscorch Expanse from Frostpeak. Aurelia (L11–15,
+  guilds, museum, and auction) is now live beyond the Aurelian Outlands.
 - [x] **Attach level bands to regions as authored data.** Every static Fantasy
   Frontier region now declares `properties.level_band` (L1–3 around Riverside,
   L2–6 through the middle ring, L5–8 Frostpeaks/Trial). The ruleset opts into
@@ -954,14 +955,36 @@ late still pays.
   spawn ranges inside them; the spawner uses the band when a new region omits a
   duplicate range. No graph-distance or start-town identity is in the engine,
   so another starting town remains a content change.
-- [ ] **Build biome and region-type palette into content templates** so new
-  regions are cheap to author. Palette list in `WORLD_DESIGN.md` §4.3.
-- [ ] **Underground layer:** sewers, catacombs, mines, natural caverns,
-  undercities, subterranean water.
-- [ ] **Crude monster settlements:** kobold warrens, goblin camps, lizardfolk
-  villages, bandit camps.
-- [ ] **Build guild-like constructs** — the places and factions that confer
-  titles (P4). Content-authored names per profession.
+- [x] **Build biome and region-type palette into content templates.** Every
+  static Fantasy Frontier region now declares `properties.biome` and
+  `properties.region_type`; the content-owned palette and opt-in validation
+  live in `rules/ruleset.json`, so a missing or drifted label fails content
+  checks. Palette list and authoring contract in `WORLD_DESIGN.md` §4.3.
+- [~] **Underground layer:** Riverside Catacombs is now a L1–3 starter
+  dungeon under the shrine and tavern cellar, with a burial network that loops
+  through a natural root cavern. Aurelia's L14–15 Starwell Archive extends the
+  museum into a guarded undercity vault and a capstone route. Portbridge's L6–8
+  Tidewell Underworks adds flooded sewer and under-harbor spaces through the
+  smugglers' crossroads, plus Voss's survey-then-clearance arc to make the
+  route matter to the town. Mines and natural caverns already exist; deeper
+  subterranean water remains.
+- [x] **Crude monster settlements:** Tideglass Warren is now a compact kobold
+  settlement off the coastal sea caves, while Gallows Hollow makes the foothill
+  bandits a watched, supplied camp with a guarded approach, archer perch, and
+  stolen-goods cache. Reedscale Village gives the lizardfolk a defended
+  root-platform settlement in Murkwater, with food stores, homes, and a ritual
+  platform. Briarhook Scrapcamp completes the set with a watched forest
+  approach, scrap gate, shared firepit, mushroom patch, and carefully sorted
+  trophies. These turn their inhabitants into small communities with stores and
+  territory, not ambient encounters.
+- [~] **Build guild-like constructs.** Titles now retain an optional
+  content-authored conferring place as well as a group name: the Riverside
+  Workward at the forge, Market Row, the Roads at the north gate, the Museum,
+  Order of the Dawn shrine, Frostpeak Mining Lodge, and the two quieter social
+  groups all have real locations. Aurelia adds the Surveyors' Hall and
+  Artificers' Exchange, with a survey commission and the Aurelian Surveyor
+  title tied to the former. Membership/exclusivity remains deliberately open
+  (decision 13); titles still confer no mechanical access.
 - [x] **Densify `gathering`.** The seven ordinary renewable node templates now
   have **16 static sources across eight regions** (the garden plot and house
   pond remain player-housing tools, not world placements). Every ordinary node
@@ -1035,8 +1058,14 @@ late still pays.
   existing quicksand pit. The Fantasy Frontier ruleset requires coverage from
   its authored mapping, validates hazard timing/damage, and has a runtime test
   that proves each damage type is active.
-- [ ] **Extend weather** so it varies meaningfully by region and interacts with
-  hazards, travel, and gathering.
+- [~] **Extend weather.** Weather now resolves through optional content-owned
+  regional profiles: coast turns clear conditions windy, alpine rain to snow
+  and storms to blizzards, and swamp clear/cloudy conditions to mist; authored
+  room climates still win. Exposed travel receives region-specific advisory
+  text, while sea/river fishing, river-clay banks, forest berry brambles, and
+  alpine fallen wood are genuinely unavailable in their dangerous conditions.
+  Broader hazard interactions now include content-authored storm-amplified
+  electrical hazards on the coast and mist-amplified quicksand in the swamp.
 - [x] **Make exploration pay on its own.** The P4 ledger already awards 25 XP
   for each first-time landmark room and 90 XP for each first region, alongside
   its discovery/knowledge entries; the expanded gathering routes supply rare
@@ -1052,8 +1081,11 @@ late still pays.
 
 ### Definition of done
 
-- A player can progress from level 1 to 15 by exploring a designed world
-  without repeating content.
+- [x] A player can progress from level 1 to 15 by exploring a designed world
+  without repeating content. A continuous headless walk through every public
+  static room earns only first-time landmark/region awards and reaches level
+  15 (9,060 exploration XP before quests, combat, loot, crafting, or social
+  rewards are counted).
 - No ring is reachable "early" in a way that trivialises it, or late in a way
   that makes it pointless.
 - Every hazard type is used by at least one region.
@@ -1210,7 +1242,7 @@ more urgent.
   the whole suite on an interpreter with neither installed. The requirements
   file now explains why they are absent and what to install to switch local-LLM
   dialogue back on.
-- [ ] **Pin the interpreter, and stop blaming the wheels.** The remaining
+- [x] **Pin the interpreter, and stop blaming the wheels.** The remaining
   installability problem is not missing packages, it is an ambiguous
   `python`. This project was developed on Linux, where CI and a single system
   interpreter meant `pip install -r requirements.txt` always lined up. On the
@@ -1222,9 +1254,12 @@ more urgent.
   behaviour on every platform), the `.ps1` files are thin Windows launchers that
   pick a versioned interpreter, the test runner checks the three packages and
   refuses to run without them, `README.md` documents both platforms, and CI no
-  longer installs a CPU-only torch it never imported. **Still open:** a
-  committed `.python-version` or venv story, and pinned versions — there is
-  still no lockfile. Facts worth keeping: plain `pygame` has **no cp314 wheel**
+  longer installs a CPU-only torch it never imported. **Now complete:**
+  `.python-version` pins 3.12; `bootstrap.ps1` creates and verifies the local
+  `.venv`; both Windows launchers require it unless an interpreter is explicitly
+  requested for diagnosis; `server/requirements.lock` pins the four test
+  dependencies; and CI installs that same lock on Python 3.12. Facts worth
+  keeping: plain `pygame` has **no cp314 wheel**
   (`pygame-ce` does, and provides the same `pygame` module), while PyYAML and
   msgpack both ship cp314 wheels, so on 3.14 the only genuinely awkward package
   is pygame.

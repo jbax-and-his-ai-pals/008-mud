@@ -61,3 +61,74 @@ class TestP7ExplorationRoute(unittest.TestCase):
             )
         finally:
             server.shutdown()
+
+    def test_complete_public_world_walk_reaches_level_fifteen_without_other_rewards(self) -> None:
+        """P7's core promise is reachable through first-time exploration alone.
+
+        This deliberately does not talk, fight, take loot, complete quests, or
+        gather. It walks a continuous route through every public static room;
+        the only entries it earns are landmark and region entries. Rooms marked
+        ``entered_by_system`` (such as custody) are excluded because they are
+        intentionally not part of a player-directed route.
+        """
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(FANTASY_FRONTIER),
+            deterministic_test_mode=True,
+        )
+        try:
+            session = server.create_session(player_id="p7_full_explorer")
+            server.execute_command(session.session_id, "char create Explorer")
+            player = server.get_player_for_session(session.session_id)
+            seeded_entries = set(player.advancement_entries)
+            public_rooms = [
+                (region_id, room_id)
+                for region_id, region in sorted(server.world.regions.items())
+                for room_id, room in sorted(region.rooms.items())
+                if not room.get_property("entered_by_system", False)
+            ]
+
+            for region_id, room_id in public_rooms:
+                if (player.current_region_id, player.current_room_id) == (region_id, room_id):
+                    continue
+                path = server.world.find_path(
+                    player.current_region_id,
+                    player.current_room_id,
+                    region_id,
+                    room_id,
+                )
+                if path is None and (region_id, room_id) == ("obsidian_trial", "inner_sanctum"):
+                    # The Trial's final room is intentionally puzzle-gated,
+                    # not unreachable: operate its authored lever and then
+                    # continue the same walking route through the new exit.
+                    lever_path = server.world.find_path(
+                        player.current_region_id,
+                        player.current_room_id,
+                        "obsidian_trial",
+                        "lever_room_west",
+                    )
+                    self.assertIsNotNone(lever_path, "cannot reach the Obsidian Trial lever")
+                    for direction in lever_path or []:
+                        server.world.change_room(direction, player)
+                    activated = server.execute_command(session.session_id, "interact obsidian lever")
+                    self.assertIn("grinding sound", "\n".join(str(event["payload"]) for event in activated))
+                    path = server.world.find_path(
+                        player.current_region_id,
+                        player.current_room_id,
+                        region_id,
+                        room_id,
+                    )
+                self.assertIsNotNone(path, f"no walking path to {region_id}:{room_id}")
+                for direction in path or []:
+                    server.world.change_room(direction, player)
+                self.assertEqual((region_id, room_id), (player.current_region_id, player.current_room_id))
+
+            earned_entries = player.advancement_entries - seeded_entries
+            self.assertTrue(
+                all(entry.startswith(("landmark:", "region:")) for entry in earned_entries),
+                "exploration-only route earned an unexpected entry: %s" % sorted(earned_entries),
+            )
+            self.assertGreaterEqual(player.runtime_state.progression.level, 15)
+            self.assertGreaterEqual(player.total_experience(), 8_691)
+        finally:
+            server.shutdown()

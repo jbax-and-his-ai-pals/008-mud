@@ -1,0 +1,42 @@
+{
+  "id": "voss_tidewell",
+  "root": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Harbourmaster Voss keeps the tide ledger open beside a stack of seized cargo reports. One column is marked with fresh ink: water rising beneath the old docks.",
+      "choices": [
+        { "text": "What is happening beneath the harbor?", "aliases": ["underworks", "tidewell", "harbor trouble", "need work"], "condition": { "all": [ { "not": { "kind": "quest_active", "quest_id": "quest_tidewell_soundings" } }, { "not": { "kind": "quest_completed", "quest_id": "quest_tidewell_soundings" } } ] }, "next_node": "briefing" },
+        { "text": "Remind me about the Tidewell soundings.", "aliases": ["what now", "assignment", "blackwater"], "condition": { "kind": "quest_active", "quest_id": "quest_tidewell_soundings" }, "next_node": "in_progress" },
+        { "text": "The Blackwater Vault has been surveyed.", "aliases": ["survey complete", "i returned", "report"], "condition": { "kind": "quest_completed", "quest_id": "quest_tidewell_soundings" }, "next_node": "resolved" },
+        { "text": "What will you do about the vault?", "aliases": ["vault threat", "more work", "enforcer"], "condition": { "all": [ { "kind": "quest_completed", "quest_id": "quest_tidewell_soundings" }, { "not": { "kind": "quest_active", "quest_id": "quest_tidewell_clear_vault" } }, { "not": { "kind": "quest_completed", "quest_id": "quest_tidewell_clear_vault" } } ] }, "next_node": "clearance_briefing" },
+        { "text": "Remind me about clearing the vault.", "aliases": ["clearance", "vault assignment"], "condition": { "kind": "quest_active", "quest_id": "quest_tidewell_clear_vault" }, "next_node": "clearance_progress" },
+        { "text": "The drowned enforcer is dealt with.", "aliases": ["enforcer defeated", "vault clear"], "condition": { "kind": "quest_completed", "quest_id": "quest_tidewell_clear_vault" }, "next_node": "clearance_resolved" },
+        { "text": "I have no authority business today.", "end": true }
+      ]
+    },
+    "briefing": {
+      "text": "The smugglers' old tunnels have broken into Tidewell, the drainage works beneath the harbor. If the lowest vault is flooding or occupied, I need facts before a crew goes down there blind. Reach the Blackwater Vault, take its measure, and report directly back to me.",
+      "choices": [ { "text": "I will take the soundings.", "aliases": ["accept", "i will go", "take the work"], "effects": { "start_quest": "quest_tidewell_soundings" }, "end": true }, { "text": "I need to prepare first.", "end": true } ]
+    },
+    "in_progress": {
+      "text": "Use the hidden harbor tunnel, then take the sluice east from the smugglers' crossroads. The Blackwater Vault is below the old cistern. Do not confuse a dark pool with a shallow one.",
+      "choices": [ { "text": "Understood.", "end": true } ]
+    },
+    "resolved": {
+      "text": "That is enough to act on. I can send a crew with a route, a depth, and a reason to come back. Portbridge thanks you.",
+      "choices": [ { "text": "Glad to help.", "end": true } ]
+    },
+    "clearance_briefing": {
+      "text": "Your report confirmed an armed drowned thing is holding the Blackwater Vault. I cannot send laborers into a chamber that treats them as intruders. Go back through Tidewell, put down the enforcer, and make the vault safe enough for a proper crew.",
+      "choices": [ { "text": "I will clear the vault.", "aliases": ["accept", "i will go", "take the work"], "effects": { "start_quest": "quest_tidewell_clear_vault" }, "end": true }, { "text": "I need to prepare first.", "end": true } ]
+    },
+    "clearance_progress": {
+      "text": "The drowned enforcer waits in the Blackwater Vault below Tidewell's cistern. The harbor tunnels are still the quickest approach, but not necessarily the safest one.",
+      "choices": [ { "text": "Understood.", "end": true } ]
+    },
+    "clearance_resolved": {
+      "text": "Good. The first crew goes down at dawn with pumps, lanterns, and a route that does not end in an ambush. Portbridge will remember who made that possible.",
+      "choices": [ { "text": "Keep the harbor moving.", "end": true } ]
+    }
+  }
+}

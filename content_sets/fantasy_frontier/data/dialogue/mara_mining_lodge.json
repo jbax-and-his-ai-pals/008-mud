@@ -1,0 +1,55 @@
+{
+  "id": "mara_mining_lodge",
+  "root": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Mara stands beside the mine map, one hand resting on a red-wax mark near the ice caves.",
+      "choices": [
+        {
+          "text": "What is happening at the old ice workings?",
+          "aliases": ["ice workings", "old works", "mine work", "need help"],
+          "condition": {
+            "all": [
+              { "not": { "kind": "quest_active", "quest_id": "quest_frostpeak_deep_sounding" } },
+              { "not": { "kind": "quest_completed", "quest_id": "quest_frostpeak_deep_sounding" } }
+            ]
+          },
+          "next_node": "briefing"
+        },
+        {
+          "text": "Remind me what you need from the ice workings.",
+          "aliases": ["what now", "my assignment", "ice caves"],
+          "condition": { "kind": "quest_active", "quest_id": "quest_frostpeak_deep_sounding" },
+          "next_node": "in_progress"
+        },
+        {
+          "text": "The ice chamber has been surveyed.",
+          "aliases": ["survey complete", "i saw the chamber", "report"],
+          "condition": { "kind": "quest_completed", "quest_id": "quest_frostpeak_deep_sounding" },
+          "next_node": "resolved"
+        },
+        { "text": "I will leave you to the Lodge.", "end": true }
+      ]
+    },
+    "briefing": {
+      "text": "The old route opens into an ice chamber above the waterfall. We lost its current survey when the weather closed in, and I will not send another unprepared miner there. Reach the chamber, take its measure, and return alive. The mountain can keep the rest.",
+      "choices": [
+        {
+          "text": "I will survey the ice chamber.",
+          "aliases": ["accept", "i will go", "i'll survey it"],
+          "effects": { "start_quest": "quest_frostpeak_deep_sounding" },
+          "end": true
+        },
+        { "text": "I need to prepare first.", "end": true }
+      ]
+    },
+    "in_progress": {
+      "text": "Follow the mountain route east from the old mine exit to the frozen waterfall. The chamber is beyond the ice cave. Do not mistake reaching it for surviving it.",
+      "choices": [ { "text": "Understood.", "end": true } ]
+    },
+    "resolved": {
+      "text": "A clear report is worth more than a brave lie. Frostpeak will mark the chamber accurately, and the next crew will know what the mountain is asking of them.",
+      "choices": [ { "text": "Glad to help.", "end": true } ]
+    }
+  }
+}

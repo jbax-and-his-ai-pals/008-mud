@@ -89,6 +89,15 @@ class ResourceNode(Item):
         current_season = str(getattr(time_manager, "time_data", {}).get("season", "")) if time_manager else ""
         if allowed_seasons and current_season not in allowed_seasons:
             return f"The {self.name} offers nothing during this season."
+
+        weather_manager = getattr(getattr(world, "game", None), "weather_manager", None)
+        if weather_manager is not None:
+            region = world.get_region(getattr(player, "current_region_id", ""))
+            room = world.get_room_for_player(player)
+            effective_weather = weather_manager.effective_weather(region, room)
+            unsafe_weather = self.get_property("weather_blocked_by", [])
+            if isinstance(unsafe_weather, list) and effective_weather in unsafe_weather:
+                return f"The {self.name} cannot be worked safely in this {effective_weather}."
             
         tool_req = self.get_property("tool_required")
         

@@ -2,7 +2,7 @@
     "region_id": "portbridge",
     "name": "Portbridge",
     "description": "A bustling port town built where the Silver River meets the sea. Its docks teem with sailors and merchants, and the smell of salt and fish hangs heavy in the air.",
-    "properties": { "safe_zone": true, "level_band": { "min": 2, "max": 4 } },
+    "properties": { "safe_zone": true, "biome": "coast", "weather_profile": "coast", "region_type": "settlement", "level_band": { "min": 2, "max": 4 } },
     "rooms": {
         "town_gate_north": {
             "name": "Portbridge North Gate",
@@ -185,7 +185,8 @@
             "exits": {
                 "south": "smugglers_tunnel",
                 "north": "underground_cache",
-                "west": "inn_cellar_tunnel"
+                "west": "inn_cellar_tunnel",
+                "east": "tidewell_underworks:sluice_gate"
             },
             "properties": {"dark": true},
             "initial_npcs": [ { "template_id": "smuggler_thug", "instance_id": "smuggler_thug_2" } ]

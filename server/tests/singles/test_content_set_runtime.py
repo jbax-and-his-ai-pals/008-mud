@@ -10,7 +10,7 @@ from engine.core.clock import SimulatedClock
 from engine.magic.spell_registry import get_spell
 from engine.server.headless_server import HeadlessServer
 from engine.player import Player
-from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_crafting_quality_contracts, _validate_discovery_references, _validate_item_extension_data, _validate_new_quest_objective_types, _validate_region_hazard_coverage, _validate_region_level_bands, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
+from engine.server.content_set import ContentSetIssue, GameContract, _validate_ambient_loot_references, _validate_collection_references, _validate_crafting_quality_contracts, _validate_discovery_references, _validate_item_extension_data, _validate_new_quest_objective_types, _validate_region_classification, _validate_region_hazard_coverage, _validate_region_level_bands, _validate_resource_node_yields, _validate_ruleset_references, _validate_vendor_orders, load_content_set
 from poc_server import JsonLineMudServer
 from poc_ws_server import JsonWebSocketMudServer
 
@@ -60,6 +60,26 @@ class TestContentSetRuntime(unittest.TestCase):
         messages = [issue.message for issue in issues]
         self.assertTrue(any("requires properties.level_band" in message for message in messages))
         self.assertTrue(any("spawner.level_range must stay inside" in message for message in messages))
+
+    def test_required_region_classification_uses_content_owned_vocabularies(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            regions = content_root / "regions"
+            regions.mkdir()
+            (regions / "bad.json").write_text(json.dumps({
+                "region_id": "bad",
+                "properties": {"biome": "moon", "region_type": ""},
+                "rooms": {},
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_region_classification(
+                content_root, issues, required=True,
+                biomes={"forest"}, region_types={"wilderness"},
+            )
+
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("biome 'moon' is not in the ruleset vocabulary" in message for message in messages))
+        self.assertTrue(any("properties.region_type must be a non-empty string" in message for message in messages))
 
     def test_required_region_hazard_coverage_and_schema_are_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

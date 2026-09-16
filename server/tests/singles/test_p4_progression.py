@@ -402,6 +402,16 @@ class TestTitles(unittest.TestCase):
                  set(player.runtime_state.magic.known_spells))
         self.assertEqual(before, after)
 
+    def test_earned_title_identifies_its_conferring_place(self):
+        manager = self._manager({
+            "hand": Title("hand", "Hand", guild_name="The Workward", guild_place="town:forge"),
+        })
+        player = _Player()
+        manager.sync(player)
+        status = manager.status(player)
+        self.assertIn("The Workward", status)
+        self.assertIn("town, forge", status)
+
 
 class TestBackgrounds(unittest.TestCase):
     def test_real_content_loads_every_background(self):

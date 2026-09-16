@@ -17,9 +17,9 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: server/requirements-dev.txt
+          cache-dependency-path: server/requirements.lock
 
       # No torch step: nothing imports torch at module scope. The only torch
       # imports in the engine are inside `LLMInterface._load_model`, after an

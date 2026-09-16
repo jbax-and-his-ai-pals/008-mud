@@ -24,12 +24,49 @@ class WeatherManager:
         # theme-neutral real-world default for content sets that don't.
         chances = None
         if world is not None:
-            raw = world.ruleset_section("weather").get("chances")
+            weather_rules = world.ruleset_section("weather")
+            raw = weather_rules.get("chances")
             if isinstance(raw, dict) and raw:
                 chances = raw
+            raw_profiles = weather_rules.get("profiles", {})
+            self.weather_profiles = raw_profiles if isinstance(raw_profiles, dict) else {}
+        else:
+            self.weather_profiles = {}
         self.weather_chances = chances or DEFAULT_WEATHER_CHANCES
         self.current_weather = "clear"
         self.current_intensity = "mild"
+
+    def effective_weather(self, region=None, room=None) -> str:
+        """Return the weather a player experiences in this specific place.
+
+        Rooms may author an immutable local climate (a glacial cave, for
+        example). Otherwise a region selects a content-owned climate profile
+        that can translate global weather into its local expression: rain on
+        an alpine pass becomes snow, while a clear day over marshland becomes
+        mist. Profiles are descriptive values, not an engine-maintained biome
+        taxonomy.
+        """
+        if room is not None:
+            local = room.get_property("weather")
+            if isinstance(local, str) and local.strip():
+                return local.strip()
+        profile_id = ""
+        if region is not None:
+            profile_id = str(region.get_property("weather_profile", "") or "").strip()
+        profile = self.weather_profiles.get(profile_id, {})
+        mapping = profile.get("map", {}) if isinstance(profile, dict) else {}
+        mapped = mapping.get(self.current_weather) if isinstance(mapping, dict) else None
+        return str(mapped).strip() if isinstance(mapped, str) and mapped.strip() else self.current_weather
+
+    def travel_note(self, region=None, room=None) -> str:
+        """Return a content-authored travel advisory for exposed local weather."""
+        if room is None or not room.get_property("outdoors", True):
+            return ""
+        profile_id = str(region.get_property("weather_profile", "") or "") if region is not None else ""
+        profile = self.weather_profiles.get(profile_id, {})
+        notes = profile.get("travel_notes", {}) if isinstance(profile, dict) else {}
+        note = notes.get(self.effective_weather(region, room)) if isinstance(notes, dict) else None
+        return str(note).strip() if isinstance(note, str) else ""
 
     def update_on_time_period_change(self, season: str):
         """Updates the weather, with a higher chance of change at dawn/dusk."""

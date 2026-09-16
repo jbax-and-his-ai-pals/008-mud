@@ -2,7 +2,7 @@
     "region_id": "swamp",
     "name": "Murkwater Swamp",
     "description": "A vast, humid swamp stretching south of the Silver River. Twisted trees draped in moss rise from stagnant water, and the air buzzes with insects.",
-    "properties": { "level_band": { "min": 2, "max": 4 } },
+    "properties": { "biome": "swamp", "weather_profile": "swamp", "region_type": "wilderness", "level_band": { "min": 2, "max": 4 } },
     "spawner": {
         "monster_types": {
             "giant_rat": 4,
@@ -76,10 +76,11 @@
         },
         "lizard_den": {
             "name": "Giant Lizard Den",
-            "description": "A large burrow dug into a muddy bank. Large reptilian tracks lead into the opening. It smells of reptile and old meat.",
+            "description": "A large burrow dug into a muddy bank. Large reptilian tracks lead into the opening, but the mud beyond has been packed into a maintained path and marked with reed knots. It smells of reptile and old meat.",
             "exits": {
                 "north": "cypress_stand",
-                "west": "mangrove_thicket"
+                "west": "mangrove_thicket",
+                "south": "reedscale_village:reed_gate"
             },
             "items": [ { "item_id": "item_lizard_scale" } ],
             "properties": {"smell": "reptilian"}
@@ -131,7 +132,7 @@
             "name": "Quicksand Pit",
             "description": "A deceptively calm-looking pool of mud. Ripples suggest movement beneath the surface. Getting too close looks dangerous. Something shiny is partially submerged near the edge.",
             "exits": { "west": "deep_swamp" },
-            "properties": { "hazard_type": "quicksand", "hazard_damage": 4, "hazard_tick_interval": 5.0 },
+            "properties": { "hazard_type": "quicksand", "hazard_damage": 4, "hazard_tick_interval": 5.0, "weather_hazard_multipliers": { "mist": 1.25 } },
             "items": [ { "item_id": "item_muddy_brooch" } ]
         },
         "ancient_bog": {

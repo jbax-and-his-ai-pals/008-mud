@@ -461,5 +461,148 @@
       }
     ],
     "rewards": { "xp": 400, "gold": 100 }
+  },
+
+  "quest_frostpeak_deep_sounding": {
+    "title": "A Sounding in the Ice",
+    "type": "quest",
+    "description": "Mara Vale needs a fresh report from the dangerous ice chamber above Frostpeak before the Mining Lodge risks another crew.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Reach the Inner Ice Chamber beyond Frostpeak's frozen waterfall, then report back to Mara at the Mining Lodge.",
+        "objective": {
+          "type": "scout",
+          "target_region": "mountains",
+          "target_room_keywords": ["ice", "chamber"],
+          "target_room_id": "ice_cave_chamber"
+        },
+        "turn_in_id": "frostpeak_lodgekeeper",
+        "completion_dialogue": "You made it to the chamber and came back with your senses intact. That is enough to save a crew from walking in blind."
+      }
+    ],
+    "rewards": {
+      "xp": 180,
+      "gold": 55,
+      "relationships": [ { "npc_template_id": "frostpeak_lodgekeeper", "amount": 8 } ]
+    }
+  },
+
+  "quest_sunscorch_oasis_survey": {
+    "title": "Water on the Route",
+    "type": "quest",
+    "description": "Sada the Caravanmaster needs a current report from the Mirror Oasis before committing an incoming caravan to the desert road.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Reach the Mirror Oasis across the Sunscorch Expanse, then report back to Sada in the Caravan Yard.",
+        "objective": {
+          "type": "scout",
+          "target_region": "sunscorch_road",
+          "target_room_keywords": ["mirror", "oasis"],
+          "target_room_id": "mirror_oasis"
+        },
+        "turn_in_id": "sunscorch_caravanmaster",
+        "completion_dialogue": "You reached the oasis and returned with a report instead of a rumour. That is the difference between a route and a gamble."
+      }
+    ],
+    "rewards": {
+      "xp": 300,
+      "gold": 90,
+      "relationships": [ { "npc_template_id": "sunscorch_caravanmaster", "amount": 10 } ]
+    }
+  },
+
+  "quest_aurelia_observatory_report": {
+    "title": "The Silent Dome",
+    "type": "quest",
+    "description": "Elion needs an on-the-ground report from Aurelia's dangerous abandoned observatory before the museum risks sending a scholarly expedition.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Reach the Old Observatory in the Aurelian Outlands, then report back to Elion at the museum.",
+        "objective": {
+          "type": "scout",
+          "target_region": "aurelia_outlands",
+          "target_room_keywords": ["old", "observatory"],
+          "target_room_id": "old_observatory"
+        },
+        "turn_in_id": "aurelia_archivist",
+        "completion_dialogue": "You saw the dome for yourself and returned with useful detail. That is better than the heroic speculation the museum usually receives."
+      }
+    ],
+    "rewards": {
+      "xp": 425,
+      "gold": 130,
+      "relationships": [ { "npc_template_id": "aurelia_archivist", "amount": 10 } ]
+    }
+  },
+
+  "quest_aurelia_starwell_record": {
+    "title": "The Starwell Record",
+    "type": "quest",
+    "description": "Elion believes the damaged archive beneath Aurelia's museum holds the missing observatory record, if its last imperial sentinel can be overcome.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Descend through the museum's eastern archive door, defeat an astral sentinel in the Starwell Chamber, then return to Elion.",
+        "objective": { "type": "kill", "target_template_id": "astral_sentinel", "target_name": "an astral sentinel", "required_quantity": 1 },
+        "turn_in_id": "aurelia_archivist",
+        "completion_dialogue": "The record is damaged, but it is real. You have recovered a piece of the city that even Aurelia had filed under legend."
+      }
+    ],
+    "rewards": {
+      "xp": 650,
+      "gold": 225,
+      "relationships": [ { "npc_template_id": "aurelia_archivist", "amount": 15 } ]
+    }
+  },
+
+  "quest_aurelia_aqueduct_survey": {
+    "title": "Measure of the Old Road",
+    "type": "quest",
+    "description": "Lyra needs a current survey of the Broken Aqueduct before Aurelia sends road crews into the Aurelian Outlands.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Reach the Broken Aqueduct in the Aurelian Outlands, then return to Lyra at the Surveyors' Hall.",
+        "objective": { "type": "scout", "target_region": "aurelia_outlands", "target_room_keywords": ["broken", "aqueduct"], "target_room_id": "broken_aqueduct" },
+        "turn_in_id": "aurelia_surveyor",
+        "completion_dialogue": "A real measurement beats ten confident guesses. The crews will have a route they can use."
+      }
+    ],
+    "rewards": { "xp": 375, "gold": 115, "relationships": [ { "npc_template_id": "aurelia_surveyor", "amount": 10 } ] }
+  },
+
+  "quest_tidewell_soundings": {
+    "title": "Soundings Below the Docks",
+    "type": "quest",
+    "description": "Harbourmaster Voss needs a current report from Tidewell's lowest vault before Portbridge commits a crew to the flooded underworks.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Reach the Blackwater Vault in the Tidewell Underworks, then report back to Harbourmaster Voss.",
+        "objective": { "type": "scout", "target_region": "tidewell_underworks", "target_room_keywords": ["blackwater", "vault"], "target_room_id": "blackwater_vault" },
+        "turn_in_id": "harbourmaster_voss",
+        "completion_dialogue": "A clear sounding gives Portbridge a chance to deal with the water before it deals with us."
+      }
+    ],
+    "rewards": { "xp": 240, "gold": 75, "relationships": [ { "npc_template_id": "harbourmaster_voss", "amount": 10 } ] }
+  },
+
+  "quest_tidewell_clear_vault": {
+    "title": "Clear the Blackwater",
+    "type": "quest",
+    "description": "Harbourmaster Voss needs the drowned enforcer in Tidewell's Blackwater Vault dealt with before Portbridge can reclaim the flooded works.",
+    "stages": [
+      {
+        "stage_index": 0,
+        "description": "Defeat the drowned enforcer in the Blackwater Vault, then return to Harbourmaster Voss.",
+        "objective": { "type": "kill", "target_template_id": "drowned_enforcer", "target_name": "the drowned enforcer", "required_quantity": 1 },
+        "turn_in_id": "harbourmaster_voss",
+        "completion_dialogue": "The vault is no longer held against us. Portbridge can finally put people and pumps into Tidewell."
+      }
+    ],
+    "rewards": { "xp": 325, "gold": 110, "relationships": [ { "npc_template_id": "harbourmaster_voss", "amount": 15 } ] }
   }
 }

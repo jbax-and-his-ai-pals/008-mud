@@ -400,9 +400,28 @@ spawner may use the band as its level range when it has no narrower local range.
 This is authoring metadata, not a player-facing level gate or a replacement for
 learning danger by travel and observation.
 
+**Current town ladder.** Riverside is the L1–3 neutral starter village and
+mixed local economy; Portbridge is the L2–4 coastal trade and tariff town,
+with the smuggling pressure that commerce brings. Frostpeak is the L5–8
+mining-and-smithing outpost at the mountain approach, with a forge, supply
+yard, Mining Lodge, and a surveyed route into the existing mine/mountain
+spaces. Sunscorch Caravanserai is the L9–12 desert anchor: its water court,
+caravan yard, bazaar, and map house serve a marked route from Frostpeak through
+the Sunscorch Expanse. Aurelia is the L11–15 prosperous-city anchor, with its
+guild square, museum, auction hall, and the dangerous Aurelian Outlands beyond
+the imperial road. Its late-game route is content-connected rather than a
+fictional future connection.
+
 ### 4.3 Biome and region-type palette
 
 A working list to author against. Not exhaustive; meant to be argued with.
+
+Every static Fantasy Frontier region now carries two content properties:
+`biome` names its physical character and `region_type` names its play-space
+role. The content set opts into `require_classification` and supplies the
+allowed vocabulary in `rules/ruleset.json`; validation rejects an unclassified
+region or a spelling that has drifted from that vocabulary. This keeps templates
+cheap to author while leaving another content set free to use its own palette.
 
 **Surface / wilderness**
 - Temperate forest, deep woods, haunted wood
@@ -630,8 +649,16 @@ world at content-validation time.
 Goals:
 - Hazards become a defining feature of regions, not a one-off. A volcanic ring
   should be hot; a glacial ring should be cold; catacombs should have bad air.
-- Weather should matter mechanically per region (it currently affects fire
-  damage and visibility) and interact with hazards and travel.
+- Weather now resolves through a content-owned regional profile before it is
+  described: a coast can make clear weather windy, an alpine region can turn
+  rain to snow, and a marsh can turn clear weather to mist. A room's authored
+  local climate still takes precedence. Profiles may supply travel advisories;
+  gathering nodes can opt into `weather_blocked_by` when a condition makes
+  their work unsafe (the sea-fishing node blocks storms), and a hazardous room
+  can use `weather_hazard_multipliers` to scale its existing hazard damage for
+  named effective weather (the shipwreck's electrical danger grows in storms;
+  swamp quicksand worsens in mist). Both are optional, content-authored maps
+  validated for non-empty weather names and positive numeric multipliers.
 - Resistance becomes a real itemisation axis, which in turn gives armour and
   consumables a reason to exist beyond raw defense.
 - Hazards should be *learnable*: a player should be able to deduce what they

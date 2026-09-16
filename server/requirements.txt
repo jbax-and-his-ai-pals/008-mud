@@ -3,12 +3,11 @@
 # Keep this list small and honest: it is what a fresh checkout must install to
 # run the server, the tests, and the content validators.
 #
-# pygame is a hard import today. `engine/utils/text_formatter.py` does
-# `import pygame` at module scope for three names (Rect, Surface, font), and
-# because that formatter is reached from `engine/utils/utils.py` the whole
-# engine -- headless server included -- needs pygame present just to import.
-# Removing that dependency is a P8 item (see ROADMAP.md); until then it is the
-# one package a headless install cannot avoid.
+# pygame is required by the normal client and the full test suite. Headless
+# server imports deliberately do not require it (covered by
+# test_headless_import_without_pygame.py), so a deployment that never loads
+# client presentation may omit it after selecting its own narrow dependency
+# contract.
 #
 # NOTE ON PYTHON VERSION: pygame ships no cp314 wheel yet. On 3.14 use
 # `pygame-ce` (which provides the `pygame` module and does ship cp314 wheels),

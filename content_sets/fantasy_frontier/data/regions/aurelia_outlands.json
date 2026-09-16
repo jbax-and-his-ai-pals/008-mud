@@ -1,0 +1,47 @@
+{
+  "region_id": "aurelia_outlands",
+  "name": "Aurelian Outlands",
+  "description": "The desert loosens into dry, cultivated country around the prosperous city of Aurelia. Imperial milestones, old aqueducts, and scattered estates promise order, but the abandoned works beyond the road hold dangers that wealth has not solved.",
+  "properties": {
+    "biome": "foothills",
+    "region_type": "wilderness",
+    "level_band": { "min": 11, "max": 14 }
+  },
+  "spawner": {
+    "monster_types": { "sun_basilisk": 4, "ruin_reaver": 3, "ash_warden": 2 },
+    "level_range": [11, 14]
+  },
+  "rooms": {
+    "milestone_road": {
+      "name": "Imperial Milestone Road",
+      "description": "A wide stone road runs east from the desert gate between numbered imperial milestones. Carts and couriers use it freely near the city, but clawed gouges in the paving show that the old order does not control every mile.",
+      "exits": { "west": "sunscorch_caravanserai:east_gate", "east": "broken_aqueduct", "north": "sunstone_fields" }
+    },
+    "broken_aqueduct": {
+      "name": "Broken Aqueduct",
+      "description": "A tall aqueduct crosses the road on cracked arches, its long-dry channel crowded with thorn brush. The shadow beneath it is cool enough for predators and the fallen masonry leaves too many blind corners.",
+      "exits": { "west": "milestone_road", "east": "city_approach" }
+    },
+    "sunstone_fields": {
+      "name": "Sunstone Fields",
+      "description": "Terraced fields of tough grain climb the dry slopes north of the road. Their irrigation channels still run, but several plots have been abandoned behind makeshift stone walls after something began hunting at dusk.",
+      "exits": { "south": "milestone_road", "east": "observatory_approach" }
+    },
+    "observatory_approach": {
+      "name": "Observatory Approach",
+      "description": "A paved path climbs toward an old hilltop observatory, passing weathered bronze markers that once measured the sun. Several markers have been knocked over recently, and the city guard has stopped patrolling this far after dark.",
+      "exits": { "west": "sunstone_fields", "north": "old_observatory" }
+    },
+    "old_observatory": {
+      "name": "Old Observatory",
+      "description": "A cracked brass dome caps this abandoned observatory. Star charts lie scattered beneath the open roof, and something has scored deep lines across the instrument table as if it resents being measured.",
+      "properties": { "dark": true },
+      "exits": { "south": "observatory_approach" }
+    },
+    "city_approach": {
+      "name": "Aurelia City Approach",
+      "description": "Clean paving, trimmed cypress, and frequent patrol bells announce the city before its pale walls appear. The road narrows at an outer checkpoint where traders queue to have cargo recorded.",
+      "exits": { "west": "broken_aqueduct", "east": "aurelia_city:south_gate" }
+    }
+  }
+}

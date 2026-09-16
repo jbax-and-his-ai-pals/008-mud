@@ -1,0 +1,9 @@
+# Reproducible local and CI test environment for Python 3.12.
+#
+# Keep server/requirements.txt as the human-maintained runtime contract. This
+# file is the deliberately small, exact environment used by bootstrap.ps1 and
+# CI so a fresh Windows checkout cannot silently select a different wheel set.
+pygame==2.6.1
+PyYAML==6.0.3
+msgpack==1.2.2
+coverage==7.16.1

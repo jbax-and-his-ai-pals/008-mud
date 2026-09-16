@@ -1,0 +1,47 @@
+{
+  "region_id": "gallows_hollow",
+  "name": "Gallows Hollow",
+  "description": "A hidden outlaw camp in a fold of the Windy Foothills. Its inhabitants have made a rough but deliberate settlement from canvas, stolen supplies, and a watched approach trail.",
+  "properties": {
+    "biome": "foothills",
+    "region_type": "settlement",
+    "level_band": { "min": 3, "max": 5 }
+  },
+  "spawner": {
+    "monster_types": { "bandit": 6, "bandit_archer": 3 },
+    "level_range": [3, 5]
+  },
+  "rooms": {
+    "trailhead": {
+      "name": "Hidden Trailhead",
+      "description": "A sheep track turns sharply into a fold between the hills. Fresh boot marks have trampled the grass, and a broken branch has been set upright as a quiet warning to strangers.",
+      "exits": { "southeast": "foothills:standing_stone", "northwest": "bramble_screen" }
+    },
+    "bramble_screen": {
+      "name": "Bramble Screen",
+      "description": "Thorny brambles have been bent and tied into a living screen across the hollow. A narrow gap has been kept open for people who know where to look.",
+      "exits": { "southeast": "trailhead", "north": "watch_perch", "west": "campfire_ring" },
+      "initial_npcs": [ { "template_id": "bandit", "instance_id": "gallows_screen_guard" } ]
+    },
+    "watch_perch": {
+      "name": "Watch Perch",
+      "description": "A shelf of pale rock overlooks the approach trail and much of the foothills beyond. A concealed firing rest and a scatter of spent arrow shafts show how the camp keeps its privacy.",
+      "exits": { "south": "bramble_screen" },
+      "items": [ { "item_id": "item_sharp_flint" } ],
+      "initial_npcs": [ { "template_id": "bandit_archer", "instance_id": "gallows_watch_archer" } ]
+    },
+    "campfire_ring": {
+      "name": "Campfire Ring",
+      "description": "Canvas lean-tos encircle a soot-blackened fire pit. The outlaws have separate piles for food, weapons, and goods stripped from passing wagons; this is an organised camp, not a chance bivouac.",
+      "properties": { "smell": "woodsmoke and wet leather" },
+      "exits": { "east": "bramble_screen", "west": "supply_gully" },
+      "initial_npcs": [ { "template_id": "bandit", "instance_id": "gallows_camp_bandit" } ]
+    },
+    "supply_gully": {
+      "name": "Supply Gully",
+      "description": "A narrow gully behind the camp holds tarped bundles and a damaged handcart. The most useful-looking loot has been hidden beneath old blankets, ready to be moved before the camp is discovered.",
+      "exits": { "east": "campfire_ring" },
+      "items": [ { "item_id": "item_stolen_pouch" }, { "item_id": "item_rusty_sword" } ]
+    }
+  }
+}

@@ -25,6 +25,7 @@
       "respawn_days": 1,
       "resource_tags": ["plant", "forest", "food"],
       "substitute_resource_ids": ["item_wild_herbs"],
+      "weather_blocked_by": ["storm"],
       "yield_table": [
         { "item_id": "item_wild_herbs", "chance": 0.25 }
       ]
@@ -40,7 +41,8 @@
       "charges": 3,
       "max_charges": 3,
       "respawn_days": 2,
-      "resource_tags": ["wood", "orchard", "fallen"]
+      "resource_tags": ["wood", "orchard", "fallen"],
+      "weather_blocked_by": ["blizzard"]
     }
   },
   "node_river_clay_bank": {
@@ -54,6 +56,7 @@
       "max_charges": 4,
       "respawn_days": 2,
       "resource_tags": ["clay", "river", "mineral"],
+      "weather_blocked_by": ["storm"],
       "material_quality": { "id": "river_fine", "label": "Fine", "score": 2 }
     }
   },
@@ -87,6 +90,7 @@
       "tool_required": "fishing_net",
       "charges": 4, "max_charges": 4, "respawn_days": 1,
       "resource_tags": ["fish", "river", "food"],
+      "weather_blocked_by": ["storm"],
       "yield_table": [
         {
           "item_id": "item_pearl",
@@ -105,6 +109,7 @@
       "tool_required": "fishing_net",
       "charges": 4, "max_charges": 4, "respawn_days": 1,
       "resource_tags": ["fish", "sea", "food"],
+      "weather_blocked_by": ["storm"],
       "yield_table": [
         {
           "item_id": "item_coral_gem",

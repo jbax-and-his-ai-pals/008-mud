@@ -2,7 +2,7 @@
     "region_id": "coastal_path",
     "name": "Salt-Kissed Path",
     "description": "The fetid swamp gives way to brackish marshes and eventually sandy shores as the path winds towards the coast.",
-    "properties": { "level_band": { "min": 1, "max": 3 } },
+    "properties": { "biome": "coast", "weather_profile": "coast", "region_type": "wilderness", "level_band": { "min": 1, "max": 3 } },
     "spawner": {
         "monster_types": {
             "kobold_skirmisher": 5,
@@ -29,7 +29,8 @@
               "properties": {
                 "hazard_type": "electrified_floor",
                 "hazard_damage": 6,
-                "hazard_tick_interval": 5.0
+                "hazard_tick_interval": 5.0,
+                "weather_hazard_multipliers": { "storm": 1.5 }
               }
         },
         "salt_marsh": {
@@ -99,8 +100,8 @@
         },
         "sea_cave_back": {
             "name": "Back of the Sea Cave",
-            "description": "The rear of the cave is above the high tide line, the sandy floor littered with driftwood and debris washed in by the sea.",
-            "exits": { "east": "sea_cave_main" },
+            "description": "The rear of the cave is above the high tide line, the sandy floor littered with driftwood and debris washed in by the sea. A low, damp tunnel has been worked through the rock to the west.",
+            "exits": { "east": "sea_cave_main", "west": "kobold_warren:wet_tunnel" },
             "properties": {"dark": true}
         }
     }

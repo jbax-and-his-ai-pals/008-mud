@@ -122,6 +122,16 @@ class Room(GameObject):
             self._hazard_last_tick_by_entity[entity_id] = current_time
 
         hazard_damage = self.properties.get("hazard_damage", 5)
+        weather_multipliers = self.properties.get("weather_hazard_multipliers", {})
+        world = getattr(entity, "world", None)
+        if isinstance(weather_multipliers, dict) and world is not None:
+            weather_manager = getattr(getattr(world, "game", None), "weather_manager", None)
+            region = world.get_region(getattr(entity, "current_region_id", ""))
+            if weather_manager is not None and region is not None:
+                weather = weather_manager.effective_weather(region, self)
+                multiplier = weather_multipliers.get(weather, 1)
+                if isinstance(multiplier, (int, float)) and not isinstance(multiplier, bool) and multiplier > 0:
+                    hazard_damage = max(1, round(float(hazard_damage) * multiplier))
         dtype = HAZARD_TYPE_MAP.get(hazard_type, "physical")
         dmg_taken = entity.take_damage(hazard_damage, dtype)
         

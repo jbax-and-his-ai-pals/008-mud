@@ -1,0 +1,42 @@
+{
+  "sunscorch_caravanmaster": {
+    "name": "Sada the Caravanmaster",
+    "description": "A precise, sun-browned caravanmaster who knows every water marker between the mountains and the far dunes.",
+    "level": 10,
+    "health": 125,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 11, "dexterity": 13, "constitution": 13, "agility": 12, "intelligence": 15, "wisdom": 15 },
+    "dialog": { "greeting": "Sunscorch trades in safe arrivals. Water, wheels, and honest route news cost less than a rescue.", "trade": "Desert prices are not cruel; they are what it costs to bring a thing here twice.", "oasis": "The Mirror Oasis is holding water, last I heard. Do not believe a reflection until you have tasted it." },
+    "default_dialog": "Sada adjusts a route marker on her ledger before looking up.",
+    "properties": {
+      "dialogue": "sada_caravanmaster",
+      "is_vendor": true,
+      "wander_chance": 0.0,
+      "move_cooldown": 9999,
+      "work_location": "sunscorch_caravanserai:caravan_yard",
+      "buys_item_types": ["Material", "Junk", "Consumable"],
+      "sells_items": [
+        { "item_id": "item_healing_potion_small", "price_multiplier": 1.5 },
+        { "item_id": "item_warding_torc", "price_multiplier": 1.2 },
+        { "item_id": "item_hunting_spear", "price_multiplier": 1.2 },
+        { "item_id": "item_glass_vial", "price_multiplier": 1.25 }
+      ],
+      "can_give_generic_quests": true
+    }
+  },
+  "sunscorch_waterkeeper": {
+    "name": "Nahl the Waterkeeper",
+    "description": "A calm waterkeeper with dust on their sandals and an exact ear for the sound of a leaking cistern.",
+    "level": 11,
+    "health": 120,
+    "friendly": true,
+    "faction": "friendly",
+    "behavior_type": "stationary",
+    "stats": { "strength": 10, "dexterity": 11, "constitution": 14, "agility": 10, "intelligence": 14, "wisdom": 17 },
+    "dialog": { "greeting": "Water is not a commodity here. It is the agreement that lets the town exist.", "desert": "Travel at first light, rest under cover, and do not leave the marked track to chase an easy horizon." },
+    "default_dialog": "Nahl listens to the cistern spillway with practiced attention.",
+    "properties": { "wander_chance": 0.0, "move_cooldown": 9999, "work_location": "sunscorch_caravanserai:water_court", "can_give_generic_quests": true }
+  }
+}

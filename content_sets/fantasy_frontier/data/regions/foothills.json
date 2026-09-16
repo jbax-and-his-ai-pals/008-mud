@@ -2,7 +2,7 @@
     "region_id": "foothills",
     "name": "Windy Foothills",
     "description": "The land rises from the fertile farms into rolling, grassy hills dotted with rocky outcrops. Sheep graze on the slopes, watched over by solitary shepherds. The wind is a constant presence here.",
-    "properties": { "level_band": { "min": 2, "max": 5 } },
+    "properties": { "biome": "foothills", "region_type": "wilderness", "level_band": { "min": 2, "max": 5 } },
     "spawner": {
         "monster_types": {
             "goblin": 4,
@@ -61,7 +61,8 @@
             "name": "Mountain Pass Approach",
             "description": "The grassy ridge gives way to a stony path that leads north into a narrow pass between two larger hills. This looks like the way to the high mountains.",
             "exits": {
-                "south": "windy_ridge"
+                "south": "windy_ridge",
+                "north": "frostpeak_outpost:gate"
             }
         },
         "high_meadow": {
@@ -93,7 +94,8 @@
             "name": "Standing Stone",
             "description": "A single, large monolith of grey stone stands here, covered in ancient, weathered carvings. A small spring bubbles up from its base.",
             "exits": {
-                "southwest": "rocky_outcrop"
+                "southwest": "rocky_outcrop",
+                "northwest": "gallows_hollow:trailhead"
             }
         },
         "shepherds_path": {

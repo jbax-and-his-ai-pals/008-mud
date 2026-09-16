@@ -171,6 +171,27 @@ class TestApplyHazards(unittest.TestCase):
         self.assertIn("-7 HP", result)
         self.assertEqual(entity.damage_calls[0][0], 7)
 
+    def test_authored_weather_multiplier_scales_hazard_damage(self):
+        self.room.properties.update({
+            "hazard_type": "fire", "hazard_damage": 7,
+            "weather_hazard_multipliers": {"storm": 1.5},
+        })
+
+        class _Weather:
+            def effective_weather(self, region, room):
+                return "storm"
+
+        class _World:
+            game = type("Game", (), {"weather_manager": _Weather()})()
+            def get_region(self, region_id):
+                return object()
+
+        entity = _FakeEntity(obj_id="e_weather", damage_taken=10)
+        entity.world = _World()
+        entity.current_region_id = "coast"
+        self.room.apply_hazards(entity, 100.0)
+        self.assertEqual(entity.damage_calls[0][0], 10)
+
     def test_zero_damage_taken_returns_none(self):
         self.room.properties["hazard_type"] = "fire"
         entity = _FakeEntity(obj_id="e_zero", damage_taken=0)

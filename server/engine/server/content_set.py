@@ -255,6 +255,74 @@ def _region_hazard_coverage_required(
     return required
 
 
+def _region_classification_policy(
+    ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path
+) -> tuple[bool, set[str], set[str]]:
+    """Read an optional, content-owned vocabulary for static region metadata.
+
+    ``biome`` and ``region_type`` intentionally remain ordinary region
+    properties at runtime. A content set can opt into a controlled vocabulary
+    without imposing a fantasy taxonomy on every content set.
+    """
+    world_config = ruleset.get("world", {})
+    if world_config is None:
+        return False, set(), set()
+    if not isinstance(world_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world must be an object"))
+        return False, set(), set()
+    regions_config = world_config.get("regions", {})
+    if regions_config is None:
+        return False, set(), set()
+    if not isinstance(regions_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world.regions must be an object"))
+        return False, set(), set()
+    required = regions_config.get("require_classification", False)
+    if not isinstance(required, bool):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world.regions.require_classification must be a boolean"))
+        return False, set(), set()
+
+    def vocabulary(key: str) -> set[str]:
+        values = regions_config.get(key, [])
+        if not isinstance(values, list) or any(not isinstance(value, str) or not value.strip() for value in values):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"ruleset.world.regions.{key} must be a list of non-empty strings"))
+            return set()
+        return {value.strip() for value in values}
+
+    biomes = vocabulary("biomes")
+    region_types = vocabulary("region_types")
+    if required and (not biomes or not region_types):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world.regions requires non-empty biomes and region_types when classification is required"))
+    return required, biomes, region_types
+
+
+def _validate_region_classification(
+    content_root: Path, issues: list[ContentSetIssue], *, required: bool = False,
+    biomes: set[str] | None = None, region_types: set[str] | None = None,
+) -> None:
+    """Validate optional content-owned ``biome`` and ``region_type`` labels."""
+    biomes = biomes or set()
+    region_types = region_types or set()
+    for path in sorted((content_root / "regions").glob("*.json")):
+        payload = _load_json(path, issues, "region")
+        if not isinstance(payload, dict) or isinstance(payload.get("themes"), dict):
+            continue
+        region_id = str(payload.get("region_id", "")).strip() or path.stem
+        properties = payload.get("properties", {})
+        if not isinstance(properties, dict):
+            if required:
+                issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' properties must be an object containing biome and region_type"))
+            continue
+        for key, vocabulary in (("biome", biomes), ("region_type", region_types)):
+            value = properties.get(key)
+            if value is None:
+                if required:
+                    issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' requires properties.{key}"))
+            elif not isinstance(value, str) or not value.strip():
+                issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' properties.{key} must be a non-empty string"))
+            elif vocabulary and value not in vocabulary:
+                issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' properties.{key} '{value}' is not in the ruleset vocabulary"))
+
+
 def _validate_region_level_bands(
     content_root: Path, issues: list[ContentSetIssue], *, required: bool = False
 ) -> None:
@@ -393,6 +461,16 @@ def _validate_region_hazard_coverage(
                         "error", str(path),
                         f"{room_label} {property_name} must be a positive number",
                     ))
+            weather_multipliers = properties.get("weather_hazard_multipliers")
+            if weather_multipliers is not None:
+                if not isinstance(weather_multipliers, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{room_label} weather_hazard_multipliers must be an object"))
+                elif any(
+                    not isinstance(weather, str) or not weather.strip()
+                    or isinstance(multiplier, bool) or not isinstance(multiplier, (int, float)) or multiplier <= 0
+                    for weather, multiplier in weather_multipliers.items()
+                ):
+                    issues.append(ContentSetIssue("error", str(path), f"{room_label} weather_hazard_multipliers requires non-empty weather names and positive numeric multipliers"))
 
     if required:
         for hazard_type in sorted(valid_hazards):
@@ -1437,6 +1515,33 @@ def _validate_starting_content(content_root: Path, issues: list[ContentSetIssue]
     if titles_path.is_file():
         payload = _load_json(titles_path, issues, "titles")
         if isinstance(payload, dict):
+            guilds = payload.get("_guilds", {})
+            if guilds is not None and not isinstance(guilds, dict):
+                issues.append(ContentSetIssue("error", str(titles_path), "titles._guilds must be an object"))
+                guilds = {}
+            if isinstance(guilds, dict):
+                region_rooms: dict[str, set[str]] = {}
+                for region_path in sorted((content_root / "regions").glob("*.json")):
+                    region_payload = _load_json(region_path, issues, "region")
+                    if not isinstance(region_payload, dict) or isinstance(region_payload.get("themes"), dict):
+                        continue
+                    region_id = str(region_payload.get("region_id", "")).strip() or region_path.stem
+                    rooms = region_payload.get("rooms", {})
+                    if isinstance(rooms, dict):
+                        region_rooms[region_id] = {str(room_id) for room_id in rooms}
+                for guild_id, guild in guilds.items():
+                    if not isinstance(guild, dict):
+                        issues.append(ContentSetIssue("error", str(titles_path), f"titles._guilds.{guild_id} must be an object"))
+                        continue
+                    place = guild.get("place", "")
+                    if place is None or place == "":
+                        continue
+                    if not isinstance(place, str) or ":" not in place:
+                        issues.append(ContentSetIssue("error", str(titles_path), f"titles._guilds.{guild_id}.place must be a region_id:room_id string"))
+                        continue
+                    region_id, room_id = place.split(":", 1)
+                    if room_id not in region_rooms.get(region_id, set()):
+                        issues.append(ContentSetIssue("error", str(titles_path), f"titles._guilds.{guild_id}.place references missing room '{place}'"))
             for title_id, title in payload.items():
                 if str(title_id).startswith("_"):
                     continue
@@ -1828,9 +1933,13 @@ def load_content_set(
             require_region_hazard_coverage = _region_hazard_coverage_required(
                 ruleset_payload, issues, ruleset_source_path
             )
+            require_region_classification, region_biomes, region_types = _region_classification_policy(
+                ruleset_payload, issues, ruleset_source_path
+            )
             _validate_region_level_bands(
                 content_root, issues, required=require_region_level_bands
             )
+            _validate_region_classification(content_root, issues, required=require_region_classification, biomes=region_biomes, region_types=region_types)
             _validate_region_hazard_coverage(
                 content_root, issues, required=require_region_hazard_coverage
             )

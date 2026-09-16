@@ -425,6 +425,11 @@ class World:
         # Assemble Final Output
         output = region_change_msg + self.look(minimal=True, player=active_player)
 
+        weather_manager = getattr(getattr(self, "game", None), "weather_manager", None)
+        travel_note = weather_manager.travel_note(target_region, target_room) if weather_manager else ""
+        if travel_note:
+            output += "\n\n" + travel_note
+
         # First arrival somewhere new is worth something, so the world itself is
         # the progress curve (ROADMAP P4). Region and landmark entries pay once;
         # a repeat visit is silent.

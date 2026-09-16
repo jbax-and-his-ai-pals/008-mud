@@ -2,7 +2,7 @@
     "region_id": "caves",
     "name": "Shadow Caves",
     "description": "A network of caves in the hills beyond the forest. Few villagers venture this far, telling tales of strange echoes and mysterious lights.",
-    "properties": { "level_band": { "min": 3, "max": 6 } },
+    "properties": { "biome": "natural_caverns", "weather_profile": "underground", "region_type": "underground", "level_band": { "min": 3, "max": 6 } },
     "spawner": {
       "monster_types": {
         "goblin": 4,

@@ -1,0 +1,61 @@
+{
+  "region_id": "aurelia_city",
+  "name": "Aurelia",
+  "description": "A prosperous inland city of white stone, regulated trade, and institutions old enough to believe they will outlast every traveller who needs them. Guild halls, museums, and auctions turn its wealth into visible civic life.",
+  "properties": {
+    "safe_zone": true,
+    "biome": "settled",
+    "region_type": "settlement",
+    "level_band": { "min": 11, "max": 15 }
+  },
+  "rooms": {
+    "south_gate": {
+      "name": "Aurelia South Gate",
+      "description": "Pale stone towers frame the southern entrance to Aurelia. Porters, guards, and customs clerks keep separate lines moving through the gate, while the desert road dwindles behind the city walls.",
+      "exits": { "west": "aurelia_outlands:city_approach", "north": "guild_square" }
+    },
+    "guild_square": {
+      "name": "Guild Square",
+      "description": "Stone guildhouses surround a broad square of fountains and notice boards. Apprentices hurry between doors carrying samples, contracts, and tools; every profession seems to have a claim on the place.",
+      "exits": { "south": "south_gate", "east": "auction_hall", "north": "museum_steps", "west": "scholars_walk", "northwest": "surveyors_hall", "northeast": "artificers_exchange" }
+    },
+    "auction_hall": {
+      "name": "Auction Hall",
+      "description": "A high-ceilinged hall holds locked display cases, raised bidding tiers, and a brass bell for closing sales. Appraisers inspect uncommon goods with the care of people who have seen fortunes hidden in ordinary-looking parcels.",
+      "properties": { "indoors": true },
+      "exits": { "west": "guild_square" },
+      "initial_npcs": [ { "template_id": "aurelia_auctioneer", "instance_id": "corin_aurelia_auction" } ]
+    },
+    "museum_steps": {
+      "name": "Museum Steps",
+      "description": "Broad steps lead to the civic museum, where new excavations and old imperial collections share the same polished stone façade. A posted notice asks travellers to report changes at the hill observatory.",
+      "exits": { "south": "guild_square", "north": "museum_atrium" }
+    },
+    "museum_atrium": {
+      "name": "Aurelia Museum Atrium",
+      "description": "Sunlight falls through a glass roof onto maps, statuary, and carefully labelled mineral displays. A sealed bronze door in the eastern wall bears an older museum mark: the original archive below. The city treats knowledge as an asset to catalogue, protect, and occasionally charge visitors to see.",
+      "properties": { "indoors": true },
+      "exits": { "south": "museum_steps", "east": "starwell_archive:sealed_stair" },
+      "initial_npcs": [ { "template_id": "aurelia_archivist", "instance_id": "elion_aurelia_atrium" } ]
+    },
+    "scholars_walk": {
+      "name": "Scholars' Walk",
+      "description": "Covered colonnades connect reading rooms, guild archives, and lecture courts along this quiet street. The shade and clipped gardens make it feel far removed from the desert road outside the city.",
+      "exits": { "east": "guild_square" }
+    },
+    "surveyors_hall": {
+      "name": "Surveyors' Hall",
+      "description": "Route maps, measuring chains, and field journals cover the long tables of this practical guild hall. Its members turn uncertain country into distances that merchants, patrols, and ordinary travellers can rely on.",
+      "properties": { "indoors": true },
+      "exits": { "southeast": "guild_square" },
+      "initial_npcs": [ { "template_id": "aurelia_surveyor", "instance_id": "lyra_aurelia_surveyors" } ]
+    },
+    "artificers_exchange": {
+      "name": "Artificers' Exchange",
+      "description": "Guild workbenches, sample racks, and a carefully watched tool counter fill this bright workshop. Makers compare materials and commissions under the approving eye of a master who has no patience for fragile craftsmanship.",
+      "properties": { "indoors": true },
+      "exits": { "southwest": "guild_square" },
+      "initial_npcs": [ { "template_id": "aurelia_artificer", "instance_id": "ves_aurelia_exchange" } ]
+    }
+  }
+}

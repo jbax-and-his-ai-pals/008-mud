@@ -12,6 +12,14 @@ from unittest.mock import patch
 from engine.core.weather_manager import WeatherManager
 
 
+class _Place:
+    def __init__(self, **properties):
+        self.properties = properties
+
+    def get_property(self, key, default=None):
+        return self.properties.get(key, default)
+
+
 class TestUpdateOnTimePeriodChange(unittest.TestCase):
     def test_roll_below_threshold_triggers_update(self):
         manager = WeatherManager()
@@ -63,6 +71,31 @@ class TestGetRandomIntensity(unittest.TestCase):
         manager = WeatherManager()
         result = manager._get_random_intensity()
         self.assertIn(result, ["mild", "moderate", "strong", "severe"])
+
+
+class TestEffectiveRegionalWeather(unittest.TestCase):
+    def test_profile_translates_ambient_weather(self):
+        manager = WeatherManager()
+        manager.weather_profiles = {"alpine": {"map": {"rain": "snow"}}}
+        manager.current_weather = "rain"
+        self.assertEqual(manager.effective_weather(_Place(weather_profile="alpine"), _Place()), "snow")
+
+    def test_room_climate_overrides_its_region_profile(self):
+        manager = WeatherManager()
+        manager.weather_profiles = {"alpine": {"map": {"rain": "snow"}}}
+        manager.current_weather = "rain"
+        self.assertEqual(
+            manager.effective_weather(_Place(weather_profile="alpine"), _Place(weather="windy")),
+            "windy",
+        )
+
+    def test_travel_note_only_appears_for_exposed_places(self):
+        manager = WeatherManager()
+        manager.weather_profiles = {"coast": {"travel_notes": {"storm": "Keep low."}}}
+        manager.current_weather = "storm"
+        region = _Place(weather_profile="coast")
+        self.assertEqual(manager.travel_note(region, _Place(outdoors=True)), "Keep low.")
+        self.assertEqual(manager.travel_note(region, _Place(outdoors=False)), "")
 
 
 class TestSaveAndLoadState(unittest.TestCase):

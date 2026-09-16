@@ -2,7 +2,7 @@
     "region_id": "mountains",
     "name": "Frostpeak Mountains",
     "description": "The jagged peaks of the Frostpeak range loom over the region. The air is thin and cold, and snow persists year-round on the higher slopes.",
-    "properties": { "level_band": { "min": 5, "max": 8 } },
+    "properties": { "biome": "alpine", "weather_profile": "alpine", "region_type": "wilderness", "level_band": { "min": 5, "max": 8 } },
     "spawner": {
         "monster_types": {
             "orc_grunt": 4,
@@ -55,7 +55,8 @@
             "exits": {
                 "southeast": "up",
                 "north": "up_to_summit",
-                "west": "crevasse_edge"
+                "west": "crevasse_edge",
+                "northeast": "sunscorch_road:windbreak_pass"
             },
             "properties": { "weather": "windy" }
         },

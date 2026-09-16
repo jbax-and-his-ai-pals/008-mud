@@ -1,6 +1,17 @@
 {
   "_comment": "Titles are EARNED, not chosen. A background (player/backgrounds.json) decides where you begin; a title is what you have become, claimed with 'title <name>' once its conditions hold. Titles grant nothing mechanical -- no stats, no spells, no access. They are identity and social signal, which is what a class was doing badly. Conditions are evaluated by engine/conditions.py; see that module for the full condition language.",
   "_conferring": "A 'conferred_by' block names the guild-like construct that recognises the title. Content decides whether that group is a guild, an order, a college, a crew, or a lodge -- the engine only knows it as a group that confers names.",
+  "_guilds": {
+    "riverside_workward": { "name": "The Riverside Workward", "place": "town:blacksmith_interior" },
+    "market_row": { "name": "The Market Row", "place": "town:market_square" },
+    "the_roads": { "name": "The Roads", "place": "town:north_gate" },
+    "frostpeak_mining_lodge": { "name": "The Frostpeak Mining Lodge", "place": "frostpeak_outpost:mining_lodge" },
+    "riverside_museum": { "name": "The Riverside Museum", "place": "town:museum_interior" },
+    "order_of_dawn": { "name": "The Order of the Dawn", "place": "town:shrine_interior" },
+    "nobody": { "name": "Nobody, officially", "place": "portbridge:smugglers_crossroads" },
+    "riverside_village": { "name": "The Village", "place": "town:town_square" },
+    "aurelia_surveyors": { "name": "The Aurelia Surveyors", "place": "aurelia_city:surveyors_hall" }
+  },
 
   "hand": {
     "name": "Hand",
@@ -67,6 +78,16 @@
     ]
   },
 
+  "frostpeak_hand": {
+    "name": "Frostpeak Hand",
+    "description": "The Mining Lodge knows you can be counted on in the high country.",
+    "conferred_by": { "name": "The Frostpeak Mining Lodge", "guild_id": "frostpeak_mining_lodge" },
+    "condition": { "kind": "visited_region", "region_id": "frostpeak_outpost" },
+    "requirements": [
+      { "kind": "level_at_least", "value": 5 }
+    ]
+  },
+
   "collector": {
     "name": "Collector",
     "description": "Vane has started saving you a chair, and asking what you have found lately.",
@@ -119,6 +140,17 @@
     "condition": { "kind": "relationship_at_least", "npc_id": "village_elder", "value": 40 },
     "requirements": [
       { "kind": "level_at_least", "value": 5 }
+    ]
+  },
+
+  "aurelian_surveyor": {
+    "name": "Aurelian Surveyor",
+    "description": "The Surveyors accept your reports as fieldwork rather than travellers' tales.",
+    "conferred_by": { "name": "The Aurelia Surveyors", "guild_id": "aurelia_surveyors" },
+    "condition": { "kind": "visited_region", "region_id": "aurelia_outlands" },
+    "requirements": [
+      { "kind": "level_at_least", "value": 11 },
+      { "kind": "quest_completed", "quest_id": "quest_aurelia_aqueduct_survey" }
     ]
   }
 }

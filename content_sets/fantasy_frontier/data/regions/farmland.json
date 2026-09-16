@@ -2,7 +2,7 @@
     "region_id": "farmland",
     "name": "Riverside Farmlands",
     "description": "Fertile fields and rolling pastures stretch out under an open sky, tended by hardworking farmers. The air smells of crops and rich earth.",
-    "properties": { "safe_zone": true, "level_band": { "min": 1, "max": 3 } },
+    "properties": { "safe_zone": true, "biome": "farmland", "region_type": "wilderness", "level_band": { "min": 1, "max": 3 } },
     "rooms": {
         "farm_bridge": {
             "name": "West End of Stone Bridge",

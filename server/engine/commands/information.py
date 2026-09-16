@@ -166,10 +166,11 @@ def weather_handler(args, context):
     weather_manager = game.weather_manager
     player = context.get("player")
     current_room = world.get_room_for_player(player)
+    current_region = world.get_region(getattr(player, "current_region_id", "")) if player else None
     is_outdoors = current_room.properties.get("outdoors", True) if current_room else True
 
     if not is_outdoors:
-        return f"You can't see the weather from inside, but you can hear sounds indicating {weather_manager.current_weather} conditions outside."
+        return f"You can't see the weather from inside, but you can hear sounds indicating {weather_manager.effective_weather(current_region, current_room)} conditions outside."
     
     # Content sets provide their own per-weather-type flavor text via a
     # "weather.descriptions" ruleset section; this default is a plain,
@@ -181,10 +182,14 @@ def weather_handler(args, context):
         "storm": "Thunder rumbles as a storm rages.",
         "snow": "Snowflakes drift down from the sky."
     }
-    weather_descriptions = world.ruleset_section("weather").get("descriptions") or default_weather_descriptions
-    description = weather_descriptions.get(weather_manager.current_weather, "The weather is unremarkable.")
+    authored_descriptions = world.ruleset_section("weather").get("descriptions")
+    weather_descriptions = dict(default_weather_descriptions)
+    if isinstance(authored_descriptions, dict):
+        weather_descriptions.update(authored_descriptions)
+    effective_weather = weather_manager.effective_weather(current_region, current_room)
+    description = weather_descriptions.get(effective_weather, "The weather is unremarkable.")
     
-    return f"Current Weather: {weather_manager.current_weather.capitalize()} ({weather_manager.current_intensity})\n\n{description}"
+    return f"Current Weather: {effective_weather.capitalize()} ({weather_manager.current_intensity})\n\n{description}"
 
 @command("skills", [], "information", "List your current skill levels.", ruleset_system="progression")
 def skills_handler(args, context):

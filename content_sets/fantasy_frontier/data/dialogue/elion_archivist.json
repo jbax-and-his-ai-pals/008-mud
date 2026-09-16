@@ -1,0 +1,42 @@
+{
+  "id": "elion_archivist",
+  "root": "greeting",
+  "nodes": {
+    "greeting": {
+      "text": "Elion has spread old observatory logs across a museum table, circling the years when reports from the hill abruptly stop.",
+      "choices": [
+        { "text": "What happened at the old observatory?", "aliases": ["observatory", "old observatory", "need help", "work"], "condition": { "all": [ { "not": { "kind": "quest_active", "quest_id": "quest_aurelia_observatory_report" } }, { "not": { "kind": "quest_completed", "quest_id": "quest_aurelia_observatory_report" } } ] }, "next_node": "briefing" },
+        { "text": "Remind me about the observatory report.", "aliases": ["what now", "my assignment", "report"], "condition": { "kind": "quest_active", "quest_id": "quest_aurelia_observatory_report" }, "next_node": "in_progress" },
+        { "text": "I have seen the observatory.", "aliases": ["report complete", "observatory report", "i returned"], "condition": { "kind": "quest_completed", "quest_id": "quest_aurelia_observatory_report" }, "next_node": "resolved" },
+        { "text": "What is below the museum?", "aliases": ["archive", "starwell", "more work"], "condition": { "all": [ { "kind": "quest_completed", "quest_id": "quest_aurelia_observatory_report" }, { "not": { "kind": "quest_active", "quest_id": "quest_aurelia_starwell_record" } }, { "not": { "kind": "quest_completed", "quest_id": "quest_aurelia_starwell_record" } } ] }, "next_node": "starwell_briefing" },
+        { "text": "Remind me about the Starwell Archive.", "aliases": ["starwell assignment", "archive assignment"], "condition": { "kind": "quest_active", "quest_id": "quest_aurelia_starwell_record" }, "next_node": "starwell_progress" },
+        { "text": "The Starwell record is recovered.", "aliases": ["starwell complete", "record recovered"], "condition": { "kind": "quest_completed", "quest_id": "quest_aurelia_starwell_record" }, "next_node": "starwell_resolved" },
+        { "text": "I will let you work.", "end": true }
+      ]
+    },
+    "briefing": {
+      "text": "The hill observatory was built to measure the heavens, but its instruments have been silent for years. The city needs a current account before it sends scholars or guards into a place the records describe only as ‘temporarily unsafe.’ Reach the dome and return with an honest report.",
+      "choices": [ { "text": "I will survey the observatory.", "aliases": ["accept", "i will go", "i'll survey it"], "effects": { "start_quest": "quest_aurelia_observatory_report" }, "end": true }, { "text": "I need to prepare first.", "end": true } ]
+    },
+    "in_progress": {
+      "text": "Follow the road west from Aurelia through the old aqueduct, then take the hill path north from the Sunstone Fields. The observatory is easy to find; coming back from it is the part the records omit.",
+      "choices": [ { "text": "Understood.", "end": true } ]
+    },
+    "resolved": {
+      "text": "A current observation is a small thing until it keeps an expedition from repeating an old mistake. The museum will enter your report into the city record.",
+      "choices": [ { "text": "Glad to help.", "end": true } ]
+    },
+    "starwell_briefing": {
+      "text": "Your observatory report confirmed what the old notes feared: the missing observations were moved below the museum, into the Starwell Archive. The original guardian is still awake. Reach the chamber, break its hold on the archive, and return with what it has protected.",
+      "choices": [ { "text": "I will enter the archive.", "aliases": ["accept", "i will go", "open the archive"], "effects": { "start_quest": "quest_aurelia_starwell_record" }, "end": true }, { "text": "I need to prepare first.", "end": true } ]
+    },
+    "starwell_progress": {
+      "text": "The bronze door east of this atrium leads down. The Starwell Chamber lies beyond the catalogue gallery and the orrery bridge. Do not mistake the guardian for a museum piece.",
+      "choices": [ { "text": "Understood.", "end": true } ]
+    },
+    "starwell_resolved": {
+      "text": "The recovered charts are incomplete, but their dates finally explain why the observatory fell silent. Aurelia owes you more than a catalogue entry.",
+      "choices": [ { "text": "Keep the record safe.", "end": true } ]
+    }
+  }
+}
