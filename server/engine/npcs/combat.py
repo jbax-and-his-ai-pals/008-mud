@@ -4,7 +4,8 @@ import random
 import time
 from engine.config import (
     HIT_CHANCE_AGILITY_FACTOR, LEVEL_DIFF_COMBAT_MODIFIERS, MAX_HIT_CHANCE, MIN_HIT_CHANCE, MINIMUM_DAMAGE_TAKEN, FORMAT_RESET,
-    FORMAT_SUCCESS, NPC_ATTACK_DAMAGE_VARIATION_RANGE, NPC_BASE_HIT_CHANCE, NPC_LOW_MANA_RETREAT_THRESHOLD, FACTION_RELATIONSHIP_MATRIX
+    FORMAT_SUCCESS, NPC_ATTACK_DAMAGE_VARIATION_RANGE, NPC_BASE_HIT_CHANCE, NPC_LOW_MANA_RETREAT_THRESHOLD, FACTION_RELATIONSHIP_MATRIX,
+    DEFAULT_WEAPON_DAMAGE_TYPE
 )
 from engine.config.config_display import FORMAT_ERROR
 from engine.core.combat_system import CombatSystem
@@ -90,7 +91,9 @@ def attack(npc: 'NPC', target) -> Dict[str, Any]:
         if hasattr(target, 'obj_id') and hasattr(target, 'current_room_id'):
             viewer = target if getattr(target, 'is_alive', False) else None
         viewer = world.get_viewer_for_npc(npc, preferred_player=viewer)
-    
+
+    weapon_damage_type = npc.properties.get("weapon_damage_type", DEFAULT_WEAPON_DAMAGE_TYPE)
+
     # --- BOSS MECHANICS ---
     # Check for special abilities defined in properties
     special_abilities = npc.properties.get("special_abilities", [])
@@ -109,7 +112,8 @@ def attack(npc: 'NPC', target) -> Dict[str, Any]:
                 defender=target,
                 attack_power=int(npc.attack_power * damage_mult),
                 weapon_name=name,
-                viewer=viewer
+                viewer=viewer,
+                weapon_damage_type=weapon_damage_type
             )
             
             # Override message with boss flavor text
@@ -121,7 +125,8 @@ def attack(npc: 'NPC', target) -> Dict[str, Any]:
         defender=target,
         attack_power=npc.attack_power,
         weapon_name="attack",
-        viewer=viewer
+        viewer=viewer,
+        weapon_damage_type=weapon_damage_type
     )
 
     return {"message": combat_result["message"], "target_defeated": combat_result["target_defeated"]}

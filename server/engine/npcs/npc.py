@@ -109,10 +109,16 @@ class NPC(GameObject):
         if not topic: return self.dialog.get("greeting", self.default_dialog.format(name=self.name))
         return self.dialog.get(topic.lower(), self.default_dialog.format(name=self.name))
 
-    def take_damage(self, amount: int, damage_type: str) -> int:
+    def take_damage(self, amount: int, damage_type: str, weapon_damage_type: Optional[str] = None) -> int:
         if not self.is_alive: return 0
-        damage_taken = super().take_damage(amount, damage_type)
+        damage_taken = super().take_damage(amount, damage_type, weapon_damage_type)
         return damage_taken
+
+    def get_body_armor_material(self) -> Optional[str]:
+        # NPCs have no equipment system -- a flat, template-authored property
+        # stands in for "what is this thing wearing" (mirrors how `defense`
+        # is also a flat template field rather than summed from items).
+        return self.properties.get("armor_material")
 
     def heal(self, amount: int) -> int:
         if not self.is_alive: return 0

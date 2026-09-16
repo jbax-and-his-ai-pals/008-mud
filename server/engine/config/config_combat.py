@@ -25,6 +25,31 @@ LEVEL_DIFF_COMBAT_MODIFIERS = {
     "gray":   (1.25, 1.40, 0.20),
 }
 
+# --- Weapon damage type vs. armor material ---
+# A physical-damage-only tradeoff (separate from the elemental system loaded
+# by configure_combat_elements): what a weapon's edge geometry does against
+# what the defender's body armor is made of. Slashing is what cloth and
+# leather lose to but what mail and plate were built to defeat; piercing
+# thrusts are the historically documented answer to mail (a point slips
+# through or between rings) but plate's curved rigid surface deflects most
+# of them; crushing/blunt force transmits through rigid armor as concussion
+# regardless of penetration, which is why maces and war-hammers were the
+# dedicated plate-answer, at the cost of being the least specialised choice
+# against soft, unarmored targets. Hardcoded like LEVEL_DIFF_COMBAT_MODIFIERS
+# above rather than content-loaded: this is physical combat math, not
+# per-content-set theming, and every field defaults safely (no body armor,
+# or a content set that never sets these properties at all, multiplies by
+# 1.0 -- unarmored/undefined fights are unaffected).
+WEAPON_DAMAGE_TYPES = ["slashing", "piercing", "crushing"]
+ARMOR_MATERIALS = ["cloth", "leather", "chain", "plate"]
+DEFAULT_WEAPON_DAMAGE_TYPE = "slashing"
+UNARMED_WEAPON_DAMAGE_TYPE = "crushing"
+WEAPON_VS_ARMOR_MULTIPLIERS = {
+    "slashing": {"cloth": 1.30, "leather": 1.15, "chain": 0.85, "plate": 0.70},
+    "piercing": {"cloth": 1.00, "leather": 1.10, "chain": 1.25, "plate": 0.80},
+    "crushing": {"cloth": 0.95, "leather": 1.00, "chain": 1.10, "plate": 1.25},
+}
+
 # --- Experience Point Calculation ---
 XP_GAIN_HEALTH_DIVISOR = 5
 XP_GAIN_LEVEL_MULTIPLIER = 5

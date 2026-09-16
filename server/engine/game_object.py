@@ -3,7 +3,7 @@ import random
 from typing import Dict, Any, List, Optional, Tuple
 import uuid
 import time
-from engine.config import EFFECT_DEFAULT_TICK_INTERVAL, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, NPC_DOT_FLAVOR_MESSAGES, MINIMUM_DAMAGE_TAKEN
+from engine.config import EFFECT_DEFAULT_TICK_INTERVAL, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, NPC_DOT_FLAVOR_MESSAGES, MINIMUM_DAMAGE_TAKEN, WEAPON_VS_ARMOR_MULTIPLIERS
 from engine.config.config_display import SCREEN_HEIGHT, SCREEN_WIDTH
 
 class GameObject:
@@ -74,6 +74,16 @@ class GameObject:
 
         return innate_res + effect_res
 
+    def get_body_armor_material(self) -> Optional[str]:
+        """The material of whatever is covering this entity's torso, for the
+        weapon-damage-type-vs-armor-material mechanic (see
+        WEAPON_VS_ARMOR_MULTIPLIERS). None means "no meaningful matchup" --
+        an unarmored GameObject, or one from a content set that never
+        authors this -- and take_damage treats that as a neutral 1.0x.
+        Overridden by Player (reads the equipped body-slot item) and NPC
+        (reads a flat authored template property)."""
+        return None
+
     def has_effect(self, effect_name: str) -> bool:
         """Checks if an effect with a given name is currently active."""
         name_lower = effect_name.lower()
@@ -91,7 +101,7 @@ class GameObject:
                 if tags.lower() == tag_lower: return True
         return False
 
-    def take_damage(self, amount: int, damage_type: str) -> int:
+    def take_damage(self, amount: int, damage_type: str, weapon_damage_type: Optional[str] = None) -> int:
         if not self.is_alive or amount <= 0: return 0
 
         # --- 1. Reactive Logic (Hydra / Gimmick Bosses) ---
@@ -121,7 +131,14 @@ class GameObject:
         resistance_percent = self.get_resistance(damage_type)
         resistance_percent = max(-100, min(100, resistance_percent))
         resistance_multiplier = 1.0 - (resistance_percent / 100.0)
-        final_damage = int(damage_after_flat_reduction * resistance_multiplier)
+
+        material_multiplier = 1.0
+        if damage_type == "physical" and weapon_damage_type:
+            defender_material = self.get_body_armor_material()
+            if defender_material:
+                material_multiplier = WEAPON_VS_ARMOR_MULTIPLIERS.get(weapon_damage_type, {}).get(defender_material, 1.0)
+
+        final_damage = int(damage_after_flat_reduction * resistance_multiplier * material_multiplier)
         actual_damage_taken = max(MINIMUM_DAMAGE_TAKEN, final_damage) if final_damage > 0 else 0
 
         old_health = getattr(self, 'health', 0)

@@ -24,7 +24,7 @@ class _Entity:
     def get_effective_stat(self, stat_name):
         return self._agility
 
-    def take_damage(self, amount, damage_type="physical"):
+    def take_damage(self, amount, damage_type="physical", weapon_damage_type=None):
         self.health -= amount
         if self.health <= 0:
             self.is_alive = False

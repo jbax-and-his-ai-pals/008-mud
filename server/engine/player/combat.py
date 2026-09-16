@@ -8,6 +8,7 @@ from engine.config import (
     PLAYER_BASE_DEFENSE,
     PLAYER_BASE_ATTACK_COOLDOWN, MIN_ATTACK_COOLDOWN,
     ITEM_DURABILITY_LOSS_ON_HIT,
+    DEFAULT_WEAPON_DAMAGE_TYPE, UNARMED_WEAPON_DAMAGE_TYPE,
     FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET
 )
 from engine.core.combat_system import CombatSystem
@@ -132,6 +133,10 @@ class PlayerCombatMixin:
         equipped_weapon = p.equipment.get("main_hand")
         always_hits = isinstance(equipped_weapon, Item) and equipped_weapon.get_property("always_hit", False)
         weapon_name = equipped_weapon.name if isinstance(equipped_weapon, Item) else "bare hands"
+        if isinstance(equipped_weapon, Item):
+            weapon_damage_type = equipped_weapon.get_property("weapon_damage_type", DEFAULT_WEAPON_DAMAGE_TYPE)
+        else:
+            weapon_damage_type = UNARMED_WEAPON_DAMAGE_TYPE
         attack_power = p.get_attack_power()
         
         p.enter_combat(target)
@@ -142,8 +147,9 @@ class PlayerCombatMixin:
         p.runtime_state.combat.target = target
 
         combat_result = CombatSystem.execute_attack(
-            attacker=p, defender=target, attack_power=attack_power, 
-            weapon_name=weapon_name, always_hit=always_hits, viewer=p
+            attacker=p, defender=target, attack_power=attack_power,
+            weapon_name=weapon_name, always_hit=always_hits, viewer=p,
+            weapon_damage_type=weapon_damage_type
         )
         
         message = combat_result["message"]
@@ -213,12 +219,12 @@ class PlayerCombatMixin:
         p.last_attack_time = float(resolved_world.clock.now()) if resolved_world else float(time.time())
         return {"message": result_message}
     
-    def take_damage(self, amount: int, damage_type: str = "physical") -> int:
+    def take_damage(self, amount: int, damage_type: str = "physical", weapon_damage_type: Optional[str] = None) -> int:
         p = cast('Player', self)
         # Using super() in a mixin is tricky if not inheriting from GameObject directly in the MRO,
         # but since Player inherits from GameObject, we can assume the next class has take_damage.
         # However, type checkers might complain. We rely on the MRO of Player.
-        d = super().take_damage(amount, damage_type) # type: ignore
+        d = super().take_damage(amount, damage_type, weapon_damage_type) # type: ignore
         if p.health <= 0: p.die()
         return d
     

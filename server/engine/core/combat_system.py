@@ -68,8 +68,9 @@ class CombatSystem:
         return max(MINIMUM_DAMAGE_TAKEN, int(base_damage * damage_mod))
 
     @staticmethod
-    def execute_attack(attacker: Entity, defender: Entity, attack_power: int, weapon_name: str = "attack", 
-                       always_hit: bool = False, viewer: Optional[Entity] = None) -> Dict[str, Any]:
+    def execute_attack(attacker: Entity, defender: Entity, attack_power: int, weapon_name: str = "attack",
+                       always_hit: bool = False, viewer: Optional[Entity] = None,
+                       weapon_damage_type: Optional[str] = None) -> Dict[str, Any]:
         """
         Performs a full attack calculation and generates descriptive messages.
         """
@@ -116,7 +117,7 @@ class CombatSystem:
 
         # 2. Calculate & Apply Damage
         raw_damage = CombatSystem.calculate_physical_damage(attacker, defender, attack_power)
-        actual_damage = defender.take_damage(raw_damage, damage_type="physical")
+        actual_damage = defender.take_damage(raw_damage, damage_type="physical", weapon_damage_type=weapon_damage_type)
         result["damage"] = actual_damage
 
         # --- Vampirism Logic ---

@@ -115,6 +115,15 @@ class PlayerEquipmentMixin:
         p.equipment[slot_name] = None
         return True, f"You unequip the {item_to_unequip.name} from your {slot_name.replace('_', ' ')}."
 
+    def get_body_armor_material(self) -> Optional[str]:
+        p = cast('Player', self)
+        body_item = p.equipment.get("body")
+        if body_item is None:
+            return None
+        if body_item.get_property("durability", 1) <= 0:
+            return None
+        return body_item.get_property("armor_material")
+
     def get_resistance(self, damage_type: str) -> int:
         p = cast('Player', self)
         # Call GameObject's get_resistance via super() logic proxy
