@@ -211,5 +211,6 @@
   "item_ectoplasm": { "type": "Junk", "name": "ectoplasm", "description": "A vial of shimmering, ghostly residue.", "weight": 0.2, "value": 25 },
   "item_harpy_feather": { "type": "Junk", "name": "harpy feather", "description": "A long, surprisingly sharp feather from a harpy's wing.", "weight": 0.1, "value": 20 },
   "item_living_rock": { "type": "Junk", "name": "living rock", "description": "A piece of stone that hums with a faint inner energy.", "weight": 2.5, "value": 30 },
-  "item_swamp_heart": { "type": "Junk", "name": "heart of the swamp", "description": "A pulsating, organic mass of root and vine.", "weight": 1.0, "value": 50 }
+  "item_swamp_heart": { "type": "Junk", "name": "heart of the swamp", "description": "A pulsating, organic mass of root and vine.", "weight": 1.0, "value": 50 },
+  "item_cave_pearl": { "type": "Junk", "name": "cave pearl", "description": "A lustrous, unnaturally smooth pearl, pried from the silt of a lake no surveyor has ever charted.", "weight": 0.2, "value": 35 }
 }

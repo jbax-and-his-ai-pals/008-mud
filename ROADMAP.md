@@ -972,14 +972,24 @@ late still pays.
   `properties.region_type`; the content-owned palette and opt-in validation
   live in `rules/ruleset.json`, so a missing or drifted label fails content
   checks. Palette list and authoring contract in `WORLD_DESIGN.md` §4.3.
-- [~] **Underground layer:** Riverside Catacombs is now a L1–3 starter
+- [x] **Underground layer:** Riverside Catacombs is now a L1–3 starter
   dungeon under the shrine and tavern cellar, with a burial network that loops
   through a natural root cavern. Aurelia's L14–15 Starwell Archive extends the
   museum into a guarded undercity vault and a capstone route. Portbridge's L6–8
   Tidewell Underworks adds flooded sewer and under-harbor spaces through the
   smugglers' crossroads, plus Voss's survey-then-clearance arc to make the
-  route matter to the town. Mines and natural caverns already exist; deeper
-  subterranean water remains.
+  route matter to the town. Mines and natural caverns already existed. The
+  last gap -- a real subterranean lake/river, not just a connector pool --
+  is now a three-room wing off the Shadow Caves' flooded mine bottom (L3–6):
+  Sunken Lake Landing, a proper Sunken Lake chamber, and a Drowned Gallery
+  reached by diving along the lake bed, with its own discovery (a cave pearl
+  pried from older, pre-mine stonework). Landmark XP applies automatically
+  to every new room via the existing P4 ledger, so no special wiring was
+  needed beyond authoring the rooms. Every named item in the underground
+  palette (`WORLD_DESIGN.md` §4.3) is now covered. Verified with a new
+  test_p7_sunken_lake.py (room-graph reachability, landmark XP paid once,
+  the discovery firing, item placement) plus the full suite (4,077 tests)
+  and `run_content_checks.py`, both clean.
 - [x] **Crude monster settlements:** Tideglass Warren is now a compact kobold
   settlement off the coastal sea caves, while Gallows Hollow makes the foothill
   bandits a watched, supplied camp with a guarded approach, archer perch, and

@@ -130,7 +130,7 @@ class TestDiscoveriesLedgerPayload(unittest.TestCase):
         empty = self.server.execute_command(self.session.session_id, "discoveries")
         initial = next(event["payload"] for event in empty if event["type"] == "discoveries")
         self.assertEqual([], initial["discoveries"])
-        self.assertEqual(4, initial["total_authored"])
+        self.assertEqual(5, initial["total_authored"])
 
         player = self.server.get_player_for_session(self.session.session_id)
         from engine.items.item_factory import ItemFactory

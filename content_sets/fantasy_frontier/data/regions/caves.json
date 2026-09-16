@@ -125,7 +125,7 @@
       },
       "mine_lower_level": {
           "name": "Mine - Lower Level",
-          "description": "You are at the bottom of the main shaft. A yellow haze seeps from cracks around the flooded floor, making each breath feel heavy and unsafe. A large gold nugget glints from a crack in the wall.",
+          "description": "You are at the bottom of the main shaft. A yellow haze seeps from cracks around the flooded floor, making each breath feel heavy and unsafe. A large gold nugget glints from a crack in the wall. In one corner, the flooding is worse than a broken pipe should account for -- a crack underfoot drops straight down into black water.",
           "properties": {
             "dark": true,
             "smell": "sulfur",
@@ -133,8 +133,27 @@
             "hazard_damage": 6,
             "hazard_tick_interval": 5.0
           },
-          "exits": { "up": "forgotten_mine_shaft" },
+          "exits": { "up": "forgotten_mine_shaft", "down": "sunken_lake_landing" },
           "items": [ { "item_id": "item_gold_nugget" } ]
+      },
+      "sunken_lake_landing": {
+          "name": "Sunken Lake Landing",
+          "description": "The crack widens into a narrow, water-worn stair that some long-dead crew cut by hand rather than by luck. It ends on a shelf of wet stone above open water. Whatever this mine was digging for, it found the water table first.",
+          "properties": { "dark": true, "smell": "stagnant water" },
+          "exits": { "up": "mine_lower_level", "north": "sunken_lake" }
+      },
+      "sunken_lake": {
+          "name": "The Sunken Lake",
+          "description": "A black underground lake stretches past the reach of torchlight, its surface so still it holds a perfect, upside-down reflection of the cavern roof. No map above ground accounts for a body of water this size. Something occasionally breaks the surface, far out, and is gone before you can be sure you saw it.",
+          "properties": { "dark": true },
+          "exits": { "south": "sunken_lake_landing", "dive": "drowned_gallery" }
+      },
+      "drowned_gallery": {
+          "name": "Drowned Gallery",
+          "description": "Diving along the lake bed leads to an air pocket in a gallery that was never natural: squared-off walls, a collapsed archway, tool marks older than anything in the mine above. Someone built here long before the mine ever broke through. Something pale and smooth is wedged in the silt near the archway.",
+          "properties": { "dark": true, "underwater": true },
+          "exits": { "surface": "sunken_lake" },
+          "items": [ { "item_id": "item_cave_pearl" } ]
       },
       "east_mine_tunnel": {
           "name": "East Mine Tunnel",

@@ -18,5 +18,10 @@
     "name": "Lapidary Work",
     "description": "A finished ornamental stone is both a valuable social gift and a modular equipment component.",
     "item_ids": ["item_faceted_rose_quartz"]
+  },
+  "sunken_lake": {
+    "name": "The Sunken Lake",
+    "description": "Miners broke through into water no map accounted for. Whatever lives down there, if anything does, has never been counted either.",
+    "item_ids": ["item_cave_pearl"]
   }
 }
