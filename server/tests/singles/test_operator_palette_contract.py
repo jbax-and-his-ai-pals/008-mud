@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 CLIENT_MAIN_SCENE = ROOT / "client" / "scenes" / "main.tscn"
 CLIENT_MAIN_CONTROLLER = ROOT / "client" / "scripts" / "ui" / "main_controller.gd"
+CLIENT_OPERATOR_CONSOLE = ROOT / "client" / "scripts" / "ui" / "main" / "operator_console.gd"
 
 
 class TestOperatorPaletteContract(unittest.TestCase):
@@ -14,6 +15,11 @@ class TestOperatorPaletteContract(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.scene_text = CLIENT_MAIN_SCENE.read_text(encoding="utf-8")
         cls.controller_text = CLIENT_MAIN_CONTROLLER.read_text(encoding="utf-8")
+        # The P8 file-splitting pass moved the operator palette's behaviour
+        # (though not its @onready bindings or member declarations, which
+        # main.tscn's one-script-per-node limit keeps on Main) into a
+        # RefCounted helper -- see client/scripts/ui/main/operator_console.gd.
+        cls.operator_console_text = CLIENT_OPERATOR_CONSOLE.read_text(encoding="utf-8")
 
     def test_scene_has_operator_palette_nodes(self) -> None:
         expected_nodes = [
@@ -47,10 +53,10 @@ class TestOperatorPaletteContract(unittest.TestCase):
 
     def test_controller_wires_palette_signals(self) -> None:
         expected_connections = [
-            "operator_domain_select.item_selected.connect(_on_operator_domain_selected)",
-            "operator_action_select.item_selected.connect(_on_operator_action_selected)",
-            "operator_run_button.pressed.connect(_on_operator_run_pressed)",
-            "operator_arg_input.text_submitted.connect(func(_text: String) -> void: _on_operator_run_pressed())",
+            "operator_domain_select.item_selected.connect(operator_console._on_operator_domain_selected)",
+            "operator_action_select.item_selected.connect(operator_console._on_operator_action_selected)",
+            "operator_run_button.pressed.connect(operator_console._on_operator_run_pressed)",
+            "operator_arg_input.text_submitted.connect(func(_text: String) -> void: operator_console._on_operator_run_pressed())",
         ]
         for connection in expected_connections:
             self.assertIn(connection, self.controller_text)
@@ -71,24 +77,27 @@ class TestOperatorPaletteContract(unittest.TestCase):
         expected_markers = [
             "func _refresh_operator_values() -> void:",
             "if not used_server_options and domain == \"Profiles\" and action == \"Apply Selected\":",
-            "for preset_name: String in _known_profile_presets:",
+            "for preset_name: String in main._known_profile_presets:",
             "elif not used_server_options and domain == \"World Effects\" and action == \"Use Provider\":",
-            "_world_effects_status.get(\"available_providers\", [])",
-            "operator_value_select.add_item(provider_name)",
+            "main._world_effects_status.get(\"available_providers\", [])",
+            "main.operator_value_select.add_item(provider_name)",
         ]
         for marker in expected_markers:
-            self.assertIn(marker, self.controller_text)
+            self.assertIn(marker, self.operator_console_text)
 
     def test_controller_enforces_gm_gate_for_provider_switch(self) -> None:
+        # The requirements dictionary itself is member state, and stays
+        # declared on Main; the logic that reads and enforces it moved to
+        # the operator console controller.
+        self.assertIn("var _operator_catalog_requirements: Dictionary = {}", self.controller_text)
         expected_markers = [
-            "var _operator_catalog_requirements: Dictionary = {}",
             "func _operator_requirements_for(domain: String, action: String) -> Dictionary:",
             "var gm_required: bool = bool(requirements.get(\"requires_gm\", false))",
-            "if gm_required and not _gm_granted:",
+            "if gm_required and not main._gm_granted:",
             "Operator: GM session required for this action.",
         ]
         for marker in expected_markers:
-            self.assertIn(marker, self.controller_text)
+            self.assertIn(marker, self.operator_console_text)
 
     def test_controller_supports_manual_override_for_profile_and_provider(self) -> None:
         expected_markers = [
@@ -97,7 +106,7 @@ class TestOperatorPaletteContract(unittest.TestCase):
             "var provider_id: String = arg if arg != \"\" else picked_value",
         ]
         for marker in expected_markers:
-            self.assertIn(marker, self.controller_text)
+            self.assertIn(marker, self.operator_console_text)
 
 
 if __name__ == "__main__":
