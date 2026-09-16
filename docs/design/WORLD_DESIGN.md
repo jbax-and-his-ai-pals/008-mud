@@ -706,6 +706,13 @@ Goals:
     default is a deliberate choice, not an accident.)*
 12. **Town count and identity** — which 4–5, and each one's economy focal point
     and personality? Seeds in §4.2 and the roadmap's P7.
+    *(Settled: five towns, per §4.2's "Current town ladder" — Riverside
+    (L1–3, neutral starter), Portbridge (L2–4, coastal trade/tariffs/
+    smuggling), Frostpeak (L5–8, mining/smithing), Sunscorch Caravanserai
+    (L9–12, desert caravan trade), and Aurelia (L11–15, guilds/museum/
+    auction). Kept here, like decision 11, as a record that this was a
+    deliberate sign-off rather than an accident of how content happened to
+    land.)*
 13. **Guild model** — how many, how they are joined, whether a player may hold
     titles from several, and whether guilds have places (halls) or are purely
     social. Titles already carry a `guild` attribution in `titles.json`, so the

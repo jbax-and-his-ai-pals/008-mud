@@ -942,12 +942,24 @@ No single column has to be complete for the ring to work — that is the point o
 the hybrid. Author in whatever order the world wants; a region that arrives
 late still pays.
 
-- [~] **Pick and specify the towns** (open decision 10). Tiered with soft
-  gating (decided). Riverside (L1–3, neutral/mixed), Portbridge (L2–4,
-  trade/tariffs/smuggling), and Frostpeak (L5–8, mining/smithing) are live.
-  Sunscorch Caravanserai (L9–12, desert water and caravan trade) is now live,
-  connected through the Sunscorch Expanse from Frostpeak. Aurelia (L11–15,
-  guilds, museum, and auction) is now live beyond the Aurelian Outlands.
+- [x] **Pick and specify the towns** (decision 12, `WORLD_DESIGN.md` §8 --
+  the roadmap's own "open decision 10" reference was stale; §8's list has no
+  item 10 touching towns). Tiered with soft gating (decision 6). Five towns
+  now live, signed off as final rather than left open by default: Riverside
+  (L1–3, neutral starter, mixed local economy), Portbridge (L2–4, coastal
+  trade/tariffs, with the smuggling pressure that commerce brings), Frostpeak
+  (L5–8, mining/smithing outpost with a forge, supply yard, and Mining
+  Lodge), Sunscorch Caravanserai (L9–12, desert water-and-caravan anchor with
+  a water court, caravan yard, bazaar, and map house, reached through the
+  Sunscorch Expanse from Frostpeak), and Aurelia (L11–15, prosperous-city
+  anchor with a guild square, museum, and auction hall, beyond which lie the
+  dangerous Aurelian Outlands). This is exactly the 4-5-town target and the
+  five candidate identities `WORLD_DESIGN.md` §4.2 originally seeded.
+  Player-chosen starting towns (decision 6's other half) stays deliberately
+  deferred -- five towns existing doesn't reduce the actual cost (every
+  candidate start still needs a complete, levelled first ring plus character-
+  creation/tutorial rework), so it remains its own future roadmap item rather
+  than something this decision unblocks by default.
 - [x] **Attach level bands to regions as authored data.** Every static Fantasy
   Frontier region now declares `properties.level_band` (L1–3 around Riverside,
   L2–6 through the middle ring, L5–8 Frostpeaks/Trial). The ruleset opts into
