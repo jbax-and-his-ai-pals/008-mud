@@ -989,14 +989,24 @@ late still pays.
   approach, scrap gate, shared firepit, mushroom patch, and carefully sorted
   trophies. These turn their inhabitants into small communities with stores and
   territory, not ambient encounters.
-- [~] **Build guild-like constructs.** Titles now retain an optional
-  content-authored conferring place as well as a group name: the Riverside
-  Workward at the forge, Market Row, the Roads at the north gate, the Museum,
-  Order of the Dawn shrine, Frostpeak Mining Lodge, and the two quieter social
-  groups all have real locations. Aurelia adds the Surveyors' Hall and
-  Artificers' Exchange, with a survey commission and the Aurelian Surveyor
-  title tied to the former. Membership/exclusivity remains deliberately open
-  (decision 13); titles still confer no mechanical access.
+- [x] **Build guild-like constructs** (decision 13, `WORLD_DESIGN.md` §8).
+  Titles retain an optional content-authored conferring place as well as a
+  group name: the Riverside Workward at the forge, Market Row, the Roads at
+  the north gate, the Museum, Order of the Dawn shrine, Frostpeak Mining
+  Lodge, and the two quieter social groups all have real locations. Aurelia
+  adds the Surveyors' Hall (Aurelian Surveyor, tied to a survey commission)
+  and now the Artificers' Exchange too -- a new `aurelian_artificer` title
+  (crafting skill 10, relationship with Ves the Artificer, level 11) closes
+  the one Aurelia location that had a vendor NPC but no guild tie-in.
+  Sixteen titles across ten guild-like groups total. **Membership model
+  signed off rather than left open**: no separate join/application action
+  (a guild confers its title once conditions hold, revokes it the moment
+  they stop -- membership already *was* the title), and holding titles from
+  several guilds at once stays unrestricted by deliberate choice, matching
+  decision 1's hybrid-advancement stance. Titles still confer no mechanical
+  access -- identity only, as designed. Verified against real content (all
+  16 titles load with zero issues) plus the full suite and
+  `run_content_checks.py`, both clean.
 - [x] **Densify `gathering`.** The seven ordinary renewable node templates now
   have **16 static sources across eight regions** (the garden plot and house
   pond remain player-housing tools, not world placements). Every ordinary node

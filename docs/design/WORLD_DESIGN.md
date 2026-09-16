@@ -312,7 +312,8 @@ Requirements for the engine:
   guild should cost you the name).
 
 **Built** (P4): `data/player/backgrounds.json` (six backgrounds, `_default:
-wanderer`), `data/titles.json` (thirteen titles), `engine/core/backgrounds.py`,
+wanderer`), `data/titles.json` (sixteen titles as of the Aurelia guild
+additions), `engine/core/backgrounds.py`,
 `engine/core/titles.py`, and `engine/conditions.py` — the shared evaluator
 described above, serving titles today and dialogue and quest availability when
 P5 and P6 get there. Commands: `backgrounds`, `background`, `titles`, `title`.
@@ -715,8 +716,19 @@ Goals:
     land.)*
 13. **Guild model** — how many, how they are joined, whether a player may hold
     titles from several, and whether guilds have places (halls) or are purely
-    social. Titles already carry a `guild` attribution in `titles.json`, so the
-    naming half exists; joining, membership, and places do not.
+    social.
+    *(Settled: ten guild-like groups (nine conferring titles plus the
+    Artificers' Exchange added alongside this sign-off), each with a real
+    place per §4.2/the roadmap's P7. Membership stays exactly what it already
+    was in practice — implicit and title-shaped: a guild "confers" a title
+    once its authored conditions hold, revoked the moment they stop, with no
+    separate join/application action. A player may hold titles from as many
+    guilds as they've earned, unrestricted — a thief's crew title and a
+    healing order's title can be worn by the same character, matching
+    decision 1's hybrid-advancement stance that no single path should lock
+    out another. No new engine mechanism needed; this closes the item by
+    confirming the shipped behaviour is the deliberate answer, like decisions
+    11 and 12.)*
 14. **Diminishing returns shape** — settled structurally for ledger grants
     (repeat entries pay nothing, §3.3). Still open for repeat *kills* and repeat
     *gathers*, which currently pay their ordinary reward every time. Watch it in

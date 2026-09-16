@@ -10,7 +10,8 @@
     "order_of_dawn": { "name": "The Order of the Dawn", "place": "town:shrine_interior" },
     "nobody": { "name": "Nobody, officially", "place": "portbridge:smugglers_crossroads" },
     "riverside_village": { "name": "The Village", "place": "town:town_square" },
-    "aurelia_surveyors": { "name": "The Aurelia Surveyors", "place": "aurelia_city:surveyors_hall" }
+    "aurelia_surveyors": { "name": "The Aurelia Surveyors", "place": "aurelia_city:surveyors_hall" },
+    "aurelia_artificers": { "name": "The Artificers' Exchange", "place": "aurelia_city:artificers_exchange" }
   },
 
   "hand": {
@@ -151,6 +152,17 @@
     "requirements": [
       { "kind": "level_at_least", "value": 11 },
       { "kind": "quest_completed", "quest_id": "quest_aurelia_aqueduct_survey" }
+    ]
+  },
+
+  "aurelian_artificer": {
+    "name": "Aurelian Artificer",
+    "description": "Ves stops checking your work before it goes on the rack. You do not just use good tools here anymore; you are trusted to make them.",
+    "conferred_by": { "name": "The Artificers' Exchange", "guild_id": "aurelia_artificers" },
+    "condition": { "kind": "skill_at_least", "skill": "crafting", "value": 10 },
+    "requirements": [
+      { "kind": "relationship_at_least", "npc_id": "aurelia_artificer", "value": 25 },
+      { "kind": "level_at_least", "value": 11 }
     ]
   }
 }
