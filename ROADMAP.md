@@ -1022,11 +1022,54 @@ late still pays.
 Deliberately after P0–P4, because these are refactors and the repair phase is
 more urgent.
 
-- [ ] **Split `engine/server/headless_server.py`.** One ~3,374-line,
-  ~140-method class covering session lifecycle, TCP/WS/msgpack framing,
-  capability negotiation, the operator catalog, and world-effects policy. The
-  roadmap itself has flagged this for a while; it is now the main obstacle to
-  adding protocol surface for new systems.
+- [x] **Split `engine/server/headless_server.py`.** Was one 3,786-line,
+  134-method class. This entry's own description was stale: TCP/WS/msgpack
+  framing, capability negotiation, and the operator catalog actually live in
+  `poc_server.py` (`JsonLineMudServer`) and `poc_ws_server.py`
+  (`JsonWebSocketMudServer`), confirmed by grep -- not in this file at all.
+  What's actually here: boot/init, session lifecycle, finite-adventure state,
+  party management, shard runtime state, broadcast/shutdown/persistence/tick,
+  world-effects/weather providers, command execution+gating, field/fx debug,
+  and UI status-payload builders. Split into ten mixins under a new
+  `engine/server/headless/` package (`boot_warnings.py`, `session.py`,
+  `finite_adventure.py`, `party.py`, `shard.py`, `lifecycle.py`,
+  `world_effects.py`, `command_execution.py`, `field_fx.py`,
+  `status_payloads.py`), matching the existing `Player`/`engine/player/*`
+  mixin convention: each is a bare class, no base class, no `__init__` of its
+  own. `headless_server.py` shrinks to 265 lines -- the module imports,
+  `_NullRenderer`/`_NullInputHandler`, `HeadlessServer.__init__`, the tiny
+  shared `_event()` helper (called pervasively by both PoC servers), and the
+  class declaration composing all ten mixins. A pure move: every method body
+  is byte-identical to before, verified with an AST-driven extraction script
+  (built the exact line range for every one of the 134 methods, asserted the
+  grouping covered each exactly once with no duplicates/omissions before
+  writing a single file) rather than manual cut-and-paste at this scale.
+  **One real circularity surfaced and got fixed properly, not papered over**:
+  `Session`/`Party` were dataclasses defined directly in `headless_server.py`;
+  two mixins (`session.py`'s `create_session`, `party.py`'s
+  `_ensure_party_for_leader`) construct them at runtime, not just as type
+  hints, so a `TYPE_CHECKING`-only import (fine for every other cross-mixin
+  reference, since `from __future__ import annotations` already makes every
+  annotation lazy) wasn't enough -- it produced a `NameError` at runtime and
+  would have been a real circular import for a non-lazy usage. Moved both
+  dataclasses to a new dependency-free `engine/server/headless/models.py`
+  that neither `headless_server.py` nor any mixin needs to import back
+  through, which both resolved the circularity and is the more correct home
+  for them regardless. One simplification from the `Player` mixin convention,
+  by deliberate choice: `Player`'s mixins add `cast('Player', self)` at the
+  top of methods needing the full instance for a type checker's benefit, but
+  this repo runs no mypy/pyright step in CI (confirmed by grep) -- the cast
+  calls would be 134 individual touch-points buying nothing except a nicer
+  hover-hint in an editor no CI ever checks, so this split skips them. No
+  subclassing of `HeadlessServer` exists anywhere, and no test monkeypatches
+  a private method, but several call sites (`poc_server.py`, `poc_ws_server.py`,
+  and multiple test files) do reach directly into "private" attributes
+  (`server._event(...)`, `server._ensure_field(...)`,
+  `server._shard_runtime_state`, `server.boot_warning_records`, etc.) --
+  a same-class mixin composition preserves every one of these unchanged,
+  since it's still one class and one `self`. Full suite run twice
+  (`run_tests.py`): identical pass count before and after at every step.
+- [ ] **Split `client/scripts/ui/main_controller.gd`** (2,993 lines).
 - [ ] **Split `client/scripts/ui/main_controller.gd`** (2,993 lines).
 - [x] **Break the pygame dependency for headless runs.** Reproduced the
   claim first (`sys.modules['pygame'] = None` before importing) and it was
