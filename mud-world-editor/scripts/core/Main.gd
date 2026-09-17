@@ -34,6 +34,7 @@ var label_drag_source := ""
 @onready var ui_layer = $UILayer
 var grid_layer: GridLayer
 var district_layer: Node2D
+var district_label_layer: Node2D
 
 func _ready():
 	region_mgr = RegionManager.new()
@@ -41,15 +42,16 @@ func _ready():
 	database_mgr = DatabaseManager.new()
 	cmd_proc = CommandProcessor.new()
 	state = EditorState.new()
-	
+
 	grid_layer = GridLayer.new(); add_child(grid_layer); move_child(grid_layer, 0)
 	grid_layer.setup(main_camera)
 	grid_layer.visible = false
 	district_layer = Node2D.new(); district_layer.name = "DistrictLayer"; add_child(district_layer); move_child(district_layer, 1)
-	
+	district_label_layer = Node2D.new(); district_label_layer.name = "DistrictLabelLayer"; add_child(district_label_layer)
+
 	ui_mgr = EditorUIManager.new(); ui_mgr.setup(ui_layer)
 	inspector = InspectorController.new(); inspector.setup(ui_layer, region_mgr, world_mgr, database_mgr)
-	graph_controller = GraphController.new(); graph_controller.setup(room_container, connection_layer, state, district_layer)
+	graph_controller = GraphController.new(); graph_controller.setup(room_container, connection_layer, state, district_layer, district_label_layer)
 	camera_controller = CameraController.new(); camera_controller.setup(main_camera, ui_mgr)
 	action_handler = ActionHandler.new(); action_handler.setup(self, state, cmd_proc, region_mgr, world_mgr, graph_controller, ui_mgr, inspector)
 	action_handler.district_preview_changed.connect(func(preview):

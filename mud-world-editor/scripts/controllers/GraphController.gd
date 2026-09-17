@@ -30,6 +30,7 @@ var current_view_mode_filter: String = "Default"
 var container: Node2D
 var connection_layer: Node2D
 var district_layer: Node2D
+var district_label_layer: Node2D
 
 # View Builders
 var local_view_builder: LocalViewBuilder
@@ -68,17 +69,25 @@ const DISTRICT_ROOM_RESERVE := 160.0
 const DISTRICT_CORRIDOR_RESERVE := 160.0
 const DISTRICT_TERRITORY_RADIUS := 176.0
 
-func setup(_container: Node2D, _conn_layer: Node2D, p_state: EditorState, p_district_layer: Node2D = null):
+func setup(_container: Node2D, _conn_layer: Node2D, p_state: EditorState, p_district_layer: Node2D = null, p_district_label_layer: Node2D = null):
 	container = _container
 	connection_layer = _conn_layer
 	district_layer = p_district_layer
+	district_label_layer = p_district_label_layer
 	editor_state = p_state
-	
+
 	connection_layer.z_index = 10
 	connection_layer.draw.connect(_on_draw_connections)
 	if district_layer:
 		district_layer.z_index = -1
 		district_layer.draw.connect(_on_draw_district_backgrounds)
+	if district_label_layer:
+		# Above connection_layer (z_index 10): a district's fill/ridge stays
+		# behind every connection line, same as before, but its name label
+		# must never end up hidden under one -- so the label alone gets its
+		# own layer, on top of everything.
+		district_label_layer.z_index = 11
+		district_label_layer.draw.connect(_on_draw_district_labels)
 	
 	local_view_builder = LOCAL_VIEW_BUILDER.new(container)
 	world_view_builder = WORLD_VIEW_BUILDER.new(container)
@@ -152,6 +161,7 @@ func queue_redraw():
 	if editor_state == null: return
 	connection_layer.queue_redraw()
 	if district_layer: district_layer.queue_redraw()
+	if district_label_layer: district_label_layer.queue_redraw()
 	if current_mode == ViewMode.WORLD:
 		for node in world_view_builder.world_region_nodes.values():
 			if is_instance_valid(node): node.queue_redraw()
@@ -443,11 +453,11 @@ func get_district_id_at(world_pos: Vector2) -> String:
 	if field_index < 0: return ""
 	return str(fields[field_index]["id"])
 
-func _on_draw_district_backgrounds():
-	if current_mode != ViewMode.LOCAL or region_data.is_empty() or district_layer == null: return
-	var fields := _build_district_fields()
-	if fields.is_empty(): return
-	var font := ThemeDB.get_fallback_font()
+# The despeckled cell-ownership grid a field's territory renders from,
+# shared by the background/ridge drawer and the label drawer so a label
+# always lands on the exact same territory the fill/ridge paint -- and so
+# this whole computation, which is not cheap, only has to be written once.
+func _compute_district_territory(fields: Array) -> Dictionary:
 	var bounds := Rect2()
 	var has_bounds := false
 	for field in fields:
@@ -455,7 +465,7 @@ func _on_draw_district_backgrounds():
 			var pad_bounds := Rect2(position - Vector2(176, 176), Vector2(352, 352))
 			bounds = pad_bounds if not has_bounds else bounds.merge(pad_bounds)
 			has_bounds = true
-	if not has_bounds: return
+	if not has_bounds: return {}
 	# Shared influence cells produce a continuous territory map. Each cell
 	# has exactly one owner, so fills stay uniform; the smoothing pass below
 	# turns the exposed cell edges into curves. A finer grid keeps two
@@ -518,6 +528,16 @@ func _on_draw_district_backgrounds():
 					var room_owner := _district_reserved_room_owner(sample, fields, room_reserve)
 					if room_owner < 0 or room_owner == field_index: owners[cell] = field_index
 	owners = _despeckle_owners(owners)
+	return {"owners": owners, "cell_size": cell_size}
+
+func _on_draw_district_backgrounds():
+	if current_mode != ViewMode.LOCAL or region_data.is_empty() or district_layer == null: return
+	var fields := _build_district_fields()
+	if fields.is_empty(): return
+	var territory := _compute_district_territory(fields)
+	if territory.is_empty(): return
+	var owners: Dictionary = territory["owners"]
+	var cell_size: float = territory["cell_size"]
 	# The cell grid decides ownership; from here on it only decides *shape*.
 	# Tracing each district's own cell mask into closed loops, collapsing the
 	# staircase noise a diagonal boundary produces at this cell size, then
@@ -553,6 +573,21 @@ func _on_draw_district_backgrounds():
 			var closed := PackedVector2Array(loop)
 			closed.append(loop[0])
 			district_layer.draw_polyline(closed, ridge, ridge_width, true)
+
+# Drawn on district_label_layer, a separate node stacked above
+# connection_layer (see setup()), so a district's name is never obscured
+# by a room-to-room connection line passing behind it -- the backdrop
+# alone would hide the line, but the line would still show through/around
+# the text otherwise, and this way it never has the chance to.
+func _on_draw_district_labels():
+	if current_mode != ViewMode.LOCAL or region_data.is_empty() or district_label_layer == null: return
+	var fields := _build_district_fields()
+	if fields.is_empty(): return
+	var territory := _compute_district_territory(fields)
+	if territory.is_empty(): return
+	var owners: Dictionary = territory["owners"]
+	var cell_size: float = territory["cell_size"]
+	var font := ThemeDB.get_fallback_font()
 	const LABEL_FONT_SIZE := 20
 	for field_index in range(fields.size()):
 		var deepest_cell := _find_deepest_owned_cell(owners, field_index)
@@ -562,8 +597,8 @@ func _on_draw_district_backgrounds():
 		var color: Color = fields[field_index]["color"]
 		var text_origin := label_pos + Vector2(-title_size.x * 0.5, title_size.y * 0.3)
 		var backdrop := Rect2(text_origin + Vector2(-8, -title_size.y - 2), title_size + Vector2(16, 8))
-		district_layer.draw_rect(backdrop, Color(0.04, 0.06, 0.09, 0.55), true)
-		district_layer.draw_string(font, text_origin, title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE, color.lightened(0.5))
+		district_label_layer.draw_rect(backdrop, Color(0.04, 0.06, 0.09, 0.72), true)
+		district_label_layer.draw_string(font, text_origin, title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE, color.lightened(0.5))
 
 func _district_field_distance(point: Vector2, field: Dictionary) -> float:
 	var closest := _district_member_distance(point, field)
