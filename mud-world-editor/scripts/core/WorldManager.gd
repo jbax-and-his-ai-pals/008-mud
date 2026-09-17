@@ -2,6 +2,8 @@
 class_name WorldManager
 extends RefCounted
 
+const DistrictLayout = preload("res://scripts/generators/DistrictLayout.gd")
+
 const REGIONS_DIR = "res://data/regions/"
 const WORLD_LAYOUT_FILE = "res://data/world_layout.json"
 
@@ -138,6 +140,7 @@ func validate_district_continuity(full_world: Dictionary) -> Array:
 		var rooms: Dictionary = region.get("rooms", {})
 		var districts: Dictionary = region.get("properties", {}).get("districts", {})
 		var claimed := {}
+		var room_to_district_id := {}
 		for district_id in districts:
 			var district: Dictionary = districts[district_id]
 			var members: Array = district.get("members", district.get("rooms", []))
@@ -151,6 +154,7 @@ func validate_district_continuity(full_world: Dictionary) -> Array:
 					findings.append("[%s] District '%s': room '%s' is also in '%s'." % [region_id, district.get("name", district_id), room_id, claimed[room_id]])
 					continue
 				claimed[room_id] = district.get("name", district_id)
+				room_to_district_id[room_id] = str(district_id)
 				valid_members.append(room_id)
 				var recorded_id := str(rooms[room_id].get("properties", {}).get("_district_id", ""))
 				if recorded_id != str(district_id): findings.append("[%s] District '%s': room '%s' has _district_id '%s'." % [region_id, district.get("name", district_id), room_id, recorded_id])
@@ -159,6 +163,12 @@ func validate_district_continuity(full_world: Dictionary) -> Array:
 		for room_id in rooms:
 			var stored_id := str(rooms[room_id].get("properties", {}).get("_district_id", ""))
 			if stored_id != "" and not claimed.has(room_id): findings.append("[%s] Room '%s': _district_id '%s' has no district membership." % [region_id, room_id, stored_id])
+		for pinch in DistrictLayout.find_multi_district_pinches(rooms, room_to_district_id):
+			var own_name := str(districts.get(pinch.district_id, {}).get("name", pinch.district_id))
+			var foreign_names: Array = []
+			for foreign_id in pinch.foreign_districts:
+				foreign_names.append(str(districts.get(foreign_id, {}).get("name", foreign_id)))
+			findings.append("[%s] District '%s': room '%s' is pinched between %s with no connecting exit; the shared territory here will render cramped or ambiguous." % [region_id, own_name, pinch.room_id, ", ".join(foreign_names)])
 	return findings
 
 func _district_members_are_connected(rooms: Dictionary, members: Array) -> bool:

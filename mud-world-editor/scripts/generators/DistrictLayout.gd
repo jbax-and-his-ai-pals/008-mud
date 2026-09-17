@@ -8,6 +8,17 @@ extends RefCounted
 const ROOM_CARD_SIZE := Vector2(200, 100)
 const ROOM_CLEARANCE := Vector2(224, 128)
 
+# Content spans several eras of grid convention (the current auto-arranger's
+# 256x192 spacing, an older plain 256x256 grid, a still-older 350x250
+# fallback, plus hand-dragged rooms that fit no grid at all). Rather than
+# assume any one spacing, "adjacent" is derived per lookup: the nearest room
+# in each 45-degree octant around a point, capped at a radius comfortably
+# above the largest single-step diagonal in any of those conventions (362)
+# but below their smallest double-step cardinal (512), so a real neighbor is
+# never missed and a room two steps away is never mistaken for one.
+const PINCH_NEIGHBOR_RADIUS := 420.0
+const OCTANT_COUNT := 8
+
 static func preview_attachment(rooms: Dictionary, district_room_ids: Array, anchor_room_id: String, target_room_id: String, direction: String, two_way: bool = true) -> Dictionary:
 	# This is intentionally pure: callers can render `positions` as a ghost and
 	# show `errors` before moving rooms or changing exits.
@@ -196,3 +207,75 @@ static func _connection_hits_room(from: Vector2, to: Vector2, room_pos: Vector2)
 		if Geometry2D.segment_intersects_segment(from, to, corners[index], corners[(index + 1) % corners.size()]) != null:
 			return true
 	return false
+
+# Flags a room whose immediate visual neighbors are dominated by two or more
+# *different* foreign districts on sides it has no exit to (in either
+# direction). A single foreign neighbor is an ordinary shared border -- every
+# district touches its neighbors somewhere. Two distinct ones with neither
+# explained by a connection is the "sandwiched" shape a hand-authored or
+# bulk-generated district can end up in, squeezing that room's own territory
+# down to almost nothing between them.
+static func find_multi_district_pinches(rooms: Dictionary, room_to_district: Dictionary) -> Array:
+	var findings: Array = []
+	var position_lookup: Dictionary = {}
+	for room_id in rooms:
+		if rooms[room_id] is Dictionary:
+			position_lookup[str(room_id)] = _room_position(rooms[room_id])
+	var sorted_ids := room_to_district.keys()
+	sorted_ids.sort()
+	for room_id in sorted_ids:
+		if not rooms.has(room_id) or not position_lookup.has(room_id):
+			continue
+		var own_district = room_to_district[room_id]
+		var pos: Vector2 = position_lookup[room_id]
+		var exit_targets: Dictionary = {}
+		for target in rooms[room_id].get("exits", {}).values():
+			exit_targets[str(target)] = true
+		var foreign_districts: Dictionary = {}
+		for neighbor_id in _nearest_room_per_octant(room_id, pos, position_lookup):
+			var neighbor_district = room_to_district.get(neighbor_id)
+			if neighbor_district == null or neighbor_district == own_district:
+				continue
+			if exit_targets.has(neighbor_id):
+				continue
+			var neighbor_exits: Dictionary = rooms[neighbor_id].get("exits", {})
+			if neighbor_exits.values().has(room_id):
+				continue
+			foreign_districts[neighbor_district] = true
+		if foreign_districts.size() >= 2:
+			var foreign_ids := foreign_districts.keys()
+			foreign_ids.sort()
+			findings.append({"room_id": room_id, "district_id": own_district, "foreign_districts": foreign_ids})
+	return findings
+
+# The single nearest other room in each 45-degree slice around `pos`, within
+# PINCH_NEIGHBOR_RADIUS. At most eight results, one per octant; an empty
+# octant (nothing that close in that direction) simply contributes nothing.
+static func _nearest_room_per_octant(exclude_id: String, pos: Vector2, position_lookup: Dictionary) -> Array:
+	var best_id: Array = []
+	var best_dist: Array = []
+	best_id.resize(OCTANT_COUNT)
+	best_dist.resize(OCTANT_COUNT)
+	for i in range(OCTANT_COUNT):
+		best_id[i] = ""
+		best_dist[i] = INF
+	for room_id in position_lookup:
+		if room_id == exclude_id:
+			continue
+		var delta: Vector2 = position_lookup[room_id] - pos
+		var dist := delta.length()
+		if dist <= 0.001 or dist > PINCH_NEIGHBOR_RADIUS:
+			continue
+		var octant := _octant_index(delta)
+		if dist < best_dist[octant]:
+			best_dist[octant] = dist
+			best_id[octant] = room_id
+	var result: Array = []
+	for i in range(OCTANT_COUNT):
+		if best_id[i] != "":
+			result.append(best_id[i])
+	return result
+
+static func _octant_index(delta: Vector2) -> int:
+	var octant := int(round(delta.angle() / (PI / 4.0)))
+	return ((octant % OCTANT_COUNT) + OCTANT_COUNT) % OCTANT_COUNT
