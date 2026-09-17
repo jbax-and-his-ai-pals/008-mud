@@ -389,10 +389,14 @@ func _on_draw_district_backgrounds():
 			bounds = pad_bounds if not has_bounds else bounds.merge(pad_bounds)
 			has_bounds = true
 	if fields.is_empty(): return
-	# Shared influence cells produce a continuous territory map. Each cell has
-	# exactly one owner, so fills stay uniform and exposed edges become hard,
-	# intentionally ridged borders rather than stacked translucent circles.
-	var cell_size := 64.0
+	# Shared influence cells produce a continuous territory map. Each cell
+	# has exactly one owner, so fills stay uniform; the smoothing pass below
+	# turns the exposed cell edges into curves. A finer grid keeps two
+	# districts meeting at an angle closer together -- a diagonal boundary
+	# between square cells is inherently a staircase with up to one cell's
+	# width of "play" between how each side's own mask rounds it, so a
+	# smaller cell shrinks that residual gap rather than removing it.
+	var cell_size := 32.0
 	var room_reserve := 160.0
 	# Wider than a room card: a district connection should read as a deliberate
 	# land bridge, not a hairline that can disappear at normal editor zoom.
@@ -447,16 +451,21 @@ func _on_draw_district_backgrounds():
 					var room_owner := _district_reserved_room_owner(sample, fields, room_reserve)
 					if room_owner < 0 or room_owner == field_index: owners[cell] = field_index
 	# The cell grid decides ownership; from here on it only decides *shape*.
-	# Tracing each district's own cell mask into closed loops and running them
-	# through a Catmull-Rom pass turns the ridged cell edges into a smooth,
-	# irregular coastline that still hugs the real, uneven territory
-	# beneath it -- no two districts round the same way, because no two
-	# districts have the same rooms.
+	# Tracing each district's own cell mask into closed loops, collapsing the
+	# staircase noise a diagonal boundary produces at this cell size, then
+	# corner-cutting what's left turns the ridged cell edges into a calm,
+	# irregular coastline that still hugs the real, uneven territory beneath
+	# it -- no two districts round the same way, because no two districts
+	# have the same rooms. Both passes are local (each new point depends only
+	# on its immediate neighbors along the boundary), which is also why two
+	# districts sharing an edge end up with matching curves there rather than
+	# two independently-wobbling lines that drift apart.
 	var field_loops: Array = []
 	for field_index in range(fields.size()):
 		var loops: Array = []
 		for loop in _trace_field_boundary_loops(owners, field_index, cell_size):
-			loops.append(_smooth_closed_loop(_simplify_collinear_loop(loop)))
+			var simplified := _simplify_loop_douglas_peucker(loop, cell_size * 0.75)
+			loops.append(_chaikin_smooth_closed_loop(simplified, 3))
 		field_loops.append(loops)
 	for field_index in range(fields.size()):
 		var color: Color = fields[field_index]["color"]
@@ -556,43 +565,78 @@ func _add_boundary_edge(next_vertex: Dictionary, vertex_by_key: Dictionary, from
 	vertex_by_key[_boundary_vertex_key(to)] = to
 	next_vertex[from_key] = to
 
-# Drops points where the boundary continues in the same direction, so a long
-# straight run of cell edges becomes one straight segment instead of dozens
-# of collinear ones. This does not change the shape; it just gives the
-# smoothing pass below cleaner tangents to work with.
-func _simplify_collinear_loop(loop: Array) -> Array:
+# Collapses a run of small cell-grid steps down to its real corners. A
+# diagonal-ish boundary at this cell size is a long staircase of tiny
+# alternating steps; every one of those steps is a genuine direction change,
+# so simple collinearity checks cannot remove them, but they are also not a
+# real feature of the district's shape -- just this grid's resolution.
+# Douglas-Peucker keeps only the points a straight chord could not
+# approximate within `tolerance`, so a whole staircase run collapses to the
+# two points at its ends wherever it is, in fact, straight-ish.
+#
+# A closed loop needs an anchor point to open it into the chain the
+# algorithm actually operates on; an earlier version picked the two most
+# distant points to split it in half, but that choice depends on the
+# loop's overall shape, not just the run being simplified, and two
+# different shapes sharing one straight edge could pick different anchors
+# and simplify that shared edge differently. Anchoring on the loop's own
+# first point instead is arbitrary in the same way, but harmlessly so: the
+# recursive algorithm below always keeps both ends of whatever chain it is
+# given and only discards a point when a straight chord already
+# approximates it, so no real corner can be lost regardless of where the
+# seam falls.
+func _simplify_loop_douglas_peucker(loop: Array, tolerance: float) -> Array:
 	var n := loop.size()
-	if n < 3: return loop
-	var result: Array = []
-	for i in range(n):
-		var prev: Vector2 = loop[(i - 1 + n) % n]
-		var curr: Vector2 = loop[i]
-		var forward: Vector2 = loop[(i + 1) % n]
-		var incoming := curr - prev
-		var outgoing := forward - curr
-		if incoming.length() < 0.001 or outgoing.length() < 0.001: continue
-		if incoming.normalized().dot(outgoing.normalized()) > 0.999: continue
-		result.append(curr)
-	return result if result.size() >= 3 else loop
+	if n < 5: return loop
+	var unrolled: Array = loop.duplicate()
+	unrolled.append(loop[0])
+	var simplified := _douglas_peucker_open(unrolled, tolerance)
+	if simplified.size() >= 2 and simplified[0].is_equal_approx(simplified[simplified.size() - 1]):
+		simplified = simplified.slice(0, simplified.size() - 1)
+	return simplified if simplified.size() >= 3 else loop
 
-# Catmull-Rom through every vertex of a closed loop. This is what actually
-# turns the ridged, right-angled cell boundary into a smooth curve: each
-# original corner still anchors the curve (so two adjacent districts still
-# meet exactly, no gap or overlap), but the path between corners bows
-# through them instead of turning sharply.
-func _smooth_closed_loop(loop: Array, samples_per_segment: int = 6) -> Array:
-	var n := loop.size()
-	if n < 3: return loop
-	var smoothed: Array = []
-	for i in range(n):
-		var p0: Vector2 = loop[(i - 1 + n) % n]
-		var p1: Vector2 = loop[i]
-		var p2: Vector2 = loop[(i + 1) % n]
-		var p3: Vector2 = loop[(i + 2) % n]
-		for s in range(samples_per_segment):
-			var t := float(s) / float(samples_per_segment)
-			smoothed.append(p1.cubic_interpolate(p2, p0, p3, t))
-	return smoothed
+func _douglas_peucker_open(points: Array, tolerance: float) -> Array:
+	var n := points.size()
+	if n < 3: return points
+	var start: Vector2 = points[0]
+	var end: Vector2 = points[n - 1]
+	var max_dist := 0.0
+	var split_index := 0
+	for i in range(1, n - 1):
+		var nearest := Geometry2D.get_closest_point_to_segment(points[i], start, end)
+		var dist: float = points[i].distance_to(nearest)
+		if dist > max_dist:
+			max_dist = dist
+			split_index = i
+	if max_dist <= tolerance:
+		return [start, end]
+	var left := _douglas_peucker_open(points.slice(0, split_index + 1), tolerance)
+	var right := _douglas_peucker_open(points.slice(split_index, n), tolerance)
+	var combined: Array = left.duplicate()
+	combined.append_array(right.slice(1, right.size()))
+	return combined
+
+# Chaikin corner-cutting: each edge contributes two new points a quarter of
+# the way in from each end, replacing the original corner. Unlike a spline
+# through every point, this can only ever move a boundary *inward* toward
+# its own edges, never bulge past them -- which is what keeps two adjacent
+# districts' independently-smoothed shared border tight against each other
+# rather than drifting apart, and keeps the curve calm instead of
+# overshooting at sharp corners. A few iterations converge quickly; more
+# than that just re-rounds an already-round shape.
+func _chaikin_smooth_closed_loop(loop: Array, iterations: int = 3) -> Array:
+	var points := loop
+	for _iteration in range(iterations):
+		var n := points.size()
+		if n < 3: break
+		var next: Array = []
+		for i in range(n):
+			var p0: Vector2 = points[i]
+			var p1: Vector2 = points[(i + 1) % n]
+			next.append(p0.lerp(p1, 0.25))
+			next.append(p0.lerp(p1, 0.75))
+		points = next
+	return points
 
 func _draw_ghost_connection(from: Vector2, to: Vector2, label: String, color: Color):
 	if from.is_equal_approx(to): return
