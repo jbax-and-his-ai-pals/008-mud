@@ -1,5 +1,12 @@
 # Content Engine Roadmap
 
+> **Superseded (2026-09-16).** Despite the "active product roadmap" claim
+> below, the actual active roadmap is [`/ROADMAP.md`](../../ROADMAP.md) —
+> see `docs/roadmap/README.md` for what changed. The product charter and
+> engine/content-set boundary described here still hold; the phase/priority
+> list does not (the content-set manifest, loader, and Fantasy Frontier
+> extraction it calls for are all done).
+
 ## Product charter
 
 Build a reusable engine for authored text-first games. A **content set** is a complete game: it defines its world, playable structure, rules, scenarios, and presentation. The engine supplies stable runtime services and authoring contracts; it does not assume that every game is fantasy, multiplayer, combat-heavy, or persistent.

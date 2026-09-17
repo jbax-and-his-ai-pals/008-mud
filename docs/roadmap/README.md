@@ -1,22 +1,20 @@
-# Content Engine Roadmap
+# Content Engine Roadmap (historical)
+
+> **Superseded (2026-09-16).** The active roadmap is
+> [`/ROADMAP.md`](../../ROADMAP.md) (rewritten 2026-09-14 after a full engine +
+> content audit), alongside [`docs/design/WORLD_DESIGN.md`](../design/WORLD_DESIGN.md).
+> Everything this document lists as "current priority" is done: the
+> content-set manifest/loader exists (`engine/server/content_set.py`), Fantasy
+> Frontier is the extracted reference content set
+> (`content_sets/fantasy_frontier/`), and it has had a real first-session
+> player loop since P0. Kept below for implementation history and the
+> engine/content-set boundary rationale, which still holds.
 
 The project is building a reusable engine for authored text-first games. A **content set** defines a complete game—its world, rules, structure, scenarios, and presentation. The first canonical content set is a substantial fantasy game; later sets may explore modern, western, space, or other genres.
 
-## Active roadmap
+## Historical "active roadmap" pointer
 
-Read and maintain [Content Engine Roadmap](content-engine-roadmap.md). It defines the product charter, content-set boundary, canonical game sequence, delivery milestones, and current priorities.
-
-## Current priority
-
-Make the content-engine boundary real before expanding feature breadth:
-
-1. Establish a reproducible runtime, content validation, and test baseline.
-2. Define the versioned content-set manifest and loader.
-3. Extract the existing fantasy world as `fantasy_frontier`.
-4. Deliver a reliable first-session player loop for Fantasy Frontier.
-5. Build a small modern content set to prove that the engine is not fantasy-bound.
-
-Persistent multiplayer, broad modding, storefront work, and additional genres remain valuable, but follow the proven content-set package boundary rather than lead it.
+[Content Engine Roadmap](content-engine-roadmap.md) defined the product charter, content-set boundary, canonical game sequence, delivery milestones, and priorities as of its writing. Read it for the boundary rationale; for current priorities, use `/ROADMAP.md`.
 
 ## Historical material
 
@@ -30,4 +28,4 @@ The documents below record prior platform work and remain useful as implementati
 - [Accessibility track](accessibility-track.md)
 - [ADR template](adr/0000-template.md)
 
-When prior documents conflict with the active roadmap, the Content Engine Roadmap wins.
+When any document here conflicts with `/ROADMAP.md`, `/ROADMAP.md` wins.
