@@ -116,7 +116,7 @@ func _ready():
 	
 	if name_label: name_label.text = _cached_name
 	if id_label: id_label.text = _cached_id
-	if id_label: id_label.visible = _show_technical_id
+	if id_label: id_label.visible = _show_technical_id or _is_proxy
 	set_label_arrange_mode(_label_arrange_mode)
 	
 	update_icons(_npc_visible, _item_visible, _start_visible, _custom_icon_id, _properties)
@@ -147,7 +147,9 @@ func set_info(name_text: String, id_text: String):
 
 func set_show_technical_id(visible: bool):
 	_show_technical_id = visible
-	if id_label: id_label.visible = visible
+	# A proxy's second line is always the linked room's own name, never a raw
+	# id -- it stays on regardless of this debug toggle.
+	if id_label: id_label.visible = visible or _is_proxy
 
 func set_label_arrange_mode(enabled: bool):
 	_label_arrange_mode = enabled
@@ -210,11 +212,18 @@ func set_as_proxy(is_proxy: bool):
 	if is_node_ready() and visual_panel:
 		if is_proxy:
 			modulate.a = 0.9
-			set_node_color(Color(0.15, 0.25, 0.35)) 
-			if id_label: id_label.modulate = Color(0.6, 0.8, 1.0)
+			set_node_color(Color(0.15, 0.25, 0.35))
+			if id_label:
+				id_label.modulate = Color(0.6, 0.8, 1.0)
+				# A cross-region link always shows the linked room's name on
+				# this second, smaller line -- unlike the technical-id line
+				# on a normal room, it is not behind the debug toggle.
+				id_label.visible = true
 		else:
 			modulate.a = 1.0
-			if id_label: id_label.modulate = Color(1, 1, 1, 0.5)
+			if id_label:
+				id_label.modulate = Color(1, 1, 1, 0.5)
+				id_label.visible = _show_technical_id
 	_update_border()
 
 func set_node_color(color: Color):

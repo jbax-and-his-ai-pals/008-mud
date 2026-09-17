@@ -115,7 +115,7 @@ func rebuild(p_region_data: Dictionary, p_world_data: Dictionary, p_world_pos: D
 	if current_mode == ViewMode.WORLD:
 		world_view_builder.build(world_data, world_positions, region_data, current_region_filename)
 	else:
-		local_view_builder.build(region_data, editor_state.snap_enabled)
+		local_view_builder.build(region_data, editor_state.snap_enabled, world_data)
 		set_label_arrange_mode(label_arrange_mode)
 		set_show_technical_ids(show_technical_ids)
 		# Re-apply view mode if needed

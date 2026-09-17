@@ -26,20 +26,20 @@ signal label_drag_ended(id)
 func _init(p_container: Node2D):
 	container = p_container
 
-func build(region_data: Dictionary, snap_enabled: bool):
+func build(region_data: Dictionary, snap_enabled: bool, world_data: Dictionary = {}):
 	clear()
 	var rooms = region_data.get("rooms", {})
 	if rooms.is_empty(): return
-	
+
 	for rid in rooms:
 		var r_data = rooms[rid]
 		var ep = r_data.get("_editor_pos", [0, 0])
 		var pos = Vector2(ep[0], ep[1])
 		_spawn_room_node(rid, pos, r_data, snap_enabled)
-	
-	var external_links = {} 
+
+	var external_links = {}
 	var stored_proxies = region_data.get("_proxy_positions", {})
-	
+
 	for rid in rooms:
 		var r_exits = rooms[rid].get("exits", {})
 		for dir in r_exits:
@@ -54,7 +54,7 @@ func build(region_data: Dictionary, snap_enabled: bool):
 					external_links[target] = _find_proxy_position(src_pos, visual_direction, external_links)
 
 	for ext_id in external_links:
-		_create_proxy_node(ext_id, external_links[ext_id], snap_enabled)
+		_create_proxy_node(ext_id, external_links[ext_id], snap_enabled, world_data)
 
 func clear():
 	for c in container.get_children(): c.queue_free()
@@ -74,18 +74,26 @@ func _spawn_room_node(id, pos, data, snap_enabled):
 	container.add_child(node)
 	room_nodes[id] = node
 
-func _create_proxy_node(full_id, pos, snap_enabled):
+func _create_proxy_node(full_id, pos, snap_enabled, world_data: Dictionary = {}):
 	var parts = full_id.split(":")
+	var target_region_id := str(parts[0])
+	var target_room_id := str(parts[1]) if parts.size() > 1 else ""
 	var node = ROOM_SCENE.instantiate()
 	node.position = pos
 	node.snap_step = 32 if snap_enabled else 0
-	
-	node.set_info(parts[0].capitalize(), full_id)
+
+	node.set_info(target_region_id.capitalize(), _proxy_room_name(world_data, target_region_id, target_room_id))
 	node.set_as_proxy(true)
-	
+
 	_connect_node_signals(node, full_id)
 	container.add_child(node)
 	room_nodes[full_id] = node
+
+func _proxy_room_name(world_data: Dictionary, region_id: String, room_id: String) -> String:
+	var room = world_data.get(region_id, {}).get("rooms", {}).get(room_id, {})
+	if room is Dictionary and room.has("name"):
+		return str(room.name)
+	return room_id
 
 func _external_visual_direction(room_data: Dictionary, exit_name: String) -> String:
 	var layout = room_data.get("_editor_exit_layout", {}).get(exit_name, {})
