@@ -553,15 +553,17 @@ func _on_draw_district_backgrounds():
 			var closed := PackedVector2Array(loop)
 			closed.append(loop[0])
 			district_layer.draw_polyline(closed, ridge, ridge_width, true)
-	for field in fields:
-		var positions: Array[Vector2] = field["positions"]
-		var label_pos := positions[0]
-		for position in positions:
-			if position.y < label_pos.y or (is_equal_approx(position.y, label_pos.y) and position.x < label_pos.x): label_pos = position
-		var title := str(field["name"])
-		var title_size := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 12)
-		var color: Color = field["color"]
-		district_layer.draw_string(font, label_pos + Vector2(-104, -92 + title_size.y), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(color.r, color.g, color.b, 0.94))
+	const LABEL_FONT_SIZE := 20
+	for field_index in range(fields.size()):
+		var deepest_cell := _find_deepest_owned_cell(owners, field_index)
+		var label_pos: Vector2 = (Vector2(deepest_cell) + Vector2(0.5, 0.5)) * cell_size
+		var title := str(fields[field_index]["name"])
+		var title_size := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE)
+		var color: Color = fields[field_index]["color"]
+		var text_origin := label_pos + Vector2(-title_size.x * 0.5, title_size.y * 0.3)
+		var backdrop := Rect2(text_origin + Vector2(-8, -title_size.y - 2), title_size + Vector2(16, 8))
+		district_layer.draw_rect(backdrop, Color(0.04, 0.06, 0.09, 0.55), true)
+		district_layer.draw_string(font, text_origin, title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE, color.lightened(0.5))
 
 func _district_field_distance(point: Vector2, field: Dictionary) -> float:
 	var closest := _district_member_distance(point, field)
@@ -619,6 +621,53 @@ func _despeckle_owners(owners: Dictionary) -> Dictionary:
 				best_owner = owner
 		if best_owner != current and best_count >= 3: cleaned[cell] = best_owner
 	return cleaned
+
+# The owned cell that sits deepest inside a field's territory -- the one
+# farthest, in grid steps, from any cell that isn't also this field's (a
+# neighbor with a different owner, or simply outside the mask). This is a
+# cheap grid-based stand-in for a "pole of inaccessibility": a label placed
+# here sits in the roomiest part of the district's actual shape instead of
+# a corner or a raw room position, so it reads cleanly regardless of how
+# irregular that shape is. A multi-source BFS from every boundary cell
+# (distance 0) outward finds it in one pass over the field's cells.
+func _find_deepest_owned_cell(owners: Dictionary, field_index: int) -> Vector2i:
+	var neighbor_offsets := [Vector2i(0, -1), Vector2i(0, 1), Vector2i(1, 0), Vector2i(-1, 0)]
+	var field_cells: Array = []
+	for cell in owners:
+		if int(owners[cell]) == field_index: field_cells.append(cell)
+	if field_cells.is_empty(): return Vector2i.ZERO
+
+	var distance: Dictionary = {}
+	var queue: Array = []
+	for cell in field_cells:
+		var is_boundary := false
+		for offset in neighbor_offsets:
+			if int(owners.get(cell + offset, -1)) != field_index:
+				is_boundary = true
+				break
+		if is_boundary:
+			distance[cell] = 0
+			queue.append(cell)
+	if queue.is_empty(): return field_cells[0]
+
+	var head := 0
+	while head < queue.size():
+		var current: Vector2i = queue[head]
+		head += 1
+		for offset in neighbor_offsets:
+			var neighbor: Vector2i = current + offset
+			if int(owners.get(neighbor, -1)) != field_index or distance.has(neighbor): continue
+			distance[neighbor] = distance[current] + 1
+			queue.append(neighbor)
+
+	var best_cell: Vector2i = field_cells[0]
+	var best_distance := -1
+	for cell in field_cells:
+		var d: int = distance.get(cell, 0)
+		if d > best_distance:
+			best_distance = d
+			best_cell = cell
+	return best_cell
 
 # Walks the owned-cell mask for one field into one or more closed,
 # world-space vertex loops (its outer boundary, plus any hole it has been

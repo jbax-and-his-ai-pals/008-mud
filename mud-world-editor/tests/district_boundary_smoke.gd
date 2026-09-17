@@ -43,6 +43,33 @@ func _init() -> void:
 	var border_result = gc._despeckle_owners(real_border)
 	_assert(int(border_result[Vector2i(0, 0)]) == 0 and int(border_result[Vector2i(1, 0)]) == 1, "an ordinary 2-vs-2 border is left alone")
 
+	# The deepest cell in a 5x5 block should be its exact center -- the one
+	# point farthest, in grid steps, from every edge.
+	var square_owners := {}
+	for x in range(5):
+		for y in range(5):
+			square_owners[Vector2i(x, y)] = 0
+	_assert(gc._find_deepest_owned_cell(square_owners, 0) == Vector2i(2, 2), "a label anchors at the true center of a square district")
+
+	# An L-shape's deepest cell must land inside one of its arms, never on
+	# the boundary -- this is the actual "clean, within the shape" property
+	# a label placed here is meant to guarantee, regardless of how
+	# irregular the district's real shape is.
+	var l_owners := {}
+	for x in range(6):
+		for y in range(2):
+			l_owners[Vector2i(x, y)] = 0
+	for x in range(2):
+		for y in range(2, 6):
+			l_owners[Vector2i(x, y)] = 0
+	var deepest := gc._find_deepest_owned_cell(l_owners, 0)
+	var on_boundary := false
+	for offset in [Vector2i(0, -1), Vector2i(0, 1), Vector2i(1, 0), Vector2i(-1, 0)]:
+		if int(l_owners.get(deepest + offset, -1)) != 0: on_boundary = true
+	_assert(not on_boundary, "an L-shaped district's label anchor is not on its boundary, got %s" % deepest)
+
+	_assert(gc._find_deepest_owned_cell({}, 0) == Vector2i.ZERO, "an empty mask returns a harmless default instead of crashing")
+
 	# Two side-by-side fields must each trace their own loop.
 	var two_field_owners := {
 		Vector2i(0, 0): 0, Vector2i(0, 1): 0,
