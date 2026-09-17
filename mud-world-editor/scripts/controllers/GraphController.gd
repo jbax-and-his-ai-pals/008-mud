@@ -446,19 +446,31 @@ func _on_draw_district_backgrounds():
 					if sample.distance_to(nearest) > corridor_reserve: continue
 					var room_owner := _district_reserved_room_owner(sample, fields, room_reserve)
 					if room_owner < 0 or room_owner == field_index: owners[cell] = field_index
-	for cell in owners:
-		var field: Dictionary = fields[int(owners[cell])]
-		var color: Color = field["color"]
-		district_layer.draw_rect(Rect2(Vector2(cell) * cell_size, Vector2.ONE * cell_size), Color(color.r, color.g, color.b, 0.13), true)
-	for cell in owners:
-		var owner_index: int = owners[cell]
-		var color: Color = fields[owner_index]["color"]
+	# The cell grid decides ownership; from here on it only decides *shape*.
+	# Tracing each district's own cell mask into closed loops and running them
+	# through a Catmull-Rom pass turns the ridged cell edges into a smooth,
+	# irregular coastline that still hugs the real, uneven territory
+	# beneath it -- no two districts round the same way, because no two
+	# districts have the same rooms.
+	var field_loops: Array = []
+	for field_index in range(fields.size()):
+		var loops: Array = []
+		for loop in _trace_field_boundary_loops(owners, field_index, cell_size):
+			loops.append(_smooth_closed_loop(_simplify_collinear_loop(loop)))
+		field_loops.append(loops)
+	for field_index in range(fields.size()):
+		var color: Color = fields[field_index]["color"]
+		var fill := Color(color.r, color.g, color.b, 0.13)
+		for loop in field_loops[field_index]:
+			if loop.size() >= 3: district_layer.draw_colored_polygon(PackedVector2Array(loop), fill)
+	for field_index in range(fields.size()):
+		var color: Color = fields[field_index]["color"]
 		var ridge := Color(color.r, color.g, color.b, 0.78)
-		var origin := Vector2(cell) * cell_size
-		if int(owners.get(cell + Vector2i(0, -1), -1)) != owner_index: district_layer.draw_line(origin, origin + Vector2(cell_size, 0), ridge, 2.0, true)
-		if int(owners.get(cell + Vector2i(1, 0), -1)) != owner_index: district_layer.draw_line(origin + Vector2(cell_size, 0), origin + Vector2(cell_size, cell_size), ridge, 2.0, true)
-		if int(owners.get(cell + Vector2i(0, 1), -1)) != owner_index: district_layer.draw_line(origin + Vector2(cell_size, cell_size), origin + Vector2(0, cell_size), ridge, 2.0, true)
-		if int(owners.get(cell + Vector2i(-1, 0), -1)) != owner_index: district_layer.draw_line(origin + Vector2(0, cell_size), origin, ridge, 2.0, true)
+		for loop in field_loops[field_index]:
+			if loop.size() < 2: continue
+			var closed := PackedVector2Array(loop)
+			closed.append(loop[0])
+			district_layer.draw_polyline(closed, ridge, 2.0, true)
 	for field in fields:
 		var positions: Array[Vector2] = field["positions"]
 		var label_pos := positions[0]
@@ -497,6 +509,90 @@ func _district_segment_distance(point: Vector2, field: Dictionary) -> float:
 		var nearest := Geometry2D.get_closest_point_to_segment(point, segment["from"], segment["to"])
 		closest = minf(closest, point.distance_to(nearest))
 	return closest
+
+# Walks the owned-cell mask for one field into one or more closed,
+# world-space vertex loops (its outer boundary, plus any hole it has been
+# squeezed into by a neighbor -- rare, but not assumed away). Every owned
+# cell contributes its clockwise-facing edges wherever the neighbor across
+# that edge belongs to someone else (or nobody); those directed edges chain
+# start-to-end into full loops because a raster region's boundary always
+# does, regardless of its shape.
+func _trace_field_boundary_loops(owners: Dictionary, field_index: int, cell_size: float) -> Array:
+	var next_vertex: Dictionary = {}
+	var vertex_by_key: Dictionary = {}
+	for cell in owners:
+		if int(owners[cell]) != field_index: continue
+		var cx: int = cell.x
+		var cy: int = cell.y
+		var tl := Vector2(cx, cy) * cell_size
+		var tr := Vector2(cx + 1, cy) * cell_size
+		var br := Vector2(cx + 1, cy + 1) * cell_size
+		var bl := Vector2(cx, cy + 1) * cell_size
+		if int(owners.get(Vector2i(cx, cy - 1), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, tl, tr)
+		if int(owners.get(Vector2i(cx + 1, cy), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, tr, br)
+		if int(owners.get(Vector2i(cx, cy + 1), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, br, bl)
+		if int(owners.get(Vector2i(cx - 1, cy), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, bl, tl)
+	var visited: Dictionary = {}
+	var loops: Array = []
+	for start_key in next_vertex.keys():
+		if visited.has(start_key): continue
+		var loop: Array = []
+		var current_key: String = start_key
+		var guard := 0
+		while not visited.has(current_key) and next_vertex.has(current_key) and guard < 100000:
+			visited[current_key] = true
+			loop.append(vertex_by_key[current_key])
+			current_key = _boundary_vertex_key(next_vertex[current_key])
+			guard += 1
+		if loop.size() >= 3: loops.append(loop)
+	return loops
+
+func _boundary_vertex_key(v: Vector2) -> String:
+	return "%d:%d" % [roundi(v.x), roundi(v.y)]
+
+func _add_boundary_edge(next_vertex: Dictionary, vertex_by_key: Dictionary, from: Vector2, to: Vector2) -> void:
+	var from_key := _boundary_vertex_key(from)
+	vertex_by_key[from_key] = from
+	vertex_by_key[_boundary_vertex_key(to)] = to
+	next_vertex[from_key] = to
+
+# Drops points where the boundary continues in the same direction, so a long
+# straight run of cell edges becomes one straight segment instead of dozens
+# of collinear ones. This does not change the shape; it just gives the
+# smoothing pass below cleaner tangents to work with.
+func _simplify_collinear_loop(loop: Array) -> Array:
+	var n := loop.size()
+	if n < 3: return loop
+	var result: Array = []
+	for i in range(n):
+		var prev: Vector2 = loop[(i - 1 + n) % n]
+		var curr: Vector2 = loop[i]
+		var forward: Vector2 = loop[(i + 1) % n]
+		var incoming := curr - prev
+		var outgoing := forward - curr
+		if incoming.length() < 0.001 or outgoing.length() < 0.001: continue
+		if incoming.normalized().dot(outgoing.normalized()) > 0.999: continue
+		result.append(curr)
+	return result if result.size() >= 3 else loop
+
+# Catmull-Rom through every vertex of a closed loop. This is what actually
+# turns the ridged, right-angled cell boundary into a smooth curve: each
+# original corner still anchors the curve (so two adjacent districts still
+# meet exactly, no gap or overlap), but the path between corners bows
+# through them instead of turning sharply.
+func _smooth_closed_loop(loop: Array, samples_per_segment: int = 6) -> Array:
+	var n := loop.size()
+	if n < 3: return loop
+	var smoothed: Array = []
+	for i in range(n):
+		var p0: Vector2 = loop[(i - 1 + n) % n]
+		var p1: Vector2 = loop[i]
+		var p2: Vector2 = loop[(i + 1) % n]
+		var p3: Vector2 = loop[(i + 2) % n]
+		for s in range(samples_per_segment):
+			var t := float(s) / float(samples_per_segment)
+			smoothed.append(p1.cubic_interpolate(p2, p0, p3, t))
+	return smoothed
 
 func _draw_ghost_connection(from: Vector2, to: Vector2, label: String, color: Color):
 	if from.is_equal_approx(to): return
