@@ -1,5 +1,13 @@
 # Mud-World-Editor Gap Matrix
 
+**Status note (2026-09-16):** written before the current Godot editor's
+content sync and generation work (`ROADMAP.md` P8). The path in "Current
+Signals" below is stale (an earlier checkout location); the editor now
+lives at `mud-world-editor/` in this repo and syncs directly with
+`content_sets/fantasy_frontier/`, not a separate un-packaged format. Items
+1 and 2 (both P0) are substantially resolved — see the per-item notes.
+Items 3–8 remain accurate open gaps.
+
 ## Purpose
 
 Map current `mud-world-editor` capability against runtime/toolkit contracts so we can prioritize editor-path worldbuilding.
@@ -13,14 +21,24 @@ Map current `mud-world-editor` capability against runtime/toolkit contracts so w
 ## Gap Matrix
 
 1. Canonical Data Contract
-- Current: editor targets older un-packaged `world.json`/custom region files.
-- Needed: explicit export contract aligned with current runtime data schema + validator inputs.
-- Priority: P0
+- **Resolved, differently than proposed.** The editor's `data/` is synced
+  from and reads/writes the same files `content_sets/fantasy_frontier/`
+  uses — there is no separate export contract because there is no
+  separate format. Region files still carry an editor-only `_editor_pos`
+  layout field, backfilled on load rather than treated as foreign.
+- Priority: P0 — done.
 
 2. Validator Integration
-- Current: no clear direct call path from editor to `data_integrity_validator.py` and `reference_integrity_validator.py`.
-- Needed: editor export preflight that runs both validators and surfaces actionable errors.
-- Priority: P0
+- **Substantially resolved, narrower scope than proposed.** The editor
+  has a one-click "Validate Region Policy" action calling
+  `engine.server.content_set.validate_region_policy()` (via
+  `toolkit/region_policy_validator.py`) for fast, region-scoped feedback
+  on classification/level-bands/hazard-coverage. It does not call
+  `data_integrity_validator.py`/`reference_integrity_validator.py`
+  directly — that whole-content-set check (reachability, cross-file
+  references, dialogue wiring) stays a separate, slower pass, run outside
+  the editor today.
+- Priority: P0 — mostly done; full-validator integration still open.
 
 3. Profile-Aware Authoring
 - Current: no visible authoring-time checks for server profile modes (`world_mutation`, `authoring`, `combat`, `weather`).
