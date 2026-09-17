@@ -52,6 +52,14 @@ const LOCAL_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/Loca
 const WORLD_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/WorldViewBuilder.gd")
 const QUEST_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/QuestViewBuilder.gd")
 
+# How much local wiggle a district border's simplification pass is allowed
+# to iron out before drawing it, in pixels. Deliberately independent of the
+# territory grid's own cell_size: that constant controls how tightly two
+# districts' boundaries track each other, and shrinking it to tighten that
+# should not, as a side effect, also shrink how much smoothing the border
+# gets -- those are two different knobs answering two different complaints.
+const BOUNDARY_SIMPLIFY_TOLERANCE := 56.0
+
 func setup(_container: Node2D, _conn_layer: Node2D, p_state: EditorState, p_district_layer: Node2D = null):
 	container = _container
 	connection_layer = _conn_layer
@@ -450,6 +458,7 @@ func _on_draw_district_backgrounds():
 					if sample.distance_to(nearest) > corridor_reserve: continue
 					var room_owner := _district_reserved_room_owner(sample, fields, room_reserve)
 					if room_owner < 0 or room_owner == field_index: owners[cell] = field_index
+	owners = _despeckle_owners(owners)
 	# The cell grid decides ownership; from here on it only decides *shape*.
 	# Tracing each district's own cell mask into closed loops, collapsing the
 	# staircase noise a diagonal boundary produces at this cell size, then
@@ -464,8 +473,8 @@ func _on_draw_district_backgrounds():
 	for field_index in range(fields.size()):
 		var loops: Array = []
 		for loop in _trace_field_boundary_loops(owners, field_index, cell_size):
-			var simplified := _simplify_loop_douglas_peucker(loop, cell_size * 0.75)
-			loops.append(_chaikin_smooth_closed_loop(simplified, 3))
+			var simplified := _simplify_loop_douglas_peucker(loop, BOUNDARY_SIMPLIFY_TOLERANCE)
+			loops.append(_chaikin_smooth_closed_loop(simplified, 4))
 		field_loops.append(loops)
 	for field_index in range(fields.size()):
 		var color: Color = fields[field_index]["color"]
@@ -518,6 +527,34 @@ func _district_segment_distance(point: Vector2, field: Dictionary) -> float:
 		var nearest := Geometry2D.get_closest_point_to_segment(point, segment["from"], segment["to"])
 		closest = minf(closest, point.distance_to(nearest))
 	return closest
+
+# A cell whose 4-neighbors are mostly one other district is noise, not a
+# real feature -- the nearest-owner/reserved/corridor rules above are each
+# individually reasonable but can flip a single stray cell's owner right at
+# the seam between two districts, which then shows up downstream as a small
+# jagged notch or spike DP has no reason to remove (a lone flipped cell is a
+# real, if tiny, deviation from any chord near it). Requiring 3 of 4
+# neighbors to agree before reassigning a cell is deliberately strict: it
+# only cleans up single-cell pockets and leaves genuine thin necks or
+# corridors (which are many cells wide, so never look this isolated) alone.
+func _despeckle_owners(owners: Dictionary) -> Dictionary:
+	var neighbor_offsets := [Vector2i(0, -1), Vector2i(0, 1), Vector2i(1, 0), Vector2i(-1, 0)]
+	var cleaned := owners.duplicate()
+	for cell in owners:
+		var current: int = owners[cell]
+		var counts: Dictionary = {}
+		for offset in neighbor_offsets:
+			if not owners.has(cell + offset): continue
+			var neighbor_owner: int = owners[cell + offset]
+			counts[neighbor_owner] = counts.get(neighbor_owner, 0) + 1
+		var best_owner := current
+		var best_count: int = counts.get(current, 0)
+		for owner in counts:
+			if counts[owner] > best_count:
+				best_count = counts[owner]
+				best_owner = owner
+		if best_owner != current and best_count >= 3: cleaned[cell] = best_owner
+	return cleaned
 
 # Walks the owned-cell mask for one field into one or more closed,
 # world-space vertex loops (its outer boundary, plus any hole it has been

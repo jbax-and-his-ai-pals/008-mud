@@ -22,6 +22,27 @@ func _init() -> void:
 	var loops = gc._trace_field_boundary_loops(owners, 0, 64.0)
 	_assert(loops.size() == 1, "a solid block traces to exactly one loop, got %d" % loops.size())
 
+	# A single stray cell surrounded on 3+ sides by another district is
+	# noise (the kind of thing that shows up downstream as a small jagged
+	# notch DP has no reason to remove) and must be reassigned to its
+	# neighbors' majority owner.
+	var speckled := {
+		Vector2i(0, 0): 1, Vector2i(1, 0): 1, Vector2i(2, 0): 1,
+		Vector2i(0, 1): 1, Vector2i(1, 1): 0, Vector2i(2, 1): 1,
+		Vector2i(0, 2): 1, Vector2i(1, 2): 1, Vector2i(2, 2): 1,
+	}
+	var despeckled = gc._despeckle_owners(speckled)
+	_assert(int(despeckled[Vector2i(1, 1)]) == 1, "an isolated single-cell speckle is reassigned to its neighbors' owner")
+
+	# A cell on a real, wider boundary -- only 2 of 4 neighbors disagree --
+	# must be left alone; that is an ordinary border, not noise.
+	var real_border := {
+		Vector2i(0, 0): 0, Vector2i(1, 0): 1,
+		Vector2i(0, 1): 0, Vector2i(1, 1): 1,
+	}
+	var border_result = gc._despeckle_owners(real_border)
+	_assert(int(border_result[Vector2i(0, 0)]) == 0 and int(border_result[Vector2i(1, 0)]) == 1, "an ordinary 2-vs-2 border is left alone")
+
 	# Two side-by-side fields must each trace their own loop.
 	var two_field_owners := {
 		Vector2i(0, 0): 0, Vector2i(0, 1): 0,
