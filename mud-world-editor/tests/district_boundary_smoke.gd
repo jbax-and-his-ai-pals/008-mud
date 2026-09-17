@@ -70,6 +70,33 @@ func _init() -> void:
 
 	_assert(gc._find_deepest_owned_cell({}, 0) == Vector2i.ZERO, "an empty mask returns a harmless default instead of crashing")
 
+	# Obstacle-aware placement: a room card sitting exactly on the
+	# territory's deepest point must push the label somewhere else -- the
+	# whole point of factoring rooms/connections into the search rather
+	# than only ever using the plain deepest cell.
+	var wide_owners := {}
+	for x in range(9):
+		for y in range(9):
+			wide_owners[Vector2i(x, y)] = 0
+	var cs := 64.0
+	var deepest_pos: Vector2 = (Vector2(gc._find_deepest_owned_cell(wide_owners, 0)) + Vector2(0.5, 0.5)) * cs
+	var room_obstacles := {"points": [deepest_pos], "segments": []}
+	var anchor := gc._find_label_anchor_cell(wide_owners, 0, cs, room_obstacles)
+	var anchor_pos: Vector2 = (Vector2(anchor) + Vector2(0.5, 0.5)) * cs
+	_assert(anchor_pos.distance_to(deepest_pos) > cs, "a label anchor moves away from a room sitting on the district's deepest point")
+
+	# With nothing to avoid, obstacle-awareness should not change anything.
+	var no_obstacles := {"points": [], "segments": []}
+	var anchor_clear := gc._find_label_anchor_cell(wide_owners, 0, cs, no_obstacles)
+	_assert(anchor_clear == gc._find_deepest_owned_cell(wide_owners, 0), "with no obstacles, the anchor matches the plain deepest-cell result")
+
+	# A connection line cutting straight across the deepest point must also
+	# push the label away from that line.
+	var line_obstacles := {"points": [], "segments": [{"from": Vector2(0, deepest_pos.y), "to": Vector2(9 * cs, deepest_pos.y)}]}
+	var anchor_line := gc._find_label_anchor_cell(wide_owners, 0, cs, line_obstacles)
+	var anchor_line_pos: Vector2 = (Vector2(anchor_line) + Vector2(0.5, 0.5)) * cs
+	_assert(absf(anchor_line_pos.y - deepest_pos.y) > cs * 0.5, "a connection line through the deepest point pushes the label off that line")
+
 	# Two side-by-side fields must each trace their own loop.
 	var two_field_owners := {
 		Vector2i(0, 0): 0, Vector2i(0, 1): 0,

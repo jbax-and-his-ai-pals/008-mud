@@ -588,10 +588,11 @@ func _on_draw_district_labels():
 	var owners: Dictionary = territory["owners"]
 	var cell_size: float = territory["cell_size"]
 	var font := ThemeDB.get_fallback_font()
+	var obstacles := _collect_label_obstacles()
 	const LABEL_FONT_SIZE := 20
 	for field_index in range(fields.size()):
-		var deepest_cell := _find_deepest_owned_cell(owners, field_index)
-		var label_pos: Vector2 = (Vector2(deepest_cell) + Vector2(0.5, 0.5)) * cell_size
+		var anchor_cell := _find_label_anchor_cell(owners, field_index, cell_size, obstacles)
+		var label_pos: Vector2 = (Vector2(anchor_cell) + Vector2(0.5, 0.5)) * cell_size
 		var title := str(fields[field_index]["name"])
 		var title_size := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE)
 		var color: Color = fields[field_index]["color"]
@@ -657,21 +658,15 @@ func _despeckle_owners(owners: Dictionary) -> Dictionary:
 		if best_owner != current and best_count >= 3: cleaned[cell] = best_owner
 	return cleaned
 
-# The owned cell that sits deepest inside a field's territory -- the one
-# farthest, in grid steps, from any cell that isn't also this field's (a
-# neighbor with a different owner, or simply outside the mask). This is a
-# cheap grid-based stand-in for a "pole of inaccessibility": a label placed
-# here sits in the roomiest part of the district's actual shape instead of
-# a corner or a raw room position, so it reads cleanly regardless of how
-# irregular that shape is. A multi-source BFS from every boundary cell
-# (distance 0) outward finds it in one pass over the field's cells.
-func _find_deepest_owned_cell(owners: Dictionary, field_index: int) -> Vector2i:
+# Multi-source BFS from every boundary cell of one field (distance 0)
+# outward: for each cell field_index owns, how many grid steps it is from
+# the nearest cell that isn't also field_index's (a neighbor with a
+# different owner, or simply outside the mask). Shared by
+# _find_deepest_owned_cell and the label-placement search below, since
+# both need "how far inside its own territory is this point" as one half
+# of their answer.
+func _district_boundary_distances(owners: Dictionary, field_index: int, field_cells: Array) -> Dictionary:
 	var neighbor_offsets := [Vector2i(0, -1), Vector2i(0, 1), Vector2i(1, 0), Vector2i(-1, 0)]
-	var field_cells: Array = []
-	for cell in owners:
-		if int(owners[cell]) == field_index: field_cells.append(cell)
-	if field_cells.is_empty(): return Vector2i.ZERO
-
 	var distance: Dictionary = {}
 	var queue: Array = []
 	for cell in field_cells:
@@ -683,7 +678,6 @@ func _find_deepest_owned_cell(owners: Dictionary, field_index: int) -> Vector2i:
 		if is_boundary:
 			distance[cell] = 0
 			queue.append(cell)
-	if queue.is_empty(): return field_cells[0]
 
 	var head := 0
 	while head < queue.size():
@@ -694,6 +688,25 @@ func _find_deepest_owned_cell(owners: Dictionary, field_index: int) -> Vector2i:
 			if int(owners.get(neighbor, -1)) != field_index or distance.has(neighbor): continue
 			distance[neighbor] = distance[current] + 1
 			queue.append(neighbor)
+	return distance
+
+func _owned_cells(owners: Dictionary, field_index: int) -> Array:
+	var field_cells: Array = []
+	for cell in owners:
+		if int(owners[cell]) == field_index: field_cells.append(cell)
+	return field_cells
+
+# The owned cell that sits deepest inside a field's territory -- the one
+# farthest, in grid steps, from any cell that isn't also this field's. This
+# is a cheap grid-based stand-in for a "pole of inaccessibility": a label
+# placed here sits in the roomiest part of the district's actual shape
+# instead of a corner or a raw room position, so it reads cleanly
+# regardless of how irregular that shape is.
+func _find_deepest_owned_cell(owners: Dictionary, field_index: int) -> Vector2i:
+	var field_cells := _owned_cells(owners, field_index)
+	if field_cells.is_empty(): return Vector2i.ZERO
+	var distance := _district_boundary_distances(owners, field_index, field_cells)
+	if distance.is_empty(): return field_cells[0]
 
 	var best_cell: Vector2i = field_cells[0]
 	var best_distance := -1
@@ -701,6 +714,58 @@ func _find_deepest_owned_cell(owners: Dictionary, field_index: int) -> Vector2i:
 		var d: int = distance.get(cell, 0)
 		if d > best_distance:
 			best_distance = d
+			best_cell = cell
+	return best_cell
+
+# Every room/proxy card position and every drawn room-to-room connection
+# segment currently in the local view, regardless of which district (if
+# any) they belong to -- a label should not sit close to any of them, not
+# just its own district's.
+func _collect_label_obstacles() -> Dictionary:
+	var points: Array = []
+	for node in local_view_builder.room_nodes.values():
+		if is_instance_valid(node): points.append(node.position)
+	var segments: Array = []
+	var rooms: Dictionary = region_data.get("rooms", {})
+	for room_id in rooms:
+		if not local_view_builder.room_nodes.has(room_id): continue
+		var from: Vector2 = local_view_builder.room_nodes[room_id].position
+		for target_variant in rooms[room_id].get("exits", {}).values():
+			var target_id := str(target_variant)
+			if local_view_builder.room_nodes.has(target_id):
+				segments.append({"from": from, "to": local_view_builder.room_nodes[target_id].position})
+	return {"points": points, "segments": segments}
+
+func _clearance_to_obstacles(point: Vector2, obstacles: Dictionary) -> float:
+	var clearance := INF
+	for pos in obstacles.get("points", []):
+		clearance = minf(clearance, point.distance_to(pos))
+	for segment in obstacles.get("segments", []):
+		var nearest := Geometry2D.get_closest_point_to_segment(point, segment["from"], segment["to"])
+		clearance = minf(clearance, point.distance_to(nearest))
+	return clearance
+
+# The owned cell that maximizes the guaranteed clear margin around a label
+# placed there: the smaller of (a) how far inside the district's own
+# territory it sits -- never crossing into a neighbor -- and (b) how far
+# it sits from the nearest room card or connection line anywhere in the
+# local view. Maximizing that minimum is exactly "as much padding as
+# possible on every side" rather than a fixed threshold that some small or
+# dense district could never actually clear.
+func _find_label_anchor_cell(owners: Dictionary, field_index: int, cell_size: float, obstacles: Dictionary) -> Vector2i:
+	var field_cells := _owned_cells(owners, field_index)
+	if field_cells.is_empty(): return Vector2i.ZERO
+	var boundary_distance := _district_boundary_distances(owners, field_index, field_cells)
+
+	var best_cell: Vector2i = field_cells[0]
+	var best_score := -1.0
+	for cell in field_cells:
+		var boundary_clearance: float = float(boundary_distance.get(cell, 0)) * cell_size
+		var world_pos := (Vector2(cell) + Vector2(0.5, 0.5)) * cell_size
+		var obstacle_clearance := _clearance_to_obstacles(world_pos, obstacles)
+		var score := minf(boundary_clearance, obstacle_clearance)
+		if score > best_score:
+			best_score = score
 			best_cell = cell
 	return best_cell
 
