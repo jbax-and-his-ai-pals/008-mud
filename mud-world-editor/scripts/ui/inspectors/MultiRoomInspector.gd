@@ -10,6 +10,12 @@ var action_handler: ActionHandler
 var selected_ids: Array
 var props_box: VBoxContainer
 var popup_menu: PopupMenu
+var district_anchor: OptionButton
+var district_target: OptionButton
+var district_direction: OptionButton
+var district_status: RichTextLabel
+var district_attach_button: Button
+var district_preview: Dictionary = {}
 
 # Definition for intersection result
 class MixedProp:
@@ -49,6 +55,57 @@ func build(ids: Array):
 	popup_menu.id_pressed.connect(_on_add_tag)
 	
 	_refresh_props()
+	_build_district_attachment()
+
+func _build_district_attachment():
+	var card = InspectorStyle.create_card()
+	var vbox = card.get_child(0).get_child(0)
+	container.add_child(card)
+	vbox.add_child(InspectorStyle.lbl("DISTRICT ATTACHMENT", Color.CYAN))
+	vbox.add_child(InspectorStyle.lbl("Preview the selected rooms as one sparse footprint before moving or linking them.", InspectorStyle.COLOR_TEXT_DIM))
+
+	district_anchor = OptionButton.new(); district_target = OptionButton.new(); district_direction = OptionButton.new()
+	for room_id in selected_ids:
+		if region_mgr.data.rooms.has(room_id):
+			district_anchor.add_item(region_mgr.data.rooms[room_id].get("name", room_id))
+			district_anchor.set_item_metadata(district_anchor.item_count - 1, room_id)
+	for room_id in region_mgr.data.rooms:
+		if not selected_ids.has(room_id):
+			district_target.add_item(region_mgr.data.rooms[room_id].get("name", room_id))
+			district_target.set_item_metadata(district_target.item_count - 1, room_id)
+	for direction in ["north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest", "up", "down", "climb", "dive"]:
+		district_direction.add_item(direction.capitalize())
+		district_direction.set_item_metadata(district_direction.item_count - 1, direction)
+	for pair in [["District port:", district_anchor], ["Attach to:", district_target], ["Direction from target:", district_direction]]:
+		var row = HBoxContainer.new(); row.add_child(InspectorStyle.lbl(pair[0], InspectorStyle.COLOR_TEXT_DIM)); pair[1].size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(pair[1]); vbox.add_child(row)
+	district_status = RichTextLabel.new(); district_status.bbcode_enabled = true; district_status.fit_content = true
+	vbox.add_child(district_status)
+	var buttons = HBoxContainer.new(); vbox.add_child(buttons)
+	var preview_button = Button.new(); preview_button.text = "Preview Fit"; preview_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL; buttons.add_child(preview_button)
+	district_attach_button = Button.new(); district_attach_button.text = "Attach District"; district_attach_button.disabled = true; district_attach_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL; buttons.add_child(district_attach_button)
+	preview_button.pressed.connect(_refresh_district_preview)
+	district_anchor.item_selected.connect(func(_index): _refresh_district_preview())
+	district_target.item_selected.connect(func(_index): _refresh_district_preview())
+	district_direction.item_selected.connect(func(_index): _refresh_district_preview())
+	district_attach_button.pressed.connect(func(): action_handler.apply_district_attachment(selected_ids, district_preview))
+	_refresh_district_preview()
+
+func _refresh_district_preview():
+	if district_anchor == null or district_anchor.selected < 0 or district_target.selected < 0 or district_direction.selected < 0:
+		return
+	var anchor := str(district_anchor.get_item_metadata(district_anchor.selected))
+	var target := str(district_target.get_item_metadata(district_target.selected))
+	var direction := str(district_direction.get_item_metadata(district_direction.selected))
+	district_preview = action_handler.preview_district_attachment(selected_ids, anchor, target, direction)
+	district_attach_button.disabled = not district_preview.get("valid", false)
+	var errors: Array = district_preview.get("errors", [])
+	var warnings: Array = district_preview.get("warnings", [])
+	if district_preview.get("valid", false):
+		district_status.text = "[color=lightgreen]Fits: no room overlap; continuity and selected ports are valid.[/color]"
+	else:
+		district_status.text = "[color=salmon]" + "\n".join(errors) + "[/color]"
+	if not warnings.is_empty():
+		district_status.text += "\n[color=orange]" + "\n".join(warnings) + "[/color]"
 
 func _refresh_props():
 	for c in props_box.get_children(): c.queue_free()

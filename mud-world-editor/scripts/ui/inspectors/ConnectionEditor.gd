@@ -222,7 +222,7 @@ func _on_conn_region_changed(idx):
 	room_keys.sort()
 	
 	for r_id in room_keys:
-		conn_room_opt.add_item(rooms[r_id] + " (" + r_id + ")")
+		conn_room_opt.add_item(rooms[r_id])
 		conn_room_opt.set_item_metadata(conn_room_opt.item_count - 1, r_id)
 	
 	_update_connection_info()

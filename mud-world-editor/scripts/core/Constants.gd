@@ -27,6 +27,15 @@ const DIR_VECTORS = {
 	DIR_CLIMB: Vector2(0.5, -0.5), DIR_DIVE: Vector2(0.5, 0.5) 
 }
 
+# Editor-only semantic defaults for exits that describe travel rather than a
+# compass bearing. Authors can override these through `_editor_exit_layout`.
+const MAP_DIRECTION_ALIASES = {
+	"upstream": DIR_N,
+	"downstream": DIR_S,
+	"surface": DIR_UP,
+	"descend": DIR_DOWN,
+}
+
 const INV_DIR_MAP = {
 	DIR_N: DIR_S, DIR_S: DIR_N, 
 	DIR_E: DIR_W, DIR_W: DIR_E, 
@@ -36,6 +45,21 @@ const INV_DIR_MAP = {
 	DIR_NW: DIR_SE, DIR_SE: DIR_NW,
 	DIR_CLIMB: DIR_DIVE, DIR_DIVE: DIR_CLIMB
 }
+
+# Reciprocal labels begin with a pair's authored emitter. The two parts swap
+# only when the readable text itself flips 180 degrees.
+static func format_reciprocal_label(first: String, second: String, from: Vector2, to: Vector2) -> String:
+	var angle := (to - from).angle()
+	var text_flipped := angle > PI * 0.5 or angle < -PI * 0.5
+	return "%s ↔ %s" % [second.capitalize(), first.capitalize()] if text_flipped else "%s ↔ %s" % [first.capitalize(), second.capitalize()]
+
+# Preserve the author-selected emitter when one exists. A caller can provide a
+# legacy source from stable room-creation order when metadata is unavailable.
+static func format_reciprocal_pair_label(first_id: String, second_id: String, first_direction: String, second_direction: String, first_pos: Vector2, second_pos: Vector2, authored_source: String = "") -> String:
+	var use_second := authored_source == second_id
+	if use_second:
+		return format_reciprocal_label(second_direction, first_direction, second_pos, first_pos)
+	return format_reciprocal_label(first_direction, second_direction, first_pos, second_pos)
 
 const ANCHORS = {
 	DIR_N: Vector2(0, -50), DIR_S: Vector2(0, 50),

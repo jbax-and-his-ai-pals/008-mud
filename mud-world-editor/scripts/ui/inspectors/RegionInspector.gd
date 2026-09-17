@@ -8,6 +8,7 @@ signal data_modified
 var container: VBoxContainer
 var cur_data: Dictionary
 var cur_id: String
+var action_handler: ActionHandler
 
 var props_box: VBoxContainer
 var flow_container: HFlowContainer
@@ -28,14 +29,16 @@ const COMMON_PROPS = {
 	"Music": {"key": "music", "val": "default_theme"}
 }
 
-func _init(c: VBoxContainer):
+func _init(c: VBoxContainer, handler: ActionHandler = null):
 	container = c
+	action_handler = handler
 
 func build(id: String, data: Dictionary):
 	cur_id = id
 	cur_data = data
 	_build_general()
 	_build_global_props()
+	_build_districts()
 	
 	spawner_inspector = SPAWNER_INSP_SCRIPT.new()
 	spawner_inspector.build(container, cur_data)
@@ -85,6 +88,21 @@ func _build_global_props():
 	props_box = VBoxContainer.new()
 	vbox.add_child(props_box)
 	_refresh_props()
+
+func _build_districts():
+	var districts: Dictionary = cur_data.get("properties", {}).get("districts", {})
+	if districts.is_empty(): return
+	container.add_child(InspectorStyle.create_section_header("DISTRICTS", Color.CYAN))
+	for district_id in districts:
+		var district: Dictionary = districts[district_id]
+		var card = InspectorStyle.create_card(); var box = card.get_child(0).get_child(0); container.add_child(card)
+		box.add_child(InspectorStyle.lbl(str(district.get("name", district_id)), Color.WHITE))
+		box.add_child(InspectorStyle.lbl("%s · %d rooms · seed %s" % [district.get("kind", "generic"), district.get("members", []).size(), district.get("seed", "?")], InspectorStyle.COLOR_TEXT_DIM))
+		var reroll := Button.new(); reroll.text = "Reroll District (undoable)"
+		reroll.tooltip_text = "Regenerates interior rooms from a new seed while preserving the district's external port roles."
+		reroll.disabled = action_handler == null
+		reroll.pressed.connect(func(): action_handler.reroll_district(str(district_id), randi()); data_modified.emit())
+		box.add_child(reroll)
 
 func _on_add_tag_selected(id: int):
 	var item_text = popup_menu.get_item_text(id)

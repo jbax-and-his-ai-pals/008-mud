@@ -3,6 +3,8 @@ class_name LocalViewBuilder
 extends RefCounted
 
 const ROOM_SCENE = preload("res://scenes/RoomScene.tscn")
+const LayoutOptimizer = preload("res://scripts/generators/LayoutOptimizer.gd")
+const ROOM_CLEARANCE = Vector2(224, 128)
 
 var container: Node2D
 var room_nodes: Dictionary = {}
@@ -16,6 +18,10 @@ signal node_dragged(id, final_pos)
 signal node_right_clicked(id)
 signal connection_drag_started(id)
 signal creation_drag_started(id, pos)
+signal label_clicked(id)
+signal label_drag_started(id)
+signal label_dragged(id)
+signal label_drag_ended(id)
 
 func _init(p_container: Node2D):
 	container = p_container
@@ -44,8 +50,8 @@ func build(region_data: Dictionary, snap_enabled: bool):
 					external_links[target] = Vector2(p[0], p[1])
 				else:
 					var src_pos = room_nodes[rid].position
-					var vec = Constants.DIR_VECTORS.get(dir.to_lower(), Vector2(1,0))
-					external_links[target] = src_pos + (vec * 250.0)
+					var visual_direction = _external_visual_direction(rooms[rid], str(dir))
+					external_links[target] = _find_proxy_position(src_pos, visual_direction, external_links)
 
 	for ext_id in external_links:
 		_create_proxy_node(ext_id, external_links[ext_id], snap_enabled)
@@ -81,6 +87,32 @@ func _create_proxy_node(full_id, pos, snap_enabled):
 	container.add_child(node)
 	room_nodes[full_id] = node
 
+func _external_visual_direction(room_data: Dictionary, exit_name: String) -> String:
+	var layout = room_data.get("_editor_exit_layout", {}).get(exit_name, {})
+	if layout is Dictionary and layout.has("visual_direction"):
+		return str(layout["visual_direction"])
+	if Constants.DIR_VECTORS.has(exit_name.to_lower()):
+		return exit_name.to_lower()
+	return Constants.MAP_DIRECTION_ALIASES.get(exit_name.to_lower(), "east")
+
+func _find_proxy_position(source_pos: Vector2, direction: String, existing_proxies: Dictionary) -> Vector2:
+	var vector: Vector2 = Constants.DIR_VECTORS.get(direction, Vector2.RIGHT)
+	for distance in range(1, 17):
+		var candidate = source_pos + vector * LayoutOptimizer.ROOM_SPACING * distance
+		if not _proxy_collides(candidate, existing_proxies):
+			return candidate
+	return source_pos + vector * LayoutOptimizer.ROOM_SPACING * 17
+
+func _proxy_collides(candidate: Vector2, existing_proxies: Dictionary) -> bool:
+	for room_id in room_nodes:
+		if abs(candidate.x - room_nodes[room_id].position.x) < ROOM_CLEARANCE.x and abs(candidate.y - room_nodes[room_id].position.y) < ROOM_CLEARANCE.y:
+			return true
+	for proxy_id in existing_proxies:
+		var proxy_pos: Vector2 = existing_proxies[proxy_id]
+		if abs(candidate.x - proxy_pos.x) < ROOM_CLEARANCE.x and abs(candidate.y - proxy_pos.y) < ROOM_CLEARANCE.y:
+			return true
+	return false
+
 func _connect_node_signals(node: Node, id: String):
 	node.room_selected.connect(func(_i): node_selected.emit(id))
 	node.room_double_clicked.connect(func(_i): node_double_clicked.emit(id))
@@ -90,6 +122,10 @@ func _connect_node_signals(node: Node, id: String):
 	node.creation_drag_started.connect(func(_i, pos): creation_drag_started.emit(id, pos))
 	node.dragged.connect(func(pos): node_dragging.emit(id, pos))
 	node.drag_ended.connect(func(): node_dragged.emit(id, node.position))
+	node.label_clicked.connect(func(_i): label_clicked.emit(id))
+	node.label_drag_started.connect(func(_i): label_drag_started.emit(id))
+	node.label_dragged.connect(func(_i): label_dragged.emit(id))
+	node.label_drag_ended.connect(func(_i): label_drag_ended.emit(id))
 
 func update_node_visuals(node, data, view_mode = "Default"):
 	var props = data.get("properties", {})

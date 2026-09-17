@@ -112,7 +112,7 @@ func _on_search_text_changed(text):
 			if term in room_id.to_lower() or term in r_name:
 				_create_search_card(
 					rooms[room_id].get("name", "Unnamed"),
-					"Room • %s • %s" % [region_name, room_id],
+					"Room • %s" % region_name,
 					"📍", Color(0.2, 0.6, 0.8),
 					{"type": "room", "region": rid, "id": room_id}
 				)

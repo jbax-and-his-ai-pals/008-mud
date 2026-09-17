@@ -4,6 +4,7 @@ extends VBoxContainer
 signal request_load_region(filename)
 signal request_jump_to_room(id)
 signal request_create_modal_open
+signal request_district_modal_open
 signal request_validate
 signal request_validate_region_policy
 signal request_auto_layout
@@ -56,6 +57,10 @@ func setup():
 	btn_new.pressed.connect(func(): request_create_modal_open.emit())
 	_apply_style(btn_new)
 	btn_row.add_child(btn_new)
+	var btn_district = Button.new(); btn_district.text="New District"; btn_district.size_flags_horizontal=3
+	btn_district.pressed.connect(func(): request_district_modal_open.emit())
+	_apply_style(btn_district)
+	btn_row.add_child(btn_district)
 	
 	var btn_val = Button.new(); btn_val.text="Validate"; btn_val.size_flags_horizontal=3
 	btn_val.pressed.connect(func(): request_validate.emit())

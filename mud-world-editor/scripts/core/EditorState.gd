@@ -14,6 +14,8 @@ var cur_tool_data: Dictionary = {}
 var selected_ids: Array = []
 var highlighted_target_id: String = ""
 var connection_preview: Dictionary = {"active": false, "source_id": "", "target_id": ""}
+var district_preview: Dictionary = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
+var district_dragging: Dictionary = {"active": false, "mouse_start": Vector2.ZERO, "positions": {}}
 
 # Interaction State (temporary state during an action)
 var dragging_conn: Dictionary = {"active": false, "start": Vector2.ZERO, "end": Vector2.ZERO, "src": ""}

@@ -5,11 +5,14 @@ var current_rooms: Dictionary = {}
 const PREVIEW_COLOR = Color(0.82, 0.78, 0.65) 
 const BG_COLOR = Color(0.1, 0.1, 0.15)
 const REF_GRID_SIZE = Vector2(250, 250) 
+const INITIAL_WORLD_SCALE := 0.50
 
 # Zoom & Pan State
 var zoom_level: float = 1.0
 var pan_offset: Vector2 = Vector2.ZERO
 var is_panning: bool = false
+var overlay_header := "LIVE FOOTPRINT"
+var overlay_footer := ""
 
 func _ready():
 	# Stop mouse events from propagating to the map below when hovering this control
@@ -19,6 +22,11 @@ func _ready():
 
 func update_preview(rooms: Dictionary):
 	current_rooms = rooms
+	queue_redraw()
+
+func set_overlay(header: String, footer: String):
+	overlay_header = header
+	overlay_footer = footer
 	queue_redraw()
 
 func _gui_input(event):
@@ -77,21 +85,9 @@ func _draw():
 		min_p = Vector2(-500, -500)
 		max_p = Vector2(500, 500)
 
-	var content_size = max_p - min_p
-	content_size.x = max(content_size.x, REF_GRID_SIZE.x)
-	content_size.y = max(content_size.y, REF_GRID_SIZE.y)
-	
-	# 2. Calculate Base Scale (Fit to Screen)
-	var margin = 40.0
-	var avail = size - Vector2(margin * 2, margin * 2)
-	
-	var scale_x = avail.x / content_size.x
-	var scale_y = avail.y / content_size.y
-	var base_scale = min(scale_x, scale_y)
-	base_scale = clamp(base_scale, 0.001, 2.0)
-	
-	# Combined Scale
-	var final_scale = base_scale * zoom_level
+	# Generation size must not silently change the initial visual scale. Authors
+	# can compare rerolls at a consistent zoom, then use wheel zoom if desired.
+	var final_scale = INITIAL_WORLD_SCALE * zoom_level
 	
 	# Calculate Center Offset
 	var grid_geometric_center = min_p + (max_p - min_p) / 2.0
@@ -148,6 +144,15 @@ func _draw():
 		# Frustum Culling
 		if rect.intersects(Rect2(Vector2.ZERO, size)):
 			draw_rect(rect, PREVIEW_COLOR)
+
+	# The chrome belongs above the footprint rather than consuming layout space.
+	var overlay_bg := Color(0.03, 0.06, 0.11, 0.76)
+	draw_rect(Rect2(Vector2(0, 0), Vector2(size.x, 24)), overlay_bg, true)
+	draw_string(ThemeDB.get_fallback_font(), Vector2(10, 16), overlay_header, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("b7c5d8"))
+	if overlay_footer != "":
+		var footer_height := 24.0
+		draw_rect(Rect2(Vector2(0, size.y - footer_height), Vector2(size.x, footer_height)), overlay_bg, true)
+		draw_string(ThemeDB.get_fallback_font(), Vector2(10, size.y - 8), overlay_footer, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color("a2e6b3"))
 
 func _get_pos(r: Dictionary) -> Vector2:
 	if r["_editor_pos"] is Array:

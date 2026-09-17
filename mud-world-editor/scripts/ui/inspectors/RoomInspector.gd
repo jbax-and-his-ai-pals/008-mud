@@ -65,7 +65,7 @@ func _build_general_info():
 	container.add_child(card)
 	
 	var id_box = HBoxContainer.new()
-	id_box.add_child(InspectorStyle.lbl("ID:", InspectorStyle.COLOR_TEXT_DIM))
+	id_box.add_child(InspectorStyle.lbl("Technical ID:", InspectorStyle.COLOR_TEXT_DIM))
 	var id_edit = LineEdit.new(); id_edit.text = cur_id; id_edit.size_flags_horizontal = 3
 	id_edit.text_submitted.connect(func(t): request_rename.emit(cur_id, t))
 	InspectorStyle.apply_input_style(id_edit)

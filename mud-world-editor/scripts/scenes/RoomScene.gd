@@ -9,6 +9,10 @@ signal connection_drag_started(room_id)
 signal creation_drag_started(room_id, anchor_pos)
 signal drag_started
 signal drag_ended
+signal label_clicked(room_id)
+signal label_drag_started(room_id)
+signal label_dragged(room_id)
+signal label_drag_ended(room_id)
 
 var dragging = false
 var drag_offset = Vector2()
@@ -27,6 +31,13 @@ var _properties: Dictionary = {}
 
 var _cached_name: String = "Unnamed"
 var _cached_id: String = ""
+var _preview_name := ""
+var _label_arrange_mode := false
+var _label_dragging := false
+var _label_drag_origin := Vector2.ZERO
+var _is_label_drag_source := false
+var _is_label_swap_target := false
+var _show_technical_id := false
 
 @onready var visual_panel = $VisualPanel
 
@@ -73,9 +84,12 @@ func _ready():
 		main_layout.add_child(name_label)
 	
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	name_label.add_theme_font_size_override("font_size", 13)
 	name_label.modulate = Color(1, 1, 1, 1.0)
 	name_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_label.gui_input.connect(_on_name_label_gui_input)
 	
 	id_label = visual_panel.get_node_or_null("IDLabel")
 	if not id_label: id_label = Label.new(); id_label.name = "IDLabel"
@@ -102,6 +116,8 @@ func _ready():
 	
 	if name_label: name_label.text = _cached_name
 	if id_label: id_label.text = _cached_id
+	if id_label: id_label.visible = _show_technical_id
+	set_label_arrange_mode(_label_arrange_mode)
 	
 	update_icons(_npc_visible, _item_visible, _start_visible, _custom_icon_id, _properties)
 	_update_border()
@@ -126,8 +142,68 @@ func get_connection_anchor_point(dir: String) -> Vector2:
 func set_info(name_text: String, id_text: String):
 	_cached_name = name_text
 	_cached_id = id_text
-	if name_label: name_label.text = name_text
+	if name_label: name_label.text = _preview_name if _preview_name != "" else name_text
 	if id_label: id_label.text = id_text
+
+func set_show_technical_id(visible: bool):
+	_show_technical_id = visible
+	if id_label: id_label.visible = visible
+
+func set_label_arrange_mode(enabled: bool):
+	_label_arrange_mode = enabled
+	if not is_node_ready() or not name_label: return
+	name_label.mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+	name_label.tooltip_text = "Click to rename • drag onto another label to swap" if enabled else ""
+	_update_label_arrange_style()
+
+func set_label_swap_target(active: bool):
+	_is_label_swap_target = active
+	_update_label_arrange_style()
+
+func set_label_drag_source(active: bool):
+	_is_label_drag_source = active
+	_update_label_arrange_style()
+
+func set_label_preview(preview_name: String):
+	_preview_name = preview_name
+	if name_label: name_label.text = preview_name if preview_name != "" else _cached_name
+
+func _update_label_arrange_style():
+	if not is_node_ready() or not name_label: return
+	if not _label_arrange_mode:
+		name_label.modulate = Color.WHITE
+		name_label.remove_theme_stylebox_override("normal")
+		return
+	var color := Color("60e6ff") # Available label
+	if _is_label_drag_source: color = Color("5cf29a") # Label being carried
+	elif _is_label_swap_target: color = Color("5cf29a") # Swap destination
+	name_label.modulate = color.lightened(0.22)
+	var chip := StyleBoxFlat.new()
+	chip.bg_color = Color(color.r, color.g, color.b, 0.16)
+	chip.border_color = color
+	chip.set_border_width_all(2)
+	chip.set_corner_radius_all(3)
+	chip.content_margin_left = 5
+	chip.content_margin_right = 5
+	chip.content_margin_top = 2
+	chip.content_margin_bottom = 2
+	name_label.add_theme_stylebox_override("normal", chip)
+
+func _on_name_label_gui_input(event: InputEvent):
+	if not _label_arrange_mode: return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_label_dragging = true
+			_label_drag_origin = get_global_mouse_position()
+			emit_signal("label_drag_started", _cached_id)
+		else:
+			if _label_dragging:
+				var was_click := get_global_mouse_position().distance_to(_label_drag_origin) < 8.0
+				_label_dragging = false
+				if was_click: emit_signal("label_clicked", _cached_id)
+				else: emit_signal("label_drag_ended", _cached_id)
+	if event is InputEventMouseMotion and _label_dragging:
+		emit_signal("label_dragged", _cached_id)
 
 func set_as_proxy(is_proxy: bool):
 	_is_proxy = is_proxy
@@ -197,6 +273,12 @@ func _on_mouse_exited():
 	if not _is_selected and not _is_highlighted: z_index = 0
 
 func _on_panel_gui_input(event):
+	if _label_arrange_mode:
+		# The label itself owns editing/swapping in this mode; prevent accidental
+		# map movement while an author is arranging presentation.
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			emit_signal("room_selected", _cached_id)
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:

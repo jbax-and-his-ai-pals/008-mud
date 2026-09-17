@@ -19,7 +19,7 @@ func handle_input(event: InputEvent) -> bool:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN: 
 			zoom(1.0 / 1.1)
 			return true
-		elif event.button_index == MOUSE_BUTTON_LEFT:
+		elif event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_MIDDLE:
 			is_panning = event.pressed
 	
 	if event is InputEventMouseMotion and is_panning:

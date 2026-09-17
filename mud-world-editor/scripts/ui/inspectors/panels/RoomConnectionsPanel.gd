@@ -108,8 +108,7 @@ func _create_exit_row(dir, target) -> PanelContainer:
 		t_name = region_mgr.data.rooms[target].get("name", "Unnamed")
 	
 	var l_name = Label.new(); l_name.text = t_name; l_name.clip_text = true; l_name.add_theme_font_size_override("font_size", 14)
-	var l_id = Label.new(); l_id.text = target; l_id.clip_text = true; l_id.add_theme_font_size_override("font_size", 10); l_id.modulate = Color(1,1,1,0.5)
-	vb_t.add_child(l_name); vb_t.add_child(l_id); hb.add_child(vb_t)
+	vb_t.add_child(l_name); hb.add_child(vb_t)
 	
 	var btn_del = Button.new(); btn_del.text = "🗑"; btn_del.flat = true
 	btn_del.add_theme_color_override("font_color", Color(0.6, 0.3, 0.3))

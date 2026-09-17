@@ -119,7 +119,7 @@ func load_region_root(data: Dictionary):
 	cur_mode = "region_root"
 	panel.visible = true
 	
-	var insp = RegionInspector.new(content_container)
+	var insp = RegionInspector.new(content_container, action_handler)
 	current_inspector = insp
 	insp.data_modified.connect(func(): data_modified.emit())
 	insp.build(data.get("region_id", "Unknown"), data)

@@ -25,6 +25,7 @@ var mouse_down_pos: Vector2
 var deselection_primed: bool = false
 var is_dragging_object: bool = false
 const DRAG_PIXEL_THRESHOLD = 10
+var label_drag_source := ""
 
 # Scene Refs
 @onready var main_camera = $MainCamera
@@ -32,6 +33,7 @@ const DRAG_PIXEL_THRESHOLD = 10
 @onready var connection_layer = $ConnectionLayer
 @onready var ui_layer = $UILayer
 var grid_layer: GridLayer
+var district_layer: Node2D
 
 func _ready():
 	region_mgr = RegionManager.new()
@@ -43,12 +45,18 @@ func _ready():
 	grid_layer = GridLayer.new(); add_child(grid_layer); move_child(grid_layer, 0)
 	grid_layer.setup(main_camera)
 	grid_layer.visible = false
+	district_layer = Node2D.new(); district_layer.name = "DistrictLayer"; add_child(district_layer); move_child(district_layer, 1)
 	
 	ui_mgr = EditorUIManager.new(); ui_mgr.setup(ui_layer)
 	inspector = InspectorController.new(); inspector.setup(ui_layer, region_mgr, world_mgr, database_mgr)
-	graph_controller = GraphController.new(); graph_controller.setup(room_container, connection_layer, state)
+	graph_controller = GraphController.new(); graph_controller.setup(room_container, connection_layer, state, district_layer)
 	camera_controller = CameraController.new(); camera_controller.setup(main_camera, ui_mgr)
 	action_handler = ActionHandler.new(); action_handler.setup(self, state, cmd_proc, region_mgr, world_mgr, graph_controller, ui_mgr, inspector)
+	action_handler.district_preview_changed.connect(func(preview):
+		state.district_preview = preview if not preview.is_empty() else {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
+		_refresh_district_toolbar()
+		graph_controller.queue_redraw()
+	)
 	
 	inspector.set_action_handler(action_handler)
 	
@@ -109,11 +117,50 @@ func _update_db_ui():
 
 func _connect_ui_signals():
 	ui_mgr.request_load_region.connect(_load_region)
-	ui_mgr.request_validate.connect(func(): ui_mgr.show_validation_results(world_mgr.validate_world_links()))
+	ui_mgr.request_validate.connect(_show_validation_results)
+	ui_mgr.request_acknowledge_validation_warning.connect(func(warning_id): world_mgr.acknowledge_warning(warning_id); _show_validation_results())
+	ui_mgr.request_reset_ignored_validation_warnings.connect(func(): world_mgr.reset_ignored_warnings(); _show_validation_results())
+	ui_mgr.label_arrange_mode_changed.connect(func(enabled):
+		if state.is_world_view: return
+		graph_controller.set_label_arrange_mode(enabled)
+		if not enabled:
+			label_drag_source = ""
+			graph_controller.set_label_swap_target("")
+			graph_controller.set_label_drag_source("")
+			graph_controller.set_label_swap_preview("", "")
+	)
+	ui_mgr.request_room_label_rename.connect(func(room_id, new_name): action_handler.rename_room_label(room_id, new_name))
+	ui_mgr.technical_ids_visibility_changed.connect(func(enabled): graph_controller.set_show_technical_ids(enabled))
 	ui_mgr.request_validate_region_policy.connect(_validate_region_policy)
 	ui_mgr.request_open_creator_modal.connect(func(): ui_mgr.creator_modal.set_target_options(world_mgr.get_global_hierarchy()))
+	ui_mgr.request_open_district_modal.connect(func():
+		if not state.is_world_view and not region_mgr.data.get("rooms", {}).is_empty():
+			ui_mgr.district_modal.open_for_rooms(region_mgr.data.rooms)
+	)
 	ui_mgr.request_create_connection.connect(action_handler.create_connection)
 	ui_mgr.request_create_region.connect(_create_region)
+	ui_mgr.request_place_district.connect(func(definition): action_handler.begin_district_placement(definition, main_camera.position))
+	ui_mgr.request_district_connection_setup.connect(_begin_district_connection)
+	ui_mgr.request_district_endpoint_focus.connect(func(endpoint):
+		if state.district_preview.get("active", false) and state.district_preview.get("phase", "") == "connection":
+			state.district_preview.active_endpoint = endpoint
+			_refresh_district_toolbar()
+	)
+	ui_mgr.request_district_direction_selected.connect(func(direction):
+		if state.district_preview.get("active", false) and state.district_preview.get("phase", "") == "connection":
+			state.district_preview.direction = direction
+			state.district_preview.direction_auto = false
+			_refresh_district_toolbar()
+			graph_controller.queue_redraw()
+	)
+	ui_mgr.request_district_back_to_placement.connect(func():
+		if state.district_preview.get("active", false):
+			state.district_preview.phase = "placement"
+			_refresh_district_toolbar()
+			graph_controller.queue_redraw()
+	)
+	ui_mgr.request_district_confirm.connect(_confirm_district_connection)
+	ui_mgr.request_district_cancel.connect(_cancel_district_placement)
 	ui_mgr.context_action.connect(action_handler.handle_context_action)
 	ui_mgr.snap_toggled.connect(func(b): state.snap_enabled=b; graph_controller.set_snap(b); grid_layer.visible=(b and not state.is_world_view); grid_layer.queue_redraw())
 	ui_mgr.creation_direction_selected.connect(action_handler.create_room_from_anchor)
@@ -203,6 +250,31 @@ func _connect_inspector_signals():
 func _connect_graph_signals():
 	graph_controller.world_region_selected.connect(_on_world_region_selected)
 	graph_controller.node_drag_started.connect(func(_id): is_dragging_object = true)
+	graph_controller.room_label_clicked.connect(func(id):
+		label_drag_source = ""
+		graph_controller.set_label_drag_source("")
+		graph_controller.set_label_swap_preview("", "")
+		if region_mgr.data.rooms.has(id): ui_mgr.show_room_label_editor(id, str(region_mgr.data.rooms[id].get("name", "")))
+	)
+	graph_controller.room_label_drag_started.connect(func(id):
+		label_drag_source = id
+		graph_controller.set_label_drag_source(id)
+	)
+	graph_controller.room_label_dragged.connect(func(_id):
+		var target_id := graph_controller.get_room_under_mouse(get_global_mouse_position())
+		var preview_target := target_id if target_id != label_drag_source else ""
+		graph_controller.set_label_swap_target(preview_target)
+		graph_controller.set_label_swap_preview(label_drag_source, preview_target)
+	)
+	graph_controller.room_label_drag_ended.connect(func(_id):
+		var target_id := graph_controller.get_room_under_mouse(get_global_mouse_position())
+		graph_controller.set_label_swap_target("")
+		graph_controller.set_label_drag_source("")
+		graph_controller.set_label_swap_preview("", "")
+		if label_drag_source != "" and target_id != "" and target_id != label_drag_source:
+			action_handler.swap_room_labels(label_drag_source, target_id)
+		label_drag_source = ""
+	)
 	graph_controller.world_view_builder.region_dragged.connect(func(): is_dragging_object = true)
 	graph_controller.node_selected.connect(func(id): _on_node_click(id, Input.is_key_pressed(KEY_SHIFT)))
 	graph_controller.node_double_clicked.connect(func(id): camera_controller.focus_on(graph_controller.get_node_position(id), true))
@@ -256,6 +328,10 @@ func _unhandled_input(event):
 
 	if ui_mgr.is_mouse_over_ui(): return
 
+	if state.district_preview.get("active", false):
+		_handle_district_preview_input(event)
+		return
+
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		var mouse_pos = get_global_mouse_position()
 		var is_on_node = _is_mouse_on_any_node(mouse_pos)
@@ -308,6 +384,104 @@ func _is_mouse_on_any_node(mouse_pos: Vector2) -> bool:
 	else:
 		if graph_controller.get_room_under_mouse(mouse_pos) != "": return true
 	return false
+
+func _handle_district_preview_input(event):
+	var preview: Dictionary = state.district_preview
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_cancel_district_placement(); return
+	# Navigation remains available while a district is only a ghost. Left-drag
+	# is reserved for moving it; wheel zoom and middle-drag pan the map.
+	var navigation_input: bool = event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_MIDDLE]
+	if navigation_input or (event is InputEventMouseMotion and camera_controller.is_panning):
+		if camera_controller.handle_input(event):
+			graph_controller.queue_redraw(); grid_layer.queue_redraw()
+		return
+	if preview.get("phase", "") == "placement":
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				state.district_dragging = {"active": true, "mouse_start": get_global_mouse_position(), "positions": preview.get("positions", {}).duplicate(true)}
+			else:
+				state.district_dragging.active = false
+		elif event is InputEventMouseMotion and state.district_dragging.get("active", false):
+			var delta: Vector2 = get_global_mouse_position() - state.district_dragging.mouse_start
+			if state.snap_enabled: delta = Vector2(round(delta.x / 32.0) * 32.0, round(delta.y / 32.0) * 32.0)
+			var moved := {}
+			for room_id in state.district_dragging.positions: moved[room_id] = state.district_dragging.positions[room_id] + delta
+			action_handler.update_district_placement_positions(moved)
+	elif preview.get("phase", "") == "connection" and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		var ghost_id := graph_controller.get_district_preview_room_under_mouse(get_global_mouse_position())
+		if ghost_id != "":
+			var should_advance: bool = state.district_preview.get("active_endpoint", "source") == "source" and state.district_preview.get("selected_port", "") == ""
+			state.district_preview.selected_port = ghost_id
+			# The first default (green) selection naturally advances the author to
+			# the blue map endpoint. Later edits remain exactly where they chose.
+			if should_advance: state.district_preview.active_endpoint = "target"
+			_suggest_district_direction_from_endpoints()
+			_refresh_district_toolbar(); graph_controller.queue_redraw()
+			return
+		var target_id := graph_controller.get_room_under_mouse(get_global_mouse_position())
+		if target_id != "":
+			state.district_preview.target_room = target_id
+			_suggest_district_direction_from_endpoints()
+			_refresh_district_toolbar(); graph_controller.queue_redraw()
+
+func _begin_district_connection():
+	if not state.district_preview.get("active", false): return
+	state.district_preview.phase = "connection"
+	if str(state.district_preview.get("direction", "")) == "":
+		state.district_preview.direction = "north"
+		state.district_preview.direction_auto = true
+	_refresh_district_toolbar(); graph_controller.queue_redraw()
+
+# Suggest the compass pair implied by actual map geometry. A manually selected
+# pair is authoritative; this only supplies the initial value.
+func _suggest_district_direction_from_endpoints():
+	if not state.district_preview.get("direction_auto", true): return
+	var port_id := str(state.district_preview.get("selected_port", ""))
+	var target_id := str(state.district_preview.get("target_room", ""))
+	var positions: Dictionary = state.district_preview.get("positions", {})
+	if port_id == "" or target_id == "" or not positions.has(port_id) or not region_mgr.data.get("rooms", {}).has(target_id): return
+	var source_pos: Vector2 = positions[port_id]
+	var raw_target_pos = region_mgr.data.rooms[target_id].get("_editor_pos", [0, 0])
+	if not raw_target_pos is Array or raw_target_pos.size() < 2: return
+	var target_pos := Vector2(float(raw_target_pos[0]), float(raw_target_pos[1]))
+	var delta := target_pos - source_pos
+	if delta.length_squared() < 1.0:
+		state.district_preview.direction = "north"
+		return
+	var x_ratio: float = abs(delta.x) / max(abs(delta.y), 0.001)
+	var y_ratio: float = abs(delta.y) / max(abs(delta.x), 0.001)
+	if x_ratio < 0.45:
+		state.district_preview.direction = "south" if delta.y > 0.0 else "north"
+	elif y_ratio < 0.45:
+		state.district_preview.direction = "east" if delta.x > 0.0 else "west"
+	elif delta.x > 0.0:
+		state.district_preview.direction = "southeast" if delta.y > 0.0 else "northeast"
+	else:
+		state.district_preview.direction = "southwest" if delta.y > 0.0 else "northwest"
+
+func _confirm_district_connection(direction: String):
+	if not state.district_preview.get("active", false): return
+	action_handler.commit_district_placement(state.district_preview, str(state.district_preview.get("selected_port", "")), str(state.district_preview.get("target_room", "")), direction)
+
+func _cancel_district_placement():
+	state.district_preview = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
+	state.district_dragging = {"active": false, "mouse_start": Vector2.ZERO, "positions": {}}
+	ui_mgr.set_district_workflow(""); graph_controller.queue_redraw()
+
+func _refresh_district_toolbar():
+	var preview: Dictionary = state.district_preview
+	var port_id := str(preview.get("selected_port", ""))
+	var target_id := str(preview.get("target_room", ""))
+	var port_name := str(preview.get("rooms", {}).get(port_id, {}).get("name", ""))
+	var target_name := str(region_mgr.data.get("rooms", {}).get(target_id, {}).get("name", ""))
+	var active_endpoint := str(preview.get("active_endpoint", "source"))
+	var district_name := str(preview.get("district", {}).get("name", "New District"))
+	var region_name := str(region_mgr.data.get("name", region_mgr.data.get("region_id", "this region")))
+	var title := "Select %s connection endpoint" % district_name if active_endpoint == "source" else "Select %s connection endpoint" % region_name
+	var connection_errors: Array = DistrictLayout.validate_preview_connection(region_mgr.data.get("rooms", {}), preview.get("rooms", {}), preview.get("positions", {}), port_id, target_id, str(preview.get("direction", "")))
+	state.district_preview.connection_errors = connection_errors
+	ui_mgr.set_district_workflow(str(preview.get("phase", "")), port_id, target_id, port_name, target_name, active_endpoint, title, str(preview.get("direction", "north")), connection_errors, bool(preview.get("valid", false)))
 
 func _stamp_template_at(pos: Vector2):
 	var template_id = state.cur_tool_data.get("id")
@@ -504,6 +678,16 @@ func _wire_entrance_connection(new_region_id: String, rooms_data: Dictionary, co
 	var fw = FileAccess.open(full_path, FileAccess.WRITE)
 	if fw: fw.store_string(JSON.stringify(data, "\t"))
 
+func _show_validation_results():
+	var visible_findings: Array = []
+	var ignored_count := 0
+	for finding in world_mgr.validate_world_links():
+		if world_mgr.is_suppressible_warning(finding) and world_mgr.is_warning_ignored(finding):
+			ignored_count += 1
+		else:
+			visible_findings.append(finding)
+	ui_mgr.show_validation_results(visible_findings, ignored_count)
+
 func _validate_region_policy():
 	var project_root: String = ProjectSettings.globalize_path("res://")
 	var repo_root: String = project_root.trim_suffix("/").get_base_dir()
@@ -533,6 +717,16 @@ func _validate_region_policy():
 
 func _on_node_click(id: String, shift_mod: bool):
 	if state.is_world_view: return
+	# Room cards consume their own mouse click before _unhandled_input sees it.
+	# During district connection setup, claim that click here instead of letting
+	# normal selection dismiss the ghost footprint.
+	if state.district_preview.get("active", false) and state.district_preview.get("phase", "") == "connection":
+		if region_mgr.data.rooms.has(id):
+			state.district_preview.target_room = id
+			_suggest_district_direction_from_endpoints()
+			_refresh_district_toolbar()
+			graph_controller.queue_redraw()
+		return
 	
 	match state.cur_tool_mode:
 		EditorUIManager.ToolMode.PAINT:
@@ -585,6 +779,9 @@ func _on_world_region_selected(region_id: String):
 	graph_controller.queue_redraw()
 
 func _update_selection_state():
+	if state.district_preview.get("active", false):
+		return
+	state.district_preview = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
 	graph_controller.update_selection_visuals(state.selected_ids)
 	if state.selected_ids.size() == 1:
 		var id = state.selected_ids[0]
@@ -650,12 +847,27 @@ func _on_request_layout():
 	else:
 		var old_pos = {}; for id in region_mgr.data.rooms: old_pos[id] = Vector2(region_mgr.data.rooms[id]._editor_pos[0], region_mgr.data.rooms[id]._editor_pos[1])
 		var new_pos = LayoutOptimizer.optimize_layout(region_mgr.data.rooms)
+		var old_exit_layout := {}
+		for id in region_mgr.data.rooms:
+			if region_mgr.data.rooms[id].has("_editor_exit_layout"):
+				old_exit_layout[id] = region_mgr.data.rooms[id]["_editor_exit_layout"].duplicate(true)
+		var new_exit_layout = LayoutOptimizer.infer_exit_layout_metadata(region_mgr.data.rooms, new_pos)
 		cmd_proc.commit(
 			func():
 				for id in new_pos: region_mgr.set_room_pos(id, new_pos[id])
+				for id in region_mgr.data.rooms:
+					if new_exit_layout.has(id):
+						region_mgr.data.rooms[id]["_editor_exit_layout"] = new_exit_layout[id]
+					elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
+						region_mgr.data.rooms[id].erase("_editor_exit_layout")
 				_refresh_view(); camera_controller.center_on_nodes(graph_controller.get_active_nodes()),
 			func():
 				for id in old_pos: region_mgr.set_room_pos(id, old_pos[id])
+				for id in region_mgr.data.rooms:
+					if old_exit_layout.has(id):
+						region_mgr.data.rooms[id]["_editor_exit_layout"] = old_exit_layout[id]
+					elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
+						region_mgr.data.rooms[id].erase("_editor_exit_layout")
 				_refresh_view(); camera_controller.center_on_nodes(graph_controller.get_active_nodes()),
 			"Auto-Arrange Layout"
 		)

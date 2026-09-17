@@ -100,6 +100,7 @@ static func draw_graph(canvas: Node2D, nodes: Dictionary, data: Dictionary, sele
 				if is_two_way and drawn_pairs.has(pair_key):
 					continue
 				if is_two_way: drawn_pairs[pair_key] = true
+				var pair_label := _reciprocal_pair_label(data, rid, target_str, dir, rev_dir, nodes)
 
 				var is_hl = (rid == selected_id or target_str == selected_id)
 				
@@ -125,9 +126,9 @@ static func draw_graph(canvas: Node2D, nodes: Dictionary, data: Dictionary, sele
 				var is_curved_type = d_lower in ["up", "down", "climb", "dive", "in", "out"]
 
 				if is_curved_type:
-					_draw_curve_connection(canvas, start, end, line_col, is_hl, is_two_way, dir, rev_dir, font, style)
+					_draw_curve_connection(canvas, start, end, line_col, is_hl, is_two_way, dir, rev_dir, pair_label, font, style)
 				else:
-					_draw_straight_connection(canvas, start, end, line_col, is_hl, is_two_way, dir, rev_dir, font, style, is_external)
+					_draw_straight_connection(canvas, start, end, line_col, is_hl, is_two_way, dir, rev_dir, pair_label, font, style, is_external)
 
 			else:
 				var stub_col = COL_DEF
@@ -142,7 +143,7 @@ static func draw_graph(canvas: Node2D, nodes: Dictionary, data: Dictionary, sele
 				canvas.draw_line(start, stub_end, stub_col, LINE_WIDTH)
 				_draw_label_rotated(canvas, font, style, (start + stub_end)/2.0, dir.capitalize(), stub_vec.angle())
 
-static func _draw_straight_connection(c: Node2D, from: Vector2, to: Vector2, col: Color, highlight: bool, two_way: bool, dir1: String, dir2: String, font: Font, style: StyleBox, is_external: bool):
+static func _draw_straight_connection(c: Node2D, from: Vector2, to: Vector2, col: Color, highlight: bool, two_way: bool, dir1: String, dir2: String, pair_label: String, font: Font, style: StyleBox, is_external: bool):
 	var w = LINE_WIDTH + (2.0 if highlight else 0.0)
 	var dir_vec = (to - from).normalized()
 	var line_end = to
@@ -176,17 +177,9 @@ static func _draw_straight_connection(c: Node2D, from: Vector2, to: Vector2, col
 		
 		_draw_label_rotated(c, font, style, mid, dir1.capitalize(), angle)
 	else:
-		# Check flip condition using fuzzy epsilon
-		var needs_flip = angle > (PI / 2.0 - 0.001) or angle < (-PI / 2.0 - 0.001)
-		var text = ""
-		if needs_flip:
-			text = "%s ↔ %s" % [dir2.capitalize(), dir1.capitalize()]
-		else:
-			text = "%s ↔ %s" % [dir1.capitalize(), dir2.capitalize()]
-			
-		_draw_label_rotated(c, font, style, mid, text, angle)
+		_draw_label_rotated(c, font, style, mid, pair_label, angle)
 
-static func _draw_curve_connection(c: Node2D, from: Vector2, to: Vector2, col: Color, highlight: bool, two_way: bool, dir1: String, dir2: String, font: Font, style: StyleBox):
+static func _draw_curve_connection(c: Node2D, from: Vector2, to: Vector2, col: Color, highlight: bool, two_way: bool, dir1: String, dir2: String, pair_label: String, font: Font, style: StyleBox):
 	var w = LINE_WIDTH + (2.0 if highlight else 0.0)
 	var dist = from.distance_to(to)
 	
@@ -216,14 +209,7 @@ static func _draw_curve_connection(c: Node2D, from: Vector2, to: Vector2, col: C
 	var angle = tangent.angle()
 
 	if two_way:
-		var needs_flip = angle > (PI / 2.0 - 0.001) or angle < (-PI / 2.0 - 0.001)
-		var text = ""
-		if needs_flip:
-			text = "%s ↔ %s" % [dir2.capitalize(), dir1.capitalize()]
-		else:
-			text = "%s ↔ %s" % [dir1.capitalize(), dir2.capitalize()]
-		
-		_draw_label_rotated(c, font, style, mid_curve, text, angle)
+		_draw_label_rotated(c, font, style, mid_curve, pair_label, angle)
 	else:
 		_draw_label_rotated(c, font, style, mid_curve, dir1.capitalize(), angle)
 		_draw_arrow_at_t(c, from, control, to, 0.9, col)
@@ -231,8 +217,10 @@ static func _draw_curve_connection(c: Node2D, from: Vector2, to: Vector2, col: C
 static func _draw_label_rotated(c: Node2D, font: Font, style: StyleBoxFlat, pos: Vector2, text: String, angle: float):
 	var final_angle = angle
 	
-	# Consistency check: Flip if pointing generally Left or Down
-	if final_angle > (PI / 2.0 - 0.001) or final_angle < (-PI / 2.0 - 0.001):
+	# Keep text upright. This exact boundary is shared with
+	# Constants.format_reciprocal_label(), so the two direction names exchange
+	# places precisely when the readable label rotates by 180 degrees.
+	if final_angle > PI * 0.5 or final_angle < -PI * 0.5:
 		final_angle += PI
 	
 	c.draw_set_transform(pos, final_angle, Vector2.ONE)
@@ -245,6 +233,26 @@ static func _draw_label_rotated(c: Node2D, font: Font, style: StyleBoxFlat, pos:
 	var text_pos = Vector2(-txt_size.x / 2.0, txt_size.y * 0.25)
 	c.draw_string(font, text_pos, text, HORIZONTAL_ALIGNMENT_CENTER, -1, LABEL_FONT_SIZE, Color.WHITE)
 	c.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+static func _reciprocal_pair_label(data: Dictionary, first_id: String, second_id: String, first_direction: String, second_direction: String, nodes: Dictionary) -> String:
+	var pair_ids := [first_id, second_id]
+	pair_ids.sort()
+	var label_sources: Dictionary = data.get("_editor_connection_label_sources", {})
+	var source_record = label_sources.get(str(pair_ids[0]) + "|" + str(pair_ids[1]), {})
+	var authored_source := str(source_record.get("source", "")) if source_record is Dictionary else _legacy_pair_source(data, first_id, second_id)
+	if not nodes.has(first_id) or not nodes.has(second_id): return "%s ↔ %s" % [first_direction.capitalize(), second_direction.capitalize()]
+	return Constants.format_reciprocal_pair_label(first_id, second_id, first_direction, second_direction, nodes[first_id].global_position, nodes[second_id].global_position, authored_source)
+
+static func _legacy_pair_source(data: Dictionary, first_id: String, second_id: String) -> String:
+	# Pre-metadata regions preserve the order in which rooms were authored in
+	# their data file. It is the closest available definition of which reciprocal
+	# exit was originally emitted, and unlike draw order does not change with view.
+	var rooms: Dictionary = data.get("rooms", {})
+	var order := rooms.keys()
+	var first_index := order.find(first_id)
+	var second_index := order.find(second_id)
+	if first_index >= 0 and (second_index < 0 or first_index <= second_index): return first_id
+	return second_id
 
 static func _draw_arrow_midpoint(c: Node2D, from: Vector2, to: Vector2, col: Color):
 	var mid = (from + to) / 2.0

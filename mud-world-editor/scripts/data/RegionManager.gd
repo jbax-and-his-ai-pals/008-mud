@@ -78,6 +78,23 @@ func add_room_data(id: String, room_data: Dictionary):
 	if not data.has("rooms"): data["rooms"] = {}
 	data["rooms"][id] = room_data
 
+# District records deliberately live with the region, rather than being inferred
+# from a room-name prefix.  That gives a generator a stable public contract
+# (seed, ports, and member list) while leaving ordinary hand-authored rooms
+# entirely unaffected.
+func get_districts() -> Dictionary:
+	if not data.has("properties") or not data["properties"] is Dictionary:
+		data["properties"] = {}
+	if not data["properties"].has("districts") or not data["properties"]["districts"] is Dictionary:
+		data["properties"]["districts"] = {}
+	return data["properties"]["districts"]
+
+func set_district(district_id: String, district: Dictionary):
+	get_districts()[district_id] = district.duplicate(true)
+
+func remove_district(district_id: String):
+	get_districts().erase(district_id)
+
 func remove_room_data(id: String):
 	if data.get("rooms", {}).has(id):
 		data["rooms"].erase(id)
@@ -94,6 +111,17 @@ func add_exit(src: String, dir: String, target: String):
 	if data["rooms"].has(src):
 		if not data["rooms"][src].has("exits"): data["rooms"][src]["exits"] = {}
 		data["rooms"][src]["exits"][dir] = target
+
+func connection_label_key(first_id: String, second_id: String) -> String:
+	var ids := [first_id, second_id]
+	ids.sort()
+	return str(ids[0]) + "|" + str(ids[1])
+
+func set_connection_label_source(source_id: String, target_id: String, direction: String):
+	if ":" in target_id: return
+	if not data.has("_editor_connection_label_sources") or not data["_editor_connection_label_sources"] is Dictionary:
+		data["_editor_connection_label_sources"] = {}
+	data["_editor_connection_label_sources"][connection_label_key(source_id, target_id)] = {"source": source_id, "direction": direction}
 
 func remove_exit(src: String, dir: String):
 	if data["rooms"].has(src) and data["rooms"][src].has("exits"):
