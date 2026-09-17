@@ -4,6 +4,7 @@ extends RefCounted
 
 signal request_load_region(filename)
 signal request_jump_to_room(id)
+signal request_show_district(region_id, district_id)
 signal request_validate
 signal request_acknowledge_validation_warning(warning_id)
 signal request_reset_ignored_validation_warnings
@@ -116,6 +117,7 @@ func setup(layer: CanvasLayer):
 func _forward_side_panel_signals():
 	side_panel.request_load_region.connect(func(f): request_load_region.emit(f))
 	side_panel.request_jump_to_room.connect(func(id): request_jump_to_room.emit(id))
+	side_panel.request_show_district.connect(func(rid, did): request_show_district.emit(rid, did))
 	side_panel.snap_toggled.connect(func(b): snap_toggled.emit(b); update_status_snap(b))
 	side_panel.request_validate.connect(func(): request_validate.emit())
 	side_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())

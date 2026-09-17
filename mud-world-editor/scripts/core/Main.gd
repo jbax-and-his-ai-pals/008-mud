@@ -168,6 +168,7 @@ func _connect_ui_signals():
 	ui_mgr.creation_direction_selected.connect(action_handler.create_room_from_anchor)
 	ui_mgr.tool_changed.connect(func(m, d): state.cur_tool_mode=m; state.cur_tool_data=d; ui_mgr.update_tool_display(m, d); if m!=EditorUIManager.ToolMode.SELECT: _deselect_all())
 	ui_mgr.request_jump_to_room.connect(_jump_to_room)
+	ui_mgr.request_show_district.connect(func(_region_id, district_id): _select_district(district_id))
 	ui_mgr.request_jump_to_error.connect(func(f, i): 
 		if f != region_mgr.current_filename: _load_region(f, false, true)
 		await get_tree().create_timer(0.01).timeout; _jump_to_room(i)
@@ -955,8 +956,9 @@ func _update_explorer_dirty_state():
 			live_rooms[r_id] = region_mgr.data.rooms[r_id].get("name", "Unnamed")
 		
 		cached_hierarchy[rid] = {
-			"filename": region_mgr.current_filename, 
-			"rooms": live_rooms
+			"filename": region_mgr.current_filename,
+			"rooms": live_rooms,
+			"districts": region_mgr.data.get("properties", {}).get("districts", {})
 		}
 
 	var selected = state.selected_ids[0] if not state.selected_ids.is_empty() else ""

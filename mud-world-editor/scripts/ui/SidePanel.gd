@@ -5,6 +5,7 @@ extends Panel
 # Signals
 signal request_load_region(filename)
 signal request_jump_to_room(id)
+signal request_show_district(region_id, district_id)
 signal snap_toggled(is_on)
 signal request_validate
 signal request_validate_region_policy
@@ -86,6 +87,7 @@ func _setup_explorer_tab(tabs: TabContainer):
 	explorer_panel.setup()
 	explorer_panel.request_load_region.connect(func(f): request_load_region.emit(f))
 	explorer_panel.request_jump_to_room.connect(func(id): request_jump_to_room.emit(id))
+	explorer_panel.request_show_district.connect(func(rid, did): request_show_district.emit(rid, did))
 	explorer_panel.request_create_modal_open.connect(func(): request_create_modal_open.emit())
 	explorer_panel.request_district_modal_open.connect(func(): request_district_modal_open.emit())
 	explorer_panel.request_validate.connect(func(): request_validate.emit())

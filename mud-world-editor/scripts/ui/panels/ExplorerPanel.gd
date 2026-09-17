@@ -3,6 +3,7 @@ extends VBoxContainer
 
 signal request_load_region(filename)
 signal request_jump_to_room(id)
+signal request_show_district(region_id, district_id)
 signal request_create_modal_open
 signal request_district_modal_open
 signal request_validate
@@ -15,6 +16,7 @@ var search_bar: LineEdit
 var explorer_tree: Tree
 var snap_checkbox: CheckBox
 var expanded_regions: Dictionary = {}
+var expanded_districts: Dictionary = {}
 var _is_programmatic_selection: bool = false
 
 func setup():
@@ -122,37 +124,46 @@ func update_layout_btn_text(is_world: bool):
 
 func select_room_item(room_id: String):
 	_selected_id = room_id
+	# Deferred one frame: selecting an item right after un-collapsing its
+	# ancestor (below) doesn't reliably stick the same frame it happens on
+	# in Godot's Tree -- the item can visually fail to show as selected
+	# until the next redraw, which reads as "the first click did nothing."
+	call_deferred("_apply_room_selection", room_id)
+
+func _apply_room_selection(room_id: String):
 	var root = explorer_tree.get_root()
 	if not root: return
-	
-	# Deselect all first
+
 	var sel = explorer_tree.get_selected()
 	if sel: sel.deselect(0)
-	
-	for region_item in root.get_children():
-		# Check if region itself is selected
-		var r_meta = region_item.get_metadata(0)
-		if r_meta.id == room_id:
-			_is_programmatic_selection = true
-			region_item.select(0)
-			_is_programmatic_selection = false
-			explorer_tree.scroll_to_item(region_item, true)
-			return
 
-		for room_item in region_item.get_children():
-			var meta = room_item.get_metadata(0)
-			if meta and meta.id == room_id:
-				if region_item.collapsed:
-					region_item.collapsed = false
-				
-				_is_programmatic_selection = true
-				room_item.select(0)
-				_is_programmatic_selection = false
-				explorer_tree.scroll_to_item(room_item, true)
-				return
-	
-	# If we got here, re-run refresh to ensure highlights apply if selection happened during rebuild
-	refresh_tree()
+	if not _select_tree_item_by_id(root, room_id):
+		# The item wasn't found under the tree as currently built (a stale
+		# structure, or a selection that arrived mid-rebuild) -- rebuild and
+		# try once more from scratch rather than leaving nothing selected.
+		refresh_tree()
+		_select_tree_item_by_id(explorer_tree.get_root(), room_id)
+
+# Recursively searches every region/district/room row (the tree can now be
+# region -> district -> room, or plain region -> room for a district-less
+# region) for the given id, un-collapsing every ancestor along the way so
+# the match is actually visible once selected.
+func _select_tree_item_by_id(parent: TreeItem, id: String) -> bool:
+	for child in parent.get_children():
+		var meta = child.get_metadata(0)
+		if meta and meta.get("type", "") != "district" and meta.get("id", "") == id:
+			var ancestor = child.get_parent()
+			while ancestor:
+				if ancestor.collapsed: ancestor.collapsed = false
+				ancestor = ancestor.get_parent()
+			_is_programmatic_selection = true
+			child.select(0)
+			_is_programmatic_selection = false
+			explorer_tree.scroll_to_item(child, true)
+			return true
+		if _select_tree_item_by_id(child, id):
+			return true
+	return false
 
 # --- INTERNAL LOGIC ---
 
@@ -202,22 +213,54 @@ func refresh_tree():
 			
 		item.set_metadata(0, {"type": "region", "file": r_data.filename, "id": rid})
 		item.collapsed = not (expanded_regions.get(rid, false) or filter != "")
-		
+
+		# Group matched rooms by district, same as the graph's own territory
+		# view -- a room not in any district falls back to sitting directly
+		# under the region, same as every room did before districts existed.
+		var districts: Dictionary = r_data.get("districts", {})
+		var room_to_district: Dictionary = {}
+		var matched_district_ids: Array = []
+		for district_id in districts:
+			var members: Array = districts[district_id].get("members", districts[district_id].get("rooms", []))
+			var has_match := false
+			for member_variant in members:
+				var member_id := str(member_variant)
+				if match_rooms.has(member_id):
+					room_to_district[member_id] = str(district_id)
+					has_match = true
+			if has_match: matched_district_ids.append(str(district_id))
+		matched_district_ids.sort_custom(func(a, b):
+			return str(districts[a].get("name", a)).nocasecmp_to(str(districts[b].get("name", b))) < 0
+		)
+
+		var district_items: Dictionary = {}
+		for district_id in matched_district_ids:
+			var district: Dictionary = districts[district_id]
+			var d_item = explorer_tree.create_item(item)
+			d_item.set_text(0, str(district.get("name", district_id)))
+			d_item.set_selectable(0, true)
+			var d_color := Color.from_string(str(district.get("color", "#5d83a6")), Color("5d83a6"))
+			d_item.set_custom_color(0, d_color.lightened(0.4))
+			d_item.set_metadata(0, {"type": "district", "file": r_data.filename, "region": rid, "id": district_id})
+			d_item.collapsed = not (expanded_districts.get(district_id, true) or filter != "")
+			district_items[district_id] = d_item
+
 		for r_id in match_rooms:
-			var r_item = explorer_tree.create_item(item)
+			var parent_item = district_items.get(room_to_district.get(r_id, ""), item)
+			var r_item = explorer_tree.create_item(parent_item)
 			var r_name = str(r_data.rooms[r_id])
-			
+
 			if is_current and _dirty_rooms.has(r_id):
 				r_item.set_text(0, r_name + " (*)")
 				r_item.set_custom_color(0, Color(1.0, 0.9, 0.6))
 			else:
 				r_item.set_text(0, r_name)
-				
+
 			if r_id == _selected_id and is_current:
 				r_item.set_custom_color(0, Color.GREEN)
 				r_item.set_custom_bg_color(0, Color(0.15, 0.25, 0.35))
 				r_item.select(0)
-			
+
 			r_item.set_tooltip_text(0, r_id)
 			r_item.set_metadata(0, {"type": "room", "file": r_data.filename, "id": r_id})
 
@@ -232,7 +275,10 @@ func _on_tree_select():
 	
 	if meta.type == "region": 
 		request_load_region.emit(meta.file)
-	else: 
+	elif meta.type == "district":
+		request_load_region.emit(meta.file)
+		request_show_district.emit(meta.region, meta.id)
+	else:
 		request_load_region.emit(meta.file)
 		request_jump_to_room.emit(meta.id)
 
@@ -247,6 +293,7 @@ func _on_tree_activate():
 func _on_tree_collapse(item):
 	var meta = item.get_metadata(0)
 	if meta and meta.type == "region": expanded_regions[meta.id] = not item.collapsed
+	elif meta and meta.type == "district": expanded_districts[meta.id] = not item.collapsed
 
 func _apply_style(node: Control, bg_color = Color(0.15, 0.15, 0.18)):
 	var s = StyleBoxFlat.new(); s.bg_color = bg_color; s.set_border_width_all(1); s.border_color = Color(0.4, 0.4, 0.45); s.set_corner_radius_all(4)

@@ -63,7 +63,7 @@ func get_global_hierarchy() -> Dictionary:
 				var rooms = d.get("rooms", {})
 				for r_id in rooms:
 					room_list[r_id] = rooms[r_id].get("name", "Unnamed")
-				hierarchy[rid] = {"filename": fname, "rooms": room_list}
+				hierarchy[rid] = {"filename": fname, "rooms": room_list, "districts": d.get("properties", {}).get("districts", {})}
 	return hierarchy
 
 func get_all_world_data() -> Dictionary:
