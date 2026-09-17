@@ -250,6 +250,22 @@ func _connect_inspector_signals():
 		camera_controller.center_on_nodes(graph_controller.get_active_nodes())
 	)
 
+# Pure panning/zooming never changes anything graph_controller draws in the
+# local view -- connections and district territory are all in world space,
+# so the camera moving under them needs no redraw at all (Godot's Camera2D
+# already reprojects existing draw commands). GridLayer is the one real
+# exception: it regenerates its lines from the camera's current position/
+# zoom every time, so it always needs this. Skipping the graph redraw here
+# matters because it was re-running the district territory computation --
+# not cheap -- on every single mouse-motion frame of a pan or every wheel
+# tick, for content that never actually changed. World/quest view keeps
+# redrawing on every camera move as before: world view's connection lines
+# scale their width against the camera's zoom, so they do depend on it.
+func _redraw_after_camera_input():
+	grid_layer.queue_redraw()
+	if graph_controller.current_mode != GraphController.ViewMode.LOCAL:
+		graph_controller.queue_redraw()
+
 func _connect_graph_signals():
 	graph_controller.world_region_selected.connect(_on_world_region_selected)
 	graph_controller.node_drag_started.connect(func(_id): is_dragging_object = true)
@@ -261,7 +277,7 @@ func _connect_graph_signals():
 	graph_controller.camera_pan_input.connect(func(event):
 		if camera_controller.handle_input(event):
 			if camera_controller.is_panning: is_dragging_object = true
-			graph_controller.queue_redraw(); grid_layer.queue_redraw()
+			_redraw_after_camera_input()
 	)
 	graph_controller.room_label_clicked.connect(func(id):
 		label_drag_source = ""
@@ -363,7 +379,7 @@ func _unhandled_input(event):
 
 	if not state.is_box_selecting and camera_controller.handle_input(event):
 		if camera_controller.is_panning: is_dragging_object = true
-		graph_controller.queue_redraw(); grid_layer.queue_redraw()
+		_redraw_after_camera_input()
 		return
 
 	if state.dragging_conn.get("active", false):
@@ -407,7 +423,7 @@ func _handle_district_preview_input(event):
 	var navigation_input: bool = event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_MIDDLE]
 	if navigation_input or (event is InputEventMouseMotion and camera_controller.is_panning):
 		if camera_controller.handle_input(event):
-			graph_controller.queue_redraw(); grid_layer.queue_redraw()
+			_redraw_after_camera_input()
 		return
 	if preview.get("phase", "") == "placement":
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:

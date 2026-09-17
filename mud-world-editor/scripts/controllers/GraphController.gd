@@ -50,6 +50,18 @@ var is_box_selecting: bool = false
 var label_arrange_mode := false
 var show_technical_ids := false
 
+# The district fields/territory computed for the current redraw. Both
+# _on_draw_district_backgrounds and _on_draw_district_labels need it, and
+# it is not cheap (a grid pass over every cell a district could plausibly
+# reach, times every district), so it is computed at most once per
+# queue_redraw() rather than once per consumer. Cleared at the start of
+# every queue_redraw() -- there is deliberately no attempt to detect
+# whether anything district-related actually changed since the last
+# frame; that would risk showing stale territory after an edit, which is
+# worse than recomputing an extra time.
+var _district_render_cache: Dictionary = {}
+var _district_render_cache_ready := false
+
 const LOCAL_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/LocalViewBuilder.gd")
 const WORLD_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/WorldViewBuilder.gd")
 const QUEST_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/QuestViewBuilder.gd")
@@ -159,6 +171,7 @@ func load_quest_graph(quest_id: String, q_data: Dictionary):
 
 func queue_redraw():
 	if editor_state == null: return
+	_district_render_cache_ready = false
 	connection_layer.queue_redraw()
 	if district_layer: district_layer.queue_redraw()
 	if district_label_layer: district_label_layer.queue_redraw()
@@ -433,7 +446,11 @@ func _resolve_district_field_index(point: Vector2, fields: Array) -> int:
 		if segment_distance < DISTRICT_CORRIDOR_RESERVE and segment_distance < corridor_distance:
 			corridor_distance = segment_distance
 			corridor_field = field_index
-		var distance := _district_field_distance(point, fields[field_index])
+		# Same two distances the field ultimately wins or loses on above --
+		# no need for a third pass over the same positions/segments to ask
+		# "how close is this field overall" when the closer of the two
+		# already answers that.
+		var distance := minf(member_distance, segment_distance)
 		if distance < best_distance:
 			best_distance = distance
 			best_field = field_index
@@ -498,7 +515,12 @@ func _compute_district_territory(fields: Array) -> Dictionary:
 				if segment_distance < corridor_reserve and segment_distance < corridor_distance:
 					corridor_distance = segment_distance
 					corridor_field = field_index
-				var distance := _district_field_distance(sample, fields[field_index])
+				# Same two distances already computed above -- this is the
+				# single most-executed loop in the whole renderer (every
+				# cell times every field), so a third redundant pass over
+				# the same positions/segments is worth avoiding here more
+				# than almost anywhere else in this file.
+				var distance := minf(member_distance, segment_distance)
 				if distance < best_distance:
 					best_distance = distance
 					best_field = field_index
@@ -530,14 +552,33 @@ func _compute_district_territory(fields: Array) -> Dictionary:
 	owners = _despeckle_owners(owners)
 	return {"owners": owners, "cell_size": cell_size}
 
-func _on_draw_district_backgrounds():
-	if current_mode != ViewMode.LOCAL or region_data.is_empty() or district_layer == null: return
+# fields + territory for right now, computed at most once per
+# queue_redraw() and shared between the background/ridge drawer and the
+# label drawer (see _district_render_cache's declaration for why).
+func _get_district_render_cache() -> Dictionary:
+	if _district_render_cache_ready: return _district_render_cache
+	_district_render_cache_ready = true
+	if current_mode != ViewMode.LOCAL or region_data.is_empty():
+		_district_render_cache = {}
+		return _district_render_cache
 	var fields := _build_district_fields()
-	if fields.is_empty(): return
+	if fields.is_empty():
+		_district_render_cache = {}
+		return _district_render_cache
 	var territory := _compute_district_territory(fields)
-	if territory.is_empty(): return
-	var owners: Dictionary = territory["owners"]
-	var cell_size: float = territory["cell_size"]
+	if territory.is_empty():
+		_district_render_cache = {}
+		return _district_render_cache
+	_district_render_cache = {"fields": fields, "owners": territory["owners"], "cell_size": territory["cell_size"]}
+	return _district_render_cache
+
+func _on_draw_district_backgrounds():
+	if district_layer == null: return
+	var cache := _get_district_render_cache()
+	if cache.is_empty(): return
+	var fields: Array = cache["fields"]
+	var owners: Dictionary = cache["owners"]
+	var cell_size: float = cache["cell_size"]
 	# The cell grid decides ownership; from here on it only decides *shape*.
 	# Tracing each district's own cell mask into closed loops, collapsing the
 	# staircase noise a diagonal boundary produces at this cell size, then
@@ -580,13 +621,12 @@ func _on_draw_district_backgrounds():
 # alone would hide the line, but the line would still show through/around
 # the text otherwise, and this way it never has the chance to.
 func _on_draw_district_labels():
-	if current_mode != ViewMode.LOCAL or region_data.is_empty() or district_label_layer == null: return
-	var fields := _build_district_fields()
-	if fields.is_empty(): return
-	var territory := _compute_district_territory(fields)
-	if territory.is_empty(): return
-	var owners: Dictionary = territory["owners"]
-	var cell_size: float = territory["cell_size"]
+	if district_label_layer == null: return
+	var cache := _get_district_render_cache()
+	if cache.is_empty(): return
+	var fields: Array = cache["fields"]
+	var owners: Dictionary = cache["owners"]
+	var cell_size: float = cache["cell_size"]
 	var font := ThemeDB.get_fallback_font()
 	var obstacles := _collect_label_obstacles()
 	const LABEL_FONT_SIZE := 20
@@ -600,13 +640,6 @@ func _on_draw_district_labels():
 		var backdrop := Rect2(text_origin + Vector2(-8, -title_size.y - 2), title_size + Vector2(16, 8))
 		district_label_layer.draw_rect(backdrop, Color(0.04, 0.06, 0.09, 0.72), true)
 		district_label_layer.draw_string(font, text_origin, title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE, color.lightened(0.5))
-
-func _district_field_distance(point: Vector2, field: Dictionary) -> float:
-	var closest := _district_member_distance(point, field)
-	for segment in field.get("segments", []):
-		var nearest := Geometry2D.get_closest_point_to_segment(point, segment["from"], segment["to"])
-		closest = minf(closest, point.distance_to(nearest))
-	return closest
 
 func _district_member_distance(point: Vector2, field: Dictionary) -> float:
 	var closest := INF
