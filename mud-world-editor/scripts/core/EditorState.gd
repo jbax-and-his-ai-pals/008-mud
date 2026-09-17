@@ -12,6 +12,7 @@ var cur_tool_data: Dictionary = {}
 
 # Selection State
 var selected_ids: Array = []
+var selected_district_id: String = ""
 var highlighted_target_id: String = ""
 var connection_preview: Dictionary = {"active": false, "source_id": "", "target_id": ""}
 var district_preview: Dictionary = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
@@ -26,11 +27,21 @@ var drag_start_positions: Dictionary = {}
 
 func clear_selection():
 	selected_ids.clear()
+	selected_district_id = ""
 
 func set_selection(ids: Array):
 	selected_ids = ids
+	if not ids.is_empty(): selected_district_id = ""
+
+func set_district_selection(district_id: String):
+	selected_district_id = district_id
+	selected_ids.clear()
+
+func clear_district_selection():
+	selected_district_id = ""
 
 func add_to_selection(id: String):
+	selected_district_id = ""
 	if not selected_ids.has(id):
 		selected_ids.append(id)
 

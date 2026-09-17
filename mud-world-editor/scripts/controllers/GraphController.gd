@@ -60,6 +60,13 @@ const QUEST_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/Ques
 # gets -- those are two different knobs answering two different complaints.
 const BOUNDARY_SIMPLIFY_TOLERANCE := 56.0
 
+# Shared between the district background renderer and the click hit-test
+# below (get_district_id_at) so both agree on exactly where one district's
+# territory ends and another's begins.
+const DISTRICT_ROOM_RESERVE := 160.0
+const DISTRICT_CORRIDOR_RESERVE := 160.0
+const DISTRICT_TERRITORY_RADIUS := 176.0
+
 func setup(_container: Node2D, _conn_layer: Node2D, p_state: EditorState, p_district_layer: Node2D = null):
 	container = _container
 	connection_layer = _conn_layer
@@ -362,14 +369,14 @@ func _draw_local_connections():
 	
 	GraphRenderer.draw_graph(connection_layer, local_view_builder.room_nodes, region_data, editor_state.selected_ids[0] if editor_state.selected_ids.size() == 1 else "", editor_state.dragging_conn)
 
-func _on_draw_district_backgrounds():
-	if current_mode != ViewMode.LOCAL or region_data.is_empty() or district_layer == null: return
+# One field per district: its member rooms' positions (for the
+# nearest-owner/reserved-room rules) and its internal room-to-room
+# segments (for the corridor rule). Shared by the background renderer and
+# the click hit-test below, so both agree on exactly what territory a
+# district owns.
+func _build_district_fields() -> Array:
 	var districts: Dictionary = region_data.get("properties", {}).get("districts", {})
-	if districts.is_empty(): return
-	var font := ThemeDB.get_fallback_font()
 	var fields: Array = []
-	var bounds := Rect2()
-	var has_bounds := false
 	for district_id in districts:
 		var district: Dictionary = districts[district_id]
 		var members: Array = district.get("members", district.get("rooms", []))
@@ -391,12 +398,62 @@ func _on_draw_district_backgrounds():
 					if not drawn_internal_links.has(pair_key):
 						drawn_internal_links[pair_key] = true
 						segments.append({"from": local_view_builder.room_nodes[room_id].position, "to": local_view_builder.room_nodes[target_id].position})
-		fields.append({"name": str(district.get("name", district_id)), "color": color, "positions": positions, "segments": segments})
-		for position in positions:
+		fields.append({"id": str(district_id), "name": str(district.get("name", district_id)), "color": color, "positions": positions, "segments": segments})
+	return fields
+
+# Resolves exactly the same reserved-room / corridor / nearest-territory
+# rules _on_draw_district_backgrounds uses to decide a cell's owner, but for
+# one point instead of a whole grid -- cheap enough to call from a mouse
+# click rather than recomputing the full territory map just to hit-test it.
+func _resolve_district_field_index(point: Vector2, fields: Array) -> int:
+	var reserved_field := -1
+	var reserved_distance := INF
+	var corridor_field := -1
+	var corridor_distance := INF
+	var best_field := -1
+	var best_distance := INF
+	for field_index in range(fields.size()):
+		var member_distance := _district_member_distance(point, fields[field_index])
+		if member_distance < DISTRICT_ROOM_RESERVE and member_distance < reserved_distance:
+			reserved_distance = member_distance
+			reserved_field = field_index
+		var segment_distance := _district_segment_distance(point, fields[field_index])
+		if segment_distance < DISTRICT_CORRIDOR_RESERVE and segment_distance < corridor_distance:
+			corridor_distance = segment_distance
+			corridor_field = field_index
+		var distance := _district_field_distance(point, fields[field_index])
+		if distance < best_distance:
+			best_distance = distance
+			best_field = field_index
+	if reserved_field >= 0: return reserved_field
+	if corridor_field >= 0: return corridor_field
+	if best_distance <= DISTRICT_TERRITORY_RADIUS: return best_field
+	return -1
+
+# The id of the district that owns `world_pos` in the local room-graph
+# view, or "" if the point is outside every district's territory (or we're
+# not showing districts at all right now).
+func get_district_id_at(world_pos: Vector2) -> String:
+	if current_mode != ViewMode.LOCAL or region_data.is_empty(): return ""
+	var fields := _build_district_fields()
+	if fields.is_empty(): return ""
+	var field_index := _resolve_district_field_index(world_pos, fields)
+	if field_index < 0: return ""
+	return str(fields[field_index]["id"])
+
+func _on_draw_district_backgrounds():
+	if current_mode != ViewMode.LOCAL or region_data.is_empty() or district_layer == null: return
+	var fields := _build_district_fields()
+	if fields.is_empty(): return
+	var font := ThemeDB.get_fallback_font()
+	var bounds := Rect2()
+	var has_bounds := false
+	for field in fields:
+		for position in field["positions"]:
 			var pad_bounds := Rect2(position - Vector2(176, 176), Vector2(352, 352))
 			bounds = pad_bounds if not has_bounds else bounds.merge(pad_bounds)
 			has_bounds = true
-	if fields.is_empty(): return
+	if not has_bounds: return
 	# Shared influence cells produce a continuous territory map. Each cell
 	# has exactly one owner, so fills stay uniform; the smoothing pass below
 	# turns the exposed cell edges into curves. A finer grid keeps two
@@ -405,11 +462,11 @@ func _on_draw_district_backgrounds():
 	# width of "play" between how each side's own mask rounds it, so a
 	# smaller cell shrinks that residual gap rather than removing it.
 	var cell_size := 32.0
-	var room_reserve := 160.0
+	var room_reserve := DISTRICT_ROOM_RESERVE
 	# Wider than a room card: a district connection should read as a deliberate
 	# land bridge, not a hairline that can disappear at normal editor zoom.
-	var corridor_reserve := 160.0
-	var territory_radius := 176.0
+	var corridor_reserve := DISTRICT_CORRIDOR_RESERVE
+	var territory_radius := DISTRICT_TERRITORY_RADIUS
 	var owners := {}
 	for cell_x in range(int(floor(bounds.position.x / cell_size)), int(ceil(bounds.end.x / cell_size))):
 		for cell_y in range(int(floor(bounds.position.y / cell_size)), int(ceil(bounds.end.y / cell_size))):
@@ -476,19 +533,24 @@ func _on_draw_district_backgrounds():
 			var simplified := _simplify_loop_douglas_peucker(loop, BOUNDARY_SIMPLIFY_TOLERANCE)
 			loops.append(_chaikin_smooth_closed_loop(simplified, 4))
 		field_loops.append(loops)
+	var selected_district_id := str(editor_state.selected_district_id) if editor_state else ""
 	for field_index in range(fields.size()):
 		var color: Color = fields[field_index]["color"]
-		var fill := Color(color.r, color.g, color.b, 0.13)
+		var is_selected: bool = selected_district_id != "" and str(fields[field_index]["id"]) == selected_district_id
+		var fill := Color(color.r, color.g, color.b, 0.24 if is_selected else 0.13)
 		for loop in field_loops[field_index]:
 			if loop.size() >= 3: district_layer.draw_colored_polygon(PackedVector2Array(loop), fill)
 	for field_index in range(fields.size()):
 		var color: Color = fields[field_index]["color"]
-		var ridge := Color(color.r, color.g, color.b, 0.78)
+		var is_selected: bool = selected_district_id != "" and str(fields[field_index]["id"]) == selected_district_id
+		var ridge := color.lightened(0.35) if is_selected else Color(color.r, color.g, color.b, 0.78)
+		if is_selected: ridge.a = 1.0
+		var ridge_width := 3.5 if is_selected else 2.0
 		for loop in field_loops[field_index]:
 			if loop.size() < 2: continue
 			var closed := PackedVector2Array(loop)
 			closed.append(loop[0])
-			district_layer.draw_polyline(closed, ridge, 2.0, true)
+			district_layer.draw_polyline(closed, ridge, ridge_width, true)
 	for field in fields:
 		var positions: Array[Vector2] = field["positions"]
 		var label_pos := positions[0]

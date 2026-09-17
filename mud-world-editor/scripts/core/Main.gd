@@ -219,6 +219,7 @@ func _connect_inspector_signals():
 	inspector.connection_created.connect(action_handler.create_connection)
 	inspector.target_selected_in_connector.connect(_on_connection_target_selected)
 	inspector.request_save_template.connect(_on_save_template_request)
+	inspector.request_jump_to_room.connect(_jump_to_room)
 	inspector.save_triggered.connect(func(): 
 		if state.is_world_view: world_mgr.save_world_layout() 
 		else:
@@ -345,7 +346,7 @@ func _unhandled_input(event):
 			if not is_on_node and not state.is_box_selecting:
 				deselection_primed = true; mouse_down_pos = mouse_pos
 		else:
-			if deselection_primed and not is_dragging_object and mouse_pos.distance_to(mouse_down_pos) < DRAG_PIXEL_THRESHOLD: _deselect_all()
+			if deselection_primed and not is_dragging_object and mouse_pos.distance_to(mouse_down_pos) < DRAG_PIXEL_THRESHOLD: _on_empty_click(mouse_pos)
 			deselection_primed = false; is_dragging_object = false
 
 	if not state.is_box_selecting and camera_controller.handle_input(event):
@@ -783,6 +784,7 @@ func _update_selection_state():
 		return
 	state.district_preview = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
 	graph_controller.update_selection_visuals(state.selected_ids)
+	graph_controller.queue_redraw() # clears any stale district highlight from before this room selection
 	if state.selected_ids.size() == 1:
 		var id = state.selected_ids[0]
 		
@@ -872,7 +874,7 @@ func _on_request_layout():
 			"Auto-Arrange Layout"
 		)
 
-func _deselect_all(hide_ui: bool = true): 
+func _deselect_all(hide_ui: bool = true):
 	state.clear_selection()
 	if state.is_world_view:
 		graph_controller.update_selection_visuals([])
@@ -880,9 +882,31 @@ func _deselect_all(hide_ui: bool = true):
 	else:
 		graph_controller.update_selection_visuals([])
 		inspector.clear_selection(hide_ui)
+	# A district highlight lives on district_layer's own _draw(), unlike a
+	# room's selection border (a StyleBoxFlat that redraws itself on
+	# change) -- clearing the selection needs an explicit redraw to make
+	# that highlight actually disappear.
+	graph_controller.queue_redraw()
 
-func _deselect_room_only(): 
-	state.clear_selection(); graph_controller.update_selection_visuals([])
+func _deselect_room_only():
+	state.clear_selection(); graph_controller.update_selection_visuals([]); graph_controller.queue_redraw()
+
+# A click that missed every room node. In the local view, that empty space
+# still might be inside a district's territory -- select the district
+# itself rather than treating it as a plain deselect.
+func _on_empty_click(mouse_pos: Vector2):
+	if not state.is_world_view:
+		var district_id := graph_controller.get_district_id_at(mouse_pos)
+		if district_id != "":
+			_select_district(district_id)
+			return
+	_deselect_all()
+
+func _select_district(district_id: String):
+	state.set_district_selection(district_id)
+	graph_controller.update_selection_visuals([])
+	graph_controller.queue_redraw()
+	inspector.load_district(district_id, region_mgr.data)
 
 func _on_data_modified():
 	if not state.is_world_view:

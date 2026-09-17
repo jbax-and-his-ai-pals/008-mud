@@ -12,6 +12,7 @@ signal reload_triggered
 signal data_modified
 signal database_modified
 signal request_graph_edit_mode(quest_id) # New Signal
+signal request_jump_to_room(room_id)
 
 var panel: Panel
 var vbox_main: VBoxContainer
@@ -30,6 +31,7 @@ var current_inspector: RefCounted = null
 
 const QUEST_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/QuestInspector.gd")
 const MULTI_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/MultiRoomInspector.gd")
+const DISTRICT_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/DistrictInspector.gd")
 
 func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _db_mgr: DatabaseManager):
 	region_mgr = _region_mgr
@@ -123,6 +125,17 @@ func load_region_root(data: Dictionary):
 	current_inspector = insp
 	insp.data_modified.connect(func(): data_modified.emit())
 	insp.build(data.get("region_id", "Unknown"), data)
+
+func load_district(district_id: String, region_data: Dictionary):
+	clear_selection(false)
+	cur_mode = "district"
+	panel.visible = true
+
+	var insp = DISTRICT_INSPECTOR_SCRIPT.new(content_container, action_handler)
+	current_inspector = insp
+	insp.data_modified.connect(func(): data_modified.emit())
+	insp.request_jump_to_room.connect(func(rid): request_jump_to_room.emit(rid))
+	insp.build(district_id, region_data)
 
 func load_db_object(type: String, id: String, data: Dictionary):
 	clear_selection(false)
