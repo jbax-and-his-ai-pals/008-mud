@@ -3,6 +3,7 @@ class_name GraphController
 extends RefCounted
 
 const DistrictLayout = preload("res://scripts/generators/DistrictLayout.gd")
+const TerritoryShape = preload("res://scripts/generators/TerritoryShape.gd")
 
 # Signals
 signal node_selected(id)
@@ -663,33 +664,10 @@ func _district_segment_distance(point: Vector2, field: Dictionary) -> float:
 		closest = minf(closest, point.distance_to(nearest))
 	return closest
 
-# A cell whose 4-neighbors are mostly one other district is noise, not a
-# real feature -- the nearest-owner/reserved/corridor rules above are each
-# individually reasonable but can flip a single stray cell's owner right at
-# the seam between two districts, which then shows up downstream as a small
-# jagged notch or spike DP has no reason to remove (a lone flipped cell is a
-# real, if tiny, deviation from any chord near it). Requiring 3 of 4
-# neighbors to agree before reassigning a cell is deliberately strict: it
-# only cleans up single-cell pockets and leaves genuine thin necks or
-# corridors (which are many cells wide, so never look this isolated) alone.
+# See TerritoryShape.despeckle_owners -- kept as a same-named wrapper here
+# so existing callers/tests are untouched.
 func _despeckle_owners(owners: Dictionary) -> Dictionary:
-	var neighbor_offsets := [Vector2i(0, -1), Vector2i(0, 1), Vector2i(1, 0), Vector2i(-1, 0)]
-	var cleaned := owners.duplicate()
-	for cell in owners:
-		var current: int = owners[cell]
-		var counts: Dictionary = {}
-		for offset in neighbor_offsets:
-			if not owners.has(cell + offset): continue
-			var neighbor_owner: int = owners[cell + offset]
-			counts[neighbor_owner] = counts.get(neighbor_owner, 0) + 1
-		var best_owner := current
-		var best_count: int = counts.get(current, 0)
-		for owner in counts:
-			if counts[owner] > best_count:
-				best_count = counts[owner]
-				best_owner = owner
-		if best_owner != current and best_count >= 3: cleaned[cell] = best_owner
-	return cleaned
+	return TerritoryShape.despeckle_owners(owners)
 
 # Multi-source BFS from every boundary cell of one field (distance 0)
 # outward: for each cell field_index owns, how many grid steps it is from
@@ -802,124 +780,20 @@ func _find_label_anchor_cell(owners: Dictionary, field_index: int, cell_size: fl
 			best_cell = cell
 	return best_cell
 
-# Walks the owned-cell mask for one field into one or more closed,
-# world-space vertex loops (its outer boundary, plus any hole it has been
-# squeezed into by a neighbor -- rare, but not assumed away). Every owned
-# cell contributes its clockwise-facing edges wherever the neighbor across
-# that edge belongs to someone else (or nobody); those directed edges chain
-# start-to-end into full loops because a raster region's boundary always
-# does, regardless of its shape.
+# These four all now live on TerritoryShape (shared with the world view's
+# region shapes) and are kept here as same-named wrappers so existing
+# callers/tests are untouched.
 func _trace_field_boundary_loops(owners: Dictionary, field_index: int, cell_size: float) -> Array:
-	var next_vertex: Dictionary = {}
-	var vertex_by_key: Dictionary = {}
-	for cell in owners:
-		if int(owners[cell]) != field_index: continue
-		var cx: int = cell.x
-		var cy: int = cell.y
-		var tl := Vector2(cx, cy) * cell_size
-		var tr := Vector2(cx + 1, cy) * cell_size
-		var br := Vector2(cx + 1, cy + 1) * cell_size
-		var bl := Vector2(cx, cy + 1) * cell_size
-		if int(owners.get(Vector2i(cx, cy - 1), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, tl, tr)
-		if int(owners.get(Vector2i(cx + 1, cy), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, tr, br)
-		if int(owners.get(Vector2i(cx, cy + 1), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, br, bl)
-		if int(owners.get(Vector2i(cx - 1, cy), -1)) != field_index: _add_boundary_edge(next_vertex, vertex_by_key, bl, tl)
-	var visited: Dictionary = {}
-	var loops: Array = []
-	for start_key in next_vertex.keys():
-		if visited.has(start_key): continue
-		var loop: Array = []
-		var current_key: String = start_key
-		var guard := 0
-		while not visited.has(current_key) and next_vertex.has(current_key) and guard < 100000:
-			visited[current_key] = true
-			loop.append(vertex_by_key[current_key])
-			current_key = _boundary_vertex_key(next_vertex[current_key])
-			guard += 1
-		if loop.size() >= 3: loops.append(loop)
-	return loops
+	return TerritoryShape.trace_boundary_loops(owners, field_index, cell_size)
 
-func _boundary_vertex_key(v: Vector2) -> String:
-	return "%d:%d" % [roundi(v.x), roundi(v.y)]
-
-func _add_boundary_edge(next_vertex: Dictionary, vertex_by_key: Dictionary, from: Vector2, to: Vector2) -> void:
-	var from_key := _boundary_vertex_key(from)
-	vertex_by_key[from_key] = from
-	vertex_by_key[_boundary_vertex_key(to)] = to
-	next_vertex[from_key] = to
-
-# Collapses a run of small cell-grid steps down to its real corners. A
-# diagonal-ish boundary at this cell size is a long staircase of tiny
-# alternating steps; every one of those steps is a genuine direction change,
-# so simple collinearity checks cannot remove them, but they are also not a
-# real feature of the district's shape -- just this grid's resolution.
-# Douglas-Peucker keeps only the points a straight chord could not
-# approximate within `tolerance`, so a whole staircase run collapses to the
-# two points at its ends wherever it is, in fact, straight-ish.
-#
-# A closed loop needs an anchor point to open it into the chain the
-# algorithm actually operates on; an earlier version picked the two most
-# distant points to split it in half, but that choice depends on the
-# loop's overall shape, not just the run being simplified, and two
-# different shapes sharing one straight edge could pick different anchors
-# and simplify that shared edge differently. Anchoring on the loop's own
-# first point instead is arbitrary in the same way, but harmlessly so: the
-# recursive algorithm below always keeps both ends of whatever chain it is
-# given and only discards a point when a straight chord already
-# approximates it, so no real corner can be lost regardless of where the
-# seam falls.
 func _simplify_loop_douglas_peucker(loop: Array, tolerance: float) -> Array:
-	var n := loop.size()
-	if n < 5: return loop
-	var unrolled: Array = loop.duplicate()
-	unrolled.append(loop[0])
-	var simplified := _douglas_peucker_open(unrolled, tolerance)
-	if simplified.size() >= 2 and simplified[0].is_equal_approx(simplified[simplified.size() - 1]):
-		simplified = simplified.slice(0, simplified.size() - 1)
-	return simplified if simplified.size() >= 3 else loop
+	return TerritoryShape.simplify_douglas_peucker(loop, tolerance)
 
 func _douglas_peucker_open(points: Array, tolerance: float) -> Array:
-	var n := points.size()
-	if n < 3: return points
-	var start: Vector2 = points[0]
-	var end: Vector2 = points[n - 1]
-	var max_dist := 0.0
-	var split_index := 0
-	for i in range(1, n - 1):
-		var nearest := Geometry2D.get_closest_point_to_segment(points[i], start, end)
-		var dist: float = points[i].distance_to(nearest)
-		if dist > max_dist:
-			max_dist = dist
-			split_index = i
-	if max_dist <= tolerance:
-		return [start, end]
-	var left := _douglas_peucker_open(points.slice(0, split_index + 1), tolerance)
-	var right := _douglas_peucker_open(points.slice(split_index, n), tolerance)
-	var combined: Array = left.duplicate()
-	combined.append_array(right.slice(1, right.size()))
-	return combined
+	return TerritoryShape._douglas_peucker_open(points, tolerance)
 
-# Chaikin corner-cutting: each edge contributes two new points a quarter of
-# the way in from each end, replacing the original corner. Unlike a spline
-# through every point, this can only ever move a boundary *inward* toward
-# its own edges, never bulge past them -- which is what keeps two adjacent
-# districts' independently-smoothed shared border tight against each other
-# rather than drifting apart, and keeps the curve calm instead of
-# overshooting at sharp corners. A few iterations converge quickly; more
-# than that just re-rounds an already-round shape.
 func _chaikin_smooth_closed_loop(loop: Array, iterations: int = 3) -> Array:
-	var points := loop
-	for _iteration in range(iterations):
-		var n := points.size()
-		if n < 3: break
-		var next: Array = []
-		for i in range(n):
-			var p0: Vector2 = points[i]
-			var p1: Vector2 = points[(i + 1) % n]
-			next.append(p0.lerp(p1, 0.25))
-			next.append(p0.lerp(p1, 0.75))
-		points = next
-	return points
+	return TerritoryShape.chaikin_smooth(loop, iterations)
 
 func _draw_ghost_connection(from: Vector2, to: Vector2, label: String, color: Color):
 	if from.is_equal_approx(to): return
@@ -980,6 +854,30 @@ func _draw_world_connections():
 						var p2 = n_tgt.global_position + (n_tgt.get_room_local_center(tgt_room_id) * n_tgt.scale)
 						var line_width = (base_line_width * 2 if is_bi else base_line_width) * scale_factor
 						var line_color = Color.GOLD if is_highlighted else (Color.WHITE if is_bi else Color(0.8, 0.8, 0.8, 0.5))
-						
-						if is_bi or is_highlighted: connection_layer.draw_line(p1, p2, line_color, line_width * (2.0 if is_highlighted else 1.0))
-						else: connection_layer.draw_dashed_line(p1, p2, line_color, line_width, 4.0 * scale_factor)
+
+						if is_bi or is_highlighted: _draw_world_curve(p1, p2, line_color, line_width * (2.0 if is_highlighted else 1.0), false)
+						else: _draw_world_curve(p1, p2, line_color, line_width, true, 4.0 * scale_factor)
+
+# A gentle quadratic-bezier arc between two regions instead of a straight
+# line, matching the local view's own curved-connection language. The bow
+# direction (always to the same side of the direct line, by a fixed
+# perpendicular sign) is deterministic so the same pair of regions always
+# curves the same way across redraws, and its magnitude is capped so a
+# very long inter-region link doesn't bow into a loop.
+func _draw_world_curve(from: Vector2, to: Vector2, color: Color, width: float, dashed: bool, dash_length: float = 4.0):
+	var delta := to - from
+	var dist := delta.length()
+	if dist < 1.0: return
+	var perp := Vector2(-delta.y, delta.x).normalized()
+	var bow := clampf(dist * 0.12, 0.0, 220.0)
+	var control := (from + to) * 0.5 + perp * bow
+	var samples := clampi(int(dist / 40.0), 8, 32)
+	var points := PackedVector2Array()
+	for i in range(samples + 1):
+		var t := float(i) / float(samples)
+		points.append(from.bezier_interpolate(control, control, to, t))
+	if dashed:
+		for i in range(points.size() - 1):
+			connection_layer.draw_dashed_line(points[i], points[i + 1], color, width, dash_length)
+	else:
+		connection_layer.draw_polyline(points, color, width, true)

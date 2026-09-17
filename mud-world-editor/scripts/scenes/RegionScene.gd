@@ -2,6 +2,8 @@
 class_name RegionScene
 extends Node2D
 
+const TerritoryShape = preload("res://scripts/generators/TerritoryShape.gd")
+
 signal region_selected(region_id)
 signal region_moved_committed(old_pos, new_pos)
 signal region_dragged(new_pos)
@@ -13,55 +15,73 @@ var drag_start_pos: Vector2
 var _is_selected: bool = false
 
 # Layout Data
-var content_rect: Rect2 # The static area containing the nodes
+var content_rect: Rect2 # Bounding box of shape_loops, used for the header
+                        # bar and click/drag hit-testing.
+var shape_loops: Array = [] # One or more smooth, closed polygons (local
+                             # space) shaped by this region's own rooms.
 var bg_color: Color
 var cached_rooms: Dictionary = {}
 
 const ROOM_SIZE = Vector2(80, 80)
-const PADDING = 200.0
-const MIN_VISUAL_SIZE = Vector2(2000, 1500)
 const BASE_HEADER_HEIGHT = 60.0 # Base height before scaling
+
+# The world view's answer to a district's territory: instead of competing
+# with neighbors for cells, a region's shape is simply everywhere within
+# SHAPE_RADIUS of one of its own rooms or the connections between them --
+# there is nothing to compete against, since the world-map layout already
+# keeps regions from overlapping. A finer cell size than districts use is
+# affordable here because this only runs once, in setup() -- a region is
+# dragged as one rigid shape in the world view, never reshaped live the
+# way a district can be by a room drag in the local view.
+const SHAPE_CELL_SIZE = 24.0
+const SHAPE_RADIUS = 150.0
+const SHAPE_SIMPLIFY_TOLERANCE = 50.0
+const SHAPE_CHAIKIN_ITERATIONS = 4
+const CONTENT_MARGIN = 40.0 # Breathing room around the shape itself for the header/hit-rect.
 
 func setup(id: String, data: Dictionary, color: Color):
 	region_id = id
 	bg_color = color
 	cached_rooms = data.get("rooms", {})
-	
-	# 1. Calculate the actual bounds of the room nodes themselves.
-	var min_p = Vector2(INF, INF)
-	var max_p = Vector2(-INF, -INF)
-	var has_rooms = false
-	
+
+	var positions: Array = []
+	var segments: Array = []
+	var drawn_links: Dictionary = {}
 	for r_id in cached_rooms:
-		has_rooms = true
-		var ep = cached_rooms[r_id].get("_editor_pos", [0, 0])
-		var local_pos = Vector2(ep[0], ep[1])
-		
-		min_p.x = min(min_p.x, local_pos.x)
-		min_p.y = min(min_p.y, local_pos.y)
-		max_p.x = max(max_p.x, local_pos.x)
-		max_p.y = max(max_p.y, local_pos.y)
-	
-	if not has_rooms:
-		min_p = Vector2(-100, -100)
-		max_p = Vector2(100, 100)
-	
-	# 2. Determine the final size of the content area, enforcing the minimum size.
-	var content_size_raw = (max_p - min_p) + ROOM_SIZE
-	var final_content_area_size = Vector2(
-		max(content_size_raw.x, MIN_VISUAL_SIZE.x),
-		max(content_size_raw.y, MIN_VISUAL_SIZE.y)
-	)
-	
-	# 3. Center the final, padded box on the geometric center of the actual content.
-	var content_geometric_center = min_p + (content_size_raw / 2.0)
-	var final_padded_size = final_content_area_size + Vector2(PADDING * 2, PADDING * 2)
-	
-	content_rect = Rect2(
-		content_geometric_center - (final_padded_size / 2.0),
-		final_padded_size
-	)
-	
+		var center: Vector2 = _get_vec(cached_rooms[r_id]) + (ROOM_SIZE / 2.0)
+		positions.append(center)
+		var exits = cached_rooms[r_id].get("exits", {})
+		for dir in exits:
+			var target = str(exits[dir])
+			if not ":" in target and cached_rooms.has(target):
+				var pair := [str(r_id), target]; pair.sort()
+				var key: String = str(pair[0]) + "|" + str(pair[1])
+				if not drawn_links.has(key):
+					drawn_links[key] = true
+					segments.append({"from": center, "to": _get_vec(cached_rooms[target]) + (ROOM_SIZE / 2.0)})
+	if positions.is_empty(): positions = [Vector2.ZERO]
+
+	var dilation_bounds := Rect2()
+	var has_dilation_bounds := false
+	var pad := Vector2.ONE * (SHAPE_RADIUS + SHAPE_CELL_SIZE)
+	for p in positions:
+		var pad_rect := Rect2(p - pad, pad * 2.0)
+		dilation_bounds = pad_rect if not has_dilation_bounds else dilation_bounds.merge(pad_rect)
+		has_dilation_bounds = true
+
+	var owners := TerritoryShape.dilate_to_owners(dilation_bounds, SHAPE_CELL_SIZE, SHAPE_RADIUS, positions, segments)
+	owners = TerritoryShape.despeckle_owners(owners)
+	shape_loops = TerritoryShape.build_smooth_loops(owners, 0, SHAPE_CELL_SIZE, SHAPE_SIMPLIFY_TOLERANCE, SHAPE_CHAIKIN_ITERATIONS)
+
+	var shape_bounds := Rect2()
+	var has_shape_bounds := false
+	for loop in shape_loops:
+		for point in loop:
+			var point_rect := Rect2(point, Vector2.ZERO)
+			shape_bounds = point_rect if not has_shape_bounds else shape_bounds.merge(point_rect)
+			has_shape_bounds = true
+	content_rect = shape_bounds.grow(CONTENT_MARGIN) if has_shape_bounds else Rect2(Vector2(-150, -150), Vector2(300, 300))
+
 	queue_redraw()
 
 func set_selected(is_selected: bool):
@@ -125,20 +145,31 @@ func _draw():
 	
 	# Counteract node scale for consistent visual weight
 	var inv_scale = 1.0 / self.scale.x
-	
-	# 1. Drop Shadow
+
+	# 1. Drop Shadow -- the organic shape's own outline, offset, rather
+	# than a rectangle behind it.
 	var shadow_off = Vector2(16, 16) * scale_factor * inv_scale
-	draw_rect(Rect2(main_rect.position + shadow_off, main_rect.size), Color(0,0,0,0.5), true)
-	
-	# 2. Backgrounds
-	draw_rect(content_rect, col_content, true)
+	for loop in shape_loops:
+		if loop.size() < 3: continue
+		var shifted := PackedVector2Array()
+		for point in loop: shifted.append(point + shadow_off)
+		draw_colored_polygon(shifted, Color(0, 0, 0, 0.5))
+
+	# 2. Backgrounds -- the shape itself, shaped by this region's own rooms,
+	# plus the header tab (still a plain rect; it's chrome, not territory).
+	for loop in shape_loops:
+		if loop.size() >= 3: draw_colored_polygon(PackedVector2Array(loop), col_content)
 	draw_rect(header_rect, col_header, true)
-	
-	# 3. Frame / Border
+
+	# 3. Frame / Border -- the shape's own ridge, plus the header's.
 	var border_w = 4.0 * scale_factor * inv_scale
-	# Draw outer frame
-	draw_rect(main_rect, col_border, false, border_w)
-	
+	for loop in shape_loops:
+		if loop.size() < 2: continue
+		var closed := PackedVector2Array(loop)
+		closed.append(loop[0])
+		draw_polyline(closed, col_border, border_w, true)
+	draw_rect(header_rect, col_border, false, border_w)
+
 	# Draw header divider bar using a filled rectangle for proper height
 	var bar_y = content_rect.position.y
 	draw_rect(
@@ -179,7 +210,12 @@ func _draw():
 	# 7. Draw Selection Highlight (if selected)
 	if _is_selected:
 		var select_border_width = 8.0 * scale_factor * inv_scale
-		draw_rect(main_rect, Color.GOLD, false, select_border_width)
+		draw_rect(header_rect, Color.GOLD, false, select_border_width)
+		for loop in shape_loops:
+			if loop.size() < 2: continue
+			var closed := PackedVector2Array(loop)
+			closed.append(loop[0])
+			draw_polyline(closed, Color.GOLD, select_border_width, true)
 
 func _get_vec(r_data) -> Vector2:
 	var ep = r_data.get("_editor_pos", [0,0])
