@@ -390,9 +390,23 @@ This project is provided as-is for educational and development purposes.
 
 ## 🗺️ Godot + True MUD Commercialization Roadmap
 
+> **For current priorities, read [`ROADMAP.md`](ROADMAP.md)** (rewritten
+> 2026-09-14 after a full engine + content audit; tracks phases P0-P8) and
+> [`docs/design/WORLD_DESIGN.md`](docs/design/WORLD_DESIGN.md). Much of what
+> this section describes as future phases is already done — a headless,
+> server-authoritative core with TCP/WS transports exists
+> (`engine/server/`), and the content-set pipeline/editor integration Phase 4
+> calls for is largely built (`engine/server/content_set.py`,
+> `content_sets/fantasy_frontier/`, the synced `mud-world-editor/`). Kept
+> below as the original commercialization framing and for the docs it
+> still points at usefully (platform architecture, Steam packaging, theme
+> packs); treat phase numbering and "current state" as historical, not a
+> live plan.
+
 Goal: evolve this singleplayer simulation-first game into a commercial, server-authoritative multiplayer MUD with Godot client UX.
 
-Execution docs live in `docs/roadmap/`:
+Execution docs live in `docs/roadmap/` (see the supersession notice in
+`docs/roadmap/README.md` before treating anything there as current):
 - `docs/roadmap/README.md`
 - `docs/roadmap/phases/`
 - `docs/roadmap/adr/`
