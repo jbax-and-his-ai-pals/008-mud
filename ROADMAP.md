@@ -1456,14 +1456,24 @@ more urgent.
 ### Still open
 
 1. **Final curve multiplier** — ×1.25 to start; revisit with real play data.
-2. **Per-grant XP values** and the shape of diminishing returns. *(blocks P4)*
-3. **Test mode surface** — launch flag, per-session, or both? *(blocks P1)*
-4. **Which 4–5 towns**, and each one's economy focal point and personality?
-   *(blocks P7)*
-5. **Guild model** — how many, how joined, may a player hold titles from
-   several, do guilds have halls? *(blocks P4/P7)*
-6. **Condition language** — the shared evaluator serving dialogue, titles, and
-   quest availability needs a schema. *(blocks P4/P5)*
+   Blocked on the human playtesting P8 still lists as not started.
+2. **Per-grant XP values** and the shape of diminishing returns. Same block:
+   real tuning needs real play, not just automated coverage.
+3. ~~Test mode surface~~ — **Settled in practice.** `presentation_mode`
+   resolves per session with `test` as the safe default; P1 shipped and is
+   marked Complete above.
+4. ~~Which 4–5 towns~~ — **Settled.** Five towns (Riverside, Portbridge,
+   Frostpeak, Sunscorch Caravanserai, Aurelia), each with its own economy
+   focal point. Full detail and rationale in `WORLD_DESIGN.md` decision 12.
+5. ~~Guild model~~ — **Settled.** Ten guild-like groups, membership implicit
+   and title-shaped (conferred once conditions hold, no separate join
+   action), unlimited multi-guild stacking by design. Full detail in
+   `WORLD_DESIGN.md` decision 13.
+6. ~~Condition language~~ — **Settled.** `engine/conditions.py` is the one
+   evaluator serving dialogue, titles, and quest availability. What remains
+   is narrower and already tracked under P5's own "Still open": no
+   conversation-history predicates, `reveal_exit` is world- not per-player
+   state, and hostile NPCs have no dialogue beyond negotiation.
 
 ---
 
