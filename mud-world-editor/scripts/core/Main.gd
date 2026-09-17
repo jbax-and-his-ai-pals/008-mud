@@ -205,6 +205,7 @@ func _connect_graph_signals():
 	graph_controller.node_drag_started.connect(func(_id): is_dragging_object = true)
 	graph_controller.world_view_builder.region_dragged.connect(func(): is_dragging_object = true)
 	graph_controller.node_selected.connect(func(id): _on_node_click(id, Input.is_key_pressed(KEY_SHIFT)))
+	graph_controller.node_double_clicked.connect(func(id): camera_controller.focus_on(graph_controller.get_node_position(id), true))
 	graph_controller.node_drag_started.connect(func(id):
 		if not state.is_selected(id): return 
 		state.drag_start_positions.clear()
@@ -588,11 +589,6 @@ func _update_selection_state():
 	if state.selected_ids.size() == 1:
 		var id = state.selected_ids[0]
 		
-		if graph_controller.current_mode == GraphController.ViewMode.QUEST:
-			pass
-		else:
-			camera_controller.focus_on(graph_controller.get_node_position(id), false)
-			
 		if region_mgr.data.rooms.has(id):
 			inspector.load_room(id, region_mgr.data.rooms[id]); ui_mgr.select_room_item(id)
 		else: inspector.load_external_ref(id)

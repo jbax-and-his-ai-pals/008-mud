@@ -2,6 +2,7 @@
 extends Node2D
 
 signal room_selected(room_id)
+signal room_double_clicked(room_id)
 signal dragged(new_position)
 signal right_clicked
 signal connection_drag_started(room_id)
@@ -207,6 +208,8 @@ func _on_panel_gui_input(event):
 					drag_offset = get_global_mouse_position() - global_position
 					emit_signal("room_selected", _cached_id)
 					emit_signal("drag_started")
+					if event.double_click:
+						emit_signal("room_double_clicked", _cached_id)
 			else: 
 				if dragging: 
 					dragging = false

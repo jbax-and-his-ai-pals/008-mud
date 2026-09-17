@@ -4,6 +4,7 @@ extends RefCounted
 
 # Signals
 signal node_selected(id)
+signal node_double_clicked(id)
 signal node_drag_started(id)
 signal node_dragging(id, current_pos)
 signal node_dragged(id, final_pos)
@@ -58,6 +59,7 @@ func setup(_container: Node2D, _conn_layer: Node2D, p_state: EditorState):
 
 func _forward_builder_signals():
 	local_view_builder.node_selected.connect(func(id): node_selected.emit(id))
+	local_view_builder.node_double_clicked.connect(func(id): node_double_clicked.emit(id))
 	local_view_builder.node_drag_started.connect(func(id): node_drag_started.emit(id))
 	local_view_builder.node_dragging.connect(func(id, pos): node_dragging.emit(id, pos); queue_redraw())
 	local_view_builder.node_dragged.connect(func(id, pos): node_dragged.emit(id, pos))

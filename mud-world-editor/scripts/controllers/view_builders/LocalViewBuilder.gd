@@ -9,6 +9,7 @@ var room_nodes: Dictionary = {}
 
 # Signals forwarded from nodes
 signal node_selected(id)
+signal node_double_clicked(id)
 signal node_drag_started(id)
 signal node_dragging(id, current_pos)
 signal node_dragged(id, final_pos)
@@ -82,6 +83,7 @@ func _create_proxy_node(full_id, pos, snap_enabled):
 
 func _connect_node_signals(node: Node, id: String):
 	node.room_selected.connect(func(_i): node_selected.emit(id))
+	node.room_double_clicked.connect(func(_i): node_double_clicked.emit(id))
 	node.drag_started.connect(func(): node_drag_started.emit(id))
 	node.right_clicked.connect(func(): node_right_clicked.emit(id))
 	node.connection_drag_started.connect(func(_i): connection_drag_started.emit(id))
