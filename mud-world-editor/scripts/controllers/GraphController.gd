@@ -832,7 +832,8 @@ func _draw_world_connections():
 	var scale_factor = clamp(1.0 / sqrt(zoom), 1.0, 3.0)
 	var base_line_width = 0.5
 	var selected_region_id = editor_state.selected_ids[0] if not editor_state.selected_ids.is_empty() else ""
-	
+	var font := ThemeDB.get_fallback_font()
+
 	for src_rid in world_data:
 		for src_room_id in world_data[src_rid].get("rooms", {}):
 			for dir in world_data[src_rid].rooms[src_room_id].get("exits", {}):
@@ -841,30 +842,43 @@ func _draw_world_connections():
 					var parts = target_raw.split(":"); var tgt_rid = parts[0]; var tgt_room_id = parts[1]
 					if tgt_rid != src_rid and world_view_builder.world_region_nodes.has(src_rid) and world_view_builder.world_region_nodes.has(tgt_rid):
 						var is_highlighted = (src_rid == selected_region_id or tgt_rid == selected_region_id)
-						var is_bi = world_data.get(tgt_rid, {}).get("rooms", {}).get(tgt_room_id, {}).get("exits", {}).values().has(src_rid + ":" + src_room_id)
+						var tgt_exits: Dictionary = world_data.get(tgt_rid, {}).get("rooms", {}).get(tgt_room_id, {}).get("exits", {})
+						var rev_dir := ""
+						for t_dir in tgt_exits:
+							if str(tgt_exits[t_dir]) == src_rid + ":" + src_room_id:
+								rev_dir = str(t_dir)
+								break
+						var is_bi := rev_dir != ""
 						if is_bi:
 							var k = [src_rid, tgt_rid]; k.sort()
 							var key = k[0] + k[1]
 							if drawn_pairs.has(key): continue
 							drawn_pairs[key] = true
-						
+
 						var n_src = world_view_builder.world_region_nodes[src_rid]
 						var n_tgt = world_view_builder.world_region_nodes[tgt_rid]
 						var p1 = n_src.global_position + (n_src.get_room_local_center(src_room_id) * n_src.scale)
 						var p2 = n_tgt.global_position + (n_tgt.get_room_local_center(tgt_room_id) * n_tgt.scale)
 						var line_width = (base_line_width * 2 if is_bi else base_line_width) * scale_factor
 						var line_color = Color.GOLD if is_highlighted else (Color.WHITE if is_bi else Color(0.8, 0.8, 0.8, 0.5))
+						# The label always leads with the exit that was actually authored
+						# (src_room_id's own "dir"), same as a room-to-room connection --
+						# there's no ambiguity to resolve here the way local view's swap-
+						# able source exists for, since this *is* the one real exit.
+						var label := Constants.format_reciprocal_label(dir, rev_dir, p1, p2) if is_bi else str(dir).capitalize()
 
-						if is_bi or is_highlighted: _draw_world_curve(p1, p2, line_color, line_width * (2.0 if is_highlighted else 1.0), false)
-						else: _draw_world_curve(p1, p2, line_color, line_width, true, 4.0 * scale_factor)
+						if is_bi or is_highlighted: _draw_world_curve(p1, p2, line_color, line_width * (2.0 if is_highlighted else 1.0), false, 4.0, label, font, is_bi)
+						else: _draw_world_curve(p1, p2, line_color, line_width, true, 4.0 * scale_factor, label, font, is_bi)
 
 # A gentle quadratic-bezier arc between two regions instead of a straight
-# line, matching the local view's own curved-connection language. The bow
-# direction (always to the same side of the direct line, by a fixed
-# perpendicular sign) is deterministic so the same pair of regions always
-# curves the same way across redraws, and its magnitude is capped so a
-# very long inter-region link doesn't bow into a loop.
-func _draw_world_curve(from: Vector2, to: Vector2, color: Color, width: float, dashed: bool, dash_length: float = 4.0):
+# line, matching the local view's own curved-connection language, with the
+# same "direction ↔ direction" label a room-to-room connection gets --
+# reusing GraphRenderer's label/arrow drawing directly so both views read
+# identically. The bow direction (always to the same side of the direct
+# line, by a fixed perpendicular sign) is deterministic so the same pair of
+# regions always curves the same way across redraws, and its magnitude is
+# capped so a very long inter-region link doesn't bow into a loop.
+func _draw_world_curve(from: Vector2, to: Vector2, color: Color, width: float, dashed: bool, dash_length: float, label: String, font: Font, is_bi: bool):
 	var delta := to - from
 	var dist := delta.length()
 	if dist < 1.0: return
@@ -881,3 +895,9 @@ func _draw_world_curve(from: Vector2, to: Vector2, color: Color, width: float, d
 			connection_layer.draw_dashed_line(points[i], points[i + 1], color, width, dash_length)
 	else:
 		connection_layer.draw_polyline(points, color, width, true)
+
+	var mid := from.bezier_interpolate(control, control, to, 0.5)
+	var tangent := (2.0 * 0.5 * (control - from) + 2.0 * 0.5 * (to - control)).normalized()
+	GraphRenderer._draw_label_rotated(connection_layer, font, GraphRenderer._get_label_style(), mid, label, tangent.angle())
+	if not is_bi:
+		GraphRenderer._draw_arrow_at_t(connection_layer, from, control, to, 0.9, color)

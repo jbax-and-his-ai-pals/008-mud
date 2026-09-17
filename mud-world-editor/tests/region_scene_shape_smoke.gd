@@ -39,6 +39,18 @@ func _init() -> void:
 	empty.setup("empty_region", {"rooms": {}}, Color.WHITE)
 	_assert(empty.content_rect.size.x > 0 and empty.content_rect.size.y > 0, "a room-less region still gets a sane, non-empty content_rect")
 
+	# A small region with a long name must get a header wide enough for its
+	# own title -- otherwise the text overflows into whatever's drawn next
+	# to it (garbled, overlapping labels in a dense world map).
+	var tiny_data := {"rooms": {"a": {"_editor_pos": [0, 0], "exits": {}}}}
+	var long_named := RegionScene.new()
+	long_named.setup("a_very_long_region_name_indeed", tiny_data, Color.WHITE)
+	var viz: Dictionary = long_named._get_current_visuals(1.0)
+	var font := ThemeDB.get_fallback_font()
+	var title_width: float = font.get_string_size(long_named._get_title(), HORIZONTAL_ALIGNMENT_CENTER, -1, viz.font_size).x
+	_assert(viz.header_rect.size.x >= title_width, "the header is at least as wide as its own title, got header=%.1f title=%.1f" % [viz.header_rect.size.x, title_width])
+	_assert(is_equal_approx(viz.header_rect.get_center().x, long_named.content_rect.get_center().x), "a widened header stays centered on the shape below it")
+
 	quit(1 if failures > 0 else 0)
 
 func _assert(condition: bool, message: String) -> void:

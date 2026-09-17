@@ -96,35 +96,50 @@ func get_room_local_center(room_id: String) -> Vector2:
 		return _get_vec(cached_rooms[room_id]) + (ROOM_SIZE / 2.0)
 	return Vector2.ZERO
 
+func _get_title() -> String:
+	return region_id.capitalize().replace("_", " ")
+
 func _get_current_visuals(zoom: float) -> Dictionary:
 	# Calculate dynamic scaling based on zoom
 	var scale_factor = clamp(1.0 / sqrt(zoom), 1.0, 4.0)
-	
+
 	# Counteract the node's own scale to keep visuals consistent
 	var inv_scale = 1.0 / self.scale.x
-	
+
 	# Scale the header's base height to compensate for the node's scale
 	var effective_header_height = BASE_HEADER_HEIGHT * scale_factor * inv_scale
-	
-	# Grow header UPWARDS from content rect using the correctly scaled height
-	var header_r = Rect2(
-		content_rect.position.x, 
-		content_rect.position.y - effective_header_height,
-		content_rect.size.x, 
-		effective_header_height
-	)
-	
-	var total_r = header_r.merge(content_rect)
-	
+
 	# If the node is scaled (i.e., in World View), use a smaller base font size.
 	var base_font_size = 16.0 if self.scale.x < 1.0 else 32.0
-	
+	var font_size = int((base_font_size * scale_factor) * inv_scale)
+
+	# A small region (a tight shape, few rooms) can carry a long name --
+	# without this, its header would be narrower than its own title and
+	# overflow into whatever is drawn next to it. The header (and the
+	# hit-rect derived from it) widens to fit the title instead of
+	# strictly matching the shape's own width, staying centered on it.
+	var font := ThemeDB.get_fallback_font()
+	var title_width: float = font.get_string_size(_get_title(), HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x
+	var header_padding: float = 24.0 * scale_factor * inv_scale
+	var header_width: float = maxf(content_rect.size.x, title_width + header_padding)
+	var header_center_x: float = content_rect.position.x + content_rect.size.x * 0.5
+
+	# Grow header UPWARDS from content rect using the correctly scaled height
+	var header_r = Rect2(
+		header_center_x - header_width * 0.5,
+		content_rect.position.y - effective_header_height,
+		header_width,
+		effective_header_height
+	)
+
+	var total_r = header_r.merge(content_rect)
+
 	return {
 		"scale": scale_factor,
 		"header_rect": header_r,
 		"main_rect": total_r,
 		# Font size also needs to be scaled up to look correct after node scaling
-		"font_size": int((base_font_size * scale_factor) * inv_scale)
+		"font_size": font_size
 	}
 
 func _draw():
@@ -179,7 +194,7 @@ func _draw():
 	
 	# 4. Title
 	var font = ThemeDB.get_fallback_font()
-	var title = region_id.capitalize().replace("_", " ")
+	var title = _get_title()
 	var font_size = viz.font_size
 	
 	# Center text in header rect
