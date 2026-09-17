@@ -22,6 +22,7 @@ signal label_clicked(id)
 signal label_drag_started(id)
 signal label_dragged(id)
 signal label_drag_ended(id)
+signal camera_pan_input(event)
 
 func _init(p_container: Node2D):
 	container = p_container
@@ -134,6 +135,7 @@ func _connect_node_signals(node: Node, id: String):
 	node.label_drag_started.connect(func(_i): label_drag_started.emit(id))
 	node.label_dragged.connect(func(_i): label_dragged.emit(id))
 	node.label_drag_ended.connect(func(_i): label_drag_ended.emit(id))
+	node.camera_pan_input.connect(func(event): camera_pan_input.emit(event))
 
 func update_node_visuals(node, data, view_mode = "Default"):
 	var props = data.get("properties", {})

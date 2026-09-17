@@ -251,6 +251,16 @@ func _connect_inspector_signals():
 func _connect_graph_signals():
 	graph_controller.world_region_selected.connect(_on_world_region_selected)
 	graph_controller.node_drag_started.connect(func(_id): is_dragging_object = true)
+	# A room card normally absorbs every mouse event over it, but middle-
+	# button panning should work no matter what's under the cursor -- the
+	# room forwards that one button's events up through this same signal
+	# chain instead of swallowing them, so it reaches the camera exactly as
+	# if _unhandled_input had received it directly.
+	graph_controller.camera_pan_input.connect(func(event):
+		if camera_controller.handle_input(event):
+			if camera_controller.is_panning: is_dragging_object = true
+			graph_controller.queue_redraw(); grid_layer.queue_redraw()
+	)
 	graph_controller.room_label_clicked.connect(func(id):
 		label_drag_source = ""
 		graph_controller.set_label_drag_source("")

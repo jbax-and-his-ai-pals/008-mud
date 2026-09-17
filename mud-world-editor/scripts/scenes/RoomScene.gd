@@ -13,9 +13,11 @@ signal label_clicked(room_id)
 signal label_drag_started(room_id)
 signal label_dragged(room_id)
 signal label_drag_ended(room_id)
+signal camera_pan_input(event)
 
 var dragging = false
 var drag_offset = Vector2()
+var _middle_panning = false
 
 var _current_color: Color = Color(0.2, 0.2, 0.2)
 var _is_selected: bool = false
@@ -282,6 +284,19 @@ func _on_mouse_exited():
 	if not _is_selected and not _is_highlighted: z_index = 0
 
 func _on_panel_gui_input(event):
+	# The room card normally absorbs every mouse event over it (mouse_filter
+	# STOP, so drags/clicks on the card don't also drag the map underneath),
+	# but middle-button panning is a navigation action that should work no
+	# matter what's under the cursor -- so it's forwarded up rather than
+	# swallowed here, regardless of label-arrange mode or anything else
+	# below.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_MIDDLE:
+		_middle_panning = event.pressed
+		emit_signal("camera_pan_input", event)
+		return
+	if event is InputEventMouseMotion and _middle_panning:
+		emit_signal("camera_pan_input", event)
+		return
 	if _label_arrange_mode:
 		# The label itself owns editing/swapping in this mode; prevent accidental
 		# map movement while an author is arranging presentation.

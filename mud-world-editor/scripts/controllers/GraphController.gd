@@ -20,6 +20,7 @@ signal room_label_clicked(id)
 signal room_label_drag_started(id)
 signal room_label_dragged(id)
 signal room_label_drag_ended(id)
+signal camera_pan_input(event)
 
 enum ViewMode { LOCAL, WORLD, QUEST }
 var current_mode = ViewMode.LOCAL
@@ -98,6 +99,7 @@ func _forward_builder_signals():
 	local_view_builder.label_drag_started.connect(func(id): room_label_drag_started.emit(id))
 	local_view_builder.label_dragged.connect(func(id): room_label_dragged.emit(id))
 	local_view_builder.label_drag_ended.connect(func(id): room_label_drag_ended.emit(id))
+	local_view_builder.camera_pan_input.connect(func(event): camera_pan_input.emit(event))
 	
 	world_view_builder.region_node_selected.connect(func(id): world_region_selected.emit(id))
 	world_view_builder.region_moved.connect(func(id, old, new): region_moved.emit(id, old, new))
