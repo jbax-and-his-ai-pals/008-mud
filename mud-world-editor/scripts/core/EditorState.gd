@@ -26,6 +26,12 @@ var dragging_conn: Dictionary = {"active": false, "start": Vector2.ZERO, "end": 
 # currently open region) rather than reused, since a region drag's source
 # room may belong to a region that isn't even loaded yet.
 var world_dragging_conn: Dictionary = {"active": false, "start": Vector2.ZERO, "end": Vector2.ZERO, "src_region": "", "src_room": ""}
+# An already-committed district (not the placement-preview flow above)
+# being dragged as one rigid unit -- every member room's start position,
+# offset live by the same delta, so the district's shape, its interior
+# connections, and its connections out to the rest of the region all move
+# together the same way a multi-room selection drag already does.
+var district_move_dragging: Dictionary = {"active": false, "district_id": "", "mouse_start": Vector2.ZERO, "positions": {}}
 var creating_conn: Dictionary = { "active": false, "start_pos": Vector2.ZERO, "end_pos": Vector2.ZERO, "src_id": "" }
 var is_box_selecting: bool = false
 var box_select_start: Vector2 = Vector2.ZERO

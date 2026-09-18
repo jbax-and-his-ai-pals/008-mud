@@ -382,6 +382,16 @@ func _unhandled_input(event):
 				return 
 
 			if not is_on_node and not state.is_box_selecting:
+				var pressed_district_id := "" if state.is_world_view else graph_controller.get_district_id_at(mouse_pos)
+				if pressed_district_id != "":
+					_select_district(pressed_district_id)
+					var start_positions := {}
+					for room_id_variant in _district_member_ids(pressed_district_id):
+						var room_id := str(room_id_variant)
+						if region_mgr.data.get("rooms", {}).has(room_id):
+							start_positions[room_id] = graph_controller.get_node_position(room_id)
+					state.district_move_dragging = {"active": true, "district_id": pressed_district_id, "mouse_start": mouse_pos, "positions": start_positions}
+					return
 				deselection_primed = true; mouse_down_pos = mouse_pos
 		else:
 			if deselection_primed and not is_dragging_object and mouse_pos.distance_to(mouse_down_pos) < DRAG_PIXEL_THRESHOLD: _on_empty_click(mouse_pos)
@@ -416,6 +426,22 @@ func _unhandled_input(event):
 			_open_world_connection_form(src_region, src_room, target_region)
 		elif event is InputEventMouseMotion:
 			state.world_dragging_conn.end = get_global_mouse_position()
+			graph_controller.queue_redraw()
+		return
+
+	if state.district_move_dragging.get("active", false):
+		if event is InputEventMouseButton and not event.pressed:
+			var delta: Vector2 = get_global_mouse_position() - state.district_move_dragging.mouse_start
+			var start_positions: Dictionary = state.district_move_dragging.positions
+			state.district_move_dragging = {"active": false, "district_id": "", "mouse_start": Vector2.ZERO, "positions": {}}
+			is_dragging_object = false
+			if delta.length_squared() > 1.0: _commit_district_move(start_positions, delta)
+			else: graph_controller.queue_redraw()
+		elif event is InputEventMouseMotion:
+			var delta: Vector2 = get_global_mouse_position() - state.district_move_dragging.mouse_start
+			if state.snap_enabled: delta = Vector2(round(delta.x / 32.0) * 32.0, round(delta.y / 32.0) * 32.0)
+			for room_id in state.district_move_dragging.positions:
+				graph_controller.set_node_position(room_id, state.district_move_dragging.positions[room_id] + delta)
 			graph_controller.queue_redraw()
 		return
 
@@ -1002,6 +1028,26 @@ func _select_district(district_id: String):
 	graph_controller.update_selection_visuals([])
 	graph_controller.queue_redraw()
 	inspector.load_district(district_id, region_mgr.data)
+
+func _district_member_ids(district_id: String) -> Array:
+	return region_mgr.data.get("properties", {}).get("districts", {}).get(district_id, {}).get("members", [])
+
+# Committing a whole-district drag as one undoable step, the same
+# do/undo-closure pattern Auto-Arrange Layout already uses for a batch of
+# room moves -- so Ctrl+Z reverts every member room in one step, not one
+# per room.
+func _commit_district_move(start_positions: Dictionary, delta: Vector2):
+	var new_positions := {}
+	for room_id in start_positions: new_positions[room_id] = start_positions[room_id] + delta
+	cmd_proc.commit(
+		func():
+			for id in new_positions: region_mgr.set_room_pos(id, new_positions[id])
+			_refresh_view(),
+		func():
+			for id in start_positions: region_mgr.set_room_pos(id, start_positions[id])
+			_refresh_view(),
+		"Move District"
+	)
 
 func _on_data_modified():
 	if not state.is_world_view:
