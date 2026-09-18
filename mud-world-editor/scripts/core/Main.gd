@@ -735,7 +735,13 @@ func _on_node_click(id: String, shift_mod: bool):
 	if state.dragging_conn.active and id != state.dragging_conn.src: return
 	
 	if inspector.cur_mode == "connection":
-		var parts = id.split(":"); inspector.set_connection_target(parts[0], parts[1])
+		# A cross-region target (from a proxy node) carries "region:room"; a
+		# same-region target is just the bare room id, since it's already in
+		# whichever region is currently loaded.
+		if ":" in id:
+			var parts = id.split(":"); inspector.set_connection_target(parts[0], parts[1])
+		else:
+			inspector.set_connection_target(str(region_mgr.data.get("region_id", "")), id)
 		return
 
 	if shift_mod:
