@@ -15,6 +15,7 @@ signal request_validate_region_policy
 signal request_open_creator_modal
 signal request_open_district_modal
 signal snap_toggled(is_on)
+signal show_districts_toggled(is_on)
 signal request_create_connection(src, dir, target, twoway)
 signal request_create_region(name, room_data)
 signal request_place_district(definition)
@@ -119,6 +120,7 @@ func _forward_side_panel_signals():
 	side_panel.request_jump_to_room.connect(func(id): request_jump_to_room.emit(id))
 	side_panel.request_show_district.connect(func(rid, did): request_show_district.emit(rid, did))
 	side_panel.snap_toggled.connect(func(b): snap_toggled.emit(b); update_status_snap(b))
+	side_panel.show_districts_toggled.connect(func(b): show_districts_toggled.emit(b))
 	side_panel.request_validate.connect(func(): request_validate.emit())
 	side_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
 	side_panel.tool_changed.connect(func(m, d): tool_changed.emit(m, d))

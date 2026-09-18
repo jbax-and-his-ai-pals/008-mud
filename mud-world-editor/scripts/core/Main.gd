@@ -160,6 +160,7 @@ func _connect_ui_signals():
 	ui_mgr.request_district_cancel.connect(_cancel_district_placement)
 	ui_mgr.context_action.connect(action_handler.handle_context_action)
 	ui_mgr.snap_toggled.connect(func(b): state.snap_enabled=b; graph_controller.set_snap(b); grid_layer.visible=(b and not state.is_world_view); grid_layer.queue_redraw())
+	ui_mgr.show_districts_toggled.connect(func(b): district_layer.visible = b; district_label_layer.visible = b)
 	ui_mgr.creation_direction_selected.connect(action_handler.create_room_from_anchor)
 	ui_mgr.tool_changed.connect(func(m, d): state.cur_tool_mode=m; state.cur_tool_data=d; ui_mgr.update_tool_display(m, d); if m!=EditorUIManager.ToolMode.SELECT: _deselect_all())
 	ui_mgr.request_jump_to_room.connect(_jump_to_room)

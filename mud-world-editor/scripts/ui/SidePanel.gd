@@ -7,6 +7,7 @@ signal request_load_region(filename)
 signal request_jump_to_room(id)
 signal request_show_district(region_id, district_id)
 signal snap_toggled(is_on)
+signal show_districts_toggled(is_on)
 signal request_validate
 signal request_validate_region_policy
 signal tool_changed(mode, data)
@@ -134,6 +135,7 @@ func _setup_explorer_tab(tabs: TabContainer):
 	explorer_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
 	explorer_panel.request_auto_layout.connect(func(): request_auto_layout.emit())
 	explorer_panel.snap_toggled.connect(func(b): snap_toggled.emit(b))
+	explorer_panel.show_districts_toggled.connect(func(b): show_districts_toggled.emit(b))
 	explorer_panel.request_context_menu.connect(func(p, m): request_context_menu.emit(p, m))
 	margin.add_child(explorer_panel)
 	tabs.add_child(margin)

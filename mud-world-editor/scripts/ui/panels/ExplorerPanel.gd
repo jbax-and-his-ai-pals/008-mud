@@ -10,11 +10,13 @@ signal request_validate
 signal request_validate_region_policy
 signal request_auto_layout
 signal snap_toggled(enabled)
+signal show_districts_toggled(enabled)
 signal request_context_menu(global_pos, meta)
 
 var search_bar: LineEdit
 var explorer_tree: Tree
 var snap_checkbox: CheckBox
+var show_districts_checkbox: CheckBox
 var expanded_regions: Dictionary = {}
 var expanded_districts: Dictionary = {}
 var _is_programmatic_selection: bool = false
@@ -52,7 +54,14 @@ func setup():
 	add_child(snap_checkbox)
 	
 	call_deferred("emit_signal", "snap_toggled", snap_checkbox.button_pressed)
-	
+
+	show_districts_checkbox = CheckBox.new()
+	show_districts_checkbox.text = "Show Districts"
+	show_districts_checkbox.button_pressed = true
+	_apply_checkbox_style(show_districts_checkbox)
+	show_districts_checkbox.toggled.connect(func(b): show_districts_toggled.emit(b))
+	add_child(show_districts_checkbox)
+
 	var btn_row = HBoxContainer.new()
 	btn_row.add_theme_constant_override("separation", 8)
 	var btn_new = Button.new(); btn_new.text="New Region"; btn_new.size_flags_horizontal=3

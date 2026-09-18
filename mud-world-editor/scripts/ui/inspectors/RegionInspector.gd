@@ -66,7 +66,7 @@ func _build_general():
 
 func _build_global_props():
 	var header_box = HBoxContainer.new()
-	header_box.add_child(InspectorStyle.create_section_header("GLOBAL PROPERTIES"))
+	header_box.add_child(InspectorStyle.create_section_header("REGION PROPERTIES"))
 	var spacer = Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_box.add_child(spacer)
 	

@@ -13,7 +13,7 @@ var region_data: Dictionary
 var district_id: String
 var action_handler: ActionHandler
 
-# Same vocabulary RegionInspector's GLOBAL PROPERTIES offers, so a district
+# Same vocabulary RegionInspector's REGION PROPERTIES offers, so a district
 # can override its region's atmosphere (dark, outdoors, etc.) the same way
 # a room overrides its district's -- World.get_env_property resolves all
 # three tiers with the same flat-key convention.
