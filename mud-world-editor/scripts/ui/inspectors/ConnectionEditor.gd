@@ -34,6 +34,12 @@ var region_mgr: RegionManager
 var _rev_dir_auto: bool = true
 var _updating_rev_field: bool = false
 
+# Same idea, one tier up: the forward direction starts out following the
+# room-position geometry (same suggestion the old district-placement wizard
+# used) as the target room changes, until the author picks one themselves.
+var _dir_auto: bool = true
+var _updating_dir_field: bool = false
+
 func _init(mgr: RegionManager):
 	region_mgr = mgr
 
@@ -73,11 +79,17 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 	var dir_hbox = HBoxContainer.new(); dir_hbox.add_theme_constant_override("separation", 8)
 	conn_dir_option = OptionButton.new(); conn_dir_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL; _apply_style(conn_dir_option)
 	_populate_direction_dropdown(conn_dir_option)
-	conn_dir_option.item_selected.connect(func(_i): _on_forward_dir_changed())
+	conn_dir_option.item_selected.connect(func(_i):
+		if not _updating_dir_field: _dir_auto = false
+		_on_forward_dir_changed()
+	)
 	dir_hbox.add_child(conn_dir_option)
 	conn_dir_custom_edit = LineEdit.new(); conn_dir_custom_edit.placeholder_text = "custom direction"
 	conn_dir_custom_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	conn_dir_custom_edit.text_changed.connect(func(t): _sync_auto_reverse(t); _update_connection_info())
+	conn_dir_custom_edit.text_changed.connect(func(t):
+		if not _updating_dir_field: _dir_auto = false
+		_sync_auto_reverse(t); _update_connection_info()
+	)
 	_apply_style(conn_dir_custom_edit)
 	dir_hbox.add_child(conn_dir_custom_edit)
 	parent_container.add_child(dir_hbox)
@@ -138,6 +150,7 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 
 	parent_container.add_child(margin_c)
 
+	_dir_auto = (dir == "")
 	if dir != "":
 		var matched = _select_direction_value(conn_dir_option, dir)
 		conn_dir_custom_edit.visible = not matched
@@ -282,8 +295,48 @@ func _sync_auto_reverse(direction: String):
 	if not matched: conn_rev_custom_edit.text = ""
 	_updating_rev_field = false
 
+# Suggests a forward direction from real room-position geometry, the same
+# way the old district-placement wizard picked a default -- as long as the
+# author hasn't chosen one themselves. Only meaningful for a same-region
+# target: a cross-region target's position lives in a different region's
+# own coordinate space, so there's no geometry to compare.
+func _suggest_direction_from_geometry():
+	if not _dir_auto: return
+	if conn_room_opt.selected == -1 or conn_reg_opt.selected == -1: return
+	var target_reg = conn_reg_opt.get_item_metadata(conn_reg_opt.selected)
+	if target_reg != region_mgr.data.get("region_id", ""): return
+	var target_id = conn_room_opt.get_item_metadata(conn_room_opt.selected)
+	if not region_mgr.data.rooms.has(conn_src_id) or not region_mgr.data.rooms.has(target_id): return
+	var src_pos := _room_editor_pos(region_mgr.data.rooms[conn_src_id])
+	var target_pos := _room_editor_pos(region_mgr.data.rooms[target_id])
+	var delta := target_pos - src_pos
+	if delta.length_squared() < 1.0: return
+	var suggested := _classify_direction(delta)
+	_updating_dir_field = true
+	var matched := _select_direction_value(conn_dir_option, suggested)
+	conn_dir_custom_edit.visible = not matched
+	_updating_dir_field = false
+	_sync_auto_reverse(suggested)
+
+func _room_editor_pos(room: Dictionary) -> Vector2:
+	var raw = room.get("_editor_pos", [0, 0])
+	return Vector2(float(raw[0]), float(raw[1])) if raw is Array and raw.size() >= 2 else Vector2.ZERO
+
+func _classify_direction(delta: Vector2) -> String:
+	var x_ratio: float = abs(delta.x) / max(abs(delta.y), 0.001)
+	var y_ratio: float = abs(delta.y) / max(abs(delta.x), 0.001)
+	if x_ratio < 0.45:
+		return "south" if delta.y > 0.0 else "north"
+	elif y_ratio < 0.45:
+		return "east" if delta.x > 0.0 else "west"
+	elif delta.x > 0.0:
+		return "southeast" if delta.y > 0.0 else "northeast"
+	else:
+		return "southwest" if delta.y > 0.0 else "northwest"
+
 func _update_connection_info():
 	if not conn_info_label: return
+	_suggest_direction_from_geometry()
 	conn_info_label.text = ""
 	var dir = _get_forward_direction()
 	var rev_dir = _get_reverse_direction()
@@ -325,10 +378,16 @@ func _update_connection_info():
 		else:
 			msgs.append("[color=gray]Cross-region: add the return exit from the other region.[/color]")
 
-	if msgs.is_empty():
-		conn_info_label.text = "[color=gray]Connection looks clear.[/color]"
+	var lines: Array = []
+	if dir != "" and target_room_name != "":
+		var src_display := conn_src_name if conn_src_name != "" else conn_src_id
+		lines.append("[color=gray]%s connects %s to %s.[/color]" % [src_display, dir.capitalize(), target_room_name])
+		if show_return_row and rev_dir != "":
+			lines.append("[color=gray]%s connects %s to %s.[/color]" % [target_room_name, rev_dir.capitalize(), src_display])
 	else:
-		conn_info_label.text = "\n".join(msgs)
+		lines.append("[color=gray]Choose a target room and a direction.[/color]")
+	lines.append_array(msgs)
+	conn_info_label.text = "\n".join(lines)
 
 func _on_connect_confirm():
 	var dir = _get_forward_direction()
