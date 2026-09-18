@@ -80,21 +80,28 @@ func _create_exit_row(dir, target) -> PanelContainer:
 	var hb = HBoxContainer.new(); hb.add_theme_constant_override("separation", 10); m.add_child(hb)
 	
 	var l_dir = Label.new(); l_dir.text = dir.to_upper(); l_dir.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	l_dir.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; l_dir.add_theme_font_size_override("font_size", 12)
+	l_dir.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	l_dir.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; l_dir.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l_dir.add_theme_font_size_override("font_size", 12)
 	if is_ext: l_dir.modulate = Color(0.9, 0.8, 0.5)
 	hb.add_child(l_dir)
-	
+
 	var is_two_way = false
 	if not is_ext and region_mgr.data.rooms.has(target):
 		var t_exits = region_mgr.data.rooms[target].get("exits", {})
 		if t_exits.values().has(cur_id): is_two_way = true
-	
+
 	var arrow = Label.new(); arrow.text = "⇄" if is_two_way else "→"
 	arrow.modulate = InspectorStyle.COLOR_SUCCESS if is_two_way else Color(1,1,1,0.3)
 	if is_ext: arrow.modulate = Color(0.9, 0.8, 0.5)
+	arrow.add_theme_font_size_override("font_size", 20)
+	arrow.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	hb.add_child(arrow)
-	
+
 	var vb_t = VBoxContainer.new(); vb_t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb_t.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vb_t.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb_t.add_theme_constant_override("separation", 0)
 	
 	var t_name = target

@@ -39,6 +39,7 @@ func build(id: String, r_data: Dictionary):
 	header.add_child(InspectorStyle.lbl(str(district.get("name", district_id)), Color.WHITE))
 
 	var members: Array = district.get("members", district.get("rooms", []))
+	var rooms: Dictionary = region_data.get("rooms", {})
 	vbox.add_child(InspectorStyle.lbl("%s · %d rooms · seed %s" % [district.get("kind", "generic"), members.size(), district.get("seed", "?")], InspectorStyle.COLOR_TEXT_DIM))
 
 	var reroll := Button.new(); reroll.text = "Reroll District (undoable)"
@@ -49,13 +50,17 @@ func build(id: String, r_data: Dictionary):
 
 	var ports: Array = district.get("ports", [])
 	if not ports.is_empty():
-		vbox.add_child(InspectorStyle.lbl("Ports:", InspectorStyle.COLOR_TEXT_DIM))
+		vbox.add_child(InspectorStyle.lbl("Ports (connect to the rest of the region):", InspectorStyle.COLOR_TEXT_DIM))
 		for port in ports:
 			if not port is Dictionary: continue
-			vbox.add_child(InspectorStyle.lbl("  %s (%s, %s)" % [port.get("id", "?"), port.get("direction", "?"), port.get("role", "?")], Color(0.75, 0.78, 0.84)))
+			var port_room_id := str(port.get("room_id", ""))
+			var port_room_name := str(rooms.get(port_room_id, {}).get("name", port_room_id)) if port_room_id != "" else str(port.get("id", "?"))
+			var port_role := str(port.get("role", "?"))
+			var port_direction := str(port.get("direction", ""))
+			var port_desc := ("%s, %s" % [port_direction, port_role]) if port_direction != "" else port_role
+			vbox.add_child(InspectorStyle.lbl("  %s (%s)" % [port_room_name, port_desc], Color(0.75, 0.78, 0.84)))
 
-	container.add_child(InspectorStyle.create_section_header("MEMBERS (%d)" % members.size()))
-	var rooms: Dictionary = region_data.get("rooms", {})
+	container.add_child(InspectorStyle.create_section_header("ROOMS (%d)" % members.size()))
 	var sorted_members := members.duplicate(); sorted_members.sort()
 	for room_id_variant in sorted_members:
 		var room_id := str(room_id_variant)

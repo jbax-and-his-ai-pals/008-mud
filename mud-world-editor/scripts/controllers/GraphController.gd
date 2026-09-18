@@ -646,16 +646,33 @@ func _on_draw_district_labels():
 	var font := ThemeDB.get_fallback_font()
 	var obstacles := _collect_label_obstacles()
 	const LABEL_FONT_SIZE := 20
+	const LABEL_MIN_FONT_SIZE := 11
+	const LABEL_PADDING := Vector2(16, 8)
 	for field_index in range(fields.size()):
-		var anchor_cell := _find_label_anchor_cell(owners, field_index, cell_size, obstacles)
+		var anchor := _find_label_anchor(owners, field_index, cell_size, obstacles)
+		var anchor_cell: Vector2i = anchor["cell"]
+		var clearance: float = anchor["clearance"]
 		var label_pos: Vector2 = (Vector2(anchor_cell) + Vector2(0.5, 0.5)) * cell_size
 		var title := str(fields[field_index]["name"])
-		var title_size := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE)
+
+		# The anchor cell is already the roomiest spot in the district's own
+		# shape, but a long name can still be wider than the margin actually
+		# available there -- shrink the font (down to a floor that stays
+		# legible) instead of letting the backdrop spill onto a neighboring
+		# room card or connection line.
+		var font_size := LABEL_FONT_SIZE
+		var title_size := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+		var half_footprint := (title_size + LABEL_PADDING) * 0.5
+		while maxf(half_footprint.x, half_footprint.y) > clearance and font_size > LABEL_MIN_FONT_SIZE:
+			font_size -= 1
+			title_size = font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+			half_footprint = (title_size + LABEL_PADDING) * 0.5
+
 		var color: Color = fields[field_index]["color"]
 		var text_origin := label_pos + Vector2(-title_size.x * 0.5, title_size.y * 0.3)
 		var backdrop := Rect2(text_origin + Vector2(-8, -title_size.y - 2), title_size + Vector2(16, 8))
 		district_label_layer.draw_rect(backdrop, Color(0.04, 0.06, 0.09, 0.72), true)
-		district_label_layer.draw_string(font, text_origin, title, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_FONT_SIZE, color.lightened(0.5))
+		district_label_layer.draw_string(font, text_origin, title, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color.lightened(0.5))
 
 func _district_member_distance(point: Vector2, field: Dictionary) -> float:
 	var closest := INF
@@ -779,8 +796,15 @@ func _clearance_to_obstacles(point: Vector2, obstacles: Dictionary) -> float:
 # possible on every side" rather than a fixed threshold that some small or
 # dense district could never actually clear.
 func _find_label_anchor_cell(owners: Dictionary, field_index: int, cell_size: float, obstacles: Dictionary) -> Vector2i:
+	return _find_label_anchor(owners, field_index, cell_size, obstacles)["cell"]
+
+# Same search as above, but also reports the clearance actually achieved at
+# the chosen cell -- callers that need to shrink a label to fit inside
+# whatever margin is really available (rather than just picking the roomiest
+# spot and hoping the label fits) need this number, not just the cell.
+func _find_label_anchor(owners: Dictionary, field_index: int, cell_size: float, obstacles: Dictionary) -> Dictionary:
 	var field_cells := _owned_cells(owners, field_index)
-	if field_cells.is_empty(): return Vector2i.ZERO
+	if field_cells.is_empty(): return {"cell": Vector2i.ZERO, "clearance": 0.0}
 	var boundary_distance := _district_boundary_distances(owners, field_index, field_cells)
 
 	var best_cell: Vector2i = field_cells[0]
@@ -793,7 +817,7 @@ func _find_label_anchor_cell(owners: Dictionary, field_index: int, cell_size: fl
 		if score > best_score:
 			best_score = score
 			best_cell = cell
-	return best_cell
+	return {"cell": best_cell, "clearance": maxf(best_score, 0.0)}
 
 # These four all now live on TerritoryShape (shared with the world view's
 # region shapes) and are kept here as same-named wrappers so existing
