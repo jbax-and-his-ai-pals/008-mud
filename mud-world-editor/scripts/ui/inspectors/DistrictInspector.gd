@@ -77,6 +77,12 @@ func build(id: String, r_data: Dictionary):
 	reroll.pressed.connect(func(): action_handler.reroll_district(district_id, randi()); data_modified.emit())
 	vbox.add_child(reroll)
 
+	var arrange := Button.new(); arrange.text = "Arrange Rooms in District (undoable)"
+	arrange.tooltip_text = "Re-lays-out this district's own rooms without moving anything outside it."
+	arrange.disabled = action_handler == null
+	arrange.pressed.connect(func(): action_handler.arrange_district_rooms(district_id); data_modified.emit())
+	vbox.add_child(arrange)
+
 	var ports: Array = district.get("ports", [])
 	if not ports.is_empty():
 		vbox.add_child(InspectorStyle.lbl("Ports (connect to the rest of the region):", InspectorStyle.COLOR_TEXT_DIM))

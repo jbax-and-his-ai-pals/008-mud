@@ -160,6 +160,7 @@ func _connect_ui_signals():
 	)
 	ui_mgr.request_toggle_world_view.connect(func(enabled): _set_world_view(enabled))
 	ui_mgr.request_auto_layout.connect(_on_request_layout)
+	ui_mgr.request_arrange_districts.connect(func(): if not state.is_world_view: action_handler.arrange_all_districts())
 	ui_mgr.request_center_view.connect(func(): camera_controller.center_on_nodes(graph_controller.get_active_nodes()))
 	ui_mgr.request_copy.connect(_on_copy_request)
 	ui_mgr.request_paste.connect(_on_paste_request)

@@ -654,3 +654,126 @@ static func optimize_world_layout(all_data: Dictionary) -> Dictionary:
 
 static func _dir_to_vec(d: String) -> Vector2:
 	return Constants.DIR_VECTORS.get(d.to_lower(), Vector2(1,0))
+
+# The district-block counterpart to optimize_world_layout: treats each
+# district as one rigid node (sized and centered on its member rooms' own
+# bounding box) and repositions those nodes to keep inter-district
+# connections short without overlapping -- the district's own internal
+# room layout is left untouched, exactly like a manual whole-district drag.
+# Unlike world regions (each with their own local room coordinate space
+# glued into a shared map via a separate offset), a district's rooms
+# already live directly in the region's one shared coordinate space, so
+# the returned positions are just new centers, not origins needing a
+# local-to-world translation.
+static func optimize_district_layout(rooms: Dictionary, districts: Dictionary) -> Dictionary:
+	var room_to_district := {}
+	for did in districts:
+		var members: Array = districts[did].get("members", districts[did].get("rooms", []))
+		for room_id_variant in members:
+			room_to_district[str(room_id_variant)] = did
+
+	var district_sizes := {}
+	var district_centers := {}
+	var connections := {}
+
+	for did in districts:
+		var members: Array = districts[did].get("members", districts[did].get("rooms", []))
+		connections[did] = []
+		var min_p = Vector2(INF, INF)
+		var max_p = Vector2(-INF, -INF)
+		var has_rooms = false
+		for room_id_variant in members:
+			var room_id := str(room_id_variant)
+			if not rooms.has(room_id) or not rooms[room_id] is Dictionary: continue
+			var pos := _editor_pos(rooms[room_id])
+			min_p.x = min(min_p.x, pos.x); min_p.y = min(min_p.y, pos.y)
+			max_p.x = max(max_p.x, pos.x); max_p.y = max(max_p.y, pos.y)
+			has_rooms = true
+			var exits = rooms[room_id].get("exits", {})
+			if not exits is Dictionary: continue
+			for dir in exits:
+				var target_id := str(exits[dir])
+				if ":" in target_id: continue # cross-region; not this region's layout to arrange
+				var target_district: String = str(room_to_district.get(target_id, ""))
+				if target_district != "" and target_district != did:
+					connections[did].append({"target": target_district, "dir": dir, "vec": _dir_to_vec(dir)})
+		if has_rooms:
+			district_sizes[did] = (max_p - min_p) + Vector2(250, 250)
+			district_centers[did] = (min_p + max_p) / 2.0
+		else:
+			district_sizes[did] = Vector2(500, 500)
+			district_centers[did] = Vector2.ZERO
+
+	# Same BFS-with-rect-avoidance placement optimize_world_layout uses, minus
+	# the local-origin/center split that a world region's own coordinate
+	# space needs -- here `positions[did]` is directly the new center.
+	var positions := {}
+	var placed_rects: Array = []
+	var nodes_to_process = districts.keys()
+	var island_start_x := 0.0
+
+	while not nodes_to_process.is_empty():
+		var start_node: String = nodes_to_process[0]
+		nodes_to_process.erase(start_node)
+
+		var start_pos := Vector2(island_start_x, 0)
+		positions[start_node] = start_pos.snapped(SNAP_GRID)
+		var s_size: Vector2 = district_sizes[start_node]
+		placed_rects.append(Rect2(start_pos - s_size / 2.0, s_size))
+
+		var queue: Array = [start_node]
+		while not queue.is_empty():
+			var curr_id: String = queue.pop_front()
+			var curr_pos: Vector2 = positions[curr_id]
+
+			for conn in connections.get(curr_id, []):
+				var neighbor: String = conn.target
+				if positions.has(neighbor): continue
+				if not district_sizes.has(neighbor): continue
+
+				if neighbor in nodes_to_process: nodes_to_process.erase(neighbor)
+				queue.append(neighbor)
+
+				var dir_vec: Vector2 = conn.vec
+				if dir_vec == Vector2.ZERO: dir_vec = Vector2(1, 0)
+
+				var my_size: Vector2 = district_sizes[curr_id]
+				var their_size: Vector2 = district_sizes[neighbor]
+				var dist: float = (abs(dir_vec.x) * (my_size.x + their_size.x) + abs(dir_vec.y) * (my_size.y + their_size.y)) * 0.55
+				dist = max(dist, 600.0)
+
+				var placed := false
+				for ang in [0, PI/6, -PI/6, PI/4, -PI/4, PI/2, -PI/2]:
+					var rot_vec: Vector2 = dir_vec.rotated(ang)
+					var test_pos: Vector2 = (curr_pos + rot_vec * dist).snapped(SNAP_GRID)
+					var test_rect := Rect2(test_pos - their_size / 2.0, their_size)
+
+					var overlap := false
+					for r in placed_rects:
+						if r.grow(-50).intersects(test_rect.grow(-50)):
+							overlap = true
+							break
+
+					if not overlap:
+						positions[neighbor] = test_pos
+						placed_rects.append(test_rect)
+						placed = true
+						break
+
+				if not placed:
+					var fallback_pos: Vector2 = (curr_pos + dir_vec * (dist * 1.5)).snapped(SNAP_GRID)
+					positions[neighbor] = fallback_pos
+					placed_rects.append(Rect2(fallback_pos - their_size / 2.0, their_size))
+
+		var max_x := island_start_x
+		for r in placed_rects:
+			if r.end.x > max_x: max_x = r.end.x
+		island_start_x = max_x + 800.0
+
+	return positions
+
+static func _editor_pos(room: Dictionary) -> Vector2:
+	var raw = room.get("_editor_pos", [0, 0])
+	if raw is Vector2: return raw
+	if raw is Array and raw.size() >= 2: return Vector2(float(raw[0]), float(raw[1]))
+	return Vector2.ZERO

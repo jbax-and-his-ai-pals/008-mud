@@ -490,6 +490,94 @@ func _room_pos(room: Dictionary) -> Vector2:
 	var raw = room.get("_editor_pos", [0, 0])
 	return Vector2(float(raw[0]), float(raw[1])) if raw is Array and raw.size() >= 2 else Vector2.ZERO
 
+# Re-lays-out just one district's own rooms (LayoutOptimizer.optimize_layout
+# already operates on an arbitrary room subset -- this just narrows that
+# subset to the district's members instead of the whole region), leaving
+# everything outside the district untouched.
+func arrange_district_rooms(district_id: String):
+	var districts := region_mgr.get_districts()
+	if not districts.has(district_id): return
+	var members: Array = districts[district_id].get("members", districts[district_id].get("rooms", []))
+	var subset := {}
+	for room_id_variant in members:
+		var room_id := str(room_id_variant)
+		if region_mgr.data.rooms.has(room_id): subset[room_id] = region_mgr.data.rooms[room_id]
+	if subset.is_empty(): return
+
+	var new_pos := LayoutOptimizer.optimize_layout(subset)
+	if new_pos.is_empty(): return
+	var old_pos := {}
+	for id in subset: old_pos[id] = _room_pos(subset[id])
+	var old_exit_layout := {}
+	for id in subset:
+		if subset[id].has("_editor_exit_layout"):
+			old_exit_layout[id] = subset[id]["_editor_exit_layout"].duplicate(true)
+	var new_exit_layout := LayoutOptimizer.infer_exit_layout_metadata(subset, new_pos)
+
+	cmd_proc.commit(
+		func():
+			for id in new_pos: region_mgr.set_room_pos(id, new_pos[id])
+			for id in subset:
+				if new_exit_layout.has(id):
+					region_mgr.data.rooms[id]["_editor_exit_layout"] = new_exit_layout[id]
+				elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
+					region_mgr.data.rooms[id].erase("_editor_exit_layout")
+			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
+		func():
+			for id in old_pos: region_mgr.set_room_pos(id, old_pos[id])
+			for id in subset:
+				if old_exit_layout.has(id):
+					region_mgr.data.rooms[id]["_editor_exit_layout"] = old_exit_layout[id]
+				elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
+					region_mgr.data.rooms[id].erase("_editor_exit_layout")
+			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
+		"Arrange District Rooms: " + str(districts[district_id].get("name", district_id))
+	)
+
+# Repositions every district as one rigid block (LayoutOptimizer.
+# optimize_district_layout), without touching any room's position relative
+# to its own district -- the district-level counterpart to "Auto-Arrange
+# Layout" (which ignores district boundaries) and to a manual whole-
+# district drag (which moves exactly one district).
+func arrange_all_districts():
+	var districts := region_mgr.get_districts()
+	if districts.is_empty(): return
+	var new_centers := LayoutOptimizer.optimize_district_layout(region_mgr.data.rooms, districts)
+	if new_centers.is_empty(): return
+
+	var deltas := {}
+	var old_pos := {}
+	for did in new_centers:
+		var members: Array = districts[did].get("members", districts[did].get("rooms", []))
+		var min_p := Vector2(INF, INF); var max_p := Vector2(-INF, -INF); var has_rooms := false
+		for room_id_variant in members:
+			var room_id := str(room_id_variant)
+			if not region_mgr.data.rooms.has(room_id): continue
+			var pos := _room_pos(region_mgr.data.rooms[room_id])
+			min_p.x = min(min_p.x, pos.x); min_p.y = min(min_p.y, pos.y)
+			max_p.x = max(max_p.x, pos.x); max_p.y = max(max_p.y, pos.y)
+			has_rooms = true
+		if not has_rooms: continue
+		var old_center: Vector2 = (min_p + max_p) / 2.0
+		deltas[did] = new_centers[did] - old_center
+		for room_id_variant in members:
+			var room_id := str(room_id_variant)
+			if region_mgr.data.rooms.has(room_id): old_pos[room_id] = _room_pos(region_mgr.data.rooms[room_id])
+
+	cmd_proc.commit(
+		func():
+			for did in deltas:
+				var members: Array = districts[did].get("members", districts[did].get("rooms", []))
+				for room_id_variant in members:
+					var room_id := str(room_id_variant)
+					if old_pos.has(room_id): region_mgr.set_room_pos(room_id, old_pos[room_id] + deltas[did])
+			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
+		func():
+			for id in old_pos: region_mgr.set_room_pos(id, old_pos[id])
+			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
+		"Arrange Districts"
+	)
+
 func commit_batch_properties(ids: Array, key: String, new_val, old_vals: Dictionary):
 	cmd_proc.commit(
 		func():

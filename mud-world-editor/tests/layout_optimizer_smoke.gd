@@ -32,7 +32,26 @@ func _init() -> void:
 	_assert(metadata["start"]["in"]["placement"] == "stacked", "in exit persists its stacked placement")
 	_assert(metadata["start"].has("portal"), "unmapped exit receives inferred layout metadata")
 	_assert_all_region_cardinal_alignment()
+	_assert_district_layout()
 	quit(1 if failure_count > 0 else 0)
+
+func _assert_district_layout() -> void:
+	var district_rooms := {
+		"d1_a": {"_editor_pos": [0, 0], "exits": {"east": "d1_b"}},
+		"d1_b": {"_editor_pos": [256, 0], "exits": {"west": "d1_a", "east": "d2_a"}},
+		"d2_a": {"_editor_pos": [512, 0], "exits": {"west": "d1_b"}},
+		"d2_b": {"_editor_pos": [512, 192], "exits": {}},
+	}
+	var districts := {
+		"d1": {"members": ["d1_a", "d1_b"]},
+		"d2": {"members": ["d2_a", "d2_b"]},
+	}
+	var district_positions = LayoutOptimizer.optimize_district_layout(district_rooms, districts)
+	_assert(district_positions.has("d1") and district_positions.has("d2"), "every district receives a new center")
+	_assert(district_positions.get("d1") != district_positions.get("d2"), "connected districts don't collapse onto the same center")
+
+	var empty_positions = LayoutOptimizer.optimize_district_layout({}, {"solo": {"members": []}})
+	_assert(empty_positions.has("solo"), "a district with no live member rooms still gets a fallback position")
 
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
