@@ -30,7 +30,6 @@ signal request_delete_db_entry(type, id)
 signal request_select_db_entry(type, id)
 signal request_toggle_world_view(enabled)
 signal request_auto_layout
-signal request_arrange_districts
 signal request_center_view
 signal request_copy
 signal request_paste
@@ -118,7 +117,6 @@ func _forward_side_panel_signals():
 	side_panel.request_delete_db_entry.connect(func(t, id): request_delete_db_entry.emit(t, id))
 	side_panel.request_select_db_entry.connect(func(t, id): request_select_db_entry.emit(t, id))
 	side_panel.request_auto_layout.connect(func(): request_auto_layout.emit())
-	side_panel.request_arrange_districts.connect(func(): request_arrange_districts.emit())
 	side_panel.request_create_modal_open.connect(func():
 		request_open_creator_modal.emit()
 		creator_modal.show()

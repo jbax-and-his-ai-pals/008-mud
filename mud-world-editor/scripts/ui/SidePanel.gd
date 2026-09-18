@@ -15,7 +15,6 @@ signal request_create_db_entry(type)
 signal request_delete_db_entry(type, id)
 signal request_select_db_entry(type, id)
 signal request_auto_layout
-signal request_arrange_districts
 signal request_create_modal_open
 signal request_district_modal_open
 signal request_context_menu(global_pos, meta)
@@ -135,7 +134,6 @@ func _setup_explorer_tab(tabs: TabContainer):
 	explorer_panel.request_validate.connect(func(): request_validate.emit())
 	explorer_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
 	explorer_panel.request_auto_layout.connect(func(): request_auto_layout.emit())
-	explorer_panel.request_arrange_districts.connect(func(): request_arrange_districts.emit())
 	explorer_panel.snap_toggled.connect(func(b): snap_toggled.emit(b))
 	explorer_panel.show_districts_toggled.connect(func(b): show_districts_toggled.emit(b))
 	explorer_panel.request_context_menu.connect(func(p, m): request_context_menu.emit(p, m))

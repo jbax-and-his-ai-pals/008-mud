@@ -9,7 +9,6 @@ signal request_district_modal_open
 signal request_validate
 signal request_validate_region_policy
 signal request_auto_layout
-signal request_arrange_districts
 signal snap_toggled(enabled)
 signal show_districts_toggled(enabled)
 signal request_context_menu(global_pos, meta)
@@ -90,12 +89,6 @@ func setup():
 	_apply_style(btn_layout, Color(0.2, 0.25, 0.3))
 	btn_layout.pressed.connect(func(): request_auto_layout.emit())
 	add_child(btn_layout)
-
-	var btn_arrange_districts = Button.new(); btn_arrange_districts.text="Arrange Districts"
-	btn_arrange_districts.tooltip_text = "Repositions each district as one block to keep inter-district connections short, without rearranging rooms within a district."
-	_apply_style(btn_arrange_districts, Color(0.2, 0.25, 0.3))
-	btn_arrange_districts.pressed.connect(func(): request_arrange_districts.emit())
-	add_child(btn_arrange_districts)
 
 # --- INPUT HANDLERS ---
 
