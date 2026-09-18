@@ -77,11 +77,6 @@ func _process(_delta):
 			ui_mgr.cache_search_data(world_mgr.get_all_world_data(), database_mgr.npcs, database_mgr.items)
 
 func _bootstrap_ui():
-	if ui_mgr.footer_container:
-		var btn_reg = Button.new(); btn_reg.text = "Region Settings"
-		ui_mgr.footer_container.add_child(btn_reg); ui_mgr.footer_container.move_child(btn_reg, 0)
-		ui_mgr._apply_style(btn_reg, Color(0.2, 0.25, 0.3))
-		btn_reg.pressed.connect(func(): inspector.load_region_root(region_mgr.data))
 	if not DirAccess.dir_exists_absolute("res://data/regions/"): DirAccess.make_dir_recursive_absolute("res://data/regions/")
 	_update_db_ui()
 	_load_region_vocab_into_creator()
@@ -934,13 +929,12 @@ func _set_world_view(enabled: bool):
 	_refresh_view()
 	
 	if enabled:
-		inspector.load_world_mode()
+		_show_world_overview()
 		var all_data = world_mgr.get_all_world_data()
-		var total_rooms = 0
-		for r_data in all_data.values():
-			total_rooms += r_data.get("rooms", {}).size()
+		var total_rooms := 0
+		for r_data in all_data.values(): total_rooms += r_data.get("rooms", {}).size()
 		ui_mgr.update_status_info("World Map", total_rooms, "%d Regions" % all_data.size())
-		
+
 		if view_states.has("world_view"):
 			var vs = view_states["world_view"]; main_camera.position = vs.pos; main_camera.zoom = vs.zoom
 		else: main_camera.zoom = Vector2.ONE; camera_controller.center_on_nodes(graph_controller.get_active_nodes())
@@ -995,19 +989,25 @@ func _on_request_layout():
 			"Auto-Arrange Layout"
 		)
 
-func _deselect_all(hide_ui: bool = true):
+func _deselect_all(_hide_ui: bool = true):
 	state.clear_selection()
-	if state.is_world_view:
-		graph_controller.update_selection_visuals([])
-		inspector.load_world_mode()
-	else:
-		graph_controller.update_selection_visuals([])
-		inspector.clear_selection(hide_ui)
+	graph_controller.update_selection_visuals([])
+	# There's always something useful to show on the right: the region (or
+	# world map) nothing-selected still belongs to, not a blank panel or an
+	# unhelpful "Arrangement Mode" placeholder.
+	if state.is_world_view: _show_world_overview()
+	else: inspector.load_region_root(region_mgr.data)
 	# A district highlight lives on district_layer's own _draw(), unlike a
 	# room's selection border (a StyleBoxFlat that redraws itself on
 	# change) -- clearing the selection needs an explicit redraw to make
 	# that highlight actually disappear.
 	graph_controller.queue_redraw()
+
+func _show_world_overview():
+	var all_data = world_mgr.get_all_world_data()
+	var total_rooms := 0
+	for r_data in all_data.values(): total_rooms += r_data.get("rooms", {}).size()
+	inspector.load_world_mode(all_data.size(), total_rooms)
 
 func _deselect_room_only():
 	state.clear_selection(); graph_controller.update_selection_visuals([]); graph_controller.queue_redraw()

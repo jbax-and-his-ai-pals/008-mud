@@ -201,14 +201,19 @@ func _on_connect_cancel():
 func _clear_box(b): for c in b.get_children(): c.queue_free()
 func _on_panel_gui_input(event): if event is InputEventMouseButton and event.button_index in [4,5]: panel.get_viewport().set_input_as_handled()
 
-func load_world_mode():
-	clear_selection(false) 
+func load_world_mode(region_count: int = 0, room_count: int = 0):
+	clear_selection(false)
 	cur_mode = "world"
 	panel.visible = true
 	content_container.add_child(InspectorStyle.create_section_header("WORLD MAP", Color.GOLD))
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
 	content_container.add_child(card)
-	vbox.add_child(InspectorStyle.lbl("Arrangement Mode", Color.WHITE))
+	vbox.add_child(InspectorStyle.lbl("%d regions · %d rooms" % [region_count, room_count], Color.WHITE))
+	var hint := Label.new()
+	hint.text = "Click a region to inspect it.\nCtrl/Shift-drag from a region's shape to connect it to another."
+	hint.modulate = InspectorStyle.COLOR_TEXT_DIM
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(hint)
 
 func load_quest_mode(quest_id: String):
 	clear_selection(false)
