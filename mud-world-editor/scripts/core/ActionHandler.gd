@@ -320,13 +320,11 @@ func begin_district_placement(definition: Dictionary, world_center: Vector2):
 	centroid /= max(rooms.size(), 1)
 	var offset := world_center - centroid
 	for room_id in rooms: positions[room_id] = _room_pos(rooms[room_id]) + offset
-	district_preview_changed.emit({"active": true, "valid": _preview_positions_fit(positions), "phase": "placement", "positions": positions, "rooms": rooms, "district": generated["district"], "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "north", "direction_auto": true, "active_endpoint": "source"})
+	district_preview_changed.emit({"active": true, "valid": _preview_positions_fit(positions), "positions": positions, "rooms": rooms, "district": generated["district"]})
 
 func update_district_placement_positions(positions: Dictionary):
 	if positions.is_empty(): return
-	# Repositioning is deliberately non-destructive: authors can refine the
-	# footprint without having to rebuild the connection they already chose.
-	district_preview_changed.emit({"active": true, "valid": _preview_positions_fit(positions), "phase": "placement", "positions": positions, "rooms": state.district_preview.get("rooms", {}), "district": state.district_preview.get("district", {}), "connection_plan": {}, "selected_port": state.district_preview.get("selected_port", ""), "target_room": state.district_preview.get("target_room", ""), "direction": state.district_preview.get("direction", "north"), "direction_auto": state.district_preview.get("direction_auto", true), "active_endpoint": state.district_preview.get("active_endpoint", "source")})
+	district_preview_changed.emit({"active": true, "valid": _preview_positions_fit(positions), "positions": positions, "rooms": state.district_preview.get("rooms", {}), "district": state.district_preview.get("district", {})})
 
 func _preview_positions_fit(positions: Dictionary) -> bool:
 	for candidate_id in positions:
@@ -337,35 +335,26 @@ func _preview_positions_fit(positions: Dictionary) -> bool:
 				return false
 	return true
 
-func commit_district_placement(preview: Dictionary, port_id: String, target_room_id: String, source_direction: String):
+
+# Placing a district only places its rooms in an open, unoccupied spot --
+# it no longer also requires choosing a connection endpoint in the same
+# step. Wiring it into the rest of the region (any of its ports, not just
+# a single forced "entry") happens afterward through the same connection
+# tools any other room uses: dragging from a room in local view, or the
+# world view's drag-to-connect between regions.
+func commit_district_placement(preview: Dictionary):
 	if not preview.get("active", false) or not preview.get("valid", false): return
 	var rooms: Dictionary = preview.get("rooms", {})
 	var positions: Dictionary = preview.get("positions", {})
 	var district: Dictionary = preview.get("district", {})
-	if not rooms.has(port_id) or not region_mgr.data.rooms.has(target_room_id) or not Constants.DIR_VECTORS.has(source_direction):
-		push_error("Choose a district port, destination room, and direction before confirming.")
-		return
 	if not _preview_positions_fit(positions):
 		push_error("Move the district until its footprint no longer overlaps existing rooms.")
-		return
-	var connection_errors := DistrictLayout.validate_preview_connection(region_mgr.data.rooms, rooms, positions, port_id, target_room_id, source_direction)
-	if not connection_errors.is_empty():
-		push_error("Cannot create district connection: " + " ".join(connection_errors))
 		return
 	var district_id := str(district.get("id", ""))
 	if district_id == "" or region_mgr.get_districts().has(district_id):
 		push_error("District ID already exists. Choose a new ID before placing it.")
 		return
-	var target_direction := str(Constants.INV_DIR_MAP.get(source_direction, ""))
-	if target_direction == "": return
 	var stored_district := district.duplicate(true)
-	# The selected ghost room becomes the actual public port.  This is what
-	# lets the author inspect a generated footprint before deciding which door
-	# should face the town, while keeping rerolls role-based later.
-	for port in stored_district.get("ports", []):
-		if str(port.get("id", "")) == "entry":
-			port["room_id"] = port_id
-			port["direction"] = source_direction
 	cmd_proc.commit(
 		func():
 			for room_id in rooms:
@@ -373,14 +362,10 @@ func commit_district_placement(preview: Dictionary, port_id: String, target_room
 				var pos: Vector2 = positions[room_id]; room["_editor_pos"] = [pos.x, pos.y]
 				region_mgr.add_room_data(room_id, room); region_mgr.mark_room_dirty(room_id)
 			region_mgr.set_district(district_id, stored_district)
-			region_mgr.add_exit(port_id, source_direction, target_room_id)
-			region_mgr.add_exit(target_room_id, target_direction, port_id)
-			region_mgr.set_connection_label_source(port_id, target_room_id, source_direction)
-			region_mgr.mark_room_dirty(target_room_id); main_node._refresh_view(); main_node._update_explorer_dirty_state(); district_preview_changed.emit({}),
+			main_node._refresh_view(); main_node._update_explorer_dirty_state(); district_preview_changed.emit({}),
 		func():
-			region_mgr.remove_exit(target_room_id, target_direction)
 			for room_id in rooms: region_mgr.remove_room_data(room_id)
-			region_mgr.remove_district(district_id); region_mgr.mark_room_dirty(target_room_id); main_node._refresh_view(); main_node._update_explorer_dirty_state(),
+			region_mgr.remove_district(district_id); main_node._refresh_view(); main_node._update_explorer_dirty_state(),
 		"Create District: " + str(stored_district.get("name", district_id))
 	)
 

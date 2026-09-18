@@ -171,43 +171,6 @@ static func _find_collisions(rooms: Dictionary, district: Array, preview_positio
 	collisions.sort()
 	return collisions
 
-# Validate the connection separately from footprint placement. The draft is
-# allowed to float freely, but its eventual exits must be unused and its line
-# must not cut through unrelated room cards.
-static func validate_preview_connection(existing_rooms: Dictionary, preview_rooms: Dictionary, preview_positions: Dictionary, port_id: String, target_id: String, source_direction: String) -> Array:
-	var errors: Array = []
-	var target_direction := str(Constants.INV_DIR_MAP.get(source_direction, ""))
-	if port_id == "" or target_id == "" or source_direction == "" or target_direction == "":
-		return errors
-	if not preview_rooms.has(port_id) or not preview_positions.has(port_id) or not existing_rooms.has(target_id):
-		return ["Choose valid connection endpoints."]
-	var port_exits: Dictionary = preview_rooms[port_id].get("exits", {})
-	if port_exits.has(source_direction) and str(port_exits[source_direction]) != target_id:
-		errors.append("District port already uses its %s exit." % source_direction)
-	var target_exits: Dictionary = existing_rooms[target_id].get("exits", {})
-	if target_exits.has(target_direction) and str(target_exits[target_direction]) != port_id:
-		errors.append("Town destination already uses its %s exit." % target_direction)
-	var source_pos: Vector2 = preview_positions[port_id]
-	var target_pos: Vector2 = _room_position(existing_rooms[target_id])
-	for room_id in existing_rooms:
-		if str(room_id) == target_id: continue
-		if _connection_hits_room(source_pos, target_pos, _room_position(existing_rooms[room_id])):
-			errors.append("Connection crosses %s." % str(existing_rooms[room_id].get("name", room_id)))
-	for room_id in preview_positions:
-		if str(room_id) == port_id: continue
-		if _connection_hits_room(source_pos, target_pos, preview_positions[room_id]):
-			errors.append("Connection crosses district room %s." % str(preview_rooms.get(room_id, {}).get("name", room_id)))
-	return errors
-
-static func _connection_hits_room(from: Vector2, to: Vector2, room_pos: Vector2) -> bool:
-	var rect := Rect2(room_pos - ROOM_CARD_SIZE * 0.5, ROOM_CARD_SIZE)
-	if rect.has_point(from) or rect.has_point(to): return false
-	var corners := [rect.position, Vector2(rect.end.x, rect.position.y), rect.end, Vector2(rect.position.x, rect.end.y)]
-	for index in range(corners.size()):
-		if Geometry2D.segment_intersects_segment(from, to, corners[index], corners[(index + 1) % corners.size()]) != null:
-			return true
-	return false
-
 # Flags a room whose immediate visual neighbors are dominated by two or more
 # *different* foreign districts on sides it has no exit to (in either
 # direction). A single foreign neighbor is an ordinary shared border -- every

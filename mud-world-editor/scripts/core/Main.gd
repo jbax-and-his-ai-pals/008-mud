@@ -55,7 +55,7 @@ func _ready():
 	camera_controller = CameraController.new(); camera_controller.setup(main_camera, ui_mgr)
 	action_handler = ActionHandler.new(); action_handler.setup(self, state, cmd_proc, region_mgr, world_mgr, graph_controller, ui_mgr, inspector)
 	action_handler.district_preview_changed.connect(func(preview):
-		state.district_preview = preview if not preview.is_empty() else {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
+		state.district_preview = preview if not preview.is_empty() else _empty_district_preview()
 		_refresh_district_toolbar()
 		graph_controller.queue_redraw()
 	)
@@ -137,26 +137,7 @@ func _connect_ui_signals():
 	ui_mgr.request_create_connection.connect(action_handler.create_connection)
 	ui_mgr.request_create_region.connect(_create_region)
 	ui_mgr.request_place_district.connect(func(definition): action_handler.begin_district_placement(definition, main_camera.position))
-	ui_mgr.request_district_connection_setup.connect(_begin_district_connection)
-	ui_mgr.request_district_endpoint_focus.connect(func(endpoint):
-		if state.district_preview.get("active", false) and state.district_preview.get("phase", "") == "connection":
-			state.district_preview.active_endpoint = endpoint
-			_refresh_district_toolbar()
-	)
-	ui_mgr.request_district_direction_selected.connect(func(direction):
-		if state.district_preview.get("active", false) and state.district_preview.get("phase", "") == "connection":
-			state.district_preview.direction = direction
-			state.district_preview.direction_auto = false
-			_refresh_district_toolbar()
-			graph_controller.queue_redraw()
-	)
-	ui_mgr.request_district_back_to_placement.connect(func():
-		if state.district_preview.get("active", false):
-			state.district_preview.phase = "placement"
-			_refresh_district_toolbar()
-			graph_controller.queue_redraw()
-	)
-	ui_mgr.request_district_confirm.connect(_confirm_district_connection)
+	ui_mgr.request_district_confirm.connect(func(): action_handler.commit_district_placement(state.district_preview))
 	ui_mgr.request_district_cancel.connect(_cancel_district_placement)
 	ui_mgr.context_action.connect(action_handler.handle_context_action)
 	ui_mgr.snap_toggled.connect(func(b): state.snap_enabled=b; graph_controller.set_snap(b); grid_layer.visible=(b and not state.is_world_view); grid_layer.queue_redraw())
@@ -475,92 +456,29 @@ func _handle_district_preview_input(event):
 		if camera_controller.handle_input(event):
 			_redraw_after_camera_input()
 		return
-	if preview.get("phase", "") == "placement":
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			if event.pressed:
-				state.district_dragging = {"active": true, "mouse_start": get_global_mouse_position(), "positions": preview.get("positions", {}).duplicate(true)}
-			else:
-				state.district_dragging.active = false
-		elif event is InputEventMouseMotion and state.district_dragging.get("active", false):
-			var delta: Vector2 = get_global_mouse_position() - state.district_dragging.mouse_start
-			if state.snap_enabled: delta = Vector2(round(delta.x / 32.0) * 32.0, round(delta.y / 32.0) * 32.0)
-			var moved := {}
-			for room_id in state.district_dragging.positions: moved[room_id] = state.district_dragging.positions[room_id] + delta
-			action_handler.update_district_placement_positions(moved)
-	elif preview.get("phase", "") == "connection" and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		var ghost_id := graph_controller.get_district_preview_room_under_mouse(get_global_mouse_position())
-		if ghost_id != "":
-			var should_advance: bool = state.district_preview.get("active_endpoint", "source") == "source" and state.district_preview.get("selected_port", "") == ""
-			state.district_preview.selected_port = ghost_id
-			# The first default (green) selection naturally advances the author to
-			# the blue map endpoint. Later edits remain exactly where they chose.
-			if should_advance: state.district_preview.active_endpoint = "target"
-			_suggest_district_direction_from_endpoints()
-			_refresh_district_toolbar(); graph_controller.queue_redraw()
-			return
-		var target_id := graph_controller.get_room_under_mouse(get_global_mouse_position())
-		if target_id != "":
-			state.district_preview.target_room = target_id
-			_suggest_district_direction_from_endpoints()
-			_refresh_district_toolbar(); graph_controller.queue_redraw()
-
-func _begin_district_connection():
-	if not state.district_preview.get("active", false): return
-	state.district_preview.phase = "connection"
-	if str(state.district_preview.get("direction", "")) == "":
-		state.district_preview.direction = "north"
-		state.district_preview.direction_auto = true
-	_refresh_district_toolbar(); graph_controller.queue_redraw()
-
-# Suggest the compass pair implied by actual map geometry. A manually selected
-# pair is authoritative; this only supplies the initial value.
-func _suggest_district_direction_from_endpoints():
-	if not state.district_preview.get("direction_auto", true): return
-	var port_id := str(state.district_preview.get("selected_port", ""))
-	var target_id := str(state.district_preview.get("target_room", ""))
-	var positions: Dictionary = state.district_preview.get("positions", {})
-	if port_id == "" or target_id == "" or not positions.has(port_id) or not region_mgr.data.get("rooms", {}).has(target_id): return
-	var source_pos: Vector2 = positions[port_id]
-	var raw_target_pos = region_mgr.data.rooms[target_id].get("_editor_pos", [0, 0])
-	if not raw_target_pos is Array or raw_target_pos.size() < 2: return
-	var target_pos := Vector2(float(raw_target_pos[0]), float(raw_target_pos[1]))
-	var delta := target_pos - source_pos
-	if delta.length_squared() < 1.0:
-		state.district_preview.direction = "north"
-		return
-	var x_ratio: float = abs(delta.x) / max(abs(delta.y), 0.001)
-	var y_ratio: float = abs(delta.y) / max(abs(delta.x), 0.001)
-	if x_ratio < 0.45:
-		state.district_preview.direction = "south" if delta.y > 0.0 else "north"
-	elif y_ratio < 0.45:
-		state.district_preview.direction = "east" if delta.x > 0.0 else "west"
-	elif delta.x > 0.0:
-		state.district_preview.direction = "southeast" if delta.y > 0.0 else "northeast"
-	else:
-		state.district_preview.direction = "southwest" if delta.y > 0.0 else "northwest"
-
-func _confirm_district_connection(direction: String):
-	if not state.district_preview.get("active", false): return
-	action_handler.commit_district_placement(state.district_preview, str(state.district_preview.get("selected_port", "")), str(state.district_preview.get("target_room", "")), direction)
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			state.district_dragging = {"active": true, "mouse_start": get_global_mouse_position(), "positions": preview.get("positions", {}).duplicate(true)}
+		else:
+			state.district_dragging.active = false
+	elif event is InputEventMouseMotion and state.district_dragging.get("active", false):
+		var delta: Vector2 = get_global_mouse_position() - state.district_dragging.mouse_start
+		if state.snap_enabled: delta = Vector2(round(delta.x / 32.0) * 32.0, round(delta.y / 32.0) * 32.0)
+		var moved := {}
+		for room_id in state.district_dragging.positions: moved[room_id] = state.district_dragging.positions[room_id] + delta
+		action_handler.update_district_placement_positions(moved)
 
 func _cancel_district_placement():
-	state.district_preview = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
+	state.district_preview = _empty_district_preview()
 	state.district_dragging = {"active": false, "mouse_start": Vector2.ZERO, "positions": {}}
-	ui_mgr.set_district_workflow(""); graph_controller.queue_redraw()
+	ui_mgr.set_district_workflow(false); graph_controller.queue_redraw()
+
+func _empty_district_preview() -> Dictionary:
+	return {"active": false, "valid": false, "positions": {}, "rooms": {}, "district": {}}
 
 func _refresh_district_toolbar():
 	var preview: Dictionary = state.district_preview
-	var port_id := str(preview.get("selected_port", ""))
-	var target_id := str(preview.get("target_room", ""))
-	var port_name := str(preview.get("rooms", {}).get(port_id, {}).get("name", ""))
-	var target_name := str(region_mgr.data.get("rooms", {}).get(target_id, {}).get("name", ""))
-	var active_endpoint := str(preview.get("active_endpoint", "source"))
-	var district_name := str(preview.get("district", {}).get("name", "New District"))
-	var region_name := str(region_mgr.data.get("name", region_mgr.data.get("region_id", "this region")))
-	var title := "Select %s connection endpoint" % district_name if active_endpoint == "source" else "Select %s connection endpoint" % region_name
-	var connection_errors: Array = DistrictLayout.validate_preview_connection(region_mgr.data.get("rooms", {}), preview.get("rooms", {}), preview.get("positions", {}), port_id, target_id, str(preview.get("direction", "")))
-	state.district_preview.connection_errors = connection_errors
-	ui_mgr.set_district_workflow(str(preview.get("phase", "")), port_id, target_id, port_name, target_name, active_endpoint, title, str(preview.get("direction", "north")), connection_errors, bool(preview.get("valid", false)))
+	ui_mgr.set_district_workflow(bool(preview.get("active", false)), bool(preview.get("valid", false)))
 
 func _stamp_template_at(pos: Vector2):
 	var template_id = state.cur_tool_data.get("id")
@@ -796,17 +714,6 @@ func _validate_region_policy():
 
 func _on_node_click(id: String, shift_mod: bool):
 	if state.is_world_view: return
-	# Room cards consume their own mouse click before _unhandled_input sees it.
-	# During district connection setup, claim that click here instead of letting
-	# normal selection dismiss the ghost footprint.
-	if state.district_preview.get("active", false) and state.district_preview.get("phase", "") == "connection":
-		if region_mgr.data.rooms.has(id):
-			state.district_preview.target_room = id
-			_suggest_district_direction_from_endpoints()
-			_refresh_district_toolbar()
-			graph_controller.queue_redraw()
-		return
-	
 	match state.cur_tool_mode:
 		EditorUIManager.ToolMode.PAINT:
 			var k = state.cur_tool_data.get("key", ""); var v = state.cur_tool_data.get("val", "")
@@ -860,7 +767,7 @@ func _on_world_region_selected(region_id: String):
 func _update_selection_state():
 	if state.district_preview.get("active", false):
 		return
-	state.district_preview = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
+	state.district_preview = _empty_district_preview()
 	graph_controller.update_selection_visuals(state.selected_ids)
 	graph_controller.queue_redraw() # clears any stale district highlight from before this room selection
 	if state.selected_ids.size() == 1:

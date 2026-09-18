@@ -15,7 +15,7 @@ var selected_ids: Array = []
 var selected_district_id: String = ""
 var highlighted_target_id: String = ""
 var connection_preview: Dictionary = {"active": false, "source_id": "", "target_id": ""}
-var district_preview: Dictionary = {"active": false, "valid": false, "phase": "", "positions": {}, "rooms": {}, "district": {}, "connection_plan": {}, "selected_port": "", "target_room": "", "direction": "", "active_endpoint": "source"}
+var district_preview: Dictionary = {"active": false, "valid": false, "positions": {}, "rooms": {}, "district": {}}
 var district_dragging: Dictionary = {"active": false, "mouse_start": Vector2.ZERO, "positions": {}}
 
 # Interaction State (temporary state during an action)

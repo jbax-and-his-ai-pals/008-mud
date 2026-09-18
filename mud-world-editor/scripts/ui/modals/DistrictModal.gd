@@ -55,7 +55,7 @@ func setup():
 	_row(controls, "Shape", algorithm_option)
 	seed_field = _line(str(randi()), "Seed"); _row(controls, "Seed", seed_field)
 	size_field = SpinBox.new(); size_field.min_value = 3; size_field.max_value = 20; size_field.value = 5; _row(controls, "Scale", size_field)
-	var help := _label("The entry port is selected later on the canvas, after you can see the shape.", Color("94a7c0"), 12); help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; controls.add_child(help)
+	var help := _label("Drag to place it, then connect it to the rest of the region afterward -- the same way any other room connects.", Color("94a7c0"), 12); help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; controls.add_child(help)
 	var reroll := Button.new(); reroll.text = "↻  Reroll Preview"; _button_style(reroll, Color("294c70")); reroll.pressed.connect(func(): seed_field.text = str(randi()); _refresh_preview()); controls.add_child(reroll)
 	var preview_box := PanelContainer.new(); preview_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL; preview_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var preview_style := StyleBoxFlat.new(); preview_style.bg_color = Color("0b1220"); preview_style.border_color = Color("314b68"); preview_style.set_border_width_all(1); preview_style.set_corner_radius_all(8); preview_box.add_theme_stylebox_override("panel", preview_style); content.add_child(preview_box)

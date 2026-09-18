@@ -287,14 +287,6 @@ func get_world_region_id_at(global_pos: Vector2, zoom: float = 1.0) -> String:
 		if global_rect.has_point(global_pos): return rid
 	return ""
 
-func get_district_preview_room_under_mouse(global_pos: Vector2) -> String:
-	if current_mode != ViewMode.LOCAL or not editor_state.district_preview.get("active", false): return ""
-	for room_id in editor_state.district_preview.get("positions", {}):
-		var position: Vector2 = editor_state.district_preview.positions[room_id]
-		var rect := Rect2(position - DistrictLayout.ROOM_CARD_SIZE / 2.0, DistrictLayout.ROOM_CARD_SIZE)
-		if rect.has_point(global_pos): return str(room_id)
-	return ""
-
 func get_nodes_in_rect(global_rect: Rect2) -> Array:
 	var result = []
 	if current_mode == ViewMode.LOCAL:
@@ -360,24 +352,6 @@ func _draw_local_connections():
 			connection_layer.draw_rect(ghost_rect, border_color, false, 2.0)
 			var label := str(preview_rooms.get(room_id, {}).get("name", room_id))
 			connection_layer.draw_string(ThemeDB.get_fallback_font(), position + Vector2(-70, 4), label, HORIZONTAL_ALIGNMENT_CENTER, 140, 11, border_color)
-			if str(editor_state.district_preview.get("selected_port", "")) == str(room_id):
-				connection_layer.draw_circle(position, 12.0, Color.GOLD, false, 2.5)
-		var port_id := str(editor_state.district_preview.get("selected_port", ""))
-		var destination_id := str(editor_state.district_preview.get("target_room", ""))
-		var pending_direction := str(editor_state.district_preview.get("direction", ""))
-		if port_id != "" and destination_id != "" and pending_direction != "" and preview_positions.has(port_id) and local_view_builder.room_nodes.has(destination_id):
-			var destination_pos: Vector2 = local_view_builder.room_nodes[destination_id].position
-			var port_pos: Vector2 = preview_positions[port_id]
-			var reciprocal := str(Constants.INV_DIR_MAP.get(pending_direction, ""))
-			# The picker defines the first direction from the ghost port to the town.
-			var connection_invalid: bool = not editor_state.district_preview.get("connection_errors", []).is_empty()
-			var connection_color := Color(1.0, 0.34, 0.34, 0.95) if connection_invalid else Color(0.35, 0.8, 1.0, 0.95)
-			_draw_ghost_connection(port_pos, destination_pos, Constants.format_reciprocal_label(pending_direction, reciprocal, port_pos, destination_pos), connection_color)
-			# A destination marker makes it unambiguous which real room will receive
-			# the pending connection without making it look selected for editing.
-			connection_layer.draw_circle(destination_pos, 18.0, Color(0.35, 0.8, 1.0, 0.16), true)
-			connection_layer.draw_circle(destination_pos, 18.0, Color(0.35, 0.8, 1.0, 0.95), false, 2.0)
-			connection_layer.draw_string(ThemeDB.get_fallback_font(), destination_pos + Vector2(-24, -26), "DEST", HORIZONTAL_ALIGNMENT_CENTER, 48, 10, Color(0.6, 0.9, 1.0, 1.0))
 
 	if editor_state.connection_preview.get("active", false):
 		var src_id = editor_state.connection_preview.source_id
