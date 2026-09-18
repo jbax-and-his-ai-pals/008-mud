@@ -18,6 +18,7 @@ var panel: Panel
 var vbox_main: VBoxContainer
 var content_container: VBoxContainer
 var save_reload_container: HBoxContainer
+var save_button: Button
 
 const EXPANDED_ANCHOR_LEFT := 0.75
 const COLLAPSED_WIDTH := 28.0
@@ -83,10 +84,11 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	save_reload_container.add_theme_constant_override("separation", 10)
 	vbox_main.add_child(save_reload_container)
 
-	var btn_save = Button.new(); btn_save.text="SAVE DATA"; btn_save.size_flags_horizontal = 3
-	btn_save.pressed.connect(func(): save_triggered.emit())
-	InspectorStyle.apply_button_style(btn_save, InspectorStyle.COLOR_SUCCESS.darkened(0.2))
-	save_reload_container.add_child(btn_save)
+	save_button = Button.new(); save_button.text="SAVE CHANGES"; save_button.size_flags_horizontal = 3
+	save_button.pressed.connect(func(): save_triggered.emit())
+	InspectorStyle.apply_button_style(save_button, InspectorStyle.COLOR_SUCCESS.darkened(0.2))
+	save_reload_container.add_child(save_button)
+	set_region_dirty(region_mgr.is_region_dirty)
 	
 	var btn_reload = Button.new(); btn_reload.text="RELOAD"; btn_reload.size_flags_horizontal = 3
 	btn_reload.pressed.connect(func(): reload_triggered.emit())
@@ -97,6 +99,14 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 func set_action_handler(handler: ActionHandler):
 	action_handler = handler
 
+# Saving is a region-level operation, but this controller is shared by room,
+# district, and region inspectors.  Keep the one visible save affordance in
+# sync regardless of which of those editors made the change.
+func set_region_dirty(is_dirty: bool):
+	if not is_instance_valid(save_button): return
+	save_button.disabled = not is_dirty
+	save_button.tooltip_text = "Save changes to this region." if is_dirty else "No unsaved changes in this region."
+
 var cur_mode = "none"
 
 func clear_selection(hide_panel: bool = true):
@@ -104,6 +114,7 @@ func clear_selection(hide_panel: bool = true):
 	current_inspector = null
 	_clear_box(content_container)
 	save_reload_container.visible = true
+	set_region_dirty(region_mgr.is_region_dirty)
 	if hide_panel: panel.visible = false
 	target_selected_in_connector.emit("") 
 
@@ -127,7 +138,7 @@ func load_region_root(data: Dictionary):
 	cur_mode = "region_root"
 	panel.visible = true
 	
-	var insp = RegionInspector.new(content_container, action_handler)
+	var insp = RegionInspector.new(content_container, action_handler, database_mgr)
 	current_inspector = insp
 	insp.data_modified.connect(func(): data_modified.emit())
 	insp.build(data.get("region_id", "Unknown"), data)

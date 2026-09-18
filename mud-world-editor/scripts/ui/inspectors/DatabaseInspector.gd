@@ -13,12 +13,14 @@ var cur_data: Dictionary
 # Sub Inspectors
 var npc_inspector: NPCInspector
 var item_inspector: ItemInspector
+var magic_inspector: MagicInspector
 
 # Reference
 var db_mgr_ref: DatabaseManager 
 
 const NPC_INSP_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/NPCInspector.gd")
 const ITEM_INSP_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/ItemInspector.gd")
+const MAGIC_INSP_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/MagicInspector.gd")
 
 func _init(c: VBoxContainer):
 	container = c
@@ -44,6 +46,10 @@ func build(type: String, id: String, data: Dictionary):
 		item_inspector = ITEM_INSP_SCRIPT.new()
 		item_inspector.build(container, cur_data)
 		item_inspector.database_modified.connect(func(): database_modified.emit())
+	elif type == "magic":
+		magic_inspector = MAGIC_INSP_SCRIPT.new()
+		magic_inspector.build(container, cur_data, db_mgr_ref.magic_groups)
+		magic_inspector.database_modified.connect(func(): database_modified.emit())
 
 func _build_header_card():
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)

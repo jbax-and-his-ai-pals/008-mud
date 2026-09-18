@@ -4,6 +4,13 @@
 
 Allow radically different world themes while preserving one runtime.
 
+Theme packs own presentation; content sets own authored rules and enabled
+capabilities. Neither may introduce genre-specific engine behavior by name.
+For example, Fantasy spell schools and a sci-fi device catalog are separate
+implementations of the engine's generic ability/effect contracts. See
+[`docs/design/cross_theme_engine_contracts.md`](../design/cross_theme_engine_contracts.md)
+for the contract boundary and proving-slice plan.
+
 ## Client Runtime Manifest (v0)
 
 Required:
@@ -75,3 +82,11 @@ Optional:
 2. Sci-Fi Frontier
 3. Cyberpunk District
 4. Post-Apocalyptic Settlement
+
+## Boundary with gameplay contracts
+
+This specification deliberately does **not** define combat, item, ability,
+crafting, or generated-instance semantics. A pack can rename and style those
+surfaces only after its selected content set has declared the corresponding
+engine capability and valid authored contracts. This prevents a presentation
+theme from becoming a second, incompatible gameplay ruleset.

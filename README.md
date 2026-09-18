@@ -63,6 +63,13 @@ python main.py
 
 This engine is built on a Component-Entity-System architecture heavily reliant on JSON data definitions.
 
+Content sets provide the genre-facing implementations; the engine owns the
+contracts beneath them. A sword, spell, rifle, environmental hazard, or device
+should enter combat through the same attack/effect contract, while authored
+item templates and generated item instances remain distinct. The current
+cross-theme refactor plan and sci-fi proof scope are documented in
+[`docs/design/cross_theme_engine_contracts.md`](docs/design/cross_theme_engine_contracts.md).
+
 ### 1. World & Environment
 *   **Dynamic Region Generation:** Procedural generation of dungeons and areas using 3D geometric algorithms.
 *   **Time System:** Full calendar cycle (Day/Night, Seasons, Years). Time passes in "ticks" or via specific actions.

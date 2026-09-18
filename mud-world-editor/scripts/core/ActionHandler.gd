@@ -536,6 +536,7 @@ func arrange_district_rooms(district_id: String):
 					region_mgr.data.rooms[id]["_editor_exit_layout"] = new_exit_layout[id]
 				elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
 					region_mgr.data.rooms[id].erase("_editor_exit_layout")
+			for id in new_pos: region_mgr.mark_room_dirty(id)
 			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
 		func():
 			for id in old_pos: region_mgr.set_room_pos(id, old_pos[id])
@@ -544,6 +545,7 @@ func arrange_district_rooms(district_id: String):
 					region_mgr.data.rooms[id]["_editor_exit_layout"] = old_exit_layout[id]
 				elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
 					region_mgr.data.rooms[id].erase("_editor_exit_layout")
+			for id in old_pos: region_mgr.mark_room_dirty(id)
 			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
 		"Arrange District Rooms: " + str(districts[district_id].get("name", district_id))
 	)

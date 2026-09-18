@@ -192,6 +192,11 @@ func _patch_external_references(target_region: String, old_room: String, new_roo
 
 func mark_room_dirty(room_id: String):
 	if room_id != "": dirty_room_ids[room_id] = true
+	mark_region_dirty()
+
+# Some edits live on the region or district metadata rather than a single
+# room.  They still need to enable the shared Save Changes control.
+func mark_region_dirty():
 	is_region_dirty = true
 
 func mark_clean():

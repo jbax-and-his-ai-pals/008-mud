@@ -9,6 +9,7 @@ var container: VBoxContainer
 var cur_data: Dictionary
 var cur_id: String
 var action_handler: ActionHandler
+var database_mgr: DatabaseManager
 
 var props_box: VBoxContainer
 var flow_container: HFlowContainer
@@ -29,9 +30,10 @@ const COMMON_PROPS = {
 	"Music": {"key": "music", "val": "default_theme"}
 }
 
-func _init(c: VBoxContainer, handler: ActionHandler = null):
+func _init(c: VBoxContainer, handler: ActionHandler = null, db_mgr: DatabaseManager = null):
 	container = c
 	action_handler = handler
+	database_mgr = db_mgr
 
 func build(id: String, data: Dictionary):
 	cur_id = id
@@ -41,7 +43,7 @@ func build(id: String, data: Dictionary):
 	_build_districts()
 	
 	spawner_inspector = SPAWNER_INSP_SCRIPT.new()
-	spawner_inspector.build(container, cur_data)
+	spawner_inspector.build(container, cur_data, database_mgr)
 	spawner_inspector.data_modified.connect(func(): data_modified.emit())
 
 func _build_general():

@@ -16,6 +16,7 @@ const CAMPAIGNS_DIR = "res://data/campaigns/"
 # rather than silently not know about.
 const COLLECTIONS_FILE = "res://data/collections.json"
 const DISCOVERIES_FILE = "res://data/discoveries.json"
+const MAGIC_GROUPS_FILE = "res://data/magic_groups.json"
 
 # Data stores
 var npcs: Dictionary = {}
@@ -26,6 +27,8 @@ var templates: Dictionary = {}
 var campaigns: Dictionary = {}
 var collections: Dictionary = {}
 var discoveries: Dictionary = {}
+var magic_groups: Dictionary = {}
+var magic_groups_dirty := false
 
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
@@ -46,7 +49,7 @@ func _ensure_dir(path):
 
 func load_all():
 	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear()
-	campaigns.clear(); collections.clear(); discoveries.clear()
+	campaigns.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	mark_clean()
 	_load_recursive(NPC_DIR, "", npcs)
 	_load_recursive(ITEM_DIR, "", items)
@@ -56,6 +59,24 @@ func load_all():
 	_load_campaigns()
 	if FileAccess.file_exists(COLLECTIONS_FILE): _load_file(COLLECTIONS_FILE, "collections.json", collections)
 	if FileAccess.file_exists(DISCOVERIES_FILE): _load_file(DISCOVERIES_FILE, "discoveries.json", discoveries)
+	_load_magic_groups()
+
+func _load_magic_groups():
+	if not FileAccess.file_exists(MAGIC_GROUPS_FILE):
+		magic_groups = _default_magic_groups()
+		return
+	var json := JSON.new()
+	if json.parse(FileAccess.get_file_as_string(MAGIC_GROUPS_FILE)) == OK:
+		magic_groups = json.get_data().get("groups", {})
+	if magic_groups.is_empty(): magic_groups = _default_magic_groups()
+
+func _default_magic_groups() -> Dictionary:
+	return {
+		"restoration": {"name": "Restoration"}, "curses": {"name": "Curses"},
+		"elemental": {"name": "Elemental"}, "evocation": {"name": "Evocation"},
+		"conjuration": {"name": "Conjuration"}, "utility": {"name": "Utility"},
+		"general": {"name": "General"}
+	}
 
 # Each file under CAMPAIGNS_DIR is one whole CampaignDefinition (campaign_id,
 # name, start_node_id, nodes{...}) -- not a library of several entries the
@@ -142,7 +163,16 @@ func save_all():
 	_save_category(magic, MAGIC_DIR)
 	_save_category(quests, QUEST_DIR)
 	_save_category(templates, TEMPLATE_DIR)
+	_save_magic_groups()
 	mark_clean()
+
+func _save_magic_groups():
+	var file := FileAccess.open(MAGIC_GROUPS_FILE, FileAccess.WRITE)
+	if file: file.store_string(JSON.stringify({"groups": magic_groups}, "\t"))
+	magic_groups_dirty = false
+
+func mark_magic_groups_dirty():
+	magic_groups_dirty = true
 
 func _save_category(cache: Dictionary, root_dir: String):
 	var files_content = {}
@@ -201,7 +231,11 @@ func delete_entry(type: String, id: String):
 		"magic": target_dict = magic
 		"quest": target_dict = quests
 		"template": target_dict = templates
-	if target_dict.has(id): target_dict.erase(id)
+	if target_dict.has(id):
+		target_dict.erase(id)
+		# Saving rewrites the category files; retain a dirty marker even though
+		# the deleted entry itself can no longer appear in the browser.
+		mark_dirty(type, id)
 
 func mark_dirty(type: String, id: String):
 	if dirty_flags.has(type): dirty_flags[type][id] = true

@@ -55,8 +55,10 @@ class TestChestLootGenerator(GameTestBase):
             item = ChestLootGenerator._generate_slot_item(self.world, level=5)
         self.assertIsNotNone(item)
         score = item.get_property("material_quality_score")
-        self.assertIn(score, (1, 2, 3))
+        self.assertIn(score, (1, 2, 3, 4, 5))
         self.assertTrue(item.get_property("material_quality_label"))
+        self.assertTrue(item.get_property("gem_size_label"))
+        self.assertTrue(item.get_property("gem_rarity"))
         self.assertFalse(item.stackable)
 
     def test_generated_equipment_can_carry_a_rolled_affix(self):

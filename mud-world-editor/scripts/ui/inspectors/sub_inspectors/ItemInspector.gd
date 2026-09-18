@@ -35,6 +35,10 @@ func _build_details():
 		type_opt.add_item(current_type)
 		type_opt.select(type_opt.item_count - 1)
 	type_opt.item_selected.connect(func(i): cur_data.type = type_opt.get_item_text(i); database_modified.emit())
+	# Gem records are species templates.  Moving one back to a generic item
+	# would quietly remove it from procedural gem rolls, so keep that identity
+	# stable while it is edited here.
+	type_opt.disabled = str(cur_data.get("type", "")) == "Gem"
 	type_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	InspectorStyle.apply_button_style(type_opt)
 	hb.add_child(type_opt)
@@ -51,6 +55,54 @@ func _build_details():
 	chk.button_pressed = cur_data.get("stackable", false)
 	chk.toggled.connect(func(b): cur_data.stackable = b; database_modified.emit())
 	vbox.add_child(chk)
+
+	if str(cur_data.get("type", "")) == "Gem":
+		_build_gem_definition()
+
+func _build_gem_definition():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Gem Generation"))
+	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
+	container.add_child(card)
+	vbox.add_child(InspectorStyle.lbl("This is a gem species template. Found gems roll their own size and quality.", InspectorStyle.COLOR_TEXT_DIM))
+
+	var rarity_row := HBoxContainer.new()
+	rarity_row.add_child(InspectorStyle.lbl("Intrinsic rarity", InspectorStyle.COLOR_TEXT_DIM))
+	var rarity := OptionButton.new(); rarity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var rarity_ids := ["common", "uncommon", "rare", "legendary"]
+	for rarity_id in rarity_ids: rarity.add_item(rarity_id.capitalize())
+	var current_rarity := str(cur_data.get("rarity", "common")).to_lower()
+	var rarity_index := rarity_ids.find(current_rarity)
+	rarity.select(rarity_index if rarity_index >= 0 else 0)
+	rarity.item_selected.connect(func(index):
+		cur_data["rarity"] = rarity_ids[index]
+		database_modified.emit()
+	)
+	InspectorStyle.apply_button_style(rarity)
+	rarity_row.add_child(rarity); vbox.add_child(rarity_row)
+
+	var profile: Dictionary = cur_data.get("gem_generation", {})
+	if profile.is_empty():
+		profile = {"size_bias": 0.0, "quality_bias": 0.0}
+	_add_gem_bias(vbox, "Size tendency", "size_bias", profile, "Smaller ← → larger")
+	_add_gem_bias(vbox, "Quality tendency", "quality_bias", profile, "Flawed ← → perfect")
+
+func _add_gem_bias(parent: VBoxContainer, label: String, key: String, profile: Dictionary, hint: String):
+	var group := VBoxContainer.new()
+	var heading := HBoxContainer.new()
+	heading.add_child(InspectorStyle.lbl(label, InspectorStyle.COLOR_TEXT_DIM))
+	var value_label := Label.new(); value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; value_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.add_child(value_label); group.add_child(heading)
+	var slider := HSlider.new(); slider.min_value = -2.0; slider.max_value = 2.0; slider.step = 0.5
+	slider.value = float(profile.get(key, 0.0)); slider.tooltip_text = hint
+	value_label.text = "%+.1f  %s" % [slider.value, hint]
+	slider.value_changed.connect(func(value):
+		profile[key] = value
+		cur_data["gem_generation"] = profile
+		value_label.text = "%+.1f  %s" % [value, hint]
+		database_modified.emit()
+	)
+	group.add_child(slider); parent.add_child(group)
 
 func _add_spin_field(parent, label, key, default):
 	var vb = VBoxContainer.new(); vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL

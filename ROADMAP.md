@@ -1422,6 +1422,48 @@ more urgent.
 
 ---
 
+## P9: Cross-theme contracts and a sci-fi proving slice
+
+**Goal:** make Fantasy Frontier's combat, items, magic, armour, crafting, and
+loot systems implementations of engine-owned contracts rather than genre-bound
+primitives. Prove the boundary with a deliberately minimal sci-fi content set,
+not a second large game.
+
+The canonical design and delivery sequence live in
+[`docs/design/cross_theme_engine_contracts.md`](docs/design/cross_theme_engine_contracts.md).
+That document is the detailed contract reference; this section is the active
+work order.
+
+### First batch
+
+- [ ] **Map present genre coupling.** Audit concrete fantasy/type checks in
+  combat, items, magic, crafting, command help, persistence, and the editor.
+  Classify each as kernel, capability query, or content leak; add
+  characterization coverage before moving behavior.
+- [ ] **Define the contract registry.** Version and validate item families,
+  generation profiles, attack/defense profiles, abilities, recipes, and effect
+  packets. The editor and runtime validator must consume the same definitions.
+- [ ] **Normalize one vertical combat slice.** Route one existing Fantasy
+  weapon, armour piece, and spell through attack/defense/ability contracts with
+  no observable Fantasy regression.
+- [ ] **Generalize generated item instances.** Extract common tier,
+  distribution, naming, value, and persistence behavior from the provisional
+  `GemGenerator`; preserve existing material-quality fields during migration.
+- [ ] **Build the sci-fi proof.** A tiny authored content set exercises a
+  kinetic attack source, protective gear, charge/heat ability, generated
+  component, and fabrication recipe while omitting magic, mana, spell schools,
+  gems, and fantasy vocabulary.
+
+### Evidence required
+
+- Fantasy Frontier and the sci-fi proof use one loader, one contract registry,
+  and no genre branches in core engine paths.
+- A resolved generated instance survives inventory and save/load exactly.
+- The editor and command-line validator reject the same invalid contract.
+- End-to-end smoke journeys run for both content sets.
+
+---
+
 ## Deliberately later
 
 - Advanced NPC use of playtester policies.

@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from engine.config import CHEST_TRAP_CHANCE
 from engine.items.container import Container
+from engine.items.gem_generator import GemGenerator
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.loot_generator import LootGenerator
@@ -80,16 +81,6 @@ def _currency_item_id(world: 'World') -> Optional[str]:
         if template.get("properties", {}).get("treasure_type") == "coin":
             return item_id
     return None
-
-
-# Score -> (id, label), mirroring the gathering system's material-quality
-# convention (engine/items/resource_node.py) so a chest-found gem behaves
-# identically to a gathered one in later appraisal/crafting.
-_QUALITY_TIERS = {
-    1: ("common", "Common"),
-    2: ("fine", "Fine"),
-    3: ("exceptional", "Exceptional"),
-}
 
 
 class ChestLootGenerator:
@@ -188,11 +179,7 @@ class ChestLootGenerator:
                     item.update_property("value", item.value)
                     item.description = f"{item.description} ({quantity} coins)"
         elif category == "gem":
-            gem_id = ChestLootGenerator._pick_template(world, "Gem")
-            if gem_id:
-                item = ItemFactory.create_item_from_template(gem_id, world)
-                if item:
-                    ChestLootGenerator._apply_gem_quality(item, level)
+            item = GemGenerator.generate_gem(world, level=level)
         elif category == "equipment":
             base_id = ChestLootGenerator._pick_template(world, "Weapon", "Armor")
             if base_id:
@@ -216,16 +203,6 @@ class ChestLootGenerator:
             and not template.get("properties", {}).get("debug_only")
         ]
         return random.choice(candidates) if candidates else None
-
-    @staticmethod
-    def _apply_gem_quality(item: Item, level: int) -> None:
-        score = round(roll_around(1 + level / 6.0, 1.0, minimum=1, maximum=3))
-        quality_id, quality_label = _QUALITY_TIERS.get(score, _QUALITY_TIERS[1])
-        item.properties["material_quality"] = quality_id
-        item.properties["material_quality_label"] = quality_label
-        item.properties["material_quality_score"] = score
-        item.stackable = False
-        item.update_property("stackable", False)
 
     @staticmethod
     def _apply_quality_value_roll(item: Item) -> None:

@@ -37,6 +37,8 @@ signal request_save_template(room_id)
 signal request_context_menu(global_pos, meta)
 signal request_delete_room_confirm(room_id, include_reciprocal)
 signal view_mode_changed(mode) # New Signal
+signal database_modified(type, id)
+signal database_saved
 
 enum ToolMode { SELECT, PAINT, STAMP }
 
@@ -80,13 +82,15 @@ var btn_technical_ids: Button
 var label_edit_dialog: ConfirmationDialog
 var label_edit_input: LineEdit
 var _label_edit_room_id := ""
+var content_library
 
 const SIDEPANEL_SCRIPT = preload("res://scripts/ui/SidePanel.gd")
 const SEARCH_MODAL_SCRIPT = preload("res://scripts/ui/modals/SearchModal.gd")
 const VALIDATION_MODAL_SCRIPT = preload("res://scripts/ui/modals/ValidationModal.gd")
 const DISTRICT_MODAL_SCRIPT = preload("res://scripts/ui/modals/DistrictModal.gd")
+const CONTENT_LIBRARY_SCRIPT = preload("res://scripts/ui/modals/ContentLibraryDialog.gd")
 
-func setup(layer: CanvasLayer):
+func setup(layer: CanvasLayer, database_mgr: DatabaseManager, world_mgr: WorldManager):
 	ui_layer = layer
 	
 	side_panel = SIDEPANEL_SCRIPT.new()
@@ -97,12 +101,19 @@ func setup(layer: CanvasLayer):
 	_setup_footer(main_vbox)
 	_setup_status_bar()
 	_setup_modals_and_popups()
+	content_library = CONTENT_LIBRARY_SCRIPT.new()
+	ui_layer.add_child(content_library)
+	content_library.setup(database_mgr, world_mgr)
+	content_library.request_create_entry.connect(func(t): request_create_db_entry.emit(t))
+	content_library.request_delete_entry.connect(func(t, id): request_delete_db_entry.emit(t, id))
+	content_library.database_modified.connect(func(t, id): database_modified.emit(t, id))
+	content_library.database_saved.connect(func(): database_saved.emit())
 	
 	search_modal = SEARCH_MODAL_SCRIPT.new()
 	ui_layer.add_child(search_modal)
 	search_modal.setup()
 	search_modal.request_jump_to_room.connect(func(f, id): request_jump_to_error.emit(f, id))
-	search_modal.request_select_db_entry.connect(func(t, id): request_select_db_entry.emit(t, id))
+	search_modal.request_select_db_entry.connect(func(t, id): content_library.show_entry(t, id))
 
 func _forward_side_panel_signals():
 	side_panel.request_load_region.connect(func(f): request_load_region.emit(f))
@@ -124,6 +135,7 @@ func _forward_side_panel_signals():
 	)
 	side_panel.request_district_modal_open.connect(func(): request_open_district_modal.emit())
 	side_panel.request_context_menu.connect(func(p, m): request_context_menu.emit(p, m))
+	side_panel.request_open_content_library.connect(func(): content_library.show_library())
 
 func _setup_footer(main_vbox: VBoxContainer):
 	main_vbox.add_child(HSeparator.new())
@@ -331,6 +343,7 @@ func cache_search_data(world_data, npcs, items):
 
 func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, dirty_flags: Dictionary): 
 	side_panel.update_db_lists(npcs, items, templates, magic, quests, dirty_flags)
+	content_library.update_data(npcs, items, templates, magic, quests, dirty_flags)
 func refresh_explorer(h, c, s): side_panel.refresh_explorer(h, c, s) 
 func select_room_item(id): side_panel.select_room_item(id)
 func update_dirty_visuals(cur, dirty, rooms): side_panel.update_dirty_visuals(cur, dirty, rooms)

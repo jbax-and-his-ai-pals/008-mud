@@ -6,6 +6,13 @@
 > engine/content-set boundary described here still hold; the phase/priority
 > list does not (the content-set manifest, loader, and Fantasy Frontier
 > extraction it calls for are all done).
+>
+> **Current follow-on (2026-09-18).** The next architecture track is the
+> contract layer beneath those packages: generic capabilities, generated item
+> instances, and a minimal sci-fi proof alongside Fantasy Frontier. Read
+> [`docs/design/cross_theme_engine_contracts.md`](../design/cross_theme_engine_contracts.md)
+> and [`handoff-2026-09-18-cross-theme-contracts.md`](handoff-2026-09-18-cross-theme-contracts.md)
+> before using this document for implementation ordering.
 
 ## Product charter
 

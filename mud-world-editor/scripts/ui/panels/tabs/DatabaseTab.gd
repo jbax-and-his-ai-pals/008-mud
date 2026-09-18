@@ -29,6 +29,7 @@ func setup():
 	var db_head = HBoxContainer.new()
 	db_filter_opt = OptionButton.new()
 	db_filter_opt.add_item("NPCs")
+	db_filter_opt.add_item("Monsters")
 	db_filter_opt.add_item("Items")
 	db_filter_opt.add_item("Magic")
 	db_filter_opt.add_item("Quests")
@@ -55,7 +56,7 @@ func setup():
 	var db_btns = HBoxContainer.new()
 	var btn_mk_db = Button.new(); btn_mk_db.text="Create"; btn_mk_db.size_flags_horizontal=3
 	_apply_style(btn_mk_db, Color(0.2,0.3,0.2))
-	btn_mk_db.pressed.connect(func(): request_create_db_entry.emit(_get_current_db_type()))
+	btn_mk_db.pressed.connect(func(): request_create_db_entry.emit(_get_current_create_type()))
 	db_btns.add_child(btn_mk_db)
 	
 	var btn_del_db = Button.new(); btn_del_db.text="Delete"; btn_del_db.size_flags_horizontal=3
@@ -77,23 +78,28 @@ func update_data(npcs, items, magic, quests, dirty_flags):
 func _get_current_db_type() -> String:
 	match db_filter_opt.selected:
 		0: return "npc"
-		1: return "item"
-		2: return "magic"
-		3: return "quest"
+		1: return "npc" # Monsters share the NPC store; `friendly` separates them.
+		2: return "item"
+		3: return "magic"
+		4: return "quest"
 	return "npc"
+
+func _get_current_create_type() -> String:
+	return "monster" if db_filter_opt.selected == 1 else _get_current_db_type()
 
 func _refresh_db_list():
 	database_tree.clear()
 	var root = database_tree.create_item()
 	var mode = db_filter_opt.selected
 	var type_key = _get_current_db_type()
-	var data_source = {}
+	var data_source: Dictionary = {}
 	
 	match mode:
-		0: data_source = _cached_npcs
-		1: data_source = _cached_items
-		2: data_source = _cached_magic
-		3: data_source = _cached_quests
+		0: data_source = _filter_characters(false)
+		1: data_source = _filter_characters(true)
+		2: data_source = _cached_items
+		3: data_source = _cached_magic
+		4: data_source = _cached_quests
 	
 	var groups = {}
 	for id in data_source:
@@ -130,13 +136,23 @@ func _refresh_db_list():
 			item.set_metadata(0, {"id": id})
 			_color_item(item, entry, mode)
 
+func _filter_characters(want_monsters: bool) -> Dictionary:
+	var filtered: Dictionary = {}
+	for entry_id in _cached_npcs:
+		var entry: Dictionary = _cached_npcs[entry_id]
+		if (not bool(entry.get("friendly", true))) == want_monsters:
+			filtered[entry_id] = entry
+	return filtered
+
 func _color_item(item: TreeItem, entry: Dictionary, mode: int):
 	# Only color icon if not dirty-colored text, or keep text dirty and icon typed
 	var col = Color.WHITE
 	if mode == 0: # NPC
 		if entry.get("friendly", true): col = Color.LIGHT_GREEN
 		else: col = Color.SALMON
-	elif mode == 1: # Item
+	elif mode == 1: # Monster
+		col = Color.SALMON
+	elif mode == 2: # Item
 		var type = entry.get("type", "Item")
 		match type:
 			"Weapon": col = Color.SALMON
@@ -146,8 +162,8 @@ func _color_item(item: TreeItem, entry: Dictionary, mode: int):
 			"Junk": col = Color.WEB_GRAY
 			"Key", "Tool": col = Color.SANDY_BROWN
 			_: col = Color.AQUAMARINE
-	elif mode == 2: col = Color.VIOLET
-	elif mode == 3: col = Color.GOLD
+	elif mode == 3: col = Color.VIOLET
+	elif mode == 4: col = Color.GOLD
 	
 	item.set_icon(0, _get_color_icon(col))
 

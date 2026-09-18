@@ -122,6 +122,7 @@ class ResourceNode(Item):
                 tool_label = str(tool_req)
             return f"{FORMAT_ERROR}You need a {tool_label} to gather from this. You don't seem to be carrying or wearing one.{FORMAT_RESET}"
             
+        from engine.items.gem_generator import GemGenerator
         from engine.items.item_factory import ItemFactory
         resource_id = self.get_property("resource_item_id")
         selected_yield = None
@@ -132,21 +133,24 @@ class ResourceNode(Item):
                     resource_id = candidate.get("item_id", resource_id)
                     selected_yield = candidate
                     break
-        resource = ItemFactory.create_item_from_template(resource_id, world)
-        
+        # A node can provide a dependable regional grade while an authored
+        # yield-table entry can replace it with a rarer grade.  Gem instances
+        # use that grade as their rolled quality, but retain their own size.
+        quality = (
+            selected_yield.get("material_quality", self.get_property("material_quality", {}))
+            if selected_yield is not None
+            else self.get_property("material_quality", {})
+        )
+        raw_score = quality.get("score", 0) if isinstance(quality, dict) else 0
+        quality_score = int(raw_score) if isinstance(raw_score, int) and not isinstance(raw_score, bool) else None
+        if GemGenerator.is_gem_template(world, resource_id):
+            resource = GemGenerator.generate_gem(world, level=1, template_id=resource_id, quality_score=quality_score)
+        else:
+            resource = ItemFactory.create_item_from_template(resource_id, world)
+
         if resource:
-            # A node can provide a dependable regional grade while an
-            # authored yield-table entry can replace it with a rarer grade.
-            # This remains useful for any setting's materials without the
-            # engine knowing their genre or lore.
-            quality = (
-                selected_yield.get("material_quality", self.get_property("material_quality", {}))
-                if selected_yield is not None
-                else self.get_property("material_quality", {})
-            )
             if isinstance(quality, dict):
-                raw_score = quality.get("score", 0)
-                score = int(raw_score) if isinstance(raw_score, int) and not isinstance(raw_score, bool) else 0
+                score = quality_score or 0
                 if score > 0:
                     quality_id = str(quality.get("id", "refined")).strip() or "refined"
                     quality_label = str(quality.get("label", quality_id.replace("_", " ").title())).strip()

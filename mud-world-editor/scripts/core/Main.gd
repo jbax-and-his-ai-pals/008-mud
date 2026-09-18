@@ -49,7 +49,7 @@ func _ready():
 	district_layer = Node2D.new(); district_layer.name = "DistrictLayer"; add_child(district_layer); move_child(district_layer, 1)
 	district_label_layer = Node2D.new(); district_label_layer.name = "DistrictLabelLayer"; add_child(district_label_layer)
 
-	ui_mgr = EditorUIManager.new(); ui_mgr.setup(ui_layer)
+	ui_mgr = EditorUIManager.new(); ui_mgr.setup(ui_layer, database_mgr, world_mgr)
 	inspector = InspectorController.new(); inspector.setup(ui_layer, region_mgr, world_mgr, database_mgr)
 	graph_controller = GraphController.new(); graph_controller.setup(room_container, connection_layer, state, district_layer, district_label_layer)
 	camera_controller = CameraController.new(); camera_controller.setup(main_camera, ui_mgr)
@@ -181,14 +181,39 @@ func _connect_ui_signals():
 		var id = "new_" + t; var d = {"name": "New " + t.capitalize()}
 		match t:
 			"npc": database_mgr.add_npc(id, d)
+			"monster":
+				# Monsters remain NPC definitions underneath, but start in the
+				# dedicated monster grouping used by the database and spawner.
+				d["friendly"] = false
+				d["faction"] = "hostile"
+				database_mgr.add_npc(id, d)
 			"item": database_mgr.add_item(id, d)
-			"magic": database_mgr.add_magic(id, d)
+			"gem":
+				d.merge({
+					"name": "New Gem",
+					"description": "A newly defined gemstone species.",
+					"type": "Gem",
+					"rarity": "common",
+					"weight": 0.1,
+					"value": 10.0,
+					"stackable": true,
+					"gem_generation": {"size_bias": 0.0, "quality_bias": 0.0},
+				})
+				database_mgr.add_item(id, d)
+			"magic":
+				d.merge({"magic_group": "general", "target_type": "enemy", "mana_cost": 0.0, "level_required": 1.0, "cooldown": 0.0, "effects": []})
+				database_mgr.add_magic(id, d)
 			"quest": database_mgr.add_quest(id, d)
 		_update_db_ui()
 	)
 	ui_mgr.request_delete_db_entry.connect(func(t, id):
 		database_mgr.delete_entry(t, id); _update_db_ui(); inspector.clear_selection()
 	)
+	ui_mgr.database_modified.connect(func(t, id):
+		database_mgr.mark_dirty(t, id)
+		_update_db_ui()
+	)
+	ui_mgr.database_saved.connect(func(): _update_db_ui())
 	ui_mgr.request_delete_room_confirm.connect(action_handler.execute_delete_room)
 
 func _connect_inspector_signals():
@@ -210,7 +235,7 @@ func _connect_inspector_signals():
 	inspector.request_jump_to_room.connect(_jump_to_room)
 	inspector.save_triggered.connect(func(): 
 		if state.is_world_view: world_mgr.save_world_layout() 
-		else:
+		elif region_mgr.is_region_dirty:
 			region_mgr.save_region(); region_mgr.mark_clean(); _update_explorer_dirty_state()
 			database_mgr.save_all(); _update_db_ui()
 	)
@@ -570,6 +595,7 @@ func _load_region(file, force_reload: bool = false, keep_ui_visible: bool = fals
 			exit_count += r.get("exits", {}).size()
 		ui_mgr.update_status_info(region_mgr.data.get("name", file), rooms.size(), "", exit_count)
 		ui_mgr.call_deferred("refresh_explorer", world_mgr.get_global_hierarchy(), file, "")
+		inspector.set_region_dirty(region_mgr.is_region_dirty)
 
 func _create_region(name, rooms_data, region_meta: Dictionary = {}):
 	if not name.ends_with(".json"): name += ".json"
@@ -899,7 +925,8 @@ func _on_request_layout():
 						region_mgr.data.rooms[id]["_editor_exit_layout"] = new_exit_layout[id]
 					elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
 						region_mgr.data.rooms[id].erase("_editor_exit_layout")
-				_refresh_view(); camera_controller.center_on_nodes(graph_controller.get_active_nodes()),
+				for id in new_pos: region_mgr.mark_room_dirty(id)
+				_refresh_view(); camera_controller.center_on_nodes(graph_controller.get_active_nodes()); _update_explorer_dirty_state(),
 			func():
 				for id in old_pos: region_mgr.set_room_pos(id, old_pos[id])
 				for id in region_mgr.data.rooms:
@@ -907,7 +934,8 @@ func _on_request_layout():
 						region_mgr.data.rooms[id]["_editor_exit_layout"] = old_exit_layout[id]
 					elif region_mgr.data.rooms[id].has("_editor_exit_layout"):
 						region_mgr.data.rooms[id].erase("_editor_exit_layout")
-				_refresh_view(); camera_controller.center_on_nodes(graph_controller.get_active_nodes()),
+				for id in old_pos: region_mgr.mark_room_dirty(id)
+				_refresh_view(); camera_controller.center_on_nodes(graph_controller.get_active_nodes()); _update_explorer_dirty_state(),
 			"Auto-Arrange Layout"
 		)
 
@@ -973,6 +1001,7 @@ func _commit_district_move(start_positions: Dictionary, delta: Vector2):
 
 func _on_data_modified():
 	if not state.is_world_view:
+		region_mgr.mark_region_dirty()
 		for id in state.selected_ids:
 			region_mgr.mark_room_dirty(id)
 			graph_controller.update_specific_node(id, region_mgr.data)
@@ -998,3 +1027,4 @@ func _update_explorer_dirty_state():
 	var selected = state.selected_ids[0] if not state.selected_ids.is_empty() else ""
 	ui_mgr.refresh_explorer(cached_hierarchy, region_mgr.current_filename, selected)
 	ui_mgr.update_dirty_visuals(region_mgr.current_filename, region_mgr.is_region_dirty, region_mgr.dirty_room_ids)
+	inspector.set_region_dirty(region_mgr.is_region_dirty)

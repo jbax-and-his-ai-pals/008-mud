@@ -18,10 +18,10 @@ signal request_auto_layout
 signal request_create_modal_open
 signal request_district_modal_open
 signal request_context_menu(global_pos, meta)
+signal request_open_content_library
 
 # Tabs
 var explorer_panel: ExplorerPanel
-var database_tab: DatabaseTab
 var templates_tab: TemplatesTab
 var palette_tab: PaletteTab
 var paint_tab: PaintTab
@@ -58,7 +58,7 @@ func setup():
 	vbox.add_child(tabs)
 
 	_setup_explorer_tab(tabs)
-	_setup_database_tab(tabs)
+	_setup_content_library_tab(tabs)
 	_setup_templates_tab(tabs)
 	_setup_palette_tab(tabs)
 	_setup_paint_tab(tabs)
@@ -102,7 +102,6 @@ func update_stamp_button_state(is_stamping: bool):
 	palette_tab.update_stamp_button_state(is_stamping)
 
 func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, dirty_flags: Dictionary):
-	database_tab.update_data(npcs, items, magic, quests, dirty_flags)
 	palette_tab.update_data(npcs, items)
 	templates_tab.update_templates(templates)
 
@@ -140,15 +139,30 @@ func _setup_explorer_tab(tabs: TabContainer):
 	margin.add_child(explorer_panel)
 	tabs.add_child(margin)
 
-func _setup_database_tab(tabs: TabContainer):
-	var margin = _create_tab_margin("Database")
-	database_tab = DB_TAB_SCRIPT.new()
-	database_tab.setup()
-	database_tab.request_select_db_entry.connect(func(t, i): request_select_db_entry.emit(t, i))
-	database_tab.request_create_db_entry.connect(func(t): request_create_db_entry.emit(t))
-	database_tab.request_delete_db_entry.connect(func(t, i): request_delete_db_entry.emit(t, i))
-	database_tab.request_context_menu.connect(func(p, m): request_context_menu.emit(p, m))
-	margin.add_child(database_tab)
+func _setup_content_library_tab(tabs: TabContainer):
+	var margin = _create_tab_margin("Library")
+	var box := VBoxContainer.new()
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 12)
+	var title := Label.new(); title.text = "CONTENT LIBRARY"; title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 15); title.modulate = Color(0.55, 0.85, 1.0)
+	box.add_child(title)
+	var description := Label.new()
+	description.text = "Browse and edit NPCs, monsters, items, magic, quests, and room templates in one focused workspace."
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	description.modulate = Color(0.7, 0.74, 0.8)
+	box.add_child(description)
+	var spacer := Control.new(); spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL; box.add_child(spacer)
+	var open := Button.new(); open.text = "OPEN CONTENT LIBRARY"
+	open.custom_minimum_size.y = 42
+	var style := StyleBoxFlat.new(); style.bg_color = Color(0.16, 0.32, 0.45); style.set_corner_radius_all(5)
+	style.set_border_width_all(1); style.border_color = Color(0.38, 0.68, 0.9)
+	open.add_theme_stylebox_override("normal", style); open.add_theme_stylebox_override("hover", style.duplicate())
+	open.get_theme_stylebox("hover").bg_color = style.bg_color.lightened(0.12)
+	open.pressed.connect(func(): request_open_content_library.emit())
+	box.add_child(open)
+	margin.add_child(box)
 	tabs.add_child(margin)
 
 func _setup_templates_tab(tabs: TabContainer):
