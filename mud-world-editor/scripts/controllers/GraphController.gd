@@ -904,8 +904,12 @@ func _draw_world_connections():
 								break
 						var is_bi := rev_dir != ""
 						if is_bi:
-							var k = [src_rid, tgt_rid]; k.sort()
-							var key = k[0] + k[1]
+							# Keyed by the specific room pair, not just the region pair --
+							# two regions can have more than one bidirectional link (a
+							# north gate AND a south bridge, say), and each one needs its
+							# own curve instead of only the first one found surviving.
+							var k = [src_rid + ":" + src_room_id, tgt_rid + ":" + tgt_room_id]; k.sort()
+							var key = k[0] + "|" + k[1]
 							if drawn_pairs.has(key): continue
 							drawn_pairs[key] = true
 
