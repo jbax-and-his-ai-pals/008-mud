@@ -19,6 +19,11 @@ var vbox_main: VBoxContainer
 var content_container: VBoxContainer
 var save_reload_container: HBoxContainer
 
+const EXPANDED_ANCHOR_LEFT := 0.75
+const COLLAPSED_WIDTH := 28.0
+var collapse_btn: Button
+var collapsed := false
+
 var region_mgr: RegionManager
 var world_mgr: WorldManager
 var database_mgr: DatabaseManager
@@ -43,8 +48,8 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	connection_editor.target_selected.connect(func(id): target_selected_in_connector.emit(id))
 	
 	panel = Panel.new()
-	panel.anchor_left = 0.75; panel.anchor_right = 1.0
-	panel.anchor_bottom = 0.96 
+	panel.anchor_left = EXPANDED_ANCHOR_LEFT; panel.anchor_right = 1.0
+	panel.anchor_bottom = 0.96
 	var style = StyleBoxFlat.new()
 	style.bg_color = InspectorStyle.COLOR_BG_MAIN
 	style.set_border_width_all(0); style.border_width_left = 1
@@ -52,15 +57,16 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	style.shadow_size = 4
 	panel.add_theme_stylebox_override("panel", style)
 	parent.add_child(panel)
-	
-	panel.visible = false 
+
+	panel.visible = false
 	panel.gui_input.connect(_on_panel_gui_input)
-	
+
 	vbox_main = VBoxContainer.new()
 	vbox_main.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox_main.offset_left = 16; vbox_main.offset_top = 16; vbox_main.offset_right = -16; vbox_main.offset_bottom = -16
 	vbox_main.add_theme_constant_override("separation", 12)
 	panel.add_child(vbox_main)
+	_setup_collapse_toggle()
 
 	var scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -200,6 +206,38 @@ func _on_connect_cancel():
 
 func _clear_box(b): for c in b.get_children(): c.queue_free()
 func _on_panel_gui_input(event): if event is InputEventMouseButton and event.button_index in [4,5]: panel.get_viewport().set_input_as_handled()
+
+# A small arrow tab flush with the panel's left edge (the map-facing side,
+# since this panel is docked to the right), anchored to the panel's own
+# edge so it tracks whichever width -- expanded or the collapsed strip --
+# is currently set.
+func _setup_collapse_toggle():
+	collapse_btn = Button.new()
+	collapse_btn.text = "▶"
+	collapse_btn.tooltip_text = "Collapse panel"
+	collapse_btn.anchor_left = 0.0; collapse_btn.anchor_right = 0.0
+	collapse_btn.anchor_top = 0.45; collapse_btn.anchor_bottom = 0.55
+	collapse_btn.offset_left = -20.0; collapse_btn.offset_right = 0.0
+	collapse_btn.focus_mode = Control.FOCUS_NONE
+	var style := StyleBoxFlat.new(); style.bg_color = Color(0.2, 0.2, 0.24)
+	style.corner_radius_top_left = 4; style.corner_radius_bottom_left = 4
+	collapse_btn.add_theme_stylebox_override("normal", style)
+	collapse_btn.add_theme_stylebox_override("hover", style)
+	collapse_btn.add_theme_stylebox_override("pressed", style)
+	collapse_btn.pressed.connect(func(): set_collapsed(not collapsed))
+	panel.add_child(collapse_btn)
+
+func set_collapsed(c: bool):
+	collapsed = c
+	vbox_main.visible = not collapsed
+	collapse_btn.text = "◀" if collapsed else "▶"
+	collapse_btn.tooltip_text = "Expand panel" if collapsed else "Collapse panel"
+	if collapsed:
+		panel.anchor_left = 1.0
+		panel.offset_left = -COLLAPSED_WIDTH
+	else:
+		panel.anchor_left = EXPANDED_ANCHOR_LEFT
+		panel.offset_left = 0.0
 
 func load_world_mode(region_count: int = 0, room_count: int = 0):
 	clear_selection(false)

@@ -30,31 +30,71 @@ const TMPL_TAB_SCRIPT = preload("res://scripts/ui/panels/tabs/TemplatesTab.gd")
 const PAL_TAB_SCRIPT = preload("res://scripts/ui/panels/tabs/PaletteTab.gd")
 const PNT_TAB_SCRIPT = preload("res://scripts/ui/panels/tabs/PaintTab.gd")
 
+const EXPANDED_ANCHOR_RIGHT := 0.20
+const COLLAPSED_WIDTH := 28.0
+
+var main_vbox: VBoxContainer
+var collapse_btn: Button
+var collapsed := false
+
 func setup():
-	anchor_right = 0.20
+	anchor_right = EXPANDED_ANCHOR_RIGHT
 	anchor_bottom = 0.96
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.12, 0.95)
 	style.set_border_width_all(1)
 	style.border_color = Color(0.3, 0.3, 0.35, 0.95)
 	add_theme_stylebox_override("panel", style)
-	
+
 	var vbox = VBoxContainer.new()
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.offset_left=10; vbox.offset_top=10; vbox.offset_right=-10; vbox.offset_bottom=-10
 	add_child(vbox)
-	
+	main_vbox = vbox
+
 	var tabs = TabContainer.new()
-	tabs.size_flags_vertical = 3 
+	tabs.size_flags_vertical = 3
 	vbox.add_child(tabs)
-	
+
 	_setup_explorer_tab(tabs)
 	_setup_database_tab(tabs)
 	_setup_templates_tab(tabs)
 	_setup_palette_tab(tabs)
 	_setup_paint_tab(tabs)
-	
+	_setup_collapse_toggle()
+
 	return vbox
+
+# A small arrow tab flush with the panel's right edge, so it stays reachable
+# at both the full width and the collapsed strip -- anchored to this Panel's
+# own edge (not the viewport), it tracks whichever width is currently set.
+func _setup_collapse_toggle():
+	collapse_btn = Button.new()
+	collapse_btn.text = "◀"
+	collapse_btn.tooltip_text = "Collapse panel"
+	collapse_btn.anchor_left = 1.0; collapse_btn.anchor_right = 1.0
+	collapse_btn.anchor_top = 0.45; collapse_btn.anchor_bottom = 0.55
+	collapse_btn.offset_left = 0.0; collapse_btn.offset_right = 20.0
+	collapse_btn.focus_mode = Control.FOCUS_NONE
+	var style := StyleBoxFlat.new(); style.bg_color = Color(0.2, 0.2, 0.24)
+	style.corner_radius_top_right = 4; style.corner_radius_bottom_right = 4
+	collapse_btn.add_theme_stylebox_override("normal", style)
+	collapse_btn.add_theme_stylebox_override("hover", style)
+	collapse_btn.add_theme_stylebox_override("pressed", style)
+	collapse_btn.pressed.connect(func(): set_collapsed(not collapsed))
+	add_child(collapse_btn)
+
+func set_collapsed(c: bool):
+	collapsed = c
+	main_vbox.visible = not collapsed
+	collapse_btn.text = "▶" if collapsed else "◀"
+	collapse_btn.tooltip_text = "Expand panel" if collapsed else "Collapse panel"
+	if collapsed:
+		anchor_right = 0.0
+		offset_right = COLLAPSED_WIDTH
+	else:
+		anchor_right = EXPANDED_ANCHOR_RIGHT
+		offset_right = 0.0
 
 func update_stamp_button_state(is_stamping: bool):
 	templates_tab.update_stamp_button_state(is_stamping)
