@@ -504,10 +504,24 @@ func arrange_district_rooms(district_id: String):
 		if region_mgr.data.rooms.has(room_id): subset[room_id] = region_mgr.data.rooms[room_id]
 	if subset.is_empty(): return
 
-	var new_pos := LayoutOptimizer.optimize_layout(subset)
-	if new_pos.is_empty(): return
 	var old_pos := {}
 	for id in subset: old_pos[id] = _room_pos(subset[id])
+
+	var new_pos := LayoutOptimizer.optimize_layout(subset)
+	if new_pos.is_empty(): return
+	# optimize_layout always roots the layout near its own origin -- fine for
+	# the whole region (which has no other frame of reference), but a single
+	# district should stay roughly where it already was rather than jump to
+	# world (0, 0). Re-center the new layout on the district's old centroid.
+	var old_centroid := Vector2.ZERO
+	for id in old_pos: old_centroid += old_pos[id]
+	old_centroid /= max(old_pos.size(), 1)
+	var new_centroid := Vector2.ZERO
+	for id in new_pos: new_centroid += new_pos[id]
+	new_centroid /= max(new_pos.size(), 1)
+	var recenter_offset := (old_centroid - new_centroid).snapped(LayoutOptimizer.SNAP_GRID)
+	for id in new_pos: new_pos[id] += recenter_offset
+
 	var old_exit_layout := {}
 	for id in subset:
 		if subset[id].has("_editor_exit_layout"):
