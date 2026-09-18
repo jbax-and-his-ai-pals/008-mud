@@ -26,19 +26,24 @@ func setup(p_main: Node2D, p_state: EditorState, p_cmd: CommandProcessor, p_rm: 
 	ui_mgr = p_ui
 	inspector = p_insp
 
-func create_connection(src_id: String, dir: String, target_id: String, two_way: bool):
+func create_connection(src_id: String, dir: String, target_id: String, two_way: bool, reverse_dir: String = ""):
 	var final_target = target_id
 	if ":" in target_id:
 		var parts = target_id.split(":")
 		if parts[0] == region_mgr.data.region_id:
 			final_target = parts[1]
 
+	# An explicit reverse direction (chosen or edited in the connection form)
+	# always wins; falling back to the compass inverse only covers callers
+	# that never offered one (a mismatched/custom pair like "opening" back
+	# to "out" has no automatic inverse and must be told explicitly).
+	var inv_dir := reverse_dir.strip_edges().to_lower() if reverse_dir.strip_edges() != "" else str(Constants.INV_DIR_MAP.get(dir.to_lower(), ""))
+
 	cmd_proc.commit(
 		func():
 			region_mgr.add_exit(src_id, dir, final_target)
 			if two_way:
-				var inv_dir = Constants.INV_DIR_MAP.get(dir.to_lower(), "")
-				if inv_dir and not ":" in final_target:
+				if inv_dir != "" and not ":" in final_target:
 					region_mgr.add_exit(final_target, inv_dir, src_id)
 					region_mgr.set_connection_label_source(src_id, final_target, dir)
 			main_node._refresh_view()
@@ -48,8 +53,8 @@ func create_connection(src_id: String, dir: String, target_id: String, two_way: 
 			main_node._update_explorer_dirty_state(),
 		func():
 			region_mgr.remove_exit(src_id, dir)
-			if two_way and not ":" in final_target:
-				region_mgr.remove_exit(final_target, Constants.INV_DIR_MAP.get(dir.to_lower(), ""))
+			if two_way and inv_dir != "" and not ":" in final_target:
+				region_mgr.remove_exit(final_target, inv_dir)
 			main_node._refresh_view()
 			region_mgr.mark_room_dirty(src_id)
 			if region_mgr.data.rooms.has(final_target):

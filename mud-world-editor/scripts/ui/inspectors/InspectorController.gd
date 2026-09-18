@@ -4,7 +4,7 @@ extends RefCounted
 
 signal request_rename(old, new)
 signal request_connection_modal
-signal connection_created(src, dir, target, twoway)
+signal connection_created(src, dir, target, twoway, reverse_dir)
 signal target_selected_in_connector(target_id)
 signal request_save_template(room_id) 
 signal save_triggered
@@ -44,7 +44,7 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	database_mgr = _db_mgr
 	
 	connection_editor = ConnectionEditor.new(region_mgr)
-	connection_editor.connection_created.connect(func(src,d,t,two): connection_created.emit(src,d,t,two))
+	connection_editor.connection_created.connect(func(src,d,t,two,rev): connection_created.emit(src,d,t,two,rev))
 	connection_editor.target_selected.connect(func(id): target_selected_in_connector.emit(id))
 	
 	panel = Panel.new()
