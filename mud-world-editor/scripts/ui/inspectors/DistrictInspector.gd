@@ -59,7 +59,13 @@ func build(id: String, r_data: Dictionary):
 	swatch.custom_minimum_size = Vector2(16, 16)
 	swatch.color = Color.from_string(str(district.get("color", "#5d83a6")), Color("5d83a6"))
 	header.add_child(swatch)
-	header.add_child(InspectorStyle.lbl(str(district.get("name", district_id)), Color.WHITE))
+	var name_edit := LineEdit.new()
+	name_edit.text = str(district.get("name", district_id))
+	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_edit.tooltip_text = "District name (shown on the map and in the room header in-game)"
+	InspectorStyle.apply_input_style(name_edit)
+	name_edit.text_changed.connect(func(t): district_ref["name"] = t; data_modified.emit())
+	header.add_child(name_edit)
 
 	var members: Array = district.get("members", district.get("rooms", []))
 	var rooms: Dictionary = region_data.get("rooms", {})
