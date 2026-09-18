@@ -68,3 +68,24 @@ class TestCavesRegionDarkDefault(GameTestBase):
         self.player.current_room_id = "crystal_chamber"
         desc = self.world.look()
         self.assertNotIn("very dark", desc)
+
+
+class TestUniformlyDarkRegionsMigratedToRegionDefault(GameTestBase):
+    """riverside_catacombs and tidewell_underworks had "dark": true on every
+    single room with no exceptions -- an even simpler case than caves.json,
+    migrated the same way."""
+
+    def test_riverside_catacombs_room_is_dark_via_region_default(self):
+        self.player.current_region_id = "riverside_catacombs"
+        self.player.current_room_id = "shrine_stairs"
+        desc = self.world.look()
+        self.assertIn("very dark", desc)
+
+    def test_tidewell_underworks_room_is_dark_via_region_default(self):
+        self.player.current_region_id = "tidewell_underworks"
+        self.player.current_room_id = "sluice_gate"
+        desc = self.world.look()
+        self.assertIn("very dark", desc)
+
+    def test_tidewell_underworks_room_is_indoors_via_region_default(self):
+        self.assertTrue(self.world.get_env_property("tidewell_underworks", "sluice_gate", "indoors", False))
