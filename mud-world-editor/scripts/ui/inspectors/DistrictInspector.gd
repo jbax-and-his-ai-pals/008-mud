@@ -13,6 +13,28 @@ var region_data: Dictionary
 var district_id: String
 var action_handler: ActionHandler
 
+# Same vocabulary RegionInspector's GLOBAL PROPERTIES offers, so a district
+# can override its region's atmosphere (dark, outdoors, etc.) the same way
+# a room overrides its district's -- World.get_env_property resolves all
+# three tiers with the same flat-key convention.
+const COMMON_PROPS = {
+	"Dark": {"key": "dark", "val": true},
+	"Outdoors": {"key": "outdoors", "val": true},
+	"Safe Zone": {"key": "safe_zone", "val": true},
+	"Noisy": {"key": "noisy", "val": true},
+	"Smell": {"key": "smell", "val": "damp earth"},
+	"Weather": {"key": "weather", "val": "clear"},
+	"Music": {"key": "music", "val": "default_theme"}
+}
+# The district dict's own structural fields -- never offered or edited as a
+# free-form property tag, since that would silently corrupt the district.
+const RESERVED_KEYS := ["id", "name", "kind", "seed", "generator", "ports", "members", "rooms", "reroll_policy", "color", "shape"]
+
+var district_ref: Dictionary
+var props_flow: HFlowContainer
+var props_popup: PopupMenu
+var props_creation_tag: PanelContainer = null
+
 func _init(c: VBoxContainer, handler: ActionHandler = null):
 	container = c
 	action_handler = handler
@@ -24,6 +46,7 @@ func build(id: String, r_data: Dictionary):
 	if district.is_empty():
 		container.add_child(InspectorStyle.lbl("This district no longer exists.", InspectorStyle.COLOR_TEXT_DIM))
 		return
+	district_ref = district
 
 	container.add_child(InspectorStyle.create_section_header("DISTRICT", Color.CYAN))
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
@@ -60,6 +83,8 @@ func build(id: String, r_data: Dictionary):
 			var port_desc := ("%s, %s" % [port_direction, port_role]) if port_direction != "" else port_role
 			vbox.add_child(InspectorStyle.lbl("  %s (%s)" % [port_room_name, port_desc], Color(0.75, 0.78, 0.84)))
 
+	_build_district_props()
+
 	container.add_child(InspectorStyle.create_section_header("ROOMS (%d)" % members.size()))
 	var sorted_members := members.duplicate(); sorted_members.sort()
 	for room_id_variant in sorted_members:
@@ -73,3 +98,166 @@ func build(id: String, r_data: Dictionary):
 
 func _district() -> Dictionary:
 	return region_data.get("properties", {}).get("districts", {}).get(district_id, {})
+
+# A district only needs to author one of these when it departs from its
+# region's norm (e.g. a "Riverside" district that's outdoors while the rest
+# of the region defaults to indoors) -- World.get_env_property picks this
+# up as the middle tier between a room's own properties and the region's.
+func _build_district_props():
+	var header_box := HBoxContainer.new()
+	header_box.add_child(InspectorStyle.create_section_header("PROPERTIES (overrides region default)"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_box.add_child(spacer)
+
+	var btn_add := MenuButton.new(); btn_add.text = "+ Tag"; btn_add.flat = true
+	btn_add.add_theme_color_override("font_color", InspectorStyle.COLOR_ACCENT)
+	btn_add.add_theme_color_override("font_hover_color", Color.WHITE)
+	header_box.add_child(btn_add)
+	container.add_child(header_box)
+
+	var card := InspectorStyle.create_card()
+	var vbox = card.get_child(0).get_child(0)
+	container.add_child(card)
+
+	props_popup = btn_add.get_popup()
+	props_popup.id_pressed.connect(_on_add_district_tag_selected)
+
+	var props_box := VBoxContainer.new()
+	vbox.add_child(props_box)
+	props_flow = HFlowContainer.new()
+	props_flow.add_theme_constant_override("h_separation", 8)
+	props_flow.add_theme_constant_override("v_separation", 8)
+	props_box.add_child(props_flow)
+	_refresh_district_props()
+
+func _district_prop_keys() -> Array:
+	var keys: Array = []
+	for key in district_ref.keys():
+		if not (key in RESERVED_KEYS): keys.append(key)
+	return keys
+
+func _on_add_district_tag_selected(id: int):
+	var item_text := props_popup.get_item_text(id)
+	if item_text == "Custom...":
+		_show_district_creation_tag()
+		return
+	var key: String = COMMON_PROPS[item_text].key
+	var val = COMMON_PROPS[item_text].val
+	if not district_ref.has(key):
+		district_ref[key] = val
+		data_modified.emit()
+		_refresh_district_props()
+
+func _show_district_creation_tag():
+	if is_instance_valid(props_creation_tag): return
+
+	props_creation_tag = PanelContainer.new()
+	var style := StyleBoxFlat.new(); style.bg_color = Color(0.3, 0.3, 0.35); style.set_corner_radius_all(12)
+	style.content_margin_left = 6; style.content_margin_right = 6; style.content_margin_top = 2; style.content_margin_bottom = 2
+	props_creation_tag.add_theme_stylebox_override("panel", style)
+
+	var hb := HBoxContainer.new(); props_creation_tag.add_child(hb)
+
+	var key_edit := LineEdit.new(); key_edit.placeholder_text = "key"; key_edit.name = "KeyEdit"
+	InspectorStyle.apply_input_style(key_edit); hb.add_child(key_edit)
+
+	var type_select := OptionButton.new(); type_select.name = "TypeSelect"
+	type_select.add_item("String"); type_select.add_item("Number"); type_select.add_item("Bool")
+	InspectorStyle.apply_button_style(type_select); hb.add_child(type_select)
+
+	var val_edit := LineEdit.new(); val_edit.placeholder_text = "value"; val_edit.name = "ValueEdit"
+	InspectorStyle.apply_input_style(val_edit); hb.add_child(val_edit)
+
+	var confirm_btn := Button.new(); confirm_btn.text = "✔"
+	InspectorStyle.apply_button_style(confirm_btn, InspectorStyle.COLOR_SUCCESS); hb.add_child(confirm_btn)
+
+	var cancel_btn := Button.new(); cancel_btn.text = "✖"
+	InspectorStyle.apply_button_style(cancel_btn, InspectorStyle.COLOR_DANGER); hb.add_child(cancel_btn)
+
+	props_flow.add_child(props_creation_tag)
+	key_edit.grab_focus()
+
+	confirm_btn.pressed.connect(_finalize_new_district_prop)
+	cancel_btn.pressed.connect(_cancel_new_district_prop)
+	key_edit.text_submitted.connect(func(_t): _finalize_new_district_prop())
+	val_edit.text_submitted.connect(func(_t): _finalize_new_district_prop())
+
+func _finalize_new_district_prop():
+	if not is_instance_valid(props_creation_tag): return
+
+	var key: String = props_creation_tag.get_node("KeyEdit").text.strip_edges()
+	var type_idx: int = props_creation_tag.get_node("TypeSelect").selected
+	var val_str: String = props_creation_tag.get_node("ValueEdit").text.strip_edges()
+
+	if key.is_empty() or key in RESERVED_KEYS or district_ref.has(key):
+		_cancel_new_district_prop()
+		return
+
+	var final_val
+	match type_idx:
+		0: final_val = val_str
+		1: final_val = val_str.to_float() if val_str.is_valid_float() else 0.0
+		2: final_val = val_str.to_lower() in ["true", "1", "yes", "on"]
+
+	district_ref[key] = final_val
+	props_creation_tag.queue_free(); props_creation_tag = null
+	data_modified.emit(); _refresh_district_props()
+
+func _cancel_new_district_prop():
+	if is_instance_valid(props_creation_tag):
+		props_creation_tag.queue_free(); props_creation_tag = null
+
+func _refresh_district_props():
+	for c in props_flow.get_children():
+		if c != props_creation_tag: c.queue_free()
+
+	props_popup.clear()
+	var sorted_common_keys := COMMON_PROPS.keys(); sorted_common_keys.sort()
+	for k in sorted_common_keys:
+		if not district_ref.has(COMMON_PROPS[k].key):
+			props_popup.add_item(k)
+	props_popup.add_separator(); props_popup.add_item("Custom...")
+
+	var keys := _district_prop_keys()
+	if keys.is_empty():
+		var l := Label.new(); l.text = "None."; l.modulate = Color(1, 1, 1, 0.3); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		props_flow.add_child(l)
+		return
+
+	for key in keys:
+		props_flow.add_child(_create_district_prop_tag(key, district_ref[key]))
+
+func _create_district_prop_tag(key, val) -> PanelContainer:
+	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new(); style.bg_color = Color(0.25, 0.25, 0.28); style.set_corner_radius_all(12)
+	style.content_margin_left = 10; style.content_margin_right = 6; style.content_margin_top = 2; style.content_margin_bottom = 2
+	panel.add_theme_stylebox_override("panel", style)
+
+	var hb := HBoxContainer.new(); panel.add_child(hb)
+
+	var lbl := Label.new(); lbl.text = str(key) + ": "; lbl.modulate = Color(0.7, 0.9, 1.0)
+	lbl.add_theme_font_size_override("font_size", 12); hb.add_child(lbl)
+
+	if typeof(val) == TYPE_BOOL:
+		var btn := Button.new(); btn.text = str(val).to_upper(); btn.flat = true
+		btn.add_theme_font_size_override("font_size", 12)
+		btn.add_theme_color_override("font_color", InspectorStyle.COLOR_SUCCESS if val else InspectorStyle.COLOR_DANGER)
+		btn.pressed.connect(func(): district_ref[key] = !val; data_modified.emit(); _refresh_district_props())
+		hb.add_child(btn)
+	else:
+		var ed := LineEdit.new(); ed.text = str(val); ed.flat = true; ed.expand_to_text_length = true; ed.custom_minimum_size.x = 30
+		ed.add_theme_font_size_override("font_size", 12); ed.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+		ed.text_submitted.connect(func(t):
+			if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
+				district_ref[key] = t.to_float() if t.is_valid_float() else val
+			else:
+				district_ref[key] = t
+			data_modified.emit(); _refresh_district_props()
+		)
+		hb.add_child(ed)
+
+	var del := Button.new(); del.text = "×"; del.flat = true
+	del.add_theme_font_size_override("font_size", 14); del.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	del.add_theme_color_override("font_hover_color", Color(1, 0.5, 0.5))
+	del.pressed.connect(func(): district_ref.erase(key); data_modified.emit(); _refresh_district_props()); hb.add_child(del)
+	return panel
