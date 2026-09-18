@@ -5,6 +5,8 @@ extends RefCounted
 signal connection_created(src, dir, target, twoway, reverse_dir)
 signal target_selected(target_id) # New signal to report the current target
 
+const DIRECTION_ITEMS := ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest", "up", "down", "in", "out", "climb", "dive"]
+
 # Data References
 var conn_hierarchy: Dictionary = {}
 var conn_src_id: String = ""
@@ -12,22 +14,23 @@ var conn_src_name: String = ""
 var conn_cur_reg_filename: String = ""
 
 # GUI References
-var conn_dir_edit: LineEdit
-var conn_rev_dir_edit: LineEdit
-var conn_rev_row: HBoxContainer
+var conn_dir_option: OptionButton
+var conn_dir_custom_edit: LineEdit
 var conn_reg_opt: OptionButton
 var conn_room_opt: OptionButton
 var conn_twoway: CheckBox
-var conn_summary_label: Label
+var conn_rev_row: HBoxContainer
+var conn_rev_label: Label
+var conn_rev_option: OptionButton
+var conn_rev_custom_edit: LineEdit
 var conn_info_label: RichTextLabel
 var region_mgr: RegionManager
 
-# Whether the reverse-direction field still tracks the forward direction's
-# compass inverse automatically, or the author has taken it over by typing
-# their own value -- a mismatched pair (an "opening" back out through
-# "out") has no compass inverse to suggest at all, so this is what lets
-# that stay a deliberate choice instead of silently producing a one-way
-# link the "Two-way Link" checkbox implied wouldn't happen.
+# Whether the reverse direction still tracks the forward direction's compass
+# inverse automatically, or the author has taken it over -- a mismatched pair
+# (an "opening" back out through "out") has no compass inverse to suggest at
+# all, so this is what lets that stay a deliberate choice instead of silently
+# producing a one-way link the "Reciprocal" checkbox implied wouldn't happen.
 var _rev_dir_auto: bool = true
 var _updating_rev_field: bool = false
 
@@ -39,78 +42,17 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 	conn_src_name = src_name
 	conn_hierarchy = hierarchy
 	conn_cur_reg_filename = cur_filename
-	
+
 	_clear_box(parent_container)
-	
+
 	var header = _lbl("NEW CONNECTION", Color.CYAN)
 	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	parent_container.add_child(header)
 	parent_container.add_child(HSeparator.new())
-	
+
 	var src_lbl = _lbl("From: " + src_name, Color.GREEN)
 	src_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	parent_container.add_child(src_lbl)
-	parent_container.add_child(HSeparator.new())
-	
-	# --- COMPASS UI ---
-	var center_container = CenterContainer.new()
-	parent_container.add_child(center_container)
-	
-	var nav_vbox = VBoxContainer.new()
-	nav_vbox.add_theme_constant_override("separation", 8)
-	center_container.add_child(nav_vbox)
-	
-	# 1. Cardinal Directions
-	var compass = GridContainer.new()
-	compass.columns = 3
-	compass.add_theme_constant_override("h_separation", 6)
-	compass.add_theme_constant_override("v_separation", 6)
-	nav_vbox.add_child(compass)
-	
-	var compass_map = [
-		{"l": "↖", "v": "northwest"}, {"l": "↑", "v": "north"}, {"l": "↗", "v": "northeast"},
-		{"l": "←", "v": "west"},      {"l": "•", "v": ""},      {"l": "→", "v": "east"},
-		{"l": "↙", "v": "southwest"}, {"l": "↓", "v": "south"}, {"l": "↘", "v": "southeast"}
-	]
-	
-	for item in compass_map:
-		if item.v == "":
-			var lbl = Label.new(); lbl.text = "•"; lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; lbl.modulate = Color(1, 1, 1, 0.3)
-			compass.add_child(lbl)
-		else:
-			var btn = Button.new(); btn.text = item.l; btn.tooltip_text = item.v.capitalize(); 
-			btn.custom_minimum_size = Vector2(40, 40); btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
-			_apply_style(btn); btn.add_theme_font_size_override("font_size", 18) 
-			btn.pressed.connect(func(): _set_direction(item.v))
-			compass.add_child(btn)
-	
-	# 2. Vertical Directions
-	var vertical_grid = GridContainer.new()
-	vertical_grid.columns = 2
-	vertical_grid.add_theme_constant_override("h_separation", 8)
-	vertical_grid.add_theme_constant_override("v_separation", 8)
-	nav_vbox.add_child(vertical_grid)
-	
-	var verticals = ["up", "down", "in", "out", "climb", "dive"]
-	for d in verticals:
-		var btn = Button.new(); btn.text = d.capitalize(); 
-		btn.custom_minimum_size = Vector2(65, 35); btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_apply_style(btn); btn.pressed.connect(func(): _set_direction(d))
-		vertical_grid.add_child(btn)
-
-	# --- MANUAL ENTRY ---
-	parent_container.add_child(_lbl("Direction:", Color.GRAY))
-	var dir_hbox = HBoxContainer.new()
-	conn_dir_edit = LineEdit.new()
-	conn_dir_edit.placeholder_text = "Custom Direction..."
-	conn_dir_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	conn_dir_edit.size_flags_horizontal = 3
-	conn_dir_edit.text = dir
-	conn_dir_edit.text_changed.connect(func(t): _on_forward_dir_edited(t))
-	_apply_style(conn_dir_edit)
-	dir_hbox.add_child(conn_dir_edit)
-	parent_container.add_child(dir_hbox)
-
 	parent_container.add_child(HSeparator.new())
 
 	# --- TARGET UI ---
@@ -124,68 +66,87 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 	conn_room_opt.item_selected.connect(func(_i): _update_connection_info())
 	parent_container.add_child(conn_room_opt)
 
-	conn_twoway = CheckBox.new(); conn_twoway.text = "Two-way Link"; conn_twoway.button_pressed = true
+	parent_container.add_child(HSeparator.new())
+
+	# --- CONNECT VIA ---
+	parent_container.add_child(_lbl("Connect via:", Color.GRAY))
+	var dir_hbox = HBoxContainer.new(); dir_hbox.add_theme_constant_override("separation", 8)
+	conn_dir_option = OptionButton.new(); conn_dir_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL; _apply_style(conn_dir_option)
+	_populate_direction_dropdown(conn_dir_option)
+	conn_dir_option.item_selected.connect(func(_i): _on_forward_dir_changed())
+	dir_hbox.add_child(conn_dir_option)
+	conn_dir_custom_edit = LineEdit.new(); conn_dir_custom_edit.placeholder_text = "custom direction"
+	conn_dir_custom_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	conn_dir_custom_edit.text_changed.connect(func(t): _sync_auto_reverse(t); _update_connection_info())
+	_apply_style(conn_dir_custom_edit)
+	dir_hbox.add_child(conn_dir_custom_edit)
+	parent_container.add_child(dir_hbox)
+
+	# --- RECIPROCAL ---
+	conn_twoway = CheckBox.new(); conn_twoway.text = "Reciprocal (two-way)"; conn_twoway.button_pressed = true
+	conn_twoway.toggled.connect(func(_b): _update_connection_info())
 	_apply_style(conn_twoway)
 	parent_container.add_child(conn_twoway)
 
-	# The reverse direction only matters for a two-way link, and only needs
-	# an author's attention when it isn't a plain compass inverse -- most of
-	# the time it's filled in automatically and never touched.
-	conn_rev_row = HBoxContainer.new()
-	conn_rev_row.add_theme_constant_override("separation", 8)
-	var rev_lbl = _lbl("Return via:", Color.GRAY); rev_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	conn_rev_row.add_child(rev_lbl)
-	conn_rev_dir_edit = LineEdit.new()
-	conn_rev_dir_edit.placeholder_text = "(no reciprocal -- one-way only)"
-	conn_rev_dir_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	conn_rev_dir_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	conn_rev_dir_edit.text_changed.connect(func(_t):
+	# --- RETURN VIA ---
+	# Only relevant (and only shown) once both a target room and reciprocal
+	# are chosen -- otherwise there's nothing to return from yet.
+	conn_rev_row = HBoxContainer.new(); conn_rev_row.add_theme_constant_override("separation", 6)
+	conn_rev_label = _lbl("Return via:", Color.GRAY); conn_rev_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	conn_rev_row.add_child(conn_rev_label)
+	conn_rev_option = OptionButton.new(); conn_rev_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL; _apply_style(conn_rev_option)
+	_populate_direction_dropdown(conn_rev_option)
+	conn_rev_option.item_selected.connect(func(_i):
 		if not _updating_rev_field:
 			_rev_dir_auto = false
-			_update_connection_info()
+			conn_rev_custom_edit.visible = str(conn_rev_option.get_item_metadata(conn_rev_option.selected)) == ""
+		_update_connection_info()
 	)
-	_apply_style(conn_rev_dir_edit)
-	conn_rev_row.add_child(conn_rev_dir_edit)
+	conn_rev_row.add_child(conn_rev_option)
+	conn_rev_custom_edit = LineEdit.new(); conn_rev_custom_edit.placeholder_text = "custom direction"
+	conn_rev_custom_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	conn_rev_custom_edit.text_changed.connect(func(_t):
+		if not _updating_rev_field: _rev_dir_auto = false
+		_update_connection_info()
+	)
+	_apply_style(conn_rev_custom_edit)
+	conn_rev_row.add_child(conn_rev_custom_edit)
 	parent_container.add_child(conn_rev_row)
-	conn_twoway.toggled.connect(func(b): conn_rev_row.visible = b; _update_connection_info())
-
-	conn_summary_label = Label.new()
-	conn_summary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	conn_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	conn_summary_label.modulate = Color(0.65, 0.85, 1.0)
-	parent_container.add_child(conn_summary_label)
 
 	# --- INFO & WARNINGS ---
 	conn_info_label = RichTextLabel.new(); conn_info_label.fit_content = true; conn_info_label.bbcode_enabled = true
 	_apply_style(conn_info_label, Color.TRANSPARENT); parent_container.add_child(conn_info_label)
-	
+
 	parent_container.add_child(HSeparator.new())
-	
+
 	# --- BUTTONS ---
 	var btn_box = HBoxContainer.new()
 	btn_box.add_theme_constant_override("separation", 10)
-	var margin_c = MarginContainer.new() 
+	var margin_c = MarginContainer.new()
 	margin_c.add_theme_constant_override("margin_left", 2)
 	margin_c.add_theme_constant_override("margin_right", 2)
 	margin_c.add_child(btn_box)
-	
+
 	var btn = Button.new(); btn.text = "Connect"; btn.size_flags_horizontal = 3
 	btn.pressed.connect(_on_connect_confirm); _apply_style(btn, Color(0.2, 0.35, 0.2))
 	btn_box.add_child(btn)
-	
+
 	var btn_close = Button.new(); btn_close.text = "Cancel"; btn_close.size_flags_horizontal = 3
 	btn_close.pressed.connect(func(): target_selected.emit(""))
 	_apply_style(btn_close, Color(0.3, 0.1, 0.1))
 	btn_box.add_child(btn_close)
-	
+
 	parent_container.add_child(margin_c)
 
-	conn_rev_row.visible = conn_twoway.button_pressed
-	_sync_auto_reverse(dir)
+	if dir != "":
+		var matched = _select_direction_value(conn_dir_option, dir)
+		conn_dir_custom_edit.visible = not matched
+		if not matched: conn_dir_custom_edit.text = dir
+	else:
+		conn_dir_option.select(0)
+		conn_dir_custom_edit.visible = false
+	_sync_auto_reverse(_get_forward_direction())
 	_populate_connection_data(target_id)
-
-	if target_id == "":
-		conn_dir_edit.grab_focus()
 
 func set_target(region_id: String, room_id: String):
 	# 1. Select Region
@@ -211,91 +172,121 @@ func _populate_connection_data(target_id_raw: String):
 	conn_reg_opt.clear()
 	var regions = conn_hierarchy.keys()
 	regions.sort()
-	
+
 	var selected_idx = -1
 	var idx = 0
 	var cur_reg_id = ""
-	
+
 	for r in regions:
 		if conn_hierarchy[r].filename == conn_cur_reg_filename:
 			cur_reg_id = r
 			break
-			
+
 	for r in regions:
-		conn_reg_opt.add_item(r.capitalize()) 
+		conn_reg_opt.add_item(r.capitalize())
 		conn_reg_opt.set_item_metadata(idx, r)
 		if r == cur_reg_id:
 			selected_idx = idx
 		idx += 1
-		
+
 	var target_reg = cur_reg_id
 	var target_room = target_id_raw
 	if ":" in target_id_raw:
 		var parts = target_id_raw.split(":")
 		target_reg = parts[0]
 		target_room = parts[1]
-	
+
 	for i in range(conn_reg_opt.item_count):
 		if conn_reg_opt.get_item_metadata(i) == target_reg:
 			selected_idx = i
 			break
-	
+
 	if selected_idx != -1:
 		conn_reg_opt.select(selected_idx)
-	
+
 	_on_conn_region_changed(selected_idx)
-	
+
 	if target_room != "":
 		for i in range(conn_room_opt.item_count):
 			if conn_room_opt.get_item_metadata(i) == target_room:
 				conn_room_opt.select(i)
 				break
-	
+
 	_update_connection_info()
 
 func _on_conn_region_changed(idx):
 	conn_room_opt.clear()
 	if idx == -1: return
-	
+
 	var reg_id = conn_reg_opt.get_item_metadata(idx)
 	var data = conn_hierarchy.get(reg_id, {})
 	var rooms = data.get("rooms", {})
-	
+
 	var room_keys = rooms.keys()
 	room_keys.sort()
-	
+
 	for r_id in room_keys:
 		conn_room_opt.add_item(rooms[r_id])
 		conn_room_opt.set_item_metadata(conn_room_opt.item_count - 1, r_id)
-	
+
 	_update_connection_info()
 
-# Applying a compass/vertical button sets the outbound direction and, as
-# long as the reverse field hasn't been taken over manually, its compass
-# inverse too -- so the common case (north <-> south) needs one click, and
-# an author who's typed a custom reverse (the "opening" <-> "out" case)
-# never has their choice clobbered by a later outbound click.
-func _set_direction(direction: String):
-	conn_dir_edit.text = direction
-	_sync_auto_reverse(direction)
+func _populate_direction_dropdown(opt: OptionButton):
+	opt.clear()
+	for d in DIRECTION_ITEMS:
+		opt.add_item(d.capitalize())
+		opt.set_item_metadata(opt.item_count - 1, d)
+	opt.add_item("Custom...")
+	opt.set_item_metadata(opt.item_count - 1, "")
+
+# Selects the item whose metadata matches `value`; falls back to the
+# trailing "Custom..." entry (and returns false) when there's no match,
+# including when `value` is empty.
+func _select_direction_value(opt: OptionButton, value: String) -> bool:
+	var v := value.strip_edges().to_lower()
+	if v != "":
+		for i in range(opt.item_count - 1):
+			if opt.get_item_metadata(i) == v:
+				opt.select(i)
+				return true
+	opt.select(opt.item_count - 1)
+	return false
+
+func _get_forward_direction() -> String:
+	if conn_dir_option.selected == -1: return ""
+	var val := str(conn_dir_option.get_item_metadata(conn_dir_option.selected))
+	return val if val != "" else conn_dir_custom_edit.text.strip_edges().to_lower()
+
+func _get_reverse_direction() -> String:
+	if conn_rev_option.selected == -1: return ""
+	var val := str(conn_rev_option.get_item_metadata(conn_rev_option.selected))
+	return val if val != "" else conn_rev_custom_edit.text.strip_edges().to_lower()
+
+func _on_forward_dir_changed():
+	var val := str(conn_dir_option.get_item_metadata(conn_dir_option.selected))
+	conn_dir_custom_edit.visible = (val == "")
+	if val != "": _sync_auto_reverse(val)
 	_update_connection_info()
 
-func _on_forward_dir_edited(direction: String):
-	_sync_auto_reverse(direction)
-	_update_connection_info()
-
+# As long as the reverse field hasn't been taken over manually, it tracks
+# the forward direction's compass inverse -- so the common case (north <->
+# south) needs no extra input, and a custom forward direction with no known
+# inverse lands on "Custom..." with an empty field, prompting the author to
+# choose one instead of silently staying blank.
 func _sync_auto_reverse(direction: String):
 	if not _rev_dir_auto: return
-	var inv = str(Constants.INV_DIR_MAP.get(direction.strip_edges().to_lower(), ""))
+	var inv := str(Constants.INV_DIR_MAP.get(direction.strip_edges().to_lower(), ""))
 	_updating_rev_field = true
-	conn_rev_dir_edit.text = inv
+	var matched := _select_direction_value(conn_rev_option, inv)
+	conn_rev_custom_edit.visible = not matched
+	if not matched: conn_rev_custom_edit.text = ""
 	_updating_rev_field = false
 
 func _update_connection_info():
 	if not conn_info_label: return
 	conn_info_label.text = ""
-	var dir = conn_dir_edit.text.strip_edges().to_lower()
-	var rev_dir = conn_rev_dir_edit.text.strip_edges().to_lower()
+	var dir = _get_forward_direction()
+	var rev_dir = _get_reverse_direction()
 	var msgs = []
 
 	var full_target_id = ""
@@ -313,17 +304,10 @@ func _update_connection_info():
 	var cur_reg_id = region_mgr.data.get("region_id", "")
 	var same_region: bool = target_reg == cur_reg_id
 
-	if conn_twoway.button_pressed and target_room_name != "":
-		if dir != "" and rev_dir != "":
-			var src_display := conn_src_name if conn_src_name != "" else conn_src_id
-			conn_summary_label.text = "%s connects %s to %s\n%s connects %s to %s" % [
-				src_display, dir.capitalize(), target_room_name, target_room_name, rev_dir.capitalize(), src_display,
-			]
-			conn_summary_label.visible = true
-		else:
-			conn_summary_label.visible = false
-	else:
-		conn_summary_label.visible = false
+	var show_return_row: bool = conn_twoway.button_pressed and target_room_name != ""
+	conn_rev_row.visible = show_return_row
+	if show_return_row:
+		conn_rev_label.text = "Return via: %s," % target_room_name
 
 	if region_mgr.data.rooms.has(conn_src_id):
 		var src_exits = region_mgr.data.rooms[conn_src_id].get("exits", {})
@@ -347,18 +331,22 @@ func _update_connection_info():
 		conn_info_label.text = "\n".join(msgs)
 
 func _on_connect_confirm():
-	var dir = conn_dir_edit.text
+	var dir = _get_forward_direction()
 	if dir.strip_edges() == "": return
 	if conn_room_opt.selected == -1: return
 	var target_room = conn_room_opt.get_item_metadata(conn_room_opt.selected)
 	var target_reg = conn_reg_opt.get_item_metadata(conn_reg_opt.selected)
 	var final_target = target_reg + ":" + target_room
-	var rev_dir = conn_rev_dir_edit.text.strip_edges() if conn_twoway.button_pressed else ""
+	var rev_dir = _get_reverse_direction() if conn_twoway.button_pressed else ""
 
 	target_selected.emit("") # Clear highlight after connecting
 	connection_created.emit(conn_src_id, dir, final_target, conn_twoway.button_pressed, rev_dir)
 
-	conn_dir_edit.text = ""
+	conn_dir_option.select(0)
+	conn_dir_custom_edit.visible = false
+	conn_dir_custom_edit.text = ""
+	_rev_dir_auto = true
+	_sync_auto_reverse(_get_forward_direction())
 	conn_info_label.text = "[color=green]Connection Created.[/color]"
 
 func _apply_style(node: Control, bg_color = Color(0.15,0.15,0.18)):
@@ -370,8 +358,8 @@ func _apply_style(node: Control, bg_color = Color(0.15,0.15,0.18)):
 			var s_checked = s.duplicate(); s_checked.bg_color = Color(0.1, 0.3, 0.15); s_checked.border_color = Color(0.3, 0.6, 0.4)
 			node.add_theme_stylebox_override("normal", s_unchecked)
 			node.add_theme_stylebox_override("pressed", s_checked)
-			node.add_theme_stylebox_override("hover", s_unchecked.duplicate()) 
-			node.add_theme_stylebox_override("hover_pressed", s_checked.duplicate()) 
+			node.add_theme_stylebox_override("hover", s_unchecked.duplicate())
+			node.add_theme_stylebox_override("hover_pressed", s_checked.duplicate())
 			node.get_theme_stylebox("hover").bg_color = s_unchecked.bg_color.lightened(0.1)
 			node.get_theme_stylebox("hover_pressed").bg_color = s_checked.bg_color.lightened(0.1)
 			node.add_theme_stylebox_override("focus", s_unchecked.duplicate())
