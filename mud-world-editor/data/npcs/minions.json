@@ -5,16 +5,12 @@
 		"default_dialog": "The skeletal mage clicks its jawbones, watching its surroundings.",
 		"defense": 2.0,
 		"description": "An animated skeleton crackling with faint arcane energy.",
-		"dialog": {
-
-		},
+		"dialog": {},
 		"faction": "player_minion",
 		"friendly": false,
 		"health": 30.0,
 		"level": 1.0,
-		"loot_table": {
-
-		},
+		"loot_table": {},
 		"max_health": 30.0,
 		"max_mana": 30.0,
 		"name": "Skeletal Mage Minion",

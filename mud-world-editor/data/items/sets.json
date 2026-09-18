@@ -1,17 +1,41 @@
 {
-  "gladiator_set": {
-    "name": "Gladiator's Raiment",
-    "items": ["item_iron_sword", "item_leather_tunic", "item_leather_boots"],
-    "bonuses": {
-      "2": {"type": "stat_mod", "modifiers": {"strength": 5}},
-      "3": {"type": "stat_mod", "modifiers": {"attack_power": 10, "defense": 5}}
-    }
-  },
-  "mage_set": {
-    "name": "Apprentice Robes",
-    "items": ["item_wizard_hat", "item_robe"],
-    "bonuses": {
-      "2": {"type": "stat_mod", "modifiers": {"intelligence": 5, "max_mana": 20}}
-    }
-  }
+	"gladiator_set": {
+		"bonuses": {
+			"2": {
+				"modifiers": {
+					"strength": 5.0
+				},
+				"type": "stat_mod"
+			},
+			"3": {
+				"modifiers": {
+					"attack_power": 10.0,
+					"defense": 5.0
+				},
+				"type": "stat_mod"
+			}
+		},
+		"items": [
+			"item_iron_sword",
+			"item_leather_tunic",
+			"item_leather_boots"
+		],
+		"name": "Gladiator's Raiment"
+	},
+	"mage_set": {
+		"bonuses": {
+			"2": {
+				"modifiers": {
+					"intelligence": 5.0,
+					"max_mana": 20.0
+				},
+				"type": "stat_mod"
+			}
+		},
+		"items": [
+			"item_wizard_hat",
+			"item_robe"
+		],
+		"name": "Apprentice Robes"
+	}
 }

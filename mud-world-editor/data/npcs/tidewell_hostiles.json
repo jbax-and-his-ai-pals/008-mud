@@ -1,44 +1,126 @@
 {
-  "tidewell_scavenger": {
-    "name": "tidewell scavenger",
-    "description": "A lean underworks scavenger in patched oilskins, armed with a hook and thoroughly at home in the dark beneath the docks.",
-    "level": 6,
-    "health": 82,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": { "strength": 14, "dexterity": 14, "constitution": 14, "agility": 13, "magic_resist": 2 },
-    "attack_power": 9,
-    "defense": 7,
-    "loot_table": { "gold_value": { "chance": 0.9, "quantity": [14, 28] }, "item_old_coin": { "chance": 0.35 }, "item_stolen_pouch": { "chance": 0.35 }, "item_dagger": { "chance": 0.2 } },
-    "properties": { "weapon_damage_type": "piercing", "armor_material": "leather", "wander_chance": 0.0, "move_cooldown": 10 }
-  },
-  "brine_eel": {
-    "name": "brine eel",
-    "description": "A thick pale eel with scarred skin and a mouth made for taking chunks from anything that wades too close.",
-    "level": 7,
-    "health": 105,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": { "strength": 17, "dexterity": 12, "constitution": 17, "agility": 14, "magic_resist": 3 },
-    "attack_power": 11,
-    "defense": 8,
-    "loot_table": { "item_fresh_fish": { "chance": 0.6, "quantity": [1, 2] }, "item_pearl": { "chance": 0.12 }, "item_seashell": { "chance": 0.4 } },
-    "properties": { "weapon_damage_type": "piercing", "armor_material": "leather", "wander_chance": 0.0, "move_cooldown": 10 }
-  },
-  "drowned_enforcer": {
-    "name": "drowned enforcer",
-    "description": "A drowned smuggler still held upright by rusted mail, old duty, and whatever is moving beneath the black water.",
-    "level": 8,
-    "health": 135,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": { "strength": 19, "dexterity": 10, "constitution": 20, "agility": 8, "magic_resist": 6 },
-    "attack_power": 13,
-    "defense": 11,
-    "loot_table": { "gold_value": { "chance": 1.0, "quantity": [30, 55] }, "item_coral_gem": { "chance": 0.16 }, "item_chain_coif": { "chance": 0.08 }, "item_ancient_amulet": { "chance": 0.18 } },
-    "properties": { "weapon_damage_type": "crushing", "armor_material": "chain", "attack_cooldown": 4.5, "wander_chance": 0.0, "move_cooldown": 10 }
-  }
+	"brine_eel": {
+		"attack_power": 11.0,
+		"behavior_type": "aggressive",
+		"defense": 8.0,
+		"description": "A thick pale eel with scarred skin and a mouth made for taking chunks from anything that wades too close.",
+		"faction": "hostile",
+		"friendly": false,
+		"health": 105.0,
+		"level": 7.0,
+		"loot_table": {
+			"item_fresh_fish": {
+				"chance": 0.6,
+				"quantity": [
+					1.0,
+					2.0
+				]
+			},
+			"item_pearl": {
+				"chance": 0.12
+			},
+			"item_seashell": {
+				"chance": 0.4
+			}
+		},
+		"name": "brine eel",
+		"properties": {
+			"armor_material": "leather",
+			"move_cooldown": 10.0,
+			"wander_chance": 0.0,
+			"weapon_damage_type": "piercing"
+		},
+		"stats": {
+			"agility": 14.0,
+			"constitution": 17.0,
+			"dexterity": 12.0,
+			"magic_resist": 3.0,
+			"strength": 17.0
+		}
+	},
+	"drowned_enforcer": {
+		"attack_power": 13.0,
+		"behavior_type": "aggressive",
+		"defense": 11.0,
+		"description": "A drowned smuggler still held upright by rusted mail, old duty, and whatever is moving beneath the black water.",
+		"faction": "hostile",
+		"friendly": false,
+		"health": 135.0,
+		"level": 8.0,
+		"loot_table": {
+			"gold_value": {
+				"chance": 1.0,
+				"quantity": [
+					30.0,
+					55.0
+				]
+			},
+			"item_ancient_amulet": {
+				"chance": 0.18
+			},
+			"item_chain_coif": {
+				"chance": 0.08
+			},
+			"item_coral_gem": {
+				"chance": 0.16
+			}
+		},
+		"name": "drowned enforcer",
+		"properties": {
+			"armor_material": "chain",
+			"attack_cooldown": 4.5,
+			"move_cooldown": 10.0,
+			"wander_chance": 0.0,
+			"weapon_damage_type": "crushing"
+		},
+		"stats": {
+			"agility": 8.0,
+			"constitution": 20.0,
+			"dexterity": 10.0,
+			"magic_resist": 6.0,
+			"strength": 19.0
+		}
+	},
+	"tidewell_scavenger": {
+		"attack_power": 9.0,
+		"behavior_type": "aggressive",
+		"defense": 7.0,
+		"description": "A lean underworks scavenger in patched oilskins, armed with a hook and thoroughly at home in the dark beneath the docks.",
+		"faction": "hostile",
+		"friendly": false,
+		"health": 82.0,
+		"level": 6.0,
+		"loot_table": {
+			"gold_value": {
+				"chance": 0.9,
+				"quantity": [
+					14.0,
+					28.0
+				]
+			},
+			"item_dagger": {
+				"chance": 0.2
+			},
+			"item_old_coin": {
+				"chance": 0.35
+			},
+			"item_stolen_pouch": {
+				"chance": 0.35
+			}
+		},
+		"name": "tidewell scavenger",
+		"properties": {
+			"armor_material": "leather",
+			"move_cooldown": 10.0,
+			"wander_chance": 0.0,
+			"weapon_damage_type": "piercing"
+		},
+		"stats": {
+			"agility": 13.0,
+			"constitution": 14.0,
+			"dexterity": 14.0,
+			"magic_resist": 2.0,
+			"strength": 14.0
+		}
+	}
 }

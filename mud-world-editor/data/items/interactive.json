@@ -1,22 +1,26 @@
 {
-  "obj_obsidian_lever_a": {
-    "type": "Interactive",
-    "name": "obsidian lever",
-    "description": "A heavy lever carved from black glass. It is currently in the UP position.",
-    "properties": {
-      "interaction_type": "toggle",
-      "state": "off",
-      "linked_target_id": "obsidian_trial:hall_of_gates",
-      "linked_action": "toggle_exit:north",
-      "interaction_message": "You heave the lever down with a satisfying clunk.",
-      "hidden_exits": { "north": "obsidian_trial:inner_sanctum" } 
-    }
-  },
-  "obj_sealed_gate": {
-    "type": "Item",
-    "name": "massive obsidian gate",
-    "description": "A huge slab of rock blocking the way north. It has no keyhole, but looks connected to mechanisms elsewhere.",
-    "weight": 9999,
-    "properties": { "can_take": false }
-  }
+	"obj_obsidian_lever_a": {
+		"description": "A heavy lever carved from black glass. It is currently in the UP position.",
+		"name": "obsidian lever",
+		"properties": {
+			"hidden_exits": {
+				"north": "obsidian_trial:inner_sanctum"
+			},
+			"interaction_message": "You heave the lever down with a satisfying clunk.",
+			"interaction_type": "toggle",
+			"linked_action": "toggle_exit:north",
+			"linked_target_id": "obsidian_trial:hall_of_gates",
+			"state": "off"
+		},
+		"type": "Interactive"
+	},
+	"obj_sealed_gate": {
+		"description": "A huge slab of rock blocking the way north. It has no keyhole, but looks connected to mechanisms elsewhere.",
+		"name": "massive obsidian gate",
+		"properties": {
+			"can_take": false
+		},
+		"type": "Item",
+		"weight": 9999.0
+	}
 }

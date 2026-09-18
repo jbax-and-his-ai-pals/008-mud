@@ -1,33 +1,37 @@
 {
-  "weaken_strength": {
-	"name": "Weaken",
-	"description": "A malevolent spell that saps the target's physical might.",
-	"mana_cost": 10,
-	"cooldown": 12.0,
-	"effect_type": "apply_dot",
-	"target_type": "enemy",
-	"level_required": 3,
-	"cast_message": "{caster_name} chants a draining curse!",
-	"hit_message": "{target_name} suddenly feels weaker!",
-	"dot_name": "Weaken",
-	"dot_duration": 20.0,
-	"dot_damage_per_tick": 0,
-	"dot_tick_interval": 20.0,
-	"dot_damage_type": "curse",
-	"effect_data": {
-		"type": "stat_mod",
-		"modifiers": { "strength": -5 }
+	"frost_curse": {
+		"description": "Curses the target, making them vulnerable to cold.",
+		"dot_duration": 20.0,
+		"dot_name": "Frost Vulnerability",
+		"effect_data": {
+			"modifiers": {
+				"resist_cold": -30.0
+			},
+			"type": "stat_mod"
+		},
+		"effect_type": "apply_dot",
+		"name": "Frost Curse"
+	},
+	"weaken_strength": {
+		"cast_message": "{caster_name} chants a draining curse!",
+		"cooldown": 12.0,
+		"description": "A malevolent spell that saps the target's physical might.",
+		"dot_damage_per_tick": 0.0,
+		"dot_damage_type": "curse",
+		"dot_duration": 20.0,
+		"dot_name": "Weaken",
+		"dot_tick_interval": 20.0,
+		"effect_data": {
+			"modifiers": {
+				"strength": -5.0
+			},
+			"type": "stat_mod"
+		},
+		"effect_type": "apply_dot",
+		"hit_message": "{target_name} suddenly feels weaker!",
+		"level_required": 3.0,
+		"mana_cost": 10.0,
+		"name": "Weaken",
+		"target_type": "enemy"
 	}
-  },
-  "frost_curse": {
-	"name": "Frost Curse",
-	"description": "Curses the target, making them vulnerable to cold.",
-	"effect_type": "apply_dot",
-	"dot_name": "Frost Vulnerability",
-	"dot_duration": 20.0,
-	"effect_data": {
-		"type": "stat_mod",
-		"modifiers": { "resist_cold": -30}
-	}
-  }
 }
