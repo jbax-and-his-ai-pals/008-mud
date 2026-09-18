@@ -46,6 +46,11 @@ var world_data: Dictionary
 var world_positions: Dictionary
 var current_region_filename: String
 var current_quest_data: Dictionary = {}
+# Mirrors the "Show Districts" checkbox. When off, districts aren't just
+# hidden visually (district_layer/district_label_layer.visible = false) --
+# a click where one would have been must fall through to empty space, not
+# silently hit a district that isn't actually drawn.
+var districts_visible: bool = true
 
 var selection_box: Rect2 = Rect2()
 var is_box_selecting: bool = false
@@ -479,7 +484,7 @@ func _resolve_district_field_index(point: Vector2, fields: Array) -> int:
 # view, or "" if the point is outside every district's territory (or we're
 # not showing districts at all right now).
 func get_district_id_at(world_pos: Vector2) -> String:
-	if current_mode != ViewMode.LOCAL or region_data.is_empty(): return ""
+	if current_mode != ViewMode.LOCAL or region_data.is_empty() or not districts_visible: return ""
 	var fields := _build_district_fields()
 	if fields.is_empty(): return ""
 	var field_index := _resolve_district_field_index(world_pos, fields)
