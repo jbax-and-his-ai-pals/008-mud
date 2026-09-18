@@ -284,7 +284,7 @@ func _setup_modals_and_popups():
 
 func _setup_district_toolbar():
 	district_toolbar = Panel.new(); district_toolbar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	district_toolbar.offset_left = -220; district_toolbar.offset_right = 220; district_toolbar.offset_top = -110; district_toolbar.offset_bottom = -20
+	district_toolbar.offset_left = -220; district_toolbar.offset_right = 220; district_toolbar.offset_top = -190; district_toolbar.offset_bottom = -20
 	var style := StyleBoxFlat.new(); style.bg_color = Color("18283b"); style.border_color = Color("5b9bd5"); style.set_border_width_all(1); style.set_corner_radius_all(8); style.shadow_color = Color(0, 0, 0, 0.5); style.shadow_size = 10; style.content_margin_left = 16; style.content_margin_right = 16; style.content_margin_top = 10; style.content_margin_bottom = 10
 	district_toolbar.add_theme_stylebox_override("panel", style); ui_layer.add_child(district_toolbar)
 	var box := VBoxContainer.new(); box.set_anchors_preset(Control.PRESET_FULL_RECT); box.offset_left = 16; box.offset_right = -16; box.offset_top = 14; box.offset_bottom = -16; box.add_theme_constant_override("separation", 8); district_toolbar.add_child(box)
