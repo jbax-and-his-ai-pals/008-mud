@@ -12,6 +12,7 @@ signal region_node_selected(region_id)
 signal region_moved(region_id, old_pos, new_pos)
 signal request_region_edit(region_id)
 signal region_dragged
+signal region_connection_drag_started(region_id, local_pos)
 
 func _init(p_container: Node2D):
 	container = p_container
@@ -45,6 +46,7 @@ func build(all_world_data: Dictionary, positions: Dictionary, current_region_dat
 		r_node.request_edit.connect(func(id): request_region_edit.emit(id))
 		# When a region node is dragged, forward a signal so Main knows an object drag is happening.
 		r_node.region_dragged.connect(func(_pos): region_dragged.emit())
+		r_node.connection_drag_started.connect(func(id, local_pos): region_connection_drag_started.emit(id, local_pos))
 		
 		container.add_child(r_node)
 		world_region_nodes[rid] = r_node

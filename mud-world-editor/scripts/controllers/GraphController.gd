@@ -22,6 +22,7 @@ signal room_label_drag_started(id)
 signal room_label_dragged(id)
 signal room_label_drag_ended(id)
 signal camera_pan_input(event)
+signal region_connection_drag_started(region_id, local_pos)
 
 enum ViewMode { LOCAL, WORLD, QUEST }
 var current_mode = ViewMode.LOCAL
@@ -127,6 +128,7 @@ func _forward_builder_signals():
 	world_view_builder.region_moved.connect(func(id, old, new): region_moved.emit(id, old, new))
 	world_view_builder.request_region_edit.connect(func(id): request_region_edit.emit(id))
 	world_view_builder.region_dragged.connect(func(): queue_redraw())
+	world_view_builder.region_connection_drag_started.connect(func(id, local_pos): region_connection_drag_started.emit(id, local_pos))
 	
 	quest_view_builder.node_selected.connect(func(idx): node_selected.emit(idx))
 	quest_view_builder.node_moved.connect(func(idx, pos): 
@@ -265,6 +267,19 @@ func get_room_under_mouse(global_pos: Vector2) -> String:
 		var node = local_view_builder.room_nodes[id]
 		var rect = node.get_node("VisualPanel").get_global_rect()
 		if rect.has_point(global_pos): return id
+	return ""
+
+# The world view's answer to get_room_under_mouse: which region's card (its
+# full header+shape hit-rect, same as click/drag hit-testing already uses)
+# a screen point falls on, or "" if none.
+func get_world_region_id_at(global_pos: Vector2, zoom: float = 1.0) -> String:
+	if current_mode != ViewMode.WORLD: return ""
+	for rid in world_view_builder.world_region_nodes:
+		var node = world_view_builder.world_region_nodes[rid]
+		if not is_instance_valid(node): continue
+		var local_rect: Rect2 = node._get_current_visuals(zoom).main_rect
+		var global_rect: Rect2 = node.get_global_transform() * local_rect
+		if global_rect.has_point(global_pos): return rid
 	return ""
 
 func get_district_preview_room_under_mouse(global_pos: Vector2) -> String:
@@ -833,6 +848,21 @@ func _draw_world_connections():
 	var base_line_width = 0.5
 	var selected_region_id = editor_state.selected_ids[0] if not editor_state.selected_ids.is_empty() else ""
 	var font := ThemeDB.get_fallback_font()
+
+	if editor_state.world_dragging_conn.get("active", false):
+		var mouse_pos = connection_layer.get_global_mouse_position()
+		editor_state.world_dragging_conn.end = mouse_pos
+		var start_pos = connection_layer.to_local(editor_state.world_dragging_conn.start)
+		var end_pos = connection_layer.to_local(mouse_pos)
+		var hover_rid := get_world_region_id_at(mouse_pos, zoom)
+		if hover_rid != "" and hover_rid != editor_state.world_dragging_conn.src_region and world_view_builder.world_region_nodes.has(hover_rid):
+			var hover_node = world_view_builder.world_region_nodes[hover_rid]
+			var hover_global_rect: Rect2 = hover_node.get_global_transform() * hover_node._get_current_visuals(zoom).main_rect
+			var hover_local_rect := Rect2(connection_layer.to_local(hover_global_rect.position), Vector2.ZERO)
+			hover_local_rect = hover_local_rect.expand(connection_layer.to_local(hover_global_rect.end))
+			connection_layer.draw_rect(hover_local_rect, Color(0.2, 1.0, 0.4, 0.25), true)
+			connection_layer.draw_rect(hover_local_rect, Color(0.2, 1.0, 0.4, 0.9), false, 3.0)
+		connection_layer.draw_line(start_pos, end_pos, Color(1.0, 0.8, 0.2), 3.0)
 
 	for src_rid in world_data:
 		for src_room_id in world_data[src_rid].get("rooms", {}):

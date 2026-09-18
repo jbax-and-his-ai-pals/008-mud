@@ -51,6 +51,24 @@ func _init() -> void:
 	_assert(viz.header_rect.size.x >= title_width, "the header is at least as wide as its own title, got header=%.1f title=%.1f" % [viz.header_rect.size.x, title_width])
 	_assert(is_equal_approx(viz.header_rect.get_center().x, long_named.content_rect.get_center().x), "a widened header stays centered on the shape below it")
 
+	# get_nearest_room_id is how a connection dragged from a region's shape
+	# (rather than from any specific room, the way local view's drag always
+	# starts) picks a concrete source room -- it must actually be the
+	# nearest one, not just the first or last in the dict.
+	var multi_room_data := {
+		"rooms": {
+			"near": {"_editor_pos": [0, 0], "exits": {}},
+			"far": {"_editor_pos": [1000, 1000], "exits": {}},
+		}
+	}
+	var multi := RegionScene.new()
+	multi.setup("multi_room_region", multi_room_data, Color.WHITE)
+	_assert(multi.get_nearest_room_id(Vector2(10, 10)) == "near", "the room closest to the drag point is picked")
+	_assert(multi.get_nearest_room_id(Vector2(990, 990)) == "far", "picking the nearest room works from either side")
+	var no_rooms := RegionScene.new()
+	no_rooms.setup("no_rooms_region", {"rooms": {}}, Color.WHITE)
+	_assert(no_rooms.get_nearest_room_id(Vector2.ZERO) == "", "a room-less region has no nearest room to anchor a connection to")
+
 	quit(1 if failures > 0 else 0)
 
 func _assert(condition: bool, message: String) -> void:

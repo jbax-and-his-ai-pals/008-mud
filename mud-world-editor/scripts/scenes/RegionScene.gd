@@ -8,6 +8,7 @@ signal region_selected(region_id)
 signal region_moved_committed(old_pos, new_pos)
 signal region_dragged(new_pos)
 signal request_edit(region_id)
+signal connection_drag_started(region_id, local_pos)
 
 var region_id: String = ""
 var dragging: bool = false
@@ -95,6 +96,20 @@ func get_room_local_center(room_id: String) -> Vector2:
 	if cached_rooms.has(room_id):
 		return _get_vec(cached_rooms[room_id]) + (ROOM_SIZE / 2.0)
 	return Vector2.ZERO
+
+# The room whose card center is closest to a local-space point -- used to
+# pick a concrete source room for a connection dragged from this region's
+# shape rather than from any specific room, since roughly "wherever you
+# grabbed" is the most predictable anchor a builder could expect.
+func get_nearest_room_id(local_pos: Vector2) -> String:
+	var best_id := ""
+	var best_dist := INF
+	for r_id in cached_rooms:
+		var dist: float = get_room_local_center(r_id).distance_to(local_pos)
+		if dist < best_dist:
+			best_dist = dist
+			best_id = r_id
+	return best_id
 
 func _get_title() -> String:
 	return region_id.capitalize().replace("_", " ")
@@ -247,6 +262,14 @@ func _unhandled_input(event):
 			if event.pressed:
 				var local_mouse = get_local_mouse_position()
 				if hit_rect.has_point(local_mouse):
+					# Ctrl/Shift-drag starts a connection to another region,
+					# the same modifier convention a room uses to start a
+					# connection in the local view, instead of moving this
+					# region on the world map.
+					if event.ctrl_pressed or event.shift_pressed:
+						connection_drag_started.emit(region_id, local_mouse)
+						get_viewport().set_input_as_handled()
+						return
 					dragging = true
 					drag_start_pos = position
 					region_selected.emit(region_id)

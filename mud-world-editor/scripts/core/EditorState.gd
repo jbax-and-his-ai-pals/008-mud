@@ -20,6 +20,12 @@ var district_dragging: Dictionary = {"active": false, "mouse_start": Vector2.ZER
 
 # Interaction State (temporary state during an action)
 var dragging_conn: Dictionary = {"active": false, "start": Vector2.ZERO, "end": Vector2.ZERO, "src": ""}
+# The world-view equivalent of dragging_conn: a connection dragged from one
+# region's shape toward another, rather than from a specific room. Kept
+# separate from dragging_conn (whose "src" is always a room in the
+# currently open region) rather than reused, since a region drag's source
+# room may belong to a region that isn't even loaded yet.
+var world_dragging_conn: Dictionary = {"active": false, "start": Vector2.ZERO, "end": Vector2.ZERO, "src_region": "", "src_room": ""}
 var creating_conn: Dictionary = { "active": false, "start_pos": Vector2.ZERO, "end_pos": Vector2.ZERO, "src_id": "" }
 var is_box_selecting: bool = false
 var box_select_start: Vector2 = Vector2.ZERO

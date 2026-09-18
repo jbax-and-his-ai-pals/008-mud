@@ -336,6 +336,15 @@ func _connect_graph_signals():
 		else: ui_mgr.show_context_menu({"Rename":0, "Delete":99, "Set Start":3}); ui_mgr.context_menu.set_meta("target_type", "room"); ui_mgr.context_menu.set_meta("target_id", str(id))
 	)
 	graph_controller.connection_drag_started.connect(func(id): state.dragging_conn={"active":true, "start":graph_controller.get_node_position(id), "end":Vector2.ZERO, "src":id})
+	graph_controller.region_connection_drag_started.connect(func(rid, local_pos):
+		var node = graph_controller.world_view_builder.world_region_nodes.get(rid)
+		if not node: return
+		var anchor_room: String = node.get_nearest_room_id(local_pos)
+		if anchor_room == "": return
+		var world_start: Vector2 = node.global_position + (node.get_room_local_center(anchor_room) * node.scale)
+		state.world_dragging_conn = {"active": true, "start": world_start, "end": world_start, "src_region": rid, "src_room": anchor_room}
+		is_dragging_object = true
+	)
 	graph_controller.creation_drag_started.connect(func(id, pos): state.creating_conn={"active":true, "start_pos":pos, "end_pos":pos, "src_id":id})
 	graph_controller.region_moved.connect(func(id, old, new):
 		cmd_proc.commit(
@@ -394,6 +403,22 @@ func _unhandled_input(event):
 		elif event is InputEventMouseMotion: graph_controller.queue_redraw()
 		return
 
+	if state.world_dragging_conn.get("active", false):
+		if event is InputEventMouseButton and not event.pressed:
+			var mouse_pos = get_global_mouse_position()
+			var cam_zoom = main_camera.zoom.x if main_camera else 1.0
+			var src_region: String = state.world_dragging_conn.src_region
+			var src_room: String = state.world_dragging_conn.src_room
+			var target_region := graph_controller.get_world_region_id_at(mouse_pos, cam_zoom)
+			if target_region == src_region: target_region = ""
+			state.world_dragging_conn.active = false
+			graph_controller.queue_redraw()
+			_open_world_connection_form(src_region, src_room, target_region)
+		elif event is InputEventMouseMotion:
+			state.world_dragging_conn.end = get_global_mouse_position()
+			graph_controller.queue_redraw()
+		return
+
 	if state.creating_conn.get("active", false) and event is InputEventMouseButton and not event.pressed:
 		ui_mgr.show_creation_menu(event.position); state.creating_conn.active = false; graph_controller.queue_redraw()
 		return
@@ -404,16 +429,10 @@ func _unhandled_input(event):
 
 func _is_mouse_on_any_node(mouse_pos: Vector2) -> bool:
 	if state.is_world_view:
-		for region_node in graph_controller.world_view_builder.world_region_nodes.values():
-			if is_instance_valid(region_node):
-				var cam_zoom = main_camera.zoom.x if main_camera else 1.0
-				var local_rect = region_node._get_current_visuals(cam_zoom).main_rect
-				var global_transform = region_node.get_global_transform()
-				var global_rect = global_transform * local_rect
-				if global_rect.has_point(mouse_pos): return true
+		var cam_zoom = main_camera.zoom.x if main_camera else 1.0
+		return graph_controller.get_world_region_id_at(mouse_pos, cam_zoom) != ""
 	else:
-		if graph_controller.get_room_under_mouse(mouse_pos) != "": return true
-	return false
+		return graph_controller.get_room_under_mouse(mouse_pos) != ""
 
 func _handle_district_preview_input(event):
 	var preview: Dictionary = state.district_preview
@@ -827,6 +846,53 @@ func _update_selection_state():
 
 func _jump_to_room(id):
 	_on_node_click(id, false); camera_controller.focus_on(graph_controller.get_node_position(id), true)
+
+# Finishes a connection dragged from a region's shape in the world view.
+# Writing an exit always requires the source room's own region to be the
+# one actually loaded (region_mgr.data), so this switches to it -- the
+# same "load the region a cross-region link points at" step local view's
+# own proxy-node jump already does -- and opens the same room+direction
+# form a local-view drag opens, with the target region (if one was dropped
+# on) and a direction guessed from the two regions' relative position on
+# the world map pre-filled. Nothing here removes the ability to pick a
+# different target region/room or direction; those are exactly what the
+# form's own controls are for.
+func _open_world_connection_form(src_region: String, src_room: String, target_region: String):
+	var hierarchy := world_mgr.get_global_hierarchy()
+	var src_filename: String = String(hierarchy.get(src_region, {}).get("filename", ""))
+	if src_filename == "": return
+	if region_mgr.current_filename != src_filename:
+		_load_region(src_filename, false, true)
+	if not region_mgr.data.rooms.has(src_room): return
+	var src_name := str(region_mgr.data.rooms[src_room].get("name", src_room))
+
+	var target_hint := ""
+	var guessed_dir := ""
+	if target_region != "":
+		target_hint = target_region + ":"
+		var src_node = graph_controller.world_view_builder.world_region_nodes.get(src_region)
+		var tgt_node = graph_controller.world_view_builder.world_region_nodes.get(target_region)
+		if src_node and tgt_node:
+			guessed_dir = _guess_world_direction(src_node.global_position, tgt_node.global_position)
+
+	inspector.load_connection_form(src_room, src_name, hierarchy, region_mgr.current_filename, target_hint, guessed_dir)
+
+# The compass direction whose vector best matches the line from one
+# region's world-map position to another's -- an authoring default, not a
+# claim about the actual room-level geometry, which the target picker and
+# direction field in the form that follows remain free to override.
+func _guess_world_direction(from_pos: Vector2, to_pos: Vector2) -> String:
+	var delta := to_pos - from_pos
+	if delta.length() < 1.0: return ""
+	var best_dir := ""
+	var best_dot := -INF
+	for dir_name in ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest"]:
+		var vec: Vector2 = Constants.DIR_VECTORS[dir_name]
+		var dot: float = delta.normalized().dot(vec.normalized())
+		if dot > best_dot:
+			best_dot = dot
+			best_dir = dir_name
+	return best_dir
 
 func _refresh_view():
 	graph_controller.rebuild(region_mgr.data, world_mgr.get_all_world_data(), world_mgr.world_node_positions, region_mgr.current_filename)
