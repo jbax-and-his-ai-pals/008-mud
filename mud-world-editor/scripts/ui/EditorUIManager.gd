@@ -284,12 +284,11 @@ func _setup_modals_and_popups():
 
 func _setup_district_toolbar():
 	district_toolbar = Panel.new(); district_toolbar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	district_toolbar.offset_left = -220; district_toolbar.offset_right = 220; district_toolbar.offset_top = -190; district_toolbar.offset_bottom = -20
+	district_toolbar.offset_left = -220; district_toolbar.offset_right = 220; district_toolbar.offset_top = -120; district_toolbar.offset_bottom = -20
 	var style := StyleBoxFlat.new(); style.bg_color = Color("18283b"); style.border_color = Color("5b9bd5"); style.set_border_width_all(1); style.set_corner_radius_all(8); style.shadow_color = Color(0, 0, 0, 0.5); style.shadow_size = 10; style.content_margin_left = 16; style.content_margin_right = 16; style.content_margin_top = 10; style.content_margin_bottom = 10
 	district_toolbar.add_theme_stylebox_override("panel", style); ui_layer.add_child(district_toolbar)
 	var box := VBoxContainer.new(); box.set_anchors_preset(Control.PRESET_FULL_RECT); box.offset_left = 16; box.offset_right = -16; box.offset_top = 14; box.offset_bottom = -16; box.add_theme_constant_override("separation", 8); district_toolbar.add_child(box)
 	district_toolbar_label = Label.new(); district_toolbar_label.text = "Place District"; district_toolbar_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; district_toolbar_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(district_toolbar_label)
-	var hint := Label.new(); hint.text = "Drag to position, then confirm. Connect it to the rest of the region afterward, the same way any other room connects."; hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; hint.add_theme_font_size_override("font_size", 12); hint.modulate = Color("9fb3c8"); box.add_child(hint)
 	var spacer := Control.new(); spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL; box.add_child(spacer)
 	var controls := HBoxContainer.new(); controls.add_theme_constant_override("separation", 10); box.add_child(controls)
 	district_discard = Button.new(); district_discard.text = "Cancel"; _apply_style(district_discard, Color("5a3d48")); _pad_district_action(district_discard); district_discard.pressed.connect(func(): request_district_cancel.emit()); controls.add_child(district_discard)
