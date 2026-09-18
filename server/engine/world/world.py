@@ -726,10 +726,10 @@ class World:
         return region.get_property("safe_zone", False)
     
     def get_district(self, region_id: Optional[str], room_id: Optional[str]) -> Optional[Dict[str, Any]]:
-        """Return the district (a plain {"name", "rooms"} dict, content-
-        authored on the region's `properties.districts`) a room belongs
-        to, or None. Districts have no mechanical behavior of their own
-        yet -- this is purely an identity lookup for display."""
+        """Return the district (a plain dict, content-authored on the
+        region's `properties.districts`) a room belongs to, or None. Its
+        member room list is authored under "members" -- "rooms" is
+        accepted too for older/hand-authored data that used that key."""
         if not region_id or not room_id:
             return None
         region = self.get_region(region_id)
@@ -739,23 +739,50 @@ class World:
         if not isinstance(districts, dict):
             return None
         for district in districts.values():
-            if isinstance(district, dict) and room_id in district.get("rooms", []):
+            if not isinstance(district, dict):
+                continue
+            members = district.get("members", district.get("rooms", []))
+            if room_id in members:
                 return district
         return None
 
-    def is_location_outdoors(self, region_id: str, room_id: str) -> bool:
-        region = self.get_region(region_id)
-        if not region: return True
-        room = region.get_room(room_id)
-        if room:
-            room_setting = room.get_property("outdoors")
-            if room_setting is not None:
-                return room_setting
-        
-        region_setting = region.get_property("outdoors")
+    def get_env_property(self, region_id: Optional[str], room_id: Optional[str], key: str, default: Any = None) -> Any:
+        """Resolve an environmental/atmospheric property (dark, outdoors,
+        noisy, smell, temperature, ...) through a room -> district -> region
+        deviation chain: a room only needs to author a value when it departs
+        from its district's norm, and a district only needs one when it
+        departs from its region's -- the first tier that actually sets the
+        key wins, and an unset key at every tier falls back to `default`.
+
+        Districts and regions store these the same flat way a room does
+        (a plain key alongside their other authored fields / properties),
+        so content that already knows how to set "dark": true on a region's
+        GLOBAL PROPERTIES or a district needs no new authoring concept.
+        """
+        region = self.get_region(region_id) if region_id else None
+        if not region:
+            return default
+
+        if room_id:
+            room = region.get_room(room_id)
+            if room is not None:
+                room_setting = room.get_property(key)
+                if room_setting is not None:
+                    return room_setting
+
+        district = self.get_district(region_id, room_id)
+        if district is not None:
+            district_setting = district.get(key)
+            if district_setting is not None:
+                return district_setting
+
+        region_setting = region.get_property(key)
         if region_setting is not None:
             return region_setting
-        return True
+        return default
+
+    def is_location_outdoors(self, region_id: str, room_id: str) -> bool:
+        return self.get_env_property(region_id, room_id, "outdoors", True)
     
     def find_item_in_room(self, name: str, player: Optional['Player'] = None) -> Optional[Item]:
          items = self.get_items_in_current_room(player)

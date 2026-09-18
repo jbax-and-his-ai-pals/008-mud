@@ -141,27 +141,32 @@ class Room(GameObject):
         return None
 
     # ... (get_full_description, to_dict, from_dict etc. remain same) ...
-    def get_full_description(self, time_period: str = "day", weather: str = "clear", is_outdoors: bool = True) -> str:
+    def get_full_description(self, time_period: str = "day", weather: str = "clear", is_outdoors: bool = True,
+                              is_dark=None, is_noisy=None, smell=None, temperature=None) -> str:
         desc = self.description
         time_desc = self.time_descriptions.get(time_period)
         if not time_desc:
             if time_period in ["morning", "afternoon"]:
-                time_desc = self.time_descriptions.get("day")     
+                time_desc = self.time_descriptions.get("day")
         if time_desc: desc += f"\n\n{time_desc}"
         if weather and is_outdoors: desc += f"\n\nThe weather is {weather}."
-        
-        # FIX: Check env_properties if properties not updated
-        is_dark = self.properties.get("dark") or self.env_properties.get("dark")
-        is_noisy = self.properties.get("noisy") or self.env_properties.get("noisy")
-        
+
+        # A caller that knows this room's region/district (description_
+        # generator) resolves these through World.get_env_property's room ->
+        # district -> region deviation chain and passes the result in. A
+        # caller that doesn't (a bare Room, as in tests) falls back to this
+        # room's own properties only, exactly as before.
+        if is_dark is None: is_dark = self.properties.get("dark") or self.env_properties.get("dark")
+        if is_noisy is None: is_noisy = self.properties.get("noisy") or self.env_properties.get("noisy")
+        if smell is None: smell = self.properties.get("smell")
+        if temperature is None: temperature = self.properties.get("temperature", "normal")
+
         if is_dark: desc += "\n\nIt is very dark here."
         if is_noisy: desc += "\n\nThe area is filled with noise."
-        
-        smell = self.properties.get("smell")
+
         if smell: desc += f"\n\nYou detect a {smell} smell."
-        temp = self.properties.get("temperature", "normal")
-        if temp == "cold": desc += "\n\nIt's noticeably cold in here."
-        elif temp == "hot": desc += "\n\nThe air is stiflingly hot."
+        if temperature == "cold": desc += "\n\nIt's noticeably cold in here."
+        elif temperature == "hot": desc += "\n\nThe air is stiflingly hot."
         exits_list = sorted(list(self.exits.keys()))
         exit_desc = ", ".join(exits_list) if exits_list else "none"
         desc += f"\n\n{FORMAT_CATEGORY}Exits:{FORMAT_RESET} {exit_desc}"

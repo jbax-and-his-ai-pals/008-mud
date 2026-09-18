@@ -42,9 +42,20 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
         return f"{FORMAT_ERROR}Location Error{FORMAT_RESET}"
 
     is_outdoors = world.is_location_outdoors(current_region_id, current_room_id)
-    
+
     # 3. Base Description
-    room_desc = current_room.get_full_description(time_period, weather, is_outdoors=is_outdoors)
+    # Atmospheric properties resolve through the same room -> district ->
+    # region deviation chain as "outdoors": a room only authors "dark" (or
+    # noisy/smell/temperature) when it departs from its district's or
+    # region's norm, instead of every room having to repeat it.
+    is_dark = world.get_env_property(current_region_id, current_room_id, "dark", False)
+    is_noisy = world.get_env_property(current_region_id, current_room_id, "noisy", False)
+    smell = world.get_env_property(current_region_id, current_room_id, "smell", "")
+    temperature = world.get_env_property(current_region_id, current_room_id, "temperature", "normal")
+    room_desc = current_room.get_full_description(
+        time_period, weather, is_outdoors=is_outdoors,
+        is_dark=is_dark, is_noisy=is_noisy, smell=smell, temperature=temperature,
+    )
 
     # 4. Quest Visual Overrides (e.g. secret doors becoming visible)
     if player.runtime_state.quests is not None and player.runtime_state.quests.active:
