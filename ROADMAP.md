@@ -1362,6 +1362,35 @@ more urgent.
   technique used to verify the `main_controller.gd` split. No native-GUI
   automation is available to click through the editor interactively, so a
   live spot-check of a newly-synced region is left for a human to confirm.
+- [x] **Superseded the copy with one source.** The item above made the editor's
+  mirror *complete* by copying canonical content into it. That was the wrong
+  shape: a copy is a fork with a delay, and while the editor was a viewer nobody
+  noticed, but the moment it became the authoring front-end the two trees
+  started disagreeing in both directions. It was missing 164 item ids and 52 NPC
+  ids, still had the legacy magic schema, and — the part that mattered — held
+  *newer* authoring for gems and town districts that the game could not see.
+  `GemGenerator` reads a gem's intrinsic `rarity`; the 28 tagged gems and 10 new
+  ones lived only in the mirror, so every gem in play was generated off the
+  value-derived fallback. `world.get_district` reads
+  `properties.districts[*].members` for the room title and the atmosphere chain;
+  canonical town still had the legacy block (one district, four rooms).
+  Now: a `DataRoot` resolver picks the content set (CLI, then
+  `user://editor_settings.json`, then the checkout layout, then a standalone
+  copy), every editor path goes through it, the title bar names the world, and
+  editor bookkeeping (`_editor_pos`, `_editor_exit_layout`, quest stage
+  positions, world layout, magic groups, templates) lives in
+  `content_sets/<set>/editor/`, split and merged at the two chokepoints in
+  `EditorLayout` so no canonical file ever carries `_editor_*`. The mirror is
+  `mud-world-editor/legacy-mirror/`, read by nothing, with a README recording
+  what was recovered and the one remaining editorial decision (town's 38
+  rewritten room descriptions and 8 rooms the mirror lacks). Detail:
+  `docs/roadmap/editor-content-source.md`. Verified by a headless Godot script
+  (`mud-world-editor/tests/content_source_check.gd`, 20 assertions: resolver
+  lands on the content set, `town.json` loads with all 46 rooms positioned from
+  the sidecar, the on-disk file stays clean, split/merge round-trips restore the
+  author's layout), plus `tests/singles/test_editor_content_source.py` as the
+  Python-side tripwire, plus the editor's existing layout smoke test and a
+  `--quit-after 2` boot.
 - [x] **Give the world editor bulk-generation tools for scaling a world.**
   Follow-on to the item above, aimed at end-user builders/modders rather
   than just closing a staleness gap. The editor already had a working
@@ -1436,23 +1465,107 @@ work order.
 
 ### First batch
 
-- [ ] **Map present genre coupling.** Audit concrete fantasy/type checks in
-  combat, items, magic, crafting, command help, persistence, and the editor.
-  Classify each as kernel, capability query, or content leak; add
-  characterization coverage before moving behavior.
-- [ ] **Define the contract registry.** Version and validate item families,
-  generation profiles, attack/defense profiles, abilities, recipes, and effect
-  packets. The editor and runtime validator must consume the same definitions.
-- [ ] **Normalize one vertical combat slice.** Route one existing Fantasy
-  weapon, armour piece, and spell through attack/defense/ability contracts with
-  no observable Fantasy regression.
-- [ ] **Generalize generated item instances.** Extract common tier,
-  distribution, naming, value, and persistence behavior from the provisional
-  `GemGenerator`; preserve existing material-quality fields during migration.
-- [ ] **Build the sci-fi proof.** A tiny authored content set exercises a
-  kinetic attack source, protective gear, charge/heat ability, generated
-  component, and fabrication recipe while omitting magic, mana, spell schools,
-  gems, and fantasy vocabulary.
+- [x] **Map present genre coupling.** `toolkit/genre_coupling_audit.py` scans
+  engine literals for genre vocabulary and separates a *branch* (a comparison)
+  from a *name* (a field, a log line). 208 literals, **49 real branch sites** —
+  41 of them magic, 5 `Gem`, 3 weapon/armour — concentrated in `items/` (41),
+  `commands/` (25), `player/` (23), `server/headless/` (20) and `magic/` (18).
+  The classification, six coupling families and their dispositions are written
+  up in the design doc; the short version is that magic is an engine *subsystem*
+  rather than a content capability, which is the largest single piece of P9.
+- [x] **Define the contract registry.** `server/engine/contracts/` — a strict
+  declarative schema language (unknown fields are errors, required fields, enums,
+  bounds, nesting), and a `ContractRegistry` that validates and reference-checks
+  item families, generation profiles, resources, attack/defense profiles,
+  abilities and effect packets, **versioned and fail-closed**: a
+  `schema_version` this engine does not implement is refused rather than
+  best-effort read. Fantasy Frontier declares 5 families, 2 resources, the
+  `faceted_stone` profile (the tables `GemGenerator` used to hardcode), 2 attack
+  profiles, 3 effect packets and 2 abilities. It is wired, not aspirational:
+  `ItemFactory` resolves a template's class family-first, `GemGenerator` rolls
+  from the authored profile, `_validate_contract_content` turns registry
+  refusals into content errors, and the editor reads the same file
+  (`ContractCatalog.gd`) so its controls offer what content declares.
+  `tests/singles/test_contract_registry.py` — 35 tests.
+- [x] **Normalize one vertical combat slice.** Done, with the equivalence stated
+  as a test rather than a claim. `engine/contracts/equipment.py` resolves
+  contract-first, authored-property-second, engine-default-last, so items migrate
+  one at a time; six read sites moved onto it (weapon damage, weapon damage type,
+  armour defense, armour material, armour resistances, and a spell's cost /
+  cooldown / targeting / level). `item_iron_sword` → `attack_profiles.melee_blade`,
+  `item_leather_tunic` → `defense_profiles.light_armour`, `magic_missile` →
+  `abilities.magic_missile`, values copied verbatim from the templates.
+  `test_combat_contract_slice.py` (15 tests) asserts both directions: the numbers
+  match what the templates still carry, *and* retuning a profile changes the
+  fight. Two things it caught: a placeholder `resistances: {"physical": 0.1}`
+  that would have quietly given every leather tunic resistance it never had, and
+  that a family named `equipment` cannot serve both weapons and armour (a family
+  names one engine class; capabilities are the shared vocabulary).
+- [x] **Generalize generated item instances.** Done.
+  `engine/items/instance_generator.py` rolls instances for any family whose
+  contract says it rolls them, and `gem_generator.py` is a compatibility facade
+  over it rather than the implementation. The vocabulary is neutral
+  (`instance_*`, plus the cross-system `material_quality*` trio) and a set that
+  reads its own keys declares `property_prefix` — the shipped stones declare
+  `"gem"`, a sci-fi component family declares `"component"`. Naming is content
+  too: `name_template` over `{base}`/`{quality}`/`{size}`/`{rarity}`, with the
+  gaps from unused bands closed up. The last genre branch went with it: the
+  engine no longer treats `"type": "Gem"` as "this rolls instances", and a
+  content guardrail fails if a shipped Gem-class template stops declaring the
+  family that does. An ungraded template in a set with its own rarity names used
+  to produce zero total weight and crash the roll; it now resolves to the
+  commonest declared band.
+  This step also found a **save bug worth the whole exercise**: instances are
+  saved as references, and value/weight/stackability were skipped as "core
+  attributes", so a perfect ruby reloaded as an ordinary *stackable* one — and a
+  crafted quality tier's value reverted the same way. Core attributes are now
+  recorded when they differ from what the template produces.
+  `test_instance_generator.py` (6, non-fantasy family end to end),
+  `test_generated_instance_round_trip.py` (4, through a real save file).
+- [x] **Build the sci-fi proof.** Done: `content_sets/orbital_salvage`, a dead
+  salvage station in four rooms with one foreman, one hostile drone, a kinetic
+  sidearm, an impact vest, a salvage bench that rolls components, a fabrication
+  recipe, and one ability that spends **charge**. It declares `abilities` and
+  not `magic`, keeps its ability definitions in `data/abilities/`, names its own
+  damage channels (`kinetic`, `thermal`, `electric`), rolls components with the
+  property prefix `component` and its own band names (`scrap`/`serviceable`,
+  `micro`/`bulk`, `worn`/`true`), and shows no fantasy word on a status line.
+
+  The ability half needed real engine work, and the seam was where it was
+  predicted: the pool an ability spends was mana by name. It is now the
+  **declared ability resource** (`engine/contracts/resources.py`) — `label`,
+  `short`, `max_stat` and `regeneration_stat` all read, the curve staying
+  engine-side — `abilities` became its own capability with `magic` implying it,
+  the status payload carries `ability_resource: {id, label, short, current,
+  max}`, the ability commands and definitions load for a set with no magic, and
+  two content-word defaults went with it (a resource node no longer requires a
+  `pickaxe` unless content says so; a status line no longer shows
+  `SPELL_POWER` to a set that has none). Fantasy Frontier's numbers are
+  unchanged and pinned.
+  `test_sci_fi_proving_slice.py` (11 tests) walks the journey and scans every
+  player-visible line for vocabulary the set never declares — which found three
+  real leaks while it was being written.
+  *Still open, and recorded in the design doc:* the `Spell`/`known_spells`/
+  `mana_cost`/`runtime_state.magic` internal names, the fantasy aliases the
+  ability command advertises in `help`, NPC casting, and the crafting seam.
+
+### Lessons from the first batch
+
+- **A contract is only real once something reads it.** The registry was
+  designed, loaded and validated before any behaviour changed, which is exactly
+  when it is worth least. Wiring it into `GemGenerator` and `ItemFactory` is
+  what turned three declarations into a seam — and it immediately found a defect
+  the design had not: the roll weights assumed *exactly five* tiers, so a
+  content profile declaring two crashed `random.choices`.
+- **Contracts need a compatibility rule, not a flag day.** `item_family` wins
+  when present and `type` still resolves when it is not, so a content set can
+  migrate one family at a time and nothing shipped stops working. The same
+  applies to the tests: they pinned `type == "Gem"` behaviour and kept passing
+  while the resolution underneath changed.
+- **The editor is the second consumer, and it is not optional.** Reading the
+  same file is what stops a hand-written control list from drifting from the
+  schema — and Godot's JSON parser handing back floats caught a real
+  reading bug that only the editor could have exposed.
 
 ### Evidence required
 
@@ -1461,6 +1574,21 @@ work order.
 - A resolved generated instance survives inventory and save/load exactly.
 - The editor and command-line validator reject the same invalid contract.
 - End-to-end smoke journeys run for both content sets.
+
+### Second-batch evidence (2026-09-20)
+
+- Both sets boot through the same loader, the same registry and the same command
+  set; `run_content_checks.py` validates four content sets and runs the
+  neutrality gate against **both** reference sets.
+- A rolled instance round-trips through inventory and a real save file
+  (`test_generated_instance_round_trip.py`) — the value/weight/stackable bug this
+  found is fixed.
+- The sci-fi journey never shows a word its content does not declare
+  (`test_sci_fi_proving_slice.py`, 11 tests).
+- Genre coupling re-measured: **45 branch sites**, down from 49, with engine
+  literals 235 → 212. What remains is spell-school vocabulary, NPC casting, and
+  crafting quality — none of which the sci-fi set exercises, all of which the
+  design doc lists by name.
 
 ---
 

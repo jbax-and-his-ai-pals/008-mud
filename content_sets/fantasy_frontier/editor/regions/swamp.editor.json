@@ -1,0 +1,101 @@
+{
+	"region": {},
+	"rooms": {
+		"marsh_edge": {
+			"_editor_pos": [
+				350.0,
+				-1500.0
+			]
+		},
+		"willow_grove": {
+			"_editor_pos": [
+				0.0,
+				-1500.0
+			]
+		},
+		"stagnant_pool": {
+			"_editor_pos": [
+				350.0,
+				-1250.0
+			]
+		},
+		"cypress_stand": {
+			"_editor_pos": [
+				700.0,
+				-1000.0
+			]
+		},
+		"muddy_trail": {
+			"_editor_pos": [
+				350.0,
+				-1000.0
+			]
+		},
+		"mangrove_thicket": {
+			"_editor_pos": [
+				350.0,
+				-750.0
+			]
+		},
+		"rotting_log": {
+			"_editor_pos": [
+				0.0,
+				-750.0
+			]
+		},
+		"lizard_den": {
+			"_editor_pos": [
+				700.0,
+				-750.0
+			]
+		},
+		"sunken_structure_approach": {
+			"_editor_pos": [
+				350.0,
+				-500.0
+			]
+		},
+		"sunken_structure": {
+			"_editor_pos": [
+				350.0,
+				-250.0
+			]
+		},
+		"flooded_ruin": {
+			"_editor_pos": [
+				576.0,
+				-128.0
+			]
+		},
+		"deep_swamp": {
+			"_editor_pos": [
+				0.0,
+				-250.0
+			]
+		},
+		"whispering_reeds": {
+			"_editor_pos": [
+				0.0,
+				-500.0
+			]
+		},
+		"quicksand_pit": {
+			"_editor_pos": [
+				350.0,
+				0.0
+			]
+		},
+		"ancient_bog": {
+			"_editor_pos": [
+				0.0,
+				0.0
+			]
+		},
+		"bog_end": {
+			"_editor_pos": [
+				0.0,
+				250.0
+			]
+		}
+	}
+}

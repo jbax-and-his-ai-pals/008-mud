@@ -54,9 +54,13 @@ def draw_left_status_panel(renderer: 'Renderer', player: 'Player'):
             renderer.screen.blit(hp_surface, (bar_x + max_bar_width + padding, current_y + (bar_height // 2) - (hp_surface.get_height() // 2)))
             current_y += bar_height + padding
         
-        # --- MP BAR ---
-        if current_y + bar_height <= max_y:
-            mp_text = f"MP: {int(player.runtime_state.magic.mana)}/{int(player.runtime_state.magic.max_mana)}"; mp_percent = player.runtime_state.magic.mana / player.runtime_state.magic.max_mana if player.runtime_state.magic.max_mana > 0 else 0
+        # --- ABILITY POOL BAR ---
+        # What the pool is called comes from the content set's `resources`
+        # contract; "MP" is what one set calls it.
+        if current_y + bar_height <= max_y and player.runtime_state.magic is not None:
+            from engine.contracts.resources import ability_resource_short
+            pool_short = ability_resource_short(getattr(player, "world", None))
+            mp_text = f"{pool_short}: {int(player.runtime_state.magic.mana)}/{int(player.runtime_state.magic.max_mana)}"; mp_percent = player.runtime_state.magic.mana / player.runtime_state.magic.max_mana if player.runtime_state.magic.max_mana > 0 else 0
             mp_color = DEFAULT_COLORS[FORMAT_CYAN]
             pygame.draw.rect(renderer.screen, (0, 0, 80), (bar_x, current_y, max_bar_width, bar_height))
             pygame.draw.rect(renderer.screen, mp_color, (bar_x, current_y, int(max_bar_width * mp_percent), bar_height))

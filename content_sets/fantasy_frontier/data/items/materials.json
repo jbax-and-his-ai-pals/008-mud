@@ -6,7 +6,17 @@
     "weight": 0.8,
     "value": 2,
     "stackable": true,
-    "properties": { "category": "material", "material_tags": ["wood", "softwood"], "discovery_tags": ["field_material"] }
+    "properties": {
+      "category": "material",
+      "material_tags": [
+        "wood",
+        "softwood"
+      ],
+      "discovery_tags": [
+        "field_material"
+      ]
+    },
+    "item_family": "material"
   },
   "item_river_clay": {
     "type": "Item",
@@ -15,7 +25,17 @@
     "weight": 1.0,
     "value": 2,
     "stackable": true,
-    "properties": { "category": "material", "material_tags": ["clay", "river"], "discovery_tags": ["field_material"] }
+    "properties": {
+      "category": "material",
+      "material_tags": [
+        "clay",
+        "river"
+      ],
+      "discovery_tags": [
+        "field_material"
+      ]
+    },
+    "item_family": "material"
   },
   "item_iron_ingot": {
     "type": "Item",
@@ -24,7 +44,10 @@
     "weight": 1.0,
     "value": 5,
     "stackable": true,
-    "properties": { "category": "material" }
+    "properties": {
+      "category": "material"
+    },
+    "item_family": "material"
   },
   "item_leather_strip": {
     "type": "Item",
@@ -33,7 +56,10 @@
     "weight": 0.1,
     "value": 2,
     "stackable": true,
-    "properties": { "category": "material" }
+    "properties": {
+      "category": "material"
+    },
+    "item_family": "material"
   },
   "item_glass_vial": {
     "type": "Item",
@@ -42,7 +68,10 @@
     "weight": 0.1,
     "value": 1,
     "stackable": true,
-    "properties": { "category": "material" }
+    "properties": {
+      "category": "material"
+    },
+    "item_family": "material"
   },
   "item_anvil": {
     "type": "Item",
@@ -51,10 +80,11 @@
     "weight": 200.0,
     "value": 0,
     "stackable": false,
-    "properties": { 
-        "crafting_station_type": "anvil",
-        "can_take": false 
-    }
+    "properties": {
+      "crafting_station_type": "anvil",
+      "can_take": false
+    },
+    "item_family": "material"
   },
   "item_alchemy_kit": {
     "type": "Item",
@@ -63,9 +93,10 @@
     "weight": 5.0,
     "value": 50,
     "stackable": false,
-    "properties": { 
-        "crafting_station_type": "alchemy_table"
-    }
+    "properties": {
+      "crafting_station_type": "alchemy_table"
+    },
+    "item_family": "material"
   },
   "item_lapidary_wheel": {
     "type": "Item",
@@ -77,7 +108,8 @@
     "properties": {
       "crafting_station_type": "lapidary_wheel",
       "can_take": false
-    }
+    },
+    "item_family": "material"
   },
   "item_carpentry_bench": {
     "type": "Item",
@@ -89,6 +121,7 @@
     "properties": {
       "crafting_station_type": "carpentry_bench",
       "can_take": false
-    }
+    },
+    "item_family": "material"
   }
 }

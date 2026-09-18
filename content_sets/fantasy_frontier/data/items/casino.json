@@ -6,7 +6,10 @@
     "weight": 5.0,
     "value": 0,
     "stackable": false,
-    "properties": { "can_take": false }
+    "properties": {
+      "can_take": false
+    },
+    "item_family": "material"
   },
   "item_rules_slots": {
     "type": "Item",
@@ -15,7 +18,10 @@
     "weight": 2.0,
     "value": 0,
     "stackable": false,
-    "properties": { "can_take": false }
+    "properties": {
+      "can_take": false
+    },
+    "item_family": "material"
   },
   "item_rules_wheel": {
     "type": "Item",
@@ -24,7 +30,10 @@
     "weight": 0.0,
     "value": 0,
     "stackable": false,
-    "properties": { "can_take": false }
+    "properties": {
+      "can_take": false
+    },
+    "item_family": "material"
   },
   "item_rules_blackjack": {
     "type": "Item",
@@ -33,7 +42,10 @@
     "weight": 0.5,
     "value": 0,
     "stackable": false,
-    "properties": { "can_take": false }
+    "properties": {
+      "can_take": false
+    },
+    "item_family": "material"
   },
   "item_rules_runebreaker": {
     "type": "Item",
@@ -42,6 +54,9 @@
     "weight": 0.0,
     "value": 0,
     "stackable": false,
-    "properties": { "can_take": false }
+    "properties": {
+      "can_take": false
+    },
+    "item_family": "material"
   }
 }

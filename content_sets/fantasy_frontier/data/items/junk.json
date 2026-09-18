@@ -6,7 +6,8 @@
     "weight": 0.2,
     "value": 0,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_empty_crate": {
     "type": "Junk",
@@ -15,7 +16,8 @@
     "weight": 5.0,
     "value": 1,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_bent_coin": {
     "type": "Junk",
@@ -24,7 +26,8 @@
     "weight": 0.1,
     "value": 0,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_strange_feather": {
     "type": "Junk",
@@ -33,7 +36,8 @@
     "weight": 0.1,
     "value": 5,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_rusty_lantern": {
     "type": "Junk",
@@ -42,7 +46,8 @@
     "weight": 1.5,
     "value": 2,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_chewed_bone": {
     "type": "Junk",
@@ -51,7 +56,8 @@
     "weight": 0.8,
     "value": 1,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_guano": {
     "type": "Junk",
@@ -60,7 +66,8 @@
     "weight": 2.0,
     "value": 1,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_stone_fragment": {
     "type": "Junk",
@@ -69,7 +76,8 @@
     "weight": 3.0,
     "value": 2,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_broken_stylus": {
     "type": "Junk",
@@ -78,7 +86,8 @@
     "weight": 0.1,
     "value": 1,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_old_campfire": {
     "type": "Junk",
@@ -87,7 +96,8 @@
     "weight": 0.1,
     "value": 0,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_lizard_scale": {
     "type": "Junk",
@@ -96,7 +106,8 @@
     "weight": 0.2,
     "value": 3,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_wool_tuft": {
     "type": "Junk",
@@ -105,7 +116,8 @@
     "weight": 0.1,
     "value": 1,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_goblin_ear": {
     "type": "Junk",
@@ -114,7 +126,8 @@
     "weight": 0.1,
     "value": 1,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_wolf_pelt": {
     "type": "Junk",
@@ -123,7 +136,8 @@
     "weight": 0.5,
     "value": 3,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_wolf_fang": {
     "type": "Junk",
@@ -132,7 +146,8 @@
     "weight": 0.1,
     "value": 2,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_bone": {
     "type": "Junk",
@@ -141,7 +156,8 @@
     "weight": 0.3,
     "value": 1,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_rat_tail": {
     "type": "Junk",
@@ -150,7 +166,8 @@
     "weight": 0.1,
     "value": 1,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_rat_fur": {
     "type": "Junk",
@@ -159,7 +176,8 @@
     "weight": 0.2,
     "value": 1,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_stolen_pouch": {
     "type": "Junk",
@@ -168,7 +186,8 @@
     "weight": 0.1,
     "value": 4,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_troll_hide": {
     "type": "Junk",
@@ -177,7 +196,8 @@
     "weight": 2.0,
     "value": 10,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_shiny_rock": {
     "type": "Junk",
@@ -186,7 +206,8 @@
     "weight": 0.5,
     "value": 3,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "curio"
   },
   "item_spider_silk": {
     "type": "Junk",
@@ -196,21 +217,120 @@
     "value": 2,
     "stackable": true,
     "properties": {
-        "category": "material"
-    }
+      "category": "material"
+    },
+    "item_family": "curio"
   },
-  "item_bat_wing": { "type": "Junk", "name": "bat wing", "description": "The leathery wing of a giant bat.", "weight": 0.2, "value": 2 },
-  "item_boar_tusk": { "type": "Junk", "name": "boar tusk", "description": "A sharp, yellowed tusk from a wild boar.", "weight": 0.4, "value": 4 },
-  "item_rotted_cloth": { "type": "Junk", "name": "rotted cloth", "description": "A scrap of ancient, decaying cloth.", "weight": 0.1, "value": 1 },
-  "item_slimy_globule": { "type": "Junk", "name": "slimy globule", "description": "A quivering, gelatinous globule.", "weight": 0.5, "value": 3 },
-  "item_orcish_war_beads": { "type": "Junk", "name": "orcish war beads", "description": "A crude necklace of bone and stone beads.", "weight": 0.3, "value": 5 },
-  "item_ghoul_claw": { "type": "Junk", "name": "ghoul claw", "description": "The sharp, filth-caked claw of a ghoul.", "weight": 0.2, "value": 8 },
-  "item_scorpion_stinger": { "type": "Junk", "name": "scorpion stinger", "description": "The venomous stinger of a giant scorpion.", "weight": 0.3, "value": 12 },
-  "item_chitin_plate": { "type": "Junk", "name": "chitin plate", "description": "A hard plate of insectoid chitin.", "weight": 1.0, "value": 10 },
-  "item_military_insignia": { "type": "Junk", "name": "military insignia", "description": "A tarnished metal insignia from a hobgoblin soldier.", "weight": 0.1, "value": 15 },
-  "item_ectoplasm": { "type": "Junk", "name": "ectoplasm", "description": "A vial of shimmering, ghostly residue.", "weight": 0.2, "value": 25 },
-  "item_harpy_feather": { "type": "Junk", "name": "harpy feather", "description": "A long, surprisingly sharp feather from a harpy's wing.", "weight": 0.1, "value": 20 },
-  "item_living_rock": { "type": "Junk", "name": "living rock", "description": "A piece of stone that hums with a faint inner energy.", "weight": 2.5, "value": 30 },
-  "item_swamp_heart": { "type": "Junk", "name": "heart of the swamp", "description": "A pulsating, organic mass of root and vine.", "weight": 1.0, "value": 50 },
-  "item_cave_pearl": { "type": "Junk", "name": "cave pearl", "description": "A lustrous, unnaturally smooth pearl, pried from the silt of a lake no surveyor has ever charted.", "weight": 0.2, "value": 35 }
+  "item_bat_wing": {
+    "type": "Junk",
+    "name": "bat wing",
+    "description": "The leathery wing of a giant bat.",
+    "weight": 0.2,
+    "value": 2,
+    "item_family": "curio"
+  },
+  "item_boar_tusk": {
+    "type": "Junk",
+    "name": "boar tusk",
+    "description": "A sharp, yellowed tusk from a wild boar.",
+    "weight": 0.4,
+    "value": 4,
+    "item_family": "curio"
+  },
+  "item_rotted_cloth": {
+    "type": "Junk",
+    "name": "rotted cloth",
+    "description": "A scrap of ancient, decaying cloth.",
+    "weight": 0.1,
+    "value": 1,
+    "item_family": "curio"
+  },
+  "item_slimy_globule": {
+    "type": "Junk",
+    "name": "slimy globule",
+    "description": "A quivering, gelatinous globule.",
+    "weight": 0.5,
+    "value": 3,
+    "item_family": "curio"
+  },
+  "item_orcish_war_beads": {
+    "type": "Junk",
+    "name": "orcish war beads",
+    "description": "A crude necklace of bone and stone beads.",
+    "weight": 0.3,
+    "value": 5,
+    "item_family": "curio"
+  },
+  "item_ghoul_claw": {
+    "type": "Junk",
+    "name": "ghoul claw",
+    "description": "The sharp, filth-caked claw of a ghoul.",
+    "weight": 0.2,
+    "value": 8,
+    "item_family": "curio"
+  },
+  "item_scorpion_stinger": {
+    "type": "Junk",
+    "name": "scorpion stinger",
+    "description": "The venomous stinger of a giant scorpion.",
+    "weight": 0.3,
+    "value": 12,
+    "item_family": "curio"
+  },
+  "item_chitin_plate": {
+    "type": "Junk",
+    "name": "chitin plate",
+    "description": "A hard plate of insectoid chitin.",
+    "weight": 1.0,
+    "value": 10,
+    "item_family": "curio"
+  },
+  "item_military_insignia": {
+    "type": "Junk",
+    "name": "military insignia",
+    "description": "A tarnished metal insignia from a hobgoblin soldier.",
+    "weight": 0.1,
+    "value": 15,
+    "item_family": "curio"
+  },
+  "item_ectoplasm": {
+    "type": "Junk",
+    "name": "ectoplasm",
+    "description": "A vial of shimmering, ghostly residue.",
+    "weight": 0.2,
+    "value": 25,
+    "item_family": "curio"
+  },
+  "item_harpy_feather": {
+    "type": "Junk",
+    "name": "harpy feather",
+    "description": "A long, surprisingly sharp feather from a harpy's wing.",
+    "weight": 0.1,
+    "value": 20,
+    "item_family": "curio"
+  },
+  "item_living_rock": {
+    "type": "Junk",
+    "name": "living rock",
+    "description": "A piece of stone that hums with a faint inner energy.",
+    "weight": 2.5,
+    "value": 30,
+    "item_family": "curio"
+  },
+  "item_swamp_heart": {
+    "type": "Junk",
+    "name": "heart of the swamp",
+    "description": "A pulsating, organic mass of root and vine.",
+    "weight": 1.0,
+    "value": 50,
+    "item_family": "curio"
+  },
+  "item_cave_pearl": {
+    "type": "Junk",
+    "name": "cave pearl",
+    "description": "A lustrous, unnaturally smooth pearl, pried from the silt of a lake no surveyor has ever charted.",
+    "weight": 0.2,
+    "value": 35,
+    "item_family": "curio"
+  }
 }

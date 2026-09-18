@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "label": "Orbital Salvage contracts",
+  "_comment": "The proof that the engine reads declarations rather than vocabulary. Nothing here is a fantasy noun: the pool is Charge, the damage types are kinetic and thermal, the components roll under their own property prefix, and the weapon and vest ride attack/defense profiles like any other set's. See docs/design/cross_theme_engine_contracts.md.",
+  "resources": [
+    {
+      "id": "health",
+      "label": "Health",
+      "short": "HP",
+      "kind": "vital",
+      "regenerates": false,
+      "max_stat": "constitution"
+    },
+    {
+      "id": "charge",
+      "label": "Charge",
+      "short": "CHG",
+      "kind": "ability",
+      "regenerates": true,
+      "regeneration_stat": "intelligence",
+      "max_stat": "intelligence"
+    }
+  ],
+  "item_families": [
+    {
+      "id": "kinetic_sidearm",
+      "label": "Kinetic sidearm",
+      "description": "A tool that throws a solid round very fast.",
+      "item_class": "Weapon",
+      "capabilities": ["equippable", "weapon"],
+      "attack_profile": "kinetic_round",
+      "icon_style": "blade"
+    },
+    {
+      "id": "protective_gear",
+      "label": "Protective gear",
+      "description": "Layered composite that spreads an impact.",
+      "item_class": "Armor",
+      "capabilities": ["equippable", "armor"],
+      "defense_profile": "impact_shell",
+      "icon_style": "shield"
+    },
+    {
+      "id": "salvaged_part",
+      "label": "Salvaged part",
+      "description": "Pulled from wreckage. No two are quite the same.",
+      "item_class": "Junk",
+      "capabilities": ["generated_instance", "vendor_trash", "crafting_material"],
+      "generation_profile": "salvage_grade",
+      "icon_style": "pick"
+    },
+    {
+      "id": "field_supply",
+      "label": "Field supply",
+      "description": "Consumable kit, used up on use.",
+      "item_class": "Consumable",
+      "capabilities": ["usable"],
+      "icon_style": "bottle"
+    },
+    {
+      "id": "credit_chit",
+      "label": "Credit chit",
+      "description": "Stored value, accepted anywhere the lights are on.",
+      "item_class": "Treasure",
+      "capabilities": ["currency"],
+      "icon_style": "gem"
+    }
+  ],
+  "generation_profiles": [
+    {
+      "id": "salvage_grade",
+      "label": "Salvage grade",
+      "item_family": "salvaged_part",
+      "_comment": "Bands use this set's own names (scrap/serviceable, micro/bulk, worn/true) to show that nothing in the engine is reading for the words the fantasy set happens to use.",
+      "property_prefix": "component",
+      "name_template": "{size} {quality} {base}",
+      "rarity_tiers": [
+        { "id": "scrap", "rank": 1, "weight": 80 },
+        { "id": "serviceable", "rank": 2, "weight": 28 },
+        { "id": "clean", "rank": 3, "weight": 8 }
+      ],
+      "size_tiers": [
+        { "id": "micro", "label": "micro", "score": 1, "value_multiplier": 0.5, "weight_multiplier": 0.4 },
+        { "id": "standard", "label": "", "score": 2, "value_multiplier": 1.0, "weight_multiplier": 1.0 },
+        { "id": "bulk", "label": "bulk", "score": 3, "value_multiplier": 2.1, "weight_multiplier": 2.4 }
+      ],
+      "quality_tiers": [
+        { "id": "worn", "label": "worn", "score": 1, "value_multiplier": 0.4 },
+        { "id": "true", "label": "true", "score": 2, "value_multiplier": 1.0 },
+        { "id": "clean", "label": "clean", "score": 3, "value_multiplier": 2.2 }
+      ]
+    }
+  ],
+  "attack_profiles": [
+    {
+      "id": "kinetic_round",
+      "label": "Kinetic round",
+      "_comment": "`damage_type` is the channel resistance maths uses; `weapon_damage_type` is the material-interaction axis. A synthetic vest declares no material multiplier, so this lands unmodified.",
+      "damage_type": "kinetic",
+      "weapon_damage_type": "piercing",
+      "damage": 7,
+      "cooldown": 1.8
+    }
+  ],
+  "defense_profiles": [
+    {
+      "id": "impact_shell",
+      "label": "Impact shell",
+      "defense": 2,
+      "material": "synthetic"
+    }
+  ],
+  "effect_packets": [
+    {
+      "id": "discharge",
+      "label": "Discharge",
+      "description": "Dump the cell into whatever is in front of you.",
+      "kind": "damage",
+      "value": 11,
+      "tags": ["electric"]
+    },
+    {
+      "id": "seal_wound",
+      "label": "Seal wound",
+      "description": "Spray sealant and stimulant into a break.",
+      "kind": "restore",
+      "resource": "health",
+      "value": 14
+    }
+  ],
+  "abilities": [
+    {
+      "id": "overcharge",
+      "label": "Overcharge",
+      "description": "Bridge the cell and let it go. Costs charge, not patience.",
+      "effect_packet": "discharge",
+      "cost": { "resource": "charge", "amount": 6 },
+      "cooldown": 6.0,
+      "target_type": "enemy",
+      "level_required": 1
+    }
+  ]
+}

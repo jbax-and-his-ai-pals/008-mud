@@ -8,7 +8,11 @@
     "capacity": 20.0,
     "locked": false,
     "is_open": true,
-    "properties": { "owned_by_npc": "weaver_mira", "loot_pool": "household" }
+    "properties": {
+      "owned_by_npc": "weaver_mira",
+      "loot_pool": "household"
+    },
+    "item_family": "container"
   },
   "item_wildflower_posy": {
     "type": "Item",
@@ -17,7 +21,14 @@
     "weight": 0.2,
     "value": 8,
     "stackable": true,
-    "properties": { "category": "gift", "gift_tags": ["flower", "handmade"] }
+    "properties": {
+      "category": "gift",
+      "gift_tags": [
+        "flower",
+        "handmade"
+      ]
+    },
+    "item_family": "material"
   },
   "item_riverside_charm": {
     "type": "Armor",
@@ -30,11 +41,20 @@
       "defense": 1,
       "durability": 20,
       "max_durability": 20,
-      "equip_slot": ["neck"],
+      "equip_slot": [
+        "neck"
+      ],
       "category": "gift",
-      "gift_tags": ["handmade", "curio"],
-      "salvage_output": { "item_id": "item_softwood", "quantity_per_weight": 1.0 }
-    }
+      "gift_tags": [
+        "handmade",
+        "curio"
+      ],
+      "salvage_output": {
+        "item_id": "item_softwood",
+        "quantity_per_weight": 1.0
+      }
+    },
+    "item_family": "armor"
   },
   "item_river_token": {
     "type": "Item",
@@ -43,7 +63,14 @@
     "weight": 0.2,
     "value": 6,
     "stackable": true,
-    "properties": { "category": "curio", "gift_tags": ["handmade", "curio"] }
+    "properties": {
+      "category": "curio",
+      "gift_tags": [
+        "handmade",
+        "curio"
+      ]
+    },
+    "item_family": "material"
   },
   "item_rose_quartz_talisman": {
     "type": "Armor",
@@ -56,17 +83,31 @@
       "defense": 1,
       "durability": 35,
       "max_durability": 35,
-      "equip_slot": ["neck"],
-      "resistances": { "shadow": 10 },
+      "equip_slot": [
+        "neck"
+      ],
+      "resistances": {
+        "shadow": 10
+      },
       "equip_effect": {
         "type": "stat_mod",
         "name": "Quartz Focus",
-        "modifiers": { "magic_resist": 2 }
+        "modifiers": {
+          "magic_resist": 2
+        }
       },
       "category": "gift",
-      "gift_tags": ["gem", "handmade", "curio"],
-      "salvage_output": { "item_id": "item_rose_quartz", "quantity_per_weight": 1.0 }
-    }
+      "gift_tags": [
+        "gem",
+        "handmade",
+        "curio"
+      ],
+      "salvage_output": {
+        "item_id": "item_rose_quartz",
+        "quantity_per_weight": 1.0
+      }
+    },
+    "item_family": "armor"
   },
   "item_town_notice": {
     "type": "Item",
@@ -75,7 +116,8 @@
     "weight": 0.1,
     "value": 0,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_traveler_journal": {
     "type": "Item",
@@ -84,7 +126,8 @@
     "weight": 0.5,
     "value": 5,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_fishing_net": {
     "type": "Item",
@@ -93,7 +136,11 @@
     "weight": 2.0,
     "value": 15,
     "stackable": false,
-    "properties": { "tool_type": "fishing_net", "category": "tool" }
+    "properties": {
+      "tool_type": "fishing_net",
+      "category": "tool"
+    },
+    "item_family": "material"
   },
   "item_barrel_ale": {
     "type": "Item",
@@ -102,7 +149,8 @@
     "weight": 50.0,
     "value": 100,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_torn_map": {
     "type": "Item",
@@ -111,7 +159,8 @@
     "weight": 0.1,
     "value": 5,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_waterlogged_pouch": {
     "type": "Item",
@@ -120,7 +169,8 @@
     "weight": 0.5,
     "value": 15,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_burnt_scroll": {
     "type": "Item",
@@ -129,7 +179,8 @@
     "weight": 0.1,
     "value": 5,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_summit_offering": {
     "type": "Item",
@@ -138,7 +189,8 @@
     "weight": 0.2,
     "value": 30,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_sharp_flint": {
     "type": "Item",
@@ -147,7 +199,8 @@
     "weight": 0.2,
     "value": 1,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_driftwood": {
     "type": "Item",
@@ -156,7 +209,8 @@
     "weight": 1.5,
     "value": 1,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_seashell": {
     "type": "Item",
@@ -165,7 +219,8 @@
     "weight": 0.1,
     "value": 2,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_coiled_rope": {
     "type": "Item",
@@ -174,7 +229,8 @@
     "weight": 2.0,
     "value": 8,
     "stackable": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "quest_package_generic": {
     "type": "Item",
@@ -184,8 +240,9 @@
     "value": 0,
     "stackable": false,
     "properties": {
-        "quest_item": true
-    }
+      "quest_item": true
+    },
+    "item_family": "material"
   },
   "item_contraband_bundle": {
     "type": "Item",
@@ -194,7 +251,10 @@
     "weight": 1.5,
     "value": 2,
     "stackable": true,
-    "properties": { "category": "contraband" }
+    "properties": {
+      "category": "contraband"
+    },
+    "item_family": "material"
   },
   "item_wolf_fang_necklace": {
     "type": "Armor",
@@ -207,16 +267,27 @@
       "defense": 1,
       "durability": 30,
       "max_durability": 30,
-      "equip_slot": ["neck"],
+      "equip_slot": [
+        "neck"
+      ],
       "equip_effect": {
         "type": "stat_mod",
         "name": "Hunter's Confidence",
-        "modifiers": { "strength": 1 }
+        "modifiers": {
+          "strength": 1
+        }
       },
       "category": "gift",
-      "gift_tags": ["trophy", "handmade"],
-      "salvage_output": { "item_id": "item_wolf_fang", "quantity_per_weight": 1.0 }
-    }
+      "gift_tags": [
+        "trophy",
+        "handmade"
+      ],
+      "salvage_output": {
+        "item_id": "item_wolf_fang",
+        "quantity_per_weight": 1.0
+      }
+    },
+    "item_family": "armor"
   },
   "item_house_storage_chest": {
     "type": "Container",
@@ -227,7 +298,10 @@
     "capacity": 100.0,
     "locked": false,
     "is_open": false,
-    "properties": { "can_take": false }
+    "properties": {
+      "can_take": false
+    },
+    "item_family": "container"
   },
   "item_wooden_toolbox": {
     "type": "Container",
@@ -238,7 +312,8 @@
     "capacity": 40.0,
     "locked": false,
     "is_open": false,
-    "properties": {}
+    "properties": {},
+    "item_family": "container"
   },
   "item_herb_seeds": {
     "type": "Item",
@@ -247,7 +322,8 @@
     "weight": 0.1,
     "value": 5,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   },
   "item_berry_seeds": {
     "type": "Item",
@@ -256,6 +332,7 @@
     "weight": 0.1,
     "value": 5,
     "stackable": true,
-    "properties": {}
+    "properties": {},
+    "item_family": "material"
   }
 }

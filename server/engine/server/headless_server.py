@@ -20,6 +20,7 @@ from engine.core.discovery_manager import DiscoveryManager
 from engine.core.knowledge_manager import KnowledgeManager
 from engine.core.titles import TitleManager
 from engine.core.plugin_manager import PluginManager
+from engine.contracts import ContractRegistry
 from engine.dialogue.manager import DialogueManager
 from engine.core.time_manager import TimeManager
 from engine.core.weather_manager import WeatherManager
@@ -161,8 +162,12 @@ class HeadlessServer(
         # `next_node` pointing at nothing) surface here as boot warnings and, in
         # CI, as content-validation errors.
         self.dialogue_manager = DialogueManager(self.world)
+        # P9 contracts. Content declares what things *are* — item families,
+        # generation profiles, resources, abilities, effect packets — so the
+        # engine never has to branch on the word "gem" or "mana".
+        self.contract_registry = ContractRegistry.load(self.world.content_root)
         for manager in (self.advancement_manager, self.title_manager, self.background_manager,
-                        self.dialogue_manager):
+                        self.dialogue_manager, self.contract_registry):
             for issue in getattr(manager, "issues", []):
                 self.add_boot_warning("content", "advancement", str(issue))
         # The world needs these reachable from gameplay code that only has a
@@ -173,6 +178,7 @@ class HeadlessServer(
         self.world.advancement_manager = self.advancement_manager
         self.world.title_manager = self.title_manager
         self.world.dialogue_manager = self.dialogue_manager
+        self.world.contract_registry = self.contract_registry
         self.world.server = self
         self.renderer = _NullRenderer()
         self.input_handler = _NullInputHandler()

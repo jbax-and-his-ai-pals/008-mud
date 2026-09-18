@@ -7,8 +7,9 @@
     "value": 0,
     "stackable": false,
     "properties": {
-        "quest_item": true
-    }
+      "quest_item": true
+    },
+    "item_family": "material"
   },
   "item_treaty": {
     "type": "Item",
@@ -19,7 +20,8 @@
     "stackable": false,
     "properties": {
       "quest_item": true
-    }
+    },
+    "item_family": "material"
   },
   "item_iron_shield": {
     "type": "Armor",
@@ -35,6 +37,7 @@
       "equip_slot": [
         "off_hand"
       ]
-    }
+    },
+    "item_family": "armor"
   }
 }

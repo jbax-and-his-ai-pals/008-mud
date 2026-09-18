@@ -13,8 +13,12 @@ SPELL_REGISTRY: Dict[str, Spell] = {}
 
 def load_spells_from_json(content_root: str) -> dict[str, int]:
     """
-    Scans the data/magic directory for all .json files, loads them,
-    creates Spell objects, and populates the SPELL_REGISTRY.
+    Scans the content set's ability definitions and registers them.
+
+    The directory is content's to name. `abilities/` is what a set that does not
+    call them spells uses; `magic/` is kept because that is what the first
+    content set named it, and renaming a directory to satisfy an engine
+    preference is exactly the coupling this avoids.
     """
     stats = {
         "files_loaded": 0,
@@ -26,10 +30,18 @@ def load_spells_from_json(content_root: str) -> dict[str, int]:
 
     if not content_root:
         raise ValueError("Spell loading requires a content-set data root.")
-    magic_dir = os.path.join(content_root, "magic")
-    if not os.path.isdir(magic_dir):
+    magic_dir = ""
+    for candidate in ("abilities", "magic"):
+        path = os.path.join(content_root, candidate)
+        if os.path.isdir(path):
+            magic_dir = path
+            break
+    if not magic_dir:
         stats["dir_missing"] = 1
-        Logger.error("SpellRegistry", f"Magic data directory not found at '{magic_dir}'.")
+        Logger.error(
+            "SpellRegistry",
+            "No ability definitions found: expected 'abilities' or 'magic' under '%s'." % content_root,
+        )
         return stats
 
     # Loading definitions should be idempotent for each run. Clearing here

@@ -16,8 +16,9 @@ import random
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from engine.config import CHEST_TRAP_CHANCE
+from engine.contracts.registry import registry_for
 from engine.items.container import Container
-from engine.items.gem_generator import GemGenerator
+from engine.items.instance_generator import InstanceGenerator
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.loot_generator import LootGenerator
@@ -25,6 +26,56 @@ from engine.utils.utils import roll_around, weighted_choice
 
 if TYPE_CHECKING:
     from engine.world.world import World
+
+
+def _family_templates(world: 'World', capability: str) -> List[str]:
+    """Every template whose *family* declares `capability`.
+
+    This is how a chest decides what it can hold without knowing any genre
+    words: families say what they are (a curio, something equippable, something
+    that generates instances), and the chest asks for the capability. A content
+    set with no families falls back to the legacy type names at the call sites.
+    """
+    registry = registry_for(world)
+    if registry is None or registry.is_empty:
+        return []
+    families = {
+        family_id for family_id, family in registry.item_families.items()
+        if capability in (family.get("capabilities") or [])
+    }
+    if not families:
+        return []
+    return sorted(
+        item_id
+        for item_id, template in getattr(world, "item_templates", {}).items()
+        if isinstance(template, dict)
+        and str(template.get("item_family", "") or "") in families
+        and not (template.get("properties") or {}).get("debug_only")
+    )
+
+
+def _slot_categories(world: 'World') -> dict:
+    """Which kinds of thing this content set's chests may hold, and how often.
+
+    Derived from declared families when there are any: currency needs a coin
+    item, a generated-instance family gives the "something rolled" slot,
+    `equippable` gives the gear slot, and the rest is curios. Without families
+    the historic four-way split is used, so nothing shipped changes.
+    """
+    weights = {}
+    if _currency_item_id(world) is not None:
+        weights["currency"] = 3
+    if _family_templates(world, "generated_instance"):
+        weights["generated"] = 2
+    if _family_templates(world, "equippable"):
+        weights["equipment"] = 1
+    weights["curio"] = 4
+    if weights == {"curio": 4}:
+        # No families declared at all: keep the historic four-way split, with the
+        # rolled slot still asking the contract -- a set that declares nothing
+        # gets an empty slot rather than a genre guess.
+        return {"junk": 4, "currency": 3, "generated": 2, "equipment": 1}
+    return weights
 
 
 def _loot_rules(world: 'World') -> dict:
@@ -160,7 +211,9 @@ class ChestLootGenerator:
 
     @staticmethod
     def _generate_slot_item(world: 'World', level: int) -> Optional[Item]:
-        category = weighted_choice({"junk": 4, "currency": 3, "gem": 2, "equipment": 1})
+        # The categories a chest rolls come from the content set's families, so
+        # a sci-fi set's chests hold its own things without an engine change.
+        category = weighted_choice(_slot_categories(world))
         item: Optional[Item] = None
 
         if category == "currency":
@@ -168,7 +221,7 @@ class ChestLootGenerator:
             if currency_id is None:
                 # A content set with no coin item simply has no currency slot;
                 # fall back to junk rather than inventing an item.
-                junk_id = ChestLootGenerator._pick_template(world, "Junk", "Treasure")
+                junk_id = ChestLootGenerator._pick_curio(world)
                 if junk_id:
                     item = ItemFactory.create_item_from_template(junk_id, world)
             else:
@@ -178,22 +231,33 @@ class ChestLootGenerator:
                     item.value = max(1, int(item.value)) * quantity
                     item.update_property("value", item.value)
                     item.description = f"{item.description} ({quantity} coins)"
-        elif category == "gem":
-            item = GemGenerator.generate_gem(world, level=level)
+        elif category == "generated":
+            # The family declares `generated_instance`; that -- not a class name
+            # -- is what makes one of its templates worth rolling.
+            item = InstanceGenerator.generate(world, level=level)
         elif category == "equipment":
-            base_id = ChestLootGenerator._pick_template(world, "Weapon", "Armor")
+            candidates = _family_templates(world, "equippable")
+            base_id = random.choice(candidates) if candidates else ChestLootGenerator._pick_template(world, "Weapon", "Armor")
             if base_id:
                 item = LootGenerator.generate_loot(
                     base_id, world, level=level, rarity_roll=roll_around(0.5, 0.35, minimum=0.0, maximum=1.0),
                 )
-        else:  # junk
-            junk_id = ChestLootGenerator._pick_template(world, "Junk", "Treasure")
+        else:  # curio / junk
+            junk_id = ChestLootGenerator._pick_curio(world)
             if junk_id:
                 item = ItemFactory.create_item_from_template(junk_id, world)
 
         if item:
             ChestLootGenerator._apply_quality_value_roll(item)
         return item
+
+    @staticmethod
+    def _pick_curio(world: 'World') -> Optional[str]:
+        """Something worthless-but-kept: a declared curio family, else Junk/Treasure."""
+        candidates = _family_templates(world, "vendor_trash")
+        if candidates:
+            return random.choice(candidates)
+        return ChestLootGenerator._pick_template(world, "Junk", "Treasure")
 
     @staticmethod
     def _pick_template(world: 'World', *type_names: str) -> Optional[str]:

@@ -109,6 +109,76 @@ vocabulary layered on top of generic damage packets and effect tags.
   leakage.
 - Add characterization tests before moving behavior.
 
+**Done — the map (2026-09-18).** `toolkit/genre_coupling_audit.py` scans the
+engine's string literals for genre vocabulary and reports them by file, function
+and theme, distinguishing a *branch* (a comparison on the literal) from a *name*
+(a field or a log line). Current state: 203 genre-word literals in the engine,
+of which **49 are real branch sites** — 41 magic, 5 material (`Gem`), 3
+weapon/armour. The rest are field names, docstrings, and message templates.
+
+Concentration, which is what makes the work tractable:
+
+| engine area | genre-word literals | dominant theme |
+|---|---|---|
+| `items/` | 41 | material 18, magic 18, weapon/armour 5 |
+| `commands/` | 25 | magic |
+| `player/` | 23 | magic |
+| `server/headless/` | 20 | magic |
+| `magic/` | 18 | magic |
+| `core/`, `npcs/`, `dialogue/`, `world/` | 34 between them | magic, a little material |
+
+Six coupling families, each with its disposition:
+
+1. **Magic is an engine subsystem, not a content capability.** `engine/magic/`,
+   `player/magic.py`, the `spell_power` stat, `mana`/`max_mana` on runtime
+   state, the `spell_known` condition kind, `teach_spell` dialogue effect,
+   `learn_spell` consumable effect, `random_spell_scroll` in the item factory,
+   `retreating_for_mana` NPC behaviour, and `Mana:` in status output. A sci-fi
+   content set that declares no magic still gets all of it.
+   *Disposition: replace with contracts* — an **ability** contract and an
+   authored **resource** (mana is one), with fantasy spells as one
+   implementation. This is the single largest piece of P9 and the reason the
+   registry comes first.
+2. **Item `type` is doing two jobs.** `items/item_factory.py` maps `"Gem"`,
+   `"Weapon"`, `"Armor"`, `"Consumable"` to Python classes, content templates
+   say `"type": "Gem"`, and `GemGenerator.is_gem_template` /
+   `chest_loot_generator` branch on that string.
+   *Disposition: replace with contracts* — `item_family` (neutral: `equipment`,
+   `consumable`, `material`, `collectible_stone`) plus a `generation_profile`
+   reference, with the class map keyed on family.
+3. **Consumable effects mix neutral and fantasy nouns** — `heal` and
+   `learn_recipe` are theme-neutral, `mana_restore` and `learn_spell` are not.
+   *Disposition: replace with contracts* — effect **packets** that name their own
+   resource and payload, so the vocabulary lives in content.
+4. **Progression names a fantasy activity.** `KIND_SPELL` in the advancement
+   ledger and the ruleset's spell grants.
+   *Disposition: capability* — the ledger already takes an authored kind; rename
+   the magic-specific one to the ability vocabulary when (1) lands.
+5. **Status and summary payloads assume mana.** `finite_adventure` emits
+   `final_mana`/`max_mana`; the status builder prints `Mana:`.
+   *Disposition: capability* — a payload should report the resources the content
+   set declares, not a fixed pair.
+6. **Already generic and worth keeping as the pattern:** `damage_type` and
+   `effect_type` are authored vocabularies; `system_enabled(capability)` gates
+   subsystems; `behavior_type` is an engine-owned closed set;
+   `engine/conditions.py` reads content facts through one evaluator. These are
+   what a contract looks like in this codebase.
+
+Classification vocabulary used above, matching the layering rule: **kernel** =
+genre-neutral machinery (inventory, persistence, resolution, validation);
+**capability** = branching on a declared contract the engine owns, which may
+stay; **content leak** = branching on a genre word, which the registry replaces.
+The scanner's own heuristic calls 155 findings "leaks"; the 49 branch sites above
+are the ones that matter, and the difference is exactly the manual classification
+this step asked for.
+
+Characterization coverage before behaviour moves: `test_gem_generator`,
+`test_chest_loot_generator`, `test_weapon_item`, `test_player_combat`,
+`test_spell_registry_full`, `test_ambient_loot_filters`,
+`test_status_and_room_payload_builders`, plus the whole-content-set gates in
+`run_content_checks.py`. What is missing is a test that pins *outcomes* (damage
+dealt, value rolled) rather than shapes; add those as each seam moves.
+
 ### 1. Contract registry and validation
 
 - Define versioned schemas for item families, generation profiles, attack and
@@ -118,6 +188,67 @@ vocabulary layered on top of generic damage packets and effect tags.
 - Teach the editor to render controls from the same schema. It may offer
   family-specific polish, but cannot invent unvalidated fields.
 
+**Done — the registry (2026-09-18).** `server/engine/contracts/`:
+
+- `schema.py` — a small declarative schema language (`string`, `int`, `float`,
+  `bool`, `enum`, `list_of`, `object`, `map`, with `required`, `min`/`max`,
+  nesting and per-field labels). Deliberately strict: **unknown fields are
+  errors**, a required field may not be blank, and a quoted `"3"` where an int
+  belongs is refused. Errors carry a JSON-ish path, so a validator message can
+  be pasted back into the file.
+- `registry.py` — `ContractRegistry` loads `data/contracts/world_contracts.json`,
+  validates every section against `CONTRACT_SCHEMAS`, then resolves references
+  (a profile's family, a family's resource, an ability's packet and cost, a
+  packet's resource). **Versioned and fail-closed**: a `schema_version` this
+  engine does not implement is refused outright rather than best-effort read; a
+  structurally broken section is not half-registered.
+- Lookups the engine uses instead of branching: `item_class_for_family`,
+  `family_has_capability`, `tiers(profile, kind)`, `resource`, `ability`,
+  `effect_packet`. Two shared resolvers — `item_class_for_template` and
+  `generation_profile_for_template` — exist so `ItemFactory` (which decides what
+  to build) and `GemGenerator` (which decides what is worth rolling) cannot
+  disagree.
+- Neutral engine defaults (`DEFAULT_GENERATION_PROFILE`) so a content set that
+  declares nothing still rolls sensibly: ranks and bands, no genre vocabulary.
+
+**Content declares, loaded and live:** `content_sets/fantasy_frontier/data/contracts/world_contracts.json`
+declares 5 item families (`equipment`, `consumable`, `material`, `curio`,
+`collectible_stone`), 2 resources (`health`, `mana`), the `faceted_stone`
+generation profile (the tables `GemGenerator` used to hardcode), 2 attack
+profiles, 1 defense profile, 3 effect packets and 2 abilities.
+
+**Wired, not aspirational:** `GemGenerator` reads its rarity/size/quality tiers
+from the profile, `ItemFactory` resolves a template's class family-first, and
+`_validate_contract_content` turns registry refusals into content errors — plus
+two checks the registry cannot make about itself (a family's `item_class` must be
+a class the engine has; a template naming an undefined family or profile is an
+error). `tests/singles/test_contract_registry.py` (35 tests) covers the schema
+language, version refusal, every reference rule, resolution precedence, the
+content gates, and that authored tiers actually replace the built-in ones.
+
+Two things this surfaced:
+
+- The engine's band weights assumed **exactly five** tiers, so a content profile
+  declaring two crashed `random.choices`. The five-band case is now preserved
+  exactly and any other count samples the same curve, so a two-band profile
+  means "ordinary or rare" instead of an exception.
+- Godot's JSON parser returns numbers as floats, so the editor's contract reader
+  rejected `"schema_version": 1` as "not an integer". Fixed to accept an
+  integral float, which is what the parser actually hands you.
+
+**Editor parity:** `mud-world-editor/scripts/data/ContractCatalog.gd` reads the
+same file through `DataRoot`, checks `schema_version` against the version it
+knows, and enumerates families and profiles for inspectors — so the options a
+control offers are the ones content declares, and anything it writes is checked
+by the engine's schema on the next content run. The headless check asserts it
+resolves `collectible_stone` to `Gem` and `faceted_stone` exactly as the registry
+does (26 assertions total).
+
+**Still to do in this step:** recipes as contracts (a recipe asking for a
+material *family* rather than fantasy item ids), and "impossible capability
+combinations" — the rules for which capabilities may coexist are not written yet,
+because they need the ability seam (step 2) to know what combinations mean.
+
 ### 2. Combat and ability seam
 
 - Normalize existing weapon, armour, and spell code behind attack/defense/
@@ -126,6 +257,101 @@ vocabulary layered on top of generic damage packets and effect tags.
 - Add a minimal sci-fi device ability and kinetic weapon/vest through the new
   interfaces.
 
+**Done — one vertical slice (2026-09-18).** `engine/contracts/equipment.py` is
+the seam, and its rule is the same everywhere: **contract first, authored
+property second, engine default last**. A content set can move one item at a
+time, and an item nobody has migrated behaves exactly as it did.
+
+Wired read sites (each previously read a raw template property):
+
+| what | was | now |
+|---|---|---|
+| weapon damage | `weapon.get_property("damage")` | `weapon_damage(world, weapon)` |
+| weapon damage type | `weapon.get_property("weapon_damage_type")` | `weapon_damage_type(world, weapon)` |
+| armour defense | `item.get_property("defense")` | `armor_defense(world, item)` |
+| armour material | `body_item.get_property("armor_material")` | `armor_material(world, item)` |
+| armour resistances | `item.get_property("resistances")` | `armor_resistances(world, item)` (profile overrides per key) |
+| spell cost / cooldown / targeting / level | `spell.mana_cost` etc. | `ability_numbers(world, spell)` |
+
+**The slice:** `item_iron_sword` → `attack_profiles.melee_blade` (damage 8,
+slashing), `item_leather_tunic` → `defense_profiles.light_armour` (defense 2,
+leather), `magic_missile` → `abilities.magic_missile` (mana 5, cooldown 3.0,
+enemy, level 1). The values are copied verbatim from the templates, so this is a
+relocation rather than a change.
+
+`tests/singles/test_combat_contract_slice.py` (15 tests) asserts both halves:
+**equivalence** against the numbers the templates still carry — so editing one
+and not the other fails — and **that the contract is load-bearing**, by retuning
+a profile and watching the sword, the armour and the cast change. It also pins
+the two honest limits: a spell with no declared ability keeps its own numbers,
+and an ability costing a resource other than mana is *not* silently charged as
+mana (that is the resource seam, still unbuilt).
+
+Two things this caught:
+
+- `light_armour` carried a placeholder `resistances: {"physical": 0.1}` from
+  when nothing read it. Wiring the seam would have quietly given every leather
+  tunic 0.1% physical resistance it never had; the placeholder is gone, and the
+  test asserting `{}` before and `{fire: 25}` after is what caught it.
+- Families could not stay as first drafted. `equipment` (item_class `Weapon`)
+  would have resolved every *armour* template in it to a Weapon, because
+  resolution is family-first and a family names exactly one engine class. The
+  shipped families are now class-aligned (`weapon`, `armor`, `curio`, …) and
+  carry **capabilities** (`equippable`, `vendor_trash`, `generated_instance`),
+  which is what the engine queries. The sweep script refuses to write unless all
+  257 templates resolve to the class their legacy `type` already produced.
+
+**Still to do in this step:** `DAMAGE_TYPE`/cooldown vocabularies are partly
+engine-side still (`WEAPON_VS_ARMOR_MULTIPLIERS`, `VALID_DAMAGE_TYPES` in
+`config_combat.py` — the *list* is content-loaded from `data/combat/elements.json`,
+but the material-interaction table's words, `slashing`/`piercing`/`crushing`
+against `cloth`/`leather`/`chain`/`plate`, are engine constants). A set whose
+armour has a material outside that list multiplies by 1.0, which is safe but not
+declared.
+
+**The ability pool became content (2026-09-20).** This was the last thing
+standing between the engine and a set with abilities but no magic: the pool an
+ability spends was mana, by name, everywhere.
+
+- **`engine/contracts/resources.py`** resolves the **ability resource**: the
+  declared resource whose `kind` is `"ability"`, or a deliberate neutral
+  fallback (`id: ability`, `label: Ability`) for a set that declares none. The
+  resource's `label` and `short` are what players read; its `max_stat` drives how
+  large the pool is and its `regeneration_stat` how fast it refills. Those last
+  two fields were declared in the contract from the beginning and read by
+  nothing — a declaration the engine ignores, which is the pattern this whole
+  initiative exists to remove. The *curve* stays in `engine/config`, renamed
+  `ABILITY_POOL_*` (the `PLAYER_MANA_*` names are aliases now): how much a pool
+  holds per point of its driving stat is a rule, not a name.
+- **`abilities` is its own capability.** `magic` now means "this set's abilities
+  are spells" — a flavour — and implies `abilities` for sets written before the
+  split. The ability commands, the pool's state, the loading of ability
+  definitions and the debug refill gate on `abilities`.
+- **The pool travels with its name.** The status payload carries
+  `ability_resource: {id, label, short, current, max}` rather than a `mana` key,
+  the client renders whatever it is told, and the status field is the neutral
+  `ability_resource`. Messages ("Not enough charge (need 6, have 2)") and the
+  level-up line are named by the contract.
+- **`data/abilities/` is loaded like `data/magic/`**. The loader looks for the
+  neutral directory first and falls back, so the first content set keeps the
+  directory name it chose and a new set is not made to write "magic" on a folder
+  of device abilities.
+- **Two engine defaults that were content words went with it.** A resource node
+  with no declared tool used to require a `pickaxe` (every shipped node declares
+  its own tool, so nothing changed for them); a status line used to show
+  `SPELL_POWER` and `MAGIC_RESIST` to every set with abilities, and a set may now
+  declare `ruleset.status.stats` to say what it shows.
+- The ability **command surface** is neutral: the command is `abilities`
+  (`spells`, `spl` and `magic` remain aliases so a fantasy player keeps their
+  muscle memory), the category is `Abilities`, and the wording is
+  ability-neutral. What is *not* solved: help advertises those aliases, and
+  alias vocabulary is not something content can currently hide. That is
+  recorded below rather than papered over.
+
+`tests/singles/test_combat_contract_slice.py` and the content checks pin the
+equivalence: Fantasy Frontier's pool is still `50 + (intelligence - 10) * 5`,
+still regenerates on wisdom, and the mana status payload is byte-identical.
+
 ### 3. Generic generated-instance pipeline
 
 - Extract tier/distribution and instance serialization from `GemGenerator`.
@@ -133,6 +359,82 @@ vocabulary layered on top of generic damage packets and effect tags.
   profiles backed by the same resolver.
 - Keep compatibility fields during migration (`material_quality_score`, for
   example), then retire aliases only after save migration coverage exists.
+
+**Started (2026-09-18).** The tier tables, the family resolution and the
+"is this a template with instances" question are contract-driven now, and the
+two genre branches *outside* the generator are gone:
+
+- **Chest loot no longer rolls genre categories.** `_slot_categories(world)`
+  derives what a chest may hold from declared capabilities — `currency` needs a
+  coin item, `generated_instance` gives the rolled slot, `equippable` the gear
+  slot, and the rest are curios — with the historic four-way split as the
+  no-families fallback. A sci-fi set's chests hold its own things with no engine
+  change.
+- **Icons no longer branch on a class name.** Families declare `icon_style`, the
+  factory stamps it on the instance, and the renderer draws by style with the
+  class-name map kept as data (`LEGACY_STYLES`) for unmigrated items.
+- **Every shipped template now declares its family** (247 of them; 257 checked),
+  which is what makes the capability queries real rather than aspirational.
+
+Two honest notes. First, catching this required a probe: after the category
+rewrite chests briefly rolled *only* currency and curios, because no template
+declared a family yet — the fix was the content sweep, not a fallback. Second,
+**naming, value and persistence still lived in `GemGenerator`**: the generator
+rolled and decorated instances itself, and the generic resolver that would let
+any family produce instances did not exist yet.
+
+**Built (2026-09-20).** The resolver exists: `engine/items/instance_generator.py`
+rolls instances for *any* family whose contract says it rolls them, and
+`gem_generator.py` is now a compatibility facade over it (same public names,
+no logic). Naming, value and persistence came with it.
+
+- **The property vocabulary is neutral, and a set may name its own.**
+  `InstanceGenerator` writes `instance_source`, `instance_rarity`,
+  `instance_size*`, `instance_quality*` and the cross-system `material_quality*`
+  trio, and never the word "gem". The shipped profile declares
+  `"property_prefix": "gem"`, which is why instances still carry `gem_size` and
+  `gem_rarity` for pre-P9 readers, and a sci-fi component family declares
+  `"property_prefix": "component"` and gets `component_size` instead. The engine
+  writes the prefix without knowing what it means.
+- **Naming is a content decision.** A profile may declare `name_template` over
+  `{base}`, `{quality}`, `{size}`, `{rarity}` and `{profile}`. Bands a set does
+  not use render empty and the gaps close up, so a "standard" size leaves no
+  double space and an all-empty group leaves no `()`. An unknown token falls back
+  to the default shape rather than raising mid-roll.
+- **The `"type": "Gem"` fallback is retired, and its absence is checked.** This
+  was the last genre word deciding behaviour: a template with no family rolled
+  instances because of its class name. Content now says so through a family
+  (`generated_instance` + a profile), and
+  `test_editor_content_source.py::test_nothing_relies_on_the_retired_class_name_generation_fallback`
+  fails if a shipped `type: Gem` template stops declaring one. The guardrail is
+  a test rather than engine logic on purpose: the point is that the engine no
+  longer knows the word. A set with un-migrated rolling templates now gets
+  nothing rolled — loudly, via the check, instead of silently.
+- **A latent roll crash was fixed on the way.** An ungraded template in a set
+  whose rarity bands have their own names (a sci-fi set's `scrap` /
+  `serviceable`) resolved to a band id that was not in the table, which produced
+  zero total weight and made `random.choices` raise. An ungraded specimen now
+  resolves to the *commonest declared* band, and the instance records the band
+  the table actually resolved to rather than the name the lookup started from.
+
+**The bug this step found, which is the reason completion gate 3 is worth
+having.** A rolled instance is saved as an item *reference*: the template id plus
+whatever differs from the template. Value, weight and stackability did not
+differ, as far as the save was concerned — they were skipped as "core attributes"
+— so a perfect ruby reloaded as an ordinary one: template value, and *stackable*,
+which silently merged it with its neighbours on the next pickup. A crafted
+quality tier's value multiplier reverted the same way. Fixed in
+`utils._serialize_item_reference`, which now records a core attribute when it
+differs from what the template produces (declared value, else the `Item`
+default), so ordinary items gain no save noise and generated ones keep their
+identity. `test_generated_instance_round_trip.py` covers the inventory half and
+a real save file end to end; it failed on value, weight and stackable before the
+fix.
+
+Also outstanding, and deliberately: **recipes still name item ids, not
+materials.** A recipe asking for "any material of grade ≥ fine" is a crafting
+seam change (step 4), and half-building it here would leave two ways to match an
+ingredient.
 
 ### 4. Crafting and economy seam
 
@@ -151,6 +453,59 @@ vocabulary layered on top of generic damage packets and effect tags.
 - Add an end-to-end smoke journey and contract snapshots alongside the
   existing Fantasy Frontier coverage.
 
+**Built (2026-09-20): `content_sets/orbital_salvage`.** A dead salvage station
+in four rooms -- dock ring, spine corridor, workshop, cargo hold -- with one
+foreman, one hostile loading drone, a kinetic sidearm, an impact vest, a salvage
+bench that rolls components, a fabrication recipe, and one ability that spends
+**charge**. It declares `abilities` and not `magic`, and it says nothing about
+spells, gems, mana or gold anywhere in its files.
+
+Everything it needs is a declaration it makes itself:
+
+| what | how the set says it |
+|---|---|
+| the ability pool | `resources: charge` (`kind: ability`, `max_stat: intelligence`, `short: CHG`) |
+| the weapon | `attack_profiles.kinetic_round` (`damage_type: kinetic`, 7 damage, 1.8s) |
+| the vest | `defense_profiles.impact_shell` (2 defense, `material: synthetic`) |
+| the components | family `salvaged_part` with `generated_instance` + profile `salvage_grade`, `property_prefix: "component"`, bands named `scrap`/`serviceable`/`clean`, `micro`/`standard`/`bulk`, `worn`/`true` |
+| the ability | `abilities.overcharge` (costs 6 charge, 6s cooldown, `effect_packets.discharge`) |
+| the ability definition | `data/abilities/overcharge.json` -- the neutral directory the loader now prefers |
+| the damage channels | `data/combat/elements.json` (`kinetic`, `thermal`, `electric`) |
+| the status line | `ruleset.status.stats` -- no `SPELL_POWER` for a set that has none |
+
+`tests/singles/test_sci_fi_proving_slice.py` (11 tests) walks the journey and
+does two different jobs. It asserts the slice **works** -- creation grants the
+set's own kit, gathering rolls `component_*` instances with the set's own band
+names, the recipe consumes them into a patch kit, `cast overcharge` spends 6
+charge and names the cost `6 CHG`, the weapon and vest resolve their declared
+profiles -- and then it asserts **nothing leaks**, by scanning every line of
+player-visible text from a scripted journey for the vocabulary the set never
+declares (`mana`, `spell`, `gem`, `sword`, `gold`, `pickaxe`, ...). That second
+half is the real proof: a fantasy word reaching a sci-fi player is the failure
+this initiative exists to remove, and no mechanics test can see it. The scan
+found three real leaks while being written -- `SPELL_POWER`/`MAGIC_RESIST` on the
+status line, `Mana:` in the ability list, and a `pickaxe` requirement the set
+never authored.
+
+Nothing in the engine was special-cased for it. The only engine changes it
+needed were the ones above, each of which was a content word standing in for a
+declaration.
+
+**Known and recorded, not hidden:**
+
+- The `Spell` class, `spell_registry`, `known_spells`, `mana_cost` and
+  `runtime_state.magic` remain the *internal* names of the ability machinery.
+  They are storage and API names rather than branches, they never reach a player
+  of the sci-fi set, and renaming them is a save-format migration rather than a
+  contract change -- it belongs with `save_format_version`, not here.
+- The ability command advertises fantasy aliases (`spells`, `magic`) in `help`.
+  Alias vocabulary is not content-declarable yet.
+- An NPC caster (`npc.mana`, `npc.max_mana`, spell-casting AI) is still
+  mana-shaped. No shipped NPC in the sci-fi set casts anything, so this is a
+  gap in the proof rather than a lie in it.
+- The crafting seam (step 4) is untouched: the fabrication recipe names item
+  ids, not "any component of grade ≥ true".
+
 ## Completion gates
 
 This initiative is complete only when:
@@ -164,6 +519,21 @@ This initiative is complete only when:
 4. The content validator and editor reject the same invalid contracts.
 5. Tests prove both reference sets without allowing content-ID exceptions in
    engine code.
+
+**Where the gates stand:** 2 is largely met for combat, abilities and generated
+instances, with crafting outstanding. 3 is met and tested
+(`test_generated_instance_round_trip.py`). 4 is met for the content validator on
+both sets and for the editor's contract catalog; the editor's *authoring* surface
+for the new contract fields (`name_template`, `property_prefix`) does not exist
+yet. 5 is met for the engine kernel
+(`toolkit/content_neutrality_validator.py` runs against both sets as a content
+check) but not for content *ids* named in engine code that the sci-fi set does
+not use. 1 is the honest remaining one: the genre branch sites are down from the
+49 measured at the start of this work to 45 (measured by the same
+comparison-on-its-own-line rule; engine literals 235 → 212), and what is left is
+concentrated in paths the sci-fi set does not exercise: spell schools
+(`spell_known`, `teach_spell`, `random_spell_scroll`), NPC casting
+(`retreating_for_mana`, `mana_restore`), and crafting quality vocabulary.
 
 ## Non-goals
 

@@ -64,14 +64,28 @@ class TestContentSetValidator(unittest.TestCase):
         self.assertEqual("town", definition.start_region_id)
         self.assertEqual("town_square", definition.start_room_id)
         self.assertTrue(definition.game_contract.system_enabled("magic"))
+        self.assertTrue(definition.game_contract.system_enabled("abilities"))
         self.assertTrue(definition.game_contract.system_enabled("progression"))
-        self.assertIn("mana", definition.game_contract.status_fields)
+        # The status field says "this game shows an ability pool"; what the pool
+        # is called travels in the payload, from the content set's `resources`.
+        self.assertIn("ability_resource", definition.game_contract.status_fields)
 
     def test_modern_capsule_package_is_semantically_valid(self) -> None:
         definition, issues = validator.load_content_set(REPO_ROOT / "content_sets" / "modern_capsule")
         self.assertFalse([issue for issue in issues if issue.severity == "error"])
         self.assertIsNotNone(definition)
         self.assertFalse(any("missing NPC template" in issue.message for issue in issues))
+
+    def test_orbital_salvage_package_is_semantically_valid(self) -> None:
+        """The sci-fi proof validates through the same gate as the fantasy set."""
+        definition, issues = validator.load_content_set(REPO_ROOT / "content_sets" / "orbital_salvage")
+        self.assertFalse([issue for issue in issues if issue.severity == "error"], issues)
+        self.assertIsNotNone(definition)
+        assert definition is not None
+        # Abilities without magic: the capability is its own thing.
+        self.assertTrue(definition.game_contract.system_enabled("abilities"))
+        self.assertFalse(definition.game_contract.system_enabled("magic"))
+        self.assertIn("ability_resource", definition.game_contract.status_fields)
 
     def test_missing_exit_target_is_rejected(self) -> None:
         package = self._write_package(self._case_root())

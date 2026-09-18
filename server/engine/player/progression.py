@@ -4,9 +4,12 @@ from typing import Tuple, Dict, TYPE_CHECKING, cast
 from engine.config import (
     PLAYER_BASE_XP_TO_LEVEL, PLAYER_XP_TO_LEVEL_MULTIPLIER, 
     PLAYER_LEVEL_UP_STAT_INCREASE, PLAYER_LEVEL_HEALTH_BASE_INCREASE,
-    PLAYER_LEVEL_CON_HEALTH_MULTIPLIER, PLAYER_MANA_LEVEL_UP_MULTIPLIER,
-    PLAYER_MANA_LEVEL_UP_INT_DIVISOR,
+    PLAYER_LEVEL_CON_HEALTH_MULTIPLIER,
     FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_CATEGORY
+)
+from engine.contracts.resources import (
+    ability_resource_label,
+    pool_on_level_up,
 )
 from engine.core.skill_system import SkillSystem
 
@@ -77,17 +80,18 @@ class PlayerProgressionMixin:
         p.max_health += health_increase
         p.health += (p.max_health - old_max_health)
         
-        # Increase Mana
+        # Increase the ability pool, by the curve and the contract's driving stat.
         if p.runtime_state.magic is not None:
-            mana_increase = int(p.runtime_state.magic.max_mana * (PLAYER_MANA_LEVEL_UP_MULTIPLIER - 1) + p.stats["intelligence"] / PLAYER_MANA_LEVEL_UP_INT_DIVISOR)
-            p.runtime_state.magic.max_mana += mana_increase
+            pool_increase = pool_on_level_up(p.world, p.runtime_state.magic.max_mana, p.stats)
+            p.runtime_state.magic.max_mana += pool_increase
             p.runtime_state.magic.mana += (p.runtime_state.magic.max_mana - old_max_mana)
         
         # Build Message
         message = f"{FORMAT_HIGHLIGHT}You have reached level {p.runtime_state.progression.level}!{FORMAT_RESET}\n"
         message += f"  - Max Health: {old_max_health} -> {p.max_health} (+{p.max_health - old_max_health})\n"
         if p.runtime_state.magic is not None and old_max_mana is not None:
-            message += f"  - Max Mana:   {old_max_mana} -> {p.runtime_state.magic.max_mana} (+{p.runtime_state.magic.max_mana - old_max_mana})\n"
+            pool_label = ability_resource_label(p.world)
+            message += f"  - Max {pool_label}: {old_max_mana} -> {p.runtime_state.magic.max_mana} (+{p.runtime_state.magic.max_mana - old_max_mana})\n"
         message += f"{FORMAT_CATEGORY}Stats Increased:{FORMAT_RESET}\n"
         
         for stat_name, old_value in old_stats.items():

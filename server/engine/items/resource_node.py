@@ -14,7 +14,7 @@ class ResourceNode(Item):
     def __init__(self, obj_id: Optional[str] = None, name: str = "Resource",
                  description: str = "A resource node.", 
                  resource_item_id: str = "item_stone",
-                 tool_required: str = "pickaxe",
+                 tool_required: str = "",
                  charges: int = 3,
                  **kwargs):
         
@@ -28,6 +28,10 @@ class ResourceNode(Item):
         
         self.update_property("can_take", False)
         self.update_property("resource_item_id", resource_item_id)
+        # A node with no declared tool needs none. The default used to be
+        # "pickaxe", which is a content word deciding engine behaviour: a content
+        # set with no pickaxe could not gather at all, and the message named a
+        # tool that existed nowhere in it.
         self.update_property("tool_required", tool_required)
         self.update_property("charges", charges)
         self.update_property("max_charges", charges)
@@ -101,7 +105,7 @@ class ResourceNode(Item):
             
         tool_req = self.get_property("tool_required")
         
-        has_tool = False
+        has_tool = not tool_req
         for item in player.equipment.values():
             if item and item.get_property("tool_type") == tool_req:
                 has_tool = True
@@ -122,7 +126,7 @@ class ResourceNode(Item):
                 tool_label = str(tool_req)
             return f"{FORMAT_ERROR}You need a {tool_label} to gather from this. You don't seem to be carrying or wearing one.{FORMAT_RESET}"
             
-        from engine.items.gem_generator import GemGenerator
+        from engine.items.instance_generator import InstanceGenerator
         from engine.items.item_factory import ItemFactory
         resource_id = self.get_property("resource_item_id")
         selected_yield = None
@@ -143,8 +147,8 @@ class ResourceNode(Item):
         )
         raw_score = quality.get("score", 0) if isinstance(quality, dict) else 0
         quality_score = int(raw_score) if isinstance(raw_score, int) and not isinstance(raw_score, bool) else None
-        if GemGenerator.is_gem_template(world, resource_id):
-            resource = GemGenerator.generate_gem(world, level=1, template_id=resource_id, quality_score=quality_score)
+        if InstanceGenerator.is_generated_template(world, resource_id):
+            resource = InstanceGenerator.generate(world, level=1, template_id=resource_id, quality_score=quality_score)
         else:
             resource = ItemFactory.create_item_from_template(resource_id, world)
 

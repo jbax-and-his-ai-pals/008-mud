@@ -18,7 +18,7 @@ CONTENT_SET_SCHEMA_VERSION = "1"
 RUNTIME_API_VERSION = "1.0"
 _CONTENT_SET_ID_PATTERN = re.compile(r"[a-z][a-z0-9_]*")
 _REQUIRED_DATA_DIRECTORIES = ("regions", "items", "npcs")
-_CAPABILITY_SYSTEMS = ("inventory", "dialogue", "combat", "magic", "crafting", "gathering", "quests", "collections", "discoveries", "social")
+_CAPABILITY_SYSTEMS = ("inventory", "dialogue", "combat", "abilities", "magic", "crafting", "gathering", "quests", "collections", "discoveries", "social")
 _RULESET_SYSTEMS = ("progression", "economy")
 _DISABLED_PROGRESSION_MODELS = {"", "none", "off", "disabled"}
 
@@ -113,8 +113,12 @@ def _build_game_contract(
     status_fields = ["name", "health"]
     if resolved["progression"]:
         status_fields.extend(("level", "experience"))
-    if resolved["magic"]:
-        status_fields.append("mana")
+    if resolved.get("abilities") or resolved["magic"]:
+        # One field for "this game shows the pool an ability spends". What the
+        # pool *is* travels in the payload: a content set that declares charge
+        # instead of mana must not be shown "mana" by a client that reads the
+        # field list.
+        status_fields.append("ability_resource")
     ui_sections = ["log", "nearby", "status"]
     if resolved["inventory"]:
         ui_sections.append("inventory")
@@ -1338,6 +1342,77 @@ def _validate_new_quest_objective_types(content_root: Path, issues: list[Content
                                 issues.append(ContentSetIssue("error", str(quests_path), f"{label}.recipients[{r_index}].template_id references a missing NPC template"))
 
 
+def _validate_contract_content(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate declared contracts, and the templates that reference them.
+
+    The registry refuses to guess (see `engine/contracts/registry.py`): a version
+    it does not know, a field its schema does not define, a profile pointing at a
+    family that does not exist. This turns those refusals into content errors,
+    and adds the one check the registry cannot make about itself — that a family
+    names an item class the engine actually has.
+
+    A template's own `item_family` / `generation_profile` are checked here too,
+    so a typo fails the build rather than resolving to nothing at runtime.
+    """
+    from engine.contracts import ContractRegistry
+
+    contracts_path = content_root / "contracts" / "world_contracts.json"
+    registry = ContractRegistry.load(str(content_root))
+    for issue in registry.issues:
+        issues.append(ContentSetIssue("error", str(contracts_path), issue))
+
+    if registry.is_empty:
+        return
+
+    from engine.items.item_factory import ITEM_CLASS_MAP
+
+    for family_id, family in registry.item_families.items():
+        item_class = str(family.get("item_class", "") or "")
+        if item_class and item_class not in ITEM_CLASS_MAP:
+            issues.append(ContentSetIssue(
+                "error", str(contracts_path),
+                f"item_families.{family_id}.item_class '{item_class}' is not an item class "
+                f"this engine has (known: {', '.join(sorted(ITEM_CLASS_MAP))})",
+            ))
+
+    items_dir = content_root / "items"
+    if not items_dir.is_dir():
+        return
+    for path in sorted(items_dir.glob("*.json")):
+        payload = _load_json(path, issues, "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item_id, template in payload.items():
+            if str(item_id).startswith("_") or not isinstance(template, dict):
+                continue
+            family_id = str(template.get("item_family", "") or "")
+            if family_id and family_id not in registry.item_families:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"item '{item_id}' declares item_family '{family_id}', which this "
+                    f"content set does not define",
+                ))
+            profile_id = str(template.get("generation_profile", "") or "")
+            if profile_id and profile_id not in registry.generation_profiles:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"item '{item_id}' declares generation_profile '{profile_id}', which "
+                    f"this content set does not define",
+                ))
+            # A family that generates instances needs a profile to roll from, or
+            # every instance of it comes out undifferentiated.
+            if family_id and family_id in registry.item_families:
+                family = registry.item_families[family_id]
+                capabilities = family.get("capabilities") or []
+                family_profile = str(family.get("generation_profile", "") or "")
+                if "generated_instance" in capabilities and not (family_profile or profile_id):
+                    issues.append(ContentSetIssue(
+                        "error", str(path),
+                        f"item '{item_id}' is in family '{family_id}', which generates "
+                        f"instances, but neither it nor the family declares a generation profile",
+                    ))
+
+
 def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Validate optional, setting-agnostic vendor delivery orders."""
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
@@ -1984,6 +2059,7 @@ def load_content_set(
             _validate_ambient_loot_references(content_root, ruleset_payload, issues, ruleset_source_path)
             _validate_advancement_content(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_starting_content(content_root, issues)
+        _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_quest_choice_outcomes(content_root, issues)
         _validate_new_quest_objective_types(content_root, issues)

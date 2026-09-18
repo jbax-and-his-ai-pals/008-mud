@@ -9,7 +9,9 @@
       "linked_target_id": "obsidian_trial:hall_of_gates",
       "linked_action": "toggle_exit:north",
       "interaction_message": "You heave the lever down with a satisfying clunk.",
-      "hidden_exits": { "north": "obsidian_trial:inner_sanctum" } 
+      "hidden_exits": {
+        "north": "obsidian_trial:inner_sanctum"
+      }
     }
   },
   "obj_sealed_gate": {
@@ -17,6 +19,9 @@
     "name": "massive obsidian gate",
     "description": "A huge slab of rock blocking the way north. It has no keyhole, but looks connected to mechanisms elsewhere.",
     "weight": 9999,
-    "properties": { "can_take": false }
+    "properties": {
+      "can_take": false
+    },
+    "item_family": "material"
   }
 }

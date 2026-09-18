@@ -1,6 +1,7 @@
 # engine/player/equipment.py
 from typing import List, Tuple, Optional, TYPE_CHECKING, cast
 import time
+from engine.contracts.equipment import armor_material, armor_resistances
 from engine.items.item import Item
 from engine.config import FORMAT_ERROR, FORMAT_RESET
 
@@ -122,7 +123,9 @@ class PlayerEquipmentMixin:
             return None
         if body_item.get_property("durability", 1) <= 0:
             return None
-        return body_item.get_property("armor_material")
+        # A defense profile may declare the material; the item property is the
+        # fallback, so an unmigrated item behaves exactly as before.
+        return armor_material(p.world, body_item) or None
 
     def get_resistance(self, damage_type: str) -> int:
         p = cast('Player', self)
@@ -139,7 +142,8 @@ class PlayerEquipmentMixin:
         
         for item in p.equipment.values():
             if item:
-                item_resistances = item.get_property("resistances", {})
-                total_res += item_resistances.get(damage_type, 0)
+                # A defense profile may declare resistances the item property
+                # does not; the resolver merges them (profile wins per key).
+                total_res += armor_resistances(p.world, item).get(damage_type, 0)
                 
         return total_res

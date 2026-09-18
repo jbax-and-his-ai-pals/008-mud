@@ -450,7 +450,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Migrate mud-world-editor export data into latest-format content-set data structure."
     )
-    parser.add_argument("--source", default="mud-world-editor/data", help="Editor data root.")
+    parser.add_argument(
+        "--source",
+        default="content_sets/fantasy_frontier/data",
+        help=
+        "Content set to export/check. The editor writes this tree directly now, so the"
+        " default is the game's own data; point it at a legacy mirror to migrate one.",
+    )
     parser.add_argument("--target", default="tmp/editor_export_shim/content_data", help="Shim output root.")
     parser.add_argument("--report", default="tmp/editor_export_shim/report.json", help="Report JSON output path.")
     parser.add_argument("--no-validate", action="store_true", help="Skip data/reference validation pass.")

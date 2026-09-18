@@ -28,6 +28,11 @@ from engine.core.plugin_manager import PluginManager
 from engine.dialogue.manager import DialogueManager
 from engine.core.time_manager import TimeManager
 from engine.core.weather_manager import WeatherManager
+from engine.contracts.resources import (
+    ability_resource_id,
+    ability_resource_label,
+    ability_resource_short,
+)
 from engine.crafting.crafting_manager import CraftingManager
 from engine.server.protocol import build_server_event, validate_client_command_envelope
 from engine.server.persistence import SqliteStore
@@ -110,8 +115,8 @@ class StatusPayloadsMixin:
                 "alive": False,
                 "effects": [],
             }
-            if self.world.has_capability("magic"):
-                payload["mana"] = {"current": 0, "max": 0}
+            if self.world.uses_abilities():
+                payload["ability_resource"] = self._ability_resource_payload(None)
             return payload
 
         effect_names: List[str] = []
@@ -136,12 +141,26 @@ class StatusPayloadsMixin:
         if self.world.uses_progression() and player.runtime_state.progression is not None:
             payload["level"] = int(player.runtime_state.progression.level)
             payload["experience"] = int(player.runtime_state.progression.experience)
-        if self.world.has_capability("magic") and player.runtime_state.magic is not None:
-            payload["mana"] = {
-                "current": int(player.runtime_state.magic.mana),
-                "max": int(player.runtime_state.magic.max_mana),
-            }
+        if self.world.uses_abilities() and player.runtime_state.magic is not None:
+            payload["ability_resource"] = self._ability_resource_payload(player)
         return payload
+
+    def _ability_resource_payload(self, player: Optional[Any]) -> Dict[str, Any]:
+        """The pool an ability spends, named by the content set.
+
+        One payload key for every content set, and the *name* travels in it: a
+        client that hardcoded "mana" would show the wrong word to a game whose
+        abilities draw on charge, and the field list alone cannot say what the
+        pool is called.
+        """
+        state = getattr(getattr(player, "runtime_state", None), "magic", None) if player else None
+        return {
+            "id": ability_resource_id(self.world),
+            "label": ability_resource_label(self.world),
+            "short": ability_resource_short(self.world),
+            "current": int(getattr(state, "mana", 0) or 0),
+            "max": int(getattr(state, "max_mana", 0) or 0),
+        }
 
     def _is_inventory_command(self, text: str) -> bool:
         normalized = text.strip().lower()

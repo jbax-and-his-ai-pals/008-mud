@@ -39,35 +39,41 @@ def get_item_icon(item: Item) -> pygame.Surface:
     rect = pygame.Rect(0, 0, ICON_SIZE, ICON_SIZE)
     pygame.draw.rect(surface, (100, 100, 100), rect, 1)
 
-    # 3. Get Item Color
+    # 3. Get Item Color and drawing style.
+    #
+    # Style comes from the item's family contract when content declares one, so
+    # a content set decides how its things look; the class name is the fallback
+    # for items from families that declare nothing, which is also how every item
+    # behaved before styles existed.
     item_type = item.__class__.__name__
     color = TYPE_COLORS.get(item_type, (200, 200, 200))
+    style = _style_for(item, item_type)
     
     # 4. Draw Symbol
     center = (ICON_SIZE // 2, ICON_SIZE // 2)
     
-    if item_type == "Weapon":
+    if style == "blade":
         pygame.draw.line(surface, color, (6, 26), (26, 6), 3) # Blade
         pygame.draw.line(surface, (150, 150, 150), (6, 26), (12, 20), 5) # Hilt handle
         pygame.draw.line(surface, (100, 100, 100), (8, 24), (14, 18), 2) # Crossguard
         
-    elif item_type == "Armor":
+    elif style == "shield":
         shield_rect = pygame.Rect(8, 8, 16, 16)
         pygame.draw.rect(surface, color, shield_rect)
         pygame.draw.rect(surface, (255, 255, 255), shield_rect, 1)
 
-    elif item_type == "Consumable":
+    elif style == "bottle":
         pygame.draw.circle(surface, color, (16, 20), 7) # Bottle
         pygame.draw.rect(surface, (150, 150, 150), (14, 10, 4, 4)) # Neck
 
-    elif item_type == "Key":
+    elif style == "key":
         pygame.draw.circle(surface, color, (12, 12), 5, 2) # Bow
         pygame.draw.line(surface, color, (16, 16), (24, 24), 2) # Shaft
         
-    elif item_type == "Gem":
+    elif style == "gem":
         pygame.draw.polygon(surface, color, [(16, 6), (26, 16), (16, 26), (6, 16)])
         
-    elif item_type == "Lockpick":
+    elif style == "pick":
         pygame.draw.line(surface, color, (8, 24), (24, 8), 1)
         pygame.draw.line(surface, color, (24, 8), (20, 6), 1) # Hook
 
@@ -79,3 +85,23 @@ def get_item_icon(item: Item) -> pygame.Surface:
 
     _ICON_CACHE[cache_key] = surface
     return surface
+
+
+# Class name -> style, for items whose family declares no icon_style. This is
+# the whole of the old behaviour, kept as data rather than as branches.
+LEGACY_STYLES = {
+    "Weapon": "blade",
+    "Armor": "shield",
+    "Consumable": "bottle",
+    "Key": "key",
+    "Gem": "gem",
+    "Lockpick": "pick",
+}
+
+
+def _style_for(item: Item, item_type: str) -> str:
+    declared = ""
+    getter = getattr(item, "get_property", None)
+    if callable(getter):
+        declared = str(getter("icon_style", "") or "")
+    return declared or LEGACY_STYLES.get(item_type, "box")

@@ -4,8 +4,10 @@ extends RefCounted
 
 const DistrictLayout = preload("res://scripts/generators/DistrictLayout.gd")
 
-const REGIONS_DIR = "res://data/regions/"
-const WORLD_LAYOUT_FILE = "res://data/world_layout.json"
+# Regions come from the shared content set; the world layout is editor-only
+# state beside it. Both are resolved at call time (see DataRoot).
+static func regions_dir() -> String: return DataRoot.content_dir("regions")
+static func world_layout_file() -> String: return DataRoot.editor_file("world_layout.json")
 
 var world_node_positions: Dictionary = {}
 var ignored_validation_warnings: Dictionary = {}
@@ -15,8 +17,8 @@ func _init():
 
 func load_world_layout():
 	world_node_positions.clear()
-	if FileAccess.file_exists(WORLD_LAYOUT_FILE):
-		var f = FileAccess.open(WORLD_LAYOUT_FILE, FileAccess.READ)
+	if FileAccess.file_exists(world_layout_file()):
+		var f = FileAccess.open(world_layout_file(), FileAccess.READ)
 		var json = JSON.new()
 		if json.parse(f.get_as_text()) == OK:
 			var d = json.get_data()
@@ -26,7 +28,7 @@ func load_world_layout():
 
 func save_world_layout():
 	var d = { "positions": world_node_positions, "ignored_validation_warnings": ignored_validation_warnings.keys() }
-	var f = FileAccess.open(WORLD_LAYOUT_FILE, FileAccess.WRITE)
+	var f = FileAccess.open(world_layout_file(), FileAccess.WRITE)
 	if f: f.store_string(JSON.stringify(d, "\t"))
 
 func update_world_node_pos(region_id: String, pos: Vector2):
@@ -49,10 +51,10 @@ func reset_ignored_warnings():
 
 func get_global_hierarchy() -> Dictionary:
 	var hierarchy = {}
-	var files = _scan_regions_recursive(REGIONS_DIR, "")
+	var files = _scan_regions_recursive(regions_dir(), "")
 	
 	for fname in files:
-		var f = FileAccess.open(REGIONS_DIR.path_join(fname), FileAccess.READ)
+		var f = FileAccess.open(regions_dir().path_join(fname), FileAccess.READ)
 		if f:
 			var json = JSON.new()
 			if json.parse(f.get_as_text()) == OK:
@@ -68,10 +70,10 @@ func get_global_hierarchy() -> Dictionary:
 
 func get_all_world_data() -> Dictionary:
 	var world_data = {}
-	var files = _scan_regions_recursive(REGIONS_DIR, "")
+	var files = _scan_regions_recursive(regions_dir(), "")
 	
 	for fname in files:
-		var f = FileAccess.open(REGIONS_DIR.path_join(fname), FileAccess.READ)
+		var f = FileAccess.open(regions_dir().path_join(fname), FileAccess.READ)
 		if f:
 			var json = JSON.new()
 			if json.parse(f.get_as_text()) == OK:

@@ -94,13 +94,13 @@ class TestContentSetDataIsolation(unittest.TestCase):
             alternate.execute_command(session.session_id, "char create Alternate")
             magic_events = alternate.execute_command(session.session_id, "spells")
             self.assertIn(
-                "does not include the 'magic' system",
+                "does not include the 'abilities' system",
                 "\n".join(str(event["payload"]) for event in magic_events),
             )
             status_events = alternate.execute_command(session.session_id, "status")
             status_text = "\n".join(str(event["payload"]) for event in status_events)
             self.assertNotIn("Mana:", status_text)
-            self.assertNotIn("SPELLS KNOWN", status_text)
+            self.assertNotIn("ABILITIES KNOWN", status_text)
             help_events = alternate.execute_command(session.session_id, "help")
             help_text = "\n".join(str(event["payload"]) for event in help_events)
             self.assertNotIn("Magic", help_text)

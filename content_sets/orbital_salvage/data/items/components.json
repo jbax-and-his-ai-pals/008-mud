@@ -1,0 +1,53 @@
+{
+  "item_servo_cluster": {
+    "type": "Item",
+    "name": "servo cluster",
+    "description": "A palm-sized block of actuators, still greasy.",
+    "item_family": "salvaged_part",
+    "rarity": "scrap",
+    "weight": 0.6,
+    "value": 22,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_cell_stack": {
+    "type": "Item",
+    "name": "cell stack",
+    "description": "Layered charge cells, none of them matched.",
+    "item_family": "salvaged_part",
+    "rarity": "serviceable",
+    "weight": 0.9,
+    "value": 55,
+    "stackable": true,
+    "properties": {}
+  },
+  "item_lattice_shard": {
+    "type": "Item",
+    "name": "lattice shard",
+    "description": "A splinter of grown crystal lattice, warm to the touch.",
+    "item_family": "salvaged_part",
+    "rarity": "clean",
+    "weight": 0.3,
+    "value": 210,
+    "stackable": true,
+    "properties": {}
+  },
+  "node_salvage_bench": {
+    "type": "ResourceNode",
+    "name": "salvage bench",
+    "description": "A stripped workbench with one drawer still full of parts. It will not restock itself.",
+    "properties": {
+      "resource_item_id": "item_servo_cluster",
+      "tool_required": "pry_bar",
+      "charges": 6,
+      "max_charges": 6,
+      "respawn_days": 1,
+      "resource_tags": ["salvage", "parts", "bench"],
+      "yield_table": [
+        { "item_id": "item_cell_stack", "chance": 0.5 },
+        { "item_id": "item_lattice_shard", "chance": 0.12 }
+      ],
+      "substitute_resource_ids": ["item_cell_stack", "item_lattice_shard"]
+    }
+  }
+}

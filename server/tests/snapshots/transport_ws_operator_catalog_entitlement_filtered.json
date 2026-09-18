@@ -152,9 +152,10 @@
               "health",
               "level",
               "experience",
-              "mana"
+              "ability_resource"
             ],
             "systems": {
+              "abilities": true,
               "collections": true,
               "combat": true,
               "crafting": true,
@@ -276,9 +277,10 @@
               "health",
               "level",
               "experience",
-              "mana"
+              "ability_resource"
             ],
             "systems": {
+              "abilities": true,
               "collections": true,
               "combat": true,
               "crafting": true,

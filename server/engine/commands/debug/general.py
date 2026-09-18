@@ -2,13 +2,14 @@
 from engine.commands.command_system import command, registered_commands, command_groups
 from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE, FORMAT_CATEGORY
 
-@command("refresh", ["restore", "r"], "debug", "Heals player, fills mana, and resets all cooldowns.", content_capability="magic")
+@command("refresh", ["restore", "r"], "debug", "Heals player, refills the ability pool, and resets all cooldowns.", content_capability="abilities")
 def refresh_handler(args, context):
     p = context.get("player")
     if not p: return "Player not found."
     p.health = p.max_health
-    p.runtime_state.magic.mana = p.runtime_state.magic.max_mana
-    p.runtime_state.magic.cooldowns = {}
+    if p.runtime_state.magic is not None:
+        p.runtime_state.magic.mana = p.runtime_state.magic.max_mana
+        p.runtime_state.magic.cooldowns = {}
     p.last_attack_time = 0
     return f"{FORMAT_SUCCESS}Player restored and cooldowns reset.{FORMAT_RESET}"
 

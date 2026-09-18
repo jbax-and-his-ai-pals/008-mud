@@ -179,7 +179,12 @@ class ItemFactory:
                 
             template = new_template
 
-        item_type_name = template.get("type", "Item")
+        # Family first (the contract), then the legacy `type`. Sharing
+        # this with GemGenerator matters: one decides what to build and the
+        # other decides what is worth rolling, and they must agree.
+        from engine.contracts.registry import item_class_for_template
+
+        item_type_name = item_class_for_template(world, template) or "Item"
         item_class = ITEM_CLASS_MAP.get(item_type_name)
 
         if item_class is None:
@@ -240,6 +245,21 @@ class ItemFactory:
             item.update_property("weight", item.weight)
             item.update_property("value", item.value)
             item.update_property("stackable", item.stackable)
+
+            # Presentation follows the contract too. A family may declare an
+            # `icon_style`, and the instance carries it so drawing code needs
+            # neither the world nor the item's class name to decide what a thing
+            # looks like. Items from families that declare none keep the old
+            # class-name behaviour.
+            if "icon_style" not in item.properties:
+                family_id = str(template.get("item_family", "") or "")
+                if family_id:
+                    from engine.contracts.registry import registry_for
+
+                    registry = registry_for(world)
+                    family = registry.family(family_id) if registry is not None else None
+                    if family and family.get("icon_style"):
+                        item.properties["icon_style"] = str(family["icon_style"])
             
             return item
 

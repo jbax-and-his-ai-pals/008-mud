@@ -35,6 +35,23 @@ if TYPE_CHECKING:
     from engine.player import Player
     from engine.npcs.npc import NPC
 
+# What an item's core attributes are when the template does not say. These are
+# `Item.__init__`'s own defaults, and they are what the loader produces for a
+# template that omits the field -- so comparing an instance against them is
+# comparing it against the object a reload would otherwise hand back.
+_CORE_ATTRIBUTE_DEFAULTS: Dict[str, Any] = {"value": 0, "weight": 1.0, "stackable": False}
+
+
+def _template_core_value(template: Dict[str, Any], key: str) -> Any:
+    """The value a template *produces* for a core attribute, declared or defaulted."""
+    if key in template:
+        return template[key]
+    properties = template.get("properties")
+    if isinstance(properties, dict) and key in properties:
+        return properties[key]
+    return _CORE_ATTRIBUTE_DEFAULTS.get(key)
+
+
 def _serialize_item_reference(item: 'Item', quantity: int, world: 'World') -> Optional[Dict[str, Any]]:
     """
     Creates a dictionary representing an item reference for saving.
@@ -64,6 +81,17 @@ def _serialize_item_reference(item: 'Item', quantity: int, world: 'World') -> Op
             override_props["name"] = item.name
         if item.description != template.get("description"):
             override_props["description"] = item.description
+        # Value, weight and stackability are *instance* state whenever they differ
+        # from what the template would produce: a rolled instance scales all three
+        # by the bands it rolled, and a crafted quality tier multiplies value.
+        # They are recorded here because the generic property loop below skips
+        # them (they are core attributes, not template properties), which meant a
+        # perfect ruby reloaded as an ordinary one -- wrong value, and stackable,
+        # so it silently merged with its neighbours on the next pickup.
+        for key, current in (("value", item.value), ("weight", item.weight),
+                             ("stackable", item.stackable)):
+            if current != _template_core_value(template, key):
+                override_props[key] = current
     else:
         # If no template, save everything critical
         override_props["name"] = item.name

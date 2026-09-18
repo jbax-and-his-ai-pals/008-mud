@@ -15,7 +15,11 @@ class TestDistrictContent(GameTestBase):
         districts = region.properties.get("districts", {})
         self.assertTrue(districts)
         for district_id, district in districts.items():
-            for room_id in district["rooms"]:
+            # `members` is the shape the editor writes; the legacy canonical
+            # block used `rooms`, and `World.get_district` accepts either.
+            members = district.get("members", district.get("rooms", []))
+            self.assertTrue(members, f"district '{district_id}' has no members")
+            for room_id in members:
                 self.assertIsNotNone(
                     region.get_room(room_id),
                     f"district '{district_id}' references missing room '{room_id}'",
@@ -26,10 +30,13 @@ class TestGetDistrict(GameTestBase):
     def test_room_inside_a_district_returns_it(self):
         district = self.world.get_district("town", "residential_street_east")
         self.assertIsNotNone(district)
-        self.assertEqual("Residential District", district["name"])
+        self.assertEqual("Residential Gardens", district["name"])
 
     def test_room_outside_any_district_returns_none(self):
-        self.assertIsNone(self.world.get_district("town", "town_square"))
+        # community_garden sits outside every authored district, which is what
+        # this covers. It used to be town_square, until the editor's five
+        # districts (which do cover the town's core) were ported in.
+        self.assertIsNone(self.world.get_district("town", "community_garden"))
 
     def test_unknown_region_or_room_returns_none(self):
         self.assertIsNone(self.world.get_district("nonexistent_region", "residential_street_east"))
@@ -42,13 +49,14 @@ class TestDistrictHeaderDisplay(GameTestBase):
         self.player.current_region_id = "town"
         self.player.current_room_id = "residential_street_east"
         result = self.game.process_command("look")
-        self.assertIn("RESIDENTIAL DISTRICT", result)
+        self.assertIn("RESIDENTIAL GARDENS", result)
 
     def test_header_omits_district_outside_it(self):
         self.player.current_region_id = "town"
-        self.player.current_room_id = "town_square"
+        self.player.current_room_id = "community_garden"
         result = self.game.process_command("look")
-        self.assertNotIn("DISTRICT", result)
+        # [REGION - ROOM], with no district segment in the middle.
+        self.assertIn("RIVERSIDE VILLAGE - COMMUNITY GARDEN", result)
 
 
 class TestResidentialGate(GameTestBase):
@@ -57,14 +65,14 @@ class TestResidentialGate(GameTestBase):
         self.player.current_room_id = "west_lane"
         result = self.game.process_command("in")
         self.assertEqual("residential_street_east", self.player.current_room_id)
-        self.assertIn("RESIDENTIAL DISTRICT", result)
+        self.assertIn("RESIDENTIAL GARDENS", result)
 
     def test_leaving_the_district_via_the_gate(self):
         self.player.current_region_id = "town"
         self.player.current_room_id = "residential_street_east"
         result = self.game.process_command("out")
         self.assertEqual("west_lane", self.player.current_room_id)
-        self.assertNotIn("DISTRICT", result)
+        self.assertNotIn("GARDENS", result)
 
     def test_old_compass_directions_no_longer_connect_them(self):
         self.player.current_region_id = "town"

@@ -14,6 +14,10 @@ from engine.config import (
 from engine.core.combat_system import CombatSystem
 from engine.items.item import Item
 from engine.items.weapon import Weapon
+from engine.contracts.equipment import (
+    weapon_damage,
+    weapon_damage_type as weapon_damage_type_for,
+)
 from engine.items.attachments import attachment_modifier
 from engine.utils.utils import calculate_xp_gain, format_loot_drop_message
 
@@ -29,7 +33,10 @@ class PlayerCombatMixin:
         attack = (p.runtime_state.combat.attack_power if p.runtime_state.combat is not None else 0) + p.get_effective_stat("strength") // PLAYER_ATTACK_POWER_STR_DIVISOR
         main_hand_weapon = p.equipment.get("main_hand")
         if isinstance(main_hand_weapon, Weapon) and main_hand_weapon.get_property("durability", 1) > 0:
-            attack += main_hand_weapon.get_property("damage", 0)
+            # Contract first: a weapon may declare an attack profile, and the
+            # profile's damage is the authored truth. Items without one still
+            # read their own property, so migration is per item.
+            attack += weapon_damage(p.world, main_hand_weapon)
         for item in p.equipment.values():
             attack += attachment_modifier(item, "attack")
         return attack
@@ -134,7 +141,7 @@ class PlayerCombatMixin:
         always_hits = isinstance(equipped_weapon, Item) and equipped_weapon.get_property("always_hit", False)
         weapon_name = equipped_weapon.name if isinstance(equipped_weapon, Item) else "bare hands"
         if isinstance(equipped_weapon, Item):
-            weapon_damage_type = equipped_weapon.get_property("weapon_damage_type", DEFAULT_WEAPON_DAMAGE_TYPE)
+            weapon_damage_type = weapon_damage_type_for(p.world, equipped_weapon)
         else:
             weapon_damage_type = UNARMED_WEAPON_DAMAGE_TYPE
         attack_power = p.get_attack_power()

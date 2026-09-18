@@ -188,7 +188,7 @@ class TestGetStatusSpells(GameTestBase):
         assert self.player.runtime_state.magic is not None
         self.player.runtime_state.magic.known_spells = {"magic_missile"}
         result = self.player.get_status()
-        self.assertIn("SPELLS KNOWN", result)
+        self.assertIn("ABILITIES KNOWN", result)
 
     def test_unknown_spell_id_is_skipped(self):
         assert self.player.runtime_state.magic is not None

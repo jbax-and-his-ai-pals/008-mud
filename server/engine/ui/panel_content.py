@@ -66,7 +66,10 @@ def render_stats_content(surface: pygame.Surface, context: dict, hotspots: List[
         y += 16
 
     draw_line(f"Health: {int(player.health)}/{int(player.max_health)}", DEFAULT_COLORS[FORMAT_SUCCESS])
-    draw_line(f"Mana:   {int(player.runtime_state.magic.mana)}/{int(player.runtime_state.magic.max_mana)}", DEFAULT_COLORS[FORMAT_CYAN])
+    if player.runtime_state.magic is not None:
+        from engine.contracts.resources import ability_resource_label
+        pool_label = ability_resource_label(getattr(player, "world", None))
+        draw_line(f"{pool_label + ':':<7} {int(player.runtime_state.magic.mana)}/{int(player.runtime_state.magic.max_mana)}", DEFAULT_COLORS[FORMAT_CYAN])
     draw_line(f"XP:     {player.runtime_state.progression.experience}/{player.runtime_state.progression.experience_to_level}", DEFAULT_COLORS[FORMAT_ORANGE])
     y += 5
     

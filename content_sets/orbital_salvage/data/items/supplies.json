@@ -1,0 +1,38 @@
+{
+  "item_patch_kit": {
+    "type": "Consumable",
+    "name": "patch kit",
+    "description": "Sealant, gauze and a stimulant ampoule, packed for one bad minute.",
+    "item_family": "field_supply",
+    "weight": 0.4,
+    "value": 30,
+    "stackable": true,
+    "properties": {
+      "effect_type": "heal",
+      "effect_value": 14
+    }
+  },
+  "item_ration_pack": {
+    "type": "Consumable",
+    "name": "ration pack",
+    "description": "Dense, warm, and entirely without texture.",
+    "item_family": "field_supply",
+    "weight": 0.3,
+    "value": 8,
+    "stackable": true,
+    "properties": {
+      "effect_type": "heal",
+      "effect_value": 6
+    }
+  },
+  "item_credit_chit": {
+    "type": "Treasure",
+    "name": "credit chit",
+    "description": "A loaded chit. Whoever ran this station left in a hurry.",
+    "item_family": "credit_chit",
+    "weight": 0.01,
+    "value": 10,
+    "stackable": true,
+    "properties": {}
+  }
+}

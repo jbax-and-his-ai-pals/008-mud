@@ -27,6 +27,10 @@ class TestLiveContentSetsHaveNoTemplateIssues(unittest.TestCase):
         issues = tpv.validate_content_set(REPO_ROOT / "content_sets" / "night_shift")
         self.assertEqual([], [i for i in issues if i.severity == "error"])
 
+    def test_orbital_salvage_has_no_template_issues(self) -> None:
+        issues = tpv.validate_content_set(REPO_ROOT / "content_sets" / "orbital_salvage")
+        self.assertEqual([], [i for i in issues if i.severity == "error"])
+
 
 class _CaseRootMixin:
     def _case_root(self) -> Path:

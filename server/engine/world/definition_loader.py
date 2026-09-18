@@ -24,7 +24,7 @@ def load_all_definitions(world: 'World'):
     """Populates the world's template dictionaries by loading from disk."""
     resolved_content_root = world.content_root
     Logger.info("Loader", "Loading definitions...")
-    if world.has_capability("magic"):
+    if world.uses_abilities():
         spell_stats = load_spells_from_json(resolved_content_root)
         spell_stats["enabled"] = True
     else:

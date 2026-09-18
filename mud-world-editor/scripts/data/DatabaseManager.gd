@@ -2,21 +2,25 @@
 class_name DatabaseManager
 extends RefCounted
 
-const NPC_DIR = "res://data/npcs/"
-const ITEM_DIR = "res://data/items/"
-const MAGIC_DIR = "res://data/magic/"
-const QUEST_DIR = "res://data/quests/"
-const TEMPLATE_DIR = "res://data/templates/"
+# Content paths come from the shared content set (DataRoot), not from a mirror.
+# Editor-only libraries live under `<set>/editor/`, which the game server never
+# reads. See docs/roadmap/editor-content-source.md.
+static func npc_dir() -> String: return DataRoot.content_dir("npcs")
+static func item_dir() -> String: return DataRoot.content_dir("items")
+static func magic_dir() -> String: return DataRoot.content_dir("magic")
+static func quest_dir() -> String: return DataRoot.content_dir("quests")
+static func template_dir() -> String: return DataRoot.editor_file("templates") + "/"
+static func campaign_dir() -> String: return DataRoot.content_dir("campaigns")
+static func collections_file() -> String: return DataRoot.content_file("collections.json")
+static func discoveries_file() -> String: return DataRoot.content_file("discoveries.json")
+static func magic_groups_file() -> String: return DataRoot.editor_file("magic_groups.json")
 # Branching campaign graphs (CampaignDefinition/CampaignNode) -- distinct
 # from the simple linear quest-chain list in quests/campaigns.json, which
-# QUEST_DIR already picks up since it lives inside quests/.
-const CAMPAIGNS_DIR = "res://data/campaigns/"
-# Single content-root files, not directories -- no editor UI edits these
-# yet, but they're real content-set data the editor should at least load
-# rather than silently not know about.
-const COLLECTIONS_FILE = "res://data/collections.json"
-const DISCOVERIES_FILE = "res://data/discoveries.json"
-const MAGIC_GROUPS_FILE = "res://data/magic_groups.json"
+# quest_dir() already picks up since it lives inside quests/.
+#
+# collections.json and discoveries.json are single content-root files rather
+# than directories: the editor loads them so it knows about real content-set
+# data, and `magic_groups.json` is editor-only, so it lives under `editor/`.
 
 # Data stores
 var npcs: Dictionary = {}
@@ -36,12 +40,12 @@ var dirty_flags: Dictionary = {
 }
 
 func _init():
-	_ensure_dir(NPC_DIR)
-	_ensure_dir(ITEM_DIR)
-	_ensure_dir(MAGIC_DIR)
-	_ensure_dir(QUEST_DIR)
-	_ensure_dir(TEMPLATE_DIR)
-	_ensure_dir(CAMPAIGNS_DIR)
+	_ensure_dir(npc_dir())
+	_ensure_dir(item_dir())
+	_ensure_dir(magic_dir())
+	_ensure_dir(quest_dir())
+	_ensure_dir(template_dir())
+	_ensure_dir(campaign_dir())
 	load_all()
 
 func _ensure_dir(path):
@@ -51,22 +55,25 @@ func load_all():
 	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear()
 	campaigns.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	mark_clean()
-	_load_recursive(NPC_DIR, "", npcs)
-	_load_recursive(ITEM_DIR, "", items)
-	_load_recursive(MAGIC_DIR, "", magic)
-	_load_recursive(QUEST_DIR, "", quests)
-	_load_recursive(TEMPLATE_DIR, "", templates)
+	_load_recursive(npc_dir(), "", npcs)
+	_load_recursive(item_dir(), "", items)
+	_load_recursive(magic_dir(), "", magic)
+	_load_recursive(quest_dir(), "", quests)
+	# Quest stage graph positions live in `editor/quest_layout.json`, not in the
+	# quests the game reads; merge them so every call site still sees them.
+	quests = EditorLayout.merge_quests(quests)
+	_load_recursive(template_dir(), "", templates)
 	_load_campaigns()
-	if FileAccess.file_exists(COLLECTIONS_FILE): _load_file(COLLECTIONS_FILE, "collections.json", collections)
-	if FileAccess.file_exists(DISCOVERIES_FILE): _load_file(DISCOVERIES_FILE, "discoveries.json", discoveries)
+	if FileAccess.file_exists(collections_file()): _load_file(collections_file(), "collections.json", collections)
+	if FileAccess.file_exists(discoveries_file()): _load_file(discoveries_file(), "discoveries.json", discoveries)
 	_load_magic_groups()
 
 func _load_magic_groups():
-	if not FileAccess.file_exists(MAGIC_GROUPS_FILE):
+	if not FileAccess.file_exists(magic_groups_file()):
 		magic_groups = _default_magic_groups()
 		return
 	var json := JSON.new()
-	if json.parse(FileAccess.get_file_as_string(MAGIC_GROUPS_FILE)) == OK:
+	if json.parse(FileAccess.get_file_as_string(magic_groups_file())) == OK:
 		magic_groups = json.get_data().get("groups", {})
 	if magic_groups.is_empty(): magic_groups = _default_magic_groups()
 
@@ -78,20 +85,20 @@ func _default_magic_groups() -> Dictionary:
 		"general": {"name": "General"}
 	}
 
-# Each file under CAMPAIGNS_DIR is one whole CampaignDefinition (campaign_id,
+# Each file under campaign_dir() is one whole CampaignDefinition (campaign_id,
 # name, start_node_id, nodes{...}) -- not a library of several entries the
 # way an items/npcs file is. _load_file's single-vs-library heuristic keys
 # off a "type" field these files don't have, and would otherwise misread the
 # campaign's own "nodes" dictionary as if it were a second top-level entry.
 # Load each file as exactly one campaign, keyed by its own campaign_id.
 func _load_campaigns():
-	var dir = DirAccess.open(CAMPAIGNS_DIR)
+	var dir = DirAccess.open(campaign_dir())
 	if not dir: return
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	while file_name != "":
 		if not dir.current_is_dir() and file_name.ends_with(".json"):
-			var f = FileAccess.open(CAMPAIGNS_DIR.path_join(file_name), FileAccess.READ)
+			var f = FileAccess.open(campaign_dir().path_join(file_name), FileAccess.READ)
 			if f:
 				var json = JSON.new()
 				if json.parse(f.get_as_text()) == OK:
@@ -158,16 +165,19 @@ func _load_file(full_path: String, relative_path: String, target_dict: Dictionar
 			print("Error parsing JSON in %s: %s" % [relative_path, json.get_error_message()])
 
 func save_all():
-	_save_category(npcs, NPC_DIR)
-	_save_category(items, ITEM_DIR)
-	_save_category(magic, MAGIC_DIR)
-	_save_category(quests, QUEST_DIR)
-	_save_category(templates, TEMPLATE_DIR)
+	# Lift editor layout out to `editor/` before anything is written, so the
+	# files the game reads never carry `_editor_*` keys.
+	EditorLayout.split_quests(quests)
+	_save_category(npcs, npc_dir())
+	_save_category(items, item_dir())
+	_save_category(magic, magic_dir())
+	_save_category(quests, quest_dir())
+	_save_category(templates, template_dir())
 	_save_magic_groups()
 	mark_clean()
 
 func _save_magic_groups():
-	var file := FileAccess.open(MAGIC_GROUPS_FILE, FileAccess.WRITE)
+	var file := FileAccess.open(magic_groups_file(), FileAccess.WRITE)
 	if file: file.store_string(JSON.stringify({"groups": magic_groups}, "\t"))
 	magic_groups_dirty = false
 
@@ -182,6 +192,9 @@ func _save_category(cache: Dictionary, root_dir: String):
 		if not files_content.has(fname): files_content[fname] = {}
 		var save_copy = data.duplicate(true)
 		save_copy.erase("_filename")
+		# Belt and braces with the split above: nothing `_editor_*` reaches the
+		# game's content, at any nesting depth, whatever wrote it.
+		save_copy = EditorLayout.strip_entry(save_copy)
 		files_content[fname][id] = save_copy
 	
 	for fname in files_content:

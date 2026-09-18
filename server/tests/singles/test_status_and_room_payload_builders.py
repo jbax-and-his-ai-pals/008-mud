@@ -27,10 +27,15 @@ class TestBuildStatusPayloadNoPlayer(_NoCharacterTestBase):
         self.assertFalse(payload["alive"])
         self.assertEqual([], payload["effects"])
 
-    def test_includes_zeroed_mana_when_content_set_has_magic(self):
+    def test_includes_a_zeroed_ability_pool_when_the_set_has_abilities(self):
         payload = self.server._build_status_payload(self.session.session_id)
-        self.assertIn("mana", payload)
-        self.assertEqual({"current": 0, "max": 0}, payload["mana"])
+        # One payload key for every set, with the content set's own name for the
+        # pool: a game whose abilities draw on charge must not be shown "mana".
+        self.assertIn("ability_resource", payload)
+        self.assertEqual(
+            {"id": "mana", "label": "Mana", "short": "MP", "current": 0, "max": 0},
+            payload["ability_resource"],
+        )
 
 
 class TestBuildStatusPayloadEffects(unittest.TestCase):
@@ -112,7 +117,13 @@ class TestCollectionsLedgerPayload(unittest.TestCase):
         ledger = next(event["payload"] for event in events if event["type"] == "collections")
         gem_ledger = next(entry for entry in ledger["collections"] if entry["collection_id"] == "riverside_gem_ledger")
         self.assertFalse(gem_ledger["discovered"])
-        self.assertEqual(44, gem_ledger["required_count"])
+        # The count comes from the authored collection rather than a literal, so
+        # adding a gem to the museum set does not fail a payload test. The
+        # content invariant that the set covers every findable gem lives in
+        # test_ambient_loot_filters.
+        authored = self.server.collection_manager.collections["riverside_gem_ledger"]
+        self.assertEqual(len(authored["items"]), gem_ledger["required_count"])
+        self.assertGreater(gem_ledger["required_count"], 40)
         rose_quartz = next(item for item in gem_ledger["items"] if item["item_id"] == "item_rose_quartz")
         self.assertEqual("rose quartz", rose_quartz["name"])
 

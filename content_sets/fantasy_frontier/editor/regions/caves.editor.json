@@ -1,0 +1,143 @@
+{
+	"region": {},
+	"rooms": {
+		"bat_cave": {
+			"_editor_pos": [
+				-256.0,
+				-160.0
+			]
+		},
+		"cave_entrance": {
+			"_editor_pos": [
+				-256.0,
+				64.0
+			]
+		},
+		"collapsed_tunnel": {
+			"_editor_pos": [
+				-256.0,
+				544.0
+			]
+		},
+		"crystal_antechamber": {
+			"_editor_pos": [
+				640.0,
+				64.0
+			]
+		},
+		"crystal_chamber": {
+			"_editor_pos": [
+				1056.0,
+				64.0
+			]
+		},
+		"deep_tunnel": {
+			"_editor_pos": [
+				160.0,
+				320.0
+			]
+		},
+		"east_mine_tunnel": {
+			"_editor_pos": [
+				544.0,
+				800.0
+			]
+		},
+		"flooded_passage": {
+			"_editor_pos": [
+				640.0,
+				-384.0
+			]
+		},
+		"forgotten_mine_shaft": {
+			"_editor_pos": [
+				160.0,
+				800.0
+			]
+		},
+		"geode_cluster": {
+			"_editor_pos": [
+				1472.0,
+				64.0
+			]
+		},
+		"hidden_ledge": {
+			"_editor_pos": [
+				1056.0,
+				-192.0
+			]
+		},
+		"hidden_passage": {
+			"_editor_pos": [
+				-608.0,
+				544.0
+			]
+		},
+		"lava_tube": {
+			"_editor_pos": [
+				1088.0,
+				960.0
+			]
+		},
+		"lava_tube_entrance": {
+			"_editor_pos": [
+				960.0,
+				800.0
+			]
+		},
+		"main_cavern": {
+			"_editor_pos": [
+				160.0,
+				64.0
+			]
+		},
+		"mine_entrance": {
+			"_editor_pos": [
+				160.0,
+				544.0
+			]
+		},
+		"mine_exit": {
+			"_editor_pos": [
+				736.0,
+				320.0
+			]
+		},
+		"mine_lower_level": {
+			"_editor_pos": [
+				160.0,
+				1056.0
+			]
+		},
+		"mine_upper_level": {
+			"_editor_pos": [
+				736.0,
+				512.0
+			]
+		},
+		"narrow_passage": {
+			"_editor_pos": [
+				160.0,
+				-160.0
+			]
+		},
+		"submerged_chamber": {
+			"_editor_pos": [
+				1056.0,
+				-384.0
+			]
+		},
+		"underground_pool": {
+			"_editor_pos": [
+				160.0,
+				-384.0
+			]
+		},
+		"west_mine_tunnel": {
+			"_editor_pos": [
+				-256.0,
+				800.0
+			]
+		}
+	}
+}

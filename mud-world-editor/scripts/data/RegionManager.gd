@@ -2,7 +2,12 @@
 class_name RegionManager
 extends RefCounted
 
-const REGIONS_DIR = "res://data/regions/"
+# Regions come from the shared content set, not from a mirror of it. The path is
+# resolved at load/save time rather than frozen in a constant, because the
+# editor's data root is agreed once at startup (DataRoot) and may be overridden
+# on the command line.
+static func regions_dir() -> String:
+	return DataRoot.content_dir("regions")
 
 var data: Dictionary = {}
 var current_filename: String = ""
@@ -16,7 +21,7 @@ func load_region(filename: String) -> bool:
 	dirty_room_ids.clear()
 
 	current_filename = filename
-	var full_path = REGIONS_DIR + filename
+	var full_path = regions_dir().path_join(filename)
 	if not FileAccess.file_exists(full_path):
 		# Don't error on blank load
 		if filename != "": push_error("Region file not found: " + full_path)
@@ -30,6 +35,9 @@ func load_region(filename: String) -> bool:
 			data = json.get_data()
 			if not data.has("rooms"): data["rooms"] = {}
 			if not data.has("region_id"): data["region_id"] = filename.replace(".json", "")
+			# Positions live beside the content, not inside it; merging them here
+			# means every call site below keeps working unchanged.
+			data = EditorLayout.merge_region(str(data.get("region_id", "")), data)
 			_backfill_missing_editor_positions()
 			return true
 		else:
@@ -40,20 +48,28 @@ func load_region(filename: String) -> bool:
 
 func save_region():
 	if current_filename == "": return
-	var file = FileAccess.open(REGIONS_DIR + current_filename, FileAccess.WRITE)
+	var region_id := str(data.get("region_id", current_filename.replace(".json", "")))
+	# Editor layout goes to the sidecar; the file the game reads stays clean.
+	EditorLayout.split_region(region_id, data)
+	var payload := EditorLayout.strip_region(data)
+	var path := regions_dir().path_join(current_filename)
+	if not DirAccess.dir_exists_absolute(regions_dir()):
+		DirAccess.make_dir_recursive_absolute(regions_dir())
+	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file:
-		file.store_string(JSON.stringify(data, "\t"))
+		file.store_string(JSON.stringify(payload, "\t"))
 
 # Content-set-authored rooms (content_sets/fantasy_frontier/data/regions/*)
 # carry no "_editor_pos" -- it is purely editor layout metadata, never
-# written by the game server. Most read sites default safely
-# (data.get("_editor_pos", [0,0])), but several on the main interaction
-# path (GraphController.update_specific_node, Main.gd's drag/select
-# handlers) index it directly and would throw on a missing key. Backfilling
-# it once here, right after load, is cheaper and safer than auditing every
-# call site: from this point on every room in `data.rooms` is guaranteed to
-# have one. Mirrors the same fallback QuestViewBuilder already does per
-# quest stage ("if not s.has(_editor_pos): s._editor_pos = [i * 250, 0]").
+# written by the game server. Positions the editor already knows live in
+# `editor/regions/<id>.editor.json` and are merged in by load_region above;
+# this backfill covers a region the editor has never arranged, so that from
+# this point on every room in `data.rooms` is guaranteed to have one. Several
+# read sites on the main interaction path (GraphController.update_specific_node,
+# Main.gd's drag/select handlers) index it directly and would throw on a missing
+# key, which is cheaper to prevent here than to audit at every call site.
+# Mirrors the same fallback QuestViewBuilder does per quest stage
+# ("if not s.has(_editor_pos): s._editor_pos = [i * 250, 0]").
 const _BACKFILL_GRID_SPACING: float = 250.0
 const _BACKFILL_GRID_COLUMNS: int = 12
 const _BACKFILL_ORIGIN: Vector2 = Vector2(3000.0, -3000.0)
@@ -165,16 +181,16 @@ func rename_room(old_id: String, new_id: String) -> bool:
 	return true
 
 func _patch_external_references(target_region: String, old_room: String, new_room: String):
-	var dir = DirAccess.open(REGIONS_DIR)
+	var dir = DirAccess.open(regions_dir())
 	if dir:
 		dir.list_dir_begin()
 		var fname = dir.get_next()
 		while fname != "":
 			if fname.ends_with(".json") and fname != current_filename:
-				var content = FileAccess.get_file_as_string(REGIONS_DIR + fname)
+				var content = FileAccess.get_file_as_string(regions_dir() + fname)
 				var search_str = target_region + ":" + old_room
 				if content.contains(search_str):
-					var f_read = FileAccess.open(REGIONS_DIR + fname, FileAccess.READ)
+					var f_read = FileAccess.open(regions_dir() + fname, FileAccess.READ)
 					var json = JSON.new()
 					if json.parse(f_read.get_as_text()) == OK:
 						var d = json.get_data()
@@ -186,7 +202,7 @@ func _patch_external_references(target_region: String, old_room: String, new_roo
 									exits[dir_key] = target_region + ":" + new_room
 									dirty = true
 						if dirty:
-							var f_write = FileAccess.open(REGIONS_DIR + fname, FileAccess.WRITE)
+							var f_write = FileAccess.open(regions_dir() + fname, FileAccess.WRITE)
 							f_write.store_string(JSON.stringify(d, "\t"))
 			fname = dir.get_next()
 

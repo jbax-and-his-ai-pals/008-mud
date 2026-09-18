@@ -8,7 +8,8 @@
     "stackable": false,
     "properties": {
       "treasure_type": "jewelry"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_old_coin": {
     "type": "Treasure",
@@ -19,7 +20,8 @@
     "stackable": false,
     "properties": {
       "treasure_type": "coin"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_glowing_crystal": {
     "type": "Treasure",
@@ -30,7 +32,8 @@
     "stackable": false,
     "properties": {
       "treasure_type": "gem"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_crystal_shard": {
     "type": "Treasure",
@@ -41,7 +44,8 @@
     "stackable": true,
     "properties": {
       "treasure_type": "gem"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_obsidian_chunk": {
     "type": "Treasure",
@@ -52,7 +56,8 @@
     "stackable": true,
     "properties": {
       "treasure_type": "rock"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_gold_nugget": {
     "type": "Treasure",
@@ -63,7 +68,8 @@
     "stackable": false,
     "properties": {
       "treasure_type": "ore"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_ancient_amulet": {
     "type": "Treasure",
@@ -74,7 +80,8 @@
     "stackable": false,
     "properties": {
       "treasure_type": "jewelry"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_muddy_brooch": {
     "type": "Treasure",
@@ -85,7 +92,8 @@
     "stackable": false,
     "properties": {
       "treasure_type": "jewelry"
-    }
+    },
+    "item_family": "treasure"
   },
   "item_dubious_cargo": {
     "type": "Treasure",
@@ -96,8 +104,8 @@
     "stackable": false,
     "properties": {
       "treasure_type": "contraband"
-
-    }
+    },
+    "item_family": "treasure"
   },
   "item_gold_coin": {
     "type": "Treasure",
@@ -108,6 +116,7 @@
     "stackable": true,
     "properties": {
       "treasure_type": "coin"
-    }
+    },
+    "item_family": "treasure"
   }
 }

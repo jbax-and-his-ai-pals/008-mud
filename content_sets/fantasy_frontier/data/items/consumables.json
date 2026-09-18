@@ -6,7 +6,13 @@
     "weight": 0.2,
     "value": 8,
     "stackable": true,
-    "properties": { "uses": 1, "max_uses": 1, "effect_value": 8, "effect_type": "heal" }
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 8,
+      "effect_type": "heal"
+    },
+    "item_family": "consumable"
   },
   "item_healing_potion_small": {
     "type": "Consumable",
@@ -20,7 +26,8 @@
       "max_uses": 1,
       "effect_value": 15,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_marshguard_tonic": {
     "type": "Consumable",
@@ -37,9 +44,12 @@
         "name": "Marshguard",
         "type": "stat_mod",
         "base_duration": 180.0,
-        "modifiers": { "resist_poison": 60 }
+        "modifiers": {
+          "resist_poison": 60
+        }
       }
-    }
+    },
+    "item_family": "consumable"
   },
   "item_trailblazer_tonic": {
     "type": "Consumable",
@@ -56,9 +66,12 @@
         "name": "Trailblazer",
         "type": "stat_mod",
         "base_duration": 180.0,
-        "modifiers": { "agility": 4 }
+        "modifiers": {
+          "agility": 4
+        }
       }
-    }
+    },
+    "item_family": "consumable"
   },
   "item_purifying_draught": {
     "type": "Consumable",
@@ -71,8 +84,12 @@
       "uses": 1,
       "max_uses": 1,
       "effect_type": "cleanse",
-      "effect_tags": ["poison", "disease"]
-    }
+      "effect_tags": [
+        "poison",
+        "disease"
+      ]
+    },
+    "item_family": "consumable"
   },
   "item_sunfire_flask": {
     "type": "Consumable",
@@ -87,7 +104,8 @@
       "effect_type": "target_damage",
       "damage_amount": 18,
       "damage_type": "fire"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_hunk_bread": {
     "type": "Consumable",
@@ -101,7 +119,8 @@
       "max_uses": 1,
       "effect_value": 3,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_travel_rations": {
     "type": "Consumable",
@@ -110,7 +129,13 @@
     "weight": 0.4,
     "value": 6,
     "stackable": true,
-    "properties": { "uses": 1, "max_uses": 1, "effect_value": 6, "effect_type": "heal" }
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_value": 6,
+      "effect_type": "heal"
+    },
+    "item_family": "consumable"
   },
   "item_smithing_pattern_hatchet": {
     "type": "Consumable",
@@ -119,7 +144,13 @@
     "weight": 0.1,
     "value": 60,
     "stackable": false,
-    "properties": { "uses": 1, "max_uses": 1, "effect_type": "learn_recipe", "recipe_to_learn": "forge_travelers_hatchet" }
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "learn_recipe",
+      "recipe_to_learn": "forge_travelers_hatchet"
+    },
+    "item_family": "consumable"
   },
   "item_fresh_fish": {
     "type": "Consumable",
@@ -133,7 +164,8 @@
       "max_uses": 1,
       "effect_value": 5,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_forest_berries": {
     "type": "Consumable",
@@ -147,7 +179,8 @@
       "max_uses": 1,
       "effect_value": 3,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_frostpetal": {
     "type": "Consumable",
@@ -161,7 +194,8 @@
       "max_uses": 1,
       "effect_value": 25,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_swamp_fungus": {
     "type": "Consumable",
@@ -175,7 +209,8 @@
       "max_uses": 1,
       "effect_value": -5,
       "effect_type": "poison"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_fresh_carrot": {
     "type": "Consumable",
@@ -189,7 +224,8 @@
       "max_uses": 1,
       "effect_value": 2,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_pumpkin": {
     "type": "Consumable",
@@ -203,7 +239,8 @@
       "max_uses": 1,
       "effect_value": 8,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_ripe_apple": {
     "type": "Consumable",
@@ -217,7 +254,8 @@
       "max_uses": 1,
       "effect_value": 4,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_wild_herbs": {
     "type": "Consumable",
@@ -231,7 +269,8 @@
       "max_uses": 1,
       "effect_value": 1,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_ale": {
     "type": "Consumable",
@@ -245,7 +284,8 @@
       "max_uses": 1,
       "effect_value": 2,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_raw_meat": {
     "type": "Consumable",
@@ -259,7 +299,8 @@
       "max_uses": 1,
       "effect_value": 4,
       "effect_type": "heal"
-    }
+    },
+    "item_family": "consumable"
   },
   "debug_poison_vial": {
     "type": "Consumable",
@@ -277,7 +318,8 @@
       "dot_damage_per_tick": 5,
       "dot_tick_interval": 3.0,
       "dot_damage_type": "poison"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_mana_potion_small": {
     "type": "Consumable",
@@ -291,7 +333,8 @@
       "max_uses": 1,
       "effect_value": 20,
       "effect_type": "mana_restore"
-    }
+    },
+    "item_family": "consumable"
   },
   "item_mana_potion_medium": {
     "type": "Consumable",
@@ -305,42 +348,83 @@
       "max_uses": 1,
       "effect_value": 50,
       "effect_type": "mana_restore"
-    }
+    },
+    "item_family": "consumable"
   },
   "scroll_raise_skeleton": {
     "type": "Consumable",
     "name": "Scroll of Raise Skeleton",
     "description": "A dusty scroll inscribed with necromantic runes.",
-    "weight": 0.1, "value": 150, "stackable": false,
-    "properties": { "uses": 1, "max_uses": 1, "effect_type": "learn_spell", "spell_to_learn": "raise_skeleton" }
+    "weight": 0.1,
+    "value": 150,
+    "stackable": false,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "learn_spell",
+      "spell_to_learn": "raise_skeleton"
+    },
+    "item_family": "consumable"
   },
   "scroll_raise_skeletal_mage": {
     "type": "Consumable",
     "name": "Scroll of Raise Skeletal Mage",
     "description": "A scroll covered in complex necromantic diagrams.",
-    "weight": 0.1, "value": 200, "stackable": false,
-    "properties": { "uses": 1, "max_uses": 1, "effect_type": "learn_spell", "spell_to_learn": "raise_skeletal_mage" }
+    "weight": 0.1,
+    "value": 200,
+    "stackable": false,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "learn_spell",
+      "spell_to_learn": "raise_skeletal_mage"
+    },
+    "item_family": "consumable"
   },
   "scroll_summon_spirit_wolf": {
     "type": "Consumable",
     "name": "Scroll of Summon Spirit Wolf",
     "description": "A scroll that smells faintly of ozone and pine needles.",
-    "weight": 0.1, "value": 180, "stackable": false,
-    "properties": { "uses": 1, "max_uses": 1, "effect_type": "learn_spell", "spell_to_learn": "summon_spirit_wolf" }
+    "weight": 0.1,
+    "value": 180,
+    "stackable": false,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "learn_spell",
+      "spell_to_learn": "summon_spirit_wolf"
+    },
+    "item_family": "consumable"
   },
   "scroll_summon_fire_imp": {
     "type": "Consumable",
     "name": "Scroll of Summon Fire Imp",
     "description": "The parchment is warm to the touch and smells of sulfur.",
-    "weight": 0.1, "value": 250, "stackable": false,
-    "properties": { "uses": 1, "max_uses": 1, "effect_type": "learn_spell", "spell_to_learn": "summon_fire_imp" }
+    "weight": 0.1,
+    "value": 250,
+    "stackable": false,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "learn_spell",
+      "spell_to_learn": "summon_fire_imp"
+    },
+    "item_family": "consumable"
   },
   "scroll_summon_stone_golem": {
     "type": "Consumable",
     "name": "Scroll of Summon Stone Golem",
     "description": "A heavy, gritty scroll that feels like sandpaper.",
-    "weight": 0.1, "value": 400, "stackable": false,
-    "properties": { "uses": 1, "max_uses": 1, "effect_type": "learn_spell", "spell_to_learn": "summon_stone_golem" }
+    "weight": 0.1,
+    "value": 400,
+    "stackable": false,
+    "properties": {
+      "uses": 1,
+      "max_uses": 1,
+      "effect_type": "learn_spell",
+      "spell_to_learn": "summon_stone_golem"
+    },
+    "item_family": "consumable"
   },
   "item_scroll_random": {
     "type": "Consumable",
@@ -356,8 +440,11 @@
       "spell_to_learn": null,
       "is_procedural": true,
       "procedural_type": "random_spell_scroll",
-      "procedural_fallback_prefixes": ["item_scroll_"],
+      "procedural_fallback_prefixes": [
+        "item_scroll_"
+      ],
       "procedural_disambiguation_property": "spell_to_learn"
-    }
+    },
+    "item_family": "consumable"
   }
 }

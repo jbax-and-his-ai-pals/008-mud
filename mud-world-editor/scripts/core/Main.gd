@@ -37,6 +37,13 @@ var district_layer: Node2D
 var district_label_layer: Node2D
 
 func _ready():
+	# Agree the content root before anything loads, and say which world this is.
+	# The editor used to keep its own mirror of the content; it now edits the
+	# real content set, and the title is the only place that fact is visible.
+	DisplayServer.window_set_title("MUD world editor — %s" % DataRoot.describe())
+	if DataRoot.source_description() == "missing":
+		push_error("No content set found. Pass --data-root <path> or run from a checkout.")
+
 	region_mgr = RegionManager.new()
 	world_mgr = WorldManager.new()
 	database_mgr = DatabaseManager.new()
@@ -67,7 +74,10 @@ func _ready():
 	_connect_graph_signals()
 	
 	_bootstrap_ui()
-	if FileAccess.file_exists("res://data/regions/town.json"): _load_region("town.json")
+	# Open the region the game starts in, so the editor comes up on real
+	# content rather than an empty graph.
+	var start_region := _start_region_filename()
+	if start_region != "": _load_region(start_region)
 	else: _load_region("")
 
 func _process(_delta):
@@ -76,21 +86,43 @@ func _process(_delta):
 		if ui_mgr.search_modal.visible and ui_mgr.search_data_cache.is_empty():
 			ui_mgr.cache_search_data(world_mgr.get_all_world_data(), database_mgr.npcs, database_mgr.items)
 
+# The content set's own start region (`town` in fantasy_frontier), discovered by
+# name rather than hard-coded, so a different content set opens on its own world.
+func _start_region_filename() -> String:
+	var directory := DataRoot.content_dir("regions")
+	for candidate in ["town.json", "start.json"]:
+		if FileAccess.file_exists(directory.path_join(candidate)):
+			return candidate
+	# Otherwise: the first region the set has.
+	var dir := DirAccess.open(directory)
+	if dir == null:
+		return ""
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with(".json"):
+			return file_name
+		file_name = dir.get_next()
+	return ""
+
 func _bootstrap_ui():
-	if not DirAccess.dir_exists_absolute("res://data/regions/"): DirAccess.make_dir_recursive_absolute("res://data/regions/")
+	# The shared content set already exists; what may not is the editor's own
+	# state directory, which holds layout rather than game data.
+	DataRoot.ensure_editor_dirs()
 	_update_db_ui()
 	_load_region_vocab_into_creator()
 
 # Populates the New Region wizard's biome/region_type dropdowns and NPC
-# population list from real data (the synced ruleset's classification
+# population list from real data (the content set's own classification
 # vocabulary, and every currently-loaded NPC template) instead of a
 # hardcoded list that would drift from whatever content set this data
 # actually belongs to.
 func _load_region_vocab_into_creator():
 	var biomes: Array = []
 	var region_types: Array = []
-	if FileAccess.file_exists("res://data/ruleset.json"):
-		var f = FileAccess.open("res://data/ruleset.json", FileAccess.READ)
+	var ruleset_path := DataRoot.ruleset_path()
+	if FileAccess.file_exists(ruleset_path):
+		var f = FileAccess.open(ruleset_path, FileAccess.READ)
 		if f:
 			var json = JSON.new()
 			if json.parse(f.get_as_text()) == OK:
@@ -627,8 +659,11 @@ func _create_region(name, rooms_data, region_meta: Dictionary = {}):
 	if not properties.is_empty(): new_data["properties"] = properties
 	if not spawner.is_empty(): new_data["spawner"] = spawner
 
-	var file = FileAccess.open("res://data/regions/" + name, FileAccess.WRITE)
-	if file: file.store_string(JSON.stringify(new_data, "\t")); file.close()
+	var region_path := DataRoot.content_dir("regions").path_join(name)
+	if not DirAccess.dir_exists_absolute(DataRoot.content_dir("regions")):
+		DirAccess.make_dir_recursive_absolute(DataRoot.content_dir("regions"))
+	var file = FileAccess.open(region_path, FileAccess.WRITE)
+	if file: file.store_string(JSON.stringify(EditorLayout.strip_region(new_data), "\t")); file.close()
 	_load_region(name)
 
 # Scatters the chosen NPC templates across roughly `density` (0-1) of the
@@ -689,7 +724,7 @@ func _wire_entrance_connection(new_region_id: String, rooms_data: Dictionary, co
 
 	var target_filename: String = String(world_mgr.get_global_hierarchy().get(target_region, {}).get("filename", ""))
 	if target_filename == "": return
-	var full_path: String = "res://data/regions/" + target_filename
+	var full_path: String = DataRoot.content_dir("regions").path_join(target_filename)
 	var f = FileAccess.open(full_path, FileAccess.READ)
 	if not f: return
 	var json = JSON.new()

@@ -1,0 +1,31 @@
+{
+  "fabricate_patch_kit": {
+    "name": "Fabricate Patch Kit",
+    "aliases": ["patch kit", "patch", "medkit", "kit"],
+    "description": "Pack sealant, gauze and a stimulant ampoule into something you can carry.",
+    "result_item_id": "item_patch_kit",
+    "result_quantity": 1,
+    "station_required": null,
+    "difficulty": 0,
+    "familiarity_milestones": [
+      {
+        "count": 1,
+        "label": "Rough hands",
+        "message": "Your first kit is ugly and probably works."
+      },
+      {
+        "count": 5,
+        "label": "Bench habits",
+        "message": "You stop losing ampoules to the deck."
+      }
+    ],
+    "quality_tiers": [
+      { "id": "field", "label": "Field", "min_crafts": 1, "value_multiplier": 1.0 },
+      { "id": "clean", "label": "Clean", "min_crafts": 5, "value_multiplier": 1.4 }
+    ],
+    "ingredients": [
+      { "item_id": "item_servo_cluster", "quantity": 1 },
+      { "item_id": "item_cell_stack", "quantity": 1 }
+    ]
+  }
+}

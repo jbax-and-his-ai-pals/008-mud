@@ -6,7 +6,11 @@
     "weight": 0.3,
     "value": 4,
     "stackable": false,
-    "properties": { "tool_type": "foraging_knife", "category": "tool" }
+    "properties": {
+      "tool_type": "foraging_knife",
+      "category": "tool"
+    },
+    "item_family": "material"
   },
   "item_hand_axe": {
     "type": "Item",
@@ -15,7 +19,11 @@
     "weight": 1.5,
     "value": 12,
     "stackable": false,
-    "properties": { "tool_type": "hand_axe", "category": "tool" }
+    "properties": {
+      "tool_type": "hand_axe",
+      "category": "tool"
+    },
+    "item_family": "material"
   },
   "item_prospector_pick": {
     "type": "Item",
@@ -24,7 +32,11 @@
     "weight": 2.0,
     "value": 18,
     "stackable": false,
-    "properties": { "tool_type": "pickaxe", "category": "tool" }
+    "properties": {
+      "tool_type": "pickaxe",
+      "category": "tool"
+    },
+    "item_family": "material"
   },
   "item_work_axe": {
     "type": "Weapon",
@@ -33,7 +45,16 @@
     "weight": 2.2,
     "value": 14,
     "stackable": false,
-    "properties": { "damage": 4, "weapon_damage_type": "slashing", "equip_slot": ["main_hand"], "tool_type": "hand_axe", "category": "tool" }
+    "properties": {
+      "damage": 4,
+      "weapon_damage_type": "slashing",
+      "equip_slot": [
+        "main_hand"
+      ],
+      "tool_type": "hand_axe",
+      "category": "tool"
+    },
+    "item_family": "weapon"
   },
   "item_lockpick": {
     "type": "Lockpick",
@@ -42,7 +63,8 @@
     "weight": 0.1,
     "value": 10,
     "durability": 8,
-    "max_durability": 8
+    "max_durability": 8,
+    "item_family": "lockpick"
   },
   "item_master_lockpick": {
     "type": "Lockpick",
@@ -51,7 +73,8 @@
     "weight": 0.1,
     "value": 50,
     "durability": 40,
-    "max_durability": 40
+    "max_durability": 40,
+    "item_family": "lockpick"
   },
   "item_lockpick_crude_bronze": {
     "type": "Lockpick",
@@ -60,7 +83,8 @@
     "weight": 0.1,
     "value": 6,
     "durability": 6,
-    "max_durability": 6
+    "max_durability": 6,
+    "item_family": "lockpick"
   },
   "item_lockpick_crude_steel": {
     "type": "Lockpick",
@@ -69,7 +93,8 @@
     "weight": 0.1,
     "value": 12,
     "durability": 10,
-    "max_durability": 10
+    "max_durability": 10,
+    "item_family": "lockpick"
   },
   "item_lockpick_fine_bronze": {
     "type": "Lockpick",
@@ -78,7 +103,8 @@
     "weight": 0.1,
     "value": 25,
     "durability": 16,
-    "max_durability": 16
+    "max_durability": 16,
+    "item_family": "lockpick"
   },
   "item_lockpick_fine_steel": {
     "type": "Lockpick",
@@ -87,7 +113,8 @@
     "weight": 0.1,
     "value": 45,
     "durability": 24,
-    "max_durability": 24
+    "max_durability": 24,
+    "item_family": "lockpick"
   },
   "item_lockpick_shiv": {
     "type": "Lockpick",
@@ -96,6 +123,7 @@
     "weight": 0.05,
     "value": 1,
     "durability": 4,
-    "max_durability": 4
+    "max_durability": 4,
+    "item_family": "lockpick"
   }
 }

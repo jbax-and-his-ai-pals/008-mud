@@ -7,11 +7,14 @@ from engine.config import (
 )
 from engine.magic.spell import Spell
 from engine.magic.spell_registry import get_spell, get_spell_by_name
+from engine.contracts.resources import ability_resource_label, ability_resource_short
 from engine.npcs.npc import NPC
 from engine.items.item import Item
 from engine.world.room import Room
 
-@command("cast", ["c"], "magic", "Cast a known spell.\nUsage: cast <spell_name> [on <target_name>]", content_capability="magic")
+@command("cast", ["c"], "abilities",
+         "Use an ability you know.\nUsage: cast <ability_name> [on <target_name>]",
+         content_capability="abilities")
 def cast_handler(args, context):
     world = context["world"]
     player = context.get('player')
@@ -21,11 +24,11 @@ def cast_handler(args, context):
     current_time = world.clock.now()
 
     if not args:
-        spells_known_text = player.get_status().split(f"{FORMAT_TITLE}SPELLS KNOWN{FORMAT_RESET}")
+        spells_known_text = player.get_status().split(f"{FORMAT_TITLE}ABILITIES KNOWN{FORMAT_RESET}")
         if len(spells_known_text) > 1:
-             return f"{FORMAT_TITLE}SPELLS KNOWN{FORMAT_RESET}\n" + spells_known_text[1].strip() + "\n\nUsage: cast <spell_name> [on <target_name>]"
+             return f"{FORMAT_TITLE}ABILITIES KNOWN{FORMAT_RESET}\n" + spells_known_text[1].strip() + "\n\nUsage: cast <ability_name> [on <target_name>]"
         else:
-             return f"{FORMAT_ERROR}You don't know any spells.{FORMAT_RESET}\n\nUsage: cast <spell_name> [on <target_name>]"
+             return f"{FORMAT_ERROR}You don't know any abilities.{FORMAT_RESET}\n\nUsage: cast <ability_name> [on <target_name>]"
 
     # --- Argument Parsing ---
     target_name = ""
@@ -137,18 +140,24 @@ def cast_handler(args, context):
     result = player.cast_spell(spell, target, current_time, world)
     return result["message"]
 
-@command("spells", ["spl", "magic"], "magic", "List spells you know.\nUsage: spells [spell_name]", content_capability="magic")
+@command("abilities", ["spl", "magic", "spells"], "abilities",
+         "List the abilities you know.\nUsage: abilities [ability_name]",
+         content_capability="abilities")
 def spells_handler(args, context):
     world = context["world"]
     player = context.get('player')
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
 
     current_time = world.clock.now()
+    # What the pool is called is the content set's business, so a set whose
+    # abilities draw on charge is not told its costs in mana.
+    pool_label = ability_resource_label(world)
+    pool_short = ability_resource_short(world)
 
     if player.runtime_state.magic is None:
-        return f"{FORMAT_ERROR}Magic is not enabled for this game.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}Abilities are not enabled for this game.{FORMAT_RESET}"
     if not player.runtime_state.magic.known_spells:
-        return f"{FORMAT_ERROR}You don't know any spells.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}You don't know any abilities.{FORMAT_RESET}"
 
     if args:
         spell_name = " ".join(args).lower()
@@ -165,7 +174,7 @@ def spells_handler(args, context):
             
             info = f"{FORMAT_TITLE}{spell.name.upper()}{FORMAT_RESET}\n\n"
             info += f"{FORMAT_CATEGORY}Description:{FORMAT_RESET} {spell.description}\n"
-            info += f"{FORMAT_CATEGORY}Mana Cost:{FORMAT_RESET} {spell.mana_cost}\n"
+            info += f"{FORMAT_CATEGORY}{pool_label} Cost:{FORMAT_RESET} {spell.mana_cost}\n"
             info += f"{FORMAT_CATEGORY}Cooldown:{FORMAT_RESET} {spell.cooldown:.1f}s{cooldown_status}\n"
             info += f"{FORMAT_CATEGORY}Target:{FORMAT_RESET} {spell.target_type.capitalize()}\n"
             
@@ -181,9 +190,15 @@ def spells_handler(args, context):
                  info += f"\n{FORMAT_CATEGORY}Level Req:{FORMAT_RESET} {req_color}{spell.level_required}{FORMAT_RESET}\n"
             return info
         else:
-            return f"{FORMAT_ERROR}You don't know a spell called '{' '.join(args)}'.{FORMAT_RESET}\nType 'spells' to see all known spells."
+            # The noun is the engine's own ("ability"); a content set's *names*
+            # for its abilities come from its definitions, and the pool's name
+            # from its `resources` contract.
+            return (
+                f"{FORMAT_ERROR}You don't know an ability called '{' '.join(args)}'.{FORMAT_RESET}\n"
+                "Type 'abilities' to see everything you know."
+            )
     else:
-        response = f"{FORMAT_TITLE}KNOWN SPELLS{FORMAT_RESET}\n\n"
+        response = f"{FORMAT_TITLE}KNOWN ABILITIES{FORMAT_RESET}\n\n"
         spell_lines = []
         sorted_spells = sorted(list(player.runtime_state.magic.known_spells), key=lambda sid: getattr(get_spell(sid), 'name', sid))
         for spell_id in sorted_spells:
@@ -196,9 +211,13 @@ def spells_handler(args, context):
                     level_req_display = f" ({req_color}L{spell.level_required}{FORMAT_RESET})" if spell.level_required > 1 else ""
                 else:
                     level_req_display = ""
-                spell_lines.append(f"- {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {spell.mana_cost} MP{cooldown_status}")
+                spell_lines.append(f"- {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {spell.mana_cost} {pool_short}{cooldown_status}")
             else:
-                spell_lines.append(f"- {FORMAT_ERROR}Unknown Spell ID: {spell_id}{FORMAT_RESET}")
+                spell_lines.append(f"- {FORMAT_ERROR}Unknown ability id: {spell_id}{FORMAT_RESET}")
         response += "\n".join(spell_lines)
-        response += f"\n\n{FORMAT_CATEGORY}Mana:{FORMAT_RESET} {player.runtime_state.magic.mana}/{player.runtime_state.magic.max_mana}\n\nType 'spells <spell_name>' for more details."
+        response += (
+            f"\n\n{FORMAT_CATEGORY}{pool_label}:{FORMAT_RESET} "
+            f"{player.runtime_state.magic.mana}/{player.runtime_state.magic.max_mana}"
+            f"\n\nType 'abilities <ability_name>' for more details."
+        )
         return response

@@ -6,7 +6,8 @@
     "weight": 8.0,
     "value": 15,
     "capacity": 30.0,
-    "locked": true
+    "locked": true,
+    "item_family": "container"
   },
   "item_chest_iron_bound": {
     "type": "Container",
@@ -15,7 +16,8 @@
     "weight": 14.0,
     "value": 60,
     "capacity": 30.0,
-    "locked": true
+    "locked": true,
+    "item_family": "container"
   },
   "item_chest_gilded": {
     "type": "Container",
@@ -24,6 +26,7 @@
     "weight": 12.0,
     "value": 200,
     "capacity": 30.0,
-    "locked": true
+    "locked": true,
+    "item_family": "container"
   }
 }

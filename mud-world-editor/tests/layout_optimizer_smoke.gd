@@ -50,15 +50,17 @@ func _assert_unique_positions(positions: Dictionary, label: String) -> void:
 		occupied[key] = room_id
 
 func _assert_all_region_cardinal_alignment() -> void:
-	var directory := DirAccess.open("res://data/regions")
-	_assert(directory != null, "editor region directory opens")
+	# Runs against the shared content set, like the editor itself.
+	var regions_dir := DataRoot.content_dir("regions")
+	var directory := DirAccess.open(regions_dir)
+	_assert(directory != null, "editor region directory opens: " + regions_dir)
 	if directory == null:
 		return
 	directory.list_dir_begin()
 	var filename := directory.get_next()
 	while filename != "":
 		if not directory.current_is_dir() and filename.ends_with(".json"):
-			_assert_real_region_cardinal_alignment("res://data/regions/" + filename)
+			_assert_real_region_cardinal_alignment(regions_dir.path_join(filename))
 		filename = directory.get_next()
 	directory.list_dir_end()
 

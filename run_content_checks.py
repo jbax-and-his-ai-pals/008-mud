@@ -38,7 +38,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
-CONTENT_SETS = ("fantasy_frontier", "modern_capsule", "night_shift")
+CONTENT_SETS = ("fantasy_frontier", "modern_capsule", "night_shift", "orbital_salvage")
 
 
 class StepFailed(Exception):
@@ -108,6 +108,12 @@ def main() -> int:
 
         run_step("Validate engine content-neutrality",
                  [python, f"{toolkit}/content_neutrality_validator.py", "content_sets/fantasy_frontier"], env)
+        # The sci-fi proof gets the same neutrality gate as the fantasy set. It is
+        # the set whose whole purpose is to prove the engine reads declarations,
+        # so engine code naming any of its content would be the exact failure it
+        # exists to catch.
+        run_step("Validate engine content-neutrality for the sci-fi proof",
+                 [python, f"{toolkit}/content_neutrality_validator.py", "content_sets/orbital_salvage"], env)
 
         # --- Legacy editor-fixture steps ------------------------------------
         # These validate a fixture produced by toolkit/fixture_refresh.py. The

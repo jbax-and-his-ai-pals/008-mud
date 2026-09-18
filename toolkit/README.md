@@ -15,8 +15,8 @@ python toolkit/reference_integrity_validator.py content_sets/fantasy_frontier/da
 python toolkit/template_placeholder_validator.py content_sets/fantasy_frontier
 python toolkit/mod_manifest_validator.py --roots server/mods mods
 python toolkit/content_set_validator.py content_sets/fantasy_frontier
-python toolkit/editor_export_shim.py --source mud-world-editor/data --target tmp/editor_export_shim/server_data --report tmp/editor_export_shim/report.json
-python toolkit/fixture_refresh.py --source mud-world-editor/data --latest-root content_sets/fantasy_frontier/data --fixture-root content_sets/fantasy_frontier/data_fixtures --fixture-name fantasy_editor_migrated_latest
+python toolkit/editor_export_shim.py --source content_sets/fantasy_frontier/data --target tmp/editor_export_shim/server_data --report tmp/editor_export_shim/report.json
+python toolkit/fixture_refresh.py --source content_sets/fantasy_frontier/data --latest-root content_sets/fantasy_frontier/data --fixture-root content_sets/fantasy_frontier/data_fixtures --fixture-name fantasy_editor_migrated_latest
 python toolkit/stale_reference_audit.py content_sets/fantasy_frontier/data --output tmp/stale_audit_server_data.txt
 ```
 

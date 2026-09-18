@@ -36,7 +36,7 @@ class TestCastCommand(GameTestBase):
             result = self.game.process_command("cast")
         finally:
             self.player.runtime_state.magic.known_spells = original_spells
-        self.assertIn("don't know any spells", result)
+        self.assertIn("don't know any abilities", result)
 
     def test_item_target_found_via_equipment(self):
         from engine.items.weapon import Weapon
@@ -83,7 +83,7 @@ class TestCastCommand(GameTestBase):
 
     def test_no_args_lists_known_spells(self):
         result = self.game.process_command("cast")
-        self.assertIn("SPELLS KNOWN", result)
+        self.assertIn("ABILITIES KNOWN", result)
 
     def test_unknown_spell_is_reported(self):
         result = self.game.process_command("cast not a real spell")
@@ -202,7 +202,7 @@ class TestSpellsCommand(GameTestBase):
     def test_no_known_spells_is_reported(self):
         self.player.runtime_state.magic.known_spells = set()
         result = self.game.process_command("spells")
-        self.assertIn("don't know any spells", result)
+        self.assertIn("don't know any abilities", result)
 
     def test_magic_disabled_for_player_is_reported(self):
         self.player.runtime_state.magic = None
@@ -211,13 +211,13 @@ class TestSpellsCommand(GameTestBase):
 
     def test_lists_known_spells_with_mana_cost(self):
         result = self.game.process_command("spells")
-        self.assertIn("KNOWN SPELLS", result)
+        self.assertIn("KNOWN ABILITIES", result)
         self.assertIn("MP", result)
         self.assertIn("Mana:", result)
 
     def test_unknown_spell_lookup_is_reported(self):
         result = self.game.process_command("spells not a real spell")
-        self.assertIn("don't know a spell called", result)
+        self.assertIn("don't know an ability called", result)
 
     def test_detail_view_for_a_known_spell(self):
         result = self.game.process_command("spells magic missile")
@@ -252,9 +252,9 @@ class TestSpellsCommand(GameTestBase):
             result = self.game.process_command("spells")
         finally:
             self.player.runtime_state.progression = original_progression
-        self.assertIn("KNOWN SPELLS", result)
+        self.assertIn("KNOWN ABILITIES", result)
 
     def test_list_view_skips_unknown_spell_ids(self):
         self.player.runtime_state.magic.known_spells.add("totally_bogus_spell_id_xyz")
         result = self.game.process_command("spells")
-        self.assertIn("Unknown Spell ID", result)
+        self.assertIn("Unknown ability id", result)

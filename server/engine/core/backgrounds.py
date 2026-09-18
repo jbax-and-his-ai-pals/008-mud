@@ -227,13 +227,15 @@ class BackgroundManager:
             for stat, value in background.stats.items():
                 if isinstance(value, (int, float)) and not isinstance(value, bool):
                     stats[str(stat)] = int(value)
-            # Health and mana ceilings are derived from stats, exactly as the
-            # legacy class template did -- one formula, one place it is applied.
+            # Health and ability-pool ceilings are derived from stats, exactly as
+            # the legacy class template did -- one formula, one place it is
+            # applied. Which stat drives the pool, and what the pool is called,
+            # come from the content set's `resources` contract.
             from engine.config import (
                 PLAYER_BASE_HEALTH,
                 PLAYER_CON_HEALTH_MULTIPLIER,
-                PLAYER_DEFAULT_MAX_MANA,
             )
+            from engine.contracts.resources import pool_for
             player.max_health = (
                 PLAYER_BASE_HEALTH
                 + int(stats.get("constitution", 10)) * PLAYER_CON_HEALTH_MULTIPLIER
@@ -241,7 +243,7 @@ class BackgroundManager:
             player.health = player.max_health
             magic = getattr(getattr(player, "runtime_state", None), "magic", None)
             if magic is not None:
-                magic.max_mana = PLAYER_DEFAULT_MAX_MANA + (int(stats.get("intelligence", 10)) - 10) * 5
+                magic.max_mana = pool_for(player.world, stats)
                 magic.mana = magic.max_mana
 
         progression = getattr(getattr(player, "runtime_state", None), "progression", None)

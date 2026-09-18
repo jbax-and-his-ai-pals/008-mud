@@ -18,6 +18,14 @@ from engine.items.inventory import Inventory
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.set_manager import SetManager
+from engine.contracts.equipment import armor_defense
+from engine.contracts.resources import (
+    ability_resource_label,
+    regenerates as ability_regenerates,
+    regen_rate_for as ability_regen_rate,
+    regen_stat as ability_regen_stat,
+    pool_for as ability_pool_for,
+)
 from engine.items.attachments import attachment_stat_modifier, attachment_modifier
 from engine.core.conversation_history import ConversationHistory
 
@@ -49,11 +57,14 @@ class Player(
         # Optional gameplay state lives here.
         self.runtime_state = PlayerRuntimeState()
         self.inventory = Inventory(max_slots=DEFAULT_INVENTORY_MAX_SLOTS, max_weight=DEFAULT_INVENTORY_MAX_WEIGHT)
-        self.runtime_state.magic.max_mana = PLAYER_DEFAULT_MAX_MANA
-        self.runtime_state.magic.mana = self.runtime_state.magic.max_mana
-        self.runtime_state.magic.regen_rate = PLAYER_BASE_MANA_REGEN_RATE
         self.last_mana_regen_time = 0.0
         self.stats = PLAYER_DEFAULT_STATS.copy()
+        # How much the ability pool holds is decided by the content set's
+        # `resources` contract: it names the stat that drives the pool and what
+        # the pool is called. The curve is engine-side.
+        self.runtime_state.magic.max_mana = ability_pool_for(world, self.stats)
+        self.runtime_state.magic.mana = self.runtime_state.magic.max_mana
+        self.runtime_state.magic.regen_rate = PLAYER_BASE_MANA_REGEN_RATE
         self.max_health = PLAYER_BASE_HEALTH + int(self.stats.get('constitution', 10)) * PLAYER_CON_HEALTH_MULTIPLIER
         self.health = self.max_health
         self.runtime_state.progression.level = 1
@@ -179,7 +190,7 @@ class Player(
             val += self.get_effective_stat("dexterity") // PLAYER_DEFENSE_DEX_DIVISOR
             for item in self.equipment.values():
                 if isinstance(item, Item) and item.get_property("durability", 1) > 0:
-                    val += item.get_property("defense", 0)
+                    val += armor_defense(self.world, item)
                     val += attachment_modifier(item, "defense")
 
         equipped_ids = [item.obj_id for item in self.equipment.values() if item]
@@ -204,8 +215,7 @@ class Player(
             self.max_health = PLAYER_BASE_HEALTH + int(self.stats.get('constitution', 10)) * PLAYER_CON_HEALTH_MULTIPLIER
             self.health = self.max_health
             if self.runtime_state.magic is not None:
-                final_int = self.stats.get("intelligence", 10)
-                self.runtime_state.magic.max_mana = PLAYER_DEFAULT_MAX_MANA + (final_int - 10) * 5
+                self.runtime_state.magic.max_mana = ability_pool_for(self.world, self.stats)
                 self.runtime_state.magic.mana = self.runtime_state.magic.max_mana
         
         from engine.items.inventory import InventorySlot
@@ -242,10 +252,21 @@ class Player(
         if self.current_region_id:
              is_in_safe_zone = self.world and self.world.is_location_safe(self.current_region_id, self.current_room_id)
              if is_in_safe_zone and self.runtime_state.magic is not None and (self.runtime_state.combat is None or not self.runtime_state.combat.in_combat):
-                 if current_time - self.last_mana_regen_time >= PLAYER_REGEN_TICK_INTERVAL:                
-                     effective_wisdom = self.get_effective_stat('wisdom')
+                 if current_time - self.last_mana_regen_time >= PLAYER_REGEN_TICK_INTERVAL:
+                     # Which stat drives the refill is the contract's business
+                     # (`resources[].regeneration_stat`), so a set whose pool
+                     # answers to something other than wisdom is not special-cased.
+                     # A set may also declare that its pool does not refill on its
+                     # own at all (`regenerates: false`), which is why the refill
+                     # is gated on the declaration and health is not.
                      effective_strength = self.get_effective_stat('strength')
-                     base_mana_regen = self.runtime_state.magic.regen_rate * (1 + effective_wisdom / PLAYER_MANA_REGEN_WISDOM_DIVISOR)
+                     base_mana_regen = 0.0
+                     if ability_regenerates(self.world):
+                         regen_stat = ability_regen_stat(self.world)
+                         effective_regen_stat = self.get_effective_stat(regen_stat)
+                         base_mana_regen = ability_regen_rate(
+                             self.world, {regen_stat: effective_regen_stat}, self.runtime_state.magic.regen_rate
+                         )
                      base_health_regen = PLAYER_BASE_HEALTH_REGEN_RATE * (1 + effective_strength / PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR)
                      mana_regen_amount = int(PLAYER_REGEN_TICK_INTERVAL * base_mana_regen)
                      health_regen_amount = int(PLAYER_REGEN_TICK_INTERVAL * base_health_regen)

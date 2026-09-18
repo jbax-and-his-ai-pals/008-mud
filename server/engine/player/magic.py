@@ -9,6 +9,8 @@ from engine.magic.spell_registry import get_spell
 from engine.magic.effects import apply_spell_effect
 from engine.npcs.npc import NPC
 from engine.config import FORMAT_ERROR, FORMAT_RESET, DEFAULT_CURRENCY_NAME
+from engine.contracts.equipment import ability_numbers
+from engine.contracts.resources import ability_resource_label
 from engine.utils.utils import calculate_xp_gain, format_loot_drop_message
 
 if TYPE_CHECKING:
@@ -52,7 +54,8 @@ class PlayerMagicMixin:
             return True
         return False
 
-    def can_cast_spell(self, spell: Spell, current_time: float) -> Tuple[bool, str]:
+    def can_cast_spell(self, spell: Spell, current_time: float,
+                       world: Optional['World'] = None) -> Tuple[bool, str]:
         p = cast('Player', self)
         if p.runtime_state.magic is None:
             return False, "Magic is not enabled for this game."
@@ -62,8 +65,19 @@ class PlayerMagicMixin:
             return False, f"{FORMAT_ERROR}You are silenced and cannot speak the incantations!{FORMAT_RESET}"
 
         if spell.spell_id not in p.runtime_state.magic.known_spells: return False, "You don't know that spell."
-        if p.runtime_state.progression is not None and p.runtime_state.progression.level < spell.level_required: return False, f"You need to be level {spell.level_required} to cast {spell.name}."
-        if p.runtime_state.magic.mana < spell.mana_cost: return False, f"Not enough mana (need {spell.mana_cost}, have {int(p.runtime_state.magic.mana)})."
+        # Cost, cooldown and level come from the declared ability when content
+        # declares one; the spell's own fields are the fallback.
+        numbers = ability_numbers(world or p.world, spell)
+        if p.runtime_state.progression is not None and p.runtime_state.progression.level < numbers["level_required"]:
+            return False, f"You need to be level {numbers['level_required']} to use {spell.name}."
+        if p.runtime_state.magic.mana < numbers["mana_cost"]:
+            # The pool's name is the content set's, not the engine's: "mana" is
+            # what one content set calls it (`resources[].label`).
+            pool = ability_resource_label(world or p.world).lower()
+            return False, (
+                f"Not enough {pool} (need {numbers['mana_cost']}, "
+                f"have {int(p.runtime_state.magic.mana)})."
+            )
         
         cooldown_end_time = p.runtime_state.magic.cooldowns.get(spell.spell_id, 0)
         if current_time < cooldown_end_time: 
@@ -78,9 +92,14 @@ class PlayerMagicMixin:
         if p.has_effect("Stun"): 
             return {"success": False, "message": f"{FORMAT_ERROR}You are stunned!{FORMAT_RESET}", "mana_cost": 0}
         
+        # Targeting, cost and cooldown come from the declared ability when the
+        # content set declares one; the spell's own fields are the fallback.
+        numbers = ability_numbers(world or p.world, spell)
+        target_type = numbers["target_type"]
+
         targets = []
         # AoE Logic
-        if spell.target_type == "all_enemies":
+        if target_type == "all_enemies":
             target_world = world or p.world
             if not target_world: 
                 return {"success": False, "message": "System Error: No world context for AoE.", "mana_cost": 0}
@@ -93,7 +112,7 @@ class PlayerMagicMixin:
                  return {"success": False, "message": "There are no enemies here to hit.", "mana_cost": 0}
         else:
             # Single Target Validation
-            if spell.target_type == 'enemy':
+            if target_type == 'enemy':
                  from engine.npcs.npc import NPC
                  is_npc_friendly = isinstance(target, NPC) and target.faction != 'hostile'
                  is_self = (target == p)
@@ -105,19 +124,19 @@ class PlayerMagicMixin:
             # but here we just process what is passed.
             targets = [target]
 
-        can_cast, reason = self.can_cast_spell(spell, current_time)
+        can_cast, reason = self.can_cast_spell(spell, current_time, world)
         if not can_cast: return {"success": False, "message": reason, "mana_cost": 0}
 
-        # Deduct Cost & Set Cooldown
-        p.runtime_state.magic.mana -= spell.mana_cost
-        p.runtime_state.magic.cooldowns[spell.spell_id] = current_time + spell.cooldown
+        # Deduct Cost & Set Cooldown -- from the contract, not the definition.
+        p.runtime_state.magic.mana -= numbers["mana_cost"]
+        p.runtime_state.magic.cooldowns[spell.spell_id] = current_time + numbers["cooldown"]
         
         results = []
         from engine.npcs.npc import NPC
         
         for t in targets:
             # Auto-engage if offensive
-            if spell.target_type == "all_enemies" or (spell.target_type == "enemy" and t != p): 
+            if target_type == "all_enemies" or (target_type == "enemy" and t != p): 
                 if hasattr(t, 'is_alive') and t.is_alive:
                     if p.runtime_state.combat is not None:
                         p.enter_combat(t)

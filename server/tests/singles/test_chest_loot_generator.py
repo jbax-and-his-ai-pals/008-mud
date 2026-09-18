@@ -51,12 +51,17 @@ class TestChestLootGenerator(GameTestBase):
                     self.assertNotIsInstance(item, Container)
 
     def test_generated_gem_carries_the_gathering_systems_quality_score(self):
-        with patch("engine.items.chest_loot_generator.weighted_choice", return_value="gem"):
+        with patch("engine.items.chest_loot_generator.weighted_choice", return_value="generated"):
             item = ChestLootGenerator._generate_slot_item(self.world, level=5)
         self.assertIsNotNone(item)
         score = item.get_property("material_quality_score")
         self.assertIn(score, (1, 2, 3, 4, 5))
         self.assertTrue(item.get_property("material_quality_label"))
+        # The neutral vocabulary is what the resolver writes; the `gem_*` keys
+        # are the shipped profile's declared `property_prefix`, and pre-P9
+        # readers still have them.
+        self.assertEqual(item.get_property("instance_quality_score"), score)
+        self.assertTrue(item.get_property("instance_size_label"))
         self.assertTrue(item.get_property("gem_size_label"))
         self.assertTrue(item.get_property("gem_rarity"))
         self.assertFalse(item.stackable)

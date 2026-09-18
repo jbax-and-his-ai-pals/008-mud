@@ -247,7 +247,13 @@ class TestFantasyGatheringRoute(unittest.TestCase):
 
             gathered = server.execute_command(session.session_id, "mine rose quartz seam")
             gathered_text = "\n".join(str(event["payload"]) for event in gathered)
-            self.assertIn("gather rose quartz", gathered_text.lower())
+            # The message names what you got. It used to be asserted as the
+            # literal "gather rose quartz", which stopped matching once gems
+            # became generated instances ("you gather flawed small rose quartz
+            # (rough foothill quality)"): the node's yield is now rolled, so the
+            # assertion checks the claim rather than one spelling of it.
+            self.assertIn("you gather", gathered_text.lower())
+            self.assertIn("rose quartz", gathered_text.lower())
             self.assertIn("Riverside Gem Ledger", gathered_text)
             self.assertIn("Rose Quartz Prospect", gathered_text)
             self.assertEqual({"fieldcraft_basics", "rose_quartz"}, set(player.discoveries))

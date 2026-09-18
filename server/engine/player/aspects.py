@@ -8,6 +8,14 @@ from typing import Any
 
 @dataclass
 class MagicState:
+    """The ability pool and what a player has learned to do with it.
+
+    Named for mana because that is the first content set's word for the pool and
+    the name its saves use. Which resource the pool *is*, what it is called, and
+    which stat drives it are content decisions now
+    (`engine/contracts/resources.py`); this object is the storage.
+    """
+
     mana: int = 0
     max_mana: int = 0
     regen_rate: float = 0.0
@@ -63,7 +71,7 @@ class PlayerRuntimeState:
 class PlayerGameAspects:
     """The enabled optional Player aspects for one loaded game contract."""
 
-    magic: bool = True
+    abilities: bool = True
     combat: bool = True
     progression: bool = True
     economy: bool = True
@@ -72,7 +80,12 @@ class PlayerGameAspects:
     @classmethod
     def from_world(cls, world: Any) -> "PlayerGameAspects":
         return cls(
-            magic=world.has_capability("magic"),
+            # Using abilities is its own capability. `magic` is a content set
+            # saying its abilities are spells -- a flavour, not a mechanism --
+            # and every set that declares it has abilities, so it implies them.
+            # A set that declares `abilities` alone gets the pool, the cooldowns
+            # and the ability commands without inheriting a spell school.
+            abilities=world.has_capability("abilities") or world.has_capability("magic"),
             combat=world.has_capability("combat"),
             progression=world.ruleset_system_enabled("progression"),
             economy=world.ruleset_system_enabled("economy"),
@@ -80,7 +93,7 @@ class PlayerGameAspects:
         )
 
     def normalize(self, player: Any) -> None:
-        if not self.magic:
+        if not self.abilities:
             player.runtime_state.magic = None
             player.max_total_summons = 0
         if not self.combat:

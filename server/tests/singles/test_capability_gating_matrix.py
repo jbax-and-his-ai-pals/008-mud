@@ -35,8 +35,8 @@ GATED_COMMANDS = [
     ("recipes", "crafting"),
     ("craft anything", "crafting"),
     ("salvage anything", "crafting"),
-    ("cast", "magic"),
-    ("spells", "magic"),
+    ("cast", "abilities"),
+    ("spells", "abilities"),
     ("look board", "quests"),
     ("accept quest 1", "quests"),
     ("journal", "quests"),
@@ -114,7 +114,7 @@ class TestCapabilityGatingMatrix(unittest.TestCase):
 
     def test_disabled_system_categories_are_hidden_from_help_and_gone_from_command_help(self) -> None:
         modern_help = self._events_text(self.modern, self.modern_session_id, "help")
-        for keyword in ("Combat", "Magic", "Crafting"):
+        for keyword in ("Combat", "Abilities", "Crafting"):
             self.assertNotIn(keyword, modern_help)
 
         for command_text in ("attack", "cast", "craft", "skills", "trade", "accept quest"):
@@ -124,7 +124,7 @@ class TestCapabilityGatingMatrix(unittest.TestCase):
 
     def test_enabled_system_categories_surface_in_help(self) -> None:
         fantasy_help = self._events_text(self.fantasy, self.fantasy_session_id, "help")
-        for keyword in ("Combat", "Magic", "Crafting"):
+        for keyword in ("Combat", "Abilities", "Crafting"):
             self.assertIn(keyword, fantasy_help)
 
 
@@ -148,7 +148,7 @@ class TestSyntheticCapabilityGating(unittest.TestCase):
             progression_model="none",
             systems=tuple(sorted({
                 "inventory": False, "dialogue": True, "combat": False, "magic": False,
-                "crafting": False, "quests": False, "progression": False, "economy": False,
+                "abilities": False, "crafting": False, "quests": False, "progression": False, "economy": False,
             }.items())),
             status_fields=("name", "health"),
             ui_sections=("log", "nearby", "status"),

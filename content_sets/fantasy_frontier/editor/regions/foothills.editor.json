@@ -1,0 +1,77 @@
+{
+	"region": {},
+	"rooms": {
+		"grassy_slope": {
+			"_editor_pos": [
+				0.0,
+				0.0
+			]
+		},
+		"rocky_outcrop": {
+			"_editor_pos": [
+				0.0,
+				-250.0
+			]
+		},
+		"steep_trail": {
+			"_editor_pos": [
+				0.0,
+				-500.0
+			]
+		},
+		"windy_ridge": {
+			"_editor_pos": [
+				175.0,
+				-625.0
+			]
+		},
+		"mountain_pass_approach": {
+			"_editor_pos": [
+				175.0,
+				-875.0
+			]
+		},
+		"high_meadow": {
+			"_editor_pos": [
+				525.0,
+				-625.0
+			]
+		},
+		"hilltop_cave_entrance": {
+			"_editor_pos": [
+				525.0,
+				-375.0
+			]
+		},
+		"hilltop_cave": {
+			"_editor_pos": [
+				835.270751953125,
+				-436.465789794922
+			]
+		},
+		"standing_stone": {
+			"_editor_pos": [
+				350.0,
+				-500.0
+			]
+		},
+		"shepherds_path": {
+			"_editor_pos": [
+				350.0,
+				0.0
+			]
+		},
+		"shepherds_hut": {
+			"_editor_pos": [
+				700.0,
+				0.0
+			]
+		},
+		"sheep_pen": {
+			"_editor_pos": [
+				700.0,
+				-250.0
+			]
+		}
+	}
+}

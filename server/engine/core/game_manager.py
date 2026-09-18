@@ -18,6 +18,7 @@ from engine.core.collection_manager import CollectionManager
 from engine.core.discovery_manager import DiscoveryManager
 from engine.core.knowledge_manager import KnowledgeManager
 from engine.core.titles import TitleManager
+from engine.contracts import ContractRegistry
 from engine.dialogue.manager import DialogueManager
 from engine.core.time_manager import TimeManager
 from engine.core.weather_manager import WeatherManager
@@ -115,9 +116,13 @@ class GameManager:
         # P5 dialogue graphs, wired here too so the desktop path and the server
         # path expose the same managers.
         self.dialogue_manager = DialogueManager(self.world)
+        # P9 contracts, so the desktop path resolves families and profiles the
+        # same way the server does.
+        self.contract_registry = ContractRegistry.load(self.world.content_root)
         self.world.advancement_manager = self.advancement_manager
         self.world.title_manager = self.title_manager
         self.world.dialogue_manager = self.dialogue_manager
+        self.world.contract_registry = self.contract_registry
         self.world.server = self
 
     def _handle_ui_command(self, text: str) -> None:

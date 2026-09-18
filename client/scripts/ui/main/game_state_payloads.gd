@@ -144,12 +144,19 @@ func _handle_status_payload(payload: Variant) -> void:
 			hp_prefix = "[DEAD] "
 		elif float(hp_cur) / float(hp_max) < 0.25:
 			hp_prefix = "[CRIT] "
-	if main._game_status_field_enabled("mana") and body.has("mana"):
-		var mana: Dictionary = body.get("mana", {}) as Dictionary
-		var mp_cur: int = int(mana.get("current", 0))
-		var mp_max: int = int(mana.get("max", 0))
-		var mp_suffix: String = " [OOM]" if mp_max > 0 and mp_cur <= 0 else ""
-		vital_parts.append("MP %d/%d%s" % [mp_cur, mp_max, mp_suffix])
+	# The pool an ability spends. The field says the game has one; the payload
+	# says what it is called, because a content set whose abilities draw on
+	# charge must not be shown "MP" by a client that assumes mana.
+	var ability: Dictionary = body.get("ability_resource", {}) as Dictionary
+	var ability_id: String = str(ability.get("id", "")).strip_edges()
+	if not ability_id.is_empty() and main._game_status_field_enabled("ability_resource"):
+		var mp_cur: int = int(ability.get("current", 0))
+		var mp_max: int = int(ability.get("max", 0))
+		var mp_label: String = str(ability.get("short", "")).strip_edges()
+		if mp_label.is_empty():
+			mp_label = ability_id.to_upper()
+		var mp_suffix: String = " [EMPTY]" if mp_max > 0 and mp_cur <= 0 else ""
+		vital_parts.append("%s %d/%d%s" % [mp_label, mp_cur, mp_max, mp_suffix])
 	main.status_vitals_label.text = "  ".join(vital_parts)
 
 	var effects: Array = body.get("effects", []) as Array

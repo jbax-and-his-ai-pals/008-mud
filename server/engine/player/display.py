@@ -10,6 +10,7 @@ from engine.config import (
     DEFAULT_CURRENCY_NAME
 )
 from engine.config.config_display import FORMAT_YELLOW
+from engine.contracts.resources import ability_resource_label, ability_resource_short
 from engine.items.item import Item
 from engine.magic.spell_registry import get_spell
 from engine.utils.utils import format_name_for_display
@@ -66,9 +67,11 @@ class PlayerDisplayMixin:
         elif health_percent <= PLAYER_STATUS_HEALTH_LOW_THRESHOLD: health_display = f"{FORMAT_HIGHLIGHT}{health_text}{FORMAT_RESET}"
         else: health_display = f"{FORMAT_SUCCESS}{health_text}{FORMAT_RESET}"
         
-        has_magic = (not p.world or p.world.has_capability("magic")) and p.runtime_state.magic is not None
+        has_abilities = (not p.world or p.world.uses_abilities()) and p.runtime_state.magic is not None
+        pool_label = ability_resource_label(p.world) if p.world else "Mana"
+        pool_short = ability_resource_short(p.world) if p.world else "MP"
         mana_display = ""
-        if has_magic and p.runtime_state.magic is not None:
+        if has_abilities and p.runtime_state.magic is not None:
             mana_text = f"{int(p.runtime_state.magic.mana)}/{int(p.runtime_state.magic.max_mana)}"
             mana_display = f"{FORMAT_CYAN}{mana_text}{FORMAT_RESET}"
         
@@ -80,15 +83,21 @@ class PlayerDisplayMixin:
             status += f"{FORMAT_CATEGORY}Class:{FORMAT_RESET} {p.runtime_state.progression.player_class}\n"
             status += f"{FORMAT_CATEGORY}Level:{FORMAT_RESET} {p.runtime_state.progression.level} ({FORMAT_CATEGORY}XP:{FORMAT_RESET} {p.runtime_state.progression.experience}/{p.runtime_state.progression.experience_to_level})\n"
         status += f"{FORMAT_CATEGORY}Health:{FORMAT_RESET} {health_display}"
-        if has_magic:
-            status += f"  {FORMAT_CATEGORY}Mana:{FORMAT_RESET} {mana_display}"
+        if has_abilities:
+            status += f"  {FORMAT_CATEGORY}{pool_label}:{FORMAT_RESET} {mana_display}"
         status += "\n"
         
         if uses_progression:
             stat_parts = []
-            stats_to_show = ["strength", "dexterity", "constitution", "agility", "intelligence", "wisdom"]
-            if has_magic:
-                stats_to_show.extend(["spell_power", "magic_resist"])
+            declared_stats = p.world.declared_status_stats() if p.world else ()
+            if declared_stats:
+                stats_to_show = list(declared_stats)
+            else:
+                stats_to_show = ["strength", "dexterity", "constitution", "agility", "intelligence", "wisdom"]
+                if has_abilities:
+                    # The derived stats of a set whose abilities are spells. A
+                    # set that declares its own list is not shown them at all.
+                    stats_to_show.extend(["spell_power", "magic_resist"])
             for stat_name in stats_to_show:
                 base_stat = p.stats.get(stat_name, 0)
                 effective_stat = p.get_effective_stat(stat_name)
@@ -148,8 +157,8 @@ class PlayerDisplayMixin:
                 effect_lines.append(f"  - {name}{details}{duration_display}")
             status += "\n".join(effect_lines) + "\n"
         
-        if has_magic and p.runtime_state.magic.known_spells:
-             status += f"\n{FORMAT_TITLE}SPELLS KNOWN{FORMAT_RESET}\n"
+        if has_abilities and p.runtime_state.magic.known_spells:
+             status += f"\n{FORMAT_TITLE}ABILITIES KNOWN{FORMAT_RESET}\n"
              spell_list = []; current_time = time.time()
              for spell_id in sorted(list(p.runtime_state.magic.known_spells)):
                   spell = get_spell(spell_id)
@@ -161,7 +170,7 @@ class PlayerDisplayMixin:
                             level_req_display = f" ({req_color}L{spell.level_required}{FORMAT_RESET})" if spell.level_required > 1 else ""
                        else:
                             level_req_display = ""
-                       spell_list.append(f"  - {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {spell.mana_cost} MP{cd_status}")
+                       spell_list.append(f"  - {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {spell.mana_cost} {pool_short}{cd_status}")
              status += "\n".join(spell_list) + "\n"
 
         if has_combat and p.runtime_state.combat.in_combat: status += "\n" + self.get_combat_status()

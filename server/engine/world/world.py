@@ -108,6 +108,16 @@ class World:
         """
         return self.content_set.game_contract.system_enabled(system, default)
 
+    def uses_abilities(self) -> bool:
+        """Whether this package has abilities at all, and so an ability pool.
+
+        `magic` is a content set saying its abilities are spells, which is a
+        flavour rather than a mechanism; every set that declares it has
+        abilities. The second check is the bridge for sets written before
+        `abilities` existed as its own capability.
+        """
+        return self.has_capability("abilities") or self.has_capability("magic")
+
     def uses_progression(self) -> bool:
         """Whether the selected game presents level-based character growth."""
         return self.ruleset_system_enabled("progression")
@@ -140,6 +150,20 @@ class World:
         raw = self.ruleset_section("economy").get("currency_name")
         name = raw.strip() if isinstance(raw, str) else ""
         return name or DEFAULT_CURRENCY_NAME
+
+    def declared_status_stats(self) -> tuple[str, ...]:
+        """Which stats this content set shows on a status line, if it says.
+
+        The engine's default list carries `spell_power` and `magic_resist`,
+        which are the derived stats of a set whose abilities are spells. A set
+        that never mentions magic should not have to show its players those
+        names, so it may declare the list it wants under
+        `ruleset.status.stats`; an empty declaration means "use the default".
+        """
+        raw = self.ruleset_section("status").get("stats")
+        if not isinstance(raw, list):
+            return ()
+        return tuple(str(stat).strip() for stat in raw if str(stat).strip())
 
     def quest_board_name(self) -> str:
         """Display name for this content set's quest board (e.g. "Job Board")."""

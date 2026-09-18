@@ -18,6 +18,7 @@ import re
 import engine.commands  # noqa: F401 - force command module registration
 from engine.commands.command_system import CommandProcessor
 from engine.core.clock import Clock, SimulatedClock, WallClock
+from engine.config import DEFAULT_PLAYER_CLASS_NAME
 from engine.core.advancement import AdvancementManager
 from engine.core.backgrounds import BackgroundManager
 from engine.core.collection_manager import CollectionManager
@@ -183,7 +184,16 @@ class SessionMixin:
                     % (background_query, names)
                 ), False
         else:
-            background = self.background_manager.default_background()
+            # A content set that declares no backgrounds has no starting kit of
+            # its own, and the ruleset's `player_defaults` are that kit. The
+            # placeholder background exists so a creation screen has a label to
+            # show; treating it as "a background was applied" suppressed those
+            # defaults, handing the character an empty pack and no abilities.
+            background = (
+                self.background_manager.default_background()
+                if self.background_manager.available()
+                else None
+            )
 
         session = self.sessions.get(session_id)
         if session is None:
@@ -243,7 +253,13 @@ class SessionMixin:
         # for their first level before they had done anything.
         self.advancement_manager.ingest_legacy_discoveries(new_player)
         self.advancement_manager.seed(new_player, "region", start_region)
-        return True, f"Character created: {raw_name} ({background.name})", True
+        # A set that declares no backgrounds has no background name to show; the
+        # character's own class label is what it starts as.
+        role = background.name if background is not None else (
+            getattr(getattr(new_player.runtime_state, "progression", None), "player_class", "")
+            or DEFAULT_PLAYER_CLASS_NAME
+        )
+        return True, f"Character created: {raw_name} ({role})", True
 
     def build_opening_guidance(self) -> str:
         """Format the selected content set's optional first-session brief."""

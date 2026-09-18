@@ -102,7 +102,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Refresh a server data fixture from mud-world-editor export using latest-format hydration."
     )
-    parser.add_argument("--source", default="mud-world-editor/data")
+    parser.add_argument("--source", default="content_sets/fantasy_frontier/data")
     parser.add_argument("--latest-root", default="content_sets/fantasy_frontier/data")
     parser.add_argument("--fixture-root", default="tmp/content_fixtures")
     parser.add_argument("--fixture-name", default="fantasy_editor_migrated_latest")
