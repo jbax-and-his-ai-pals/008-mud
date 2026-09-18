@@ -194,12 +194,22 @@ func _refresh_props():
 			popup_menu.add_item(k)
 	popup_menu.add_separator(); popup_menu.add_item("Custom...")
 	
-	if cur_data.properties.is_empty():
+	# Structured properties (districts, level_band, ...) get their own
+	# dedicated section/editor elsewhere -- rendering one here as a flat tag
+	# would dump its entire nested contents into a single unbounded LineEdit,
+	# which has no wrap and no max width, blowing the panel out past the
+	# screen edge instead of just looking odd.
+	var scalar_keys: Array = []
+	for key in cur_data.properties:
+		var t = typeof(cur_data.properties[key])
+		if t != TYPE_DICTIONARY and t != TYPE_ARRAY: scalar_keys.append(key)
+
+	if scalar_keys.is_empty():
 		var l = Label.new(); l.text = "None."; l.modulate = Color(1,1,1,0.3); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		flow_container.add_child(l)
 		return
-	
-	for key in cur_data.properties:
+
+	for key in scalar_keys:
 		flow_container.add_child(_create_prop_tag(key, cur_data.properties[key]))
 
 func _create_prop_tag(key, val) -> PanelContainer:
