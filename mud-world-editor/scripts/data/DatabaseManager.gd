@@ -55,6 +55,7 @@ static func discoveries_file() -> String: return DataRoot.content_file("discover
 # `_guilds` is a registry several titles reference by id, and the entries keyed
 # without a leading underscore are the titles themselves.
 static func titles_file() -> String: return DataRoot.content_file("titles.json")
+static func backgrounds_file() -> String: return DataRoot.content_file("player/backgrounds.json")
 static func magic_groups_file() -> String: return DataRoot.editor_file("magic_groups.json")
 # Branching campaign graphs (CampaignDefinition/CampaignNode) -- distinct
 # from the simple linear quest-chain list in quests/campaigns.json, which
@@ -94,11 +95,18 @@ var titles_file_known := false
 # given a root directory, which collections.json/discoveries.json are not.
 var collections_file_known := false
 var discoveries_file_known := false
+var backgrounds: Dictionary = {}
+# Top-level keys of backgrounds.json that are not a background (`_comment`,
+# `_kit_rule`); `_default` is tracked separately since it is a meaningful id,
+# not inert commentary.
+var backgrounds_extras: Dictionary = {}
+var backgrounds_default: String = ""
+var backgrounds_file_known := false
 
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
 	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}, "title": {},
-	"collection": {}, "discovery": {}
+	"collection": {}, "discovery": {}, "background": {}
 }
 
 # Top-level keys of a content file that are not entries: a `_comment`, a pattern
@@ -128,6 +136,7 @@ func load_all():
 	campaigns.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	titles.clear(); guilds.clear(); titles_extras.clear(); titles_file_known = false
 	collections_file_known = false; discoveries_file_known = false
+	backgrounds.clear(); backgrounds_extras.clear(); backgrounds_default = ""; backgrounds_file_known = false
 	file_extras.clear(); known_files.clear()
 	mark_clean()
 	# Contracts first: an item inspector offers families and roll tables from here,
@@ -152,6 +161,7 @@ func load_all():
 	if discoveries_file_known: _load_file(discoveries_file(), "discoveries.json", discoveries)
 	_load_magic_groups()
 	_load_titles()
+	_load_backgrounds()
 
 # Titles are one file, not a directory of entries, and it carries a second
 # registry (`_guilds`) alongside the titles themselves -- `_load_file`'s
@@ -203,6 +213,43 @@ func _save_single_file(cache: Dictionary, path: String, relative_key: String, fi
 		return true
 	errors.append(result.get("error", "Could not save %s." % relative_key))
 	return file_known
+
+# Backgrounds are one file with a special `_default` key (which background a
+# new character gets when none is chosen), the same shape as titles' `_guilds`
+# in that it is structured content, not inert commentary, so it is not folded
+# into `backgrounds_extras`.
+func _load_backgrounds():
+	backgrounds_file_known = FileAccess.file_exists(backgrounds_file())
+	if not backgrounds_file_known: return
+	var json := JSON.new()
+	if json.parse(FileAccess.get_file_as_string(backgrounds_file())) != OK: return
+	var data = json.get_data()
+	if typeof(data) != TYPE_DICTIONARY: return
+	for key in data:
+		var id := str(key)
+		if id == "_default":
+			backgrounds_default = str(data[key])
+		elif id.begins_with("_"):
+			backgrounds_extras[id] = data[key]
+		elif data[key] is Dictionary:
+			backgrounds[id] = (data[key] as Dictionary).duplicate(true)
+
+func _save_backgrounds(errors: Array) -> void:
+	if not backgrounds_file_known and backgrounds.is_empty() and backgrounds_extras.is_empty() and backgrounds_default == "":
+		return
+	var payload := {}
+	for key in backgrounds_extras: payload[key] = backgrounds_extras[key]
+	if backgrounds_default != "": payload["_default"] = backgrounds_default
+	for id in backgrounds: payload[id] = backgrounds[id]
+	var result: Dictionary = SaveIO.write_json(backgrounds_file(), payload)
+	if result.get("ok", false):
+		backgrounds_file_known = true
+	else:
+		errors.append(result.get("error", "Could not save backgrounds."))
+
+func set_default_background(id: String) -> void:
+	backgrounds_default = id
+	mark_dirty("background", "_default")
 
 func guild_ids() -> Array:
 	var ids := guilds.keys()
@@ -417,6 +464,7 @@ func save_all() -> Dictionary:
 	_save_dialogue_graphs(errors)
 	_save_category(templates, template_dir(), errors)
 	_save_titles(errors)
+	_save_backgrounds(errors)
 	collections_file_known = _save_single_file(collections, collections_file(), "collections.json", collections_file_known, errors)
 	discoveries_file_known = _save_single_file(discoveries, discoveries_file(), "discoveries.json", discoveries_file_known, errors)
 	var groups := _save_magic_groups()
@@ -518,6 +566,7 @@ func _cache_for(type: String) -> Dictionary:
 		"title": return titles
 		"collection": return collections
 		"discovery": return discoveries
+		"background": return backgrounds
 	return {}
 
 func has_entry(type: String, id: String) -> bool:
@@ -581,6 +630,8 @@ func add_collection(id: String, data: Dictionary): collections[id] = data; mark_
 func get_collection_ids() -> Array: return get_ids("collection")
 func add_discovery(id: String, data: Dictionary): discoveries[id] = data; mark_dirty("discovery", id)
 func get_discovery_ids() -> Array: return get_ids("discovery")
+func add_background(id: String, data: Dictionary): backgrounds[id] = data; mark_dirty("background", id)
+func get_background_ids() -> Array: return get_ids("background")
 func get_npc_ids() -> Array: return get_ids("npc")
 func get_item_ids() -> Array: return get_ids("item")
 func get_template_ids() -> Array: return get_ids("template")

@@ -151,6 +151,7 @@ func _update_db_ui():
 		database_mgr.titles,
 		database_mgr.collections,
 		database_mgr.discoveries,
+		database_mgr.backgrounds,
 		database_mgr.dirty_flags
 	)
 
@@ -281,6 +282,9 @@ func _connect_ui_signals():
 			"collection":
 				d = {"name": "New Collection", "description": "", "items": [], "rewards": {}}
 				database_mgr.add_collection(id, d)
+			"background":
+				d = {"name": "New Background", "description": "", "stats": {}, "inventory": [], "starting_gold": 0}
+				database_mgr.add_background(id, d)
 		_update_db_ui()
 	)
 	ui_mgr.request_delete_db_entry.connect(_confirm_delete_db_entry)

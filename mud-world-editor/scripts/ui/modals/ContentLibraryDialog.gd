@@ -23,6 +23,7 @@ var cached_templates: Dictionary = {}
 var cached_titles: Dictionary = {}
 var cached_collections: Dictionary = {}
 var cached_discoveries: Dictionary = {}
+var cached_backgrounds: Dictionary = {}
 var cached_dirty: Dictionary = {}
 
 var category_box: VBoxContainer
@@ -58,6 +59,7 @@ const DIALOGUE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspe
 const TITLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TitleInspector.gd")
 const DISCOVERY_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DiscoveryInspector.gd")
 const COLLECTION_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/CollectionInspector.gd")
+const BACKGROUND_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/BackgroundInspector.gd")
 
 const CATEGORIES := [
 	{"key": "npc", "label": "NPCs", "color": Color.LIGHT_GREEN},
@@ -75,6 +77,7 @@ const CATEGORIES := [
 	{"key": "title", "label": "Titles", "color": Color(0.95, 0.8, 0.4)},
 	{"key": "collection", "label": "Collections", "color": Color(0.6, 0.75, 0.95)},
 	{"key": "discovery", "label": "Discoveries", "color": Color(0.55, 0.85, 0.75)},
+	{"key": "background", "label": "Backgrounds", "color": Color(0.8, 0.7, 0.95)},
 	{"key": "template", "label": "Templates", "color": Color(0.85, 0.72, 0.35)}
 ]
 
@@ -105,7 +108,7 @@ func show_entry(type: String, entry_id: String):
 	_build_editor()
 	popup_centered(_library_size())
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
@@ -116,6 +119,7 @@ func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, mag
 	cached_titles = titles
 	cached_collections = collections
 	cached_discoveries = discoveries
+	cached_backgrounds = backgrounds
 	cached_dirty = dirty_flags
 	_refresh_entries()
 	_refresh_save_state()
@@ -328,6 +332,7 @@ func _get_current_entries() -> Dictionary:
 		"title": return cached_titles
 		"collection": return cached_collections
 		"discovery": return cached_discoveries
+		"background": return cached_backgrounds
 		"template": return cached_templates
 	return {}
 
@@ -418,6 +423,12 @@ func _build_editor():
 			current_editor = collection_inspector
 			collection_inspector.database_modified.connect(_mark_current_dirty)
 			collection_inspector.build(selected_id, entry)
+			return
+		if storage_type == "background":
+			var background_inspector = BACKGROUND_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = background_inspector
+			background_inspector.database_modified.connect(_mark_current_dirty)
+			background_inspector.build(selected_id, entry)
 			return
 		inspector.build(storage_type, selected_id, entry)
 
