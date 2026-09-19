@@ -148,6 +148,7 @@ func _update_db_ui():
 		database_mgr.quests,
 		database_mgr.recipes,
 		database_mgr.dialogues,
+		database_mgr.titles,
 		database_mgr.dirty_flags
 	)
 
@@ -267,6 +268,11 @@ func _connect_ui_signals():
 				d = DialogueInspector.data_defaults()
 				d["id"] = id
 				database_mgr.add_dialogue(id, d)
+			"title":
+				# No condition yet, so nothing is granted until one is authored --
+				# an ungated title would confer itself to every character.
+				d = {"name": "New Title", "description": ""}
+				database_mgr.add_title(id, d)
 		_update_db_ui()
 	)
 	ui_mgr.request_delete_db_entry.connect(_confirm_delete_db_entry)

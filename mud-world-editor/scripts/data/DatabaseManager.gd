@@ -51,6 +51,10 @@ static func template_dir() -> String: return DataRoot.editor_file("templates") +
 static func campaign_dir() -> String: return DataRoot.content_dir("campaigns")
 static func collections_file() -> String: return DataRoot.content_file("collections.json")
 static func discoveries_file() -> String: return DataRoot.content_file("discoveries.json")
+# Titles and their conferring guilds share one file (`engine/core/titles.py`):
+# `_guilds` is a registry several titles reference by id, and the entries keyed
+# without a leading underscore are the titles themselves.
+static func titles_file() -> String: return DataRoot.content_file("titles.json")
 static func magic_groups_file() -> String: return DataRoot.editor_file("magic_groups.json")
 # Branching campaign graphs (CampaignDefinition/CampaignNode) -- distinct
 # from the simple linear quest-chain list in quests/campaigns.json, which
@@ -75,10 +79,20 @@ var collections: Dictionary = {}
 var discoveries: Dictionary = {}
 var magic_groups: Dictionary = {}
 var magic_groups_dirty := false
+var titles: Dictionary = {}
+# guild_id -> {name, place}, the `_guilds` registry titles.json keeps alongside
+# the titles themselves.
+var guilds: Dictionary = {}
+# Top-level keys of titles.json that are not `_guilds` and not a title (a
+# `_comment`, for instance), kept and re-emitted on save.
+var titles_extras: Dictionary = {}
+# Whether titles.json existed at load, so deleting the last title still
+# rewrites the file empty instead of leaving it alone with a stale entry.
+var titles_file_known := false
 
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
-	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}
+	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}, "title": {}
 }
 
 # Top-level keys of a content file that are not entries: a `_comment`, a pattern
@@ -106,6 +120,7 @@ func _ensure_dir(path):
 func load_all():
 	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); dialogues.clear()
 	campaigns.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
+	titles.clear(); guilds.clear(); titles_extras.clear(); titles_file_known = false
 	file_extras.clear(); known_files.clear()
 	mark_clean()
 	# Contracts first: an item inspector offers families and roll tables from here,
@@ -127,6 +142,60 @@ func load_all():
 	if FileAccess.file_exists(collections_file()): _load_file(collections_file(), "collections.json", collections)
 	if FileAccess.file_exists(discoveries_file()): _load_file(discoveries_file(), "discoveries.json", discoveries)
 	_load_magic_groups()
+	_load_titles()
+
+# Titles are one file, not a directory of entries, and it carries a second
+# registry (`_guilds`) alongside the titles themselves -- `_load_file`'s
+# single-vs-library heuristic has no notion of that, so this is loaded by hand,
+# the same reason dialogue graphs and campaigns are.
+func _load_titles():
+	titles_file_known = FileAccess.file_exists(titles_file())
+	if not titles_file_known: return
+	var json := JSON.new()
+	if json.parse(FileAccess.get_file_as_string(titles_file())) != OK: return
+	var data = json.get_data()
+	if typeof(data) != TYPE_DICTIONARY: return
+	for key in data:
+		var id := str(key)
+		if id == "_guilds":
+			if data[key] is Dictionary: guilds = (data[key] as Dictionary).duplicate(true)
+		elif id.begins_with("_"):
+			titles_extras[id] = data[key]
+		elif data[key] is Dictionary:
+			titles[id] = (data[key] as Dictionary).duplicate(true)
+
+func _save_titles(errors: Array) -> void:
+	if not titles_file_known and titles.is_empty() and guilds.is_empty() and titles_extras.is_empty():
+		return
+	var payload := {}
+	for key in titles_extras: payload[key] = titles_extras[key]
+	if not guilds.is_empty(): payload["_guilds"] = guilds
+	for id in titles: payload[id] = titles[id]
+	var result: Dictionary = SaveIO.write_json(titles_file(), payload)
+	if result.get("ok", false):
+		titles_file_known = true
+	else:
+		errors.append(result.get("error", "Could not save titles."))
+
+func guild_ids() -> Array:
+	var ids := guilds.keys()
+	ids.sort()
+	return ids
+
+func guild_name(guild_id: String) -> String:
+	return str(guilds.get(guild_id, {}).get("name", guild_id))
+
+func add_guild(guild_id: String, guild_name_text: String, place: String = "") -> void:
+	var entry := {"name": guild_name_text}
+	if place != "": entry["place"] = place
+	guilds[guild_id] = entry
+	mark_dirty("title", "_guilds")
+
+func set_guild_place(guild_id: String, place: String) -> void:
+	if not guilds.has(guild_id): return
+	if place == "": guilds[guild_id].erase("place")
+	else: guilds[guild_id]["place"] = place
+	mark_dirty("title", "_guilds")
 
 func _load_magic_groups():
 	if not FileAccess.file_exists(magic_groups_file()):
@@ -320,6 +389,7 @@ func save_all() -> Dictionary:
 	_save_category(recipes, recipe_dir(), errors)
 	_save_dialogue_graphs(errors)
 	_save_category(templates, template_dir(), errors)
+	_save_titles(errors)
 	var groups := _save_magic_groups()
 	if not groups.get("ok", false):
 		errors.append(groups.get("error", "Could not save magic groups."))
@@ -416,6 +486,7 @@ func _cache_for(type: String) -> Dictionary:
 		"template": return templates
 		"recipe": return recipes
 		"dialogue": return dialogues
+		"title": return titles
 	return {}
 
 func has_entry(type: String, id: String) -> bool:
@@ -470,6 +541,10 @@ func add_dialogue(id: String, data: Dictionary): _add_entry(id, data, dialogues)
 func get_dialogue_ids() -> Array: return get_ids("dialogue")
 func add_recipe(id: String, data: Dictionary): _add_entry(id, data, recipes); mark_dirty("recipe", id)
 func get_recipe_ids() -> Array: return get_ids("recipe")
+# Titles are one file, not one-entry-per-directory-file, so they carry no
+# `_filename` the way `_add_entry` assumes every other category needs.
+func add_title(id: String, data: Dictionary): titles[id] = data; mark_dirty("title", id)
+func get_title_ids() -> Array: return get_ids("title")
 func get_npc_ids() -> Array: return get_ids("npc")
 func get_item_ids() -> Array: return get_ids("item")
 func get_template_ids() -> Array: return get_ids("template")

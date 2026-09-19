@@ -20,6 +20,7 @@ var cached_quests: Dictionary = {}
 var cached_recipes: Dictionary = {}
 var cached_dialogues: Dictionary = {}
 var cached_templates: Dictionary = {}
+var cached_titles: Dictionary = {}
 var cached_dirty: Dictionary = {}
 
 var category_box: VBoxContainer
@@ -52,6 +53,7 @@ const DATABASE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/DatabaseI
 const QUEST_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/QuestInspector.gd")
 const RECIPE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/RecipeInspector.gd")
 const DIALOGUE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DialogueInspector.gd")
+const TITLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TitleInspector.gd")
 
 const CATEGORIES := [
 	{"key": "npc", "label": "NPCs", "color": Color.LIGHT_GREEN},
@@ -66,6 +68,7 @@ const CATEGORIES := [
 	{"key": "quest", "label": "Quests", "color": Color.GOLD},
 	{"key": "recipe", "label": "Recipes", "color": Color(0.7, 0.85, 0.5)},
 	{"key": "dialogue", "label": "Dialogue", "color": Color(0.86, 0.75, 0.95)},
+	{"key": "title", "label": "Titles", "color": Color(0.95, 0.8, 0.4)},
 	{"key": "template", "label": "Templates", "color": Color(0.85, 0.72, 0.35)}
 ]
 
@@ -96,7 +99,7 @@ func show_entry(type: String, entry_id: String):
 	_build_editor()
 	popup_centered(_library_size())
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
@@ -104,6 +107,7 @@ func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, mag
 	cached_quests = quests
 	cached_recipes = recipes
 	cached_dialogues = dialogues
+	cached_titles = titles
 	cached_dirty = dirty_flags
 	_refresh_entries()
 	_refresh_save_state()
@@ -313,6 +317,7 @@ func _get_current_entries() -> Dictionary:
 		"quest": return cached_quests
 		"recipe": return cached_recipes
 		"dialogue": return cached_dialogues
+		"title": return cached_titles
 		"template": return cached_templates
 	return {}
 
@@ -385,6 +390,12 @@ func _build_editor():
 			current_editor = recipe_inspector
 			recipe_inspector.database_modified.connect(_mark_current_dirty)
 			recipe_inspector.build(selected_id, entry)
+			return
+		if storage_type == "title":
+			var title_inspector = TITLE_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = title_inspector
+			title_inspector.database_modified.connect(_mark_current_dirty)
+			title_inspector.build(selected_id, entry)
 			return
 		inspector.build(storage_type, selected_id, entry)
 
