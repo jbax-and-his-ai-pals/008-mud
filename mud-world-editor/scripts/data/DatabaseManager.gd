@@ -89,10 +89,16 @@ var titles_extras: Dictionary = {}
 # Whether titles.json existed at load, so deleting the last title still
 # rewrites the file empty instead of leaving it alone with a stale entry.
 var titles_file_known := false
+# Same "did this file exist" tracking for the other two single-file
+# categories: `_load_file` only registers a `known_files` entry when it is
+# given a root directory, which collections.json/discoveries.json are not.
+var collections_file_known := false
+var discoveries_file_known := false
 
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
-	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}, "title": {}
+	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}, "title": {},
+	"collection": {}, "discovery": {}
 }
 
 # Top-level keys of a content file that are not entries: a `_comment`, a pattern
@@ -121,6 +127,7 @@ func load_all():
 	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); dialogues.clear()
 	campaigns.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	titles.clear(); guilds.clear(); titles_extras.clear(); titles_file_known = false
+	collections_file_known = false; discoveries_file_known = false
 	file_extras.clear(); known_files.clear()
 	mark_clean()
 	# Contracts first: an item inspector offers families and roll tables from here,
@@ -139,8 +146,10 @@ func load_all():
 	quests = EditorLayout.merge_quests(quests)
 	_load_recursive(template_dir(), "", templates)
 	_load_campaigns()
-	if FileAccess.file_exists(collections_file()): _load_file(collections_file(), "collections.json", collections)
-	if FileAccess.file_exists(discoveries_file()): _load_file(discoveries_file(), "discoveries.json", discoveries)
+	collections_file_known = FileAccess.file_exists(collections_file())
+	if collections_file_known: _load_file(collections_file(), "collections.json", collections)
+	discoveries_file_known = FileAccess.file_exists(discoveries_file())
+	if discoveries_file_known: _load_file(discoveries_file(), "discoveries.json", discoveries)
 	_load_magic_groups()
 	_load_titles()
 
@@ -176,6 +185,24 @@ func _save_titles(errors: Array) -> void:
 		titles_file_known = true
 	else:
 		errors.append(result.get("error", "Could not save titles."))
+
+# A single-file, one-entry-per-key category (collections, discoveries): write
+# its entries back over whatever non-entry keys the file already carried, and
+# keep rewriting the file even once every entry is gone, the same reason
+# `_save_category` rewrites a directory file whose last entry was deleted.
+# Returns the "does this file exist now" flag the caller should keep.
+func _save_single_file(cache: Dictionary, path: String, relative_key: String, file_known: bool, errors: Array) -> bool:
+	if not file_known and cache.is_empty():
+		return file_known
+	var payload := {}
+	if file_extras.has(relative_key):
+		payload = (file_extras[relative_key] as Dictionary).duplicate(true)
+	for id in cache: payload[id] = cache[id]
+	var result: Dictionary = SaveIO.write_json(path, payload)
+	if result.get("ok", false):
+		return true
+	errors.append(result.get("error", "Could not save %s." % relative_key))
+	return file_known
 
 func guild_ids() -> Array:
 	var ids := guilds.keys()
@@ -390,6 +417,8 @@ func save_all() -> Dictionary:
 	_save_dialogue_graphs(errors)
 	_save_category(templates, template_dir(), errors)
 	_save_titles(errors)
+	collections_file_known = _save_single_file(collections, collections_file(), "collections.json", collections_file_known, errors)
+	discoveries_file_known = _save_single_file(discoveries, discoveries_file(), "discoveries.json", discoveries_file_known, errors)
 	var groups := _save_magic_groups()
 	if not groups.get("ok", false):
 		errors.append(groups.get("error", "Could not save magic groups."))
@@ -487,6 +516,8 @@ func _cache_for(type: String) -> Dictionary:
 		"recipe": return recipes
 		"dialogue": return dialogues
 		"title": return titles
+		"collection": return collections
+		"discovery": return discoveries
 	return {}
 
 func has_entry(type: String, id: String) -> bool:
@@ -545,6 +576,11 @@ func get_recipe_ids() -> Array: return get_ids("recipe")
 # `_filename` the way `_add_entry` assumes every other category needs.
 func add_title(id: String, data: Dictionary): titles[id] = data; mark_dirty("title", id)
 func get_title_ids() -> Array: return get_ids("title")
+# Collections and discoveries are single-file categories too -- no `_filename`.
+func add_collection(id: String, data: Dictionary): collections[id] = data; mark_dirty("collection", id)
+func get_collection_ids() -> Array: return get_ids("collection")
+func add_discovery(id: String, data: Dictionary): discoveries[id] = data; mark_dirty("discovery", id)
+func get_discovery_ids() -> Array: return get_ids("discovery")
 func get_npc_ids() -> Array: return get_ids("npc")
 func get_item_ids() -> Array: return get_ids("item")
 func get_template_ids() -> Array: return get_ids("template")

@@ -764,6 +764,8 @@ def _validate_collection_references(content_root: Path, issues: list[ContentSetI
         return
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
     for collection_id, definition in payload.items():
+        if str(collection_id).startswith("_"):
+            continue
         label = f"collection '{collection_id}'"
         if not isinstance(collection_id, str) or not collection_id.strip():
             issues.append(ContentSetIssue("error", str(collections_path), "collection ids must be non-empty strings"))

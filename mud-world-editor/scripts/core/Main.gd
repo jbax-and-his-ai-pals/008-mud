@@ -149,6 +149,8 @@ func _update_db_ui():
 		database_mgr.recipes,
 		database_mgr.dialogues,
 		database_mgr.titles,
+		database_mgr.collections,
+		database_mgr.discoveries,
 		database_mgr.dirty_flags
 	)
 
@@ -273,6 +275,12 @@ func _connect_ui_signals():
 				# an ungated title would confer itself to every character.
 				d = {"name": "New Title", "description": ""}
 				database_mgr.add_title(id, d)
+			"discovery":
+				d = {"name": "New Discovery", "description": "", "item_ids": []}
+				database_mgr.add_discovery(id, d)
+			"collection":
+				d = {"name": "New Collection", "description": "", "items": [], "rewards": {}}
+				database_mgr.add_collection(id, d)
 		_update_db_ui()
 	)
 	ui_mgr.request_delete_db_entry.connect(_confirm_delete_db_entry)

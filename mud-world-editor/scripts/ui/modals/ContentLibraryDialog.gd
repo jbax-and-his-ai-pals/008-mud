@@ -21,6 +21,8 @@ var cached_recipes: Dictionary = {}
 var cached_dialogues: Dictionary = {}
 var cached_templates: Dictionary = {}
 var cached_titles: Dictionary = {}
+var cached_collections: Dictionary = {}
+var cached_discoveries: Dictionary = {}
 var cached_dirty: Dictionary = {}
 
 var category_box: VBoxContainer
@@ -54,6 +56,8 @@ const QUEST_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/QuestInspect
 const RECIPE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/RecipeInspector.gd")
 const DIALOGUE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DialogueInspector.gd")
 const TITLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TitleInspector.gd")
+const DISCOVERY_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DiscoveryInspector.gd")
+const COLLECTION_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/CollectionInspector.gd")
 
 const CATEGORIES := [
 	{"key": "npc", "label": "NPCs", "color": Color.LIGHT_GREEN},
@@ -69,6 +73,8 @@ const CATEGORIES := [
 	{"key": "recipe", "label": "Recipes", "color": Color(0.7, 0.85, 0.5)},
 	{"key": "dialogue", "label": "Dialogue", "color": Color(0.86, 0.75, 0.95)},
 	{"key": "title", "label": "Titles", "color": Color(0.95, 0.8, 0.4)},
+	{"key": "collection", "label": "Collections", "color": Color(0.6, 0.75, 0.95)},
+	{"key": "discovery", "label": "Discoveries", "color": Color(0.55, 0.85, 0.75)},
 	{"key": "template", "label": "Templates", "color": Color(0.85, 0.72, 0.35)}
 ]
 
@@ -99,7 +105,7 @@ func show_entry(type: String, entry_id: String):
 	_build_editor()
 	popup_centered(_library_size())
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
@@ -108,6 +114,8 @@ func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, mag
 	cached_recipes = recipes
 	cached_dialogues = dialogues
 	cached_titles = titles
+	cached_collections = collections
+	cached_discoveries = discoveries
 	cached_dirty = dirty_flags
 	_refresh_entries()
 	_refresh_save_state()
@@ -318,6 +326,8 @@ func _get_current_entries() -> Dictionary:
 		"recipe": return cached_recipes
 		"dialogue": return cached_dialogues
 		"title": return cached_titles
+		"collection": return cached_collections
+		"discovery": return cached_discoveries
 		"template": return cached_templates
 	return {}
 
@@ -396,6 +406,18 @@ func _build_editor():
 			current_editor = title_inspector
 			title_inspector.database_modified.connect(_mark_current_dirty)
 			title_inspector.build(selected_id, entry)
+			return
+		if storage_type == "discovery":
+			var discovery_inspector = DISCOVERY_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = discovery_inspector
+			discovery_inspector.database_modified.connect(_mark_current_dirty)
+			discovery_inspector.build(selected_id, entry)
+			return
+		if storage_type == "collection":
+			var collection_inspector = COLLECTION_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = collection_inspector
+			collection_inspector.database_modified.connect(_mark_current_dirty)
+			collection_inspector.build(selected_id, entry)
 			return
 		inspector.build(storage_type, selected_id, entry)
 
