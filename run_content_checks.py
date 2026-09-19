@@ -97,6 +97,15 @@ def main() -> int:
             run_step("Validate content set: %s" % content_set,
                      [python, f"{toolkit}/content_set_validator.py", "content_sets/%s" % content_set], env)
 
+        # JSON has one number type, so `2.0` and `2` are the same file and
+        # different values -- to Python, `isinstance(2.0, int)` is False. A JSON
+        # writer that only emits floats (the world editor used to) therefore
+        # silently turns every authored integer into a float, and the validator
+        # above then rejects fields the author never touched. This gate fails on
+        # that instead of letting it land, and names the tool that fixes it.
+        run_step("Check content numbers match their schema types",
+                 [python, f"{toolkit}/normalize_content_numbers.py"], env)
+
         for content_set in CONTENT_SETS:
             run_step("Validate content-set reference integrity: %s" % content_set,
                      [python, f"{toolkit}/reference_integrity_validator.py",

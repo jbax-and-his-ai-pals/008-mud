@@ -2,26 +2,26 @@
     "sun_basilisk": {
         "name": "sun basilisk",
         "description": "A heavy desert basilisk whose gold-flecked scales gleam among the dry terraces before its petrifying gaze can be avoided.",
-        "level": 12.0,
-        "health": 150.0,
+        "level": 12,
+        "health": 150,
         "friendly": false,
         "faction": "hostile",
         "behavior_type": "aggressive",
         "stats": {
-            "strength": 20.0,
-            "dexterity": 11.0,
-            "constitution": 20.0,
-            "agility": 9.0,
-            "magic_resist": 5.0
+            "strength": 20,
+            "dexterity": 11,
+            "constitution": 20,
+            "agility": 9,
+            "magic_resist": 5
         },
-        "attack_power": 15.0,
-        "defense": 13.0,
+        "attack_power": 15,
+        "defense": 13,
         "loot_table": {
             "item_chitin_plate": {
                 "chance": 0.85,
                 "quantity": [
-                    1.0,
-                    2.0
+                    1,
+                    2
                 ]
             },
             "item_scorpion_stinger": {
@@ -36,9 +36,9 @@
             "on_hit_effect": {
                 "type": "stat_mod",
                 "name": "Basilisk Stiffness",
-                "base_duration": 10.0,
+                "base_duration": 10,
                 "modifiers": {
-                    "agility": -3.0
+                    "agility": -3
                 }
             },
             "weapon_damage_type": "piercing",
@@ -48,26 +48,26 @@
     "ruin_reaver": {
         "name": "ruin reaver",
         "description": "A hardened outlaw who hunts the old imperial works for relics and anyone unlucky enough to be carrying them.",
-        "level": 13.0,
-        "health": 160.0,
+        "level": 13,
+        "health": 160,
         "friendly": false,
         "faction": "hostile",
         "behavior_type": "aggressive",
         "stats": {
-            "strength": 20.0,
-            "dexterity": 17.0,
-            "constitution": 18.0,
-            "agility": 16.0,
-            "magic_resist": 4.0
+            "strength": 20,
+            "dexterity": 17,
+            "constitution": 18,
+            "agility": 16,
+            "magic_resist": 4
         },
-        "attack_power": 16.0,
-        "defense": 12.0,
+        "attack_power": 16,
+        "defense": 12,
         "loot_table": {
             "gold_value": {
                 "chance": 1.0,
                 "quantity": [
-                    40.0,
-                    80.0
+                    40,
+                    80
                 ]
             },
             "item_masterwork_estoc": {
@@ -88,26 +88,26 @@
     "ash_warden": {
         "name": "ash warden",
         "description": "An ancient stone sentinel from the imperial works, its joints packed with ash and its purpose long outliving the command that made it.",
-        "level": 14.0,
-        "health": 185.0,
+        "level": 14,
+        "health": 185,
         "friendly": false,
         "faction": "hostile",
         "behavior_type": "aggressive",
         "stats": {
-            "strength": 23.0,
-            "dexterity": 8.0,
-            "constitution": 24.0,
-            "agility": 6.0,
-            "magic_resist": 9.0
+            "strength": 23,
+            "dexterity": 8,
+            "constitution": 24,
+            "agility": 6,
+            "magic_resist": 9
         },
-        "attack_power": 18.0,
-        "defense": 16.0,
+        "attack_power": 18,
+        "defense": 16,
         "loot_table": {
             "item_living_rock": {
                 "chance": 0.9,
                 "quantity": [
-                    1.0,
-                    2.0
+                    1,
+                    2
                 ]
             },
             "item_black_diamond": {
@@ -126,26 +126,26 @@
     "astral_sentinel": {
         "name": "astral sentinel",
         "description": "A tall imperial guardian of blackened bronze, its chest holding a cold moving map of constellations that no living astronomer recognizes.",
-        "level": 15.0,
-        "health": 220.0,
+        "level": 15,
+        "health": 220,
         "friendly": false,
         "faction": "hostile",
         "behavior_type": "aggressive",
         "stats": {
-            "strength": 26.0,
-            "dexterity": 12.0,
-            "constitution": 27.0,
-            "agility": 9.0,
-            "magic_resist": 12.0
+            "strength": 26,
+            "dexterity": 12,
+            "constitution": 27,
+            "agility": 9,
+            "magic_resist": 12
         },
-        "attack_power": 21.0,
-        "defense": 18.0,
+        "attack_power": 21,
+        "defense": 18,
         "loot_table": {
             "item_living_rock": {
                 "chance": 1.0,
                 "quantity": [
-                    1.0,
-                    2.0
+                    1,
+                    2
                 ]
             },
             "item_soulgem": {

@@ -62,8 +62,8 @@
         "description": "A thin piece of iron shaped to manipulate tumbler locks. It looks brittle.",
         "weight": 0.1,
         "value": 10.0,
-        "durability": 8.0,
-        "max_durability": 8.0,
+        "durability": 8,
+        "max_durability": 8,
         "item_family": "lockpick"
     },
     "item_master_lockpick": {
@@ -72,8 +72,8 @@
         "description": "A finely crafted lockpick made of flexible steel. Much harder to break.",
         "weight": 0.1,
         "value": 50.0,
-        "durability": 40.0,
-        "max_durability": 40.0,
+        "durability": 40,
+        "max_durability": 40,
         "item_family": "lockpick"
     },
     "item_lockpick_crude_bronze": {
@@ -82,8 +82,8 @@
         "description": "A hastily cast bronze pick. Soft metal; it won't take much abuse.",
         "weight": 0.1,
         "value": 6.0,
-        "durability": 6.0,
-        "max_durability": 6.0,
+        "durability": 6,
+        "max_durability": 6,
         "item_family": "lockpick"
     },
     "item_lockpick_crude_steel": {
@@ -92,8 +92,8 @@
         "description": "A roughly filed steel pick. Not pretty, but sturdier than bronze.",
         "weight": 0.1,
         "value": 12.0,
-        "durability": 10.0,
-        "max_durability": 10.0,
+        "durability": 10,
+        "max_durability": 10,
         "item_family": "lockpick"
     },
     "item_lockpick_fine_bronze": {
@@ -102,8 +102,8 @@
         "description": "A carefully shaped bronze pick with a well-balanced tension bar.",
         "weight": 0.1,
         "value": 25.0,
-        "durability": 16.0,
-        "max_durability": 16.0,
+        "durability": 16,
+        "max_durability": 16,
         "item_family": "lockpick"
     },
     "item_lockpick_fine_steel": {
@@ -112,8 +112,8 @@
         "description": "A precisely tempered steel pick, built to take a beating without snapping.",
         "weight": 0.1,
         "value": 45.0,
-        "durability": 24.0,
-        "max_durability": 24.0,
+        "durability": 24,
+        "max_durability": 24,
         "item_family": "lockpick"
     },
     "item_lockpick_shiv": {
@@ -122,8 +122,8 @@
         "description": "A sliver of scavenged metal, bent and sharpened by hand. Not much, but it might just work.",
         "weight": 0.05,
         "value": 1.0,
-        "durability": 4.0,
-        "max_durability": 4.0,
+        "durability": 4,
+        "max_durability": 4,
         "item_family": "lockpick"
     }
 }

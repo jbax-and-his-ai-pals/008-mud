@@ -3,10 +3,10 @@
         "type": "instance",
         "title": "Bounty: Infestation",
         "description": "A local has been driven from their home by an infestation of hostile creatures. Clear them out and report back.",
-        "level": 1.0,
+        "level": 1,
         "rewards": {
-            "xp": 100.0,
-            "gold": 50.0
+            "xp": 100,
+            "gold": 50
         },
         "giver_npc_template_id": "worried_homeowner",
         "possible_entry_regions": [
@@ -21,8 +21,8 @@
             "completion_npc_template_id": "relieved_homeowner"
         },
         "layout_generation_config": {
-            "min_rooms": 2.0,
-            "max_rooms": 4.0,
+            "min_rooms": 2,
+            "max_rooms": 4,
             "region_name": "Infested House",
             "region_description": "A small, dusty house that smells of neglect and vermin.",
             "possible_room_names": [
@@ -32,8 +32,8 @@
                 "Storage Room"
             ],
             "target_count": [
-                2.0,
-                4.0
+                2,
+                4
             ]
         }
     }

@@ -1509,10 +1509,9 @@ def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -
                 for field in ("repeatable", "crafted_only"):
                     if field in order and not isinstance(order[field], bool):
                         issues.append(ContentSetIssue("error", str(path), f"{entry}.{field} must be a boolean"))
-                if "min_material_quality_score" in order:
-                    score = order["min_material_quality_score"]
-                    if isinstance(score, bool) or not isinstance(score, int) or score < 0:
-                        issues.append(ContentSetIssue("error", str(path), f"{entry}.min_material_quality_score must be a non-negative integer"))
+                # The quality floor is checked by `_item_reference_issues` above,
+                # for both spellings. Checking it again here reported the same
+                # bad value twice, which reads as two problems in the content.
 
 
 def _validate_salvage_rules(

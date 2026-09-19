@@ -5,7 +5,7 @@
         "description": "A worn wooden trunk at the foot of the bed. It isn't yours.",
         "weight": 15.0,
         "value": 8.0,
-        "capacity": 20.0,
+        "capacity": 20,
         "locked": false,
         "is_open": true,
         "properties": {
@@ -38,9 +38,9 @@
         "value": 12.0,
         "stackable": false,
         "properties": {
-            "defense": 1.0,
-            "durability": 20.0,
-            "max_durability": 20.0,
+            "defense": 1,
+            "durability": 20,
+            "max_durability": 20,
             "equip_slot": [
                 "neck"
             ],
@@ -80,9 +80,9 @@
         "value": 30.0,
         "stackable": false,
         "properties": {
-            "defense": 1.0,
-            "durability": 35.0,
-            "max_durability": 35.0,
+            "defense": 1,
+            "durability": 35,
+            "max_durability": 35,
             "equip_slot": [
                 "neck"
             ],
@@ -93,7 +93,7 @@
                 "type": "stat_mod",
                 "name": "Quartz Focus",
                 "modifiers": {
-                    "magic_resist": 2.0
+                    "magic_resist": 2
                 }
             },
             "category": "gift",
@@ -264,9 +264,9 @@
         "value": 14.0,
         "stackable": false,
         "properties": {
-            "defense": 1.0,
-            "durability": 30.0,
-            "max_durability": 30.0,
+            "defense": 1,
+            "durability": 30,
+            "max_durability": 30,
             "equip_slot": [
                 "neck"
             ],
@@ -274,7 +274,7 @@
                 "type": "stat_mod",
                 "name": "Hunter's Confidence",
                 "modifiers": {
-                    "strength": 1.0
+                    "strength": 1
                 }
             },
             "category": "gift",
@@ -295,7 +295,7 @@
         "description": "A sturdy chest built into the corner of the room, ready to hold whatever you don't want to carry around.",
         "weight": 25.0,
         "value": 0.0,
-        "capacity": 100.0,
+        "capacity": 100,
         "locked": false,
         "is_open": false,
         "properties": {
@@ -309,7 +309,7 @@
         "description": "A sturdy toolbox with a hinged lid, built by your own hands. Plenty of room inside.",
         "weight": 8.0,
         "value": 15.0,
-        "capacity": 40.0,
+        "capacity": 40,
         "locked": false,
         "is_open": false,
         "properties": {},

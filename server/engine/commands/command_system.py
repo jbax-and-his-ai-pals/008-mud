@@ -2,8 +2,65 @@
 from typing import Callable, List, Dict, Any, Optional, Set
 from functools import wraps
 import inspect
+import traceback
 
 from engine.config import FORMAT_CATEGORY, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_TITLE, HELP_MAX_COMMANDS_PER_CATEGORY
+from engine.utils.logger import Logger
+
+# The module tracebacks for failed commands are logged under. Named here so a
+# log filter can find them without matching on prose.
+CRASH_LOG_SOURCE = "CommandCrash"
+
+
+def report_command_failure(
+    command_name: str, args: List[str], error: BaseException, context: Any = None
+) -> None:
+    """Record a command handler that raised instead of returning a message.
+
+    A handler is supposed to answer with text; raising means a defect, either in
+    the engine or in the content it read. The traceback goes to the log, and to
+    the server's boot warnings when there is a server to tell -- an operator
+    reading the startup diagnostics is the person who can act on "this command
+    has crashed four times".
+    """
+    summary = "%s: %s: %s" % (command_name, type(error).__name__, error)
+    try:
+        Logger.error(CRASH_LOG_SOURCE, summary)
+        for line in traceback.format_exception(type(error), error, error.__traceback__):
+            for entry in str(line).rstrip().splitlines():
+                Logger.debug(CRASH_LOG_SOURCE, entry)
+    except Exception:  # pragma: no cover - logging must never be the failure
+        pass
+
+    # The server this command ran on, when it ran on one. `server/server_main.py`
+    # and the headless mixins put themselves in the context under this key; the
+    # desktop client has no server and reports to the log alone.
+    server = context.get("server") if isinstance(context, dict) else None
+    if server is None and isinstance(context, dict):
+        server = getattr(context.get("world"), "server", None)
+    reporter = getattr(server, "record_command_failure", None)
+    if callable(reporter):
+        try:
+            reporter(command_name, summary)
+        except Exception:  # pragma: no cover - reporting must never be the failure
+            pass
+
+
+def command_failure_message(command_name: str, error: BaseException) -> str:
+    """What a player is told when a command handler raises.
+
+    Deliberately not the exception's text: that can carry filesystem paths and
+    internal identifiers, and a player can do nothing with either. The type is
+    named because it is what a bug report can be searched for, and because it is
+    the one detail that distinguishes "the game broke" from "you typed
+    something odd".
+    """
+    return (
+        f"{FORMAT_ERROR}Something went wrong running '{command_name}'. "
+        f"This is a bug in the game, not something you did "
+        f"({type(error).__name__}).{FORMAT_RESET}"
+    )
+
 
 # Dictionary to store all registered commands
 registered_commands: Dict[str, Dict[str, Any]] = {}
@@ -174,7 +231,15 @@ class CommandProcessor:
                     if not context["authz_hook"](cmd_data):
                         return f"{FORMAT_ERROR}You do not have permission to use this command.{FORMAT_RESET}"
 
-            return cmd_data["handler"](args, context)
+            try:
+                return cmd_data["handler"](args, context)
+            except Exception as error:
+                # Every game mode dispatches through here, so this is the one
+                # place a defect can be stopped from ending the session: a
+                # handler that raises used to take down a single-player run and
+                # a whole connection. Answer the player, report the bug.
+                report_command_failure(str(cmd_data.get("name", "")), args, error, context)
+                return command_failure_message(str(cmd_data.get("name", "")), error)
 
         # Content can author contextual exit verbs (for example, "house"
         # or "hatch") without adding them to the process-global command

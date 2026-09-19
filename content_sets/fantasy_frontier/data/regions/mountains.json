@@ -7,8 +7,8 @@
         "weather_profile": "alpine",
         "region_type": "wilderness",
         "level_band": {
-            "min": 5.0,
-            "max": 8.0
+            "min": 5,
+            "max": 8
         }
     },
     "spawner": {
@@ -22,8 +22,8 @@
             "troll": 2.0
         },
         "level_range": [
-            5.0,
-            8.0
+            5,
+            8
         ]
     },
     "rooms": {
@@ -183,8 +183,8 @@
                 "dark": true,
                 "temperature": "cold",
                 "hazard_type": "extreme_cold",
-                "hazard_damage": 5.0,
-                "hazard_tick_interval": 5.0
+                "hazard_damage": 5,
+                "hazard_tick_interval": 5
             }
         }
     }

@@ -6,9 +6,9 @@
         "properties": {
             "resource_item_id": "item_wild_herbs",
             "tool_required": "foraging_knife",
-            "charges": 6.0,
-            "max_charges": 6.0,
-            "respawn_days": 1.0,
+            "charges": 6,
+            "max_charges": 6,
+            "respawn_days": 1,
             "resource_tags": [
                 "plant",
                 "herb",
@@ -26,9 +26,9 @@
         "properties": {
             "resource_item_id": "item_forest_berries",
             "tool_required": "foraging_knife",
-            "charges": 3.0,
-            "max_charges": 3.0,
-            "respawn_days": 1.0,
+            "charges": 3,
+            "max_charges": 3,
+            "respawn_days": 1,
             "resource_tags": [
                 "plant",
                 "forest",
@@ -55,9 +55,9 @@
         "properties": {
             "resource_item_id": "item_softwood",
             "tool_required": "hand_axe",
-            "charges": 3.0,
-            "max_charges": 3.0,
-            "respawn_days": 2.0,
+            "charges": 3,
+            "max_charges": 3,
+            "respawn_days": 2,
             "resource_tags": [
                 "wood",
                 "orchard",
@@ -75,9 +75,9 @@
         "properties": {
             "resource_item_id": "item_river_clay",
             "tool_required": "foraging_knife",
-            "charges": 4.0,
-            "max_charges": 4.0,
-            "respawn_days": 2.0,
+            "charges": 4,
+            "max_charges": 4,
+            "respawn_days": 2,
             "resource_tags": [
                 "clay",
                 "river",
@@ -89,7 +89,7 @@
             "material_quality": {
                 "id": "river_fine",
                 "label": "Fine",
-                "score": 2.0
+                "score": 2
             }
         }
     },
@@ -100,9 +100,9 @@
         "properties": {
             "resource_item_id": "item_rose_quartz",
             "tool_required": "pickaxe",
-            "charges": 2.0,
-            "max_charges": 2.0,
-            "respawn_days": 3.0,
+            "charges": 2,
+            "max_charges": 2,
+            "respawn_days": 3,
             "resource_tags": [
                 "gem",
                 "mineral",
@@ -112,7 +112,7 @@
             "material_quality": {
                 "id": "foothill_rough",
                 "label": "Rough Foothill",
-                "score": 1.0
+                "score": 1
             },
             "yield_table": [
                 {
@@ -121,7 +121,7 @@
                     "material_quality": {
                         "id": "foothill_pristine",
                         "label": "Pristine Foothill",
-                        "score": 3.0
+                        "score": 3
                     }
                 }
             ]
@@ -134,9 +134,9 @@
         "properties": {
             "resource_item_id": "item_fresh_fish",
             "tool_required": "fishing_net",
-            "charges": 4.0,
-            "max_charges": 4.0,
-            "respawn_days": 1.0,
+            "charges": 4,
+            "max_charges": 4,
+            "respawn_days": 1,
             "resource_tags": [
                 "fish",
                 "river",
@@ -152,7 +152,7 @@
                     "material_quality": {
                         "id": "tide_pearl",
                         "label": "Lustrous",
-                        "score": 2.0
+                        "score": 2
                     }
                 }
             ]
@@ -165,9 +165,9 @@
         "properties": {
             "resource_item_id": "item_fresh_fish",
             "tool_required": "fishing_net",
-            "charges": 4.0,
-            "max_charges": 4.0,
-            "respawn_days": 1.0,
+            "charges": 4,
+            "max_charges": 4,
+            "respawn_days": 1,
             "resource_tags": [
                 "fish",
                 "sea",
@@ -183,7 +183,7 @@
                     "material_quality": {
                         "id": "reef_coral",
                         "label": "Vivid",
-                        "score": 2.0
+                        "score": 2
                     }
                 }
             ]
@@ -196,9 +196,9 @@
         "properties": {
             "resource_item_id": "item_wild_herbs",
             "tool_required": "foraging_knife",
-            "charges": 0.0,
-            "max_charges": 0.0,
-            "respawn_days": 0.0,
+            "charges": 0,
+            "max_charges": 0,
+            "respawn_days": 0,
             "resource_tags": [
                 "garden",
                 "plant",
@@ -210,16 +210,16 @@
                     "label": "wild herbs",
                     "seed_item_id": "item_herb_seeds",
                     "resource_item_id": "item_wild_herbs",
-                    "charges": 3.0,
-                    "respawn_days": 1.0
+                    "charges": 3,
+                    "respawn_days": 1
                 },
                 {
                     "id": "berries",
                     "label": "forest berries",
                     "seed_item_id": "item_berry_seeds",
                     "resource_item_id": "item_forest_berries",
-                    "charges": 2.0,
-                    "respawn_days": 2.0
+                    "charges": 2,
+                    "respawn_days": 2
                 }
             ]
         }
@@ -231,9 +231,9 @@
         "properties": {
             "resource_item_id": "item_fresh_fish",
             "tool_required": "fishing_net",
-            "charges": 3.0,
-            "max_charges": 3.0,
-            "respawn_days": 1.0,
+            "charges": 3,
+            "max_charges": 3,
+            "respawn_days": 1,
             "resource_tags": [
                 "fish",
                 "water",
@@ -246,7 +246,7 @@
                     "material_quality": {
                         "id": "pond_pearl",
                         "label": "Modest",
-                        "score": 1.0
+                        "score": 1
                     }
                 }
             ]

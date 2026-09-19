@@ -2,9 +2,9 @@
     "fireball": {
         "name": "Fireball",
         "description": "Hurls a ball of fire that burns the target.",
-        "mana_cost": 15.0,
+        "mana_cost": 15,
         "cooldown": 4.0,
-        "level_required": 2.0,
+        "level_required": 2,
         "target_type": "enemy",
         "effects": [
             {
@@ -15,8 +15,8 @@
             {
                 "type": "apply_dot",
                 "dot_name": "Ignite",
-                "dot_damage_per_tick": 3.0,
-                "dot_duration": 9.0,
+                "dot_damage_per_tick": 3,
+                "dot_duration": 9,
                 "dot_damage_type": "fire"
             }
         ]
@@ -24,9 +24,9 @@
     "frostbolt": {
         "name": "Frostbolt",
         "description": "A shard of ice that chills the enemy.",
-        "mana_cost": 12.0,
+        "mana_cost": 12,
         "cooldown": 3.0,
-        "level_required": 2.0,
+        "level_required": 2,
         "target_type": "enemy",
         "effects": [
             {
@@ -40,9 +40,9 @@
                     "type": "stat_mod",
                     "name": "Chilled",
                     "modifiers": {
-                        "agility": -5.0
+                        "agility": -5
                     },
-                    "base_duration": 5.0
+                    "base_duration": 5
                 }
             }
         ]
@@ -50,9 +50,9 @@
     "chain_lightning": {
         "name": "Chain Lightning",
         "description": "Arcs of electricity strike all enemies.",
-        "mana_cost": 25.0,
+        "mana_cost": 25,
         "cooldown": 8.0,
-        "level_required": 5.0,
+        "level_required": 5,
         "target_type": "all_enemies",
         "effects": [
             {
@@ -65,8 +65,8 @@
     "holy_light": {
         "name": "Holy Light",
         "description": "Bathes the target in divine light, healing allies or burning undead.",
-        "mana_cost": 20.0,
-        "level_required": 3.0,
+        "mana_cost": 20,
+        "level_required": 3,
         "target_type": "enemy",
         "effects": [
             {
@@ -79,8 +79,8 @@
     "shadow_word_pain": {
         "name": "Shadow Word: Pain",
         "description": "A word of dark power that wracks the target with pain.",
-        "mana_cost": 10.0,
-        "level_required": 1.0,
+        "mana_cost": 10,
+        "level_required": 1,
         "target_type": "enemy",
         "effects": [
             {
@@ -91,8 +91,8 @@
             {
                 "type": "apply_dot",
                 "dot_name": "Shadow Pain",
-                "dot_damage_per_tick": 5.0,
-                "dot_duration": 15.0,
+                "dot_damage_per_tick": 5,
+                "dot_duration": 15,
                 "dot_damage_type": "shadow"
             }
         ]

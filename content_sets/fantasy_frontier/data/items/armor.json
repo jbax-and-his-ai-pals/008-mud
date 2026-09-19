@@ -7,10 +7,10 @@
         "value": 10.0,
         "stackable": false,
         "properties": {
-            "defense": 1.0,
+            "defense": 1,
             "armor_material": "leather",
-            "durability": 30.0,
-            "max_durability": 30.0,
+            "durability": 30,
+            "max_durability": 30,
             "equip_slot": [
                 "head"
             ],
@@ -29,10 +29,10 @@
         "value": 25.0,
         "stackable": false,
         "properties": {
-            "defense": 2.0,
+            "defense": 2,
             "armor_material": "leather",
-            "durability": 50.0,
-            "max_durability": 50.0,
+            "durability": 50,
+            "max_durability": 50,
             "equip_slot": [
                 "body"
             ],
@@ -52,10 +52,10 @@
         "value": 8.0,
         "stackable": false,
         "properties": {
-            "defense": 1.0,
+            "defense": 1,
             "armor_material": "leather",
-            "durability": 25.0,
-            "max_durability": 25.0,
+            "durability": 25,
+            "max_durability": 25,
             "equip_slot": [
                 "hands"
             ],
@@ -74,21 +74,21 @@
         "value": 28.0,
         "stackable": false,
         "properties": {
-            "defense": 2.0,
+            "defense": 2,
             "armor_material": "leather",
-            "durability": 45.0,
-            "max_durability": 45.0,
+            "durability": 45,
+            "max_durability": 45,
             "equip_slot": [
                 "hands"
             ],
             "requirements": {
-                "dexterity": 11.0
+                "dexterity": 11
             },
             "equip_effect": {
                 "type": "stat_mod",
                 "name": "Studded Grip",
                 "modifiers": {
-                    "dexterity": 1.0
+                    "dexterity": 1
                 }
             },
             "salvage_output": {
@@ -106,10 +106,10 @@
         "value": 12.0,
         "stackable": false,
         "properties": {
-            "defense": 1.0,
+            "defense": 1,
             "armor_material": "leather",
-            "durability": 40.0,
-            "max_durability": 40.0,
+            "durability": 40,
+            "max_durability": 40,
             "equip_slot": [
                 "feet"
             ],
@@ -128,15 +128,15 @@
         "value": 30.0,
         "stackable": false,
         "properties": {
-            "defense": 2.0,
+            "defense": 2,
             "armor_material": "leather",
-            "durability": 60.0,
-            "max_durability": 60.0,
+            "durability": 60,
+            "max_durability": 60,
             "equip_slot": [
                 "feet"
             ],
             "requirements": {
-                "agility": 11.0
+                "agility": 11
             },
             "resistances": {
                 "poison": 12.0
@@ -156,10 +156,10 @@
         "value": 40.0,
         "stackable": false,
         "properties": {
-            "defense": 3.0,
+            "defense": 3,
             "armor_material": "cloth",
-            "durability": 60.0,
-            "max_durability": 60.0,
+            "durability": 60,
+            "max_durability": 60,
             "equip_slot": [
                 "body"
             ]
@@ -173,10 +173,10 @@
         "weight": 2.0,
         "value": 15.0,
         "properties": {
-            "defense": 1.0,
+            "defense": 1,
             "armor_material": "cloth",
-            "durability": 20.0,
-            "max_durability": 20.0,
+            "durability": 20,
+            "max_durability": 20,
             "equip_slot": [
                 "body"
             ]
@@ -190,10 +190,10 @@
         "weight": 4.0,
         "value": 30.0,
         "properties": {
-            "defense": 2.0,
+            "defense": 2,
             "armor_material": "leather",
-            "durability": 60.0,
-            "max_durability": 60.0,
+            "durability": 60,
+            "max_durability": 60,
             "equip_slot": [
                 "off_hand"
             ]
@@ -208,10 +208,10 @@
         "value": 20.0,
         "stackable": false,
         "properties": {
-            "defense": 2.0,
+            "defense": 2,
             "armor_material": "leather",
-            "durability": 40.0,
-            "max_durability": 40.0,
+            "durability": 40,
+            "max_durability": 40,
             "equip_slot": [
                 "body"
             ],
@@ -230,10 +230,10 @@
         "value": 45.0,
         "stackable": false,
         "properties": {
-            "defense": 4.0,
+            "defense": 4,
             "armor_material": "leather",
-            "durability": 70.0,
-            "max_durability": 70.0,
+            "durability": 70,
+            "max_durability": 70,
             "equip_slot": [
                 "body"
             ],
@@ -251,16 +251,16 @@
         "weight": 2.0,
         "value": 55.0,
         "properties": {
-            "defense": 3.0,
+            "defense": 3,
             "armor_material": "chain",
-            "tier": 2.0,
-            "durability": 55.0,
-            "max_durability": 55.0,
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
             "equip_slot": [
                 "head"
             ],
             "requirements": {
-                "strength": 11.0
+                "strength": 11
             }
         },
         "item_family": "armor"
@@ -272,16 +272,16 @@
         "weight": 8.0,
         "value": 95.0,
         "properties": {
-            "defense": 6.0,
+            "defense": 6,
             "armor_material": "chain",
-            "tier": 2.0,
-            "durability": 70.0,
-            "max_durability": 70.0,
+            "tier": 2,
+            "durability": 70,
+            "max_durability": 70,
             "equip_slot": [
                 "body"
             ],
             "requirements": {
-                "strength": 12.0
+                "strength": 12
             }
         },
         "item_family": "armor"
@@ -293,16 +293,16 @@
         "weight": 1.5,
         "value": 50.0,
         "properties": {
-            "defense": 3.0,
+            "defense": 3,
             "armor_material": "chain",
-            "tier": 2.0,
-            "durability": 55.0,
-            "max_durability": 55.0,
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
             "equip_slot": [
                 "hands"
             ],
             "requirements": {
-                "strength": 11.0
+                "strength": 11
             }
         },
         "item_family": "armor"
@@ -314,16 +314,16 @@
         "weight": 2.0,
         "value": 50.0,
         "properties": {
-            "defense": 3.0,
+            "defense": 3,
             "armor_material": "chain",
-            "tier": 2.0,
-            "durability": 55.0,
-            "max_durability": 55.0,
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
             "equip_slot": [
                 "feet"
             ],
             "requirements": {
-                "strength": 11.0
+                "strength": 11
             }
         },
         "item_family": "armor"
@@ -335,10 +335,10 @@
         "weight": 0.2,
         "value": 60.0,
         "properties": {
-            "defense": 1.0,
-            "tier": 2.0,
-            "durability": 40.0,
-            "max_durability": 40.0,
+            "defense": 1,
+            "tier": 2,
+            "durability": 40,
+            "max_durability": 40,
             "equip_slot": [
                 "neck"
             ],
@@ -355,11 +355,11 @@
         "weight": 1.0,
         "value": 55.0,
         "properties": {
-            "defense": 2.0,
+            "defense": 2,
             "armor_material": "cloth",
-            "tier": 2.0,
-            "durability": 40.0,
-            "max_durability": 40.0,
+            "tier": 2,
+            "durability": 40,
+            "max_durability": 40,
             "equip_slot": [
                 "body"
             ],
@@ -367,7 +367,7 @@
                 "type": "stat_mod",
                 "name": "Acolyte's Focus",
                 "modifiers": {
-                    "spell_power": 3.0
+                    "spell_power": 3
                 }
             }
         },
@@ -380,16 +380,16 @@
         "weight": 4.0,
         "value": 140.0,
         "properties": {
-            "defense": 5.0,
+            "defense": 5,
             "armor_material": "plate",
-            "tier": 3.0,
-            "durability": 80.0,
-            "max_durability": 80.0,
+            "tier": 3,
+            "durability": 80,
+            "max_durability": 80,
             "equip_slot": [
                 "head"
             ],
             "requirements": {
-                "strength": 16.0
+                "strength": 16
             }
         },
         "item_family": "armor"
@@ -401,22 +401,22 @@
         "weight": 14.0,
         "value": 220.0,
         "properties": {
-            "defense": 11.0,
+            "defense": 11,
             "armor_material": "plate",
-            "tier": 3.0,
-            "durability": 90.0,
-            "max_durability": 90.0,
+            "tier": 3,
+            "durability": 90,
+            "max_durability": 90,
             "equip_slot": [
                 "body"
             ],
             "requirements": {
-                "strength": 17.0
+                "strength": 17
             },
             "equip_effect": {
                 "type": "stat_mod",
                 "name": "Plate Encumbrance",
                 "modifiers": {
-                    "agility": -2.0
+                    "agility": -2
                 }
             }
         },
@@ -429,16 +429,16 @@
         "weight": 3.0,
         "value": 130.0,
         "properties": {
-            "defense": 5.0,
+            "defense": 5,
             "armor_material": "plate",
-            "tier": 3.0,
-            "durability": 80.0,
-            "max_durability": 80.0,
+            "tier": 3,
+            "durability": 80,
+            "max_durability": 80,
             "equip_slot": [
                 "hands"
             ],
             "requirements": {
-                "strength": 16.0
+                "strength": 16
             }
         },
         "item_family": "armor"
@@ -450,16 +450,16 @@
         "weight": 3.5,
         "value": 130.0,
         "properties": {
-            "defense": 5.0,
+            "defense": 5,
             "armor_material": "plate",
-            "tier": 3.0,
-            "durability": 80.0,
-            "max_durability": 80.0,
+            "tier": 3,
+            "durability": 80,
+            "max_durability": 80,
             "equip_slot": [
                 "feet"
             ],
             "requirements": {
-                "strength": 16.0
+                "strength": 16
             }
         },
         "item_family": "armor"
@@ -471,10 +471,10 @@
         "weight": 0.2,
         "value": 150.0,
         "properties": {
-            "defense": 2.0,
-            "tier": 3.0,
-            "durability": 50.0,
-            "max_durability": 50.0,
+            "defense": 2,
+            "tier": 3,
+            "durability": 50,
+            "max_durability": 50,
             "equip_slot": [
                 "neck"
             ],
@@ -482,7 +482,7 @@
                 "type": "stat_mod",
                 "name": "Vanguard's Resolve",
                 "modifiers": {
-                    "constitution": 2.0
+                    "constitution": 2
                 }
             }
         },

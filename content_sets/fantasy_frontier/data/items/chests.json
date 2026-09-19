@@ -5,7 +5,7 @@
         "description": "A plain wooden chest bound with a few iron bands.",
         "weight": 8.0,
         "value": 15.0,
-        "capacity": 30.0,
+        "capacity": 30,
         "locked": true,
         "item_family": "container"
     },
@@ -15,7 +15,7 @@
         "description": "A sturdy chest reinforced with heavy iron bands and corner plates.",
         "weight": 14.0,
         "value": 60.0,
-        "capacity": 30.0,
+        "capacity": 30,
         "locked": true,
         "item_family": "container"
     },
@@ -25,7 +25,7 @@
         "description": "An ornate chest trimmed in gold leaf, clearly built for someone with money to spare.",
         "weight": 12.0,
         "value": 200.0,
-        "capacity": 30.0,
+        "capacity": 30,
         "locked": true,
         "item_family": "container"
     }

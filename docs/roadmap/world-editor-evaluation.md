@@ -497,3 +497,55 @@ drives the switch and the row, asserts the kind picker offers the engine's three
 kinds in its resolution order, asserts that switching kind clears the reference
 it is no longer using, and ends with the engine's verdict on a template whose
 salvage output names a family rather than a template.
+
+## 12. The editor's ints, and what one save cost (2026-09-18)
+
+This is the editor's most expensive defect so far, and the one worth recording in
+full because the fix landed in two halves and only one of them was in the editor.
+
+**What broke.** GDScript has one number type, and `JSON.stringify` writes every
+number as a float. The editor reads content, edits a few fields, and writes the
+*whole* file back — so any authored integer it had loaded came back as `2.0`.
+Python is not GDScript: `isinstance(2.0, int)` is False. The content validator
+checks exactly that, and the effect was that one editor save invalidated
+`fantasy_frontier` for its own build — 74 ingredient quantities, six region level
+bands, every vendor order's price and quantity, every material grade, quest stage
+indexes — none of them fields anyone had touched.
+
+**Why it was quiet.** Every test that read those fields through the engine kept
+passing, because the engine reads most of them with `int(...)` and a whole float
+converts fine. `run_content_checks.py` was the only thing that noticed, and it
+was the one thing that was not run between the save and the commit.
+
+**The two halves of the fix.**
+
+- `a543cec` stopped the editor writing floats. That is the half that prevents
+  recurrence, and the editor checks now cover it.
+- `toolkit/normalize_content_numbers.py` repairs what was already written, under
+  a rule narrow enough to trust: convert a whole-number float to an int *only
+  where the field is one the engine means as an integer*. Fields the engine reads
+  as floats keep their precision — an author's `weight: 3.0` is not a bug.
+- `run_content_checks.py` gained the gate, so the next time a JSON writer with
+  one number type touches this content the build says so.
+
+**The first version of that rule was wrong, and the test suite caught it.** It
+converted the fields the content-set validator checks, which is the obvious list
+and the wrong one. `Recipe` accepts a quality tier only when `min_crafts` is an
+int, so a float there silently dropped *every* tier a recipe authored: the craft
+reported no quality at all, the validator was perfectly happy, and six route
+tests failed. The rule now covers what the engine reads rather than what the
+validator checks, every name on it is one that appears only as a whole number
+across all four shipped sets, and a test fails if a name on the list starts
+appearing with a fractional value too. 1,278 values across 15 files.
+
+**Two smaller things found while repairing it.** A duplicate error: the
+vendor-order validator checked the material-quality floor itself *and* through
+the shared reference helper, so one bad value read as two content problems. And
+the `editor/` sidecars are excluded from normalisation on purpose — quest layout
+coordinates are genuinely fractional, and they live in `editor/quest_layout.json`
+rather than in the files the game reads.
+
+**The lesson worth keeping.** An editor that rewrites the files it reads is a
+serialisation round-trip, and a round-trip is only safe if it preserves every
+type it did not mean to change. The gate is what makes that checkable rather than
+hopeful.

@@ -156,6 +156,28 @@ class BootWarningsMixin:
                     source="content",
                 )
 
+    def record_command_failure(self, command_name: str, summary: str) -> None:
+        """Record a command handler that raised at runtime.
+
+        Distinct from the boot warnings above, which describe content that was
+        already wrong when the server started. This one describes something that
+        went wrong *while someone was playing*, which is why it is counted: a
+        command that has raised four times is a content or engine defect an
+        operator can see in the diagnostics and a playtester can only describe
+        as "it broke".
+        """
+        name = str(command_name).strip() or "unknown"
+        counts = getattr(self, "command_failure_counts", None)
+        if counts is None:
+            counts = {}
+            self.command_failure_counts = counts
+        counts[name] = int(counts.get(name, 0)) + 1
+        self.add_boot_warning(
+            code="runtime.command.failed",
+            message="Command '%s' failed %d time(s); last: %s" % (name, counts[name], summary),
+            source="runtime",
+        )
+
     def add_boot_warning(self, code: str, message: str, source: str = "server") -> None:
         normalized_code = str(code).strip() or "server.unknown"
         normalized_message = str(message).strip()

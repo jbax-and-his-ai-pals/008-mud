@@ -64,7 +64,7 @@
                     "condition": {
                         "kind": "has_item",
                         "item_id": "item_iron_ingot",
-                        "quantity": 2.0
+                        "quantity": 2
                     },
                     "next_node": "teach"
                 },
@@ -96,7 +96,7 @@
                     "condition": {
                         "kind": "has_item",
                         "item_id": "item_iron_ingot",
-                        "quantity": 2.0
+                        "quantity": 2
                     },
                     "next_node": "teach"
                 },
@@ -126,7 +126,7 @@
                     "condition": {
                         "kind": "has_item",
                         "item_id": "item_iron_ingot",
-                        "quantity": 2.0
+                        "quantity": 2
                     },
                     "next_node": "teach"
                 },

@@ -10,22 +10,22 @@
         ],
         "description": "Tie freshly gathered herbs into a simple, thoughtful gift.",
         "result_item_id": "item_wildflower_posy",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
-        "difficulty": 0.0,
+        "difficulty": 0,
         "familiarity_milestones": [
             {
-                "count": 1.0,
+                "count": 1,
                 "label": "Thoughtful beginner",
                 "message": "You have learned the rhythm of tying a thoughtful posy."
             },
             {
-                "count": 3.0,
+                "count": 3,
                 "label": "Village florist",
                 "message": "Your posies now look like a familiar Riverside kindness."
             },
             {
-                "count": 8.0,
+                "count": 8,
                 "label": "Master florist",
                 "message": "Your hands know this posy so well you no longer have to think about it."
             }
@@ -34,28 +34,28 @@
             {
                 "id": "simple",
                 "label": "Simple",
-                "min_crafts": 1.0,
+                "min_crafts": 1,
                 "value_multiplier": 1.0
             },
             {
                 "id": "fine",
                 "label": "Fine",
-                "min_crafts": 3.0,
+                "min_crafts": 3,
                 "value_multiplier": 1.25,
-                "gift_bonus": 1.0
+                "gift_bonus": 1
             },
             {
                 "id": "masterwork",
                 "label": "Masterwork",
-                "min_crafts": 8.0,
+                "min_crafts": 8,
                 "value_multiplier": 1.5,
-                "gift_bonus": 2.0
+                "gift_bonus": 2
             }
         ],
         "ingredients": [
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -69,22 +69,22 @@
         ],
         "description": "Carve a modest keepsake from sound local wood.",
         "result_item_id": "item_riverside_charm",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
-        "difficulty": 0.0,
+        "difficulty": 0,
         "familiarity_milestones": [
             {
-                "count": 1.0,
+                "count": 1,
                 "label": "Woodcarver",
                 "message": "You have learned the basic cuts for a Riverside charm."
             },
             {
-                "count": 3.0,
+                "count": 3,
                 "label": "Local artisan",
                 "message": "Your carved charms have a confident, practiced finish."
             },
             {
-                "count": 8.0,
+                "count": 8,
                 "label": "Master carver",
                 "message": "You could carve this charm blindfolded; every cut lands where it should."
             }
@@ -93,28 +93,28 @@
             {
                 "id": "plain",
                 "label": "Plain",
-                "min_crafts": 1.0,
+                "min_crafts": 1,
                 "value_multiplier": 1.0
             },
             {
                 "id": "fine",
                 "label": "Fine",
-                "min_crafts": 3.0,
+                "min_crafts": 3,
                 "value_multiplier": 1.5,
-                "gift_bonus": 1.0
+                "gift_bonus": 1
             },
             {
                 "id": "masterwork",
                 "label": "Masterwork",
-                "min_crafts": 8.0,
+                "min_crafts": 8,
                 "value_multiplier": 2.0,
-                "gift_bonus": 2.0
+                "gift_bonus": 2
             }
         ],
         "ingredients": [
             {
                 "item_id": "item_softwood",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -128,17 +128,17 @@
         ],
         "description": "Shape river clay into a small Riverside keepsake.",
         "result_item_id": "item_river_token",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
-        "difficulty": 0.0,
+        "difficulty": 0,
         "familiarity_milestones": [
             {
-                "count": 1.0,
+                "count": 1,
                 "label": "Riverside presser",
                 "message": "You have learned to press a clean token from river clay."
             },
             {
-                "count": 6.0,
+                "count": 6,
                 "label": "Master presser",
                 "message": "Your practiced hands turn fine clay into tokens worth a museum's notice."
             }
@@ -147,32 +147,32 @@
             {
                 "id": "plain",
                 "label": "Plain",
-                "min_crafts": 1.0,
+                "min_crafts": 1,
                 "value_multiplier": 1.0
             },
             {
                 "id": "river_fine",
                 "label": "River Fine",
-                "min_crafts": 1.0,
-                "min_material_quality": 2.0,
-                "rank": 3.0,
+                "min_crafts": 1,
+                "min_material_quality": 2,
+                "rank": 3,
                 "value_multiplier": 1.5,
-                "gift_bonus": 1.0
+                "gift_bonus": 1
             },
             {
                 "id": "river_masterwork",
                 "label": "River Masterwork",
-                "min_crafts": 6.0,
-                "min_material_quality": 2.0,
-                "rank": 10.0,
+                "min_crafts": 6,
+                "min_material_quality": 2,
+                "rank": 10,
                 "value_multiplier": 2.0,
-                "gift_bonus": 2.0
+                "gift_bonus": 2
             }
         ],
         "ingredients": [
             {
                 "item_id": "item_river_clay",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -186,17 +186,17 @@
         ],
         "description": "Wrap fresh herbs into a practical field dressing.",
         "result_item_id": "item_herbal_bandage",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 1.0
+                "quantity": 1
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -210,17 +210,17 @@
         ],
         "description": "Set a rose quartz on a leather cord as a thoughtful gift or trade good.",
         "result_item_id": "item_rose_quartz_talisman",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
-        "difficulty": 0.0,
+        "difficulty": 0,
         "familiarity_milestones": [
             {
-                "count": 1.0,
+                "count": 1,
                 "label": "Talisman stringer",
                 "message": "You have learned to set a rose quartz on a cord without a wasted knot."
             },
             {
-                "count": 4.0,
+                "count": 4,
                 "label": "Master stringer",
                 "message": "A pristine stone in practiced hands makes a talisman worth keeping."
             }
@@ -229,28 +229,28 @@
             {
                 "id": "corded",
                 "label": "Corded",
-                "min_crafts": 1.0,
+                "min_crafts": 1,
                 "value_multiplier": 1.0
             },
             {
                 "id": "masterwork",
                 "label": "Masterwork",
-                "min_crafts": 4.0,
-                "min_material_quality": 3.0,
-                "rank": 10.0,
+                "min_crafts": 4,
+                "min_material_quality": 3,
+                "rank": 10,
                 "value_multiplier": 1.75,
-                "gift_bonus": 2.0
+                "gift_bonus": 2
             }
         ],
         "ingredients": [
             {
                 "item_id": "item_rose_quartz",
-                "quantity": 1.0,
+                "quantity": 1,
                 "quality_contributes": true
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0,
+                "quantity": 1,
                 "quality_contributes": false
             }
         ]
@@ -265,17 +265,17 @@
         ],
         "description": "Shape a natural crystal into a clean ornamental stone.",
         "result_item_id": "item_faceted_rose_quartz",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "lapidary_wheel",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "familiarity_milestones": [
             {
-                "count": 1.0,
+                "count": 1,
                 "label": "Lapidary apprentice",
                 "message": "You have learned the basic cuts for faceting rose quartz."
             },
             {
-                "count": 4.0,
+                "count": 4,
                 "label": "Master lapidary",
                 "message": "A pristine specimen under your practiced wheel yields a museum-grade cut."
             }
@@ -284,23 +284,23 @@
             {
                 "id": "cut",
                 "label": "Cut",
-                "min_crafts": 1.0,
+                "min_crafts": 1,
                 "value_multiplier": 1.0
             },
             {
                 "id": "masterwork",
                 "label": "Masterwork",
-                "min_crafts": 4.0,
-                "min_material_quality": 3.0,
-                "rank": 10.0,
+                "min_crafts": 4,
+                "min_material_quality": 3,
+                "rank": 10,
                 "value_multiplier": 2.0,
-                "gift_bonus": 2.0
+                "gift_bonus": 2
             }
         ],
         "ingredients": [
             {
                 "item_id": "item_rose_quartz",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -313,16 +313,16 @@
         ],
         "description": "Forge a basic iron sword.",
         "result_item_id": "item_iron_sword",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -337,16 +337,16 @@
         ],
         "description": "Brew a small healing draught.",
         "result_item_id": "item_healing_potion_small",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "alchemy_table",
         "ingredients": [
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_glass_vial",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -360,17 +360,17 @@
         ],
         "description": "Steep gathered herbs into a bitter ward against poisonous air and venom.",
         "result_item_id": "item_marshguard_tonic",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "alchemy_table",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_glass_vial",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -383,17 +383,17 @@
         ],
         "description": "Distill forest berries into a sharp draught for a quick, light-footed edge.",
         "result_item_id": "item_trailblazer_tonic",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "alchemy_table",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_forest_berries",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_glass_vial",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -407,17 +407,17 @@
         ],
         "description": "Prepare a field antidote to clear poison and disease effects.",
         "result_item_id": "item_purifying_draught",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "alchemy_table",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_glass_vial",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -431,17 +431,17 @@
         ],
         "description": "Bind a rose-quartz spark in a fragile flask. Use it on a foe to throw it.",
         "result_item_id": "item_sunfire_flask",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "alchemy_table",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_rose_quartz",
-                "quantity": 1.0
+                "quantity": 1
             },
             {
                 "item_id": "item_glass_vial",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -455,12 +455,12 @@
         ],
         "description": "Sew a basic leather helmet.",
         "result_item_id": "item_leather_cap",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
         "ingredients": [
             {
                 "item_id": "item_leather_strip",
-                "quantity": 3.0
+                "quantity": 3
             }
         ]
     },
@@ -473,17 +473,17 @@
         ],
         "description": "Reinforce a pair of leather gloves with iron studs for a harder-wearing fighting grip.",
         "result_item_id": "item_studded_leather_gloves",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_leather_strip",
-                "quantity": 3.0
+                "quantity": 3
             },
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -496,17 +496,17 @@
         ],
         "description": "Line sturdy boots with gathered herbs and wax them for rough, poisonous country.",
         "result_item_id": "item_trailwarden_boots",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_leather_strip",
-                "quantity": 4.0
+                "quantity": 4
             },
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -520,16 +520,16 @@
         ],
         "description": "Stitch a wolf's pelt into a wearable cloak.",
         "result_item_id": "item_wolf_pelt_cloak",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
         "ingredients": [
             {
                 "item_id": "item_wolf_pelt",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -543,12 +543,12 @@
         ],
         "description": "String wolf fangs into a trophy necklace.",
         "result_item_id": "item_wolf_fang_necklace",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
         "ingredients": [
             {
                 "item_id": "item_wolf_fang",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -562,16 +562,16 @@
         ],
         "description": "Cure and stitch a troll's thick hide into a protective vest.",
         "result_item_id": "item_trollhide_vest",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
         "ingredients": [
             {
                 "item_id": "item_troll_hide",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -586,17 +586,17 @@
         ],
         "description": "Pack a portable trail meal from foraged plants -- wild herbs work best, but forest berries will do in a pinch.",
         "result_item_id": "item_travel_rations",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
-        "difficulty": 0.0,
+        "difficulty": 0,
         "ingredients": [
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 2.0,
+                "quantity": 2,
                 "alternatives": [
                     {
                         "item_id": "item_forest_berries",
-                        "quality_penalty": 1.0
+                        "quality_penalty": 1
                     }
                 ]
             }
@@ -612,13 +612,13 @@
         ],
         "description": "Forge a compact hatchet fit for both the road and a fight, from a pattern learned at the forge.",
         "result_item_id": "item_travelers_hatchet",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "requires_discovery": true,
         "familiarity_milestones": [
             {
-                "count": 1.0,
+                "count": 1,
                 "label": "Pattern learned",
                 "message": "You forge your first traveler's hatchet from the pattern."
             }
@@ -626,11 +626,11 @@
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_softwood",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -644,12 +644,12 @@
         ],
         "description": "Build a sturdy toolbox for extra storage, right at your own carpentry bench.",
         "result_item_id": "item_wooden_toolbox",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "carpentry_bench",
-        "difficulty": 0.0,
+        "difficulty": 0,
         "familiarity_milestones": [
             {
-                "count": 1.0,
+                "count": 1,
                 "label": "Handy carpenter",
                 "message": "You have learned to build a sturdy toolbox at your own bench."
             }
@@ -657,11 +657,11 @@
         "ingredients": [
             {
                 "item_id": "item_softwood",
-                "quantity": 4.0
+                "quantity": 4
             },
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -673,16 +673,16 @@
         ],
         "description": "Forge a flanged mace head and fit it to a solid haft.",
         "result_item_id": "item_war_mace",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 3.0
+                "quantity": 3
             },
             {
                 "item_id": "item_softwood",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -694,16 +694,16 @@
         ],
         "description": "Forge a heavy two-handed hammer head, weighted to punch through armor.",
         "result_item_id": "item_battle_hammer",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 4.0
+                "quantity": 4
             },
             {
                 "item_id": "item_softwood",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -715,16 +715,16 @@
         ],
         "description": "Fit a leaf-shaped steel head to a long, balanced shaft.",
         "result_item_id": "item_hunting_spear",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_softwood",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -736,12 +736,12 @@
         ],
         "description": "Grind a slender blade down to a fast, precise point.",
         "result_item_id": "item_steel_rapier",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 3.0
+                "quantity": 3
             }
         ]
     },
@@ -752,12 +752,12 @@
         ],
         "description": "Forge a wide, double-edged blade for powerful cutting strokes.",
         "result_item_id": "item_broadsword",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 4.0
+                "quantity": 4
             }
         ]
     },
@@ -769,16 +769,16 @@
         ],
         "description": "Forge a double-bitted axe head and haft it for war rather than woodcutting.",
         "result_item_id": "item_waraxe",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 4.0
+                "quantity": 4
             },
             {
                 "item_id": "item_softwood",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -790,16 +790,16 @@
         ],
         "description": "Rivet a hood of interlocking iron rings over a padded lining.",
         "result_item_id": "item_chain_coif",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -812,16 +812,16 @@
         ],
         "description": "Rivet thousands of small iron rings into a knee-length mail shirt.",
         "result_item_id": "item_chain_hauberk",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 5.0
+                "quantity": 5
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -833,16 +833,16 @@
         ],
         "description": "Rivet mail plates over a leather glove.",
         "result_item_id": "item_chain_gauntlets",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -854,16 +854,16 @@
         ],
         "description": "Rivet mail plates over a sturdy boot.",
         "result_item_id": "item_chain_sabatons",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_leather_strip",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -875,16 +875,16 @@
         ],
         "description": "Twist an iron torc and bind it with warding herbs against foul air.",
         "result_item_id": "item_warding_torc",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 1.0
+                "quantity": 1
             },
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -897,16 +897,16 @@
         ],
         "description": "Weave spider silk into a light mantle that won't tangle a spellcaster's hands.",
         "result_item_id": "item_acolytes_mantle",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": null,
         "ingredients": [
             {
                 "item_id": "item_spider_silk",
-                "quantity": 3.0
+                "quantity": 3
             },
             {
                 "item_id": "item_wild_herbs",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -918,16 +918,16 @@
         ],
         "description": "Forge and temper an enormous two-handed blade, its length wrapped in cured hide for grip.",
         "result_item_id": "item_greatsword",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 6.0
+                "quantity": 6
             },
             {
                 "item_id": "item_troll_hide",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -938,16 +938,16 @@
         ],
         "description": "Forge a massive hammer head and set a core of living rock into it for extra mass.",
         "result_item_id": "item_warhammer",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 7.0
+                "quantity": 7
             },
             {
                 "item_id": "item_living_rock",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -959,16 +959,16 @@
         ],
         "description": "Forge an axe blade, spike, and hook onto a single long haft, its grip wrapped in cured hide.",
         "result_item_id": "item_halberd",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 5.0
+                "quantity": 5
             },
             {
                 "item_id": "item_troll_hide",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -980,12 +980,12 @@
         ],
         "description": "Grind a rigid, edgeless blade down to a single needle point, purely by skill rather than material.",
         "result_item_id": "item_masterwork_estoc",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 6.0
+                "quantity": 6
             }
         ]
     },
@@ -996,16 +996,16 @@
         ],
         "description": "Hammer a close helm from curved steel plate, its core reinforced with a fragment of living rock.",
         "result_item_id": "item_plate_helm",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 6.0
+                "quantity": 6
             },
             {
                 "item_id": "item_living_rock",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -1017,16 +1017,16 @@
         ],
         "description": "Hammer a full breastplate and backplate, layering scavenged chitin plating between the steel for extra rigidity.",
         "result_item_id": "item_plate_cuirass",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 10.0
+                "quantity": 10
             },
             {
                 "item_id": "item_chitin_plate",
-                "quantity": 2.0
+                "quantity": 2
             }
         ]
     },
@@ -1037,16 +1037,16 @@
         ],
         "description": "Hammer articulated steel plates over a mail glove, backed with a sliver of chitin plating.",
         "result_item_id": "item_plate_gauntlets",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 5.0
+                "quantity": 5
             },
             {
                 "item_id": "item_chitin_plate",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -1057,16 +1057,16 @@
         ],
         "description": "Hammer segmented steel plates over a sturdy boot, backed with a sliver of chitin plating.",
         "result_item_id": "item_plate_sabatons",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 5.0
+                "quantity": 5
             },
             {
                 "item_id": "item_chitin_plate",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     },
@@ -1079,16 +1079,16 @@
         ],
         "description": "Set a fragment of humming living rock into a heavy iron signet.",
         "result_item_id": "item_vanguards_signet",
-        "result_quantity": 1.0,
+        "result_quantity": 1,
         "station_required": "anvil",
         "ingredients": [
             {
                 "item_id": "item_iron_ingot",
-                "quantity": 2.0
+                "quantity": 2
             },
             {
                 "item_id": "item_living_rock",
-                "quantity": 1.0
+                "quantity": 1
             }
         ]
     }

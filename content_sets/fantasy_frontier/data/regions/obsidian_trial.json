@@ -7,8 +7,8 @@
         "weather_profile": "underground",
         "region_type": "dungeon",
         "level_band": {
-            "min": 6.0,
-            "max": 8.0
+            "min": 6,
+            "max": 8
         }
     },
     "rooms": {
@@ -72,8 +72,8 @@
             "properties": {
                 "temperature": "hot",
                 "hazard_type": "extreme_heat",
-                "hazard_damage": 6.0,
-                "hazard_tick_interval": 5.0
+                "hazard_damage": 6,
+                "hazard_tick_interval": 5
             }
         }
     },

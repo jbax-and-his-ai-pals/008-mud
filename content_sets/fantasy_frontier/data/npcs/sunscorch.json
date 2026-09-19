@@ -2,18 +2,18 @@
     "sunscorch_caravanmaster": {
         "name": "Sada the Caravanmaster",
         "description": "A precise, sun-browned caravanmaster who knows every water marker between the mountains and the far dunes.",
-        "level": 10.0,
-        "health": 125.0,
+        "level": 10,
+        "health": 125,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 11.0,
-            "dexterity": 13.0,
-            "constitution": 13.0,
-            "agility": 12.0,
-            "intelligence": 15.0,
-            "wisdom": 15.0
+            "strength": 11,
+            "dexterity": 13,
+            "constitution": 13,
+            "agility": 12,
+            "intelligence": 15,
+            "wisdom": 15
         },
         "dialog": {
             "greeting": "Sunscorch trades in safe arrivals. Water, wheels, and honest route news cost less than a rescue.",
@@ -25,7 +25,7 @@
             "dialogue": "sada_caravanmaster",
             "is_vendor": true,
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "work_location": "sunscorch_caravanserai:caravan_yard",
             "buys_item_types": [
                 "Material",
@@ -56,18 +56,18 @@
     "sunscorch_waterkeeper": {
         "name": "Nahl the Waterkeeper",
         "description": "A calm waterkeeper with dust on their sandals and an exact ear for the sound of a leaking cistern.",
-        "level": 11.0,
-        "health": 120.0,
+        "level": 11,
+        "health": 120,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 10.0,
-            "dexterity": 11.0,
-            "constitution": 14.0,
-            "agility": 10.0,
-            "intelligence": 14.0,
-            "wisdom": 17.0
+            "strength": 10,
+            "dexterity": 11,
+            "constitution": 14,
+            "agility": 10,
+            "intelligence": 14,
+            "wisdom": 17
         },
         "dialog": {
             "greeting": "Water is not a commodity here. It is the agreement that lets the town exist.",
@@ -76,7 +76,7 @@
         "default_dialog": "Nahl listens to the cistern spillway with practiced attention.",
         "properties": {
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "work_location": "sunscorch_caravanserai:water_court",
             "can_give_generic_quests": true
         }

@@ -61,6 +61,10 @@ class GameManager:
 
         self.world = World(content_set=content_set, save_directory=save_directory)
         self.world.game = self
+        # No server when the desktop client is played directly; the crash
+        # reporter in `engine/commands/command_system.py` checks for one and
+        # falls back to the log.
+        self.server = None
         self.crafting_manager = CraftingManager(self.world)
         self.command_processor = CommandProcessor()
         self.time_manager = TimeManager(self.world)
@@ -252,7 +256,10 @@ class GameManager:
         if not player:
             command_result = f"{FORMAT_ERROR}CRITICAL ERROR: Player is missing.{FORMAT_RESET}"
         elif not player.is_alive:
-            cmd_word = text.strip().lower().split()[0]
+            # `text` can be whitespace -- the input handler passes the line
+            # through, and a death screen that answers Enter with an IndexError
+            # is the same defect this whole path is meant to survive.
+            cmd_word = text.strip().lower().split(maxsplit=1)[0] if text.strip() else ""
             allowed_dead_commands = {"look", "l", "status", "st", "inventory", "i", "inv", "help", "h", "?", "quit", "q", "exit", "load"}
             if cmd_word in allowed_dead_commands:
                 command_result = self.command_processor.process_input(text, context)

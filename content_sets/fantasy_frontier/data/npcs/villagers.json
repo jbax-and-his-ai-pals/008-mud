@@ -2,20 +2,20 @@
     "wandering_villager": {
         "name": "Villager",
         "description": "A local resident going about their day, seemingly without a specific destination.",
-        "health": 80.0,
-        "level": 1.0,
+        "health": 80,
+        "level": 1,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "wanderer",
         "stats": {
-            "strength": 7.0,
-            "dexterity": 8.0,
-            "constitution": 9.0,
-            "agility": 9.0,
-            "intelligence": 8.0,
-            "wisdom": 8.0,
-            "spell_power": 0.0,
-            "magic_resist": 0.0
+            "strength": 7,
+            "dexterity": 8,
+            "constitution": 9,
+            "agility": 9,
+            "intelligence": 8,
+            "wisdom": 8,
+            "spell_power": 0,
+            "magic_resist": 0
         },
         "dialog": {
             "greeting": "Hullo there. Just enjoying the day.",
@@ -29,7 +29,7 @@
         "properties": {
             "ambient_wanderer": true,
             "wander_chance": 0.8,
-            "move_cooldown": 5.0,
+            "move_cooldown": 5,
             "can_give_generic_quests": false,
             "randomize_name": true
         }
@@ -37,21 +37,21 @@
     "wandering_mage": {
         "name": "Wandering Mage",
         "description": "A traveler clad in simple robes, humming a tune as they walk. Their eyes occasionally sparkle with arcane energy.",
-        "health": 40.0,
-        "max_mana": 80.0,
-        "level": 3.0,
+        "health": 40,
+        "max_mana": 80,
+        "level": 3,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "wanderer",
         "stats": {
-            "strength": 6.0,
-            "dexterity": 9.0,
-            "constitution": 8.0,
-            "agility": 10.0,
-            "intelligence": 15.0,
-            "wisdom": 12.0,
-            "spell_power": 8.0,
-            "magic_resist": 5.0
+            "strength": 6,
+            "dexterity": 9,
+            "constitution": 8,
+            "agility": 10,
+            "intelligence": 15,
+            "wisdom": 12,
+            "spell_power": 8,
+            "magic_resist": 5
         },
         "dialog": {
             "greeting": "A pleasant day for a walk and a bit of study, isn't it?"
@@ -67,7 +67,7 @@
         },
         "properties": {
             "wander_chance": 0.7,
-            "move_cooldown": 6.0,
+            "move_cooldown": 6,
             "spell_cast_chance": 0.8,
             "random_spells": {
                 "pool": [
@@ -76,8 +76,8 @@
                     "ice_shard"
                 ],
                 "count": [
-                    1.0,
-                    2.0
+                    1,
+                    2
                 ]
             },
             "randomize_name": true
@@ -86,21 +86,21 @@
     "wandering_priest": {
         "name": "Wandering Priest",
         "description": "A kindly person in simple clerical vestments, offering a warm smile to those they pass. They carry a satchel that smells faintly of herbs.",
-        "health": 40.0,
-        "max_mana": 80.0,
-        "level": 3.0,
+        "health": 40,
+        "max_mana": 80,
+        "level": 3,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "healer",
         "stats": {
-            "strength": 8.0,
-            "dexterity": 8.0,
-            "constitution": 11.0,
-            "agility": 8.0,
-            "intelligence": 12.0,
-            "wisdom": 15.0,
-            "spell_power": 5.0,
-            "magic_resist": 4.0
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 11,
+            "agility": 8,
+            "intelligence": 12,
+            "wisdom": 15,
+            "spell_power": 5,
+            "magic_resist": 4
         },
         "dialog": {
             "greeting": "Blessings upon you, traveler."
@@ -113,7 +113,7 @@
         },
         "properties": {
             "wander_chance": 0.6,
-            "move_cooldown": 8.0,
+            "move_cooldown": 8,
             "spell_cast_chance": 0.9,
             "required_spells": [
                 "minor_heal"
@@ -124,20 +124,20 @@
     "tavern_keeper": {
         "name": "Barlin the Tavern Keeper",
         "description": "A robust man with a thick beard and friendly eyes. He keeps his tavern in good order and knows all the local gossip.",
-        "health": 100.0,
-        "level": 2.0,
+        "health": 100,
+        "level": 2,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 11.0,
-            "dexterity": 10.0,
-            "constitution": 13.0,
-            "agility": 9.0,
-            "intelligence": 10.0,
-            "wisdom": 11.0,
-            "spell_power": 0.0,
-            "magic_resist": 1.0
+            "strength": 11,
+            "dexterity": 10,
+            "constitution": 13,
+            "agility": 9,
+            "intelligence": 10,
+            "wisdom": 11,
+            "spell_power": 0,
+            "magic_resist": 1
         },
         "dialog": {
             "greeting": "Welcome to the Drunken Dragon! Can I get you a drink or a hot meal?",
@@ -154,13 +154,13 @@
         "initial_inventory": [
             {
                 "item_id": "item_ale",
-                "quantity": 10.0
+                "quantity": 10
             }
         ],
         "properties": {
             "is_vendor": true,
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "spell_cast_chance": 0.0,
             "work_location": "town:tavern",
             "buys_item_types": [
@@ -186,20 +186,20 @@
     "blacksmith": {
         "name": "Grenda the Blacksmith",
         "description": "A tall, muscular woman with her hair tied back and soot-stained arms. Her steady hands and keen eye produce some of the finest metalwork in the region.",
-        "health": 120.0,
-        "level": 3.0,
+        "health": 120,
+        "level": 3,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 15.0,
-            "dexterity": 11.0,
-            "constitution": 14.0,
-            "agility": 9.0,
-            "intelligence": 10.0,
-            "wisdom": 10.0,
-            "spell_power": 0.0,
-            "magic_resist": 2.0
+            "strength": 15,
+            "dexterity": 11,
+            "constitution": 14,
+            "agility": 9,
+            "intelligence": 10,
+            "wisdom": 10,
+            "spell_power": 0,
+            "magic_resist": 2
         },
         "dialog": {
             "greeting": "Welcome to my forge. Need something repaired or looking to buy?",
@@ -222,7 +222,7 @@
             "can_repair": true,
             "can_unlock_chests": true,
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "spell_cast_chance": 0.0,
             "work_location": "town:blacksmith",
             "buys_item_types": [
@@ -290,20 +290,20 @@
     "village_elder": {
         "name": "Elder Thorne",
         "description": "An elderly person with silver hair and a dignified bearing. Despite their age, there's a sharp intelligence in their eyes and a commanding presence in their manner.",
-        "health": 70.0,
-        "level": 3.0,
+        "health": 70,
+        "level": 3,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "scheduled",
         "stats": {
-            "strength": 6.0,
-            "dexterity": 7.0,
-            "constitution": 8.0,
-            "agility": 7.0,
-            "intelligence": 14.0,
-            "wisdom": 16.0,
-            "spell_power": 3.0,
-            "magic_resist": 4.0
+            "strength": 6,
+            "dexterity": 7,
+            "constitution": 8,
+            "agility": 7,
+            "intelligence": 14,
+            "wisdom": 16,
+            "spell_power": 3,
+            "magic_resist": 4
         },
         "schedule": {},
         "dialog": {
@@ -324,7 +324,7 @@
             "dialogue": "elder_thorne_commissions",
             "is_quest_giver": true,
             "wander_chance": 0.1,
-            "move_cooldown": 120.0,
+            "move_cooldown": 120,
             "spell_cast_chance": 0.1,
             "can_give_generic_quests": true
         }
@@ -332,20 +332,20 @@
     "merchant": {
         "name": "Talia the Merchant",
         "description": "A well-dressed woman with a quick smile and shrewd eyes. She travels between villages with her wagon of goods, bringing news as well as merchandise.",
-        "health": 80.0,
-        "level": 2.0,
+        "health": 80,
+        "level": 2,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "wanderer",
         "stats": {
-            "strength": 8.0,
-            "dexterity": 10.0,
-            "constitution": 9.0,
-            "agility": 11.0,
-            "intelligence": 12.0,
-            "wisdom": 12.0,
-            "spell_power": 0.0,
-            "magic_resist": 1.0
+            "strength": 8,
+            "dexterity": 10,
+            "constitution": 9,
+            "agility": 11,
+            "intelligence": 12,
+            "wisdom": 12,
+            "spell_power": 0,
+            "magic_resist": 1
         },
         "dialog": {
             "greeting": "Well met! Looking to buy or sell? I've got wares from up and down the river.",
@@ -364,7 +364,7 @@
             "is_vendor": true,
             "dialogue": "talia_provisions",
             "wander_chance": 0.0,
-            "move_cooldown": 60.0,
+            "move_cooldown": 60,
             "spell_cast_chance": 0.0,
             "work_location": "town:market_square",
             "buys_item_types": [
@@ -421,34 +421,34 @@
                 },
                 {
                     "item_id": "item_master_lockpick",
-                    "relationship_min": 30.0
+                    "relationship_min": 30
                 }
             ],
             "buy_orders": [
                 {
                     "id": "river_clay",
                     "item_id": "item_river_clay",
-                    "quantity": 2.0,
-                    "reward_gold": 12.0,
-                    "relationship_amount": 1.0,
+                    "quantity": 2,
+                    "reward_gold": 12,
+                    "relationship_amount": 1,
                     "repeatable": true
                 },
                 {
                     "id": "riverside_charm",
                     "item_id": "item_riverside_charm",
-                    "quantity": 1.0,
-                    "reward_gold": 22.0,
-                    "relationship_amount": 3.0,
+                    "quantity": 1,
+                    "reward_gold": 22,
+                    "relationship_amount": 3,
                     "crafted_only": true
                 },
                 {
                     "id": "river_fine_token",
                     "item_id": "item_river_token",
-                    "quantity": 1.0,
-                    "reward_gold": 28.0,
-                    "relationship_amount": 2.0,
+                    "quantity": 1,
+                    "reward_gold": 28,
+                    "relationship_amount": 2,
                     "crafted_only": true,
-                    "min_material_quality_score": 2.0
+                    "min_material_quality_score": 2
                 }
             ],
             "gift_preferences": {
@@ -463,20 +463,20 @@
     "forest_hermit": {
         "name": "Old Bryn",
         "description": "A hunched figure in tattered clothes with a wild beard and hair. Despite his unkempt appearance, his eyes are clear and knowing.",
-        "health": 60.0,
-        "level": 1.0,
+        "health": 60,
+        "level": 1,
         "friendly": true,
         "faction": "neutral",
         "behavior_type": "wanderer",
         "stats": {
-            "strength": 7.0,
-            "dexterity": 8.0,
-            "constitution": 10.0,
-            "agility": 9.0,
-            "intelligence": 9.0,
-            "wisdom": 14.0,
-            "spell_power": 2.0,
-            "magic_resist": 2.0
+            "strength": 7,
+            "dexterity": 8,
+            "constitution": 10,
+            "agility": 9,
+            "intelligence": 9,
+            "wisdom": 14,
+            "spell_power": 2,
+            "magic_resist": 2
         },
         "dialog": {
             "greeting": "Eh? Who's there? Don't get many visitors out this way.",
@@ -490,7 +490,7 @@
         "initial_inventory": [],
         "properties": {
             "wander_chance": 0.2,
-            "move_cooldown": 90.0,
+            "move_cooldown": 90,
             "spell_cast_chance": 0.05,
             "can_give_generic_quests": true
         }
@@ -498,15 +498,15 @@
     "guard_captain": {
         "name": "Guard Captain Elara",
         "description": "A veteran soldier with a no-nonsense demeanor. Her armor is well-maintained, and her gaze is sharp.",
-        "health": 150.0,
-        "level": 5.0,
+        "health": 150,
+        "level": 5,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 14.0,
-            "dexterity": 12.0,
-            "constitution": 13.0
+            "strength": 14,
+            "dexterity": 12,
+            "constitution": 13
         },
         "dialog": {
             "greeting": "State your business. We keep the peace here in Riverside.",
@@ -526,8 +526,8 @@
     "town_guard": {
         "name": "Town Guard",
         "description": "A guard in the service of Riverside, equipped with a spear and leather armor.",
-        "health": 100.0,
-        "level": 3.0,
+        "health": 100,
+        "level": 3,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "patrol",
@@ -537,9 +537,9 @@
             "east_market_road"
         ],
         "stats": {
-            "strength": 12.0,
-            "dexterity": 11.0,
-            "constitution": 12.0
+            "strength": 12,
+            "dexterity": 11,
+            "constitution": 12
         },
         "dialog": {
             "greeting": "Keep the peace, citizen."
@@ -547,22 +547,22 @@
         "properties": {
             "is_guard": true,
             "aggression": 1.0,
-            "move_cooldown": 5.0
+            "move_cooldown": 5
         }
     },
     "healer": {
         "name": "Elara the Healer",
         "description": "A calm, gentle woman who tends to the town's sick and injured at the local shrine.",
-        "health": 70.0,
-        "level": 4.0,
+        "health": 70,
+        "level": 4,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "healer",
-        "max_mana": 100.0,
+        "max_mana": 100,
         "stats": {
-            "intelligence": 15.0,
-            "wisdom": 18.0,
-            "spell_power": 10.0
+            "intelligence": 15,
+            "wisdom": 18,
+            "spell_power": 10
         },
         "dialog": {
             "greeting": "Blessings upon you. Are you in need of healing?",
@@ -594,16 +594,16 @@
     "alchemist": {
         "name": "Kaelan the Alchemist",
         "description": "An eccentric man with wild hair and stained fingers. He is constantly distracted by his bubbling concoctions.",
-        "health": 80.0,
-        "level": 4.0,
+        "health": 80,
+        "level": 4,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
-        "max_mana": 80.0,
+        "max_mana": 80,
         "stats": {
-            "intelligence": 18.0,
-            "wisdom": 14.0,
-            "spell_power": 12.0
+            "intelligence": 18,
+            "wisdom": 14,
+            "spell_power": 12
         },
         "dialog": {
             "greeting": "Ah, a customer! Don't mind the smell. Or the smoke. What can I get for you?",
@@ -626,7 +626,7 @@
                 },
                 {
                     "item_id": "item_mana_potion_medium",
-                    "relationship_min": 10.0
+                    "relationship_min": 10
                 },
                 {
                     "item_id": "item_scroll_random",
@@ -648,7 +648,7 @@
     "curator": {
         "name": "Curator Vane",
         "description": "A bespectacled scholar with an obsessive gleam in his eye. He loves nothing more than cataloging history.",
-        "level": 5.0,
+        "level": 5,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
@@ -667,9 +667,9 @@
             "relationship_milestones": [
                 {
                     "id": "archive_acquaintance",
-                    "min": 10.0,
+                    "min": 10,
                     "rewards": {
-                        "gold": 15.0
+                        "gold": 15
                     },
                     "message": "Curator Vane entrusts you with an archive finder’s stipend."
                 }
@@ -680,18 +680,18 @@
     "weaver_mira": {
         "name": "Mira the Weaver",
         "description": "A quiet woman who keeps mostly to herself, tending a loom in the evenings.",
-        "health": 40.0,
-        "level": 2.0,
+        "health": 40,
+        "level": 2,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "scheduled",
         "home_region_id": "town",
         "home_room_id": "small_house_1_interior",
         "stats": {
-            "strength": 8.0,
-            "dexterity": 10.0,
-            "constitution": 9.0,
-            "wisdom": 11.0
+            "strength": 8,
+            "dexterity": 10,
+            "constitution": 9,
+            "wisdom": 11
         },
         "dialog": {
             "greeting": "Oh -- hello. I don't get many visitors."
@@ -713,8 +713,8 @@
     "property_agent": {
         "name": "Cobb the Property Agent",
         "description": "A stout man with a ledger tucked under one arm, always eyeing the empty lot behind him.",
-        "health": 50.0,
-        "level": 2.0,
+        "health": 50,
+        "level": 2,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
@@ -743,7 +743,7 @@
                 "region_name": "Your House",
                 "region_description": "A small house of your own, still smelling faintly of fresh-cut timber.",
                 "key_item_id": "item_house_key_starter",
-                "replacement_key_cost": 100.0,
+                "replacement_key_cost": 100,
                 "storage_item_id": "item_house_storage_chest",
                 "entry_point": {
                     "region_id": "town",
@@ -773,11 +773,11 @@
                             "materials": [
                                 {
                                     "item_id": "item_softwood",
-                                    "quantity": 6.0
+                                    "quantity": 6
                                 },
                                 {
                                     "item_id": "item_wild_herbs",
-                                    "quantity": 5.0
+                                    "quantity": 5
                                 }
                             ],
                             "room_name": "Your House (with a Garden)",
@@ -791,11 +791,11 @@
                             "materials": [
                                 {
                                     "item_id": "item_softwood",
-                                    "quantity": 6.0
+                                    "quantity": 6
                                 },
                                 {
                                     "item_id": "item_river_clay",
-                                    "quantity": 5.0
+                                    "quantity": 5
                                 }
                             ],
                             "room_name": "Your House (with a Pond)",
@@ -809,11 +809,11 @@
                             "materials": [
                                 {
                                     "item_id": "item_softwood",
-                                    "quantity": 6.0
+                                    "quantity": 6
                                 },
                                 {
                                     "item_id": "item_iron_ingot",
-                                    "quantity": 3.0
+                                    "quantity": 3
                                 }
                             ],
                             "room_name": "Your House (with a Workshop)",
@@ -828,18 +828,18 @@
     "harbourmaster_voss": {
         "name": "Harbourmaster Voss",
         "description": "A stern, weathered woman who has run these docks longer than anyone can remember. Little escapes her notice.",
-        "health": 60.0,
-        "level": 4.0,
+        "health": 60,
+        "level": 4,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 9.0,
-            "dexterity": 10.0,
-            "constitution": 11.0,
-            "agility": 9.0,
-            "intelligence": 12.0,
-            "wisdom": 14.0
+            "strength": 9,
+            "dexterity": 10,
+            "constitution": 11,
+            "agility": 9,
+            "intelligence": 12,
+            "wisdom": 14
         },
         "dialog": {
             "greeting": "State your business, traveler. Portbridge runs on order, and I intend to keep it that way."
@@ -848,7 +848,7 @@
         "properties": {
             "dialogue": "voss_tidewell",
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "work_location": "portbridge:port_authority_office",
             "can_give_generic_quests": false
         }
@@ -856,18 +856,18 @@
     "portbridge_innkeeper": {
         "name": "Nell the Innkeeper",
         "description": "A broad-shouldered woman who has heard every sailor's tale twice and believes none of them.",
-        "health": 60.0,
-        "level": 2.0,
+        "health": 60,
+        "level": 2,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 10.0,
-            "dexterity": 9.0,
-            "constitution": 12.0,
-            "agility": 8.0,
-            "intelligence": 9.0,
-            "wisdom": 11.0
+            "strength": 10,
+            "dexterity": 9,
+            "constitution": 12,
+            "agility": 8,
+            "intelligence": 9,
+            "wisdom": 11
         },
         "dialog": {
             "greeting": "Welcome to the Sailor's Rest. Ale, a meal, or a bed for the night?",
@@ -878,13 +878,13 @@
         "initial_inventory": [
             {
                 "item_id": "item_ale",
-                "quantity": 10.0
+                "quantity": 10
             }
         ],
         "properties": {
             "is_vendor": true,
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "work_location": "portbridge:sailors_rest_inn_common",
             "buys_item_types": [
                 "Consumable",
@@ -913,16 +913,16 @@
     "portbridge_fisherman": {
         "name": "Fenn the Fisherman",
         "description": "A leathery old fisherman mending a net outside the market stalls.",
-        "health": 50.0,
-        "level": 2.0,
+        "health": 50,
+        "level": 2,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 11.0,
-            "dexterity": 10.0,
-            "constitution": 11.0,
-            "agility": 9.0
+            "strength": 11,
+            "dexterity": 10,
+            "constitution": 11,
+            "agility": 9
         },
         "dialog": {
             "greeting": "Fresh catch, if you're hungry. Or gear, if you're fishing yourself.",
@@ -932,7 +932,7 @@
         "properties": {
             "is_vendor": true,
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "work_location": "portbridge:fish_market",
             "buys_item_types": [
                 "Item",
@@ -956,16 +956,16 @@
     "portbridge_shipwright": {
         "name": "Thane the Shipwright",
         "description": "A broad, sawdust-covered man overseeing the half-built hull behind him.",
-        "health": 70.0,
-        "level": 3.0,
+        "health": 70,
+        "level": 3,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 14.0,
-            "dexterity": 10.0,
-            "constitution": 13.0,
-            "agility": 8.0
+            "strength": 14,
+            "dexterity": 10,
+            "constitution": 13,
+            "agility": 8
         },
         "dialog": {
             "greeting": "Mind the sawdust. Need rope, timber, or just looking?",
@@ -975,7 +975,7 @@
         "properties": {
             "is_vendor": true,
             "wander_chance": 0.0,
-            "move_cooldown": 9999.0,
+            "move_cooldown": 9999,
             "work_location": "portbridge:shipwright_yard",
             "buys_item_types": [
                 "Item",
@@ -999,15 +999,15 @@
     "portbridge_guard": {
         "name": "Portbridge Guard",
         "description": "A guard in Portbridge livery, keeping a watchful eye on the harbor traffic.",
-        "health": 100.0,
-        "level": 3.0,
+        "health": 100,
+        "level": 3,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
         "stats": {
-            "strength": 12.0,
-            "dexterity": 11.0,
-            "constitution": 12.0
+            "strength": 12,
+            "dexterity": 11,
+            "constitution": 12
         },
         "dialog": {
             "greeting": "Move along. Nothing to see here."
@@ -1015,22 +1015,22 @@
         "properties": {
             "is_guard": true,
             "aggression": 1.0,
-            "move_cooldown": 5.0
+            "move_cooldown": 5
         }
     },
     "portbridge_dockhand": {
         "name": "Dockhand",
         "description": "A local resident hauling cargo and going about their day.",
-        "health": 70.0,
-        "level": 1.0,
+        "health": 70,
+        "level": 1,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "wanderer",
         "stats": {
-            "strength": 10.0,
-            "dexterity": 9.0,
-            "constitution": 10.0,
-            "agility": 9.0
+            "strength": 10,
+            "dexterity": 9,
+            "constitution": 10,
+            "agility": 9
         },
         "dialog": {
             "greeting": "Busy day on the docks. Always is.",
@@ -1040,7 +1040,7 @@
         "default_dialog": "The {name} hauls another crate past without a second look.",
         "properties": {
             "wander_chance": 0.7,
-            "move_cooldown": 6.0,
+            "move_cooldown": 6,
             "can_give_generic_quests": false,
             "randomize_name": true
         }

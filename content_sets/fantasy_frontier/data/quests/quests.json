@@ -5,7 +5,7 @@
         "description": "Elder Thorne would like a hand-tied wildflower posy for the village's newest residents.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Gather herbs, craft a wildflower posy, and deliver it to Elder Thorne.",
                 "objective": {
                     "type": "deliver",
@@ -19,8 +19,8 @@
             }
         ],
         "rewards": {
-            "xp": 25.0,
-            "gold": 12.0,
+            "xp": 25,
+            "gold": 12,
             "relationships": [
                 {
                     "npc_template_id": "village_elder",
@@ -35,7 +35,7 @@
         "description": "Elder Thorne needs a carved charm for a new household settling near the river.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Craft a carved Riverside charm and deliver it to Elder Thorne.",
                 "objective": {
                     "type": "deliver",
@@ -48,25 +48,25 @@
             }
         ],
         "rewards": {
-            "xp": 40.0,
-            "gold": 20.0
+            "xp": 40,
+            "gold": 20
         }
     },
     "quest_river_fine_token_commission": {
         "title": "A Token Worth Keeping",
         "type": "commission",
         "description": "Elder Thorne seeks a carefully made river-clay token using unusually fine local material.",
-        "relationship_min": 10.0,
+        "relationship_min": 10,
         "relationship_npc_id": "village_elder",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Craft a River Fine token and deliver it to Elder Thorne.",
                 "objective": {
                     "type": "deliver",
                     "item_template_id": "item_river_token",
                     "crafted_only": true,
-                    "min_material_quality_score": 2.0,
+                    "min_material_quality_score": 2,
                     "recipient_template_id": "village_elder",
                     "recipient_name": "Elder Thorne"
                 },
@@ -74,8 +74,8 @@
             }
         ],
         "rewards": {
-            "xp": 35.0,
-            "gold": 24.0,
+            "xp": 35,
+            "gold": 24,
             "relationships": [
                 {
                     "npc_template_id": "village_elder",
@@ -90,7 +90,7 @@
         "description": "Curator Vane is seeking a display-worthy stone: refine one yourself, or source a suitable specimen through other pursuits.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Bring Curator Vane one display-worthy stone by any accepted route.",
                 "objectives_any": [
                     {
@@ -114,8 +114,8 @@
             }
         ],
         "rewards": {
-            "xp": 50.0,
-            "gold": 28.0,
+            "xp": 50,
+            "gold": 28,
             "relationships": [
                 {
                     "npc_template_id": "curator",
@@ -130,7 +130,7 @@
         "description": "Scout the forest to locate the bandit camp.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Locate the Hidden Camp in the Whispering Woods.",
                 "objective": {
                     "type": "scout",
@@ -146,7 +146,7 @@
             }
         ],
         "rewards": {
-            "xp": 200.0
+            "xp": 200
         }
     },
     "quest_bandit_lieutenant": {
@@ -155,7 +155,7 @@
         "description": "Deal with the bandit leadership.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Confront the Lieutenant.",
                 "turn_in_id": "bandit_leader",
                 "spawn_on_entry": {
@@ -172,7 +172,7 @@
                     "type": "negotiate",
                     "target_npc_id": "bandit_leader",
                     "skill": "diplomacy",
-                    "difficulty": 10.0,
+                    "difficulty": 10,
                     "approach": "\"The village sent me. But I would rather hear your side than draw on you.\"",
                     "choices": {
                         "success": {
@@ -181,7 +181,7 @@
                             "dialogue": "He lowers his blade and spits into the dirt. Fine -- tell them we are done here. For now."
                         },
                         "fail": {
-                            "next_stage": 1.0,
+                            "next_stage": 1,
                             "description": "Negotiations failed. Kill him.",
                             "dialogue": "He laughs and steps in. Wrong answer, then."
                         }
@@ -189,20 +189,20 @@
                 }
             },
             {
-                "stage_index": 1.0,
+                "stage_index": 1,
                 "description": "Kill the Lieutenant.",
                 "objective": {
                     "type": "kill",
                     "target_template_id": "bandit_leader",
                     "target_name": "Bandit Lieutenant",
-                    "required_quantity": 1.0
+                    "required_quantity": 1
                 },
                 "turn_in_id": "village_elder"
             }
         ],
         "rewards": {
-            "xp": 500.0,
-            "gold": 100.0
+            "xp": 500,
+            "gold": 100
         }
     },
     "quest_kill_bandit_king": {
@@ -211,7 +211,7 @@
         "description": "Put an end to the rebellion by slaying the King.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Kill the Bandit King in the forest clearing.",
                 "spawn_on_entry": {
                     "template_id": "bandit_leader",
@@ -224,17 +224,17 @@
                     "type": "kill",
                     "target_template_id": "bandit_leader",
                     "target_name": "Bandit King",
-                    "required_quantity": 1.0
+                    "required_quantity": 1
                 },
                 "turn_in_id": "village_elder"
             }
         ],
         "rewards": {
-            "xp": 1000.0,
+            "xp": 1000,
             "items": [
                 {
                     "item_id": "item_iron_sword",
-                    "quantity": 1.0
+                    "quantity": 1
                 }
             ]
         }
@@ -244,7 +244,7 @@
         "type": "quest",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Deliver the Peace Treaty to the Bandit King.",
                 "spawn_on_entry": {
                     "template_id": "bandit_leader",
@@ -263,8 +263,8 @@
             }
         ],
         "rewards": {
-            "xp": 1000.0,
-            "gold": 500.0
+            "xp": 1000,
+            "gold": 500
         }
     },
     "quest_missing_guard": {
@@ -272,24 +272,24 @@
         "type": "quest",
         "description": "Guard Captain Elara needs help tracing the disappearance of a recruit along the river road.",
         "rewards": {
-            "xp": 500.0,
-            "gold": 100.0,
+            "xp": 500,
+            "gold": 100,
             "items": [
                 {
                     "item_id": "item_iron_shield",
-                    "quantity": 1.0
+                    "quantity": 1
                 }
             ]
         },
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Search the abandoned mill beyond Riverside Docks for the missing guard's tabard.",
                 "objective": {
                     "type": "fetch",
                     "item_id": "item_bloody_tabard",
                     "item_name": "Bloody Tabard",
-                    "required_quantity": 1.0,
+                    "required_quantity": 1,
                     "consume_item": false
                 },
                 "turn_in_id": "guard_captain",
@@ -297,20 +297,20 @@
                 "completion_dialogue": "By the gods... this is his tabard. And it's covered in strange slime. Take this to Kaelan the Alchemist immediately."
             },
             {
-                "stage_index": 1.0,
+                "stage_index": 1,
                 "description": "Show the Bloody Tabard to Kaelan the Alchemist in Riverside.",
                 "objective": {
                     "type": "fetch",
                     "item_id": "item_bloody_tabard",
                     "item_name": "Bloody Tabard",
-                    "required_quantity": 1.0
+                    "required_quantity": 1
                 },
                 "turn_in_id": "alchemist",
                 "start_dialogue": "Go to Kaelan. He will know what creature left this slime.",
                 "completion_dialogue": "Hmm. River Troll slime. Acidic and foul. The beast must be nearby. Slay it before it takes more victims!"
             },
             {
-                "stage_index": 2.0,
+                "stage_index": 2,
                 "description": "Find and slay the River Troll at the Stagnant Pool in Murkwater, downstream from Riverside.",
                 "spawn_on_entry": {
                     "template_id": "river_troll",
@@ -323,8 +323,8 @@
                     "type": "kill",
                     "target_template_id": "river_troll",
                     "target_name": "River Troll",
-                    "required_quantity": 1.0,
-                    "current_quantity": 0.0
+                    "required_quantity": 1,
+                    "current_quantity": 0
                 },
                 "turn_in_id": "guard_captain",
                 "start_dialogue": "The troll is the cause. Kill it.",
@@ -338,12 +338,12 @@
         "description": "Talia wants a sample of local herbs and softwood to show buyers upriver.",
         "completion_check_enabled": true,
         "rewards": {
-            "xp": 60.0,
-            "gold": 20.0
+            "xp": 60,
+            "gold": 20
         },
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Gather a sample of wild herbs and softwood from anywhere in the region.",
                 "objective": {
                     "type": "gather_types",
@@ -365,7 +365,7 @@
         "description": "Investigate the source of Portbridge's smuggling rumors.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Search the harbor district for signs of smuggling activity.",
                 "objective": {
                     "type": "scout",
@@ -380,7 +380,7 @@
             }
         ],
         "rewards": {
-            "xp": 50.0
+            "xp": 50
         }
     },
     "quest_smuggler_contact": {
@@ -389,7 +389,7 @@
         "description": "Confront whoever is running the smuggling operation beneath Portbridge.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Confront the smugglers' leader in the underground cache.",
                 "spawn_on_entry": {
                     "template_id": "smuggler_leader",
@@ -405,16 +405,16 @@
                     "type": "negotiate",
                     "target_npc_id": "smuggler_leader",
                     "skill": "mercantile",
-                    "difficulty": 15.0,
+                    "difficulty": 15,
                     "approach": "\"I did not come here to make trouble. I came here to make a deal.\"",
                     "choices": {
                         "success": {
-                            "next_stage": 2.0,
+                            "next_stage": 2,
                             "description": "You strike a deal. Welcome to the crew.",
                             "dialogue": "She grins and spreads her hands. Now that is the language I speak."
                         },
                         "fail": {
-                            "next_stage": 1.0,
+                            "next_stage": 1,
                             "description": "She doesn't like your terms. Steel is drawn.",
                             "dialogue": "Her smile goes flat. Pity. I liked you."
                         }
@@ -423,20 +423,20 @@
                 "turn_in_id": "smuggler_leader"
             },
             {
-                "stage_index": 1.0,
+                "stage_index": 1,
                 "description": "The negotiation failed. Deal with the smugglers' leader.",
                 "objective": {
                     "type": "kill",
                     "target_template_id": "smuggler_leader",
                     "target_name": "Smuggler Leader",
-                    "required_quantity": 1.0
+                    "required_quantity": 1
                 },
                 "turn_in_id": "harbourmaster_voss"
             }
         ],
         "rewards": {
-            "xp": 300.0,
-            "gold": 75.0
+            "xp": 300,
+            "gold": 75
         }
     },
     "quest_smuggler_delivery": {
@@ -445,7 +445,7 @@
         "description": "Bring the dubious cargo to the smugglers to seal the deal.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Deliver the dubious cargo to the smugglers' leader.",
                 "objective": {
                     "type": "deliver",
@@ -458,8 +458,8 @@
             }
         ],
         "rewards": {
-            "xp": 150.0,
-            "gold": 100.0,
+            "xp": 150,
+            "gold": 100,
             "relationships": [
                 {
                     "npc_template_id": "smuggler_leader",
@@ -474,13 +474,13 @@
         "description": "One of the dire wolves near the mountains has grown unusually large and cunning, leading raids on travelers. Guard Captain Elara doesn't know its name, only that it's far more dangerous than the rest of its kind -- and is offering a bounty for whichever one it is.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Hunt down and kill an elite dire wolf.",
                 "objective": {
                     "type": "kill",
                     "target_template_id": "dire_wolf",
                     "target_name": "an elite dire wolf",
-                    "required_quantity": 1.0,
+                    "required_quantity": 1,
                     "require_elite": true
                 },
                 "turn_in_id": "guard_captain",
@@ -488,8 +488,8 @@
             }
         ],
         "rewards": {
-            "xp": 250.0,
-            "gold": 60.0
+            "xp": 250,
+            "gold": 60
         }
     },
     "quest_bounty_troll_elder": {
@@ -498,13 +498,13 @@
         "description": "Something old and enormous has been sighted in the mountains -- a troll far larger than any on record. Guard Captain Elara wants it put down before it wanders toward the roads.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Hunt down and kill an elite troll.",
                 "objective": {
                     "type": "kill",
                     "target_template_id": "troll",
                     "target_name": "an elite troll",
-                    "required_quantity": 1.0,
+                    "required_quantity": 1,
                     "require_elite": true
                 },
                 "turn_in_id": "guard_captain",
@@ -512,8 +512,8 @@
             }
         ],
         "rewards": {
-            "xp": 400.0,
-            "gold": 100.0
+            "xp": 400,
+            "gold": 100
         }
     },
     "quest_frostpeak_deep_sounding": {
@@ -522,7 +522,7 @@
         "description": "Mara Vale needs a fresh report from the dangerous ice chamber above Frostpeak before the Mining Lodge risks another crew.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Reach the Inner Ice Chamber beyond Frostpeak's frozen waterfall, then report back to Mara at the Mining Lodge.",
                 "objective": {
                     "type": "scout",
@@ -538,8 +538,8 @@
             }
         ],
         "rewards": {
-            "xp": 180.0,
-            "gold": 55.0,
+            "xp": 180,
+            "gold": 55,
             "relationships": [
                 {
                     "npc_template_id": "frostpeak_lodgekeeper",
@@ -554,7 +554,7 @@
         "description": "Sada the Caravanmaster needs a current report from the Mirror Oasis before committing an incoming caravan to the desert road.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Reach the Mirror Oasis across the Sunscorch Expanse, then report back to Sada in the Caravan Yard.",
                 "objective": {
                     "type": "scout",
@@ -570,8 +570,8 @@
             }
         ],
         "rewards": {
-            "xp": 300.0,
-            "gold": 90.0,
+            "xp": 300,
+            "gold": 90,
             "relationships": [
                 {
                     "npc_template_id": "sunscorch_caravanmaster",
@@ -586,7 +586,7 @@
         "description": "Elion needs an on-the-ground report from Aurelia's dangerous abandoned observatory before the museum risks sending a scholarly expedition.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Reach the Old Observatory in the Aurelian Outlands, then report back to Elion at the museum.",
                 "objective": {
                     "type": "scout",
@@ -602,8 +602,8 @@
             }
         ],
         "rewards": {
-            "xp": 425.0,
-            "gold": 130.0,
+            "xp": 425,
+            "gold": 130,
             "relationships": [
                 {
                     "npc_template_id": "aurelia_archivist",
@@ -618,21 +618,21 @@
         "description": "Elion believes the damaged archive beneath Aurelia's museum holds the missing observatory record, if its last imperial sentinel can be overcome.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Descend through the museum's eastern archive door, defeat an astral sentinel in the Starwell Chamber, then return to Elion.",
                 "objective": {
                     "type": "kill",
                     "target_template_id": "astral_sentinel",
                     "target_name": "an astral sentinel",
-                    "required_quantity": 1.0
+                    "required_quantity": 1
                 },
                 "turn_in_id": "aurelia_archivist",
                 "completion_dialogue": "The record is damaged, but it is real. You have recovered a piece of the city that even Aurelia had filed under legend."
             }
         ],
         "rewards": {
-            "xp": 650.0,
-            "gold": 225.0,
+            "xp": 650,
+            "gold": 225,
             "relationships": [
                 {
                     "npc_template_id": "aurelia_archivist",
@@ -647,7 +647,7 @@
         "description": "Lyra needs a current survey of the Broken Aqueduct before Aurelia sends road crews into the Aurelian Outlands.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Reach the Broken Aqueduct in the Aurelian Outlands, then return to Lyra at the Surveyors' Hall.",
                 "objective": {
                     "type": "scout",
@@ -663,8 +663,8 @@
             }
         ],
         "rewards": {
-            "xp": 375.0,
-            "gold": 115.0,
+            "xp": 375,
+            "gold": 115,
             "relationships": [
                 {
                     "npc_template_id": "aurelia_surveyor",
@@ -679,7 +679,7 @@
         "description": "Harbourmaster Voss needs a current report from Tidewell's lowest vault before Portbridge commits a crew to the flooded underworks.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Reach the Blackwater Vault in the Tidewell Underworks, then report back to Harbourmaster Voss.",
                 "objective": {
                     "type": "scout",
@@ -695,8 +695,8 @@
             }
         ],
         "rewards": {
-            "xp": 240.0,
-            "gold": 75.0,
+            "xp": 240,
+            "gold": 75,
             "relationships": [
                 {
                     "npc_template_id": "harbourmaster_voss",
@@ -711,21 +711,21 @@
         "description": "Harbourmaster Voss needs the drowned enforcer in Tidewell's Blackwater Vault dealt with before Portbridge can reclaim the flooded works.",
         "stages": [
             {
-                "stage_index": 0.0,
+                "stage_index": 0,
                 "description": "Defeat the drowned enforcer in the Blackwater Vault, then return to Harbourmaster Voss.",
                 "objective": {
                     "type": "kill",
                     "target_template_id": "drowned_enforcer",
                     "target_name": "the drowned enforcer",
-                    "required_quantity": 1.0
+                    "required_quantity": 1
                 },
                 "turn_in_id": "harbourmaster_voss",
                 "completion_dialogue": "The vault is no longer held against us. Portbridge can finally put people and pumps into Tidewell."
             }
         ],
         "rewards": {
-            "xp": 325.0,
-            "gold": 110.0,
+            "xp": 325,
+            "gold": 110,
             "relationships": [
                 {
                     "npc_template_id": "harbourmaster_voss",

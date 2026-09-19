@@ -9,8 +9,8 @@
         "properties": {
             "damage": 3.0,
             "weapon_damage_type": "piercing",
-            "durability": 20.0,
-            "max_durability": 20.0,
+            "durability": 20,
+            "max_durability": 20,
             "equip_slot": [
                 "main_hand",
                 "off_hand"
@@ -31,8 +31,8 @@
         "properties": {
             "damage": 8.0,
             "weapon_damage_type": "slashing",
-            "durability": 50.0,
-            "max_durability": 50.0,
+            "durability": 50,
+            "max_durability": 50,
             "equip_slot": [
                 "main_hand"
             ]
@@ -50,8 +50,8 @@
         "properties": {
             "damage": 6.0,
             "weapon_damage_type": "slashing",
-            "durability": 35.0,
-            "max_durability": 35.0,
+            "durability": 35,
+            "max_durability": 35,
             "equip_slot": [
                 "main_hand"
             ],
@@ -70,8 +70,8 @@
         "properties": {
             "damage": 4.0,
             "weapon_damage_type": "piercing",
-            "durability": 30.0,
-            "max_durability": 30.0,
+            "durability": 30,
+            "max_durability": 30,
             "equip_slot": [
                 "main_hand"
             ]
@@ -88,8 +88,8 @@
         "properties": {
             "damage": 4.0,
             "weapon_damage_type": "slashing",
-            "durability": 25.0,
-            "max_durability": 25.0,
+            "durability": 25,
+            "max_durability": 25,
             "equip_slot": [
                 "main_hand"
             ]
@@ -106,8 +106,8 @@
         "properties": {
             "damage": 3.0,
             "weapon_damage_type": "piercing",
-            "durability": 30.0,
-            "max_durability": 30.0,
+            "durability": 30,
+            "max_durability": 30,
             "equip_slot": [
                 "main_hand",
                 "off_hand"
@@ -125,8 +125,8 @@
         "properties": {
             "damage": 7.0,
             "weapon_damage_type": "crushing",
-            "durability": 40.0,
-            "max_durability": 40.0,
+            "durability": 40,
+            "max_durability": 40,
             "equip_slot": [
                 "main_hand"
             ]
@@ -143,8 +143,8 @@
         "properties": {
             "damage": 4.0,
             "weapon_damage_type": "piercing",
-            "durability": 40.0,
-            "max_durability": 40.0,
+            "durability": 40,
+            "max_durability": 40,
             "equip_slot": [
                 "main_hand",
                 "off_hand"
@@ -153,9 +153,9 @@
             "on_hit_effect": {
                 "type": "dot",
                 "name": "Spider Venom",
-                "base_duration": 12.0,
-                "damage_per_tick": 3.0,
-                "tick_interval": 3.0,
+                "base_duration": 12,
+                "damage_per_tick": 3,
+                "tick_interval": 3,
                 "damage_type": "poison"
             }
         },
@@ -170,8 +170,8 @@
         "properties": {
             "damage": 4.0,
             "weapon_damage_type": "piercing",
-            "durability": 30.0,
-            "max_durability": 30.0,
+            "durability": 30,
+            "max_durability": 30,
             "equip_slot": [
                 "main_hand"
             ]
@@ -187,8 +187,8 @@
         "properties": {
             "damage": 5.0,
             "weapon_damage_type": "piercing",
-            "durability": 35.0,
-            "max_durability": 35.0,
+            "durability": 35,
+            "max_durability": 35,
             "equip_slot": [
                 "main_hand",
                 "off_hand"
@@ -205,8 +205,8 @@
         "properties": {
             "damage": 7.0,
             "weapon_damage_type": "piercing",
-            "durability": 45.0,
-            "max_durability": 45.0,
+            "durability": 45,
+            "max_durability": 45,
             "equip_slot": [
                 "main_hand"
             ]
@@ -222,8 +222,8 @@
         "properties": {
             "damage": 8.0,
             "weapon_damage_type": "slashing",
-            "durability": 50.0,
-            "max_durability": 50.0,
+            "durability": 50,
+            "max_durability": 50,
             "equip_slot": [
                 "main_hand"
             ]
@@ -239,8 +239,8 @@
         "properties": {
             "damage": 5.0,
             "weapon_damage_type": "crushing",
-            "durability": 40.0,
-            "max_durability": 40.0,
+            "durability": 40,
+            "max_durability": 40,
             "equip_slot": [
                 "main_hand"
             ]
@@ -256,14 +256,14 @@
         "properties": {
             "damage": 10.0,
             "weapon_damage_type": "crushing",
-            "tier": 2.0,
-            "durability": 55.0,
-            "max_durability": 55.0,
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "strength": 12.0
+                "strength": 12
             }
         },
         "item_family": "weapon"
@@ -277,14 +277,14 @@
         "properties": {
             "damage": 12.0,
             "weapon_damage_type": "crushing",
-            "tier": 2.0,
-            "durability": 60.0,
-            "max_durability": 60.0,
+            "tier": 2,
+            "durability": 60,
+            "max_durability": 60,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "strength": 14.0
+                "strength": 14
             }
         },
         "item_family": "weapon"
@@ -298,14 +298,14 @@
         "properties": {
             "damage": 9.0,
             "weapon_damage_type": "piercing",
-            "tier": 2.0,
-            "durability": 55.0,
-            "max_durability": 55.0,
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "dexterity": 12.0
+                "dexterity": 12
             }
         },
         "item_family": "weapon"
@@ -319,14 +319,14 @@
         "properties": {
             "damage": 11.0,
             "weapon_damage_type": "piercing",
-            "tier": 2.0,
-            "durability": 55.0,
-            "max_durability": 55.0,
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "agility": 13.0
+                "agility": 13
             }
         },
         "item_family": "weapon"
@@ -340,14 +340,14 @@
         "properties": {
             "damage": 12.0,
             "weapon_damage_type": "slashing",
-            "tier": 2.0,
-            "durability": 60.0,
-            "max_durability": 60.0,
+            "tier": 2,
+            "durability": 60,
+            "max_durability": 60,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "strength": 13.0
+                "strength": 13
             }
         },
         "item_family": "weapon"
@@ -361,14 +361,14 @@
         "properties": {
             "damage": 13.0,
             "weapon_damage_type": "slashing",
-            "tier": 2.0,
-            "durability": 60.0,
-            "max_durability": 60.0,
+            "tier": 2,
+            "durability": 60,
+            "max_durability": 60,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "strength": 14.0
+                "strength": 14
             }
         },
         "item_family": "weapon"
@@ -382,14 +382,14 @@
         "properties": {
             "damage": 18.0,
             "weapon_damage_type": "slashing",
-            "tier": 3.0,
-            "durability": 70.0,
-            "max_durability": 70.0,
+            "tier": 3,
+            "durability": 70,
+            "max_durability": 70,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "strength": 17.0
+                "strength": 17
             }
         },
         "item_family": "weapon"
@@ -403,14 +403,14 @@
         "properties": {
             "damage": 19.0,
             "weapon_damage_type": "crushing",
-            "tier": 3.0,
-            "durability": 75.0,
-            "max_durability": 75.0,
+            "tier": 3,
+            "durability": 75,
+            "max_durability": 75,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "strength": 18.0
+                "strength": 18
             }
         },
         "item_family": "weapon"
@@ -424,14 +424,14 @@
         "properties": {
             "damage": 17.0,
             "weapon_damage_type": "piercing",
-            "tier": 3.0,
-            "durability": 70.0,
-            "max_durability": 70.0,
+            "tier": 3,
+            "durability": 70,
+            "max_durability": 70,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "strength": 16.0
+                "strength": 16
             }
         },
         "item_family": "weapon"
@@ -445,14 +445,14 @@
         "properties": {
             "damage": 16.0,
             "weapon_damage_type": "piercing",
-            "tier": 3.0,
-            "durability": 65.0,
-            "max_durability": 65.0,
+            "tier": 3,
+            "durability": 65,
+            "max_durability": 65,
             "equip_slot": [
                 "main_hand"
             ],
             "requirements": {
-                "agility": 17.0
+                "agility": 17
             }
         },
         "item_family": "weapon"

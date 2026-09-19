@@ -31,9 +31,9 @@
         "value": 55.0,
         "stackable": false,
         "properties": {
-            "defense": 3.0,
-            "durability": 55.0,
-            "max_durability": 55.0,
+            "defense": 3,
+            "durability": 55,
+            "max_durability": 55,
             "equip_slot": [
                 "off_hand"
             ]

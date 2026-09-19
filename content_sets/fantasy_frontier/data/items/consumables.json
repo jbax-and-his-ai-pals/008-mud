@@ -7,9 +7,9 @@
         "value": 8.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 8.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 8,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -22,9 +22,9 @@
         "value": 10.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 15.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 15,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -37,15 +37,15 @@
         "value": 18.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "apply_effect",
             "effect_data": {
                 "name": "Marshguard",
                 "type": "stat_mod",
-                "base_duration": 180.0,
+                "base_duration": 180,
                 "modifiers": {
-                    "resist_poison": 60.0
+                    "resist_poison": 60
                 }
             }
         },
@@ -59,15 +59,15 @@
         "value": 16.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "apply_effect",
             "effect_data": {
                 "name": "Trailblazer",
                 "type": "stat_mod",
-                "base_duration": 180.0,
+                "base_duration": 180,
                 "modifiers": {
-                    "agility": 4.0
+                    "agility": 4
                 }
             }
         },
@@ -81,8 +81,8 @@
         "value": 15.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "cleanse",
             "effect_tags": [
                 "poison",
@@ -99,10 +99,10 @@
         "value": 24.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "target_damage",
-            "damage_amount": 18.0,
+            "damage_amount": 18,
             "damage_type": "fire"
         },
         "item_family": "consumable"
@@ -115,9 +115,9 @@
         "value": 1.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 3.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 3,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -130,9 +130,9 @@
         "value": 6.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 6.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 6,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -145,8 +145,8 @@
         "value": 60.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "learn_recipe",
             "recipe_to_learn": "forge_travelers_hatchet"
         },
@@ -160,9 +160,9 @@
         "value": 3.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 5.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 5,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -175,9 +175,9 @@
         "value": 2.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 3.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 3,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -190,9 +190,9 @@
         "value": 50.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 25.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 25,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -205,9 +205,9 @@
         "value": 1.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": -5.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": -5,
             "effect_type": "poison"
         },
         "item_family": "consumable"
@@ -220,9 +220,9 @@
         "value": 1.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 2.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 2,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -235,9 +235,9 @@
         "value": 4.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 8.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 8,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -250,9 +250,9 @@
         "value": 2.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 4.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 4,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -265,9 +265,9 @@
         "value": 3.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 1.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 1,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -280,9 +280,9 @@
         "value": 2.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 2.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 2,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -295,9 +295,9 @@
         "value": 1.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 4.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 4,
             "effect_type": "heal"
         },
         "item_family": "consumable"
@@ -310,13 +310,13 @@
         "value": 0.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "apply_dot",
             "dot_name": "Debug Poison",
-            "dot_duration": 30.0,
-            "dot_damage_per_tick": 5.0,
-            "dot_tick_interval": 3.0,
+            "dot_duration": 30,
+            "dot_damage_per_tick": 5,
+            "dot_tick_interval": 3,
             "dot_damage_type": "poison"
         },
         "item_family": "consumable"
@@ -329,9 +329,9 @@
         "value": 15.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 20.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 20,
             "effect_type": "mana_restore"
         },
         "item_family": "consumable"
@@ -344,9 +344,9 @@
         "value": 40.0,
         "stackable": true,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
-            "effect_value": 50.0,
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 50,
             "effect_type": "mana_restore"
         },
         "item_family": "consumable"
@@ -359,8 +359,8 @@
         "value": 150.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "learn_spell",
             "spell_to_learn": "raise_skeleton"
         },
@@ -374,8 +374,8 @@
         "value": 200.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "learn_spell",
             "spell_to_learn": "raise_skeletal_mage"
         },
@@ -389,8 +389,8 @@
         "value": 180.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "learn_spell",
             "spell_to_learn": "summon_spirit_wolf"
         },
@@ -404,8 +404,8 @@
         "value": 250.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "learn_spell",
             "spell_to_learn": "summon_fire_imp"
         },
@@ -419,8 +419,8 @@
         "value": 400.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "learn_spell",
             "spell_to_learn": "summon_stone_golem"
         },
@@ -434,8 +434,8 @@
         "value": 100.0,
         "stackable": false,
         "properties": {
-            "uses": 1.0,
-            "max_uses": 1.0,
+            "uses": 1,
+            "max_uses": 1,
             "effect_type": "learn_spell",
             "spell_to_learn": null,
             "is_procedural": true,

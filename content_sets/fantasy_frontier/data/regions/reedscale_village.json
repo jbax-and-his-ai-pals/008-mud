@@ -7,8 +7,8 @@
         "weather_profile": "swamp",
         "region_type": "settlement",
         "level_band": {
-            "min": 4.0,
-            "max": 5.0
+            "min": 4,
+            "max": 5
         }
     },
     "spawner": {
@@ -17,8 +17,8 @@
             "giant_rat": 1.0
         },
         "level_range": [
-            4.0,
-            5.0
+            4,
+            5
         ]
     },
     "rooms": {
@@ -61,7 +61,7 @@
             "items": [
                 {
                     "item_id": "item_swamp_fungus",
-                    "quantity": 2.0
+                    "quantity": 2
                 }
             ]
         },
@@ -74,7 +74,7 @@
             "items": [
                 {
                     "item_id": "item_lizard_scale",
-                    "quantity": 2.0
+                    "quantity": 2
                 }
             ]
         },

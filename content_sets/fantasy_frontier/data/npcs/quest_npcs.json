@@ -2,7 +2,7 @@
     "relieved_homeowner": {
         "name": "Relieved Homeowner",
         "description": "A person who looks immensely grateful, no longer pale with worry.",
-        "level": 1.0,
+        "level": 1,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
@@ -14,7 +14,7 @@
     "worried_homeowner": {
         "name": "Worried Homeowner",
         "description": "A person wringing their hands, looking anxiously at their house.",
-        "level": 1.0,
+        "level": 1,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",

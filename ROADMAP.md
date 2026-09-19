@@ -1777,6 +1777,75 @@ the fourth batch below.
 
 ---
 
+## Engine hardening
+
+Independent of the contract work: the things that make a defect survivable
+rather than fatal. Neither of these is a feature; both are the difference between
+a playtester finishing a session and filing a bug about one.
+
+### A handler that raises no longer ends the session (2026-09-18)
+
+- [x] **`CommandProcessor.process_input` is the one dispatcher**, and it wrapped
+  the handler call in nothing. An exception from a handler therefore reached the
+  desktop loop — ending the run — or the headless command path, which on a shared
+  server means the connection. Both call it; the boundary belongs there, once.
+- [x] **The player is answered, and the bug is reported.** The message names the
+  command and the exception *type* and deliberately not the exception's text,
+  which can carry filesystem paths and internal identifiers. Full traceback goes
+  to the log under one filterable source (`CommandCrash`).
+- [x] **The operator can see it too.** `HeadlessServer.record_command_failure`
+  counts failures per command and raises a `runtime.command.failed` warning, so
+  "this command has crashed four times" appears in the same diagnostics an
+  operator already reads. Counting matters more than logging here: one crash is
+  noise, four is a content bug.
+- [x] **A second boundary around the whole headless command.** The status,
+  inventory and quest payloads built *after* a command, and the world tick that
+  follows it, read the same content and can fail the same way. `execute_command`
+  now delegates to `_execute_command` and converts a failure into an error event
+  rather than losing the command's own output.
+- [x] **A crash the boundary would have caught, found while testing it:**
+  `game_manager.process_command` took the first word of the line to decide what a
+  dead player may still do, with `text.strip().lower().split()[0]` — which raises
+  `IndexError` on an empty line. Pressing Enter at the death screen ended the run.
+
+### Content numbers keep the types the engine reads (2026-09-18)
+
+JSON has one number type, so `2.0` and `2` are the same file and different
+values — `isinstance(2.0, int)` is False.
+
+- [x] **What happened:** the editor's GDScript `JSON.stringify` wrote every
+  number as a float, and one save turned 2,058 values across `fantasy_frontier`
+  into floats. The content validator then rejected ingredient quantities, region
+  level bands, vendor order prices, quest stage indexes and material grades —
+  fields nobody had edited — while every test that never read those fields kept
+  passing. The editor is fixed (`a543cec`); the content it had already written
+  was not.
+- [x] **`toolkit/normalize_content_numbers.py`** converts whole-number floats to
+  ints under a deliberately narrow rule: only where the field is one the engine
+  means as an integer. `weight`, `chance`, `value_multiplier` and the rest keep
+  their precision, because a JSON writer turning `3` into `3.0` did not make it a
+  different kind of field. `--check` is what the gate runs; `--apply` rewrites
+  only files that actually changed, and proves itself idempotent on a second
+  pass. 1,278 values across 15 files.
+- [x] **The rule is measured, not guessed.** Every name it converts is one that
+  appears *only* as a whole number across all four shipped sets; a name seen both
+  ways is left alone, and a test fails if that ever stops being true.
+- [x] **The first version of the rule was wrong, and the suite said so.** It knew
+  the fields the content-set validator checks — and not `min_crafts`, which
+  `Recipe` reads with `isinstance(..., int)` when it decides whether to keep a
+  quality tier. A float there silently dropped every tier a recipe authored, so
+  crafting reported no quality at all while the validator was perfectly happy and
+  six route tests failed. The lesson is the general one: *what the validator
+  checks is not the same as what the engine reads*, and only the second list is
+  the one that matters.
+- [x] **It is a content gate now**, not a one-off cleanup:
+  `run_content_checks.py` fails if any shipped set needs it.
+- [x] **A duplicate error this uncovered:** `_validate_vendor_orders` checked the
+  material-quality floor itself *and* through the shared reference helper, so one
+  bad value was reported twice and read as two problems in the content.
+
+---
+
 ## Deliberately later
 
 - Advanced NPC use of playtester policies.

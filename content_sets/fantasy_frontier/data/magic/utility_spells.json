@@ -2,10 +2,10 @@
     "knock": {
         "name": "Knock",
         "description": "Unlocks a mundane lock through force of magic.",
-        "mana_cost": 20.0,
+        "mana_cost": 20,
         "cooldown": 10.0,
         "target_type": "item",
-        "level_required": 2.0,
+        "level_required": 2,
         "cast_message": "{caster_name} utters a sharp word of command!",
         "effects": [
             {
@@ -16,10 +16,10 @@
     "arcane_lock": {
         "name": "Arcane Lock",
         "description": "Magically seals a container, making it difficult to open.",
-        "mana_cost": 15.0,
+        "mana_cost": 15,
         "cooldown": 10.0,
         "target_type": "item",
-        "level_required": 2.0,
+        "level_required": 2,
         "cast_message": "{caster_name} traces a glowing seal in the air!",
         "effects": [
             {

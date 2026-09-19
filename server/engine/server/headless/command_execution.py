@@ -16,7 +16,18 @@ import os
 import re
 
 import engine.commands  # noqa: F401 - force command module registration
-from engine.commands.command_system import CommandProcessor
+from engine.commands.command_system import (
+    CommandProcessor,
+    command_failure_message,
+    report_command_failure,
+)
+
+
+def _command_name(text: str) -> str:
+    """The command word in a line of input, for a report or a refusal."""
+    stripped = str(text).strip()
+    return stripped.split(maxsplit=1)[0].lower() if stripped else ""
+
 from engine.core.clock import Clock, SimulatedClock, WallClock
 from engine.core.advancement import AdvancementManager
 from engine.core.backgrounds import BackgroundManager
@@ -58,6 +69,24 @@ if TYPE_CHECKING:
 
 class CommandExecutionMixin:
     def execute_command(self, session_id: str, text: str) -> List[Dict[str, Any]]:
+        """Run one command for one session, and never let it end the session.
+
+        `CommandProcessor.process_input` already stops a *handler* that raises.
+        This is the second boundary: the status, inventory and quest payloads
+        built after a command, and the world tick that follows it, read the same
+        content and can fail the same way. A player who typed something
+        reasonable should get an answer either way -- on a shared server the
+        alternative is a broken connection.
+        """
+        try:
+            return self._execute_command(session_id, text)
+        except Exception as error:
+            report_command_failure(_command_name(text), str(text).split(), error, {"world": self.world})
+            events: List[Dict[str, Any]] = [self._event("command", session_id, text)]
+            events.append(self._event("error", session_id, command_failure_message(_command_name(text), error)))
+            return events
+
+    def _execute_command(self, session_id: str, text: str) -> List[Dict[str, Any]]:
         if session_id not in self.sessions:
             return [self._event("error", session_id, f"Unknown session '{session_id}'")]
 
