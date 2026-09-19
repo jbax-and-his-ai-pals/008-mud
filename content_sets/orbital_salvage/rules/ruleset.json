@@ -6,7 +6,8 @@
     "combat": { "enabled": true },
     "abilities": { "enabled": true },
     "crafting": { "enabled": true },
-    "gathering": { "enabled": true }
+    "gathering": { "enabled": true },
+    "economy": { "enabled": true }
   },
   "combat": {
     "retreat": {
@@ -32,6 +33,17 @@
   },
   "economy": {
     "currency_name": "credits"
+  },
+  "crafting": {
+    "salvage_rules": {
+      "_comment": "The set could not break anything down at all before this: `salvage` was enabled and no rule existed for any item, so every attempt refused. A part strips into the scrap the whole station is made of, and so does the gear -- a heavier thing yields more of it. `default_item_id` is what an item with no rule of its own comes back as, which is also why nothing here needs to alias the same output three times: the templates that want something else say so on themselves.",
+      "by_family": {
+        "salvaged_part": { "item_id": "item_scrap_alloy", "quantity_per_weight": 0.5 },
+        "kinetic_sidearm": { "item_id": "item_scrap_alloy", "quantity_per_weight": 0.5 },
+        "protective_gear": { "item_id": "item_scrap_alloy", "quantity_per_weight": 0.5 }
+      },
+      "default_item_id": "item_scrap_alloy"
+    }
   },
   "status": {
     "_comment": "The engine's default stat list carries the derived stats of a spellcasting set. This one has none of those, so it says what it shows.",

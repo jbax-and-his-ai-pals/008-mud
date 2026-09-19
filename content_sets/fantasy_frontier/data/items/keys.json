@@ -1,23 +1,23 @@
 {
-  "item_tavern_cellar_key": {
-    "type": "Key",
-    "name": "tavern cellar key",
-    "description": "A small iron key that opens the cellar of the Drunken Dragon tavern.",
-    "weight": 0.1,
-    "value": 0,
-    "stackable": false,
-    "properties": {
-      "target_id": "tavern_cellar_door"
+    "item_tavern_cellar_key": {
+        "type": "Key",
+        "name": "tavern cellar key",
+        "description": "A small iron key that opens the cellar of the Drunken Dragon tavern.",
+        "weight": 0.1,
+        "value": 0.0,
+        "stackable": false,
+        "properties": {
+            "target_id": "tavern_cellar_door"
+        },
+        "item_family": "key"
     },
-    "item_family": "key"
-  },
-  "item_house_key_starter": {
-    "type": "Key",
-    "name": "house key",
-    "description": "A plain brass key. It's warm from your pocket.",
-    "weight": 0.1,
-    "value": 0,
-    "stackable": false,
-    "item_family": "key"
-  }
+    "item_house_key_starter": {
+        "type": "Key",
+        "name": "house key",
+        "description": "A plain brass key. It's warm from your pocket.",
+        "weight": 0.1,
+        "value": 0.0,
+        "stackable": false,
+        "item_family": "key"
+    }
 }

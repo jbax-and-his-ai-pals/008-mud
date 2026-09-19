@@ -2,16 +2,27 @@
     "region_id": "swamp",
     "name": "Murkwater Swamp",
     "description": "A vast, humid swamp stretching south of the Silver River. Twisted trees draped in moss rise from stagnant water, and the air buzzes with insects.",
-    "properties": { "biome": "swamp", "weather_profile": "swamp", "region_type": "wilderness", "level_band": { "min": 2, "max": 4 } },
+    "properties": {
+        "biome": "swamp",
+        "weather_profile": "swamp",
+        "region_type": "wilderness",
+        "level_band": {
+            "min": 2.0,
+            "max": 4.0
+        }
+    },
     "spawner": {
         "monster_types": {
-            "giant_rat": 4,
-            "slime": 4,
-            "zombie": 3,
-            "lizardfolk_warrior": 2,
-            "shambling_mound": 1
+            "giant_rat": 4.0,
+            "slime": 4.0,
+            "zombie": 3.0,
+            "lizardfolk_warrior": 2.0,
+            "shambling_mound": 1.0
         },
-    "level_range": [2, 4]
+        "level_range": [
+            2.0,
+            4.0
+        ]
     },
     "rooms": {
         "marsh_edge": {
@@ -22,12 +33,16 @@
                 "west": "willow_grove",
                 "south": "stagnant_pool"
             },
-            "properties": { "smell": "damp earth" }
+            "properties": {
+                "smell": "damp earth"
+            }
         },
         "willow_grove": {
             "name": "Weeping Willow Grove",
             "description": "A grove of ancient weeping willow trees stands near the marsh edge, their long branches trailing into the murky water, obscuring the view to the west.",
-            "exits": { "east": "marsh_edge" }
+            "exits": {
+                "east": "marsh_edge"
+            }
         },
         "stagnant_pool": {
             "name": "Stagnant Pool",
@@ -37,7 +52,9 @@
                 "south": "muddy_trail",
                 "east": "cypress_stand"
             },
-            "properties": { "smell": "stagnant water" }
+            "properties": {
+                "smell": "stagnant water"
+            }
         },
         "cypress_stand": {
             "name": "Cypress Stand",
@@ -53,7 +70,8 @@
             "exits": {
                 "north": "stagnant_pool",
                 "south": "mangrove_thicket"
-            }
+            },
+            "properties": {}
         },
         "mangrove_thicket": {
             "name": "Mangrove Thicket",
@@ -63,7 +81,8 @@
                 "south": "sunken_structure_approach",
                 "east": "lizard_den",
                 "west": "rotting_log"
-            }
+            },
+            "properties": {}
         },
         "rotting_log": {
             "name": "Rotting Log",
@@ -72,7 +91,12 @@
                 "east": "mangrove_thicket",
                 "south": "whispering_reeds"
             },
-            "items": [ { "item_id": "item_swamp_fungus" } ]
+            "items": [
+                {
+                    "item_id": "item_swamp_fungus"
+                }
+            ],
+            "properties": {}
         },
         "lizard_den": {
             "name": "Giant Lizard Den",
@@ -82,8 +106,14 @@
                 "west": "mangrove_thicket",
                 "south": "reedscale_village:reed_gate"
             },
-            "items": [ { "item_id": "item_lizard_scale" } ],
-            "properties": {"smell": "reptilian"}
+            "items": [
+                {
+                    "item_id": "item_lizard_scale"
+                }
+            ],
+            "properties": {
+                "smell": "reptilian"
+            }
         },
         "sunken_structure_approach": {
             "name": "Approach to Sunken Structure",
@@ -91,7 +121,8 @@
             "exits": {
                 "north": "mangrove_thicket",
                 "south": "sunken_structure"
-            }
+            },
+            "properties": {}
         },
         "sunken_structure": {
             "name": "Sunken Structure",
@@ -100,13 +131,19 @@
                 "north": "sunken_structure_approach",
                 "south": "deep_swamp",
                 "down": "flooded_ruin"
-            }
+            },
+            "properties": {}
         },
         "flooded_ruin": {
             "name": "Flooded Ruin Interior",
             "description": "Submerged within the sunken structure, this room is filled with murky water and debris. Visibility is extremely limited.",
-            "exits": { "up": "sunken_structure" },
-            "properties": {"dark": true, "underwater": true}
+            "exits": {
+                "up": "sunken_structure"
+            },
+            "properties": {
+                "dark": true,
+                "underwater": true
+            }
         },
         "deep_swamp": {
             "name": "Deep Swamp Mire",
@@ -117,23 +154,41 @@
                 "south": "ancient_bog",
                 "west": "whispering_reeds"
             },
-            "properties": { "smell": "decay", "dark": true }
+            "properties": {
+                "smell": "decay",
+                "dark": true
+            }
         },
-         "whispering_reeds": {
+        "whispering_reeds": {
             "name": "Whispering Reeds",
             "description": "Tall reeds grow thickly here, whispering secrets as the wind sighs through them. It's hard to see far in any direction.",
             "exits": {
                 "north": "rotting_log",
                 "east": "deep_swamp"
             },
-            "properties": {"noisy": true}
+            "properties": {
+                "noisy": true
+            }
         },
         "quicksand_pit": {
             "name": "Quicksand Pit",
             "description": "A deceptively calm-looking pool of mud. Ripples suggest movement beneath the surface. Getting too close looks dangerous. Something shiny is partially submerged near the edge.",
-            "exits": { "west": "deep_swamp" },
-            "properties": { "hazard_type": "quicksand", "hazard_damage": 4, "hazard_tick_interval": 5.0, "weather_hazard_multipliers": { "mist": 1.25 } },
-            "items": [ { "item_id": "item_muddy_brooch" } ]
+            "exits": {
+                "west": "deep_swamp"
+            },
+            "properties": {
+                "hazard_type": "quicksand",
+                "hazard_damage": 4.0,
+                "hazard_tick_interval": 5.0,
+                "weather_hazard_multipliers": {
+                    "mist": 1.25
+                }
+            },
+            "items": [
+                {
+                    "item_id": "item_muddy_brooch"
+                }
+            ]
         },
         "ancient_bog": {
             "name": "Ancient Bog",
@@ -142,7 +197,10 @@
                 "north": "deep_swamp",
                 "south": "bog_end"
             },
-            "properties": { "smell": "peat", "dark": true }
+            "properties": {
+                "smell": "peat",
+                "dark": true
+            }
         },
         "bog_end": {
             "name": "Edge of the Bog",
@@ -150,7 +208,8 @@
             "exits": {
                 "north": "ancient_bog",
                 "south": "coastal_path:mudflats"
-            }
+            },
+            "properties": {}
         }
     }
 }

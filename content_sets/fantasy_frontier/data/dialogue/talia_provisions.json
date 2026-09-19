@@ -1,36 +1,72 @@
 {
-  "id": "talia_provisions",
-  "_comment": "Talia the Merchant wants a sample of local goods for buyers upriver. Demonstrates the gather_types objective type: no fixed source is dictated, any mix of the required materials from wherever the player finds them completes it.",
-  "root": "greeting",
-  "nodes": {
-    "greeting": {
-      "text": "Well met! Looking to buy or sell? I've got wares from up and down the river.",
-      "choices": [
-        { "text": "Do you need anything gathered from around here?",
-          "aliases": ["provisions", "supplies", "gathering work"],
-          "condition": { "not": { "kind": "quest_active", "quest_id": "quest_local_provisions" } },
-          "next_node": "offer" },
-        { "text": "How's that sample coming along?",
-          "aliases": ["provisions", "the sample"],
-          "condition": { "kind": "quest_active", "quest_id": "quest_local_provisions" },
-          "next_node": "in_progress" },
-        { "text": "Just browsing.", "end": true }
-      ]
-    },
-    "offer": {
-      "text": "As it happens, yes. Buyers upriver want a sample of what this region grows and cuts -- some wild herbs, and a piece of good softwood. Bring me both, from wherever you find them, and I'll pay for your trouble.",
-      "choices": [
-        { "text": "I'll gather them.",
-          "aliases": ["accept", "agreed"],
-          "effects": { "start_quest": "quest_local_provisions" }, "end": true },
-        { "text": "Maybe later.", "end": true }
-      ]
-    },
-    "in_progress": {
-      "text": "Still need that sample of herbs and softwood, whenever you have a moment.",
-      "choices": [
-        { "text": "Understood.", "end": true }
-      ]
+    "id": "talia_provisions",
+    "_comment": "Talia the Merchant wants a sample of local goods for buyers upriver. Demonstrates the gather_types objective type: no fixed source is dictated, any mix of the required materials from wherever the player finds them completes it.",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Well met! Looking to buy or sell? I've got wares from up and down the river.",
+            "choices": [
+                {
+                    "text": "Do you need anything gathered from around here?",
+                    "aliases": [
+                        "provisions",
+                        "supplies",
+                        "gathering work"
+                    ],
+                    "condition": {
+                        "not": {
+                            "kind": "quest_active",
+                            "quest_id": "quest_local_provisions"
+                        }
+                    },
+                    "next_node": "offer"
+                },
+                {
+                    "text": "How's that sample coming along?",
+                    "aliases": [
+                        "provisions",
+                        "the sample"
+                    ],
+                    "condition": {
+                        "kind": "quest_active",
+                        "quest_id": "quest_local_provisions"
+                    },
+                    "next_node": "in_progress"
+                },
+                {
+                    "text": "Just browsing.",
+                    "end": true
+                }
+            ]
+        },
+        "offer": {
+            "text": "As it happens, yes. Buyers upriver want a sample of what this region grows and cuts -- some wild herbs, and a piece of good softwood. Bring me both, from wherever you find them, and I'll pay for your trouble.",
+            "choices": [
+                {
+                    "text": "I'll gather them.",
+                    "aliases": [
+                        "accept",
+                        "agreed"
+                    ],
+                    "effects": {
+                        "start_quest": "quest_local_provisions"
+                    },
+                    "end": true
+                },
+                {
+                    "text": "Maybe later.",
+                    "end": true
+                }
+            ]
+        },
+        "in_progress": {
+            "text": "Still need that sample of herbs and softwood, whenever you have a moment.",
+            "choices": [
+                {
+                    "text": "Understood.",
+                    "end": true
+                }
+            ]
+        }
     }
-  }
 }

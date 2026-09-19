@@ -18,7 +18,28 @@
         { "item_id": "item_patch_kit" },
         { "item_id": "item_rail_pistol" }
       ],
-      "buys_item_types": ["Junk", "Treasure"]
+      "buys_item_types": ["Junk", "Treasure"],
+      "_comment": "Ivo buys what the bench yields, by family and grade rather than by item: two serviceable parts is a fair load, and he pays real money for a clean one because he knows what it is. A player who wants the clean-grade order has to go and work the bench for it, which is the station's whole economy in two lines.",
+      "buy_orders": [
+        {
+          "id": "serviceable_parts",
+          "item_family": "salvaged_part",
+          "quantity": 2,
+          "min_material_quality": 2,
+          "reward_gold": 40,
+          "relationship_amount": 1,
+          "repeatable": true
+        },
+        {
+          "id": "clean_part",
+          "item_family": "salvaged_part",
+          "quantity": 1,
+          "min_material_quality": 3,
+          "reward_gold": 120,
+          "relationship_amount": 3,
+          "repeatable": true
+        }
+      ]
     }
   },
   "cargo_drone": {

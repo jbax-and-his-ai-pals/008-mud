@@ -1,556 +1,1361 @@
 {
-  "goblin": {
-    "name": "goblin",
-    "description": "A small, green-skinned creature with sharp teeth and claws.",
-    "health": 30, "level": 1, "friendly": false, "faction": "hostile", "behavior_type": "aggressive",
-    "stats": { "strength": 6, "dexterity": 11, "constitution": 8, "agility": 13, "intelligence": 5, "wisdom": 4, "spell_power": 1, "magic_resist": 1 },
-    "attack_power": 2, "defense": 1,
-    "loot_table": {
-      "gold_value": { "chance": 0.8, "quantity": [1, 5] },
-      "item_starter_dagger": { "chance": 0.3 },
-      "item_goblin_ear": { "chance": 0.9 },
-      "item_scroll_random": { "chance": 0.05 },
-      "item_goblin_bead_red": { "chance": 0.1 },
-      "item_goblin_bead_blue": { "chance": 0.1 },
-      "item_goblin_bead_green": { "chance": 0.1 }
-    },
-    "usable_spells": ["zap"],
-    "properties": { "loot_tags": ["living", "humanoid", "goblinoid"], "aggression": 0.1, "flee_threshold": 0.2, "respawn_cooldown": 300, "spell_cast_chance": 0.2, "wander_chance": 0.5, "move_cooldown": 8, "weapon_damage_type": "slashing" }
-  },
-  "skeleton": {
-    "name": "skeleton",
-    "description": "A walking skeleton animated by dark magic.",
-    "health": 40, "level": 2, "friendly": false, "faction": "hostile", "behavior_type": "aggressive",
-    "stats": { "strength": 10, "dexterity": 7, "constitution": 5, "agility": 6, "intelligence": 0, "wisdom": 0, "spell_power": 2, "magic_resist": 3 },
-    "attack_power": 4, "defense": 3,
-    "loot_table": {
-      "item_bone": { "chance": 0.9, "quantity": [1, 2] },
-      "item_rusty_sword": { "chance": 0.4 },
-      "item_old_coin": { "chance": 0.2 },
-      "item_scroll_random": { "chance": 0.08 }
-    },
-    "usable_spells": ["zap"],
-    "properties": { "aggression": 0.1, "flee_threshold": 0.1, "respawn_cooldown": 420, "spell_cast_chance": 0.25, "wander_chance": 0.4, "move_cooldown": 10, "weapon_damage_type": "slashing" }
-  },
-  "wolf": {
-    "name": "wolf",
-    "description": "A fierce wolf with sharp fangs and a hungry look.",
-    "health": 25,
-    "level": 1,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 9,
-      "dexterity": 12,
-      "constitution": 10,
-      "agility": 14,
-      "intelligence": 3,
-      "wisdom": 6,
-      "spell_power": 0,
-      "magic_resist": 0
-    },
-    "attack_power": 3,
-    "defense": 1,
-    "dialog": {
-      "greeting": "The wolf growls menacingly!",
-      "threat": "The wolf bares its fangs!",
-      "flee": "The wolf whimpers and tries to escape!"
-    },
-    "default_dialog": "{name} growls.",
-    "loot_table": {
-      "item_wolf_pelt": { "chance": 0.9 },
-      "item_wolf_fang": { "chance": 0.7 },
-      "item_raw_meat": { "chance": 0.5 }
-    },
-    "usable_spells": [],
-    "properties": {
-      "loot_tags": ["living", "beast"],
-      "aggression": 0.1,
-      "flee_threshold": 0.3,
-      "respawn_cooldown": 360,
-      "spell_cast_chance": 0.0,
-      "wander_chance": 0.6,
-      "move_cooldown": 6,
-      "weapon_damage_type": "piercing"
-    }
-  },
-  "giant_rat": {
-    "name": "giant rat",
-    "description": "An oversized rodent with mangy fur and sharp teeth.",
-    "health": 15,
-    "level": 1,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 4,
-      "dexterity": 13,
-      "constitution": 7,
-      "agility": 15,
-      "intelligence": 2,
-      "wisdom": 3,
-      "spell_power": 0,
-      "magic_resist": 0
-    },
-    "attack_power": 2,
-    "defense": 1,
-    "dialog": {
-      "greeting": "The giant rat squeaks aggressively!",
-      "threat": "The giant rat bares its teeth!",
-      "flee": "The giant rat scurries away!"
-    },
-    "default_dialog": "{name} squeaks.",
-    "loot_table": {
-      "item_rat_tail": { "chance": 0.8 },
-      "item_rat_fur": { "chance": 0.6 }
-    },
-    "usable_spells": [],
-    "properties": {
-      "loot_tags": ["living", "beast"],
-      "aggression": 0.1,
-      "flee_threshold": 0.4,
-      "respawn_cooldown": 240,
-      "spell_cast_chance": 0.0,
-      "wander_chance": 0.7,
-      "move_cooldown": 5,
-      "weapon_damage_type": "piercing",
-      "on_hit_effect_chance": 0.2,
-      "on_hit_effect": {
-        "type": "dot",
-        "name": "Sewer Plague",
-        "base_duration": 12.0,
-        "damage_per_tick": 1,
-        "tick_interval": 3.0,
-        "damage_type": "disease"
-      }
-    }
-  },
-  "bandit": {
-    "name": "bandit",
-    "description": "A rough-looking human armed with weapons.",
-    "health": 45,
-    "level": 2,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 11,
-      "dexterity": 12,
-      "constitution": 11,
-      "agility": 10,
-      "intelligence": 8,
-      "wisdom": 7,
-      "spell_power": 0,
-      "magic_resist": 1
-    },
-    "attack_power": 5,
-    "defense": 4,
-    "dialog": {
-      "greeting": "\"Your money or your life!\" threatens the bandit.",
-      "threat": "\"You'll regret this!\" shouts the bandit.",
-      "flee": "\"This isn't worth dying for!\" cries the bandit."
-    },
-    "default_dialog": "{name} eyes you warily.",
-    "loot_table": {
-      "gold_value": { "chance": 0.9, "quantity": [5, 15] },
-      "item_dagger": { "chance": 0.5 },
-      "item_stolen_pouch": { "chance": 0.2 },
-      "item_leather_tunic": { "chance": 0.15 }
-    },
-    "usable_spells": [],
-    "properties": {
-      "loot_tags": ["living", "humanoid"],
-      "aggression": 0.1,
-      "flee_threshold": 0.25,
-      "respawn_cooldown": 600,
-      "spell_cast_chance": 0.0,
-      "wander_chance": 0.5,
-      "move_cooldown": 10,
-      "weapon_damage_type": "piercing",
-      "armor_material": "leather"
-    }
-  },
-  "smuggler_thug": {
-    "name": "smuggler",
-    "description": "A wiry dockhand-turned-criminal, keeping to the shadows of the tunnel.",
-    "health": 55,
-    "level": 4,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 12,
-      "dexterity": 13,
-      "constitution": 12,
-      "agility": 12,
-      "intelligence": 8,
-      "wisdom": 8,
-      "spell_power": 0,
-      "magic_resist": 1
-    },
-    "attack_power": 6,
-    "defense": 4,
-    "dialog": {
-      "greeting": "\"You shouldn't have come down here,\" hisses the smuggler.",
-      "threat": "\"Nobody walks out of this tunnel!\" snarls the smuggler.",
-      "flee": "\"This ain't my fight!\" cries the smuggler."
-    },
-    "default_dialog": "{name} watches the tunnel entrance warily.",
-    "loot_table": {
-      "gold_value": { "chance": 0.85, "quantity": [8, 20] },
-      "item_dagger": { "chance": 0.4 },
-      "item_stolen_pouch": { "chance": 0.3 },
-      "item_contraband_bundle": { "chance": 0.3 }
-    },
-    "usable_spells": [],
-    "properties": {
-      "loot_tags": ["living", "humanoid"],
-      "aggression": 0.8,
-      "flee_threshold": 0.2,
-      "respawn_cooldown": 600,
-      "spell_cast_chance": 0.0,
-      "wander_chance": 0.0,
-      "move_cooldown": 10,
-      "weapon_damage_type": "piercing",
-      "armor_material": "leather"
-    }
-  },
-  "smuggler_leader": {
-    "name": "smuggler leader",
-    "description": "A sharp-eyed woman in a weathered captain's coat, clearly used to giving orders.",
-    "health": 70,
-    "level": 6,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 13,
-      "dexterity": 14,
-      "constitution": 13,
-      "agility": 13,
-      "intelligence": 11,
-      "wisdom": 10,
-      "spell_power": 0,
-      "magic_resist": 2
-    },
-    "attack_power": 7,
-    "defense": 6,
-    "dialog": {
-      "greeting": "\"Far enough,\" says the smuggler leader, hand on her cutlass.",
-      "threat": "\"You've made your choice, then,\" says the smuggler leader.",
-      "flee": "\"Fall back! We're done here!\" shouts the smuggler leader."
-    },
-    "default_dialog": "{name} watches you closely.",
-    "loot_table": {
-      "gold_value": { "chance": 1.0, "quantity": [20, 40] },
-      "item_dagger": { "chance": 0.3 },
-      "item_stolen_pouch": { "chance": 0.4 }
-    },
-    "usable_spells": [],
-    "properties": {
-      "loot_tags": ["living", "humanoid"],
-      "flee_threshold": 0.2,
-      "respawn_cooldown": 600,
-      "weapon_damage_type": "slashing",
-      "armor_material": "leather",
-      "is_vendor": true,
-      "buy_orders": [
-        {
-          "id": "contraband_run",
-          "item_id": "item_contraband_bundle",
-          "quantity": 1,
-          "reward_gold": 35,
-          "relationship_amount": 3,
-          "repeatable": true,
-          "relationship_min": 20
+    "goblin": {
+        "name": "goblin",
+        "description": "A small, green-skinned creature with sharp teeth and claws.",
+        "health": 30.0,
+        "level": 1.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 6.0,
+            "dexterity": 11.0,
+            "constitution": 8.0,
+            "agility": 13.0,
+            "intelligence": 5.0,
+            "wisdom": 4.0,
+            "spell_power": 1.0,
+            "magic_resist": 1.0
+        },
+        "attack_power": 2.0,
+        "defense": 1.0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.8,
+                "quantity": [
+                    1.0,
+                    5.0
+                ]
+            },
+            "item_starter_dagger": {
+                "chance": 0.3
+            },
+            "item_goblin_ear": {
+                "chance": 0.9
+            },
+            "item_scroll_random": {
+                "chance": 0.05
+            },
+            "item_goblin_bead_red": {
+                "chance": 0.1
+            },
+            "item_goblin_bead_blue": {
+                "chance": 0.1
+            },
+            "item_goblin_bead_green": {
+                "chance": 0.1
+            }
+        },
+        "usable_spells": [
+            "zap"
+        ],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "goblinoid"
+            ],
+            "aggression": 0.1,
+            "flee_threshold": 0.2,
+            "respawn_cooldown": 300.0,
+            "spell_cast_chance": 0.2,
+            "wander_chance": 0.5,
+            "move_cooldown": 8.0,
+            "weapon_damage_type": "slashing"
         }
-      ]
+    },
+    "skeleton": {
+        "name": "skeleton",
+        "description": "A walking skeleton animated by dark magic.",
+        "health": 40.0,
+        "level": 2.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 10.0,
+            "dexterity": 7.0,
+            "constitution": 5.0,
+            "agility": 6.0,
+            "intelligence": 0.0,
+            "wisdom": 0.0,
+            "spell_power": 2.0,
+            "magic_resist": 3.0
+        },
+        "attack_power": 4.0,
+        "defense": 3.0,
+        "loot_table": {
+            "item_bone": {
+                "chance": 0.9,
+                "quantity": [
+                    1.0,
+                    2.0
+                ]
+            },
+            "item_rusty_sword": {
+                "chance": 0.4
+            },
+            "item_old_coin": {
+                "chance": 0.2
+            },
+            "item_scroll_random": {
+                "chance": 0.08
+            }
+        },
+        "usable_spells": [
+            "zap"
+        ],
+        "properties": {
+            "aggression": 0.1,
+            "flee_threshold": 0.1,
+            "respawn_cooldown": 420.0,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0.4,
+            "move_cooldown": 10.0,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "wolf": {
+        "name": "wolf",
+        "description": "A fierce wolf with sharp fangs and a hungry look.",
+        "health": 25.0,
+        "level": 1.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 9.0,
+            "dexterity": 12.0,
+            "constitution": 10.0,
+            "agility": 14.0,
+            "intelligence": 3.0,
+            "wisdom": 6.0,
+            "spell_power": 0.0,
+            "magic_resist": 0.0
+        },
+        "attack_power": 3.0,
+        "defense": 1.0,
+        "dialog": {
+            "greeting": "The wolf growls menacingly!",
+            "threat": "The wolf bares its fangs!",
+            "flee": "The wolf whimpers and tries to escape!"
+        },
+        "default_dialog": "{name} growls.",
+        "loot_table": {
+            "item_wolf_pelt": {
+                "chance": 0.9
+            },
+            "item_wolf_fang": {
+                "chance": 0.7
+            },
+            "item_raw_meat": {
+                "chance": 0.5
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "beast"
+            ],
+            "aggression": 0.1,
+            "flee_threshold": 0.3,
+            "respawn_cooldown": 360.0,
+            "spell_cast_chance": 0.0,
+            "wander_chance": 0.6,
+            "move_cooldown": 6.0,
+            "weapon_damage_type": "piercing"
+        }
+    },
+    "giant_rat": {
+        "name": "giant rat",
+        "description": "An oversized rodent with mangy fur and sharp teeth.",
+        "health": 15.0,
+        "level": 1.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 4.0,
+            "dexterity": 13.0,
+            "constitution": 7.0,
+            "agility": 15.0,
+            "intelligence": 2.0,
+            "wisdom": 3.0,
+            "spell_power": 0.0,
+            "magic_resist": 0.0
+        },
+        "attack_power": 2.0,
+        "defense": 1.0,
+        "dialog": {
+            "greeting": "The giant rat squeaks aggressively!",
+            "threat": "The giant rat bares its teeth!",
+            "flee": "The giant rat scurries away!"
+        },
+        "default_dialog": "{name} squeaks.",
+        "loot_table": {
+            "item_rat_tail": {
+                "chance": 0.8
+            },
+            "item_rat_fur": {
+                "chance": 0.6
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "beast"
+            ],
+            "aggression": 0.1,
+            "flee_threshold": 0.4,
+            "respawn_cooldown": 240.0,
+            "spell_cast_chance": 0.0,
+            "wander_chance": 0.7,
+            "move_cooldown": 5.0,
+            "weapon_damage_type": "piercing",
+            "on_hit_effect_chance": 0.2,
+            "on_hit_effect": {
+                "type": "dot",
+                "name": "Sewer Plague",
+                "base_duration": 12.0,
+                "damage_per_tick": 1.0,
+                "tick_interval": 3.0,
+                "damage_type": "disease"
+            }
+        }
+    },
+    "bandit": {
+        "name": "bandit",
+        "description": "A rough-looking human armed with weapons.",
+        "health": 45.0,
+        "level": 2.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 11.0,
+            "dexterity": 12.0,
+            "constitution": 11.0,
+            "agility": 10.0,
+            "intelligence": 8.0,
+            "wisdom": 7.0,
+            "spell_power": 0.0,
+            "magic_resist": 1.0
+        },
+        "attack_power": 5.0,
+        "defense": 4.0,
+        "dialog": {
+            "greeting": "\"Your money or your life!\" threatens the bandit.",
+            "threat": "\"You'll regret this!\" shouts the bandit.",
+            "flee": "\"This isn't worth dying for!\" cries the bandit."
+        },
+        "default_dialog": "{name} eyes you warily.",
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.9,
+                "quantity": [
+                    5.0,
+                    15.0
+                ]
+            },
+            "item_dagger": {
+                "chance": 0.5
+            },
+            "item_stolen_pouch": {
+                "chance": 0.2
+            },
+            "item_leather_tunic": {
+                "chance": 0.15
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "humanoid"
+            ],
+            "aggression": 0.1,
+            "flee_threshold": 0.25,
+            "respawn_cooldown": 600.0,
+            "spell_cast_chance": 0.0,
+            "wander_chance": 0.5,
+            "move_cooldown": 10.0,
+            "weapon_damage_type": "piercing",
+            "armor_material": "leather"
+        }
+    },
+    "smuggler_thug": {
+        "name": "smuggler",
+        "description": "A wiry dockhand-turned-criminal, keeping to the shadows of the tunnel.",
+        "health": 55.0,
+        "level": 4.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 12.0,
+            "dexterity": 13.0,
+            "constitution": 12.0,
+            "agility": 12.0,
+            "intelligence": 8.0,
+            "wisdom": 8.0,
+            "spell_power": 0.0,
+            "magic_resist": 1.0
+        },
+        "attack_power": 6.0,
+        "defense": 4.0,
+        "dialog": {
+            "greeting": "\"You shouldn't have come down here,\" hisses the smuggler.",
+            "threat": "\"Nobody walks out of this tunnel!\" snarls the smuggler.",
+            "flee": "\"This ain't my fight!\" cries the smuggler."
+        },
+        "default_dialog": "{name} watches the tunnel entrance warily.",
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.85,
+                "quantity": [
+                    8.0,
+                    20.0
+                ]
+            },
+            "item_dagger": {
+                "chance": 0.4
+            },
+            "item_stolen_pouch": {
+                "chance": 0.3
+            },
+            "item_contraband_bundle": {
+                "chance": 0.3
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "humanoid"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0.2,
+            "respawn_cooldown": 600.0,
+            "spell_cast_chance": 0.0,
+            "wander_chance": 0.0,
+            "move_cooldown": 10.0,
+            "weapon_damage_type": "piercing",
+            "armor_material": "leather"
+        }
+    },
+    "smuggler_leader": {
+        "name": "smuggler leader",
+        "description": "A sharp-eyed woman in a weathered captain's coat, clearly used to giving orders.",
+        "health": 70.0,
+        "level": 6.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 13.0,
+            "dexterity": 14.0,
+            "constitution": 13.0,
+            "agility": 13.0,
+            "intelligence": 11.0,
+            "wisdom": 10.0,
+            "spell_power": 0.0,
+            "magic_resist": 2.0
+        },
+        "attack_power": 7.0,
+        "defense": 6.0,
+        "dialog": {
+            "greeting": "\"Far enough,\" says the smuggler leader, hand on her cutlass.",
+            "threat": "\"You've made your choice, then,\" says the smuggler leader.",
+            "flee": "\"Fall back! We're done here!\" shouts the smuggler leader."
+        },
+        "default_dialog": "{name} watches you closely.",
+        "loot_table": {
+            "gold_value": {
+                "chance": 1.0,
+                "quantity": [
+                    20.0,
+                    40.0
+                ]
+            },
+            "item_dagger": {
+                "chance": 0.3
+            },
+            "item_stolen_pouch": {
+                "chance": 0.4
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "humanoid"
+            ],
+            "flee_threshold": 0.2,
+            "respawn_cooldown": 600.0,
+            "weapon_damage_type": "slashing",
+            "armor_material": "leather",
+            "is_vendor": true,
+            "buy_orders": [
+                {
+                    "id": "contraband_run",
+                    "item_id": "item_contraband_bundle",
+                    "quantity": 1.0,
+                    "reward_gold": 35.0,
+                    "relationship_amount": 3.0,
+                    "repeatable": true,
+                    "relationship_min": 20.0
+                }
+            ]
+        }
+    },
+    "troll": {
+        "name": "troll",
+        "description": "A massive, green-skinned brute with regenerative abilities.",
+        "health": 80.0,
+        "level": 5.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 17.0,
+            "dexterity": 6.0,
+            "constitution": 19.0,
+            "agility": 5.0,
+            "intelligence": 3.0,
+            "wisdom": 4.0,
+            "spell_power": 0.0,
+            "magic_resist": 2.0
+        },
+        "attack_power": 7.0,
+        "defense": 6.0,
+        "dialog": {
+            "greeting": "The troll roars loudly!",
+            "threat": "The troll pounds its chest!",
+            "flee": "The troll retreats, looking for easier prey!"
+        },
+        "default_dialog": "{name} grunts.",
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.4,
+                "quantity": [
+                    10.0,
+                    30.0
+                ]
+            },
+            "item_troll_hide": {
+                "chance": 0.9
+            },
+            "item_crude_club": {
+                "chance": 0.5
+            },
+            "item_shiny_rock": {
+                "chance": 0.7,
+                "quantity": [
+                    1.0,
+                    3.0
+                ]
+            },
+            "chest": {
+                "chance": 0.1,
+                "quantity": [
+                    1.0,
+                    1.0
+                ],
+                "is_chest": true
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "giant"
+            ],
+            "aggression": 0.1,
+            "flee_threshold": 0.15,
+            "respawn_cooldown": 900.0,
+            "spell_cast_chance": 0.0,
+            "wander_chance": 0.3,
+            "move_cooldown": 15.0,
+            "weapon_damage_type": "crushing",
+            "armor_material": "leather"
+        }
+    },
+    "giant_spider": {
+        "name": "giant spider",
+        "description": "A large, hairy arachnid with multiple eyes glinting in the dim light. Its fangs drip with venom.",
+        "health": 45.0,
+        "level": 3.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8.0,
+            "dexterity": 14.0,
+            "constitution": 10.0,
+            "agility": 15.0,
+            "intelligence": 3.0,
+            "wisdom": 4.0,
+            "spell_power": 0.0,
+            "magic_resist": 1.0
+        },
+        "attack_power": 3.0,
+        "defense": 2.0,
+        "dialog": {
+            "greeting": "The giant spider chitters menacingly!",
+            "threat": "The giant spider raises its hairy legs!",
+            "flee": "The giant spider rapidly skitters away!"
+        },
+        "default_dialog": "{name} clicks its mandibles.",
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.5,
+                "quantity": [
+                    2.0,
+                    8.0
+                ]
+            },
+            "item_spider_fang": {
+                "chance": 0.15
+            },
+            "item_spider_silk": {
+                "chance": 0.8,
+                "quantity": [
+                    1.0,
+                    3.0
+                ]
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "loot_tags": [
+                "living",
+                "beast"
+            ],
+            "aggression": 0.1,
+            "flee_threshold": 0.25,
+            "respawn_cooldown": 480.0,
+            "spell_cast_chance": 0.0,
+            "wander_chance": 0.6,
+            "move_cooldown": 7.0,
+            "weapon_damage_type": "piercing",
+            "on_hit_effect_chance": 0.9,
+            "on_hit_effect": {
+                "type": "dot",
+                "name": "Spider Venom",
+                "base_duration": 9.0,
+                "damage_per_tick": 2.0,
+                "tick_interval": 3.0,
+                "damage_type": "poison"
+            }
+        }
+    },
+    "giant_bat": {
+        "name": "giant bat",
+        "description": "A large, nocturnal creature with sharp fangs.",
+        "level": 1.0,
+        "health": 20.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 5.0,
+            "dexterity": 15.0,
+            "constitution": 6.0,
+            "agility": 16.0
+        },
+        "attack_power": 2.0,
+        "defense": 1.0,
+        "loot_table": {
+            "item_bat_wing": {
+                "chance": 0.8
+            },
+            "item_guano": {
+                "chance": 0.5
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living",
+                "beast"
+            ],
+            "weapon_damage_type": "piercing"
+        }
+    },
+    "wild_boar": {
+        "name": "wild boar",
+        "description": "A powerfully built boar with a foul temper and sharp tusks.",
+        "level": 2.0,
+        "health": 40.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 11.0,
+            "dexterity": 8.0,
+            "constitution": 12.0,
+            "agility": 9.0
+        },
+        "attack_power": 4.0,
+        "defense": 2.0,
+        "loot_table": {
+            "item_boar_tusk": {
+                "chance": 0.7
+            },
+            "item_raw_meat": {
+                "chance": 0.6
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living",
+                "beast"
+            ],
+            "weapon_damage_type": "piercing"
+        }
+    },
+    "zombie": {
+        "name": "zombie",
+        "description": "A shambling, reanimated corpse that groans with hunger.",
+        "level": 2.0,
+        "health": 45.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 10.0,
+            "dexterity": 5.0,
+            "constitution": 13.0,
+            "agility": 4.0
+        },
+        "attack_power": 3.0,
+        "defense": 3.0,
+        "loot_table": {
+            "item_rotted_cloth": {
+                "chance": 0.9
+            },
+            "item_bent_coin": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "on_hit_effect_chance": 0.2,
+            "on_hit_effect": {
+                "type": "dot",
+                "name": "Sewer Plague",
+                "base_duration": 12.0,
+                "damage_per_tick": 1.0,
+                "tick_interval": 3.0,
+                "damage_type": "disease"
+            },
+            "weapon_damage_type": "crushing"
+        }
+    },
+    "kobold_skirmisher": {
+        "name": "kobold skirmisher",
+        "description": "A small, yipping reptilian creature wielding a crude spear.",
+        "level": 2.0,
+        "health": 25.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 7.0,
+            "dexterity": 13.0,
+            "constitution": 7.0,
+            "agility": 14.0
+        },
+        "attack_power": 3.0,
+        "defense": 1.0,
+        "loot_table": {
+            "item_rusty_sword": {
+                "chance": 0.2
+            },
+            "item_shiny_rock": {
+                "chance": 0.5
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "piercing"
+        }
+    },
+    "slime": {
+        "name": "slime",
+        "description": "An amorphous, acidic blob that oozes across the ground.",
+        "level": 3.0,
+        "health": 35.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 9.0,
+            "dexterity": 6.0,
+            "constitution": 11.0,
+            "agility": 5.0,
+            "magic_resist": 0.0
+        },
+        "attack_power": 3.0,
+        "defense": 5.0,
+        "loot_table": {
+            "item_slimy_globule": {
+                "chance": 0.9
+            }
+        },
+        "properties": {
+            "on_hit_effect_chance": 0.3,
+            "on_hit_effect": {
+                "type": "dot",
+                "name": "Acid Burn",
+                "base_duration": 9.0,
+                "damage_per_tick": 1.0,
+                "tick_interval": 3.0,
+                "damage_type": "poison"
+            },
+            "weapon_damage_type": "crushing"
+        }
+    },
+    "orc_grunt": {
+        "name": "orc grunt",
+        "description": "A brutish, green-skinned warrior with a crude axe and a foul disposition.",
+        "level": 3.0,
+        "health": 50.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 13.0,
+            "dexterity": 9.0,
+            "constitution": 12.0,
+            "agility": 8.0
+        },
+        "attack_power": 5.0,
+        "defense": 3.0,
+        "loot_table": {
+            "item_crude_club": {
+                "chance": 0.5
+            },
+            "item_orcish_war_beads": {
+                "chance": 0.6
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "orc"
+            ],
+            "weapon_damage_type": "slashing",
+            "armor_material": "leather"
+        }
+    },
+    "dire_wolf": {
+        "name": "dire wolf",
+        "description": "A massive, unnaturally large wolf with intelligent, hungry eyes.",
+        "level": 3.0,
+        "health": 40.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 12.0,
+            "dexterity": 14.0,
+            "constitution": 11.0,
+            "agility": 15.0
+        },
+        "attack_power": 6.0,
+        "defense": 2.0,
+        "loot_table": {
+            "item_wolf_pelt": {
+                "chance": 0.9,
+                "quantity": [
+                    1.0,
+                    2.0
+                ]
+            },
+            "item_wolf_fang": {
+                "chance": 0.8,
+                "quantity": [
+                    1.0,
+                    2.0
+                ]
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "piercing"
+        }
+    },
+    "bandit_archer": {
+        "name": "bandit archer",
+        "description": "A bandit who prefers to strike from a distance with a simple bow.",
+        "level": 4.0,
+        "health": 35.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 9.0,
+            "dexterity": 15.0,
+            "constitution": 9.0,
+            "agility": 13.0
+        },
+        "attack_power": 4.0,
+        "defense": 2.0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.8,
+                "quantity": [
+                    5.0,
+                    10.0
+                ]
+            },
+            "item_simple_bow": {
+                "chance": 0.15
+            },
+            "item_leather_tunic": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "bandit"
+            ],
+            "weapon_damage_type": "piercing",
+            "armor_material": "leather"
+        }
+    },
+    "dark_cultist": {
+        "name": "dark cultist",
+        "description": "A person in dark robes, muttering madly and wielding a sacrificial dagger.",
+        "level": 4.0,
+        "health": 30.0,
+        "max_mana": 30.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 7.0,
+            "dexterity": 10.0,
+            "constitution": 8.0,
+            "agility": 10.0,
+            "intelligence": 14.0,
+            "spell_power": 8.0
+        },
+        "attack_power": 2.0,
+        "defense": 1.0,
+        "loot_table": {
+            "item_cultist_robes": {
+                "chance": 0.3
+            },
+            "item_cursed_dagger": {
+                "chance": 0.2
+            },
+            "item_scroll_random": {
+                "chance": 0.15
+            }
+        },
+        "usable_spells": [
+            "zap",
+            "weaken_strength"
+        ],
+        "properties": {
+            "spell_cast_chance": 0.5,
+            "weapon_damage_type": "piercing",
+            "armor_material": "cloth"
+        }
+    },
+    "ghoul": {
+        "name": "ghoul",
+        "description": "A swift and terrifying undead creature with paralyzing claws.",
+        "level": 4.0,
+        "health": 45.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 12.0,
+            "dexterity": 14.0,
+            "constitution": 11.0,
+            "agility": 14.0
+        },
+        "attack_power": 5.0,
+        "defense": 3.0,
+        "loot_table": {
+            "item_ghoul_claw": {
+                "chance": 0.7
+            },
+            "item_stolen_pouch": {
+                "chance": 0.2
+            }
+        },
+        "properties": {
+            "on_hit_effect_chance": 0.15,
+            "on_hit_effect": {
+                "type": "control",
+                "name": "Stun",
+                "base_duration": 4.0
+            },
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "lizardfolk_warrior": {
+        "name": "lizardfolk warrior",
+        "description": "A tribal reptilian warrior with a barbed spear and a tough, scaly hide.",
+        "level": 5.0,
+        "health": 60.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 13.0,
+            "dexterity": 12.0,
+            "constitution": 13.0,
+            "agility": 11.0
+        },
+        "attack_power": 6.0,
+        "defense": 5.0,
+        "loot_table": {
+            "item_barbed_spear": {
+                "chance": 0.3
+            },
+            "item_lizardfolk_shield": {
+                "chance": 0.15
+            },
+            "item_lizard_scale": {
+                "chance": 0.9
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "piercing",
+            "armor_material": "chain"
+        }
+    },
+    "giant_scorpion": {
+        "name": "giant scorpion",
+        "description": "A massive scorpion with a stinger that drips a potent venom.",
+        "level": 5.0,
+        "health": 55.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 12.0,
+            "dexterity": 11.0,
+            "constitution": 14.0,
+            "agility": 9.0
+        },
+        "attack_power": 5.0,
+        "defense": 6.0,
+        "loot_table": {
+            "item_scorpion_stinger": {
+                "chance": 0.6
+            },
+            "item_chitin_plate": {
+                "chance": 0.4
+            }
+        },
+        "properties": {
+            "on_hit_effect_chance": 0.4,
+            "on_hit_effect": {
+                "type": "dot",
+                "name": "Deadly Poison",
+                "base_duration": 12.0,
+                "damage_per_tick": 4.0,
+                "tick_interval": 3.0,
+                "damage_type": "poison"
+            },
+            "weapon_damage_type": "piercing",
+            "armor_material": "plate"
+        }
+    },
+    "hobgoblin_soldier": {
+        "name": "hobgoblin soldier",
+        "description": "A disciplined, well-armed goblinoid warrior in chainmail.",
+        "level": 5.0,
+        "health": 65.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 14.0,
+            "dexterity": 13.0,
+            "constitution": 13.0,
+            "agility": 12.0
+        },
+        "attack_power": 7.0,
+        "defense": 6.0,
+        "loot_table": {
+            "item_hobgoblin_sword": {
+                "chance": 0.3
+            },
+            "item_leather_tunic": {
+                "chance": 0.2
+            },
+            "item_military_insignia": {
+                "chance": 0.5
+            },
+            "chest": {
+                "chance": 0.1,
+                "quantity": [
+                    1.0,
+                    1.0
+                ],
+                "is_chest": true
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "slashing",
+            "armor_material": "chain"
+        }
+    },
+    "orc_shaman": {
+        "name": "orc shaman",
+        "description": "An orc adorned with skulls and fetishes, crackling with primal magic.",
+        "level": 6.0,
+        "health": 50.0,
+        "max_mana": 50.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "healer",
+        "stats": {
+            "strength": 9.0,
+            "dexterity": 10.0,
+            "constitution": 11.0,
+            "agility": 10.0,
+            "intelligence": 16.0,
+            "spell_power": 12.0
+        },
+        "attack_power": 3.0,
+        "defense": 3.0,
+        "loot_table": {
+            "item_shamanic_staff": {
+                "chance": 0.2
+            },
+            "item_scroll_random": {
+                "chance": 0.25
+            },
+            "item_orcish_war_beads": {
+                "chance": 0.8
+            },
+            "chest": {
+                "chance": 0.12,
+                "quantity": [
+                    1.0,
+                    1.0
+                ],
+                "is_chest": true
+            }
+        },
+        "usable_spells": [
+            "zap",
+            "weaken_strength",
+            "minor_heal"
+        ],
+        "properties": {
+            "spell_cast_chance": 0.7,
+            "weapon_damage_type": "crushing",
+            "armor_material": "cloth"
+        }
+    },
+    "wraith": {
+        "name": "wraith",
+        "description": "An incorporeal, shadowy figure that drains life with its chilling touch.",
+        "level": 6.0,
+        "health": 55.0,
+        "max_mana": 40.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 7.0,
+            "dexterity": 15.0,
+            "constitution": 10.0,
+            "agility": 15.0,
+            "intelligence": 14.0,
+            "spell_power": 10.0,
+            "magic_resist": 5.0
+        },
+        "attack_power": 3.0,
+        "defense": 8.0,
+        "loot_table": {
+            "item_ectoplasm": {
+                "chance": 0.4
+            },
+            "item_ancient_amulet": {
+                "chance": 0.05
+            }
+        },
+        "usable_spells": [
+            "ice_shard"
+        ],
+        "properties": {
+            "spell_cast_chance": 0.6,
+            "weapon_damage_type": "crushing"
+        }
+    },
+    "cave_bear": {
+        "name": "cave bear",
+        "description": "A massive bear, enraged at being disturbed.",
+        "level": 6.0,
+        "health": 100.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 18.0,
+            "dexterity": 9.0,
+            "constitution": 17.0,
+            "agility": 8.0
+        },
+        "attack_power": 9.0,
+        "defense": 5.0,
+        "loot_table": {
+            "item_wolf_pelt": {
+                "chance": 0.9,
+                "quantity": [
+                    2.0,
+                    4.0
+                ]
+            },
+            "item_raw_meat": {
+                "chance": 0.8,
+                "quantity": [
+                    2.0,
+                    3.0
+                ]
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "bandit_leader": {
+        "name": "bandit leader",
+        "description": "A skilled and ruthless fighter, leading a band of outlaws.",
+        "level": 7.0,
+        "health": 85.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 15.0,
+            "dexterity": 14.0,
+            "constitution": 14.0,
+            "agility": 13.0
+        },
+        "attack_power": 8.0,
+        "defense": 7.0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1.0,
+                "quantity": [
+                    25.0,
+                    50.0
+                ]
+            },
+            "item_iron_sword": {
+                "chance": 0.5
+            },
+            "item_leather_tunic": {
+                "chance": 0.8
+            },
+            "chest": {
+                "chance": 0.15,
+                "quantity": [
+                    1.0,
+                    1.0
+                ],
+                "is_chest": true
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "slashing",
+            "armor_material": "leather"
+        }
+    },
+    "harpy": {
+        "name": "harpy",
+        "description": "A vicious, winged monstrosity with a piercing shriek.",
+        "level": 6.0,
+        "health": 50.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 11.0,
+            "dexterity": 16.0,
+            "constitution": 10.0,
+            "agility": 17.0
+        },
+        "attack_power": 6.0,
+        "defense": 4.0,
+        "loot_table": {
+            "item_harpy_feather": {
+                "chance": 0.8
+            },
+            "item_stolen_pouch": {
+                "chance": 0.3
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "piercing"
+        }
+    },
+    "shambling_mound": {
+        "name": "shambling mound",
+        "description": "A large, semi-sentient mass of swamp vegetation.",
+        "level": 7.0,
+        "health": 80.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 16.0,
+            "dexterity": 7.0,
+            "constitution": 16.0,
+            "agility": 6.0,
+            "magic_resist": 1.0
+        },
+        "attack_power": 8.0,
+        "defense": 6.0,
+        "loot_table": {
+            "item_swamp_heart": {
+                "chance": 0.25
+            }
+        },
+        "properties": {
+            "on_hit_effect_chance": 0.25,
+            "on_hit_effect": {
+                "type": "stat_mod",
+                "name": "Weaken",
+                "base_duration": 15.0,
+                "modifiers": {
+                    "strength": -3.0
+                }
+            },
+            "weapon_damage_type": "crushing"
+        }
+    },
+    "earth_elemental": {
+        "name": "earth elemental",
+        "description": "A lumbering humanoid of living rock and soil.",
+        "level": 7.0,
+        "health": 90.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 17.0,
+            "dexterity": 6.0,
+            "constitution": 18.0,
+            "agility": 5.0,
+            "magic_resist": 6.0
+        },
+        "attack_power": 9.0,
+        "defense": 8.0,
+        "loot_table": {
+            "item_living_rock": {
+                "chance": 0.7
+            },
+            "item_amethyst": {
+                "chance": 0.3
+            },
+            "item_emerald": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "attack_cooldown": 4.0,
+            "weapon_damage_type": "crushing",
+            "armor_material": "plate"
+        }
+    },
+    "obsidian_construct": {
+        "name": "obsidian construct",
+        "description": "A towering construct of black volcanic glass and living stone.",
+        "level": 8.0,
+        "health": 120.0,
+        "faction": "hostile",
+        "friendly": false,
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 19.0,
+            "dexterity": 7.0,
+            "constitution": 20.0,
+            "agility": 6.0,
+            "magic_resist": 8.0
+        },
+        "attack_power": 10.0,
+        "defense": 10.0,
+        "loot_table": {
+            "item_living_rock": {
+                "chance": 0.7
+            },
+            "item_ancient_amulet": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "attack_cooldown": 4.5,
+            "weapon_damage_type": "crushing",
+            "armor_material": "plate"
+        }
+    },
+    "river_troll": {
+        "name": "river troll",
+        "description": "A hulking troll slick with algae and river slime.",
+        "health": 95.0,
+        "level": 6.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 18.0,
+            "dexterity": 7.0,
+            "constitution": 20.0,
+            "agility": 5.0,
+            "intelligence": 3.0,
+            "wisdom": 4.0,
+            "spell_power": 0.0,
+            "magic_resist": 2.0
+        },
+        "attack_power": 8.0,
+        "defense": 7.0,
+        "loot_table": {
+            "item_troll_hide": {
+                "chance": 0.9
+            },
+            "item_crude_club": {
+                "chance": 0.4
+            },
+            "item_shiny_rock": {
+                "chance": 0.7,
+                "quantity": [
+                    1.0,
+                    3.0
+                ]
+            },
+            "chest": {
+                "chance": 0.1,
+                "quantity": [
+                    1.0,
+                    1.0
+                ],
+                "is_chest": true
+            }
+        },
+        "usable_spells": [],
+        "properties": {
+            "aggression": 0.1,
+            "flee_threshold": 0.1,
+            "respawn_cooldown": 900.0,
+            "spell_cast_chance": 0.0,
+            "wander_chance": 0.25,
+            "move_cooldown": 15.0,
+            "weapon_damage_type": "crushing",
+            "armor_material": "leather"
+        }
     }
-  },
-  "troll": {
-    "name": "troll",
-    "description": "A massive, green-skinned brute with regenerative abilities.",
-    "health": 80,
-    "level": 5,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 17,
-      "dexterity": 6,
-      "constitution": 19,
-      "agility": 5,
-      "intelligence": 3,
-      "wisdom": 4,
-      "spell_power": 0,
-      "magic_resist": 2
-    },
-    "attack_power": 7,
-    "defense": 6,
-    "dialog": {
-      "greeting": "The troll roars loudly!",
-      "threat": "The troll pounds its chest!",
-      "flee": "The troll retreats, looking for easier prey!"
-    },
-    "default_dialog": "{name} grunts.",
-    "loot_table": {
-      "gold_value": { "chance": 0.4, "quantity": [10, 30] },
-      "item_troll_hide": { "chance": 0.9 },
-      "item_crude_club": { "chance": 0.5 },
-      "item_shiny_rock": { "chance": 0.7, "quantity": [1, 3] },
-      "chest": { "chance": 0.1, "quantity": [1, 1], "is_chest": true }
-    },
-    "usable_spells": [],
-    "properties": {
-      "loot_tags": ["living", "giant"],
-      "aggression": 0.1,
-      "flee_threshold": 0.15,
-      "respawn_cooldown": 900,
-      "spell_cast_chance": 0.0,
-      "wander_chance": 0.3,
-      "move_cooldown": 15,
-      "weapon_damage_type": "crushing",
-      "armor_material": "leather"
-    }
-  },
-  "giant_spider": {
-    "name": "giant spider",
-    "description": "A large, hairy arachnid with multiple eyes glinting in the dim light. Its fangs drip with venom.",
-    "health": 45, 
-    "level": 3,   
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 8,
-      "dexterity": 14,
-      "constitution": 10,
-      "agility": 15,   
-      "intelligence": 3,
-      "wisdom": 4,
-      "spell_power": 0,
-      "magic_resist": 1
-    },
-    "attack_power": 3,
-    "defense": 2,     
-    "dialog": {
-      "greeting": "The giant spider chitters menacingly!",
-      "threat": "The giant spider raises its hairy legs!",
-      "flee": "The giant spider rapidly skitters away!"
-    },
-    "default_dialog": "{name} clicks its mandibles.",
-    "loot_table": {
-      "gold_value": { "chance": 0.5, "quantity": [2, 8] },
-      "item_spider_fang": { "chance": 0.15 },
-      "item_spider_silk": { "chance": 0.8, "quantity": [1, 3] }
-    },
-    "usable_spells": [],
-    "properties": {
-      "loot_tags": ["living", "beast"],
-      "aggression": 0.1,
-      "flee_threshold": 0.25,
-      "respawn_cooldown": 480,
-      "spell_cast_chance": 0.0,
-      "wander_chance": 0.6,
-      "move_cooldown": 7,
-      "weapon_damage_type": "piercing",
-      "on_hit_effect_chance": 0.90,
-      "on_hit_effect": {
-        "type": "dot",
-        "name": "Spider Venom",
-        "base_duration": 9.0,  
-        "damage_per_tick": 2,  
-        "tick_interval": 3.0,  
-        "damage_type": "poison"
-      }     
-    }
-  },
-  "giant_bat": {
-    "name": "giant bat", "description": "A large, nocturnal creature with sharp fangs.", "level": 1, "health": 20, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 5, "dexterity": 15, "constitution": 6, "agility": 16 }, "attack_power": 2, "defense": 1,
-    "loot_table": { "item_bat_wing": { "chance": 0.8 }, "item_guano": { "chance": 0.5 } },
-    "properties": { "loot_tags": ["living", "beast"], "weapon_damage_type": "piercing" }
-  },
-  "wild_boar": {
-    "name": "wild boar", "description": "A powerfully built boar with a foul temper and sharp tusks.", "level": 2, "health": 40, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 11, "dexterity": 8, "constitution": 12, "agility": 9 }, "attack_power": 4, "defense": 2,
-    "loot_table": { "item_boar_tusk": { "chance": 0.7 }, "item_raw_meat": { "chance": 0.6 } },
-    "properties": { "loot_tags": ["living", "beast"], "weapon_damage_type": "piercing" }
-  },
-  "zombie": {
-    "name": "zombie", "description": "A shambling, reanimated corpse that groans with hunger.", "level": 2, "health": 45, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 10, "dexterity": 5, "constitution": 13, "agility": 4 }, "attack_power": 3, "defense": 3,
-    "loot_table": { "item_rotted_cloth": { "chance": 0.9 }, "item_bent_coin": { "chance": 0.1 } },
-    "properties": { "on_hit_effect_chance": 0.2, "on_hit_effect": { "type": "dot", "name": "Sewer Plague", "base_duration": 12.0, "damage_per_tick": 1, "tick_interval": 3.0, "damage_type": "disease" }, "weapon_damage_type": "crushing" }
-  },
-  "kobold_skirmisher": {
-    "name": "kobold skirmisher", "description": "A small, yipping reptilian creature wielding a crude spear.", "level": 2, "health": 25, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 7, "dexterity": 13, "constitution": 7, "agility": 14 }, "attack_power": 3, "defense": 1,
-    "loot_table": { "item_rusty_sword": { "chance": 0.2 }, "item_shiny_rock": { "chance": 0.5 } },
-    "properties": { "weapon_damage_type": "piercing" }
-  },
-  "slime": {
-    "name": "slime", "description": "An amorphous, acidic blob that oozes across the ground.", "level": 3, "health": 35, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 9, "dexterity": 6, "constitution": 11, "agility": 5, "magic_resist": 0 }, "attack_power": 3, "defense": 5,
-    "loot_table": { "item_slimy_globule": { "chance": 0.9 } },
-    "properties": { "on_hit_effect_chance": 0.3, "on_hit_effect": { "type": "dot", "name": "Acid Burn", "base_duration": 9.0, "damage_per_tick": 1, "tick_interval": 3.0, "damage_type": "poison" }, "weapon_damage_type": "crushing" }
-  },
-  "orc_grunt": {
-    "name": "orc grunt", "description": "A brutish, green-skinned warrior with a crude axe and a foul disposition.", "level": 3, "health": 50, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 13, "dexterity": 9, "constitution": 12, "agility": 8 }, "attack_power": 5, "defense": 3,
-    "loot_table": { "item_crude_club": { "chance": 0.5 }, "item_orcish_war_beads": { "chance": 0.6 } },
-    "properties": { "loot_tags": ["living", "humanoid", "orc"], "weapon_damage_type": "slashing", "armor_material": "leather" }
-  },
-  "dire_wolf": {
-    "name": "dire wolf", "description": "A massive, unnaturally large wolf with intelligent, hungry eyes.", "level": 3, "health": 40, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 12, "dexterity": 14, "constitution": 11, "agility": 15 }, "attack_power": 6, "defense": 2,
-    "loot_table": { "item_wolf_pelt": { "chance": 0.9, "quantity": [1,2] }, "item_wolf_fang": { "chance": 0.8, "quantity": [1,2] } },
-    "properties": { "weapon_damage_type": "piercing" }
-  },
-  "bandit_archer": {
-    "name": "bandit archer", "description": "A bandit who prefers to strike from a distance with a simple bow.", "level": 4, "health": 35, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 9, "dexterity": 15, "constitution": 9, "agility": 13 }, "attack_power": 4, "defense": 2,
-    "loot_table": { "gold_value": { "chance": 0.8, "quantity": [5,10] }, "item_simple_bow": { "chance": 0.15 }, "item_leather_tunic": { "chance": 0.1 } },
-    "properties": { "loot_tags": ["living", "humanoid", "bandit"], "weapon_damage_type": "piercing", "armor_material": "leather" }
-  },
-  "dark_cultist": {
-    "name": "dark cultist", "description": "A person in dark robes, muttering madly and wielding a sacrificial dagger.", "level": 4, "health": 30, "max_mana": 30, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 7, "dexterity": 10, "constitution": 8, "agility": 10, "intelligence": 14, "spell_power": 8 }, "attack_power": 2, "defense": 1,
-    "loot_table": { "item_cultist_robes": { "chance": 0.3 }, "item_cursed_dagger": { "chance": 0.2 }, "item_scroll_random": { "chance": 0.15 } },
-    "usable_spells": ["zap", "weaken_strength"], "properties": { "spell_cast_chance": 0.5, "weapon_damage_type": "piercing", "armor_material": "cloth" }
-  },
-  "ghoul": {
-    "name": "ghoul", "description": "A swift and terrifying undead creature with paralyzing claws.", "level": 4, "health": 45, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 12, "dexterity": 14, "constitution": 11, "agility": 14 }, "attack_power": 5, "defense": 3,
-    "loot_table": { "item_ghoul_claw": { "chance": 0.7 }, "item_stolen_pouch": { "chance": 0.2 } },
-    "properties": { "on_hit_effect_chance": 0.15, "on_hit_effect": { "type": "control", "name": "Stun", "base_duration": 4.0 }, "weapon_damage_type": "slashing" }
-  },
-  "lizardfolk_warrior": {
-    "name": "lizardfolk warrior", "description": "A tribal reptilian warrior with a barbed spear and a tough, scaly hide.", "level": 5, "health": 60, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 13, "dexterity": 12, "constitution": 13, "agility": 11 }, "attack_power": 6, "defense": 5,
-    "loot_table": { "item_barbed_spear": { "chance": 0.3 }, "item_lizardfolk_shield": { "chance": 0.15 }, "item_lizard_scale": { "chance": 0.9 } },
-    "properties": { "weapon_damage_type": "piercing", "armor_material": "chain" }
-  },
-  "giant_scorpion": {
-    "name": "giant scorpion", "description": "A massive scorpion with a stinger that drips a potent venom.", "level": 5, "health": 55, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 12, "dexterity": 11, "constitution": 14, "agility": 9 }, "attack_power": 5, "defense": 6,
-    "loot_table": { "item_scorpion_stinger": { "chance": 0.6 }, "item_chitin_plate": { "chance": 0.4 } },
-    "properties": { "on_hit_effect_chance": 0.4, "on_hit_effect": { "type": "dot", "name": "Deadly Poison", "base_duration": 12.0, "damage_per_tick": 4, "tick_interval": 3.0, "damage_type": "poison" }, "weapon_damage_type": "piercing", "armor_material": "plate" }
-  },
-  "hobgoblin_soldier": {
-    "name": "hobgoblin soldier", "description": "A disciplined, well-armed goblinoid warrior in chainmail.", "level": 5, "health": 65, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 14, "dexterity": 13, "constitution": 13, "agility": 12 }, "attack_power": 7, "defense": 6,
-    "loot_table": { "item_hobgoblin_sword": { "chance": 0.3 }, "item_leather_tunic": { "chance": 0.2 }, "item_military_insignia": { "chance": 0.5 }, "chest": { "chance": 0.1, "quantity": [1, 1], "is_chest": true } },
-    "properties": { "weapon_damage_type": "slashing", "armor_material": "chain" }
-  },
-  "orc_shaman": {
-    "name": "orc shaman", "description": "An orc adorned with skulls and fetishes, crackling with primal magic.", "level": 6, "health": 50, "max_mana": 50, "faction": "hostile", "friendly": false, "behavior_type": "healer",
-    "stats": { "strength": 9, "dexterity": 10, "constitution": 11, "agility": 10, "intelligence": 16, "spell_power": 12 }, "attack_power": 3, "defense": 3,
-    "loot_table": { "item_shamanic_staff": { "chance": 0.2 }, "item_scroll_random": { "chance": 0.25 }, "item_orcish_war_beads": { "chance": 0.8 }, "chest": { "chance": 0.12, "quantity": [1, 1], "is_chest": true } },
-    "usable_spells": ["zap", "weaken_strength", "minor_heal"], "properties": { "spell_cast_chance": 0.7, "weapon_damage_type": "crushing", "armor_material": "cloth" }
-  },
-  "wraith": {
-    "name": "wraith", "description": "An incorporeal, shadowy figure that drains life with its chilling touch.", "level": 6, "health": 55, "max_mana": 40, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 7, "dexterity": 15, "constitution": 10, "agility": 15, "intelligence": 14, "spell_power": 10, "magic_resist": 5 }, "attack_power": 3, "defense": 8,
-    "loot_table": { "item_ectoplasm": { "chance": 0.4 }, "item_ancient_amulet": { "chance": 0.05 } },
-    "usable_spells": ["ice_shard"], "properties": { "spell_cast_chance": 0.6, "weapon_damage_type": "crushing" }
-  },
-  "cave_bear": {
-    "name": "cave bear", "description": "A massive bear, enraged at being disturbed.", "level": 6, "health": 100, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 18, "dexterity": 9, "constitution": 17, "agility": 8 }, "attack_power": 9, "defense": 5,
-    "loot_table": { "item_wolf_pelt": { "chance": 0.9, "quantity": [2,4] }, "item_raw_meat": { "chance": 0.8, "quantity": [2,3] } },
-    "properties": { "weapon_damage_type": "slashing" }
-  },
-  "bandit_leader": {
-    "name": "bandit leader", "description": "A skilled and ruthless fighter, leading a band of outlaws.", "level": 7, "health": 85, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 15, "dexterity": 14, "constitution": 14, "agility": 13 }, "attack_power": 8, "defense": 7,
-    "loot_table": { "gold_value": { "chance": 1.0, "quantity": [25, 50] }, "item_iron_sword": { "chance": 0.5 }, "item_leather_tunic": { "chance": 0.8 }, "chest": { "chance": 0.15, "quantity": [1, 1], "is_chest": true } },
-    "properties": { "weapon_damage_type": "slashing", "armor_material": "leather" }
-  },
-  "harpy": {
-    "name": "harpy", "description": "A vicious, winged monstrosity with a piercing shriek.", "level": 6, "health": 50, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 11, "dexterity": 16, "constitution": 10, "agility": 17 }, "attack_power": 6, "defense": 4,
-    "loot_table": { "item_harpy_feather": { "chance": 0.8 }, "item_stolen_pouch": { "chance": 0.3 } },
-    "properties": { "weapon_damage_type": "piercing" }
-  },
-  "shambling_mound": {
-    "name": "shambling mound", "description": "A large, semi-sentient mass of swamp vegetation.", "level": 7, "health": 80, "faction": "hostile", "friendly": false, "behavior_type": "aggressive",
-    "stats": { "strength": 16, "dexterity": 7, "constitution": 16, "agility": 6, "magic_resist": 1 }, "attack_power": 8, "defense": 6,
-    "loot_table": { "item_swamp_heart": { "chance": 0.25 } },
-    "properties": { "on_hit_effect_chance": 0.25, "on_hit_effect": { "type": "stat_mod", "name": "Weaken", "base_duration": 15.0, "modifiers": { "strength": -3 } }, "weapon_damage_type": "crushing" }
-  },
-  "earth_elemental": {
-      "name": "earth elemental",
-      "description": "A lumbering humanoid of living rock and soil.",
-      "level": 7,
-      "health": 90,
-      "faction": "hostile",
-      "friendly": false,
-      "behavior_type": "aggressive",
-      "stats": { "strength": 17, "dexterity": 6, "constitution": 18, "agility": 5, "magic_resist": 6 },
-      "attack_power": 9,
-      "defense": 8,
-      "loot_table": {
-        "item_living_rock": { "chance": 0.7 },
-        "item_amethyst": { "chance": 0.3 },
-        "item_emerald": { "chance": 0.1 }
-      },
-      "properties": { "attack_cooldown": 4.0, "weapon_damage_type": "crushing", "armor_material": "plate" }
-  },
-  "obsidian_construct": {
-      "name": "obsidian construct",
-      "description": "A towering construct of black volcanic glass and living stone.",
-      "level": 8,
-      "health": 120,
-      "faction": "hostile",
-      "friendly": false,
-      "behavior_type": "aggressive",
-      "stats": { "strength": 19, "dexterity": 7, "constitution": 20, "agility": 6, "magic_resist": 8 },
-      "attack_power": 10,
-      "defense": 10,
-      "loot_table": {
-        "item_living_rock": { "chance": 0.7 },
-        "item_ancient_amulet": { "chance": 0.1 }
-      },
-      "properties": { "attack_cooldown": 4.5, "weapon_damage_type": "crushing", "armor_material": "plate" }
-  },
-  "river_troll": {
-    "name": "river troll",
-    "description": "A hulking troll slick with algae and river slime.",
-    "health": 95,
-    "level": 6,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": {
-      "strength": 18,
-      "dexterity": 7,
-      "constitution": 20,
-      "agility": 5,
-      "intelligence": 3,
-      "wisdom": 4,
-      "spell_power": 0,
-      "magic_resist": 2
-    },
-    "attack_power": 8,
-    "defense": 7,
-    "loot_table": {
-      "item_troll_hide": { "chance": 0.9 },
-      "item_crude_club": { "chance": 0.4 },
-      "item_shiny_rock": { "chance": 0.7, "quantity": [1, 3] },
-      "chest": { "chance": 0.1, "quantity": [1, 1], "is_chest": true }
-    },
-    "usable_spells": [],
-    "properties": {
-      "aggression": 0.1,
-      "flee_threshold": 0.1,
-      "respawn_cooldown": 900,
-      "spell_cast_chance": 0.0,
-      "wander_chance": 0.25,
-      "move_cooldown": 15,
-      "weapon_damage_type": "crushing",
-      "armor_material": "leather"
-    }
-  }
 }

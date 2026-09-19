@@ -1,86 +1,148 @@
 {
-  "frostpeak_quartermaster": {
-    "name": "Iven the Quartermaster",
-    "description": "A compact, weather-scoured quartermaster who keeps careful account of every nail and ration sent into the high country.",
-    "health": 95,
-    "level": 5,
-    "friendly": true,
-    "faction": "friendly",
-    "behavior_type": "stationary",
-    "stats": { "strength": 11, "dexterity": 10, "constitution": 13, "agility": 9, "intelligence": 12, "wisdom": 12 },
-    "dialog": {
-      "greeting": "Frostpeak Mining Lodge. Keep your lamp dry and your footing honest.",
-      "trade": "Rations, medicine, and plain iron. The mountain takes enough without sending you up poorly supplied.",
-      "mine": "The old works still connect through the mountain. Don't trust a timber just because it held yesterday.",
-      "lodge": "The Lodge remembers who comes back with useful work done. It is not much ceremony, but it is real."
+    "frostpeak_quartermaster": {
+        "name": "Iven the Quartermaster",
+        "description": "A compact, weather-scoured quartermaster who keeps careful account of every nail and ration sent into the high country.",
+        "health": 95.0,
+        "level": 5.0,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 11.0,
+            "dexterity": 10.0,
+            "constitution": 13.0,
+            "agility": 9.0,
+            "intelligence": 12.0,
+            "wisdom": 12.0
+        },
+        "dialog": {
+            "greeting": "Frostpeak Mining Lodge. Keep your lamp dry and your footing honest.",
+            "trade": "Rations, medicine, and plain iron. The mountain takes enough without sending you up poorly supplied.",
+            "mine": "The old works still connect through the mountain. Don't trust a timber just because it held yesterday.",
+            "lodge": "The Lodge remembers who comes back with useful work done. It is not much ceremony, but it is real."
+        },
+        "default_dialog": "Iven checks a supply ledger, then looks up at you.",
+        "properties": {
+            "is_vendor": true,
+            "wander_chance": 0.0,
+            "move_cooldown": 9999.0,
+            "work_location": "frostpeak_outpost:supply_yard",
+            "buys_item_types": [
+                "Material",
+                "Junk"
+            ],
+            "sells_items": [
+                {
+                    "item_id": "item_healing_potion_small",
+                    "price_multiplier": 1.25
+                },
+                {
+                    "item_id": "item_iron_ingot",
+                    "price_multiplier": 1.15
+                },
+                {
+                    "item_id": "item_lockpick_crude_steel",
+                    "price_multiplier": 1.1
+                }
+            ],
+            "can_give_generic_quests": true
+        }
     },
-    "default_dialog": "Iven checks a supply ledger, then looks up at you.",
-    "properties": {
-      "is_vendor": true,
-      "wander_chance": 0.0,
-      "move_cooldown": 9999,
-      "work_location": "frostpeak_outpost:supply_yard",
-      "buys_item_types": ["Material", "Junk"],
-      "sells_items": [
-        { "item_id": "item_healing_potion_small", "price_multiplier": 1.25 },
-        { "item_id": "item_iron_ingot", "price_multiplier": 1.15 },
-        { "item_id": "item_lockpick_crude_steel", "price_multiplier": 1.1 }
-      ],
-      "can_give_generic_quests": true
+    "frostpeak_lodgekeeper": {
+        "name": "Mara Vale, Lodgekeeper",
+        "description": "A grey-haired miner with a repaired lantern at her belt and the calm attention of someone who has heard every kind of bad news from a tunnel.",
+        "health": 110.0,
+        "level": 6.0,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 13.0,
+            "dexterity": 9.0,
+            "constitution": 14.0,
+            "agility": 8.0,
+            "intelligence": 11.0,
+            "wisdom": 14.0
+        },
+        "dialog": {
+            "greeting": "The Frostpeak Mining Lodge keeps a light on for people who bring each other home.",
+            "lodge": "We do not sell ranks. We notice steady hands, sound judgement, and who shares a rope when it matters.",
+            "mountains": "The pass is open today. That is not the same thing as safe."
+        },
+        "default_dialog": "Mara studies the mountain weather through the open door.",
+        "properties": {
+            "dialogue": "mara_mining_lodge",
+            "wander_chance": 0.0,
+            "move_cooldown": 9999.0,
+            "can_give_generic_quests": true
+        }
+    },
+    "frostpeak_smith": {
+        "name": "Hessa the Smith",
+        "description": "A broad-shouldered smith with a burn scar along one wrist and the patient concentration of someone who trusts measured work over lucky strikes.",
+        "health": 115.0,
+        "level": 6.0,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 15.0,
+            "dexterity": 11.0,
+            "constitution": 14.0,
+            "agility": 9.0,
+            "intelligence": 11.0,
+            "wisdom": 10.0
+        },
+        "dialog": {
+            "greeting": "If it must hold in mountain weather, it must be made properly.",
+            "weapons": "A mace, spear, or good broad blade will serve you better than a pretty story when the trail turns ugly.",
+            "armor": "Mail is weight, but it is honest weight. Learn what it stops before you decide it is too much to carry.",
+            "mountains": "The mountain gives iron, then asks what you are willing to pay to keep it. Keep your tools dry."
+        },
+        "default_dialog": "Hessa listens to the forge for a moment before answering.",
+        "properties": {
+            "is_vendor": true,
+            "can_repair": true,
+            "wander_chance": 0.0,
+            "move_cooldown": 9999.0,
+            "work_location": "frostpeak_outpost:forge",
+            "buys_item_types": [
+                "Weapon",
+                "Armor",
+                "Material",
+                "Junk"
+            ],
+            "sells_items": [
+                {
+                    "item_id": "item_war_mace"
+                },
+                {
+                    "item_id": "item_hunting_spear"
+                },
+                {
+                    "item_id": "item_broadsword"
+                },
+                {
+                    "item_id": "item_chain_coif"
+                },
+                {
+                    "item_id": "item_chain_hauberk"
+                },
+                {
+                    "item_id": "item_chain_gauntlets"
+                },
+                {
+                    "item_id": "item_chain_sabatons"
+                },
+                {
+                    "item_id": "item_warding_torc"
+                },
+                {
+                    "item_id": "item_iron_ingot",
+                    "price_multiplier": 1.1
+                }
+            ],
+            "can_give_generic_quests": true
+        }
     }
-  },
-  "frostpeak_lodgekeeper": {
-    "name": "Mara Vale, Lodgekeeper",
-    "description": "A grey-haired miner with a repaired lantern at her belt and the calm attention of someone who has heard every kind of bad news from a tunnel.",
-    "health": 110,
-    "level": 6,
-    "friendly": true,
-    "faction": "friendly",
-    "behavior_type": "stationary",
-    "stats": { "strength": 13, "dexterity": 9, "constitution": 14, "agility": 8, "intelligence": 11, "wisdom": 14 },
-    "dialog": {
-      "greeting": "The Frostpeak Mining Lodge keeps a light on for people who bring each other home.",
-      "lodge": "We do not sell ranks. We notice steady hands, sound judgement, and who shares a rope when it matters.",
-      "mountains": "The pass is open today. That is not the same thing as safe."
-    },
-    "default_dialog": "Mara studies the mountain weather through the open door.",
-    "properties": { "dialogue": "mara_mining_lodge", "wander_chance": 0.0, "move_cooldown": 9999, "can_give_generic_quests": true }
-  },
-  "frostpeak_smith": {
-    "name": "Hessa the Smith",
-    "description": "A broad-shouldered smith with a burn scar along one wrist and the patient concentration of someone who trusts measured work over lucky strikes.",
-    "health": 115,
-    "level": 6,
-    "friendly": true,
-    "faction": "friendly",
-    "behavior_type": "stationary",
-    "stats": { "strength": 15, "dexterity": 11, "constitution": 14, "agility": 9, "intelligence": 11, "wisdom": 10 },
-    "dialog": {
-      "greeting": "If it must hold in mountain weather, it must be made properly.",
-      "weapons": "A mace, spear, or good broad blade will serve you better than a pretty story when the trail turns ugly.",
-      "armor": "Mail is weight, but it is honest weight. Learn what it stops before you decide it is too much to carry.",
-      "mountains": "The mountain gives iron, then asks what you are willing to pay to keep it. Keep your tools dry."
-    },
-    "default_dialog": "Hessa listens to the forge for a moment before answering.",
-    "properties": {
-      "is_vendor": true,
-      "can_repair": true,
-      "wander_chance": 0.0,
-      "move_cooldown": 9999,
-      "work_location": "frostpeak_outpost:forge",
-      "buys_item_types": ["Weapon", "Armor", "Material", "Junk"],
-      "sells_items": [
-        { "item_id": "item_war_mace" },
-        { "item_id": "item_hunting_spear" },
-        { "item_id": "item_broadsword" },
-        { "item_id": "item_chain_coif" },
-        { "item_id": "item_chain_hauberk" },
-        { "item_id": "item_chain_gauntlets" },
-        { "item_id": "item_chain_sabatons" },
-        { "item_id": "item_warding_torc" },
-        { "item_id": "item_iron_ingot", "price_multiplier": 1.1 }
-      ],
-      "can_give_generic_quests": true
-    }
-  }
 }

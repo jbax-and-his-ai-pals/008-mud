@@ -1,0 +1,35 @@
+{
+    "region": {},
+    "rooms": {
+        "reed_gate": {
+            "_editor_pos": [
+                0.0,
+                0.0
+            ]
+        },
+        "longhouse_court": {
+            "_editor_pos": [
+                0.0,
+                192.0
+            ]
+        },
+        "fish_racks": {
+            "_editor_pos": [
+                256.0,
+                192.0
+            ]
+        },
+        "shamans_platform": {
+            "_editor_pos": [
+                0.0,
+                384.0
+            ]
+        },
+        "nursery_channel": {
+            "_editor_pos": [
+                -256.0,
+                192.0
+            ]
+        }
+    }
+}

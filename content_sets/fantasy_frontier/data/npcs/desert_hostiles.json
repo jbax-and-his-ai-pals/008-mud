@@ -1,44 +1,115 @@
 {
-  "dune_scorpion": {
-    "name": "dune scorpion",
-    "description": "A large sand-coloured scorpion that vanishes against the dunes until its tail rises to strike.",
-    "level": 9,
-    "health": 105,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": { "strength": 16, "dexterity": 14, "constitution": 16, "agility": 13, "magic_resist": 2 },
-    "attack_power": 11,
-    "defense": 9,
-    "loot_table": { "item_scorpion_stinger": { "chance": 0.8 }, "item_chitin_plate": { "chance": 0.65 } },
-    "properties": { "on_hit_effect_chance": 0.35, "on_hit_effect": { "type": "dot", "name": "Dune Venom", "base_duration": 12.0, "damage_per_tick": 4, "tick_interval": 3.0, "damage_type": "poison" }, "weapon_damage_type": "piercing", "armor_material": "plate" }
-  },
-  "sand_raider": {
-    "name": "sand raider",
-    "description": "A desert highway robber wrapped against the sun and armed for close work among the dunes.",
-    "level": 10,
-    "health": 115,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": { "strength": 16, "dexterity": 15, "constitution": 15, "agility": 14, "magic_resist": 2 },
-    "attack_power": 12,
-    "defense": 9,
-    "loot_table": { "gold_value": { "chance": 0.9, "quantity": [20, 45] }, "item_waraxe": { "chance": 0.18 }, "item_chain_hauberk": { "chance": 0.12 }, "item_stolen_pouch": { "chance": 0.45 } },
-    "properties": { "weapon_damage_type": "slashing", "armor_material": "leather" }
-  },
-  "glass_elemental": {
-    "name": "glass elemental",
-    "description": "A jagged figure of sun-fused sand whose edges catch the light like broken mirrors.",
-    "level": 11,
-    "health": 135,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": { "strength": 19, "dexterity": 10, "constitution": 20, "agility": 8, "magic_resist": 7 },
-    "attack_power": 14,
-    "defense": 12,
-    "loot_table": { "item_living_rock": { "chance": 0.75 }, "item_amethyst": { "chance": 0.25 }, "item_emerald": { "chance": 0.12 } },
-    "properties": { "attack_cooldown": 4.0, "weapon_damage_type": "crushing", "armor_material": "plate" }
-  }
+    "dune_scorpion": {
+        "name": "dune scorpion",
+        "description": "A large sand-coloured scorpion that vanishes against the dunes until its tail rises to strike.",
+        "level": 9.0,
+        "health": 105.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 16.0,
+            "dexterity": 14.0,
+            "constitution": 16.0,
+            "agility": 13.0,
+            "magic_resist": 2.0
+        },
+        "attack_power": 11.0,
+        "defense": 9.0,
+        "loot_table": {
+            "item_scorpion_stinger": {
+                "chance": 0.8
+            },
+            "item_chitin_plate": {
+                "chance": 0.65
+            }
+        },
+        "properties": {
+            "on_hit_effect_chance": 0.35,
+            "on_hit_effect": {
+                "type": "dot",
+                "name": "Dune Venom",
+                "base_duration": 12.0,
+                "damage_per_tick": 4.0,
+                "tick_interval": 3.0,
+                "damage_type": "poison"
+            },
+            "weapon_damage_type": "piercing",
+            "armor_material": "plate"
+        }
+    },
+    "sand_raider": {
+        "name": "sand raider",
+        "description": "A desert highway robber wrapped against the sun and armed for close work among the dunes.",
+        "level": 10.0,
+        "health": 115.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 16.0,
+            "dexterity": 15.0,
+            "constitution": 15.0,
+            "agility": 14.0,
+            "magic_resist": 2.0
+        },
+        "attack_power": 12.0,
+        "defense": 9.0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.9,
+                "quantity": [
+                    20.0,
+                    45.0
+                ]
+            },
+            "item_waraxe": {
+                "chance": 0.18
+            },
+            "item_chain_hauberk": {
+                "chance": 0.12
+            },
+            "item_stolen_pouch": {
+                "chance": 0.45
+            }
+        },
+        "properties": {
+            "weapon_damage_type": "slashing",
+            "armor_material": "leather"
+        }
+    },
+    "glass_elemental": {
+        "name": "glass elemental",
+        "description": "A jagged figure of sun-fused sand whose edges catch the light like broken mirrors.",
+        "level": 11.0,
+        "health": 135.0,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 19.0,
+            "dexterity": 10.0,
+            "constitution": 20.0,
+            "agility": 8.0,
+            "magic_resist": 7.0
+        },
+        "attack_power": 14.0,
+        "defense": 12.0,
+        "loot_table": {
+            "item_living_rock": {
+                "chance": 0.75
+            },
+            "item_amethyst": {
+                "chance": 0.25
+            },
+            "item_emerald": {
+                "chance": 0.12
+            }
+        },
+        "properties": {
+            "attack_cooldown": 4.0,
+            "weapon_damage_type": "crushing",
+            "armor_material": "plate"
+        }
+    }
 }

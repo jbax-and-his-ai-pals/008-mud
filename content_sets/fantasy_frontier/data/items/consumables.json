@@ -1,450 +1,450 @@
 {
-  "item_herbal_bandage": {
-    "type": "Consumable",
-    "name": "herbal bandage",
-    "description": "Clean cloth packed with fresh herbs; useful for treating a wound in the field.",
-    "weight": 0.2,
-    "value": 8,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 8,
-      "effect_type": "heal"
+    "item_herbal_bandage": {
+        "type": "Consumable",
+        "name": "herbal bandage",
+        "description": "Clean cloth packed with fresh herbs; useful for treating a wound in the field.",
+        "weight": 0.2,
+        "value": 8.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 8.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_healing_potion_small": {
-    "type": "Consumable",
-    "name": "small healing potion",
-    "description": "A small vial containing a red liquid that can heal minor wounds.",
-    "weight": 0.5,
-    "value": 10,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 15,
-      "effect_type": "heal"
+    "item_healing_potion_small": {
+        "type": "Consumable",
+        "name": "small healing potion",
+        "description": "A small vial containing a red liquid that can heal minor wounds.",
+        "weight": 0.5,
+        "value": 10.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 15.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_marshguard_tonic": {
-    "type": "Consumable",
-    "name": "marshguard tonic",
-    "description": "A bitter green tonic of crushed herbs. It leaves a resinous taste and wards the lungs against poison for a short while.",
-    "weight": 0.3,
-    "value": 18,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "apply_effect",
-      "effect_data": {
-        "name": "Marshguard",
-        "type": "stat_mod",
-        "base_duration": 180.0,
-        "modifiers": {
-          "resist_poison": 60
-        }
-      }
+    "item_marshguard_tonic": {
+        "type": "Consumable",
+        "name": "marshguard tonic",
+        "description": "A bitter green tonic of crushed herbs. It leaves a resinous taste and wards the lungs against poison for a short while.",
+        "weight": 0.3,
+        "value": 18.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "apply_effect",
+            "effect_data": {
+                "name": "Marshguard",
+                "type": "stat_mod",
+                "base_duration": 180.0,
+                "modifiers": {
+                    "resist_poison": 60.0
+                }
+            }
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_trailblazer_tonic": {
-    "type": "Consumable",
-    "name": "trailblazer tonic",
-    "description": "A bright, sharp draught that puts spring in your step for a few useful minutes.",
-    "weight": 0.3,
-    "value": 16,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "apply_effect",
-      "effect_data": {
-        "name": "Trailblazer",
-        "type": "stat_mod",
-        "base_duration": 180.0,
-        "modifiers": {
-          "agility": 4
-        }
-      }
+    "item_trailblazer_tonic": {
+        "type": "Consumable",
+        "name": "trailblazer tonic",
+        "description": "A bright, sharp draught that puts spring in your step for a few useful minutes.",
+        "weight": 0.3,
+        "value": 16.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "apply_effect",
+            "effect_data": {
+                "name": "Trailblazer",
+                "type": "stat_mod",
+                "base_duration": 180.0,
+                "modifiers": {
+                    "agility": 4.0
+                }
+            }
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_purifying_draught": {
-    "type": "Consumable",
-    "name": "purifying draught",
-    "description": "A clean, sour remedy meant to purge poisons and common diseases before they settle in.",
-    "weight": 0.3,
-    "value": 15,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "cleanse",
-      "effect_tags": [
-        "poison",
-        "disease"
-      ]
+    "item_purifying_draught": {
+        "type": "Consumable",
+        "name": "purifying draught",
+        "description": "A clean, sour remedy meant to purge poisons and common diseases before they settle in.",
+        "weight": 0.3,
+        "value": 15.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "cleanse",
+            "effect_tags": [
+                "poison",
+                "disease"
+            ]
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_sunfire_flask": {
-    "type": "Consumable",
-    "name": "sunfire flask",
-    "description": "A sealed flask of volatile alchemical light. Use it on a foe to hurl it and break the seal.",
-    "weight": 0.4,
-    "value": 24,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "target_damage",
-      "damage_amount": 18,
-      "damage_type": "fire"
+    "item_sunfire_flask": {
+        "type": "Consumable",
+        "name": "sunfire flask",
+        "description": "A sealed flask of volatile alchemical light. Use it on a foe to hurl it and break the seal.",
+        "weight": 0.4,
+        "value": 24.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "target_damage",
+            "damage_amount": 18.0,
+            "damage_type": "fire"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_hunk_bread": {
-    "type": "Consumable",
-    "name": "hunk of bread",
-    "description": "A thick slice of fresh, crusty bread.",
-    "weight": 0.3,
-    "value": 1,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 3,
-      "effect_type": "heal"
+    "item_hunk_bread": {
+        "type": "Consumable",
+        "name": "hunk of bread",
+        "description": "A thick slice of fresh, crusty bread.",
+        "weight": 0.3,
+        "value": 1.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 3.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_travel_rations": {
-    "type": "Consumable",
-    "name": "travel rations",
-    "description": "A portable trail meal, packed tight for a long walk. Keeps well and eats fast.",
-    "weight": 0.4,
-    "value": 6,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 6,
-      "effect_type": "heal"
+    "item_travel_rations": {
+        "type": "Consumable",
+        "name": "travel rations",
+        "description": "A portable trail meal, packed tight for a long walk. Keeps well and eats fast.",
+        "weight": 0.4,
+        "value": 6.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 6.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_smithing_pattern_hatchet": {
-    "type": "Consumable",
-    "name": "Smithing Pattern: Traveler's Hatchet",
-    "description": "A folded diagram in a steady hand, showing how to forge a compact hatchet fit for both the road and a fight.",
-    "weight": 0.1,
-    "value": 60,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "learn_recipe",
-      "recipe_to_learn": "forge_travelers_hatchet"
+    "item_smithing_pattern_hatchet": {
+        "type": "Consumable",
+        "name": "Smithing Pattern: Traveler's Hatchet",
+        "description": "A folded diagram in a steady hand, showing how to forge a compact hatchet fit for both the road and a fight.",
+        "weight": 0.1,
+        "value": 60.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "learn_recipe",
+            "recipe_to_learn": "forge_travelers_hatchet"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_fresh_fish": {
-    "type": "Consumable",
-    "name": "fresh fish",
-    "description": "A recently caught fish, still fresh and glistening. It would make a good meal.",
-    "weight": 1.0,
-    "value": 3,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 5,
-      "effect_type": "heal"
+    "item_fresh_fish": {
+        "type": "Consumable",
+        "name": "fresh fish",
+        "description": "A recently caught fish, still fresh and glistening. It would make a good meal.",
+        "weight": 1.0,
+        "value": 3.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 5.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_forest_berries": {
-    "type": "Consumable",
-    "name": "forest berries",
-    "description": "A handful of wild berries growing along the path. They look edible.",
-    "weight": 0.2,
-    "value": 2,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 3,
-      "effect_type": "heal"
+    "item_forest_berries": {
+        "type": "Consumable",
+        "name": "forest berries",
+        "description": "A handful of wild berries growing along the path. They look edible.",
+        "weight": 0.2,
+        "value": 2.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 3.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_frostpetal": {
-    "type": "Consumable",
-    "name": "frostpetal bloom",
-    "description": "A rare alpine flower that thrives in cold, sheltered places. Said to have potent restorative properties.",
-    "weight": 0.1,
-    "value": 50,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 25,
-      "effect_type": "heal"
+    "item_frostpetal": {
+        "type": "Consumable",
+        "name": "frostpetal bloom",
+        "description": "A rare alpine flower that thrives in cold, sheltered places. Said to have potent restorative properties.",
+        "weight": 0.1,
+        "value": 50.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 25.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_swamp_fungus": {
-    "type": "Consumable",
-    "name": "pale fungus",
-    "description": "A cluster of pale, rubbery fungi growing on a rotting log. It looks vaguely unwholesome.",
-    "weight": 0.2,
-    "value": 1,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": -5,
-      "effect_type": "poison"
+    "item_swamp_fungus": {
+        "type": "Consumable",
+        "name": "pale fungus",
+        "description": "A cluster of pale, rubbery fungi growing on a rotting log. It looks vaguely unwholesome.",
+        "weight": 0.2,
+        "value": 1.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": -5.0,
+            "effect_type": "poison"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_fresh_carrot": {
-    "type": "Consumable",
-    "name": "fresh carrot",
-    "description": "A crisp orange carrot, pulled fresh from the earth.",
-    "weight": 0.3,
-    "value": 1,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 2,
-      "effect_type": "heal"
+    "item_fresh_carrot": {
+        "type": "Consumable",
+        "name": "fresh carrot",
+        "description": "A crisp orange carrot, pulled fresh from the earth.",
+        "weight": 0.3,
+        "value": 1.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 2.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_pumpkin": {
-    "type": "Consumable",
-    "name": "large pumpkin",
-    "description": "A heavy orange pumpkin, good for carving or cooking. Might provide some sustenance.",
-    "weight": 5.0,
-    "value": 4,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 8,
-      "effect_type": "heal"
+    "item_pumpkin": {
+        "type": "Consumable",
+        "name": "large pumpkin",
+        "description": "A heavy orange pumpkin, good for carving or cooking. Might provide some sustenance.",
+        "weight": 5.0,
+        "value": 4.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 8.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_ripe_apple": {
-    "type": "Consumable",
-    "name": "ripe apple",
-    "description": "A crisp, juicy red apple, freshly picked.",
-    "weight": 0.3,
-    "value": 2,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 4,
-      "effect_type": "heal"
+    "item_ripe_apple": {
+        "type": "Consumable",
+        "name": "ripe apple",
+        "description": "A crisp, juicy red apple, freshly picked.",
+        "weight": 0.3,
+        "value": 2.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 4.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_wild_herbs": {
-    "type": "Consumable",
-    "name": "wild herbs",
-    "description": "A bundle of fragrant wild herbs. Might be useful for cooking or alchemy.",
-    "weight": 0.1,
-    "value": 3,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 1,
-      "effect_type": "heal"
+    "item_wild_herbs": {
+        "type": "Consumable",
+        "name": "wild herbs",
+        "description": "A bundle of fragrant wild herbs. Might be useful for cooking or alchemy.",
+        "weight": 0.1,
+        "value": 3.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 1.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_ale": {
-    "type": "Consumable",
-    "name": "tankard of ale",
-    "description": "A foaming tankard of locally brewed ale. It smells of hops and barley.",
-    "weight": 1.0,
-    "value": 2,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 2,
-      "effect_type": "heal"
+    "item_ale": {
+        "type": "Consumable",
+        "name": "tankard of ale",
+        "description": "A foaming tankard of locally brewed ale. It smells of hops and barley.",
+        "weight": 1.0,
+        "value": 2.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 2.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_raw_meat": {
-    "type": "Consumable",
-    "name": "raw meat",
-    "description": "A piece of raw meat, likely from a wolf.",
-    "weight": 0.4,
-    "value": 1,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 4,
-      "effect_type": "heal"
+    "item_raw_meat": {
+        "type": "Consumable",
+        "name": "raw meat",
+        "description": "A piece of raw meat, likely from a wolf.",
+        "weight": 0.4,
+        "value": 1.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 4.0,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "debug_poison_vial": {
-    "type": "Consumable",
-    "name": "Debug Poison Vial",
-    "description": "A vial containing a potent, fast-acting poison for testing purposes.",
-    "weight": 0.1,
-    "value": 0,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "apply_dot",
-      "dot_name": "Debug Poison",
-      "dot_duration": 30.0,
-      "dot_damage_per_tick": 5,
-      "dot_tick_interval": 3.0,
-      "dot_damage_type": "poison"
+    "debug_poison_vial": {
+        "type": "Consumable",
+        "name": "Debug Poison Vial",
+        "description": "A vial containing a potent, fast-acting poison for testing purposes.",
+        "weight": 0.1,
+        "value": 0.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "apply_dot",
+            "dot_name": "Debug Poison",
+            "dot_duration": 30.0,
+            "dot_damage_per_tick": 5.0,
+            "dot_tick_interval": 3.0,
+            "dot_damage_type": "poison"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_mana_potion_small": {
-    "type": "Consumable",
-    "name": "small mana potion",
-    "description": "A small vial containing a swirling blue liquid that restores a minor amount of mana.",
-    "weight": 0.5,
-    "value": 15,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 20,
-      "effect_type": "mana_restore"
+    "item_mana_potion_small": {
+        "type": "Consumable",
+        "name": "small mana potion",
+        "description": "A small vial containing a swirling blue liquid that restores a minor amount of mana.",
+        "weight": 0.5,
+        "value": 15.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 20.0,
+            "effect_type": "mana_restore"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_mana_potion_medium": {
-    "type": "Consumable",
-    "name": "mana potion",
-    "description": "A vial containing a swirling blue liquid that restores a moderate amount of mana.",
-    "weight": 0.5,
-    "value": 40,
-    "stackable": true,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_value": 50,
-      "effect_type": "mana_restore"
+    "item_mana_potion_medium": {
+        "type": "Consumable",
+        "name": "mana potion",
+        "description": "A vial containing a swirling blue liquid that restores a moderate amount of mana.",
+        "weight": 0.5,
+        "value": 40.0,
+        "stackable": true,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_value": 50.0,
+            "effect_type": "mana_restore"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "scroll_raise_skeleton": {
-    "type": "Consumable",
-    "name": "Scroll of Raise Skeleton",
-    "description": "A dusty scroll inscribed with necromantic runes.",
-    "weight": 0.1,
-    "value": 150,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "learn_spell",
-      "spell_to_learn": "raise_skeleton"
+    "scroll_raise_skeleton": {
+        "type": "Consumable",
+        "name": "Scroll of Raise Skeleton",
+        "description": "A dusty scroll inscribed with necromantic runes.",
+        "weight": 0.1,
+        "value": 150.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "learn_spell",
+            "spell_to_learn": "raise_skeleton"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "scroll_raise_skeletal_mage": {
-    "type": "Consumable",
-    "name": "Scroll of Raise Skeletal Mage",
-    "description": "A scroll covered in complex necromantic diagrams.",
-    "weight": 0.1,
-    "value": 200,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "learn_spell",
-      "spell_to_learn": "raise_skeletal_mage"
+    "scroll_raise_skeletal_mage": {
+        "type": "Consumable",
+        "name": "Scroll of Raise Skeletal Mage",
+        "description": "A scroll covered in complex necromantic diagrams.",
+        "weight": 0.1,
+        "value": 200.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "learn_spell",
+            "spell_to_learn": "raise_skeletal_mage"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "scroll_summon_spirit_wolf": {
-    "type": "Consumable",
-    "name": "Scroll of Summon Spirit Wolf",
-    "description": "A scroll that smells faintly of ozone and pine needles.",
-    "weight": 0.1,
-    "value": 180,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "learn_spell",
-      "spell_to_learn": "summon_spirit_wolf"
+    "scroll_summon_spirit_wolf": {
+        "type": "Consumable",
+        "name": "Scroll of Summon Spirit Wolf",
+        "description": "A scroll that smells faintly of ozone and pine needles.",
+        "weight": 0.1,
+        "value": 180.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "learn_spell",
+            "spell_to_learn": "summon_spirit_wolf"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "scroll_summon_fire_imp": {
-    "type": "Consumable",
-    "name": "Scroll of Summon Fire Imp",
-    "description": "The parchment is warm to the touch and smells of sulfur.",
-    "weight": 0.1,
-    "value": 250,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "learn_spell",
-      "spell_to_learn": "summon_fire_imp"
+    "scroll_summon_fire_imp": {
+        "type": "Consumable",
+        "name": "Scroll of Summon Fire Imp",
+        "description": "The parchment is warm to the touch and smells of sulfur.",
+        "weight": 0.1,
+        "value": 250.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "learn_spell",
+            "spell_to_learn": "summon_fire_imp"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "scroll_summon_stone_golem": {
-    "type": "Consumable",
-    "name": "Scroll of Summon Stone Golem",
-    "description": "A heavy, gritty scroll that feels like sandpaper.",
-    "weight": 0.1,
-    "value": 400,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "learn_spell",
-      "spell_to_learn": "summon_stone_golem"
+    "scroll_summon_stone_golem": {
+        "type": "Consumable",
+        "name": "Scroll of Summon Stone Golem",
+        "description": "A heavy, gritty scroll that feels like sandpaper.",
+        "weight": 0.1,
+        "value": 400.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "learn_spell",
+            "spell_to_learn": "summon_stone_golem"
+        },
+        "item_family": "consumable"
     },
-    "item_family": "consumable"
-  },
-  "item_scroll_random": {
-    "type": "Consumable",
-    "name": "Scroll of {spell_name}",
-    "description": "A scroll inscribed with the runes for the '{spell_name}' spell.",
-    "weight": 0.1,
-    "value": 100,
-    "stackable": false,
-    "properties": {
-      "uses": 1,
-      "max_uses": 1,
-      "effect_type": "learn_spell",
-      "spell_to_learn": null,
-      "is_procedural": true,
-      "procedural_type": "random_spell_scroll",
-      "procedural_fallback_prefixes": [
-        "item_scroll_"
-      ],
-      "procedural_disambiguation_property": "spell_to_learn"
-    },
-    "item_family": "consumable"
-  }
+    "item_scroll_random": {
+        "type": "Consumable",
+        "name": "Scroll of {spell_name}",
+        "description": "A scroll inscribed with the runes for the '{spell_name}' spell.",
+        "weight": 0.1,
+        "value": 100.0,
+        "stackable": false,
+        "properties": {
+            "uses": 1.0,
+            "max_uses": 1.0,
+            "effect_type": "learn_spell",
+            "spell_to_learn": null,
+            "is_procedural": true,
+            "procedural_type": "random_spell_scroll",
+            "procedural_fallback_prefixes": [
+                "item_scroll_"
+            ],
+            "procedural_disambiguation_property": "spell_to_learn"
+        },
+        "item_family": "consumable"
+    }
 }

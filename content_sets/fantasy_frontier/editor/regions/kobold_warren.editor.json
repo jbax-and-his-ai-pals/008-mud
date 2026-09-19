@@ -1,0 +1,35 @@
+{
+    "region": {},
+    "rooms": {
+        "wet_tunnel": {
+            "_editor_pos": [
+                0.0,
+                0.0
+            ]
+        },
+        "shell_gate": {
+            "_editor_pos": [
+                -256.0,
+                0.0
+            ]
+        },
+        "lookout_niche": {
+            "_editor_pos": [
+                -256.0,
+                -192.0
+            ]
+        },
+        "common_hollow": {
+            "_editor_pos": [
+                -512.0,
+                0.0
+            ]
+        },
+        "tideglass_cache": {
+            "_editor_pos": [
+                -768.0,
+                0.0
+            ]
+        }
+    }
+}

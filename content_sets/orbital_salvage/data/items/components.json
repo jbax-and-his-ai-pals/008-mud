@@ -1,4 +1,14 @@
 {
+  "_comment": "The two ends of the set's material chain. Everything metal aboard strips down to scrap alloy (see `crafting.salvage_rules` in rules/ruleset.json), and the fabrication recipe turns salvaged parts into a patch kit. `item_scrap_alloy` also has no family: it is what things are made of here, not a thing salvaged from the station, so a rule that looks for `salvaged_part` cannot accidentally ask for it.",
+  "item_scrap_alloy": {
+    "type": "Item",
+    "name": "scrap alloy",
+    "description": "Cut and flattened plate, sorted by nobody. The station's only real currency.",
+    "weight": 0.4,
+    "value": 9,
+    "stackable": true,
+    "properties": {}
+  },
   "item_servo_cluster": {
     "type": "Item",
     "name": "servo cluster",
@@ -43,9 +53,14 @@
       "max_charges": 6,
       "respawn_days": 1,
       "resource_tags": ["salvage", "parts", "bench"],
+      "material_quality": { "id": "serviceable", "label": "Serviceable", "score": 2 },
       "yield_table": [
         { "item_id": "item_cell_stack", "chance": 0.5 },
-        { "item_id": "item_lattice_shard", "chance": 0.12 }
+        {
+          "item_id": "item_lattice_shard",
+          "chance": 0.12,
+          "material_quality": { "id": "clean", "label": "Clean", "score": 3 }
+        }
       ],
       "substitute_resource_ids": ["item_cell_stack", "item_lattice_shard"]
     }

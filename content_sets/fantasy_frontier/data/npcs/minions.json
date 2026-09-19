@@ -1,56 +1,79 @@
 {
     "skeleton_minion": {
-      "name": "Skeleton Minion",
-      "description": "An animated skeleton bound to its master's will.",
-      "level": 50,
-      "health": 400,
-      "faction": "player_minion",  
-      "friendly": false, 
-      "stats": { 
-        "strength": 20, "dexterity": 8, "constitution": 8, "agility": 7,
-        "intelligence": 0, "wisdom": 0, "spell_power": 0, "magic_resist": 2
-      },
-      "attack_power": 4, 
-      "defense": 3,
-      "behavior_type": "minion", 
-      "dialog": {}, 
-      "default_dialog": "The skeleton stands silently, awaiting orders.",
-      "loot_table": {}, 
-      "usable_spells": [], 
-      "properties": {
-        "is_summoned": true, 
-        "owner_id": null,   
-        "summon_duration": 0, 
-        "creation_time": 0, 
-        "respawn_cooldown": -1, 
-        "aggression": 1.0, 
-        "flee_threshold": 0.0, 
-        "wander_chance": 0.0, 
-        "move_cooldown": 4 
-      }
+        "name": "Skeleton Minion",
+        "description": "An animated skeleton bound to its master's will.",
+        "level": 50.0,
+        "health": 400.0,
+        "faction": "player_minion",
+        "friendly": false,
+        "stats": {
+            "strength": 20.0,
+            "dexterity": 8.0,
+            "constitution": 8.0,
+            "agility": 7.0,
+            "intelligence": 0.0,
+            "wisdom": 0.0,
+            "spell_power": 0.0,
+            "magic_resist": 2.0
+        },
+        "attack_power": 4.0,
+        "defense": 3.0,
+        "behavior_type": "minion",
+        "dialog": {},
+        "default_dialog": "The skeleton stands silently, awaiting orders.",
+        "loot_table": {},
+        "usable_spells": [],
+        "properties": {
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0.0,
+            "creation_time": 0.0,
+            "respawn_cooldown": -1.0,
+            "aggression": 1.0,
+            "flee_threshold": 0.0,
+            "wander_chance": 0.0,
+            "move_cooldown": 4.0
+        }
     },
     "skeletal_mage_minion": {
-      "name": "Skeletal Mage Minion",
-      "description": "An animated skeleton crackling with faint arcane energy.",
-      "level": 1,
-      "health": 30,
-      "max_health": 30,
-      "max_mana": 30,
-      "faction": "player_minion",
-      "friendly": false,
-      "stats": {
-        "strength": 4, "dexterity": 7, "constitution": 6, "agility": 7,
-        "intelligence": 14, "wisdom": 10, "spell_power": 8, "magic_resist": 4
-      },
-      "attack_power": 1, "defense": 2, "behavior_type": "minion", "dialog": {},
-      "default_dialog": "The skeletal mage clicks its jawbones, watching its surroundings.",
-      "loot_table": {},
-      "usable_spells": ["bone_shard"],
-      "properties": {
-        "is_summoned": true, "owner_id": null, "summon_duration": 0,
-        "creation_time": 0, "respawn_cooldown": -1, "aggression": 1.0,
-        "flee_threshold": 0.0, "wander_chance": 0.0, "move_cooldown": 4,
-        "spell_cast_chance": 0.8
-      }
+        "name": "Skeletal Mage Minion",
+        "description": "An animated skeleton crackling with faint arcane energy.",
+        "level": 1.0,
+        "health": 30.0,
+        "max_health": 30.0,
+        "max_mana": 30.0,
+        "faction": "player_minion",
+        "friendly": false,
+        "stats": {
+            "strength": 4.0,
+            "dexterity": 7.0,
+            "constitution": 6.0,
+            "agility": 7.0,
+            "intelligence": 14.0,
+            "wisdom": 10.0,
+            "spell_power": 8.0,
+            "magic_resist": 4.0
+        },
+        "attack_power": 1.0,
+        "defense": 2.0,
+        "behavior_type": "minion",
+        "dialog": {},
+        "default_dialog": "The skeletal mage clicks its jawbones, watching its surroundings.",
+        "loot_table": {},
+        "usable_spells": [
+            "bone_shard"
+        ],
+        "properties": {
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0.0,
+            "creation_time": 0.0,
+            "respawn_cooldown": -1.0,
+            "aggression": 1.0,
+            "flee_threshold": 0.0,
+            "wander_chance": 0.0,
+            "move_cooldown": 4.0,
+            "spell_cast_chance": 0.8
+        }
     }
-  }
+}

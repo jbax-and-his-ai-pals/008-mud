@@ -1,50 +1,106 @@
 {
-  "id": "sada_caravanmaster",
-  "root": "greeting",
-  "nodes": {
-    "greeting": {
-      "text": "Sada compares a fresh route report to a sun-faded map, then taps the mark for the Mirror Oasis.",
-      "choices": [
-        {
-          "text": "Do you need a hand checking the oasis route?",
-          "aliases": ["oasis route", "need help", "work", "mirror oasis"],
-          "condition": {
-            "all": [
-              { "not": { "kind": "quest_active", "quest_id": "quest_sunscorch_oasis_survey" } },
-              { "not": { "kind": "quest_completed", "quest_id": "quest_sunscorch_oasis_survey" } }
+    "id": "sada_caravanmaster",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Sada compares a fresh route report to a sun-faded map, then taps the mark for the Mirror Oasis.",
+            "choices": [
+                {
+                    "text": "Do you need a hand checking the oasis route?",
+                    "aliases": [
+                        "oasis route",
+                        "need help",
+                        "work",
+                        "mirror oasis"
+                    ],
+                    "condition": {
+                        "all": [
+                            {
+                                "not": {
+                                    "kind": "quest_active",
+                                    "quest_id": "quest_sunscorch_oasis_survey"
+                                }
+                            },
+                            {
+                                "not": {
+                                    "kind": "quest_completed",
+                                    "quest_id": "quest_sunscorch_oasis_survey"
+                                }
+                            }
+                        ]
+                    },
+                    "next_node": "briefing"
+                },
+                {
+                    "text": "Remind me about the oasis survey.",
+                    "aliases": [
+                        "what now",
+                        "my assignment",
+                        "survey"
+                    ],
+                    "condition": {
+                        "kind": "quest_active",
+                        "quest_id": "quest_sunscorch_oasis_survey"
+                    },
+                    "next_node": "in_progress"
+                },
+                {
+                    "text": "The Mirror Oasis is still holding.",
+                    "aliases": [
+                        "survey complete",
+                        "oasis report",
+                        "report"
+                    ],
+                    "condition": {
+                        "kind": "quest_completed",
+                        "quest_id": "quest_sunscorch_oasis_survey"
+                    },
+                    "next_node": "resolved"
+                },
+                {
+                    "text": "I will keep moving.",
+                    "end": true
+                }
             ]
-          },
-          "next_node": "briefing"
         },
-        {
-          "text": "Remind me about the oasis survey.",
-          "aliases": ["what now", "my assignment", "survey"],
-          "condition": { "kind": "quest_active", "quest_id": "quest_sunscorch_oasis_survey" },
-          "next_node": "in_progress"
+        "briefing": {
+            "text": "A caravan is due from the mountains, and the Mirror Oasis is the only water I would send them toward. Walk the marked track, reach the pool, and come back with your own report. If the water or the route has changed, people need to know before they wager a whole convoy on it.",
+            "choices": [
+                {
+                    "text": "I will survey the oasis.",
+                    "aliases": [
+                        "accept",
+                        "i will go",
+                        "i'll survey it"
+                    ],
+                    "effects": {
+                        "start_quest": "quest_sunscorch_oasis_survey"
+                    },
+                    "end": true
+                },
+                {
+                    "text": "I need to prepare first.",
+                    "end": true
+                }
+            ]
         },
-        {
-          "text": "The Mirror Oasis is still holding.",
-          "aliases": ["survey complete", "oasis report", "report"],
-          "condition": { "kind": "quest_completed", "quest_id": "quest_sunscorch_oasis_survey" },
-          "next_node": "resolved"
+        "in_progress": {
+            "text": "Take the marked track west through the Dune Cut. The oasis lies beyond the salt flat. A mirage does not water a caravan, so trust the marker stones before your eyes.",
+            "choices": [
+                {
+                    "text": "Understood.",
+                    "end": true
+                }
+            ]
         },
-        { "text": "I will keep moving.", "end": true }
-      ]
-    },
-    "briefing": {
-      "text": "A caravan is due from the mountains, and the Mirror Oasis is the only water I would send them toward. Walk the marked track, reach the pool, and come back with your own report. If the water or the route has changed, people need to know before they wager a whole convoy on it.",
-      "choices": [
-        { "text": "I will survey the oasis.", "aliases": ["accept", "i will go", "i'll survey it"], "effects": { "start_quest": "quest_sunscorch_oasis_survey" }, "end": true },
-        { "text": "I need to prepare first.", "end": true }
-      ]
-    },
-    "in_progress": {
-      "text": "Take the marked track west through the Dune Cut. The oasis lies beyond the salt flat. A mirage does not water a caravan, so trust the marker stones before your eyes.",
-      "choices": [ { "text": "Understood.", "end": true } ]
-    },
-    "resolved": {
-      "text": "Good. A verified water report can keep a dozen people from dying slowly and far from help. Sunscorch remembers that kind of work.",
-      "choices": [ { "text": "Glad to help.", "end": true } ]
+        "resolved": {
+            "text": "Good. A verified water report can keep a dozen people from dying slowly and far from help. Sunscorch remembers that kind of work.",
+            "choices": [
+                {
+                    "text": "Glad to help.",
+                    "end": true
+                }
+            ]
+        }
     }
-  }
 }

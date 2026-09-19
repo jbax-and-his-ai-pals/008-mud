@@ -1,536 +1,536 @@
 {
-  "item_quartz_crystal": {
-    "type": "Gem",
-    "name": "quartz crystal",
-    "description": "A common, semi-precious crystal, cloudy but with a certain charm.",
-    "value": 15,
-    "item_family": "collectible_stone"
-  },
-  "item_tiger_eye": {
-    "type": "Gem",
-    "name": "tiger eye",
-    "description": "A gemstone with a silky luster and a golden-brown hue.",
-    "value": 30,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_garnet": {
-    "type": "Gem",
-    "name": "garnet",
-    "description": "A deep red gemstone, the size of a small pebble.",
-    "value": 50,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_amethyst": {
-    "type": "Gem",
-    "name": "amethyst",
-    "description": "A beautiful violet-colored quartz crystal.",
-    "value": 75,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_jade": {
-    "type": "Gem",
-    "name": "jade",
-    "description": "A smooth, polished stone of a milky green color.",
-    "value": 100,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_sapphire": {
-    "type": "Gem",
-    "name": "sapphire",
-    "description": "A brilliant blue gemstone that seems to capture the light.",
-    "value": 250,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_ruby": {
-    "type": "Gem",
-    "name": "ruby",
-    "description": "A fiery red gemstone, cut with many facets.",
-    "value": 300,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_emerald": {
-    "type": "Gem",
-    "name": "emerald",
-    "description": "A stunning deep green gemstone, though it has a few minor flaws.",
-    "value": 350,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_diamond": {
-    "type": "Gem",
-    "name": "diamond",
-    "description": "A flawless, brilliantly cut diamond of exceptional rarity.",
-    "value": 750,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_shadowquartz": {
-    "type": "Gem",
-    "name": "shadowquartz",
-    "description": "A shard of smoky grey quartz that seems to drink the light around it.",
-    "value": 20,
-    "item_family": "collectible_stone"
-  },
-  "item_agate": {
-    "type": "Gem",
-    "name": "agate",
-    "description": "A common, earthy stone with concentric bands of color.",
-    "value": 30,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_jet": {
-    "type": "Gem",
-    "name": "jet",
-    "description": "A piece of polished black lignite, deep and lusterous.",
-    "value": 35,
-    "item_family": "collectible_stone"
-  },
-  "item_turquoise": {
-    "type": "Gem",
-    "name": "turquoise",
-    "description": "An opaque, blue-to-green stone, often veined with dark matrix.",
-    "value": 40,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_bloodstone": {
-    "type": "Gem",
-    "name": "bloodstone",
-    "description": "A dark green jasper with flecks of red, resembling drops of blood.",
-    "value": 45,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_moonstone": {
-    "type": "Gem",
-    "name": "moonstone",
-    "description": "A pearly, opalescent stone that seems to glow with a soft inner light.",
-    "value": 60,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_peridot": {
-    "type": "Gem",
-    "name": "peridot",
-    "description": "A vibrant lime-green gemstone, often found near volcanic rock.",
-    "value": 90,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_tourmaline": {
-    "type": "Gem",
-    "name": "tourmaline",
-    "description": "A crystal that shows different colors when viewed from different angles.",
-    "value": 110,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_pearl": {
-    "type": "Gem",
-    "name": "pearl",
-    "description": "A smooth, lustrous pearl, harvested from a river oyster.",
-    "value": 120,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_topaz": {
-    "type": "Gem",
-    "name": "topaz",
-    "description": "A silicate mineral, this one a brilliant shade of sunny yellow.",
-    "value": 150,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_aquamarine": {
-    "type": "Gem",
-    "name": "aquamarine",
-    "description": "A clear, pale blue gemstone that evokes the color of the sea.",
-    "value": 175,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_opal": {
-    "type": "Gem",
-    "name": "opal",
-    "description": "A beautiful stone that diffracts light to show a shimmering play of colors.",
-    "value": 200,
-    "item_family": "collectible_stone"
-  },
-  "item_spinel": {
-    "type": "Gem",
-    "name": "spinel",
-    "description": "A magnificent gemstone, often mistaken for a ruby due to its deep red hue.",
-    "value": 220,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_sunstone": {
-    "type": "Gem",
-    "name": "sunstone",
-    "description": "A fiery orange gemstone that seems to contain captured sunlight.",
-    "value": 280,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_stormstone": {
-    "type": "Gem",
-    "name": "stormstone",
-    "description": "A dark grey gem with veins of yellow that seem to crackle with latent energy.",
-    "value": 320,
-    "item_family": "collectible_stone"
-  },
-  "item_fey_opal": {
-    "type": "Gem",
-    "name": "fey-opal",
-    "description": "An otherworldly opal whose colors shift in ways that defy the laws of light.",
-    "value": 450,
-    "item_family": "collectible_stone"
-  },
-  "item_star_sapphire": {
-    "type": "Gem",
-    "name": "star sapphire",
-    "description": "A deep blue sapphire that exhibits a perfect six-rayed star under light.",
-    "value": 500,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_soulgem": {
-    "type": "Gem",
-    "name": "soulgem",
-    "description": "A flawless black crystal that is unnervingly cold to the touch and seems to drink the light around it. It feels... empty.",
-    "value": 600,
-    "item_family": "collectible_stone"
-  },
-  "item_black_diamond": {
-    "type": "Gem",
-    "name": "black diamond",
-    "description": "An extremely rare, opaque black diamond of incredible hardness.",
-    "value": 900,
-    "item_family": "collectible_stone"
-  },
-  "item_alexandrite": {
-    "type": "Gem",
-    "name": "alexandrite",
-    "description": "A rare crystal that shifts from green to red as it turns.",
-    "value": 380,
-    "item_family": "collectible_stone"
-  },
-  "item_amber": {
-    "type": "Gem",
-    "name": "amber",
-    "description": "Warm golden resin holding a tiny fragment of an ancient world.",
-    "value": 55,
-    "item_family": "collectible_stone"
-  },
-  "item_carnelian": {
-    "type": "Gem",
-    "name": "carnelian",
-    "description": "A polished orange-red stone with a sunlit glow.",
-    "value": 65,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_chrysoberyl": {
-    "type": "Gem",
-    "name": "chrysoberyl",
-    "description": "A clear yellow-green gem with a sharp, glassy shine.",
-    "value": 210,
-    "item_family": "collectible_stone"
-  },
-  "item_citrine": {
-    "type": "Gem",
-    "name": "citrine",
-    "description": "A bright honey-colored quartz crystal.",
-    "value": 70,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_coral_gem": {
-    "type": "Gem",
-    "name": "coral gem",
-    "description": "A polished branch of deep pink sea-coral.",
-    "value": 85,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_iolite": {
-    "type": "Gem",
-    "name": "iolite",
-    "description": "A dusky blue-violet stone favored by navigators.",
-    "value": 130,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_labradorite": {
-    "type": "Gem",
-    "name": "labradorite",
-    "description": "A grey stone flashing blue and green beneath its surface.",
-    "value": 115,
-    "item_family": "collectible_stone"
-  },
-  "item_lapis_lazuli": {
-    "type": "Gem",
-    "name": "lapis lazuli",
-    "description": "A royal blue stone scattered with tiny gold-colored sparks.",
-    "value": 95,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_malachite": {
-    "type": "Gem",
-    "name": "malachite",
-    "description": "A banded green stone with hypnotic concentric patterns.",
-    "value": 75,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_obsidian_shard": {
-    "type": "Gem",
-    "name": "obsidian shard",
-    "description": "Volcanic glass with an edge dark enough to swallow candlelight.",
-    "value": 45,
-    "item_family": "collectible_stone"
-  },
-  "item_rhodonite": {
-    "type": "Gem",
-    "name": "rhodonite",
-    "description": "A rose-pink stone veined with charcoal black.",
-    "value": 105,
-    "item_family": "collectible_stone"
-  },
-  "item_rose_quartz": {
-    "type": "Gem",
-    "name": "rose quartz",
-    "description": "A soft pink crystal with a gentle inner cloudiness.",
-    "value": 50,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "properties": {
-      "discovery_tags": [
-        "field_material"
-      ],
-      "appraisal": {
-        "summary": "A natural specimen with a soft, even blush.",
-        "quality": "rough specimen",
-        "origin": "rocky uplands",
-        "traits": [
-          "collectable",
-          "cuttable"
-        ]
-      }
+    "item_quartz_crystal": {
+        "type": "Gem",
+        "name": "quartz crystal",
+        "description": "A common, semi-precious crystal, cloudy but with a certain charm.",
+        "value": 15.0,
+        "item_family": "collectible_stone"
     },
-    "item_family": "collectible_stone"
-  },
-  "item_faceted_rose_quartz": {
-    "type": "Gem",
-    "name": "faceted rose quartz",
-    "description": "Rose quartz cut into clean facets that gather a warm, pink light.",
-    "value": 85,
-    "properties": {
-      "discovery_tags": [
-        "field_material"
-      ],
-      "appraisal": {
-        "summary": "A carefully cut ornamental stone with an even polish.",
-        "quality": "faceted",
-        "origin": "refined from a natural specimen",
-        "craft": "lapidary work",
-        "traits": [
-          "gift-worthy",
-          "trade good"
-        ]
-      },
-      "attachment": {
-        "slot": "ornament",
-        "modifiers": {
-          "attack": 1
-        }
-      }
+    "item_tiger_eye": {
+        "type": "Gem",
+        "name": "tiger eye",
+        "description": "A gemstone with a silky luster and a golden-brown hue.",
+        "value": 30.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
     },
-    "item_family": "collectible_stone"
-  },
-  "item_serpentine": {
-    "type": "Gem",
-    "name": "serpentine",
-    "description": "A waxy green stone with a subtle scaled pattern.",
-    "value": 40,
-    "item_family": "collectible_stone"
-  },
-  "item_zircon": {
-    "type": "Gem",
-    "name": "zircon",
-    "description": "A bright crystal whose facets throw fierce sparks of light.",
-    "value": 160,
-    "item_family": "collectible_stone"
-  },
-  "item_dragons_eye": {
-    "type": "Gem",
-    "name": "dragon's eye",
-    "description": "A legendary gemstone, warm to the touch, with a deep, fiery core that seems to watch you.",
-    "value": 1000,
-    "rarity": "legendary",
-    "weight": 0.2,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_azurite": {
-    "type": "Gem",
-    "name": "azurite",
-    "description": "A deep-blue mineral prized by painters and mystics alike.",
-    "value": 8,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_black_opal": {
-    "type": "Gem",
-    "name": "black opal",
-    "description": "A dark stone alive with sudden flashes of green and crimson.",
-    "value": 260,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_black_pearl": {
-    "type": "Gem",
-    "name": "black pearl",
-    "description": "A lustrous pearl with a midnight sheen from the deepest waters.",
-    "value": 180,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_chrysoprase": {
-    "type": "Gem",
-    "name": "chrysoprase",
-    "description": "A vivid apple-green chalcedony cut into a smooth cabochon.",
-    "value": 48,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_fire_opal": {
-    "type": "Gem",
-    "name": "fire opal",
-    "description": "An orange opal with a restless ember burning at its heart.",
-    "value": 235,
-    "rarity": "rare",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_golden_beryl": {
-    "type": "Gem",
-    "name": "golden beryl",
-    "description": "A honey-colored crystal that seems to hold the last light of day.",
-    "value": 55,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_jasper": {
-    "type": "Gem",
-    "name": "red jasper",
-    "description": "An opaque red stone with a pleasing, even polish.",
-    "value": 6,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_obsidian": {
-    "type": "Gem",
-    "name": "obsidian shard",
-    "description": "A razor-edged fragment of volcanic glass, black as a moonless pool.",
-    "value": 5,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_onyx": {
-    "type": "Gem",
-    "name": "onyx",
-    "description": "A polished black stone with a quiet, mirror-like finish.",
-    "value": 25,
-    "rarity": "uncommon",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  },
-  "item_smoky_quartz": {
-    "type": "Gem",
-    "name": "smoky quartz",
-    "description": "A translucent brown crystal with the color of banked hearth ash.",
-    "value": 11,
-    "rarity": "common",
-    "weight": 0.1,
-    "stackable": true,
-    "item_family": "collectible_stone"
-  }
+    "item_garnet": {
+        "type": "Gem",
+        "name": "garnet",
+        "description": "A deep red gemstone, the size of a small pebble.",
+        "value": 50.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_amethyst": {
+        "type": "Gem",
+        "name": "amethyst",
+        "description": "A beautiful violet-colored quartz crystal.",
+        "value": 75.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_jade": {
+        "type": "Gem",
+        "name": "jade",
+        "description": "A smooth, polished stone of a milky green color.",
+        "value": 100.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_sapphire": {
+        "type": "Gem",
+        "name": "sapphire",
+        "description": "A brilliant blue gemstone that seems to capture the light.",
+        "value": 250.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_ruby": {
+        "type": "Gem",
+        "name": "ruby",
+        "description": "A fiery red gemstone, cut with many facets.",
+        "value": 300.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_emerald": {
+        "type": "Gem",
+        "name": "emerald",
+        "description": "A stunning deep green gemstone, though it has a few minor flaws.",
+        "value": 350.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_diamond": {
+        "type": "Gem",
+        "name": "diamond",
+        "description": "A flawless, brilliantly cut diamond of exceptional rarity.",
+        "value": 750.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_shadowquartz": {
+        "type": "Gem",
+        "name": "shadowquartz",
+        "description": "A shard of smoky grey quartz that seems to drink the light around it.",
+        "value": 20.0,
+        "item_family": "collectible_stone"
+    },
+    "item_agate": {
+        "type": "Gem",
+        "name": "agate",
+        "description": "A common, earthy stone with concentric bands of color.",
+        "value": 30.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_jet": {
+        "type": "Gem",
+        "name": "jet",
+        "description": "A piece of polished black lignite, deep and lusterous.",
+        "value": 35.0,
+        "item_family": "collectible_stone"
+    },
+    "item_turquoise": {
+        "type": "Gem",
+        "name": "turquoise",
+        "description": "An opaque, blue-to-green stone, often veined with dark matrix.",
+        "value": 40.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_bloodstone": {
+        "type": "Gem",
+        "name": "bloodstone",
+        "description": "A dark green jasper with flecks of red, resembling drops of blood.",
+        "value": 45.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_moonstone": {
+        "type": "Gem",
+        "name": "moonstone",
+        "description": "A pearly, opalescent stone that seems to glow with a soft inner light.",
+        "value": 60.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_peridot": {
+        "type": "Gem",
+        "name": "peridot",
+        "description": "A vibrant lime-green gemstone, often found near volcanic rock.",
+        "value": 90.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_tourmaline": {
+        "type": "Gem",
+        "name": "tourmaline",
+        "description": "A crystal that shows different colors when viewed from different angles.",
+        "value": 110.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_pearl": {
+        "type": "Gem",
+        "name": "pearl",
+        "description": "A smooth, lustrous pearl, harvested from a river oyster.",
+        "value": 120.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_topaz": {
+        "type": "Gem",
+        "name": "topaz",
+        "description": "A silicate mineral, this one a brilliant shade of sunny yellow.",
+        "value": 150.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_aquamarine": {
+        "type": "Gem",
+        "name": "aquamarine",
+        "description": "A clear, pale blue gemstone that evokes the color of the sea.",
+        "value": 175.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_opal": {
+        "type": "Gem",
+        "name": "opal",
+        "description": "A beautiful stone that diffracts light to show a shimmering play of colors.",
+        "value": 200.0,
+        "item_family": "collectible_stone"
+    },
+    "item_spinel": {
+        "type": "Gem",
+        "name": "spinel",
+        "description": "A magnificent gemstone, often mistaken for a ruby due to its deep red hue.",
+        "value": 220.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_sunstone": {
+        "type": "Gem",
+        "name": "sunstone",
+        "description": "A fiery orange gemstone that seems to contain captured sunlight.",
+        "value": 280.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_stormstone": {
+        "type": "Gem",
+        "name": "stormstone",
+        "description": "A dark grey gem with veins of yellow that seem to crackle with latent energy.",
+        "value": 320.0,
+        "item_family": "collectible_stone"
+    },
+    "item_fey_opal": {
+        "type": "Gem",
+        "name": "fey-opal",
+        "description": "An otherworldly opal whose colors shift in ways that defy the laws of light.",
+        "value": 450.0,
+        "item_family": "collectible_stone"
+    },
+    "item_star_sapphire": {
+        "type": "Gem",
+        "name": "star sapphire",
+        "description": "A deep blue sapphire that exhibits a perfect six-rayed star under light.",
+        "value": 500.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_soulgem": {
+        "type": "Gem",
+        "name": "soulgem",
+        "description": "A flawless black crystal that is unnervingly cold to the touch and seems to drink the light around it. It feels... empty.",
+        "value": 600.0,
+        "item_family": "collectible_stone"
+    },
+    "item_black_diamond": {
+        "type": "Gem",
+        "name": "black diamond",
+        "description": "An extremely rare, opaque black diamond of incredible hardness.",
+        "value": 900.0,
+        "item_family": "collectible_stone"
+    },
+    "item_alexandrite": {
+        "type": "Gem",
+        "name": "alexandrite",
+        "description": "A rare crystal that shifts from green to red as it turns.",
+        "value": 380.0,
+        "item_family": "collectible_stone"
+    },
+    "item_amber": {
+        "type": "Gem",
+        "name": "amber",
+        "description": "Warm golden resin holding a tiny fragment of an ancient world.",
+        "value": 55.0,
+        "item_family": "collectible_stone"
+    },
+    "item_carnelian": {
+        "type": "Gem",
+        "name": "carnelian",
+        "description": "A polished orange-red stone with a sunlit glow.",
+        "value": 65.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_chrysoberyl": {
+        "type": "Gem",
+        "name": "chrysoberyl",
+        "description": "A clear yellow-green gem with a sharp, glassy shine.",
+        "value": 210.0,
+        "item_family": "collectible_stone"
+    },
+    "item_citrine": {
+        "type": "Gem",
+        "name": "citrine",
+        "description": "A bright honey-colored quartz crystal.",
+        "value": 70.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_coral_gem": {
+        "type": "Gem",
+        "name": "coral gem",
+        "description": "A polished branch of deep pink sea-coral.",
+        "value": 85.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_iolite": {
+        "type": "Gem",
+        "name": "iolite",
+        "description": "A dusky blue-violet stone favored by navigators.",
+        "value": 130.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_labradorite": {
+        "type": "Gem",
+        "name": "labradorite",
+        "description": "A grey stone flashing blue and green beneath its surface.",
+        "value": 115.0,
+        "item_family": "collectible_stone"
+    },
+    "item_lapis_lazuli": {
+        "type": "Gem",
+        "name": "lapis lazuli",
+        "description": "A royal blue stone scattered with tiny gold-colored sparks.",
+        "value": 95.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_malachite": {
+        "type": "Gem",
+        "name": "malachite",
+        "description": "A banded green stone with hypnotic concentric patterns.",
+        "value": 75.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_obsidian_shard": {
+        "type": "Gem",
+        "name": "obsidian shard",
+        "description": "Volcanic glass with an edge dark enough to swallow candlelight.",
+        "value": 45.0,
+        "item_family": "collectible_stone"
+    },
+    "item_rhodonite": {
+        "type": "Gem",
+        "name": "rhodonite",
+        "description": "A rose-pink stone veined with charcoal black.",
+        "value": 105.0,
+        "item_family": "collectible_stone"
+    },
+    "item_rose_quartz": {
+        "type": "Gem",
+        "name": "rose quartz",
+        "description": "A soft pink crystal with a gentle inner cloudiness.",
+        "value": 50.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "properties": {
+            "discovery_tags": [
+                "field_material"
+            ],
+            "appraisal": {
+                "summary": "A natural specimen with a soft, even blush.",
+                "quality": "rough specimen",
+                "origin": "rocky uplands",
+                "traits": [
+                    "collectable",
+                    "cuttable"
+                ]
+            }
+        },
+        "item_family": "collectible_stone"
+    },
+    "item_faceted_rose_quartz": {
+        "type": "Gem",
+        "name": "faceted rose quartz",
+        "description": "Rose quartz cut into clean facets that gather a warm, pink light.",
+        "value": 85.0,
+        "properties": {
+            "discovery_tags": [
+                "field_material"
+            ],
+            "appraisal": {
+                "summary": "A carefully cut ornamental stone with an even polish.",
+                "quality": "faceted",
+                "origin": "refined from a natural specimen",
+                "craft": "lapidary work",
+                "traits": [
+                    "gift-worthy",
+                    "trade good"
+                ]
+            },
+            "attachment": {
+                "slot": "ornament",
+                "modifiers": {
+                    "attack": 1.0
+                }
+            }
+        },
+        "item_family": "collectible_stone"
+    },
+    "item_serpentine": {
+        "type": "Gem",
+        "name": "serpentine",
+        "description": "A waxy green stone with a subtle scaled pattern.",
+        "value": 40.0,
+        "item_family": "collectible_stone"
+    },
+    "item_zircon": {
+        "type": "Gem",
+        "name": "zircon",
+        "description": "A bright crystal whose facets throw fierce sparks of light.",
+        "value": 160.0,
+        "item_family": "collectible_stone"
+    },
+    "item_dragons_eye": {
+        "type": "Gem",
+        "name": "dragon's eye",
+        "description": "A legendary gemstone, warm to the touch, with a deep, fiery core that seems to watch you.",
+        "value": 1000.0,
+        "rarity": "legendary",
+        "weight": 0.2,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_azurite": {
+        "type": "Gem",
+        "name": "azurite",
+        "description": "A deep-blue mineral prized by painters and mystics alike.",
+        "value": 8.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_black_opal": {
+        "type": "Gem",
+        "name": "black opal",
+        "description": "A dark stone alive with sudden flashes of green and crimson.",
+        "value": 260.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_black_pearl": {
+        "type": "Gem",
+        "name": "black pearl",
+        "description": "A lustrous pearl with a midnight sheen from the deepest waters.",
+        "value": 180.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_chrysoprase": {
+        "type": "Gem",
+        "name": "chrysoprase",
+        "description": "A vivid apple-green chalcedony cut into a smooth cabochon.",
+        "value": 48.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_fire_opal": {
+        "type": "Gem",
+        "name": "fire opal",
+        "description": "An orange opal with a restless ember burning at its heart.",
+        "value": 235.0,
+        "rarity": "rare",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_golden_beryl": {
+        "type": "Gem",
+        "name": "golden beryl",
+        "description": "A honey-colored crystal that seems to hold the last light of day.",
+        "value": 55.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_jasper": {
+        "type": "Gem",
+        "name": "red jasper",
+        "description": "An opaque red stone with a pleasing, even polish.",
+        "value": 6.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_obsidian": {
+        "type": "Gem",
+        "name": "obsidian shard",
+        "description": "A razor-edged fragment of volcanic glass, black as a moonless pool.",
+        "value": 5.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_onyx": {
+        "type": "Gem",
+        "name": "onyx",
+        "description": "A polished black stone with a quiet, mirror-like finish.",
+        "value": 25.0,
+        "rarity": "uncommon",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    },
+    "item_smoky_quartz": {
+        "type": "Gem",
+        "name": "smoky quartz",
+        "description": "A translucent brown crystal with the color of banked hearth ash.",
+        "value": 11.0,
+        "rarity": "common",
+        "weight": 0.1,
+        "stackable": true,
+        "item_family": "collectible_stone"
+    }
 }

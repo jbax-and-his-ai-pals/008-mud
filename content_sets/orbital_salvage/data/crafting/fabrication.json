@@ -1,4 +1,5 @@
 {
+  "_comment": "The ingredient names a rule, not a template: any two salvaged parts of grade 2 or better, which is what the salvage bench on the deck actually yields. A lattice shard substitutes for either, at a grade penalty -- it is the best part aboard and the worst thing to cut up for a patch kit. See docs/design/cross_theme_engine_contracts.md.",
   "fabricate_patch_kit": {
     "name": "Fabricate Patch Kit",
     "aliases": ["patch kit", "patch", "medkit", "kit"],
@@ -24,8 +25,14 @@
       { "id": "clean", "label": "Clean", "min_crafts": 5, "value_multiplier": 1.4 }
     ],
     "ingredients": [
-      { "item_id": "item_servo_cluster", "quantity": 1 },
-      { "item_id": "item_cell_stack", "quantity": 1 }
+      {
+        "item_family": "salvaged_part",
+        "quantity": 2,
+        "min_material_quality": 2,
+        "alternatives": [
+          { "item_id": "item_lattice_shard", "quality_penalty": 1 }
+        ]
+      }
     ]
   }
 }

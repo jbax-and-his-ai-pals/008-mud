@@ -1,50 +1,106 @@
 {
-  "region_id": "kobold_warren",
-  "name": "Tideglass Warren",
-  "description": "A crude kobold settlement dug into the dry rock behind the sea caves. Driftwood braces, shell charms, and stolen lantern glass make the place feel occupied rather than merely infested.",
-  "properties": {
-    "biome": "natural_caverns",
-    "region_type": "settlement",
-    "level_band": { "min": 2, "max": 4 }
-  },
-  "spawner": {
-    "monster_types": { "kobold_skirmisher": 8, "giant_rat": 2 },
-    "level_range": [2, 3]
-  },
-  "rooms": {
-    "wet_tunnel": {
-      "name": "Wet Tunnel",
-      "description": "A low tunnel leaves the back of the sea cave and climbs above the tide line. Small clawed footprints cross the damp sand, and bits of coloured glass catch the light ahead.",
-      "properties": { "dark": true },
-      "exits": { "east": "coastal_path:sea_cave_back", "west": "shell_gate" }
+    "region_id": "kobold_warren",
+    "name": "Tideglass Warren",
+    "description": "A crude kobold settlement dug into the dry rock behind the sea caves. Driftwood braces, shell charms, and stolen lantern glass make the place feel occupied rather than merely infested.",
+    "properties": {
+        "biome": "natural_caverns",
+        "region_type": "settlement",
+        "level_band": {
+            "min": 2.0,
+            "max": 4.0
+        }
     },
-    "shell_gate": {
-      "name": "Shell Gate",
-      "description": "A driftwood barricade has been fitted into the tunnel mouth, decorated with shells and fish bones. It is less a fortification than a declaration that this place belongs to someone.",
-      "properties": { "dark": true },
-      "exits": { "east": "wet_tunnel", "west": "common_hollow", "north": "lookout_niche" },
-      "initial_npcs": [ { "template_id": "kobold_skirmisher", "instance_id": "tideglass_gate_watch" } ]
+    "spawner": {
+        "monster_types": {
+            "kobold_skirmisher": 8.0,
+            "giant_rat": 2.0
+        },
+        "level_range": [
+            2.0,
+            3.0
+        ]
     },
-    "lookout_niche": {
-      "name": "Tideglass Lookout",
-      "description": "A narrow crack in the cliff looks out across the beach. A little pile of shiny stones and broken metal has been arranged here as if it were a signal station.",
-      "properties": { "dark": true },
-      "exits": { "south": "shell_gate" },
-      "items": [ { "item_id": "item_shiny_rock", "quantity": 2 } ]
-    },
-    "common_hollow": {
-      "name": "Common Hollow",
-      "description": "Several small sleeping nests ring a smoky fire pit. The kobolds have sorted driftwood, rope, and scavenged metal into careful piles; their settlement has routines, stores, and something worth defending.",
-      "properties": { "dark": true, "smell": "smoke and brine" },
-      "exits": { "east": "shell_gate", "west": "tideglass_cache" },
-      "initial_npcs": [ { "template_id": "kobold_skirmisher", "instance_id": "tideglass_common_skirmisher" } ]
-    },
-    "tideglass_cache": {
-      "name": "Tideglass Cache",
-      "description": "A dry pocket at the back of the warren holds the settlement's best finds: unbroken tools, bright stones, and a few objects clearly taken from careless travellers.",
-      "properties": { "dark": true },
-      "exits": { "east": "common_hollow" },
-      "items": [ { "item_id": "item_rusty_sword" }, { "item_id": "item_shiny_rock" } ]
+    "rooms": {
+        "wet_tunnel": {
+            "name": "Wet Tunnel",
+            "description": "A low tunnel leaves the back of the sea cave and climbs above the tide line. Small clawed footprints cross the damp sand, and bits of coloured glass catch the light ahead.",
+            "properties": {
+                "dark": true
+            },
+            "exits": {
+                "east": "coastal_path:sea_cave_back",
+                "west": "shell_gate"
+            }
+        },
+        "shell_gate": {
+            "name": "Shell Gate",
+            "description": "A driftwood barricade has been fitted into the tunnel mouth, decorated with shells and fish bones. It is less a fortification than a declaration that this place belongs to someone.",
+            "properties": {
+                "dark": true
+            },
+            "exits": {
+                "east": "wet_tunnel",
+                "west": "common_hollow",
+                "north": "lookout_niche"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kobold_skirmisher",
+                    "instance_id": "tideglass_gate_watch"
+                }
+            ]
+        },
+        "lookout_niche": {
+            "name": "Tideglass Lookout",
+            "description": "A narrow crack in the cliff looks out across the beach. A little pile of shiny stones and broken metal has been arranged here as if it were a signal station.",
+            "properties": {
+                "dark": true
+            },
+            "exits": {
+                "south": "shell_gate"
+            },
+            "items": [
+                {
+                    "item_id": "item_shiny_rock",
+                    "quantity": 2.0
+                }
+            ]
+        },
+        "common_hollow": {
+            "name": "Common Hollow",
+            "description": "Several small sleeping nests ring a smoky fire pit. The kobolds have sorted driftwood, rope, and scavenged metal into careful piles; their settlement has routines, stores, and something worth defending.",
+            "properties": {
+                "dark": true,
+                "smell": "smoke and brine"
+            },
+            "exits": {
+                "east": "shell_gate",
+                "west": "tideglass_cache"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kobold_skirmisher",
+                    "instance_id": "tideglass_common_skirmisher"
+                }
+            ]
+        },
+        "tideglass_cache": {
+            "name": "Tideglass Cache",
+            "description": "A dry pocket at the back of the warren holds the settlement's best finds: unbroken tools, bright stones, and a few objects clearly taken from careless travellers.",
+            "properties": {
+                "dark": true
+            },
+            "exits": {
+                "east": "common_hollow"
+            },
+            "items": [
+                {
+                    "item_id": "item_rusty_sword"
+                },
+                {
+                    "item_id": "item_shiny_rock"
+                }
+            ]
+        }
     }
-  }
 }

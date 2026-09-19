@@ -2,18 +2,29 @@
     "region_id": "mountains",
     "name": "Frostpeak Mountains",
     "description": "The jagged peaks of the Frostpeak range loom over the region. The air is thin and cold, and snow persists year-round on the higher slopes.",
-    "properties": { "biome": "alpine", "weather_profile": "alpine", "region_type": "wilderness", "level_band": { "min": 5, "max": 8 } },
+    "properties": {
+        "biome": "alpine",
+        "weather_profile": "alpine",
+        "region_type": "wilderness",
+        "level_band": {
+            "min": 5.0,
+            "max": 8.0
+        }
+    },
     "spawner": {
         "monster_types": {
-            "orc_grunt": 4,
-            "hobgoblin_soldier": 3,
-            "dire_wolf": 3,
-            "harpy": 2,
-            "orc_shaman": 1,
-            "earth_elemental": 1,
-            "troll": 2
+            "orc_grunt": 4.0,
+            "hobgoblin_soldier": 3.0,
+            "dire_wolf": 3.0,
+            "harpy": 2.0,
+            "orc_shaman": 1.0,
+            "earth_elemental": 1.0,
+            "troll": 2.0
         },
-        "level_range": [5, 8]
+        "level_range": [
+            5.0,
+            8.0
+        ]
     },
     "rooms": {
         "mine_exit": {
@@ -58,13 +69,19 @@
                 "west": "crevasse_edge",
                 "northeast": "sunscorch_road:windbreak_pass"
             },
-            "properties": { "weather": "windy" }
+            "properties": {
+                "weather": "windy"
+            }
         },
         "crevasse_edge": {
             "name": "Edge of a Crevasse",
             "description": "The path skirts the edge of a deep, icy crevasse. A blast of freezing air rises from the depths, and the ground looks unstable.",
-            "exits": { "east": "high_pass" },
-            "properties": {"weather": "windy"}
+            "exits": {
+                "east": "high_pass"
+            },
+            "properties": {
+                "weather": "windy"
+            }
         },
         "up_to_summit": {
             "name": "Final Ascent",
@@ -82,9 +99,13 @@
                 "north": "hidden_valley_descent"
             },
             "items": [
-                { "item_id": "item_summit_offering" }
+                {
+                    "item_id": "item_summit_offering"
+                }
             ],
-            "properties": { "weather": "snowy" }
+            "properties": {
+                "weather": "snowy"
+            }
         },
         "hidden_valley_descent": {
             "name": "Descent into Shadow",
@@ -102,18 +123,28 @@
                 "north": "valley_cave"
             },
             "items": [
-               { "item_id": "item_frostpetal" },
-               { "item_id": "node_fallen_bough" }
+                {
+                    "item_id": "item_frostpetal"
+                },
+                {
+                    "item_id": "node_fallen_bough"
+                }
             ]
         },
         "valley_cave": {
             "name": "Small Valley Cave",
             "description": "A small, dry cave at the northern end of the hidden valley. Looks like it might have been used as a shelter recently.",
-            "exits": { "south": "hidden_valley" },
+            "exits": {
+                "south": "hidden_valley"
+            },
             "items": [
-                { "item_id": "item_old_campfire" }
+                {
+                    "item_id": "item_old_campfire"
+                }
             ],
-            "properties": {"dark": true}
+            "properties": {
+                "dark": true
+            }
         },
         "frozen_waterfall_base": {
             "name": "Frozen Waterfall",
@@ -131,24 +162,28 @@
                 "in": "ice_cave"
             }
         },
-         "ice_cave": {
+        "ice_cave": {
             "name": "Glacial Cave",
             "description": "Inside the ice cave, the temperature plummets. The air is still and silent. The ice walls glimmer, reflecting light in strange ways.",
             "exits": {
                 "out": "ice_cave_entrance",
                 "in": "ice_cave_chamber"
             },
-            "properties": { "dark": true }
+            "properties": {
+                "dark": true
+            }
         },
         "ice_cave_chamber": {
             "name": "Inner Ice Chamber",
             "description": "Deeper within the ice cave, the ice walls seem ancient and impossibly thick. A killing chill flows from something large frozen within the ice at the chamber's center; exposed skin begins to numb within moments.",
-            "exits": { "out": "ice_cave" },
+            "exits": {
+                "out": "ice_cave"
+            },
             "properties": {
                 "dark": true,
                 "temperature": "cold",
                 "hazard_type": "extreme_cold",
-                "hazard_damage": 5,
+                "hazard_damage": 5.0,
                 "hazard_tick_interval": 5.0
             }
         }

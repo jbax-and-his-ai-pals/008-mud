@@ -385,13 +385,10 @@
   },
   "crafting": {
     "salvage_rules": {
-      "Weapon": {
-        "item_id": "item_iron_ingot",
-        "quantity_per_weight": 0.5
-      },
-      "Armor": {
-        "item_id": "item_iron_ingot",
-        "quantity_per_weight": 0.5
+      "_comment": "Keyed by what a thing *is* (its item family), not by the engine class the family happens to resolve to. The old 'Weapon'/'Armor' keys said the same thing less precisely: they were a proxy for these two families, and any weapon or armour template with no family of its own would have joined the rule without anyone deciding it should. The eleven templates that were never made of iron (leather armour comes back as strips, the quartz talisman as quartz) already say so in their own `salvage_output` property, which is still asked first.",
+      "by_family": {
+        "weapon": { "item_id": "item_iron_ingot", "quantity_per_weight": 0.5 },
+        "armor": { "item_id": "item_iron_ingot", "quantity_per_weight": 0.5 }
       },
       "default_item_id": "item_scrap"
     }

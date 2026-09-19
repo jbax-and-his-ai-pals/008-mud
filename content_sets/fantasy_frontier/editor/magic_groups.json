@@ -1,11 +1,25 @@
 {
-	"groups": {
-		"restoration": { "name": "Restoration" },
-		"curses": { "name": "Curses" },
-		"elemental": { "name": "Elemental" },
-		"evocation": { "name": "Evocation" },
-		"conjuration": { "name": "Conjuration" },
-		"utility": { "name": "Utility" },
-		"general": { "name": "General" }
-	}
+    "groups": {
+        "restoration": {
+            "name": "Restoration"
+        },
+        "curses": {
+            "name": "Curses"
+        },
+        "elemental": {
+            "name": "Elemental"
+        },
+        "evocation": {
+            "name": "Evocation"
+        },
+        "conjuration": {
+            "name": "Conjuration"
+        },
+        "utility": {
+            "name": "Utility"
+        },
+        "general": {
+            "name": "General"
+        }
+    }
 }
