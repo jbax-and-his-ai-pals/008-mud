@@ -22,12 +22,12 @@ func build(c: VBoxContainer, data: Dictionary, groups: Dictionary):
 
 func _build_spell_details():
 	container.add_child(HSeparator.new())
-	container.add_child(InspectorStyle.create_sub_header("Spell Details"))
+	container.add_child(InspectorStyle.create_sub_header("Ability Details"))
 	var card := InspectorStyle.create_card()
 	var box: VBoxContainer = card.get_child(0).get_child(0)
 	container.add_child(card)
 
-	box.add_child(InspectorStyle.lbl("Spell Group", InspectorStyle.COLOR_TEXT_DIM))
+	box.add_child(InspectorStyle.lbl("Ability Group", InspectorStyle.COLOR_TEXT_DIM))
 	var group_picker := OptionButton.new(); InspectorStyle.apply_input_style(group_picker)
 	var group_ids: Array = known_groups.keys()
 	group_ids.sort_custom(func(a, b): return str(known_groups[a].get("name", a)).nocasecmp_to(str(known_groups[b].get("name", b))) < 0)
@@ -46,7 +46,7 @@ func _build_spell_details():
 	grid.add_theme_constant_override("h_separation", 14)
 	grid.add_theme_constant_override("v_separation", 8)
 	box.add_child(grid)
-	_add_number_field(grid, "Mana Cost", "mana_cost", 0.0, 0.0, 999.0, 1.0)
+	_add_number_field(grid, "Cost", "mana_cost", 0.0, 0.0, 999.0, 1.0)
 	_add_number_field(grid, "Level Required", "level_required", 1.0, 1.0, 99.0, 1.0)
 	_add_number_field(grid, "Cooldown (sec)", "cooldown", 0.0, 0.0, 999.0, 0.25)
 	_add_number_field(grid, "Cast Time (sec)", "cast_time", 0.0, 0.0, 60.0, 0.1)

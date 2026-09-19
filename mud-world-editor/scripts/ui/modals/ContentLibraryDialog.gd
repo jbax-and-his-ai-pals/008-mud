@@ -17,6 +17,8 @@ var cached_npcs: Dictionary = {}
 var cached_items: Dictionary = {}
 var cached_magic: Dictionary = {}
 var cached_quests: Dictionary = {}
+var cached_recipes: Dictionary = {}
+var cached_dialogues: Dictionary = {}
 var cached_templates: Dictionary = {}
 var cached_dirty: Dictionary = {}
 
@@ -48,14 +50,22 @@ var spell_groups_dialog: ConfirmationDialog
 
 const DATABASE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/DatabaseInspector.gd")
 const QUEST_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/QuestInspector.gd")
+const RECIPE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/RecipeInspector.gd")
+const DIALOGUE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DialogueInspector.gd")
 
 const CATEGORIES := [
 	{"key": "npc", "label": "NPCs", "color": Color.LIGHT_GREEN},
 	{"key": "monster", "label": "Monsters", "color": Color.SALMON},
 	{"key": "item", "label": "Items", "color": Color.AQUAMARINE},
 	{"key": "gem", "label": "Gems", "color": Color(0.45, 0.9, 0.95)},
-	{"key": "magic", "label": "Magic", "color": Color.VIOLET},
+	# The category key stays `magic` -- it is the cache name, the dirty-flag key,
+	# and the name of persisted editor state (`magic_groups.json`). What an author
+	# reads is "Abilities": a set whose abilities are device charges should not be
+	# told it is authoring spells.
+	{"key": "magic", "label": "Abilities", "color": Color.VIOLET},
 	{"key": "quest", "label": "Quests", "color": Color.GOLD},
+	{"key": "recipe", "label": "Recipes", "color": Color(0.7, 0.85, 0.5)},
+	{"key": "dialogue", "label": "Dialogue", "color": Color(0.86, 0.75, 0.95)},
 	{"key": "template", "label": "Templates", "color": Color(0.85, 0.72, 0.35)}
 ]
 
@@ -86,12 +96,14 @@ func show_entry(type: String, entry_id: String):
 	_build_editor()
 	popup_centered(_library_size())
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
 	cached_magic = magic
 	cached_quests = quests
+	cached_recipes = recipes
+	cached_dialogues = dialogues
 	cached_dirty = dirty_flags
 	_refresh_entries()
 	_refresh_save_state()
@@ -170,7 +182,7 @@ func _build_ui():
 	create_button.pressed.connect(func(): request_create_entry.emit(category))
 	_apply_button_style(create_button, Color(0.14, 0.39, 0.25), false)
 	index_column.add_child(create_button)
-	spell_groups_button = Button.new(); spell_groups_button.text = "Manage Spell Groups"
+	spell_groups_button = Button.new(); spell_groups_button.text = "Manage Ability Groups"
 	spell_groups_button.pressed.connect(_show_spell_groups)
 	_apply_button_style(spell_groups_button, Color(0.23, 0.19, 0.42), false)
 	spell_groups_button.visible = false
@@ -299,6 +311,8 @@ func _get_current_entries() -> Dictionary:
 		"gem": return _filter_gems()
 		"magic": return cached_magic
 		"quest": return cached_quests
+		"recipe": return cached_recipes
+		"dialogue": return cached_dialogues
 		"template": return cached_templates
 	return {}
 
@@ -360,6 +374,18 @@ func _build_editor():
 		current_editor = inspector
 		inspector.set_db_manager(database_mgr)
 		inspector.database_modified.connect(_mark_current_dirty)
+		if storage_type == "dialogue":
+			var dialogue_inspector = DIALOGUE_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = dialogue_inspector
+			dialogue_inspector.database_modified.connect(_mark_current_dirty)
+			dialogue_inspector.build(selected_id, entry)
+			return
+		if storage_type == "recipe":
+			var recipe_inspector = RECIPE_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = recipe_inspector
+			recipe_inspector.database_modified.connect(_mark_current_dirty)
+			recipe_inspector.build(selected_id, entry)
+			return
 		inspector.build(storage_type, selected_id, entry)
 
 func _clear_editor():
@@ -395,9 +421,24 @@ func _delete_selected():
 
 func _save_database():
 	if not _has_unsaved_changes(): return
-	database_mgr.save_all()
+	var result := database_mgr.save_all()
+	if not result.get("ok", true):
+		# Keep the panel's own dirty state: the write failed, so the work is still
+		# only in memory, and Save has to stay available to retry.
+		_show_save_error(result.get("errors", []))
+		return
 	database_saved.emit()
 	_refresh_save_state()
+
+func _show_save_error(errors: Array) -> void:
+	var dialog := AcceptDialog.new()
+	dialog.title = "Some content files could not be saved"
+	dialog.dialog_text = "\n".join(errors) if not errors.is_empty() else "The save did not complete."
+	dialog.min_size = Vector2i(520, 180)
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.canceled.connect(dialog.queue_free)
 
 func _has_unsaved_changes() -> bool:
 	if database_mgr.magic_groups_dirty: return true
@@ -413,7 +454,7 @@ func _refresh_save_state():
 
 func _refresh_create_button():
 	if not is_instance_valid(create_button): return
-	create_button.text = "+ Create Spell" if category == "magic" else "+ Create " + _category_label(category).trim_suffix("s")
+	create_button.text = "+ Create Ability" if category == "magic" else "+ Create " + _category_label(category).trim_suffix("s")
 	create_button.disabled = category == "template"
 	create_button.tooltip_text = "Room templates are created from a room's Save as Template action." if category == "template" else "Create a new " + _category_label(category).trim_suffix("s").to_lower() + "."
 
@@ -471,14 +512,14 @@ func _magic_school(entry: Dictionary) -> String:
 func _show_spell_groups():
 	if not is_instance_valid(spell_groups_dialog):
 		spell_groups_dialog = ConfirmationDialog.new()
-		spell_groups_dialog.title = "Manage Spell Groups"
+		spell_groups_dialog.title = "Manage Ability Groups"
 		spell_groups_dialog.min_size = Vector2i(460, 420)
 		add_child(spell_groups_dialog)
 	spell_groups_dialog.get_ok_button().text = "Done"
 	for child in spell_groups_dialog.get_children(): child.queue_free()
 	var box := VBoxContainer.new(); box.add_theme_constant_override("separation", 8)
 	spell_groups_dialog.add_child(box)
-	var help := Label.new(); help.text = "Spell groups are shared definitions. Spells select one from a controlled list."
+	var help := Label.new(); help.text = "Ability groups are shared definitions. Abilities select one from a controlled list."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; help.modulate = InspectorStyle.COLOR_TEXT_DIM; box.add_child(help)
 	var groups: Array = database_mgr.magic_groups.keys(); groups.sort()
 	for group_id_variant in groups:

@@ -8,6 +8,9 @@ signal request_create_modal_open
 signal request_district_modal_open
 signal request_validate
 signal request_validate_region_policy
+signal request_validate_content
+signal request_show_contracts
+signal request_choose_content_set
 signal request_auto_layout
 signal snap_toggled(enabled)
 signal show_districts_toggled(enabled)
@@ -84,6 +87,24 @@ func setup():
 	_apply_style(btn_policy, Color(0.2, 0.25, 0.3))
 	btn_policy.pressed.connect(func(): request_validate_region_policy.emit())
 	add_child(btn_policy)
+
+	var btn_content = Button.new(); btn_content.text="Validate Content (engine)"
+	btn_content.tooltip_text = "Run the game's own content validation over this content set: schema, references, text templates, stale ids and file integrity. The same checks the command line runs."
+	_apply_style(btn_content, Color(0.22, 0.3, 0.26))
+	btn_content.pressed.connect(func(): request_validate_content.emit())
+	add_child(btn_content)
+
+	var btn_contracts = Button.new(); btn_contracts.text="Contracts"
+	btn_contracts.tooltip_text = "What this content set declares: item families, roll tables, resources, attack/defense profiles, abilities and effect packets. Read-only -- the engine's schema decides what may exist."
+	_apply_style(btn_contracts, Color(0.24, 0.22, 0.3))
+	btn_contracts.pressed.connect(func(): request_show_contracts.emit())
+	add_child(btn_contracts)
+
+	var btn_world = Button.new(); btn_world.text="Open Content Set…"
+	btn_world.tooltip_text = "Switch to another content set beside this checkout. The choice is remembered in editor_settings.json."
+	_apply_style(btn_world, Color(0.2, 0.28, 0.28))
+	btn_world.pressed.connect(func(): request_choose_content_set.emit())
+	add_child(btn_world)
 	
 	var btn_layout = Button.new(); btn_layout.text="Auto-Arrange Layout"
 	_apply_style(btn_layout, Color(0.2, 0.25, 0.3))

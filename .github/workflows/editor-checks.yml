@@ -1,0 +1,65 @@
+name: Editor checks
+
+# The world editor has its own headless test suite, and until now nothing ran it:
+# `run_editor_checks.py` existed and the seventeen checks under
+# `mud-world-editor/tests/` were run by hand. Two of the defects the evaluation
+# found were exactly the kind this job catches -- a validator pointed at a
+# directory that no longer existed, and a test that wrote the machine's real
+# editor settings -- and neither would have survived a CI run.
+#
+# Godot is not vendored, so it is downloaded here. The version is pinned because
+# the editor targets 4.7 and a newer engine can change both parser behaviour and
+# the project's import cache.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  editor:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: "4.7.2"
+      GODOT_DIR: ${{ github.workspace }}/.godot-bin
+    steps:
+      - uses: actions/checkout@v4
+
+      # The editor checks that need Python run the engine's own validator, and
+      # `run_editor_checks.py` passes *this* interpreter to them, so the job and
+      # the checks agree on which Python is which.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install server dependencies for the engine validator
+        run: pip install -r server/requirements-dev.txt
+
+      - name: Download Godot ${{ env.GODOT_VERSION }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$GODOT_DIR"
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl -sSL "$url" -o /tmp/godot.zip
+          unzip -q -o /tmp/godot.zip -d "$GODOT_DIR"
+          chmod +x "$GODOT_DIR"/Godot_v*
+          "$GODOT_DIR"/Godot_v${GODOT_VERSION}-stable_linux.x86_64 --version
+
+      # A first scan builds the import cache and the class-name registry, which
+      # the `--script` runs depend on for the editor's `class_name` scripts.
+      - name: Import the project once
+        run: |
+          "$GODOT_DIR"/Godot_v${GODOT_VERSION}-stable_linux.x86_64 \
+            --headless --path mud-world-editor --editor --quit
+
+      - name: Run the editor checks
+        run: |
+          python run_editor_checks.py \
+            --godot "$GODOT_DIR/Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+
+      # Content checks cover the other half of the same surface: the validators
+      # the editor's "Validate Content" button runs, plus neutrality across the
+      # reference content sets.
+      - name: Run the content checks
+        run: python run_content_checks.py

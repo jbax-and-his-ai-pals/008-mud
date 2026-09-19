@@ -21,6 +21,8 @@
 class_name DataRoot
 extends RefCounted
 
+const SaveIO = preload("res://scripts/data/SaveIO.gd")
+
 const DEFAULT_CONTENT_SET := "../content_sets/fantasy_frontier"
 const SETTINGS_PATH := "user://editor_settings.json"
 const EDITOR_STATE_DIR := "editor"
@@ -31,6 +33,11 @@ const CONTENT_DIRS := {
 	"npcs": "npcs",
 	"items": "items",
 	"magic": "magic",
+	# The engine prefers `abilities/` over `magic/` for ability definitions, so a
+	# content set whose abilities are not spells can name its own directory. The
+	# editor asks for a set's abilities rather than for its magic (see
+	# DatabaseManager.abilities_dir).
+	"abilities": "abilities",
 	"quests": "quests",
 	"campaigns": "campaigns",
 	"regions": "regions",
@@ -129,6 +136,50 @@ static func _normalize(path: String) -> String:
 static func source_description() -> String:
 	resolve()
 	return _source
+
+
+# --- switching worlds ---------------------------------------------------------
+# The resolution order above has always been able to load any content set; what
+# was missing was a way to *choose* one without relaunching the editor with
+# `--data-root`. These three make the choice from inside, and remember it.
+
+# Every content set beside this checkout that has a manifest. A directory without
+# one is not offered: the engine would refuse to load it.
+static func available_content_sets() -> Array:
+	var sets_root := _normalize(ProjectSettings.globalize_path("res://").path_join("../content_sets"))
+	var found: Array = []
+	var dir := DirAccess.open(sets_root)
+	if dir == null:
+		return found
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	while name != "":
+		if dir.current_is_dir() and not name.begins_with("."):
+			var candidate := sets_root.path_join(name)
+			if FileAccess.file_exists(candidate.path_join("content_set.manifest.json")):
+				found.append(candidate)
+		name = dir.get_next()
+	dir.list_dir_end()
+	found.sort()
+	return found
+
+
+# Point the editor at another content set for this session. Returns false when
+# the path is not a content set, so the caller can say so rather than half-switch.
+static func set_root(path: String) -> bool:
+	var normalized := _normalize(path)
+	if normalized == "" or not DirAccess.dir_exists_absolute(normalized):
+		return false
+	_resolved = normalized
+	_source = "editor settings"
+	return true
+
+
+# Remember the choice, so the next launch opens the same world. Written through
+# SaveIO like everything else, because a settings file that silently failed to
+# write would make the editor reopen the wrong world with no explanation.
+static func write_settings(path: String) -> Dictionary:
+	return SaveIO.write_json(SETTINGS_PATH, {"content_set_root": _normalize(path)})
 
 # --- paths --------------------------------------------------------------------
 

@@ -31,7 +31,7 @@ func setup():
 	db_filter_opt.add_item("NPCs")
 	db_filter_opt.add_item("Monsters")
 	db_filter_opt.add_item("Items")
-	db_filter_opt.add_item("Magic")
+	db_filter_opt.add_item("Abilities")
 	db_filter_opt.add_item("Quests")
 	_apply_style(db_filter_opt)
 	db_filter_opt.item_selected.connect(func(_i): _refresh_db_list())

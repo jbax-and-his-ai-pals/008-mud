@@ -15,8 +15,16 @@
 class_name EditorLayout
 extends RefCounted
 
+const SaveIO = preload("res://scripts/data/SaveIO.gd")
+
 const POSITION_KEY := "_editor_pos"
 const EXIT_LAYOUT_KEY := "_editor_exit_layout"
+
+# Keys that are the editor's own state even though they do not carry the
+# `_editor_` prefix. `_proxy_positions` (where a cross-region proxy node sits on
+# the graph) predates the prefix convention, and the prefix test alone let it
+# through into `data/regions/*.json` on a save. Nothing in the engine reads it.
+const LEGACY_EDITOR_KEYS := ["_proxy_positions"]
 
 # --- regions ------------------------------------------------------------------
 
@@ -137,7 +145,9 @@ static func strip_quests(quests: Dictionary) -> Dictionary:
 # --- helpers ------------------------------------------------------------------
 
 static func is_editor_key(key: String) -> bool:
-	return key.begins_with("_editor_")
+	if key.begins_with("_editor_"):
+		return true
+	return LEGACY_EDITOR_KEYS.has(key)
 
 # Recursively remove editor keys from any value, including inside arrays --
 # quest stages are an array of dictionaries, so a shallow strip would miss them.
@@ -180,11 +190,11 @@ static func _read(path: String) -> Dictionary:
 
 static func _write(path: String, payload: Dictionary) -> void:
 	DataRoot.ensure_editor_dirs()
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file == null:
-		push_error("EditorLayout: could not write %s" % path)
-		return
-	file.store_string(JSON.stringify(payload, "\t"))
+	# The sidecar is editor state, so a failed write costs layout rather than
+	# content -- but it still goes through the verifying writer, because a
+	# half-written sidecar is what makes the next load disagree with the last
+	# save. SaveIO reports the failure itself.
+	SaveIO.write_json(path, payload)
 
 static func _remove(path: String) -> void:
 	if FileAccess.file_exists(path):

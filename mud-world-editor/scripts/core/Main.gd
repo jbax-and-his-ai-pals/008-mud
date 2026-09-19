@@ -1,6 +1,8 @@
 # scripts/core/Main.gd
 extends Node2D
 
+const SaveIO = preload("res://scripts/data/SaveIO.gd")
+
 # Managers
 var region_mgr: RegionManager
 var world_mgr: WorldManager
@@ -37,6 +39,9 @@ var district_layer: Node2D
 var district_label_layer: Node2D
 
 func _ready():
+	# Quitting is handled in _notification: closing the window used to discard
+	# everything since the last manual save without a word.
+	get_tree().auto_accept_quit = false
 	# Agree the content root before anything loads, and say which world this is.
 	# The editor used to keep its own mirror of the content; it now edits the
 	# real content set, and the title is the only place that fact is visible.
@@ -141,6 +146,8 @@ func _update_db_ui():
 		database_mgr.templates,
 		database_mgr.magic,
 		database_mgr.quests,
+		database_mgr.recipes,
+		database_mgr.dialogues,
 		database_mgr.dirty_flags
 	)
 
@@ -161,6 +168,10 @@ func _connect_ui_signals():
 	ui_mgr.request_room_label_rename.connect(func(room_id, new_name): action_handler.rename_room_label(room_id, new_name))
 	ui_mgr.technical_ids_visibility_changed.connect(func(enabled): graph_controller.set_show_technical_ids(enabled))
 	ui_mgr.request_validate_region_policy.connect(_validate_region_policy)
+	ui_mgr.request_validate_content.connect(_validate_content)
+	ui_mgr.request_show_contracts.connect(func(): ui_mgr.show_contracts())
+	ui_mgr.request_choose_content_set.connect(func(): ui_mgr.show_content_set_chooser())
+	ui_mgr.request_switch_content_set.connect(_request_switch_content_set)
 	ui_mgr.request_open_creator_modal.connect(func(): ui_mgr.creator_modal.set_target_options(world_mgr.get_global_hierarchy()))
 	ui_mgr.request_open_district_modal.connect(func():
 		if not state.is_world_view and not region_mgr.data.get("rooms", {}).is_empty():
@@ -236,17 +247,37 @@ func _connect_ui_signals():
 				d.merge({"magic_group": "general", "target_type": "enemy", "mana_cost": 0.0, "level_required": 1.0, "cooldown": 0.0, "effects": []})
 				database_mgr.add_magic(id, d)
 			"quest": database_mgr.add_quest(id, d)
+			"recipe":
+				# The engine reads a recipe's ids against real templates, so a new
+				# one starts with the result empty rather than naming a placeholder
+				# the content validator would reject.
+				d.merge({
+					"description": "Creates something.",
+					"result_item_id": "",
+					"result_quantity": 1,
+					"station_required": null,
+					"ingredients": [],
+					"aliases": [],
+				})
+				database_mgr.add_recipe(id, d)
+			"dialogue":
+				# A new conversation is a valid graph before anything is typed:
+				# one opening node with a way out, so it never fails validation
+				# merely by existing.
+				d = DialogueInspector.data_defaults()
+				d["id"] = id
+				database_mgr.add_dialogue(id, d)
 		_update_db_ui()
 	)
-	ui_mgr.request_delete_db_entry.connect(func(t, id):
-		database_mgr.delete_entry(t, id); _update_db_ui(); inspector.clear_selection()
-	)
+	ui_mgr.request_delete_db_entry.connect(_confirm_delete_db_entry)
 	ui_mgr.database_modified.connect(func(t, id):
 		database_mgr.mark_dirty(t, id)
 		_update_db_ui()
 	)
 	ui_mgr.database_saved.connect(func(): _update_db_ui())
 	ui_mgr.request_delete_room_confirm.connect(action_handler.execute_delete_room)
+	ui_mgr.request_quit_save.connect(func(): _save_everything(); if not _has_unsaved_work(): get_tree().quit())
+	ui_mgr.request_quit_discard.connect(func(): get_tree().quit())
 
 func _connect_inspector_signals():
 	inspector.request_rename.connect(func(o, n): 
@@ -265,12 +296,7 @@ func _connect_inspector_signals():
 	inspector.target_selected_in_connector.connect(_on_connection_target_selected)
 	inspector.request_save_template.connect(_on_save_template_request)
 	inspector.request_jump_to_room.connect(_jump_to_room)
-	inspector.save_triggered.connect(func(): 
-		if state.is_world_view: world_mgr.save_world_layout() 
-		elif region_mgr.is_region_dirty:
-			region_mgr.save_region(); region_mgr.mark_clean(); _update_explorer_dirty_state()
-			database_mgr.save_all(); _update_db_ui()
-	)
+	inspector.save_triggered.connect(func(): _save_everything())
 	inspector.reload_triggered.connect(func():
 		_deselect_all(); 
 		if state.is_world_view: world_mgr.load_world_layout(); _refresh_view(); camera_controller.center_on_nodes(graph_controller.get_active_nodes())
@@ -607,27 +633,67 @@ func _load_region(file, force_reload: bool = false, keep_ui_visible: bool = fals
 		# Use helper to sync button state
 		ui_mgr.set_world_view_button_state(false)
 		_set_world_view(false)
-	
-	if not force_reload and file == region_mgr.current_filename and file != "": return
-	
-	if region_mgr.current_filename != "": view_states[region_mgr.current_filename] = {"pos": main_camera.position, "zoom": main_camera.zoom}
-	
-	if file == "" or region_mgr.load_region(file):
-		if not keep_ui_visible: _deselect_all()
-		_refresh_view()
-		
-		if view_states.has(file):
-			var vs = view_states[file]; main_camera.position = vs.pos; main_camera.zoom = vs.zoom
-		else:
-			camera_controller.center_on_nodes(graph_controller.get_active_nodes())
 
-		var rooms = region_mgr.data.get("rooms", {})
-		var exit_count = 0
-		for r in rooms.values():
-			exit_count += r.get("exits", {}).size()
-		ui_mgr.update_status_info(region_mgr.data.get("name", file), rooms.size(), "", exit_count)
-		ui_mgr.call_deferred("refresh_explorer", world_mgr.get_global_hierarchy(), file, "")
-		inspector.set_region_dirty(region_mgr.is_region_dirty)
+	if not force_reload and file == region_mgr.current_filename and file != "": return
+
+	# Leaving a region with unsaved edits used to discard them silently: nothing
+	# on this path looked at `is_region_dirty`. Ask instead -- and make refusing
+	# the default, so a stray click in the Explorer tree cannot cost an hour.
+	if region_mgr.is_region_dirty and file != region_mgr.current_filename:
+		var target: String = str(file) if file != "" else "an empty view"
+		var save_then_load := func():
+			if _save_everything(): _load_region_now(file, force_reload, keep_ui_visible)
+		ui_mgr.confirm(
+			"Unsaved changes",
+			"%s has unsaved changes. Loading %s will discard them." % [
+				region_mgr.current_filename, target,
+			],
+			"Save changes and load",
+			save_then_load,
+			"Keep editing",
+		)
+		ui_mgr.set_confirm_extra_button(
+			"Discard changes and load",
+			func(): _load_region_now(file, force_reload, keep_ui_visible),
+		)
+		return
+
+	_load_region_now(file, force_reload, keep_ui_visible)
+
+func _load_region_now(file, force_reload: bool = false, keep_ui_visible: bool = false):
+	var previous_filename := region_mgr.current_filename
+	if previous_filename != "": view_states[previous_filename] = {"pos": main_camera.position, "zoom": main_camera.zoom}
+
+	var loaded: bool = file == "" or region_mgr.load_region(file)
+	if not loaded:
+		# Keep showing what is on screen, and say why. The old path replaced the
+		# region with a blank one under the real filename and only pushed an
+		# error, so the next Save wrote the blank region over the file.
+		ui_mgr.show_error(
+			"Could not load region",
+			region_mgr.load_error if region_mgr.load_error != "" else "The region could not be loaded.",
+		)
+		return
+
+	# Undo closures capture one region's data. After a load they would replay
+	# against a different one, so the history goes with the region it belongs to.
+	cmd_proc.clear_history()
+
+	if not keep_ui_visible: _deselect_all()
+	_refresh_view()
+
+	if view_states.has(file):
+		var vs = view_states[file]; main_camera.position = vs.pos; main_camera.zoom = vs.zoom
+	else:
+		camera_controller.center_on_nodes(graph_controller.get_active_nodes())
+
+	var rooms = region_mgr.data.get("rooms", {})
+	var exit_count = 0
+	for r in rooms.values():
+		exit_count += r.get("exits", {}).size()
+	ui_mgr.update_status_info(region_mgr.data.get("name", file), rooms.size(), "", exit_count)
+	ui_mgr.call_deferred("refresh_explorer", world_mgr.get_global_hierarchy(), file, "")
+	inspector.set_region_dirty(region_mgr.is_region_dirty)
 
 func _create_region(name, rooms_data, region_meta: Dictionary = {}):
 	if not name.ends_with(".json"): name += ".json"
@@ -662,8 +728,14 @@ func _create_region(name, rooms_data, region_meta: Dictionary = {}):
 	var region_path := DataRoot.content_dir("regions").path_join(name)
 	if not DirAccess.dir_exists_absolute(DataRoot.content_dir("regions")):
 		DirAccess.make_dir_recursive_absolute(DataRoot.content_dir("regions"))
-	var file = FileAccess.open(region_path, FileAccess.WRITE)
-	if file: file.store_string(JSON.stringify(EditorLayout.strip_region(new_data), "\t")); file.close()
+	var written := SaveIO.write_json(region_path, EditorLayout.strip_region(new_data))
+	if not written.get("ok", false):
+		ui_mgr.show_error("Could not create %s" % name, written.get("error", ""))
+		return
+	# A new region is not in the cached Explorer hierarchy yet, so rebuild it --
+	# otherwise the region the author just made is missing from the tree until
+	# the editor is restarted.
+	cached_hierarchy = world_mgr.get_global_hierarchy()
 	_load_region(name)
 
 # Scatters the chosen NPC templates across roughly `density` (0-1) of the
@@ -719,7 +791,9 @@ func _wire_entrance_connection(new_region_id: String, rooms_data: Dictionary, co
 			# one right after this call returns, so an edit left merely
 			# "dirty" here would be silently discarded rather than waiting
 			# for a save that's never coming -- persist it immediately.
-			region_mgr.save_region()
+			var saved := region_mgr.save_region()
+			if not saved.get("ok", false):
+				ui_mgr.show_error("Could not save %s" % region_mgr.current_filename, saved.get("error", ""))
 		return
 
 	var target_filename: String = String(world_mgr.get_global_hierarchy().get(target_region, {}).get("filename", ""))
@@ -729,12 +803,17 @@ func _wire_entrance_connection(new_region_id: String, rooms_data: Dictionary, co
 	if not f: return
 	var json = JSON.new()
 	if json.parse(f.get_as_text()) != OK: return
+	f.close()
 	var data = json.get_data()
 	if typeof(data) != TYPE_DICTIONARY or not data.get("rooms", {}).has(target_room): return
 	if not data["rooms"][target_room].has("exits"): data["rooms"][target_room]["exits"] = {}
 	data["rooms"][target_room]["exits"][inv_dir] = reciprocal_exit
-	var fw = FileAccess.open(full_path, FileAccess.WRITE)
-	if fw: fw.store_string(JSON.stringify(data, "\t"))
+	# Same stripper and same verified writer as every other save of a file the
+	# engine reads: this write used to be raw, unverified, and could leave
+	# `_editor_*` keys in another region's content.
+	var written := SaveIO.write_json(full_path, EditorLayout.strip_region(data))
+	if not written.get("ok", false):
+		ui_mgr.show_error("Could not write the return exit into %s" % target_filename, written.get("error", ""))
 
 func _show_validation_results():
 	var visible_findings: Array = []
@@ -747,18 +826,32 @@ func _show_validation_results():
 	ui_mgr.show_validation_results(visible_findings, ignored_count)
 
 func _validate_region_policy():
+	# Everything here used to be built from `res://data/...`, the editor's own
+	# mirror tree, which has not existed since the editor started editing the
+	# shared content set -- so this check always answered "No data/ruleset.json
+	# found" and never ran. The paths come from DataRoot now, like every other
+	# reader in the editor.
 	var project_root: String = ProjectSettings.globalize_path("res://")
 	var repo_root: String = project_root.trim_suffix("/").get_base_dir()
-	var python_exe: String = repo_root.path_join(".venv/Scripts/python.exe")
 	var validator_script: String = repo_root.path_join("toolkit/region_policy_validator.py")
-	var content_root: String = project_root.path_join("data")
-	var ruleset_path: String = project_root.path_join("data/ruleset.json")
+	var content_root: String = DataRoot.data_dir()
+	var ruleset_path: String = DataRoot.ruleset_path()
 
-	if not FileAccess.file_exists(python_exe):
-		ui_mgr.show_region_policy_results(false, [], "Python venv not found at %s -- run bootstrap.ps1 in the repo root first." % python_exe)
+	var python_exe: String = _find_python(repo_root)
+	if python_exe == "":
+		ui_mgr.show_region_policy_results(false, [], (
+			"No Python interpreter found. Looked for .venv/Scripts/python.exe, "
+			+ ".venv/bin/python, .conda/python.exe and python on PATH, under %s."
+		) % repo_root)
+		return
+	if not FileAccess.file_exists(validator_script):
+		ui_mgr.show_region_policy_results(false, [], "Validator not found at %s." % validator_script)
 		return
 	if not FileAccess.file_exists(ruleset_path):
-		ui_mgr.show_region_policy_results(false, [], "No data/ruleset.json found -- copy your content set's rules/ruleset.json there first.")
+		ui_mgr.show_region_policy_results(false, [], (
+			"No ruleset at %s -- this content set does not declare one, so there is no "
+			+ "region policy to check against."
+		) % ruleset_path)
 		return
 
 	var output: Array = []
@@ -772,6 +865,165 @@ func _validate_region_policy():
 		ui_mgr.show_region_policy_results(false, [], "Could not parse validator output (exit code %d):\n%s" % [exit_code, raw])
 		return
 	ui_mgr.show_region_policy_results(bool(parsed.get("ok", false)), parsed.get("issues", []))
+
+# The engine's own verdict, run over the content set this editor is pointed at.
+# Slower than the link check (it starts Python) and worth it: it is the same
+# validation the build runs, so "the editor is happy" and "the game will load it"
+# stop being different questions.
+func _validate_content():
+	var project_root: String = ProjectSettings.globalize_path("res://")
+	var repo_root: String = project_root.trim_suffix("/").get_base_dir()
+	var python_exe: String = _find_python(repo_root)
+	var result := EngineValidator.run(DataRoot.root(), repo_root, python_exe)
+	ui_mgr.show_content_validation(result, DataRoot.root())
+
+# The first interpreter that actually exists, so this does not depend on one
+# particular virtualenv layout. Returns "" when there is none.
+func _find_python(repo_root: String) -> String:
+	var candidates := [
+		repo_root.path_join(".venv/Scripts/python.exe"),
+		repo_root.path_join(".venv/bin/python"),
+		repo_root.path_join(".conda/python.exe"),
+	]
+	for candidate in candidates:
+		if FileAccess.file_exists(candidate):
+			return candidate
+	return "python"
+
+# --- saving, quitting and deletion ------------------------------------------
+# These exist because every one of them used to be silent: a failed write looked
+# like a successful one, a region switch discarded edits without asking, closing
+# the window discarded everything, and deleting from the content library was one
+# click with no confirmation and no undo.
+
+func _has_unsaved_work() -> bool:
+	return region_mgr.is_region_dirty or database_mgr.has_unsaved_changes()
+
+func _save_everything() -> bool:
+	if state.is_world_view:
+		var layout := world_mgr.save_world_layout()
+		if not layout.get("ok", false):
+			ui_mgr.show_error("Could not save the world layout", layout.get("error", ""))
+			return false
+		return true
+
+	if not region_mgr.is_region_dirty:
+		return true
+
+	var saved := region_mgr.save_region()
+	if not saved.get("ok", false):
+		# Deliberately still dirty. A Save that failed but cleared the dirty flag
+		# is how an author closed the editor believing their work was on disk.
+		ui_mgr.show_error("Could not save %s" % region_mgr.current_filename, saved.get("error", ""))
+		_update_explorer_dirty_state()
+		return false
+
+	region_mgr.mark_clean()
+	# The same button saves the content library, which is where a region's item
+	# and NPC changes live. Report its failures with the same loudness.
+	var database := database_mgr.save_all()
+	if not database.get("ok", true):
+		ui_mgr.show_error(
+			"Some content files could not be saved",
+			"\n".join(database.get("errors", [])),
+		)
+		_update_explorer_dirty_state(); _update_db_ui()
+		return false
+
+	_update_explorer_dirty_state(); _update_db_ui()
+	return true
+
+func _confirm_delete_db_entry(type: String, id: String):
+	if not database_mgr.has_entry(type, id):
+		return
+	ui_mgr.confirm(
+		"Delete %s" % id,
+		"Delete the %s '%s' from the content library?\n\nIts file is rewritten on the next save. Ctrl+Z will put it back until then." % [type, id],
+		"Delete",
+		func(): _delete_db_entry(type, id),
+		"Cancel",
+		DialogStyle.COLOR_DANGER,
+	)
+
+func _delete_db_entry(type: String, id: String):
+	var existing := database_mgr.entry(type, id)
+	if existing.is_empty():
+		return
+	cmd_proc.commit(
+		func():
+			database_mgr.delete_entry(type, id)
+			_update_db_ui(); inspector.clear_selection(),
+		func():
+			database_mgr.restore_entry(type, id, existing)
+			_update_db_ui(); inspector.clear_selection(),
+		"Delete %s '%s'" % [type, id],
+	)
+
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_request_quit()
+
+# --- switching content set ----------------------------------------------------
+# The editor can load any content set it is pointed at; this is the "pointed at"
+# part, from inside the app. Switching reloads the world rather than restarting:
+# every manager reads its content at load time, so the reload is the same sequence
+# startup runs, minus the window.
+
+func _request_switch_content_set(path: String):
+	if path == "" or path == DataRoot.root():
+		return
+	if not _has_unsaved_work():
+		_switch_content_set(path)
+		return
+	var save_then_switch := func():
+		if _save_everything():
+			_switch_content_set(path)
+	ui_mgr.confirm(
+		"Unsaved changes",
+		"%s is not saved. Switching to %s will reload the world; save first, or leave the changes behind."
+			% [DataRoot.root().get_file(), path.get_file()],
+		"Save and switch",
+		save_then_switch,
+		"Keep editing",
+	)
+	# A second exit from the prompt: switching without saving is a real choice an
+	# author makes, and refusing to offer it just means they save junk first.
+	ui_mgr.set_confirm_extra_button("Switch without saving", func(): _switch_content_set(path))
+
+func _switch_content_set(path: String):
+	if not DataRoot.set_root(path):
+		ui_mgr.show_error("Could not open %s" % path, "That directory is not there any more.")
+		return
+
+	# Remember it for the next launch, and say so if that failed: reopening the
+	# previous world silently would look like the switch simply did not work.
+	var written := DataRoot.write_settings(path)
+	if not written.get("ok", false):
+		ui_mgr.show_error("Could not remember this content set", str(written.get("error", "")))
+
+	region_mgr.reset()
+	view_states.clear()
+	cached_hierarchy.clear()
+	database_mgr.load_all()
+	world_mgr.load_world_layout()
+	ui_mgr.set_catalog(database_mgr.catalog)
+	DisplayServer.window_set_title("MUD world editor — %s" % DataRoot.describe())
+
+	_update_db_ui()
+	_load_region_vocab_into_creator()
+	var start_region := _start_region_filename()
+	_load_region(start_region if start_region != "" else "")
+
+func _request_quit():
+	if not _has_unsaved_work():
+		get_tree().quit()
+		return
+	var what: Array = []
+	if region_mgr.is_region_dirty: what.append(region_mgr.current_filename)
+	if database_mgr.has_unsaved_changes(): what.append("the content library")
+	ui_mgr.show_quit_prompt(
+		"Unsaved changes in %s.\n\nSave before quitting, or leave the changes behind." % ", ".join(what)
+	)
 
 func _on_node_click(id: String, shift_mod: bool):
 	if state.is_world_view: return

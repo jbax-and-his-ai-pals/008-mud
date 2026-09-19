@@ -6,6 +6,10 @@ signal request_load_region(filename)
 signal request_jump_to_room(id)
 signal request_show_district(region_id, district_id)
 signal request_validate
+signal request_validate_content
+signal request_show_contracts
+signal request_choose_content_set
+signal request_switch_content_set(path)
 signal request_acknowledge_validation_warning(warning_id)
 signal request_reset_ignored_validation_warnings
 signal label_arrange_mode_changed(enabled)
@@ -39,10 +43,19 @@ signal request_delete_room_confirm(room_id, include_reciprocal)
 signal view_mode_changed(mode) # New Signal
 signal database_modified(type, id)
 signal database_saved
+# Quitting with unsaved work: the author chose to save first, or to leave the
+# work behind. Neither is inferred -- see Main._request_quit.
+signal request_quit_save
+signal request_quit_discard
 
 enum ToolMode { SELECT, PAINT, STAMP }
 
+# The action string ConfirmationDialog reports for the "extra" button, so one
+# handler can tell it apart from the dialog's own OK/Cancel.
+const CONFIRM_EXTRA_ACTION := "extra"
+
 var ui_layer: CanvasLayer
+var database_manager: DatabaseManager
 var side_panel: SidePanel
 var btn_world_view: Button
 var opt_view_mode: OptionButton # New Control
@@ -59,6 +72,11 @@ var creation_menu: PopupMenu
 var validation_modal: ValidationModal
 var region_policy_modal: AcceptDialog
 var region_policy_label: RichTextLabel
+var content_validate_modal: AcceptDialog
+var content_validate_label: RichTextLabel
+var contract_browser
+var content_set_modal: AcceptDialog
+var content_set_list: ItemList
 
 # Search Component
 var search_modal: SearchModal
@@ -68,6 +86,15 @@ var search_data_cache: Dictionary = {}
 var delete_confirm_modal: ConfirmationDialog
 var delete_chk_reciprocal: CheckBox
 var _pending_delete_id: String = ""
+
+# One reusable confirmation for "this will lose something" actions, and one
+# error dialog. Before these existed the only confirmation in the editor was for
+# deleting a room, and every failure went to Godot's console.
+var confirm_modal: ConfirmationDialog
+var error_modal: AcceptDialog
+var quit_modal: ConfirmationDialog
+var _confirm_action: Callable = Callable()
+var _confirm_extra_button: Button = null
 
 var status_bar: Panel
 var lbl_status_tool: Label
@@ -89,10 +116,11 @@ const SEARCH_MODAL_SCRIPT = preload("res://scripts/ui/modals/SearchModal.gd")
 const VALIDATION_MODAL_SCRIPT = preload("res://scripts/ui/modals/ValidationModal.gd")
 const DISTRICT_MODAL_SCRIPT = preload("res://scripts/ui/modals/DistrictModal.gd")
 const CONTENT_LIBRARY_SCRIPT = preload("res://scripts/ui/modals/ContentLibraryDialog.gd")
+const CONTRACT_BROWSER_SCRIPT = preload("res://scripts/ui/modals/ContractBrowserDialog.gd")
 
 func setup(layer: CanvasLayer, database_mgr: DatabaseManager, world_mgr: WorldManager):
 	ui_layer = layer
-	
+	database_manager = database_mgr
 	side_panel = SIDEPANEL_SCRIPT.new()
 	var main_vbox = side_panel.setup()
 	_forward_side_panel_signals()
@@ -123,6 +151,9 @@ func _forward_side_panel_signals():
 	side_panel.show_districts_toggled.connect(func(b): show_districts_toggled.emit(b))
 	side_panel.request_validate.connect(func(): request_validate.emit())
 	side_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
+	side_panel.request_validate_content.connect(func(): request_validate_content.emit())
+	side_panel.request_show_contracts.connect(func(): request_show_contracts.emit())
+	side_panel.request_choose_content_set.connect(func(): request_choose_content_set.emit())
 	side_panel.tool_changed.connect(func(m, d): tool_changed.emit(m, d))
 	side_panel.request_create_db_entry.connect(func(t): request_create_db_entry.emit(t))
 	side_panel.request_delete_db_entry.connect(func(t, id): request_delete_db_entry.emit(t, id))
@@ -257,6 +288,7 @@ func _setup_modals_and_popups():
 	label_edit_dialog = ConfirmationDialog.new()
 	label_edit_dialog.title = "Edit Room Label"
 	label_edit_dialog.min_size = Vector2i(380, 130)
+	DialogStyle.style_window(label_edit_dialog)
 	label_edit_input = LineEdit.new()
 	label_edit_input.placeholder_text = "Room name"
 	label_edit_input.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -281,6 +313,9 @@ func _setup_modals_and_popups():
 	del_vbox.add_child(delete_chk_reciprocal)
 	ui_layer.add_child(delete_confirm_modal)
 	delete_confirm_modal.confirmed.connect(func(): request_delete_room_confirm.emit(_pending_delete_id, delete_chk_reciprocal.button_pressed))
+	delete_confirm_modal.ok_button_text = "Delete"
+	DialogStyle.style_window(delete_confirm_modal, DialogStyle.COLOR_DANGER)
+	lbl.add_theme_color_override("font_color", DialogStyle.COLOR_TEXT)
 
 	region_policy_modal = AcceptDialog.new()
 	region_policy_modal.title = "Region Policy Check"
@@ -293,6 +328,243 @@ func _setup_modals_and_popups():
 	rp_scroll.add_child(region_policy_label)
 	region_policy_modal.add_child(rp_scroll)
 	ui_layer.add_child(region_policy_modal)
+	DialogStyle.style_window(region_policy_modal, DialogStyle.COLOR_NEUTRAL)
+
+	_setup_confirm_and_error_dialogs()
+	_setup_content_validation_modal()
+	contract_browser = CONTRACT_BROWSER_SCRIPT.new()
+	ui_layer.add_child(contract_browser)
+	contract_browser.setup(database_manager.catalog)
+	_setup_content_set_modal()
+
+# What this content set declares: families, roll tables, resources, attack and
+# defense profiles, abilities, effect packets.
+func show_contracts():
+	contract_browser.refresh()
+	contract_browser.popup_centered()
+
+# Pick another world. The editor has always been able to load any content set via
+# `--data-root`; this makes the choice from inside, and writes it to the settings
+# file so the next launch agrees.
+func show_content_set_chooser():
+	content_set_list.clear()
+	var paths := DataRoot.available_content_sets()
+	var current := DataRoot.root()
+	for path in paths:
+		var label := str(path).get_file()
+		if path == current:
+			label += "   (open now)"
+		var index := content_set_list.add_item(label)
+		content_set_list.set_item_metadata(index, path)
+	if paths.is_empty():
+		content_set_list.add_item("no content sets found beside this checkout")
+	content_set_modal.popup_centered()
+
+func _setup_content_set_modal():
+	content_set_modal = AcceptDialog.new()
+	content_set_modal.title = "Open a content set"
+	content_set_modal.min_size = Vector2i(520, 420)
+	content_set_modal.ok_button_text = "Open"
+	var vbox := VBoxContainer.new()
+	vbox.custom_minimum_size = Vector2(500, 380)
+	var hint := Label.new()
+	hint.text = "Content sets beside this checkout. The choice is remembered in editor_settings.json."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.modulate = Color(0.65, 0.68, 0.74)
+	vbox.add_child(hint)
+	content_set_list = ItemList.new()
+	content_set_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content_set_list.custom_minimum_size = Vector2(0, 300)
+	content_set_list.item_activated.connect(func(_index): _confirm_content_set_choice())
+	vbox.add_child(content_set_list)
+	content_set_modal.add_child(vbox)
+	content_set_modal.confirmed.connect(_confirm_content_set_choice)
+	ui_layer.add_child(content_set_modal)
+
+func _confirm_content_set_choice():
+	var selected := content_set_list.get_selected_items()
+	if selected.is_empty():
+		return
+	var path := str(content_set_list.get_item_metadata(selected[0]))
+	if path == "" or path == DataRoot.root():
+		return
+	request_switch_content_set.emit(path)
+
+# The engine's verdict on this content set, in a scrollable list. Deliberately a
+# read-only report rather than the link validator's jump-to-room tree: these
+# issues come from the engine, many of them point at files the editor has no
+# view for (a quest, a set, a contract), and inventing a jump for those would be
+# worse than showing the path as text.
+func _setup_content_validation_modal():
+	content_validate_modal = AcceptDialog.new()
+	content_validate_modal.title = "Validate Content"
+	content_validate_modal.min_size = Vector2i(720, 520)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(700, 480)
+	content_validate_label = RichTextLabel.new()
+	content_validate_label.bbcode_enabled = true
+	content_validate_label.fit_content = true
+	content_validate_label.custom_minimum_size = Vector2(680, 0)
+	content_validate_label.selection_enabled = true
+	scroll.add_child(content_validate_label)
+	content_validate_modal.add_child(scroll)
+	ui_layer.add_child(content_validate_modal)
+
+# `result` is what EngineValidator.run returns.
+func show_content_validation(result: Dictionary, content_set_label: String):
+	if not result.get("ran", false):
+		content_validate_modal.title = "Validate Content -- Could Not Run"
+		content_validate_label.text = "[color=orange]%s[/color]" % _escape(str(result.get("error", "")))
+		content_validate_modal.popup_centered()
+		return
+
+	var counts: Dictionary = result.get("counts", {})
+	var errors := int(counts.get("error", 0))
+	var warnings := int(counts.get("warning", 0))
+	content_validate_modal.title = (
+		"Validate Content -- Passed" if errors == 0
+		else "Validate Content -- %d Error(s)" % errors
+	)
+
+	var lines: Array = []
+	var summary := "%s: %d error(s), %d warning(s)" % [content_set_label, errors, warnings]
+	lines.append("[color=%s]%s[/color]" % ["lime" if errors == 0 else "salmon", _escape(summary)])
+	var checks: Array = result.get("ran_checks", [])
+	if not checks.is_empty():
+		lines.append("[color=gray]checked: %s[/color]" % _escape(", ".join(checks)))
+	for skipped in result.get("skipped", []):
+		lines.append("[color=orange]skipped: %s[/color]" % _escape(str(skipped)))
+	lines.append("")
+
+	var issues: Array = result.get("issues", [])
+	if issues.is_empty():
+		lines.append("[color=lime]No issues found.[/color]")
+	for issue in issues:
+		var severity := str(issue.get("severity", "error"))
+		var color := "salmon" if severity == "error" else "orange"
+		var path := str(issue.get("path", ""))
+		var where := ("[color=gray]%s[/color] -- " % _escape(path)) if path != "" else ""
+		lines.append("[color=%s]%s[/color]%s%s" % [color, severity.to_upper(), where, _escape(str(issue.get("message", "")))])
+		var sources: Array = issue.get("sources", [])
+		if sources.size() > 1:
+			lines.append("    [color=gray](also reported by: %s)[/color]" % _escape(", ".join(sources)))
+	content_validate_label.text = "\n".join(lines)
+	content_validate_modal.popup_centered()
+
+
+# RichTextLabel parses BBCode, so any bracket in a path or message -- and content
+# ids use brackets in some sets -- must be escaped or it eats the text after it.
+func _escape(text: String) -> String:
+	return text.replace("[", "[lb]")
+
+func _setup_confirm_and_error_dialogs():
+	confirm_modal = ConfirmationDialog.new()
+	confirm_modal.title = "Confirm"
+	confirm_modal.min_size = Vector2i(460, 160)
+	confirm_modal.cancel_button_text = "Cancel"
+	confirm_modal.confirmed.connect(_on_confirmed)
+	# Closing with the window button or Escape must not run the action, and must
+	# not leave a stale callable behind for the next confirmation to fire.
+	confirm_modal.canceled.connect(func(): _confirm_action = Callable())
+	ui_layer.add_child(confirm_modal)
+	DialogStyle.style_window(confirm_modal)
+
+	error_modal = AcceptDialog.new()
+	error_modal.title = "Something went wrong"
+	error_modal.min_size = Vector2i(520, 180)
+	var err_label := RichTextLabel.new()
+	err_label.bbcode_enabled = true
+	err_label.fit_content = true
+	err_label.custom_minimum_size = Vector2(500, 0)
+	err_label.name = "Message"
+	err_label.add_theme_color_override("default_color", DialogStyle.COLOR_TEXT)
+	error_modal.add_child(err_label)
+	ui_layer.add_child(error_modal)
+	DialogStyle.style_window(error_modal, DialogStyle.COLOR_DANGER)
+
+	quit_modal = ConfirmationDialog.new()
+	quit_modal.title = "Unsaved changes"
+	quit_modal.min_size = Vector2i(520, 180)
+	quit_modal.ok_button_text = "Save and quit"
+	quit_modal.cancel_button_text = "Keep editing"
+	var quit_discard_btn := quit_modal.add_button("Quit without saving", true, "discard")
+	quit_modal.confirmed.connect(func(): request_quit_save.emit())
+	quit_modal.custom_action.connect(func(action):
+		if action == "discard":
+			quit_modal.hide()
+			request_quit_discard.emit()
+	)
+	ui_layer.add_child(quit_modal)
+	DialogStyle.style_window(quit_modal)
+	DialogStyle.style_button(quit_discard_btn, DialogStyle.COLOR_DISCARD)
+
+func _on_confirmed():
+	var action := _confirm_action
+	_confirm_action = Callable()
+	if action.is_valid():
+		action.call()
+
+# Ask before doing something that cannot be undone from here. The action runs
+# only on the confirm button, never on cancel or the window close.
+func confirm(title: String, message: String, confirm_text: String, action: Callable,
+		cancel_text: String = "Cancel", confirm_color: Color = DialogStyle.COLOR_CONFIRM) -> void:
+	_clear_confirm_extra_button()
+	_confirm_action = action
+	confirm_modal.title = title
+	confirm_modal.dialog_text = message
+	confirm_modal.ok_button_text = confirm_text
+	confirm_modal.cancel_button_text = cancel_text
+	DialogStyle.style_button(confirm_modal.get_ok_button(), confirm_color)
+	confirm_modal.popup_centered()
+
+
+# A third option on the confirmation showing now: "switch without saving" and
+# "quit without saving" are real choices, and a dialog offering only
+# save-or-cancel pushes an author into saving work they meant to drop.
+func set_confirm_extra_button(label: String, action: Callable, color: Color = DialogStyle.COLOR_DISCARD) -> void:
+	_clear_confirm_extra_button()
+	_confirm_extra_button = confirm_modal.add_button(label, true, CONFIRM_EXTRA_ACTION)
+	DialogStyle.style_button(_confirm_extra_button, color)
+	confirm_modal.custom_action.connect(func(emitted: String):
+		if emitted != CONFIRM_EXTRA_ACTION:
+			return
+		confirm_modal.hide()
+		_confirm_action = Callable()
+		action.call()
+	)
+
+
+# Custom buttons are added to the dialog, so one left over from a previous
+# confirmation would still be on screen offering the old action.
+func _clear_confirm_extra_button():
+	if is_instance_valid(_confirm_extra_button):
+		_confirm_extra_button.queue_free()
+	_confirm_extra_button = null
+
+
+# The contract browser holds the catalog it was built with; when the editor
+# switches content set, `DatabaseManager.load_all` builds a new one and the
+# browser has to be re-pointed or it would keep showing the old world's families.
+func set_catalog(catalog: ContractCatalog) -> void:
+	if is_instance_valid(contract_browser):
+		contract_browser.setup(catalog)
+
+# Failures the author has to see. Every writer used to fail into the console,
+# which is where nobody was looking.
+func show_error(title: String, message: String) -> void:
+	error_modal.title = title
+	var label := error_modal.get_node_or_null("Message")
+	if label is RichTextLabel:
+		# RichTextLabel parses BBCode, so bracket-heavy paths need escaping.
+		label.text = message.replace("[", "[lb]")
+	else:
+		error_modal.dialog_text = message
+	error_modal.popup_centered()
+
+func show_quit_prompt(message: String) -> void:
+	quit_modal.dialog_text = message
+	quit_modal.popup_centered()
 
 func _setup_district_toolbar():
 	district_toolbar = Panel.new(); district_toolbar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -341,9 +613,9 @@ func cache_search_data(world_data, npcs, items):
 	search_data_cache["items"] = items
 	search_modal.cache_search_data(world_data, npcs, items)
 
-func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, dirty_flags: Dictionary): 
+func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, dirty_flags: Dictionary): 
 	side_panel.update_db_lists(npcs, items, templates, magic, quests, dirty_flags)
-	content_library.update_data(npcs, items, templates, magic, quests, dirty_flags)
+	content_library.update_data(npcs, items, templates, magic, quests, recipes, dialogues, dirty_flags)
 func refresh_explorer(h, c, s): side_panel.refresh_explorer(h, c, s) 
 func select_room_item(id): side_panel.select_room_item(id)
 func update_dirty_visuals(cur, dirty, rooms): side_panel.update_dirty_visuals(cur, dirty, rooms)
@@ -391,6 +663,12 @@ func is_mouse_over_ui() -> bool:
 	if is_instance_valid(search_modal) and search_modal.visible: return true
 	if is_instance_valid(validation_modal) and validation_modal.visible: return true
 	if is_instance_valid(delete_confirm_modal) and delete_confirm_modal.visible: return true
+	if is_instance_valid(confirm_modal) and confirm_modal.visible: return true
+	if is_instance_valid(error_modal) and error_modal.visible: return true
+	if is_instance_valid(quit_modal) and quit_modal.visible: return true
+	if is_instance_valid(content_validate_modal) and content_validate_modal.visible: return true
+	if is_instance_valid(region_policy_modal) and region_policy_modal.visible: return true
+	if is_instance_valid(contract_browser) and contract_browser.visible: return true
 	var m = ui_layer.get_viewport().get_mouse_position()
 	if is_instance_valid(district_toolbar) and district_toolbar.visible and district_toolbar.get_global_rect().has_point(m): return true
 	if side_panel.get_global_rect().has_point(m) or status_bar.get_global_rect().has_point(m): return true

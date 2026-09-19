@@ -2,6 +2,8 @@
 class_name RegionManager
 extends RefCounted
 
+const SaveIO = preload("res://scripts/data/SaveIO.gd")
+
 # Regions come from the shared content set, not from a mirror of it. The path is
 # resolved at load/save time rather than frozen in a constant, because the
 # editor's data root is agreed once at startup (DataRoot) and may be overridden
@@ -12,6 +14,13 @@ static func regions_dir() -> String:
 var data: Dictionary = {}
 var current_filename: String = ""
 
+# Why the last load failed, for the UI to show. Empty after a successful load.
+var load_error: String = ""
+# Whether `data` came from a successful read of `current_filename`.
+var loaded_ok: bool = false
+# Files `_patch_external_references` could not rewrite during the last rename.
+var patch_errors: Array = []
+
 # --- DIRTY STATE TRACKING ---
 var is_region_dirty: bool = false
 var dirty_room_ids: Dictionary = {} 
@@ -19,35 +28,81 @@ var dirty_room_ids: Dictionary = {}
 func load_region(filename: String) -> bool:
 	is_region_dirty = false
 	dirty_room_ids.clear()
+	load_error = ""
 
-	current_filename = filename
+	if filename == "":
+		# An explicit "no region": nothing was on disk to load, and nothing may
+		# be saved over it. current_filename stays empty so save_region refuses.
+		current_filename = ""
+		loaded_ok = false
+		data = {"region_id": "", "rooms": {}}
+		return false
+
 	var full_path = regions_dir().path_join(filename)
 	if not FileAccess.file_exists(full_path):
-		# Don't error on blank load
-		if filename != "": push_error("Region file not found: " + full_path)
+		# Keep whatever is loaded. The old behaviour reset `data` to an empty
+		# region while keeping the *real* filename, so one bad read plus any
+		# later Save wrote the blank region over the file.
+		load_error = "Region file not found: %s" % full_path
+		push_error(load_error)
 		return false
-	
-	var file = FileAccess.open(full_path, FileAccess.READ)
-	if file:
-		var json = JSON.new()
-		var err = json.parse(file.get_as_text())
-		if err == OK:
-			data = json.get_data()
-			if not data.has("rooms"): data["rooms"] = {}
-			if not data.has("region_id"): data["region_id"] = filename.replace(".json", "")
-			# Positions live beside the content, not inside it; merging them here
-			# means every call site below keeps working unchanged.
-			data = EditorLayout.merge_region(str(data.get("region_id", "")), data)
-			_backfill_missing_editor_positions()
-			return true
-		else:
-			push_error("JSON Parse Error: " + json.get_error_message())
-			
-	data = {"region_id": filename.replace(".json",""), "rooms": {}}
-	return false
 
-func save_region():
-	if current_filename == "": return
+	var file = FileAccess.open(full_path, FileAccess.READ)
+	if file == null:
+		load_error = "Could not read %s (%s)" % [full_path, error_string(FileAccess.get_open_error())]
+		push_error(load_error)
+		return false
+
+	var json = JSON.new()
+	var err = json.parse(file.get_as_text())
+	file.close()
+	if err != OK:
+		load_error = "%s is not valid JSON: %s" % [filename, json.get_error_message()]
+		push_error(load_error)
+		return false
+
+	var parsed = json.get_data()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		load_error = "%s must contain an object" % filename
+		push_error(load_error)
+		return false
+
+	current_filename = filename
+	loaded_ok = true
+	data = parsed
+	if not data.has("rooms"): data["rooms"] = {}
+	if not data.has("region_id"): data["region_id"] = filename.replace(".json", "")
+	# Positions live beside the content, not inside it; merging them here
+	# means every call site below keeps working unchanged.
+	data = EditorLayout.merge_region(str(data.get("region_id", "")), data)
+	_backfill_missing_editor_positions()
+	return true
+
+# Whether the data on screen came from a successful read of `current_filename`.
+# Saving is refused when it did not, because "what is on screen" would then be a
+# blank region rather than the author's work.
+# Back to "nothing loaded". Used when the editor switches content set: the loaded
+# region, its filename and its error belong to the world that was open.
+func reset() -> void:
+	data = {}
+	current_filename = ""
+	loaded_ok = false
+	load_error = ""
+	patch_errors.clear()
+	is_region_dirty = false
+	dirty_room_ids.clear()
+
+func can_save() -> bool:
+	return current_filename != "" and loaded_ok
+
+func save_region() -> Dictionary:
+	if current_filename == "":
+		return {"ok": false, "error": "No region is loaded, so there is nothing to save."}
+	if not loaded_ok:
+		return {"ok": false, "error": (
+			"Refusing to save %s: it did not load from disk, so what is on screen is not "
+			+ "what the file contains. Reload the region first."
+		) % current_filename}
 	var region_id := str(data.get("region_id", current_filename.replace(".json", "")))
 	# Editor layout goes to the sidecar; the file the game reads stays clean.
 	EditorLayout.split_region(region_id, data)
@@ -55,9 +110,7 @@ func save_region():
 	var path := regions_dir().path_join(current_filename)
 	if not DirAccess.dir_exists_absolute(regions_dir()):
 		DirAccess.make_dir_recursive_absolute(regions_dir())
-	var file = FileAccess.open(path, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(payload, "\t"))
+	return SaveIO.write_json(path, payload)
 
 # Content-set-authored rooms (content_sets/fantasy_frontier/data/regions/*)
 # carry no "_editor_pos" -- it is purely editor layout metadata, never
@@ -181,30 +234,48 @@ func rename_room(old_id: String, new_id: String) -> bool:
 	return true
 
 func _patch_external_references(target_region: String, old_room: String, new_room: String):
+	# Every path here used to be built by concatenation (`regions_dir() + fname`),
+	# and `DataRoot.content_dir` returns a `path_join` result with no trailing
+	# separator -- so the path was `.../data/regionstown.json`, the read came back
+	# empty, and the repair silently never ran. Renaming a room therefore left
+	# `region:old_id` exits dangling in every other file.
+	patch_errors.clear()
 	var dir = DirAccess.open(regions_dir())
-	if dir:
-		dir.list_dir_begin()
-		var fname = dir.get_next()
-		while fname != "":
-			if fname.ends_with(".json") and fname != current_filename:
-				var content = FileAccess.get_file_as_string(regions_dir() + fname)
-				var search_str = target_region + ":" + old_room
-				if content.contains(search_str):
-					var f_read = FileAccess.open(regions_dir() + fname, FileAccess.READ)
-					var json = JSON.new()
-					if json.parse(f_read.get_as_text()) == OK:
-						var d = json.get_data()
-						var dirty = false
-						for rid in d.get("rooms", {}):
-							var exits = d["rooms"][rid].get("exits", {})
-							for dir_key in exits:
-								if exits[dir_key] == search_str:
-									exits[dir_key] = target_region + ":" + new_room
-									dirty = true
-						if dirty:
-							var f_write = FileAccess.open(regions_dir() + fname, FileAccess.WRITE)
-							f_write.store_string(JSON.stringify(d, "\t"))
-			fname = dir.get_next()
+	if dir == null:
+		patch_errors.append("Could not open %s to repair cross-region exits." % regions_dir())
+		return
+	dir.list_dir_begin()
+	var fname = dir.get_next()
+	while fname != "":
+		if fname.ends_with(".json") and fname != current_filename:
+			var path := regions_dir().path_join(fname)
+			var content := FileAccess.get_file_as_string(path)
+			var search_str = target_region + ":" + old_room
+			if content.contains(search_str):
+				var json = JSON.new()
+				if json.parse(content) != OK:
+					# Never rewrite a file we could not read: that is how a repair
+					# turns into a truncation.
+					patch_errors.append("%s could not be parsed, so its exits still point at '%s'."
+						% [fname, old_room])
+					fname = dir.get_next()
+					continue
+				var d = json.get_data()
+				var dirty = false
+				for rid in d.get("rooms", {}):
+					var exits = d["rooms"][rid].get("exits", {})
+					for dir_key in exits:
+						if exits[dir_key] == search_str:
+							exits[dir_key] = target_region + ":" + new_room
+							dirty = true
+				if dirty:
+					# The same stripper and the same verified writer as a normal
+					# save: this file the engine reads gets no editor keys and no
+					# half-written state.
+					var result: Dictionary = SaveIO.write_json(path, EditorLayout.strip_region(d))
+					if not result.get("ok", false):
+						patch_errors.append(result.get("error", "Could not update %s." % fname))
+		fname = dir.get_next()
 
 func mark_room_dirty(room_id: String):
 	if room_id != "": dirty_room_ids[room_id] = true

@@ -3,6 +3,7 @@ class_name WorldManager
 extends RefCounted
 
 const DistrictLayout = preload("res://scripts/generators/DistrictLayout.gd")
+const SaveIO = preload("res://scripts/data/SaveIO.gd")
 
 # Regions come from the shared content set; the world layout is editor-only
 # state beside it. Both are resolved at call time (see DataRoot).
@@ -19,17 +20,27 @@ func load_world_layout():
 	world_node_positions.clear()
 	if FileAccess.file_exists(world_layout_file()):
 		var f = FileAccess.open(world_layout_file(), FileAccess.READ)
+		if f == null:
+			push_error("Could not read %s (%s)" % [world_layout_file(), error_string(FileAccess.get_open_error())])
+			return
 		var json = JSON.new()
 		if json.parse(f.get_as_text()) == OK:
 			var d = json.get_data()
+			if typeof(d) != TYPE_DICTIONARY:
+				push_error("World layout %s must contain an object." % world_layout_file())
+				return
 			if d.has("positions"): world_node_positions = d.positions
 			if d.has("ignored_validation_warnings") and d.ignored_validation_warnings is Array:
 				for warning_id in d.ignored_validation_warnings: ignored_validation_warnings[str(warning_id)] = true
+		else:
+			push_error("Could not parse %s: %s" % [world_layout_file(), json.get_error_message()])
 
-func save_world_layout():
+# Returns {"ok": bool, "error": String} like every other writer, so a failed
+# save is something the caller can report rather than assume.
+func save_world_layout() -> Dictionary:
 	var d = { "positions": world_node_positions, "ignored_validation_warnings": ignored_validation_warnings.keys() }
-	var f = FileAccess.open(world_layout_file(), FileAccess.WRITE)
-	if f: f.store_string(JSON.stringify(d, "\t"))
+	DataRoot.ensure_editor_dirs()
+	return SaveIO.write_json(world_layout_file(), d)
 
 func update_world_node_pos(region_id: String, pos: Vector2):
 	world_node_positions[region_id] = [pos.x, pos.y]

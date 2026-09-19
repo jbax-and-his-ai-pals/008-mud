@@ -44,7 +44,9 @@ func build(type: String, id: String, data: Dictionary):
 		npc_inspector.database_modified.connect(func(): database_modified.emit())
 	elif type == "item":
 		item_inspector = ITEM_INSP_SCRIPT.new()
-		item_inspector.build(container, cur_data)
+		# The manager carries the contract catalog, which the item inspector needs
+		# to offer families and roll tables instead of making the author type ids.
+		item_inspector.build(container, cur_data, db_mgr_ref)
 		item_inspector.database_modified.connect(func(): database_modified.emit())
 	elif type == "magic":
 		magic_inspector = MAGIC_INSP_SCRIPT.new()

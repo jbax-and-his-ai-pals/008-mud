@@ -38,3 +38,13 @@ func redo():
 	cmd.do_func.call()
 	undo_stack.append(cmd)
 	print("REDO: ", cmd.description)
+
+# Drop the history. Undo closures capture the data they were built against, so
+# they belong to the region that was loaded when they were committed: replaying
+# one after a region switch either corrupts the newly loaded region or raises a
+# missing-key error. `Main._load_region_now` calls this on every load.
+func clear_history():
+	if undo_stack.is_empty() and redo_stack.is_empty(): return
+	undo_stack.clear()
+	redo_stack.clear()
+	print("CMD: history cleared")
