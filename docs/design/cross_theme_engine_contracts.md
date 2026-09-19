@@ -443,6 +443,85 @@ ingredient.
 - Preserve provenance and resolved instance quality through crafting, salvage,
   trade, appraisal, and quests.
 
+**Built (2026-09-21).** An ingredient is no longer an item id. It is a
+*reference*, and there are three kinds:
+
+```json
+{"item_id": "item_iron_ingot", "quantity": 2}
+{"item_family": "salvaged_part", "quantity": 2, "min_material_quality": 2}
+{"capability": "crafting_material", "quantity": 1}
+```
+
+`item_id` wins when more than one is present, so every recipe written before
+families existed resolves exactly as it did -- the migration is one recipe at a
+time rather than a flag day. `min_material_quality` is the floor a member of a
+family or a capability has to reach: the rule says *what kind of thing*, the
+floor says *how good*. Each reference may also carry `alternatives`, which are
+whole references of their own (`{"item_family": ...}` included) and each of
+which may declare a `quality_penalty` -- the trade-off in a substitution, which
+lands on that slot's material-grade contribution when it is the option actually
+spent.
+
+One matcher serves every call site. `CraftingManager._ingredient_matches` is
+what counting, selecting, previewing, spending, the crafting command's
+requirement list, the headless status payload and the editor all go through,
+because a recipe that *looks* craftable and then fails to craft is worse than
+one that says what it is missing. The validator resolves a family against the
+content set's own contracts and a capability against the capabilities its
+families declare, so a typo fails the build rather than reading as a recipe that
+can never be made.
+
+What this buys, concretely: `content_sets/orbital_salvage`'s fabrication recipe
+asks for **two salvaged parts of grade 2 or better** instead of two named
+components, and the salvage bench on the deck yields exactly that -- grade 2
+serviceable parts, with a rarer clean-grade pull on the yield table. The recipe
+reads the set's own family and the set's own grade, and neither the engine nor
+the recipe knows the word "servo".
+
+**Still not done here:** vendor orders still read `min_material_quality_score` on a
+named item rather than on a family.
+
+**Follow-up (2026-09-21): the same rule reached the other two places content asks
+for an item.** `engine/items/references.py` is now the one implementation of the
+question — `matches`, `describe`, `options`, `match_plan`, `count_matching`,
+`matching_template_id` — and a recipe ingredient, a vendor's buy order and a
+salvage rule are three call sites of it rather than three implementations.
+
+*Vendor orders.* A `buy_orders` entry may name a family or a capability, so a
+vendor who will take "two parts of grade 2 or better" no longer needs every part
+in the set listed, and no longer needs editing when a new one is added. The older
+`min_material_quality_score` spelling is still read (vendor orders used it
+first); content should author `min_material_quality`. Two conditions ride
+*alongside* the reference because neither is a kind of item: `crafted_only`, and
+the grade floor — a recipe's floor lives inside the family rule it was written
+beside, but an order writes it at the top level, including next to an exact
+template, and a floor that only applied to some of the ways an order can be
+written would be a trap. The refusal message names every requirement that
+applies, because naming only one sends someone off to satisfy a requirement that
+was never the only one.
+
+*Salvage output.* `salvage_output` — on the template, or in
+`crafting.salvage_rules` — is a reference too. Rules may now be keyed
+`by_family`, which is what the engine class key was always a proxy for:
+`fantasy_frontier`'s `"Weapon"`/`"Armor"` rules became `by_family.weapon` /
+`by_family.armor`, so a weapon template with no family of its own no longer
+silently joins a rule nobody meant it to. The class key is still read, because a
+template that declares no family has no family key to be found under.
+
+Nothing validated any of this before, so a typo'd key fell silently through to
+the set's scrap default and a rule naming a missing template failed only when a
+player tried it. `_validate_salvage_rules` and `_validate_item_salvage_outputs`
+now cover the ruleset, the `by_family` keys (against the set's own contracts),
+the item templates, and the `quantity_per_weight` rate.
+
+**Two gaps this closed in the shipped content.** `orbital_salvage` enabled
+`salvage` and declared no rule of any kind, so *every* attempt in the sci-fi set
+returned "You cannot salvage the X" — the set's own salvage bench was gathering,
+not salvage. It now strips parts, gear and unruled items into `item_scrap_alloy`
+(the set's answer to "what is this station made of"), keyed by family. And its
+foreman, who was already `is_vendor: true` in a content set with no `economy`
+system, now trades: two buy orders by family and grade, in credits.
+
 ### 5. Sci-fi proving slice
 
 - Create a deliberately small content set: one room loop, one NPC, one
@@ -503,8 +582,8 @@ declaration.
 - An NPC caster (`npc.mana`, `npc.max_mana`, spell-casting AI) is still
   mana-shaped. No shipped NPC in the sci-fi set casts anything, so this is a
   gap in the proof rather than a lie in it.
-- The crafting seam (step 4) is untouched: the fabrication recipe names item
-  ids, not "any component of grade ≥ true".
+- The crafting seam (step 4) is built end to end: recipe ingredients, vendor buy
+  orders and salvage output all speak the same authored reference.
 
 ## Completion gates
 
@@ -520,20 +599,32 @@ This initiative is complete only when:
 5. Tests prove both reference sets without allowing content-ID exceptions in
    engine code.
 
-**Where the gates stand:** 2 is largely met for combat, abilities and generated
-instances, with crafting outstanding. 3 is met and tested
+**Where the gates stand:** 2 is met for combat, abilities, generated instances
+and the whole crafting/economy seam. 3 is met and tested
 (`test_generated_instance_round_trip.py`). 4 is met for the content validator on
 both sets and for the editor's contract catalog; the editor's *authoring* surface
 for the new contract fields (`name_template`, `property_prefix`) does not exist
 yet. 5 is met for the engine kernel
 (`toolkit/content_neutrality_validator.py` runs against both sets as a content
 check) but not for content *ids* named in engine code that the sci-fi set does
-not use. 1 is the honest remaining one: the genre branch sites are down from the
-49 measured at the start of this work to 45 (measured by the same
-comparison-on-its-own-line rule; engine literals 235 → 212), and what is left is
-concentrated in paths the sci-fi set does not exercise: spell schools
-(`spell_known`, `teach_spell`, `random_spell_scroll`), NPC casting
-(`retreating_for_mana`, `mana_restore`), and crafting quality vocabulary.
+not use. 1 is the honest remaining one, and what is left is spell-school
+vocabulary (`spell_known`, `teach_spell`, `random_spell_scroll`) and NPC casting
+(`retreating_for_mana`, `mana_restore`) — paths the sci-fi set does not exercise.
+The crafting quality vocabulary that used to sit on this list is gone: ingredient
+matching no longer reads a genre word, because there is nothing left in it for a
+genre word to mean.
+
+**A correction to how that progress was measured.** The "45 genre branch sites,
+down from 49" figure above cannot be reproduced from anything in this repository:
+`toolkit/genre_coupling_audit.py` is the only tool that measures coupling, and it
+counts genre *string literals* (`ast.Constant`), not branch sites — identifiers
+and attribute names are invisible to it, so renaming `Spell` or `mana_cost` would
+move none of its numbers. Running it now reports **213 literals** (167
+CONTENT_LEAK, 18 CAPABILITY, 28 KERNEL). Its classifier also over-counts for this
+purpose: it flags `ui/icons.py` and the docstring in `contracts/__init__.py` that
+states this initiative's own goal. Treat the literal count as a rough trend and
+the per-file list as the actionable part; the crafting seam did not move either,
+because the genre words it removed were identifiers.
 
 ## Non-goals
 

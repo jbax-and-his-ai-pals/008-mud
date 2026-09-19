@@ -1380,10 +1380,12 @@ more urgent.
   editor bookkeeping (`_editor_pos`, `_editor_exit_layout`, quest stage
   positions, world layout, magic groups, templates) lives in
   `content_sets/<set>/editor/`, split and merged at the two chokepoints in
-  `EditorLayout` so no canonical file ever carries `_editor_*`. The mirror is
-  `mud-world-editor/legacy-mirror/`, read by nothing, with a README recording
-  what was recovered and the one remaining editorial decision (town's 38
-  rewritten room descriptions and 8 rooms the mirror lacks). Detail:
+  `EditorLayout` so no canonical file ever carries `_editor_*`. The mirror was
+  `mud-world-editor/legacy-mirror/`, read by nothing; its two open editorial
+  questions were settled and it was **deleted** (2026-09-20) — the fork was
+  strictly older (38 rooms against 46, missing `community_garden`, one NPC
+  reference naming a template that no longer exists), everything real in it had
+  been migrated, and a test now asserts it stays gone. Detail:
   `docs/roadmap/editor-content-source.md`. Verified by a headless Godot script
   (`mud-world-editor/tests/content_source_check.gd`, 20 assertions: resolver
   lands on the content set, `town.json` loads with all 46 rooms positioned from
@@ -1391,6 +1393,115 @@ more urgent.
   author's layout), plus `tests/singles/test_editor_content_source.py` as the
   Python-side tripwire, plus the editor's existing layout smoke test and a
   `--quit-after 2` boot.
+- [x] **Make the editor safe to work in (2026-09-20).** The reconciliation above
+  left the editor reading the right files but with no safety layer around
+  writing them. `docs/roadmap/world-editor-evaluation.md` is the audit; its
+  Batch A is implemented:
+  - one verifying writer (`SaveIO.write_json`) writes and reads back, so a
+    failed save is a reported failure instead of a greyed-out Save button;
+  - loading another region while the current one is dirty asks first, cancelling
+    keeps the edits, and the undo history no longer outlives the region it was
+    recorded against;
+  - a region that fails to parse leaves the loaded one alone and refuses to be
+    saved over, instead of becoming a blank region under the real filename;
+  - closing the window offers **Save and quit** / **Quit without saving** /
+    **Keep editing**;
+  - content-library deletes are confirmed and undoable;
+  - files the editor does not model keep their keys (`affixes.json` was losing
+    two engine-read string keys on any item save, and `sets.json`/`affixes.json`
+    are no longer loaded as items at all);
+  - deleting the last entry of a file actually deletes it;
+  - saves write 4-space indented JSON in authored key order — `JSON.stringify`
+    sorts keys by default, so every save until now alphabetised every object in
+    the file and destroyed its blame;
+  - the dead "Validate Region Policy" button works (it built paths from the
+    retired mirror), as does the cross-region exit repair on a room rename;
+  - opening a content set no longer creates `magic/`, `quests/` or `campaigns/`
+    directories in a set that has none.
+
+  Two new headless suites (`tests/editor_save_safety_smoke.gd` and
+  `tests/editor_session_safety_smoke.gd`, the second driving the real
+  `Main.tscn`) pin the behaviours, and `run_editor_checks.py` runs all 14 editor
+  checks in one command.
+- [x] **Make the editor's surfaces honest (2026-09-20).** Batch B of the same
+  audit:
+  - **Quest authoring writes the engine's schema.** `QuestSchema.gd` holds the
+    engine's 15 objective types with the fields the tracker and validator read;
+    the inspector writes `stage.objective.type` (not a stage-level `type`),
+    renumbers `stage_index` on any reorder, edits alternative routes and choice
+    outcomes, and preserves every key it does not model — including the engine's
+    own runtime bookkeeping. The old shape wrote stages the engine could never
+    satisfy *and* passed validation with zero errors.
+  - **The engine now refuses that shape**: `_validate_quest_stages` reports a
+    stage with neither `objective` nor `objectives_any`, naming the fields that
+    misled the author, because such a stage stalls the quest forever
+    (`get_active_objectives` returns nothing). Shipped content has zero errors
+    under it; the old editor shape is now a loud one.
+  - **The editor runs the engine's validation**: `toolkit/editor_validate.py`
+    runs the same five checks `run_content_checks.py` runs in one interpreter and
+    prints one JSON document; a **Validate Content (engine)** button shows the
+    merged result (overlapping findings reported once, with every validator that
+    saw them). One subprocess call, so the editor and CI cannot drift.
+  - **Ability definitions are editable in the sets that name them** —
+    `abilities/` is preferred over `magic/`, as the engine does.
+  - **`all.txt`** (a 268 KB stale source dump, tracked in git, that made greps
+    match pre-reconciliation copies) is deleted, and the editor has a README.
+
+  Editor checks are now 14, including a quest test that hands what the inspector
+  wrote to the engine's validator and asserts it passes.
+- [x] **Author the engine as it is now (2026-09-20).** Batch C of the same audit:
+  - **Item contracts**: the item inspector has family and roll-table pickers
+    driven by `ContractCatalog` (the same file the engine reads), says what the
+    chosen family makes the engine build, and offers intrinsic rarity from *that
+    profile's* bands instead of the fantasy set's four names. Its type dropdown
+    now lists the engine's item classes — it used to offer "Tool" and "Material",
+    which name no class, so a template authored that way could not be built.
+  - **A Contracts browser** shows what the set declares (families, profiles,
+    resources, attack/defense profiles, abilities, effect packets), read-only
+    because the schema decides what may exist.
+  - **Recipes are authorable**: a Recipes category in the Content Library edits
+    `data/crafting/*.json` against `engine/crafting/recipe.py` — ingredients,
+    quality tiers, familiarity milestones, station, an explicit-difficulty switch
+    (absent means "derive it", so a spin box would have written 0 everywhere) and
+    `requires_discovery`. The system connecting every item to every other item had
+    no surface at all before this.
+  - **Open Content Set…**: the editor switches between the sets beside the
+    checkout, reloading every manager, re-pointing the contract browser and
+    writing `user://editor_settings.json` so the next launch agrees. Unsaved work
+    raises the same prompt as quitting, including "switch without saving".
+
+  Editor checks are now **17**, three of them authoring tests that end by handing
+  what an inspector wrote to the engine's validator (`quest`, `contract`,
+  `recipe`), plus a switch test that drives the real `Main.tscn` between two
+  scratch content sets.
+- [x] **Finish the editor: dialogue, CI, and its own vocabulary (2026-09-20).**
+  Batch D of the same audit:
+  - **Dialogue graphs are authorable.** `data/dialogue/*.json` was the last
+    content system with no surface and the most player-facing weight — a
+    conversation can gate a reply on what the player has done, teach a recipe
+    mid-sentence, or let a negotiation go two ways, and all nine shipped graphs
+    were hand-written JSON. `DialogueSchema.gd` holds the engine's 17 condition
+    kinds and 15 effect keys with their fields and payload shapes; the inspector
+    offers node targets as **pickers over the graph's own nodes**, and renaming a
+    node **repoints every reference to it** — the operation a hand-edited graph
+    gets wrong. Dialogue needed its own loader too: one graph per file, because
+    `nodes` is the graph's structure and the generic entry heuristic would read
+    it as a second entry.
+  - **The editor tests run in CI** (`.github/workflows/editor-checks.yml`): a
+    pinned Godot, one project import for the class-name registry, then
+    `run_editor_checks.py` and `run_content_checks.py`.
+  - **The UI says "ability", not "spell"** — category, create button, group
+    manager, inspector headers and the database filter. The *keys* stay `magic`,
+    because they name caches, dirty flags and persisted editor state.
+  - A real bug this found in the new code: GDScript's `or` returns a **bool**, so
+    `str(x or fallback)` yields `"true"` — four places had that idiom, including
+    the dialogue graph id, and every graph loaded as `"true"`. Caught on the
+    test's first run because it asserted on ids rather than on "something
+    loaded".
+
+  Editor checks are now **18**. Still open for the editor: editing the contracts
+  themselves (the browser is read-only by design), backgrounds/titles/
+  collections/discoveries surfaces, and campaign authoring.
 - [x] **Give the world editor bulk-generation tools for scaling a world.**
   Follow-on to the item above, aimed at end-user builders/modders rather
   than just closing a staleness gap. The editor already had a working
@@ -1542,12 +1653,84 @@ work order.
   `pickaxe` unless content says so; a status line no longer shows
   `SPELL_POWER` to a set that has none). Fantasy Frontier's numbers are
   unchanged and pinned.
-  `test_sci_fi_proving_slice.py` (11 tests) walks the journey and scans every
+  `test_sci_fi_proving_slice.py` walks the journey and scans every
   player-visible line for vocabulary the set never declares — which found three
   real leaks while it was being written.
   *Still open, and recorded in the design doc:* the `Spell`/`known_spells`/
   `mana_cost`/`runtime_state.magic` internal names, the fantasy aliases the
-  ability command advertises in `help`, NPC casting, and the crafting seam.
+  ability command advertises in `help`, and NPC casting.
+
+### Third batch: the crafting seam (2026-09-21)
+
+- [x] **An ingredient is a reference, not an item id.** A recipe may name an
+  exact template (unchanged, and it still wins when several are given), an item
+  **family**, or a **capability** a family declares, each with an optional
+  `min_material_quality` floor. `alternatives` may themselves be whole
+  references, and each carries the `quality_penalty` that makes a substitution a
+  trade-off rather than a free swap.
+- [x] **One matcher for every call site.** `CraftingManager._ingredient_matches`
+  is what counting, selecting, the craftable check, the crafting command's
+  requirement list, the headless status payload, `givemats` and the editor all go
+  through — a recipe that looks craftable and then fails to craft is worse than
+  one that says what it is missing. `Inventory.select_items_matching` and
+  `count_items_matching` are the inventory half of the same rule.
+- [x] **The validator resolves the rule against real vocabulary.** A family is
+  checked against the set's own contracts and a capability against what its
+  families declare, so a typo fails the build instead of reading as a recipe that
+  can never be made. An ingredient naming nothing is an error; naming two things
+  at once is a warning that the second is ignored.
+- [x] **The sci-fi proof uses it for real.** `orbital_salvage`'s fabrication
+  recipe now asks for *two salvaged parts of grade 2 or better* rather than two
+  named components, and its salvage bench yields exactly that grade — so the
+  recipe reads the set's own family and the set's own grade, and knows no item
+  name at all.
+- [x] **The editor followed.** Each ingredient row has a kind picker and a grade
+  floor, with suggestions drawn from the content set's contracts rather than a
+  hard-coded list.
+- [x] **A loader bug this found:** a top-level `_comment` in a recipe file
+  crashed the crafting loader and silently removed *every* recipe in that file.
+  Notes are skipped now, and a non-object recipe value is skipped by name.
+
+*Still open here:* nothing — the seam was extended to the other two call sites in
+the fourth batch below.
+
+### Fourth batch: one rule, three call sites (2026-09-21)
+
+- [x] **`engine/items/references.py` is the one implementation.** A recipe
+  ingredient, a vendor's buy order and a salvage rule ask the same question
+  about the same items, so they call the same `matches` / `describe` /
+  `match_plan` rather than each having their own idea of what "counts".
+- [x] **Vendor orders take a family or a capability.** Plus the older
+  `min_material_quality_score` spelling alongside the shorter one, and a refusal
+  that names *every* requirement rather than one of them.
+- [x] **Salvage output is a reference, and rules key on the family.** The engine
+  class key (`Weapon`, `Armor`) was a proxy for the family; `by_family` says it
+  directly, and the class key is still read for a template that has no family.
+  Fantasy Frontier's two class rules migrated.
+- [x] **Nothing validated any of it before.** A typo'd salvage key fell silently
+  to the scrap default and a rule naming a missing template failed only when a
+  player tried it. Rules, `by_family` keys, template-level outputs and the weight
+  rate are all checked now.
+- [x] **Two content gaps closed.** `orbital_salvage` enabled `salvage` and
+  declared no rule, so every attempt refused; it strips down to `item_scrap_alloy`
+  by family now. And its foreman — already `is_vendor: true` in a set with no
+  `economy` system — trades, with two buy orders by family and grade.
+- [x] **The editor followed.** `ReferenceEditor` is one control used by the
+  recipe ingredient row, the item's own salvage output, and whatever asks next;
+  the item inspector gained a salvage section, which is how the eleven fantasy
+  templates that override the family rule were authorable by hand and nothing
+  else was.
+
+### Fourth-batch evidence (2026-09-21)
+
+- `test_salvage_references.py` (14) pins the rule lookup order, the family and
+  class keys, and the yield arithmetic.
+- `test_vendor_order_references.py` (17) walks Ivo's shipped orders in the
+  sci-fi set and the shapes it does not use yet — capability, crafted-only, both
+  quality spellings.
+- `test_content_set_validator.py` gained 10 salvage cases;
+  `test_sci_fi_proving_slice.py` is 19 and now breaks a part down and trades.
+- Editor checks are **19** (`item_authoring_smoke.gd`), all green.
 
 ### Lessons from the first batch
 
@@ -1584,11 +1767,13 @@ work order.
   (`test_generated_instance_round_trip.py`) — the value/weight/stackable bug this
   found is fixed.
 - The sci-fi journey never shows a word its content does not declare
-  (`test_sci_fi_proving_slice.py`, 11 tests).
-- Genre coupling re-measured: **45 branch sites**, down from 49, with engine
-  literals 235 → 212. What remains is spell-school vocabulary, NPC casting, and
-  crafting quality — none of which the sci-fi set exercises, all of which the
-  design doc lists by name.
+  (`test_sci_fi_proving_slice.py`, 16 tests).
+- Genre coupling re-measured: **213 engine literals** (167 CONTENT_LEAK, 18
+  CAPABILITY, 28 KERNEL) by `toolkit/genre_coupling_audit.py`. Note that tool
+  counts genre *string literals*, not branch sites — see the correction in the
+  design doc. What remains is spell-school vocabulary and NPC casting; the
+  crafting vocabulary left the list with the ingredient seam, because what it
+  removed were identifiers rather than literals.
 
 ---
 

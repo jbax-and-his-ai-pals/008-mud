@@ -113,23 +113,39 @@ regions and 193 rooms, the world map layout, magic groups, templates — by
 were merged forward by `toolkit/merge_editor_gems.py` and
 `toolkit/port_town_districts.py`.
 
-The tree itself is now `mud-world-editor/legacy-mirror/`, read by nothing, kept
-only because `regions/town.json` and `regions/dynamic_themes.json` remain a fork
-whose resolution is an editorial decision (38 rewritten room descriptions, 8
-rooms the canonical file has and the mirror does not). Its `README.md` says what
-was recovered, what is left, and how to compare the two files. `toolkit/editor_export_shim.py`
-stops being a sync step and becomes what it is good at: validating and reporting
-a migration for anyone who still has an old mirror.
+**The tree is deleted (2026-09-20).** It was kept as `mud-world-editor/legacy-mirror/`
+while two files were an open editorial question. Both are settled, and neither
+needed the mirror:
+
+- `regions/town.json` was a *fork*, not newer authoring: 38 rooms against the
+  content set's 46, missing `community_garden` (where the opening commission
+  sends the player), 22 rooms with different exits, and one reference —
+  `museum_curator` on `museum_interior` — naming an NPC template that exists
+  nowhere in the content set. The canonical file is what the game plays and what
+  the tests exercise; adopting the fork would have deleted rooms and restored a
+  dangling reference.
+- `regions/dynamic_themes.json` has a counterpart in the content set, which is
+  the copy in play.
+
+Everything else in the mirror had already been migrated, including
+`editor/templates/fish_stall_tpl.json` (byte-identical), `editor/magic_groups.json`
+and `editor/world_layout.json`. The only files without a counterpart were a
+zero-byte `quests.json` and the mirror's own `ruleset.json`, whose counterpart
+lives at `rules/ruleset.json` by the layout the loader uses.
+
+`toolkit/editor_export_shim.py` stops being a sync step and becomes what it is
+good at: validating and reporting a migration for anyone who still has an old
+mirror.
 
 ## Guardrails
 
 - No editor script may hard-code a `res://data/...` **content** path. `res://`
   stays for scripts, scenes and themes; content comes from the resolver. A test
   enforces this, so the mirror cannot quietly come back.
-- The retired mirror must not be the editor's fallback directory: `DataRoot`'s
-  `<project>/data` candidate is checked, and a test asserts that
-  `<project>/data` does not exist while `<project>/legacy-mirror` explains
-  itself.
+- **The retired mirror is gone and must stay gone**: a test asserts
+  `mud-world-editor/legacy-mirror` does not exist, because a directory that once
+  existed for a reason is exactly the sort of thing that gets restored by
+  accident.
 - Canonical region and quest files must contain no `_editor_*` keys. A test
   enforces that, so a save path that forgets the split is caught.
 - The server's loader and the content validator must not walk `editor/`; a test
