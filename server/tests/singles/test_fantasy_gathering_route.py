@@ -658,7 +658,12 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             ordinary_token.properties["crafted_by_player"] = True
             player.inventory.add_item(ordinary_token)
             rejected = server.execute_command(session.session_id, "fulfill river_fine_token")
-            self.assertIn("material quality 2", "\n".join(str(event["payload"]) for event in rejected))
+            # The order asks for grade 2 *and* that the player made it, and the
+            # refusal names both: a message naming only one sends someone off to
+            # satisfy a requirement that was never the only one.
+            refusal = "\n".join(str(event["payload"]) for event in rejected)
+            self.assertIn("made by you", refusal)
+            self.assertIn("material grade 2 or better", refusal)
 
             fine_token = ItemFactory.create_item_from_template("item_river_token", server.world)
             self.assertIsNotNone(fine_token)

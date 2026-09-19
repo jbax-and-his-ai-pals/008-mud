@@ -1161,6 +1161,54 @@ def _check_reveal_exit(
         ))
 
 
+def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Every stage must say what it is waiting for.
+
+    A stage with neither `objective` nor `objectives_any` has no route to
+    satisfaction, and `QuestManager.get_active_objectives` returns an empty list
+    for it -- so the quest stops there forever. Nothing used to report it: the
+    editor's quest inspector wrote exactly that shape (`type`, `target`, `count`,
+    `next` at stage level) and content validation passed with zero errors, which
+    made a broken quest look finished. The world editor was fixed to write
+    `objective`; this is the engine refusing to accept a stage without one.
+    """
+    quests_path = content_root / "quests" / "quests.json"
+    if not quests_path.is_file():
+        return
+    payload = _load_json(quests_path, issues, "quest definitions")
+    if not isinstance(payload, dict):
+        return
+
+    for quest_id, quest in payload.items():
+        if str(quest_id).startswith("_") or not isinstance(quest, dict):
+            continue
+        stages = quest.get("stages")
+        if not isinstance(stages, list):
+            continue
+        for index, stage in enumerate(stages):
+            if not isinstance(stage, dict):
+                issues.append(ContentSetIssue(
+                    "error", str(quests_path),
+                    f"quest '{quest_id}' stage {index} must be an object",
+                ))
+                continue
+            if _stage_objectives(stage):
+                continue
+            unknown = sorted(
+                key for key in stage
+                if key in ("type", "target", "count", "next", "id")
+            )
+            hint = (
+                " It carries %s, which is not a stage field the engine reads."
+                % ", ".join(unknown)
+            ) if unknown else ""
+            issues.append(ContentSetIssue(
+                "error", str(quests_path),
+                f"quest '{quest_id}' stage {index} declares neither 'objective' nor "
+                f"'objectives_any', so nothing can satisfy it.{hint}",
+            ))
+
+
 def _validate_quest_choice_outcomes(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """A branching objective must say where each of its outcomes leads.
 
@@ -1444,9 +1492,14 @@ def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -
                     issues.append(ContentSetIssue("error", str(path), f"{label} ids must be unique"))
                 else:
                     seen.add(order_id)
-                item_id = order.get("item_id")
-                if not isinstance(item_id, str) or item_id not in item_ids:
-                    issues.append(ContentSetIssue("error", str(path), f"{entry}.item_id references a missing item template"))
+                # An order asks for an item the same way a recipe ingredient
+                # does: an exact template, a family, or a capability, with an
+                # optional material-grade floor. `min_material_quality` and the
+                # older `min_material_quality_score` are both read; the
+                # reference helper checks whichever is present.
+                issues.extend(_item_reference_issues(
+                    order, entry, path, item_ids, _load_contract_registry(content_root),
+                ))
                 for field in ("quantity", "reward_gold"):
                     value = order.get(field)
                     if isinstance(value, bool) or not isinstance(value, int) or value < 0 or (field == "quantity" and value < 1):
@@ -1458,6 +1511,114 @@ def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -
                     score = order["min_material_quality_score"]
                     if isinstance(score, bool) or not isinstance(score, int) or score < 0:
                         issues.append(ContentSetIssue("error", str(path), f"{entry}.min_material_quality_score must be a non-negative integer"))
+
+
+def _validate_salvage_rules(
+    content_root: Path,
+    issues: list[ContentSetIssue],
+    registry: Any = None,
+    ruleset_path: Optional[Path] = None,
+    ruleset_payload: Any = None,
+) -> None:
+    """Validate what an item breaks down into.
+
+    Until now nothing checked any of this, so a typo'd key fell silently through
+    to the set's scrap default and a rule naming a missing template failed only
+    when a player tried it. Salvage output is an item reference -- the same shape
+    a recipe ingredient uses -- and is checked the same way.
+    """
+    if ruleset_path is None:
+        return
+    ruleset_path = Path(ruleset_path)
+    payload = ruleset_payload
+    crafting = payload.get("crafting") if isinstance(payload, dict) else None
+    rules = crafting.get("salvage_rules") if isinstance(crafting, dict) else None
+    if rules is None:
+        return
+    if not isinstance(rules, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "crafting.salvage_rules must be an object"))
+        return
+
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    label = "crafting.salvage_rules"
+
+    default_id = rules.get("default_item_id")
+    if default_id is not None:
+        if not isinstance(default_id, str) or default_id not in item_ids:
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{label}.default_item_id references a missing item template",
+            ))
+
+    from engine.items.item_factory import ITEM_CLASS_MAP
+
+    by_family = rules.get("by_family", {})
+    if not isinstance(by_family, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.by_family must be an object"))
+        by_family = {}
+    for family_id, rule in by_family.items():
+        if str(family_id).startswith("_"):
+            continue
+        entry = f"{label}.by_family.{family_id}"
+        if registry is None or not registry.family(str(family_id)):
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{entry} is not an item family this content set declares",
+            ))
+        issues.extend(_salvage_rule_issues(rule, entry, ruleset_path, item_ids, registry))
+
+    for key, rule in rules.items():
+        if key in ("by_family", "default_item_id") or str(key).startswith("_"):
+            continue
+        entry = f"{label}.{key}"
+        if key not in ITEM_CLASS_MAP:
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{entry} is not an item class this engine has (known: {', '.join(sorted(ITEM_CLASS_MAP))}); "
+                f"use by_family to key a rule on what a thing *is*",
+            ))
+        issues.extend(_salvage_rule_issues(rule, entry, ruleset_path, item_ids, registry))
+
+
+def _salvage_rule_issues(
+    rule: object,
+    entry: str,
+    path: Path,
+    item_ids: set[str],
+    registry: Any = None,
+) -> list[ContentSetIssue]:
+    """Validate one salvage rule: what it produces, and how much."""
+    issues: list[ContentSetIssue] = []
+    if not isinstance(rule, dict):
+        issues.append(ContentSetIssue("error", str(path), f"{entry} must be an object"))
+        return issues
+    issues.extend(_item_reference_issues(rule, entry, path, item_ids, registry, quantity_field=None))
+    if "quantity_per_weight" in rule:
+        rate = rule["quantity_per_weight"]
+        if isinstance(rate, bool) or not isinstance(rate, (int, float)) or rate < 0:
+            issues.append(ContentSetIssue(
+                "error", str(path), f"{entry}.quantity_per_weight must be a non-negative number",
+            ))
+    return issues
+
+
+def _validate_item_salvage_outputs(content_root: Path, issues: list[ContentSetIssue], registry: Any = None) -> None:
+    """Validate an item template's own `salvage_output` property."""
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    for path in sorted((content_root / "items").glob("*.json")):
+        payload = _load_json(path, issues, "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item_id, definition in payload.items():
+            if not isinstance(definition, dict) or str(item_id).startswith("_"):
+                continue
+            properties = definition.get("properties", {})
+            if not isinstance(properties, dict) or "salvage_output" not in properties:
+                continue
+            entry = f"item '{item_id}'.properties.salvage_output"
+            issues.extend(
+                _salvage_rule_issues(properties["salvage_output"], entry, path, item_ids, registry)
+            )
 
 
 def _validate_resource_node_yields(content_root: Path, issues: list[ContentSetIssue]) -> None:
@@ -1668,7 +1829,138 @@ def _validate_starting_content(content_root: Path, issues: list[ContentSetIssue]
                     issues.extend(_condition_issues(requirement, f"{label}.requirements[{index}]", titles_path))
 
 
-def _validate_crafting_quality_contracts(content_root: Path, issues: list[ContentSetIssue]) -> None:
+_CONTRACT_REGISTRY_CACHE: dict[tuple[str, int], Any] = {}
+
+
+def _load_contract_registry(content_root: Path) -> Any:
+    """The content set's contract registry, or None when it cannot be read.
+
+    `_validate_contract_content` loads contracts to check them; every later
+    check that has to resolve a family or a capability against them comes
+    through here, so the file is parsed once per validation run rather than once
+    per caller. Cached on the file's mtime so a long-lived process -- the editor
+    validating content it just saved -- cannot answer from a stale copy.
+    """
+    contracts_path = content_root / "contracts" / "world_contracts.json"
+    try:
+        stamp = contracts_path.stat().st_mtime_ns
+    except OSError:
+        return None
+    key = (str(contracts_path), stamp)
+    if key in _CONTRACT_REGISTRY_CACHE:
+        return _CONTRACT_REGISTRY_CACHE[key]
+    try:
+        from engine.contracts import ContractRegistry
+
+        registry = ContractRegistry.load(str(content_root))
+    except Exception:
+        return None
+    _CONTRACT_REGISTRY_CACHE.clear()
+    _CONTRACT_REGISTRY_CACHE[key] = registry
+    return registry
+
+
+def _item_reference_issues(
+    reference: object,
+    entry: str,
+    path: Path,
+    item_ids: set[str],
+    registry: Any = None,
+    *,
+    quantity_field: Optional[str] = "quantity",
+) -> list[ContentSetIssue]:
+    """Validate one authored item reference -- what it asks for, and whether it lands.
+
+    A reference names either an exact template, a family, or a capability. It is
+    the same shape wherever content asks for an item: a recipe ingredient, a
+    vendor's buy order, a salvage rule's output. `item_id` wins when present (so
+    content written before families existed resolves exactly as it did), which is
+    why naming two kinds at once is a warning rather than an error: the extra
+    reference is dead weight the author probably did not intend, but nothing
+    misbehaves at runtime.
+
+    `quantity_field` is the key that says how many units are wanted, which is
+    `quantity` almost everywhere and nothing at all for a salvage rule (which
+    yields by weight instead). Pass None to skip that check.
+    """
+    from engine.items import references
+
+    issues: list[ContentSetIssue] = []
+    if not isinstance(reference, dict):
+        issues.append(ContentSetIssue("error", str(path), f"{entry} must be an object"))
+        return issues
+
+    kind = references.reference_kind(reference)
+    if not kind:
+        issues.append(ContentSetIssue(
+            "error", str(path),
+            f"{entry} names nothing: give it an item_id, an item_family, or a capability",
+        ))
+        return issues
+
+    given = [
+        key for key in references.REFERENCE_KEYS
+        if str(reference.get(key, "") or "").strip()
+    ]
+    if len(given) > 1:
+        issues.append(ContentSetIssue(
+            "warning", str(path),
+            f"{entry} names {' and '.join(given)}; only {given[0]} is used and the rest are ignored",
+        ))
+
+    item_id = str(reference.get("item_id", "") or "").strip()
+    family_id = str(reference.get("item_family", "") or "").strip()
+    capability = str(reference.get("capability", "") or "").strip()
+    if item_id and item_id not in item_ids:
+        # Named, not just "a missing template": the entry path tells an author
+        # where the reference is, and the value tells them what they typed.
+        issues.append(ContentSetIssue(
+            "error", str(path), f"{entry}.item_id references a missing item template: {item_id!r}",
+        ))
+    if family_id:
+        if registry is None or not registry.family(family_id):
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{entry}.item_family '{family_id}' is not defined by this content set's contracts",
+            ))
+    if capability and registry is not None:
+        known = any(
+            capability in (family.get("capabilities") or [])
+            for family in registry.item_families.values()
+        )
+        if not known:
+            issues.append(ContentSetIssue(
+                "warning", str(path),
+                f"{entry}.capability '{capability}' is not declared by any item family in this "
+                f"content set, so no item can satisfy it",
+            ))
+
+    for key in references.QUALITY_FLOOR_KEYS:
+        if key not in reference:
+            continue
+        grade = reference[key]
+        if isinstance(grade, bool) or not isinstance(grade, int) or grade < 0:
+            issues.append(ContentSetIssue("error", str(path), f"{entry}.{key} must be a non-negative integer"))
+    if quantity_field is not None and quantity_field in reference:
+        value = reference[quantity_field]
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            issues.append(ContentSetIssue("error", str(path), f"{entry}.{quantity_field} must be a positive integer"))
+    if "quality_penalty" in reference:
+        penalty = reference["quality_penalty"]
+        if isinstance(penalty, bool) or not isinstance(penalty, int) or penalty < 0:
+            issues.append(ContentSetIssue("error", str(path), f"{entry}.quality_penalty must be a non-negative integer"))
+    return issues
+
+
+# Kept as the name the crafting validator and its callers already use.
+_recipe_ingredient_issues = _item_reference_issues
+
+
+def _validate_crafting_quality_contracts(
+    content_root: Path,
+    issues: list[ContentSetIssue],
+    registry: Any = None,
+) -> None:
     """Validate generic recipe metadata controlling material-grade outcomes."""
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
     crafting_dir = content_root / "crafting"
@@ -1717,12 +2009,9 @@ def _validate_crafting_quality_contracts(content_root: Path, issues: list[Conten
             quality_contributors = 0
             for index, ingredient in enumerate(ingredients):
                 entry = f"{label}.ingredients[{index}]"
+                issues.extend(_recipe_ingredient_issues(ingredient, entry, path, item_ids, registry))
                 if not isinstance(ingredient, dict):
-                    issues.append(ContentSetIssue("error", str(path), f"{entry} must be an object"))
                     continue
-                item_id = ingredient.get("item_id")
-                if not isinstance(item_id, str) or item_id not in item_ids:
-                    issues.append(ContentSetIssue("error", str(path), f"{entry}.item_id references a missing item template"))
                 contributes = ingredient.get("quality_contributes", True)
                 if not isinstance(contributes, bool):
                     issues.append(ContentSetIssue("error", str(path), f"{entry}.quality_contributes must be a boolean"))
@@ -1735,12 +2024,9 @@ def _validate_crafting_quality_contracts(content_root: Path, issues: list[Conten
                     else:
                         for alt_index, alternative in enumerate(alternatives):
                             alt_entry = f"{entry}.alternatives[{alt_index}]"
+                            issues.extend(_recipe_ingredient_issues(alternative, alt_entry, path, item_ids, registry))
                             if not isinstance(alternative, dict):
-                                issues.append(ContentSetIssue("error", str(path), f"{alt_entry} must be an object"))
                                 continue
-                            alt_item_id = alternative.get("item_id")
-                            if not isinstance(alt_item_id, str) or alt_item_id not in item_ids:
-                                issues.append(ContentSetIssue("error", str(path), f"{alt_entry}.item_id references a missing item template"))
                             if "quality_penalty" in alternative:
                                 penalty = alternative["quality_penalty"]
                                 if isinstance(penalty, bool) or not isinstance(penalty, int) or penalty < 0:
@@ -2061,13 +2347,24 @@ def load_content_set(
         _validate_starting_content(content_root, issues)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
+        _validate_quest_stages(content_root, issues)
         _validate_quest_choice_outcomes(content_root, issues)
         _validate_new_quest_objective_types(content_root, issues)
         _validate_collection_references(content_root, issues)
         _validate_discovery_references(content_root, issues)
+        # One registry for every check that has to resolve a family or a
+        # capability against the content set's own declarations, rather than one
+        # parse per check.
+        contract_registry = _load_contract_registry(content_root)
         _validate_vendor_orders(content_root, issues)
         _validate_resource_node_yields(content_root, issues)
-        _validate_crafting_quality_contracts(content_root, issues)
+        _validate_crafting_quality_contracts(content_root, issues, contract_registry)
+        _validate_salvage_rules(
+            content_root, issues, contract_registry,
+            ruleset_path=resolved_paths.get("ruleset"),
+            ruleset_payload=ruleset_payload,
+        )
+        _validate_item_salvage_outputs(content_root, issues, contract_registry)
         _validate_item_extension_data(content_root, issues)
 
     if any(issue.severity == "error" for issue in issues):

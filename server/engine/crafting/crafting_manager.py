@@ -1,10 +1,11 @@
 # engine/crafting/crafting_manager.py
 import json
 import os
-from typing import Dict, List, Tuple, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Tuple, Optional, TYPE_CHECKING
 
 from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS
 from engine.crafting.recipe import Recipe
+from engine.items import references
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.core.skill_system import SkillSystem
@@ -34,6 +35,14 @@ class CraftingManager:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
                         for r_id, r_data in data.items():
+                            # `_comment` and friends are authoring notes, not
+                            # recipes; every other loader in the engine skips
+                            # them and this one used to crash on them.
+                            if str(r_id).startswith("_"):
+                                continue
+                            if not isinstance(r_data, dict):
+                                print(f"{FORMAT_ERROR}Skipping recipe '{r_id}' in {filename}: must be an object{FORMAT_RESET}")
+                                continue
                             self.recipes[r_id] = Recipe(r_id, r_data)
                 except Exception as e:
                     print(f"{FORMAT_ERROR}Error loading recipes from {filename}: {e}{FORMAT_RESET}")
@@ -71,21 +80,26 @@ class CraftingManager:
             if recipe.station_required not in nearby:
                 return False, f"You need a {recipe.station_display} to craft this."
 
-        # 3. Check Ingredients (the primary item_id, or any authored substitute)
+        # 3. Check Ingredients (each ingredient's primary reference, or any
+        #    authored substitute; a reference may be a template, a family or a
+        #    capability rather than one id)
         for ing in recipe.ingredients:
-            req_qty = ing["quantity"]
+            req_qty = max(1, int(ing.get("quantity", 1)))
             options = Recipe.ingredient_options(ing)
-            has_any = any(player.inventory.count_item(opt["item_id"]) >= req_qty for opt in options)
-            if not has_any:
-                req_id = ing["item_id"]
-                template = ItemFactory.get_template(req_id, self.world)
-                name = template.get("name", req_id) if template else req_id
-                has_qty = player.inventory.count_item(req_id)
-                message = f"Missing ingredient: {name} ({has_qty}/{req_qty})"
-                alt_names = []
-                for opt in options[1:]:
-                    alt_template = ItemFactory.get_template(opt["item_id"], self.world)
-                    alt_names.append(alt_template.get("name", opt["item_id"]) if alt_template else opt["item_id"])
+            available = 0
+            for option in options:
+                available = len(player.inventory.select_items_matching(
+                    req_qty, predicate=lambda item: self._ingredient_matches(option, item)
+                ))
+                if available >= req_qty:
+                    break
+            if available < req_qty:
+                name = Recipe.describe_reference(ing, self.world)
+                message = f"Missing ingredient: {name} ({available}/{req_qty})"
+                alt_names = [
+                    Recipe.describe_reference(option, self.world)
+                    for option in options[1:]
+                ]
                 if alt_names:
                     message += f" -- or: {', '.join(alt_names)}"
                 return False, message
@@ -97,29 +111,110 @@ class CraftingManager:
         raw_score = item.get_property("material_quality_score", 0)
         return int(raw_score) if isinstance(raw_score, int) and not isinstance(raw_score, bool) else 0
 
+    # -- one matcher, every call site -----------------------------------------
+    # An ingredient may name an exact template, a family, or a capability. The
+    # rule itself lives in `engine/items/references.py`, because a vendor's buy
+    # order asks the same question about the same items; what is here is the
+    # world this manager answers it with. Counting, selecting, previewing and
+    # spending all go through the methods below, because a recipe that *looks*
+    # craftable and then fails to craft is worse than one that says what it is
+    # missing.
+
+    def _family_of(self, item: Item) -> str:
+        """This item's family, falling back to the template it came from.
+
+        Instances built before families existed -- or by a content set that
+        declares none -- carry no `item_family` of their own.
+        """
+        family_id = str(item.get_property("item_family", "") or "")
+        if family_id:
+            return family_id
+        template = getattr(self.world, "item_templates", {}).get(str(getattr(item, "obj_id", "")), {})
+        return str(template.get("item_family", "") or "") if isinstance(template, dict) else ""
+
+    def _family_declares(self, family_id: str, capability: str) -> bool:
+        registry = getattr(self.world, "contract_registry", None)
+        if registry is None or not family_id or not capability:
+            return False
+        return bool(registry.family_has_capability(family_id, capability))
+
+    def _item_has_capability(self, item: Item, capability: str) -> bool:
+        """Whether this item's family declares a capability."""
+        return self._family_declares(self._family_of(item), capability)
+
+    def _reference_questions(self) -> Dict[str, Any]:
+        """The world's answers to the questions a reference asks."""
+        return {
+            "quality_of": self._material_quality_score,
+            "item_family": self._family_of,
+            "family_has_capability": self._family_declares,
+            "identity_of": lambda item: str(getattr(item, "obj_id", "")),
+        }
+
+    def _ingredient_matches(self, option: Dict[str, Any], item: Item) -> bool:
+        """Whether a held item satisfies one authored option."""
+        return references.matches(option, item, **self._reference_questions())
+
+    def resolve_reference_template(self, ingredient: Dict[str, Any]) -> Optional[str]:
+        """A concrete template id that would satisfy this ingredient, if any.
+
+        Only used by tooling that has to *hand someone the thing* rather than
+        check for it (the `givemats` debug command). Player-facing code never
+        guesses: it counts what the player is actually holding.
+        """
+        templates = getattr(self.world, "item_templates", {})
+        return references.resolve_template_id(
+            ingredient,
+            family_of_template=lambda item_id: str(
+                templates.get(item_id, {}).get("item_family", "") or ""
+            ) if isinstance(templates.get(item_id), dict) else "",
+            family_has_capability=self._family_declares,
+            template_ids=list(templates),
+        )
+
+    def count_ingredient(self, player: 'Player', ingredient: Dict[str, Any]) -> int:
+        """How many units of this ingredient the player is holding."""
+        return references.count_matching(
+            ingredient,
+            player.inventory,
+            max(1, int(ingredient.get("quantity", 1))),
+            **self._reference_questions(),
+        )
+
     def select_recipe_ingredients(self, player: 'Player', recipe: Recipe) -> Optional[List[Item]]:
         """Choose the exact, highest-quality input units for a recipe.
 
-        Tries each ingredient's primary item_id first -- preserving today's
+        Tries each ingredient's primary reference first -- preserving today's
         behavior exactly for every recipe without alternatives, and keeping
         the primary preferred even when it does have substitutes -- and
         only falls through to an authored alternative when the primary is
-        short."""
+        short. A reference may be an exact template, a family or a capability;
+        within one reference the highest material grades go first."""
         selected: List[Item] = []
         for ingredient in recipe.ingredients:
-            quantity = max(1, int(ingredient.get("quantity", 1)))
-            chosen: Optional[List[Item]] = None
-            for option in Recipe.ingredient_options(ingredient):
-                candidate = player.inventory.select_items(
-                    str(option["item_id"]), quantity, sort_key=self._material_quality_score
-                )
-                if len(candidate) == quantity:
-                    chosen = candidate
-                    break
-            if chosen is None:
+            plan = references.match_plan(
+                ingredient,
+                player.inventory,
+                max(1, int(ingredient.get("quantity", 1))),
+                **self._reference_questions(),
+            )
+            if plan is None:
                 return None
-            selected.extend(chosen)
+            selected.extend(plan["items"])
         return selected
+
+    def matched_option(self, ingredient: Dict[str, Any], item: Item) -> Optional[Dict[str, Any]]:
+        """Which authored option of this ingredient the given item satisfies.
+
+        Returns the option dict (with its ``quality_penalty``) so a spent unit
+        is scored against the reference it actually matched, not against a
+        guessed id. ``None`` when the item satisfies nothing here.
+        """
+        return references.matching_option(ingredient, item, **self._reference_questions())
+
+    def _ingredient_penalty(self, ingredient: Dict[str, Any], item: Item) -> int:
+        option = self.matched_option(ingredient, item)
+        return references.penalty_of(option) if option is not None else 0
 
     def ingredient_quality_score(self, player: 'Player', recipe: Recipe, selected_items: Optional[List[Item]] = None) -> int:
         """Return the limiting score among the exact quality-setting inputs."""
@@ -132,34 +227,19 @@ class CraftingManager:
                 if len(chosen) != quantity:
                     return 0
                 if ingredient.get("quality_contributes", True) is not False:
-                    base_score = min(self._material_quality_score(item) for item in chosen)
-                    chosen_item_id = str(getattr(chosen[0], "obj_id", ""))
-                    penalty = next(
-                        (int(opt["quality_penalty"]) for opt in Recipe.ingredient_options(ingredient) if opt["item_id"] == chosen_item_id),
-                        0,
-                    )
-                    selected_scores.append(max(0, base_score - penalty))
+                    in_slot = [
+                        max(0, self._material_quality_score(item) - self._ingredient_penalty(ingredient, item))
+                        for item in chosen
+                    ]
+                    selected_scores.append(min(in_slot))
                 offset += quantity
             return min(selected_scores) if selected_scores else 0
 
         # Compatibility path for callers that only need a preview.
-        selected_scores: List[int] = []
-        for ingredient in recipe.ingredients:
-            if ingredient.get("quality_contributes", True) is False:
-                continue
-            item_id = str(ingredient.get("item_id", ""))
-            quantity = max(1, int(ingredient.get("quantity", 1)))
-            scores: List[int] = []
-            for slot in player.inventory.slots:
-                item = slot.item
-                if item is None or str(getattr(item, "obj_id", "")) != item_id:
-                    continue
-                score = self._material_quality_score(item)
-                scores.extend([score] * min(quantity, int(slot.quantity)))
-            if len(scores) < quantity:
-                return 0
-            selected_scores.append(min(sorted(scores, reverse=True)[:quantity]))
-        return min(selected_scores) if selected_scores else 0
+        selected = self.select_recipe_ingredients(player, recipe)
+        if selected is None:
+            return 0
+        return self.ingredient_quality_score(player, recipe, selected)
 
     def quality_preview(self, player: 'Player', recipe: Recipe) -> Dict[str, object]:
         """Describe the next craft's material-grade outcome without spending.
@@ -173,7 +253,11 @@ class CraftingManager:
         tier = recipe.quality_tier(next_craft_count, material_score)
         contributors = [
             {
-                "item_id": str(ingredient.get("item_id", "")),
+                "item_id": str(ingredient.get("item_id", "") or ""),
+                "item_family": str(ingredient.get("item_family", "") or ""),
+                "capability": str(ingredient.get("capability", "") or ""),
+                "reference": Recipe.reference_label(ingredient),
+                "name": Recipe.describe_reference(ingredient, self.world),
                 "quantity": max(1, int(ingredient.get("quantity", 1))),
             }
             for ingredient in recipe.quality_ingredients()
@@ -300,46 +384,104 @@ class CraftingManager:
         notes = [note for note in (discovery_note, first_craft_note) if note]
         return f"{result}\n" + "\n".join(notes) if notes else result
 
-    def salvage(self, player: 'Player', item: Item) -> str:
-        """Breaks down an item into basic materials.
+    def salvage_output_for(self, item: Item) -> Optional[Dict[str, Any]]:
+        """Which salvage rule applies to this item, split into its two halves.
 
-        Output is determined by the item's own "salvage_output" property
-        (an author-declared override), falling back to a ruleset-driven
-        rule keyed by the item's class (Weapon/Armor/...), and finally a
-        content-set-provided generic default. An item type/content set with
-        no salvage rule configured simply cannot be salvaged.
+        Three places can answer, most specific first:
+
+        1. the item's own `salvage_output` property -- an author saying what
+           *this template* breaks down into;
+        2. `salvage_rules.by_family[family]` -- the content set saying what a
+           kind of thing breaks down into, which is the rule an author almost
+           always means ("armour comes back as ingots"), and which does not go
+           stale when a new template joins the family;
+        3. `salvage_rules[ItemClass]` -- the older spelling, keyed by the engine
+           class the family resolves to. Kept because content sets written
+           before families existed still use it, and because a template with no
+           family has no family key to be found under.
+
+        Returns `{"reference": ..., "quantity_per_weight": ..., "source": ...}`.
+        The reference is what the item breaks down *into* -- an item reference,
+        the same shape a recipe ingredient and a vendor's buy order use -- and
+        the rate is salvage's own key, which is why the two are separated here
+        rather than left in one dict for callers to pick apart.
+        """
+        candidates: List[Tuple[str, Any]] = [("item", item.get_property("salvage_output"))]
+        salvage_rules = self.world.ruleset_section("crafting").get("salvage_rules", {})
+        if isinstance(salvage_rules, dict):
+            by_family = salvage_rules.get("by_family", {})
+            family_id = self._family_of(item)
+            if family_id and isinstance(by_family, dict):
+                candidates.append(("family", by_family.get(family_id)))
+            candidates.append(("class", salvage_rules.get(item.__class__.__name__)))
+
+        for source, authored in candidates:
+            if not isinstance(authored, dict) or not references.names_something(authored):
+                continue
+            return {
+                "reference": authored,
+                "quantity_per_weight": authored.get("quantity_per_weight"),
+                "source": source,
+            }
+        return None
+
+    def salvage(self, player: 'Player', item: Item) -> str:
+        """Breaks down an item into materials.
+
+        What comes out is authored as an item *reference* -- the same shape a
+        recipe ingredient and a vendor's buy order use -- so a rule can say "any
+        part of grade 1 or better" rather than naming one template. An item this
+        content set declares no rule for falls back to the set's scrap, and a
+        set that declares neither simply cannot salvage it, and says so.
         """
         salvage_rules = self.world.ruleset_section("crafting").get("salvage_rules", {})
+        rule = self.salvage_output_for(item)
 
-        output_template_id = None
+        output_template_id: Optional[str] = None
         output_qty = 1
-
-        override = item.get_property("salvage_output")
-        if isinstance(override, dict) and override.get("item_id"):
-            output_template_id = override["item_id"]
-            output_qty = max(1, int(item.weight * override.get("quantity_per_weight", 1.0)))
-        else:
-            rule = salvage_rules.get(item.__class__.__name__)
-            if isinstance(rule, dict) and rule.get("item_id"):
-                output_template_id = rule["item_id"]
-                output_qty = max(1, int(item.weight * rule.get("quantity_per_weight", 1.0)))
-            else:
-                output_template_id = salvage_rules.get("default_item_id")
+        if rule is not None:
+            output_template_id = self.resolve_reference_template(rule["reference"])
+            output_qty = self._salvage_quantity(rule, item)
+        elif isinstance(salvage_rules, dict) and salvage_rules.get("default_item_id"):
+            # A content set's last resort: everything breaks down into scrap,
+            # and for an item this set declares no rule for it is also the only
+            # answer -- an item nobody said how to break down does not break
+            # down into nothing, it breaks down into the set's scrap.
+            output_template_id = str(salvage_rules["default_item_id"])
 
         if not output_template_id:
             return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"
 
-        mat = ItemFactory.create_item_from_template(output_template_id, self.world)
-        if not mat:
-             return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"
-             
-        can_add, space_message = player.inventory.can_add_item_after_removing(mat, output_qty, [item])
+        result = ItemFactory.create_item_from_template(output_template_id, self.world)
+        if not result:
+            return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"
+
+        can_add, space_message = player.inventory.can_add_item_after_removing(result, output_qty, [item])
         if not can_add:
             return f"{FORMAT_ERROR}You cannot salvage the {item.name}: {space_message}{FORMAT_RESET}"
         if not player.inventory.remove_item_instances([item]):
             return f"{FORMAT_ERROR}You cannot salvage the {item.name} safely.{FORMAT_RESET}"
-        added, add_message = player.inventory.add_item(mat, output_qty)
+        added, add_message = player.inventory.add_item(result, output_qty)
         if not added:
             return f"{FORMAT_ERROR}Unable to recover salvage: {add_message}{FORMAT_RESET}"
-        
-        return f"{FORMAT_SUCCESS}You salvage the {item.name} and recover {output_qty} {mat.name}.{FORMAT_RESET}"
+
+        return f"{FORMAT_SUCCESS}You salvage the {item.name} and recover {output_qty} {result.name}.{FORMAT_RESET}"
+
+    def _salvage_quantity(self, rule: Dict[str, Any], item: Item) -> int:
+        """How many units a broken-down item yields.
+
+        Authored `quantity_per_weight` scales with the item's weight, which is
+        what makes a heavier thing worth more of the material. A rule that
+        names no rate yields exactly one, as the ruleset default always has.
+        """
+        raw = rule.get("quantity_per_weight")
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            return 1
+        try:
+            return max(1, int(float(item.weight) * float(raw)))
+        except (TypeError, ValueError):
+            return 1
+
+    def _resolve_salvage_output(self, rule: Dict[str, Any], item: Item) -> Optional[str]:
+        """Which template this rule actually produces for this item."""
+        return self.resolve_reference_template(rule)

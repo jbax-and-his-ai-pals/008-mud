@@ -1,6 +1,7 @@
 # engine/commands/debug_crafting.py
 from engine.commands.command_system import command
 from engine.config import FORMAT_SUCCESS, FORMAT_ERROR, FORMAT_RESET
+from engine.crafting.recipe import Recipe
 from engine.items.item_factory import ItemFactory
 
 @command("givemats", ["gm"], "debug", "Give all ingredients for a specific recipe.\nUsage: givemats <recipe_id>")
@@ -24,18 +25,26 @@ def givemats_handler(args, context):
         if not recipe: return f"{FORMAT_ERROR}Recipe not found.{FORMAT_RESET}"
 
     added_count = 0
+    unresolved = []
     for ing in recipe.ingredients:
-        item_id = ing["item_id"]
-        qty = ing["quantity"]
-        
+        # An ingredient may name a family or a capability rather than one
+        # template; the manager resolves that to a concrete id so the debug
+        # command still hands over something the recipe will accept.
+        item_id = manager.resolve_reference_template(ing)
+        if not item_id:
+            unresolved.append(Recipe.describe_reference(ing, world))
+            continue
+        qty = max(1, int(ing.get("quantity", 1)))
+
         # Create and add
         for _ in range(qty):
             item = ItemFactory.create_item_from_template(item_id, world)
             if item:
                 player.inventory.add_item(item)
                 added_count += 1
-                
-    return f"{FORMAT_SUCCESS}Added ingredients for {recipe.name} ({added_count} items).{FORMAT_RESET}"
+
+    note = f" [unresolved: {', '.join(unresolved)}]" if unresolved else ""
+    return f"{FORMAT_SUCCESS}Added ingredients for {recipe.name} ({added_count} items).{FORMAT_RESET}{note}"
 
 @command("spawnstation", ["station"], "debug", "Spawn a crafting station in the room.\nUsage: spawnstation <type>")
 def spawnstation_handler(args, context):

@@ -5,7 +5,13 @@ import json
 from pathlib import Path
 from typing import Any
 
-from reference_integrity_validator import load_catalogs, validate_catalogs
+# Importable both ways round: as a sibling module the way the CLI runs it
+# (`python toolkit/stale_reference_audit.py` puts toolkit/ on the path), and as
+# `toolkit.stale_reference_audit` the way tests and `editor_validate.py` use it.
+try:
+    from .reference_integrity_validator import load_catalogs, validate_catalogs
+except ImportError:  # run as a script rather than as part of the package
+    from reference_integrity_validator import load_catalogs, validate_catalogs
 
 
 def _load_json(path: Path) -> Any:

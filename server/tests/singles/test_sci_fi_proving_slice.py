@@ -31,6 +31,10 @@ from engine.server.headless_server import HeadlessServer
 REPO_ROOT = Path(__file__).resolve().parents[3]
 ORBITAL_SALVAGE = REPO_ROOT / "content_sets" / "orbital_salvage"
 
+# The parts the salvage bench yields. Three tests ask "how many of these does the
+# player have", and the set is the thing that decides which they are.
+COMPONENT_IDS = {"item_servo_cluster", "item_cell_stack", "item_lattice_shard"}
+
 # Words this set never declares anywhere and a player must therefore never read.
 # Deliberately matched on word boundaries so "manager" and "damage" do not trip
 # it, and kept to vocabulary that would be a genuine engine leak rather than a
@@ -79,6 +83,9 @@ class OrbitalSalvageBase(unittest.TestCase):
     def _gather_for_ingredients(self, attempts: int = 6) -> None:
         for _ in range(attempts):
             self._run("gather bench")
+
+    def _count_of(self, item_ids: set) -> int:
+        return len([entry for entry in self._inventory_ids() if entry in item_ids])
 
     def _go_to_hold(self) -> None:
         self._run("north")
@@ -156,18 +163,98 @@ class TestThePlayerJourney(OrbitalSalvageBase):
 
     def test_the_fabrication_recipe_consumes_components_and_yields_a_kit(self) -> None:
         self._gather_for_ingredients()
-        self.assertIn("item_servo_cluster", self._inventory_ids())
-        self.assertIn("item_cell_stack", self._inventory_ids())
-        cell_stacks_before = self._inventory_ids().count("item_cell_stack")
+        before = self._count_of(COMPONENT_IDS)
+        self.assertGreaterEqual(before, 2, "gathering produced too few components to craft with")
 
         crafted = self._run("craft fabricate patch kit")
         self.assertIn("patch kit", crafted.lower())
         self.assertIn("item_patch_kit", self._inventory_ids())
         self.assertEqual(
-            cell_stacks_before - 1,
-            self._inventory_ids().count("item_cell_stack"),
-            "the recipe's ingredient should have been consumed, not duplicated",
+            before - 2,
+            self._count_of(COMPONENT_IDS),
+            "the recipe asks for two parts of the family, not a named template",
         )
+
+    def test_the_recipe_names_a_family_and_a_grade_floor_rather_than_a_template(self) -> None:
+        """The ingredient is a rule this set declares, not two item ids."""
+        recipe = self.server.world.game.crafting_manager.recipes["fabricate_patch_kit"]
+        ingredient = recipe.ingredients[0]
+        self.assertNotIn("item_id", ingredient)
+        self.assertEqual("salvaged_part", ingredient["item_family"])
+        self.assertEqual(2, ingredient["min_material_quality"])
+
+        # What the bench yields satisfies it; the family is what the recipe reads.
+        self._gather_for_ingredients()
+        parts = [
+            slot.item for slot in self.player.inventory.slots
+            if slot.item is not None and slot.item.obj_id in COMPONENT_IDS
+        ]
+        self.assertTrue(parts)
+        self.assertTrue(
+            all(str(part.get_property("item_family", "")) == "salvaged_part" for part in parts),
+            "every gathered component should carry the family the recipe names",
+        )
+
+    def test_a_scrap_part_does_not_satisfy_the_grade_floor(self) -> None:
+        """The floor is what makes the rule a choice rather than a formality.
+
+        The recipe asks for grade 2 or better, which is what the bench yields;
+        a part below it is refused by name rather than quietly spent. This is
+        the content half of the substitution machinery -- `alternatives` in this
+        set exist to let a *different* template stand in, and pricing that
+        trade-off is what `quality_penalty` is for. The penalty arithmetic
+        itself is covered in `test_crafting_reference_ingredients`.
+        """
+        manager = self.server.world.game.crafting_manager
+        recipe = manager.recipes["fabricate_patch_kit"]
+        ingredient = recipe.ingredients[0]
+
+        scrap = ItemFactory.create_item_from_template("item_servo_cluster", self.server.world)
+        scrap.properties["material_quality_score"] = 1
+        scrap.stackable = False
+        scrap.update_property("stackable", False)
+        self.assertIsNone(
+            manager.matched_option(ingredient, scrap),
+            "a worn part is below the floor and should not match",
+        )
+
+        serviceable = ItemFactory.create_item_from_template("item_cell_stack", self.server.world)
+        serviceable.properties["material_quality_score"] = 2
+        serviceable.stackable = False
+        serviceable.update_property("stackable", False)
+        matched = manager.matched_option(ingredient, serviceable)
+        self.assertIsNotNone(matched, "a serviceable part should match")
+        self.assertEqual("salvaged_part", matched.get("item_family"))
+
+    def test_gathered_parts_can_be_broken_down_into_station_scrap(self) -> None:
+        """The set enables `salvage` and, until now, declared no rule for it.
+
+        Every attempt refused. The rule is keyed by the family the bench yields,
+        so it reaches parts the ruleset never names.
+        """
+        self._gather_for_ingredients(2)
+        parts = self._count_of(COMPONENT_IDS)
+        self.assertGreater(parts, 0, "nothing was gathered to break down")
+
+        result = self._run("salvage servo cluster")
+        self.assertIn("scrap alloy", result)
+        self.assertGreater(self.player.inventory.count_item("item_scrap_alloy"), 0)
+
+    def test_a_familyless_item_still_comes_back_as_the_sets_scrap(self) -> None:
+        """The locker is not a salvaged part; the default is what catches it."""
+        locker = ItemFactory.create_item_from_template("item_locker", self.server.world)
+        self.assertIsNotNone(locker)
+        self.player.inventory.add_item(locker)
+        result = self._run("salvage locker")
+        self.assertIn("scrap alloy", result)
+
+    def test_ivo_buys_parts_by_family_and_grade(self) -> None:
+        """The set's economy closes the loop: gather, or craft, then get paid."""
+        self._run("trade ivo")
+        listed = self._run("orders")
+        self.assertIn("serviceable_parts", listed)
+        self.assertIn("Salvaged part", listed)
+        self.assertIn("credits", listed)
 
     def test_the_ability_spends_the_declared_resource(self) -> None:
         self._go_to_hold()

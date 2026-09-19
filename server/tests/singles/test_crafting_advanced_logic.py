@@ -79,8 +79,19 @@ class TestIngredientSubstitution(GameTestBase):
     def test_ingredient_options_lists_primary_then_alternatives(self):
         ingredient = self.recipe.ingredients[0]
         options = Recipe.ingredient_options(ingredient)
+        # An option is the ingredient scoped to one acceptable reference: the
+        # primary keeps the quantity/alternatives it was authored with, and the
+        # substitution carries the penalty that makes it a trade-off.
         self.assertEqual(
-            [{"item_id": "item_wild_herbs", "quality_penalty": 0}, {"item_id": "item_forest_berries", "quality_penalty": 1}],
+            [
+                {
+                    "item_id": "item_wild_herbs",
+                    "quantity": 2,
+                    "alternatives": [{"item_id": "item_forest_berries", "quality_penalty": 1}],
+                    "quality_penalty": 0,
+                },
+                {"item_id": "item_forest_berries", "quality_penalty": 1},
+            ],
             options,
         )
 

@@ -68,14 +68,27 @@ class TestEditorReadsTheSharedContentSet(unittest.TestCase):
         self.assertEqual(CONTENT_SET.resolve(), resolved)
         self.assertTrue((CONTENT_SET / "data" / "regions").is_dir())
 
-    def test_the_retired_mirror_is_not_the_editors_data_directory(self) -> None:
-        """`<project>/data` is a fallback; it must not be the legacy mirror."""
+    def test_the_retired_mirror_is_gone(self) -> None:
+        """The editor has one content source, and the old one is deleted.
+
+        `<project>/data` is a fallback for a standalone copy; it must not be the
+        mirror the editor used to keep. That mirror survived for a while because
+        its `town.json` was a fork rather than a stale copy -- 38 rooms against
+        the content set's 46, missing `community_garden`, where the opening
+        commission sends the player, with one NPC reference (`museum_curator`)
+        naming a template that no longer exists anywhere. Everything in it that
+        was real had been migrated (room layout, world layout, ability groups,
+        templates, gem rarity, town districts), so it was deleted rather than
+        retired a second time.
+
+        This asserts it stays gone: a directory that existed for a *reason* is
+        exactly the sort of thing that quietly comes back.
+        """
         self.assertFalse((EDITOR_ROOT / "data").exists())
-        if (EDITOR_ROOT / "legacy-mirror").exists():
-            self.assertTrue(
-                (EDITOR_ROOT / "legacy-mirror" / "README.md").is_file(),
-                "a retained legacy mirror must say why it is still here",
-            )
+        self.assertFalse(
+            (EDITOR_ROOT / "legacy-mirror").exists(),
+            "the retired mirror was reconciled and deleted; do not restore it",
+        )
 
 
 class TestCanonicalContentStaysClean(unittest.TestCase):

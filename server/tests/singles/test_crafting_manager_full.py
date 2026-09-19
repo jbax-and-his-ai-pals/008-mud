@@ -60,6 +60,34 @@ class TestLoadRecipes(GameTestBase):
         manager = CraftingManager(self.world)
         self.assertEqual(manager.recipes, {})
 
+    def test_authoring_note_keys_are_not_read_as_recipes(self):
+        """`_comment` is an authoring note, and every other loader skips it.
+
+        This one crashed on it -- `'str' object has no attribute 'get'` -- and,
+        because one bad key aborts the whole file, a single note at the top of
+        an orbital-salvage recipe file silently removed every recipe in it.
+        """
+        crafting_dir = os.path.join(self.tmp_root, "crafting")
+        os.makedirs(crafting_dir)
+        with open(os.path.join(crafting_dir, "notes.json"), "w") as f:
+            json.dump({
+                "_comment": "A note to the reader, not a recipe.",
+                "make_thing": {"name": "Make Thing", "result_item_id": "item_x"},
+            }, f)
+        manager = CraftingManager(self.world)
+        self.assertEqual(["make_thing"], list(manager.recipes))
+
+    def test_a_recipe_that_is_not_an_object_is_skipped_not_crashed(self):
+        crafting_dir = os.path.join(self.tmp_root, "crafting")
+        os.makedirs(crafting_dir)
+        with open(os.path.join(crafting_dir, "mixed.json"), "w") as f:
+            json.dump({
+                "make_thing": {"name": "Make Thing", "result_item_id": "item_x"},
+                "typo": "this should have been an object",
+            }, f)
+        manager = CraftingManager(self.world)
+        self.assertEqual(["make_thing"], list(manager.recipes))
+
 
 class TestGetNearbyStations(GameTestBase):
     def test_no_resolvable_player_returns_empty_list(self):
@@ -160,7 +188,36 @@ class TestSalvage(GameTestBase):
         self.assertEqual(0, self.player.inventory.count_item("item_leather_cap"))
         self.assertEqual(1, self.player.inventory.count_item("item_leather_strip"))
 
-    def test_class_keyed_ruleset_rule_is_used_when_no_item_override(self):
+    def test_a_family_keyed_ruleset_rule_is_used(self):
+        """fantasy_frontier keys salvage on the item's family, not its class.
+
+        The class key was a proxy for the family, so this is the same rule said
+        more precisely -- and it reaches a weapon template the ruleset never
+        named, which is what the family is for.
+        """
+        manager = self.game.crafting_manager
+        sword = ItemFactory.create_item_from_template("item_iron_sword", self.world)
+        self.assertIsNotNone(sword)
+        self.assertEqual("weapon", sword.get_property("item_family"))
+        self.player.inventory.add_item(sword)
+        stand_in_material = ItemFactory.create_item_from_template("item_iron_sword", self.world)
+        with patch(
+            "engine.crafting.crafting_manager.ItemFactory.create_item_from_template",
+            return_value=stand_in_material,
+        ) as mock_create:
+            manager.salvage(self.player, sword)
+        # fantasy_frontier's ruleset maps the `weapon` family -> item_iron_ingot
+        # at 0.5/weight.
+        mock_create.assert_called_once_with("item_iron_ingot", self.world)
+
+    def test_a_bare_instance_with_no_family_falls_through_to_the_default(self):
+        """A `Weapon` that belongs to nothing has no rule to be found under.
+
+        Naming an engine class was how content used to describe a kind of thing;
+        now that a kind of thing is a family, an instance from outside the
+        content set lands on the set's scrap rather than on a rule that was
+        never really about it.
+        """
         manager = self.game.crafting_manager
         weapon = Weapon(name="Test Blade", weight=4.0)
         self.player.inventory.add_item(weapon)
@@ -170,8 +227,7 @@ class TestSalvage(GameTestBase):
             return_value=stand_in_material,
         ) as mock_create:
             manager.salvage(self.player, weapon)
-        # fantasy_frontier's ruleset maps Weapon -> item_iron_ingot at 0.5/weight.
-        mock_create.assert_called_once_with("item_iron_ingot", self.world)
+        mock_create.assert_called_once_with("item_scrap", self.world)
 
     def test_unrecognized_item_uses_default_scrap_fallback(self):
         manager = self.game.crafting_manager

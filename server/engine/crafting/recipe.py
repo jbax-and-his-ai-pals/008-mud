@@ -1,6 +1,9 @@
 # engine/crafting/recipe.py
 from typing import List, Dict, Any
 
+from engine.items import references
+
+
 class Recipe:
     def __init__(self, recipe_id: str, data: Dict[str, Any]):
         self.recipe_id = recipe_id
@@ -91,16 +94,69 @@ class Recipe:
         defaulting to 0 for an alternative that doesn't author one) applied
         to that slot's material-grade contribution when it's the one
         actually spent -- the "trade-off" in a substitution."""
-        options = [{"item_id": ingredient.get("item_id"), "quality_penalty": 0}]
+        options = [dict(ingredient, quality_penalty=0)]
         alternatives = ingredient.get("alternatives", [])
         if isinstance(alternatives, list):
             for alternative in alternatives:
-                if isinstance(alternative, dict) and alternative.get("item_id"):
-                    options.append({
-                        "item_id": alternative["item_id"],
-                        "quality_penalty": max(0, int(alternative.get("quality_penalty", 0) or 0)),
-                    })
+                if isinstance(alternative, dict) and Recipe.references_item(alternative):
+                    options.append(dict(alternative, quality_penalty=max(0, int(alternative.get("quality_penalty", 0) or 0))))
         return options
+
+    # -- what an ingredient asks for ------------------------------------------
+    # An ingredient used to be an item id and nothing else. It may now name a
+    # *rule* instead, and the rule lives in `engine/items/references.py` because
+    # vendor orders ask the same question about the same items:
+    #
+    #   {"item_id": "item_iron_ingot", "quantity": 2}          exact template
+    #   {"item_family": "salvaged_part", "min_material_quality": 2, ...}
+    #   {"capability": "crafting_material", "min_material_quality": 1, ...}
+    #
+    # which is what lets a recipe say "any part good enough to use" rather than
+    # listing every id, and what makes a content set's own vocabulary the thing
+    # a recipe is written against.
+
+    @staticmethod
+    def references_item(ingredient: Dict[str, Any]) -> bool:
+        """Whether this ingredient names something at all.
+
+        `item_id` wins when present, so every recipe written before families
+        existed resolves exactly as it did.
+        """
+        return references.names_something(ingredient)
+
+    @staticmethod
+    def minimum_quality(ingredient: Dict[str, Any]) -> int:
+        return references.minimum_quality(ingredient)
+
+    @staticmethod
+    def reference_label(ingredient: Dict[str, Any]) -> str:
+        """What kind of thing this ingredient names: an id, a family, a capability.
+
+        Previews and the editor show this so an author can see that a recipe
+        asks for *any* member of a family rather than one template.
+        """
+        return references.reference_kind(ingredient)
+
+    @staticmethod
+    def ingredient_options(ingredient: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """The acceptable references for one ingredient slot."""
+        return references.options(ingredient)
+
+    @staticmethod
+    def describe_reference(ingredient: Dict[str, Any], world: Any = None) -> str:
+        """A name for what this ingredient wants, for messages and previews."""
+        def name_of_template(item_id: str) -> str:
+            from engine.items.item_factory import ItemFactory
+
+            template = ItemFactory.get_template(item_id, world) if world is not None else None
+            return str(template.get("name", item_id)) if template else item_id
+
+        def family_label(family_id: str) -> str:
+            registry = getattr(world, "contract_registry", None)
+            declared = registry.family(family_id) if registry is not None else None
+            return str(declared.get("label", family_id) or family_id) if declared else family_id
+
+        return references.describe(ingredient, name_of_template, family_label)
 
     def quality_ingredients(self) -> List[Dict[str, Any]]:
         """Return inputs which set the craft's material-grade outcome.

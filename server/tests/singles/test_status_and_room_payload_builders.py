@@ -102,6 +102,41 @@ class TestCraftingLedgerPayload(unittest.TestCase):
         self.assertEqual("Unpracticed", recipe["familiarity_label"])
         self.assertEqual(0, recipe["material_quality_score"])
 
+    def test_an_ingredient_that_names_a_rule_reports_the_rule_not_an_item(self):
+        """A payload consumer must be able to tell what the recipe asks for.
+
+        The sci-fi set's recipe names a family and a grade floor, so there is no
+        `item_id` to report. `reference` says which kind of thing it is, `name`
+        is what to show, and `acceptable` lists the references that would do --
+        which is what a client needs to render "any salvaged part (grade 2+)".
+        """
+        server = HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(REPO_ROOT / "content_sets" / "orbital_salvage"),
+            deterministic_test_mode=True,
+        )
+        self.addCleanup(server.shutdown)
+        session = server.create_session()
+        server.execute_command(session.session_id, "char create Crafter")
+
+        events = server.execute_command(session.session_id, "recipes")
+        ledger = next(event["payload"] for event in events if event["type"] == "crafting")
+        recipe = next(
+            entry for entry in ledger["recipes"] if entry["recipe_id"] == "fabricate_patch_kit"
+        )
+        ingredient = recipe["ingredients"][0]
+        self.assertEqual("", ingredient["item_id"])
+        self.assertEqual("item_family", ingredient["reference"])
+        self.assertEqual("Salvaged part (grade 2+)", ingredient["name"])
+        self.assertEqual(2, ingredient["min_material_quality"])
+        self.assertEqual(2, ingredient["need"])
+        self.assertEqual(0, ingredient["have"], "a fresh character is carrying nothing")
+        self.assertEqual(
+            ["item_family", "item_id"],
+            [option["reference"] for option in ingredient["acceptable"]],
+        )
+        self.assertEqual(1, ingredient["acceptable"][1]["quality_penalty"])
+
 
 class TestCollectionsLedgerPayload(unittest.TestCase):
     def setUp(self) -> None:

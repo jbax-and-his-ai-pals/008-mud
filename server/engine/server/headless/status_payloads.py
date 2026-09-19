@@ -34,6 +34,7 @@ from engine.contracts.resources import (
     ability_resource_short,
 )
 from engine.crafting.crafting_manager import CraftingManager
+from engine.crafting.recipe import Recipe
 from engine.server.protocol import build_server_event, validate_client_command_envelope
 from engine.server.persistence import SqliteStore
 from engine.server.world_effects_heartbeat import WorldEffectsHeartbeat
@@ -267,14 +268,31 @@ class StatusPayloadsMixin:
         for recipe_id, recipe in sorted(manager.recipes.items()):
             ingredients: List[Dict[str, Any]] = []
             for ingredient in recipe.ingredients:
-                item_id = str(ingredient.get("item_id", ""))
+                options = Recipe.ingredient_options(ingredient)
+                # An ingredient may reference a family or a capability instead
+                # of a template. `item_id` stays whatever the primary option
+                # names (empty for a rule reference), and `reference` tells a
+                # client which kind of thing it is.
+                item_id = str(ingredient.get("item_id", "") or "")
                 template = self.world.item_templates.get(item_id, {})
                 ingredients.append({
                     "item_id": item_id,
-                    "name": str(template.get("name", item_id)),
-                    "have": int(player.inventory.count_item(item_id)),
-                    "need": int(ingredient.get("quantity", 1)),
+                    "reference": Recipe.reference_label(ingredient),
+                    "name": Recipe.describe_reference(ingredient, self.world),
+                    "have": int(manager.count_ingredient(player, ingredient)),
+                    "need": max(1, int(ingredient.get("quantity", 1))),
                     "quality_contributes": ingredient.get("quality_contributes", True) is not False,
+                    "min_material_quality": Recipe.minimum_quality(ingredient),
+                    "acceptable": [
+                        {
+                            "item_id": str(option.get("item_id", "") or ""),
+                            "reference": Recipe.reference_label(option),
+                            "name": Recipe.describe_reference(option, self.world),
+                            "quality_penalty": int(option.get("quality_penalty", 0) or 0),
+                        }
+                        for option in options
+                    ],
+                    "template_name": str(template.get("name", item_id)) if item_id else "",
                 })
             craftable, blocker = manager.can_craft(player, recipe)
             result = self.world.item_templates.get(recipe.result_item_id, {})

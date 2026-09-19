@@ -180,12 +180,45 @@ class Inventory(InventoryDisplayMixin, InventoryPersistenceMixin):
         they inspected, whether they are unique quality-bearing items or an
         ordinary stack.
         """
+        return self.select_items_matching(
+            quantity,
+            predicate=lambda item: item.obj_id == obj_id and (predicate is None or predicate(item)),
+            sort_key=sort_key,
+        )
+
+    def count_items_matching(self, predicate: Optional[Callable[[Item], bool]] = None) -> int:
+        """How many units satisfy a rule, without building the list.
+
+        Distinct from `select_items_matching`, which stops at the quantity the
+        caller asked for: a preview that says "3/2" and one that says "2/2" are
+        different messages, and only one of them tells a player they have spare.
+        """
+        total = 0
+        for slot in self.slots:
+            if slot.item is not None and (predicate is None or predicate(slot.item)):
+                total += slot.quantity
+        return total
+
+    def select_items_matching(
+        self,
+        quantity: int,
+        *,
+        predicate: Optional[Callable[[Item], bool]] = None,
+        sort_key: Optional[Callable[[Item], object]] = None,
+    ) -> List[Item]:
+        """Select instances by a rule rather than by an id.
+
+        A crafting ingredient may name a *family* or a capability instead of an
+        exact template ("any salvaged part of grade ≥ true"), which is a question
+        about a set of items rather than one id. Same contract as `select_items`:
+        nothing is mutated, a stack contributes one entry per requested unit, and
+        the caller consumes exactly what it was handed.
+        """
         if quantity <= 0:
             return []
         candidates = [
             slot for slot in self.slots
-            if slot.item is not None and slot.item.obj_id == obj_id
-            and (predicate is None or predicate(slot.item))
+            if slot.item is not None and (predicate is None or predicate(slot.item))
         ]
         if sort_key is not None:
             candidates.sort(key=lambda slot: sort_key(slot.item), reverse=True)

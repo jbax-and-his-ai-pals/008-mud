@@ -11,6 +11,7 @@ from engine.config import (
 )
 from engine.items.item_factory import ItemFactory
 from engine.items.item import Item
+from engine.items import references
 from engine.items.container import Container
 from engine.player import Player
 from engine.npcs.npc import NPC
@@ -153,9 +154,107 @@ def _vendor_orders(vendor: NPC) -> List[Dict[str, Any]]:
     return [order for order in orders if isinstance(order, dict) and str(order.get("id", "")).strip()]
 
 
+# -- what an order wants -------------------------------------------------------
+# An order used to name one item id. It now names an *item reference* -- the
+# same shape a recipe ingredient uses, answered by the same rule
+# (`engine/items/references.py`): an exact template, a family, or a capability,
+# with an optional material-grade floor. A vendor who will take "two clay of at
+# least fine grade" should not need the author to list every clay in the set.
+
+
+def _reference_questions(world) -> Dict[str, Any]:
+    """The world's answers to the questions an item reference asks."""
+    templates = getattr(world, "item_templates", {})
+    registry = getattr(world, "contract_registry", None)
+
+    def family_of(item: Item) -> str:
+        family_id = str(item.get_property("item_family", "") or "")
+        if family_id:
+            return family_id
+        template = templates.get(str(getattr(item, "obj_id", "")), {})
+        return str(template.get("item_family", "") or "") if isinstance(template, dict) else ""
+
+    def quality_of(item: Item) -> int:
+        raw = item.get_property("material_quality_score", 0)
+        return int(raw) if isinstance(raw, int) and not isinstance(raw, bool) else 0
+
+    return {
+        "quality_of": quality_of,
+        "item_family": family_of,
+        "family_has_capability": lambda family_id, capability: bool(
+            registry is not None and family_id and capability
+            and registry.family_has_capability(family_id, capability)
+        ),
+        "identity_of": lambda item: str(getattr(item, "obj_id", "")),
+    }
+
+
+def describe_order_reference(order: Dict[str, Any], world, *, include_floor: bool = False) -> str:
+    """What this order is buying, in words a player can read.
+
+    The grade floor is left out by default because the order line already states
+    it once; `include_floor` is for a message that has nowhere else to put it.
+    """
+    def name_of_template(item_id: str) -> str:
+        template = getattr(world, "item_templates", {}).get(item_id, {})
+        return str(template.get("name", item_id)) if isinstance(template, dict) else item_id
+
+    def family_label(family_id: str) -> str:
+        registry = getattr(world, "contract_registry", None)
+        declared = registry.family(family_id) if registry is not None else None
+        return str(declared.get("label", family_id) or family_id) if declared else family_id
+
+    return references.describe(order, name_of_template, family_label, include_floor=include_floor)
+
+
+def select_order_items(player: Player, order: Dict[str, Any], world) -> Optional[Dict[str, Any]]:
+    """The units that would fulfil this order, and what grade they reach.
+
+    Two requirements ride alongside the reference, because neither is a kind of
+    item: the order's material-grade floor (written at the top level, so it
+    applies whether the order names a template or a family) and `crafted_only`.
+    """
+    questions = _reference_questions(world)
+    crafted_only = bool(order.get("crafted_only", False))
+
+    return references.match_plan(
+        order,
+        player.inventory,
+        max(1, int(order.get("quantity", 1))),
+        qualifies=(lambda item: bool(item.get_property("crafted_by_player", False)))
+        if crafted_only else None,
+        minimum_grade=references.minimum_quality(order),
+        quality_of=questions["quality_of"],
+        item_family=questions["item_family"],
+        family_has_capability=questions["family_has_capability"],
+        identity_of=questions["identity_of"],
+    )
+
+
 def _order_material_quality_requirement(order: Dict[str, Any]) -> int:
-    value = order.get("min_material_quality_score", 0)
-    return max(0, int(value)) if isinstance(value, int) and not isinstance(value, bool) else 0
+    return references.minimum_quality(order)
+
+
+def _order_shortfall_message(order: Dict[str, Any], world, quantity: int) -> str:
+    """Why an order could not be filled, naming every requirement that applies.
+
+    Stated together rather than one at a time: an order can require a grade *and*
+    that the player made the thing, and a message naming only the first sends
+    someone off to gather better material for a delivery that was never going to
+    be accepted.
+    """
+    wanted = describe_order_reference(order, world)
+    conditions = []
+    if bool(order.get("crafted_only", False)):
+        conditions.append("made by you")
+    floor = references.minimum_quality(order)
+    if floor:
+        conditions.append("of material grade %d or better" % floor)
+
+    requirement = "%d x %s" % (quantity, wanted)
+    if conditions:
+        requirement += " " + ", ".join(conditions)
+    return f"{FORMAT_ERROR}This order requires {requirement}.{FORMAT_RESET}"
 
 @command("orders", ["buyorders"], "interaction", "List buy orders from the current vendor.", ruleset_system="economy")
 def orders_handler(args, context):
@@ -169,9 +268,10 @@ def orders_handler(args, context):
     lines = [f"{FORMAT_TITLE}{vendor.name}'s Buy Orders:{FORMAT_RESET}"]
     for order in _vendor_orders(vendor):
         order_id = str(order["id"])
-        item_id = str(order.get("item_id", ""))
-        template = world.item_templates.get(item_id, {})
-        item_name = str(template.get("name", item_id or "unknown item"))
+        # The order says what it wants the way content does everywhere else: a
+        # reference. An order naming a family has no single item name, so the
+        # description comes from the reference itself.
+        wanted = describe_order_reference(order, world)
         quantity = max(1, int(order.get("quantity", 1)))
         reward = max(0, int(order.get("reward_gold", 0)))
         repeatable = bool(order.get("repeatable", False))
@@ -185,7 +285,8 @@ def orders_handler(args, context):
             state = "repeatable" if repeatable else "available"
         quality_required = _order_material_quality_requirement(order)
         quality_note = f"; material quality {quality_required}+" if quality_required else ""
-        lines.append(f"- {order_id}: {quantity} x {item_name} — {reward} {world.currency_name()} ({state}{quality_note})")
+        crafted_note = "; made by you" if bool(order.get("crafted_only", False)) else ""
+        lines.append(f"- {order_id}: {quantity} x {wanted} — {reward} {world.currency_name()} ({state}{quality_note}{crafted_note})")
     if len(lines) == 1:
         return f"{vendor.name} has no active buy orders."
     lines.append("Use: fulfill <order id>")
@@ -211,42 +312,11 @@ def fulfill_handler(args, context):
     completed = player.vendor_orders_completed.setdefault(vendor_key, [])
     if str(order["id"]) in completed and not bool(order.get("repeatable", False)):
         return f"{FORMAT_ERROR}You have already completed that order.{FORMAT_RESET}"
-    item_id = str(order.get("item_id", ""))
     quantity = max(1, int(order.get("quantity", 1)))
-    if player.inventory.count_item(item_id) < quantity:
-        return f"{FORMAT_ERROR}You need {quantity} x {world.item_templates.get(item_id, {}).get('name', item_id)} for this order.{FORMAT_RESET}"
-    quality_required = _order_material_quality_requirement(order)
-    crafted_only = bool(order.get("crafted_only", False))
-
-    def qualifies(candidate: Item) -> bool:
-        if crafted_only and not bool(candidate.get_property("crafted_by_player", False)):
-            return False
-        raw_quality = candidate.get_property("material_quality_score", 0)
-        quality = int(raw_quality) if isinstance(raw_quality, int) and not isinstance(raw_quality, bool) else 0
-        return quality >= quality_required
-
-    selected_items = player.inventory.select_items(
-        item_id,
-        quantity,
-        predicate=qualifies,
-        sort_key=lambda candidate: candidate.get_property("material_quality_score", 0),
-    )
-    if len(selected_items) != quantity:
-        if quality_required:
-            quality_items = player.inventory.select_items(
-                item_id,
-                quantity,
-                predicate=lambda candidate: (
-                    isinstance(candidate.get_property("material_quality_score", 0), int)
-                    and not isinstance(candidate.get_property("material_quality_score", 0), bool)
-                    and candidate.get_property("material_quality_score", 0) >= quality_required
-                ),
-            )
-            if len(quality_items) != quantity:
-                return f"{FORMAT_ERROR}This order requires {quantity} item(s) with material quality {quality_required} or better.{FORMAT_RESET}"
-        if crafted_only:
-            return f"{FORMAT_ERROR}This order requires an item crafted by you.{FORMAT_RESET}"
-        return f"{FORMAT_ERROR}The order could not be fulfilled safely.{FORMAT_RESET}"
+    plan = select_order_items(player, order, world)
+    if plan is None:
+        return _order_shortfall_message(order, world, quantity)
+    selected_items = plan["items"]
     if not player.inventory.remove_item_instances(selected_items):
         return f"{FORMAT_ERROR}The order could not be fulfilled safely.{FORMAT_RESET}"
     removed = selected_items[0]
@@ -263,6 +333,10 @@ def fulfill_handler(args, context):
     if not bool(order.get("repeatable", False)):
         completed.append(str(order["id"]))
     response = f"{FORMAT_SUCCESS}Order fulfilled: {quantity} x {removed.name} for {reward} {world.currency_name()}.{FORMAT_RESET}"
+    # What the vendor received is worth saying when the player chose what to
+    # hand over: two clay of different grades are not the same delivery.
+    if plan["quality"]:
+        response += f"\nAccepted at material grade {plan['quality']}."
     if relationship:
         response += f"\nRelationship with {vendor.name}: {'+' if relationship > 0 else ''}{relationship}"
     if milestone_note:

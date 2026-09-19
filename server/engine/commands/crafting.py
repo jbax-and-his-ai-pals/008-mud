@@ -1,6 +1,7 @@
 # engine/commands/crafting.py
 from engine.commands.command_system import command
 from engine.config import FORMAT_TITLE, FORMAT_RESET, FORMAT_HIGHLIGHT, FORMAT_CATEGORY, FORMAT_SUCCESS, FORMAT_ERROR
+from engine.crafting.recipe import Recipe
 from engine.items.attachments import installed_attachments
 from engine.items.item_factory import ItemFactory
 from engine.naming import ambiguity_message, resolve_all
@@ -56,14 +57,14 @@ def recipes_handler(args, context):
             ing_list = []
             missing = []
             for ing in recipe.ingredients:
-                # Get name from factory/template for display
-                from engine.items.item_factory import ItemFactory
-                from engine.crafting.recipe import Recipe
-                template = ItemFactory.get_template(ing['item_id'], world)
-                i_name = template.get("name", ing['item_id']) if template else ing['item_id']
+                # A reference may be an exact template, a family or a
+                # capability; the label comes from the reference itself rather
+                # than from a guessed template id.
+                options = Recipe.ingredient_options(ing)
+                i_name = Recipe.describe_reference(ing, world)
 
-                has = player.inventory.count_item(ing['item_id'])
-                req = ing['quantity']
+                has = manager.count_ingredient(player, ing)
+                req = max(1, int(ing.get("quantity", 1)))
                 if internals:
                     color = FORMAT_SUCCESS if has >= req else FORMAT_ERROR
                     entry = f"{color}{has}/{req} {i_name}{FORMAT_RESET}"
@@ -74,10 +75,10 @@ def recipes_handler(args, context):
                     else:
                         entry = f"{FORMAT_ERROR}{i_name}{FORMAT_RESET}"
                         missing.append(i_name)
-                alt_names = []
-                for opt in Recipe.ingredient_options(ing)[1:]:
-                    alt_template = ItemFactory.get_template(opt['item_id'], world)
-                    alt_names.append(alt_template.get("name", opt['item_id']) if alt_template else opt['item_id'])
+                alt_names = [
+                    Recipe.describe_reference(opt, world)
+                    for opt in options[1:]
+                ]
                 if alt_names:
                     entry += f" (or: {', '.join(alt_names)})"
                 ing_list.append(entry)
@@ -101,11 +102,10 @@ def recipes_handler(args, context):
                 label = str(tier.get("label", "Standard")) if isinstance(tier, dict) else "Standard"
                 next_tier = preview["next_tier"]
                 if internals:
-                    contributors = []
-                    for ingredient in preview["contributors"]:
-                        template = ItemFactory.get_template(str(ingredient["item_id"]), world)
-                        name = template.get("name", ingredient["item_id"]) if template else ingredient["item_id"]
-                        contributors.append(f"{ingredient['quantity']} x {name}")
+                    contributors = [
+                        f"{ingredient['quantity']} x {ingredient.get('name', ingredient.get('item_id', ''))}"
+                        for ingredient in preview["contributors"]
+                    ]
                     contribution_note = ", ".join(contributors) if contributors else "none"
                     preview_line = (
                         f"    Quality preview: {label} (material score {preview['material_quality_score']}; "
