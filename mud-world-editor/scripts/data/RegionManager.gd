@@ -67,6 +67,17 @@ func load_region(filename: String) -> bool:
 		push_error(load_error)
 		return false
 
+	# A region-*generation* template (`{"themes": {...}}`), not a static room
+	# graph -- the engine itself treats these as a different kind of file
+	# (server/engine/server/content_set.py checks `themes` before treating
+	# anything under regions/ as a room-shaped region) and never asks them for
+	# `rooms`/`region_id`. Loading one here would fabricate both on the next
+	# save and overwrite the real generator data with an empty region.
+	if parsed.get("themes") is Dictionary:
+		load_error = "%s is a region-generation template (has a top-level 'themes' key), not a static region -- the editor cannot open it" % filename
+		push_error(load_error)
+		return false
+
 	current_filename = filename
 	loaded_ok = true
 	data = parsed

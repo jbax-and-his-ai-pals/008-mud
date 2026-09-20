@@ -1,44 +1,75 @@
 {
-  "region_id": "depot",
-  "name": "Riverside Distribution Depot",
-  "description": "A small overnight freight depot: a loading dock, a supply room, and an alley out back.",
-  "properties": { "safe_zone": true },
-  "rooms": {
-    "loading_dock": {
-      "name": "Loading Dock",
-      "description": "Pallet jacks and empty crates line a concrete loading dock. A supply room door stands north, and a service alley runs east.",
-      "exits": { "north": "supply_room", "east": "back_alley" }
+    "region_id": "depot",
+    "name": "Riverside Distribution Depot",
+    "description": "A small overnight freight depot: a loading dock, a supply room, and an alley out back.",
+    "properties": {
+        "safe_zone": true
     },
-    "supply_room": {
-      "name": "Supply Room",
-      "description": "Metal shelving holds crates of everyday stock. A hand-lettered sign reads 'ask before you take.'",
-      "properties": { "outdoors": false },
-      "exits": { "south": "loading_dock" },
-      "initial_npcs": [
-        { "template_id": "dana", "instance_id": "dana_supply" },
-        { "template_id": "priya", "instance_id": "priya_supply" }
-      ]
-    },
-    "back_alley": {
-      "name": "Back Alley",
-      "description": "A narrow service alley behind the depot, lit by a single flickering lamp.",
-      "properties": { "outdoors": true, "safe_zone": false },
-      "exits": { "west": "loading_dock" },
-      "initial_npcs": [
-        { "template_id": "stray_dog", "instance_id": "stray_dog_alley" }
-      ]
-    },
-    "holding_room": {
-      "name": "Holding Room",
-      "description": "A bare supply closet repurposed as a holding room: a bolted door, a folding chair, and nothing else.",
-      "properties": {
-        "outdoors": false,
-        "is_holding_room": true,
-        "entered_by_system": "custody",
-        "release_destination": "depot:loading_dock",
-        "exit_requirements": { "north": { "type": "locked", "key_id": null, "pick_difficulty": 35 } }
-      },
-      "exits": { "north": "loading_dock" }
+    "rooms": {
+        "loading_dock": {
+            "name": "Loading Dock",
+            "description": "Pallet jacks and empty crates line a concrete loading dock. A supply room door stands north, and a service alley runs east.",
+            "exits": {
+                "north": "supply_room",
+                "east": "back_alley"
+            }
+        },
+        "supply_room": {
+            "name": "Supply Room",
+            "description": "Metal shelving holds crates of everyday stock. A hand-lettered sign reads 'ask before you take.'",
+            "properties": {
+                "outdoors": false
+            },
+            "exits": {
+                "south": "loading_dock"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "dana",
+                    "instance_id": "dana_supply"
+                },
+                {
+                    "template_id": "priya",
+                    "instance_id": "priya_supply"
+                }
+            ]
+        },
+        "back_alley": {
+            "name": "Back Alley",
+            "description": "A narrow service alley behind the depot, lit by a single flickering lamp.",
+            "properties": {
+                "outdoors": true,
+                "safe_zone": false
+            },
+            "exits": {
+                "west": "loading_dock"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "stray_dog",
+                    "instance_id": "stray_dog_alley"
+                }
+            ]
+        },
+        "holding_room": {
+            "name": "Holding Room",
+            "description": "A bare supply closet repurposed as a holding room: a bolted door, a folding chair, and nothing else.",
+            "properties": {
+                "outdoors": false,
+                "is_holding_room": true,
+                "entered_by_system": "custody",
+                "release_destination": "depot:loading_dock",
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": null,
+                        "pick_difficulty": 35
+                    }
+                }
+            },
+            "exits": {
+                "north": "loading_dock"
+            }
+        }
     }
-  }
 }

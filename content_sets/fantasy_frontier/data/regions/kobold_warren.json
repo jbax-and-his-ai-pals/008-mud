@@ -12,8 +12,8 @@
     },
     "spawner": {
         "monster_types": {
-            "kobold_skirmisher": 8.0,
-            "giant_rat": 2.0
+            "kobold_skirmisher": 8,
+            "giant_rat": 2
         },
         "level_range": [
             2,

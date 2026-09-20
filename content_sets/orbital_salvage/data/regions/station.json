@@ -1,40 +1,75 @@
 {
-  "region_id": "station",
-  "name": "Kestrel Nine",
-  "description": "A dead salvage station in a slow tumble: a dock ring, a spine corridor, a workshop, and a hold nobody has finished clearing.",
-  "properties": { "safe_zone": true },
-  "rooms": {
-    "dock_ring": {
-      "name": "Dock Ring",
-      "description": "The outer ring, open to a hard black sky. Clamp marks scar the deck where ships used to sit; a spine corridor runs north, and the workshop hatch is east.",
-      "properties": { "outdoors": false },
-      "exits": { "north": "spine_corridor", "east": "workshop" },
-      "items": [ { "item_id": "node_salvage_bench" } ],
-      "initial_npcs": [
-        { "template_id": "foreman_ivo", "instance_id": "ivo_dock" }
-      ]
+    "region_id": "station",
+    "name": "Kestrel Nine",
+    "description": "A dead salvage station in a slow tumble: a dock ring, a spine corridor, a workshop, and a hold nobody has finished clearing.",
+    "properties": {
+        "safe_zone": true
     },
-    "spine_corridor": {
-      "name": "Spine Corridor",
-      "description": "A ribbed corridor down the station's spine. Half the strip lights are dead, and the hold door at the far end stands open.",
-      "properties": { "outdoors": false },
-      "exits": { "south": "dock_ring", "north": "hold" }
-    },
-    "workshop": {
-      "name": "Workshop",
-      "description": "Benches, jigs and a fabrication frame with its cover half off. Someone left mid-job and never came back.",
-      "properties": { "outdoors": false },
-      "exits": { "west": "dock_ring" },
-      "items": [ { "item_id": "item_locker" } ]
-    },
-    "hold": {
-      "name": "Cargo Hold",
-      "description": "Empty racks and a drifting haze of frost. Something in here has been moving since the lights went out.",
-      "properties": { "outdoors": false, "safe_zone": false },
-      "exits": { "south": "spine_corridor" },
-      "initial_npcs": [
-        { "template_id": "cargo_drone", "instance_id": "drone_hold" }
-      ]
+    "rooms": {
+        "dock_ring": {
+            "name": "Dock Ring",
+            "description": "The outer ring, open to a hard black sky. Clamp marks scar the deck where ships used to sit; a spine corridor runs north, and the workshop hatch is east.",
+            "properties": {
+                "outdoors": false
+            },
+            "exits": {
+                "north": "spine_corridor",
+                "east": "workshop"
+            },
+            "items": [
+                {
+                    "item_id": "node_salvage_bench"
+                }
+            ],
+            "initial_npcs": [
+                {
+                    "template_id": "foreman_ivo",
+                    "instance_id": "ivo_dock"
+                }
+            ]
+        },
+        "spine_corridor": {
+            "name": "Spine Corridor",
+            "description": "A ribbed corridor down the station's spine. Half the strip lights are dead, and the hold door at the far end stands open.",
+            "properties": {
+                "outdoors": false
+            },
+            "exits": {
+                "south": "dock_ring",
+                "north": "hold"
+            }
+        },
+        "workshop": {
+            "name": "Workshop",
+            "description": "Benches, jigs and a fabrication frame with its cover half off. Someone left mid-job and never came back.",
+            "properties": {
+                "outdoors": false
+            },
+            "exits": {
+                "west": "dock_ring"
+            },
+            "items": [
+                {
+                    "item_id": "item_locker"
+                }
+            ]
+        },
+        "hold": {
+            "name": "Cargo Hold",
+            "description": "Empty racks and a drifting haze of frost. Something in here has been moving since the lights went out.",
+            "properties": {
+                "outdoors": false,
+                "safe_zone": false
+            },
+            "exits": {
+                "south": "spine_corridor"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cargo_drone",
+                    "instance_id": "drone_hold"
+                }
+            ]
+        }
     }
-  }
 }

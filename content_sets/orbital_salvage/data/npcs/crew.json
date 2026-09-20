@@ -1,71 +1,104 @@
 {
-  "foreman_ivo": {
-    "name": "Ivo",
-    "description": "The station's last foreman, still wearing the harness, still logging hours nobody pays for.",
-    "health": 40,
-    "level": 1,
-    "friendly": true,
-    "faction": "friendly",
-    "behavior_type": "stationary",
-    "stats": { "strength": 9, "dexterity": 9, "constitution": 9, "agility": 8, "intelligence": 11, "wisdom": 10 },
-    "dialog": {
-      "greeting": "Mind the bench. Strip what you can carry, log what you take, and stay out of the hold."
-    },
-    "default_dialog": "Ivo watches the corridor, one hand on the rail.",
-    "properties": {
-      "is_vendor": true,
-      "sells_items": [
-        { "item_id": "item_patch_kit" },
-        { "item_id": "item_rail_pistol" }
-      ],
-      "buys_item_types": ["Junk", "Treasure"],
-      "_comment": "Ivo buys what the bench yields, by family and grade rather than by item: two serviceable parts is a fair load, and he pays real money for a clean one because he knows what it is. A player who wants the clean-grade order has to go and work the bench for it, which is the station's whole economy in two lines.",
-      "buy_orders": [
-        {
-          "id": "serviceable_parts",
-          "item_family": "salvaged_part",
-          "quantity": 2,
-          "min_material_quality": 2,
-          "reward_gold": 40,
-          "relationship_amount": 1,
-          "repeatable": true
+    "foreman_ivo": {
+        "name": "Ivo",
+        "description": "The station's last foreman, still wearing the harness, still logging hours nobody pays for.",
+        "health": 40,
+        "level": 1,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 9,
+            "dexterity": 9,
+            "constitution": 9,
+            "agility": 8,
+            "intelligence": 11,
+            "wisdom": 10
         },
-        {
-          "id": "clean_part",
-          "item_family": "salvaged_part",
-          "quantity": 1,
-          "min_material_quality": 3,
-          "reward_gold": 120,
-          "relationship_amount": 3,
-          "repeatable": true
+        "dialog": {
+            "greeting": "Mind the bench. Strip what you can carry, log what you take, and stay out of the hold."
+        },
+        "default_dialog": "Ivo watches the corridor, one hand on the rail.",
+        "properties": {
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_patch_kit"
+                },
+                {
+                    "item_id": "item_rail_pistol"
+                }
+            ],
+            "buys_item_types": [
+                "Junk",
+                "Treasure"
+            ],
+            "_comment": "Ivo buys what the bench yields, by family and grade rather than by item: two serviceable parts is a fair load, and he pays real money for a clean one because he knows what it is. A player who wants the clean-grade order has to go and work the bench for it, which is the station's whole economy in two lines.",
+            "buy_orders": [
+                {
+                    "id": "serviceable_parts",
+                    "item_family": "salvaged_part",
+                    "quantity": 2,
+                    "min_material_quality": 2,
+                    "reward_gold": 40,
+                    "relationship_amount": 1,
+                    "repeatable": true
+                },
+                {
+                    "id": "clean_part",
+                    "item_family": "salvaged_part",
+                    "quantity": 1,
+                    "min_material_quality": 3,
+                    "reward_gold": 120,
+                    "relationship_amount": 3,
+                    "repeatable": true
+                }
+            ]
         }
-      ]
-    }
-  },
-  "cargo_drone": {
-    "name": "cargo drone",
-    "description": "A loading drone running a corrupted pickup loop. It has decided you are freight.",
-    "health": 26,
-    "level": 2,
-    "friendly": false,
-    "faction": "hostile",
-    "behavior_type": "aggressive",
-    "stats": { "strength": 10, "dexterity": 8, "constitution": 10, "agility": 6, "intelligence": 2, "wisdom": 2 },
-    "attack_power": 4,
-    "defense": 2,
-    "dialog": {
-      "greeting": "The drone pivots toward you with a hydraulic whine.",
-      "threat": "The drone lunges, clamp first.",
-      "flee": "The drone retreats into the racks, still humming."
     },
-    "default_dialog": "The drone traces a slow arc through the hold.",
-    "loot_table": {
-      "gold_value": { "chance": 0.5, "quantity": [1, 4] },
-      "item_servo_cluster": { "chance": 0.6, "quantity": [1, 2] }
-    },
-    "properties": {
-      "flee_threshold": 0.2,
-      "respawn_cooldown": 600
+    "cargo_drone": {
+        "name": "cargo drone",
+        "description": "A loading drone running a corrupted pickup loop. It has decided you are freight.",
+        "health": 26,
+        "level": 2,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 10,
+            "dexterity": 8,
+            "constitution": 10,
+            "agility": 6,
+            "intelligence": 2,
+            "wisdom": 2
+        },
+        "attack_power": 4,
+        "defense": 2,
+        "dialog": {
+            "greeting": "The drone pivots toward you with a hydraulic whine.",
+            "threat": "The drone lunges, clamp first.",
+            "flee": "The drone retreats into the racks, still humming."
+        },
+        "default_dialog": "The drone traces a slow arc through the hold.",
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.5,
+                "quantity": [
+                    1,
+                    4
+                ]
+            },
+            "item_servo_cluster": {
+                "chance": 0.6,
+                "quantity": [
+                    1,
+                    2
+                ]
+            }
+        },
+        "properties": {
+            "flee_threshold": 0.2,
+            "respawn_cooldown": 600
+        }
     }
-  }
 }

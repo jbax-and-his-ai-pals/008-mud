@@ -70,6 +70,12 @@ func get_global_hierarchy() -> Dictionary:
 			var json = JSON.new()
 			if json.parse(f.get_as_text()) == OK:
 				var d = json.get_data()
+				# A region-generation template ({"themes": {...}}), not a static
+				# region -- listing it would show a fake empty region that, if
+				# ever opened and saved, would overwrite the real generator data
+				# with a fabricated region_id/rooms. See RegionManager.load_region.
+				if d.get("themes") is Dictionary:
+					continue
 				# Use explicit region_id if present, otherwise filename without ext
 				var rid = d.get("region_id", fname.get_file().replace(".json", ""))
 				var room_list = {}
@@ -89,6 +95,8 @@ func get_all_world_data() -> Dictionary:
 			var json = JSON.new()
 			if json.parse(f.get_as_text()) == OK:
 				var d = json.get_data()
+				if d.get("themes") is Dictionary:
+					continue
 				var rid = d.get("region_id", fname.get_file().replace(".json", ""))
 				world_data[rid] = d
 	return world_data

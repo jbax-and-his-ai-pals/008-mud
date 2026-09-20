@@ -13,13 +13,13 @@
     },
     "spawner": {
         "monster_types": {
-            "orc_grunt": 4.0,
-            "hobgoblin_soldier": 3.0,
-            "dire_wolf": 3.0,
-            "harpy": 2.0,
-            "orc_shaman": 1.0,
-            "earth_elemental": 1.0,
-            "troll": 2.0
+            "orc_grunt": 4,
+            "hobgoblin_soldier": 3,
+            "dire_wolf": 3,
+            "harpy": 2,
+            "orc_shaman": 1,
+            "earth_elemental": 1,
+            "troll": 2
         },
         "level_range": [
             5,

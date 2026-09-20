@@ -1,19 +1,19 @@
 {
-  "overcharge": {
-    "name": "Overcharge",
-    "description": "Bridge the cell and let the whole stack go at once.",
-    "mana_cost": 6,
-    "cooldown": 6.0,
-    "target_type": "enemy",
-    "cast_message": "{caster_name} bridges the cell, and the air starts to hum.",
-    "hit_message": "{caster_name}'s discharge arcs into {target_name} for {value} damage!",
-    "level_required": 1,
-    "effects": [
-      {
-        "type": "damage",
-        "value": 11,
-        "damage_type": "electric"
-      }
-    ]
-  }
+    "overcharge": {
+        "name": "Overcharge",
+        "description": "Bridge the cell and let the whole stack go at once.",
+        "mana_cost": 6,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} bridges the cell, and the air starts to hum.",
+        "hit_message": "{caster_name}'s discharge arcs into {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 11,
+                "damage_type": "electric"
+            }
+        ]
+    }
 }

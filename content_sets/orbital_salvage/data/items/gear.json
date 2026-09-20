@@ -1,49 +1,55 @@
 {
-  "item_pry_bar": {
-    "type": "Weapon",
-    "name": "pry bar",
-    "description": "Half a metre of flat alloy. Good for panels, acceptable for arguments.",
-    "item_family": "kinetic_sidearm",
-    "weight": 2.2,
-    "value": 18,
-    "stackable": false,
-    "equip_slot": ["main_hand"],
-    "properties": {
-      "tool_type": "pry_bar"
+    "item_pry_bar": {
+        "type": "Weapon",
+        "name": "pry bar",
+        "description": "Half a metre of flat alloy. Good for panels, acceptable for arguments.",
+        "item_family": "kinetic_sidearm",
+        "weight": 2.2,
+        "value": 18,
+        "stackable": false,
+        "equip_slot": [
+            "main_hand"
+        ],
+        "properties": {
+            "tool_type": "pry_bar"
+        }
+    },
+    "item_rail_pistol": {
+        "type": "Weapon",
+        "name": "rail pistol",
+        "description": "A magnetic sidearm with a tired capacitor and a clean barrel.",
+        "item_family": "kinetic_sidearm",
+        "weight": 1.1,
+        "value": 120,
+        "stackable": false,
+        "equip_slot": [
+            "main_hand"
+        ],
+        "properties": {}
+    },
+    "item_impact_vest": {
+        "type": "Armor",
+        "name": "impact vest",
+        "description": "Layered composite panels over a padded shell. Rated for tools, not for people.",
+        "item_family": "protective_gear",
+        "weight": 3.4,
+        "value": 95,
+        "stackable": false,
+        "equip_slot": [
+            "body"
+        ],
+        "properties": {}
+    },
+    "item_locker": {
+        "type": "Container",
+        "name": "crew locker",
+        "description": "A dented personal locker, still latched.",
+        "weight": 12,
+        "value": 6,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false
+        }
     }
-  },
-  "item_rail_pistol": {
-    "type": "Weapon",
-    "name": "rail pistol",
-    "description": "A magnetic sidearm with a tired capacitor and a clean barrel.",
-    "item_family": "kinetic_sidearm",
-    "weight": 1.1,
-    "value": 120,
-    "stackable": false,
-    "equip_slot": ["main_hand"],
-    "properties": {}
-  },
-  "item_impact_vest": {
-    "type": "Armor",
-    "name": "impact vest",
-    "description": "Layered composite panels over a padded shell. Rated for tools, not for people.",
-    "item_family": "protective_gear",
-    "weight": 3.4,
-    "value": 95,
-    "stackable": false,
-    "equip_slot": ["body"],
-    "properties": {}
-  },
-  "item_locker": {
-    "type": "Container",
-    "name": "crew locker",
-    "description": "A dented personal locker, still latched.",
-    "weight": 12.0,
-    "value": 6,
-    "stackable": false,
-    "properties": {
-      "locked": false,
-      "is_open": false
-    }
-  }
 }
