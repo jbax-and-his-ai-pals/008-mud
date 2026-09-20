@@ -64,7 +64,7 @@
         "defense": 12,
         "loot_table": {
             "gold_value": {
-                "chance": 1.0,
+                "chance": 1,
                 "quantity": [
                     40,
                     80
@@ -142,7 +142,7 @@
         "defense": 18,
         "loot_table": {
             "item_living_rock": {
-                "chance": 1.0,
+                "chance": 1,
                 "quantity": [
                     1,
                     2
@@ -159,7 +159,7 @@
             }
         },
         "properties": {
-            "attack_cooldown": 5.0,
+            "attack_cooldown": 5,
             "weapon_damage_type": "crushing",
             "armor_material": "plate"
         }

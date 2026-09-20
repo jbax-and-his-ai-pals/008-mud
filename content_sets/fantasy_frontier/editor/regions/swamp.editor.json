@@ -2,106 +2,116 @@
     "region": {
         "_proxy_positions": {
             "coastal_path:mudflats": [
-                0.0,
-                1760.0
+                0,
+                1760
             ]
+        },
+        "_editor_connection_label_sources": {
+            "muddy_trail|whispering_reeds": {
+                "source": "whispering_reeds",
+                "direction": "north"
+            },
+            "muddy_trail|rotting_log": {
+                "source": "muddy_trail",
+                "direction": "north"
+            }
         }
     },
     "rooms": {
         "marsh_edge": {
             "_editor_pos": [
-                0.0,
-                0.0
+                0,
+                0
             ]
         },
         "willow_grove": {
             "_editor_pos": [
-                -256.0,
-                0.0
+                -256,
+                0
             ]
         },
         "stagnant_pool": {
             "_editor_pos": [
-                0.0,
-                192.0
+                0,
+                192
             ]
         },
         "cypress_stand": {
             "_editor_pos": [
-                256.0,
-                192.0
+                256,
+                192
             ]
         },
         "muddy_trail": {
             "_editor_pos": [
-                -448.0,
-                192.0
+                -256,
+                576
             ]
         },
         "mangrove_thicket": {
             "_editor_pos": [
-                0.0,
-                384.0
+                0,
+                384
             ]
         },
         "rotting_log": {
             "_editor_pos": [
-                -256.0,
-                384.0
+                -256,
+                384
             ]
         },
         "lizard_den": {
             "_editor_pos": [
-                256.0,
-                384.0
+                256,
+                384
             ]
         },
         "sunken_structure_approach": {
             "_editor_pos": [
-                0.0,
-                576.0
+                0,
+                576
             ]
         },
         "sunken_structure": {
             "_editor_pos": [
-                0.0,
-                768.0
+                0,
+                768
             ]
         },
         "flooded_ruin": {
             "_editor_pos": [
-                384.0,
-                864.0
+                256,
+                768
             ]
         },
         "deep_swamp": {
             "_editor_pos": [
-                0.0,
-                1120.0
+                0,
+                992
             ]
         },
         "whispering_reeds": {
             "_editor_pos": [
-                -256.0,
-                1120.0
+                -256,
+                992
             ]
         },
         "quicksand_pit": {
             "_editor_pos": [
-                352.0,
-                1120.0
+                256,
+                992
             ]
         },
         "ancient_bog": {
             "_editor_pos": [
-                0.0,
-                1312.0
+                0,
+                1216
             ]
         },
         "bog_end": {
             "_editor_pos": [
-                0.0,
-                1504.0
+                0,
+                1440
             ]
         }
     }

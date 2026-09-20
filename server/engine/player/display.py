@@ -10,6 +10,7 @@ from engine.config import (
     DEFAULT_CURRENCY_NAME
 )
 from engine.config.config_display import FORMAT_YELLOW
+from engine.contracts import stats as stats_contract
 from engine.contracts.resources import ability_resource_label, ability_resource_short
 from engine.items.item import Item
 from engine.magic.spell_registry import get_spell
@@ -89,22 +90,23 @@ class PlayerDisplayMixin:
         
         if uses_progression:
             stat_parts = []
-            declared_stats = p.world.declared_status_stats() if p.world else ()
-            if declared_stats:
-                stats_to_show = list(declared_stats)
-            else:
-                stats_to_show = ["strength", "dexterity", "constitution", "agility", "intelligence", "wisdom"]
-                if has_abilities:
-                    # The derived stats of a set whose abilities are spells. A
-                    # set that declares its own list is not shown them at all.
-                    stats_to_show.extend(["spell_power", "magic_resist"])
-            for stat_name in stats_to_show:
+            # The list *and* the labels come from the content set. The fallback
+            # is the shipped vocabulary, and `spell_power`/`magic_resist` are
+            # appended only for a set that has abilities and has not declared a
+            # list of its own -- they are the derived stats of a set whose
+            # abilities are spells, and a set that names its own stats is not
+            # shown them.
+            fallback = ["strength", "dexterity", "constitution", "agility", "intelligence", "wisdom"]
+            if has_abilities:
+                fallback.extend(["spell_power", "magic_resist"])
+            for stat_name, abbr in stats_contract.display_stats(
+                getattr(p, "world", None), fallback
+            ):
                 base_stat = p.stats.get(stat_name, 0)
                 effective_stat = p.get_effective_stat(stat_name)
                 color = FORMAT_RESET
                 if effective_stat > base_stat: color = FORMAT_SUCCESS
                 elif effective_stat < base_stat: color = FORMAT_ERROR
-                abbr = stat_name[:3].upper() if stat_name not in ["spell_power", "magic_resist"] else stat_name.upper()
                 stat_parts.append(f"{abbr} {color}{effective_stat}{FORMAT_RESET}")
             status += f"{FORMAT_CATEGORY}Stats:{FORMAT_RESET} {', '.join(stat_parts)}\n"
         if shows_economy:

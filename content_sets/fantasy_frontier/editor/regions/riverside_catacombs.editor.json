@@ -1,0 +1,66 @@
+{
+    "region": {
+        "_proxy_positions": {
+            "town:shrine_interior": [
+                256,
+                -320
+            ],
+            "town:tavern_cellar": [
+                768,
+                -320
+            ]
+        },
+        "_editor_connection_label_sources": {
+            "burial_niches|sealed_chapel": {
+                "source": "sealed_chapel",
+                "direction": "northwest"
+            },
+            "names_hall|sealed_chapel": {
+                "source": "sealed_chapel",
+                "direction": "north"
+            },
+            "root_cavern|sealed_chapel": {
+                "source": "sealed_chapel",
+                "direction": "northeast"
+            }
+        }
+    },
+    "rooms": {
+        "shrine_stairs": {
+            "_editor_pos": [
+                0,
+                -96
+            ]
+        },
+        "names_hall": {
+            "_editor_pos": [
+                -160,
+                128
+            ]
+        },
+        "burial_niches": {
+            "_editor_pos": [
+                -512,
+                128
+            ]
+        },
+        "sealed_chapel": {
+            "_editor_pos": [
+                -160,
+                384
+            ]
+        },
+        "root_cavern": {
+            "_editor_pos": [
+                192,
+                128
+            ]
+        },
+        "cellar_breach": {
+            "_editor_pos": [
+                544,
+                128
+            ]
+        }
+    }
+}

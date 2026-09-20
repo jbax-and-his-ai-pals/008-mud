@@ -273,7 +273,13 @@ class TestPartyPolicyRuntime(unittest.TestCase):
         self.assertIn("you win", result.lower())
         self.assertIn("leader +5 gold", result.lower())
         self.assertIn("member +5 gold", result.lower())
-        self.assertEqual(105, leader_player.runtime_state.gold)
+        # The stake is taken once and returned once. A 10 bet that wins even
+        # money is a 20 return, so the profit is 10 and the party splits it 5/5:
+        # the leader paid 10, got their 5 back through the same grant as the
+        # member, and the member gained 5. Crediting the stake back to the actor
+        # *as well* -- which is what this used to do -- paid it twice, so the
+        # leader netted +5 on a bet whose whole profit was +10.
+        self.assertEqual(95, leader_player.runtime_state.gold)
         self.assertEqual(5, member_player.runtime_state.gold)
 
     @patch("engine.player.combat.calculate_xp_gain", return_value=8)

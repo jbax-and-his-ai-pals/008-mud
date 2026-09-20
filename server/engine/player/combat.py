@@ -14,6 +14,7 @@ from engine.config import (
 from engine.core.combat_system import CombatSystem
 from engine.items.item import Item
 from engine.items.weapon import Weapon
+from engine.contracts import stats as stats_contract
 from engine.contracts.equipment import (
     weapon_damage,
     weapon_damage_type as weapon_damage_type_for,
@@ -30,7 +31,7 @@ class PlayerCombatMixin:
 
     def get_attack_power(self) -> int:
         p = cast('Player', self)
-        attack = (p.runtime_state.combat.attack_power if p.runtime_state.combat is not None else 0) + p.get_effective_stat("strength") // PLAYER_ATTACK_POWER_STR_DIVISOR
+        attack = (p.runtime_state.combat.attack_power if p.runtime_state.combat is not None else 0) + stats_contract.entity_stat_for(p, "attack") // PLAYER_ATTACK_POWER_STR_DIVISOR
         main_hand_weapon = p.equipment.get("main_hand")
         if isinstance(main_hand_weapon, Weapon) and main_hand_weapon.get_property("durability", 1) > 0:
             # Contract first: a weapon may declare an attack profile, and the
@@ -51,8 +52,13 @@ class PlayerCombatMixin:
     def get_effective_attack_cooldown(self) -> float:
         p = cast('Player', self)
         base_cooldown = p.attack_cooldown
-        effective_agility = p.get_effective_stat('agility')
-        speed_modifier = (effective_agility - 10) * 0.01
+        # Whichever stat the content set names for evasion; the neutral value is
+        # the point at which the modifier is zero, which is why it is read rather
+        # than written as 10 here.
+        effective_agility = stats_contract.entity_stat_for(p, "evasion")
+        speed_modifier = (
+            effective_agility - stats_contract.NEUTRAL_STAT_VALUE
+        ) * 0.01
         effective_cooldown = base_cooldown / (1 + speed_modifier)
         return max(MIN_ATTACK_COOLDOWN, effective_cooldown)
 

@@ -3,8 +3,8 @@
         "type": "Item",
         "name": "Bloody Tabard",
         "description": "A guard's uniform, stained with a strange acidic slime.",
-        "weight": 1.0,
-        "value": 0.0,
+        "weight": 1,
+        "value": 0,
         "stackable": false,
         "properties": {
             "quest_item": true
@@ -16,7 +16,7 @@
         "name": "Peace Treaty",
         "description": "A sealed treaty intended to end the bandit conflict.",
         "weight": 0.2,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "quest_item": true
@@ -27,8 +27,8 @@
         "type": "Armor",
         "name": "iron shield",
         "description": "A sturdy iron shield with a reinforced rim.",
-        "weight": 4.0,
-        "value": 55.0,
+        "weight": 4,
+        "value": 55,
         "stackable": false,
         "properties": {
             "defense": 3,

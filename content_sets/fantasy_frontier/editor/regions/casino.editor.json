@@ -1,0 +1,60 @@
+{
+    "region": {
+        "_proxy_positions": {
+            "town:tavern_exterior": [
+                -512,
+                0
+            ]
+        },
+        "_editor_connection_label_sources": {
+            "upper_lobby|wheel_room": {
+                "source": "upper_lobby",
+                "direction": "northwest"
+            }
+        }
+    },
+    "rooms": {
+        "lobby": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "dice_parlor": {
+            "_editor_pos": [
+                0,
+                -192
+            ]
+        },
+        "slots_room": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "upper_lobby": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
+        "wheel_room": {
+            "_editor_pos": [
+                0,
+                -384
+            ]
+        },
+        "card_room": {
+            "_editor_pos": [
+                576,
+                -192
+            ]
+        },
+        "arcane_vault": {
+            "_editor_pos": [
+                256,
+                -384
+            ]
+        }
+    }
+}

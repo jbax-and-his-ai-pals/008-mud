@@ -2,55 +2,136 @@
 from typing import List, Dict, Any
 
 from engine.items import references
+from engine.utils import content_values as cv
+
+
+def _optional_difficulty(data: Dict[str, Any], path: str) -> Any:
+    """The authored skill-check difficulty, or None to derive it from value.
+
+    A whole float is read as that integer; a fractional one is refused rather
+    than truncated, because the difficulty check is a threshold and 7.5 is not 7.
+    """
+    value = cv.present(data, "difficulty")
+    if cv.absent(value) or value is None:
+        return None
+    return cv.as_int(value, "%s.difficulty" % path, minimum=0)
+
+
+def _milestones(data: Dict[str, Any], path: str) -> List[Dict[str, Any]]:
+    """Authored familiarity milestones, each with a readable craft count.
+
+    Read strictly rather than filtered: the old reader kept a milestone only when
+    `isinstance(count, int)`, so a float count removed it from the list and the
+    player was told about a *later* milestone at the wrong time.
+    """
+    raw = cv.optional_sequence(data, "familiarity_milestones", path)
+    if cv.absent(raw):
+        return []
+    entries = cv.list_of_objects(raw, "%s.familiarity_milestones" % path)
+    milestones: List[Dict[str, Any]] = []
+    for index, entry in enumerate(entries):
+        where = "%s.familiarity_milestones[%d]" % (path, index)
+        milestone = dict(entry)
+        milestone["count"] = cv.optional_int(entry, "count", where, minimum=1)
+        if milestone["count"] is None:
+            raise cv.ContentValueError("%s.count" % where, "an integer of at least 1", None)
+        for key in ("label", "message"):
+            if not cv.absent(cv.present(entry, key)):
+                milestone[key] = cv.as_text(cv.present(entry, key), "%s.%s" % (where, key))
+        milestones.append(milestone)
+    return milestones
+
+
+def _quality_tiers(data: Dict[str, Any], path: str) -> List[Dict[str, Any]]:
+    """Authored quality tiers, gated on crafts and optionally on material grade.
+
+    The same strict read, and the case that started this: a tier whose
+    `min_crafts` was a float used to be dropped in silence, and the craft it
+    belonged to then reported no quality at all while every gate passed.
+    """
+    raw = cv.optional_sequence(data, "quality_tiers", path)
+    if cv.absent(raw):
+        return []
+    entries = cv.list_of_objects(raw, "%s.quality_tiers" % path)
+    tiers: List[Dict[str, Any]] = []
+    for index, entry in enumerate(entries):
+        where = "%s.quality_tiers[%d]" % (path, index)
+        tier = dict(entry)
+        tier["min_crafts"] = cv.optional_int(entry, "min_crafts", where, minimum=1)
+        if tier["min_crafts"] is None:
+            raise cv.ContentValueError("%s.min_crafts" % where, "an integer of at least 1", None)
+        for key, minimum in (("min_material_quality", 0), ("rank", 1)):
+            if not cv.absent(cv.present(entry, key)) and cv.present(entry, key) is not None:
+                tier[key] = cv.as_int(cv.present(entry, key), "%s.%s" % (where, key), minimum=minimum)
+        tiers.append(tier)
+    return tiers
 
 
 class Recipe:
+    """One recipe, read strictly.
+
+    Every field the engine reads is read through `engine/utils/content_values.py`,
+    which refuses a value that is not what the field means and says which field
+    in the file it was. That is not fussiness: this class is the *only* reader of
+    a recipe, and the content-set validator does not check most of these fields,
+    so a lenient read here had no second line of defence. A float `min_crafts`
+    kept the tier list empty; `requires_discovery: "false"` made a recipe
+    permanently unlearnable; `result_quantity: "2"` made `craft` produce `"22"`.
+    None of those raised, and none of them was reported.
+    """
+
     def __init__(self, recipe_id: str, data: Dict[str, Any]):
         self.recipe_id = recipe_id
-        self.name = data.get("name", "Unknown Recipe")
-        self.description = data.get("description", "Creates an item.")
-        
+        self._path = "recipes.%s" % recipe_id
+
+        if not isinstance(data, dict):
+            raise cv.ContentValueError(self._path, "an object", data)
+
+        self.name = cv.optional_text(data, "name", self._path, default="Unknown Recipe")
+        self.description = cv.optional_text(data, "description", self._path, default="Creates an item.")
+
         # The template ID of the item created
-        self.result_item_id = data.get("result_item_id")
-        self.result_quantity = data.get("result_quantity", 1)
-        
+        self.result_item_id = cv.optional_text(data, "result_item_id", self._path)
+        self.result_quantity = cv.optional_int(data, "result_quantity", self._path, default=1, minimum=1)
+
         # "anvil", "alchemy_table", "campfire", or None (handcrafting)
-        self.station_required = data.get("station_required")
+        self.station_required = cv.optional_text(data, "station_required", self._path)
         # A recipe every player can attempt from the start unless content
         # opts it into being taught/found first (see Player.learn_recipe).
-        self.requires_discovery: bool = bool(data.get("requires_discovery", False))
+        self.requires_discovery: bool = cv.optional_bool(data, "requires_discovery", self._path, default=False)
         # ``None`` preserves the content-neutral default difficulty derived
         # from result value. A content set may use 0 for a guaranteed beginner
         # recipe or supply an explicit positive skill-check difficulty.
-        self.difficulty = data.get("difficulty")
-        
+        self.difficulty = _optional_difficulty(data, self._path)
+
         # List of dicts: {"item_id":Str, "quantity":Int}
-        self.ingredients: List[Dict[str, Any]] = data.get("ingredients", [])
+        self.ingredients: List[Dict[str, Any]] = list(
+            cv.optional_sequence(data, "ingredients", self._path)
+        )
+        # An ingredient is a reference, not an id -- see `Recipe.references_item`.
+        for index, ingredient in enumerate(self.ingredients):
+            if not isinstance(ingredient, dict):
+                raise cv.ContentValueError(
+                    "%s.ingredients[%d]" % (self._path, index), "an object", ingredient,
+                )
         # Alternative names a player might type for this recipe, resolved by
         # engine/naming.py. The recipe's own `name` is authored as an
         # instruction ("Tie Wildflower Posy"); an alias is what someone would
         # actually ask for ("posy", "flowers").
-        raw_aliases = data.get("aliases", [])
-        self.aliases: List[str] = [
-            str(alias).strip() for alias in raw_aliases
-            if isinstance(alias, (str, int)) and str(alias).strip()
-        ] if isinstance(raw_aliases, list) else []
+        raw_aliases = cv.optional_sequence(data, "aliases", self._path)
+        self.aliases: List[str] = []
+        for index, alias in enumerate(raw_aliases):
+            where = "%s.aliases[%d]" % (self._path, index)
+            if isinstance(alias, bool) or not isinstance(alias, (str, int)):
+                raise cv.ContentValueError(where, "a string", alias)
+            text = str(alias).strip()
+            if not text:
+                raise cv.ContentValueError(where, "a non-empty string", alias)
+            self.aliases.append(text)
         # Optional content metadata. The engine records familiarity for every
         # recipe, but only authored milestones turn it into player feedback.
-        raw_milestones = data.get("familiarity_milestones", [])
-        self.familiarity_milestones: List[Dict[str, Any]] = [
-            milestone for milestone in raw_milestones
-            if isinstance(milestone, dict) and isinstance(milestone.get("count"), int)
-            and not isinstance(milestone.get("count"), bool) and int(milestone["count"]) > 0
-        ] if isinstance(raw_milestones, list) else []
-        raw_quality_tiers = data.get("quality_tiers", [])
-        self.quality_tiers: List[Dict[str, Any]] = [
-            tier for tier in raw_quality_tiers
-            if isinstance(tier, dict) and isinstance(tier.get("min_crafts"), int)
-            and not isinstance(tier.get("min_crafts"), bool) and int(tier["min_crafts"]) > 0
-            and ("min_material_quality" not in tier or (isinstance(tier["min_material_quality"], int) and not isinstance(tier["min_material_quality"], bool)))
-            and ("rank" not in tier or (isinstance(tier["rank"], int) and not isinstance(tier["rank"], bool)))
-        ] if isinstance(raw_quality_tiers, list) else []
+        self.familiarity_milestones: List[Dict[str, Any]] = _milestones(data, self._path)
+        self.quality_tiers: List[Dict[str, Any]] = _quality_tiers(data, self._path)
         
     @property
     def station_display(self) -> str:

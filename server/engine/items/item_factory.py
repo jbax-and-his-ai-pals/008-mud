@@ -6,7 +6,6 @@ import random
 import copy
 from typing import TYPE_CHECKING, Any, Dict, Optional, Type
 
-from engine.items.gem import Gem
 from engine.items.interactive import Interactive
 from engine.items.item import Item
 from engine.items.weapon import Weapon
@@ -14,8 +13,6 @@ from engine.items.armor import Armor
 from engine.items.consumable import Consumable
 from engine.items.container import Container
 from engine.items.key import Key
-from engine.items.treasure import Treasure
-from engine.items.junk import Junk
 from engine.items.lockpick import Lockpick
 from engine.items.resource_node import ResourceNode
 from engine.magic.spell_registry import SPELL_REGISTRY
@@ -24,6 +21,14 @@ from engine.utils.logger import Logger
 if TYPE_CHECKING:
     from engine.world.world import World
 
+# A type name maps to a class only when the class carries a *mechanic* the
+# template cannot express: a container holds items, a key unlocks, a weapon
+# equips. Where a class existed only to hold defaults -- the stackable flag, a
+# gift tag, one line of flavour -- the answer is the template, not a class, so
+# `Gem`, `Junk` and `Treasure` are no longer here: their templates declare
+# `stackable`, `gift_tags` and `use_text` directly, and a content set can change
+# any of them. `toolkit/materialize_item_class_defaults.py` is the migration
+# that moved those values into content so removing the classes changed nothing.
 ITEM_CLASS_MAP: Dict[str, Type[Item]] = {
      "Item": Item,
      "Weapon": Weapon,
@@ -31,12 +36,15 @@ ITEM_CLASS_MAP: Dict[str, Type[Item]] = {
      "Consumable": Consumable,
      "Container": Container,
      "Key": Key,
-     "Treasure": Treasure,
-     "Junk": Junk,
-     "Gem": Gem,
      "Lockpick": Lockpick,
      "ResourceNode": ResourceNode,
      "Interactive": Interactive,
+     # Retired class names, mapped to the base item so that a content set which
+     # still writes the old word keeps working. Their templates carry the
+     # behaviour now, so nothing is lost by the type resolving to `Item`.
+     "Gem": Item,
+     "Junk": Item,
+     "Treasure": Item,
 }
     
 class ItemFactory:

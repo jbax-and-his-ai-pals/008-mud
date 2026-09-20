@@ -6,4 +6,5 @@
 pygame==2.6.1
 PyYAML==6.0.3
 msgpack==1.2.2
+websockets==17.1
 coverage==7.16.1

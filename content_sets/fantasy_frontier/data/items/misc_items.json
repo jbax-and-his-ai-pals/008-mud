@@ -3,8 +3,8 @@
         "type": "Container",
         "name": "old trunk",
         "description": "A worn wooden trunk at the foot of the bed. It isn't yours.",
-        "weight": 15.0,
-        "value": 8.0,
+        "weight": 15,
+        "value": 8,
         "capacity": 20,
         "locked": false,
         "is_open": true,
@@ -19,7 +19,7 @@
         "name": "wildflower posy",
         "description": "A hand-tied bundle of fragrant herbs and wildflowers; modest, but clearly made with care.",
         "weight": 0.2,
-        "value": 8.0,
+        "value": 8,
         "stackable": true,
         "properties": {
             "category": "gift",
@@ -35,7 +35,7 @@
         "name": "carved riverside charm",
         "description": "A small carved charm showing a river bend and three reeds, now strung on a cord to wear at the throat.",
         "weight": 0.2,
-        "value": 12.0,
+        "value": 12,
         "stackable": false,
         "properties": {
             "defense": 1,
@@ -51,7 +51,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_softwood",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -61,7 +61,7 @@
         "name": "river-clay token",
         "description": "A thumb-sized clay token pressed with the Riverside river-mark.",
         "weight": 0.2,
-        "value": 6.0,
+        "value": 6,
         "stackable": true,
         "properties": {
             "category": "curio",
@@ -77,7 +77,7 @@
         "name": "rose quartz talisman",
         "description": "A polished rose quartz set on a leather cord. Its soft warmth steadies the mind against unsettling shadows.",
         "weight": 0.2,
-        "value": 30.0,
+        "value": 30,
         "stackable": false,
         "properties": {
             "defense": 1,
@@ -87,7 +87,7 @@
                 "neck"
             ],
             "resistances": {
-                "shadow": 10.0
+                "shadow": 10
             },
             "equip_effect": {
                 "type": "stat_mod",
@@ -104,7 +104,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_rose_quartz",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -114,7 +114,7 @@
         "name": "town notice",
         "description": "A notice posted on the town bulletin board. It reads: 'MISSING: Supplies from the last merchant caravan. Anyone with information please speak to the Town Elder.'",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -124,7 +124,7 @@
         "name": "traveler's journal",
         "description": "A leather-bound journal with entries from a merchant who passed through the village. The last entry mentions strange noises in the forest at night and missing supplies.",
         "weight": 0.5,
-        "value": 5.0,
+        "value": 5,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -133,8 +133,8 @@
         "type": "Item",
         "name": "fishing net",
         "description": "A sturdy net used for catching fish.",
-        "weight": 2.0,
-        "value": 15.0,
+        "weight": 2,
+        "value": 15,
         "stackable": false,
         "properties": {
             "tool_type": "fishing_net",
@@ -146,8 +146,8 @@
         "type": "Item",
         "name": "barrel of ale",
         "description": "A large wooden barrel, full of the Drunken Dragon's signature ale.",
-        "weight": 50.0,
-        "value": 100.0,
+        "weight": 50,
+        "value": 100,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -157,7 +157,7 @@
         "name": "torn map",
         "description": "A torn piece of parchment showing a partial map of the region. There appears to be a marked location deep in the forest, but part of the map is missing.",
         "weight": 0.1,
-        "value": 5.0,
+        "value": 5,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -167,7 +167,7 @@
         "name": "waterlogged pouch",
         "description": "A small leather pouch, soaked through but seemingly intact. Perhaps something valuable remains inside.",
         "weight": 0.5,
-        "value": 15.0,
+        "value": 15,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -177,7 +177,7 @@
         "name": "burnt scroll",
         "description": "A fragile scroll, mostly destroyed by fire and time. Only a few cryptic symbols remain legible.",
         "weight": 0.1,
-        "value": 5.0,
+        "value": 5,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -187,7 +187,7 @@
         "name": "weathered offering",
         "description": "A small, carved stone left at the shrine long ago. It feels strangely peaceful to hold.",
         "weight": 0.2,
-        "value": 30.0,
+        "value": 30,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -197,7 +197,7 @@
         "name": "sharp flint",
         "description": "A piece of flint with a naturally sharp edge. Could be used as a makeshift tool or weapon.",
         "weight": 0.2,
-        "value": 1.0,
+        "value": 1,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -207,7 +207,7 @@
         "name": "piece of driftwood",
         "description": "A smooth piece of wood, worn by the sea and sand.",
         "weight": 1.5,
-        "value": 1.0,
+        "value": 1,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -217,7 +217,7 @@
         "name": "pretty seashell",
         "description": "A colorful, intact seashell.",
         "weight": 0.1,
-        "value": 2.0,
+        "value": 2,
         "stackable": true,
         "properties": {},
         "item_family": "material"
@@ -226,8 +226,8 @@
         "type": "Item",
         "name": "coiled rope",
         "description": "A length of sturdy hemp rope, coiled neatly.",
-        "weight": 2.0,
-        "value": 8.0,
+        "weight": 2,
+        "value": 8,
         "stackable": false,
         "properties": {},
         "item_family": "material"
@@ -236,8 +236,8 @@
         "type": "Item",
         "name": "Sealed Package",
         "description": "A package that needs delivering. Its contents are unknown.",
-        "weight": 1.0,
-        "value": 0.0,
+        "weight": 1,
+        "value": 0,
         "stackable": false,
         "properties": {
             "quest_item": true
@@ -249,7 +249,7 @@
         "name": "contraband bundle",
         "description": "A small parcel wrapped in oilcloth and tied with waxed cord. No manifest, no maker's mark, no questions asked -- an honest merchant wouldn't touch it.",
         "weight": 1.5,
-        "value": 2.0,
+        "value": 2,
         "stackable": true,
         "properties": {
             "category": "contraband"
@@ -261,7 +261,7 @@
         "name": "wolf fang necklace",
         "description": "A necklace of wolf fangs strung on a leather cord -- a small trophy that lends its wearer a hunter's confidence.",
         "weight": 0.3,
-        "value": 14.0,
+        "value": 14,
         "stackable": false,
         "properties": {
             "defense": 1,
@@ -284,7 +284,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_wolf_fang",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -293,8 +293,8 @@
         "type": "Container",
         "name": "house storage chest",
         "description": "A sturdy chest built into the corner of the room, ready to hold whatever you don't want to carry around.",
-        "weight": 25.0,
-        "value": 0.0,
+        "weight": 25,
+        "value": 0,
         "capacity": 100,
         "locked": false,
         "is_open": false,
@@ -307,8 +307,8 @@
         "type": "Container",
         "name": "wooden toolbox",
         "description": "A sturdy toolbox with a hinged lid, built by your own hands. Plenty of room inside.",
-        "weight": 8.0,
-        "value": 15.0,
+        "weight": 8,
+        "value": 15,
         "capacity": 40,
         "locked": false,
         "is_open": false,
@@ -320,7 +320,7 @@
         "name": "packet of herb seeds",
         "description": "A small paper packet of wild herb seeds, ready to sow.",
         "weight": 0.1,
-        "value": 5.0,
+        "value": 5,
         "stackable": true,
         "properties": {},
         "item_family": "material"
@@ -330,7 +330,7 @@
         "name": "packet of berry seeds",
         "description": "A small paper packet of forest berry seeds, ready to sow.",
         "weight": 0.1,
-        "value": 5.0,
+        "value": 5,
         "stackable": true,
         "properties": {},
         "item_family": "material"

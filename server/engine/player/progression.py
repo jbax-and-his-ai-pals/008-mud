@@ -4,9 +4,10 @@ from typing import Tuple, Dict, TYPE_CHECKING, cast
 from engine.config import (
     PLAYER_BASE_XP_TO_LEVEL, PLAYER_XP_TO_LEVEL_MULTIPLIER, 
     PLAYER_LEVEL_UP_STAT_INCREASE, PLAYER_LEVEL_HEALTH_BASE_INCREASE,
-    PLAYER_LEVEL_CON_HEALTH_MULTIPLIER,
+    PLAYER_LEVEL_CON_HEALTH_MULTIPLIER, PLAYER_DEFAULT_STATS,
     FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_CATEGORY
 )
+from engine.contracts import stats as stats_contract
 from engine.contracts.resources import (
     ability_resource_label,
     pool_on_level_up,
@@ -71,12 +72,19 @@ class PlayerProgressionMixin:
             self._next_level_cost(p.runtime_state.progression.level)
         )
         
-        # Increase Core Stats
-        for stat in ["strength", "dexterity", "intelligence", "wisdom", "constitution", "agility"]:
-            p.stats[stat] += PLAYER_LEVEL_UP_STAT_INCREASE
-            
+        # Increase Core Stats. Which stats grow is the content set's business:
+        # the list is whatever `Player.stats` actually holds, minus the
+        # containers, so a set with its own vocabulary levels its own stats
+        # rather than the six names this used to have written in.
+        for stat, value in list(p.stats.items()):
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                p.stats[stat] = value + PLAYER_LEVEL_UP_STAT_INCREASE
+
         # Increase HP
-        health_increase = PLAYER_LEVEL_HEALTH_BASE_INCREASE + int(p.stats.get('constitution', 10) * PLAYER_LEVEL_CON_HEALTH_MULTIPLIER)
+        health_increase = PLAYER_LEVEL_HEALTH_BASE_INCREASE + int(
+            stats_contract.stat_for(p.world, p.stats, "health", PLAYER_DEFAULT_STATS)
+            * PLAYER_LEVEL_CON_HEALTH_MULTIPLIER
+        )
         p.max_health += health_increase
         p.health += (p.max_health - old_max_health)
         

@@ -60,18 +60,18 @@
             "name": "Mirror Oasis",
             "description": "A small pool lies beneath date palms and a low sandstone overhang. Its surface reflects the sky so perfectly that it seems deeper than it is; a stone trough and fresh hoofprints prove that caravans still trust this water.",
             "exits": {
-                "west": "salt_flat",
-                "south": "dune_cut"
-            }
+                "west": "salt_flat"
+            },
+            "properties": {}
         },
         "dune_cut": {
             "name": "Dune Cut",
             "description": "A narrow route has been cut between two migrating dunes and held open with reed screens. Sand piles against the screens in restless drifts, and the walls give ambushers far too many places to wait.",
             "exits": {
                 "north": "caravan_track",
-                "northwest": "mirror_oasis",
                 "east": "sunscorch_caravanserai:west_gate"
-            }
+            },
+            "properties": {}
         }
     }
 }

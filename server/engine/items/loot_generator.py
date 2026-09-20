@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.affix_data import PREFIXES, SUFFIXES, GENERATED_EFFECT_TEXT
+from engine.utils.utils import money_from_value
 
 class LootGenerator:
     @staticmethod
@@ -112,11 +113,11 @@ class LootGenerator:
             item.update_property("weight", item.weight)
 
         mult = data.get("value_mult", 1.0)
-        item.value = int(item.value * mult)
+        item.value = money_from_value(item.value, mult)
         item.update_property("value", item.value)
 
     @staticmethod
     def _apply_suffix(item: Item, data: Dict):
         mult = data.get("value_mult", 1.0)
-        item.value = int(item.value * mult)
+        item.value = money_from_value(item.value, mult)
         item.update_property("value", item.value)

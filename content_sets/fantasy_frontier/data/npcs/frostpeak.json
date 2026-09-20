@@ -24,7 +24,7 @@
         "default_dialog": "Iven checks a supply ledger, then looks up at you.",
         "properties": {
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "frostpeak_outpost:supply_yard",
             "buys_item_types": [
@@ -72,7 +72,7 @@
         "default_dialog": "Mara studies the mountain weather through the open door.",
         "properties": {
             "dialogue": "mara_mining_lodge",
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "can_give_generic_quests": true
         }
@@ -103,7 +103,7 @@
         "properties": {
             "is_vendor": true,
             "can_repair": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "frostpeak_outpost:forge",
             "buys_item_types": [

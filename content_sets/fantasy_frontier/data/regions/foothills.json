@@ -2,7 +2,15 @@
     "region_id": "foothills",
     "name": "Windy Foothills",
     "description": "The land rises from the fertile farms into rolling, grassy hills dotted with rocky outcrops. Sheep graze on the slopes, watched over by solitary shepherds. The wind is a constant presence here.",
-    "properties": { "biome": "foothills", "weather_profile": "foothills", "region_type": "wilderness", "level_band": { "min": 2, "max": 5 } },
+    "properties": {
+        "biome": "foothills",
+        "weather_profile": "foothills",
+        "region_type": "wilderness",
+        "level_band": {
+            "min": 2,
+            "max": 5
+        }
+    },
     "spawner": {
         "monster_types": {
             "goblin": 4,
@@ -10,7 +18,10 @@
             "wild_boar": 3,
             "bandit_archer": 2
         },
-        "level_range": [2, 5]
+        "level_range": [
+            2,
+            5
+        ]
     },
     "rooms": {
         "grassy_slope": {
@@ -23,7 +34,10 @@
                 "northwest": "farmland:orchard_east"
             },
             "items": [
-                 { "item_id": "item_wild_herbs", "quantity": 2 }
+                {
+                    "item_id": "item_wild_herbs",
+                    "quantity": 2
+                }
             ]
         },
         "rocky_outcrop": {
@@ -35,8 +49,12 @@
                 "northeast": "standing_stone"
             },
             "items": [
-                 { "item_id": "item_sharp_flint" },
-                 { "item_id": "node_rose_quartz_seam" }
+                {
+                    "item_id": "item_sharp_flint"
+                },
+                {
+                    "item_id": "node_rose_quartz_seam"
+                }
             ]
         },
         "steep_trail": {
@@ -50,7 +68,9 @@
         "windy_ridge": {
             "name": "Windy Ridge",
             "description": "The top of the hill forms a long, windswept ridge. The view is expansive, showing the farmlands to the southwest and taller, more rugged peaks to the north.",
-            "properties": {"weather": "windy"},
+            "properties": {
+                "weather": "windy"
+            },
             "exits": {
                 "down": "steep_trail",
                 "north": "mountain_pass_approach",
@@ -84,11 +104,17 @@
         "hilltop_cave": {
             "name": "Hilltop Cave",
             "description": "A small, damp cave inside the hill. It doesn't seem to go very deep, but rose-colored crystal veins catch the light along one wall.",
-            "properties": {"dark": true},
+            "properties": {
+                "dark": true
+            },
             "exits": {
                 "out": "hilltop_cave_entrance"
             },
-            "items": [ { "item_id": "node_rose_quartz_seam" } ]
+            "items": [
+                {
+                    "item_id": "node_rose_quartz_seam"
+                }
+            ]
         },
         "standing_stone": {
             "name": "Standing Stone",
@@ -117,12 +143,16 @@
         "sheep_pen": {
             "name": "Sheep Pen",
             "description": "A fenced area next to the shepherd's hut where sheep are kept at night. The ground is well-trodden and smells strongly of lanolin.",
-            "properties": {"smell": "sheep"},
+            "properties": {
+                "smell": "sheep"
+            },
             "exits": {
                 "south": "shepherds_hut"
             },
             "items": [
-                { "item_id": "item_wool_tuft" }
+                {
+                    "item_id": "item_wool_tuft"
+                }
             ]
         }
     }

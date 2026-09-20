@@ -1,0 +1,42 @@
+{
+    "region": {
+        "_proxy_positions": {
+            "sunscorch_caravanserai:west_gate": [
+                704,
+                256
+            ]
+        }
+    },
+    "rooms": {
+        "windbreak_pass": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "caravan_track": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "salt_flat": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "mirror_oasis": {
+            "_editor_pos": [
+                768,
+                0
+            ]
+        },
+        "dune_cut": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        }
+    }
+}

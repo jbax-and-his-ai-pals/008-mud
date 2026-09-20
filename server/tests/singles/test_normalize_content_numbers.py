@@ -153,21 +153,31 @@ class TestTheRuleIsMeasuredNotGuessed(unittest.TestCase):
         self.assertIsInstance(tier["min_crafts"], int)
         self.assertIsInstance(tier["rank"], int)
 
-    def test_a_recipe_tier_survives_a_normalised_round_trip(self):
-        """`Recipe` drops a tier whose `min_crafts` is not an int, silently."""
+    def test_a_recipe_tier_whose_practice_gate_is_a_float_is_refused(self):
+        """The reader refuses a fractional gate, and that is why the normaliser exists.
+
+        `2.0` means two and is read as two; `2.5` is refused rather than
+        truncated. A whole float is what a JSON writer with one number type
+        produces, so normalising it is a repair; a fraction is an authoring
+        mistake the reader should not paper over.
+        """
+        from engine.crafting.recipe import Recipe
+        from engine.utils.content_values import ContentValueError
+
+        with self.assertRaises(ContentValueError) as raised:
+            Recipe("probe", {
+                "name": "Probe",
+                "quality_tiers": [{"id": "fine", "label": "Fine", "min_crafts": 2.5, "value_multiplier": 1.5}],
+            })
+        self.assertIn("min_crafts", str(raised.exception))
+
+    def test_a_whole_float_gate_is_read_rather_than_dropped(self):
         from engine.crafting.recipe import Recipe
 
         recipe = Recipe("probe", {
             "name": "Probe",
             "quality_tiers": [{"id": "fine", "label": "Fine", "min_crafts": 1.0, "value_multiplier": 1.5}],
         })
-        self.assertEqual([], recipe.quality_tiers, "a float min_crafts is dropped")
-
-        normalized, _changed = tool.normalize_document(
-            {"quality_tiers": [{"id": "fine", "label": "Fine", "min_crafts": 1.0, "value_multiplier": 1.5}]},
-            {}, is_contracts=False,
-        )
-        recipe = Recipe("probe", {"name": "Probe", **normalized})
         self.assertEqual(1, len(recipe.quality_tiers))
         self.assertEqual(1, recipe.quality_tiers[0]["min_crafts"])
 

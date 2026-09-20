@@ -3,7 +3,7 @@
         "name": "Resist Fire",
         "description": "Grants temporary resistance to fire.",
         "mana_cost": 10,
-        "cooldown": 15.0,
+        "cooldown": 15,
         "target_type": "friendly",
         "level_required": 4,
         "cast_message": "{caster_name} creates a shimmering, heat-resistant barrier.",

@@ -34,6 +34,12 @@ NPC_DEFAULT_STATS = {
     "spell_power": 0, "magic_resist": 0,
     "resistances": {} # NEW: Add default resistances dictionary
 }
+# An NPC's stats sit lower than a player's and are not one number, so this is
+# the value used only where a single one is needed (a role with no per-stat
+# default to hand). Anywhere a role resolves to a stat, `NPC_DEFAULT_STATS` is
+# the default map, because 8 is right for `constitution` and wrong for
+# `intelligence`, which is 5.
+NPC_NEUTRAL_STAT_VALUE = 8
 NPC_BASE_XP_TO_LEVEL = 150
 NPC_XP_TO_LEVEL_MULTIPLIER = 1.6
 NPC_LEVEL_UP_STAT_INCREASE = 1

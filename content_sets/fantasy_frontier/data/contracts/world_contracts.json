@@ -22,6 +22,34 @@
       "max_stat": "intelligence"
     }
   ],
+  "stats": {
+    "_comment": "The stat vocabulary, and which stat fills which mechanical role. Read through engine/contracts/stats.py. Without this section the engine falls back to exactly these names, so declaring them is how a set says its vocabulary out loud -- and how a set that wants different names changes them.",
+    "roles": {
+      "health": "constitution",
+      "attack": "strength",
+      "defence": "dexterity",
+      "evasion": "agility",
+      "regeneration": "strength",
+      "power": "intelligence",
+      "ability_power": "spell_power",
+      "resistance": "magic_resist"
+    },
+    "short": {
+      "strength": "STR",
+      "dexterity": "DEX",
+      "constitution": "CON",
+      "agility": "AGI",
+      "intelligence": "INT",
+      "wisdom": "WIS",
+      "spell_power": "SP",
+      "magic_resist": "MR"
+    },
+    "order": [
+      "strength", "dexterity", "constitution",
+      "agility", "intelligence", "wisdom",
+      "spell_power", "magic_resist"
+    ]
+  },
   "item_families": [
     {
       "id": "collectible_stone",

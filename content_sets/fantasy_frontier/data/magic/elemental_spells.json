@@ -3,13 +3,13 @@
         "name": "Fireball",
         "description": "Hurls a ball of fire that burns the target.",
         "mana_cost": 15,
-        "cooldown": 4.0,
+        "cooldown": 4,
         "level_required": 2,
         "target_type": "enemy",
         "effects": [
             {
                 "type": "damage",
-                "value": 15.0,
+                "value": 15,
                 "damage_type": "fire"
             },
             {
@@ -25,13 +25,13 @@
         "name": "Frostbolt",
         "description": "A shard of ice that chills the enemy.",
         "mana_cost": 12,
-        "cooldown": 3.0,
+        "cooldown": 3,
         "level_required": 2,
         "target_type": "enemy",
         "effects": [
             {
                 "type": "damage",
-                "value": 12.0,
+                "value": 12,
                 "damage_type": "ice"
             },
             {
@@ -51,13 +51,13 @@
         "name": "Chain Lightning",
         "description": "Arcs of electricity strike all enemies.",
         "mana_cost": 25,
-        "cooldown": 8.0,
+        "cooldown": 8,
         "level_required": 5,
         "target_type": "all_enemies",
         "effects": [
             {
                 "type": "damage",
-                "value": 10.0,
+                "value": 10,
                 "damage_type": "lightning"
             }
         ]
@@ -71,7 +71,7 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 30.0,
+                "value": 30,
                 "damage_type": "holy"
             }
         ]
@@ -85,7 +85,7 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 5.0,
+                "value": 5,
                 "damage_type": "shadow"
             },
             {

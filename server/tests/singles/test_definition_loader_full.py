@@ -86,6 +86,26 @@ class TestLoadItemTemplates(GameTestBase):
         self.assertIn("sword", self.world.item_templates)
         self.assertNotIn("broken", self.world.item_templates)
 
+    def test_an_authoring_note_is_not_an_item_template(self):
+        """A `_comment` is a note to the next author, not a template.
+
+        The same note in an NPC file used to become an NPC template whose value
+        was a string, and every reader that then asked that "template" for a
+        field crashed with `'str' object has no attribute 'get'`.
+        """
+        items_dir = os.path.join(self.tmp_root, "items")
+        os.makedirs(items_dir)
+        with open(os.path.join(items_dir, "a.json"), "w") as f:
+            json.dump({
+                "_comment": "three templates used to live here",
+                "sword": {"name": "Sword", "type": "Weapon"},
+            }, f)
+
+        stats = _load_item_templates(self.world, self.tmp_root)
+
+        self.assertEqual(stats["invalid_missing_required"], 0)
+        self.assertEqual(["sword"], list(self.world.item_templates))
+
 
 class TestLoadNpcTemplates(GameTestBase):
     def setUp(self):
@@ -132,6 +152,38 @@ class TestLoadNpcTemplates(GameTestBase):
         self.assertEqual(stats["file_errors"], 1)
         self.assertIn("goblin", self.world.npc_templates)
         self.assertNotIn("broken", self.world.npc_templates)
+
+    def test_an_authoring_note_is_not_an_npc_template(self):
+        """The regression that took three board-quest tests down with it.
+
+        `_comment` in `npcs/minions.json` loaded as a template named `_comment`
+        whose value was the note string. Nothing failed at load: the first
+        reader to call `.get` on that "template" -- the kill-objective
+        generator, walking every template's faction -- raised
+        `'str' object has no attribute 'get'` halfway through seeding a board.
+        """
+        npcs_dir = os.path.join(self.tmp_root, "npcs")
+        os.makedirs(npcs_dir)
+        with open(os.path.join(npcs_dir, "a.json"), "w") as f:
+            json.dump({
+                "_comment": "a note, not an NPC",
+                "goblin": {"name": "Goblin"},
+                "also_a_note": "not an object either",
+            }, f)
+
+        stats = _load_npc_templates(self.world, self.tmp_root)
+
+        self.assertEqual(["goblin"], list(self.world.npc_templates))
+        self.assertEqual(stats["invalid_missing_name"], 1, "the string entry is counted, not silenced")
+
+    def test_every_loaded_template_is_an_object(self):
+        """The invariant the crash was really about, asserted over shipped data."""
+        load_all_definitions(self.world)
+        wrong = [
+            template_id for template_id, template in self.world.npc_templates.items()
+            if not isinstance(template, dict)
+        ]
+        self.assertEqual([], wrong)
 
 
 class TestLoadRegions(GameTestBase):

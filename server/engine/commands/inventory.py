@@ -8,7 +8,6 @@ from engine.items.item import Item
 from engine.items.weapon import Weapon
 from engine.items.consumable import Consumable
 from engine.items.container import Container
-from engine.items.junk import Junk
 from engine.items.key import Key
 from engine.utils.utils import get_article, simple_plural
 

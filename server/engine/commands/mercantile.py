@@ -16,6 +16,7 @@ from engine.items.container import Container
 from engine.player import Player
 from engine.npcs.npc import NPC
 from engine.social.relationships import apply_relationship_milestones, relationship_key, relationship_discount
+from engine.utils.utils import money_from_value
 
 
 def _grant_party_sale_gold(world, player: Player, total_gold_gain: int) -> str:
@@ -116,7 +117,7 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
             discount_ratio = current_multiplier / DEFAULT_VENDOR_SELL_MULTIPLIER
             final_mult = item_mult * discount_ratio
             
-            buy_price = max(VENDOR_MIN_BUY_PRICE, int(base_value * final_mult))
+            buy_price = max(VENDOR_MIN_BUY_PRICE, money_from_value(base_value, final_mult))
             
             display_lines.append(f"- {item_name:<{VENDOR_LIST_ITEM_NAME_WIDTH}} | Price: {buy_price:>{VENDOR_LIST_PRICE_WIDTH}} {world.currency_name()}")
 
@@ -125,7 +126,7 @@ def _display_vendor_inventory(player: Player, vendor: NPC, world) -> str:
             item_name = slot.item.name
 
             # Dynamic stock usually uses default multiplier
-            buy_price = max(VENDOR_MIN_BUY_PRICE, int(slot.item.value * current_multiplier))
+            buy_price = max(VENDOR_MIN_BUY_PRICE, money_from_value(slot.item.value, current_multiplier))
 
             qty_str = f" (x{slot.quantity})" if slot.quantity > 1 else ""
             display_lines.append(f"- {item_name}{qty_str:<{VENDOR_LIST_ITEM_NAME_WIDTH - len(qty_str)}} | Price: {buy_price:>{VENDOR_LIST_PRICE_WIDTH}} {world.currency_name()}")
@@ -350,7 +351,7 @@ def _calculate_repair_cost(item: Item) -> Tuple[Optional[int], Optional[str]]:
     max_durability = item.get_property("max_durability")
     if current_durability is None or max_durability is None: return None, f"The {item.name} doesn't have durability."
     if current_durability >= max_durability: return 0, None
-    repair_cost = max(REPAIR_MINIMUM_COST, int(item.value * REPAIR_COST_PER_VALUE_POINT))
+    repair_cost = max(REPAIR_MINIMUM_COST, money_from_value(item.value, REPAIR_COST_PER_VALUE_POINT))
     return repair_cost, None
 
 @command("trade", ["shop"], "interaction", "Initiate trade with a vendor.\nUsage: trade <npc_name>", ruleset_system="economy")
@@ -422,7 +423,7 @@ def buy_handler(args, context):
             return f"{FORMAT_ERROR}{vendor.name} only has {available_qty} {found_inv_item.name}(s).{FORMAT_RESET}"
             
         base_value = found_inv_item.value
-        buy_price_per_item = max(VENDOR_MIN_BUY_PRICE, int(base_value * current_multiplier))
+        buy_price_per_item = max(VENDOR_MIN_BUY_PRICE, money_from_value(base_value, current_multiplier))
         total_cost = buy_price_per_item * quantity
         
         if player.runtime_state.gold < total_cost: return f"{FORMAT_ERROR}You don't have enough {world.currency_name()} (Need {total_cost}, have {player.runtime_state.gold}).{FORMAT_RESET}"
@@ -469,7 +470,7 @@ def buy_handler(args, context):
     item_specific_mult = found_item_ref.get("price_multiplier", DEFAULT_VENDOR_SELL_MULTIPLIER)
     final_mult = item_specific_mult * discount_ratio
     
-    buy_price_per_item = max(VENDOR_MIN_BUY_PRICE, int(base_value * final_mult))
+    buy_price_per_item = max(VENDOR_MIN_BUY_PRICE, money_from_value(base_value, final_mult))
     total_cost = buy_price_per_item * quantity
     
     if player.runtime_state.gold < total_cost: return f"{FORMAT_ERROR}You don't have enough {world.currency_name()} (Need {total_cost}, have {player.runtime_state.gold}).{FORMAT_RESET}"
@@ -529,7 +530,14 @@ def sell_handler(args, context):
 
     can_sell = False
     vendor_buy_types = vendor.properties.get("buys_item_types", [])
-    item_type_name = item_to_sell.__class__.__name__
+    # The item's declared *type*, not its Python class name. Those were the same
+    # string only while every type had a class of its own, so a vendor that
+    # bought "Gem" stopped buying gems the moment the Gem class became a template
+    # field -- the type is content and the class was an implementation detail.
+    item_type_name = str(
+        item_to_sell.get_property("type")
+        or item_to_sell.__class__.__name__
+    )
     if VENDOR_CAN_BUY_ALL_ITEMS or item_type_name in vendor_buy_types or ("Item" in vendor_buy_types and item_type_name == "Item"):
         can_sell = True
     if not can_sell: return f"{FORMAT_ERROR}{vendor.name} is not interested in buying {item_to_sell.name}.{FORMAT_RESET}"
@@ -542,10 +550,10 @@ def sell_handler(args, context):
         # its value (and whatever it contains) never factors into the
         # price -- deliberately worse than unlocking it and selling the
         # contents separately.
-        sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, int(item_to_sell.weight * LOCKED_CONTAINER_SELL_RATE_PER_WEIGHT))
+        sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, money_from_value(item_to_sell.weight, LOCKED_CONTAINER_SELL_RATE_PER_WEIGHT))
     else:
         sell_rate = _get_sell_rate_multiplier(vendor, player)
-        sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, int(item_to_sell.value * sell_rate))
+        sell_price_per_item = max(VENDOR_MIN_SELL_PRICE, money_from_value(item_to_sell.value, sell_rate))
     total_gold_gain = sell_price_per_item * quantity
     removed_item_type, actual_removed_count, remove_msg = player.inventory.remove_item(item_to_sell.obj_id, quantity)
     

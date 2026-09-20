@@ -159,10 +159,10 @@
         ],
         "properties": {
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
-            "spell_cast_chance": 0.0,
-            "work_location": "town:tavern",
+            "spell_cast_chance": 0,
+            "work_location": "town:tavern_main_floor",
             "buys_item_types": [
                 "Consumable",
                 "Junk",
@@ -221,10 +221,10 @@
             "is_vendor": true,
             "can_repair": true,
             "can_unlock_chests": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
-            "spell_cast_chance": 0.0,
-            "work_location": "town:blacksmith",
+            "spell_cast_chance": 0,
+            "work_location": "town:blacksmith_interior",
             "buys_item_types": [
                 "Weapon",
                 "Armor",
@@ -363,9 +363,9 @@
         "properties": {
             "is_vendor": true,
             "dialogue": "talia_provisions",
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 60,
-            "spell_cast_chance": 0.0,
+            "spell_cast_chance": 0,
             "work_location": "town:market_square",
             "buys_item_types": [
                 "Consumable",
@@ -414,7 +414,7 @@
                 },
                 {
                     "item_id": "item_hand_axe",
-                    "price_multiplier": 1.0
+                    "price_multiplier": 1
                 },
                 {
                     "item_id": "item_prospector_pick"
@@ -546,7 +546,7 @@
         },
         "properties": {
             "is_guard": true,
-            "aggression": 1.0,
+            "aggression": 1,
             "move_cooldown": 5
         }
     },
@@ -571,7 +571,7 @@
         "properties": {
             "is_vendor": true,
             "can_heal": true,
-            "spell_cast_chance": 1.0,
+            "spell_cast_chance": 1,
             "buys_item_types": [
                 "Consumable"
             ],
@@ -630,7 +630,7 @@
                 },
                 {
                     "item_id": "item_scroll_random",
-                    "price_multiplier": 2.0
+                    "price_multiplier": 2
                 },
                 {
                     "item_id": "item_glass_vial"
@@ -738,7 +738,7 @@
                 }
             ],
             "house_offer": {
-                "cost": 500.0,
+                "cost": 500,
                 "region_id": "dynamic_player_house",
                 "region_name": "Your House",
                 "region_description": "A small house of your own, still smelling faintly of fresh-cut timber.",
@@ -769,7 +769,7 @@
                         {
                             "branch": "garden",
                             "label": "Garden Cottage",
-                            "cost": 250.0,
+                            "cost": 250,
                             "materials": [
                                 {
                                     "item_id": "item_softwood",
@@ -787,7 +787,7 @@
                         {
                             "branch": "pond",
                             "label": "Pond Cottage",
-                            "cost": 250.0,
+                            "cost": 250,
                             "materials": [
                                 {
                                     "item_id": "item_softwood",
@@ -805,7 +805,7 @@
                         {
                             "branch": "workstation",
                             "label": "Home Workshop",
-                            "cost": 250.0,
+                            "cost": 250,
                             "materials": [
                                 {
                                     "item_id": "item_softwood",
@@ -847,7 +847,7 @@
         "default_dialog": "The {name} scans the harbor traffic, missing nothing.",
         "properties": {
             "dialogue": "voss_tidewell",
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "portbridge:port_authority_office",
             "can_give_generic_quests": false
@@ -883,7 +883,7 @@
         ],
         "properties": {
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "portbridge:sailors_rest_inn_common",
             "buys_item_types": [
@@ -931,7 +931,7 @@
         "default_dialog": "The {name} keeps working at a knot in the netting.",
         "properties": {
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "portbridge:fish_market",
             "buys_item_types": [
@@ -974,7 +974,7 @@
         "default_dialog": "The {name} calls out measurements to the yard hands.",
         "properties": {
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "portbridge:shipwright_yard",
             "buys_item_types": [
@@ -1014,7 +1014,7 @@
         },
         "properties": {
             "is_guard": true,
-            "aggression": 1.0,
+            "aggression": 1,
             "move_cooldown": 5
         }
     },

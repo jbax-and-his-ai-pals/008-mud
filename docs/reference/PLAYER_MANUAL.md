@@ -426,7 +426,7 @@ Order of the Dawn, and — if you make it as far as Aurelia — an
 halls, and others besides. A trade name follows you home; it isn't tied
 to where you earned it.
 
-Type `titles` to see what you've earned, what's within reach, and what
+Type `title` to see what you've earned, what's within reach, and what
 each one wants from you. When you've earned one, `title <name>` wears
 it — the name appears when others look at you. Titles grant no powers;
 they are what people call you, which in a village that remembers faces
@@ -618,7 +618,7 @@ you're up against.
 | Category | Commands |
 |---|---|
 | **Movement** | `north` `south` `east` `west` `northeast` `northwest` `southeast` `southwest` `up` `down` `in` `out` `go <dir>` |
-| **Information** | `look` `status` `skills` `titles` `title` `advancement` `background` `backgrounds` `journal` `discoveries` `collection` `relationship(s)` `survey` `appraise` `calendar` `time` `weather` |
+| **Information** | `look` `status` `skills` `title` `advancement` `background` `backgrounds` `journal` `discoveries` `collection` `relationship(s)` `survey` `appraise` `calendar` `time` `weather` |
 | **Interaction** | `talk` `reply/respond/choose` `ask` `say` `yell` `give` `take/get` `drop` `use` `read` `examine` `open` `close` `unlock` `pick` `pull` `search` `follow` `guide` `wait` |
 | **Combat** | `attack` `flee`/`retreat` `combat` |
 | **Magic** | `cast` `spells` |

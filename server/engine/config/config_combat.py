@@ -75,11 +75,20 @@ _DEFAULT_ELEMENTAL_DATA = {
 }
 
 VALID_DAMAGE_TYPES = list(_DEFAULT_ELEMENTAL_DATA["valid_damage_types"])
-SPELL_DEFAULT_DAMAGE_TYPE = _DEFAULT_ELEMENTAL_DATA["default_damage_type"]
+# Held in a mutable cell, not a string: `configure_combat_elements` runs when a
+# world is constructed, which is *after* every module has imported this, so a
+# plain module-level string would freeze the default at the built-in value and
+# silently ignore the set's own. Read it through `spell_default_damage_type()`.
+_SPELL_DEFAULT = [_DEFAULT_ELEMENTAL_DATA["default_damage_type"]]
 ELEMENTAL_OPPOSITES: dict = {}
 DAMAGE_TYPE_FLAVOR_TEXT: dict = dict(_DEFAULT_ELEMENTAL_DATA["flavor_text"])
 HAZARD_TYPE_MAP: dict = {}
 HAZARD_FLAVOR_TEXT: dict = {}
+
+
+def spell_default_damage_type() -> str:
+    """The damage channel a spell with no `damage_type` of its own deals."""
+    return _SPELL_DEFAULT[0]
 
 
 def configure_combat_elements(content_root: str) -> None:
@@ -92,6 +101,7 @@ def configure_combat_elements(content_root: str) -> None:
         if isinstance(parsed, dict):
             data = parsed
     VALID_DAMAGE_TYPES[:] = list(data.get("valid_damage_types", _DEFAULT_ELEMENTAL_DATA["valid_damage_types"]))
+    _SPELL_DEFAULT[0] = str(data.get("default_damage_type", _DEFAULT_ELEMENTAL_DATA["default_damage_type"]))
     ELEMENTAL_OPPOSITES.clear(); ELEMENTAL_OPPOSITES.update(data.get("elemental_opposites", {}))
     DAMAGE_TYPE_FLAVOR_TEXT.clear(); DAMAGE_TYPE_FLAVOR_TEXT.update(data.get("flavor_text", _DEFAULT_ELEMENTAL_DATA["flavor_text"]))
     hazards = data.get("hazards", {})

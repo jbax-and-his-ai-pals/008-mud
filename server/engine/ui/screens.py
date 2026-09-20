@@ -135,12 +135,17 @@ def draw_character_creation_screen(renderer: 'Renderer'):
     
     stats_y = stats_header_y + 30
     stats = data.get("stats", {})
+    # The neutral value a stat is compared against for colouring is the same one
+    # the curves use, rather than a second literal 10.
+    from engine.contracts import stats as stats_contract
+
+    neutral = stats_contract.NEUTRAL_STAT_VALUE
     row, col = 0, 0
     for stat, val in stats.items():
-        if stat in ["spell_power", "magic_resist"]: continue
-        val_col = (150, 255, 150) if val > 10 else ((255, 150, 150) if val < 10 else text_grey)
+        if stat in ("spell_power", "magic_resist"): continue
+        val_col = (150, 255, 150) if val > neutral else ((255, 150, 150) if val < neutral else text_grey)
         
-        lbl = stat.title()[:3]
+        lbl = stats_contract.stat_short(None, stat)
         txt_surf = stat_font.render(f"{lbl}: ", True, text_grey)
         val_surf = stat_font.render(str(val), True, val_col)
         

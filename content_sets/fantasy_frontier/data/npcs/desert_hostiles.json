@@ -107,7 +107,7 @@
             }
         },
         "properties": {
-            "attack_cooldown": 4.0,
+            "attack_cooldown": 4,
             "weapon_damage_type": "crushing",
             "armor_material": "plate"
         }

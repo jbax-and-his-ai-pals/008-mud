@@ -35,7 +35,7 @@
                 "id": "simple",
                 "label": "Simple",
                 "min_crafts": 1,
-                "value_multiplier": 1.0
+                "value_multiplier": 1
             },
             {
                 "id": "fine",
@@ -94,7 +94,7 @@
                 "id": "plain",
                 "label": "Plain",
                 "min_crafts": 1,
-                "value_multiplier": 1.0
+                "value_multiplier": 1
             },
             {
                 "id": "fine",
@@ -107,7 +107,7 @@
                 "id": "masterwork",
                 "label": "Masterwork",
                 "min_crafts": 8,
-                "value_multiplier": 2.0,
+                "value_multiplier": 2,
                 "gift_bonus": 2
             }
         ],
@@ -148,7 +148,7 @@
                 "id": "plain",
                 "label": "Plain",
                 "min_crafts": 1,
-                "value_multiplier": 1.0
+                "value_multiplier": 1
             },
             {
                 "id": "river_fine",
@@ -165,7 +165,7 @@
                 "min_crafts": 6,
                 "min_material_quality": 2,
                 "rank": 10,
-                "value_multiplier": 2.0,
+                "value_multiplier": 2,
                 "gift_bonus": 2
             }
         ],
@@ -230,7 +230,7 @@
                 "id": "corded",
                 "label": "Corded",
                 "min_crafts": 1,
-                "value_multiplier": 1.0
+                "value_multiplier": 1
             },
             {
                 "id": "masterwork",
@@ -285,7 +285,7 @@
                 "id": "cut",
                 "label": "Cut",
                 "min_crafts": 1,
-                "value_multiplier": 1.0
+                "value_multiplier": 1
             },
             {
                 "id": "masterwork",
@@ -293,7 +293,7 @@
                 "min_crafts": 4,
                 "min_material_quality": 3,
                 "rank": 10,
-                "value_multiplier": 2.0,
+                "value_multiplier": 2,
                 "gift_bonus": 2
             }
         ],
@@ -1089,6 +1089,128 @@
             {
                 "item_id": "item_living_rock",
                 "quantity": 1
+            }
+        ]
+    },
+    "dry_wild_herbs": {
+        "name": "Dry Wild Herbs",
+        "aliases": [
+            "dried herbs",
+            "dry herbs",
+            "herb bundle",
+            "drying herbs"
+        ],
+        "description": "Hang bundles of gathered herbs on the rack to dry, so the autumn cutting keeps its virtue through the winter.",
+        "result_item_id": "item_dried_herbs",
+        "result_quantity": 3,
+        "station_required": "drying_rack",
+        "difficulty": 0,
+        "familiarity_milestones": [
+            {
+                "count": 1,
+                "label": "Herb keeper",
+                "message": "You have learned to hang a bundle so it dries clean instead of moulding."
+            },
+            {
+                "count": 5,
+                "label": "Winter store",
+                "message": "Your racks hold a store of herbs that will outlast the frost."
+            }
+        ],
+        "ingredients": [
+            {
+                "item_id": "item_wild_herbs",
+                "quantity": 3
+            }
+        ]
+    },
+    "steep_gruit_wort": {
+        "name": "Steep Gruit Wort",
+        "aliases": [
+            "wort",
+            "ale wort",
+            "gruit",
+            "brewing wort"
+        ],
+        "description": "Steep dried herbs through a skin of sweet wort, the old way of keeping a brew sound until it is ready to ferment.",
+        "result_item_id": "item_ale_wort",
+        "result_quantity": 2,
+        "station_required": "drying_rack",
+        "difficulty": 0,
+        "familiarity_milestones": [
+            {
+                "count": 1,
+                "label": "Gruit maker",
+                "message": "You have learned how much dried herb a skin of wort will take."
+            },
+            {
+                "count": 5,
+                "label": "House brewer",
+                "message": "Your gruit is steady enough that the tavern would take it by name."
+            }
+        ],
+        "ingredients": [
+            {
+                "item_id": "item_dried_herbs",
+                "quantity": 2
+            },
+            {
+                "item_id": "item_glass_vial",
+                "quantity": 1
+            }
+        ]
+    },
+    "ferment_house_ale": {
+        "name": "Ferment House Ale",
+        "aliases": [
+            "barrel ale",
+            "house ale",
+            "ferment ale",
+            "brew ale"
+        ],
+        "description": "Set gruit wort to ferment into a barrel of the house ale, laid down to keep until the cellar runs dry.",
+        "result_item_id": "item_barrel_ale",
+        "result_quantity": 1,
+        "station_required": "drying_rack",
+        "difficulty": 12,
+        "familiarity_milestones": [
+            {
+                "count": 1,
+                "label": "Cellar keeper",
+                "message": "You have laid down your first barrel and learned how it wants to be kept."
+            },
+            {
+                "count": 5,
+                "label": "House brewery",
+                "message": "Your ale now comes out the same every time, barrel after barrel."
+            }
+        ],
+        "quality_tiers": [
+            {
+                "id": "thin",
+                "label": "Thin",
+                "min_crafts": 1,
+                "value_multiplier": 1
+            },
+            {
+                "id": "sound",
+                "label": "Sound",
+                "min_crafts": 3,
+                "value_multiplier": 1.25,
+                "gift_bonus": 1
+            },
+            {
+                "id": "fine",
+                "label": "Fine",
+                "min_crafts": 8,
+                "value_multiplier": 1.5,
+                "gift_bonus": 2
+            }
+        ],
+        "ingredients": [
+            {
+                "item_id": "item_ale_wort",
+                "quantity": 4
             }
         ]
     }

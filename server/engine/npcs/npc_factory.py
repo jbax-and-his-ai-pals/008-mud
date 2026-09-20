@@ -7,10 +7,11 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Any
 from engine.config import (
     FORMAT_ERROR, FORMAT_RESET, NPC_BASE_HEALTH, NPC_BASE_XP_TO_LEVEL, NPC_CON_HEALTH_MULTIPLIER, NPC_DEFAULT_AGGRESSION,
     NPC_DEFAULT_FLEE_THRESHOLD, NPC_DEFAULT_MOVE_COOLDOWN, NPC_DEFAULT_RESPAWN_COOLDOWN,
-    NPC_DEFAULT_SPELL_CAST_CHANCE, NPC_DEFAULT_WANDER, NPC_LEVEL_CON_HEALTH_MULTIPLIER, NPC_LEVEL_HEALTH_BASE_INCREASE,
-    NPC_XP_TO_LEVEL_MULTIPLIER
+    NPC_DEFAULT_SPELL_CAST_CHANCE, NPC_DEFAULT_STATS, NPC_DEFAULT_WANDER, NPC_LEVEL_CON_HEALTH_MULTIPLIER,
+    NPC_LEVEL_HEALTH_BASE_INCREASE, NPC_XP_TO_LEVEL_MULTIPLIER
 )
 from engine.config.config_npc import NPC_MANA_LEVEL_UP_INT_DIVISOR, NPC_MANA_LEVEL_UP_MULTIPLIER
+from engine.contracts import stats as stats_contract
 from engine.items.item_factory import ItemFactory
 from .npc import NPC
 from engine.items.inventory import Inventory
@@ -88,8 +89,20 @@ class NPCFactory:
             npc.stats = {**base_stats, **template_stats, **saved_stats}
 
             npc.level = init_args["level"]
-            final_con = npc.stats.get('constitution', 8)
-            final_int = npc.stats.get('intelligence', 5)
+            # Which stats these are comes from the content set's `stats` contract,
+            # the same as everything else that derives a number from a stat. The
+            # default for a stat an NPC does not carry is that stat's own entry in
+            # `NPC_DEFAULT_STATS`: they are not all the same number.
+            npc_world = getattr(npc, "world", None)
+            final_con = stats_contract.stat_for(
+                npc_world, npc.stats, "health", NPC_DEFAULT_STATS
+            )
+            final_int = stats_contract.stat_for(
+                npc_world, npc.stats, "power", NPC_DEFAULT_STATS
+            )
+            final_str = stats_contract.stat_for(
+                npc_world, npc.stats, "attack", NPC_DEFAULT_STATS
+            )
 
             # Health
             if "max_health" in overrides:
@@ -122,7 +135,7 @@ class NPCFactory:
 
             npc.faction = creation_args.get("faction", npc.faction)
             npc.behavior_type = creation_args.get("behavior_type", npc.behavior_type)
-            npc.attack_power = creation_args.get("attack_power", 3) + npc.stats.get('strength', 8) // 3
+            npc.attack_power = creation_args.get("attack_power", 3) + final_str // 3
             npc.defense = creation_args.get("defense", 2)
             # get_effective_stat("defense") (used by GameObject.take_damage
             # to mitigate incoming damage) reads npc.stats, not this bare

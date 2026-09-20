@@ -13,6 +13,7 @@ from engine.config import (
     PLAYER_BASE_HIT_CHANCE, NPC_BASE_HIT_CHANCE,
     FORMAT_ERROR, FORMAT_RESET
 )
+from engine.contracts import stats as stats_contract
 from engine.utils.text_formatter import get_level_diff_category, format_target_name
 from engine.utils.utils import format_name_for_display
 
@@ -35,8 +36,8 @@ class CombatSystem:
         is_player = getattr(attacker, 'faction', '') == 'player'
         base_chance = PLAYER_BASE_HIT_CHANCE if is_player else NPC_BASE_HIT_CHANCE
 
-        attacker_agi = attacker.get_effective_stat("agility")
-        defender_agi = defender.get_effective_stat("agility")
+        attacker_agi = stats_contract.entity_stat_for(attacker, "evasion")
+        defender_agi = stats_contract.entity_stat_for(defender, "evasion")
         
         agi_mod = (attacker_agi - defender_agi) * HIT_CHANCE_AGILITY_FACTOR
         

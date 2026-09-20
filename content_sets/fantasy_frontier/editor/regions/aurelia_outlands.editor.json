@@ -1,0 +1,41 @@
+{
+    "region": {},
+    "rooms": {
+        "milestone_road": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "broken_aqueduct": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "sunstone_fields": {
+            "_editor_pos": [
+                0,
+                -192
+            ]
+        },
+        "observatory_approach": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
+        "old_observatory": {
+            "_editor_pos": [
+                256,
+                -384
+            ]
+        },
+        "city_approach": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        }
+    }
+}

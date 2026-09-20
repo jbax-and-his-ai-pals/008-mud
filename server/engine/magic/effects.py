@@ -12,8 +12,9 @@ from engine.magic.spell import Spell
 from engine.config import (
     DAMAGE_TYPE_FLAVOR_TEXT, EFFECT_DEFAULT_TICK_INTERVAL, FORMAT_HIGHLIGHT, FORMAT_RESET,
     LEVEL_DIFF_COMBAT_MODIFIERS, MINIMUM_SPELL_EFFECT_VALUE, SPELL_DAMAGE_VARIATION_FACTOR,
-    SPELL_DEFAULT_DAMAGE_TYPE
+    spell_default_damage_type
 )
+from engine.contracts import stats as stats_contract
 from engine.utils.utils import format_name_for_display, get_article
 
 if TYPE_CHECKING:
@@ -23,6 +24,12 @@ if TYPE_CHECKING:
 CasterType = Union['Player', 'NPC']
 SpellTargetType = Union['Player', 'NPC', Item, Room]
 ViewerType = Union['Player'] 
+
+# A flat bonus added to an ability's value, for an entity that does not carry
+# whatever stat the content set names for it. Zero, not "neutral": the curve
+# already measures the power stat against neutral, so a second neutral here would
+# count twice.
+DEFAULT_ABILITY_POWER_BONUS = 0
 
 def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell, viewer: Optional[ViewerType]) -> Tuple[int, str]:
     from engine.npcs.npc_factory import NPCFactory
@@ -74,12 +81,21 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
     for effect_def in spell.effects:
         eff_type = effect_def.get("type")
         eff_value = effect_def.get("value", 0)
-        eff_dmg_type = effect_def.get("damage_type", "magical")
+        eff_dmg_type = effect_def.get("damage_type") or spell_default_damage_type()
         
         # ... (Calc Logic) ...
-        caster_int = getattr(caster, 'stats', {}).get('intelligence', 10) if hasattr(caster, 'stats') else 10
-        caster_power = getattr(caster, 'stats', {}).get('spell_power', 0) if hasattr(caster, 'stats') else 0
-        stat_bonus = max(0, (caster_int - 10) // 5) + caster_power
+        # Which stat an ability's own value answers to is the content set's
+        # `stats` contract; the curve (one point per five above neutral, plus
+        # the power stat directly) is engine config.
+        caster_stats = getattr(caster, 'stats', {}) if hasattr(caster, 'stats') else {}
+        caster_world = getattr(caster, 'world', None)
+        caster_int = stats_contract.stat_for(
+            caster_world, caster_stats, "power", stats_contract.NEUTRAL_STAT_VALUE,
+        )
+        caster_power = stats_contract.stat_for(
+            caster_world, caster_stats, "ability_power", DEFAULT_ABILITY_POWER_BONUS
+        )
+        stat_bonus = max(0, (caster_int - stats_contract.NEUTRAL_STAT_VALUE) // 5) + caster_power
         
         modified_value = eff_value + stat_bonus
         variation = random.uniform(-SPELL_DAMAGE_VARIATION_FACTOR, SPELL_DAMAGE_VARIATION_FACTOR)

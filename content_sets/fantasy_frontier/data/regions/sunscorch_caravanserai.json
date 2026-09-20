@@ -56,9 +56,10 @@
             "description": "Cloth awnings shade stalls of salt, dried fruit, lamp oil, and travel gear. Most merchants sell necessities first and curiosities second; the desert makes the distinction clear soon enough.",
             "exits": {
                 "west": "caravan_yard",
-                "south": "wayfarers_rest",
-                "east": "east_gate"
-            }
+                "east": "east_gate",
+                "southwest": "wayfarers_rest"
+            },
+            "properties": {}
         },
         "wayfarers_rest": {
             "name": "Wayfarers' Rest",
@@ -68,7 +69,7 @@
             },
             "exits": {
                 "north": "caravan_yard",
-                "east": "covered_bazaar"
+                "northeast": "covered_bazaar"
             }
         },
         "map_house": {

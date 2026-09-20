@@ -85,13 +85,21 @@ def draw_left_status_panel(renderer: 'Renderer', player: 'Player'):
             renderer.screen.blit(renderer.font.render("STATS", True, title_color), (panel_rect.x + padding, current_y))
             current_y += line_height
         
-        stats_to_show = {"strength": "STR", "dexterity": "DEX", "constitution": "CON", "agility": "AGI", "intelligence": "INT", "wisdom": "WIS", "spell_power": "SP", "magic_resist": "MR"}
+        # Which stats a status panel shows, and what it calls them, is the
+        # content set's `stats` contract -- the same list the text status line
+        # uses, so the two cannot disagree about what a character has.
+        from engine.contracts import stats as stats_contract
+
+        stats_to_show = stats_contract.display_stats(
+            getattr(player, "world", None),
+            ("strength", "dexterity", "constitution", "agility", "intelligence", "wisdom"),
+        )
         stats_per_col = math.ceil(len(stats_to_show) / 2)
         col1_x = panel_rect.x + padding + 5
         col2_x = col1_x + (panel_layout["width"] - padding * 2 - 10) // 2
         col1_y, col2_y = current_y, current_y
 
-        for i, (stat_key, stat_abbr) in enumerate(stats_to_show.items()):
+        for i, (stat_key, stat_abbr) in enumerate(stats_to_show):
             if max(col1_y, col2_y) + line_height > max_y:
                 break
             base_stat = player.stats.get(stat_key, 0)

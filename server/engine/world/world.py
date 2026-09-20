@@ -154,12 +154,22 @@ class World:
     def declared_status_stats(self) -> tuple[str, ...]:
         """Which stats this content set shows on a status line, if it says.
 
-        The engine's default list carries `spell_power` and `magic_resist`,
-        which are the derived stats of a set whose abilities are spells. A set
-        that never mentions magic should not have to show its players those
-        names, so it may declare the list it wants under
-        `ruleset.status.stats`; an empty declaration means "use the default".
+        Two places can say it, and both are content. `stats.order` in the
+        contracts file is the general one -- the same section that says which
+        stat fills which role, so a set that renames its stats renames them in
+        one place. `ruleset.status.stats` is the older spelling and is still
+        read, because a set written before the contract existed should not stop
+        working.
+
+        The status line itself reads the contract directly (see
+        `engine/contracts/stats.py::display_stats`); this method is kept for
+        callers that want just the list.
         """
+        from engine.contracts import stats as stats_contract
+
+        from_contract = tuple(stats_contract.declared_stat_order(self))
+        if from_contract:
+            return from_contract
         raw = self.ruleset_section("status").get("stats")
         if not isinstance(raw, list):
             return ()

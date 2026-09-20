@@ -10,7 +10,6 @@ from unittest.mock import patch
 
 from tests.fixtures import GameTestBase
 from engine.items.item import Item
-from engine.items.junk import Junk
 from engine.items.weapon import Weapon
 
 
@@ -19,8 +18,14 @@ class TestGetValidSlots(GameTestBase):
         item = Item(name="Plain Item", equip_slot=None)
         self.assertEqual(self.player.get_valid_slots(item), [])
 
-    def test_unmapped_type_returns_empty_list(self):
-        junk = Junk(name="Bit of Junk", equip_slot=None)
+    def test_an_item_with_no_type_mapping_returns_empty_list(self):
+        """The shape `Junk` used to stand for: an item that equips nowhere.
+
+        `Junk` is a template type now rather than a class, so the item that
+        proves the fallback is a plain `Item` carrying the same type string.
+        """
+        junk = Item(obj_id="item_scrap", name="Bit of Junk", equip_slot=None)
+        junk.update_property("type", "Junk")
         self.assertEqual(self.player.get_valid_slots(junk), [])
 
     def test_explicit_slots_with_no_real_match_falls_back_to_type_mapping(self):

@@ -1,9 +1,32 @@
 # engine/world/save_manager.py
 """
 Handles saving and loading of the game world state to and from files.
+
+**The write is atomic, and it will refuse to destroy a save it cannot read.**
+Both exist because of one composed failure that was reachable in play:
+
+    load a corrupt save   ->  SaveManager.load swallows the error and calls
+                              initialize_new_world(), so the player is now a
+                              new character
+    type `save`           ->  the command still points at the same filename
+                              (load_handler only reassigns it on success), and
+                              save() used to `open(path, 'w')` — truncating the
+                              only copy before writing over it
+
+Three facts, individually reasonable, that together turned "recover from a bad
+save" into "lose the character". So:
+
+* the payload goes to a temporary file in the same directory, is flushed and
+  fsynced, and is moved into place with `os.replace` — a crash mid-write leaves
+  the previous file exactly as it was;
+* the first overwrite of an existing save in a session leaves a `.bak` beside it;
+* if the destination exists but cannot be read as a save **and this manager never
+  loaded it**, the write is refused. A corrupt save is still the only copy of
+  something, and refusing is recoverable where overwriting is not.
 """
 import json
 import os
+import tempfile
 import time
 from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
@@ -13,6 +36,12 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.npcs.ai import initialize_npc_schedules
 from engine.player import Player
 from engine.utils.utils import _serialize_item_reference
+from engine.world.save_format import (
+    SAVE_FORMAT_VERSION,
+    UnsupportedSaveVersion,
+    declared_version,
+    migrate,
+)
 from engine.world.region import Region
 from engine.utils.logger import Logger
 
@@ -23,11 +52,85 @@ if TYPE_CHECKING:
 class SaveManager:
     def __init__(self, world: 'World'):
         self.world = world
+        # Set once a load has succeeded, and read by `save` to decide whether an
+        # unreadable destination may be overwritten. See _readable_save.
+        self._loaded_save_path: Optional[str] = None
+        # The first overwrite in a session leaves a .bak; later ones do not, so a
+        # long session does not spend a copy per save.
+        self._backed_up: set[str] = set()
+
+    # -- durability ---------------------------------------------------------
+
+    @staticmethod
+    def _readable_save(path: str) -> bool:
+        """Whether `path` currently parses as JSON. Absence is not unreadable."""
+        if not os.path.exists(path):
+            return True
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                json.load(handle)
+            return True
+        except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+            return False
+
+    def _atomic_write(self, path: str, payload: Any) -> None:
+        """Write `payload` as JSON so that a crash cannot leave a partial file.
+
+        The temporary file is created in the destination directory — `os.replace`
+        is atomic only within a filesystem — and the bytes reach the disk before
+        the move, so the rename cannot land ahead of its contents.
+        """
+        directory = os.path.dirname(path) or "."
+        handle = tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", suffix=".tmp", prefix=".save-",
+            dir=directory, delete=False,
+        )
+        try:
+            with handle:
+                json.dump(payload, handle, indent=2, default=str)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(handle.name, path)
+        except BaseException:
+            # A failed write must not leave a .tmp behind for the next reader to
+            # mistake for a save.
+            try:
+                os.unlink(handle.name)
+            except OSError:
+                pass
+            raise
+
+    def _keep_backup(self, path: str) -> None:
+        """Copy the current save aside once per session, before overwriting it."""
+        if path in self._backed_up or not os.path.exists(path):
+            return
+        import shutil
+
+        try:
+            shutil.copy2(path, path + ".bak")
+            self._backed_up.add(path)
+        except OSError as error:
+            # A missing backup is a smaller problem than a failed save, so this
+            # warns and continues rather than refusing the write.
+            Logger.warning("SaveManager", f"Could not write a backup beside {path}: {error}")
 
     def save(self, filename: str = DEFAULT_SAVE_FILE, player: Optional[Player] = None) -> bool:
         """Saves the current world state to a JSON file."""
         save_path = self._resolve_save_path(filename)
         if not save_path: return False
+
+        # Refuse to write over a save that cannot be read, unless this session
+        # loaded that exact file. `load` replaces the world with a new one on
+        # failure, so without this check the player's next `save` overwrites the
+        # only copy of the character they were trying to recover.
+        if not self._readable_save(save_path) and self._loaded_save_path != save_path:
+            Logger.error(
+                "SaveManager",
+                f"Refusing to overwrite {save_path}: it exists but is not readable as a save. "
+                f"Move or delete it first if you mean to replace it.",
+            )
+            return False
+
         Logger.info("SaveManager", f"Saving game to {save_path}...")
         try:
             save_player = self.world.resolve_reference_player(player)
@@ -71,7 +174,7 @@ class SaveManager:
                 }
 
             save_data = {
-                "save_format_version": 3,
+                "save_format_version": SAVE_FORMAT_VERSION,
                 "save_name": filename.replace(".json", ""),
                 "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "content_set": content_set_metadata,
@@ -86,7 +189,11 @@ class SaveManager:
             }
             
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            with open(save_path, 'w', encoding='utf-8') as f: json.dump(save_data, f, indent=2, default=str)
+            self._keep_backup(save_path)
+            self._atomic_write(save_path, save_data)
+            # The file on disk is now this payload, so a later save may overwrite
+            # it without the refuse-to-clobber guard objecting.
+            self._loaded_save_path = save_path
             Logger.info("SaveManager", f"Game saved successfully to {save_path}.")
             return True
         except Exception as e:
@@ -108,6 +215,22 @@ class SaveManager:
         Logger.info("SaveManager", f"Loading save game from {save_path}...")
         try:
             with open(save_path, 'r', encoding='utf-8') as f: save_data = json.load(f)
+
+            # Before anything is read out of it: a save from a newer engine is
+            # refused rather than half-read, and an older one is brought up to
+            # the current format so every reader below sees one shape.
+            written_as = declared_version(save_data)
+            try:
+                save_data, applied = migrate(save_data)
+            except UnsupportedSaveVersion as unsupported:
+                Logger.error("SaveManager", str(unsupported))
+                return False, None, None
+            if applied:
+                Logger.info(
+                    "SaveManager",
+                    "Save format %d upgraded to %d (%s)."
+                    % (written_as, SAVE_FORMAT_VERSION, ", ".join(applied)),
+                )
 
             saved_content_set = save_data.get("content_set")
             current_content_set = getattr(self.world, "content_set", None)
@@ -186,10 +309,22 @@ class SaveManager:
 
             initialize_npc_schedules(self.world)
             self.world._load_room_items_from_save(save_data.get("room_items_state", {}))
+            # The player's summon ledger names NPC instances, so it can only be
+            # adopted once they exist -- and a summoned NPC is deliberately not
+            # saved, so in practice this drops the ledger rather than restoring
+            # it. Doing it explicitly is the difference between "summons are not
+            # reloadable" and "summons do not reload and nothing says why".
+            settle = getattr(loaded_player, "settle_pending_summons", None)
+            if callable(settle):
+                settle()
             
             if self.world.quest_manager:
                 self.world.quest_manager.ensure_initial_quests(loaded_player)
             
+            # This file was read successfully, so a later `save` to the same name
+            # is a deliberate overwrite of a save we have seen, not the clobber of
+            # an unreadable one.
+            self._loaded_save_path = save_path
             return True, time_state, weather_state
         except Exception as e:
             Logger.error("SaveManager", f"Critical Error loading save game '{filename}': {e}")

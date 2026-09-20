@@ -1234,7 +1234,8 @@
       "anvil": "item_anvil",
       "alchemy": "item_alchemy_kit",
       "lapidary": "item_lapidary_wheel",
-      "carpentry": "item_carpentry_bench"
+      "carpentry": "item_carpentry_bench",
+      "drying": "item_drying_rack"
     },
     "lock_test_spells": [
       "knock",

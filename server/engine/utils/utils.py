@@ -1,6 +1,7 @@
 # engine/utils/utils.py
 import random
 import re
+from decimal import ROUND_HALF_UP, Decimal
 from engine.config import (
     DEBUG_SHOW_LEVEL, FORMAT_BLUE, FORMAT_CATEGORY, FORMAT_ERROR, 
     FORMAT_FRIENDLY_NPC, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_YELLOW, 
@@ -515,6 +516,48 @@ def weighted_choice(choices: Dict[str, int]) -> Optional[str]:
     except Exception as e:
         print(f"Error in weighted choice: {e}. Choices: {choices}")
         return random.choice(options) if options else None
+
+
+def whole(value: Any) -> int:
+    """A float that the engine reads as a whole number of something it counts.
+
+    Round-half-away-from-zero, which is what `round()` does for the positive
+    numbers the engine produces. Used directly where a value is summed before it
+    becomes a price or a payout -- see `money_from_value` for the multiplication
+    case.
+    """
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return 0
+    if amount != amount or amount in (float("inf"), float("-inf")):
+        return 0
+    return int(Decimal(str(amount)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def money_from_value(value: Any, multiplier: Any) -> int:
+    """What a price or payout comes to, as whole currency.
+
+    Currency is an integer: every balance in the game is one, every price is
+    displayed raw, and a save round-trips the number as written. Multiplying an
+    authored value by an authored multiplier produces a float, so *some* rule has
+    to turn it back into whole coins, and the rule has to be the same wherever
+    the multiplication happens or the same authored number pays differently
+    depending on which system read it.
+
+    The rule is round-half-away-from-zero at the point of conversion. That is
+    what `round()` does for the positive numbers every price is, which is what
+    most of the engine's value maths already used; the four sites that truncated
+    with `int()` were the odd ones out and now come through here.
+
+    Returns 0 for a value that cannot be read as a number at all, so a caller
+    still gets a whole number back, and never a fractional one.
+    """
+    try:
+        amount = float(value) * float(multiplier)
+    except (TypeError, ValueError):
+        return 0
+    return whole(amount)
 
 
 def roll_around(

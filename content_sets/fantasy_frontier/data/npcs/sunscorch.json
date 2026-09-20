@@ -24,7 +24,7 @@
         "properties": {
             "dialogue": "sada_caravanmaster",
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "sunscorch_caravanserai:caravan_yard",
             "buys_item_types": [
@@ -75,7 +75,7 @@
         },
         "default_dialog": "Nahl listens to the cistern spillway with practiced attention.",
         "properties": {
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "sunscorch_caravanserai:water_court",
             "can_give_generic_quests": true

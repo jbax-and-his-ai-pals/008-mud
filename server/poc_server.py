@@ -777,7 +777,12 @@ class JsonLineMudServer:
         return True, "Profile applied: %s" % requested
 
     async def _run_background_ticks(self) -> None:
-        """Advance persistent-world simulation even while clients are idle."""
+        """Advance the shared world for as long as the server is up.
+
+        Before 2026-09-19 this returned early when no client was connected, so the
+        world only aged while somebody was watching it. See the WebSocket twin in
+        `poc_ws_server.py`; the two loops must stay in step.
+        """
         interval = max(0.01, float(getattr(self.server, "tick_dt", 0.1)))
         while True:
             await asyncio.sleep(interval)
@@ -788,6 +793,9 @@ class JsonLineMudServer:
                 and bool(getattr(self.server.sessions[session_id], "connected", False))
             ]
             if not active_session_ids:
+                # Nobody to notify, but the world still moves.
+                self.server.tick(None, dt=interval)
+                self.server.discard_background_batch()
                 continue
             events = self.server.tick(active_session_ids[0], dt=interval)
             events.extend(self.server._flush_background_batch(active_session_ids[0]))

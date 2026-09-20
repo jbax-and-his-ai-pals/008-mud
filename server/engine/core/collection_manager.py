@@ -22,7 +22,16 @@ class CollectionManager:
         if os.path.exists(path):
             try:
                 with open(path, 'r', encoding='utf-8') as f:
-                    self.collections = json.load(f)
+                    payload = json.load(f)
+                # A `_comment` is an authoring note. Keeping it here made the note
+                # one more "collection" to every reader that walked the mapping,
+                # so an authoring convenience leaked into the player-facing
+                # collection ledger. Every other definition file skips `_` keys.
+                self.collections = {
+                    str(collection_id): definition
+                    for collection_id, definition in payload.items()
+                    if not str(collection_id).startswith("_") and isinstance(definition, dict)
+                } if isinstance(payload, dict) else {}
             except Exception as e:
                 print(f"Error loading collections: {e}")
                 self.collections = {}

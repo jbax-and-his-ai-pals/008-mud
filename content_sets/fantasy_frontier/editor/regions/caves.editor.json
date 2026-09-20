@@ -1,143 +1,230 @@
 {
-	"region": {},
-	"rooms": {
-		"bat_cave": {
-			"_editor_pos": [
-				-256.0,
-				-160.0
-			]
-		},
-		"cave_entrance": {
-			"_editor_pos": [
-				-256.0,
-				64.0
-			]
-		},
-		"collapsed_tunnel": {
-			"_editor_pos": [
-				-256.0,
-				544.0
-			]
-		},
-		"crystal_antechamber": {
-			"_editor_pos": [
-				640.0,
-				64.0
-			]
-		},
-		"crystal_chamber": {
-			"_editor_pos": [
-				1056.0,
-				64.0
-			]
-		},
-		"deep_tunnel": {
-			"_editor_pos": [
-				160.0,
-				320.0
-			]
-		},
-		"east_mine_tunnel": {
-			"_editor_pos": [
-				544.0,
-				800.0
-			]
-		},
-		"flooded_passage": {
-			"_editor_pos": [
-				640.0,
-				-384.0
-			]
-		},
-		"forgotten_mine_shaft": {
-			"_editor_pos": [
-				160.0,
-				800.0
-			]
-		},
-		"geode_cluster": {
-			"_editor_pos": [
-				1472.0,
-				64.0
-			]
-		},
-		"hidden_ledge": {
-			"_editor_pos": [
-				1056.0,
-				-192.0
-			]
-		},
-		"hidden_passage": {
-			"_editor_pos": [
-				-608.0,
-				544.0
-			]
-		},
-		"lava_tube": {
-			"_editor_pos": [
-				1088.0,
-				960.0
-			]
-		},
-		"lava_tube_entrance": {
-			"_editor_pos": [
-				960.0,
-				800.0
-			]
-		},
-		"main_cavern": {
-			"_editor_pos": [
-				160.0,
-				64.0
-			]
-		},
-		"mine_entrance": {
-			"_editor_pos": [
-				160.0,
-				544.0
-			]
-		},
-		"mine_exit": {
-			"_editor_pos": [
-				736.0,
-				320.0
-			]
-		},
-		"mine_lower_level": {
-			"_editor_pos": [
-				160.0,
-				1056.0
-			]
-		},
-		"mine_upper_level": {
-			"_editor_pos": [
-				736.0,
-				512.0
-			]
-		},
-		"narrow_passage": {
-			"_editor_pos": [
-				160.0,
-				-160.0
-			]
-		},
-		"submerged_chamber": {
-			"_editor_pos": [
-				1056.0,
-				-384.0
-			]
-		},
-		"underground_pool": {
-			"_editor_pos": [
-				160.0,
-				-384.0
-			]
-		},
-		"west_mine_tunnel": {
-			"_editor_pos": [
-				-256.0,
-				800.0
-			]
-		}
-	}
+    "region": {
+        "_proxy_positions": {
+            "forest:ancient_oak": [
+                -480,
+                -224
+            ],
+            "mountains:mine_exit": [
+                576,
+                384
+            ],
+            "obsidian_trial:entrance": [
+                832,
+                512
+            ]
+        },
+        "_editor_connection_label_sources": {
+            "bat_cave|narrow_passage": {
+                "source": "bat_cave",
+                "direction": "west"
+            }
+        }
+    },
+    "rooms": {
+        "cave_entrance": {
+            "_editor_pos": [
+                0,
+                0
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "main_cavern",
+                    "visual_direction": "southeast",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "main_cavern": {
+            "_editor_pos": [
+                256,
+                192
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "cave_entrance",
+                    "visual_direction": "northwest",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "narrow_passage": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "bat_cave": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "underground_pool": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
+        "flooded_passage": {
+            "_editor_pos": [
+                608,
+                -192
+            ],
+            "_editor_exit_layout": {
+                "surface": {
+                    "target": "underground_pool",
+                    "visual_direction": "northwest",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "submerged_chamber": {
+            "_editor_pos": [
+                1024,
+                -192
+            ]
+        },
+        "hidden_ledge": {
+            "_editor_pos": [
+                768,
+                0
+            ]
+        },
+        "crystal_antechamber": {
+            "_editor_pos": [
+                512,
+                192
+            ]
+        },
+        "crystal_chamber": {
+            "_editor_pos": [
+                768,
+                192
+            ]
+        },
+        "geode_cluster": {
+            "_editor_pos": [
+                1024,
+                192
+            ]
+        },
+        "deep_tunnel": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        },
+        "mine_entrance": {
+            "_editor_pos": [
+                0,
+                576
+            ]
+        },
+        "collapsed_tunnel": {
+            "_editor_pos": [
+                -256,
+                576
+            ]
+        },
+        "forgotten_mine_shaft": {
+            "_editor_pos": [
+                0,
+                768
+            ]
+        },
+        "mine_upper_level": {
+            "_editor_pos": [
+                256,
+                576
+            ]
+        },
+        "mine_exit": {
+            "_editor_pos": [
+                256,
+                384
+            ]
+        },
+        "mine_lower_level": {
+            "_editor_pos": [
+                -256,
+                960
+            ]
+        },
+        "sunken_lake_landing": {
+            "_editor_pos": [
+                -512,
+                1152
+            ]
+        },
+        "sunken_lake": {
+            "_editor_pos": [
+                -512,
+                960
+            ]
+        },
+        "drowned_gallery": {
+            "_editor_pos": [
+                -768,
+                1024
+            ],
+            "_editor_exit_layout": {
+                "surface": {
+                    "target": "sunken_lake",
+                    "visual_direction": "northwest",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "east_mine_tunnel": {
+            "_editor_pos": [
+                256,
+                768
+            ]
+        },
+        "lava_tube_entrance": {
+            "_editor_pos": [
+                512,
+                768
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "lava_tube",
+                    "visual_direction": "southeast",
+                    "placement": "stacked",
+                    "inferred": true
+                }
+            }
+        },
+        "lava_tube": {
+            "_editor_pos": [
+                832,
+                768
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "lava_tube_entrance",
+                    "visual_direction": "northwest",
+                    "placement": "stacked",
+                    "inferred": true
+                }
+            }
+        },
+        "west_mine_tunnel": {
+            "_editor_pos": [
+                -256,
+                768
+            ]
+        },
+        "hidden_passage": {
+            "_editor_pos": [
+                -512,
+                768
+            ]
+        }
+    }
 }

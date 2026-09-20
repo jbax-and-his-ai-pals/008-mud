@@ -63,7 +63,14 @@ class JsonWebSocketMudServer:
         self._background_tick_task: asyncio.Task[None] | None = None
 
     async def _run_background_ticks(self) -> None:
-        """Advance the shared world while WebSocket clients are idle."""
+        """Advance the shared world for as long as the server is up.
+
+        Before 2026-09-19 this returned early when no client was connected, so the
+        world only aged while somebody was watching it -- the opposite of a
+        persistent world, and invisible in play because the disconnect and the
+        freeze happened together. Time now advances with the server's own uptime;
+        `session_id` only decides whether a player is advanced alongside it.
+        """
         interval = max(0.01, float(getattr(self.core.server, "tick_dt", 0.1)))
         while True:
             await asyncio.sleep(interval)
@@ -74,6 +81,9 @@ class JsonWebSocketMudServer:
                 and bool(getattr(self.core.server.sessions[session_id], "connected", False))
             ]
             if not active_session_ids:
+                # Nobody to notify, but the world still moves.
+                self.core.server.tick(None, dt=interval)
+                self.core.server.discard_background_batch()
                 continue
             events = self.core.server.tick(active_session_ids[0], dt=interval)
             events.extend(self.core.server._flush_background_batch(active_session_ids[0]))

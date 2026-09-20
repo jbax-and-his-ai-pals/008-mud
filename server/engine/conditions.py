@@ -128,13 +128,32 @@ def _visited_region(player, region_id: str) -> bool:
 
 
 def _current_time_context(player) -> Dict[str, str]:
+    """The clock values a condition can test, as the world publishes them.
+
+    The keys here must be the keys `TimeManager._update_time_data_for_ui`
+    writes. That method publishes `time_period`; this function used to read
+    `period` (falling back to `time_of_day`), so the lookup always returned an
+    empty string and **every `time_of_day` condition evaluated false**. Nothing
+    caught it because no content set had ever used the kind — it was registered
+    in `KNOWN_KINDS`, typed in the editor's `DialogueSchema.gd`, and exercised by
+    nothing.
+
+    `time_period` is read first and the older spellings are kept as fallbacks, so
+    a producer that publishes either name still works.
+    """
     world = getattr(player, "world", None)
     time_manager = getattr(getattr(world, "game", None), "time_manager", None)
     data = getattr(time_manager, "time_data", None)
     if not isinstance(data, dict):
         return {}
+    period = ""
+    for key in ("time_period", "period", "time_of_day"):
+        value = data.get(key)
+        if isinstance(value, str) and value.strip():
+            period = value.strip()
+            break
     return {
-        "time_of_day": str(data.get("period", data.get("time_of_day", "")) or ""),
+        "time_of_day": period,
         "season": str(data.get("season", "") or ""),
     }
 

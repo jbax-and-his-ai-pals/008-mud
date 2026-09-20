@@ -2,6 +2,7 @@
 import random
 from typing import Any, Dict, Optional
 from engine.commands.command_system import command
+from engine.utils.utils import money_from_value, whole
 from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE,
     FORMAT_RED, FORMAT_GREEN, FORMAT_YELLOW, FORMAT_BLUE, FORMAT_GRAY, FORMAT_PURPLE,
@@ -11,6 +12,12 @@ from engine.config import (
 # --- Card Constants ---
 SUITS = ["S", "H", "D", "C"]
 RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+
+# A natural blackjack pays 3:2, so the stake comes back with one and a half times
+# itself again -- a return of `2.5 x stake`, because `_payout` returns the *whole*
+# amount credited and the stake is part of it. `_payout` rounds that once, so an
+# odd bet credits a whole number rather than announcing one and paying another.
+BLACKJACK_WIN_MULTIPLIER = 2.5
 
 # --- Runebreaker (Mastermind-style code-breaking minigame) ---
 # The symbol pool, per-symbol colors, and flavor text are dealer-authored
@@ -65,14 +72,42 @@ def _wheel_outcomes(dealer) -> list[dict]:
     return _DEFAULT_WHEEL_OUTCOMES
 
 
-def _grant_party_profit(world, player, profit_amount: int) -> str:
-    profit = int(profit_amount or 0)
-    if profit <= 0:
-        return ""
-    server = getattr(world, "server", None)
-    if server is not None and hasattr(server, "grant_party_gold"):
+def _payout(bet: int, multiplier: Any) -> int:
+    """What a winning bet returns, in whole currency: stake plus winnings.
+
+    The multiplier is authored content and may be fractional, so the product is
+    rounded once, here, and every casino game settles exactly this number. Before
+    this the wheel credited `min(bet, bet * multiplier)` -- a float on any
+    fractional multiplier, which turned the player's whole balance into one -- and
+    blackjack announced a 3:2 win while crediting a different amount.
+    """
+    return whole(money_from_value(bet, multiplier))
+
+
+def _take_stake(player, amount: int) -> None:
+    """The one place a casino game removes the stake."""
+    player.runtime_state.gold -= amount
+
+
+def _settle_winnings(player, amount: int, payout: int) -> str:
+    """Credit a winning bet's return, and say who else was paid.
+
+    The stake is *returned* as part of the payout rather than credited back
+    separately, so it is returned exactly once. Crediting it separately is what
+    made a server-side jackpot double-count: the stake came back to the player
+    *and* went into the party split, so the balance moved by the whole payout
+    instead of the profit.
+
+    Sharing is the difference between the modes. Off a server there is nobody to
+    share with, so the balance moves by exactly the payout the message named. On
+    one, the table shares the winnings the way it shares any other reward, the
+    player's own share arriving through the same call as everyone else's.
+    """
+    profit = max(0, payout - amount)
+    server = getattr(player.world, "server", None)
+    if server is not None and hasattr(server, "grant_party_gold") and profit > 0:
         return str(server.grant_party_gold(player, profit))
-    player.runtime_state.gold += profit
+    player.runtime_state.gold += payout
     return ""
 
 def draw_card():
@@ -232,23 +267,24 @@ def stand_handler(args, context):
         msg.append(f"Dealer draws {format_hand([card])}. Total: {dealer_val}")
         
     currency = world.currency_name()
+    routing = ""
     if dealer_val > 21:
-        player.runtime_state.gold += amount
-        routing = _grant_party_profit(world, player, amount)
-        msg.append(f"{FORMAT_SUCCESS}Dealer busts! You win {amount} {currency}!{FORMAT_RESET}")
+        # An even-money win: the stake comes back with the same again, and the
+        # number named is the number the balance moves by.
+        win = _payout(amount, 2.0)
+        routing = _settle_winnings(player, amount, win)
+        msg.append(f"{FORMAT_SUCCESS}Dealer busts! You win {win} {currency}!{FORMAT_RESET}")
     elif dealer_val > player_val:
         msg.append(f"{FORMAT_ERROR}Dealer wins.{FORMAT_RESET} ({dealer_val} vs {player_val})")
     elif dealer_val < player_val:
-        player.runtime_state.gold += amount
-        routing = _grant_party_profit(world, player, amount)
-        msg.append(f"{FORMAT_SUCCESS}You win!{FORMAT_RESET} ({player_val} vs {dealer_val})")
+        win = _payout(amount, 2.0)
+        routing = _settle_winnings(player, amount, win)
+        msg.append(f"{FORMAT_SUCCESS}You win {win} {currency}!{FORMAT_RESET} ({player_val} vs {dealer_val})")
     else:
         player.runtime_state.gold += amount
-        routing = ""
         msg.append(f"{FORMAT_HIGHLIGHT}Push.{FORMAT_RESET} You keep your wager.")
-    if dealer_val > 21 or dealer_val < player_val:
-        if routing:
-            msg.append(routing)
+    if routing:
+        msg.append(routing)
     player.active_minigame = None
     msg.append(f"({currency.capitalize()}: {player.runtime_state.gold})")
     return "\n".join(msg)
@@ -309,9 +345,8 @@ def guess_handler(args, context):
 
     if exact_matches == 3:
         amount = game_state["bet"]
-        winnings = amount * 5
-        player.runtime_state.gold += amount
-        routing = _grant_party_profit(world, player, winnings - amount)
+        winnings = _payout(amount, 5.0)
+        routing = _settle_winnings(player, amount, winnings)
         player.active_minigame = None
         extra = f"\n{routing}" if routing else ""
         currency = world.currency_name()
@@ -329,7 +364,7 @@ def guess_handler(args, context):
 # --- Game Implementations ---
 
 def _start_blackjack(player, dealer, amount):
-    player.runtime_state.gold -= amount
+    _take_stake(player, amount)
     p_hand = [draw_card(), draw_card()]
     d_hand = [draw_card(), draw_card()]
     
@@ -348,15 +383,14 @@ def _start_blackjack(player, dealer, amount):
         player.active_minigame = None
         if get_hand_value(d_hand) == 21: player.runtime_state.gold += amount; return msg + f"\n{FORMAT_HIGHLIGHT}Push.{FORMAT_RESET}"
         else:
-            win = int(amount * 1.5)
-            player.runtime_state.gold += amount
-            routing = _grant_party_profit(player.world, player, win)
+            win = _payout(amount, BLACKJACK_WIN_MULTIPLIER)
+            routing = _settle_winnings(player, amount, win)
             extra = f"\n{routing}" if routing else ""
             return msg + f"\n{FORMAT_SUCCESS}BLACKJACK! Win {win} {currency}!{FORMAT_RESET}{extra}"
     return msg + f"\nType '{FORMAT_HIGHLIGHT}hit{FORMAT_RESET}' or '{FORMAT_HIGHLIGHT}stand{FORMAT_RESET}'."
 
 def _start_runebreaker(player, dealer, amount):
-    player.runtime_state.gold -= amount
+    _take_stake(player, amount)
     symbols = _runebreaker_symbols(dealer)
     secret_code = [random.choice(symbols) for _ in range(3)]
     venue_name = dealer.properties.get("minigame_venue_name", "the sealed chamber")
@@ -392,7 +426,7 @@ def _start_runebreaker(player, dealer, amount):
 
 def _play_dice_high_roll(player, dealer, amount):
     # DEDUCT CURRENCY FOR BET
-    player.runtime_state.gold -= amount
+    _take_stake(player, amount)
     currency = player.world.currency_name()
 
     player_roll = random.randint(1, 100)
@@ -400,9 +434,9 @@ def _play_dice_high_roll(player, dealer, amount):
     msg = [f"You place {amount} {currency}.", f"{FORMAT_HIGHLIGHT}You roll {player_roll}.{FORMAT_RESET}", f"{FORMAT_HIGHLIGHT}Dealer rolls {dealer_roll}.{FORMAT_RESET}"]
 
     if player_roll > dealer_roll:
-        player.runtime_state.gold += amount
-        routing = _grant_party_profit(player.world, player, amount)
-        msg.append(f"{FORMAT_SUCCESS}You win!{FORMAT_RESET}")
+        win = _payout(amount, 2.0)
+        routing = _settle_winnings(player, amount, win)
+        msg.append(f"{FORMAT_SUCCESS}You win {win} {currency}!{FORMAT_RESET}")
         if routing:
             msg.append(routing)
     else:
@@ -421,12 +455,12 @@ def _play_slots(player, dealer, amount):
     r1_disp = f"{colors[reel1]}{reel1}{FORMAT_RESET}"; r2_disp = f"{colors[reel2]}{reel2}{FORMAT_RESET}"; r3_disp = f"{colors[reel3]}{reel3}{FORMAT_RESET}"
     msg = [f"{FORMAT_TITLE}| {r1_disp} | {r2_disp} | {r3_disp} |{FORMAT_RESET}"]
     currency = player.world.currency_name()
-    player.runtime_state.gold -= amount
+    _take_stake(player, amount)
     if reel1 == reel2 == reel3:
         mult = multipliers.get(reel1, 1)
-        player.runtime_state.gold += amount
-        routing = _grant_party_profit(player.world, player, amount * max(0, mult - 1))
-        msg.append(f"{FORMAT_SUCCESS}Jackpot! {amount*mult} {currency}!{FORMAT_RESET}")
+        payout = _payout(amount, mult)
+        routing = _settle_winnings(player, amount, payout)
+        msg.append(f"{FORMAT_SUCCESS}Jackpot! {payout} {currency}!{FORMAT_RESET}")
         if routing:
             msg.append(routing)
     elif (reel1 == reel2) or (reel2 == reel3) or (reel1 == reel3):
@@ -441,12 +475,18 @@ def _play_elemental_wheel(player, dealer, amount):
     label = result.get("label", "?")
     mult = result.get("multiplier", 0)
     color = result.get("color", FORMAT_HIGHLIGHT)
-    player.runtime_state.gold -= amount
-    winnings = amount * mult
-    player.runtime_state.gold += min(amount, winnings)
-    routing = _grant_party_profit(player.world, player, max(0, winnings - amount))
+    _take_stake(player, amount)
+    # The multiplier is what the stake returns as, so it is the whole payout and
+    # not a profit on top: `1.0` returns the stake (a push), below 1 returns part
+    # of it, `0.0` returns nothing, and above 1 wins. Capping the payout at the
+    # stake -- which is what `min(amount, ...)` did -- made every multiplier of 1
+    # or more pay exactly the stake back, so the wheel's three winning outcomes
+    # won nothing while the message still offered to "Win 80!".
+    payout = _payout(amount, mult)
+    routing = _settle_winnings(player, amount, payout)
+    profit = max(0, payout - amount)
     msg = f"Wheel: {color}{label}{FORMAT_RESET}. "
-    msg += f"{FORMAT_SUCCESS}Win {winnings}!{FORMAT_RESET}" if mult > 0 else f"{FORMAT_ERROR}Loss.{FORMAT_RESET}"
+    msg += f"{FORMAT_SUCCESS}Win {payout}!{FORMAT_RESET}" if profit > 0 else f"{FORMAT_ERROR}Loss.{FORMAT_RESET}"
     if routing:
         msg += f"\n{routing}"
     return msg + f" ({player.world.currency_name().capitalize()}: {player.runtime_state.gold})"

@@ -4,7 +4,7 @@
         "name": "herbal bandage",
         "description": "Clean cloth packed with fresh herbs; useful for treating a wound in the field.",
         "weight": 0.2,
-        "value": 8.0,
+        "value": 8,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -19,7 +19,7 @@
         "name": "small healing potion",
         "description": "A small vial containing a red liquid that can heal minor wounds.",
         "weight": 0.5,
-        "value": 10.0,
+        "value": 10,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -34,7 +34,7 @@
         "name": "marshguard tonic",
         "description": "A bitter green tonic of crushed herbs. It leaves a resinous taste and wards the lungs against poison for a short while.",
         "weight": 0.3,
-        "value": 18.0,
+        "value": 18,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -56,7 +56,7 @@
         "name": "trailblazer tonic",
         "description": "A bright, sharp draught that puts spring in your step for a few useful minutes.",
         "weight": 0.3,
-        "value": 16.0,
+        "value": 16,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -78,7 +78,7 @@
         "name": "purifying draught",
         "description": "A clean, sour remedy meant to purge poisons and common diseases before they settle in.",
         "weight": 0.3,
-        "value": 15.0,
+        "value": 15,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -96,7 +96,7 @@
         "name": "sunfire flask",
         "description": "A sealed flask of volatile alchemical light. Use it on a foe to hurl it and break the seal.",
         "weight": 0.4,
-        "value": 24.0,
+        "value": 24,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -112,7 +112,7 @@
         "name": "hunk of bread",
         "description": "A thick slice of fresh, crusty bread.",
         "weight": 0.3,
-        "value": 1.0,
+        "value": 1,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -127,7 +127,7 @@
         "name": "travel rations",
         "description": "A portable trail meal, packed tight for a long walk. Keeps well and eats fast.",
         "weight": 0.4,
-        "value": 6.0,
+        "value": 6,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -142,7 +142,7 @@
         "name": "Smithing Pattern: Traveler's Hatchet",
         "description": "A folded diagram in a steady hand, showing how to forge a compact hatchet fit for both the road and a fight.",
         "weight": 0.1,
-        "value": 60.0,
+        "value": 60,
         "stackable": false,
         "properties": {
             "uses": 1,
@@ -156,8 +156,8 @@
         "type": "Consumable",
         "name": "fresh fish",
         "description": "A recently caught fish, still fresh and glistening. It would make a good meal.",
-        "weight": 1.0,
-        "value": 3.0,
+        "weight": 1,
+        "value": 3,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -172,7 +172,7 @@
         "name": "forest berries",
         "description": "A handful of wild berries growing along the path. They look edible.",
         "weight": 0.2,
-        "value": 2.0,
+        "value": 2,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -187,7 +187,7 @@
         "name": "frostpetal bloom",
         "description": "A rare alpine flower that thrives in cold, sheltered places. Said to have potent restorative properties.",
         "weight": 0.1,
-        "value": 50.0,
+        "value": 50,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -202,7 +202,7 @@
         "name": "pale fungus",
         "description": "A cluster of pale, rubbery fungi growing on a rotting log. It looks vaguely unwholesome.",
         "weight": 0.2,
-        "value": 1.0,
+        "value": 1,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -217,7 +217,7 @@
         "name": "fresh carrot",
         "description": "A crisp orange carrot, pulled fresh from the earth.",
         "weight": 0.3,
-        "value": 1.0,
+        "value": 1,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -231,8 +231,8 @@
         "type": "Consumable",
         "name": "large pumpkin",
         "description": "A heavy orange pumpkin, good for carving or cooking. Might provide some sustenance.",
-        "weight": 5.0,
-        "value": 4.0,
+        "weight": 5,
+        "value": 4,
         "stackable": false,
         "properties": {
             "uses": 1,
@@ -247,7 +247,7 @@
         "name": "ripe apple",
         "description": "A crisp, juicy red apple, freshly picked.",
         "weight": 0.3,
-        "value": 2.0,
+        "value": 2,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -262,7 +262,7 @@
         "name": "wild herbs",
         "description": "A bundle of fragrant wild herbs. Might be useful for cooking or alchemy.",
         "weight": 0.1,
-        "value": 3.0,
+        "value": 3,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -272,12 +272,27 @@
         },
         "item_family": "consumable"
     },
+    "item_dried_herbs": {
+        "type": "Consumable",
+        "name": "dried herbs",
+        "description": "A tight bundle of herbs dried on the rack. It keeps its virtue, and its scent, through the cold months.",
+        "weight": 0.05,
+        "value": 4,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 2,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
+    },
     "item_ale": {
         "type": "Consumable",
         "name": "tankard of ale",
         "description": "A foaming tankard of locally brewed ale. It smells of hops and barley.",
-        "weight": 1.0,
-        "value": 2.0,
+        "weight": 1,
+        "value": 2,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -292,7 +307,7 @@
         "name": "raw meat",
         "description": "A piece of raw meat, likely from a wolf.",
         "weight": 0.4,
-        "value": 1.0,
+        "value": 1,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -307,7 +322,7 @@
         "name": "Debug Poison Vial",
         "description": "A vial containing a potent, fast-acting poison for testing purposes.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -326,7 +341,7 @@
         "name": "small mana potion",
         "description": "A small vial containing a swirling blue liquid that restores a minor amount of mana.",
         "weight": 0.5,
-        "value": 15.0,
+        "value": 15,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -341,7 +356,7 @@
         "name": "mana potion",
         "description": "A vial containing a swirling blue liquid that restores a moderate amount of mana.",
         "weight": 0.5,
-        "value": 40.0,
+        "value": 40,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -356,7 +371,7 @@
         "name": "Scroll of Raise Skeleton",
         "description": "A dusty scroll inscribed with necromantic runes.",
         "weight": 0.1,
-        "value": 150.0,
+        "value": 150,
         "stackable": false,
         "properties": {
             "uses": 1,
@@ -371,7 +386,7 @@
         "name": "Scroll of Raise Skeletal Mage",
         "description": "A scroll covered in complex necromantic diagrams.",
         "weight": 0.1,
-        "value": 200.0,
+        "value": 200,
         "stackable": false,
         "properties": {
             "uses": 1,
@@ -386,7 +401,7 @@
         "name": "Scroll of Summon Spirit Wolf",
         "description": "A scroll that smells faintly of ozone and pine needles.",
         "weight": 0.1,
-        "value": 180.0,
+        "value": 180,
         "stackable": false,
         "properties": {
             "uses": 1,
@@ -401,7 +416,7 @@
         "name": "Scroll of Summon Fire Imp",
         "description": "The parchment is warm to the touch and smells of sulfur.",
         "weight": 0.1,
-        "value": 250.0,
+        "value": 250,
         "stackable": false,
         "properties": {
             "uses": 1,
@@ -416,7 +431,7 @@
         "name": "Scroll of Summon Stone Golem",
         "description": "A heavy, gritty scroll that feels like sandpaper.",
         "weight": 0.1,
-        "value": 400.0,
+        "value": 400,
         "stackable": false,
         "properties": {
             "uses": 1,
@@ -431,7 +446,7 @@
         "name": "Scroll of {spell_name}",
         "description": "A scroll inscribed with the runes for the '{spell_name}' spell.",
         "weight": 0.1,
-        "value": 100.0,
+        "value": 100,
         "stackable": false,
         "properties": {
             "uses": 1,

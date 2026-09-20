@@ -161,7 +161,7 @@
             "aggression": 0.1,
             "flee_threshold": 0.3,
             "respawn_cooldown": 360,
-            "spell_cast_chance": 0.0,
+            "spell_cast_chance": 0,
             "wander_chance": 0.6,
             "move_cooldown": 6,
             "weapon_damage_type": "piercing"
@@ -210,7 +210,7 @@
             "aggression": 0.1,
             "flee_threshold": 0.4,
             "respawn_cooldown": 240,
-            "spell_cast_chance": 0.0,
+            "spell_cast_chance": 0,
             "wander_chance": 0.7,
             "move_cooldown": 5,
             "weapon_damage_type": "piercing",
@@ -278,7 +278,7 @@
             "aggression": 0.1,
             "flee_threshold": 0.25,
             "respawn_cooldown": 600,
-            "spell_cast_chance": 0.0,
+            "spell_cast_chance": 0,
             "wander_chance": 0.5,
             "move_cooldown": 10,
             "weapon_damage_type": "piercing",
@@ -338,8 +338,8 @@
             "aggression": 0.8,
             "flee_threshold": 0.2,
             "respawn_cooldown": 600,
-            "spell_cast_chance": 0.0,
-            "wander_chance": 0.0,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
             "move_cooldown": 10,
             "weapon_damage_type": "piercing",
             "armor_material": "leather"
@@ -373,7 +373,7 @@
         "default_dialog": "{name} watches you closely.",
         "loot_table": {
             "gold_value": {
-                "chance": 1.0,
+                "chance": 1,
                 "quantity": [
                     20,
                     40
@@ -475,7 +475,7 @@
             "aggression": 0.1,
             "flee_threshold": 0.15,
             "respawn_cooldown": 900,
-            "spell_cast_chance": 0.0,
+            "spell_cast_chance": 0,
             "wander_chance": 0.3,
             "move_cooldown": 15,
             "weapon_damage_type": "crushing",
@@ -536,7 +536,7 @@
             "aggression": 0.1,
             "flee_threshold": 0.25,
             "respawn_cooldown": 480,
-            "spell_cast_chance": 0.0,
+            "spell_cast_chance": 0,
             "wander_chance": 0.6,
             "move_cooldown": 7,
             "weapon_damage_type": "piercing",
@@ -1149,7 +1149,7 @@
         "defense": 7,
         "loot_table": {
             "gold_value": {
-                "chance": 1.0,
+                "chance": 1,
                 "quantity": [
                     25,
                     50
@@ -1267,7 +1267,7 @@
             }
         },
         "properties": {
-            "attack_cooldown": 4.0,
+            "attack_cooldown": 4,
             "weapon_damage_type": "crushing",
             "armor_material": "plate"
         }
@@ -1351,7 +1351,7 @@
             "aggression": 0.1,
             "flee_threshold": 0.1,
             "respawn_cooldown": 900,
-            "spell_cast_chance": 0.0,
+            "spell_cast_chance": 0,
             "wander_chance": 0.25,
             "move_cooldown": 15,
             "weapon_damage_type": "crushing",

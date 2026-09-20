@@ -47,7 +47,9 @@ WEATHER_PERSISTENCE_CHANCE = 0.3
 WEATHER_TRANSITION_CHANGE_CHANCE = 0.5
 WEATHER_INTENSITY_WEIGHTS = [0.4, 0.3, 0.2, 0.1] # mild, moderate, strong, severe
 
-# --- AI System Settings ---
-AI_AMBIENT_ENABLED = True
-AI_AMBIENT_INTERVAL_SECONDS = 5.0 # Time in seconds between ambient events
-AI_AMBIENT_TEXT_COLOR = FORMAT_GRAY # The color for the ambient text
+# The AI ambient-text settings lived here: `AI_AMBIENT_ENABLED` (defaulted True),
+# `AI_AMBIENT_INTERVAL_SECONDS` and `AI_AMBIENT_TEXT_COLOR`. The manager they
+# configured needed `transformers` and `torch`, neither of which is installed,
+# so it ran on every tick and returned at its first guard every time. The
+# implementation is now in `archive/ai-conversation/`, with the design intent
+# and the prompt set preserved there.

@@ -462,6 +462,142 @@ class TestSalvageRuleValidation(unittest.TestCase):
         self.assertTrue(any("salvage_output" in message for message in errors), errors)
 
 
+def _background_package(case: unittest.TestCase, *, stats: dict, skills: dict | None = None,
+                        stat_bonuses: dict | None = None, weather: dict | None = None,
+                        weather_profile: str | None = None) -> Path:
+    """A minimal package whose backgrounds, ruleset and weather a test controls."""
+    root = Path(tempfile.mkdtemp())
+    case.addCleanup(shutil.rmtree, root, ignore_errors=True)
+    package = root / "content_set"
+    for directory in ("items", "regions", "npcs", "player"):
+        (package / "data" / directory).mkdir(parents=True)
+    (package / "rules").mkdir(parents=True)
+    (package / "presentation").mkdir(parents=True)
+    (package / validator.CONTENT_SET_MANIFEST_NAME).write_text(json.dumps({
+        "id": "starting_probe", "title": "Starting Probe", "version": "0.1.0",
+        "manifest_schema_version": "1", "engine_api_min": "1.0", "engine_api_max": "1.0",
+        "paths": {
+            "content_root": "data",
+            "ruleset": "rules/ruleset.json",
+            "presentation": "presentation/default.json",
+        },
+        "start": {"scenario_id": "start", "region_id": "town", "room_id": "square"},
+        "capabilities": ["inventory"],
+    }), encoding="utf-8")
+    ruleset: dict = {"ruleset_id": "probe"}
+    if stat_bonuses is not None:
+        ruleset["skills"] = {"stat_bonuses": stat_bonuses}
+    if weather is not None:
+        ruleset["weather"] = {"profiles": weather}
+    (package / "rules" / "ruleset.json").write_text(json.dumps(ruleset), encoding="utf-8")
+    (package / "presentation" / "default.json").write_text("{}", encoding="utf-8")
+    properties = {"weather_profile": weather_profile} if weather_profile else {}
+    (package / "data" / "regions" / "town.json").write_text(json.dumps({
+        "region_id": "town",
+        "properties": properties,
+        "rooms": {"square": {"name": "Square", "exits": {}}},
+    }), encoding="utf-8")
+    background: dict = {"name": "Probe", "stats": stats}
+    if skills is not None:
+        background["skills"] = skills
+    (package / "data" / "player" / "backgrounds.json").write_text(
+        json.dumps({"_comment": "a note", "probe": background}), encoding="utf-8"
+    )
+    return package
+
+
+class TestStartingStatsAndSkills(unittest.TestCase):
+    """A background's starting stats are copies into `player.stats`.
+
+    `BackgroundManager` writes whatever keys it is handed. Nothing downstream
+    ever reads `strengh`, so a typo in a background reaches the live player as a
+    stat that no formula consults and no message mentions: the character is
+    quietly weaker than the authored one and nothing anywhere says so.
+    """
+
+    def _package(self, **kwargs) -> Path:
+        return _background_package(self, **kwargs)
+
+    def _messages(self, package: Path, severity: str = "error") -> list:
+        _definition, issues = validator.load_content_set(package)
+        return [issue.message for issue in issues if issue.severity == severity]
+
+    def test_the_engines_own_stats_are_accepted(self):
+        package = self._package(stats={"strength": 11, "constitution": 12})
+        self.assertEqual([], self._messages(package))
+
+    def test_a_misspelled_stat_names_the_typo_and_the_real_vocabulary(self):
+        package = self._package(stats={"strength": 11, "strengh": 14})
+        messages = self._messages(package)
+        self.assertEqual(1, len(messages), messages)
+        self.assertIn("'strengh'", messages[0])
+        self.assertIn("strength", messages[0], "the message offers the name that was meant")
+
+    def test_the_container_of_channel_resistances_is_not_a_stat(self):
+        package = self._package(stats={"strength": 11, "resistances": {"fire": 10}})
+        self.assertEqual([], self._messages(package), "a nested object is a container, not a stat")
+
+    def test_a_stat_only_this_sets_ruleset_names_is_accepted(self):
+        """A set may flavour its stats; the ruleset is where it says so."""
+        package = self._package(
+            stats={"grit": 12},
+            skills={"endurance": 1},
+            stat_bonuses={"endurance": {"stat": "grit", "per_point": 2}},
+        )
+        self.assertEqual([], self._messages(package))
+
+    def test_a_skill_no_ruleset_rule_backs_is_a_warning(self):
+        package = self._package(
+            stats={"strength": 10},
+            skills={"lockpikcing": 1},
+            stat_bonuses={"lockpicking": {"stat": "dexterity"}},
+        )
+        warnings = self._messages(package, "warning")
+        self.assertEqual(1, len(warnings), warnings)
+        self.assertIn("lockpikcing", warnings[0])
+
+    def test_a_set_declaring_no_stat_bonuses_warns_about_no_skills(self):
+        """Opting out of stat-backed skills is not the same as missing them.
+
+        The editor fixture is exactly this shape, and warning there would mean a
+        minimal content set could never validate clean.
+        """
+        package = self._package(stats={"strength": 10}, skills={"crafting": 1})
+        self.assertEqual([], self._messages(package, "warning"))
+
+
+class TestRegionWeatherProfiles(unittest.TestCase):
+    """A region names a climate by id; the ruleset has to declare that id.
+
+    `WeatherManager` falls back to the unmapped global weather when it cannot
+    find the profile, which is the right default and a silent one: an alpine
+    region authored to turn rain into snow just reports rain.
+    """
+
+    def _package(self, *, profiles: dict, selected: str) -> Path:
+        return _background_package(
+            self, stats={"strength": 10}, weather=profiles, weather_profile=selected
+        )
+
+    def test_a_declared_profile_is_accepted(self):
+        package = self._package(profiles={"alpine": {"map": {}}}, selected="alpine")
+        _definition, issues = validator.load_content_set(package)
+        self.assertEqual([], [i.message for i in issues if i.severity == "error"])
+
+    def test_an_undeclared_profile_is_an_error(self):
+        package = self._package(profiles={"alpine": {"map": {}}}, selected="jungle")
+        _definition, issues = validator.load_content_set(package)
+        errors = [i.message for i in issues if i.severity == "error"]
+        self.assertEqual(1, len(errors), errors)
+        self.assertIn("jungle", errors[0])
+
+    def test_a_set_declaring_no_profiles_at_all_says_so(self):
+        package = self._package(profiles={}, selected="alpine")
+        _definition, issues = validator.load_content_set(package)
+        errors = [i.message for i in issues if i.severity == "error"]
+        self.assertIn("declares no profiles at all", errors[0])
+
+
 class TestContentSetValidatorMain(unittest.TestCase):
     def test_valid_content_set_prints_success_and_does_not_exit(self) -> None:
         argv = ["content_set_validator.py", str(REPO_ROOT / "content_sets" / "fantasy_frontier")]

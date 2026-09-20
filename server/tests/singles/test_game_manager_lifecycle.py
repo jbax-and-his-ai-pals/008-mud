@@ -303,10 +303,12 @@ class TestHandleUiCommand(GameTestBase):
 
 
 class TestUpdateTickMessages(GameTestBase):
-    def test_ai_manager_message_is_added_to_renderer(self):
-        with patch.object(self.game.ai_manager, "update", return_value="An NPC did something."):
-            self.game.update(0.1)
-        self.assertIn("An NPC did something.", self.game.renderer.message_buffer)
+    # `test_ai_manager_message_is_added_to_renderer` lived here: it patched
+    # `game.ai_manager.update` to return a line and asserted the tick put it in the
+    # renderer's buffer. The manager needed a language model, which the engine no
+    # longer carries (see `archive/ai-conversation/`), so both the test and the
+    # tick call are gone. The test below is the same shape for a producer that
+    # still exists.
 
     def test_time_period_change_updates_weather_and_emits_message(self):
         with patch.object(self.game.time_manager, "update", return_value=("night", "dawn")):

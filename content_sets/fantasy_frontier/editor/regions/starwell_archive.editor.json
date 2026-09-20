@@ -1,0 +1,42 @@
+{
+    "region": {
+        "_proxy_positions": {
+            "aurelia_city:museum_atrium": [
+                -256,
+                -64
+            ]
+        }
+    },
+    "rooms": {
+        "sealed_stair": {
+            "_editor_pos": [
+                96,
+                -64
+            ]
+        },
+        "catalogue_gallery": {
+            "_editor_pos": [
+                96,
+                128
+            ]
+        },
+        "sealed_stacks": {
+            "_editor_pos": [
+                96,
+                320
+            ]
+        },
+        "orrery_bridge": {
+            "_editor_pos": [
+                352,
+                128
+            ]
+        },
+        "starwell_chamber": {
+            "_editor_pos": [
+                672,
+                128
+            ]
+        }
+    }
+}

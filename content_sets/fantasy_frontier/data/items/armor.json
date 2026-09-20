@@ -4,7 +4,7 @@
         "name": "leather cap",
         "description": "A simple cap made of hardened leather. Offers basic head protection.",
         "weight": 0.5,
-        "value": 10.0,
+        "value": 10,
         "stackable": false,
         "properties": {
             "defense": 1,
@@ -16,7 +16,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -25,8 +25,8 @@
         "type": "Armor",
         "name": "leather tunic",
         "description": "A tunic crafted from thick, boiled leather panels sewn together.",
-        "weight": 3.0,
-        "value": 25.0,
+        "weight": 3,
+        "value": 25,
         "stackable": false,
         "properties": {
             "defense": 2,
@@ -38,7 +38,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "defense_profile": "light_armour",
@@ -49,7 +49,7 @@
         "name": "leather gloves",
         "description": "Simple gloves made from tough leather.",
         "weight": 0.3,
-        "value": 8.0,
+        "value": 8,
         "stackable": false,
         "properties": {
             "defense": 1,
@@ -61,7 +61,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -71,7 +71,7 @@
         "name": "studded leather gloves",
         "description": "Leather gloves reinforced across the knuckles with small iron studs. They trade a little flexibility for a firmer grip in a fight.",
         "weight": 0.6,
-        "value": 28.0,
+        "value": 28,
         "stackable": false,
         "properties": {
             "defense": 2,
@@ -93,7 +93,7 @@
             },
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -103,7 +103,7 @@
         "name": "leather boots",
         "description": "Sturdy boots made of thick leather, suitable for adventuring.",
         "weight": 1.2,
-        "value": 12.0,
+        "value": 12,
         "stackable": false,
         "properties": {
             "defense": 1,
@@ -115,7 +115,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -125,7 +125,7 @@
         "name": "trailwarden boots",
         "description": "Tall, waxed boots packed with bitter herbs. Heavier than common leather boots, but made for bad ground and foul air.",
         "weight": 1.8,
-        "value": 30.0,
+        "value": 30,
         "stackable": false,
         "properties": {
             "defense": 2,
@@ -139,11 +139,11 @@
                 "agility": 11
             },
             "resistances": {
-                "poison": 12.0
+                "poison": 12
             },
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -152,8 +152,8 @@
         "type": "Armor",
         "name": "padded tunic",
         "description": "A cloth tunic reinforced with layers of thick padding sewn inside.",
-        "weight": 4.0,
-        "value": 40.0,
+        "weight": 4,
+        "value": 40,
         "stackable": false,
         "properties": {
             "defense": 3,
@@ -170,8 +170,8 @@
         "type": "Armor",
         "name": "cultist robes",
         "description": "Dark, hooded robes stained with something unpleasant.",
-        "weight": 2.0,
-        "value": 15.0,
+        "weight": 2,
+        "value": 15,
         "properties": {
             "defense": 1,
             "armor_material": "cloth",
@@ -187,8 +187,8 @@
         "type": "Armor",
         "name": "lizardfolk shield",
         "description": "A sturdy shield made from the hardened hide of a large reptile.",
-        "weight": 4.0,
-        "value": 30.0,
+        "weight": 4,
+        "value": 30,
         "properties": {
             "defense": 2,
             "armor_material": "leather",
@@ -204,8 +204,8 @@
         "type": "Armor",
         "name": "wolf pelt cloak",
         "description": "A cloak stitched from a wolf's pelt, still carrying a hint of the hunt.",
-        "weight": 2.0,
-        "value": 20.0,
+        "weight": 2,
+        "value": 20,
         "stackable": false,
         "properties": {
             "defense": 2,
@@ -217,7 +217,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -226,8 +226,8 @@
         "type": "Armor",
         "name": "trollhide vest",
         "description": "A heavy vest cut from troll hide, thick enough to have shrugged off more than one blade.",
-        "weight": 5.0,
-        "value": 45.0,
+        "weight": 5,
+        "value": 45,
         "stackable": false,
         "properties": {
             "defense": 4,
@@ -239,7 +239,7 @@
             ],
             "salvage_output": {
                 "item_id": "item_leather_strip",
-                "quantity_per_weight": 1.0
+                "quantity_per_weight": 1
             }
         },
         "item_family": "armor"
@@ -248,8 +248,8 @@
         "type": "Armor",
         "name": "chain coif",
         "description": "A hood of fine iron rings, worn over a padded cap.",
-        "weight": 2.0,
-        "value": 55.0,
+        "weight": 2,
+        "value": 55,
         "properties": {
             "defense": 3,
             "armor_material": "chain",
@@ -269,8 +269,8 @@
         "type": "Armor",
         "name": "chain hauberk",
         "description": "A knee-length shirt of interlocking iron rings, worn by soldiers who expect to be hit.",
-        "weight": 8.0,
-        "value": 95.0,
+        "weight": 8,
+        "value": 95,
         "properties": {
             "defense": 6,
             "armor_material": "chain",
@@ -291,7 +291,7 @@
         "name": "chain gauntlets",
         "description": "Riveted mail gloves, stiff but far better than bare knuckles.",
         "weight": 1.5,
-        "value": 50.0,
+        "value": 50,
         "properties": {
             "defense": 3,
             "armor_material": "chain",
@@ -311,8 +311,8 @@
         "type": "Armor",
         "name": "chain sabatons",
         "description": "Mail-covered boots, laced tight enough not to catch underfoot.",
-        "weight": 2.0,
-        "value": 50.0,
+        "weight": 2,
+        "value": 50,
         "properties": {
             "defense": 3,
             "armor_material": "chain",
@@ -333,7 +333,7 @@
         "name": "warding torc",
         "description": "A twisted iron torc, its ends capped with wardstones against the mine's fouler air.",
         "weight": 0.2,
-        "value": 60.0,
+        "value": 60,
         "properties": {
             "defense": 1,
             "tier": 2,
@@ -343,7 +343,7 @@
                 "neck"
             ],
             "resistances": {
-                "poison": 10.0
+                "poison": 10
             }
         },
         "item_family": "armor"
@@ -352,8 +352,8 @@
         "type": "Armor",
         "name": "acolyte's mantle",
         "description": "A light shoulder mantle worn over robes, chosen for how little it interferes with a spellcaster's hands.",
-        "weight": 1.0,
-        "value": 55.0,
+        "weight": 1,
+        "value": 55,
         "properties": {
             "defense": 2,
             "armor_material": "cloth",
@@ -377,8 +377,8 @@
         "type": "Armor",
         "name": "plate helm",
         "description": "A close-fitted steel helm with a hinged visor, its curved surfaces built to glance off a blow rather than absorb it.",
-        "weight": 4.0,
-        "value": 140.0,
+        "weight": 4,
+        "value": 140,
         "properties": {
             "defense": 5,
             "armor_material": "plate",
@@ -398,8 +398,8 @@
         "type": "Armor",
         "name": "plate cuirass",
         "description": "A full breastplate and backplate of hardened steel. It stops almost anything, but its weight is felt in every step.",
-        "weight": 14.0,
-        "value": 220.0,
+        "weight": 14,
+        "value": 220,
         "properties": {
             "defense": 11,
             "armor_material": "plate",
@@ -426,8 +426,8 @@
         "type": "Armor",
         "name": "plate gauntlets",
         "description": "Articulated steel gauntlets, heavy enough to turn a blade and still let a hand close around a hilt.",
-        "weight": 3.0,
-        "value": 130.0,
+        "weight": 3,
+        "value": 130,
         "properties": {
             "defense": 5,
             "armor_material": "plate",
@@ -448,7 +448,7 @@
         "name": "plate sabatons",
         "description": "Segmented steel foot armor, solid enough to double as a weapon in a pinch.",
         "weight": 3.5,
-        "value": 130.0,
+        "value": 130,
         "properties": {
             "defense": 5,
             "armor_material": "plate",
@@ -469,7 +469,7 @@
         "name": "vanguard's signet",
         "description": "A heavy signet ring worn on a chain, marking its bearer as someone who has held a line and survived it.",
         "weight": 0.2,
-        "value": 150.0,
+        "value": 150,
         "properties": {
             "defense": 2,
             "tier": 3,

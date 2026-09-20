@@ -1,168 +1,339 @@
 {
-  "_comment": "Titles are EARNED, not chosen. A background (player/backgrounds.json) decides where you begin; a title is what you have become, claimed with 'title <name>' once its conditions hold. Titles grant nothing mechanical -- no stats, no spells, no access. They are identity and social signal, which is what a class was doing badly. Conditions are evaluated by engine/conditions.py; see that module for the full condition language.",
-  "_conferring": "A 'conferred_by' block names the guild-like construct that recognises the title. Content decides whether that group is a guild, an order, a college, a crew, or a lodge -- the engine only knows it as a group that confers names.",
-  "_guilds": {
-    "riverside_workward": { "name": "The Riverside Workward", "place": "town:blacksmith_interior" },
-    "market_row": { "name": "The Market Row", "place": "town:market_square" },
-    "the_roads": { "name": "The Roads", "place": "town:north_gate" },
-    "frostpeak_mining_lodge": { "name": "The Frostpeak Mining Lodge", "place": "frostpeak_outpost:mining_lodge" },
-    "riverside_museum": { "name": "The Riverside Museum", "place": "town:museum_interior" },
-    "order_of_dawn": { "name": "The Order of the Dawn", "place": "town:shrine_interior" },
-    "nobody": { "name": "Nobody, officially", "place": "portbridge:smugglers_crossroads" },
-    "riverside_village": { "name": "The Village", "place": "town:town_square" },
-    "aurelia_surveyors": { "name": "The Aurelia Surveyors", "place": "aurelia_city:surveyors_hall" },
-    "aurelia_artificers": { "name": "The Artificers' Exchange", "place": "aurelia_city:artificers_exchange" }
-  },
-
-  "hand": {
-    "name": "Hand",
-    "description": "You have done enough honest work that people ask for you by name.",
-    "conferred_by": { "name": "The Riverside Workward", "guild_id": "riverside_workward" },
-    "condition": { "kind": "skill_at_least", "skill": "crafting", "value": 3 }
-  },
-
-  "wright": {
-    "name": "Wright",
-    "description": "You can be trusted with a commission and left alone to finish it.",
-    "conferred_by": { "name": "The Riverside Workward", "guild_id": "riverside_workward" },
-    "condition": { "kind": "skill_at_least", "skill": "crafting", "value": 6 },
-    "requirements": [
-      { "kind": "quest_completed", "quest_id": "quest_wildflower_commission" }
-    ]
-  },
-
-  "trader": {
-    "name": "Trader",
-    "description": "You know what a thing is worth and you do not embarrass yourself at the stall.",
-    "conferred_by": { "name": "The Market Row", "guild_id": "market_row" },
-    "condition": { "kind": "skill_at_least", "skill": "mercantile", "value": 3 }
-  },
-
-  "factor": {
-    "name": "Factor",
-    "description": "Talia lets you see her ledgers. In Riverside, that is a career.",
-    "conferred_by": { "name": "The Market Row", "guild_id": "market_row" },
-    "condition": { "kind": "skill_at_least", "skill": "mercantile", "value": 6 },
-    "requirements": [
-      { "kind": "relationship_at_least", "npc_id": "merchant", "value": 30 }
-    ]
-  },
-
-  "fieldhand": {
-    "name": "Fieldhand",
-    "description": "You have learned where things grow, and in what season, and how to get there.",
-    "conferred_by": { "name": "The Riverside Workward", "guild_id": "riverside_workward" },
-    "condition": { "kind": "level_at_least", "value": 3 },
-    "requirements": [
-      { "kind": "discovery", "discovery_id": "fieldcraft_basics" }
-    ]
-  },
-
-  "wayfarer": {
-    "name": "Wayfarer",
-    "description": "You have been out past the walls more than once, and come back with something to show for it.",
-    "conferred_by": { "name": "The Roads", "guild_id": "the_roads" },
-    "condition": { "kind": "visited_region", "region_id": "forest" },
-    "requirements": [
-      { "kind": "level_at_least", "value": 3 }
-    ]
-  },
-
-  "pathfinder": {
-    "name": "Pathfinder",
-    "description": "You have walked the far country and can speak for what lives there.",
-    "conferred_by": { "name": "The Roads", "guild_id": "the_roads" },
-    "condition": { "kind": "level_at_least", "value": 8 },
-    "requirements": [
-      { "kind": "visited_region", "region_id": "mountains" },
-      { "kind": "visited_region", "region_id": "swamp" }
-    ]
-  },
-
-  "frostpeak_hand": {
-    "name": "Frostpeak Hand",
-    "description": "The Mining Lodge knows you can be counted on in the high country.",
-    "conferred_by": { "name": "The Frostpeak Mining Lodge", "guild_id": "frostpeak_mining_lodge" },
-    "condition": { "kind": "visited_region", "region_id": "frostpeak_outpost" },
-    "requirements": [
-      { "kind": "level_at_least", "value": 5 }
-    ]
-  },
-
-  "collector": {
-    "name": "Collector",
-    "description": "Vane has started saving you a chair, and asking what you have found lately.",
-    "conferred_by": { "name": "The Riverside Museum", "guild_id": "riverside_museum" },
-    "condition": { "kind": "relationship_at_least", "npc_id": "curator", "value": 15 },
-    "requirements": [
-      { "kind": "level_at_least", "value": 4 }
-    ]
-  },
-
-  "hedge_healer": {
-    "name": "Hedge Healer",
-    "description": "You know which plants help and which only smell like they might. People come to you before they go to the shrine.",
-    "conferred_by": { "name": "The Order of the Dawn", "guild_id": "order_of_dawn" },
-    "condition": { "kind": "spell_known", "spell_id": "minor_heal" },
-    "requirements": [
-      { "kind": "relationship_at_least", "npc_id": "healer", "value": 20 }
-    ]
-  },
-
-  "dawnsworn": {
-    "name": "Dawnsworn",
-    "description": "The Order has stopped calling you a visitor. You are one of theirs now, whether or not you meant to be.",
-    "conferred_by": { "name": "The Order of the Dawn", "guild_id": "order_of_dawn" },
-    "condition": { "kind": "level_at_least", "value": 6 },
-    "requirements": [
-      { "kind": "spell_known", "spell_id": "minor_heal" },
-      { "kind": "relationship_at_least", "npc_id": "healer", "value": 40 }
-    ]
-  },
-
-  "quiet_hand": {
-    "name": "Quiet Hand",
-    "description": "You have learned to take what is not watched for, and to be elsewhere when the counting starts.",
-    "conferred_by": { "name": "Nobody, officially", "guild_id": "nobody" },
-    "condition": { "kind": "skill_at_least", "skill": "stealth", "value": 4 }
-  },
-
-  "locksmith": {
-    "name": "Locksmith",
-    "description": "Doors have stopped being an obstacle and started being a conversation.",
-    "conferred_by": { "name": "The Riverside Workward", "guild_id": "riverside_workward" },
-    "condition": { "kind": "skill_at_least", "skill": "lockpicking", "value": 6 }
-  },
-
-  "friend_of_riverside": {
-    "name": "Friend of Riverside",
-    "description": "Enough people in this village would speak for you that you could probably get away with something. You have not.",
-    "conferred_by": { "name": "The Village", "guild_id": "riverside_village" },
-    "condition": { "kind": "relationship_at_least", "npc_id": "village_elder", "value": 40 },
-    "requirements": [
-      { "kind": "level_at_least", "value": 5 }
-    ]
-  },
-
-  "aurelian_surveyor": {
-    "name": "Aurelian Surveyor",
-    "description": "The Surveyors accept your reports as fieldwork rather than travellers' tales.",
-    "conferred_by": { "name": "The Aurelia Surveyors", "guild_id": "aurelia_surveyors" },
-    "condition": { "kind": "visited_region", "region_id": "aurelia_outlands" },
-    "requirements": [
-      { "kind": "level_at_least", "value": 11 },
-      { "kind": "quest_completed", "quest_id": "quest_aurelia_aqueduct_survey" }
-    ]
-  },
-
-  "aurelian_artificer": {
-    "name": "Aurelian Artificer",
-    "description": "Ves stops checking your work before it goes on the rack. You do not just use good tools here anymore; you are trusted to make them.",
-    "conferred_by": { "name": "The Artificers' Exchange", "guild_id": "aurelia_artificers" },
-    "condition": { "kind": "skill_at_least", "skill": "crafting", "value": 10 },
-    "requirements": [
-      { "kind": "relationship_at_least", "npc_id": "aurelia_artificer", "value": 25 },
-      { "kind": "level_at_least", "value": 11 }
-    ]
-  }
+    "_comment": "Titles are EARNED, not chosen. A background (player/backgrounds.json) decides where you begin; a title is what you have become, claimed with 'title <name>' once its conditions hold. Titles grant nothing mechanical -- no stats, no spells, no access. They are identity and social signal, which is what a class was doing badly. Conditions are evaluated by engine/conditions.py; see that module for the full condition language.",
+    "_conferring": "A 'conferred_by' block names the guild-like construct that recognises the title. Content decides whether that group is a guild, an order, a college, a crew, or a lodge -- the engine only knows it as a group that confers names.",
+    "_guilds": {
+        "riverside_workward": {
+            "name": "The Riverside Workward",
+            "place": "town:blacksmith_interior"
+        },
+        "market_row": {
+            "name": "The Market Row",
+            "place": "town:market_square"
+        },
+        "the_roads": {
+            "name": "The Roads",
+            "place": "town:north_gate"
+        },
+        "frostpeak_mining_lodge": {
+            "name": "The Frostpeak Mining Lodge",
+            "place": "frostpeak_outpost:mining_lodge"
+        },
+        "riverside_museum": {
+            "name": "The Riverside Museum",
+            "place": "town:museum_interior"
+        },
+        "order_of_dawn": {
+            "name": "The Order of the Dawn",
+            "place": "town:shrine_interior"
+        },
+        "nobody": {
+            "name": "Nobody, officially",
+            "place": "portbridge:smugglers_crossroads"
+        },
+        "riverside_village": {
+            "name": "The Village",
+            "place": "town:town_square"
+        },
+        "aurelia_surveyors": {
+            "name": "The Aurelia Surveyors",
+            "place": "aurelia_city:surveyors_hall"
+        },
+        "aurelia_artificers": {
+            "name": "The Artificers' Exchange",
+            "place": "aurelia_city:artificers_exchange"
+        }
+    },
+    "hand": {
+        "name": "Hand",
+        "description": "You have done enough honest work that people ask for you by name.",
+        "conferred_by": {
+            "name": "The Riverside Workward",
+            "guild_id": "riverside_workward"
+        },
+        "condition": {
+            "kind": "skill_at_least",
+            "skill": "crafting",
+            "value": 3
+        }
+    },
+    "wright": {
+        "name": "Wright",
+        "description": "You can be trusted with a commission and left alone to finish it.",
+        "conferred_by": {
+            "name": "The Riverside Workward",
+            "guild_id": "riverside_workward"
+        },
+        "condition": {
+            "kind": "skill_at_least",
+            "skill": "crafting",
+            "value": 6
+        },
+        "requirements": [
+            {
+                "kind": "quest_completed",
+                "quest_id": "quest_wildflower_commission"
+            }
+        ]
+    },
+    "trader": {
+        "name": "Trader",
+        "description": "You know what a thing is worth and you do not embarrass yourself at the stall.",
+        "conferred_by": {
+            "name": "The Market Row",
+            "guild_id": "market_row"
+        },
+        "condition": {
+            "kind": "skill_at_least",
+            "skill": "mercantile",
+            "value": 3
+        }
+    },
+    "factor": {
+        "name": "Factor",
+        "description": "Talia lets you see her ledgers. In Riverside, that is a career.",
+        "conferred_by": {
+            "name": "The Market Row",
+            "guild_id": "market_row"
+        },
+        "condition": {
+            "kind": "skill_at_least",
+            "skill": "mercantile",
+            "value": 6
+        },
+        "requirements": [
+            {
+                "kind": "relationship_at_least",
+                "npc_id": "merchant",
+                "value": 30
+            }
+        ]
+    },
+    "fieldhand": {
+        "name": "Fieldhand",
+        "description": "You have learned where things grow, and in what season, and how to get there.",
+        "conferred_by": {
+            "name": "The Riverside Workward",
+            "guild_id": "riverside_workward"
+        },
+        "condition": {
+            "kind": "level_at_least",
+            "value": 3
+        },
+        "requirements": [
+            {
+                "kind": "discovery",
+                "discovery_id": "fieldcraft_basics"
+            }
+        ]
+    },
+    "wayfarer": {
+        "name": "Wayfarer",
+        "description": "You have been out past the walls more than once, and come back with something to show for it.",
+        "conferred_by": {
+            "name": "The Roads",
+            "guild_id": "the_roads"
+        },
+        "condition": {
+            "kind": "visited_region",
+            "region_id": "forest"
+        },
+        "requirements": [
+            {
+                "kind": "level_at_least",
+                "value": 3
+            }
+        ]
+    },
+    "pathfinder": {
+        "name": "Pathfinder",
+        "description": "You have walked the far country and can speak for what lives there.",
+        "conferred_by": {
+            "name": "The Roads",
+            "guild_id": "the_roads"
+        },
+        "condition": {
+            "kind": "level_at_least",
+            "value": 8
+        },
+        "requirements": [
+            {
+                "kind": "visited_region",
+                "region_id": "mountains"
+            },
+            {
+                "kind": "visited_region",
+                "region_id": "swamp"
+            }
+        ]
+    },
+    "frostpeak_hand": {
+        "name": "Frostpeak Hand",
+        "description": "The Mining Lodge knows you can be counted on in the high country.",
+        "conferred_by": {
+            "name": "The Frostpeak Mining Lodge",
+            "guild_id": "frostpeak_mining_lodge"
+        },
+        "condition": {
+            "kind": "visited_region",
+            "region_id": "frostpeak_outpost"
+        },
+        "requirements": [
+            {
+                "kind": "level_at_least",
+                "value": 5
+            }
+        ]
+    },
+    "collector": {
+        "name": "Collector",
+        "description": "Vane has started saving you a chair, and asking what you have found lately.",
+        "conferred_by": {
+            "name": "The Riverside Museum",
+            "guild_id": "riverside_museum"
+        },
+        "condition": {
+            "kind": "relationship_at_least",
+            "npc_id": "curator",
+            "value": 15
+        },
+        "requirements": [
+            {
+                "kind": "level_at_least",
+                "value": 4
+            }
+        ]
+    },
+    "hedge_healer": {
+        "name": "Hedge Healer",
+        "description": "You know which plants help and which only smell like they might. People come to you before they go to the shrine.",
+        "conferred_by": {
+            "name": "The Order of the Dawn",
+            "guild_id": "order_of_dawn"
+        },
+        "condition": {
+            "kind": "spell_known",
+            "spell_id": "minor_heal"
+        },
+        "requirements": [
+            {
+                "kind": "relationship_at_least",
+                "npc_id": "healer",
+                "value": 20
+            }
+        ]
+    },
+    "dawnsworn": {
+        "name": "Dawnsworn",
+        "description": "The Order has stopped calling you a visitor. You are one of theirs now, whether or not you meant to be.",
+        "conferred_by": {
+            "name": "The Order of the Dawn",
+            "guild_id": "order_of_dawn"
+        },
+        "condition": {
+            "kind": "level_at_least",
+            "value": 6
+        },
+        "requirements": [
+            {
+                "kind": "spell_known",
+                "spell_id": "minor_heal"
+            },
+            {
+                "kind": "relationship_at_least",
+                "npc_id": "healer",
+                "value": 40
+            }
+        ]
+    },
+    "quiet_hand": {
+        "name": "Quiet Hand",
+        "description": "You have learned to take what is not watched for, and to be elsewhere when the counting starts.",
+        "conferred_by": {
+            "name": "Nobody, officially",
+            "guild_id": "nobody"
+        },
+        "condition": {
+            "kind": "skill_at_least",
+            "skill": "stealth",
+            "value": 4
+        }
+    },
+    "locksmith": {
+        "name": "Locksmith",
+        "description": "Doors have stopped being an obstacle and started being a conversation.",
+        "conferred_by": {
+            "name": "The Riverside Workward",
+            "guild_id": "riverside_workward"
+        },
+        "condition": {
+            "kind": "skill_at_least",
+            "skill": "lockpicking",
+            "value": 6
+        }
+    },
+    "friend_of_riverside": {
+        "name": "Friend of Riverside",
+        "description": "Enough people in this village would speak for you that you could probably get away with something. You have not.",
+        "conferred_by": {
+            "name": "The Village",
+            "guild_id": "riverside_village"
+        },
+        "condition": {
+            "kind": "relationship_at_least",
+            "npc_id": "village_elder",
+            "value": 40
+        },
+        "requirements": [
+            {
+                "kind": "level_at_least",
+                "value": 5
+            }
+        ]
+    },
+    "aurelian_surveyor": {
+        "name": "Aurelian Surveyor",
+        "description": "The Surveyors accept your reports as fieldwork rather than travellers' tales.",
+        "conferred_by": {
+            "name": "The Aurelia Surveyors",
+            "guild_id": "aurelia_surveyors"
+        },
+        "condition": {
+            "kind": "visited_region",
+            "region_id": "aurelia_outlands"
+        },
+        "requirements": [
+            {
+                "kind": "level_at_least",
+                "value": 11
+            },
+            {
+                "kind": "quest_completed",
+                "quest_id": "quest_aurelia_aqueduct_survey"
+            }
+        ]
+    },
+    "aurelian_artificer": {
+        "name": "Aurelian Artificer",
+        "description": "Ves stops checking your work before it goes on the rack. You do not just use good tools here anymore; you are trusted to make them.",
+        "conferred_by": {
+            "name": "The Artificers' Exchange",
+            "guild_id": "aurelia_artificers"
+        },
+        "condition": {
+            "kind": "skill_at_least",
+            "skill": "crafting",
+            "value": 10
+        },
+        "requirements": [
+            {
+                "kind": "relationship_at_least",
+                "npc_id": "aurelia_artificer",
+                "value": 25
+            },
+            {
+                "kind": "level_at_least",
+                "value": 11
+            }
+        ]
+    }
 }

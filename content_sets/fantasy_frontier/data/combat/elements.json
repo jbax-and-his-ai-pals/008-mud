@@ -2,7 +2,7 @@
   "valid_damage_types": [
     "physical",
     "fire", "ice", "lightning", "water", "earth", "air", "poison", "acid",
-    "holy", "shadow", "arcane"
+    "holy", "shadow", "arcane", "magical", "disease"
   ],
   "default_damage_type": "magical",
   "elemental_opposites": {

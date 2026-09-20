@@ -673,6 +673,11 @@
         "smell": "cooking food",
         "_district_id": "tavern_quarter"
       },
+      "items": [
+        {
+          "item_id": "item_drying_rack"
+        }
+      ],
       "exits": {
         "west": "tavern_main_floor"
       }

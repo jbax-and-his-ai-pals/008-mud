@@ -3,7 +3,7 @@
         "name": "Magic Missile",
         "description": "A bolt of pure arcane energy strikes your target.",
         "mana_cost": 5,
-        "cooldown": 3.0,
+        "cooldown": 3,
         "target_type": "enemy",
         "cast_message": "{caster_name} launches a shimmering bolt!",
         "hit_message": "{caster_name}'s missile hits {target_name} for {value} arcane damage!",
@@ -11,7 +11,7 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 8.0
+                "value": 8
             }
         ]
     },
@@ -19,7 +19,7 @@
         "name": "Ice Shard",
         "description": "Launches a jagged shard of ice at the target.",
         "mana_cost": 14,
-        "cooldown": 8.0,
+        "cooldown": 8,
         "target_type": "enemy",
         "cast_message": "{caster_name} gathers chilling frost...",
         "hit_message": "{caster_name}'s ice shard pierces {target_name}, dealing {value} cold damage!",
@@ -27,8 +27,8 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 18.0,
-                "damage_type": "cold"
+                "value": 18,
+                "damage_type": "ice"
             }
         ]
     },
@@ -36,7 +36,7 @@
         "name": "Zap",
         "description": "A weak jolt of electricity.",
         "mana_cost": 0,
-        "cooldown": 5.0,
+        "cooldown": 5,
         "target_type": "enemy",
         "cast_message": "{caster_name} crackles with energy!",
         "hit_message": "{caster_name} zaps {target_name} for {value} damage!",
@@ -44,7 +44,7 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 5.0
+                "value": 5
             }
         ]
     },
@@ -52,7 +52,7 @@
         "name": "Bone Shard",
         "description": "Launches a sharp fragment of bone at the target.",
         "mana_cost": 0,
-        "cooldown": 4.0,
+        "cooldown": 4,
         "target_type": "enemy",
         "cast_message": "{caster_name} conjures a shard of bone!",
         "hit_message": "A bone shard strikes {target_name} for {value} piercing damage!",
@@ -60,7 +60,7 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 6.0
+                "value": 6
             }
         ]
     },
@@ -68,7 +68,7 @@
         "name": "Poison Cloud",
         "description": "Conjures a noxious cloud that poisons the target.",
         "mana_cost": 12,
-        "cooldown": 10.0,
+        "cooldown": 10,
         "target_type": "enemy",
         "level_required": 4,
         "cast_message": "{caster_name} conjures a sickly green cloud!",
@@ -88,7 +88,7 @@
         "name": "Immolate",
         "description": "Engulfs the target in magical flames that burn over time.",
         "mana_cost": 14,
-        "cooldown": 9.0,
+        "cooldown": 9,
         "target_type": "enemy",
         "cast_message": "{caster_name} gestures, and flames erupt outward!",
         "hit_message": "{target_name} bursts into magical flames!",
@@ -116,7 +116,7 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 7.0,
+                "value": 7,
                 "damage_type": "fire"
             }
         ]

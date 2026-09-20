@@ -657,6 +657,76 @@ def _validate_authored_world(
             ))
 
 
+def _validate_skills_rules(ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """`skills.stat_bonuses` maps a skill to the stat that backs it.
+
+    Only shapes are checked here, not whether the stat exists: the ruleset is
+    where a set declares which stats it has, so `stat: "grit"` here *defines*
+    grit, and telling an author their own vocabulary is wrong would be the check
+    inventing a finding. The mismatch that matters is across files -- a
+    background or a resource pool naming a stat the ruleset never declared --
+    and `_validate_background_stats` is what catches that.
+    """
+    skills = ruleset.get("skills")
+    if skills is None:
+        return
+    if not isinstance(skills, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "skills must be an object"))
+        return
+    bonuses = skills.get("stat_bonuses", {})
+    if not isinstance(bonuses, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "skills.stat_bonuses must be an object"))
+        return
+    for skill, rule in sorted(bonuses.items()):
+        if str(skill).startswith("_"):
+            continue
+        label = f"skills.stat_bonuses.{skill}"
+        if not isinstance(rule, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} must be an object"))
+            continue
+        stat = rule.get("stat")
+        if stat is not None and (not isinstance(stat, str) or not stat.strip()):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.stat must be a non-empty string"))
+
+
+def _validate_weather_profiles(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """A `weather_profile` a region selects must be one the ruleset declares.
+
+    `WeatherManager` looks the id up and falls back to the unmapped global
+    weather, which is a reasonable default and also completely invisible: a
+    region authored to have alpine weather just reports rain.
+    """
+    weather = ruleset.get("weather")
+    profiles = weather.get("profiles", {}) if isinstance(weather, dict) else {}
+    declared = {
+        str(profile_id) for profile_id in profiles
+    } if isinstance(profiles, dict) else set()
+    region_dir = content_root / "regions"
+    if not region_dir.is_dir():
+        return
+    for path in sorted(region_dir.glob("*.json")):
+        payload = _load_json(path, [], "region")
+        if not isinstance(payload, dict) or isinstance(payload.get("themes"), dict):
+            continue
+        properties = payload.get("properties")
+        if not isinstance(properties, dict):
+            continue
+        profile_id = properties.get("weather_profile")
+        if not isinstance(profile_id, str) or not profile_id.strip():
+            continue
+        if profile_id.strip() in declared:
+            continue
+        issues.append(ContentSetIssue(
+            "error",
+            str(path),
+            "properties.weather_profile names '%s', which ruleset weather.profiles "
+            "does not declare%s" % (
+                profile_id.strip(),
+                "" if declared else " (it declares no profiles at all)",
+            ),
+        ))
+
+
 def _validate_ruleset_references(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
     """Validate optional cross-file references made by generic ruleset systems."""
     quest_generation = ruleset.get("quest_generation", {})
@@ -867,10 +937,35 @@ def _condition_issues(node: Any, where: str, path: Path) -> list[ContentSetIssue
     return found
 
 
+def _ability_ids(content_root: Path, issues: list[ContentSetIssue]) -> set[str]:
+    """Every ability id this set defines, read from the files the engine reads.
+
+    Not from `SPELL_REGISTRY`: that registry is populated when a `World` boots,
+    and validation runs *before* one exists (`game_manager.py` loads the content
+    set, then constructs the world). Reading it here returned an empty set, and
+    an empty id set means "skip this check" -- so every `spell_known`,
+    `teach_spell` and `known_spells` reference in the game was unchecked while
+    the validator reported success.
+
+    The directory choice mirrors `load_spells_from_json`: `abilities/` is what a
+    set that does not call them spells uses, `magic/` is the older name, and the
+    first one that exists wins.
+    """
+    for candidate in ("abilities", "magic"):
+        directory = content_root / candidate
+        if not directory.is_dir():
+            continue
+        ability_ids: set[str] = set()
+        for path in sorted(directory.glob("*.json")):
+            payload = _load_json(path, issues, "ability definitions")
+            if isinstance(payload, dict):
+                ability_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+        return ability_ids
+    return set()
+
+
 def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) -> dict[str, set[str]]:
     """Every id a dialogue line might name, gathered once."""
-    from engine.magic.spell_registry import SPELL_REGISTRY
-
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
     recipe_ids: set[str] = set()
     crafting_dir = content_root / "crafting"
@@ -887,18 +982,32 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
         if isinstance(payload, dict):
             quest_ids |= {str(k) for k in payload if not str(k).startswith("_")}
 
+    # Campaign ids come from the files the *engine* reads: `campaigns/*.json`,
+    # keyed by each file's `campaign_id` (`campaign_manager.py`). This used to
+    # look in `quests/campaigns/` and `quests/campaigns.json`, neither of which
+    # exists in any shipped set -- so the bucket was always empty, and the reader
+    # that guards on a non-empty bucket (`_stage_objectives` and friends) turned
+    # every `start_campaign` reference into a no-op. An empty id set that means
+    # "skip the check" is the worst possible failure: the check reports success.
     campaign_ids: set[str] = set()
-    campaigns_dir = content_root / "quests" / "campaigns"
+    campaigns_dir = content_root / "campaigns"
     if campaigns_dir.is_dir():
         for path in sorted(campaigns_dir.glob("*.json")):
             payload = _load_json(path, issues, "campaign definitions")
-            if isinstance(payload, dict):
-                campaign_ids |= {str(k) for k in payload if not str(k).startswith("_")}
-        index_path = content_root / "quests" / "campaigns.json"
-        if index_path.is_file():
-            payload = _load_json(index_path, issues, "campaign index")
-            if isinstance(payload, dict):
-                campaign_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+            if not isinstance(payload, dict):
+                continue
+            # A campaign file may be one campaign or a library of them: the
+            # engine keys a campaign by the file's own `campaign_id` when it has
+            # one, and by the entry's key otherwise.
+            authored = payload.get("campaign_id")
+            if isinstance(authored, str) and authored.strip():
+                campaign_ids.add(authored.strip())
+                continue
+            for key, definition in payload.items():
+                if str(key).startswith("_"):
+                    continue
+                nested = definition.get("campaign_id") if isinstance(definition, dict) else None
+                campaign_ids.add(str(nested) if isinstance(nested, str) and nested.strip() else str(key))
 
     discovery_ids: set[str] = set()
     discoveries_path = content_root / "discoveries.json"
@@ -928,7 +1037,7 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
         "discoveries": discovery_ids,
         "regions": region_ids,
         "npcs": npc_ids,
-        "spells": {str(sid) for sid in SPELL_REGISTRY},
+        "spells": _ability_ids(content_root, issues),
     }
 
 
@@ -1749,7 +1858,99 @@ def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], i
                 ))
 
 
-def _validate_starting_content(content_root: Path, issues: list[ContentSetIssue]) -> None:
+def _player_stat_names() -> set[str]:
+    """The stat names a player really has: the scalar keys of the engine defaults.
+
+    Read from the defaults rather than written out here, because a second list
+    is a second thing to keep in step -- and the reason this check exists is
+    that nothing was keeping anything in step. `resistances` is deliberately not
+    a stat name: it is the container the per-channel resistances live in.
+    """
+    from engine.config import PLAYER_DEFAULT_STATS
+
+    return {
+        str(name) for name, value in PLAYER_DEFAULT_STATS.items()
+        if not isinstance(value, dict)
+    }
+
+
+def _ruleset_stat_names(ruleset: dict[str, Any]) -> set[str]:
+    """Stat names the content set's own ruleset names.
+
+    A set may flavour its stats -- the sci-fi proof already does -- so a stat
+    these files name is a real stat even when the engine's fantasy-flavoured
+    defaults have never heard of it.
+    """
+    names: set[str] = set()
+    skills = ruleset.get("skills") if isinstance(ruleset, dict) else None
+    stat_bonuses = skills.get("stat_bonuses", {}) if isinstance(skills, dict) else {}
+    if isinstance(stat_bonuses, dict):
+        for rule in stat_bonuses.values():
+            if isinstance(rule, dict) and isinstance(rule.get("stat"), str):
+                names.add(rule["stat"].strip())
+    resources = ruleset.get("resources") if isinstance(ruleset, dict) else None
+    if isinstance(resources, dict):
+        for field in ("max_stat", "regeneration_stat"):
+            if isinstance(resources.get(field), str):
+                names.add(resources[field].strip())
+    return {name for name in names if name}
+
+
+def _validate_background_stats(
+    ruleset: dict[str, Any], stats: Any, skills: Any, label: str, path: Path,
+    issues: list[ContentSetIssue],
+) -> None:
+    """A starting stat or skill the engine does not have is a typo, not a stat.
+
+    `BackgroundManager` copies whatever keys it finds into `player.stats` and
+    `progression.skills`. Nothing downstream ever reads `strengh`, so the typo
+    is silent in both directions: it changes no number, and it reports nothing.
+    Stats a set's own ruleset names are accepted alongside the engine defaults,
+    because a set with a different stat vocabulary is not wrong -- a set with a
+    misspelling of its own vocabulary is.
+    """
+    known_stats = _player_stat_names() | _ruleset_stat_names(ruleset)
+    unknown = sorted(
+        str(stat) for stat, value in (stats if isinstance(stats, dict) else {}).items()
+        if not str(stat).startswith("_")
+        and not isinstance(value, dict)
+        and str(stat) not in known_stats
+    )
+    if unknown:
+        issues.append(ContentSetIssue(
+            "error",
+            str(path),
+            "%s.stats names %s, which is not a stat the engine or this set's ruleset "
+            "declares (declared: %s)" % (
+                label,
+                ", ".join("'%s'" % stat for stat in unknown),
+                ", ".join(sorted(known_stats)),
+            ),
+        ))
+
+    skill_rules = ruleset.get("skills") if isinstance(ruleset, dict) else None
+    declared_skills = skill_rules.get("stat_bonuses", {}) if isinstance(skill_rules, dict) else {}
+    if not isinstance(declared_skills, dict) or not declared_skills:
+        # A set that declares no stat bonuses at all is not "missing" every
+        # skill -- it has opted out of stat-backed skills, which is a legitimate
+        # shape for a set whose checks are not stat-driven. The warning is only
+        # useful once a set has started declaring rules: then a skill granted by
+        # a background but named by no rule reads as the one that was forgotten.
+        return
+    for skill in sorted(str(s) for s in (skills if isinstance(skills, dict) else {})):
+        if skill in declared_skills:
+            continue
+        issues.append(ContentSetIssue(
+            "warning",
+            str(path),
+            "%s.skills grants '%s', which ruleset skills.stat_bonuses does not name -- "
+            "it will be recorded and never consulted" % (label, skill),
+        ))
+
+
+def _validate_starting_content(
+    content_root: Path, issues: list[ContentSetIssue], ruleset: Optional[dict[str, Any]] = None
+) -> None:
     """Validate backgrounds and titles -- the two P4 content files."""
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
     recipe_path = content_root / "crafting"
@@ -1784,6 +1985,14 @@ def _validate_starting_content(content_root: Path, issues: list[ContentSetIssue]
                 for index, recipe_id in enumerate(background.get("recipes", []) or []):
                     if recipe_ids and str(recipe_id) not in recipe_ids:
                         issues.append(ContentSetIssue("error", str(backgrounds_path), f"{label}.recipes[{index}] references missing recipe '{recipe_id}'"))
+                _validate_background_stats(
+                    ruleset or {},
+                    background.get("stats", {}),
+                    background.get("skills", {}),
+                    label,
+                    backgrounds_path,
+                    issues,
+                )
 
     titles_path = content_root / "titles.json"
     if titles_path.is_file():
@@ -1972,9 +2181,28 @@ def _validate_crafting_quality_contracts(
         if not isinstance(payload, dict):
             continue
         for recipe_id, recipe in payload.items():
+            if str(recipe_id).startswith("_"):
+                continue
             if not isinstance(recipe, dict):
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"recipe '{recipe_id}' must be an object",
+                ))
                 continue
             label = f"recipe '{recipe_id}'"
+
+            # The recipe reader is strict, and it is the only reader of a recipe:
+            # `Recipe` is where the engine decides what these fields mean, so
+            # asking it is how this check stays in step with the engine instead
+            # of listing the fields again and drifting. Every check below it
+            # adds to that, not replaces it.
+            from engine.crafting.recipe import Recipe
+            from engine.utils.content_values import ContentValueError
+
+            try:
+                Recipe(str(recipe_id), recipe)
+            except ContentValueError as refused:
+                issues.append(ContentSetIssue("error", str(path), str(refused)))
+
             ingredients = recipe.get("ingredients", [])
 
             # `aliases` are alternative names a player might type, resolved by
@@ -2345,7 +2573,9 @@ def load_content_set(
             _validate_ruleset_references(content_root, ruleset_payload, issues, ruleset_source_path)
             _validate_ambient_loot_references(content_root, ruleset_payload, issues, ruleset_source_path)
             _validate_advancement_content(content_root, ruleset_payload, issues, ruleset_source_path)
-        _validate_starting_content(content_root, issues)
+        _validate_starting_content(content_root, issues, ruleset_payload)
+        _validate_skills_rules(ruleset_payload, issues, ruleset_source_path)
+        _validate_weather_profiles(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_quest_stages(content_root, issues)

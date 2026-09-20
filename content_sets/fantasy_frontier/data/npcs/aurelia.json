@@ -22,7 +22,7 @@
         "default_dialog": "Corin studies a valuation slip before returning your attention.",
         "properties": {
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "aurelia_city:auction_hall",
             "buys_item_types": [
@@ -71,7 +71,7 @@
         "default_dialog": "Elion holds a page to the light, checking the watermark before speaking.",
         "properties": {
             "dialogue": "elion_archivist",
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "aurelia_city:museum_atrium",
             "can_give_generic_quests": true
@@ -100,7 +100,7 @@
         "default_dialog": "Lyra checks a compass bearing against the margin of a field map.",
         "properties": {
             "dialogue": "lyra_surveyor",
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "aurelia_city:surveyors_hall",
             "can_give_generic_quests": true
@@ -129,7 +129,7 @@
         "default_dialog": "Ves tests the balance of a hammer before setting it back on the rack.",
         "properties": {
             "is_vendor": true,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 9999,
             "work_location": "aurelia_city:artificers_exchange",
             "buys_item_types": [

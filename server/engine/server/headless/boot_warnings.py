@@ -56,6 +56,39 @@ if TYPE_CHECKING:
     from engine.server.headless.models import Session, Party
 
 
+# Every code this server can emit, and therefore every code an operator may put in
+# `startup_diagnostics.fail_on_warning_codes`. The policy matches by exact string,
+# so a misspelled entry appears in no warning and the policy never fires: the
+# config reads as strict and is not. `docs/reference/boot-warning-codes.md` listed
+# four transposed codes for exactly that reason, unnoticed, because a wrong code
+# produces no output at all.
+#
+# Adding a warning means adding its code here, to the document, and to
+# `test_boot_warning_codes.py`, which fails if the three disagree.
+KNOWN_BOOT_WARNING_CODES = frozenset({
+    "content.items.dir_missing",
+    "content.items.duplicate_ids",
+    "content.items.file_errors",
+    "content.items.invalid_missing_required",
+    "content.npcs.dir_missing",
+    "content.npcs.duplicate_ids",
+    "content.npcs.file_errors",
+    "content.npcs.invalid_missing_name",
+    "content.spells.dir_missing",
+    "content.spells.duplicate_ids",
+    "content.spells.file_errors",
+    "content.topics.load_error",
+    "content.topics.missing",
+    "profile.mode.invalid",
+    "profile.mods.disabled",
+    "runtime.command.failed",
+    "weather.provider.missing",
+    "weather.provider.not_found",
+    "world_effects.provider.missing",
+    "world_effects.provider.not_found",
+})
+
+
 class BootWarningsMixin:
     def _seed_boot_warnings_from_profile(self) -> None:
         warnings = list(getattr(self.feature_profile, "warnings", []))
@@ -206,6 +239,21 @@ class BootWarningsMixin:
     def _enforce_boot_warning_policy(self) -> None:
         if not self.boot_warning_fail_codes:
             return
+
+        # A code that cannot ever be emitted is a misconfiguration, not a policy.
+        # Checked before the warnings themselves, because the failure it prevents
+        # is silent: the operator believes startup is guarded and it is not.
+        unknown = sorted(
+            code for code in self.boot_warning_fail_codes
+            if code not in KNOWN_BOOT_WARNING_CODES
+        )
+        if unknown:
+            raise RuntimeError(
+                "Boot aborted by warning policy. Unknown warning code(s): %s. "
+                "See docs/reference/boot-warning-codes.md for the codes this server emits."
+                % ", ".join(unknown)
+            )
+
         present = {
             str(entry.get("code", "")).strip()
             for entry in self.boot_warning_records

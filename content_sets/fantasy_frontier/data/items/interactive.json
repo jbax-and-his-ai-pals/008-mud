@@ -18,7 +18,7 @@
         "type": "Item",
         "name": "massive obsidian gate",
         "description": "A huge slab of rock blocking the way north. It has no keyhole, but looks connected to mechanisms elsewhere.",
-        "weight": 9999.0,
+        "weight": 9999,
         "properties": {
             "can_take": false
         },

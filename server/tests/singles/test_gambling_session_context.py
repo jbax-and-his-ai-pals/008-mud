@@ -63,9 +63,14 @@ class TestGamblingSessionContext(unittest.TestCase):
         events = self.server.execute_command(self.leader.session_id, "stand")
         payloads = self._text_payloads(events)
 
-        self.assertTrue(any("You win!" in payload for payload in payloads))
+        self.assertTrue(any("You win" in payload for payload in payloads))
         self.assertIsNone(self.leader_player.active_minigame)
-        self.assertEqual(70, self.leader_player.runtime_state.gold)
+        # The right player was paid, which is what this test is about: the
+        # invoking session's player, not the one the world happens to reference.
+        # The amount is the party's share of the winnings -- see
+        # `_settle_winnings`, and `test_money_is_whole` for the arithmetic.
+        self.assertEqual(60, self.leader_player.runtime_state.gold)
+        self.assertEqual(0, self.member_player.runtime_state.gold)
         self.assertIsNone(self.member_player.active_minigame)
 
     def test_runebreaker_guess_uses_invoking_session_player(self) -> None:

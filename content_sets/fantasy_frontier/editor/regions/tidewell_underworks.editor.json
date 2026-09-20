@@ -1,0 +1,48 @@
+{
+    "region": {
+        "_editor_connection_label_sources": {
+            "cistern_steps|pump_chamber": {
+                "source": "pump_chamber",
+                "direction": "southwest"
+            }
+        }
+    },
+    "rooms": {
+        "sluice_gate": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "drowned_storehouse": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "tide_gallery": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        },
+        "cistern_steps": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        },
+        "pump_chamber": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "blackwater_vault": {
+            "_editor_pos": [
+                0,
+                576
+            ]
+        }
+    }
+}

@@ -45,7 +45,7 @@
 
 ## P0: Accessibility Gate (Release Blocking)
 
-- [ ] Priority 0 scenarios in `docs/roadmap/accessibility-qa-matrix.md` pass on desktop.
+- [ ] Priority 0 scenarios in `docs/archive/accessibility-qa-matrix.md` pass on desktop.
 - [ ] Priority 0 scenarios pass on the smallest supported mobile form factor.
 - [ ] Sign-off template completed and archived in `docs/roadmap/evidence/`.
 
@@ -57,11 +57,11 @@
 - [ ] Steam install layout finalized (`MUD Client`, `Engine + Toolkit`, `Sample Worlds`).
 - [ ] Mod folder conventions documented and enforced by installer.
 - [ ] Update-safe user content directory defined and tested.
-- [ ] Save content-isolation policy published (`docs/save-content-isolation-policy.md`).
+- [ ] Save content-isolation policy published (`docs/reference/save-content-isolation-policy.md`).
 - [ ] Workshop strategy decided (if used).
 
 ### Quality
-- [ ] Onboarding/tutorial flow verified end-to-end (`docs/onboarding-tutorial-flow.md`).
+- [ ] Onboarding/tutorial flow verified end-to-end (`docs/reference/onboarding-tutorial-flow.md`).
 - [ ] Sample game catalog reviewed and bundled.
 - [ ] Accessibility Priority 1 scenarios pass.
 - [ ] Controller/keyboard UX baseline passes for toolkit launch flow.

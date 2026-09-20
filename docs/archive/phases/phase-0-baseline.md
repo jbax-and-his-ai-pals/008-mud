@@ -20,14 +20,14 @@ Define the platform contract: engine boundaries, toolkit scope, modding model, a
 - [ ] Write ADR: pack compatibility windows and migration guarantees.
 
 Evidence:
-- Product SKU strategy: [README.md](C:/python/old/restart/docs/roadmap/README.md)
-- Runtime/content boundaries: [platform-architecture.md](C:/python/old/restart/docs/roadmap/platform-architecture.md)
-- Modding levels: [platform-architecture.md](C:/python/old/restart/docs/roadmap/platform-architecture.md)
-- First four sample themes: [platform-architecture.md](C:/python/old/restart/docs/roadmap/platform-architecture.md)
-- World mode baseline contract: [engine-capability-track.md](C:/python/old/restart/docs/roadmap/engine-capability-track.md)
-- Finite-adventure runtime contract: [finite-adventure-contract.md](C:/python/old/restart/docs/roadmap/finite-adventure-contract.md)
-- Party runtime contract: [party-lifecycle-contract.md](C:/python/old/restart/docs/roadmap/party-lifecycle-contract.md)
-- Persistent shard contract: [persistent-shard-contract.md](C:/python/old/restart/docs/roadmap/persistent-shard-contract.md)
+- Product SKU strategy: [README.md](C:/python/old/restart/docs/archive/roadmap-README-superseded.md)
+- Runtime/content boundaries: [platform-architecture.md](C:/python/old/restart/docs/reference/platform-architecture.md)
+- Modding levels: [platform-architecture.md](C:/python/old/restart/docs/reference/platform-architecture.md)
+- First four sample themes: [platform-architecture.md](C:/python/old/restart/docs/reference/platform-architecture.md)
+- World mode baseline contract: [engine-capability-track.md](C:/python/old/restart/docs/archive/engine-capability-track.md)
+- Finite-adventure runtime contract: [finite-adventure-contract.md](C:/python/old/restart/docs/archive/finite-adventure-contract.md)
+- Party runtime contract: [party-lifecycle-contract.md](C:/python/old/restart/docs/archive/party-lifecycle-contract.md)
+- Persistent shard contract: [persistent-shard-contract.md](C:/python/old/restart/docs/archive/persistent-shard-contract.md)
 
 ## Exit Gate
 

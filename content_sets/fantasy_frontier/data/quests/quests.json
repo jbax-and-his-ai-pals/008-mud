@@ -24,7 +24,7 @@
             "relationships": [
                 {
                     "npc_template_id": "village_elder",
-                    "amount": 10.0
+                    "amount": 10
                 }
             ]
         }
@@ -79,7 +79,7 @@
             "relationships": [
                 {
                     "npc_template_id": "village_elder",
-                    "amount": 2.0
+                    "amount": 2
                 }
             ]
         }
@@ -119,7 +119,7 @@
             "relationships": [
                 {
                     "npc_template_id": "curator",
-                    "amount": 8.0
+                    "amount": 8
                 }
             ]
         }
@@ -463,7 +463,7 @@
             "relationships": [
                 {
                     "npc_template_id": "smuggler_leader",
-                    "amount": 25.0
+                    "amount": 25
                 }
             ]
         }
@@ -543,7 +543,7 @@
             "relationships": [
                 {
                     "npc_template_id": "frostpeak_lodgekeeper",
-                    "amount": 8.0
+                    "amount": 8
                 }
             ]
         }
@@ -575,7 +575,7 @@
             "relationships": [
                 {
                     "npc_template_id": "sunscorch_caravanmaster",
-                    "amount": 10.0
+                    "amount": 10
                 }
             ]
         }
@@ -607,7 +607,7 @@
             "relationships": [
                 {
                     "npc_template_id": "aurelia_archivist",
-                    "amount": 10.0
+                    "amount": 10
                 }
             ]
         }
@@ -636,7 +636,7 @@
             "relationships": [
                 {
                     "npc_template_id": "aurelia_archivist",
-                    "amount": 15.0
+                    "amount": 15
                 }
             ]
         }
@@ -668,7 +668,7 @@
             "relationships": [
                 {
                     "npc_template_id": "aurelia_surveyor",
-                    "amount": 10.0
+                    "amount": 10
                 }
             ]
         }
@@ -700,7 +700,7 @@
             "relationships": [
                 {
                     "npc_template_id": "harbourmaster_voss",
-                    "amount": 10.0
+                    "amount": 10
                 }
             ]
         }
@@ -729,7 +729,7 @@
             "relationships": [
                 {
                     "npc_template_id": "harbourmaster_voss",
-                    "amount": 15.0
+                    "amount": 15
                 }
             ]
         }

@@ -25,7 +25,7 @@
                     "next_node": "trade",
                     "effects": {
                         "adjust_relationship": {
-                            "amount": 1.0
+                            "amount": 1
                         }
                     }
                 },
@@ -40,7 +40,7 @@
                     "condition": {
                         "kind": "relationship_at_least",
                         "npc_id": "blacksmith",
-                        "value": 5.0
+                        "value": 5
                     },
                     "next_node": "missing"
                 },
@@ -166,7 +166,7 @@
             "effects": {
                 "grant_recipe": "forge_travelers_hatchet",
                 "adjust_relationship": {
-                    "amount": 5.0
+                    "amount": 5
                 },
                 "set_flag": "grenda_taught_hatchet"
             },

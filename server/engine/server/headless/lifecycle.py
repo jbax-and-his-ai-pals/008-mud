@@ -104,6 +104,22 @@ class LifecycleMixin:
             components=components,
         )
 
+    def discard_background_batch(self) -> None:
+        """Drop accumulated background events when nobody is subscribed.
+
+        The world advances whether or not anyone is connected, and most of what a
+        tick produces is addressed to whoever happens to be in the room: a season
+        change, an NPC moving, a field cell spreading. With no sessions those
+        events have no recipient, so they are dropped rather than queued.
+
+        Dropping is right here, and not a silent loss of state: the underlying
+        change has already happened in the world (and, for field cells, been
+        queued for persistence). What is discarded is the *notification*, which is
+        reconstruction-free -- the next session to arrive gets the current state
+        from the world itself, not from a backlog of stale deltas.
+        """
+        self._background_event_batch.clear()
+
     def _flush_background_batch(self, session_id: str) -> List[Dict[str, Any]]:
         """Drain accumulated background events, optionally coalescing text payloads."""
         if not self._background_event_batch:
@@ -111,8 +127,7 @@ class LifecycleMixin:
         if not self._background_batch_enabled:
             out = list(self._background_event_batch)
             self._background_event_batch.clear()
-            return out
-        # Coalesce consecutive text events for the same session into one payload
+            return out        # Coalesce consecutive text events for the same session into one payload
         # to reduce round-trips on mobile / high-latency links.
         coalesced: List[Dict[str, Any]] = []
         text_lines: List[str] = []
@@ -129,7 +144,19 @@ class LifecycleMixin:
         self._background_event_batch.clear()
         return coalesced
 
-    def tick(self, session_id: str, dt: Optional[float] = None) -> List[Dict[str, Any]]:
+    def tick(self, session_id: Optional[str] = None, dt: Optional[float] = None) -> List[Dict[str, Any]]:
+        """Advance the shared world by `dt` seconds.
+
+        `session_id` names the session whose player should also be advanced, and
+        may be None: the world is not a property of who is connected. Time of day,
+        seasons, weather, NPC and region activity, and field propagation all move
+        on a server with nobody logged in, which is what makes a persistent world
+        persistent. Only the player-specific work at the end needs a session.
+
+        Returns the events addressed to `session_id` directly. Ambient and
+        world-state events go to the background batch; with no session there is
+        nothing to flush them to, and the caller discards them.
+        """
         self._sync_providers_with_profile()
         if not self._world_mode_tick_enabled():
             return []

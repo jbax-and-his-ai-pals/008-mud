@@ -55,6 +55,27 @@ class Item(GameObject):
         return base_desc
 
     def use(self, user, **kwargs) -> str:
+        """Flavour text for an item with no mechanic behind it.
+
+        `use_text` is the general field for this. A cut stone, a bent offcut and
+        a lost earring differ only in the sentence the player reads, so the
+        sentence is content: the `Gem`, `Junk` and `Treasure` classes existed to
+        hold one each, which made three engine classes out of three strings.
+
+        Substitution is literal rather than `str.format`, because authored prose
+        is not a format string. `str.format` on text containing a brace the
+        author did not mean as a placeholder raises, and the sentence -- which is
+        the whole content of the field -- would be lost.
+        """
+        authored = self.get_property("use_text", "")
+        if isinstance(authored, str) and authored.strip():
+            return (
+                authored
+                .replace("{name}", self.name)
+                .replace("{item_name}", self.name)
+                .replace("{{", "{")
+                .replace("}}", "}")
+            )
         return f"You don't know how to use the {self.name}."
 
     def to_dict(self) -> Dict[str, Any]:

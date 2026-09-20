@@ -1,0 +1,53 @@
+{
+    "region": {},
+    "rooms": {
+        "south_gate": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "guild_square": {
+            "_editor_pos": [
+                0,
+                -192
+            ]
+        },
+        "auction_hall": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
+        "museum_steps": {
+            "_editor_pos": [
+                0,
+                -384
+            ]
+        },
+        "museum_atrium": {
+            "_editor_pos": [
+                0,
+                -576
+            ]
+        },
+        "scholars_walk": {
+            "_editor_pos": [
+                -256,
+                -192
+            ]
+        },
+        "surveyors_hall": {
+            "_editor_pos": [
+                -256,
+                -384
+            ]
+        },
+        "artificers_exchange": {
+            "_editor_pos": [
+                256,
+                -384
+            ]
+        }
+    }
+}

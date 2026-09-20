@@ -171,9 +171,23 @@ TOP_LEVEL_FIELDS = {
     "schema_version": {"type": "int", "required": True},
     "label": {"type": "string"},
     "description": {"type": "string"},
+    # The one section that is an object rather than a list of `id` entries: it
+    # is a mapping from role to stat, not a family of things.
+    "stats": {"type": "object", "fields": {
+        "roles": {"type": "map", "of": {"type": "string"}},
+        "short": {"type": "map", "of": {"type": "string"}},
+        "order": {"type": "list_of", "of": "string"},
+    }},
     **{name: {"type": "list_of", "of": {"type": "object", "fields": fields}}
        for name, fields in CONTRACT_SCHEMAS.items()},
 }
+
+# What each role means, checked so a typo'd role is reported rather than read as
+# an undeclared one (which would silently take the engine default).
+STAT_ROLE_NAMES = (
+    "health", "attack", "defence", "evasion", "regeneration",
+    "power", "ability_power", "resistance",
+)
 
 # --- engine defaults ---------------------------------------------------------
 
@@ -266,6 +280,9 @@ class ContractRegistry:
     defense_profiles: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     abilities: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     effect_packets: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # Not a family of entries with ids: one mapping from role to stat. See
+    # `engine/contracts/stats.py` for what each role means.
+    stats: Dict[str, Any] = field(default_factory=dict)
     issues: List[str] = field(default_factory=list)
 
     # -- loading ----------------------------------------------------------
@@ -327,7 +344,46 @@ class ContractRegistry:
             for entry in entries:
                 bucket[str(entry["id"])] = entry
 
+        self._ingest_stats(payload.get("stats"))
+
         self._resolve_references()
+
+    def _ingest_stats(self, declared: Any) -> None:
+        """The role-to-stat mapping, which no list validator can express."""
+        if declared is None:
+            return
+        if not isinstance(declared, dict):
+            self.issues.append("stats must be an object")
+            return
+        roles = declared.get("roles")
+        if roles is None:
+            self.stats = {key: value for key, value in declared.items() if key != "roles"}
+            return
+        if not isinstance(roles, dict):
+            self.issues.append("stats.roles must be an object mapping role to stat")
+            return
+        unknown = sorted(
+            str(role) for role in roles
+            if str(role) not in STAT_ROLE_NAMES and not str(role).startswith("_")
+        )
+        if unknown:
+            self.issues.append(
+                "stats.roles names %s, which the engine has no role for (roles: %s)"
+                % (", ".join("'%s'" % role for role in unknown), ", ".join(STAT_ROLE_NAMES))
+            )
+            return
+        self.stats = {key: value for key, value in declared.items() if key != "roles"}
+        self.stats["roles"] = {
+            str(role): str(stat).strip()
+            for role, stat in roles.items()
+            if isinstance(stat, str) and stat.strip()
+        }
+
+    def stat_for_role(self, role: str) -> str:
+        roles = self.stats.get("roles") if isinstance(self.stats, dict) else None
+        if not isinstance(roles, dict):
+            return ""
+        return str(roles.get(str(role), "") or "")
 
     def _resolve_references(self) -> None:
         """Every reference a contract makes must land somewhere."""
@@ -429,7 +485,7 @@ class ContractRegistry:
     def is_empty(self) -> bool:
         return not (self.item_families or self.generation_profiles or self.resources
                     or self.attack_profiles or self.defense_profiles
-                    or self.abilities or self.effect_packets)
+                    or self.abilities or self.effect_packets or self.stats)
 
     def status(self) -> str:
         from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_TITLE

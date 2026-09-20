@@ -6,9 +6,12 @@ from engine.config import (
     NPC_BASE_HEALTH, NPC_BASE_MANA_REGEN_RATE, NPC_BASE_XP_TO_LEVEL, NPC_CON_HEALTH_MULTIPLIER, NPC_DEFAULT_BEHAVIOR,
     NPC_DEFAULT_MOVE_COOLDOWN, NPC_DEFAULT_RESPAWN_COOLDOWN, NPC_DEFAULT_STATS, NPC_DEFAULT_WANDER_CHANCE, NPC_HEALTH_DESC_THRESHOLDS,
     NPC_LEVEL_CON_HEALTH_MULTIPLIER, NPC_LEVEL_HEALTH_BASE_INCREASE, NPC_LEVEL_UP_HEALTH_HEAL_PERCENT, NPC_LEVEL_UP_STAT_INCREASE,
-    NPC_MANA_REGEN_WISDOM_DIVISOR, NPC_MAX_COMBAT_MESSAGES, NPC_XP_TO_LEVEL_MULTIPLIER, PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR, PLAYER_REGEN_TICK_INTERVAL, WORLD_UPDATE_INTERVAL
+    NPC_MANA_REGEN_WISDOM_DIVISOR, NPC_MAX_COMBAT_MESSAGES, NPC_XP_TO_LEVEL_MULTIPLIER,
+    PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR, PLAYER_REGEN_TICK_INTERVAL, WORLD_UPDATE_INTERVAL
 )
 from engine.config.config_player import PLAYER_BASE_HEALTH_REGEN_RATE
+from engine.contracts import stats as stats_contract
+from engine.contracts.resources import regen_stat as resource_regen_stat
 from engine.game_object import GameObject
 from engine.items.inventory import Inventory
 from engine.items.item import Item
@@ -36,8 +39,19 @@ class NPC(GameObject):
         self.experience: int = 0
         self.experience_to_level: int = NPC_BASE_XP_TO_LEVEL
         self.is_trading: bool = False
-        base_hp = NPC_BASE_HEALTH + int(self.stats.get('constitution', 8) * NPC_CON_HEALTH_MULTIPLIER)
-        level_hp_bonus = (self.level - 1) * (NPC_LEVEL_HEALTH_BASE_INCREASE + int(self.stats.get('constitution', 8) * NPC_LEVEL_CON_HEALTH_MULTIPLIER))
+        # Which stat drives an NPC's health, mana refill and health refill comes
+        # from the content set's `stats` contract, the same as a player's. The
+        # default for a stat an NPC does not carry is that stat's own entry in
+        # `NPC_DEFAULT_STATS` -- they are not all the same number.
+        base_hp = NPC_BASE_HEALTH + stats_contract.stat_for(
+            getattr(self, "world", None), self.stats, "health", NPC_DEFAULT_STATS
+        ) * NPC_CON_HEALTH_MULTIPLIER
+        level_hp_bonus = (self.level - 1) * (
+            NPC_LEVEL_HEALTH_BASE_INCREASE
+            + stats_contract.stat_for(
+                getattr(self, "world", None), self.stats, "health", NPC_DEFAULT_STATS
+            ) * NPC_LEVEL_CON_HEALTH_MULTIPLIER
+        )
         self.max_health = base_hp + level_hp_bonus
         self.health = min(health, self.max_health)
         self.max_mana: int = 10
@@ -247,10 +261,21 @@ class NPC(GameObject):
 
     def _handle_safe_zone_regen(self, current_time: float):
         if current_time - self.last_regen_time >= PLAYER_REGEN_TICK_INTERVAL:
+            world = getattr(self, "world", None)
             if self.max_mana > 0:
-                mana_regen = NPC_BASE_MANA_REGEN_RATE * (1 + self.stats.get('wisdom', 5) / NPC_MANA_REGEN_WISDOM_DIVISOR)
+                # The pool's refill stat is the `resources` contract's business;
+                # health's refill stat is the `stats` contract's.
+                mana_stat = resource_regen_stat(world)
+                mana_regen = NPC_BASE_MANA_REGEN_RATE * (
+                    1 + stats_contract.stat_value(self.stats, mana_stat, NPC_DEFAULT_STATS)
+                    / NPC_MANA_REGEN_WISDOM_DIVISOR
+                )
                 self.mana = int(min(self.max_mana, self.mana + mana_regen))
-            health_regen = PLAYER_BASE_HEALTH_REGEN_RATE * (1 + self.stats.get('strength', 8) / PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR)
+            health_regen = PLAYER_BASE_HEALTH_REGEN_RATE * (
+                1 + stats_contract.stat_for(
+                    world, self.stats, "regeneration", NPC_DEFAULT_STATS
+                ) / PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR
+            )
             self.health = int(min(self.max_health, self.health + health_regen))
             self.last_regen_time = current_time
 
@@ -269,7 +294,9 @@ class NPC(GameObject):
             if isinstance(value, (int, float)):
                 self.stats[stat] += NPC_LEVEL_UP_STAT_INCREASE
         old_max_health = self.max_health
-        final_con = self.stats.get('constitution', 8)
+        final_con = stats_contract.stat_for(
+            getattr(self, "world", None), self.stats, "health", NPC_DEFAULT_STATS
+        )
         self.max_health += NPC_LEVEL_HEALTH_BASE_INCREASE + int(final_con * NPC_LEVEL_CON_HEALTH_MULTIPLIER)
         self.heal(int((self.max_health - old_max_health) * NPC_LEVEL_UP_HEALTH_HEAL_PERCENT))
 

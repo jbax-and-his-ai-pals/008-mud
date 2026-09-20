@@ -73,13 +73,20 @@ def render_stats_content(surface: pygame.Surface, context: dict, hotspots: List[
     draw_line(f"XP:     {player.runtime_state.progression.experience}/{player.runtime_state.progression.experience_to_level}", DEFAULT_COLORS[FORMAT_ORANGE])
     y += 5
     
-    stats = ["strength", "dexterity", "constitution", "agility", "intelligence", "wisdom"]
+    # Which stats a panel shows, and what it calls them, is the content set's
+    # `stats` contract; the fallback is the shipped vocabulary for a set that
+    # declares none.
+    from engine.contracts import stats as stats_contract
+
+    stats = stats_contract.display_stats(
+        getattr(player, "world", None),
+        ["strength", "dexterity", "constitution", "agility", "intelligence", "wisdom"],
+    )
     col_width = width // 2
     
     start_y = y
-    for i, stat in enumerate(stats):
+    for i, (stat, abbr) in enumerate(stats):
         val = player.get_effective_stat(stat)
-        abbr = stat[:3].upper()
         
         col = i % 2
         row = i // 2

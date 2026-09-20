@@ -247,8 +247,8 @@
 - Confirmed fixture refresh + boot smoke using selected target from `LATEST_REFRESH.json`.
 - Updated handoff docs for next contributor/session.
 - Initial capability-contract docs for world modes, finite-adventure lifecycle, and party lifecycle.
-- Initial shard operator/runtime contract doc: `docs/roadmap/persistent-shard-contract.md`.
-- Initial finite-adventure runtime contract doc: `docs/roadmap/finite-adventure-contract.md`.
+- Initial shard operator/runtime contract doc: `docs/archive/persistent-shard-contract.md`.
+- Initial finite-adventure runtime contract doc: `docs/archive/finite-adventure-contract.md`.
 
 ## Known Remaining Issues (Not Yet Fixed)
 

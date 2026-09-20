@@ -3,7 +3,7 @@
 Accessibility is a release-blocking quality bar across desktop and mobile clients.
 
 Reference QA matrix:
-- [Accessibility QA Matrix](C:/python/old/restart/docs/roadmap/accessibility-qa-matrix.md)
+- [Accessibility QA Matrix](C:/python/old/restart/docs/archive/accessibility-qa-matrix.md)
 
 ## Core Principles
 

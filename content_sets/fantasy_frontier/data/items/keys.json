@@ -4,7 +4,7 @@
         "name": "tavern cellar key",
         "description": "A small iron key that opens the cellar of the Drunken Dragon tavern.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "target_id": "tavern_cellar_door"
@@ -16,7 +16,7 @@
         "name": "house key",
         "description": "A plain brass key. It's warm from your pocket.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "item_family": "key"
     }

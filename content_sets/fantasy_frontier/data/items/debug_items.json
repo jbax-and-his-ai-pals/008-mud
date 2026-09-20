@@ -4,11 +4,11 @@
         "name": "Debug Sword",
         "description": "A ridiculously powerful sword. Grants god-like speed and strength.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "debug_only": true,
-            "damage": 999.0,
+            "damage": 999,
             "durability": 9999,
             "max_durability": 9999,
             "equip_slot": [
@@ -31,7 +31,7 @@
         "name": "Debug Shield",
         "description": "An unbreakable shield. Grants immense constitution.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "debug_only": true,
@@ -57,7 +57,7 @@
         "name": "Debug Armor",
         "description": "Impossibly protective armor. Makes you nearly invincible.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "debug_only": true,
@@ -85,7 +85,7 @@
         "name": "Debug Helmet",
         "description": "A flawless helmet. Expands your mind.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "debug_only": true,
@@ -112,7 +112,7 @@
         "name": "Debug Gauntlets",
         "description": "Perfectly crafted gauntlets. Enhances dexterity and spellcasting.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "debug_only": true,
@@ -139,7 +139,7 @@
         "name": "Debug Boots",
         "description": "Boots of impossible speed.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "debug_only": true,
@@ -166,7 +166,7 @@
         "name": "Debug Amulet",
         "description": "An amulet of pure power.",
         "weight": 0.1,
-        "value": 0.0,
+        "value": 0,
         "stackable": false,
         "properties": {
             "debug_only": true,
@@ -197,12 +197,12 @@
         "type": "Lockpick",
         "name": "debug lockpick",
         "description": "A magically reinforced lockpick used for testing.",
-        "weight": 0.0,
-        "value": 0.0,
+        "weight": 0,
+        "value": 0,
         "stackable": true,
         "properties": {
             "debug_only": true,
-            "break_chance": 0.0
+            "break_chance": 0
         },
         "item_family": "lockpick"
     }

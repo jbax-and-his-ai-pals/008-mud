@@ -1,0 +1,41 @@
+{
+    "region": {},
+    "rooms": {
+        "gate": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "supply_yard": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "forge": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "mining_lodge": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
+        "mine_office": {
+            "_editor_pos": [
+                256,
+                -384
+            ]
+        },
+        "bunkhouse": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        }
+    }
+}

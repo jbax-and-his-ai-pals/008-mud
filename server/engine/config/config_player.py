@@ -45,6 +45,11 @@ PLAYER_DEFAULT_STATS = {
 PLAYER_BASE_XP_TO_LEVEL = 100
 PLAYER_XP_TO_LEVEL_MULTIPLIER = 1.5
 PLAYER_LEVEL_UP_STAT_INCREASE = 1
+# The value a stat is assumed to hold when a player does not carry it. The
+# neutral point of the shipped curves: a stat of 10 contributes nothing, so a
+# missing stat is neutral rather than a penalty. Paired with
+# `NPC_NEUTRAL_STAT_VALUE`, which is 8 because an NPC's stats sit lower.
+PLAYER_NEUTRAL_STAT_VALUE = 10
 PLAYER_MANA_LEVEL_UP_MULTIPLIER = ABILITY_POOL_LEVEL_UP_MULTIPLIER
 PLAYER_MANA_LEVEL_UP_INT_DIVISOR = ABILITY_POOL_LEVEL_UP_STAT_DIVISOR
 PLAYER_MANA_REGEN_WISDOM_DIVISOR = ABILITY_POOL_REGEN_STAT_DIVISOR

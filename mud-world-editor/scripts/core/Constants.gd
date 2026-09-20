@@ -55,10 +55,28 @@ static func format_reciprocal_label(first: String, second: String, from: Vector2
 
 # Preserve the author-selected emitter when one exists. A caller can provide a
 # legacy source from stable room-creation order when metadata is unavailable.
+#
+# Only for a genuinely mismatched pair, though (an "opening"/"out"-style custom
+# reciprocal with no natural geometric opposite): swapping which position
+# anchors the angle above shifts it by exactly PI, which reliably flips
+# `text_flipped` for almost any angle -- except exactly at the +-90 degree
+# boundary itself (a perfectly vertical or horizontal connector), where both
+# the original and the PI-shifted angle land on the same side of the strict
+# `>`/`<` comparison. `GraphRenderer._draw_label_rotated` always rotates the
+# drawn text by the *unswapped* angle, so that one-value coincidence desyncs
+# this label's word order from the actual rotation precisely when a room is
+# moved to sit exactly north/south (or east/west) of its neighbour -- which is
+# exactly the bug: two rooms connected due south swapped the direction words
+# the instant they were grid-aligned, and moving either one room off that
+# exact alignment made it correct again. A clean compass inverse has one
+# always-correct physical placement regardless of authored_source, so it skips
+# the swap entirely rather than relying on a boundary that can coincide.
 static func format_reciprocal_pair_label(first_id: String, second_id: String, first_direction: String, second_direction: String, first_pos: Vector2, second_pos: Vector2, authored_source: String = "") -> String:
-	var use_second := authored_source == second_id
-	if use_second:
-		return format_reciprocal_label(second_direction, first_direction, second_pos, first_pos)
+	var is_clean_inverse: bool = INV_DIR_MAP.get(first_direction.to_lower(), "") == second_direction.to_lower()
+	if not is_clean_inverse:
+		var use_second := authored_source == second_id
+		if use_second:
+			return format_reciprocal_label(second_direction, first_direction, second_pos, first_pos)
 	return format_reciprocal_label(first_direction, second_direction, first_pos, second_pos)
 
 const ANCHORS = {

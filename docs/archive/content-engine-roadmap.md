@@ -2,7 +2,7 @@
 
 > **Superseded (2026-09-16).** Despite the "active product roadmap" claim
 > below, the actual active roadmap is [`/ROADMAP.md`](../../ROADMAP.md) —
-> see `docs/roadmap/README.md` for what changed. The product charter and
+> see `docs/archive/roadmap-README-superseded.md` for what changed. The product charter and
 > engine/content-set boundary described here still hold; the phase/priority
 > list does not (the content-set manifest, loader, and Fantasy Frontier
 > extraction it calls for are all done).

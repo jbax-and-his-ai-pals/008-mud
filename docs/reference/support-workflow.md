@@ -12,7 +12,7 @@ All users should be directed here first:
 
 - **In-game**: `help` command lists all available commands with descriptions.
 - **README**: `README.md` covers installation, running, and first-play steps.
-- **Mod/Creator docs**: `docs/content-authoring-and-mod-publishing-guidelines.md`
+- **Mod/Creator docs**: `docs/reference/content-authoring-and-mod-publishing-guidelines.md`
 - **FAQ** (to be published on Steam store page and/or itch.io)
 
 ---
@@ -41,7 +41,7 @@ Critical issues = data loss, server crash loop, security issue, or total gamepla
    - P1 = crash loop / unplayable → respond within 2 hours
    - P2 = degraded UX → respond within 24 hours
 3. **Communicate**: Post status update to Steam Discussion / Discord within 1 hour of P0/P1 detection.
-4. **Rollback if needed**: Follow `docs/save-content-isolation-policy.md` rollback procedure.
+4. **Rollback if needed**: Follow `docs/reference/save-content-isolation-policy.md` rollback procedure.
 5. **Post-mortem**: Within 3 days of resolution, write a brief post-mortem documenting root cause and prevention steps.
 
 ---

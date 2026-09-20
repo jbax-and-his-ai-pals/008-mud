@@ -2,6 +2,7 @@
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS
 from engine.items.container import Container
+from engine.utils.utils import whole
 
 
 @command("unlock", [], "interaction",
@@ -33,7 +34,7 @@ def unlock_handler(args, context):
     difficulty = int(target.get_property("lock_difficulty", 10))
     # Placeholder formula -- exact tuning is a deliberately deferred design
     # question (see docs/design/place_making_and_town_security.md).
-    fee = max(5, int(difficulty * 3 + target.weight * 2))
+    fee = max(5, whole(difficulty * 3 + target.weight * 2))
 
     if player.runtime_state.gold < fee:
         return (

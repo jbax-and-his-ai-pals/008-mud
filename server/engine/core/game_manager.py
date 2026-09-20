@@ -6,7 +6,6 @@ import json
 import time
 from typing import List, Optional, Dict, Any
 
-from engine.ai.ai_manager import AIManager
 from engine.commands.command_system import CommandProcessor
 from engine.config import (
     FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_TITLE, SCREEN_HEIGHT, SCREEN_WIDTH, TARGET_FPS,
@@ -71,7 +70,6 @@ class GameManager:
         self.weather_manager = WeatherManager(self.world)
         self.renderer = Renderer(self.screen, self)
         self.input_handler = InputHandler(self, self.command_processor)
-        self.ai_manager = AIManager(self)
 
         self.current_save_file = save_file
         self.game_state = "title_screen"
@@ -219,10 +217,6 @@ class GameManager:
 
         current_time_abs = time.time()
 
-        ai_message = self.ai_manager.update()
-        if ai_message:
-            self.renderer.add_message(ai_message)
-        
         time_change = self.time_manager.update(dt)
         if time_change:
             old_period, new_period = time_change

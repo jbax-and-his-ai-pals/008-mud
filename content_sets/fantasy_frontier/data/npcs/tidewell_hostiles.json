@@ -37,7 +37,7 @@
         "properties": {
             "weapon_damage_type": "piercing",
             "armor_material": "leather",
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 10
         }
     },
@@ -76,7 +76,7 @@
         "properties": {
             "weapon_damage_type": "piercing",
             "armor_material": "leather",
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 10
         }
     },
@@ -99,7 +99,7 @@
         "defense": 11,
         "loot_table": {
             "gold_value": {
-                "chance": 1.0,
+                "chance": 1,
                 "quantity": [
                     30,
                     55
@@ -119,7 +119,7 @@
             "weapon_damage_type": "crushing",
             "armor_material": "chain",
             "attack_cooldown": 4.5,
-            "wander_chance": 0.0,
+            "wander_chance": 0,
             "move_cooldown": 10
         }
     }

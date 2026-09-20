@@ -23,6 +23,15 @@ PyYAML>=6.0
 # exercises the codec instead of being silently skipped.
 msgpack>=1.0
 
+# Declared for the same reason as msgpack, and it was missing.
+#
+# `poc_ws_server.py` — the WebSocket entry point, chosen by
+# `launch_content_set.py --transport ws` — imports `websockets` and raises
+# without it. It appeared in no requirements file and no lock, so that entry
+# point could not start in a pinned environment, and nothing noticed because no
+# test imports it (`test_poc_ws_server.py` was a 0-byte module).
+websockets>=12.0
+
 # NOT listed on purpose: torch / transformers.
 #
 # They used to be here, with a comment claiming `engine/ai/llm_interface.py`

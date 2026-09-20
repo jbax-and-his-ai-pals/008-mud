@@ -413,13 +413,13 @@ This project is provided as-is for educational and development purposes.
 Goal: evolve this singleplayer simulation-first game into a commercial, server-authoritative multiplayer MUD with Godot client UX.
 
 Execution docs live in `docs/roadmap/` (see the supersession notice in
-`docs/roadmap/README.md` before treating anything there as current):
-- `docs/roadmap/README.md`
+`docs/archive/roadmap-README-superseded.md` before treating anything there as current):
+- `docs/archive/roadmap-README-superseded.md`
 - `docs/roadmap/phases/`
 - `docs/roadmap/adr/`
-- `docs/roadmap/platform-architecture.md`
-- `docs/roadmap/steam-packaging-track.md`
-- `docs/roadmap/theme-pack-spec-v1.md`
+- `docs/reference/platform-architecture.md`
+- `docs/archive/steam-packaging-track.md`
+- `docs/reference/theme-pack-spec-v1.md`
 
 Current content-engine development flow:
 
@@ -433,7 +433,7 @@ Legacy server-fixture operator flow:
 - Launch from latest selected fixture (auto-reads `tmp/content_fixtures/LATEST_REFRESH.json`):
   - `python server/launch_from_latest_fixture.py --transport tcp`
   - `python server/launch_from_latest_fixture.py --transport ws`
-- Operator reference: `docs/roadmap/server-operator-guide.md`
+- Operator reference: `docs/reference/server-operator-guide.md`
 
 ### Guiding Product/Tech Decisions
 * Keep simulation logic authoritative on the server.

@@ -3,8 +3,8 @@
         "type": "Container",
         "name": "wooden chest",
         "description": "A plain wooden chest bound with a few iron bands.",
-        "weight": 8.0,
-        "value": 15.0,
+        "weight": 8,
+        "value": 15,
         "capacity": 30,
         "locked": true,
         "item_family": "container"
@@ -13,8 +13,8 @@
         "type": "Container",
         "name": "iron-bound chest",
         "description": "A sturdy chest reinforced with heavy iron bands and corner plates.",
-        "weight": 14.0,
-        "value": 60.0,
+        "weight": 14,
+        "value": 60,
         "capacity": 30,
         "locked": true,
         "item_family": "container"
@@ -23,8 +23,8 @@
         "type": "Container",
         "name": "gilded chest",
         "description": "An ornate chest trimmed in gold leaf, clearly built for someone with money to spare.",
-        "weight": 12.0,
-        "value": 200.0,
+        "weight": 12,
+        "value": 200,
         "capacity": 30,
         "locked": true,
         "item_family": "container"

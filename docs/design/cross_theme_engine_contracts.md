@@ -576,7 +576,10 @@ declaration.
   `runtime_state.magic` remain the *internal* names of the ability machinery.
   They are storage and API names rather than branches, they never reach a player
   of the sci-fi set, and renaming them is a save-format migration rather than a
-  contract change -- it belongs with `save_format_version`, not here.
+  contract change. **That migration now has somewhere to live:**
+  `engine/world/save_format.py` owns `SAVE_FORMAT_VERSION` and a migration chain,
+  a save from a newer build is refused rather than half-read, and this is the
+  file to bump when those names move. See ROADMAP §"A save says what it is".
 - The ability command advertises fantasy aliases (`spells`, `magic`) in `help`.
   Alias vocabulary is not content-declarable yet.
 - An NPC caster (`npc.mana`, `npc.max_mana`, spell-casting AI) is still

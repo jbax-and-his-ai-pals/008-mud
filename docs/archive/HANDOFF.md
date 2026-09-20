@@ -1,7 +1,7 @@
 # Handoff Notes
 
 > Status: This file is legacy context from an earlier slice-based checkpoint and is not the primary source of truth.
-> Use `docs/roadmap/next-session.md` and `docs/roadmap/README.md` for current direction and priorities.
+> Use `docs/archive/next-session.md` and `docs/archive/roadmap-README-superseded.md` for current direction and priorities.
 
 ## Current Position
 
@@ -129,7 +129,7 @@ invoked by any test.
 | Onboarding controller | `client/scripts/ui/onboarding_controller.gd` |
 | Crash recovery controller | `client/scripts/ui/crash_recovery_controller.gd` |
 | Theme packs | `client/themes/*.json` |
-| Client roadmap | `docs/roadmap/client-track.md` |
-| Next-session checklist | `docs/roadmap/next-session.md` |
-| Theme pack spec | `docs/roadmap/theme-pack-spec-v1.md` |
-| GMCP contract ADR | `docs/roadmap/adr/0002-gmcp-package-contract.md` |
+| Client roadmap | `docs/archive/client-track.md` |
+| Next-session checklist | `docs/archive/next-session.md` |
+| Theme pack spec | `docs/reference/theme-pack-spec-v1.md` |
+| GMCP contract ADR | `docs/archive/adr/0002-gmcp-package-contract.md` |

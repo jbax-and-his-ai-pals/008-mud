@@ -13,11 +13,11 @@
     },
     "spawner": {
         "monster_types": {
-            "giant_rat": 4.0,
-            "slime": 4.0,
-            "zombie": 3.0,
-            "lizardfolk_warrior": 2.0,
-            "shambling_mound": 1.0
+            "giant_rat": 4,
+            "slime": 4,
+            "zombie": 3,
+            "lizardfolk_warrior": 2,
+            "shambling_mound": 1
         },
         "level_range": [
             2,
@@ -49,7 +49,6 @@
             "description": "A large pool of dark, unmoving water blocks the path south. Bubbles occasionally rise to the surface with a soft 'plop'. A risky-looking path through cypress trees heads east.",
             "exits": {
                 "north": "marsh_edge",
-                "south": "muddy_trail",
                 "east": "cypress_stand"
             },
             "properties": {
@@ -68,8 +67,8 @@
             "name": "Muddy Trail",
             "description": "A slippery trail of thick mud winds between stagnant pools. It's difficult to keep your footing. The path continues south into a dense thicket.",
             "exits": {
-                "north": "stagnant_pool",
-                "south": "mangrove_thicket"
+                "south": "whispering_reeds",
+                "north": "rotting_log"
             },
             "properties": {}
         },
@@ -77,7 +76,6 @@
             "name": "Mangrove Thicket",
             "description": "A dense thicket of mangrove trees with tangled roots creating a maze-like environment. It's easy to get turned around. A faint trail leads west towards a rotting log.",
             "exits": {
-                "north": "muddy_trail",
                 "south": "sunken_structure_approach",
                 "east": "lizard_den",
                 "west": "rotting_log"
@@ -89,7 +87,7 @@
             "description": "A massive, moss-covered log bridges a particularly deep patch of dark water. Pale, rubbery fungi grow in clusters on its damp surface.",
             "exits": {
                 "east": "mangrove_thicket",
-                "south": "whispering_reeds"
+                "south": "muddy_trail"
             },
             "items": [
                 {
@@ -163,8 +161,8 @@
             "name": "Whispering Reeds",
             "description": "Tall reeds grow thickly here, whispering secrets as the wind sighs through them. It's hard to see far in any direction.",
             "exits": {
-                "north": "rotting_log",
-                "east": "deep_swamp"
+                "east": "deep_swamp",
+                "north": "muddy_trail"
             },
             "properties": {
                 "noisy": true

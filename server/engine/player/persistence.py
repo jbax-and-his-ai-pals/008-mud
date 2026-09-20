@@ -6,6 +6,8 @@ from engine.utils.utils import _serialize_item_reference
 from engine.items.inventory import Inventory
 from engine.items.item_factory import ItemFactory
 from engine.core.conversation_history import ConversationHistory
+from engine.player.aspects import ProgressionState
+from engine.world.save_format import take_stale_summons_flag
 from engine.config import (
     PLAYER_DEFAULT_NAME, PLAYER_BASE_XP_TO_LEVEL, PLAYER_DEFAULT_STATS,
     EQUIPMENT_SLOTS, PLAYER_DEFAULT_MAX_TOTAL_SUMMONS
@@ -14,6 +16,42 @@ from engine.config import (
 if TYPE_CHECKING:
     from engine.player.core import Player
     from engine.world.world import World
+
+
+def _serialize_summons(magic: Any) -> Optional[Dict[str, list]]:
+    """The player's summon ledger, or None when there is nothing to record.
+
+    A map of ability id to the instance ids it summoned. It is written down so a
+    save taken mid-game is honest about what the player had out, and *read back*
+    only while those instances still exist -- see `NPC.to_dict` for why a summon
+    cannot survive a save.
+    """
+    if magic is None or not getattr(magic, "summons", None):
+        return None
+    out: Dict[str, list] = {}
+    for ability_id, instance_ids in magic.summons.items():
+        cleaned = [str(entry) for entry in instance_ids if isinstance(entry, str) and entry]
+        if cleaned:
+            out[str(ability_id)] = cleaned
+    return out or None
+
+
+def _read_summons(player: 'Player', raw: Any, stale: bool) -> Dict[str, list]:
+    """The summon ledger a save declared, minus entries that cannot be true.
+
+    `stale` comes from the save-format migration that knows this file predates
+    summon serialisation at all.
+    """
+    if stale or not isinstance(raw, dict):
+        return {}
+    restored: Dict[str, list] = {}
+    for ability_id, instance_ids in raw.items():
+        if not isinstance(ability_id, str) or not isinstance(instance_ids, list):
+            continue
+        cleaned = [str(entry) for entry in instance_ids if isinstance(entry, str) and entry]
+        if cleaned:
+            restored[ability_id] = cleaned
+    return restored
 
 class PlayerPersistenceMixin:
     """
@@ -73,6 +111,9 @@ class PlayerPersistenceMixin:
         gameplay = data["gameplay"]
         if p.runtime_state.magic is not None:
             gameplay["magic"] = {"mana": p.runtime_state.magic.mana, "max_mana": p.runtime_state.magic.max_mana, "known_spells": list(p.runtime_state.magic.known_spells), "cooldowns": p.runtime_state.magic.cooldowns}
+            summons = _serialize_summons(p.runtime_state.magic)
+            if summons is not None:
+                gameplay["magic"]["summons"] = summons
         if p.runtime_state.combat is not None:
             gameplay["combat"] = {"attack_power": p.runtime_state.combat.attack_power, "defense": p.runtime_state.combat.defense}
         if p.runtime_state.progression is not None:
@@ -111,6 +152,29 @@ class PlayerPersistenceMixin:
         progression = gameplay.get("progression", {})
         economy = gameplay.get("economy", {})
         quests = gameplay.get("quests", {})
+
+        # Which aspects this game presents was decided when the world was built,
+        # and a save can predate that decision in either direction: written by a
+        # build that had abilities, read by a content set that does not -- or the
+        # reverse. The reader needs *somewhere to put* every field below, and
+        # `normalize` is entitled to null an aspect the world does not present,
+        # so it runs on both sides of the read: once to guarantee a container,
+        # once to leave the player in the state the world actually asked for.
+        #
+        # A save that arrives without one of these objects is a save from a build
+        # that had the aspect and a reader that does not; the container is made
+        # here and nulled again by the closing normalize if this world has no use
+        # for it.
+        from engine.player.aspects import (
+            CombatState, MagicState, PlayerGameAspects, ProgressionState, QuestState,
+        )
+
+        player.runtime_state.magic = player.runtime_state.magic or MagicState()
+        player.runtime_state.combat = player.runtime_state.combat or CombatState()
+        player.runtime_state.progression = player.runtime_state.progression or ProgressionState()
+        player.runtime_state.quests = player.runtime_state.quests or QuestState()
+        if player.runtime_state.gold is None:
+            player.runtime_state.gold = 0
 
         # Player Stats & Progression
         player.runtime_state.progression.player_class = progression.get("player_class", "")
@@ -156,6 +220,12 @@ class PlayerPersistenceMixin:
         # Magic
         player.runtime_state.magic.known_spells = set(magic.get("known_spells", []))
         player.runtime_state.magic.cooldowns = magic.get("cooldowns", {})
+        # The summon ledger is *held*, not applied: its instance ids only mean
+        # something once the NPCs they name have been restored, and a reader
+        # that is not `SaveManager` may never restore them at all. See
+        # `settle_pending_summons`.
+        player.runtime_state.magic.summons = {}
+        player._pending_summons = _read_summons(player, magic.get("summons"), take_stale_summons_flag(data))
         player.runtime_state.combat.attack_power = combat.get("attack_power", 0)
         player.runtime_state.combat.defense = combat.get("defense", 0)
         player.max_total_summons = PLAYER_DEFAULT_MAX_TOTAL_SUMMONS
@@ -238,7 +308,33 @@ class PlayerPersistenceMixin:
         player.confiscated_inventory = Inventory.from_dict(confiscated_data, world) if confiscated_data else None
 
         player.world = world
+        # The closing normalize is the other half of the pair above: the save's
+        # state has been read into containers that were guaranteed to exist, and
+        # this is what leaves the player in the shape *this* world asked for --
+        # an aspect the content set does not present is nulled again here, having
+        # served its purpose as somewhere to read into.
         normalize = getattr(world, "apply_content_player_defaults", None)
         if callable(normalize):
             normalize(player)
         return player
+
+    def settle_pending_summons(self) -> None:
+        """Adopt the summon ledger a save declared, now that the NPCs exist.
+
+        Called by `SaveManager` after it has restored NPCs, because the ledger's
+        instance ids are a statement about NPCs and a load is the only moment
+        they can be checked. An entry whose instance is not there is dropped
+        rather than kept as a dangling id that a later `despawn` would search for
+        and never find.
+        """
+        pending = getattr(self, "_pending_summons", None)
+        self._pending_summons = None
+        magic = getattr(self.runtime_state, "magic", None)
+        if magic is None or not isinstance(pending, dict):
+            return
+        known = set(getattr(self.world, "npcs", {}) or {}) if self.world is not None else set()
+        magic.summons = {
+            ability_id: [instance for instance in instances if instance in known]
+            for ability_id, instances in pending.items()
+        }
+        magic.summons = {ability_id: instances for ability_id, instances in magic.summons.items() if instances}

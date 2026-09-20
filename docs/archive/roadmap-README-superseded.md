@@ -20,6 +20,8 @@ The project is building a reusable engine for authored text-first games. A **con
 
 The documents below record prior platform work and remain useful as implementation references. They are not the active phase order or source of priority.
 
+- [Work tracks](work-tracks.md) — **read this first.** How work is divided into eleven tracks (A–K) plus the archive, what each may not do, and the contract-first handoff that lets them run in separate conversations. This one is current, not historical. It also says which of the track documents below are still live.
+- [Track roadmaps, 2026-09-18](track-roadmaps/README.md) — one evaluator per track read its own lane and proposed a roadmap. A review artifact, not the plan; the sequencing in it is a proposal.
 - [Previous phase documents](phases/)
 - [Historical next-session log](next-session.md)
 - [Platform architecture notes](platform-architecture.md)

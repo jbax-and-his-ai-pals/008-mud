@@ -123,7 +123,14 @@ class GameObject:
         if damage_type == "physical":
             base_reduction = self.get_effective_stat("defense")
         else:
-            base_reduction = self.get_effective_stat("magic_resist")
+            # Which stat shrugs off a non-physical channel is the content set's
+            # `stats` contract; `get_resistance` below is the per-channel part,
+            # which is content too (each damage type's own resistances).
+            from engine.contracts import stats as stats_contract
+
+            base_reduction = self.get_effective_stat(
+                stats_contract.stat_name(getattr(self, "world", None), "resistance")
+            )
 
         damage_after_flat_reduction = max(0, amount - base_reduction)
         if damage_after_flat_reduction == 0: return 0

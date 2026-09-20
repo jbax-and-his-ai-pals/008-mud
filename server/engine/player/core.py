@@ -19,6 +19,7 @@ from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.set_manager import SetManager
 from engine.contracts.equipment import armor_defense
+from engine.contracts import stats as stats_contract
 from engine.contracts.resources import (
     ability_resource_label,
     regenerates as ability_regenerates,
@@ -65,7 +66,7 @@ class Player(
         self.runtime_state.magic.max_mana = ability_pool_for(world, self.stats)
         self.runtime_state.magic.mana = self.runtime_state.magic.max_mana
         self.runtime_state.magic.regen_rate = PLAYER_BASE_MANA_REGEN_RATE
-        self.max_health = PLAYER_BASE_HEALTH + int(self.stats.get('constitution', 10)) * PLAYER_CON_HEALTH_MULTIPLIER
+        self.recalculate_max_health()
         self.health = self.max_health
         self.runtime_state.progression.level = 1
         player_class = world.ruleset_section("player_defaults").get("player_class")
@@ -177,17 +178,38 @@ class Player(
         # concealed-pick bottleneck is crossed, not re-shown on every arrest.
         self.discovered_concealed_pick_trick: bool = False
 
+    def recalculate_max_health(self) -> None:
+        """Set the health ceiling from whichever stat the content set says.
+
+        There were two copies of this formula and a third in `BackgroundManager`,
+        each with the stat name written in. One method, one place the role is
+        resolved, so a set that drives health from `vigour` changes nothing in
+        the engine.
+
+        `world` is read defensively because a `Player` is constructed before it
+        is attached to one, and without a world there is no contract to read --
+        the engine default stat is the right answer at that point, and the
+        manager that attaches the world calls this again.
+        """
+        world = getattr(self, "world", None)
+        stat = stats_contract.stat_name(world, "health")
+        self.max_health = PLAYER_BASE_HEALTH + stats_contract.stat_value(
+            self.stats, stat, PLAYER_DEFAULT_STATS
+        ) * PLAYER_CON_HEALTH_MULTIPLIER
     def get_effective_stat(self, stat_name: str) -> int:
         """Calculates stat including base, buffs, equipment, AND set bonuses."""
         val = super().get_effective_stat(stat_name)
 
         if stat_name == "defense":
             # Player defense isn't tracked in self.stats -- it lives on
-            # runtime_state.combat.defense, with a dex bonus and equipped
-            # armor's own "defense" property layered on top (this is also
-            # what get_defense() reports for the status display).
+            # runtime_state.combat.defense, with a bonus from whichever stat the
+            # content set names for defence, and equipped armor's own "defense"
+            # property layered on top (this is also what get_defense() reports
+            # for the status display).
             val += self.runtime_state.combat.defense if self.runtime_state.combat is not None else 0
-            val += self.get_effective_stat("dexterity") // PLAYER_DEFENSE_DEX_DIVISOR
+            val += self.get_effective_stat(
+                stats_contract.stat_name(self.world, "defence")
+            ) // PLAYER_DEFENSE_DEX_DIVISOR
             for item in self.equipment.values():
                 if isinstance(item, Item) and item.get_property("durability", 1) > 0:
                     val += armor_defense(self.world, item)
@@ -212,7 +234,7 @@ class Player(
             self.runtime_state.progression.player_class = class_data["name"]
         if "stats" in class_data:
             self.stats.update(class_data["stats"])
-            self.max_health = PLAYER_BASE_HEALTH + int(self.stats.get('constitution', 10)) * PLAYER_CON_HEALTH_MULTIPLIER
+            self.recalculate_max_health()
             self.health = self.max_health
             if self.runtime_state.magic is not None:
                 self.runtime_state.magic.max_mana = ability_pool_for(self.world, self.stats)
@@ -259,7 +281,9 @@ class Player(
                      # A set may also declare that its pool does not refill on its
                      # own at all (`regenerates: false`), which is why the refill
                      # is gated on the declaration and health is not.
-                     effective_strength = self.get_effective_stat('strength')
+                     effective_strength = self.get_effective_stat(
+                         stats_contract.stat_name(self.world, "regeneration")
+                     )
                      base_mana_regen = 0.0
                      if ability_regenerates(self.world):
                          regen_stat = ability_regen_stat(self.world)

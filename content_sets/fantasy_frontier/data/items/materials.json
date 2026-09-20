@@ -4,7 +4,7 @@
         "name": "softwood branch",
         "description": "A straight, dry branch suitable for small carvings and practical wooden goods.",
         "weight": 0.8,
-        "value": 2.0,
+        "value": 2,
         "stackable": true,
         "properties": {
             "category": "material",
@@ -22,8 +22,8 @@
         "type": "Item",
         "name": "river clay",
         "description": "Fine grey clay gathered from a slow riverbank, ready to be shaped and fired.",
-        "weight": 1.0,
-        "value": 2.0,
+        "weight": 1,
+        "value": 2,
         "stackable": true,
         "properties": {
             "category": "material",
@@ -41,8 +41,8 @@
         "type": "Item",
         "name": "iron ingot",
         "description": "A heavy bar of refined iron.",
-        "weight": 1.0,
-        "value": 5.0,
+        "weight": 1,
+        "value": 5,
         "stackable": true,
         "properties": {
             "category": "material"
@@ -54,7 +54,7 @@
         "name": "leather strip",
         "description": "A strip of cured leather, used for bindings.",
         "weight": 0.1,
-        "value": 2.0,
+        "value": 2,
         "stackable": true,
         "properties": {
             "category": "material"
@@ -66,7 +66,19 @@
         "name": "empty glass vial",
         "description": "A small glass container for potions.",
         "weight": 0.1,
-        "value": 1.0,
+        "value": 1,
+        "stackable": true,
+        "properties": {
+            "category": "material"
+        },
+        "item_family": "material"
+    },
+    "item_ale_wort": {
+        "type": "Item",
+        "name": "ale wort",
+        "description": "A skin of sweet, unfermented wort drawn off the mash, waiting to be set to ferment.",
+        "weight": 1,
+        "value": 8,
         "stackable": true,
         "properties": {
             "category": "material"
@@ -77,8 +89,8 @@
         "type": "Item",
         "name": "blacksmith's anvil",
         "description": "A heavy iron anvil used for forging weapons and armor.",
-        "weight": 200.0,
-        "value": 0.0,
+        "weight": 200,
+        "value": 0,
         "stackable": false,
         "properties": {
             "crafting_station_type": "anvil",
@@ -90,8 +102,8 @@
         "type": "Item",
         "name": "alchemy kit",
         "description": "A portable set of mortar, pestle, and burners.",
-        "weight": 5.0,
-        "value": 50.0,
+        "weight": 5,
+        "value": 50,
         "stackable": false,
         "properties": {
             "crafting_station_type": "alchemy_table"
@@ -102,8 +114,8 @@
         "type": "Item",
         "name": "lapidary wheel",
         "description": "A foot-powered grinding wheel with trays for water and polishing grit.",
-        "weight": 150.0,
-        "value": 0.0,
+        "weight": 150,
+        "value": 0,
         "stackable": false,
         "properties": {
             "crafting_station_type": "lapidary_wheel",
@@ -115,11 +127,24 @@
         "type": "Item",
         "name": "carpentry bench",
         "description": "A sturdy workbench with a vise, a rack of hand tools, and sawdust underfoot.",
-        "weight": 120.0,
-        "value": 0.0,
+        "weight": 120,
+        "value": 0,
         "stackable": false,
         "properties": {
             "crafting_station_type": "carpentry_bench",
+            "can_take": false
+        },
+        "item_family": "material"
+    },
+    "item_drying_rack": {
+        "type": "Item",
+        "name": "drying rack",
+        "description": "Slatted wooden frames stacked for air-drying herbs and meat, with a cool lower shelf where a crock of wort can be set to keep.",
+        "weight": 40,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "crafting_station_type": "drying_rack",
             "can_take": false
         },
         "item_family": "material"

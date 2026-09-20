@@ -21,6 +21,23 @@
       "max_stat": "intelligence"
     }
   ],
+  "stats": {
+    "_comment": "This set keeps the engine's stat vocabulary, but says so rather than relying on the fallback -- that is the difference between a set that has been checked and one that happens to work. `power` drives charge, and `evasion` is the skill this set's stat_bonuses names.",
+    "roles": {
+      "health": "constitution",
+      "attack": "strength",
+      "defence": "dexterity",
+      "evasion": "agility",
+      "regeneration": "strength",
+      "power": "intelligence",
+      "ability_power": "spell_power",
+      "resistance": "magic_resist"
+    },
+    "order": [
+      "strength", "dexterity", "constitution",
+      "agility", "intelligence", "wisdom"
+    ]
+  },
   "item_families": [
     {
       "id": "kinetic_sidearm",

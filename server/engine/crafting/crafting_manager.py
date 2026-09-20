@@ -7,6 +7,7 @@ from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS
 from engine.crafting.recipe import Recipe
 from engine.items import references
 from engine.items.item import Item
+from engine.utils.content_values import ContentValueError
 from engine.items.item_factory import ItemFactory
 from engine.core.skill_system import SkillSystem
 from engine.core import advancement
@@ -20,6 +21,10 @@ class CraftingManager:
         self.world = world
         self.content_root = world.content_root
         self.recipes: Dict[str, Recipe] = {}
+        # Recipes refused at load, each message naming the field in the file.
+        # A caller that wants to report them -- `boot_warnings`, a doctor
+        # command -- reads this rather than grepping stdout.
+        self.recipe_errors: List[str] = []
         self._load_recipes()
 
     def _load_recipes(self):
@@ -43,7 +48,16 @@ class CraftingManager:
                             if not isinstance(r_data, dict):
                                 print(f"{FORMAT_ERROR}Skipping recipe '{r_id}' in {filename}: must be an object{FORMAT_RESET}")
                                 continue
-                            self.recipes[r_id] = Recipe(r_id, r_data)
+                            # One unusable recipe must not take the rest of the
+                            # file with it: the refused value is named by
+                            # `Recipe`, and the recipes that are well-formed
+                            # still load. Before this, a single bad field was
+                            # either silently ignored or lost the whole file.
+                            try:
+                                self.recipes[r_id] = Recipe(r_id, r_data)
+                            except ContentValueError as refused:
+                                self.recipe_errors.append("%s: %s" % (filename, refused))
+                                print(f"{FORMAT_ERROR}Skipping recipe: {refused}{FORMAT_RESET}")
                 except Exception as e:
                     print(f"{FORMAT_ERROR}Error loading recipes from {filename}: {e}{FORMAT_RESET}")
 

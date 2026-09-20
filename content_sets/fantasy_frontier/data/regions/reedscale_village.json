@@ -13,8 +13,8 @@
     },
     "spawner": {
         "monster_types": {
-            "lizardfolk_warrior": 7.0,
-            "giant_rat": 1.0
+            "lizardfolk_warrior": 7,
+            "giant_rat": 1
         },
         "level_range": [
             4,

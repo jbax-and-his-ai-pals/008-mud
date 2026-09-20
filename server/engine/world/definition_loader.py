@@ -77,6 +77,16 @@ def _load_item_templates(world: 'World', content_root: str) -> dict[str, int]:
                     data = json.load(f)
                     stats["files_loaded"] += 1
                     for item_id, template_data in data.items():
+                        # `_`-prefixed keys are authoring notes, not templates.
+                        # Every other loader in the engine skips them; this one
+                        # counted them as invalid content, so a single `_comment`
+                        # in an items file showed up in the boot warnings as a
+                        # template somebody had got wrong.
+                        if str(item_id).startswith("_"):
+                            continue
+                        if not isinstance(template_data, dict):
+                            stats["invalid_missing_required"] += 1
+                            continue
                         if item_id in world.item_templates:
                             stats["duplicate_ids"] += 1
                         if "name" not in template_data or "type" not in template_data:
@@ -117,6 +127,15 @@ def _load_npc_templates(world: 'World', content_root: str) -> dict[str, int]:
                     data = json.load(f)
                     stats["files_loaded"] += 1
                     for template_id, template_data in data.items():
+                        # A `_comment` is an authoring note. Without this guard
+                        # the note itself became an NPC template whose value is a
+                        # string, which every reader that then called `.get` on a
+                        # template hit as `'str' object has no attribute 'get'`.
+                        if str(template_id).startswith("_"):
+                            continue
+                        if not isinstance(template_data, dict):
+                            stats["invalid_missing_name"] += 1
+                            continue
                         if template_id in world.npc_templates:
                             stats["duplicate_ids"] += 1
                         if "name" not in template_data:
@@ -131,7 +150,8 @@ def _load_npc_templates(world: 'World', content_root: str) -> dict[str, int]:
     if stats["invalid_missing_name"] > 0:
         Logger.warning(
             "Loader",
-            f"NPC templates: skipped {stats['invalid_missing_name']} template(s) missing required field ('name').",
+            f"NPC templates: skipped {stats['invalid_missing_name']} entr(ies) that were not objects "
+            "or lacked the required field ('name').",
         )
     Logger.info("Loader", f"[NPC Templates] Loaded {len(world.npc_templates)} NPC templates.")
     return stats
