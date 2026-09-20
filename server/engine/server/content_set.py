@@ -485,6 +485,96 @@ def _validate_region_hazard_coverage(
                 ))
 
 
+def _validate_district_contiguity(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """A district's own rooms must be reachable from each other without ever
+    leaving the district.
+
+    `world.get_district` (engine/world/world.py) reads `properties.districts`
+    purely as a named bag of member room ids -- nothing checks that those
+    rooms actually form one connected area. A district that a player has to
+    exit and re-enter through a different part of the map to fully see is a
+    district in name only: shared district properties (ambient tone, a
+    territory's atmosphere) apply to a room that geographically belongs to
+    someone else's neighbourhood, and the "district" label stops meaning
+    anything a player could point at. This is a structural defect, not a
+    ruleset policy an author opts into, so it is checked unconditionally.
+    """
+    regions_dir = content_root / "regions"
+    if not regions_dir.is_dir():
+        return
+    for path in sorted(regions_dir.glob("*.json")):
+        payload = _load_json(path, issues, "region")
+        if not isinstance(payload, dict) or isinstance(payload.get("themes"), dict):
+            continue
+        region_id = str(payload.get("region_id", "")).strip() or path.stem
+        rooms = payload.get("rooms")
+        if not isinstance(rooms, dict):
+            continue
+        properties = payload.get("properties")
+        districts = properties.get("districts") if isinstance(properties, dict) else None
+        if not isinstance(districts, dict):
+            continue
+
+        for district_id, district in districts.items():
+            if not isinstance(district, dict):
+                continue
+            member_ids = district.get("members", district.get("rooms", []))
+            if not isinstance(member_ids, list):
+                continue
+            members = {str(member_id) for member_id in member_ids}
+            existing_members = {member_id for member_id in members if member_id in rooms}
+            missing_members = members - existing_members
+            for missing in sorted(missing_members):
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"region '{region_id}' district '{district_id}' names missing room '{missing}'",
+                ))
+            if len(existing_members) <= 1:
+                continue
+
+            # Edges within the district only: an exit or hidden exit whose
+            # target is also a district member. Treated as undirected --
+            # contiguity is about whether the area is one connected patch of
+            # ground, not about one-way traversal within it.
+            adjacency: dict[str, set[str]] = {member_id: set() for member_id in existing_members}
+            for member_id in existing_members:
+                room = rooms.get(member_id)
+                if not isinstance(room, dict):
+                    continue
+                destinations: list[Any] = []
+                exits = room.get("exits", {})
+                if isinstance(exits, dict):
+                    destinations.extend(exits.values())
+                hidden_exits = (room.get("properties") or {}).get("hidden_exits", {})
+                if isinstance(hidden_exits, dict):
+                    destinations.extend(hidden_exits.values())
+                for destination in destinations:
+                    target = str(destination)
+                    if ":" in target or target not in existing_members:
+                        continue
+                    adjacency[member_id].add(target)
+                    adjacency[target].add(member_id)
+
+            start = next(iter(existing_members))
+            reached = {start}
+            frontier = [start]
+            while frontier:
+                current = frontier.pop()
+                for neighbour in adjacency.get(current, ()):
+                    if neighbour not in reached:
+                        reached.add(neighbour)
+                        frontier.append(neighbour)
+
+            unreached = existing_members - reached
+            if unreached:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    "region '%s' district '%s' is not contiguous: %s cannot be reached from %s "
+                    "without leaving the district"
+                    % (region_id, district_id, ", ".join(sorted(unreached)), sorted(reached)[0]),
+                ))
+
+
 def validate_region_policy(content_root: Path | str, ruleset_path: Path | str) -> list[ContentSetIssue]:
     """Check every static region under ``content_root/regions`` against the
     region-authoring policy declared in ``ruleset_path`` (the same
@@ -518,6 +608,7 @@ def validate_region_policy(content_root: Path | str, ruleset_path: Path | str) -
     _validate_region_level_bands(content_root, issues, required=require_level_bands)
     _validate_region_classification(content_root, issues, required=require_classification, biomes=biomes, region_types=region_types)
     _validate_region_hazard_coverage(content_root, issues, required=require_hazard_coverage)
+    _validate_district_contiguity(content_root, issues)
 
     return issues
 
@@ -2552,6 +2643,7 @@ def load_content_set(
                 )
 
         _validate_authored_world(content_root, start_region_id, start_room_id, issues)
+        _validate_district_contiguity(content_root, issues)
         ruleset_source_path = resolved_paths.get("ruleset")
         if ruleset_source_path is not None:
             require_region_level_bands = _region_level_bands_required(
