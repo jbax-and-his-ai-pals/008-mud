@@ -54,6 +54,10 @@ class World:
         self.enabled_capabilities = frozenset(content_set.capabilities)
         self.player_aspects = PlayerGameAspects.from_world(self)
         self.regions: Dict[str, Region] = {}
+        # Synthetic catch-all districts, built lazily per region when
+        # `ruleset.world.regions.enforce_district_coverage` is on. See
+        # `_hidden_district_for`.
+        self._hidden_districts: Dict[str, Dict[str, Any]] = {}
         self.item_templates: Dict[str, Dict[str, Any]] = {}
         self.npc_templates: Dict[str, Dict[str, Any]] = {}
         self.players: Dict[str, 'Player'] = {}
@@ -763,7 +767,16 @@ class World:
         """Return the district (a plain dict, content-authored on the
         region's `properties.districts`) a room belongs to, or None. Its
         member room list is authored under "members" -- "rooms" is
-        accepted too for older/hand-authored data that used that key."""
+        accepted too for older/hand-authored data that used that key.
+
+        A content set that turns on `ruleset.world.regions.enforce_district_
+        coverage` never gets None back for a real room: any room an author
+        left out of every district resolves to a synthetic, hidden catch-all
+        instead, so every room always has *some* district to read ambient
+        properties from (see `get_env_property`) and callers don't need a
+        None-means-no-district special case. Content sets that leave the
+        policy off keep exactly today's behaviour.
+        """
         if not region_id or not room_id:
             return None
         region = self.get_region(region_id)
@@ -771,14 +784,47 @@ class World:
             return None
         districts = region.properties.get("districts", {})
         if not isinstance(districts, dict):
-            return None
+            districts = {}
         for district in districts.values():
             if not isinstance(district, dict):
                 continue
             members = district.get("members", district.get("rooms", []))
             if room_id in members:
                 return district
-        return None
+        if room_id not in region.rooms:
+            return None
+        regions_policy = self.ruleset_section("world").get("regions", {})
+        if not isinstance(regions_policy, dict) or not regions_policy.get("enforce_district_coverage", False):
+            return None
+        return self._hidden_district_for(region_id)
+
+    def _hidden_district_for(self, region_id: str) -> Dict[str, Any]:
+        """The lazily-built, cached catch-all district for a region under
+        `enforce_district_coverage`. Never shown to a player -- callers that
+        display a district (e.g. the room header) must skip one whose
+        `hidden` flag is set -- and carries no authored properties of its
+        own, so `get_env_property` falls through it to the region exactly as
+        it would fall through a real None.
+        """
+        cached = self._hidden_districts.get(region_id)
+        if cached is not None:
+            return cached
+        region = self.get_region(region_id)
+        covered: set = set()
+        districts = region.properties.get("districts", {}) if region else {}
+        if isinstance(districts, dict):
+            for district in districts.values():
+                if isinstance(district, dict):
+                    covered.update(str(member_id) for member_id in district.get("members", district.get("rooms", [])))
+        members = [room_id for room_id in region.rooms.keys() if room_id not in covered] if region else []
+        hidden_district = {
+            "name": region.name if region else region_id,
+            "kind": "unassigned",
+            "hidden": True,
+            "members": members,
+        }
+        self._hidden_districts[region_id] = hidden_district
+        return hidden_district
 
     def get_env_property(self, region_id: Optional[str], room_id: Optional[str], key: str, default: Any = None) -> Any:
         """Resolve an environmental/atmospheric property (dark, outdoors,

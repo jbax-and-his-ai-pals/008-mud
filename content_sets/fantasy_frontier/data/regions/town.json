@@ -27,7 +27,9 @@
                     "watchtower_base",
                     "watchtower_interior_ground",
                     "watchtower_top",
-                    "west_lane"
+                    "west_lane",
+                    "community_garden",
+                    "garden_gate"
                 ]
             },
             "tavern_quarter": {
@@ -37,11 +39,14 @@
                 "seed": 1102,
                 "color": "#b17b4b",
                 "members": [
+                    "tavern_approach",
                     "tavern_exterior",
                     "tavern_main_floor",
                     "tavern_upper_floor",
                     "tavern_cellar",
-                    "tavern_kitchen"
+                    "tavern_kitchen",
+                    "guest_room_1",
+                    "guest_room_2"
                 ]
             },
             "market_row": {
@@ -51,6 +56,7 @@
                 "seed": 1103,
                 "color": "#c59a45",
                 "members": [
+                    "market_lane",
                     "east_market_road",
                     "market_square",
                     "east_gate_road",
@@ -70,6 +76,7 @@
                 "seed": 1104,
                 "color": "#4d9b91",
                 "members": [
+                    "riverside_path",
                     "river_road",
                     "riverside_docks",
                     "fishing_hut",
@@ -77,7 +84,9 @@
                     "bridge_middle",
                     "bridge_approach_east",
                     "museum_exterior",
-                    "museum_interior"
+                    "museum_interior",
+                    "old_mill_path",
+                    "old_mill"
                 ]
             },
             "residential": {
@@ -105,11 +114,10 @@
             "description": "The heart of Riverside Village. A large stone fountain gurgles peacefully in the center of the cobblestone square. Shops and lanes branch off in all directions, and the distant sound of the flowing river can be heard to the south. A sturdy Quest Board stands near the fountain.",
             "exits": {
                 "north": "north_gate_road",
-                "south": "river_road",
-                "east": "east_market_road",
+                "south": "riverside_path",
+                "east": "market_lane",
                 "west": "west_lane",
-                "northeast": "tavern_exterior",
-                "southeast": "museum_exterior"
+                "northeast": "tavern_approach"
             },
             "initial_npcs": [
                 {
@@ -170,11 +178,10 @@
         },
         "north_gate_road": {
             "name": "North Gate Road",
-            "description": "A wide, well-trodden road leading north out of the village. The cobblestones give way to dirt further on. A tall watchtower stands guard to the east, and the entrance to the guard barracks is to the west.",
+            "description": "A wide, well-trodden road leading north out of the village. The cobblestones give way to dirt further on. The entrance to the guard barracks is to the west.",
             "exits": {
                 "south": "town_square",
                 "north": "north_gate",
-                "east": "watchtower_base",
                 "west": "barracks_exterior"
             },
             "properties": {
@@ -183,10 +190,11 @@
         },
         "north_gate": {
             "name": "North Gate",
-            "description": "A sturdy wooden gate marks the northern exit of Riverside. Two guards stand watch, observing travelers as they come and go.",
+            "description": "A sturdy wooden gate marks the northern exit of Riverside. Two guards stand watch, observing travelers as they come and go. A watchtower rises just to the east.",
             "exits": {
                 "south": "north_gate_road",
-                "north": "forest:forest_edge"
+                "north": "forest:forest_edge",
+                "east": "watchtower_base"
             },
             "initial_npcs": [
                 {
@@ -220,7 +228,7 @@
             "name": "Watchtower Base",
             "description": "The base of a tall stone watchtower. A heavy wooden door leads inside.",
             "exits": {
-                "west": "north_gate_road",
+                "west": "north_gate",
                 "in": "watchtower_interior_ground"
             },
             "properties": {
@@ -303,7 +311,7 @@
             "description": "A quiet lane bordering the blacksmith's forge. A low wooden gate to the west marks the entrance to the residential district, and a path leads south towards a community garden.",
             "exits": {
                 "east": "town_square",
-                "in": "residential_street_east",
+                "west": "residential_street_east",
                 "south": "community_garden",
                 "north": "blacksmith_exterior"
             },
@@ -316,8 +324,8 @@
             "description": "The rhythmic clang of hammer on anvil echoes from this soot-stained building. The heat from the forge can be felt even from outside.",
             "exits": {
                 "south": "west_lane",
-                "north": "player_house_exterior",
-                "in": "blacksmith_interior"
+                "in": "blacksmith_interior",
+                "southwest": "residential_street_east"
             },
             "properties": {
                 "_district_id": "residential"
@@ -351,10 +359,11 @@
             "name": "Residential Street",
             "description": "A quiet residential street lined with small, well-kept houses. A small shrine stands at the western end of the street, and a low wooden gate to the east leads back out to West Lane.",
             "exits": {
-                "out": "west_lane",
+                "east": "west_lane",
                 "west": "shrine_exterior",
                 "north": "small_house_1_exterior",
-                "northeast": "player_house_exterior"
+                "northeast": "blacksmith_exterior",
+                "south": "player_house_exterior"
             },
             "properties": {
                 "_district_id": "residential"
@@ -364,8 +373,7 @@
             "name": "Vacant Lot",
             "description": "A modest vacant lot at the edge of the residential street, freshly cleared and waiting for an owner.",
             "exits": {
-                "southwest": "residential_street_east",
-                "south": "blacksmith_exterior"
+                "north": "residential_street_east"
             },
             "initial_npcs": [
                 {
@@ -382,7 +390,8 @@
             "exits": {
                 "south": "residential_street_east",
                 "in": "small_house_1_interior"
-            }
+            },
+            "properties": {}
         },
         "small_house_1_interior": {
             "name": "Inside a Small House",
@@ -409,7 +418,8 @@
             "description": "A small, open-air shrine dedicated to the gods of healing and restoration. It is a peaceful, quiet place.",
             "exits": {
                 "east": "residential_street_east",
-                "in": "shrine_interior"
+                "in": "shrine_interior",
+                "out": "garden_gate"
             },
             "properties": {
                 "_district_id": "residential"
@@ -439,7 +449,7 @@
             "description": "A well-tended plot of land where villagers grow vegetables and herbs. The air smells of damp earth and fresh greens.",
             "exits": {
                 "north": "west_lane",
-                "east": "river_road"
+                "west": "garden_gate"
             },
             "items": [
                 {
@@ -451,15 +461,34 @@
                     "template_id": "wandering_villager",
                     "instance_id": "villager_wandering_2"
                 }
-            ]
+            ],
+            "properties": {}
+        },
+        "garden_gate": {
+            "name": "Garden Gate",
+            "description": "A low wooden gate, half-hidden by climbing ivy, marks the quiet boundary between the common garden and the residential street beyond.",
+            "exits": {
+                "east": "community_garden",
+                "in": "shrine_exterior"
+            },
+            "properties": {
+                "_district_id": "civic_core"
+            }
+        },
+        "market_lane": {
+            "name": "Market Lane",
+            "description": "A short paved lane connecting the town square to the market district. Crates and barrels awaiting delivery are stacked along its edges.",
+            "exits": {
+                "west": "town_square",
+                "east": "east_market_road"
+            }
         },
         "east_market_road": {
             "name": "East Market Road",
             "description": "This road leads from the town square to the bustling open-air market. The sounds and smells of commerce are strong here.",
             "exits": {
-                "west": "town_square",
-                "east": "market_square",
-                "north": "tavern_exterior"
+                "west": "market_lane",
+                "east": "market_square"
             },
             "properties": {
                 "_district_id": "market_row"
@@ -587,12 +616,19 @@
                 "_district_id": "market_row"
             }
         },
+        "tavern_approach": {
+            "name": "Tavern Approach",
+            "description": "A short cobbled path leading northeast from the town square, warm light and the smell of roasting meat spilling from the tavern ahead.",
+            "exits": {
+                "southwest": "town_square",
+                "northeast": "tavern_exterior"
+            }
+        },
         "tavern_exterior": {
             "name": "The Drunken Dragon Tavern",
             "description": "A large, inviting tavern with a sign depicting a rather cheerful-looking green dragon holding a foamy mug. To the east, a pristine path of white stone leads to a grand building with a lotus symbol.",
             "exits": {
-                "south": "east_market_road",
-                "southwest": "town_square",
+                "southwest": "tavern_approach",
                 "in": "tavern_main_floor",
                 "east": "casino:lobby"
             },
@@ -685,14 +721,20 @@
                 "west": "tavern_main_floor"
             }
         },
+        "riverside_path": {
+            "name": "Riverside Path",
+            "description": "A short packed-earth path leading south from the town square, the smell of the river growing stronger with every step.",
+            "exits": {
+                "north": "town_square",
+                "south": "river_road"
+            }
+        },
         "river_road": {
             "name": "River Road",
             "description": "A wide dirt road that runs parallel to the Silver River. The sound of flowing water is louder here, and you can see boats moving along the river.",
             "exits": {
-                "north": "town_square",
+                "north": "riverside_path",
                 "south": "riverside_docks",
-                "east": "alleyway",
-                "west": "community_garden",
                 "downstream": "swamp:marsh_edge"
             },
             "properties": {
@@ -762,8 +804,7 @@
             "name": "Narrow Alley",
             "description": "A cramped and shadowy alley running behind the market stalls. Barrels and crates are stacked against the walls.",
             "exits": {
-                "north": "fish_stall",
-                "west": "river_road"
+                "north": "fish_stall"
             },
             "properties": {
                 "_district_id": "market_row"
@@ -807,7 +848,6 @@
             "description": "A stately building of white stone, recently renovated. Banners depicting historical artifacts hang from the pillars.",
             "exits": {
                 "in": "museum_interior",
-                "northwest": "town_square",
                 "southeast": "riverside_docks"
             },
             "properties": {
@@ -835,5 +875,6 @@
                 }
             ]
         }
-    }
+    },
+    "spawner": {}
 }

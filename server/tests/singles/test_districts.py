@@ -33,15 +33,73 @@ class TestGetDistrict(GameTestBase):
         self.assertEqual("Residential Gardens", district["name"])
 
     def test_room_outside_any_district_returns_none(self):
-        # community_garden sits outside every authored district, which is what
-        # this covers. It used to be town_square, until the editor's five
-        # districts (which do cover the town's core) were ported in.
+        # Every town room is now covered by an authored district (see the
+        # coverage test below), so there is no longer a real content gap to
+        # point at -- remove one room from its district in memory instead,
+        # to exercise the no-match path without depending on one existing.
+        region = self.world.get_region("town")
+        districts = region.properties["districts"]
+        districts["civic_core"]["members"].remove("community_garden")
         self.assertIsNone(self.world.get_district("town", "community_garden"))
 
     def test_unknown_region_or_room_returns_none(self):
         self.assertIsNone(self.world.get_district("nonexistent_region", "residential_street_east"))
         self.assertIsNone(self.world.get_district("town", "nonexistent_room"))
         self.assertIsNone(self.world.get_district(None, None))
+
+
+class TestDistrictCoverageEnforcement(GameTestBase):
+    """`ruleset.world.regions.enforce_district_coverage`: an opt-in policy
+    with nothing for an author to do -- a room left out of every district
+    resolves to a synthetic, hidden catch-all instead of None, so a caller
+    never needs a None-means-no-district special case once a content set
+    turns this on. Off by default, and every town room is authored into a
+    real district already, so each test removes one to create a gap."""
+
+    def _enforce(self) -> None:
+        self.world.content_set.ruleset.setdefault("world", {}).setdefault("regions", {})["enforce_district_coverage"] = True
+
+    def _open_a_gap(self) -> None:
+        region = self.world.get_region("town")
+        region.properties["districts"]["civic_core"]["members"].remove("community_garden")
+
+    def test_off_by_default(self):
+        self._open_a_gap()
+        self.assertIsNone(self.world.get_district("town", "community_garden"))
+
+    def test_enforced_room_resolves_to_a_hidden_catch_all(self):
+        self._open_a_gap()
+        self._enforce()
+        district = self.world.get_district("town", "community_garden")
+        self.assertIsNotNone(district)
+        self.assertTrue(district.get("hidden"))
+        self.assertIn("community_garden", district["members"])
+
+    def test_enforced_room_in_a_real_district_still_gets_it(self):
+        self._enforce()
+        district = self.world.get_district("town", "residential_street_east")
+        self.assertEqual("Residential Gardens", district["name"])
+        self.assertFalse(district.get("hidden", False))
+
+    def test_hidden_district_is_cached_across_calls(self):
+        self._open_a_gap()
+        self._enforce()
+        first = self.world.get_district("town", "community_garden")
+        second = self.world.get_district("town", "community_garden")
+        self.assertIs(first, second)
+
+    def test_unknown_room_still_returns_none_when_enforced(self):
+        self._enforce()
+        self.assertIsNone(self.world.get_district("town", "nonexistent_room"))
+
+    def test_header_omits_a_hidden_district(self):
+        self._open_a_gap()
+        self._enforce()
+        self.player.current_region_id = "town"
+        self.player.current_room_id = "community_garden"
+        result = self.game.process_command("look")
+        self.assertIn("RIVERSIDE VILLAGE - COMMUNITY GARDEN", result)
+        self.assertNotIn("UNASSIGNED", result)
 
 
 class TestDistrictHeaderDisplay(GameTestBase):
@@ -52,6 +110,11 @@ class TestDistrictHeaderDisplay(GameTestBase):
         self.assertIn("RESIDENTIAL GARDENS", result)
 
     def test_header_omits_district_outside_it(self):
+        # Same reasoning as test_room_outside_any_district_returns_none:
+        # every town room is now covered, so this removes one to keep
+        # exercising the no-district header case.
+        region = self.world.get_region("town")
+        region.properties["districts"]["civic_core"]["members"].remove("community_garden")
         self.player.current_region_id = "town"
         self.player.current_room_id = "community_garden"
         result = self.game.process_command("look")
@@ -60,28 +123,36 @@ class TestDistrictHeaderDisplay(GameTestBase):
 
 
 class TestResidentialGate(GameTestBase):
+    """`garden_gate` (civic_core) <-> `shrine_exterior` (residential): a
+    district boundary deliberately modeled as an "in"/"out" step rather than
+    a compass direction, so casually typing a direction can't wander across
+    it -- entering has to be a deliberate act. `west_lane` <->
+    `residential_street_east` used to be this pair, until it was
+    intentionally opened up to plain compass movement; this gate covers the
+    same design with the pair that still has it."""
+
     def test_entering_the_district_via_the_gate(self):
         self.player.current_region_id = "town"
-        self.player.current_room_id = "west_lane"
+        self.player.current_room_id = "garden_gate"
         result = self.game.process_command("in")
-        self.assertEqual("residential_street_east", self.player.current_room_id)
+        self.assertEqual("shrine_exterior", self.player.current_room_id)
         self.assertIn("RESIDENTIAL GARDENS", result)
 
     def test_leaving_the_district_via_the_gate(self):
         self.player.current_region_id = "town"
-        self.player.current_room_id = "residential_street_east"
+        self.player.current_room_id = "shrine_exterior"
         result = self.game.process_command("out")
-        self.assertEqual("west_lane", self.player.current_room_id)
+        self.assertEqual("garden_gate", self.player.current_room_id)
         self.assertNotIn("GARDENS", result)
 
-    def test_old_compass_directions_no_longer_connect_them(self):
+    def test_compass_directions_do_not_connect_them(self):
         self.player.current_region_id = "town"
-        self.player.current_room_id = "west_lane"
+        self.player.current_room_id = "garden_gate"
         result = self.game.process_command("west")
-        self.assertEqual("west_lane", self.player.current_room_id)
+        self.assertEqual("garden_gate", self.player.current_room_id)
         self.assertIn("cannot go", result.lower())
 
-        self.player.current_room_id = "residential_street_east"
-        result = self.game.process_command("east")
-        self.assertEqual("residential_street_east", self.player.current_room_id)
+        self.player.current_room_id = "shrine_exterior"
+        result = self.game.process_command("north")
+        self.assertEqual("shrine_exterior", self.player.current_room_id)
         self.assertIn("cannot go", result.lower())

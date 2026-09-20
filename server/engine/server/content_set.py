@@ -299,6 +299,38 @@ def _region_classification_policy(
     return required, biomes, region_types
 
 
+def _validate_district_coverage_policy(
+    ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path
+) -> None:
+    """Type-check the optional policy that guarantees every room in every
+    region resolves to *some* district at runtime.
+
+    Unlike `require_level_bands`/`require_classification`/
+    `require_hazard_coverage`, this one asks nothing of the author: opting in
+    makes `world.get_district` (engine/world/world.py) synthesize a hidden
+    catch-all district for whatever a room's author left ungrouped, so there
+    is no per-region shape to check here beyond the flag's own type.
+    """
+    world_config = ruleset.get("world", {})
+    if world_config is None:
+        return
+    if not isinstance(world_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world must be an object"))
+        return
+    regions_config = world_config.get("regions", {})
+    if regions_config is None:
+        return
+    if not isinstance(regions_config, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), "ruleset.world.regions must be an object"))
+        return
+    enforced = regions_config.get("enforce_district_coverage", False)
+    if not isinstance(enforced, bool):
+        issues.append(ContentSetIssue(
+            "error", str(ruleset_path),
+            "ruleset.world.regions.enforce_district_coverage must be a boolean",
+        ))
+
+
 def _validate_region_classification(
     content_root: Path, issues: list[ContentSetIssue], *, required: bool = False,
     biomes: set[str] | None = None, region_types: set[str] | None = None,
@@ -604,6 +636,7 @@ def validate_region_policy(content_root: Path | str, ruleset_path: Path | str) -
     require_level_bands = _region_level_bands_required(ruleset_payload, issues, ruleset_path)
     require_hazard_coverage = _region_hazard_coverage_required(ruleset_payload, issues, ruleset_path)
     require_classification, biomes, region_types = _region_classification_policy(ruleset_payload, issues, ruleset_path)
+    _validate_district_coverage_policy(ruleset_payload, issues, ruleset_path)
 
     _validate_region_level_bands(content_root, issues, required=require_level_bands)
     _validate_region_classification(content_root, issues, required=require_classification, biomes=biomes, region_types=region_types)
@@ -2655,6 +2688,7 @@ def load_content_set(
             require_region_classification, region_biomes, region_types = _region_classification_policy(
                 ruleset_payload, issues, ruleset_source_path
             )
+            _validate_district_coverage_policy(ruleset_payload, issues, ruleset_source_path)
             _validate_region_level_bands(
                 content_root, issues, required=require_region_level_bands
             )

@@ -1,5 +1,38 @@
 {
-    "region": {},
+    "region": {
+        "_proxy_positions": {
+            "riverside_catacombs:cellar_breach": [
+                224,
+                -992
+            ],
+            "riverside_catacombs:shrine_stairs": [
+                -1056,
+                -448
+            ],
+            "farmland:farm_bridge": [
+                864,
+                768
+            ],
+            "forest:forest_edge": [
+                0,
+                -864
+            ],
+            "casino:lobby": [
+                768,
+                -384
+            ]
+        },
+        "_editor_connection_label_sources": {
+            "blacksmith_exterior|residential_street_east": {
+                "source": "blacksmith_exterior",
+                "direction": "southwest"
+            },
+            "player_house_exterior|residential_street_east": {
+                "source": "player_house_exterior",
+                "direction": "north"
+            }
+        }
+    },
     "rooms": {
         "town_square": {
             "_editor_pos": [
@@ -21,8 +54,8 @@
         },
         "watchtower_base": {
             "_editor_pos": [
-                512,
-                -192
+                256,
+                -384
             ],
             "_editor_exit_layout": {
                 "in": {
@@ -35,8 +68,8 @@
         },
         "watchtower_interior_ground": {
             "_editor_pos": [
-                640,
-                -96
+                224,
+                -576
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -49,8 +82,8 @@
         },
         "watchtower_top": {
             "_editor_pos": [
-                1024,
-                -192
+                224,
+                -736
             ]
         },
         "barracks_exterior": {
@@ -69,8 +102,8 @@
         },
         "barracks_interior": {
             "_editor_pos": [
-                -512,
-                -192
+                -256,
+                -448
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -83,28 +116,20 @@
         },
         "jail_cell": {
             "_editor_pos": [
-                -1024,
-                192
+                -256,
+                -704
             ]
         },
         "west_lane": {
             "_editor_pos": [
-                -256,
+                -448,
                 0
-            ],
-            "_editor_exit_layout": {
-                "in": {
-                    "target": "residential_street_east",
-                    "visual_direction": "west",
-                    "placement": "adjacent",
-                    "inferred": true
-                }
-            }
+            ]
         },
         "blacksmith_exterior": {
             "_editor_pos": [
-                -256,
-                -384
+                -480,
+                -192
             ],
             "_editor_exit_layout": {
                 "in": {
@@ -118,7 +143,7 @@
         "blacksmith_interior": {
             "_editor_pos": [
                 -512,
-                -384
+                -480
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -131,28 +156,20 @@
         },
         "residential_street_east": {
             "_editor_pos": [
-                -512,
+                -768,
                 0
-            ],
-            "_editor_exit_layout": {
-                "out": {
-                    "target": "west_lane",
-                    "visual_direction": "east",
-                    "placement": "adjacent",
-                    "inferred": true
-                }
-            }
+            ]
         },
         "player_house_exterior": {
             "_editor_pos": [
-                -256,
-                -576
+                -768,
+                192
             ]
         },
         "small_house_1_exterior": {
             "_editor_pos": [
-                -512,
-                -576
+                -768,
+                -192
             ],
             "_editor_exit_layout": {
                 "in": {
@@ -166,7 +183,7 @@
         "small_house_1_interior": {
             "_editor_pos": [
                 -768,
-                -576
+                -448
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -179,7 +196,7 @@
         },
         "shrine_exterior": {
             "_editor_pos": [
-                -768,
+                -1056,
                 0
             ],
             "_editor_exit_layout": {
@@ -193,8 +210,8 @@
         },
         "shrine_interior": {
             "_editor_pos": [
-                -768,
-                192
+                -1056,
+                -192
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -207,26 +224,32 @@
         },
         "community_garden": {
             "_editor_pos": [
-                -256,
+                -448,
                 192
             ]
         },
-        "east_market_road": {
+        "market_lane": {
             "_editor_pos": [
                 256,
                 0
             ]
         },
-        "market_square": {
+        "east_market_road": {
             "_editor_pos": [
                 512,
                 0
             ]
         },
+        "market_square": {
+            "_editor_pos": [
+                768,
+                0
+            ]
+        },
         "general_store_exterior": {
             "_editor_pos": [
-                512,
-                -576
+                768,
+                -192
             ],
             "_editor_exit_layout": {
                 "in": {
@@ -239,8 +262,8 @@
         },
         "general_store_interior": {
             "_editor_pos": [
-                768,
-                -576
+                1024,
+                -192
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -265,22 +288,22 @@
             "_editor_exit_layout": {
                 "in": {
                     "target": "alchemist_interior",
-                    "visual_direction": "southeast",
-                    "placement": "stacked",
+                    "visual_direction": "east",
+                    "placement": "adjacent",
                     "inferred": true
                 }
             }
         },
         "alchemist_interior": {
             "_editor_pos": [
-                1152,
-                -288
+                1280,
+                -384
             ],
             "_editor_exit_layout": {
                 "out": {
                     "target": "alchemist_exterior",
-                    "visual_direction": "northwest",
-                    "placement": "stacked",
+                    "visual_direction": "west",
+                    "placement": "adjacent",
                     "inferred": true
                 }
             }
@@ -293,14 +316,20 @@
         },
         "fish_stall": {
             "_editor_pos": [
-                512,
-                -384
+                768,
+                160
+            ]
+        },
+        "tavern_approach": {
+            "_editor_pos": [
+                256,
+                -192
             ]
         },
         "tavern_exterior": {
             "_editor_pos": [
-                256,
-                -192
+                512,
+                -384
             ],
             "_editor_exit_layout": {
                 "in": {
@@ -313,8 +342,8 @@
         },
         "tavern_main_floor": {
             "_editor_pos": [
-                256,
-                -384
+                512,
+                -576
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -327,112 +356,118 @@
         },
         "tavern_upper_floor": {
             "_editor_pos": [
-                768,
-                -768
+                832,
+                -960
             ]
         },
         "guest_room_1": {
             "_editor_pos": [
-                768,
-                -960
+                832,
+                -1152
             ]
         },
         "guest_room_2": {
             "_editor_pos": [
-                768,
-                -192
+                832,
+                -768
             ]
         },
         "tavern_cellar": {
             "_editor_pos": [
-                -512,
-                192
+                448,
+                -800
             ]
         },
         "tavern_kitchen": {
             "_editor_pos": [
-                768,
-                -384
+                832,
+                -576
+            ]
+        },
+        "riverside_path": {
+            "_editor_pos": [
+                0,
+                192
             ]
         },
         "river_road": {
             "_editor_pos": [
                 0,
-                192
+                384
             ]
         },
         "riverside_docks": {
             "_editor_pos": [
                 0,
-                384
+                576
             ]
         },
         "fishing_hut": {
             "_editor_pos": [
                 -256,
-                384
+                576
             ]
         },
         "old_mill_path": {
             "_editor_pos": [
                 256,
-                384
+                576
             ]
         },
         "old_mill": {
+            "_editor_pos": [
+                512,
+                576
+            ]
+        },
+        "alleyway": {
             "_editor_pos": [
                 768,
                 384
             ]
         },
-        "alleyway": {
-            "_editor_pos": [
-                512,
-                192
-            ]
-        },
         "bridge_approach_west": {
             "_editor_pos": [
                 0,
-                576
+                768
             ]
         },
         "bridge_middle": {
             "_editor_pos": [
-                1280,
-                -384
+                256,
+                768
             ]
         },
         "bridge_approach_east": {
             "_editor_pos": [
-                1536,
-                -384
+                544,
+                768
             ]
         },
         "museum_exterior": {
             "_editor_pos": [
-                256,
-                192
+                -256,
+                384
             ],
             "_editor_exit_layout": {
                 "in": {
                     "target": "museum_interior",
-                    "visual_direction": "southeast",
-                    "placement": "stacked",
+                    "visual_direction": "west",
+                    "placement": "adjacent",
                     "inferred": true
                 }
             }
         },
         "museum_interior": {
             "_editor_pos": [
-                384,
-                288
+                -512,
+                384
             ],
             "_editor_exit_layout": {
                 "out": {
                     "target": "museum_exterior",
-                    "visual_direction": "northwest",
-                    "placement": "stacked",
+                    "visual_direction": "east",
+                    "placement": "adjacent",
                     "inferred": true
                 }
             }

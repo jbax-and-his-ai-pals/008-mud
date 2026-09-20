@@ -29,7 +29,7 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
     
     # 1. Header
     district = world.get_district(current_region_id, current_room_id)
-    district_segment = f" - {district['name'].upper()}" if district else ""
+    district_segment = f" - {district['name'].upper()}" if district and not district.get("hidden") else ""
     title = f"{FORMAT_TITLE}[{current_region.name.upper()}{district_segment} - {current_room.name.upper()}]{FORMAT_RESET}\n\n"
     
     # 2. Environment Context
