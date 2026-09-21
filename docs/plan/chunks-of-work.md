@@ -1,15 +1,19 @@
 # Chunks of work
 
-**Status:** proposed 2026-09-18; **chunk 1 done 2026-09-19**. Supersedes the phase
-framing as the *working* view. `integrated-roadmap.md` still holds the cross-track
-detail and the verification; this is what to actually pick up.
+**Status:** chunks 0–4 done; **chunk 5 partly done**; **chunk 6 is where to start**
+(expanded 2026-09-21 into the game-authoring journey). Supersedes the phase framing
+as the *working* view. `integrated-roadmap.md` still holds the cross-track detail
+and the verification; this is what to actually pick up.
 
 Track parallelism is no longer maintained as an organising principle. Each chunk
 below is one coherent piece of work with a definition of done, and the `⚡` marks
 the items inside it that can genuinely run at the same time as something else.
 
-**Five chunks, one done.** Chunk 1 below is kept as the record of what was found
-and fixed, not as a to-do list. Start at chunk 2.
+**Earlier chunks are retained as history, not a fresh readiness claim.** Chunk 1 below is kept as the record
+of what was found and fixed, not as a to-do list. Chunk 5's leftovers (CI for the
+content gate, the gate-falsification harness, the save round-trip, twenty
+discoveries) are still worth doing and are now *behind* chunk 6, because the editor
+is what turns every later content change from a JSON edit into a five-minute job.
 
 ---
 
@@ -42,7 +46,192 @@ to fail against the old non-atomic write before being accepted.
 
 ---
 
-## 2. Seasons and settling — ✅ 2a done, 2b decision done
+## 0. The world editor, before anything splits — ✅ done 2026-09-19
+
+The editor's foundations (create a set, the NPC stat form, connection authoring,
+vocabulary parity, the world-link modal) are closed. What is *not* closed is the
+editor's coverage of the engine — that is chunk 6, which supersedes this section as
+the editor work.
+
+Not a numbered chunk in the original five, and now the *active* work: get the
+editor to a good point before the editor and non-editor tracks separate. The
+organising rule for that separation, in the operator's words: **"keep folder
+separation where possible and keep things as general systems that are as minimally
+coupled to each other as possible."** Two consequences for how work is chosen
+here:
+
+* A panel does not hold its own copy of a rule another panel holds. The rule lives
+  in one module both import (`PropertyTagRow`, `content_check_steps`).
+* A check is declared once. The editor and the gate are two renderings of the same
+  list (`toolkit/content_check_steps.py`), never two lists.
+
+| Item | State |
+|---|---|
+| Round-trip every shipped set and compare bytes (G1) | **Done** `3c9ce5e`; found real drift in five region files |
+| Stop the panels flattening nested properties (G3) | **Done.** Three panels, one shared rule, mutation-tested |
+| Editor validate runs the gate's checks (G-consensus) | **Done.** 5 of 14 → 9, with gaps reported in `not_run` |
+| Connection authoring: reciprocal delete, bow controls, one-at-a-time form (G-new) | **Done.** See below |
+| Vocabulary parity + the two wrong `EFFECTS` shape hints (G2) | **Done.** Found a third defect: `talk` |
+| Engine reference integrity from the world link check (G4) | **Done.** Advisory wording marks what the engine does not claim |
+| NPC stat form reads the set's stat declaration (G5) | **Done.** Four defects; the declaration is in the contracts, not the ruleset |
+| Scaffold a new content set by copying one (G6) | **Done.** Engine owns the manifest; rules are copied on request, because a ruleset names the world it came from |
+| Where an authoring tool lives now that `tools/` is gone (G7) | **Parked** by decision 6, with the reason in the deferral ledger |
+
+### Creating a content set (done 2026-09-19)
+
+The last "you cannot do this from the editor at all" in the list. `DataRoot`
+finds a set by testing for `content_set.manifest.json` and nothing had ever
+written one, so the documented way to start a world was to hand-write the
+manifest — which is what the editor's own tests did. Now: **New content set...**
+in the content-set chooser, a form with an id, a title and a source, and a
+receipt that reports what was written and what is still owed.
+
+**The measurement that shaped it.** A ruleset is not a self-contained thing to
+copy; it is a manifest of references into the world it was written for. Counted
+across the shipped sets, `modern_capsule`'s ruleset names nothing, `night_shift`'s
+names three items, `orbital_salvage`'s five and `fantasy_frontier`'s ninety.
+Scaffolding from fantasy_frontier *with* its rules produces a set that opens and
+fails validation on 72 unresolved references. So copying rules is a checkbox the
+dialog explains rather than the default: off gives a ruleset that declares nothing
+and a set that validates; on gives a close copy of another world, and its entire
+to-do list. The item's done-when ("`EngineValidator.run` returns ok") is met by the
+default, and the other mode is honest about what it is.
+
+**The manifest is the engine's, checked.** Its field names moved out of
+`load_content_set`'s body into module constants, the vocabulary dump reads them,
+and `schema_parity_smoke.gd` compares the editor's table against them in both
+directions — mutated to prove it fails. That is the ownership decision, applied.
+
+**Five defects found on the way:** the `quests` capability requires `quests/` and
+`campaigns/` data directories the scaffold was not creating; the starter region
+was classified from the *source's* ruleset rather than the new set's, copying
+fantasy's biome vocabulary into a set whose rules declare nothing; the placeholder
+ruleset and starter region must create their own parent directories because
+`SaveIO` refuses to; a source without `opening/` was refused though the engine
+treats it as optional; and the dialog needed a way to be pointed at scratch state
+so a check can drive it without writing into `content_sets/`.
+
+**New check:** `tests/content_set_scaffold_smoke.gd` — 40 assertions including
+driving the real dialog and the real `Main.tscn`. 30 editor checks, all passing.
+
+### The NPC stat form (done 2026-09-19)
+
+The last panel in the editor still speaking one world's vocabulary. `attr_keys`
+named eight fantasy stats and showed them for every content set, so
+`orbital_salvage` (six stats) and `modern_capsule` (none) were offered rows they
+do not have. The rows now come from the declaration, with the engine's own
+precedence: contracts `stats.order`, then `ruleset.status.stats`, then the stats
+`stats.roles` names, then the stats the set's NPCs already carry — and the panel
+says which one it used. Nothing falls back to the engine's *default* names: a set
+that has declared nothing gets a sentence naming the file to declare them in,
+rather than eight rows nobody agreed to.
+
+Three more defects went with it, all in the same panel and all the kind this
+track exists for: opening an NPC wrote an empty `stats` object into its file;
+every edited number was written as a float (the int-to-float defect the number
+gate exists to catch); and the two pool labels said "Mana" and "Health" for every
+set, where the declared `resources` entry now answers (orbital reads "Charge").
+
+**Found and recorded rather than fixed:** orbital declares `ability_power` and
+`resistance` as `spell_power`/`magic_resist` and carries neither on any NPC, so
+both mechanics sit at the neutral default for that set. Omitting the roles would
+not help — the engine falls back to the same names — so a set that wants a real
+value must name a stat it has. That is a balance decision, and it is now visible.
+
+**New check:** `tests/npc_stat_vocabulary_smoke.gd`, one fixture per source plus
+the empty case plus the shipped set. 29 editor checks, all passing.
+
+### Connection authoring (done 2026-09-19)
+
+Asked for by the author of the world, from actually authoring in it. Five changes,
+all in `mud-world-editor/`, all with a check in
+`tests/connection_editing_smoke.gd` (24 assertions, mutation-tested):
+
+- **Deleting a connection removes both ends by default.** Connections are authored
+  in pairs, and removing one end left a half-link that still drew and still claimed
+  to lead somewhere. The one-way removal — the case that needs saying so — has its
+  own quieter button, and only appears when a pair actually exists. Committed as
+  one undo step. A cross-region exit deliberately reports *no* pair rather than
+  guessing: its far end is in a file this region has not loaded.
+- **The bow's side and distance are authorable** (`_editor_exit_layout`, which
+  `EditorLayout` already keeps out of content files). Without this the side was the
+  perpendicular of the line between two rooms, so moving a room silently flipped
+  it. Both controls are click-to-cycle, shift-click-to-clear; `normal` is stored as
+  *no key* rather than as a value, since an override meaning "the same as no
+  override" is state with no meaning.
+- **The form reads in the order it is filled in:** reciprocal above both direction
+  rows, and both rows in one format —
+  `Connect <room> [dir] to <room>` / `Return <room> [dir] to <room>`.
+- **Connection mode.** While the form is open, a map click means "the far end" and
+  nothing else, checked *before* the paint and stamp tools so one click cannot both
+  pick a target and paint a property onto it; and room dragging does not start at
+  all, because a room moved while aiming at it is a content change that reaches the
+  save. Set through one entry point used by both ways in, cleared whenever a room
+  loads, so it cannot get stuck on.
+- **Connecting closes the form; "Connect another" does not.** The second keeps the
+  source, direction and reciprocal choice and clears only the target, which is how
+  a room with four exits gets authored.
+
+**Two defects found on the way, both fixed:**
+
+- `ConnectionEditor._on_conn_region_changed` passed `rooms[r_id]` — the room
+  *object* — straight to `OptionButton.add_item`, which wants a string. The target
+  room list was rendering object dumps instead of names.
+- `next_curve_amount` treated an unrecognised value as "start of the cycle" rather
+  than as `normal`, so a fresh exit's first click gave the wrong step.
+
+**Not done here, and deliberately:** panning, zooming, box-select and the
+right-click context menu still work while the connection form is open. They do not
+conflate with target selection, and locking them costs usability.
+
+### Vocabulary parity (done 2026-09-19)
+
+`tests/schema_parity_smoke.gd` compares both directions against the engine's own
+sets, read through the new `toolkit/engine_vocabulary_dump.py` — which *imports*
+them, rather than listing them a third time. Both directions matter, for different
+reasons: a kind the editor offers but the engine ignores is a gate that never
+fires; a kind the engine routes but the editor lacks forces hand-edited JSON.
+
+**Three defects found, one of them new:**
+
+- `adjust_relationship`'s hint said `{amount}`; the engine requires `npc` as well,
+  and fails with "no npc or amount" without it.
+- `move_npc`'s hint said `{npc_id, region_id, room_id}`; the engine reads
+  `npc`/`region`/`room` and reads none of the `_id` names.
+- **`talk` is a routed objective type** (`npcs.py` treats it with
+  negotiate/deliver/fetch at turn-in) that the editor's `QuestSchema` did not
+  offer. Authored quests use 7 of the 16 types so far, so nothing shipped broken —
+  but an author wanting a "just go talk to them" objective had to hand-edit JSON.
+
+The check also asserts that every effect shape hint names the fields the engine's
+own reader pulls, with two recorded exceptions: `delta` is an alias for `amount`,
+and `generated_item_data` is a pre-rolled instance written by the procedural-loot
+path, which hinting would invite authors to hand-write.
+
+Mutation-tested: dropping the `talk` entry fails the check by name.
+
+### The world-link modal (done 2026-09-19)
+
+`Main._show_validation_results` now shows the engine's reference verdict before the
+editor's own walk, via a new `--only` filter on `editor_validate.py` so the modal
+gets the *link* findings without the item, quest and contract ones.
+
+The editor's walk stays — it reaches every loaded region in one pass — but its
+wording is marked `[advisory]`, including the one-way-link note, which the engine
+deliberately does not make: it is geometry-blind and has no opinion about whether a
+connection is symmetric. Previously the two voices were equally loud for the same
+fact, in two different wordings.
+
+The `--only` filter recomputes its counts, because stale counts would make the
+modal's summary disagree with its own list. `test_editor_validate.py` covers that,
+the narrowing direction, and that an unfiltered run is unchanged.
+
+**Done when:** the editor's Validate button and `run_content_checks.py` cannot
+disagree about any check, and no two panels implement one rule twice.
+
+---
+
+## 2. Seasons and settling — ✅ done 2026-09-19
 
 Two halves, and they are **independent — do them in whatever order, or at once.**
 
@@ -75,7 +264,7 @@ the literal `herb bed → rack → alchemy table → tonic` line. Doing it means
 substitution convention) or authoring one more recipe. Both edit existing content
 beyond this chunk's brief.
 
-### 2b. Settling the contract — clock decided, read-or-delete gate ✅ built
+### 2b. Settling the contract — ✅ clock decided, gate built, `work` shaped
 
 - **The clock decision — ✅ made.** See "Decisions that gate chunks" below. The
   fix it implied is landed and tested.
@@ -116,12 +305,64 @@ beyond this chunk's brief.
   one of that pair, and the tier weights are **partly** inert — `value_multiplier`
   and `weight_multiplier` are read, while `tier.weight` is not, because
   `instance_generator._weights_for` synthesizes weights from a positional curve.
-- `work` declared: id, label, duration, recipe or outputs. **Still open.**
+- **`work` — ✅ the shape landed 2026-09-19; the resolver did not, on purpose.**
+  The roadmap line for this was "the shape, not the resolver": E and F can author
+  against it, and a consumer test exists. What that means concretely:
+
+  | Piece | Where | State |
+  |---|---|---|
+  | The declaration (`id`, `label`, `description`, `duration_days`, `inputs`, `outputs`, `skill`, `difficulty`, `tags`) | `registry.py` `WORK_FIELDS`, the eighth top-level section | same schema language as the rest; a typo'd field fails content validation |
+  | Start / read / complete | `engine/contracts/work.py` — `work_for`, `duration_seconds`, `begin`, `remaining_seconds`, `is_due`, `observe` | built and tested (41 tests) |
+  | Vocabulary check | `work.declaration_issues()` | a skill with no difficulty gates nothing; a difficulty with no skill rolls nothing |
+  | Moving items, the start/collect verb, a tick loop | nowhere | **not built** — see below |
+
+  **A timer is two absolute numbers.** `started_at` and `ends_at`, both against
+  `world.clock` — a `WallClock` on a live server, a `SimulatedClock` the tests can
+  `set()`. Not `TimeManager.game_time`, which is a frame-delta calendar that stops
+  when the process does. Completion is therefore a comparison rather than an event:
+  nothing has to fire at a moment, every observer agrees because they all compute
+  from the same two numbers, and a saved timer is still meaningful after the
+  process has been down — where a saved "seconds remaining" would not be. That
+  last claim is asserted by round-tripping a timer through JSON and reading it
+  against a clock that moved on, which is exactly what a save file does.
+
+  **What is declared and not yet read** — measured, not assumed: `inputs`,
+  `outputs` and `tags` are `UNREAD` in the ledger, because `begin()` returns a
+  timer without consuming anything. Moving items needs to answer *which* inventory
+  and *which* container first, and that is a decision about the game's shape rather
+  than about durations. They stay declared (content can author against them, which
+  is the point of this item) and they stay pinned in `KNOWN_UNREAD` with a reason,
+  so the debt is a recorded decision rather than a silent no-op.
+- **`duration_days` is the one field that makes a declaration take time**, and it
+  is wired: no duration means instant, which is how a plain recipe and a
+  three-day ferment are the same kind of declaration. `ResourceNode.respawn_days`
+  is the precedent for the unit.
+- **`work` has its first consumer — ✅ 2026-09-19, and it is a second theme.**
+  `orbital_salvage` declares a fabrication batch: three salvaged parts into the
+  workshop's bay, half a day, two patch kits out, against the instant recipe's one
+  kit from two parts. So a duration now means something in a set with no winters,
+  which is what "a system is not finished until two themes use it" was asking for.
+  The verbs landed with it (`start`, `collect`, `due_jobs`), the two fields the
+  ledger had recorded as unread (`inputs`, `outputs`) now move items, and the
+  command surface is `jobs` / `begin` / `collect`. Chunk 2's open item — *which*
+  inventory — is answered: the player's, because a player is an owner that already
+  round-trips through a save, and a room is not.
+- **The day was 72× too long, and only content found it.** `duration_days` was
+  multiplied by 86400, but the clock it anchors to counts real seconds and a game
+  day is `TIME_REAL_SECONDS_PER_GAME_DAY` (1200). An authored "one day" would have
+  taken 72 of them. Every test agreed with the bug because every test used the
+  constant the bug was in. The fix is one import, and the test that pins it now
+  asserts the meaning: a one-day job is due after one game day and not before.
+- Also fixed on the way: `ContractRegistry.is_empty` did not count the new section,
+  so a set declaring only `work` still reported "this content set declares no
+  contracts" and skipped its own validation.
 
 **Done when:** the gate can be shown to fire (re-add `debug_only` with no reader
 and watch it go red) — **met**, by injecting `silent_no_op` and by deleting
 `debug_only` from the schema to prove the orphan direction — and `work` is
-documented enough that E and F can author against it. **`work` remains.**
+documented enough that E and F can author against it — **met**, above, with the
+declaration validated by the same schema language as every other section and a
+41-test consumer for the part the engine actually does.
 
 **⚡ 2a and 2b do not touch each other.** 2a is JSON; 2b is `server/engine/` +
 `tools/`. The only collision is if the `work` shape changes how a recipe is
@@ -134,21 +375,125 @@ change is one field.
 ## 3. The second consumer
 
 The chunk that decides whether the engine is general or is fantasy with different
-nouns. Three pieces, and **each can run alone.**
+nouns. Four pieces, and **each can run alone.**
 
 | Piece | What | Owner | Scope |
 |---|---|---|---|
-| **Night shift crime loop** | Sources for the two unobtainable items, 2–3 containers, a locked storeroom, an `advancement.grants` table | F (+E for what it exposes) | small–medium |
-| **Orbital duration** | A docking window or commodity aging — a set with no winters | F (+B if the shape strains) | small |
-| **Environment: one declared value, one reader** | Collapse three expressions to one; orbital fills the `hazards` seat it already left empty | B declares, E reads, F authors | medium |
-| **Social declared** | Orbital declares a `social` section instead of silently rendering fantasy's default tiers and a 15% discount | F + E | small |
+| ~~**Night shift crime loop**~~ ✅ **done 2026-09-19** | Two lockpick sources, three owned containers, a locked storeroom, a fence, an `advancement` table — and three engine seams it exposed | F (+E for what it exposes) | small–medium |
+| ~~**Orbital duration**~~ ✅ **done 2026-09-19** | A fabrication batch in the workshop's bay — a set with no winters, and `work`'s first consumer | F (+B if the shape strains) | small |
+| ~~**Environment: one declared value, one reader**~~ ✅ **done 2026-09-19** | Three expressions of "this room is dangerous" collapsed into one record; orbital's empty `hazards` seat filled with `hull_frost` | B declares, E reads, F authors | medium |
+| ~~**Social declared**~~ ✅ **done 2026-09-19** | The ladder is a set's own or there is none: three sets declare one, the surface is gated on the capability, and a set that declares nothing shows no bond at all | F + E | small |
 
 **Why together:** each is the *second* use of something. Doing one proves the
 convention; doing all four is what stops the next system being fantasy-shaped by
 default.
 
+**✅ Orbital duration is done, and it answered chunk 2's open item rather than
+dodging it.** The consumer turned out to need the item-movement verb after all —
+not because a dock window does, but because a *job* does: `start` consumes
+declared inputs and `collect` yields declared outputs, both against the player's
+inventory. That is the owner the design doc had already scoped to (players and
+items are what round-trip through a save), so the answer was a sentence rather
+than a container system. What landed: `start`/`collect`/`due_jobs` in
+`contracts/work.py`, the player's `WorkState` aspect with its save round-trip,
+`jobs`/`begin`/`collect` commands, a `station` field on the declaration, an
+orbital batch that trades time for a better yield, and a journey test that starts
+a batch in one process and finishes it in the next.
+
+**✅ Environment is done too, and it is the piece that found a balance bug.**
+A hazard was three expressions of one fact — a channel map, a sentence keyed by
+*channel* (so two hazards sharing a channel shared prose and a hazard's own name
+never reached a player), and per-room damage/interval properties. Now it is one
+record in the set's own `combat/elements.json` (`channel`, `flavor`, `damage`,
+`tick_interval`), a room names it, and one reader
+(`engine/world/environment.py`) resolves it. `orbital_salvage`, which shipped
+`"hazards": {"mapping": {}, "flavor": {}}`, now declares `hull_frost` in the cargo
+hold — `thermal`, its own channel, in its own words — and its `impact vest` resists
+it, so mitigation is 3 damage bare against 2 through the vest.
+
+The bug: the engine subtracts the `resistance` role's stat **raw value**, so
+pointing that role at a core attribute means subtracting 10 from every energy hit.
+Orbital did exactly that (from the earlier stat-vocabulary work) and its new
+hazard was therefore harmless until a test measured it. The role now names
+`insulation`, a small derived rating — the shape fantasy's `magic_resist` (2) has —
+carried by the crew at 1–2 and by no salvager, who survives the cold on gear. That
+also vindicates the deferral ledger's refusal of a "a role must name a stat some
+entity carries" gate, which would have forbidden the correct declaration.
+
+**One fork this closed, deliberately.** The `work` declaration is a *contract*
+section, and recipes gained no `duration_days`. The two routes to "this takes
+time" were: a timed recipe (reusing the crafting surface's stations, quality tiers
+and familiarity) or declared work (a general primitive any system can use). v1
+built the second, because it is the one the design doc described and because
+recipe durations need a decision about how waiting interacts with quality tiers
+that nobody has made yet. **Recorded, not refused:** a recipe *may* later declare a
+wait and reuse this timer, and the thing to avoid is a second duration mechanism
+with different semantics.
+
 **Done when:** for each system touched, two themes declare it — asserted by
-content, not claimed.
+content, not claimed. For duration: `orbital_salvage` declares `work`, and its
+journey test asserts the loop end to end. For environment: two sets declare
+hazards through two different channels. For social: **three** sets declare a
+ladder, in three different sets of words, and a fourth deliberately declares none.
+For crime: `night_shift` plays the whole loop — take what is not yours, be caught,
+be held, get out — in a set with no fantasy nouns.
+
+**✅ The night shift crime loop is done, and authoring it found three seams that
+content alone could not fix.** The set now has its two lockpick sources (a tool
+crib of shim cards in the supply room, a master shim in a locked wire cage behind
+a locked storeroom door), three containers that belong to somebody, a fence
+(`Otis`) at the end of the alley who buys anything and sells the tool for getting
+back out, two new rooms, and an `advancement` table so the ledger pays for
+arriving, meeting and fighting rather than recording entries for nothing.
+
+What the authoring exposed, all three fixed:
+
+1. **An authored container's `contains` never reached the constructor.**
+   `ItemFactory` pops a template's `properties` out before instantiating, and
+   `Container.__init__` is what turns `{item_id, quantity}` into items — so every
+   container authored with contents came out empty, and the factory's property
+   loop skipped `contains` on the assumption the constructor had hydrated it. Two
+   comments describing an intent, neither implemented, and invisible because no
+   shipped set had ever authored a container's inventory.
+2. **`quantity` in those references was read and thrown away.** "Two energy
+   drinks" put one in the till. A container holds instances and has no stack
+   model, so a count is now that many instances.
+3. **`get <item> from <container>` was a risk-free robbery.** `steal` consulted
+   `owned_by_npc` and rolled a witness; `open locker` then `get multitool from
+   locker` took the same thing with no consequence at all, which made the crime
+   system optional for the only containers it was written for. Both phrasings now
+   settle the risk through one helper, and the second phrasing also records the
+   acquisition in the collection, discovery and advancement ledgers, which it
+   silently skipped before.
+
+**New check:** `test_night_shift_crime_loop.py` (13 tests) walks the loop, and
+`test_container_authoring.py` (7) pins the two container fixes so the next set
+that authors a chest fails a small named test rather than a journey. Also fixed
+on the way: a pre-existing flaky assertion (`test_npc_core_full`) that counted a
+corpse's whole drop list, which includes a chance-rolled ambient item — it now
+counts the loot it is actually about.
+
+**✅ Social is done, and it ended up bigger than "declare it in orbital".** The
+finding was that the engine kept a fantasy-shaped *default* ladder: a set that
+never mentioned relationships rendered "Close Friend" and quietly took up to 15%
+off its own vendors' prices. A default that moves prices is not a default, it is
+an undeclared rule. So the ladder is now the set's or there is none — no tier
+names, no score kept, and no discount — and the section is validated for the first
+time (a `tier` typo, a string `min`, a gift category the engine never scores, a
+repeated threshold, or a ladder with no bottom rung each fall back silently today
+and are errors now). Presenting the surface and declaring the ladder became one
+decision, checked both ways: a ladder with no capability is an **error** (a
+declaration nobody can see), and a capability with no ladder is a **warning** plus
+honest degradation — a scaffolded set inherits its source's capability list on its
+first day, so its commands say "this game does not track bonds" rather than
+printing a score with no name attached.
+
+`orbital_salvage` (Unvetted / Known / Trusted / Crew, 3-9-18 — sized so four
+crafted gifts or a few days of Ivo's orders reach the top) and `night_shift`
+(Never seen you / Not a stranger / A face / On the list) both declare ladders and
+the capability; `modern_capsule` declares neither and now presents no bond surface
+at all, which is right for a vignette. Gift *scoring* still has engine defaults,
+because a gift has to be worth something; the words and the numbers are content's.
 
 **Note:** the night shift piece will expose container-theft seams
 (`theft.py:40` requires naming an item the container only generates on first
@@ -162,18 +507,87 @@ Content-only, bounded, and the answer to "are the other three sets games?"
 
 | Piece | What | Owner | Scope |
 |---|---|---|---|
-| **`night_shift` plays** | It declares crime/custody/locksmithing in its ruleset while its manifest lists none; no container, no income, no reason to be there | F | small–medium |
-| **`modern_capsule` gets its repair café** | Its own flyer already advertises an event with no content behind it; quests + dialogue with combat, magic, crafting, gathering and economy all off | F | small |
-| **The four unused objective types** | `relationship`, `discover_n`, `craft_quality`, `deliver_multi` have **zero** authored quests | F | medium |
-| **Three NPC templates placed** | `forest_hermit`, `wandering_mage`, `wandering_priest` exist in no room and no spawner | F | tiny |
+| ~~**`night_shift` plays**~~ ✅ **done 2026-09-19** (as chunk 3's crime loop) | It has containers that belong to somebody, a fence to sell to, a locked way out and a 13-test journey. The row's premise — a ruleset declaring systems its manifest omits — does not apply to `crime`/`custody`/`locksmithing`: the engine's capability vocabulary (`_CAPABILITY_SYSTEMS`) has no such names, and those sections are read directly by their managers | F | small–medium |
+| **`modern_capsule` gets its repair café** | ~~Its own flyer already advertises an event with no content behind it~~ ✅ **done 2026-09-20 as a vignette** (decision 2): two dialogue graphs, two props, and an exchange with a real outcome, with every other system still switched off | F | small |
+| ~~**The four unused objective types**~~ ✅ **done 2026-09-20** | `relationship`, `discover_n`, `craft_quality`, `deliver_multi` had **zero** authored quests; each now has one, and two of them exposed engine defects | F (+B for what it exposed) | medium |
+| ~~**Three NPC templates placed**~~ ✅ **done 2026-09-20** | `forest_hermit`, `wandering_mage`, `wandering_priest` existed in no room and no spawner | F | tiny |
 
-**⚠️ One open question first:** `modern_capsule` is `progression_model: none`. If
-that is deliberate, the café item is the wrong work. Decide before authoring.
+**✅ Chunk 4 is done, and the "content-only" label was wrong for half of it.**
+Four engine defects and one dead feature came out of authoring content that had
+never been authored, which is the same lesson chunk 3 taught. The pieces:
 
-**⚡ All four are independent.** Nothing here blocks chunk 2 or 3.
+**✅ The four objective types are done, and they were not a content-only job.**
+One quest per type, all four reachable from the town board: Elder Thorne asks after
+Old Bryn and the hermit's trust is the objective (`relationship`, 5 — one crafted
+gift); Curator Vane wants six different things handled (`discover_n` on the
+journal's `item` entries); Barlin wants one barrel of house ale laid down until it
+comes out **Fine** (`craft_quality`, which is eight brews of that recipe, because
+the ladder is the recipe's own authored `min_crafts`); and Talia's two sealed
+packets to Portbridge and Frostpeak are the game's first `deliver_multi`.
+
+What authoring them exposed, all fixed:
+
+1. **`deliver_multi` had no way to obtain its goods, in any content set, ever.**
+   `give_handler` matches copies of one template, and the acceptance path handed
+   out a package for `deliver` only — so the type was unplayable by construction
+   rather than merely unauthored. The rule is now one rule for both
+   (`engine/core/quests/packages.py`): a single delivery hands over its named
+   instance-scoped package, a courier run hands over one per recipient, and
+   everything is built before anything is given so a full pack refuses the job
+   instead of leaving the player holding half of it.
+2. **The bandit campaign's peaceful branch could not be accepted at all.** Its
+   `deliver` objective named no package instance and targeted `recipient_instance_id:
+   "bandit_king"`, an id no factory ever creates (the King is spawned from the
+   `bandit_leader` template by that stage's own `spawn_on_entry`). Any player who
+   negotiated a truce was told "This delivery task has incomplete item data." Two
+   fields and a template reference fix a whole branch of a campaign.
+3. **A quest item could be given away.** Selling one has always been refused
+   ("isn't something you can part with"); handing one to a bystander was not, which
+   for a two-packet courier run means a permanently unfinishable quest — and
+   nothing in the game can hand an item back.
+4. **Every single-stage quest threw away its authored closing line.**
+   `advance_quest_stage` answers the end of a quest with the sentinel
+   `"QUEST_COMPLETE"`, so `completion_dialogue` on a final stage never reached the
+   player: 21 of the set's 26 quests ended on `"Thank you!" says <npc>`. The
+   turn-in path now prefers what the author wrote, then the NPC's own parting line,
+   then the fallback.
+
+**✅ The three unplaced NPCs are placed, and the reason they were unplaced is worth
+keeping.** All three were authored for the ambient wanderer spawner
+(`spawner.npc_types`), a fully implemented and unit-tested feature that **no
+content set has ever declared** — so it has never spawned anything, and three
+finished NPCs sat unreachable. Old Bryn is pinned to the ancient oak
+(`behavior_type: stationary` at the placement, not in the template: his quest needs
+him found twice, and the oak's east exit leads into the Shadow Caves). The mage at
+the forest crossroads and the priest at the farmland bridge keep their authored
+wandering, which gives the valley a healer outside town. Switching the spawner on
+for real is a world-density decision, recorded in the deferral ledger rather than
+made here in passing.
+
+**New checks:** `test_p6_new_objective_types_journey.py` (7) plays all four
+through the board, the real command paths and the turn-in dialogue — reading the
+board *as a player sees it*, markup and hidden notices included.
+
+**The front door was stale too, and is now honest.** `night_shift`'s opening
+briefing still told a new arrival to "check the supply room, mind the dog in the
+alley" and then stopped — two objectives, written before the set had a loop. It
+now names the three things a shift actually involves (the register and tool crib
+under Dana's eye, a shim and the locked storeroom door, Otis at the end of the
+alley), each instruction ending in the literal next command to type.
+
+**✅ The café is answered in dialogue, and that closes the chunk.** `modern_capsule`
+is a vignette by decision (2, below), so its flyer is answered with the systems it
+actually has: two dialogue graphs (Maya explains the neighbourhood and the rule
+about the library's shelf; Devon runs the electronics table and mends the desk lamp
+you brought, with `take_item` + `give_item` + `set_flag` and no reward loop), plus
+the two props the scene needs — the flyer's small print, and a broken lamp on the
+shelf. `test_modern_capsule_repair_cafe.py` (5) plays it and asserts in the same
+breath that quests, crafting, combat, magic, abilities and economy are all still
+off and the player still has no progression.
 
 **Done when:** a player can finish an errand in `modern_capsule` without touching
-a fantasy system, and `night_shift` has a loop rather than a ruleset.
+a fantasy system — ✅ done, as a vignette whose "errand" is a conversation with an
+outcome — and `night_shift` has a loop rather than a ruleset — ✅ done in chunk 3.
 
 ---
 
@@ -184,13 +598,13 @@ matters once the world is bigger.
 
 | Piece | Owner | Scope | Parallel |
 |---|---|---|---|
-| `AUTHORING_A_CONTENT_SET.md` — the missing document | J | medium | ⚡ |
-| Stale-path sweep (52 lines, 8 files) | J | small | ⚡ |
-| `README.md` rewrite — it fails at step one | J | small | ⚡ |
+| ~~`AUTHORING_A_CONTENT_SET.md` — the missing document~~ ✅ **done 2026-09-20** | J | medium | ⚡ |
+| ~~Stale-path sweep~~ ✅ **done 2026-09-20** (plus the README's front door) | J | small | ⚡ |
+| ~~`README.md` rewrite — it fails at step one~~ ✅ **done 2026-09-20** | J | small | ⚡ |
 | CI runs `run_content_checks.py`; Windows job | C | medium | ⚡ |
 | Gate-falsification harness | H+I | medium | ⚡ |
 | Whole-state save round-trip + an old-version fixture | H | medium | ⚡ |
-| Editor: byte-compare round-trip, nested-property guard, schema parity | G | medium | ⚡ |
+| ~~Editor: byte-compare round-trip, nested-property guard, schema parity~~ → **moved to chunk 6** (items 1, 12, 14) | G | medium | ⚡ |
 | Save-key manifest | C | small | ⚡ |
 | Twenty discoveries (5 → 25) | F | medium | — |
 | `content_values` widened one loader at a time | B+I | large | — |
@@ -198,6 +612,155 @@ matters once the world is bigger.
 
 **Why last:** none of it de-risks anything above it, and two items (discoveries,
 the command ladder) only pay off once there is more world to walk.
+
+### The documentation front door — ✅ done 2026-09-20
+
+All three J items above, and all three were worse than "stale":
+
+* **The README's entry point did not exist.** "Running the Game" said
+  `python main.py`; there is no root `main.py`. It now names the two real entry
+  points (`server/server_main.py` for a terminal, `server/launch_content_set.py`
+  for a served set), explains `--content-set` and `--presentation-mode`, and its
+  62-command reference was checked against the shipped command registry — the
+  only two names not in it (`climb`, `swim`) turned out to be *correct*: content
+  declares those exits and the player can use them where they exist, which the
+  command registry alone cannot show. Verified by playing it, not by reading it.
+* **The stale-path sweep was 65 links, not 52 lines**: `C:/python/old/restart/`
+  appeared in 11 documents, and every target exists here at the same relative
+  path. All 65 are now relative, so they work wherever the repository lives.
+* **The operator guide's commands could not run.** Rewritten after being
+  executed: `setup_wizard_cli.py` requires `--content-set`, both servers require
+  it too, the wizard writes `<server-slug>.server_config.json` rather than
+  `server_config.json`, and feature profiles live in the content set they
+  describe (`content_sets/<set>/data/profiles/*.profile.json`), not in
+  `server/data/profiles/`. The section that told operators to launch
+  `server/launch_from_latest_fixture.py` now names the file that exists.
+* **`AUTHORING_A_CONTENT_SET.md` is written** — the document a new contributor
+  needs and the repository did not have. Every command in it was run and every
+  fragment is a truncation of a file that exists: a minimum set (manifest, two
+  rooms, one item, one NPC, ruleset, presentation, opening) was built in `tmp/`,
+  booted with `launch_content_set.py`, played through `char create` → `look` →
+  `north` → `talk Orla` → `get ledger` → `look ledger`, and swept with each
+  per-set validator first. Authoring it found three facts the code knows and no
+  document said: `opening/*.json` requires a `scenario_id`; the `quests`
+  capability requires **two** data directories (`quests/` *and* `campaigns/`);
+  and a manifest capability disagreeing with
+  `ruleset.systems.<name>.enabled` is an error rather than a default.
+
+**Two further documentation defects the widened checks found, both fixed:**
+
+* **32 relative links under `docs/` landed nowhere** — not absolute, just written
+  from the wrong base directory (`docs/plan/work-tracks.md` linked
+  `world-editor-track.md` as if it sat beside it; `docs/archive/archive-2026-09.md`
+  linked `docs/design/...` as if it sat at the repository root). Every target
+  existed, so all 32 were repaired mechanically, and the rule is now wholesale:
+  **every** relative link under `docs/` must resolve.
+* **`docs/archive/archive-2026-09.md` was not valid UTF-8** — a tool had written
+  cp1252 punctuation into an otherwise UTF-8 file, so seven passages rendered as
+  `�` for every reader. Repaired with a cp1252 error handler, which is the only
+  approach that works on a file mixing both: a blanket byte replace also ate the
+  tail of four genuine en dashes, and the archive had to be restored from git and
+  redone.
+
+* **New check:** `test_documentation_links.py` (4 tests) refuses an absolute link
+  target anywhere in the docs, resolves every relative link under `docs/`, and
+  requires every markdown file to be UTF-8. Falsified before it was trusted: a
+  planted absolute link fails three of its tests, a planted cp1252 byte fails the
+  encoding one, and a planted dangling link fails the resolution one.
+
+### Pulled forward: the P2 neutrality trio — ✅ done 2026-09-20
+
+Not on this list, because it was on `ROADMAP.md`'s "Still open" instead — three
+engine-vocabulary items that every content set depends on and none could see. All
+three are done, and the pair of them found more than the roadmap entry described:
+
+1. **Factions are asked in one place.** ~29 call sites compared a faction *string*
+   to `"hostile"`; `engine/world/factions.py` answers instead, and a set can
+   declare its own names (`ruleset.factions.extra`/`overrides` with a disposition)
+   for display, targeting, conversation, wandering, quest generation and
+   kill-reputation at once. Two things the strings were hiding: `npcs/combat.py`
+   read the engine's *flat* matrix, so a set's own factions would never have been
+   enemies in combat; and the matrix itself is now derived from one table, proven
+   byte-identical to the shipped one by test.
+2. **`behavior_type` is a vocabulary with a reader.** `NPC_BEHAVIOR_TYPES` had no
+   reader at all and was wrong — `healer`, used by three shipped templates, was
+   missing from it. It is complete, the dispatcher dispatches through a routine
+   table a test holds equal to it, a misspelled value is a gate *warning* ("this
+   NPC will stand still and do nothing"), and the list with each value's meaning
+   is in the authoring guidelines beside the other closed vocabularies.
+3. **`game_object.py`'s class-name type check is `isinstance`**, behind a lazy
+   import, because the cycle its old comment named is real.
+
+**And the neutrality pass turned up a live progression bug.** Reviewing the audit's
+own warning — "branches on item class 'Junk' … the Python class name, not the
+family" — showed that **three of `fantasy_frontier`'s five item grants had never
+fired**: `Gem`, `Junk` and `Treasure` are families whose class the engine retired,
+so an item built from one reports `Item` and only the generic material rule (8 XP)
+could match. Gems paid a material's XP, and the ledger's "A stone worth
+cataloguing." had never once been shown to a player. Item instances now carry the
+family their template declared, `match.item_family` narrows a grant, fantasy's five
+rules name families, and the gate now *errors* on a class-name match that can never
+match (with `item_family` in the message) rather than only warning about four
+curated names. New checks: `test_faction_dispositions.py` (18),
+`test_npc_behavior_vocabulary.py` (7), `test_advancement_item_families.py` (8),
+including two tripwires — no inline faction comparison may reappear in the engine,
+and the declared behaviour list and the dispatch table may not disagree.
+
+**Still unclaimed in this area:** weapons and armour pay no item XP at all in
+fantasy (25 weapon and 32 armour templates, no rule matches them). That is a
+balance decision, not a defect — the ledger records the find and pays nothing,
+which the design allows on purpose — so it stays for playtesting.
+
+---
+
+## 6. The editor manages a game's lifecycle — ⏭ **start here**
+
+**Replanned 2026-09-21.** This is the canonical execution order for P10. Read the
+[game-authoring roadmap](game-authoring-roadmap.md) for the end-to-end journey,
+milestones M0–M5, coverage inventory and the late-crafting-overhaul example. Read
+[editor-readiness](editor-readiness.md) for the current code-review addendum and
+dated historical audit. Do not interpret the older “12 of 21 CRUD” count as a
+current completeness measure, or new configuration forms as finished workflows.
+
+Deliver these as cohesive batches, each including implementation, negative-path
+tests, documentation and a specific human retest. Owners below are responsibilities,
+not an instruction to split the batch across agents.
+
+| Order | Batch / milestone | Scope and exit evidence | Owners |
+|---|---|---|---|
+| **6A — active** | **Safe configuration edits (M0)** | First hardening slice landed 2026-09-21: signal/refresh wiring, typed edits, draft lifecycle, staged engine validation and atomic single-file saves with backups/conflict checks. Next: visual/error-layout retest, exhaustive field/default coverage, teardown cleanup and async validation for large sets. See [current safety behavior](../reference/configuration-editing-safety.md). M0 is not yet closed. | G + B; H/I prove |
+| **6B** | **Project setup and change foundations (M1)** | Scaffold/manifest/start/opening coherence, minimal vs copied starter semantics, capabilities/ruleset reconciliation. Build engine-known dependency index, “used by,” refactor preview, external-change detection and recoverable multi-file staging. Gate: fresh authored set boots, used-ID deletion is caught, interrupted apply recovers. | G + B/C; F first user |
+| **6C** | **Fantasy materials-to-outcomes (M2, first slice)** | Resources, families/profiles/distributions, items, loot/yields, stations, recipes, work, relevant skill/policy fields. Harden existing forms rather than adding duplicate editors. Gate: author changes a gather → craft/work → use route, samples generation, saves/reloads and plays it; no hidden nested-field rewrite. | G + B/E; F/H/I |
+| **6D** | **Fantasy actors, progression and flows (M2, remainder)** | NPC behavior/social/vendor/schedules; combat/ability configuration; quest rewards/campaigns/dialogue/knowledge; backgrounds, advancement, collections/discoveries; remaining world/policy/presentation fields. Work from the field-level coverage ledger and preserve district editing/continuity. Gate: complete fantasy inventory and representative authored journeys, with exceptions explicitly still open. | G + B/E; F/H/I; K campaign boundary |
+| **6E** | **Contrasting consumers (M3)** | Small editor-authored orbital repair/device/resource proof, night-shift consequence/access proof, modern non-progression interaction. Do not build new full games or force absent systems on. Gate: new generalizations work in two themes; all four existing sets boot. | F/G + B/E; H/I |
+| **6F** | **Established-game overhaul (M4)** | Extend 6B's reference/transaction foundation to semantic impacts, versioned change plans, generated-item and active-job compatibility. Rehearse the crafting overhaul: apply, abandon, interrupted apply and rollback. Unsupported old-save conversion requires an isolated fresh-save revision, not silent data loss. | B/C/G + E; H/I |
+| **6G** | **Authoring release candidate (M5)** | Reproducible export/checkpoint, compatibility and validation reports, clear warning acknowledgments, clean-install journey, human usability/accessibility and large-world performance/recovery passes. Gate: another person can create/edit/test and play the candidate using the documentation. | G/C/J + F/H/I |
+
+**Dependencies:** 6A → 6B → 6C → 6D → 6E → 6F → 6G is the default queue.
+Carry the second-theme and migration fixtures into 6C/6D to expose bad assumptions
+early; 6E/6F are completion gates, not the first time those risks are considered.
+Do not postpone dependency indexing until every destructive control already exists.
+
+**First 6A evidence (2026-09-21):** the callback mismatch, numeric short-label map,
+work-ID delimiter and dropped blank entries have been addressed. New dialog tests
+exercise real signals, exact unrelated-field survival, tiers, discard, conflicts,
+malformed shapes, and Main's Ruleset request/save/dirty-state route. Python tests
+exercise the staged engine verdict and failure paths. The runner now fails on a
+Godot script error even with exit code zero. This is not evidence that every
+configuration field is journey-proven; keep the remaining M0 gates open.
+
+**Shared completion rule:** the engine defines schemas, runtime semantics and
+validation; the editor consumes them. Unsupported sections remain read-only with
+a reason. Surface status advances from prototype → validated writer → journey-proven,
+never directly from “dialog exists” to “complete.” Tests must exercise the new
+control/save path as well as the old fixture writers. Existing round-trip,
+switching, open-set validation and release-gate work should be retained and extended,
+not re-created from the historical gap list.
+
+**Stop at 6G for this push.** This prepares an authoring-beta / test candidate,
+not arbitrary engine scripting, hot migration of a live world, collaborative
+editing, marketplace publishing or full commercial readiness. Broad content growth
+and balance tuning remain later; the small proving content in each batch is required.
 
 ---
 
@@ -230,10 +793,107 @@ What this settles for authors, recorded in full in
 - A brew finishes while a player is logged out, if the server is up. Three days is
   three days of server time, not three days of play.
 
-**2. Is `modern_capsule` a vignette or a game?** Gates one item in chunk 4. Still
-open.
+**2. Is `modern_capsule` a vignette or a game? — ✅ DECIDED 2026-09-20: a
+vignette.** `progression_model: none` is deliberate, and the flyer's promise is
+answered in dialogue rather than with a reward loop. What landed:
+
+- The set's first `data/dialogue/` content — two graphs, one per existing NPC.
+  **Maya** explains the neighbourhood (where the noticeboard is, who runs the
+  electronics table, and the one rule about the library's shelf of left things);
+  **Devon** runs the table, and the conversation with him has a real outcome:
+  `take_item` the broken desk lamp, `give_item` the mended one, `set_flag` so the
+  second visit remembers the first. Those three effects are the whole mechanical
+  vocabulary the set needs, and it needs none of the systems it switched off.
+- Two props so the scene has something to be about: the flyer on the library bench
+  now says what to bring, and a broken desk lamp sits on the library lobby's
+  "free to a good home" shelf — the shelf Maya tells you about, and the thing
+  Devon's opening reply is gated on carrying.
+- The exchange is written as *speech*: the dialogue renderer quotes node text, so
+  narration inside a node reads as the NPC saying it. The hand-over is carried by
+  Devon's line plus the effect message rather than by prose that pretends to be
+  dialogue.
+
+**Why a vignette and not a game:** the engine's claim to be content-neutral is
+best served by a set that is not fantasy *and* not a levelling treadmill — five
+rooms, two people, no combat, no economy, no crafting, and still something a
+player can finish. Turning progression on would have made it a fourth
+half-finished game, and the flyer's "this Saturday" is a *scheduled event*, which
+the engine still has no shape for (it is in F's contract-gap list). The vignette
+answer needs no primitive.
+
+**New check:** `test_modern_capsule_repair_cafe.py` (5 tests) plays the whole
+thing and asserts, in the same file, that quests, crafting, combat, magic,
+abilities and economy are all still off and the player still has no progression
+when it is over. The set's opening briefing was rewritten to walk a new arrival
+into the scene (Maya → the flyer on the bench → the shelf in the lobby → Devon),
+because a vignette nobody finds is a vignette nobody plays.
 
 **3. Does world time advance with zero clients?** Folded into decision 1: yes.
+
+**4. How does a player get better? — one of the three already exists, and the
+real defect is the curve.** Measured 2026-09-19, prompted by the question of
+whether to raise stats on level-up, by practising a craft, or through a trainer.
+
+* **(a) Stats on level-up — already shipped.** `progression.level_up()`
+  (`engine/player/progression.py:78-82`) adds `PLAYER_LEVEL_UP_STAT_INCREASE` (1)
+  to **every** numeric stat, and the comment there records the deliberate choice
+  that which stats grow is the content set's business, not six hard-coded names.
+  `advancement.curve` in the ruleset already lets a set pace its own levelling.
+* **(b) Skill in use — also shipped.** `SkillSystem.practice_check` trains on
+  every check (more on success than failure), and the skill check is
+  `roll + skill_level + stat_bonus` against a DC, so skill and stat both feed it.
+* **(c) A trainer — not built, and not blocked.** `SkillSystem.grant_xp` is the
+  explicit hook a trainer would call for a fee. What does not exist is an NPC
+  kind that sells it.
+
+**So the choice is not which of the three to build — it is whether to build (c)
+at all, and the curve has to be fixed either way.** The arithmetic is the reason:
+
+| | |
+|---|---|
+| Cost of skill 20 | **664,843 cumulative XP** (the curve is `100 × 1.5ⁿ`, `skill_system.py:7-8`) |
+| Earned per practice check at DC 12 | 6 XP on success, 2 on failure |
+| Therefore | **~110,807 successful actions** to reach skill 20 |
+
+Meanwhile the check value grows *linearly*: +1 per skill level against a cap of
+100. An exponential price for a linear benefit is the actual defect, and it has
+teeth — `ruleset.json:171-176` gates concealed-tool jail escape on `stealth` and
+`lockpicking` at **minimum 20**, so the gate is unreachable by design rather than
+by difficulty.
+
+**Recommended, in this order:**
+
+1. **Make the skill curve content-authored and roughly linear**, so skill *N*
+   costs about *N*×100 (skill 20 ≈ 21,000 XP ≈ 3,500 successes). The engine
+   already has the pattern: `advancement.curve` lives in the ruleset. `100 × 1.5ⁿ`
+   is in `skill_system.py` as a module constant, which is the same "a rule in the
+   engine" shape that the cross-theme work exists to remove.
+2. **Then decide (c) on its own merits, as an economy decision.** A trainer selling
+   *skill levels* competes with practising the skill; a trainer selling *stat
+   points* competes with levelling. Both are defensible, but neither fixes the
+   curve, and building one first would disguise an arithmetic bug as a design
+   choice. The design question to answer is which of time and gold buys skill —
+   the engine currently supports "time", via `practice_check`.
+
+**5. Who owns the content-set manifest — ✅ DECIDED 2026-09-19.** The engine does.
+`content_set.py` is what refuses a set, so the required strings, the eleven
+capability names and the three required data directories are its list; the editor
+holds a **copy** in a table a parity check keeps equal to the engine's, the same
+arrangement already accepted for condition kinds, effect kinds and objective types
+(`toolkit/engine_vocabulary_dump.py` + `schema_parity_smoke.gd`). The alternative —
+reading the list from Python at create time — was refused because creating a set
+would then need an interpreter beside the editor, and because the copy is not the
+risk: an *unchecked* copy is. What makes this decision cheap is that
+`EngineValidator.run` already validates the manifest the editor just wrote, so a
+set that a parity check let through still meets the engine's verdict immediately.
+
+**6. An in-game authoring tool — ✅ PARKED 2026-09-19.** G7 proposed a spike to
+decide where an authoring tool lives now that `tools/` is gone. Refused for now,
+with the reason recorded in the deferral ledger: the editor is the authoring
+front-end and `toolkit/` is the validation surface, so a mod-plugin tool has no
+named consumer. The spike would answer a question nobody is asking, and the
+plugin surface's absence is only a gap if in-game tooling is wanted — which is a
+product decision, not a missing primitive.
 
 ---
 
@@ -242,7 +902,8 @@ open.
 - **Economy and skill-curve tuning.** Blocked on human playtesting, which blocks
   four decisions in `ROADMAP.md`. No chunk substitutes for it.
 - **Faction and territory work.** A system with no consumer; already refused once.
-- **A fourth content set.** Two of the existing three are not games yet.
+- **Additional full content sets.** Use the four existing sets as proving slices;
+  `modern_capsule` intentionally remains a vignette.
 - **The field grid.** First it needs a decision: give cells a world, or delete the
   system. It is currently persisted, client-rendered, and connected to nothing.
 - **In-game tooling ownership.** `tools/` was deleted; no track owns player-facing
@@ -252,5 +913,11 @@ open.
 
 ## If you only do one thing
 
-**Chunk 1.** It is nine small defects, none needing a decision, and one of them
-can destroy a player's character today.
+**Chunk 6A.** Prove the real configuration edit/save/reopen paths before expanding
+them. The editor already authors substantial content and runs validation; the
+remaining problem is trustworthy end-to-end coverage, not starting from nothing.
+Then follow §6 through game setup, fantasy coverage, contrasting consumers,
+safe overhaul and a test candidate. Scope: [game-authoring roadmap](game-authoring-roadmap.md).
+
+*(Was chunk 1 — nine small defects, one of which could destroy a player's character.
+Those are fixed and gated as of 2026-09-19.)*

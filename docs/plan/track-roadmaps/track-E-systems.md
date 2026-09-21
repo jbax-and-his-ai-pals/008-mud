@@ -1,5 +1,12 @@
 # Track E — Systems
 
+> **Authoring handoff, 2026-09-21:** current execution is
+> [chunks §6](../chunks-of-work.md). The
+> [game-authoring roadmap](../game-authoring-roadmap.md) requires E to distinguish
+> configurable policy from new mechanics, prove contrasting consumers, and specify
+> crafting/work behavior during a late overhaul. Preserve the dated assessment
+> below; it is not the current implementation queue.
+
 ## Assessment
 
 **State.** Five systems are already two-theme and need nothing from this track: crime/custody
@@ -106,6 +113,43 @@ hazard rooms behave identically.
 **Risk.** Hazard prose is the last place mechanics leak to players (P1); the mitigation loop will expose that
 no set authors armour resistances — that is F's authoring, not a code fix.
 
+> **✅ Done 2026-09-19, except the suppression case.** The three expressions
+> collapsed into one: a hazard is now a record in the set's own
+> `combat/elements.json` (`{channel, flavor, damage, tick_interval}`) and a room
+> names it, instead of a channel map plus a channel-keyed sentence plus two
+> untyped room properties. `engine/world/environment.py` is the one reader;
+> `Room.apply_hazards` delegates to it and keeps only the tick cache it owns.
+>
+> **What the collapse bought, concretely:** the prose belongs to the *hazard*, so a
+> hazard's own name can reach a player (before, two hazards sharing a channel
+> shared one sentence); `channel` and the sentence are validated together, where a
+> missing mapping used to fail silently to `physical` in engine prose; and the
+> retired `mapping`/`flavor` keys are reported *as* the retired shape rather than
+> misread as two hazards called "mapping" and "flavor".
+>
+> **The second theme is filled.** `orbital_salvage` shipped
+> `"hazards": {"mapping": {}, "flavor": {}}` and now declares `hull_frost` --
+> `thermal`, its own channel, in its own words -- used by the cargo hold. Its
+> `impact vest` declares a matching `thermal` resistance, so mitigation is
+> measurable rather than decorative: 3 damage bare, 2 through the vest.
+>
+> **What this exposed, and the fix.** Handing the reader a second theme is what
+> caught a balance bug in the *stat* role: `game_object.take_damage` subtracts the
+> `resistance` stat's **raw value**, so a set pointing that role at a core
+> attribute (`constitution`, neutral 10) shrugs off every energy hit of 10 or less.
+> Orbital's role names `insulation` now -- a small derived rating, the shape
+> fantasy's `magic_resist` (2) has -- and its crew carry 1–2 of it while a salvager
+> carries none and survives the cold on gear. That vindicates the deferral
+> ledger's refusal of a "a role must name a stat some entity carries" gate: the
+> role naming a stat nobody carries is sometimes the correct declaration.
+>
+> **Still open here:** `env_interactions` (a spell suppresses a hazard, and it
+> returns) is engine-complete and unit-covered in `test_room_full.py`, but no
+> shipped content declares one and both sets' abilities target enemies rather than
+> rooms, so it is content-unreached. `light`/`temperature`/`atmosphere` as a
+> declared vocabulary is Track B item 4 and untouched by this: the reader handles
+> the `hazard` half of it.
+
 ### E3. Skill checks: one authored name, one training path
 
 **What.** Every skill a set can rename rolls and trains through one path; the engine-hardcoded `"crafting"`
@@ -149,6 +193,41 @@ author their own labels and the vendor price moves for exactly the tier they dec
 **Risk.** Gating a live behaviour removes prices' discounts in two sets — gate and authored sections must be
 one change. P3 removed fuzzy matching on purpose; porting the topic matcher must not reintroduce it.
 
+> **✅ The declaration half landed 2026-09-19, in the order the risk line asked
+> for (sections first, then the gate).** The engine's *default* ladder is gone: a
+> set that declares no `social` section has no tiers, so no tier name is rendered
+> and no vendor discount is applied. `relationship_tiers`/`relationship_tier`/
+> `relationship_discount` answer from the set's own declaration or not at all, and
+> `has_ladder(world)` is the single question the four print sites ask.
+>
+> **Declared and gated together, as one decision:**
+>
+> * `orbital_salvage` — Unvetted / Known / Trusted / Crew at 3 / 9 / 18, sized so
+>   that four crafted gifts or a few days of Ivo's salvage orders reach the top.
+> * `night_shift` — Never seen you / Not a stranger / A face / On the list at
+>   2 / 5 / 12, for Dana and her one counter.
+> * `modern_capsule` — neither a ladder nor the capability, so it presents no bond
+>   surface at all. A vignette with no systems should not quietly run one.
+> * The `relationship`/`relationships` commands are gated on the `social`
+>   capability; a set without it says so rather than printing an engine tier.
+>   `give` still hands items over anywhere — only the *bond* is declared — but
+>   without a ladder it keeps no score and says nothing about one.
+>
+> **And the section is checked for the first time.** A `tier` typo, a string
+> `min`, a gift category the engine never scores, two tiers at one threshold, a
+> discount above the 0.95 the reader honours, or a ladder with no bottom rung all
+> fell back silently before; each is an error now. Capability-without-section is a
+> **warning** with honest degradation (a scaffolded set inherits its source's
+> capabilities before it has content, and the commands say "this game does not
+> track bonds" rather than printing a score with no name); section-without-
+> capability is an **error**, because that ladder is a declaration nobody can see.
+> Together they make the two declarations one thing to get right.
+>
+> **Still open:** the topic matcher half (`resolve_topic_id` into
+> `engine/naming.py`), and `npc.properties.relationship_milestones`: the no-ladder
+> warning names them, but nothing yet *checks* that a set authoring milestones has
+> a ladder for them to fire on.
+
 ### E5. Conferred identity: `_guilds` becomes a group with entry conditions
 
 **What.** The group a title is conferred by becomes readable: entry conditions evaluated on read (no new stored
@@ -184,6 +263,12 @@ player who does can; losing the condition revokes the worn title, as `sync` alre
    (ROADMAP P5's own open item). `engine/conditions.py` sits in no lane in `work-tracks.md`; it needs an owner.
 4. **A periodic-effect shape** (B, only if K wants it): housing upkeep and restocking are periodic, not
    durational. Nothing above needs it.
+5. **The ruleset forms are this track's declarations, not the editor's** (G, added 2026-09-20). Track G is
+   about to put a form on `social`, `skills`, `crafting`, `weather`, `calendar` and the rest of
+   `ruleset.json` (`../editor-readiness.md`, item 8 of `track-G-world-editor.md`). Whatever those sections
+   must express is decided by E1 (calendar), E2 (environment), E3 (skill checks) and E4 (the social graph);
+   the form is a view of it. If a section cannot express the shape E declares, that is a finding about the
+   shape — a reason to change the section — not a reason to author it outside the editor.
 
 ## Explicitly not proposing
 

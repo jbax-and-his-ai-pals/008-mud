@@ -1,4 +1,4 @@
-# tests/singles/test_region_policy_validator.py
+﻿# tests/singles/test_region_policy_validator.py
 """Coverage for engine/server/content_set.py's validate_region_policy() --
 the standalone, no-manifest-required region-authoring policy check added
 for the Godot world editor's fast "validate before it's wired into the
@@ -70,7 +70,7 @@ class TestValidateRegionPolicy(unittest.TestCase):
         ruleset_path = self._ruleset(root, {"require_hazard_coverage": True})
         (root / "combat").mkdir(parents=True, exist_ok=True)
         (root / "combat" / "elements.json").write_text(
-            json.dumps({"hazards": {"mapping": {"poison_gas": "poison"}}}), encoding="utf-8",
+            json.dumps({"valid_damage_types": ["poison"], "hazards": {"poison_gas": {"channel": "poison", "flavor": "The gas burns your throat."}}}), encoding="utf-8",
         )
         self._region(root, "hazardous", {}, rooms={"room_a": {"properties": {"hazard_type": "not_real"}}})
         issues = cs.validate_region_policy(root, ruleset_path)
@@ -84,7 +84,7 @@ class TestValidateRegionPolicy(unittest.TestCase):
         })
         (root / "combat").mkdir(parents=True, exist_ok=True)
         (root / "combat" / "elements.json").write_text(
-            json.dumps({"hazards": {"mapping": {"poison_gas": "poison"}}}), encoding="utf-8",
+            json.dumps({"valid_damage_types": ["poison"], "hazards": {"poison_gas": {"channel": "poison", "flavor": "The gas burns your throat."}}}), encoding="utf-8",
         )
         self._region(
             root, "good",

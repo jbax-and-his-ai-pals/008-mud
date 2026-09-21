@@ -3,9 +3,14 @@ class_name ConnectionEditor
 extends RefCounted
 
 signal connection_created(src, dir, target, twoway, reverse_dir)
+# Same as `connection_created`, but the form stays open with the target cleared so
+# the author can connect the next room from the same source. A separate signal
+# rather than a flag on the first one: the two callers differ in what happens to
+# the *form*, and the side that owns the form should be the side that decides.
+signal connection_created_and_continue(src, dir, target, twoway, reverse_dir)
 signal target_selected(target_id) # New signal to report the current target
 
-const DIRECTION_ITEMS := ["north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest", "up", "down", "in", "out", "climb", "dive"]
+const DIRECTION_ITEMS = Constants.AUTHORABLE_DIRECTIONS
 
 # Data References
 var conn_hierarchy: Dictionary = {}
@@ -21,6 +26,11 @@ var conn_room_opt: OptionButton
 var conn_twoway: CheckBox
 var conn_rev_row: HBoxContainer
 var conn_rev_label: Label
+# The room-name halves of the two direction rows. Both rows read
+# `Connect <room> [dir] to <room>`; these are the widgets for the leading name,
+# filled in by `_update_connection_info` because they follow the target choice.
+var conn_dir_label: Label
+var conn_rev_room_label: Label
 var conn_rev_option: OptionButton
 var conn_rev_custom_edit: LineEdit
 var conn_info_label: RichTextLabel
@@ -74,38 +84,53 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 
 	parent_container.add_child(HSeparator.new())
 
-	# --- CONNECT VIA ---
-	parent_container.add_child(_lbl("Connect via:", Color.GRAY))
-	var dir_hbox = HBoxContainer.new(); dir_hbox.add_theme_constant_override("separation", 8)
+	# --- RECIPROCAL ---
+	# Above the two direction rows rather than between them: the checkbox decides
+	# whether there *is* a second row, so reading it after the first row meant
+	# reading the form in the wrong order -- and it split the two rows, which are
+	# a pair of the same shape and belong together.
+	conn_twoway = CheckBox.new(); conn_twoway.text = "Reciprocal (two-way)"; conn_twoway.button_pressed = true
+	conn_twoway.toggled.connect(func(_b): _update_connection_info())
+	_apply_style(conn_twoway)
+	parent_container.add_child(conn_twoway)
+
+	# --- CONNECT / RETURN ---
+	# Both rows are built the same way and read the same way:
+	#
+	#     Connect   <target room>   [direction]   to   <this room>
+	#     Return    <this room>     [direction]   to   <target room>
+	#
+	# The room names are set in `_update_connection_info`, since they change with
+	# the target selection; the label widgets are kept so that can happen without
+	# rebuilding the row.
+	parent_container.add_child(_lbl("Connect", Color.GRAY))
+	var connect_row = HBoxContainer.new(); connect_row.add_theme_constant_override("separation", 8)
+	conn_dir_label = _room_label()
+	connect_row.add_child(conn_dir_label)
 	conn_dir_option = OptionButton.new(); conn_dir_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL; _apply_style(conn_dir_option)
 	_populate_direction_dropdown(conn_dir_option)
 	conn_dir_option.item_selected.connect(func(_i):
 		if not _updating_dir_field: _dir_auto = false
 		_on_forward_dir_changed()
 	)
-	dir_hbox.add_child(conn_dir_option)
-	conn_dir_custom_edit = LineEdit.new(); conn_dir_custom_edit.placeholder_text = "custom direction"
+	connect_row.add_child(conn_dir_option)
+	conn_dir_custom_edit = LineEdit.new(); conn_dir_custom_edit.placeholder_text = "custom"
 	conn_dir_custom_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	conn_dir_custom_edit.text_changed.connect(func(t):
 		if not _updating_dir_field: _dir_auto = false
 		_sync_auto_reverse(t); _update_connection_info()
 	)
 	_apply_style(conn_dir_custom_edit)
-	dir_hbox.add_child(conn_dir_custom_edit)
-	parent_container.add_child(dir_hbox)
+	connect_row.add_child(conn_dir_custom_edit)
+	parent_container.add_child(connect_row)
 
-	# --- RECIPROCAL ---
-	conn_twoway = CheckBox.new(); conn_twoway.text = "Reciprocal (two-way)"; conn_twoway.button_pressed = true
-	conn_twoway.toggled.connect(func(_b): _update_connection_info())
-	_apply_style(conn_twoway)
-	parent_container.add_child(conn_twoway)
-
-	# --- RETURN VIA ---
 	# Only relevant (and only shown) once both a target room and reciprocal
 	# are chosen -- otherwise there's nothing to return from yet.
-	conn_rev_row = HBoxContainer.new(); conn_rev_row.add_theme_constant_override("separation", 6)
-	conn_rev_label = _lbl("Return via:", Color.GRAY); conn_rev_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	conn_rev_row.add_child(conn_rev_label)
+	conn_rev_label = _lbl("Return", Color.GRAY)
+	parent_container.add_child(conn_rev_label)
+	conn_rev_row = HBoxContainer.new(); conn_rev_row.add_theme_constant_override("separation", 8)
+	conn_rev_room_label = _room_label()
+	conn_rev_row.add_child(conn_rev_room_label)
 	conn_rev_option = OptionButton.new(); conn_rev_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL; _apply_style(conn_rev_option)
 	_populate_direction_dropdown(conn_rev_option)
 	conn_rev_option.item_selected.connect(func(_i):
@@ -115,7 +140,7 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 		_update_connection_info()
 	)
 	conn_rev_row.add_child(conn_rev_option)
-	conn_rev_custom_edit = LineEdit.new(); conn_rev_custom_edit.placeholder_text = "custom direction"
+	conn_rev_custom_edit = LineEdit.new(); conn_rev_custom_edit.placeholder_text = "custom"
 	conn_rev_custom_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	conn_rev_custom_edit.text_changed.connect(func(_t):
 		if not _updating_rev_field: _rev_dir_auto = false
@@ -142,6 +167,16 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 	var btn = Button.new(); btn.text = "Connect"; btn.size_flags_horizontal = 3
 	btn.pressed.connect(_on_connect_confirm); _apply_style(btn, Color(0.2, 0.35, 0.2))
 	btn_box.add_child(btn)
+
+	# Connects this pair and immediately offers the next one from the same source,
+	# which is how a room with four exits gets authored: the source and direction
+	# are chosen once, and only the target changes between connections.
+	var btn_another = Button.new(); btn_another.text = "Connect another"
+	btn_another.size_flags_horizontal = 3
+	btn_another.tooltip_text = "Apply this connection and keep the form open for the next target"
+	btn_another.pressed.connect(func(): _on_connect_confirm(true))
+	_apply_style(btn_another, Color(0.2, 0.3, 0.35))
+	btn_box.add_child(btn_another)
 
 	var btn_close = Button.new(); btn_close.text = "Cancel"; btn_close.size_flags_horizontal = 3
 	btn_close.pressed.connect(func(): target_selected.emit(""))
@@ -239,7 +274,14 @@ func _on_conn_region_changed(idx):
 	room_keys.sort()
 
 	for r_id in room_keys:
-		conn_room_opt.add_item(rooms[r_id])
+		# The room's display name, falling back to its id. `rooms[<id>]` is the room
+		# object, not a string, so passing it straight to `add_item` is a type error
+		# -- and the list reads wrong the moment a room object is more than its name.
+		var room_entry = rooms[r_id]
+		var room_name := str(r_id)
+		if room_entry is Dictionary:
+			room_name = str(room_entry.get("name", r_id))
+		conn_room_opt.add_item(room_name)
 		conn_room_opt.set_item_metadata(conn_room_opt.item_count - 1, r_id)
 
 	_update_connection_info()
@@ -359,8 +401,17 @@ func _update_connection_info():
 
 	var show_return_row: bool = conn_twoway.button_pressed and target_room_name != ""
 	conn_rev_row.visible = show_return_row
-	if show_return_row:
-		conn_rev_label.text = "Return via: %s," % target_room_name
+	conn_rev_label.visible = show_return_row
+
+	# Both rows name their rooms: "Connect <target> [dir] to <this room>" and
+	# "Return <this room> [dir] to <target>". Same shape, so the pair reads as a
+	# pair. The trailing "to <room>" is the row's own label, which is why the
+	# direction dropdowns are the same widget in both.
+	var src_display := conn_src_name if conn_src_name != "" else conn_src_id
+	if conn_dir_label:
+		conn_dir_label.text = target_room_name if target_room_name != "" else "…"
+	if conn_rev_room_label:
+		conn_rev_room_label.text = src_display
 
 	if region_mgr.data.rooms.has(conn_src_id):
 		var src_exits = region_mgr.data.rooms[conn_src_id].get("exits", {})
@@ -380,7 +431,6 @@ func _update_connection_info():
 
 	var lines: Array = []
 	if dir != "" and target_room_name != "":
-		var src_display := conn_src_name if conn_src_name != "" else conn_src_id
 		lines.append("[color=gray]%s connects %s to %s.[/color]" % [src_display, dir.capitalize(), target_room_name])
 		if show_return_row and rev_dir != "":
 			lines.append("[color=gray]%s connects %s to %s.[/color]" % [target_room_name, rev_dir.capitalize(), src_display])
@@ -389,7 +439,7 @@ func _update_connection_info():
 	lines.append_array(msgs)
 	conn_info_label.text = "\n".join(lines)
 
-func _on_connect_confirm():
+func _on_connect_confirm(and_continue: bool = false):
 	var dir = _get_forward_direction()
 	if dir.strip_edges() == "": return
 	if conn_room_opt.selected == -1: return
@@ -399,6 +449,11 @@ func _on_connect_confirm():
 	var rev_dir = _get_reverse_direction() if conn_twoway.button_pressed else ""
 
 	target_selected.emit("") # Clear highlight after connecting
+	if and_continue:
+		connection_created_and_continue.emit(conn_src_id, dir, final_target, conn_twoway.button_pressed, rev_dir)
+		_reset_for_next_target()
+		return
+
 	connection_created.emit(conn_src_id, dir, final_target, conn_twoway.button_pressed, rev_dir)
 
 	conn_dir_option.select(0)
@@ -407,6 +462,20 @@ func _on_connect_confirm():
 	_rev_dir_auto = true
 	_sync_auto_reverse(_get_forward_direction())
 	conn_info_label.text = "[color=green]Connection Created.[/color]"
+
+
+## Clear the target so the next one can be picked, keeping everything else.
+##
+## The direction, the reciprocal choice and the custom direction are all kept:
+## the point of connecting another is that *only* the far room changes. The
+## auto-suggested reverse is kept in step with the direction that survived.
+func _reset_for_next_target():
+	conn_room_opt.select(-1)
+	conn_info_label.text = "[color=gray]Pick the next target room.[/color]"
+	# Re-emit an empty target so the map drops the previous pair's preview line
+	# and waits for the next click.
+	target_selected.emit("")
+	_update_connection_info()
 
 func _apply_style(node: Control, bg_color = Color(0.15,0.15,0.18)):
 	var s=StyleBoxFlat.new(); s.bg_color=bg_color; s.set_border_width_all(1); s.border_color=Color(0.4,0.4,0.45); s.set_corner_radius_all(4); s.content_margin_left=8
@@ -433,4 +502,16 @@ func _apply_style(node: Control, bg_color = Color(0.15,0.15,0.18)):
 	elif node is LineEdit or node is TextEdit: s.bg_color=Color(0.08,0.08,0.1); node.add_theme_stylebox_override("normal", s)
 
 func _lbl(t,c=Color.WHITE): var l=Label.new(); l.text=t; l.modulate=c; return l
+
+## A room name's place in a direction row. Fixed-width and clipped so a long name
+## cannot push the dropdowns out of the panel, and mid-aligned so the two rows
+## line up whether or not either name is the longer one.
+func _room_label() -> Label:
+	var l := Label.new()
+	l.custom_minimum_size.x = 96
+	l.clip_text = true
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 12)
+	l.modulate = Color(0.85, 0.9, 1.0)
+	return l
 func _clear_box(b): for c in b.get_children(): c.queue_free()

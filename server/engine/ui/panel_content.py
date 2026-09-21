@@ -5,6 +5,7 @@ import math
 from engine.config import *
 from engine.utils.text_formatter import TextFormatter, ClickableZone
 from engine.ui import minimap
+from engine.world import factions
 from engine.ui.icons import get_item_icon, ICON_SIZE
 
 # ... (get_font, _draw_clickable_text helpers unchanged) ...
@@ -229,7 +230,7 @@ def render_hostiles_content(surface: pygame.Surface, context: dict, hotspots: Li
     y, padding = 5, 5
     
     npcs = world.get_current_room_npcs(player)
-    hostiles = [n for n in npcs if n.faction == 'hostile']
+    hostiles = [n for n in npcs if factions.is_hostile(n, world)]
     
     if not hostiles:
         surface.blit(font.render("(None)", True, (100, 100, 100)), (padding, y))
@@ -248,7 +249,7 @@ def render_friendlies_content(surface: pygame.Surface, context: dict, hotspots: 
     y, padding = 5, 5
     
     npcs = world.get_current_room_npcs(player)
-    friendlies = [n for n in npcs if n.faction != 'hostile']
+    friendlies = [n for n in npcs if not factions.is_hostile(n, world)]
     
     if not friendlies:
         surface.blit(font.render("(None)", True, (100, 100, 100)), (padding, y))
@@ -350,7 +351,7 @@ def render_topics_content(surface: pygame.Surface, context: dict, hotspots: List
     surface.blit(npc_name_surf, (padding, y))
     y += 20
     
-    if target_npc.faction == "hostile":
+    if factions.is_hostile(target_npc, world):
         surface.blit(font.render("(Hostile)", True, (255, 50, 50)), (padding, y))
         return
     

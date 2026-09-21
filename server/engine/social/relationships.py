@@ -1,16 +1,26 @@
-"""Content-neutral personal-relationship primitives shared by gameplay systems."""
+"""Content-neutral personal-relationship primitives shared by gameplay systems.
+
+**The ladder is the content set's, or there is none.** What a relationship *is*
+called, where its thresholds sit and what a bond is worth at a vendor are all
+declared in `ruleset.social`; a set that declares nothing has no ladder, so it
+shows no tier names and no discount. That is deliberate (2026-09-19): the engine
+used to keep a fantasy-shaped default ladder, which meant a set that never
+mentioned relationships rendered "Close Friend" and quietly discounted its
+vendors' prices by up to 15%. A default that changes prices is not a default, it
+is an undeclared rule.
+
+Gift *scoring* still has engine defaults, because a gift has to be worth
+something: a set that declares no `gift_values` gets the neutral numbers below,
+and the words a player reads come from the ladder it declares.
+"""
 
 from typing import Any, Dict
 
 
+# What a gift is worth when the set does not say. One score, no words: the labels
+# and the thresholds are content's, and a set with no ladder never shows either.
 DEFAULT_SOCIAL_RULES: Dict[str, Any] = {
     "gift_values": {"ordinary": 1, "crafted": 5, "preferred_item": 4, "preferred_category": 2, "disliked_item": -3},
-    "tiers": [
-        {"min": 60, "label": "Close Friend", "vendor_discount": 0.15},
-        {"min": 30, "label": "Friend", "vendor_discount": 0.10},
-        {"min": 10, "label": "Acquaintance", "vendor_discount": 0.05},
-        {"min": 0, "label": "Stranger", "vendor_discount": 0.0},
-    ],
 }
 
 
@@ -23,9 +33,22 @@ def relationship_rules(world) -> Dict[str, Any]:
 
 
 def relationship_tiers(world=None) -> list[Dict[str, Any]]:
+    """The ladder this set declared, highest threshold first. Empty means none."""
     raw = relationship_rules(world).get("tiers", [])
+    if not isinstance(raw, list):
+        return []
     tiers = [entry for entry in raw if isinstance(entry, dict) and isinstance(entry.get("min"), (int, float))]
-    return sorted(tiers, key=lambda entry: int(entry["min"]), reverse=True) or list(DEFAULT_SOCIAL_RULES["tiers"])
+    return sorted(tiers, key=lambda entry: int(entry["min"]), reverse=True)
+
+
+def has_ladder(world) -> bool:
+    """Whether this set presents bonds at all.
+
+    One question, asked wherever a tier name, a score or a discount would
+    otherwise appear, so "no ladder" is one decision rather than four checks that
+    can drift apart.
+    """
+    return bool(relationship_tiers(world))
 
 
 def relationship_key(npc) -> str:
@@ -34,11 +57,11 @@ def relationship_key(npc) -> str:
 
 
 def relationship_tier(score: int, world=None) -> str:
-    """Human-readable tier, with labels and thresholds authored by a content set."""
+    """The tier a score sits in, or "" when this set declares no ladder."""
     for tier in relationship_tiers(world):
         if score >= int(tier["min"]):
-            return str(tier.get("label", "Relationship"))
-    return "Relationship"
+            return str(tier.get("label", ""))
+    return ""
 
 
 def relationship_discount(score: int, world=None) -> float:
@@ -95,13 +118,14 @@ def apply_relationship_milestones(player, npc, old_score: int, new_score: int, w
             summary = ", ".join(granted) if granted else "a new bond"
             messages.append((message + " " if message else "") + f"Milestone reached: {summary}.")
 
-    # Crossing into a new friendship tier is a recognised activity and pays
-    # advancement XP once per tier (ROADMAP P4). Recorded separately from
-    # authored milestones: the tier is the engine-visible relationship band,
-    # while a milestone is a specific authored threshold.
+    # Crossing into a new tier is a recognised activity and pays advancement XP
+    # once per tier (ROADMAP P4). Recorded separately from authored milestones:
+    # the tier is the engine-visible relationship band, while a milestone is a
+    # specific authored threshold. A set with no ladder has no tiers to cross, and
+    # "" would compare equal to "" forever, so the award simply does not happen.
     old_tier = relationship_tier(old_score, world)
     new_tier = relationship_tier(new_score, world)
-    if new_tier != old_tier:
+    if new_tier and new_tier != old_tier:
         from engine.core import advancement
         tier_note = advancement.award(
             player, advancement.KIND_RELATIONSHIP, new_tier,

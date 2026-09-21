@@ -40,7 +40,10 @@ func build(type: String, id: String, data: Dictionary):
 	
 	if type == "npc":
 		npc_inspector = NPC_INSP_SCRIPT.new()
-		npc_inspector.build(container, cur_data)
+		# The manager carries the contract catalog, which the NPC inspector needs
+		# for the content set's own stat vocabulary -- and the set's other NPCs,
+		# which is where that vocabulary comes from when nothing is declared.
+		npc_inspector.build(container, cur_data, db_mgr_ref)
 		npc_inspector.database_modified.connect(func(): database_modified.emit())
 	elif type == "item":
 		item_inspector = ITEM_INSP_SCRIPT.new()
@@ -50,7 +53,9 @@ func build(type: String, id: String, data: Dictionary):
 		item_inspector.database_modified.connect(func(): database_modified.emit())
 	elif type == "magic":
 		magic_inspector = MAGIC_INSP_SCRIPT.new()
-		magic_inspector.build(container, cur_data, db_mgr_ref.magic_groups)
+		# The id and the manager, so the ability's group is filed in the editor's
+		# own state rather than written into content the engine refuses.
+		magic_inspector.build(container, cur_data, db_mgr_ref.magic_groups, cur_id, db_mgr_ref)
 		magic_inspector.database_modified.connect(func(): database_modified.emit())
 
 func _build_header_card():

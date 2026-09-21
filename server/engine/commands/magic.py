@@ -11,6 +11,7 @@ from engine.contracts.resources import ability_resource_label, ability_resource_
 from engine.npcs.npc import NPC
 from engine.items.item import Item
 from engine.world.room import Room
+from engine.world import factions
 
 @command("cast", ["c"], "abilities",
          "Use an ability you know.\nUsage: cast <ability_name> [on <target_name>]",
@@ -99,7 +100,7 @@ def cast_handler(args, context):
 
          # Otherwise, find the first hostile in the room
          if not target:
-              hostiles = [npc for npc in world.get_npcs_for_player(player) if npc.faction == 'hostile']
+              hostiles = [npc for npc in world.get_npcs_for_player(player) if factions.is_hostile(npc, world)]
               if hostiles: 
                   target = hostiles[0]
               else: 
@@ -126,8 +127,8 @@ def cast_handler(args, context):
     # Validate Entity Types (Don't allow healing enemies, etc.)
     # Skip this check if targeting Items or Rooms
     if target and not isinstance(target, (Item, Room)):
-        is_enemy = isinstance(target, NPC) and target.faction == "hostile"
-        is_friendly_npc = isinstance(target, NPC) and target.faction != "hostile"
+        is_enemy = isinstance(target, NPC) and factions.is_hostile(target, world)
+        is_friendly_npc = isinstance(target, NPC) and not factions.is_hostile(target, world)
         is_self = target == player
         
         if spell.target_type == "enemy" and not is_enemy: 

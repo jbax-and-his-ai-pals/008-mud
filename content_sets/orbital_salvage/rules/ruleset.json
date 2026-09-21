@@ -18,8 +18,18 @@
   },
   "skills": {
     "stat_bonuses": {
-      "evasion": { "stat": "agility", "per_point": 2 }
+      "evasion": { "stat": "agility", "per_point": 2 },
+      "fabrication": { "stat": "intelligence", "per_point": 2 }
     }
+  },
+  "social": {
+    "_comment": "The station's own ladder. Without this section the engine's defaults applied silently: this set rendered fantasy's tier names and a 15% discount its author never chose. The thresholds are sized for a four-room slice rather than for a world -- Ivo's salvage orders pay 1 and 3 points, and a patch kit the salvager made themselves is a 5-point gift, so the whole ladder is about four crafted kits or a few days of orders. `gift_values` is left to the engine because its numbers are neutral; the tiers are what a player reads.",
+    "tiers": [
+      { "min": 18, "label": "Crew", "vendor_discount": 0.15 },
+      { "min": 9, "label": "Trusted", "vendor_discount": 0.10 },
+      { "min": 3, "label": "Known", "vendor_discount": 0.05 },
+      { "min": 0, "label": "Unvetted", "vendor_discount": 0.0 }
+    ]
   },
   "player_defaults": {
     "player_class": "Salvager",

@@ -28,14 +28,19 @@ Content shape (ruleset `advancement`, or a content `advancement.json`):
     {
       "curve": {"base": 100, "multiplier": 1.25},
       "grants": [
-        {"id": "region_entry", "match": {"kind": "region_entry"},
+        {"id": "region_entry", "match": {"kind": "region"},
          "xp": 120, "message": "You have not been here before."},
         {"id": "first_creature", "match": {"kind": "creature", "npc_tags": ["beast"]},
          "xp": 15},
-        {"id": "first_gem", "match": {"kind": "item", "item_type": "Gem"},
+        {"id": "first_gem", "match": {"kind": "item", "item_family": "collectible_stone"},
          "xp": 15, "message": "A stone worth cataloguing."}
       ]
     }
+
+An item rule narrows by `item_family` (what content declared), `item_tags`, or
+`item_type` (the engine's Python class name -- see `item_payload`), and a rule that
+matches nothing is a rule that pays nothing, so the family is almost always what
+you want.
 """
 
 from __future__ import annotations
@@ -105,6 +110,7 @@ class GrantRule:
     region_id: str = ""
     npc_tags: Tuple[str, ...] = ()
     item_type: str = ""
+    item_family: str = ""
     item_tags: Tuple[str, ...] = ()
     entry_ids: Tuple[str, ...] = ()
     once_per_kind: bool = False
@@ -118,6 +124,8 @@ class GrantRule:
         if self.region_id and str(payload.get("region_id", "")) != self.region_id:
             return False
         if self.item_type and str(payload.get("item_type", "")) != self.item_type:
+            return False
+        if self.item_family and str(payload.get("item_family", "")) != self.item_family:
             return False
         for tag in self.npc_tags:
             if tag not in (payload.get("npc_tags") or ()):
@@ -199,15 +207,25 @@ def seed_entry(player, kind: str, identifier: str) -> bool:
 
 
 def item_payload(item) -> Dict[str, Any]:
-    """The facts an item-grant rule can match on."""
+    """The facts an item-grant rule can match on.
+
+    `item_family` is the one content declared (`collectible_stone`, `curio`,
+    `treasure`); `item_type` is the Python class, which is the engine's and which
+    a content set cannot rename. Both are here because both were once used, but a
+    grant that matches on the class name can never be reached by a family whose
+    class the engine retired -- `Gem`, `Junk` and `Treasure` all resolve to `Item`
+    -- so `item_family` is what a rule should say.
+    """
     properties = getattr(item, "properties", None)
     tags: List[str] = []
     if isinstance(properties, dict):
         raw = properties.get("loot_tags") or properties.get("item_tags") or []
         if isinstance(raw, (list, tuple)):
             tags = [str(t) for t in raw]
+    family = properties.get("item_family", "") if isinstance(properties, dict) else ""
     return {
         "item_type": type(item).__name__,
+        "item_family": str(family or ""),
         "item_tags": tags,
         "item_id": str(getattr(item, "obj_id", "") or ""),
     }
@@ -342,6 +360,7 @@ class AdvancementManager:
                 region_id=str(match.get("region_id", "") or ""),
                 npc_tags=tuple(str(t) for t in (match.get("npc_tags") or [])),
                 item_type=str(match.get("item_type", "") or ""),
+                item_family=str(match.get("item_family", "") or ""),
                 item_tags=tuple(str(t) for t in (match.get("item_tags") or [])),
                 entry_ids=tuple(str(i) for i in (match.get("entry_ids") or [])),
                 once_per_kind=bool(match.get("once_per_kind", False)),

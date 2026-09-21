@@ -54,6 +54,8 @@ func _process(_delta: float) -> bool:
 
 	_check_the_first_world_is_loaded()
 	_check_switching_reloads_everything()
+	_check_save_and_switch_writes_both_kinds_of_work()
+	_check_per_set_state_does_not_travel()
 	_check_the_choice_is_remembered()
 	_check_an_unknown_path_is_refused()
 	_check_the_catalog_follows()
@@ -63,6 +65,82 @@ func _process(_delta: float) -> bool:
 		push_error("content set switch smoke failed (%d)" % failure_count)
 	quit(1 if failure_count > 0 else 0)
 	return true
+
+
+# --- the two paths that used to drop work ------------------------------------
+
+# "Save and switch" is one button with two promises: save the region, and save the
+# content library. It used to keep only the first. With a clean region it returned
+# before `save_all()` ever ran, and in the world view it saved the layout and
+# stopped -- so a library edit (an NPC's stats, an item's value) was reported as
+# saved and then dropped by the next set's `load_all()`, which clears the dirty
+# flags that were the only evidence it existed.
+
+func _check_save_and_switch_writes_both_kinds_of_work() -> void:
+	print("\n[save and switch]")
+	main._switch_content_set(first_set)
+	_assert(DataRoot.root().get_file() == "alpha_frontier", "back on the first set")
+
+	# 1. Library work only: the region is clean, which is the early-return case.
+	main.database_mgr.items["item_alpha_part"]["value"] = 99
+	main.database_mgr.mark_dirty("item", "item_alpha_part")
+	_assert(not main.region_mgr.is_region_dirty, "the region itself is untouched")
+	_assert(main._has_unsaved_work(), "but there is unsaved library work")
+
+	main._request_switch_content_set(second_set)
+	_assert(main.ui_mgr.confirm_modal.visible, "the author is asked")
+	main.ui_mgr.confirm_modal.confirmed.emit()
+	_assert(DataRoot.root().get_file() == "beta_frontier", "and the switch happened")
+
+	var items_path := first_set.path_join("data/items/library.json")
+	var written = JSON.parse_string(FileAccess.get_file_as_string(items_path))
+	_assert(typeof(written) == TYPE_DICTIONARY and int(written.get("item_alpha_part", {}).get("value", 0)) == 99,
+		"the library edit reached the file: value=%s" % str(written.get("item_alpha_part", {}).get("value")))
+
+	# 2. Both kinds at once, so neither can be saved at the other's expense.
+	main._switch_content_set(first_set)
+	main.region_mgr.data.rooms["start"]["name"] = "Saved Alpha"
+	main.region_mgr.mark_room_dirty("start")
+	main.database_mgr.items["item_alpha_part"]["value"] = 123
+	main.database_mgr.mark_dirty("item", "item_alpha_part")
+
+	main._request_switch_content_set(second_set)
+	main.ui_mgr.confirm_modal.confirmed.emit()
+
+	var region_written = JSON.parse_string(FileAccess.get_file_as_string(
+		first_set.path_join("data/regions/alpha_region.json")))
+	written = JSON.parse_string(FileAccess.get_file_as_string(items_path))
+	_assert(str(region_written.get("rooms", {}).get("start", {}).get("name", "")) == "Saved Alpha",
+		"the region edit reached its file: %s" % str(region_written.get("rooms", {}).get("start", {}).get("name")))
+	_assert(int(written.get("item_alpha_part", {}).get("value", 0)) == 123,
+		"and so did the library edit, in the same press")
+
+
+# State that is keyed by one world's ids must not survive into another: a tool
+# armed with a stamp id draws it into the new set's rooms, a clipboard pastes an
+# item that does not exist here, a search index answers with entries that are
+# gone, and a library selection keeps an inspector writing into an orphaned
+# dictionary.
+
+func _check_per_set_state_does_not_travel() -> void:
+	print("\n[state that belongs to one world]")
+	main.ui_mgr.content_library.show_entry("item", "item_alpha_part")
+	main.state.cur_tool_mode = EditorUIManager.ToolMode.STAMP
+	main.state.cur_tool_data = {"stamp": "item_alpha_part"}
+	main.editor_clipboard = ["item_alpha_part"]
+	main.ui_mgr.search_data_cache["items"] = {"item_alpha_part": {}}
+	main.world_mgr.ignored_validation_warnings["some alpha warning"] = true
+
+	main._switch_content_set(second_set)
+
+	_assert(main.state.cur_tool_mode == EditorUIManager.ToolMode.SELECT, "the tool is disarmed")
+	_assert(main.state.cur_tool_data.is_empty(), "and holds none of the previous world's ids")
+	_assert(main.editor_clipboard.is_empty(), "the clipboard is empty")
+	_assert(main.ui_mgr.search_data_cache.is_empty(), "the search index is rebuilt, not carried")
+	_assert(main.ui_mgr.content_library.selected_id == "", "no library entry stays selected")
+	_assert(main.ui_mgr.content_library.current_editor == null, "and no inspector is bound to the old entry")
+	_assert(main.world_mgr.ignored_validation_warnings.is_empty(),
+		"an ignored warning from one world says nothing about another")
 
 
 func _restore_settings() -> void:
@@ -141,6 +219,18 @@ func _check_an_unknown_path_is_refused() -> void:
 	main._switch_content_set(first_set.path_join("no_such_set"))
 	_assert(DataRoot.root() == before, "a missing directory leaves the open world alone")
 	_assert(main.ui_mgr.error_modal.visible, "and says so")
+	main.ui_mgr.error_modal.hide()
+
+	# A directory that exists but is not a content set: no manifest. Accepting it
+	# reloaded the editor into a world with no regions and no items, and nothing
+	# in the window said the path had been wrong.
+	var not_a_set := first_set.get_base_dir()
+	_assert(DirAccess.dir_exists_absolute(not_a_set), "the fixture's parent directory exists")
+	_assert(not FileAccess.file_exists(not_a_set.path_join("content_set.manifest.json")),
+		"and is not itself a content set")
+	main._switch_content_set(not_a_set)
+	_assert(DataRoot.root() == before, "so it is refused too (%s)" % DataRoot.root().get_file())
+	_assert(main.ui_mgr.error_modal.visible, "with the same message")
 	main.ui_mgr.error_modal.hide()
 
 

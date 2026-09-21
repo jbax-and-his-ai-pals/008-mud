@@ -5,6 +5,9 @@ extends RefCounted
 signal request_rename(old, new)
 signal request_connection_modal
 signal connection_created(src, dir, target, twoway, reverse_dir)
+signal connection_created_and_continue(src, dir, target, twoway, reverse_dir)
+signal request_delete_connection(source_id, direction, target, also_reciprocal)
+signal request_curve_change(source_id, direction, curve_action)
 signal target_selected_in_connector(target_id)
 signal request_save_template(room_id) 
 signal save_triggered
@@ -46,6 +49,9 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	
 	connection_editor = ConnectionEditor.new(region_mgr)
 	connection_editor.connection_created.connect(func(src,d,t,two,rev): connection_created.emit(src,d,t,two,rev))
+	connection_editor.connection_created_and_continue.connect(
+		func(src,d,t,two,rev): connection_created_and_continue.emit(src,d,t,two,rev)
+	)
 	connection_editor.target_selected.connect(func(id): target_selected_in_connector.emit(id))
 	
 	panel = Panel.new()
@@ -119,6 +125,9 @@ func clear_selection(hide_panel: bool = true):
 	target_selected_in_connector.emit("") 
 
 func load_room(id: String, data: Dictionary):
+	# NOTE: ending connection mode is `Main`'s job, not this controller's -- it has
+	# no reference to the editor state, and the mode is about how the *map* should
+	# read a click, which is the map's business.
 	clear_selection(false)
 	cur_mode = "room"
 	panel.visible = true
@@ -129,6 +138,12 @@ func load_room(id: String, data: Dictionary):
 	insp.data_modified.connect(func(): data_modified.emit())
 	insp.request_rename.connect(func(o, n): request_rename.emit(o, n))
 	insp.request_connection_form.connect(func(rid, rname): load_connection_form(rid, rname, world_mgr.get_global_hierarchy(), region_mgr.current_filename))
+	insp.request_delete_connection.connect(
+		func(sid, dir, target, reciprocal): request_delete_connection.emit(sid, dir, target, reciprocal)
+	)
+	insp.request_curve_change.connect(
+		func(sid, dir, action): request_curve_change.emit(sid, dir, action)
+	)
 	insp.request_save_template.connect(func(rid): request_save_template.emit(rid))
 	
 	insp.build(id, data)

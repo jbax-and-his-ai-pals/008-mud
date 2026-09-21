@@ -47,5 +47,5 @@ Provide comprehensive docs so users can learn, build, operate, and customize ser
 
 ## Initial Artifacts
 
-- IA draft: [documentation-information-architecture.md](C:/python/old/restart/docs/archive/documentation-information-architecture.md)
-- Operator baseline guide: [server-operator-guide.md](C:/python/old/restart/docs/reference/server-operator-guide.md)
+- IA draft: [documentation-information-architecture.md](documentation-information-architecture.md)
+- Operator baseline guide: [server-operator-guide.md](../reference/server-operator-guide.md)

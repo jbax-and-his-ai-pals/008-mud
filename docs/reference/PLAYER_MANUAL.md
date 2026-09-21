@@ -25,7 +25,8 @@
 16. Collections & Discoveries
 17. Games of Chance
 18. Quick-Reference Command Table
-19. A Few Words of Advice
+19. Work That Takes Time
+20. A Few Words of Advice
 
 ---
 
@@ -547,6 +548,20 @@ board. Choose carefully; these don't always have a clean, single "right"
 answer. Talking to people is how most of them begin, so it is worth
 asking the people in charge what is worrying them.
 
+Boards are not a Riverside peculiarity. There is one in Portbridge's
+harbor district, one in the Frostpeak Mining Lodge, one in the Wayfarers'
+Rest at the Sunscorch caravanserai, and the notice boards in Aurelia's
+Guild Square carry the same notices — the same work, read wherever you
+happen to be standing.
+
+Two things about deliveries and quest items. When you accept a courier
+job, whoever hired you hands over what you are carrying, so check your
+pack before you set out; a run with several stops needs one delivery
+each, and the game will tell you who is still owed theirs. And a **quest
+item** is not yours to part with: you cannot sell one, and you cannot
+give one away to somebody it was not meant for. If a task handed you
+something, it is because that thing has somewhere to be.
+
 ---
 
 ## 14. A Place to Call Home
@@ -619,10 +634,11 @@ you're up against.
 |---|---|
 | **Movement** | `north` `south` `east` `west` `northeast` `northwest` `southeast` `southwest` `up` `down` `in` `out` `go <dir>` |
 | **Information** | `look` `status` `skills` `title` `advancement` `background` `backgrounds` `journal` `discoveries` `collection` `relationship(s)` `survey` `appraise` `calendar` `time` `weather` |
-| **Interaction** | `talk` `reply/respond/choose` `ask` `say` `yell` `give` `take/get` `drop` `use` `read` `examine` `open` `close` `unlock` `pick` `pull` `search` `follow` `guide` `wait` |
+| **Interaction** | `talk` `reply/respond/choose` `ask` `say` `yell` `give` `take/get` `drop` `use` `read` `examine` `open` `close` `unlock` `pick` `pull` `search` `follow` `guide` `wait` `plant` |
 | **Combat** | `attack` `flee`/`retreat` `combat` |
 | **Magic** | `cast` `spells` |
 | **Crafting** | `craft` `recipes` `salvage` `attach` `detach` |
+| **Work that takes time** | `jobs` `begin <job>` `collect` (some work only finishes later — see §19) |
 | **Gathering** | `gather` (`mine`/`harvest`/`chop`) |
 | **Trade** | `trade` `list` `buy` `sell` `orders` `fulfill` `repair` `repaircost` `stoptrade` |
 | **Quests** | `look board` `accept quest` `turnin quest` `negotiate` |
@@ -630,13 +646,40 @@ you're up against.
 | **Crime** | `steal` `disarm` |
 | **Gambling** | `bet` `guess` `hit` `stand` `rules` |
 | **Inventory** | `inventory` `equip` `unequip` `invmode` |
-| **System** | `help` `save` `load` `quit` `minimap` `view` |
+| **System** | `help` `save` `load` `quit` `minimap` `view` `stop` |
 
 Type `help <command>` any time for the full details on any of these.
 
 ---
 
-## 19. A Few Words of Advice
+## 19. Work That Takes Time
+
+Some things cannot be hurried. A batch in a fabrication bay, a barrel left to
+work, a rack of herbs drying over a season: you put the materials in, and the
+world clock does the rest — whether or not you are standing there, and whether or
+not you are logged in.
+
+```
+jobs                      what can be made where you are, and what is under way
+begin patch-kit batch     start one: the materials leave your pack
+collect                   take anything that has finished
+```
+
+Three things are worth knowing:
+
+- **The station decides.** `jobs` tells you what the room offers and what a job
+  still needs; work that wants a bay cannot be started away from one.
+- **Waiting is a trade, not a tax.** A job usually costs less per item than doing
+  it by hand and pays more of it, in exchange for the time — and a slow, careful
+  run is checked against a skill where a hurried one is not.
+- **A run can go badly.** If the check fails you still get *something*, but less
+  of it. Nothing is destroyed outright.
+
+Leaving a batch running before you log off is the intended way to play it.
+
+---
+
+## 20. A Few Words of Advice
 
 - **Talk to everyone at least once.** Riverside is small, and its
   people remember you.

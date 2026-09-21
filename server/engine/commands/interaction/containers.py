@@ -1,6 +1,7 @@
 # engine/commands/interaction/containers.py
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE, PUT_COMMAND_PREPOSITION
+from engine.items.chest_loot_generator import ChestLootGenerator
 from engine.items.container import Container
 
 @command("open", [], "interaction", "Open a container.\nUsage: open <container_name>")
@@ -17,7 +18,13 @@ def open_handler(args, context):
     
     if not target: return f"{FORMAT_ERROR}You don't see '{name}' here.{FORMAT_RESET}"
     if not isinstance(target, Container): return f"{FORMAT_ERROR}The {target.name} is not a container.{FORMAT_RESET}"
-    
+
+    # A container someone owns is filled the first time it is *opened*, not the
+    # first time it is robbed: `steal <item> from <container>` matches by name, so
+    # loot that appears at the moment of the theft is loot no player could have
+    # named. Idempotent, and a container that authors its own contents keeps them.
+    ChestLootGenerator.fill_owned_container(world, target)
+
     return f"{FORMAT_HIGHLIGHT}{target.open()}{FORMAT_RESET}"
 
 @command("close", [], "interaction", "Close a container.\nUsage: close <container_name>")

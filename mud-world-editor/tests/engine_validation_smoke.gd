@@ -59,7 +59,21 @@ func _check_clean_content_set() -> void:
 	_assert(result.get("ran", false), "the validator runs: %s" % result.get("error", ""))
 	_assert(result.get("ok", false), "and passes this content set")
 	_assert(not result.get("ran_checks", []).is_empty(), "it reports which checks ran (%s)" % str(result.get("ran_checks", [])))
-	_assert(result.get("issues", []).is_empty(), "with no issues: %s" % str(result.get("issues", [])))
+	_assert(result.get("ran_checks", []).has("playability"),
+		"it boots and exercises the open set, not only its files")
+	_assert(result.get("not_run", {}).has("playability_other_sets"),
+		"and names the release-only cross-set playability check")
+	# `ok` means "no errors"; warnings are reported and tolerated, exactly as the
+	# content gate tolerates them. This used to assert an empty issue list, which
+	# held only while the editor ran a subset of the gate's checks -- adding the
+	# skill audit surfaced a real, accurate warning about `crafting` being named
+	# without a declared level, and the assertion had to stop calling that a
+	# failure. The severity filter is the honest claim.
+	var errors: Array = []
+	for issue in result.get("issues", []):
+		if str(issue.get("severity", "")) == "error":
+			errors.append(issue)
+	_assert(errors.is_empty(), "with no errors: %s" % str(errors))
 
 
 func _check_broken_content_set() -> void:

@@ -23,7 +23,8 @@
         "default_dialog": "Maya gives you a friendly nod before checking the time.",
         "initial_inventory": [],
         "properties": {
-            "can_give_generic_quests": false
+            "can_give_generic_quests": false,
+            "dialogue": "maya_neighbourhood"
         }
     },
     "devon": {
@@ -50,7 +51,8 @@
         "default_dialog": "Devon smiles and returns to arranging cups by the counter.",
         "initial_inventory": [],
         "properties": {
-            "can_give_generic_quests": false
+            "can_give_generic_quests": false,
+            "dialogue": "repair_cafe"
         }
     }
 }

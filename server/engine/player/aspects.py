@@ -58,12 +58,27 @@ class QuestState:
 
 
 @dataclass
+class WorkState:
+    """Timed jobs this player has started and not yet collected.
+
+    A job is the four fields `engine/contracts/work.py` reads and nothing else.
+    They are *absolute* numbers, which is what makes a save exact: the job a
+    player left running finishes on the world clock whether or not they were
+    logged in, and a restart does not reset it. A "seconds remaining" would not
+    survive either.
+    """
+
+    jobs: list[dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass
 class PlayerRuntimeState:
     """Canonical composed state for optional game systems."""
     magic: MagicState | None = field(default_factory=MagicState)
     combat: CombatState | None = field(default_factory=CombatState)
     progression: ProgressionState | None = field(default_factory=ProgressionState)
     quests: QuestState | None = field(default_factory=QuestState)
+    work: WorkState | None = field(default_factory=WorkState)
     gold: int | None = 0
 
 
@@ -76,6 +91,11 @@ class PlayerGameAspects:
     progression: bool = True
     economy: bool = True
     quests: bool = True
+    # Work that takes time is presented with the crafting system, which is the
+    # capability that owns stations and materials today. A set that wants timed
+    # work *without* crafting wants its own capability, and that is a manifest
+    # change rather than something to guess at here.
+    work: bool = True
 
     @classmethod
     def from_world(cls, world: Any) -> "PlayerGameAspects":
@@ -90,6 +110,7 @@ class PlayerGameAspects:
             progression=world.ruleset_system_enabled("progression"),
             economy=world.ruleset_system_enabled("economy"),
             quests=world.has_capability("quests"),
+            work=world.has_capability("crafting"),
         )
 
     def normalize(self, player: Any) -> None:
@@ -104,3 +125,5 @@ class PlayerGameAspects:
             player.runtime_state.gold = None
         if not self.quests:
             player.runtime_state.quests = None
+        if not self.work:
+            player.runtime_state.work = None

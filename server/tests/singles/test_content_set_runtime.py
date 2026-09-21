@@ -89,7 +89,11 @@ class TestContentSetRuntime(unittest.TestCase):
             regions.mkdir()
             combat.mkdir()
             (combat / "elements.json").write_text(json.dumps({
-                "hazards": {"mapping": {"cold": "ice", "heat": "fire"}},
+                "valid_damage_types": ["ice", "fire"],
+                "hazards": {
+                    "cold": {"channel": "ice", "flavor": "The cold bites."},
+                    "heat": {"channel": "fire", "flavor": "The air burns."},
+                },
             }), encoding="utf-8")
             (regions / "bad_hazard.json").write_text(json.dumps({
                 "region_id": "bad_hazard",
@@ -111,6 +115,55 @@ class TestContentSetRuntime(unittest.TestCase):
         self.assertTrue(any("hazard 'cold'" in message for message in messages))
         self.assertTrue(any("hazard 'heat'" in message for message in messages))
 
+    def test_a_hazard_record_must_say_what_it_is_and_what_it_reads_like(self) -> None:
+        """The two fields the old shape kept elsewhere, now required where it lives.
+
+        `channel` used to be `hazards.mapping` and `flavor` was keyed by channel, so
+        a record missing either is a set that would damage through a guessed
+        channel in engine prose -- the leak this collapse exists to close.
+        """
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "combat").mkdir()
+            (content_root / "regions").mkdir()
+            (content_root / "combat" / "elements.json").write_text(json.dumps({
+                "valid_damage_types": ["ice", "fire"],
+                "hazards": {
+                    "no_channel": {"flavor": "Something happens."},
+                    "no_flavor": {"channel": "ice"},
+                    "unknown_channel": {"channel": "necrotic", "flavor": "It withers you."},
+                    "not_an_object": "ice",
+                },
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_region_hazard_coverage(content_root, issues)
+
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("hazards.no_channel.channel must name the damage channel" in m for m in messages), messages)
+        self.assertTrue(any("hazards.no_flavor.flavor must say what a player reads" in m for m in messages), messages)
+        self.assertTrue(any("hazards.unknown_channel.channel 'necrotic' is not one of" in m for m in messages), messages)
+        self.assertTrue(any("hazards.not_an_object must be an object" in m for m in messages), messages)
+
+    def test_the_retired_hazard_shape_is_named_rather_than_misread(self) -> None:
+        """`mapping`/`flavor` are reported as what they are, not as two hazards."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            content_root = Path(temp_dir)
+            (content_root / "combat").mkdir()
+            (content_root / "regions").mkdir()
+            (content_root / "combat" / "elements.json").write_text(json.dumps({
+                "hazards": {"mapping": {"cold": "ice"}, "flavor": {"ice": "Cold."}},
+            }), encoding="utf-8")
+            issues: list[ContentSetIssue] = []
+            _validate_region_hazard_coverage(content_root, issues, required=True)
+
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("hazards.mapping is the retired shape" in m for m in messages), messages)
+        self.assertTrue(any("hazards.flavor is the retired shape" in m for m in messages), messages)
+        self.assertFalse(
+            any("hazards.mapping must be an object" in m for m in messages),
+            "the old keys must not be read as hazard ids: %s" % messages,
+        )
+
     def test_hazard_timing_and_damage_must_be_positive_numbers(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             content_root = Path(temp_dir)
@@ -119,7 +172,10 @@ class TestContentSetRuntime(unittest.TestCase):
             regions.mkdir()
             combat.mkdir()
             (combat / "elements.json").write_text(json.dumps({
-                "hazards": {"mapping": {"cold": "ice"}},
+                "valid_damage_types": ["ice"],
+                "hazards": {
+                    "cold": {"channel": "ice", "flavor": "The cold bites.", "damage": 0, "tick_interval": True},
+                },
             }), encoding="utf-8")
             (regions / "invalid_values.json").write_text(json.dumps({
                 "region_id": "invalid_values",
@@ -137,6 +193,8 @@ class TestContentSetRuntime(unittest.TestCase):
             _validate_region_hazard_coverage(content_root, issues)
 
         messages = [issue.message for issue in issues]
+        self.assertTrue(any("hazards.cold.damage must be a positive number" in m for m in messages), messages)
+        self.assertTrue(any("hazards.cold.tick_interval must be a positive number" in m for m in messages), messages)
         self.assertTrue(any("hazard_damage must be a positive number" in message for message in messages))
         self.assertTrue(any("hazard_tick_interval must be a positive number" in message for message in messages))
 

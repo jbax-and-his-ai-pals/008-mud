@@ -33,6 +33,15 @@ var world_dragging_conn: Dictionary = {"active": false, "start": Vector2.ZERO, "
 # together the same way a multi-room selection drag already does.
 var district_move_dragging: Dictionary = {"active": false, "district_id": "", "mouse_start": Vector2.ZERO, "positions": {}}
 var creating_conn: Dictionary = { "active": false, "start_pos": Vector2.ZERO, "end_pos": Vector2.ZERO, "src_id": "" }
+
+# True while the connection form is open, which is a *mode* rather than a panel:
+# in it, a click on the map means "make this the far end of the connection", not
+# "select this room". Without this, dragging a room and picking a target are the
+# same gesture, and an author aiming at a room to connect it moves it instead --
+# a change that survives into the save and is easy not to notice.
+#
+# Set by the inspector when the form opens, cleared when it closes for any reason.
+var connection_mode: bool = false
 var is_box_selecting: bool = false
 var box_select_start: Vector2 = Vector2.ZERO
 var drag_start_positions: Dictionary = {}

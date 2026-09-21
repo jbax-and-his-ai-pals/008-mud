@@ -1,6 +1,9 @@
 # Duration: a primitive, and the first thing built on it
 
-**Status:** proposed. Nothing here is implemented.
+**Status:** ✅ built 2026-09-19, in `server/engine/contracts/work.py`, with its
+first content consumer in `content_sets/orbital_salvage` (see "What was built"
+below). The design below is kept as written, because the reasoning is what the
+implementation is checked against.
 **Design rule this follows:** content declares, the engine resolves. If this ever
 needs a module named after its content, it has gone wrong.
 
@@ -33,6 +36,59 @@ needs a module named after its content, it has gone wrong.
 >   three-day ferment is three days of *server* time, not three days of play.
 > - **A single-player session is a server on the player's own machine**, so this is
 >   the same rule, not a special case.
+
+---
+
+## What was built, and the one thing the design got wrong
+
+**Built 2026-09-19.** Four fields, four verbs, one owner.
+
+| Piece | Where |
+|---|---|
+| The timer (four fields, absolute) | `engine/contracts/work.py` — `TIMER_FIELDS`, `begin`, `remaining_seconds`, `is_due`, `observe` |
+| The declaration | `work` in a content set's contracts, validated by the registry's schema (`id`, `label`, `duration_days`, `inputs`, `outputs`, `skill`, `difficulty`, `station`, `tags`) |
+| `start` | consumes the declared inputs from the player's inventory, installs the timer on the player |
+| `collect` | rolls the declared skill at the declared difficulty, adds the outputs, drops the timer |
+| The surface | `engine/commands/work.py` — `jobs`, `begin`, `collect`; the manual's §19 |
+
+**The design got the unit wrong, and only content could have caught it.** The
+first implementation multiplied `duration_days` by 86400, because a day is 86400
+seconds. But the clock a timer anchors to is `world.clock`, which counts *real*
+seconds, and a game day is `TIME_REAL_SECONDS_PER_GAME_DAY` of real time — 1200
+seconds, the same day `ResourceNode.respawn_days` counts. An authored "one day"
+would have taken 72 of them. Nothing failed: the module's own tests agreed with
+the module's own constant. It surfaced the moment a content set declared a
+half-day batch and the answer came back "12 hours" for what should have been ten
+minutes of play. The test that pins it now asserts the *meaning* — a one-day job
+is due after one game day of clock advance and not before — rather than a number
+the module also chose.
+
+**Decisions the design left open, now made:**
+
+1. **Days or seconds?** `duration_days` is the authored unit and it means *game*
+   days, converted once in `work.duration_seconds`. Seconds stay canonical on the
+   clock; days are authoring sugar with a fixed exchange rate in `engine/config`.
+2. **Which owner?** v1 is scoped to **players**, because `save_manager` persists a
+   player and the room's items but *not* room or region properties. A timer on a
+   room is a Track C question about persisting world state; the design should not
+   assume the answer, and it doesn't.
+3. **What happens on a failed check?** The roll happens at `collect` and halves
+   the yield, rather than losing the work. The inputs were spent at `start`; work
+   that can vanish entirely is work nobody starts twice.
+4. **How does a player find it?** `jobs` lists what can be started *where they
+   are* and names the station a job still needs; the opening scenario of the
+   first consumer ends with "leave a batch running"; and the player manual has a
+   section on it. The station describes what it can do because the declaration
+   says which station it needs.
+5. **Is `sweep` needed?** Not yet, and deliberately not built: nothing has asked
+   for "finish everything already due when the container is opened" because no
+   container carries work yet. `due_jobs` is the read that a sweep would use.
+
+**What v1 deliberately is not.** No timer owned by a container, a station or a
+room (see 2). No `work_manager` and no tick loop. No recipe duration: a recipe is
+still instant, and whether a *recipe* should be able to declare a wait — reusing
+this timer rather than a second mechanism — is a separate decision, recorded in
+`docs/plan/chunks-of-work.md`.
 
 ---
 
@@ -295,13 +351,12 @@ the temptation to "unify the duration code" will come up.
 
 ## Open questions, for the tracks to answer
 
-1. **Does `duration_days` or `duration_seconds` win?** `respawn_days` is days and
+1. **Does `duration_days` or `duration_seconds` win?** ✅ **Answered by the build:**
+   days are the authored unit and mean *game* days. `respawn_days` is days and
    `TimeManager` is seconds, but the clock a timer anchors to is `world.clock`,
-   which is seconds. Probably both, with seconds canonical on the clock and days
-   as authoring sugar — but that is a contract decision, made once, in the
-   contract, not per call site. Note that `TIME_REAL_SECONDS_PER_GAME_DAY`
-   (`config_game.py:24`) is one global rate with no content override, so
-   "a day" currently means the same real duration in every theme.
+   which is seconds, so the conversion happens once, in `work.duration_seconds`,
+   through `TIME_REAL_SECONDS_PER_GAME_DAY`. Getting this wrong is the defect the
+   first implementation shipped; see "What was built".
 2. **What happens to a timer whose container is destroyed?** Inputs are already
    consumed. Options: the work is lost, or it is recoverable as a partial. This
    is a content-feel decision and probably wants a declared `on_destroy`.
@@ -309,21 +364,23 @@ the temptation to "unify the duration code" will come up.
    standing at an anvil is a large gain for very little engine, but it needs the
    NPC to be the timer's owner. Worth checking the shape supports it before
    committing.
-4. **How does a player discover the mechanic at all, in a text game?** There is
-   no progress bar. The answer is probably that the *station* describes what it
-   can do and the `recipes` command lists work alongside recipes — but that is a
-   content-and-surface question, and it should be answered before the first
-   station is authored.
+4. **How does a player discover the mechanic at all, in a text game?** ✅ **Answered
+   by the build:** `jobs` lists what can be started where the player is standing
+   and names the station a job still needs; `begin` says what will be ready and
+   when; `collect` with nothing ready says how long is left. The first consumer's
+   opening scenario ends with an instruction to leave a batch running, and the
+   player manual has a section (§19) that explains the trade.
 
 ---
 
 ## Where this fits
 
 This is a **Track B: Core Engine** deliverable, and it is the one the other
-tracks are waiting on: contracts need deadlines, environment hazards need "how
+tracks were waiting on: contracts need deadlines, environment hazards need "how
 long can you stay", world state needs decay. It has a precedent in the codebase
-(`respawn_days`), an existing clock to hang from (`TimeManager`), and its first
-content application is already half-built in `alchemy_table` and `item_barrel_ale`.
+(`respawn_days`), an existing clock to hang from (`clock.py`), and it now has a
+consumer in a set with no seasons at all — `orbital_salvage`'s fabrication bay,
+where a duration is only ever "the bay is still running".
 
-See [`../roadmap/work-tracks.md`](../roadmap/work-tracks.md) for how the tracks
+See [`../roadmap/work-tracks.md`](../plan/work-tracks.md) for how the tracks
 are meant to interlock around it.

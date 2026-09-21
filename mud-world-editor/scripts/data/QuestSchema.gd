@@ -92,6 +92,13 @@ const TYPES := {
 		"runtime": [],
 		"note": "Same outcome shape as negotiate, with no check in front of it.",
 	},
+	"talk": {
+		"label": "Talk to an NPC",
+		"required": {"target_npc_id": "npc_id"},
+		"optional": {},
+		"runtime": [],
+		"note": "Talking to the target NPC completes it -- no item, no check. `commands/interaction/npcs.py` handles it with negotiate/deliver/fetch at turn-in.",
+	},
 	"relationship": {
 		"label": "Relationship",
 		"required": {"target_npc_template_id": "npc_id", "required_score": "int"},

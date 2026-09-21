@@ -26,6 +26,9 @@ const SaveIO = preload("res://scripts/data/SaveIO.gd")
 const DEFAULT_CONTENT_SET := "../content_sets/fantasy_frontier"
 const SETTINGS_PATH := "user://editor_settings.json"
 const EDITOR_STATE_DIR := "editor"
+# The engine's own manifest name (`content_set.CONTENT_SET_MANIFEST_NAME`), and
+# what makes a directory a content set rather than just a directory.
+const CONTENT_SET_MANIFEST_NAME := "content_set.manifest.json"
 
 # Content folders the editor reads and writes. These are the game's own folders;
 # the editor adds nothing to `data/` that the server would not understand.
@@ -166,9 +169,17 @@ static func available_content_sets() -> Array:
 
 # Point the editor at another content set for this session. Returns false when
 # the path is not a content set, so the caller can say so rather than half-switch.
+#
+# "Is a content set" means the manifest is there, the same test
+# `available_content_sets` applies before offering one: a directory that merely
+# exists -- the repository root, a `tmp/` folder, one set's `data/` subdirectory --
+# used to be accepted, and the editor reloaded into a world with no regions, no
+# items and no way to tell that the path had been wrong.
 static func set_root(path: String) -> bool:
 	var normalized := _normalize(path)
 	if normalized == "" or not DirAccess.dir_exists_absolute(normalized):
+		return false
+	if not FileAccess.file_exists(normalized.path_join(CONTENT_SET_MANIFEST_NAME)):
 		return false
 	_resolved = normalized
 	_source = "editor settings"

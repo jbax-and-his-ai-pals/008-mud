@@ -18,10 +18,14 @@ Two kinds of assertion live here, and they are doing different jobs:
   checks the mechanics still function.
 """
 
+import json
 import re
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from engine.contracts import work as work_contract
 from engine.contracts.equipment import armor_defense, weapon_damage
 from engine.contracts.resources import label_for, pool_for
 from engine.items.item_factory import ItemFactory
@@ -329,7 +333,8 @@ class TestNoFantasyVocabularyReachesThePlayer(OrbitalSalvageBase):
             "gather bench", "gather bench", "gather bench", "gather bench",
             "recipes", "craft fabricate patch kit", "inventory",
             "north", "north", "look", "attack cargo drone", "cast overcharge",
-            "status", "combat", "south", "east", "look", "talk Ivo",
+            "status", "combat", "south", "east", "jobs", "begin patch-kit batch",
+            "collect", "look", "south", "east", "look", "talk Ivo",
         ):
             self._run(command)
         self._assert_clean("\n".join(self.transcript))
@@ -368,6 +373,189 @@ class TestNoFantasyVocabularyReachesThePlayer(OrbitalSalvageBase):
                 "the player read vocabulary this content set never declares: %s\n\n%s"
                 % (", ".join(sorted(set(offenders))), text)
             )
+
+
+class TestWorkThatTakesTime(OrbitalSalvageBase):
+    """The fabrication bay: `work`'s first consumer, in a set with no seasons.
+
+    This is the *second theme* half of "a system is not finished until two themes
+    use it", and it is deliberately a set whose world has no weather, no harvest
+    and no winter: a duration here is only ever "the bay is still running".
+
+    The loop is the content's, not the engine's:
+    three salvaged parts go into the bay, half a day later two patch kits come
+    out, against the instant recipe's one kit from two parts. Waiting is the
+    cheaper way to keep kits, which is the decision the mechanic exists to offer.
+    """
+
+    SAVE_BATCH = "kit_batch"
+
+    def _seed_parts(self, count: int) -> None:
+        """Parts directly rather than by gathering: the bench rolls grades, and
+        the thing under test here is the bay."""
+        for _ in range(count):
+            item = ItemFactory.create_item_from_template("item_servo_cluster", self.server.world)
+            self.player.inventory.add_item(item, 1)
+
+    def _go_to_workshop(self) -> None:
+        self._run("east")
+        self.assertEqual("workshop", self.player.current_room_id)
+
+    def _tick_half_a_day(self) -> None:
+        # The world clock is a SimulatedClock under deterministic_test_mode and
+        # one command advances it by `tick_dt`, so half a game day is one tick.
+        self.server.tick_dt = 600.0
+        self._run("look")
+
+    def test_the_bay_is_a_station_this_set_declares(self) -> None:
+        room = self.server.world.regions["station"].rooms["workshop"]
+        station = next(
+            item for item in room.items
+            if item.get_property("crafting_station_type") == "fabricator"
+        )
+        self.assertIsNotNone(station, "the workshop's own prose describes a fabrication bay")
+        self.assertFalse(station.get_property("can_take", True), "it is furniture, not loot")
+
+        declared = self.server.world.contract_registry.work_declaration(self.SAVE_BATCH)
+        self.assertIsNotNone(declared, "the set declares the work the bay runs")
+        self.assertEqual("fabricator", declared["station"])
+        self.assertEqual(0.5, declared["duration_days"])
+
+    def test_jobs_names_the_station_a_batch_needs(self) -> None:
+        away = self._run("jobs")
+        self.assertIn("patch-kit batch", away)
+        self.assertIn("fabricator", away.lower(), "the requirement is named, not hidden")
+
+        self._go_to_workshop()
+        here = self._run("jobs")
+        self.assertIn("Stations here", here)
+        self.assertIn("fabricator", here.lower())
+
+    def test_a_batch_cannot_be_started_away_from_the_bay(self) -> None:
+        self._seed_parts(3)
+        refused = self._run("begin patch-kit batch")
+        self.assertIn("fabricator", refused.lower())
+        self.assertEqual(3, self.player.inventory.count_item("item_servo_cluster"), "nothing was spent")
+        self.assertEqual([], self.player.runtime_state.work.jobs)
+
+    def test_begin_spends_the_parts_and_collect_waits_for_the_clock(self) -> None:
+        self._seed_parts(3)
+        self._go_to_workshop()
+
+        started = self._run("begin patch-kit batch")
+        self.assertIn("half a day", started.lower().replace("12 hours", "half a day"))
+        self.assertEqual(0, self.player.inventory.count_item("item_servo_cluster"), "the bay has them now")
+
+        early = self._run("collect")
+        self.assertIn("Nothing is ready", early)
+        self.assertEqual(1, len(self.player.runtime_state.work.jobs))
+
+    def test_the_batch_finishes_on_the_world_clock(self) -> None:
+        self._seed_parts(3)
+        self._go_to_workshop()
+        self._run("begin patch-kit batch")
+        self._tick_half_a_day()
+
+        # The *score* is forced rather than the check itself: `practice_check`
+        # still runs for real, so the training it grants is under test too.
+        with patch("engine.core.skill_system.SkillSystem._compute_score", return_value=70):
+            finished = self._run("collect")
+
+        self.assertIn("2 x patch kit", finished)
+        self.assertEqual(2, self.player.inventory.count_item("item_patch_kit"))
+        self.assertEqual([], self.player.runtime_state.work.jobs)
+        self.assertIn("fabrication", self.player.runtime_state.progression.skills,
+                      "the check trains the skill it tests")
+        self.assertGreater(self.player.runtime_state.progression.skills["fabrication"]["xp"], 0)
+
+    def test_a_run_that_goes_badly_yields_half(self) -> None:
+        self._seed_parts(3)
+        self._go_to_workshop()
+        self._run("begin patch-kit batch")
+        self._tick_half_a_day()
+
+        with patch("engine.core.skill_system.SkillSystem._compute_score", return_value=3):
+            finished = self._run("collect")
+
+        self.assertIn("spoiled", finished)
+        self.assertEqual(1, self.player.inventory.count_item("item_patch_kit"))
+        self.assertGreater(
+            self.player.runtime_state.progression.skills.get("fabrication", {}).get("xp", 0), 0,
+            "practice still teaches, even when the run goes badly",
+        )
+
+
+class TestAJobOutlivesTheProcess(unittest.TestCase):
+    """What the two absolute numbers are for.
+
+    A job is `started_at` and `ends_at`, so a save records *when it ends* rather
+    than how much was left. The player here starts a batch, the server is shut
+    down entirely, a new server loads the save with the clock moved on, and the
+    batch is finished -- on the same `ends_at` the first process wrote.
+    """
+
+    def setUp(self) -> None:
+        self.save_name = "work_batch_save.json"
+        self._runtime_state = tempfile.TemporaryDirectory()
+        self.save_directory = Path(self._runtime_state.name) / "saves"
+        self.save_path = self.save_directory / self.save_name
+        self.addCleanup(self._runtime_state.cleanup)
+
+    def _server(self) -> HeadlessServer:
+        return HeadlessServer(
+            db_path=":memory:",
+            content_set_path=str(ORBITAL_SALVAGE),
+            save_directory=str(self.save_directory),
+            deterministic_test_mode=True,
+            default_presentation_mode="player",
+        )
+
+    def test_a_running_batch_is_finished_by_the_next_process(self) -> None:
+        server = self._server()
+        try:
+            session = server.create_session(player_id="salvager")
+            server.execute_command(session.session_id, "char create Vess")
+            player = server.get_player_for_session(session.session_id)
+            for _ in range(3):
+                item = ItemFactory.create_item_from_template("item_servo_cluster", server.world)
+                player.inventory.add_item(item, 1)
+            server.execute_command(session.session_id, "east")
+            server.execute_command(session.session_id, "begin patch-kit batch")
+
+            self.assertEqual(1, len(player.runtime_state.work.jobs))
+            written_ends_at = float(player.runtime_state.work.jobs[0]["ends_at"])
+            self.assertTrue(server.world.save_game(self.save_name, player=player))
+        finally:
+            server.shutdown()
+
+        saved = json.loads(self.save_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            written_ends_at,
+            float(saved["player"]["gameplay"]["work"]["jobs"][0]["ends_at"]),
+            "the save carries the deadline, not a countdown",
+        )
+
+        restored = self._server()
+        try:
+            loaded, _time_state, _weather_state = restored.world.load_save_game(self.save_name)
+            self.assertTrue(loaded)
+            player = restored.world.player
+            self.assertEqual(1, len(player.runtime_state.work.jobs))
+            self.assertEqual(written_ends_at, float(player.runtime_state.work.jobs[0]["ends_at"]))
+
+            # The new process's clock starts where a SimulatedClock always starts,
+            # so it is moved past the deadline rather than waited for.
+            restored.world.clock.advance(written_ends_at - restored.world.clock.now() + 1)
+
+            timer = player.runtime_state.work.jobs[0]
+            with patch("engine.core.skill_system.SkillSystem._compute_score", return_value=70):
+                result = work_contract.collect(restored.world, player, timer)
+
+            self.assertTrue(result["ok"], result)
+            self.assertEqual(2, player.inventory.count_item("item_patch_kit"))
+            self.assertEqual([], player.runtime_state.work.jobs)
+        finally:
+            restored.shutdown()
 
 
 if __name__ == "__main__":

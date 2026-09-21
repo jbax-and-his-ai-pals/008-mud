@@ -1,4 +1,15 @@
 # scripts/ui/inspectors/sub_inspectors/NPCInspector.gd
+#
+# Track G item 5: the attribute rows come from the content set's own stat
+# declaration, not from a list of eight fantasy names hard-coded here.
+#
+# The defect this replaced: `attr_keys` named strength, dexterity, constitution,
+# agility, intelligence, wisdom, spell_power and magic_resist, always, for every
+# content set. `orbital_salvage` declares six stats and `modern_capsule` declares
+# none, so two of those rows offered to write a stat the set does not have --
+# and the form built `cur_data["stats"] = {}` merely by being opened, which is a
+# write nobody asked for. See `ContractCatalog`'s stat vocabulary for the
+# precedence, which is the engine's.
 
 class_name NPCInspector
 extends RefCounted
@@ -8,10 +19,16 @@ signal database_modified
 var container: VBoxContainer
 var cur_data: Dictionary
 var loot_box: VBoxContainer
+# The catalog the manager already loaded, and the manager itself for the set's
+# other NPCs -- which is where the vocabulary comes from when nothing is declared.
+var catalog: ContractCatalog
+var db_manager: DatabaseManager
 
-func build(c: VBoxContainer, data: Dictionary):
+func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	container = c
 	cur_data = data
+	db_manager = db_mgr
+	catalog = db_mgr.catalog if db_mgr != null else ContractCatalog.new()
 	_build_stats()
 	_build_loot_table()
 
@@ -22,40 +39,84 @@ func _build_stats():
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
 	container.add_child(card)
 	
-	# Basic
+	# Basic. `level`, authored starting `health`, and `max_mana` are engine keys.
+	# The factory clamps starting health to the max derived from level/stats, so
+	# this is not a misleading max-health override. Only labels come from content:
+	# a set whose ability pool is Charge says Charge here.
 	var hb_basic = HBoxContainer.new()
 	vbox.add_child(hb_basic)
 	_add_spin_field(hb_basic, "Level", "level", 1)
-	_add_spin_field(hb_basic, "Health", "health", 10)
-	_add_spin_field(hb_basic, "Mana", "max_mana", 0)
+	_add_spin_field(hb_basic, "Starting " + _pool_label("vital", "Health"), "health", 10)
+	_add_spin_field(hb_basic, _pool_label("ability", "Ability"), "max_mana", 0)
 	
-	# Attributes Grid
-	vbox.add_child(InspectorStyle.lbl("Attributes:", InspectorStyle.COLOR_TEXT_DIM))
+	# Attributes Grid: this content set's stats, and only those.
+	var observed := _observed_stats()
+	var vocabulary := catalog.stat_vocabulary(observed)
+	if vocabulary.is_empty():
+		# Better a sentence than rows the set does not speak. The author's next
+		# step is the declaration, and this names the file it lives in.
+		vbox.add_child(InspectorStyle.lbl(
+			"This content set declares no stats, and none of its NPCs carry any yet. "
+			+ "Declare `stats` in data/contracts/world_contracts.json to choose them.",
+			InspectorStyle.COLOR_TEXT_DIM))
+		return
+	
+	var header := InspectorStyle.lbl("Attributes:", InspectorStyle.COLOR_TEXT_DIM)
+	header.tooltip_text = "Attribute rows come from %s." % catalog.stat_vocabulary_source(observed)
+	vbox.add_child(header)
+
 	var grid = GridContainer.new(); grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 20)
 	vbox.add_child(grid)
-	
-	if not cur_data.has("stats"): cur_data["stats"] = {}
-	var stats = cur_data.stats
-	
-	var attr_keys = ["strength", "dexterity", "constitution", "agility", "intelligence", "wisdom", "spell_power", "magic_resist"]
-	for k in attr_keys:
-		_add_stat_row(grid, k.capitalize(), k, stats)
+
+	for stat in vocabulary:
+		_add_stat_row(grid, str(stat).capitalize(), str(stat))
+
+## The pool label this content set gives a resource kind, from its declaration.
+func _pool_label(kind: String, fallback: String) -> String:
+	return catalog.resource_label(kind, fallback)
+
+## Every stat any NPC in this content set carries. Used only when the set declares
+## no vocabulary: the rows then come from the set's own data rather than from an
+## engine default nobody checked. The question belongs to the manager, which is
+## what holds the NPCs.
+func _observed_stats() -> Array:
+	if db_manager == null:
+		return []
+	return db_manager.carried_stats()
+
+## The stats dictionary as it stands, without creating one.
+func _carried_stats() -> Dictionary:
+	var carried = cur_data.get("stats", {})
+	return carried if typeof(carried) == TYPE_DICTIONARY else {}
+
+
+## The stats dictionary, made on the first write and not before.
+func _ensure_stats() -> Dictionary:
+	if typeof(cur_data.get("stats")) != TYPE_DICTIONARY:
+		cur_data["stats"] = {}
+	return cur_data["stats"]
 
 func _add_spin_field(parent, label, key, default):
 	var vb = VBoxContainer.new(); vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vb.add_child(InspectorStyle.lbl(label, InspectorStyle.COLOR_TEXT_DIM))
 	var sb = SpinBox.new(); sb.value = cur_data.get(key, default)
-	sb.value_changed.connect(func(v): cur_data[key] = v; database_modified.emit())
+	# `int()` because these are integer fields: a SpinBox emits a float, and a
+	# float written into `level` is the int-to-float defect the number gate exists
+	# to catch. Coercing here is cheaper than explaining it in a diff.
+	sb.value_changed.connect(func(v): cur_data[key] = int(v); database_modified.emit())
 	InspectorStyle.apply_input_style(sb)
 	vb.add_child(sb); parent.add_child(vb)
 
-func _add_stat_row(parent, label, key, stats_dict):
+func _add_stat_row(parent, label, key):
 	var hb = HBoxContainer.new(); hb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var l = Label.new(); l.text = label; l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hb.add_child(l)
-	var sb = SpinBox.new(); sb.value = stats_dict.get(key, 0); sb.custom_minimum_size.x = 70
-	sb.value_changed.connect(func(v): stats_dict[key] = v; database_modified.emit())
+	var carried = _carried_stats()
+	var sb = SpinBox.new(); sb.value = carried.get(key, 0); sb.custom_minimum_size.x = 70
+	sb.value_changed.connect(func(v):
+		_ensure_stats()[key] = int(v)
+		database_modified.emit())
 	InspectorStyle.apply_input_style(sb)
 	hb.add_child(sb)
 	parent.add_child(hb)

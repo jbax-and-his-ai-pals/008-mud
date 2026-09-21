@@ -68,7 +68,9 @@ class TestHousingPersistence(unittest.TestCase):
                 player.current_region_id = "town"
                 player.current_room_id = "residential_street_east"
 
-                server.execute_command(session.session_id, "northeast")
+                # The house is south of this street since town was re-arranged; the
+                # route names the direction the world actually has.
+                server.execute_command(session.session_id, "south")
                 self.assertEqual(("town", "player_house_exterior"), (player.current_region_id, player.current_room_id))
 
                 bought = server.execute_command(session.session_id, "buy house")
@@ -145,7 +147,9 @@ class TestHousingPersistence(unittest.TestCase):
                 player.runtime_state.gold = 1000
                 player.current_region_id = "town"
                 player.current_room_id = "residential_street_east"
-                server.execute_command(session.session_id, "northeast")
+                # The house is south of this street since town was re-arranged; the
+                # route names the direction the world actually has.
+                server.execute_command(session.session_id, "south")
                 server.execute_command(session.session_id, "buy house")
 
                 # Ambiguous without a branch: two options exist for tier 2.

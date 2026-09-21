@@ -157,6 +157,44 @@ EFFECT_PACKET_FIELDS = {
     "payload": {"type": "map"},
 }
 
+# Work that takes time. A declaration says what the work *is*; the engine's only
+# job is to start it, evaluate it on read, and complete it. Everything that makes
+# one work different from another -- a skill gate, a yield, a by-product -- is a
+# field here rather than a branch in a manager, which is the whole point of the
+# section existing.
+#
+# `duration_days` rather than seconds because that is the unit authors already
+# think in (`ResourceNode`'s `respawn_days` is the existing precedent, and the
+# only world-anchored duration the engine had before this).
+WORK_FIELDS = {
+    "id": {"type": "string", "required": True},
+    "label": {"type": "string", "required": True},
+    "description": {"type": "string"},
+    # How long the work takes. Absent means instant: work with no duration is a
+    # recipe, and a set that declares no `work` at all behaves exactly as it did
+    # before this section existed.
+    "duration_days": {"type": "float", "min": 0},
+    "inputs": {"type": "list_of", "of": {"type": "object", "fields": {
+        "item_id": {"type": "string", "required": True},
+        "quantity": {"type": "int", "min": 1},
+    }}},
+    "outputs": {"type": "list_of", "of": {"type": "object", "fields": {
+        "item_id": {"type": "string", "required": True},
+        "quantity": {"type": "int", "min": 1},
+    }}},
+    # The check rolled when the work is *collected*, so a long job is not decided
+    # at the moment it starts. Both optional: work that always succeeds is work
+    # with no gate, which is a legitimate kind.
+    "skill": {"type": "string"},
+    "difficulty": {"type": "int", "min": 0},
+    # What the work needs to be standing at, by the station type a nearby item
+    # declares (`crafting_station_type`). Optional, and a name rather than a
+    # location: the engine asks the room what is in it and compares strings, so
+    # nothing here knows what a forge is.
+    "station": {"type": "string"},
+    "tags": {"type": "list_of", "of": "string"},
+}
+
 CONTRACT_SCHEMAS: Dict[str, Dict[str, Any]] = {
     "item_families": ITEM_FAMILY_FIELDS,
     "generation_profiles": GENERATION_PROFILE_FIELDS,
@@ -165,6 +203,7 @@ CONTRACT_SCHEMAS: Dict[str, Dict[str, Any]] = {
     "defense_profiles": DEFENSE_PROFILE_FIELDS,
     "abilities": ABILITY_FIELDS,
     "effect_packets": EFFECT_PACKET_FIELDS,
+    "work": WORK_FIELDS,
 }
 
 TOP_LEVEL_FIELDS = {
@@ -280,6 +319,9 @@ class ContractRegistry:
     defense_profiles: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     abilities: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     effect_packets: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # Work that takes time. Declared here and evaluated on read; see
+    # `engine/contracts/work.py` for the three things the engine does with one.
+    work: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     # Not a family of entries with ids: one mapping from role to stat. See
     # `engine/contracts/stats.py` for what each role means.
     stats: Dict[str, Any] = field(default_factory=dict)
@@ -455,6 +497,15 @@ class ContractRegistry:
     def effect_packet(self, packet_id: str) -> Optional[Dict[str, Any]]:
         return self.effect_packets.get(str(packet_id or ""))
 
+    def work_declaration(self, work_id: str) -> Optional[Dict[str, Any]]:
+        """The declared work an id names, or None.
+
+        Named `work_declaration` rather than `work` so it does not shadow the
+        section it reads from -- `registry.work` is the whole mapping, and a
+        lookup method of the same name would make one of the two unreachable.
+        """
+        return self.work.get(str(work_id or ""))
+
     def item_class_for_family(self, family_id: str) -> str:
         family = self.family(family_id)
         return str(family.get("item_class", "") or "") if family else ""
@@ -485,7 +536,7 @@ class ContractRegistry:
     def is_empty(self) -> bool:
         return not (self.item_families or self.generation_profiles or self.resources
                     or self.attack_profiles or self.defense_profiles
-                    or self.abilities or self.effect_packets or self.stats)
+                    or self.abilities or self.effect_packets or self.work or self.stats)
 
     def status(self) -> str:
         from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_TITLE

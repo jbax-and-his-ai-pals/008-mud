@@ -14,7 +14,7 @@ Map current `mud-world-editor` capability against runtime/toolkit contracts so w
 
 ## Current Signals (Codebase Audit)
 
-- Editor project exists: `C:\python\old\restart\mud-world-editor`
+- Editor project exists: `../../mud-world-editor`
 - Uses mixed un-packaged data files (`world_layout.json`, region JSONs, templates, quests).
 - Runtime/toolkit now rely on stronger validators and profile-aware behavior.
 

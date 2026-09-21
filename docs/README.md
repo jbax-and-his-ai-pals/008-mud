@@ -22,11 +22,11 @@ had to open each to find out which one still was.
 
 - **New to the project?** [`reference/PLAYER_MANUAL.md`](reference/PLAYER_MANUAL.md)
   for what the game is, then [`design/WORLD_DESIGN.md`](design/WORLD_DESIGN.md)
-  for where it is going, then [`plan/integrated-roadmap.md`](plan/integrated-roadmap.md)
-  for what happens next.
+  for where it is going, then [`plan/game-authoring-roadmap.md`](plan/game-authoring-roadmap.md)
+  for the full game-authoring journey and editor milestones.
 - **About to do work?** [`plan/work-tracks.md`](plan/work-tracks.md) says which
-  track owns the file you are touching, and [`plan/integrated-roadmap.md`](plan/integrated-roadmap.md)
-  says whether it is scheduled. `ROADMAP.md` at the repo root holds the standing
+  track owns the file you are touching, and [`plan/chunks-of-work.md`](plan/chunks-of-work.md)
+  is the execution queue (§6A is next). `ROADMAP.md` at the repo root holds the standing
   decisions and the live open items.
 - **Curious why something is odd?** [`archive/roadmap-2026-09-narratives.md`](archive/roadmap-2026-09-narratives.md)
   is the P0–P9 record; the audit findings it references are in `ROADMAP.md`.

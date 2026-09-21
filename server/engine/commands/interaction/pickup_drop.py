@@ -5,7 +5,37 @@ from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET, FORMAT_HIG
 from engine.items.container import Container
 from engine.items.item_factory import ItemFactory
 from engine.core import advancement
+from engine.commands.interaction.theft import taking_consequences, taking_is_theft
 from engine.utils.utils import get_article, simple_plural
+
+def _record_acquisition(context: Dict[str, Any], player, item) -> List[str]:
+    """Everything taking an item does besides moving it.
+
+    Two phrasings reach this: `get <item>` (through the shared handler) and
+    `get <item> from <container>` (its own branch). Only the first recorded the
+    discovery and the first-holding entry, so naming a container silently made an
+    acquisition invisible to the collection, discovery and advancement ledgers.
+    """
+    hints: List[str] = []
+    collection_note = context["game"].collection_manager.handle_collection_discovery(player, item)
+    if collection_note:
+        hints.append(collection_note)
+    discovery_manager = getattr(context["game"], "discovery_manager", None)
+    if discovery_manager:
+        discovery_note = discovery_manager.handle_item_discovery(player, item)
+        if discovery_note:
+            hints.append(discovery_note)
+    # First time a player obtains a given kind of thing -- a material, a gem, a
+    # curio -- is recorded once and pays once (ROADMAP P4). Keyed by template so a
+    # stack of the same thing pays a single time.
+    material_note = advancement.award(
+        player, advancement.KIND_ITEM, str(getattr(item, "obj_id", "") or ""),
+        payload=advancement.item_payload(item),
+    )
+    if material_note:
+        hints.append(material_note)
+    return hints
+
 
 def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_verb: str) -> str:
     world = context["world"]
@@ -13,6 +43,13 @@ def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_v
     server = getattr(world, "server", None)
     if not player.is_alive: return f"{FORMAT_ERROR}You are dead.{FORMAT_RESET}"
     if not args: return f"{FORMAT_ERROR}{command_verb.capitalize()} what?{FORMAT_RESET}"
+
+    # Taking from a container somebody owns is the same act whichever verb is
+    # typed, so the risk is settled once, at the end, by the same rule `steal`
+    # uses. Without this, `open locker` + `get multitool from locker` was a
+    # risk-free robbery and the crime system was optional.
+    stolen_value = 0
+    any_owned_source = False
 
     item_name = ""
     qty = 1
@@ -81,27 +118,15 @@ def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_v
         else: success = world.remove_item_instance_from_room(player.current_region_id, player.current_room_id, item)
         
         if success:
+             if taking_is_theft(source):
+                  any_owned_source = True
+                  stolen_value += max(0, int(getattr(item, "value", 0) or 0))
              recipient = player
              route_note = ""
              if server is not None and hasattr(server, "distribute_party_loot"):
                   recipient, route_note = server.distribute_party_loot(player, item)
              recipient.inventory.add_item(item)
-             # Collection Logic
-             hint = context["game"].collection_manager.handle_collection_discovery(recipient, item)
-             if hint: hints.append(hint)
-             discovery_manager = getattr(context["game"], "discovery_manager", None)
-             if discovery_manager:
-                  hint = discovery_manager.handle_item_discovery(recipient, item)
-                  if hint: hints.append(hint)
-             # First time a player obtains a given kind of thing -- a material,
-             # a gem, a curio -- is recorded once and pays once (ROADMAP P4).
-             # Keyed by template so a stack of the same thing pays a single time.
-             material_note = advancement.award(
-                 recipient, advancement.KIND_ITEM, str(getattr(item, "obj_id", "") or ""),
-                 payload=advancement.item_payload(item),
-             )
-             if material_note:
-                  hints.append(material_note)
+             hints.extend(_record_acquisition(context, recipient, item))
              if route_note:
                   hints.append(route_note)
              
@@ -124,7 +149,12 @@ def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_v
         if src == "__ground__": msgs.append(f"You pick up {item_str}.")
         else: msgs.append(f"You get {item_str} from the {src}.")
         
-    return f"{FORMAT_SUCCESS}{' '.join(msgs)}{FORMAT_RESET}{err_msg}\n" + "\n".join(set(hints))
+    # One roll for the act, not one per item: a player emptying a locker is one
+    # theft, and the value that decides fine-versus-custody is the whole of it.
+    consequences = ""
+    if any_owned_source:
+        consequences = taking_consequences(world, player, stolen_value)
+    return f"{FORMAT_SUCCESS}{' '.join(msgs)}{FORMAT_RESET}{err_msg}\n" + "\n".join(set(hints)) + consequences
 
 def _handle_item_disposal(args: List[str], context: Dict[str, Any], command_verb: str) -> str:
     world = context["world"]
@@ -241,11 +271,19 @@ def get_handler(args, context):
              items = list(container.properties.get("contains", []))
              if not items: return "It's empty."
              count = 0
+             stolen_value = 0
+             hints: List[str] = []
              for i in list(items):
                   if player.inventory.can_add_item(i)[0] and container.remove_item(i):
                        player.inventory.add_item(i)
+                       stolen_value += max(0, int(getattr(i, "value", 0) or 0))
                        count += 1
-             return f"{FORMAT_SUCCESS}You take {count} items from the {container.name}.{FORMAT_RESET}"
+                       hints.extend(_record_acquisition(context, player, i))
+             consequences = taking_consequences(world, player, stolen_value) if taking_is_theft(container) else ""
+             return (
+                 f"{FORMAT_SUCCESS}You take {count} items from the {container.name}.{FORMAT_RESET}"
+                 f"{consequences}\n" + "\n".join(set(hints))
+             )
 
         target = container.find_item_by_name(item_name)
         if not target: return f"{FORMAT_ERROR}'{item_name}' not found in container.{FORMAT_RESET}"
@@ -253,7 +291,15 @@ def get_handler(args, context):
         if player.inventory.can_add_item(target)[0]:
              if container.remove_item(target):
                   player.inventory.add_item(target)
-                  return f"{FORMAT_SUCCESS}You get the {target.name} from the {container.name}.{FORMAT_RESET}"
+                  consequences = (
+                      taking_consequences(world, player, max(0, int(getattr(target, "value", 0) or 0)))
+                      if taking_is_theft(container) else ""
+                  )
+                  hints = _record_acquisition(context, player, target)
+                  return (
+                      f"{FORMAT_SUCCESS}You get the {target.name} from the {container.name}.{FORMAT_RESET}"
+                      f"{consequences}\n" + "\n".join(set(hints))
+                  )
         return f"{FORMAT_ERROR}Cannot carry that.{FORMAT_RESET}"
 
     return _handle_item_acquisition(args, context, "take")

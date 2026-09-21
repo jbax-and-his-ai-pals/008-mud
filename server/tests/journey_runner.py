@@ -129,6 +129,120 @@ class ExplorerPolicy:
         return "look"
 
 
+class GotoDirective:
+    """`__goto__:<region>:<room>` -- walk to a room instead of listing the moves.
+
+    A route that spells out `south, south, east, east` is asserting the shape of the
+    world at the moment it was written. When town's topology was redesigned
+    (`d45d154`) the rooms stayed connected and the routes stopped arriving: the
+    failures said "You don't see 'talia' here", which is true and useless -- it
+    names the symptom, not the assertion the route meant to make.
+
+    So a route names its destination and this walks there, breadth-first over the
+    world's own exits, one step per turn, until the player is standing in it. The
+    route then continues with whatever it actually wanted to assert. Re-arranging
+    the world no longer rewrites the journeys, and a room that becomes
+    *unreachable* still fails -- at the destination, which is the thing that
+    matters.
+    """
+
+    PREFIX = "__goto__"
+    # Bound on how many directives one call may pass through, so an unreachable
+    # destination returns control instead of spinning.
+    MAX_STEPS = 400
+
+    def __init__(self) -> None:
+        self._pending: list[str] = []
+        self._target: tuple[str, str] | None = None
+
+    @classmethod
+    def matches(cls, command: str) -> bool:
+        return command.startswith(cls.PREFIX + ":")
+
+    @staticmethod
+    def destination(command: str) -> tuple[str, str]:
+        region_id, _, room_id = command[len(GotoDirective.PREFIX) + 1:].strip().partition(":")
+        return region_id.strip(), room_id.strip()
+
+    def next_direction(self, command: str, server: Any, session_id: str) -> str:
+        """One movement toward the directive's destination, or "" on arrival."""
+        target = self.destination(command)
+        player = server.get_player_for_session(session_id)
+        if player is None:
+            return "look"
+        here = (str(player.current_region_id), str(player.current_room_id))
+        if here == target:
+            self._pending = []
+            self._target = None
+            return ""
+        # Recompute on a new target or an empty queue: a wrong turn corrects
+        # itself rather than becoming permanent.
+        if self._target != target or not self._pending:
+            self._target = target
+            self._pending = self._path_between(server, here, target)
+        if not self._pending:
+            return "look"
+        return self._pending.pop(0)
+
+    @staticmethod
+    def _path_between(server: Any, start: tuple[str, str], goal: tuple[str, str]) -> list[str]:
+        """Directions from `start` to `goal`, or [] when there is no way through."""
+        import collections
+
+        world = server.world
+        seen: dict[tuple[str, str], tuple[tuple[str, str], str] | None] = {start: None}
+        queue: collections.deque[tuple[str, str]] = collections.deque([start])
+        while queue:
+            current = queue.popleft()
+            if current == goal:
+                steps: list[str] = []
+                node: tuple[str, str] | None = current
+                while node is not None and seen.get(node) is not None:
+                    previous, direction = seen[node]  # type: ignore[misc]
+                    steps.append(direction)
+                    node = previous
+                return list(reversed(steps))
+            region = world.get_region(current[0])
+            room = getattr(region, "rooms", {}).get(current[1]) if region else None
+            if room is None:
+                continue
+            for direction, destination in (getattr(room, "exits", {}) or {}).items():
+                text = str(destination)
+                if ":" in text:
+                    next_region, next_room = text.split(":", 1)
+                else:
+                    next_region, next_room = current[0], text
+                node = (next_region.strip(), next_room.strip())
+                if node not in seen:
+                    seen[node] = (current, str(direction))
+                    queue.append(node)
+        return []
+
+
+def _next_command_with_goto(policy, commands, index, server, session_id):
+    """The body of a route dispatcher, with `__goto__` handled.
+
+    Returns `(command, index, consumed)`. `command` is None when the list is
+    exhausted. `consumed` says whether the caller should step past the entry at
+    `index`: true for a real command, false for a movement the directive still
+    needs, which must be asked for again next turn. A directive that has been
+    reached consumes no turn at all, so a route's length does not depend on how
+    many directives it happens to contain.
+    """
+    for _ in range(GotoDirective.MAX_STEPS):
+        if index >= len(commands):
+            return None, index, True
+        command = commands[index]
+        if not GotoDirective.matches(command):
+            return command, index, True
+        direction = policy._goto.next_direction(command, server, session_id)
+        if direction == "":
+            index += 1
+            continue
+        return direction, index, False
+    return None, index, True
+
+
 class CommandSequencePolicy:
     """Runs a prescribed command sequence, then delegates to an optional policy."""
 
@@ -136,11 +250,14 @@ class CommandSequencePolicy:
         self._commands = [str(command).strip() for command in commands if str(command).strip()]
         self._index = 0
         self._fallback = fallback
+        self._goto = GotoDirective()
 
     def next_command(self, server: Any, session_id: str, rng: random.Random) -> str:
-        if self._index < len(self._commands):
-            command = self._commands[self._index]
-            self._index += 1
+        command, self._index, consumed = _next_command_with_goto(
+            self, self._commands, self._index, server, session_id)
+        if command is not None:
+            if consumed:
+                self._index += 1
             return command
         if self._fallback is not None:
             return self._fallback.next_command(server, session_id, rng)
@@ -202,37 +319,39 @@ class FantasyFrontierSystemSweepPolicy(CommandSequencePolicy):
         "talk Elder Thorne",
         "reply commission",
         "recipes all",
-        "west",
-        "south",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:community_garden",
         "gather herb bed",
         "gather herb bed",
         "craft tie_wildflower_posy",
-        "north",
-        "east",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:town_square",
         "give wildflower posy to Elder Thorne",
         "relationship Elder Thorne",
         "look board",
         "accept quest 1",
-        "east",
-        "east",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:market_square",
         "trade Talia",
         "orders",
         "buy hand axe",
-        "east",
-        "east",
-        "east",
-        "northwest",
-        "west",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:forest:ancient_oak",
         "gather fallen bough",
         "gather fallen bough",
         "craft carve_riverside_charm",
-        "east",
-        "southeast",
-        "west",
-        "west",
-        "west",
-        "west",
-        "west",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:town_square",
         "give carved riverside charm to Elder Thorne",
         "relationship Elder Thorne",
         "inventory",
@@ -261,6 +380,7 @@ class FantasyFrontierCombatRoutePolicy:
         self._approach_index = 0
         self._returned = False
         self._fallback = ExplorerPolicy()
+        self._goto = GotoDirective()
 
     def next_command(self, server: Any, session_id: str, rng: random.Random) -> str:
         if self._approach_index < len(self._APPROACH):
@@ -299,24 +419,25 @@ class FantasyFrontierPremiumMaterialPolicy:
         "__accept_wildflower__",
         "talk Elder Thorne",
         "reply commission",
-        "west",
-        "south",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:community_garden",
         "gather herb bed",
         "gather herb bed",
         "craft tie_wildflower_posy",
-        "north",
-        "east",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:town_square",
         "give wildflower posy to Elder Thorne",
         "relationship Elder Thorne",
         "look board",
         "__accept_premium__",
-        "north",
-        "north",
-        "north",
-        "north",
-        "north",
-        "east",
-        "down",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:forest:stream_crossing",
         "survey",
         # Deliberate, fully-deterministic disrupted-plan beat: gathering
         # river clay needs the foraging knife the player started with
@@ -335,20 +456,17 @@ class FantasyFrontierPremiumMaterialPolicy:
         "gather river clay bank",
         "craft press_river_token",
         "craft press_river_token",
-        "up",
-        "west",
-        "south",
-        "south",
-        "south",
-        "south",
-        "south",
-        "east",
-        "east",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:market_square",
         "trade Talia",
         "orders",
         "fulfill river_fine_token",
-        "west",
-        "west",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:town_square",
         "give river-clay token to Elder Thorne",
         "relationship Elder Thorne",
         "inventory",
@@ -357,12 +475,17 @@ class FantasyFrontierPremiumMaterialPolicy:
     def __init__(self) -> None:
         self._index = 0
         self._fallback = ExplorerPolicy()
+        self._goto = GotoDirective()
 
     def next_command(self, server: Any, session_id: str, rng: random.Random) -> str:
         if self._index >= len(self._COMMANDS):
             return self._fallback.next_command(server, session_id, rng)
-        command = self._COMMANDS[self._index]
-        self._index += 1
+        command, self._index, consumed = _next_command_with_goto(
+            self, self._COMMANDS, self._index, server, session_id)
+        if command is None:
+            return self._fallback.next_command(server, session_id, rng)
+        if consumed:
+            self._index += 1
         if command == "__accept_wildflower__":
             return self._accept_board_template(server, self._WILDFLOWER_TEMPLATE)
         if command == "__accept_premium__":
@@ -392,33 +515,35 @@ class FantasyFrontierOpportunityPolicy(FantasyFrontierPremiumMaterialPolicy):
 
     _MUSEUM_TEMPLATE = "quest_museum_showcase_commission"
     _OPPORTUNITY_COMMANDS = (
-        "east",
-        "east",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:market_square",
         "trade Talia",
         "__choose_prospecting_tool__",
-        "east",
-        "east",
-        "east",
-        "north",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:caves:geode_cluster",
         "survey",
         "gather rose quartz seam",
         "gather rose quartz seam",
         "appraise rose quartz",
-        "south",
-        "west",
-        "west",
-        "west",
-        "west",
-        "west",
-        "southeast",
-        "in",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:museum_interior",
         "__choose_curator_gift__",
-        "out",
-        "northwest",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:town_square",
         "look board",
         "__accept_museum__",
-        "southeast",
-        "in",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:museum_interior",
         "__choose_museum_resolution__",
         "give faceted rose quartz to Curator Vane",
         "relationships",
@@ -433,8 +558,12 @@ class FantasyFrontierOpportunityPolicy(FantasyFrontierPremiumMaterialPolicy):
             return super().next_command(server, session_id, rng)
         if self._opportunity_index >= len(self._OPPORTUNITY_COMMANDS):
             return self._fallback.next_command(server, session_id, rng)
-        command = self._OPPORTUNITY_COMMANDS[self._opportunity_index]
-        self._opportunity_index += 1
+        command, self._opportunity_index, consumed = _next_command_with_goto(
+            self, self._OPPORTUNITY_COMMANDS, self._opportunity_index, server, session_id)
+        if command is None:
+            return self._fallback.next_command(server, session_id, rng)
+        if consumed:
+            self._opportunity_index += 1
         player = server.get_player_for_session(session_id)
         if command == "__choose_prospecting_tool__":
             if player is not None and any(
@@ -499,7 +628,11 @@ def fantasy_frontier_first_hour_outcome_checks() -> List[JourneyOutcomeCheck]:
             ),
             label="first-hour route actions",
         ),
-        LocationVisitedOutcome("farmland", "orchard_west", label="maker route"),
+        # `node_fallen_bough` is placed in three rooms; the route's goto names the
+        # forest one. The check must name the room the route walks to: a location
+        # outcome that disagrees with the route is a test asserting a different
+        # journey than the one it runs.
+        LocationVisitedOutcome("forest", "ancient_oak", label="maker route"),
         PlayerStateOutcome("first two commissions complete", completed_commissions),
         PlayerStateOutcome("merchant tool purchased", owns_hand_axe),
         PlayerStateOutcome("Elder Thorne trust earned", earned_elder_trust),
@@ -686,8 +819,10 @@ class FantasyFrontierResilienceRoutePolicy:
         "buy small mana potion",
     )
     _CRAFT_COMMANDS = (
-        "west",
-        "south",
+        # Names the destination instead of listing the moves: a route that
+        # spells out its turns asserts the world's shape at the moment it was
+        # written, and stops arriving when the world is re-arranged.
+        "__goto__:town:community_garden",
         "gather herb bed",
         "inventory",
         "relationship Elder Thorne",
@@ -726,12 +861,17 @@ class FantasyFrontierResilienceRoutePolicy:
     def __init__(self) -> None:
         self._index = 0
         self._fallback = ExplorerPolicy()
+        self._goto = GotoDirective()
 
     def next_command(self, server: Any, session_id: str, rng: random.Random) -> str:
         if self._index >= len(self._COMMANDS):
             return self._fallback.next_command(server, session_id, rng)
-        command = self._COMMANDS[self._index]
-        self._index += 1
+        command, self._index, consumed = _next_command_with_goto(
+            self, self._COMMANDS, self._index, server, session_id)
+        if command is None:
+            return self._fallback.next_command(server, session_id, rng)
+        if consumed:
+            self._index += 1
         return command
 
 
@@ -1012,10 +1152,21 @@ _GAMEPLAY_FAILURE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# The client's inline markup (`[color=red]`, `[[RED]]`) is presentation: a message
+# has to be read the way the player reads it before it can be classified.
+_STRIP_MARKUP = re.compile(r"\[\[/?[A-Z_]+\]\]|\[/?color[^\]]*\]", re.IGNORECASE)
+
 
 def _is_gameplay_failure(message: str) -> bool:
     """Conservative response classifier for player-visible unsuccessful actions."""
-    plain = re.sub(r"\x1b\[[0-9;]*m", "", message)
+    plain = _STRIP_MARKUP.sub("", message)
+    # A conversation is a transcript, not an action, and a menu legitimately lists
+    # options the player has not unlocked -- rendered as "(unavailable: <why>)".
+    # Classifying the whole transcript as a failure would count *looking at the
+    # dialogue tree* as a failed action, which is why the pattern's word
+    # "unavailable" is not enough on its own here.
+    if plain.lstrip().startswith("CONVERSATION WITH"):
+        return False
     return bool(_GAMEPLAY_FAILURE_PATTERN.search(plain))
 
 

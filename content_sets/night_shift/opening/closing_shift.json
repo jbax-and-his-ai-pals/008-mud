@@ -1,9 +1,13 @@
 {
   "scenario_id": "closing_shift",
   "heading": "Closing Shift",
-  "intro": "The depot is quiet this late. Check the supply room, mind the dog in the alley, and don't get caught taking what isn't logged.",
+  "intro": "The depot is quiet this late. Everything here is counted, and everything counted belongs to somebody. What you do about that is the shift.",
+  "objectives_heading": "Your shift:",
   "objectives": [
     { "id": "orient", "instruction": "Take in the loading dock and its exits", "command": "look" },
-    { "id": "meet_priya", "instruction": "Speak with Priya about the shift", "command": "talk priya" }
+    { "id": "meet_priya", "instruction": "Speak with Priya about the shift", "command": "talk priya" },
+    { "id": "supply_room", "instruction": "Look over the supply room north: the register, the tool crib, and Dana watching both", "command": "north" },
+    { "id": "tools_of_the_trade", "instruction": "Take a shim card from the tool crib, then pick the lock on the storeroom door east of it", "command": "open tool crib" },
+    { "id": "meet_otis", "instruction": "Meet Otis at the end of the service alley east; he buys things without asking where they came from", "command": "east" }
   ]
 }

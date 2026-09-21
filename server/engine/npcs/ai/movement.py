@@ -2,6 +2,7 @@
 import random
 from typing import TYPE_CHECKING, Optional
 from engine.utils.utils import format_npc_departure_message, format_npc_arrival_message
+from engine.world import factions
 from engine.world.housing_manager import HOUSE_ENTRY_SENTINEL
 
 if TYPE_CHECKING:
@@ -84,7 +85,7 @@ def perform_wander(npc: 'NPC', world: 'World', player: 'Player') -> Optional[str
             continue
 
         # hostiles shouldn't wander into safe zones
-        if npc.faction == 'hostile':
+        if factions.is_hostile(npc, world):
             if not world.is_location_safe(dest_region_id, dest_room_id):
                 valid_exits[direction] = dest_id
         else:

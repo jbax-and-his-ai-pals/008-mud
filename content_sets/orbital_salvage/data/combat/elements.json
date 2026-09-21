@@ -12,8 +12,13 @@
       "strong_resistance": "Barely scuffed it."
     }
   },
+  "_hazards_comment": "The station's one hazard, declared once: the hold's cold. This is the seat the set left empty when it shipped, and it is filled here rather than in engine code -- nothing about hull frost exists outside this file and the room that names it. The channel is `thermal`, which is this set's own channel and no other set's.",
   "hazards": {
-    "mapping": {},
-    "flavor": {}
+    "hull_frost": {
+      "channel": "thermal",
+      "flavor": "The cold in here gets through your layers and stays there.",
+      "damage": 3,
+      "tick_interval": 5
+    }
   }
 }

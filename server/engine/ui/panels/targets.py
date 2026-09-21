@@ -5,6 +5,7 @@ from engine.config import (
     STATUS_PANEL_PADDING, FORMAT_TITLE, FORMAT_RESET, FORMAT_GRAY, DEFAULT_COLORS
 )
 from engine.utils.text_formatter import format_target_name
+from engine.world import factions
 
 if TYPE_CHECKING:
     from engine.ui.renderer import Renderer
@@ -36,7 +37,9 @@ def draw_right_status_panel(renderer: 'Renderer', player: 'Player', world: 'Worl
             renderer.screen.blit(renderer.font.render("PEOPLE", True, title_color), (panel_rect.x + padding, current_y))
             current_y += line_height
         
-        friendly_targets = [npc for npc in all_npcs_in_room if npc.is_alive and npc.faction in ["friendly", "neutral"]]
+        friendly_targets = [
+            npc for npc in all_npcs_in_room if npc.is_alive and factions.can_converse(npc, world)
+        ]
         if friendly_targets:
             for target in friendly_targets:
                 if current_y >= max_y: break
@@ -58,7 +61,9 @@ def draw_right_status_panel(renderer: 'Renderer', player: 'Player', world: 'Worl
             renderer.screen.blit(renderer.font.render("HOSTILES", True, title_color), (panel_rect.x + padding, current_y))
             current_y += line_height
         
-        hostile_targets = [npc for npc in all_npcs_in_room if npc.is_alive and npc.faction == "hostile"]
+        hostile_targets = [
+            npc for npc in all_npcs_in_room if npc.is_alive and factions.is_hostile(npc, world)
+        ]
         if hostile_targets:
             for target in hostile_targets:
                 if current_y >= max_y: break

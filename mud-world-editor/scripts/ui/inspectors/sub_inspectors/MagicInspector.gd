@@ -8,14 +8,20 @@ var container: VBoxContainer
 var cur_data: Dictionary
 var known_groups: Dictionary = {}
 var effects_box: VBoxContainer
+# The ability's own id and the manager, so the group can be filed in the editor's
+# state instead of in content the engine refuses (see `magic_group_assignments`).
+var ability_id: String = ""
+var db_manager: DatabaseManager = null
 
 const TARGET_TYPES := ["self", "friendly", "enemy", "all_friendly", "all_enemies", "area"]
 const EFFECT_TYPES := ["damage", "heal", "apply_dot", "apply_effect", "summon"]
 
-func build(c: VBoxContainer, data: Dictionary, groups: Dictionary):
+func build(c: VBoxContainer, data: Dictionary, groups: Dictionary, id: String = "", db_mgr: DatabaseManager = null):
 	container = c
 	cur_data = data
 	known_groups = groups
+	ability_id = id
+	db_manager = db_mgr
 	_build_spell_details()
 	_build_effects()
 	_build_messages()
@@ -39,7 +45,16 @@ func _build_spell_details():
 		group_picker.set_item_metadata(group_picker.item_count - 1, group_id)
 		if group_id == current_group: selected = group_picker.item_count - 1
 	group_picker.select(selected)
-	group_picker.item_selected.connect(func(index): _set_value("magic_group", group_picker.get_item_metadata(index)))
+	# The group is the editor's own filing, not the engine's: `magic_group` is not
+	# a `Spell` field, and `Spell.from_dict` passes content straight into a
+	# constructor with no `**kwargs` -- so writing it into the entry made the group
+	# picker a button that stopped the whole abilities file from loading. It is
+	# kept in `editor/magic_groups.json` now.
+	group_picker.item_selected.connect(func(index):
+		if db_manager != null:
+			db_manager.set_magic_group(ability_id, str(group_picker.get_item_metadata(index)))
+		database_modified.emit()
+	)
 	box.add_child(group_picker)
 
 	var grid := GridContainer.new(); grid.columns = 2
@@ -49,8 +64,11 @@ func _build_spell_details():
 	_add_number_field(grid, "Cost", "mana_cost", 0.0, 0.0, 999.0, 1.0)
 	_add_number_field(grid, "Level Required", "level_required", 1.0, 1.0, 99.0, 1.0)
 	_add_number_field(grid, "Cooldown (sec)", "cooldown", 0.0, 0.0, 999.0, 0.25)
-	_add_number_field(grid, "Cast Time (sec)", "cast_time", 0.0, 0.0, 60.0, 0.1)
-	_add_number_field(grid, "Range", "range", 0.0, 0.0, 999.0, 1.0)
+	# "Cast Time" and "Range" used to be fields here, writing `cast_time` and
+	# `range` into the entry. The engine has no such fields on `Spell`, and an
+	# unknown keyword is not ignored -- it raises, and the registry builds a whole
+	# file inside one `try`, so touching either spinbox stopped every remaining
+	# ability in that file from loading.
 	_add_target_field(grid)
 
 func _add_number_field(grid: GridContainer, label: String, key: String, fallback: float, min_value: float, max_value: float, step: float):
@@ -123,8 +141,17 @@ func _effect_card(index: int, effect: Dictionary) -> PanelContainer:
 	amount.value = float(effect.get("value", effect.get("dot_damage_per_tick", 0.0))); InspectorStyle.apply_input_style(amount)
 	amount.value_changed.connect(func(value): _set_effect_amount(index, value))
 	row.add_child(_labeled("Amount", amount))
-	var damage_type := LineEdit.new(); damage_type.text = str(effect.get("damage_type", "")); damage_type.placeholder_text = "fire, holy…"
-	InspectorStyle.apply_input_style(damage_type); damage_type.text_changed.connect(func(text): _set_effect_value(index, "damage_type", text))
+	var damage_type := OptionButton.new(); InspectorStyle.apply_button_style(damage_type)
+	var channels: Array = db_manager.combat_vocabulary.damage_types if db_manager != null else []
+	var current_channel := str(effect.get("damage_type", "")); var channel_index := 0
+	if channels.is_empty(): damage_type.add_item("(no combat vocabulary)"); damage_type.disabled = true
+	else:
+		for channel in channels:
+			damage_type.add_item(str(channel))
+			if str(channel) == current_channel: channel_index = damage_type.item_count - 1
+		if current_channel != "" and not channels.has(current_channel): damage_type.add_item(current_channel); channel_index = damage_type.item_count - 1
+		damage_type.select(channel_index)
+		damage_type.item_selected.connect(func(choice): _set_effect_value(index, "damage_type", damage_type.get_item_text(choice)))
 	row.add_child(_labeled("Damage Type", damage_type))
 	var duration := SpinBox.new(); duration.min_value = 0; duration.max_value = 9999; duration.step = 0.5
 	duration.value = float(effect.get("dot_duration", effect.get("duration", 0.0))); InspectorStyle.apply_input_style(duration)
@@ -195,6 +222,11 @@ func _dark_card_style() -> StyleBoxFlat:
 	return style
 
 func _group_id() -> String:
+	if db_manager != null:
+		var assigned := db_manager.magic_group_of(ability_id)
+		if not assigned.is_empty(): return assigned
+	# A set written by an older editor may still carry the key; the manager
+	# migrates it out of content on load and strips it on save.
 	var explicit := str(cur_data.get("magic_group", "")).strip_edges()
 	if not explicit.is_empty(): return explicit
 	var source := str(cur_data.get("_filename", "")).get_file().replace(".json", "")

@@ -13,13 +13,21 @@ What it runs, in order:
   2. content-set JSON integrity (needs PyYAML; skipped with a note without it)
   3. mod manifest compatibility
   4. each content set: schema validation
-  5. each content set: number types match the schema (`2.0` is not `2`)
+  5. content numbers match the schema (`2.0` is not `2`)
   6. each content set: reference integrity, then the stale-reference audit
   7. each content set: skill audit (warnings only -- a skill no check rolls is
      a design question, so the build stays green while the gap is visible)
   8. engine content-neutrality, for fantasy and for the sci-fi proof
-  9. each content set: booted and played (`content_playability_check.py`)
-  10. the legacy editor fixture, if the recorded target exists on this machine
+  9. every contract field has a read-or-delete verdict on record
+  10. each content set: booted and played (`content_playability_check.py`)
+  11. the legacy editor fixture, if the recorded target exists on this machine
+
+**The list itself lives in `toolkit/content_check_steps.py`, not here.** The world
+editor's Validate button runs a subset of the same checks, and by 2026-09-19 the
+two had drifted -- the editor ran five of these fourteen and could report "No
+issues found" for a set this gate refuses. One definition, two renderings: this
+file turns each step into a subprocess, `toolkit/editor_validate.py` turns the
+ones it can into structured findings. A check cannot be added to one side only.
 
 These gates exist because the defects they now catch all shipped silently:
 five Portbridge rooms -- including the only quest giver for an entire campaign
@@ -44,7 +52,12 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
-CONTENT_SETS = ("fantasy_frontier", "modern_capsule", "night_shift", "orbital_salvage")
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from toolkit import content_check_steps as steps_module  # noqa: E402
+
+CONTENT_SETS = steps_module.CONTENT_SETS
 
 
 class StepFailed(Exception):
@@ -97,7 +110,6 @@ def resolve_recorded_path(recorded: str) -> Path:
             if rebuilt.exists():
                 return rebuilt
     return candidate
-    print("OK: %s" % name)
 
 
 def main() -> int:
@@ -112,79 +124,16 @@ def main() -> int:
     has_yaml = importlib.util.find_spec("yaml") is not None
 
     try:
-        run_step("Validate client theme packs",
-                 [python, f"{toolkit}/pack_tool.py", "validate", "client/themes"], env)
-        run_step("Validate starter theme packs (strict)",
-                 [python, f"{toolkit}/pack_tool.py", "validate", "toolkit/starter_packs", "--strict"], env)
-
-        if has_yaml:
-            run_step("Validate content-set JSON integrity",
-                     [python, f"{toolkit}/data_integrity_validator.py",
-                      "content_sets/fantasy_frontier/data"], env)
-        else:
-            print("SKIP: Validate content-set JSON integrity - PyYAML is not installed")
-            print("      install it with: %s -m pip install -r server/requirements.txt" % python)
-
-        run_step("Validate mod manifest compatibility",
-                 [python, f"{toolkit}/mod_manifest_validator.py", "--roots", "server/mods", "mods"], env)
-
-        for content_set in CONTENT_SETS:
-            run_step("Validate content set: %s" % content_set,
-                     [python, f"{toolkit}/content_set_validator.py", "content_sets/%s" % content_set], env)
-
-        # JSON has one number type, so `2.0` and `2` are the same file and
-        # different values -- to Python, `isinstance(2.0, int)` is False. A JSON
-        # writer that only emits floats (the world editor used to) therefore
-        # silently turns every authored integer into a float, and the validator
-        # above then rejects fields the author never touched. This gate fails on
-        # that instead of letting it land, and names the tool that fixes it.
-        run_step("Check content numbers match their schema types",
-                 [python, f"{toolkit}/normalize_content_numbers.py"], env)
-
-        for content_set in CONTENT_SETS:
-            run_step("Validate content-set reference integrity: %s" % content_set,
-                     [python, f"{toolkit}/reference_integrity_validator.py",
-                      "content_sets/%s/data" % content_set], env)
-            run_step("Audit stale content-set references: %s" % content_set,
-                     [python, f"{toolkit}/stale_reference_audit.py",
-                      "content_sets/%s/data" % content_set,
-                      "--output", "tmp/stale_audit_%s.txt" % content_set], env)
-            # Skills are named in four places (a ruleset's `skill`, a room exit's
-            # `skill_name`, a dialogue check, a background grant) and declared in
-            # one (`ruleset.skills.stat_bonuses`). Nothing checked the names
-            # against each other, so a typo rolled at level 0 forever. Every
-            # finding is a warning on purpose: a skill no check rolls is a design
-            # question, not a broken build.
-            run_step("Audit content-set skills: %s" % content_set,
-                     [python, f"{toolkit}/skill_audit.py",
-                      "content_sets/%s/data" % content_set], env)
-
-        run_step("Validate engine content-neutrality",
-                 [python, f"{toolkit}/content_neutrality_validator.py", "content_sets/fantasy_frontier"], env)
-        # The sci-fi proof gets the same neutrality gate as the fantasy set. It is
-        # the set whose whole purpose is to prove the engine reads declarations,
-        # so engine code naming any of its content would be the exact failure it
-        # exists to catch.
-        run_step("Validate engine content-neutrality for the sci-fi proof",
-                 [python, f"{toolkit}/content_neutrality_validator.py", "content_sets/orbital_salvage"], env)
-
-        # Every contract field must have a read-or-delete verdict on record. The
-        # rule it enforces -- a primitive with no consumer is worse than none --
-        # has been found by hand three times now (`effect_packets`, the inert tier
-        # weights, the unread `resource_cost`); this is the check that finds the
-        # fourth without anyone thinking to look. It is a ledger rather than a
-        # scan because a scan cannot tell a read from a mention: see the module
-        # docstring for the three measured ways one gets it wrong here.
-        run_step("Audit contract fields for a reader",
-                 [python, f"{toolkit}/contract_field_audit.py"], env)
-
-        # Everything above reads files. This one boots each set and plays it.
-        # The two failures it exists for both validated perfectly: a set that
-        # enabled `salvage` and declared no rule for any item, and a recipe file
-        # whose top-level `_comment` aborted the loader and removed every recipe
-        # in it. Neither is visible to a check that only resolves references.
-        run_step("Play every content set",
-                 [python, f"{toolkit}/content_playability_check.py"], env)
+        # The steps come from the shared definition, so the editor's Validate
+        # button and this gate cannot disagree about what a content check is.
+        # Anything step-specific that a reader needs to know is on the check
+        # itself (see `toolkit/content_check_steps.py`).
+        for step in steps_module.steps():
+            if step.check.needs_yaml and not has_yaml:
+                print("SKIP: %s - PyYAML is not installed" % step.label)
+                print("      install it with: %s -m pip install -r server/requirements.txt" % python)
+                continue
+            run_step(step.label, [python, *step.argv_tail], env)
 
         # --- Legacy editor-fixture steps ------------------------------------
         # These validate a fixture produced by toolkit/fixture_refresh.py. The
@@ -220,11 +169,11 @@ def main() -> int:
                     print("      (regenerate with toolkit/fixture_refresh.py to validate a local fixture)")
                 else:
                     print("==> refreshed fixture target: %s" % target)
-                    run_step("Validate latest refreshed fixture JSON integrity",
-                             [python, f"{toolkit}/data_integrity_validator.py", str(target)], env)
-                    run_step("Audit stale latest refreshed fixture references",
-                             [python, f"{toolkit}/stale_reference_audit.py", str(target),
-                              "--output", "tmp/stale_audit_fixture_selected.txt"], env)
+                    # The two fixture checks are declared with everything else and
+                    # resolved here, because their path is recorded rather than
+                    # derived from a content-set id.
+                    for step in steps_module.fixture_steps(str(target)):
+                        run_step(step.label, [python, *step.argv_tail], env)
                     # `reference_integrity_validator` deliberately does NOT run
                     # here, although it used to be listed. The fixture is a partial
                     # editor export (36-72 files) cut from a full content set, so it

@@ -6,6 +6,7 @@ temperature branch, and remove_item/get_item's found/missing paths."""
 
 import unittest
 
+from engine.config import config_combat
 from engine.items.item import Item
 from engine.world.room import Room
 
@@ -130,10 +131,34 @@ class TestApplyElementalInteraction(unittest.TestCase):
 
 
 class TestApplyHazards(unittest.TestCase):
+    """`Room.apply_hazards` forwards to `engine/world/environment.py`.
+
+    The reading itself is covered in `test_environment_reader.py`; what these
+    assert is the delegation, including that the per-room tick cache the room owns
+    is the one being used. A room names a declared hazard -- `fire` here is a
+    damage *channel*, not a hazard id, and that distinction is the change these
+    tests were updated for.
+    """
+
+    HAZARD = {
+        "channel": "fire",
+        "flavor": "The flames find you!",
+        "damage": 5,
+        "tick_interval": 3.0,
+    }
+
     def setUp(self):
         self.room = Room("Hazard Room", "A room.", obj_id="hazard_room")
+        self._saved = dict(config_combat.HAZARD_TYPES)
+        config_combat.HAZARD_TYPES["room_fire"] = dict(self.HAZARD)
+        self.addCleanup(self._restore_hazards)
+
+    def _restore_hazards(self):
+        config_combat.HAZARD_TYPES.clear()
+        config_combat.HAZARD_TYPES.update(self._saved)
 
     def test_dead_entity_returns_none(self):
+        self.room.properties["hazard_type"] = "room_fire"
         entity = _FakeEntity(alive=False)
         self.assertIsNone(self.room.apply_hazards(entity, 100.0))
 
@@ -141,9 +166,14 @@ class TestApplyHazards(unittest.TestCase):
         entity = _FakeEntity()
         self.assertIsNone(self.room.apply_hazards(entity, 100.0))
 
+    def test_an_undeclared_hazard_is_inert(self):
+        self.room.properties["hazard_type"] = "no_such_hazard"
+        entity = _FakeEntity()
+        self.assertIsNone(self.room.apply_hazards(entity, 100.0))
+        self.assertEqual([], entity.damage_calls)
+
     def test_cooldown_not_elapsed_returns_none(self):
-        self.room.properties["hazard_type"] = "fire"
-        self.room.properties["hazard_tick_interval"] = 3.0
+        self.room.properties["hazard_type"] = "room_fire"
         entity = _FakeEntity(obj_id="e_cd")
         self.room.apply_hazards(entity, 100.0)
         result = self.room.apply_hazards(entity, 101.0)
@@ -151,7 +181,7 @@ class TestApplyHazards(unittest.TestCase):
         self.assertEqual(len(entity.damage_calls), 1)
 
     def test_entity_without_obj_id_skips_cooldown_tracking(self):
-        self.room.properties["hazard_type"] = "fire"
+        self.room.properties["hazard_type"] = "room_fire"
 
         class _NoIdEntity:
             is_alive = True
@@ -163,17 +193,18 @@ class TestApplyHazards(unittest.TestCase):
         self.assertIsNotNone(result)
 
     def test_damage_taken_produces_flavor_message(self):
-        self.room.properties["hazard_type"] = "fire"
+        self.room.properties["hazard_type"] = "room_fire"
         self.room.properties["hazard_damage"] = 7
         entity = _FakeEntity(obj_id="e_dmg", damage_taken=7)
         result = self.room.apply_hazards(entity, 100.0)
         self.assertIsNotNone(result)
+        self.assertIn("The flames find you!", result)
         self.assertIn("-7 HP", result)
-        self.assertEqual(entity.damage_calls[0][0], 7)
+        self.assertEqual(entity.damage_calls[0], (7, "fire"))
 
     def test_authored_weather_multiplier_scales_hazard_damage(self):
         self.room.properties.update({
-            "hazard_type": "fire", "hazard_damage": 7,
+            "hazard_type": "room_fire", "hazard_damage": 7,
             "weather_hazard_multipliers": {"storm": 1.5},
         })
 
@@ -193,7 +224,7 @@ class TestApplyHazards(unittest.TestCase):
         self.assertEqual(entity.damage_calls[0][0], 10)
 
     def test_zero_damage_taken_returns_none(self):
-        self.room.properties["hazard_type"] = "fire"
+        self.room.properties["hazard_type"] = "room_fire"
         entity = _FakeEntity(obj_id="e_zero", damage_taken=0)
         result = self.room.apply_hazards(entity, 100.0)
         self.assertIsNone(result)

@@ -171,6 +171,21 @@ vocabulary from the contract instead of `config_combat.ARMOR_MATERIALS` being de
 **Risk.** This is the item most likely to collapse back into "a special case for light". The test is that
 orbital declares a key fantasy does not and both go through one code path.
 
+> **◐ Half done 2026-09-19, and the half that landed is the `hazard` one.** A
+> hazard is no longer free text: it is a record in the set's own
+> `combat/elements.json` (`{channel, flavor, damage, tick_interval}`), validated
+> where it is declared (channel must be one of the set's damage types, the
+> sentence must exist because engine prose is the leak hazards are worst at), and
+> read through one resolver (`world/environment.py`). `orbital_salvage` supplies
+> the cross-theme test this item asked for: it declares `hull_frost` through
+> `thermal`, a channel and a word fantasy does not have, and the same code path
+> carries both.
+>
+> **Still open:** the `light` key (a level, not a bool), the `env_properties`
+> vocabulary with types and defaults, the deviation-chain reader for it, and the
+> "undeclared environment key is a gate error" half. Nothing here forecloses it —
+> `environment.py` is where that reader belongs.
+
 ### 5. Resource flow: capacity as a declaration, not a per-class property
 
 **What.** The smallest real version: a `resources` extension — `capacity` (a number or an expression over
@@ -209,6 +224,42 @@ frozen at `:44-49`. A condition about a room, a station or the world has no play
 so this item may be blocked on widening that evaluator — which is Track E's file, and would make it a
 handoff rather than a small item.
 
+## Handoffs
+
+Requested by Track G's authoring-surface batch (`docs/plan/editor-readiness.md`,
+2026-09-20). Each is "the engine owns the vocabulary" applied to a surface that is
+about to exist: the editor will write these sections, and it must be able to *ask*
+rather than model them.
+
+1. **A validator per ruleset section, before the editor puts a form on it** (G).
+   `content_set.py` validates `social`, `factions`, `skills`, `advancement`,
+   `weather`, `world`, `quest_generation` and `systems`; it validates none of
+   `combat`, `crafting`, `crime`, `locksmithing`, `loot`, `npc_schedules`, `elites`,
+   `economy`, `status`, `calendar`, `player_defaults`. G item 8 writes all of them.
+   The project's rule is that the editor never decides legality, so a section
+   exposed without a validator is the failure to refuse: write the validator first,
+   or expose the section read-only with the reason on screen.
+2. **The vocabulary dump widened to every copy the editor holds** (G).
+   `toolkit/engine_vocabulary_dump.py` emits condition kinds, effect keys/shape
+   hints, objective types and the manifest block. The editor holds more than a dozen
+   further copies with no parity check — item class names, equip slots, ability
+   target/effect types and their per-effect field maps, the filename→group map,
+   background stat names, pool labels, `COMMON_PROPS`, reference-editor target
+   kinds, `ContractCatalog`'s fallbacks, `EngineValidator`'s source list, and the
+   movement directions with reciprocals, where `Constants.gd:46` already disagrees
+   with `utils.py:306` (`climb`⇄`dive` vs `climb`⇄`descend`). B owns what the engine
+   reads, so B owns the emission; G consumes it. Emit only what the engine actually
+   reads — a list the engine does not own would force the editor to copy something
+   arbitrary.
+3. **Contract section refusals as data, not prose** (G). G item 9 writes
+   `item_families`, `stats`, `resources`, `generation_profiles`, `attack_profiles`,
+   `defense_profiles`, `effect_packets`, `abilities` and `work`. A section is
+   authorable when its field rules are checkable, and today `_resolve_references`
+   (`registry.py:388-439`) checks existence only: `defense_profiles[].material` and
+   `attack_profiles[].damage_type` are free strings whose only failure mode is a
+   silent ×1.0. The value checks of item 1 are therefore a prerequisite for the
+   editor's contract forms, not a parallel task.
+
 ## Explicitly not proposing
 
 - **A bespoke power-grid or atmosphere system for `orbital_salvage`.** Already in the deferral ledger;
@@ -234,7 +285,8 @@ handoff rather than a small item.
   "done when" names two content sets, not two consumer modules.
 - **Item 1 deletes fields an unseen reader may use.** I searched `server/`, `toolkit/` and the tests; I did
   not search `mud-world-editor/`. A field deleted for the engine could break the editor's generated
-  controls (Track G).
+  controls (Track G). *(Searched 2026-09-20 — see the answers under Unknowns: the editor reads the contract
+  JSON by field name, never the schemas, and only `effect_packets.kind` is displayed.)*
 - **Items 2 and 4 both touch `world/**`, which is Track D's lane.** `get_env_property` and `Room` are D's
   to change; only the declaration and the resolver belong to B. Getting this wrong is the exception the
   work-tracks document says costs more than the handoff.
@@ -257,5 +309,18 @@ handoff rather than a small item.
   make the contract already visible to an author somewhere I did not look.
 - How the editor renders an `effect_packets` entry, and therefore whether deleting `kind` is a schema
   change or a schema *and* tooling change.
+
+**Answered 2026-09-20 by the editor audit** (`docs/plan/editor-readiness.md`), so the two risks above
+are smaller than written:
+
+- The editor does **not** read the contract schemas. It loads the contract JSON and reads named fields:
+  `ContractCatalog.gd` (`:136-147` reference checks, `:163-194` family lookups, `:384-396` the browser's
+  field lists). Family `label`/`description` are never displayed, so item 1 may delete them.
+- `effect_packets` **is** rendered, with `kind` in its displayed field list
+  (`ContractCatalog.gd:396`), so deleting `kind` is a schema *and* tooling change — one line in G, not a
+  redesign, but not free.
+- The editor's family/class vocabulary is a hand-maintained copy that no test compares
+  (`editor-readiness.md` §4), so item 1's deletions cannot break it, but the *editor* is where a
+  contract vocabulary change goes stale silently.
 - Whether `modern_capsule` and `night_shift` could carry item 3's second consumer more cheaply than
   `orbital_salvage`. They are nearly empty, and I did not inventory them.

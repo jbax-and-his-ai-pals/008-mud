@@ -1,20 +1,25 @@
 # Integrated roadmap — after the track reports
 
-**Status:** proposed 2026-09-18, for review. This is the plan the eleven track
-roadmaps add up to. Per-track files stay as the reasoning; this is the order.
+**Status:** historical merge proposed 2026-09-18, with later handoff updates.
+The execution order has been superseded by [chunks-of-work](chunks-of-work.md),
+especially §6A–6G (updated 2026-09-21). The
+[game-authoring roadmap](game-authoring-roadmap.md) defines the full journey and
+M0–M5 gates behind X12. Per-track files and the phase bodies below retain the
+reasoning at the time; dated assessments are not current implementation claims.
 
 **How it relates to the rest:**
 
 | Document | Role |
 |---|---|
-| [`ROADMAP.md`](../../ROADMAP.md) | the phase history (P0–P9) and the standing decisions. **Wins on any conflict.** |
+| [`ROADMAP.md`](../../ROADMAP.md) | standing direction and live milestones; P0–P9 history is archived. Wins on product-direction conflicts |
+| [`chunks-of-work.md`](chunks-of-work.md) | canonical current execution order |
+| [`game-authoring-roadmap.md`](game-authoring-roadmap.md) | current editor milestone scope, author journey and system-change policy proposals |
 | [`work-tracks.md`](work-tracks.md) | who may do what, and the deferral ledger |
 | [`track-roadmaps/`](track-roadmaps/README.md) | eleven independent evaluations, plus the verified findings |
-| **this file** | the merge: what happens in what order, and what crosses tracks |
+| **this file** | historical merge and cross-track concordance; does not override the current queue |
 
-The per-track roadmaps produced ~65 proposed items. This merges them into **five
-phases**, each of which ends in a gate you can run, and names the **eleven items
-that cross tracks** so they get an owner instead of a committee.
+The per-track roadmaps produced ~65 proposed items. This merge has **six phases
+(0–5)** and **twelve cross-track items** including the later X12 authoring handoff.
 
 ---
 
@@ -44,7 +49,7 @@ one** — the contract cannot be written without it, and the honest position is 
 
 ---
 
-## The eleven cross-track items
+## The cross-track items
 
 Everything else in this roadmap sits inside one lane. These do not, so each names
 its participating tracks, the handoff type, and what has to be true together.
@@ -55,13 +60,14 @@ its participating tracks, the handoff type, and what has to be true together.
 | **X2** | `time_of_day` reads the right key | **D** owns (`conditions.py`); **I** gates; **A/E** are consumers | One-line fix plus the first content that uses it; the gate is that a test asserts the condition *matches* at hour N |
 | **X3** | JSON-integrity gate covers every set, and cannot green-skip | **I** owns; **C** may wire CI | I parameterises the runner; C decides whether it runs in CI. Independent halves, one decision |
 | **X4** | Runner-level gate falsification harness | **H** owns; **I** supplies one defect per gate | H's item 1 *is* I's item 5's test half. Neither can finish alone |
-| **X5** | Duration: contract declared and implemented | **B** owns the shape; **K** ratifies the clock; **C** answers persistence; **E/F** consume | The declaration is the handoff. E and F may start the moment the shape is written, before B's resolver lands |
+| **X5** | Duration: contract declared and implemented | **B** owns the shape; **K** ratifies the clock; **C** answers persistence; **E/F** consume | ✅ **Landed 2026-09-19.** `contracts/work.py` resolves it, `WorkState` persists it, `jobs`/`begin`/`collect` are the surface, and `orbital_salvage` is the second theme. The one thing it got wrong was the unit: a game day is `TIME_REAL_SECONDS_PER_GAME_DAY`, not 86400 |
 | **X6** | The fantasy preservation chain | **F** authors; **E** wires the station; **B**'s `work` is the wait | F ships it **with no timers** (Track F's F-5), so E and F proceed while B is still writing. `duration_days` is then one data edit |
 | **X7** | The second consumer — orbital duration + night_shift crime | **F** authors both; **E** fixes what they expose; **I** gates | This is where the two-theme convention is won. F cannot do it alone: the night_shift slice will expose the container-theft and `owned_by_npc` seams, which are E's |
-| **X8** | Environment as a validated value | **B** owns the primitive; **E** is the first reader; **F** authors orbital's | Three surfaces express environment and one reads it (Track E). B declares, E unifies the readers, F fills the empty `hazards` seat orbital already left |
+| **X8** | Environment as a validated value | **B** owns the primitive; **E** is the first reader; **F** authors orbital's | ✅ **The hazard half landed 2026-09-19.** Three surfaces collapsed to one record (`{channel, flavor, damage, tick_interval}`), one reader (`world/environment.py`), and orbital's empty seat filled with `hull_frost` — its own channel, its own words, mitigated by its own vest. The `light`/`temperature` vocabulary is still B's item 4 |
 | **X9** | Empty id buckets must warn, not skip | **I** owns; **F** feels it | Two thin sets have quest/ability families that are unchecked today *because* they declare none. I changes the guard; F's Phase 4 content makes it bite |
 | **X10** | A new content set can be created | **G** owns the scaffolding; **J** owns the guide; **F** is the first user | G's item 6 and J's `AUTHORING_A_CONTENT_SET.md` are the same deliverable seen from two sides. Whichever lands first defines the other's contract |
 | **X11** | In-game tooling has no home | **K** decides; **G** spikes | `tools/` was deleted on 2026-09-18. Track G's item 7 is explicitly a spike asking where a player-facing tool lives — that question has no owner until K answers it |
+| **X12** | The editor supports the full game-authoring lifecycle | **G** owns the workbench; **B/E** runtime contracts and semantics; **C** recovery/save compatibility; **F** proving content; **H/I** evidence; **J** author handoff | ⏭ **Expanded 2026-09-21.** [Chunks §6](chunks-of-work.md) sequences safe edits → project/dependency foundations → fantasy coverage → contrasting consumers → established-game overhaul → authoring test candidate. [M0–M5](game-authoring-roadmap.md) define the gates; [readiness](editor-readiness.md) distinguishes new prototypes from proven workflows. No declaration is safely authorable merely because a form exists. Engine-owned validation, lossless drafts, explicit migration policy and playable journeys are the handoff |
 
 ---
 
@@ -149,7 +155,7 @@ fantasy-shaped. Both second consumers land here.
 | Orbital consumes duration | F | A docking window or commodity aging, declared by a set that has no winters |
 | Environment: one declared, validated value | B | A room's chill is a declared band a hazard reads, replacing `temperature == "cold"` |
 | Environment: one reader | E | The three expressions collapse to one; orbital authors its empty `hazards` seat |
-| The social graph declared | F + E | Orbital declares a `social` section instead of silently rendering fantasy's default tier labels and a 15% discount |
+| The social graph declared | F + E | ✅ **Landed 2026-09-19.** The engine's default ladder is gone, so a set with no `social` section shows no bond surface and takes no vendor discount; orbital and night_shift declare their own words and numbers, and the vendor price moves for exactly the tier declared. The capability and the section are one decision, checked both ways |
 | Editor: stat form from the ruleset, not 8 hardcoded names | G | A stat the editor does not know is authored without an editor change |
 
 **Gate:** two themes per system, asserted by content rather than claimed. This is
@@ -168,10 +174,10 @@ slogan.
 | Whole-state save round-trip + an old-version fixture | H | A save the current writer did not produce loads through `SaveManager.load()` |
 | Save-key manifest | C | A key written-but-not-restored fails |
 | Finish or delete the sqlite entity/cell half | C | Four functions with zero callers either gain one or are gone |
-| The four unused objective types get a quest each | F | Each type appears in shipped content |
-| `modern_capsule` gets its repair café | F | A player finishes an errand there without touching a fantasy system |
-| Doc: `AUTHORING_A_CONTENT_SET.md` + truthful `README.md` | J | A new contributor can author a set from the docs alone |
-| Doc: stale-path sweep | J | No `C:/python/old/restart/` in the tree |
+| The four unused objective types get a quest each | F | ✅ **Landed 2026-09-20.** All four are authored, board-reachable and covered by a 7-test journey. Authoring them exposed four engine defects — `deliver_multi` had no obtainable goods in any set, the bandit campaign's peaceful branch could not be accepted, a quest item could be gifted away, and every single-stage quest discarded its authored closing line — all fixed (`chunks-of-work.md` §4) |
+| `modern_capsule` gets its repair café | F | ✅ **Landed 2026-09-20 as a vignette** (the set's `progression_model: none` is deliberate): two dialogue graphs, two props, and a conversation whose outcome is a mended lamp — with quests, crafting, combat, magic, abilities and economy all still off. A player finishes something there without touching a fantasy system |
+| Doc: `AUTHORING_A_CONTENT_SET.md` + truthful `README.md` | J | ✅ **Landed 2026-09-20.** The README's entry path was a file that does not exist (`python main.py`), so it now documents the two real entry points in `server/` and every command in it was checked against the shipped command registry. `docs/reference/AUTHORING_A_CONTENT_SET.md` is written: every command in it was run, every fragment is a truncation of a file that exists, and a minimum set was built, booted and played through before it was described. It found three facts no document stated — `opening` requires `scenario_id`, the `quests` capability requires `quests/` *and* `campaigns/`, and a manifest capability disagreeing with the ruleset is an error |
+| Doc: stale-path sweep | J | ✅ **Landed 2026-09-20, and it was three defects, not one.** 65 absolute links across 11 documents now point into this checkout; **32 further relative links landed nowhere** because they were written from the wrong base directory, and all are repaired; and `docs/archive/archive-2026-09.md` held cp1252 bytes in a UTF-8 file, rendering seven passages as `�`. The operator guide's launch commands were rewritten after being run — they could not have worked. `test_documentation_links.py` (4 tests) refuses an absolute target, resolves every relative link under `docs/`, and requires every markdown file to be UTF-8; all three rules were falsified before being trusted |
 
 **Gate:** all gates, plus CI running `run_content_checks.py`.
 

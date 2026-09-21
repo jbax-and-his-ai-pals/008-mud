@@ -40,10 +40,10 @@ Exit:
 - [ ] Mobile performance/battery budgets met on target test devices.
 
 Evidence:
-- Touch controls + D-Pad + quick actions scene: [main.tscn](C:/python/old/restart/client/scenes/main.tscn)
-- Mobile/desktop platform gating and shared core: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
-- Suspend/resume + reconnect behavior: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
-- Mobile a11y baseline usage in-client: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
+- Touch controls + D-Pad + quick actions scene: [main.tscn](../../client/scenes/main.tscn)
+- Mobile/desktop platform gating and shared core: [main_controller.gd](../../client/scripts/ui/main_controller.gd)
+- Suspend/resume + reconnect behavior: [main_controller.gd](../../client/scripts/ui/main_controller.gd)
+- Mobile a11y baseline usage in-client: [main_controller.gd](../../client/scripts/ui/main_controller.gd)
 
 ## Slice M4: Store Compliance and Release
 

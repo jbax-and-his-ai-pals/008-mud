@@ -2,6 +2,7 @@
 import uuid
 from engine.commands.command_system import command, registered_commands
 from engine.config import FORMAT_SUCCESS, FORMAT_ERROR, FORMAT_RESET, FORMAT_HIGHLIGHT, FORMAT_CATEGORY, FORMAT_TITLE, QUEST_BOARD_ALIASES
+from engine.core.quests.packages import declared_packages
 from engine.items.item_factory import ItemFactory
 from engine.player import Player
 from engine.world import world
@@ -373,28 +374,31 @@ def accept_quest_handler(args, context):
 
     # --- STANDARD QUEST HANDLING ---
     else:
-        # Check if first stage is 'deliver' to grant items
+        # A delivery hands over what is being delivered. One rule for one
+        # delivery and for a courier run to several recipients, so a multi-stop
+        # quest is startable by a real player instead of asking them to conjure
+        # the goods (see engine/core/quests/packages.py).
         objective = quest_manager.get_active_objective(quest_to_accept)
-        if objective and objective.get("type") == "deliver" and not objective.get("crafted_only", False):
-             # Create Package
-             required_fields = ("item_template_id", "item_instance_id", "item_to_deliver_name", "item_to_deliver_description")
-             if not all(objective.get(field) for field in required_fields):
-                 world.quest_board.insert(quest_index, quest_to_accept)
-                 return f"{FORMAT_ERROR}This delivery task has incomplete item data.{FORMAT_RESET}"
-             pkg = ItemFactory.create_item_from_template(
-                 objective["item_template_id"], world,
-                 obj_id=objective["item_instance_id"],
-                 name=objective["item_to_deliver_name"],
-                 description=objective["item_to_deliver_description"]
-             )
-             can, msg = player.inventory.can_add_item(pkg)
-             if not can:
-                 world.quest_board.insert(quest_index, quest_to_accept)
-                 return f"{FORMAT_ERROR}Inventory full: {msg}{FORMAT_RESET}"
-             player.inventory.add_item(pkg)
-             acceptance_message = f"{FORMAT_SUCCESS}[Quest Accepted] {quest_to_accept.get('title')}{FORMAT_RESET}\n(You received the package)"
-        else:
-             acceptance_message = f"{FORMAT_SUCCESS}[Quest Accepted] {quest_to_accept.get('title')}{FORMAT_RESET}"
+        packages, package_problem = declared_packages(world, objective)
+        if package_problem:
+            world.quest_board.insert(quest_index, quest_to_accept)
+            return f"{FORMAT_ERROR}{package_problem}{FORMAT_RESET}"
+        acceptance_message = f"{FORMAT_SUCCESS}[Quest Accepted] {quest_to_accept.get('title')}{FORMAT_RESET}"
+        if packages:
+            handed_over = []
+            for package in packages:
+                can, msg = player.inventory.can_add_item(package)
+                if not can:
+                    # Give back anything already handed over: a refused job must
+                    # not leave the player carrying half of it.
+                    if handed_over:
+                        player.inventory.remove_item_instances(handed_over)
+                    world.quest_board.insert(quest_index, quest_to_accept)
+                    return f"{FORMAT_ERROR}Inventory full: {msg}{FORMAT_RESET}"
+                player.inventory.add_item(package)
+                handed_over.append(package)
+            note = "(You received the package)" if len(packages) == 1 else "(You received the packages)"
+            acceptance_message += f"\n{note}"
 
     player.runtime_state.quests.active[quest_instance_id] = quest_to_accept
     quest_manager.replenish_board(None, player)

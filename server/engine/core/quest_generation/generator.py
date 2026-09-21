@@ -7,6 +7,7 @@ from engine.config import QUEST_TYPES_NO_INSTANCE
 from engine.utils.utils import simple_plural
 from engine.npcs.npc import NPC
 from engine.world.region_generator import RegionGenerator
+from engine.world import factions
 
 # Import sub-modules
 from .objectives import generate_kill_objective, generate_fetch_objective, generate_deliver_objective
@@ -193,7 +194,7 @@ class QuestGenerator:
         if not self.world: return None
         potential_givers = []
         for npc_instance in self.world.npcs.values():
-            if (npc_instance and npc_instance.is_alive and npc_instance.faction != "hostile" and
+            if (npc_instance and npc_instance.is_alive and not factions.is_hostile(npc_instance, self.world) and
                     npc_instance.properties.get("can_give_generic_quests")):
                 template_id = getattr(npc_instance, 'template_id', None)
                 if not template_id: continue

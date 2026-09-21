@@ -21,6 +21,7 @@ from engine.player import Player
 from engine.player.aspects import PlayerGameAspects
 from engine.world.region import Region
 from engine.world.room import Room
+from engine.world import factions
 from engine.items.item import Item
 from engine.items.lockpick import Lockpick
 from engine.npcs.npc import NPC
@@ -353,7 +354,7 @@ class World:
             return True, None
         live_hostiles = [
             t for t in combat_state.targets
-            if getattr(t, "is_alive", False) and getattr(t, "faction", None) == "hostile"
+            if getattr(t, "is_alive", False) and factions.is_hostile(t, self)
         ]
         if not live_hostiles:
             return True, None
@@ -522,10 +523,10 @@ class World:
         if not player or not npc: return None
         
         faction = npc.faction
-        if faction == "hostile":
+        if factions.is_hostile(npc, self):
             player.adjust_reputation("friendly", REP_KILL_REWARD_HOSTILE)
             return None 
-        elif faction == "friendly" or faction == "neutral":
+        elif factions.is_friendly(npc, self) or factions.disposition_of(npc, self) == "neutral":
             player.adjust_reputation("friendly", REP_KILL_PENALTY_SAME_FACTION)
             player.adjust_reputation("neutral", REP_KILL_PENALTY_SAME_FACTION)
             return f"{FORMAT_ERROR}Your reputation plummets! You are now looked upon with suspicion.{FORMAT_RESET}"

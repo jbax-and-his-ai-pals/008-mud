@@ -636,36 +636,66 @@ without hand-authoring rooms, so this system should grow.
 
 ## 7. Hazards, weather, and environment
 
-The engine authors **6 hazard types** (`extreme_heat`, `extreme_cold`,
-`poison_gas`, `electrified_floor`, `unholy_aura`, `quicksand`) with flavour text
-and resistances. Each is now used by a distinct Fantasy Frontier region: the
-obsidian sanctum's heat, Frostpeak's inner ice chamber, a poisoned mine level,
-the sparking shipwreck, a ruin's ritual chamber, and the swamp's quicksand pit.
-These are telegraphed in room prose and placed in optional or late-route spaces
-rather than on the starter path. Fantasy Frontier opts into
-`ruleset.world.regions.require_hazard_coverage`, which derives the required
-names from its own `combat/elements.json` mapping and rejects an incomplete
-world at content-validation time.
+A hazard is **one declared record**, in the content set's own words:
+`combat/elements.json`'s `hazards` maps an id to `{channel, flavor, damage,
+tick_interval}`, and a room names it with `properties.hazard_type`. The room may
+override `hazard_damage`/`hazard_tick_interval` when its instance of the same
+hazard is worse, and may scale it with `weather_hazard_multipliers`. One reader
+resolves all of it: `engine/world/environment.py`, with `Room.apply_hazards`
+delegating to it.
+
+That shape is new (2026-09-19) and replaced three expressions of the same fact:
+`hazards.mapping` said which channel a hazard *was*, `hazards.flavor` said what it
+read like **keyed by that channel** -- so two hazards sharing a channel shared one
+sentence, and a hazard's own name never reached a player -- and each room restated
+its damage and interval as untyped properties. Fantasy Frontier's seven hazard
+rooms keep their authored numbers, so the migration is behaviour-preserving
+except for the prose, which is now the hazard's own.
+
+Fantasy Frontier authors **6 hazards** (`extreme_heat`, `extreme_cold`,
+`poison_gas`, `electrified_floor`, `unholy_aura`, `quicksand`), each used by a
+distinct region: the obsidian sanctum's heat, Frostpeak's inner ice chamber, a
+poisoned mine level, the sparking shipwreck, a ruin's ritual chamber, and the
+swamp's quicksand pit. They are telegraphed in room prose and placed in optional
+or late-route spaces rather than on the starter path. Fantasy Frontier opts into
+`ruleset.world.regions.require_hazard_coverage`, which derives the required names
+from its own declarations and rejects an incomplete world at
+content-validation time.
+
+**The second theme is `orbital_salvage`'s `hull_frost`**: the cargo hold, damaging
+through `thermal` (this set's own channel), in a sentence this set wrote. The set
+shipped with `"hazards": {"mapping": {}, "flavor": {}}` -- an empty seat -- and the
+seat is now filled. Its `impact vest` declares a `thermal` resistance, so the
+mitigation axis is real rather than declared: wearing it measurably reduces the
+frost. Nothing about hull frost exists outside that set's files.
 
 Goals:
 - Hazards become a defining feature of regions, not a one-off. A volcanic ring
   should be hot; a glacial ring should be cold; catacombs should have bad air.
-- Weather now resolves through a content-owned regional profile before it is
+- Weather resolves through a content-owned regional profile before it is
   described: a coast can make clear weather windy, an alpine region can turn
   rain to snow, and a marsh can turn clear weather to mist. A room's authored
   local climate still takes precedence. Profiles may supply travel advisories;
   gathering nodes can opt into `weather_blocked_by` when a condition makes
   their work unsafe (the sea-fishing node blocks storms), and a hazardous room
-  can use `weather_hazard_multipliers` to scale its existing hazard damage for
-  named effective weather (the shipwreck's electrical danger grows in storms;
-  swamp quicksand worsens in mist). Both are optional, content-authored maps
-  validated for non-empty weather names and positive numeric multipliers.
+  can use `weather_hazard_multipliers` to scale its hazard damage for named
+  effective weather (the shipwreck's electrical danger grows in storms; swamp
+  quicksand worsens in mist). Both are optional, content-authored maps validated
+  for non-empty weather names and positive numeric multipliers.
 - Resistance becomes a real itemisation axis, which in turn gives armour and
-  consumables a reason to exist beyond raw defense.
+  consumables a reason to exist beyond raw defense. **Partly real:** the flat
+  reduction uses the stat the set's `stats.roles.resistance` names, and the
+  per-channel percentages come from equipped `resistances`. That role must name a
+  *small derived* rating (fantasy's `magic_resist` defaults to 2), not a core
+  attribute: pointing it at `constitution` subtracts 10 from every energy hit and
+  makes hazards harmless, which is how `orbital_salvage` found the distinction.
 - Hazards should be *learnable*: a player should be able to deduce what they
-  need, and prepare. Telegraph before punishing.
-- Content-neutral requirement: the six hazard types are authored, so this
-  mostly needs content plus a neutral region→hazard schema, not engine work.
+  need, and prepare. Telegraph before punishing -- the prose is authored per
+  hazard precisely so it can say what the danger *is*.
+- **Open:** `env_interactions` (a spell suppressing a hazard for a duration, and
+  it returning) is engine-complete and unit-tested, but no shipped content
+  declares one and the sets' abilities target enemies rather than rooms, so the
+  path has no content consumer yet.
 
 ---
 

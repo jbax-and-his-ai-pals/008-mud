@@ -134,10 +134,10 @@ const EFFECTS := {
 	"give_item": {"label": "Give an item", "shape": "item id, or {item_id, quantity}", "kind": "item_id"},
 	"take_item": {"label": "Take an item", "shape": "item id, or {item_id, quantity}", "kind": "item_id"},
 	"give_gold": {"label": "Give currency", "shape": "a number", "kind": "int"},
-	"adjust_relationship": {"label": "Change trust", "shape": "{amount}", "kind": "json"},
+	"adjust_relationship": {"label": "Change trust", "shape": "{npc, amount} (or amount alone, for the NPC being talked to)", "kind": "json"},
 	"set_flag": {"label": "Set a flag", "shape": "flag name, or {name, value}", "kind": "string"},
 	"reveal_exit": {"label": "Open a hidden exit", "shape": "{room: \"region:room\", direction}", "kind": "json"},
-	"move_npc": {"label": "Move an NPC", "shape": "{npc_id, region_id, room_id}", "kind": "json"},
+	"move_npc": {"label": "Move an NPC", "shape": "{npc, region, room}", "kind": "json"},
 	"give_rewards": {"label": "Give a reward bundle", "shape": "{xp, gold, items: [...]}", "kind": "json"},
 }
 

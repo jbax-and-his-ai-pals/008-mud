@@ -14,6 +14,7 @@ from engine.items.item import Item
 from typing import Dict, Any, List, Optional, Union, TYPE_CHECKING, Tuple
 
 from engine.utils.text_formatter import LEVEL_DIFF_COLORS, get_level_diff_category
+from engine.world import factions
 from engine.presentation import is_player_mode_for_player
 
 DEPARTURE_VERBS = [
@@ -195,8 +196,7 @@ def format_name_for_display(
     level_color = parent_color # Default for "Level X" text
     
     if is_npc:
-        faction = getattr(target, 'faction', 'neutral')
-        if faction == 'hostile':
+        if factions.is_hostile(target, getattr(target, 'world', None)):
             # Hostile Logic:
             if viewer and target_level is not None and not player_voice:
                 # Name & Level Text get colored by difficulty
@@ -214,7 +214,10 @@ def format_name_for_display(
                 inner_color = FORMAT_ERROR
                 level_color = FORMAT_ERROR
                 
-        elif faction in ['friendly', 'player_minion']:
+        elif (
+            factions.is_friendly(target, getattr(target, 'world', None))
+            or factions.is_player_side(target, getattr(target, 'world', None))
+        ):
             inner_color = FORMAT_FRIENDLY_NPC
             level_color = FORMAT_FRIENDLY_NPC
         
@@ -288,22 +291,24 @@ def format_name_for_display(
 
     return result
 
+DIRECTION_OPPOSITES = {
+    "north": "south", "south": "north",
+    "east": "west", "west": "east",
+    "northeast": "southwest", "southwest": "northeast",
+    "northwest": "southeast", "southeast": "northwest",
+    "up": "down", "down": "up",
+    "in": "out", "out": "in",
+    "enter": "exit", "exit": "enter",
+    "inside": "outside", "outside": "inside",
+    "surface": "dive", "dive": "surface",
+    "climb": "descend", "descend": "climb",
+    "upstream": "downstream", "downstream": "upstream",
+}
+
+
 def _reverse_direction(direction: str) -> str:
-    """Gets the opposite cardinal/relative direction."""
-    opposites = {
-        "north": "south", "south": "north",
-        "east": "west", "west": "east",
-        "northeast": "southwest", "southwest": "northeast",
-        "northwest": "southeast", "southeast": "northwest",
-        "up": "down", "down": "up",
-        "in": "out", "out": "in",
-        "enter": "exit", "exit": "enter",
-        "inside": "outside", "outside": "inside",
-        "surface": "dive", "dive": "surface",
-        "climb": "descend", "descend": "climb",
-        "upstream": "downstream", "downstream": "upstream"
-    }
-    return opposites.get(direction.lower(), "somewhere opposite")
+    """Gets the opposite cardinal/relative direction from the engine vocabulary."""
+    return DIRECTION_OPPOSITES.get(direction.lower(), "somewhere opposite")
 
 
 def get_departure_phrase(direction: str) -> str:

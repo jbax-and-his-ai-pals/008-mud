@@ -130,7 +130,7 @@ func get_connection_anchor_point(dir: String) -> Vector2:
 	var c = pos + (size / 2.0)
 	var d = dir.to_lower()
 	
-	if d in ["up", "down", "in", "out", "climb", "dive"]: return to_global(c)
+	if d in ["up", "down", "in", "out", "enter", "exit", "inside", "outside", "climb", "descend", "surface", "dive"]: return to_global(c)
 	if d in ["north", "n"]: return to_global(Vector2(c.x, pos.y))
 	if d in ["south", "s"]: return to_global(Vector2(c.x, pos.y + size.y))
 	if d in ["east", "e"]: return to_global(Vector2(pos.x + size.x, c.y))

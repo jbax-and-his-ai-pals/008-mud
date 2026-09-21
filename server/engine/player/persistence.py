@@ -122,6 +122,14 @@ class PlayerPersistenceMixin:
             gameplay["economy"] = {"gold": p.runtime_state.gold}
         if p.runtime_state.quests is not None:
             gameplay["quests"] = {"active": p.runtime_state.quests.active, "completed": p.runtime_state.quests.completed, "archived": p.runtime_state.quests.archived, "repeatable_available_at": p.runtime_state.quests.repeatable_available_at, "active_campaigns": p.runtime_state.quests.active_campaigns, "completed_campaigns": p.runtime_state.quests.completed_campaigns, "finite_adventure_state": p.runtime_state.quests.finite_adventure}
+        if p.runtime_state.work is not None:
+            # Absolute timestamps, so what a save records is *when the job ends*
+            # rather than how much was left. A job left running while the player
+            # was logged out is therefore still correct on the way back in, and a
+            # restart neither resets nor extends it.
+            gameplay["work"] = {
+                "jobs": [dict(job) for job in p.runtime_state.work.jobs if isinstance(job, dict)]
+            }
         return data
 
     @classmethod
@@ -152,6 +160,7 @@ class PlayerPersistenceMixin:
         progression = gameplay.get("progression", {})
         economy = gameplay.get("economy", {})
         quests = gameplay.get("quests", {})
+        work = gameplay.get("work", {})
 
         # Which aspects this game presents was decided when the world was built,
         # and a save can predate that decision in either direction: written by a
@@ -166,13 +175,14 @@ class PlayerPersistenceMixin:
         # here and nulled again by the closing normalize if this world has no use
         # for it.
         from engine.player.aspects import (
-            CombatState, MagicState, PlayerGameAspects, ProgressionState, QuestState,
+            CombatState, MagicState, PlayerGameAspects, ProgressionState, QuestState, WorkState,
         )
 
         player.runtime_state.magic = player.runtime_state.magic or MagicState()
         player.runtime_state.combat = player.runtime_state.combat or CombatState()
         player.runtime_state.progression = player.runtime_state.progression or ProgressionState()
         player.runtime_state.quests = player.runtime_state.quests or QuestState()
+        player.runtime_state.work = player.runtime_state.work or WorkState()
         if player.runtime_state.gold is None:
             player.runtime_state.gold = 0
 
@@ -207,6 +217,20 @@ class PlayerPersistenceMixin:
         player.runtime_state.quests.active_campaigns = quests.get("active_campaigns", {})
         player.runtime_state.quests.completed_campaigns = quests.get("completed_campaigns", {})
         player.runtime_state.quests.finite_adventure = quests.get("finite_adventure_state", {})
+
+        # Timed jobs. A job that cannot be read as a timer is dropped rather than
+        # refused: the shape is four fields and a save that lost one of them has
+        # lost that job, while refusing the whole save would lose the character.
+        # An *empty* list and a missing section are the same thing here, which is
+        # why nothing distinguishes them below.
+        jobs = work.get("jobs", []) if isinstance(work, dict) else []
+        player.runtime_state.work.jobs = [
+            dict(job) for job in jobs
+            if isinstance(job, dict)
+            and isinstance(job.get("ends_at"), (int, float))
+            and not isinstance(job.get("ends_at"), bool)
+            and str(job.get("work", "")).strip()
+        ]
 
         # Status Effects
         player.active_effects = data.get("effects", [])

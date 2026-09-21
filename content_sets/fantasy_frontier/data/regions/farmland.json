@@ -19,7 +19,13 @@
             "exits": {
                 "west": "town:bridge_approach_east",
                 "east": "wheat_field_west"
-            }
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "wandering_priest",
+                    "instance_id": "roadside_priest_bridge"
+                }
+            ]
         },
         "wheat_field_west": {
             "name": "Western Wheat Field",

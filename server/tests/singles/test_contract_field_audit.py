@@ -17,6 +17,7 @@ Three claims are checked here:
 in-memory only: the shipped `registry.py` is not touched.
 """
 import importlib.util
+import sys
 import unittest
 from pathlib import Path
 
@@ -50,6 +51,10 @@ KNOWN_UNREAD = {
     ("effect_packets", "duration"),
     ("effect_packets", "tags"),
     ("effect_packets", "payload"),
+    # `work` has one left. `inputs`, `outputs` and `station` were on this list
+    # until `start`/`collect` landed and moved them: the debt shrank because a
+    # reader exists, which is the only reason it is allowed to.
+    ("work", "tags"),
 }
 
 
@@ -174,11 +179,28 @@ class TestTheAuditDetectsAStaleEntry(unittest.TestCase):
 class TestTheWireIntoTheContentGate(unittest.TestCase):
     """A check nobody runs is a comment."""
 
-    def test_run_content_checks_invokes_the_audit(self):
-        runner = (REPO_ROOT / "run_content_checks.py").read_text(encoding="utf-8")
-        self.assertIn("contract_field_audit.py", runner)
-        self.assertIn("Audit contract fields for a reader", runner,
-                      "the step should be named in the gate's output")
+    def test_the_audit_is_declared_as_a_gate_step(self):
+        """The step list lives in `toolkit/content_check_steps.py` since the port.
+
+        Asserted on the declaration rather than on `run_content_checks.py`'s text,
+        because the gate no longer names any step itself -- that is the whole point
+        of the shared list, and asserting on the runner would re-introduce a
+        dependency on the duplication this removed.
+        """
+        module_path = REPO_ROOT / "toolkit" / "content_check_steps.py"
+        spec = importlib.util.spec_from_file_location("content_check_steps_audit", module_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules["content_check_steps_audit"] = module
+        spec.loader.exec_module(module)
+
+        check = next((c for c in module.CHECKS if "contract_field_audit" in " ".join(c.argv_tail)), None)
+        self.assertIsNotNone(check, "the contract-field audit is not a gate step")
+        self.assertEqual("Audit contract fields for a reader", check.label)
+        self.assertIsNone(check.editor_skips, "the editor should run it too")
+
+    def test_the_editor_declares_it_runs_the_audit(self):
+        runner = (REPO_ROOT / "toolkit" / "editor_validate.py").read_text(encoding="utf-8")
+        self.assertIn("contract_field_audit", runner)
 
 
 if __name__ == "__main__":

@@ -77,6 +77,34 @@ Verdicts are against the code as it stands at `8c2fb0a` plus the uncommitted wor
 
 Two more absolute-path families exist outside `docs/` and are **not** Track J's to change, listed so they are not lost: `docs/reference/server-operator-guide.md:10-17,50,56,68,74-75` uses `C:\python\old\restart\server\...` in backslash form (13 further references, counted separately above because the pattern differs), and `README.md`'s Phase text is prose-only. There are no `C:/python` references in `toolkit/**`, `server/**` or `mud-world-editor/**`.
 
+> **✅ Done 2026-09-20, and the count was low: 65 links across 11 documents, not 52
+> across 8.** The backslash family in the operator guide was part of it, and two
+> further documents had a single link each. All 65 now point at this checkout
+> relative to the linking file, so they work wherever the repository lives.
+>
+> Three things the sweep found that the finding had not:
+>
+> 1. **The operator guide's commands could not run at all.** They were rewritten
+>    after being *executed*: `setup_wizard_cli.py` requires `--content-set`,
+>    `poc_server.py`/`poc_ws_server.py` require it too (so a bare `--config`
+>    launch exits with a missing argument), the wizard writes
+>    `<server-slug>.server_config.json` rather than `server_config.json`, and
+>    feature profiles live in the content set they describe
+>    (`content_sets/<set>/data/profiles/*.profile.json`) rather than in
+>    `server/data/profiles/`. `server/launch_from_latest_fixture.py` does not
+>    exist; `server/launch_content_set.py` is the launcher that does.
+> 2. **`LATEST_REFRESH.json` was already decided, and the decision holds.** The
+>    resolver in `run_content_checks.py:86-112` reads the recorded absolute path
+>    and reinterprets it against this checkout, and its docstring says why the
+>    file is not rewritten: it is a log of what happened. So the fixture steps run
+>    here instead of skipping, which is what the finding asked for, without
+>    hand-editing a record.
+> 3. **New check:** `server/tests/singles/test_documentation_links.py` refuses an
+>    absolute markdown link target anywhere in the docs and resolves every
+>    relative link in the swept documents. Falsified first: one link put back to
+>    an absolute path fails all three of its tests.
+
+
 ---
 
 ## Proposed roadmap

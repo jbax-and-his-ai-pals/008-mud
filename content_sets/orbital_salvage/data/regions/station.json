@@ -41,7 +41,7 @@
         },
         "workshop": {
             "name": "Workshop",
-            "description": "Benches, jigs and a fabrication frame with its cover half off. Someone left mid-job and never came back.",
+            "description": "Benches, jigs and a fabrication bay with its cover half off. Someone left mid-job and never came back.",
             "properties": {
                 "outdoors": false
             },
@@ -51,6 +51,9 @@
             "items": [
                 {
                     "item_id": "item_locker"
+                },
+                {
+                    "item_id": "item_fabricator"
                 }
             ]
         },
@@ -59,7 +62,8 @@
             "description": "Empty racks and a drifting haze of frost. Something in here has been moving since the lights went out.",
             "properties": {
                 "outdoors": false,
-                "safe_zone": false
+                "safe_zone": false,
+                "hazard_type": "hull_frost"
             },
             "exits": {
                 "south": "spine_corridor"

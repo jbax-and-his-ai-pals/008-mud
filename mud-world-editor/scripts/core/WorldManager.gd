@@ -12,6 +12,10 @@ static func world_layout_file() -> String: return DataRoot.editor_file("world_la
 
 var world_node_positions: Dictionary = {}
 var ignored_validation_warnings: Dictionary = {}
+# Engine/content warnings are distinct from map-link advisories. Both belong to
+# the active content set's editor layout file, but one must never accidentally
+# suppress the other just because their display text happens to match.
+var ignored_content_validation_warnings: Dictionary = {}
 
 func _init():
 	load_world_layout()
@@ -32,13 +36,19 @@ func load_world_layout():
 			if d.has("positions"): world_node_positions = d.positions
 			if d.has("ignored_validation_warnings") and d.ignored_validation_warnings is Array:
 				for warning_id in d.ignored_validation_warnings: ignored_validation_warnings[str(warning_id)] = true
+			if d.has("ignored_content_validation_warnings") and d.ignored_content_validation_warnings is Array:
+				for warning_id in d.ignored_content_validation_warnings: ignored_content_validation_warnings[str(warning_id)] = true
 		else:
 			push_error("Could not parse %s: %s" % [world_layout_file(), json.get_error_message()])
 
 # Returns {"ok": bool, "error": String} like every other writer, so a failed
 # save is something the caller can report rather than assume.
 func save_world_layout() -> Dictionary:
-	var d = { "positions": world_node_positions, "ignored_validation_warnings": ignored_validation_warnings.keys() }
+	var d = {
+		"positions": world_node_positions,
+		"ignored_validation_warnings": ignored_validation_warnings.keys(),
+		"ignored_content_validation_warnings": ignored_content_validation_warnings.keys(),
+	}
 	DataRoot.ensure_editor_dirs()
 	return SaveIO.write_json(world_layout_file(), d)
 
@@ -58,6 +68,18 @@ func acknowledge_warning(finding: String):
 
 func reset_ignored_warnings():
 	ignored_validation_warnings.clear()
+	save_world_layout()
+
+func is_content_warning_ignored(warning_id: String) -> bool:
+	return ignored_content_validation_warnings.has(warning_id)
+
+func acknowledge_content_warnings(warning_ids: Array):
+	for warning_id in warning_ids:
+		if str(warning_id) != "": ignored_content_validation_warnings[str(warning_id)] = true
+	save_world_layout()
+
+func reset_ignored_content_warnings():
+	ignored_content_validation_warnings.clear()
 	save_world_layout()
 
 func get_global_hierarchy() -> Dictionary:
@@ -118,6 +140,18 @@ func _scan_regions_recursive(root_dir: String, current_subdir: String) -> Array:
 	return files
 
 func validate_world_links() -> Array:
+	# Two kinds of finding come out of here, and they are not the same kind of thing:
+	#
+	#   * An exit pointing at a room or region that does not exist. The engine's
+	#     `reference_integrity_validator` reports this too, with a `file.field` path,
+	#     and `Main._show_validation_results` now shows that verdict first. This walk
+	#     is kept because it reaches every loaded region in one pass rather than one
+	#     content set at a time, but its wording is marked advisory so an author is
+	#     not left choosing between two equally-loud voices for one fact.
+	#
+	#   * A link the target does not return. That is NOT an engine rule -- the engine
+	#     is geometry-blind and has no opinion about whether a connection is
+	#     symmetric -- so it is advisory by nature and always has been.
 	var errors = []
 	var full_world = get_all_world_data()
 	
@@ -132,12 +166,12 @@ func validate_world_links() -> Array:
 					var target_rid = parts[0]
 					var target_room = parts[1]
 					if not full_world.has(target_rid):
-						errors.append("[%s] %s -> %s: Unknown Region '%s'" % [region_id, room_id, dir, target_rid])
+						errors.append("[advisory] [%s] %s -> %s: Unknown Region '%s'" % [region_id, room_id, dir, target_rid])
 					elif not full_world[target_rid]["rooms"].has(target_room):
-						errors.append("[%s] %s -> %s: Unknown Room '%s' in %s" % [region_id, room_id, dir, target_room, target_rid])
+						errors.append("[advisory] [%s] %s -> %s: Unknown Room '%s' in %s" % [region_id, room_id, dir, target_room, target_rid])
 				else:
 					if not rooms.has(target):
-						errors.append("[%s] %s -> %s: Unknown Room '%s'" % [region_id, room_id, dir, target])
+						errors.append("[advisory] [%s] %s -> %s: Unknown Room '%s'" % [region_id, room_id, dir, target])
 					else:
 						# One-way check
 						var t_exits = rooms[target].get("exits", {})
@@ -145,7 +179,7 @@ func validate_world_links() -> Array:
 						for t_dir in t_exits:
 							if t_exits[t_dir] == room_id: found_back = true
 						if not found_back:
-							errors.append("[%s] %s -> %s: One-way link (Target '%s' does not link back)" % [region_id, room_id, dir, target])
+							errors.append("[advisory] [%s] %s -> %s: One-way link (Target '%s' does not link back)" % [region_id, room_id, dir, target])
 	errors.append_array(validate_district_continuity(full_world))
 	return errors
 

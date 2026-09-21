@@ -12,6 +12,7 @@ from engine.config import (SPAWN_CHANCE_PER_TICK, SPAWN_DEBUG,
 from engine.npcs.elite import roll_elite_overrides
 from engine.npcs.npc_factory import NPCFactory
 from engine.utils.utils import weighted_choice
+from engine.world import factions
 from engine.world.region import Region
 
 if TYPE_CHECKING:
@@ -55,7 +56,7 @@ class Spawner:
         """Counts active hostile monsters currently in a region."""
         return sum(1 for npc in self.world.npcs.values() if
                    npc and npc.current_region_id == region_id and
-                   npc.faction == "hostile" and npc.is_alive)
+                   factions.is_hostile(npc, self.world) and npc.is_alive)
 
     def _count_wandering_npcs_in_region(self, region_id: str) -> int:
         """Counts active non-hostile NPCs currently in a region -- the same
@@ -64,7 +65,7 @@ class Spawner:
         spawned, not just ones this spawner created."""
         return sum(1 for npc in self.world.npcs.values() if
                    npc and npc.current_region_id == region_id and
-                   npc.faction in ("friendly", "neutral") and npc.is_alive)
+                   not factions.is_hostile(npc, self.world) and npc.is_alive)
 
     def _find_suitable_room(self, region: Region, no_spawn_property: str) -> Optional[str]:
         """A random room in the region that isn't an active player's current

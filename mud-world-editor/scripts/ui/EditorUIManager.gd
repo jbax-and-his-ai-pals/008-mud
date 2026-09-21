@@ -7,11 +7,20 @@ signal request_jump_to_room(id)
 signal request_show_district(region_id, district_id)
 signal request_validate
 signal request_validate_content
+signal request_run_release_gate
+signal request_edit_ruleset
+signal ruleset_saved
 signal request_show_contracts
+signal request_edit_contracts
+signal contracts_saved
+signal request_edit_combat_vocabulary
+signal combat_vocabulary_saved
 signal request_choose_content_set
 signal request_switch_content_set(path)
 signal request_acknowledge_validation_warning(warning_id)
 signal request_reset_ignored_validation_warnings
+signal request_acknowledge_content_validation_warnings(warning_ids)
+signal request_reset_ignored_content_validation_warnings
 signal label_arrange_mode_changed(enabled)
 signal request_room_label_rename(room_id, new_name)
 signal technical_ids_visibility_changed(enabled)
@@ -74,9 +83,18 @@ var region_policy_modal: AcceptDialog
 var region_policy_label: RichTextLabel
 var content_validate_modal: AcceptDialog
 var content_validate_label: RichTextLabel
+var content_acknowledge_warnings_button: Button
+var content_reset_warnings_button: Button
+var content_visible_warning_ids: Array = []
+var release_gate_modal: AcceptDialog
+var release_gate_label: RichTextLabel
+var ruleset_editor: RulesetEditorDialog
 var contract_browser
+var contract_editor: ContractEditorDialog
+var combat_vocabulary_editor
 var content_set_modal: AcceptDialog
 var content_set_list: ItemList
+var create_content_set_dialog: CreateContentSetDialog
 
 # Search Component
 var search_modal: SearchModal
@@ -117,6 +135,10 @@ const VALIDATION_MODAL_SCRIPT = preload("res://scripts/ui/modals/ValidationModal
 const DISTRICT_MODAL_SCRIPT = preload("res://scripts/ui/modals/DistrictModal.gd")
 const CONTENT_LIBRARY_SCRIPT = preload("res://scripts/ui/modals/ContentLibraryDialog.gd")
 const CONTRACT_BROWSER_SCRIPT = preload("res://scripts/ui/modals/ContractBrowserDialog.gd")
+const CONTRACT_EDITOR_SCRIPT = preload("res://scripts/ui/modals/ContractEditorDialog.gd")
+const COMBAT_VOCABULARY_EDITOR_SCRIPT = preload("res://scripts/ui/modals/CombatVocabularyDialog.gd")
+const CREATE_CONTENT_SET_SCRIPT = preload("res://scripts/ui/modals/CreateContentSetDialog.gd")
+const RULESET_EDITOR_SCRIPT = preload("res://scripts/ui/modals/RulesetEditorDialog.gd")
 
 func setup(layer: CanvasLayer, database_mgr: DatabaseManager, world_mgr: WorldManager):
 	ui_layer = layer
@@ -152,7 +174,11 @@ func _forward_side_panel_signals():
 	side_panel.request_validate.connect(func(): request_validate.emit())
 	side_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
 	side_panel.request_validate_content.connect(func(): request_validate_content.emit())
+	side_panel.request_run_release_gate.connect(func(): request_run_release_gate.emit())
 	side_panel.request_show_contracts.connect(func(): request_show_contracts.emit())
+	side_panel.request_edit_ruleset.connect(func(): request_edit_ruleset.emit())
+	side_panel.request_edit_contracts.connect(func(): request_edit_contracts.emit())
+	side_panel.request_edit_combat_vocabulary.connect(func(): request_edit_combat_vocabulary.emit())
 	side_panel.request_choose_content_set.connect(func(): request_choose_content_set.emit())
 	side_panel.tool_changed.connect(func(m, d): tool_changed.emit(m, d))
 	side_panel.request_create_db_entry.connect(func(t): request_create_db_entry.emit(t))
@@ -332,9 +358,21 @@ func _setup_modals_and_popups():
 
 	_setup_confirm_and_error_dialogs()
 	_setup_content_validation_modal()
+	ruleset_editor = RULESET_EDITOR_SCRIPT.new()
+	ui_layer.add_child(ruleset_editor)
+	ruleset_editor.setup()
+	ruleset_editor.ruleset_saved.connect(func(): ruleset_saved.emit())
 	contract_browser = CONTRACT_BROWSER_SCRIPT.new()
 	ui_layer.add_child(contract_browser)
 	contract_browser.setup(database_manager.catalog)
+	contract_editor = CONTRACT_EDITOR_SCRIPT.new()
+	ui_layer.add_child(contract_editor)
+	contract_editor.setup()
+	contract_editor.contracts_saved.connect(func(): contracts_saved.emit())
+	combat_vocabulary_editor = COMBAT_VOCABULARY_EDITOR_SCRIPT.new()
+	ui_layer.add_child(combat_vocabulary_editor)
+	combat_vocabulary_editor.setup()
+	combat_vocabulary_editor.combat_vocabulary_saved.connect(func(): combat_vocabulary_saved.emit())
 	_setup_content_set_modal()
 
 # What this content set declares: families, roll tables, resources, attack and
@@ -342,6 +380,40 @@ func _setup_modals_and_popups():
 func show_contracts():
 	contract_browser.refresh()
 	contract_browser.popup_centered()
+
+func show_contract_editor():
+	if is_instance_valid(contract_editor): contract_editor.open_active()
+
+func show_combat_vocabulary_editor():
+	if is_instance_valid(combat_vocabulary_editor): combat_vocabulary_editor.open_active()
+
+func show_ruleset_editor():
+	if is_instance_valid(ruleset_editor): ruleset_editor.open_active()
+
+func has_configuration_drafts() -> bool:
+	for dialog in [ruleset_editor, contract_editor, combat_vocabulary_editor]:
+		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed(): return true
+	return false
+
+func refresh_configuration_views(catalog: ContractCatalog):
+	set_catalog(catalog)
+	if is_instance_valid(content_library) and content_library.visible:
+		content_library._build_editor()
+
+func save_configuration_drafts() -> bool:
+	for dialog in [ruleset_editor, contract_editor, combat_vocabulary_editor]:
+		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed():
+			dialog._save()
+			if dialog._form_changed(): return false
+	return true
+
+func discard_configuration_drafts():
+	for dialog in [ruleset_editor, contract_editor, combat_vocabulary_editor]:
+		if is_instance_valid(dialog):
+			dialog._allow_close = true
+			dialog._form_baseline.clear()
+			dialog.draft = null
+			dialog.hide()
 
 # Pick another world. The editor has always been able to load any content set via
 # `--data-root`; this makes the choice from inside, and writes it to the settings
@@ -378,9 +450,32 @@ func _setup_content_set_modal():
 	content_set_list.custom_minimum_size = Vector2(0, 300)
 	content_set_list.item_activated.connect(func(_index): _confirm_content_set_choice())
 	vbox.add_child(content_set_list)
+	# The one way to get a content set without hand-writing a manifest. It lives
+	# in this dialog because a new set is the other answer to "which world?".
+	var btn_new := Button.new()
+	btn_new.text = "New content set..."
+	btn_new.tooltip_text = "Start a set by copying another one's rules, presentation and opening. The new world begins with one empty room."
+	btn_new.pressed.connect(func():
+		content_set_modal.hide()
+		show_create_content_set()
+	)
+	vbox.add_child(btn_new)
 	content_set_modal.add_child(vbox)
 	content_set_modal.confirmed.connect(_confirm_content_set_choice)
 	ui_layer.add_child(content_set_modal)
+
+	create_content_set_dialog = CREATE_CONTENT_SET_SCRIPT.new()
+	ui_layer.add_child(create_content_set_dialog)
+	create_content_set_dialog.setup(ContentSetScaffold.sets_root())
+	create_content_set_dialog.content_set_created.connect(func(path, _result):
+		request_switch_content_set.emit(path)
+	)
+
+# Create a set, then open it. The dialog owns the fields; this owns refresh, so a
+# set created a moment ago is offered as a source the next time it opens.
+func show_create_content_set():
+	create_content_set_dialog.refresh(DataRoot.available_content_sets())
+	create_content_set_dialog.popup_centered()
 
 func _confirm_content_set_choice():
 	var selected := content_set_list.get_selected_items()
@@ -398,59 +493,147 @@ func _confirm_content_set_choice():
 # worse than showing the path as text.
 func _setup_content_validation_modal():
 	content_validate_modal = AcceptDialog.new()
-	content_validate_modal.title = "Validate Content"
-	content_validate_modal.min_size = Vector2i(720, 520)
+	content_validate_modal.title = "Open Set Validation"
+	content_validate_modal.min_size = Vector2i(780, 580)
+	content_validate_modal.ok_button_text = "OK"
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(700, 480)
+	scroll.custom_minimum_size = Vector2(750, 500)
 	content_validate_label = RichTextLabel.new()
 	content_validate_label.bbcode_enabled = true
+	# ScrollContainer needs the label's fitted height to expose its report.
+	# Without it the rich text is present but receives no visible content area.
 	content_validate_label.fit_content = true
-	content_validate_label.custom_minimum_size = Vector2(680, 0)
+	content_validate_label.custom_minimum_size = Vector2(730, 0)
 	content_validate_label.selection_enabled = true
+	content_validate_label.add_theme_color_override("default_color", DialogStyle.COLOR_TEXT)
+	content_validate_label.add_theme_font_size_override("normal_font_size", 14)
 	scroll.add_child(content_validate_label)
 	content_validate_modal.add_child(scroll)
 	ui_layer.add_child(content_validate_modal)
+	DialogStyle.style_window(content_validate_modal)
+	content_validate_modal.get_ok_button().custom_minimum_size = Vector2(440, 40)
+	content_acknowledge_warnings_button = content_validate_modal.add_button("Acknowledge Warnings", false, "acknowledge_content_warnings")
+	content_reset_warnings_button = content_validate_modal.add_button("Reset Acknowledged", false, "reset_content_warnings")
+	content_acknowledge_warnings_button.custom_minimum_size = Vector2(220, 40)
+	content_reset_warnings_button.custom_minimum_size = Vector2(220, 40)
+	DialogStyle.style_button(content_acknowledge_warnings_button, Color("735c27"))
+	DialogStyle.style_button(content_reset_warnings_button, DialogStyle.COLOR_NEUTRAL)
+	content_validate_modal.custom_action.connect(_on_content_validation_action)
+
+	release_gate_modal = AcceptDialog.new()
+	release_gate_modal.title = "Release Gate"
+	release_gate_modal.min_size = Vector2i(840, 620)
+	release_gate_modal.ok_button_text = "OK"
+	var release_scroll := ScrollContainer.new()
+	release_scroll.custom_minimum_size = Vector2(810, 540)
+	release_gate_label = RichTextLabel.new()
+	release_gate_label.bbcode_enabled = true
+	release_gate_label.fit_content = true
+	release_gate_label.custom_minimum_size = Vector2(790, 0)
+	release_gate_label.selection_enabled = true
+	release_gate_label.add_theme_color_override("default_color", DialogStyle.COLOR_TEXT)
+	release_scroll.add_child(release_gate_label)
+	release_gate_modal.add_child(release_scroll)
+	ui_layer.add_child(release_gate_modal)
+	DialogStyle.style_window(release_gate_modal)
+	release_gate_modal.get_ok_button().custom_minimum_size = Vector2(440, 40)
+
+
+func set_content_validation_running(running: bool):
+	if is_instance_valid(side_panel):
+		side_panel.set_content_validation_running(running)
+
+func set_release_gate_running(running: bool):
+	if is_instance_valid(side_panel): side_panel.set_release_gate_running(running)
 
 # `result` is what EngineValidator.run returns.
 func show_content_validation(result: Dictionary, content_set_label: String):
+	content_visible_warning_ids.clear()
 	if not result.get("ran", false):
-		content_validate_modal.title = "Validate Content -- Could Not Run"
-		content_validate_label.text = "[color=orange]%s[/color]" % _escape(str(result.get("error", "")))
+		content_validate_modal.title = "Open Set Validation"
+		content_validate_label.text = "[center][font_size=20][color=orange]Validation could not run[/color][/font_size][/center]\n\n[color=orange]⚠ %s[/color]" % _escape(str(result.get("error", "")))
 		content_validate_modal.popup_centered()
 		return
 
 	var counts: Dictionary = result.get("counts", {})
 	var errors := int(counts.get("error", 0))
 	var warnings := int(counts.get("warning", 0))
-	content_validate_modal.title = (
-		"Validate Content -- Passed" if errors == 0
-		else "Validate Content -- %d Error(s)" % errors
-	)
+	var ignored_warnings := int(result.get("ignored_warning_count", 0))
+	for issue in result.get("issues", []):
+		if issue is Dictionary and str(issue.get("severity", "")) == "warning":
+			var warning_id := str(issue.get("warning_id", ""))
+			if warning_id != "": content_visible_warning_ids.append(warning_id)
+	content_acknowledge_warnings_button.disabled = content_visible_warning_ids.is_empty()
+	content_acknowledge_warnings_button.text = "Acknowledge %d Warning(s)" % content_visible_warning_ids.size()
+	content_reset_warnings_button.disabled = ignored_warnings == 0
+	content_reset_warnings_button.text = "Reset %d Acknowledged" % ignored_warnings
+	content_validate_modal.title = "Open Set Validation"
 
 	var lines: Array = []
-	var summary := "%s: %d error(s), %d warning(s)" % [content_set_label, errors, warnings]
-	lines.append("[color=%s]%s[/color]" % ["lime" if errors == 0 else "salmon", _escape(summary)])
+	var result_title := "Passed — no blocking errors" if errors == 0 else "%d blocking error(s) found" % errors
+	var result_color := "lime" if errors == 0 else "salmon"
+	lines.append("[center][font_size=20][color=%s]%s[/color][/font_size][/center]" % [result_color, result_title])
+	var warning_summary := "%d warning(s)" % warnings
+	if ignored_warnings > 0: warning_summary += "  •  %d acknowledged hidden" % ignored_warnings
+	lines.append("[center][color=gray]%s  •  %s[/color][/center]" % [_escape(content_set_label), warning_summary])
+	lines.append("[color=#4f82bd]────────────────────────────────────────[/color]")
 	var checks: Array = result.get("ran_checks", [])
 	if not checks.is_empty():
-		lines.append("[color=gray]checked: %s[/color]" % _escape(", ".join(checks)))
+		lines.append("[color=#8fceff][b]CHECKED IN THIS OPEN SET (%d)[/b][/color]" % checks.size())
+		for check in checks:
+			lines.append("  [color=lime]✓[/color] [color=#d8e8d8]%s[/color]" % _escape(str(check).replace("_", " ")))
 	for skipped in result.get("skipped", []):
-		lines.append("[color=orange]skipped: %s[/color]" % _escape(str(skipped)))
+		lines.append("[color=orange]⚠ Could not run:[/color] %s" % _escape(str(skipped)))
+	var not_run: Dictionary = result.get("not_run", {})
+	if not not_run.is_empty():
+		lines.append("")
+		lines.append("[color=khaki][b]RELEASE-GATE CHECKS (not run here)[/b][/color]")
+		for check_id in not_run.keys():
+			lines.append("  [color=khaki]• %s[/color] [color=gray]— %s[/color]" % [
+				_escape(str(check_id).replace("_", " ")),
+				_escape(str(not_run[check_id])),
+			])
 	lines.append("")
 
 	var issues: Array = result.get("issues", [])
 	if issues.is_empty():
-		lines.append("[color=lime]No issues found.[/color]")
+		lines.append("[color=lime][b]✓ No warnings or errors found.[/b][/color]")
+	else:
+		lines.append("[color=#8fceff][b]FINDINGS (%d)[/b][/color]" % issues.size())
 	for issue in issues:
 		var severity := str(issue.get("severity", "error"))
 		var color := "salmon" if severity == "error" else "orange"
 		var path := str(issue.get("path", ""))
-		var where := ("[color=gray]%s[/color] -- " % _escape(path)) if path != "" else ""
-		lines.append("[color=%s]%s[/color]%s%s" % [color, severity.to_upper(), where, _escape(str(issue.get("message", "")))])
+		var icon := "✕" if severity == "error" else "⚠"
+		lines.append("[color=%s][b]%s %s[/b][/color]" % [color, icon, severity.to_upper()])
+		if path != "":
+			lines.append("  [color=#8fceff]%s[/color]" % _escape(path))
+		lines.append("  %s" % _escape(str(issue.get("message", ""))))
 		var sources: Array = issue.get("sources", [])
 		if sources.size() > 1:
-			lines.append("    [color=gray](also reported by: %s)[/color]" % _escape(", ".join(sources)))
+			lines.append("  [color=gray]Also reported by: %s[/color]" % _escape(", ".join(sources)))
+		lines.append("")
 	content_validate_label.text = "\n".join(lines)
 	content_validate_modal.popup_centered()
+
+func _on_content_validation_action(action: String):
+	if action == "acknowledge_content_warnings" and not content_visible_warning_ids.is_empty():
+		request_acknowledge_content_validation_warnings.emit(content_visible_warning_ids.duplicate())
+	elif action == "reset_content_warnings":
+		request_reset_ignored_content_validation_warnings.emit()
+
+func hide_content_validation():
+	if is_instance_valid(content_validate_modal): content_validate_modal.hide()
+
+func show_release_gate_result(result: Dictionary):
+	if not result.get("ran", false):
+		release_gate_label.text = "[center][font_size=20][color=orange]Release gate could not run[/color][/font_size][/center]\n\n[color=orange]⚠ %s[/color]" % _escape(str(result.get("error", "")))
+	else:
+		var passed := bool(result.get("ok", false))
+		var color := "lime" if passed else "salmon"
+		var heading := "Release gate passed" if passed else "Release gate failed (exit code %d)" % int(result.get("exit_code", -1))
+		release_gate_label.text = "[center][font_size=20][color=%s]%s[/color][/font_size][/center]\n\n[code]%s[/code]" % [color, heading, _escape(str(result.get("report", "")))]
+	release_gate_modal.popup_centered()
 
 
 # RichTextLabel parses BBCode, so any bracket in a path or message -- and content
@@ -612,6 +795,19 @@ func cache_search_data(world_data, npcs, items):
 	search_data_cache["npcs"] = npcs
 	search_data_cache["items"] = items
 	search_modal.cache_search_data(world_data, npcs, items)
+
+## Drop the indexes that describe the content set being left.
+##
+## Called on a content-set switch: an index of the previous world answers a
+## search with entries that no longer exist, and a library selection keeps an
+## inspector writing into a dictionary this set has already replaced.
+func clear_search_cache():
+	search_data_cache.clear()
+	search_modal.cache_search_data({}, {}, {})
+
+func clear_library_selection():
+	if content_library != null:
+		content_library.clear_selection()
 
 func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, dirty_flags: Dictionary):
 	side_panel.update_db_lists(npcs, items, templates, magic, quests, dirty_flags)

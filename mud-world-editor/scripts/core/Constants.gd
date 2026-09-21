@@ -16,6 +16,17 @@ const DIR_IN = "in"
 const DIR_OUT = "out"
 const DIR_CLIMB = "climb"
 const DIR_DIVE = "dive"
+const DIR_DESCEND = "descend"
+const DIR_SURFACE = "surface"
+
+# The engine's authorable exit vocabulary. Keep this ordered for forms, but
+# keep its reciprocal meaning in INV_DIR_MAP below; schema_parity_smoke compares
+# that map with the engine's exported contract.
+const AUTHORABLE_DIRECTIONS = [
+	"north", "northeast", "east", "southeast", "south", "southwest", "west", "northwest",
+	"up", "down", "in", "out", "enter", "exit", "inside", "outside",
+	"surface", "dive", "climb", "descend", "upstream", "downstream",
+]
 
 const DIR_VECTORS = { 
 	DIR_N: Vector2(0, -1), DIR_S: Vector2(0, 1), 
@@ -24,7 +35,8 @@ const DIR_VECTORS = {
 	DIR_SE: Vector2(1, 1), DIR_SW: Vector2(-1, 1), 
 	DIR_UP: Vector2(0.5, -0.5), DIR_DOWN: Vector2(-0.5, 0.5), 
 	DIR_IN: Vector2(0.2, 0.2), DIR_OUT: Vector2(-0.2, -0.2),
-	DIR_CLIMB: Vector2(0.5, -0.5), DIR_DIVE: Vector2(0.5, 0.5) 
+	DIR_CLIMB: Vector2(0.5, -0.5), DIR_DESCEND: Vector2(0.5, 0.5),
+	DIR_SURFACE: Vector2(0.5, -0.5), DIR_DIVE: Vector2(0.5, 0.5)
 }
 
 # Editor-only semantic defaults for exits that describe travel rather than a
@@ -34,6 +46,10 @@ const MAP_DIRECTION_ALIASES = {
 	"downstream": DIR_S,
 	"surface": DIR_UP,
 	"descend": DIR_DOWN,
+	"enter": DIR_IN,
+	"exit": DIR_OUT,
+	"inside": DIR_IN,
+	"outside": DIR_OUT,
 }
 
 const INV_DIR_MAP = {
@@ -41,9 +57,13 @@ const INV_DIR_MAP = {
 	DIR_E: DIR_W, DIR_W: DIR_E, 
 	DIR_UP: DIR_DOWN, DIR_DOWN: DIR_UP, 
 	DIR_IN: DIR_OUT, DIR_OUT: DIR_IN,
+	"enter": "exit", "exit": "enter",
+	"inside": "outside", "outside": "inside",
 	DIR_NE: DIR_SW, DIR_SW: DIR_NE,
 	DIR_NW: DIR_SE, DIR_SE: DIR_NW,
-	DIR_CLIMB: DIR_DIVE, DIR_DIVE: DIR_CLIMB
+	DIR_SURFACE: DIR_DIVE, DIR_DIVE: DIR_SURFACE,
+	DIR_CLIMB: DIR_DESCEND, DIR_DESCEND: DIR_CLIMB,
+	"upstream": "downstream", "downstream": "upstream",
 }
 
 # Reciprocal labels begin with a pair's authored emitter. The two parts swap
@@ -84,8 +104,8 @@ const ANCHORS = {
 	DIR_E: Vector2(100, 0), DIR_W: Vector2(-100, 0),
 	DIR_NE: Vector2(100, -50), DIR_NW: Vector2(-100, -50),
 	DIR_SE: Vector2(100, 50), DIR_SW: Vector2(-100, 50),
-	DIR_UP: Vector2(80, -50), DIR_CLIMB: Vector2(80, -50),
-	DIR_DOWN: Vector2(80, 50), DIR_DIVE: Vector2(80, 50),
+	DIR_UP: Vector2(80, -50), DIR_CLIMB: Vector2(80, -50), DIR_SURFACE: Vector2(80, -50),
+	DIR_DOWN: Vector2(80, 50), DIR_DIVE: Vector2(80, 50), DIR_DESCEND: Vector2(80, 50),
 	DIR_IN: Vector2(30, 30), DIR_OUT: Vector2(-30, -30)
 }
 

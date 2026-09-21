@@ -236,8 +236,13 @@ func _check_the_engine_accepts_what_this_wrote() -> void:
 
 	var result := EngineValidator.run(content_set_root, repo_root, python_exe)
 	_assert(result.get("ran", false), "the validator runs: %s" % result.get("error", ""))
+	# Errors only. The skill audit reports accurately that `crafting` is named by
+	# these titles without a declared level; that is advisory, the gate tolerates
+	# it, and a warning is not something this check should fail on.
 	var title_errors: Array = []
 	for issue in result.get("issues", []):
+		if str(issue.get("severity", "")) != "error":
+			continue
 		if str(issue.get("path", "")).contains("titles"):
 			title_errors.append(issue)
 	_assert(title_errors.is_empty(), "a title edited here validates: %s" % str(title_errors))

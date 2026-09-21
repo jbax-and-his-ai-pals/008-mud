@@ -24,6 +24,19 @@ from toolkit import editor_validate  # noqa: E402
 
 CONTENT_SETS = REPO_ROOT / "content_sets"
 
+# The `ran` name the editor reports for each shared check. A check whose id
+# differs from its collector's name is mapped here, so a check added to the shared
+# list without a collector fails the assertion instead of passing unnoticed.
+SOURCE_FOR_CHECK = {
+    "content_set_schema": "engine",
+    "json_integrity": "json",
+    "number_types": "numbers",
+    "contract_fields": "contracts",
+    "skill_audit": "skills",
+    "reference_integrity": "references",
+    "stale_references": "stale",
+}
+
 
 class TestValidationRuns(unittest.TestCase):
     def test_both_reference_sets_pass_their_own_checks(self):
@@ -32,8 +45,17 @@ class TestValidationRuns(unittest.TestCase):
                 result = editor_validate.validate(CONTENT_SETS / name)
                 self.assertEqual(0, result["counts"]["error"], result["issues"])
                 self.assertTrue(result["ok"])
-                self.assertEqual(
-                    ["engine", "references", "templates", "stale", "json"], result["ran"],
+                # The list comes from `toolkit/content_check_steps.py`, shared with
+                # `run_content_checks.py`; this asserts the editor ran the checks
+                # that apply to one set, not a frozen transcription of them.
+                from toolkit import content_check_steps as steps
+
+                expected_sources = set()
+                for check in steps.checks_for_set(name):
+                    expected_sources.add(SOURCE_FOR_CHECK.get(check.id, check.id))
+                self.assertTrue(
+                    expected_sources <= set(result["ran"]),
+                    "checks claimed but not run: %s" % sorted(expected_sources - set(result["ran"])),
                 )
 
     def test_a_data_directory_is_accepted_as_well_as_a_content_set(self):
@@ -86,9 +108,14 @@ class TestBrokenContentIsReportedNotRaised(unittest.TestCase):
     def test_paths_are_relative_to_the_content_set(self):
         result = editor_validate.validate(CONTENT_SETS / "fantasy_frontier")
         for issue in result["issues"]:
+            path = issue["path"]
+            # A drive letter or a leading slash is a path from this machine. A
+            # colon alone is not: the skill audit uses synthetic locators like
+            # `engine:crafting_manager` to say the roll lives in engine code, which
+            # is precisely the finding an author needs and not a leaked path.
             self.assertFalse(
-                issue["path"].startswith("/") or ":" in issue["path"].split("/")[0],
-                "an author should not be shown this machine's absolute paths: %r" % issue["path"],
+                path.startswith("/") or (len(path) > 1 and path[1] == ":"),
+                "an author should not be shown this machine's absolute paths: %r" % path,
             )
         self.assertTrue(any(issue["path"].startswith("data/") for issue in result["issues"]),
                         "and the relative path should name the file")
@@ -97,6 +124,69 @@ class TestBrokenContentIsReportedNotRaised(unittest.TestCase):
         result = editor_validate.validate(REPO_ROOT / "no_such_content_set")
         self.assertFalse(result["ok"])
         self.assertEqual("setup", result["issues"][0]["source"])
+
+
+class TestTheSourceFilter(unittest.TestCase):
+    """`--only` exists so a caller can ask one question.
+
+    The world-link modal uses it to show the engine's *link* verdict without the
+    item, quest and contract findings that share the same run. A filter that let
+    unrelated findings through would show an author link errors on a region whose
+    contracts are broken.
+    """
+
+    def _run(self, *extra: str) -> dict:
+        completed = subprocess.run(
+            [sys.executable, str(REPO_ROOT / "toolkit" / "editor_validate.py"),
+             str(CONTENT_SETS / "fantasy_frontier"), "--json", *extra],
+            cwd=str(REPO_ROOT), capture_output=True, text=True, errors="replace",
+        )
+        raw = completed.stdout
+        return json.loads(raw[raw.index("{"):])
+
+    def test_every_reported_issue_comes_from_a_requested_source(self):
+        payload = self._run("--only", "references,stale")
+        self.assertEqual(["references", "stale"], payload["filtered_to"])
+        for issue in payload["issues"]:
+            with self.subTest(path=issue["path"]):
+                self.assertTrue(
+                    {"references", "stale"} & set(issue.get("sources", [issue.get("source", "")])),
+                    "an issue from another source survived the filter",
+                )
+
+    def test_the_counts_describe_what_is_reported(self):
+        """Stale counts would make the modal's summary disagree with its list."""
+        payload = self._run("--only", "references,stale")
+        reported = payload["issues"]
+        self.assertEqual(sum(1 for i in reported if i["severity"] == "error"), payload["counts"]["error"])
+        self.assertEqual(sum(1 for i in reported if i["severity"] != "error"), payload["counts"]["warning"])
+        self.assertEqual(payload["counts"]["error"] == 0, payload["ok"])
+
+    def test_the_unfiltered_counts_describe_what_is_reported(self):
+        """The path the editor's modal actually shows.
+
+        The filter test above passed while the unfiltered path was wrong: counts
+        were computed before the issues were deduped, so a shipped set whose
+        validators overlap reported seven warnings above five rows.
+        """
+        payload = editor_validate.validate(CONTENT_SETS / "fantasy_frontier")
+        reported = payload["issues"]
+
+        self.assertEqual(sum(1 for i in reported if i["severity"] == "error"), payload["counts"]["error"])
+        self.assertEqual(sum(1 for i in reported if i["severity"] != "error"), payload["counts"]["warning"])
+        self.assertEqual(payload["counts"]["error"] == 0, payload["ok"])
+        self.assertGreaterEqual(len(reported), 1, "the fixture set should report something")
+
+    def test_the_filter_narrows_rather_than_widens(self):
+        """A filtered run can only report a subset of the unfiltered one."""
+        full = self._run()
+        filtered = self._run("--only", "references")
+        self.assertLessEqual(len(filtered["issues"]), len(full["issues"]))
+
+    def test_no_filter_reports_every_source_as_before(self):
+        payload = self._run()
+        self.assertNotIn("filtered_to", payload)
+        self.assertIn("engine", payload["ran"])
 
 
 class TestTheCommandLineContract(unittest.TestCase):

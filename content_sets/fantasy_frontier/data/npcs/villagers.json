@@ -872,7 +872,8 @@
         "dialog": {
             "greeting": "Welcome to the Sailor's Rest. Ale, a meal, or a bed for the night?",
             "trade": "Ale, bread, and the odd tonic. What'll it be?",
-            "rumors": "Half of what you hear in here is nonsense. The other half's worse."
+            "rumors": "Half of what you hear in here is nonsense. The other half's worse.",
+            "quest_complete": "Talia's seal, and unbroken. That's the third this season, and I'll take every one of them. Sit down -- I'll stand you a cup."
         },
         "default_dialog": "The {name} wipes down the bar, half-listening to the room.",
         "initial_inventory": [

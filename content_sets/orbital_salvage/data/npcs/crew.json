@@ -13,7 +13,8 @@
             "constitution": 9,
             "agility": 8,
             "intelligence": 11,
-            "wisdom": 10
+            "wisdom": 10,
+            "insulation": 2
         },
         "dialog": {
             "greeting": "Mind the bench. Strip what you can carry, log what you take, and stay out of the hold."
@@ -70,7 +71,8 @@
             "constitution": 10,
             "agility": 6,
             "intelligence": 2,
-            "wisdom": 2
+            "wisdom": 2,
+            "insulation": 1
         },
         "attack_power": 4,
         "defense": 2,

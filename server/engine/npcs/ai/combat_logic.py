@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from engine.utils.utils import format_name_for_display
 from .movement import execute_move
 from engine.npcs import combat as npc_combat
+from engine.world import factions
 
 if TYPE_CHECKING:
     from engine.npcs.npc import NPC
@@ -28,7 +29,7 @@ def try_flee(npc: 'NPC', world: 'World', player: 'Player') -> Optional[str]:
     )
 
     valid_exits = {}
-    if npc.faction == 'hostile':
+    if factions.is_hostile(npc, world):
         for direction, dest_id in room_before_flee.exits.items():
             r_id, room_id = (dest_id.split(':') if ':' in dest_id else (npc.current_region_id, dest_id))
             if not world.is_location_safe(r_id, room_id):
@@ -136,7 +137,7 @@ def scan_for_targets(npc: 'NPC', world: 'World', player: 'Player', force_aggress
 
     # --- 2. Social Aggro (Defending Friends) ---
     # Always check this unless hostile (hostiles usually fend for themselves or use proactive logic)
-    if npc.faction != "hostile":
+    if not factions.is_hostile(npc, world):
         room_npcs = world.get_npcs_in_room(npc.current_region_id, npc.current_room_id)
         
         # Check Player attacking friend
@@ -151,7 +152,7 @@ def scan_for_targets(npc: 'NPC', world: 'World', player: 'Player', force_aggress
         # Check other NPCs attacking friends
         for actor in room_npcs:
             if actor == npc or not actor.is_alive: continue
-            if actor.faction == npc.faction: continue # Ignore infighting within faction
+            if factions.same_faction(actor, npc): continue # Ignore infighting within faction
             
             actor_combat = getattr(actor, "runtime_state", None).combat if getattr(actor, "runtime_state", None) is not None else actor
             if actor_combat.in_combat:

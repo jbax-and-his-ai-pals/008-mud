@@ -165,6 +165,27 @@ LEDGER: Dict[str, Dict[str, Tuple[str, str]]] = {
                          "filtering or resistance, and nothing consults them"),
         "payload": (UNREAD, "no reader: the free-form escape hatch is never consulted"),
     },
+    "work": {
+        "id": (READ, "registry.work_declaration() lookup key, and the id a timer names"),
+        "label": (READ, "work.observe() reports it, so `status` can name work it has never "
+                        "heard of"),
+        "description": (DISPLAY, "authoring prose; read by nothing"),
+        "duration_days": (READ, "work.duration_seconds() -- the one field that makes a "
+                                "declaration take time at all"),
+        "inputs": (READ, "work.start() selects exactly these from the player's inventory and "
+                         "consumes them; a missing one refuses the start before anything is "
+                         "spent"),
+        "outputs": (READ, "work.start() builds them to check the result will fit, and "
+                          "work.collect() adds them once the clock reaches the end"),
+        "skill": (READ, "work.declaration_issues() checks it against `difficulty`, and "
+                        "work.collect() rolls it through SkillSystem.practice_check"),
+        "difficulty": (READ, "work.declaration_issues(), and the number work.collect() rolls "
+                             "against -- a failed roll halves the yield"),
+        "station": (READ, "work.start() compares it against the station types the caller "
+                          "found nearby, and refuses with the name when it is not there"),
+        "tags": (UNREAD, "no reader: work tags would let content group jobs (a station that "
+                         "accepts drying, say) and nothing consults them"),
+    },
 }
 
 

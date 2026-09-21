@@ -22,7 +22,7 @@
     }
   ],
   "stats": {
-    "_comment": "This set keeps the engine's stat vocabulary, but says so rather than relying on the fallback -- that is the difference between a set that has been checked and one that happens to work. `power` drives charge, and `evasion` is the skill this set's stat_bonuses names.",
+    "_comment": "This set keeps the engine's stat vocabulary, but says so rather than relying on the fallback -- that is the difference between a set that has been checked and one that happens to work. `power` drives charge, and `evasion` is the skill this set's stat_bonuses names. `ability_power` and `resistance` name stats this set actually carries: left to the engine's fallback they would have read `spell_power` and `magic_resist`, which no orbital entity has, so both mechanics would have sat at the neutral default and never moved. `ability_power` rides the same stat as the charge pool because one stat driving both is what a salvage rig's aptitude means here. `resistance` names `insulation` -- a small derived rating, the shape `magic_resist` has in fantasy (2), NOT a core attribute: the flat reduction is the stat's raw value, so pointing this role at `constitution` would subtract 10 from every energy hit and make the hold's frost harmless. Crew carry a little; the salvager carries none and survives the cold on gear, which is what this set's vest is for.",
     "roles": {
       "health": "constitution",
       "attack": "strength",
@@ -30,8 +30,8 @@
       "evasion": "agility",
       "regeneration": "strength",
       "power": "intelligence",
-      "ability_power": "spell_power",
-      "resistance": "magic_resist"
+      "ability_power": "intelligence",
+      "resistance": "insulation"
     },
     "order": [
       "strength", "dexterity", "constitution",
@@ -155,6 +155,24 @@
       "cooldown": 6.0,
       "target_type": "enemy",
       "level_required": 1
+    }
+  ],
+  "work": [
+    {
+      "id": "kit_batch",
+      "label": "Running a patch-kit batch",
+      "description": "Feed the bay three parts and let it work slowly. It wastes less than hands do: two kits from three parts, where the bench recipe gets one from two. Half a day, and it is done whether or not anyone is standing there.",
+      "duration_days": 0.5,
+      "station": "fabricator",
+      "inputs": [
+        { "item_id": "item_servo_cluster", "quantity": 3 }
+      ],
+      "outputs": [
+        { "item_id": "item_patch_kit", "quantity": 2 }
+      ],
+      "skill": "fabrication",
+      "difficulty": 20,
+      "tags": ["fabrication", "supplies"]
     }
   ]
 }

@@ -55,6 +55,41 @@
             "is_authority": true
         }
     },
+    "otis": {
+        "name": "Otis",
+        "description": "A man in a folding chair at the dead end of the alley, with a battery lantern and a duffel bag that is never in the same state twice.",
+        "health": 38,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 10,
+            "dexterity": 9,
+            "constitution": 10,
+            "agility": 8,
+            "intelligence": 11,
+            "wisdom": 12
+        },
+        "dialog": {
+            "greeting": "Don't tell me where it came from. I like not knowing. Put it down, I'll look at it."
+        },
+        "default_dialog": "Otis turns his lantern down and waits.",
+        "properties": {
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_shim_card"
+                }
+            ],
+            "buys_item_types": [
+                "Item",
+                "Treasure",
+                "Junk"
+            ],
+            "_comment": "The fence. He is the reason to carry something out of the depot rather than drop it: he buys anything, including the things the depot sells, and he sells the one tool that gets you back out of the holding room. No buy orders and no relationship ladder of his own -- he is a shop, not a friend."
+        }
+    },
     "stray_dog": {
         "name": "stray dog",
         "description": "A lean, wary dog that's claimed the alley as its own.",

@@ -211,7 +211,10 @@
   "quest_generation": {
     "quest_board_locations": [
       "town:town_square",
-      "portbridge:harbor_district"
+      "portbridge:harbor_district",
+      "frostpeak_outpost:mining_lodge",
+      "sunscorch_caravanserai:wayfarers_rest",
+      "aurelia_city:guild_square"
     ],
     "delivery_package_item_id": "quest_package_generic",
     "authored_board_templates": [
@@ -264,6 +267,26 @@
         "repeatable": {
           "delay_seconds": 1800,
           "unavailable_text": "The Guard Captain has removed the bounty while the roads settle. Check the board again later."
+        }
+      },
+      {
+        "template_id": "quest_hermit_of_the_deep_wood",
+        "giver_template_id": "village_elder"
+      },
+      {
+        "template_id": "quest_catalogue_of_the_valley",
+        "giver_template_id": "curator"
+      },
+      {
+        "template_id": "quest_house_brew",
+        "giver_template_id": "tavern_keeper"
+      },
+      {
+        "template_id": "quest_upcountry_packets",
+        "giver_template_id": "merchant",
+        "repeatable": {
+          "delay_seconds": 1800,
+          "unavailable_text": "Talia has nothing else going up-country today; she will have another packet soon enough."
         }
       }
     ],
@@ -466,7 +489,7 @@
         "id": "item_material",
         "match": {
           "kind": "item",
-          "item_type": "Item"
+          "item_family": "material"
         },
         "xp": 8
       },
@@ -474,7 +497,7 @@
         "id": "item_gem",
         "match": {
           "kind": "item",
-          "item_type": "Gem"
+          "item_family": "collectible_stone"
         },
         "xp": 15,
         "message": "A stone worth cataloguing."
@@ -483,7 +506,7 @@
         "id": "item_treasure",
         "match": {
           "kind": "item",
-          "item_type": "Treasure"
+          "item_family": "treasure"
         },
         "xp": 10
       },
@@ -491,7 +514,7 @@
         "id": "item_curio",
         "match": {
           "kind": "item",
-          "item_type": "Junk"
+          "item_family": "curio"
         },
         "xp": 3
       },
@@ -499,7 +522,7 @@
         "id": "item_consumable",
         "match": {
           "kind": "item",
-          "item_type": "Consumable"
+          "item_family": "consumable"
         },
         "xp": 5
       },

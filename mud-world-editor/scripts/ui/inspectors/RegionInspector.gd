@@ -196,15 +196,16 @@ func _refresh_props():
 			popup_menu.add_item(k)
 	popup_menu.add_separator(); popup_menu.add_item("Custom...")
 	
-	# Structured properties (districts, level_band, ...) get their own
-	# dedicated section/editor elsewhere -- rendering one here as a flat tag
-	# would dump its entire nested contents into a single unbounded LineEdit,
-	# which has no wrap and no max width, blowing the panel out past the
-	# screen edge instead of just looking odd.
-	var scalar_keys: Array = []
-	for key in cur_data.properties:
-		var t = typeof(cur_data.properties[key])
-		if t != TYPE_DICTIONARY and t != TYPE_ARRAY: scalar_keys.append(key)
+	# Structured properties (districts, level_band, ...) get their own dedicated
+	# section/editor elsewhere -- rendering one here as a flat tag would dump its
+	# entire nested contents into a single unbounded LineEdit, which has no wrap
+	# and no max width, blowing the panel out past the screen edge instead of just
+	# looking odd. It would also write the stringified form back over the object.
+	#
+	# The rule is PropertyTagRow's, not this panel's: RoomPropertiesPanel is the
+	# same shape and did not have the guard, so the two panels disagreed about
+	# which values they could edit and only one of them was safe.
+	var scalar_keys: Array = PropertyTagRow.editable_keys(cur_data.properties)
 
 	if scalar_keys.is_empty():
 		var l = Label.new(); l.text = "None."; l.modulate = Color(1,1,1,0.3); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -212,39 +213,12 @@ func _refresh_props():
 		return
 
 	for key in scalar_keys:
-		flow_container.add_child(_create_prop_tag(key, cur_data.properties[key]))
+		flow_container.add_child(PropertyTagRow.build_row(
+			key, cur_data.properties[key], cur_data.properties, _on_row_modified, _refresh_props
+		))
 
-func _create_prop_tag(key, val) -> PanelContainer:
-	var panel = PanelContainer.new()
-	var style = StyleBoxFlat.new(); style.bg_color = Color(0.25, 0.25, 0.28); style.set_corner_radius_all(12)
-	style.content_margin_left = 10; style.content_margin_right = 6; style.content_margin_top = 2; style.content_margin_bottom = 2
-	panel.add_theme_stylebox_override("panel", style)
-	
-	var hb = HBoxContainer.new(); panel.add_child(hb)
-	
-	var lbl = Label.new(); lbl.text = key + ": "; lbl.modulate = Color(0.7, 0.9, 1.0)
-	lbl.add_theme_font_size_override("font_size", 12); hb.add_child(lbl)
-	
-	if typeof(val) == TYPE_BOOL:
-		var btn = Button.new(); btn.text = str(val).to_upper(); btn.flat = true
-		btn.add_theme_font_size_override("font_size", 12)
-		btn.add_theme_color_override("font_color", InspectorStyle.COLOR_SUCCESS if val else InspectorStyle.COLOR_DANGER)
-		btn.pressed.connect(func(): cur_data.properties[key] = !val; data_modified.emit(); _refresh_props())
-		hb.add_child(btn)
-	else:
-		var ed = LineEdit.new(); ed.text = str(val); ed.flat = true; ed.expand_to_text_length = true; ed.custom_minimum_size.x = 30
-		ed.add_theme_font_size_override("font_size", 12); ed.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
-		ed.text_submitted.connect(func(t): 
-			if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-				cur_data.properties[key] = t.to_float() if t.is_valid_float() else val
-			else:
-				cur_data.properties[key] = t
-			data_modified.emit(); _refresh_props()
-		)
-		hb.add_child(ed)
-		
-	var del = Button.new(); del.text = "×"; del.flat = true
-	del.add_theme_font_size_override("font_size", 14); del.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	del.add_theme_color_override("font_hover_color", Color(1, 0.5, 0.5))
-	del.pressed.connect(func(): cur_data.properties.erase(key); data_modified.emit(); _refresh_props()); hb.add_child(del)
-	return panel
+	PropertyTagRow.add_nested_rows(props_box, cur_data.properties, "the region's own editor")
+
+func _on_row_modified() -> void:
+	data_modified.emit()
+

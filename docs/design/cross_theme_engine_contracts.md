@@ -1,6 +1,11 @@
 # Cross-theme engine contracts
 
-**Status:** proposed architecture and next active refactor track (2026-09-18).
+**Status:** architecture proposal and implementation record begun 2026-09-18.
+Current delivery order is [chunks §6](../plan/chunks-of-work.md); the
+[game-authoring roadmap](../plan/game-authoring-roadmap.md) connects these layers
+to editor workflows, contrasting consumers and safe changes after content exists.
+Examples below are design shapes, not a promise that every field or migration
+policy is already supported by the runtime/editor.
 
 ## Why this exists
 

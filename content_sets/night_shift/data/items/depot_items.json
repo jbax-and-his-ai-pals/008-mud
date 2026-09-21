@@ -34,5 +34,101 @@
         "value": 1,
         "durability": 4,
         "max_durability": 4
+    },
+    "item_energy_drink": {
+        "type": "Consumable",
+        "name": "energy drink",
+        "description": "Chilled, sickly sweet, and the only thing on the shelf anyone actually buys at three in the morning.",
+        "weight": 0.4,
+        "value": 4,
+        "stackable": true,
+        "properties": {
+            "effect_type": "heal",
+            "effect_value": 8
+        }
+    },
+    "item_lottery_ticket": {
+        "type": "Treasure",
+        "name": "scratch ticket",
+        "description": "Scratched, and not a winner. Somebody will still give you something for it.",
+        "weight": 0.01,
+        "value": 5,
+        "stackable": true,
+        "properties": {}
+    },
+    "item_register": {
+        "type": "Container",
+        "name": "register",
+        "description": "The till, open at the drawer and never quite empty.",
+        "weight": 8,
+        "value": 10,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "owned_by_npc": "dana",
+            "capacity": 20,
+            "contains": [
+                {
+                    "item_id": "item_energy_drink",
+                    "quantity": 2
+                },
+                {
+                    "item_id": "item_lottery_ticket",
+                    "quantity": 1
+                }
+            ]
+        }
+    },
+    "item_tool_crib": {
+        "type": "Container",
+        "name": "tool crib",
+        "description": "A shallow steel crib of the things a store needs to open its own doors: cutters, tape, spare keys, and the cards staff cut into shims.",
+        "weight": 25,
+        "value": 5,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "owned_by_npc": "priya",
+            "capacity": 40,
+            "_comment": "One of the two sources for a lockpick, and the cheap one: a shim card lasts four attempts, which is two escapes' worth if you are lucky and one if you are not.",
+            "contains": [
+                {
+                    "item_id": "item_shim_card",
+                    "quantity": 2
+                },
+                {
+                    "item_id": "item_box_cutter",
+                    "quantity": 1
+                }
+            ]
+        }
+    },
+    "item_storeroom_cage": {
+        "type": "Container",
+        "name": "wire cage",
+        "description": "A wheeled cage of high-value stock, chained to the wall and locked with something better than the door.",
+        "weight": 60,
+        "value": 20,
+        "stackable": false,
+        "properties": {
+            "locked": true,
+            "lock_difficulty": 25,
+            "is_open": false,
+            "owned_by_npc": "priya",
+            "capacity": 60,
+            "_comment": "The second source for a lockpick, and the one worth the walk: a master shim lasts twenty attempts against a drawer latch or a cell door alike.",
+            "contains": [
+                {
+                    "item_id": "item_master_shim",
+                    "quantity": 1
+                },
+                {
+                    "item_id": "item_multitool",
+                    "quantity": 2
+                }
+            ]
+        }
     }
 }

@@ -4,11 +4,15 @@ import uuid
 from typing import Dict, Any, Optional
 
 from engine.utils.utils import simple_plural
+from engine.world import factions
 
 def generate_kill_objective(world, player_level, giver_npc, config) -> Optional[Dict[str, Any]]:
     level_range = config.get("quest_level_range_player", 3)
     min_lvl, max_lvl = max(1, player_level - level_range), player_level + level_range
-    valid_targets = [tid for tid, t in world.npc_templates.items() if t.get("faction") == "hostile" and min_lvl <= t.get("level", 1) <= max_lvl]
+    valid_targets = [
+        tid for tid, t in world.npc_templates.items()
+        if factions.is_hostile(t, world) and min_lvl <= t.get("level", 1) <= max_lvl
+    ]
     if not valid_targets: return None
     selected_tid = random.choice(valid_targets)
     target_template = world.npc_templates[selected_tid]
@@ -35,7 +39,7 @@ def generate_fetch_objective(world, player_level, giver_npc, config) -> Optional
         if item_template.get("type") == "Key" or "{" in item_name or "}" in item_name:
             continue
         for mob_tid, mob_template in world.npc_templates.items():
-            if mob_template.get("faction") == "hostile" and min_mob_lvl <= mob_template.get("level", 1) <= max_mob_lvl:
+            if factions.is_hostile(mob_template, world) and min_mob_lvl <= mob_template.get("level", 1) <= max_mob_lvl:
                 if item_id in mob_template.get("loot_table", {}):
                         valid_options.append((item_id, mob_tid))
     if not valid_options: return None
@@ -69,7 +73,10 @@ def _delivery_package_item_id(world) -> Optional[str]:
 
 
 def generate_deliver_objective(world, player_level, giver_npc, config) -> Optional[Dict[str, Any]]:
-    recipients = [npc for npc in world.npcs.values() if npc.is_alive and npc.faction != "hostile" and npc.obj_id != giver_npc.obj_id]
+    recipients = [
+        npc for npc in world.npcs.values()
+        if npc.is_alive and not factions.is_hostile(npc, world) and npc.obj_id != giver_npc.obj_id
+    ]
     if not recipients: return None
     recipient_npc = random.choice(recipients)
     package_item_id = _delivery_package_item_id(world)

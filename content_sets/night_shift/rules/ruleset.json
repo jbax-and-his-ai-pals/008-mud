@@ -62,6 +62,45 @@
       "evasion": { "stat": "agility", "per_point": 2 }
     }
   },
+  "social": {
+    "_comment": "The overnight ladder, in this set's own words. Declared rather than inherited: without a section the engine's defaults applied -- tier names nobody here chose, and a 15% discount off Dana's shelf. It is short because the shift is short: Dana is one clerk behind one counter, and being remembered by name is most of what there is to earn.",
+    "tiers": [
+      { "min": 12, "label": "On the list", "vendor_discount": 0.12 },
+      { "min": 5, "label": "A face", "vendor_discount": 0.07 },
+      { "min": 2, "label": "Not a stranger", "vendor_discount": 0.03 },
+      { "min": 0, "label": "Never seen you", "vendor_discount": 0.0 }
+    ]
+  },
+  "advancement": {
+    "_comment": "The set's activity ledger. Before this it declared no `advancement` at all, so every entry the engine recorded -- walking into the depot, meeting Priya, surviving the dog -- was written to the journal and paid nothing. The kinds here are the ones this engine actually records on a night shift; `craft`, `spell` and `quest` entries are deliberately absent because a depot has no recipes, no casting and no quests, and a grant for an activity nothing performs is a rule that can never fire.",
+    "curve": { "base": 60, "multiplier": 1.3 },
+    "grants": [
+      {
+        "id": "region_entry",
+        "match": { "kind": "region" },
+        "xp": 30,
+        "message": "You have not worked this depot before."
+      },
+      {
+        "id": "landmark",
+        "match": { "kind": "landmark" },
+        "xp": 12,
+        "message": "You take note of the door and what locks it."
+      },
+      {
+        "id": "first_creature",
+        "match": { "kind": "creature" },
+        "xp": 15,
+        "message": "You will know that dog again."
+      },
+      {
+        "id": "first_bond",
+        "match": { "kind": "relationship", "once_per_kind": true },
+        "xp": 20,
+        "message": "Being remembered here is worth something."
+      }
+    ]
+  },
   "player_defaults": {
     "player_class": "Attendant",
     "starting_inventory": [

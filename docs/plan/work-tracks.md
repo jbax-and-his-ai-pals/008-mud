@@ -275,6 +275,14 @@ content that had passed every gate stopped loading.
 **Needs:** Track D's contracts, to know what a valid document is. An editor
 cannot be ahead of the contract, only behind it.
 
+**Next (2026-09-20):** *the editor manages the engine* — ruleset and contract
+authoring, set management, and the writes that are currently ignored. Assessed in
+`editor-readiness.md`, sequenced as `chunks-of-work.md` chunk 6, and proposed as
+items 8-14 in `track-roadmaps/track-G-world-editor.md`. The two rules that bound it:
+no section gets a form before Track B supplies its validator (see Track B's
+handoffs), and every vocabulary it holds must come from
+`toolkit/engine_vocabulary_dump.py` so a parity test can hold it.
+
 ---
 
 ## Track H — Testing
@@ -471,6 +479,11 @@ re-proposed. Each entry is a decision, not a backlog item.
 | Chasing a coverage number (Track H) | Coverage of the wrong behaviour is worse than none. |
 | A gate that is the only place a rule is known (Track I) | A second reader that disagrees with the first is how the engine and the gate drift. |
 | Editing a file another track owns "just this once" | Every exception so far has cost more than the handoff would have. Write the finding down instead. |
+| An in-game authoring tool as a mod plugin (G7, parked 2026-09-19) | The editor is the authoring front-end and `toolkit/` is the validation surface, so a plugin-shaped tool has no named consumer. The spike would answer a question nobody is asking; the plugin API is not a missing primitive until in-game tooling is actually wanted. |
+| A gate step refusing a `stats.roles` entry whose stat the set does not carry | Tempting after `orbital_salvage` declared `ability_power`/`resistance` against two stats no orbital entity had. But `order` is a *display* list and a role may deliberately name an undisplayed stat, so the rule is wrong in general. **Confirmed right to refuse (2026-09-19):** orbital's `resistance` role now names `insulation`, a rating its crew carry in small numbers and its players do not carry at all — a gate would have forbidden exactly the declaration that fixed an energy-damage balance bug. |
+| Turning on the ambient wanderer spawner (`spawner.npc_types`) while placing the three unplaced NPCs (2026-09-20) | `Spawner._spawn_npcs_in_region` is implemented, unit-tested (`test_spawner_npcs.py`, 9 tests) and **no content set has ever declared `npc_types`**, so it has never spawned anything — and `forest_hermit`, `wandering_mage` and `wandering_priest` were authored for it and sat unreachable. The three are now placed in rooms instead, like every other NPC in the set. Switching the spawner on is a world-*density* decision (up to three ambient wanderers per active region, spawning over time, with randomized names), and it should be made with a density pass across all four sets rather than as a side effect of placing two NPCs. The dead-feature finding is the part worth keeping; it is Track B/F work, not chunk 4's. |
+| ~~Contract/family authoring in the editor~~ **Reversed 2026-09-20** | Refused on the grounds that "the schema owns what may exist; a layout editor over `item_families` is a second schema". The reversal keeps the reason and changes the conclusion: the editor must *ask* `ContractRegistry`/`content_set.py` what is valid rather than model families itself — the same arrangement `EngineValidator` already uses for content — and every item template names a family, so a set whose author cannot declare one cannot use the item contract at all. Recorded here so the old refusal is not cited against Track G item 9. |
+| Hot reload / live server sync (2026-09-20) | **Stays refused.** It needs a watch mode plus engine-side verification, and it would let the editor claim engine state it cannot see — the opposite of "the editor asks the engine". A dedicated server plus `--reload` already covers the workflow it would replace; the editor's job is to write the files the engine reads on its next load. |
 
 ### Adopted: a system is not finished until two themes use it
 
@@ -498,11 +511,11 @@ document is the map.
 
 | Document | Track |
 |---|---|
-| [`world-editor-track.md`](world-editor-track.md), [`world-editor-gap-matrix.md`](world-editor-gap-matrix.md), [`world-editor-evaluation.md`](world-editor-evaluation.md) | G |
-| [`engine-capability-track.md`](engine-capability-track.md) | B (predates the contract work; its capability *targets* are still the right list) |
-| [`content-authoring-and-mod-publishing-guidelines.md`](content-authoring-and-mod-publishing-guidelines.md) | F |
-| [`documentation-track.md`](documentation-track.md), [`documentation-information-architecture.md`](documentation-information-architecture.md) | J |
-| [`accessibility-track.md`](accessibility-track.md), [`mobile-track.md`](mobile-track.md), [`client-track.md`](client-track.md), [`server-setup-wizard-track.md`](server-setup-wizard-track.md), [`steam-packaging-track.md`](steam-packaging-track.md) | **surfaces** — they consume the engine and can run whenever |
+| [`world-editor-track.md`](../archive/world-editor-track.md), [`world-editor-gap-matrix.md`](../archive/world-editor-gap-matrix.md), [`world-editor-evaluation.md`](../archive/world-editor-evaluation.md) | G |
+| [`engine-capability-track.md`](../archive/engine-capability-track.md) | B (predates the contract work; its capability *targets* are still the right list) |
+| [`content-authoring-and-mod-publishing-guidelines.md`](../reference/content-authoring-and-mod-publishing-guidelines.md) | F |
+| [`documentation-track.md`](../archive/documentation-track.md), [`documentation-information-architecture.md`](../archive/documentation-information-architecture.md) | J |
+| [`accessibility-track.md`](../archive/accessibility-track.md), [`mobile-track.md`](../archive/mobile-track.md), [`client-track.md`](../archive/client-track.md), [`server-setup-wizard-track.md`](../archive/server-setup-wizard-track.md), [`steam-packaging-track.md`](../archive/steam-packaging-track.md) | **surfaces** — they consume the engine and can run whenever |
 | [`/ROADMAP.md`](../../ROADMAP.md) | K — the active phase order; wins over anything here |
 
 `docs/archive/roadmap-README-superseded.md` marks most of this directory as historical. That is

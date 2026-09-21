@@ -388,6 +388,15 @@ func _refresh_props():
 	var props = cur_data.properties
 	for key in props:
 		var val = props[key]
+		# Objects and arrays cannot make a lossless trip through a LineEdit:
+		# `str(value)` is GDScript debug syntax, not editable JSON. Keep them
+		# visible but read-only until their dedicated item-property controls exist.
+		# `equip_slot` is the one structured property this inspector owns.
+		if key != "equip_slot" and not PropertyTagRow.is_inline_editable(val):
+			props_box.add_child(PropertyTagRow.build_nested_row(
+				str(key), val, "a dedicated item-property editor (not available here yet)"
+			))
+			continue
 		var panel = PanelContainer.new()
 		var style = StyleBoxFlat.new(); style.bg_color = Color(0.25, 0.25, 0.28); style.set_corner_radius_all(6)
 		style.content_margin_left = 10; style.content_margin_right = 10; style.content_margin_top = 4; style.content_margin_bottom = 4
@@ -434,7 +443,12 @@ func _refresh_props():
 		elif typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
 			var sb = SpinBox.new(); sb.step = 0.1; sb.allow_greater = true; sb.allow_lesser = true
 			sb.value = val; sb.custom_minimum_size.x = 80
-			InspectorStyle.apply_input_style(sb); sb.value_changed.connect(func(v): props[key] = v; database_modified.emit())
+			# SpinBox emits floats. Preserve authored integer fields so the number
+			# gate does not later reject an editor-produced `2.0` for `2`.
+			InspectorStyle.apply_input_style(sb); sb.value_changed.connect(func(v):
+				props[key] = int(v) if typeof(val) == TYPE_INT else v
+				database_modified.emit()
+			)
 			hb.add_child(sb)
 		else:
 			var ed_v = LineEdit.new(); ed_v.text = str(val); ed_v.custom_minimum_size.x = 150

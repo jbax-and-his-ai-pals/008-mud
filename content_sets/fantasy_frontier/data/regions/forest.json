@@ -75,7 +75,12 @@
                 "north": "dense_woods_1",
                 "east": "stream_approach",
                 "west": "clearing"
-            }
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "wandering_mage"
+                }
+            ]
         },
         "western_thicket": {
             "name": "Western Thicket",
@@ -265,6 +270,15 @@
                 },
                 {
                     "item_id": "node_fallen_bough"
+                }
+            ],
+            "initial_npcs": [
+                {
+                    "template_id": "forest_hermit",
+                    "instance_id": "old_bryn_ancient_oak",
+                    "overrides": {
+                        "behavior_type": "stationary"
+                    }
                 }
             ]
         }

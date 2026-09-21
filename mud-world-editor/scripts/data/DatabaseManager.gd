@@ -3,12 +3,14 @@ class_name DatabaseManager
 extends RefCounted
 
 const SaveIO = preload("res://scripts/data/SaveIO.gd")
+const COMBAT_VOCABULARY_CATALOG_SCRIPT = preload("res://scripts/data/CombatVocabularyCatalog.gd")
 
 # The content set's contracts, loaded once and shared: the item inspector lists
 # families and roll tables from it, and the contract browser shows the whole
 # vocabulary. One instance, so the editor and the engine are reading the same
 # declarations rather than two caches that can disagree.
 var catalog: ContractCatalog = ContractCatalog.new()
+var combat_vocabulary = COMBAT_VOCABULARY_CATALOG_SCRIPT.new()
 
 # Item-directory files the engine reads as something other than item templates.
 # `definition_loader` skips exactly these two when it builds `item_templates`
@@ -80,6 +82,12 @@ var collections: Dictionary = {}
 var discoveries: Dictionary = {}
 var magic_groups: Dictionary = {}
 var magic_groups_dirty := false
+# ability id -> group id, the editor's own grouping. Kept here rather than in the
+# ability entry because the engine's `Spell` takes keyword arguments and no
+# `**kwargs`, so an unknown key like `magic_group` makes the whole abilities file
+# fail to load (`spell.py`, `spell_registry.py`). An authored `magic_group` is
+# migrated out of content on load and re-emitted into `editor/magic_groups.json`.
+var magic_group_assignments: Dictionary = {}
 var titles: Dictionary = {}
 # guild_id -> {name, place}, the `_guilds` registry titles.json keeps alongside
 # the titles themselves.
@@ -131,6 +139,26 @@ func _init():
 func _ensure_dir(path):
 	if not DirAccess.dir_exists_absolute(path): DirAccess.make_dir_recursive_absolute(path)
 
+## Every stat any NPC in this content set carries, in first-seen order.
+##
+## The fallback vocabulary for a set that declares no stats: its own data rather
+## than the engine's default names, which an author never agreed to. Called
+## through `ContractCatalog.stat_vocabulary(carried_stats())`.
+func carried_stats() -> Array:
+	var out: Array = []
+	for npc_id in npcs:
+		var template = npcs[npc_id]
+		if typeof(template) != TYPE_DICTIONARY:
+			continue
+		var carried = template.get("stats", {})
+		if typeof(carried) != TYPE_DICTIONARY:
+			continue
+		for stat in carried:
+			var text := str(stat).strip_edges()
+			if text != "" and not out.has(text):
+				out.append(text)
+	return out
+
 func load_all():
 	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); dialogues.clear()
 	campaigns.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
@@ -144,9 +172,12 @@ func load_all():
 	# neutral defaults), so an empty catalog must stay loadable.
 	catalog = ContractCatalog.new()
 	catalog.load_contracts()
+	combat_vocabulary = COMBAT_VOCABULARY_CATALOG_SCRIPT.new()
+	combat_vocabulary.load()
 	_load_recursive(npc_dir(), "", npcs)
 	_load_recursive(item_dir(), "", items, READ_ONLY_ITEM_FILES)
 	_load_recursive(abilities_dir(), "", magic)
+	_migrate_magic_groups()
 	_load_recursive(quest_dir(), "", quests)
 	_load_recursive(recipe_dir(), "", recipes)
 	_load_dialogue_graphs()
@@ -277,8 +308,35 @@ func _load_magic_groups():
 		return
 	var json := JSON.new()
 	if json.parse(FileAccess.get_file_as_string(magic_groups_file())) == OK:
-		magic_groups = json.get_data().get("groups", {})
+		var payload = json.get_data()
+		magic_groups = payload.get("groups", {})
+		magic_group_assignments = payload.get("assignments", {})
 	if magic_groups.is_empty(): magic_groups = _default_magic_groups()
+
+## The group an ability is filed under, from the editor's state.
+func magic_group_of(ability_id: String) -> String:
+	return str(magic_group_assignments.get(ability_id, "")).strip_edges()
+
+func set_magic_group(ability_id: String, group_id: String) -> void:
+	if ability_id == "":
+		return
+	if group_id == "": magic_group_assignments.erase(ability_id)
+	else: magic_group_assignments[ability_id] = group_id
+	mark_magic_groups_dirty()
+
+## Move any authored `magic_group` out of the loaded abilities and into the
+## editor's state. A set written before this existed keeps the grouping an author
+## chose, and the key stops being written back into content the engine refuses.
+func _migrate_magic_groups():
+	for ability_id in magic:
+		var entry = magic[ability_id]
+		if typeof(entry) != TYPE_DICTIONARY or not entry.has("magic_group"):
+			continue
+		var group_id := str(entry["magic_group"]).strip_edges()
+		if group_id != "" and not magic_group_assignments.has(ability_id):
+			magic_group_assignments[ability_id] = group_id
+		entry.erase("magic_group")
+		mark_dirty("magic", str(ability_id))
 
 func _default_magic_groups() -> Dictionary:
 	return {
@@ -476,7 +534,10 @@ func save_all() -> Dictionary:
 
 func _save_magic_groups() -> Dictionary:
 	_ensure_dir(DataRoot.editor_dir())
-	var result: Dictionary = SaveIO.write_json(magic_groups_file(), {"groups": magic_groups})
+	var result: Dictionary = SaveIO.write_json(magic_groups_file(), {
+		"groups": magic_groups,
+		"assignments": magic_group_assignments,
+	})
 	if result.get("ok", false):
 		magic_groups_dirty = false
 	return result
@@ -492,6 +553,9 @@ func _save_category(cache: Dictionary, root_dir: String, errors: Array):
 		if not files_content.has(fname): files_content[fname] = {}
 		var save_copy = data.duplicate(true)
 		save_copy.erase("_filename")
+		# The engine's `Spell` accepts no unknown keyword, so an editor-owned key
+		# that reached an ability must not be written back.
+		save_copy.erase("magic_group")
 		# Belt and braces with the split above: nothing `_editor_*` reaches the
 		# game's content, at any nesting depth, whatever wrote it.
 		save_copy = EditorLayout.strip_entry(save_copy)

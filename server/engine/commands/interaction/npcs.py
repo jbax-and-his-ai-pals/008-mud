@@ -11,6 +11,7 @@ from engine.core import advancement
 from engine.dialogue import runner as dialogue_runner
 from engine.naming import resolve_best, resolve_exact
 from engine.utils.utils import format_name_for_display
+from engine.world import factions
 
 def _has_pending_negotiation(player, target_npc) -> bool:
     """A hostile-faction NPC will still hear you out if a quest stage is
@@ -69,7 +70,7 @@ def _resolve_target_npc(world, args, player):
             return candidate, 0
 
     # Fallback to any valid NPC
-    valid_npcs = [n for n in npcs_in_room if n.faction != "hostile" and n.faction != "player_minion"]
+    valid_npcs = [n for n in npcs_in_room if factions.can_converse(n, world)]
     if valid_npcs:
         return valid_npcs[0], 0
 
@@ -90,7 +91,7 @@ def talk_handler(args, context):
 
     if not target_npc: return f"{FORMAT_ERROR}There is no one here to talk to.{FORMAT_RESET}"
     
-    if target_npc.faction == "hostile" and not _has_pending_negotiation(player, target_npc):
+    if factions.is_hostile(target_npc, world) and not _has_pending_negotiation(player, target_npc):
         formatted_name = format_name_for_display(player, target_npc, start_of_sentence=True)
         return f"{formatted_name} {FORMAT_ERROR}refuses to listen and prepares to attack!{FORMAT_RESET}"
 
@@ -300,7 +301,7 @@ def ask_handler(args, context):
     target_npc, match_len = _resolve_target_npc(world, args, player)
     
     if not target_npc: return f"{FORMAT_ERROR}There is no one here to ask.{FORMAT_RESET}"
-    if target_npc.faction == "hostile":
+    if factions.is_hostile(target_npc, world):
         return f"{target_npc.name} {FORMAT_ERROR}refuses to listen.{FORMAT_RESET}"
 
     player.last_talked_to = target_npc.obj_id
@@ -396,7 +397,7 @@ def guide_handler(args, context):
     npc_name = " ".join(args); guide_npc = world.find_npc_in_room_for_player(npc_name, player)
     if not guide_npc: return f"{FORMAT_ERROR}You don't see '{npc_name}' here.{FORMAT_RESET}"
     
-    if guide_npc.faction == "hostile": return f"{FORMAT_ERROR}{guide_npc.name} growls at you. They won't guide you anywhere.{FORMAT_RESET}"
+    if factions.is_hostile(guide_npc, world): return f"{FORMAT_ERROR}{guide_npc.name} growls at you. They won't guide you anywhere.{FORMAT_RESET}"
 
     quest_to_guide = None
     if player.runtime_state.quests is not None:
@@ -415,6 +416,23 @@ def guide_handler(args, context):
 
     game.start_auto_travel(path, guide_npc)
     return f"{FORMAT_HIGHLIGHT}\"{guide_npc.dialog.get('accept_guide', 'Follow me!')}\"{FORMAT_RESET}"
+
+def _final_stage_dialogue(quest_data) -> str:
+    """The authored closing line of the stage the player just finished.
+
+    Read here rather than returned by `advance_quest_stage`, because that method
+    signals "the quest is over" with the string "QUEST_COMPLETE" -- one return
+    value carrying two different meanings. Content has always been able to write
+    a `completion_dialogue` on any stage, including the last one.
+    """
+    stages = quest_data.get("stages", []) if isinstance(quest_data, dict) else []
+    index = quest_data.get("current_stage_index", 0) if isinstance(quest_data, dict) else 0
+    if not isinstance(stages, list) or isinstance(index, bool) or not isinstance(index, int):
+        return ""
+    if not (0 <= index < len(stages)) or not isinstance(stages[index], dict):
+        return ""
+    return str(stages[index].get("completion_dialogue", "") or "")
+
 
 def _handle_quest_dialogue(player, target_npc, world) -> str:
     ready_quests_for_npc = []
@@ -526,7 +544,15 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
             title = quest_data.get('title', 'Quest')
             completion_msg = f"{FORMAT_SUCCESS}[Quest Complete] {title}{FORMAT_RESET}\n"
             if not dialogue or dialogue == "QUEST_COMPLETE":
-                 dialogue = target_npc.dialog.get("quest_complete", f"\"Thank you!\" says {target_npc.name}.")
+                 # `advance_quest_stage` reports the end of a quest with a
+                 # sentinel instead of the last stage's closing line, so the
+                 # authored `completion_dialogue` on a final stage never reached
+                 # the player: every single-stage quest ended on a generic
+                 # "Thank you!". Prefer what the author wrote, then the NPC's
+                 # own parting line, then the fallback.
+                 dialogue = _final_stage_dialogue(quest_data) or target_npc.dialog.get(
+                     "quest_complete", f"\"Thank you!\" says {target_npc.name}."
+                 )
             completion_msg += f"{FORMAT_HIGHLIGHT}\"{dialogue}\"{FORMAT_RESET}"
             if rewards_msg: completion_msg += f"\n{rewards_msg}"
             return completion_msg

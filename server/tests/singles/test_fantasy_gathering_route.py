@@ -11,10 +11,30 @@ from engine.items.inventory import Inventory
 from engine.player import Player
 from engine.server.content_set import load_content_set
 from engine.server.headless_server import HeadlessServer
+from tests.journey_runner import GotoDirective
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FANTASY_FRONTIER = REPO_ROOT / "content_sets" / "fantasy_frontier"
+
+
+def walk_to(server, session_id: str, region_id: str, room_id: str, limit: int = 60) -> str:
+    """Walk a session's player to a room, using the world's own exits.
+
+    The same mechanism the journey routes use, so a test that needs to *be*
+    somewhere names the somewhere. Listing the moves instead asserts the shape of
+    the world, and stops arriving when the world is re-arranged -- which is how
+    these three tests failed when town was redesigned.
+    """
+    directive = GotoDirective()
+    command = "__goto__:%s:%s" % (region_id, room_id)
+    last = ""
+    for _ in range(limit):
+        last = directive.next_direction(command, server, session_id)
+        if last == "":
+            return ""
+        server.execute_command(session_id, last)
+    return last
 
 
 class TestFantasyGatheringRoute(unittest.TestCase):
@@ -229,8 +249,7 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             server.execute_command(session.session_id, "char create Rowan")
             player = server.get_player_for_session(session.session_id)
 
-            for direction in ("east", "east", "east", "east", "east", "north"):
-                server.execute_command(session.session_id, direction)
+            walk_to(server, session.session_id, "foothills", "rocky_outcrop")
             self.assertEqual(("foothills", "rocky_outcrop"), (player.current_region_id, player.current_room_id))
 
             outcrop = server.world.get_region("foothills").get_room("rocky_outcrop")
@@ -468,8 +487,9 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             session = server.create_session(player_id="masterwork_facet_player")
             server.execute_command(session.session_id, "char create Rowan")
             player = server.get_player_for_session(session.session_id)
-            server.execute_command(session.session_id, "southeast")
-            server.execute_command(session.session_id, "in")
+            # The lapidary wheel lives in the museum interior; name it rather
+            # than the two moves that used to reach it.
+            walk_to(server, session.session_id, "town", "museum_interior")
 
             for _ in range(3):
                 rough = ItemFactory.create_item_from_template("item_rose_quartz", server.world)
@@ -501,8 +521,9 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             self.assertIsNotNone(rose_quartz)
             player.inventory.add_item(rose_quartz)
 
-            server.execute_command(session.session_id, "southeast")
-            server.execute_command(session.session_id, "in")
+            # The lapidary wheel lives in the museum interior; name it rather
+            # than the two moves that used to reach it.
+            walk_to(server, session.session_id, "town", "museum_interior")
             donated = server.execute_command(session.session_id, "turnin")
             donated_text = "\n".join(str(event["payload"]) for event in donated)
 
@@ -531,8 +552,9 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             self.assertIn("rough specimen", appraisal_text)
             self.assertIn("cuttable", appraisal_text)
 
-            server.execute_command(session.session_id, "southeast")
-            server.execute_command(session.session_id, "in")
+            # The lapidary wheel lives in the museum interior; name it rather
+            # than the two moves that used to reach it.
+            walk_to(server, session.session_id, "town", "museum_interior")
             crafted = server.execute_command(session.session_id, "craft facet_rose_quartz")
             crafted_text = "\n".join(str(event["payload"]) for event in crafted)
             self.assertIn("Successfully crafted", crafted_text)
@@ -779,27 +801,31 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             server.execute_command(session.session_id, "accept quest 1")
             server.execute_command(session.session_id, "talk Elder Thorne")
             server.execute_command(session.session_id, "reply commission")
-            for command in ("west", "south", "gather herb bed", "gather herb bed", "craft tie_wildflower_posy", "north", "east"):
+            # Name the destinations rather than the moves: the herb bed and the
+            # elder's square are what this assertion is about, and town's shape is
+            # not.
+            walk_to(server, session.session_id, "town", "community_garden")
+            for command in ("gather herb bed", "gather herb bed", "craft tie_wildflower_posy"):
                 server.execute_command(session.session_id, command)
+            walk_to(server, session.session_id, "town", "town_square")
             first_delivery = server.execute_command(session.session_id, "give wildflower posy to Elder Thorne")
             self.assertIn("Quest Complete", "\n".join(str(event["payload"]) for event in first_delivery))
             self.assertEqual(12, player.runtime_state.gold)
 
             server.execute_command(session.session_id, "accept quest 1")
-            for command in ("east", "east"):
-                server.execute_command(session.session_id, command)
+            walk_to(server, session.session_id, "town", "market_square")
             server.execute_command(session.session_id, "trade Talia")
             bought = server.execute_command(session.session_id, "buy hand axe")
             self.assertIn("You buy", "\n".join(str(event["payload"]) for event in bought))
             self.assertEqual(0, player.runtime_state.gold)
 
-            for command in ("east", "east", "east", "northwest", "west", "gather fallen bough", "gather fallen bough"):
+            walk_to(server, session.session_id, "forest", "ancient_oak")
+            for command in ("gather fallen bough", "gather fallen bough"):
                 server.execute_command(session.session_id, command)
             crafted = server.execute_command(session.session_id, "craft carve_riverside_charm")
             self.assertIn("Successfully", "\n".join(str(event["payload"]) for event in crafted))
 
-            for command in ("east", "southeast", "west", "west", "west", "west", "west"):
-                server.execute_command(session.session_id, command)
+            walk_to(server, session.session_id, "town", "town_square")
             completed = server.execute_command(session.session_id, "give carved riverside charm to Elder Thorne")
             self.assertIn("Quest Complete", "\n".join(str(event["payload"]) for event in completed))
             self.assertEqual(20, player.runtime_state.gold)

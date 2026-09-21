@@ -27,10 +27,10 @@ Ship a stable Engine + Toolkit product on Steam with sample packs and support-re
 
 ## Evidence
 
-- Entitlement guard + session gating: [entitlement.py](../../server/engine/server/entitlement.py)
-- Load and soak test suite: [test_load_soak.py](../../server/tests/singles/test_load_soak.py)
-- Support workflow and on-call runbook: [support-workflow.md](../support-workflow.md)
-- Patching and rollback policy: [support-workflow.md](../support-workflow.md)
-- Save content-isolation policy: [save-content-isolation-policy.md](../save-content-isolation-policy.md)
-- Onboarding and tutorial flow: [onboarding-tutorial-flow.md](../onboarding-tutorial-flow.md)
-- Final launch checklist: [launch-checklist.md](../launch-checklist.md)
+- Entitlement guard + session gating: [entitlement.py](../../../server/engine/server/entitlement.py)
+- Load and soak test suite: [test_load_soak.py](../../../server/tests/singles/test_load_soak.py)
+- Support workflow and on-call runbook: [support-workflow.md](../../reference/support-workflow.md)
+- Patching and rollback policy: [support-workflow.md](../../reference/support-workflow.md)
+- Save content-isolation policy: [save-content-isolation-policy.md](../../reference/save-content-isolation-policy.md)
+- Onboarding and tutorial flow: [onboarding-tutorial-flow.md](../../reference/onboarding-tutorial-flow.md)
+- Final launch checklist: [launch-checklist.md](../../reference/launch-checklist.md)

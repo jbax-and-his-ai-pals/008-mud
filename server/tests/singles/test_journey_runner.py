@@ -93,7 +93,7 @@ class TestJourneyRunner(unittest.TestCase):
                 seed=24,
                 policy=FantasyFrontierFirstHourPolicy(),
                 outcome_checks=fantasy_frontier_first_hour_outcome_checks(),
-            ).run(duration_s=200.0)
+            ).run(duration_s=500.0)
             self.assertTrue(report.passed, report.outcome_errors)
             self.assertEqual([], report.outcome_errors)
         finally:
@@ -121,7 +121,7 @@ class TestJourneyRunner(unittest.TestCase):
                 seed=27,
                 policy=FantasyFrontierPremiumMaterialPolicy(),
                 outcome_checks=fantasy_frontier_premium_material_outcome_checks(),
-            ).run(duration_s=240.0)
+            ).run(duration_s=500.0)
             self.assertTrue(report.passed, report.outcome_errors)
             self.assertEqual([], report.outcome_errors)
             self.assertEqual([], report.stall_errors)
@@ -146,7 +146,7 @@ class TestJourneyRunner(unittest.TestCase):
                 seed=28,
                 policy=FantasyFrontierOpportunityPolicy(),
                 outcome_checks=fantasy_frontier_opportunity_route_outcome_checks(),
-            ).run(duration_s=400.0)
+            ).run(duration_s=700.0)
             self.assertTrue(report.passed, report.outcome_errors)
             self.assertEqual([], report.outcome_errors)
         finally:

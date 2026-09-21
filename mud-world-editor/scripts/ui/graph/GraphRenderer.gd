@@ -110,11 +110,11 @@ static func draw_graph(canvas: Node2D, nodes: Dictionary, data: Dictionary, sele
 				
 				if d_lower in ["north", "south", "east", "west", "n", "s", "e", "w"]:
 					line_col = COL_CARDINAL
-				elif d_lower in ["up", "climb"]:
+				elif d_lower in ["up", "climb", "surface"]:
 					line_col = COL_UP
-				elif d_lower in ["down", "dive"]:
+				elif d_lower in ["down", "dive", "descend"]:
 					line_col = COL_DOWN
-				elif d_lower in ["in", "out"]:
+				elif d_lower in ["in", "out", "enter", "exit", "inside", "outside"]:
 					line_col = COL_IN_OUT
 				else:
 					line_col = COL_DIAG
@@ -123,19 +123,40 @@ static func draw_graph(canvas: Node2D, nodes: Dictionary, data: Dictionary, sele
 				if is_hl: line_col = COL_HL
 				
 				# Determine if curved
-				var is_curved_type = d_lower in ["up", "down", "climb", "dive", "in", "out"]
+				var is_curved_type = d_lower in ["up", "down", "climb", "descend", "surface", "dive", "in", "out", "enter", "exit", "inside", "outside"]
+
+				# Which side a curved connection bows toward is otherwise decided by
+				# the perpendicular of the line between the two rooms, so the same
+				# "in"/"out" exit can bow either way depending on where its rooms
+				# happen to sit -- and re-arranging the map silently flips it. The
+				# author's choice lives in `_editor_exit_layout` (editor-only state,
+				# kept out of the content files) as `curve: "left" | "right"` and
+				# `curve_amount: "tight" | "normal" | "wide"`.
+				var curve_side := ""
+				var curve_scale := 1.0
+				var exit_layout = rooms[rid].get("_editor_exit_layout", {})
+				# Never index optional editor metadata. Older regions (and a room whose
+				# other exit has a curve override) legitimately have no entry for this
+				# direction; GDScript does not make the preceding type check safe for a
+				# later `dictionary[key]` access.
+				var this_exit_layout = exit_layout.get(dir, null) if exit_layout is Dictionary else null
+				if this_exit_layout is Dictionary:
+					curve_side = str(this_exit_layout.get("curve", ""))
+					curve_scale = CURVE_AMOUNT_SCALE.get(
+						str(this_exit_layout.get("curve_amount", "")), 1.0
+					)
 
 				if is_curved_type:
-					_draw_curve_connection(canvas, start, end, line_col, is_hl, is_two_way, dir, rev_dir, pair_label, font, style)
+					_draw_curve_connection(canvas, start, end, line_col, is_hl, is_two_way, dir, rev_dir, pair_label, font, style, curve_side, curve_scale)
 				else:
 					_draw_straight_connection(canvas, start, end, line_col, is_hl, is_two_way, dir, rev_dir, pair_label, font, style, is_external)
 
 			else:
 				var stub_col = COL_DEF
 				var d_l = dir.to_lower()
-				if d_l in ["up", "climb"]: stub_col = COL_UP
-				elif d_l in ["down", "dive"]: stub_col = COL_DOWN
-				elif d_l in ["in", "out"]: stub_col = COL_IN_OUT
+				if d_l in ["up", "climb", "surface"]: stub_col = COL_UP
+				elif d_l in ["down", "dive", "descend"]: stub_col = COL_DOWN
+				elif d_l in ["in", "out", "enter", "exit", "inside", "outside"]: stub_col = COL_IN_OUT
 				
 				canvas.draw_circle(start, 4.0, stub_col)
 				var stub_vec = Constants.DIR_VECTORS.get(d_l, Vector2(1,0))
@@ -179,15 +200,29 @@ static func _draw_straight_connection(c: Node2D, from: Vector2, to: Vector2, col
 	else:
 		_draw_label_rotated(c, font, style, mid, pair_label, angle)
 
-static func _draw_curve_connection(c: Node2D, from: Vector2, to: Vector2, col: Color, highlight: bool, two_way: bool, dir1: String, dir2: String, pair_label: String, font: Font, style: StyleBox):
+## How far an authored bow is scaled. The keys mirror
+## `RoomConnectionsPanel.CURVE_AMOUNT_SCALE`, which is what offers them; the
+## renderer only needs to agree on what the names mean.
+const CURVE_AMOUNT_SCALE := {"tight": 0.5, "normal": 1.0, "wide": 1.6}
+
+static func _draw_curve_connection(c: Node2D, from: Vector2, to: Vector2, col: Color, highlight: bool, two_way: bool, dir1: String, dir2: String, pair_label: String, font: Font, style: StyleBox, curve_side: String = "", curve_scale: float = 1.0):
 	var w = LINE_WIDTH + (2.0 if highlight else 0.0)
 	var dist = from.distance_to(to)
 	
 	var dir_vec = (to - from).normalized()
 	var perp = Vector2(-dir_vec.y, dir_vec.x)
+
+	# An authored side wins over the geometric default. Only the *sign* is taken
+	# from the author: the magnitude comes from `curve_scale`, so flipping a
+	# connection mirrors it and the two controls stay independent.
+	if curve_side == "left":
+		perp = -perp
+	elif curve_side == "right":
+		pass
 	
 	var curve_amount = min(dist * 0.5, 120.0)
 	if curve_amount < 40.0: curve_amount = 40.0
+	curve_amount *= curve_scale
 	
 	var control = (from + to) / 2.0 + (perp * curve_amount)
 	

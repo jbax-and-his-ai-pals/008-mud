@@ -63,7 +63,7 @@
         },
         "wayfarers_rest": {
             "name": "Wayfarers' Rest",
-            "description": "A cool common room opens around a small tiled courtyard. Route maps, old warnings, and names of lost caravans cover the walls between low tables set for travellers who have made it in from the dunes.",
+            "description": "A cool common room opens around a small tiled courtyard. Route maps, old warnings, and names of lost caravans cover the walls between low tables set for travellers who have made it in from the dunes. A board by the courtyard door carries work posted for whoever is heading on next.",
             "properties": {
                 "indoors": true
             },

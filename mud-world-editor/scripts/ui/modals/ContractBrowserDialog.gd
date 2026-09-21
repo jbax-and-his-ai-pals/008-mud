@@ -26,6 +26,10 @@ var sections: Array = []
 
 
 func setup(contract_catalog: ContractCatalog):
+	for child in get_children():
+		if child is HBoxContainer:
+			remove_child(child)
+			child.queue_free()
 	catalog = contract_catalog
 	title = "Content contracts"
 	min_size = Vector2i(880, 560)

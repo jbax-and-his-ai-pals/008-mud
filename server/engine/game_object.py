@@ -167,9 +167,12 @@ class GameObject:
                 y = SCREEN_HEIGHT // 2 - 100
                 
                 # Determine Color
-                # We check class name string to avoid circular import of Player class for isinstance check
-                is_player = self.__class__.__name__ == "Player"
-                color = (255, 50, 50) if is_player else (255, 255, 255)
+                # A lazy import rather than `isinstance` at the top of the module:
+                # `engine.player` imports this one, so the type check has to wait
+                # until it is needed. The class-name string this replaced also
+                # missed subclasses of Player, which isinstance does not.
+                from engine.player import Player
+                color = (255, 50, 50) if isinstance(self, Player) else (255, 255, 255)
                 
                 # Add Text
                 game_ref.renderer.add_floating_text(f"-{actual_damage_taken}", x, y, color)

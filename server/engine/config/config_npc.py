@@ -16,7 +16,31 @@ NPC_DEFAULT_FLEE_THRESHOLD = 0.2
 NPC_DEFAULT_RESPAWN_COOLDOWN = 600
 NAMED_NPC_RESPAWN_COOLDOWN = 60
 NPC_MAX_COMBAT_MESSAGES = 5
-NPC_BEHAVIOR_TYPES = ["stationary", "wanderer", "patrol", "follower", "scheduled", "aggressive", "minion"]
+
+# Every behaviour an author may write on an NPC template, and what each one does
+# (see `npcs/ai/dispatcher.py`, which dispatches through this list rather than
+# through its own comparisons). This is engine-owned vocabulary: a value outside
+# it means the NPC has no AI routine at all and stands still, which is why the
+# content gate warns about one.
+#
+#   stationary  stands where it is placed -- shopkeepers, guards on a gate
+#   wanderer    drifts between adjacent rooms on its own cooldown
+#   aggressive  wanders *and* hunts what it considers an enemy
+#   patrol      walks a fixed `patrol_points` loop
+#   follower    follows its `follow_target`
+#   scheduled   moves to `work_location` etc. by the hour, per `npc_schedules`
+#   healer      heals nearby allies (and is otherwise a wanderer)
+#   minion      summoned: expires after `summon_duration`, obeys its owner
+NPC_BEHAVIOR_TYPES = [
+    "stationary", "wanderer", "aggressive", "patrol", "follower", "scheduled",
+    "healer", "minion",
+]
+
+# Behaviours the engine assigns to itself, never read from content: an NPC that
+# runs out of mana retreats, and is put back to whatever it was afterwards
+# (`npc.original_behavior`). Listed so the dispatcher can tell "no routine for
+# this name" from "this name is a state the engine owns".
+NPC_RUNTIME_BEHAVIORS = ["retreating_for_mana"]
 
 # --- NPC Health & Mana ---
 NPC_BASE_HEALTH = 30

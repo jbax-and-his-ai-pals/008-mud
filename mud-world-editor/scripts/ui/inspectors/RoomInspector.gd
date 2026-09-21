@@ -5,6 +5,8 @@ extends RefCounted
 signal data_modified
 signal request_rename(old, new)
 signal request_connection_form(id, name)
+signal request_delete_connection(source_id, direction, target, also_reciprocal)
+signal request_curve_change(source_id, direction, curve_action)
 signal request_save_template(room_id) # New Signal
 
 # Sub-panel controllers
@@ -46,6 +48,12 @@ func build(id: String, data: Dictionary):
 	conn_panel.build(container, cur_id, cur_data.get("name", "Unnamed"), cur_data.exits, region_mgr, world_mgr)
 	conn_panel.data_modified.connect(func(): data_modified.emit())
 	conn_panel.request_connection_form.connect(func(cid, cname): request_connection_form.emit(cid, cname))
+	conn_panel.request_delete_connection.connect(
+		func(sid, dir, target, reciprocal): request_delete_connection.emit(sid, dir, target, reciprocal)
+	)
+	conn_panel.request_curve_change.connect(
+		func(sid, dir, action): request_curve_change.emit(sid, dir, action)
+	)
 
 	content_panel = CONTENT_PANEL_SCRIPT.new()
 	content_panel.build(container, cur_data, database_mgr)

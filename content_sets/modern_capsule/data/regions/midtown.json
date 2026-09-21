@@ -62,13 +62,18 @@
         },
         "library_lobby": {
             "name": "Library Lobby",
-            "description": "The public library lobby is quiet and welcoming, with returns slots, event posters, and a self-service checkout kiosk.",
+            "description": "The public library lobby is quiet and welcoming, with returns slots, event posters, and a self-service checkout kiosk. A low shelf beside the returns slot holds things people have left behind, each with a paper tag: free to a good home.",
             "properties": {
                 "outdoors": false
             },
             "exits": {
                 "south": "library_walk"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "broken_lamp"
+                }
+            ]
         },
         "station_concourse": {
             "name": "Station Concourse",

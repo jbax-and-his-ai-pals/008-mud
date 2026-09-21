@@ -4,7 +4,8 @@ import random
 import time
 from engine.config import (
     HIT_CHANCE_AGILITY_FACTOR, LEVEL_DIFF_COMBAT_MODIFIERS, MAX_HIT_CHANCE, MIN_HIT_CHANCE, MINIMUM_DAMAGE_TAKEN, FORMAT_RESET,
-    FORMAT_SUCCESS, NPC_ATTACK_DAMAGE_VARIATION_RANGE, NPC_BASE_HIT_CHANCE, NPC_LOW_MANA_RETREAT_THRESHOLD, FACTION_RELATIONSHIP_MATRIX,
+    FORMAT_SUCCESS, NPC_ATTACK_DAMAGE_VARIATION_RANGE, NPC_BASE_HIT_CHANCE,
+    NPC_LOW_MANA_RETREAT_THRESHOLD,
     DEFAULT_WEAPON_DAMAGE_TYPE
 )
 from engine.config.config_display import FORMAT_ERROR
@@ -39,20 +40,21 @@ def get_relation_to(viewer: Union['NPC', 'Player'], target: Union['NPC', 'Player
     If Viewer is NPC and Target is Player: Base Matrix + Player Rep.
     """
     if not hasattr(viewer, 'faction') or not hasattr(target, 'faction'): return 0
-    
-    viewer_faction = viewer.faction
-    target_faction = target.faction
-    
-    # 1. Base Matrix Value
-    relation_map = FACTION_RELATIONSHIP_MATRIX.get(viewer_faction)
-    base_val = relation_map.get(target_faction, 0) if relation_map else 0
-    
+
+    # The world's matrix, not the engine's flat one: a content set that declares
+    # its own factions (ruleset `factions`) has to be able to name its enemies,
+    # or combat is the one system that would never notice.
+    from engine.world import factions as faction_rules
+
+    world = getattr(viewer, "world", None) or getattr(target, "world", None)
+    base_val = faction_rules.attitude(world, viewer, target)
+
     # 2. Player Reputation Modifier
     # Only applies if the viewer is an NPC judging the Player
     modifier = 0
     from engine.player import Player
     if isinstance(target, Player):
-        modifier = target.reputation.get(viewer_faction, 0)
+        modifier = target.reputation.get(viewer.faction, 0)
         
     return base_val + modifier
 

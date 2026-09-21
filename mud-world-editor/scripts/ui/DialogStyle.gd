@@ -32,6 +32,23 @@ static func style_window(dialog: Window, ok_color: Color = COLOR_CONFIRM) -> voi
 	panel.content_margin_top = 18
 	panel.content_margin_bottom = 16
 	dialog.add_theme_stylebox_override("panel", panel)
+	# AcceptDialog is an embedded Window: its title bar is themed separately from
+	# the content panel. Styling both makes one coherent rounded surface instead
+	# of a stock gray frame wrapped around an otherwise themed dialog.
+	var titlebar := StyleBoxFlat.new()
+	titlebar.bg_color = COLOR_BG
+	titlebar.border_color = COLOR_BORDER
+	titlebar.border_width_left = 1
+	titlebar.border_width_top = 1
+	titlebar.border_width_right = 1
+	titlebar.corner_radius_top_left = 8
+	titlebar.corner_radius_top_right = 8
+	titlebar.content_margin_left = 20
+	titlebar.content_margin_right = 14
+	titlebar.content_margin_top = 8
+	titlebar.content_margin_bottom = 8
+	dialog.add_theme_stylebox_override("titlebar", titlebar)
+	dialog.add_theme_stylebox_override("titlebar_unfocused", titlebar)
 	dialog.add_theme_color_override("title_color", COLOR_TITLE)
 	dialog.add_theme_font_size_override("title_font_size", 18)
 

@@ -61,7 +61,7 @@
         },
         "mining_lodge": {
             "name": "Frostpeak Mining Lodge",
-            "description": "The Lodge's common room is plain but warm. Maps of old workings are pinned beside names of people who did not return, and a long table has room for any miner willing to share news.",
+            "description": "The Lodge's common room is plain but warm. Maps of old workings are pinned beside names of people who did not return, and a long table has room for any miner willing to share news. A notice board by the door carries work posted from the outpost and the road below.",
             "properties": {
                 "indoors": true
             },

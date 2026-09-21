@@ -19,6 +19,7 @@ import engine.commands  # noqa: F401 - force command module registration
 from engine.commands.command_system import CommandProcessor
 from engine.core.clock import Clock, SimulatedClock, WallClock
 from engine.core.advancement import AdvancementManager
+from engine.world import factions
 from engine.core.backgrounds import BackgroundManager
 from engine.core.collection_manager import CollectionManager
 from engine.core.discovery_manager import DiscoveryManager
@@ -459,7 +460,7 @@ class StatusPayloadsMixin:
                     "faction": str(getattr(npc, "faction", "unknown")),
                     "hostile": (
                         self.feature_profile.combat_mode != "disabled"
-                        and str(getattr(npc, "faction", "")) == "hostile"
+                        and factions.is_hostile(npc, self.world)
                     ),
                 }
                 for npc in room_npcs

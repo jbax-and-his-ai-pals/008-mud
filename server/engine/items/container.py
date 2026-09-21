@@ -61,11 +61,17 @@ class Container(Item):
                              overrides = entry.get("properties_override", {})
                              quantity = entry.get("quantity", 1)
                              
-                             # Recursively create the item
-                             item = ItemFactory.create_item_from_template(item_id, world_ref, **overrides)
-                             if item:
-                                 # For simple containers, we treat each entry as one item instance.
-                                 hydrated_contents.append(item)
+                             # `quantity` used to be read and then ignored, so an
+                             # authored "two energy drinks" put one in the till and
+                             # said nothing about the other. A container holds
+                             # *instances* and has no stack model at all, so the
+                             # honest reading of a count is that many instances.
+                             if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
+                                  quantity = 1
+                             for _ in range(quantity):
+                                  item = ItemFactory.create_item_from_template(item_id, world_ref, **overrides)
+                                  if item:
+                                       hydrated_contents.append(item)
                          else:
                              print(f"Warning: Cannot hydrate item '{entry.get('item_id')}' in container '{name}' without world context.")
 

@@ -24,8 +24,8 @@ Drive the runtime toward a flexible omni-engine that can power:
   - `readonly_archive`
 - Mode policies gate mutation, combat, respawn, and authoring.
 - Current contract references:
-  - [Party Lifecycle Contract](C:/python/old/restart/docs/archive/party-lifecycle-contract.md)
-  - [Persistent Shard Contract](C:/python/old/restart/docs/archive/persistent-shard-contract.md)
+  - [Party Lifecycle Contract](party-lifecycle-contract.md)
+  - [Persistent Shard Contract](persistent-shard-contract.md)
 
 3. Finite-adventure framework
 - Campaign graph as a core runtime primitive.
@@ -33,7 +33,7 @@ Drive the runtime toward a flexible omni-engine that can power:
 - End-of-run artifacts (summary, timeline, seed/profile metadata).
 - Deterministic reset/replay path for authored short-form worlds.
 - Current contract reference:
-  - [Finite Adventure Contract](C:/python/old/restart/docs/archive/finite-adventure-contract.md)
+  - [Finite Adventure Contract](finite-adventure-contract.md)
 
 4. Party and group contract
 - Party lifecycle: invite, join, leave, leader transfer, disband.

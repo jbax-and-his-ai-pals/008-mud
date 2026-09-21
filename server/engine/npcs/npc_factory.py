@@ -112,7 +112,12 @@ class NPCFactory:
                  level_hp_bonus = (npc.level - 1) * (NPC_LEVEL_HEALTH_BASE_INCREASE + int(final_con * NPC_LEVEL_CON_HEALTH_MULTIPLIER))
                  npc.max_health = base_hp + level_hp_bonus
 
-            npc.health = overrides.get("health", npc.max_health)
+            # `creation_args` starts as the authored template and then receives
+            # per-spawn overrides. Reading health from it makes the template's
+            # starting-health field real while preserving override precedence.
+            # It is still clamped below, so content cannot create a dead or
+            # over-healed NPC merely by entering an out-of-range value.
+            npc.health = creation_args.get("health", npc.max_health)
             npc.health = max(1, min(npc.health, npc.max_health))
             
             # Mana

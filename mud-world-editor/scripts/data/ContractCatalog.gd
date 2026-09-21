@@ -33,10 +33,30 @@ var attack_profiles: Dictionary = {}
 var defense_profiles: Dictionary = {}
 var abilities: Dictionary = {}
 var effect_packets: Dictionary = {}
+# `work`: what a set lets an author declare as taking time. Indexed like the
+# other list sections, and listed in the browser because a declaration an author
+# cannot see is one they will not know they can make.
+var work: Dictionary = {}
+# The `stats` section: one mapping rather than a list of entries, and the
+# vocabulary every attribute form in the editor is built from.
+var stats: Dictionary = {}
+# `ruleset.status.stats`, the older spelling of the same list. Read because the
+# engine still reads it (`World.declared_status_stats`) and because a set may
+# declare it without declaring contracts at all.
+var ruleset_stats: Array = []
 
 
 func load_contracts() -> bool:
+	# Refresh must also remove deleted declarations and old validation findings.
+	issues.clear()
+	families.clear(); generation_profiles.clear(); resources.clear()
+	attack_profiles.clear(); defense_profiles.clear(); abilities.clear()
+	effect_packets.clear(); work.clear(); stats.clear()
+	schema_version = 0
 	source_path = DataRoot.root().path_join(RELATIVE_PATH)
+	# The ruleset is read even when the contracts file is missing: a set may name
+	# its stats in the older place and declare no contracts at all.
+	_load_ruleset_stats()
 	if not FileAccess.file_exists(source_path):
 		# A content set without contracts is legal; the engine falls back to its
 		# neutral defaults.
@@ -74,9 +94,35 @@ func load_contracts() -> bool:
 	defense_profiles = _index(payload.get("defense_profiles", []))
 	abilities = _index(payload.get("abilities", []))
 	effect_packets = _index(payload.get("effect_packets", []))
+	work = _index(payload.get("work", []))
+	var declared_stats = payload.get("stats", {})
+	stats = declared_stats if typeof(declared_stats) == TYPE_DICTIONARY else {}
 
 	_check_references(payload)
 	return issues.is_empty()
+
+
+func _load_ruleset_stats() -> void:
+	ruleset_stats = []
+	var path := DataRoot.ruleset_path()
+	if not FileAccess.file_exists(path):
+		return
+	var parsed := JSON.new()
+	if parsed.parse(FileAccess.get_file_as_string(path)) != OK:
+		return
+	var payload = parsed.get_data()
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var status = payload.get("status", {})
+	if typeof(status) != TYPE_DICTIONARY:
+		return
+	var declared = status.get("stats", [])
+	if typeof(declared) != TYPE_ARRAY:
+		return
+	for stat in declared:
+		var text := str(stat).strip_edges()
+		if text != "":
+			ruleset_stats.append(text)
 
 
 func _index(entries) -> Dictionary:
@@ -222,6 +268,118 @@ func capability_ids() -> Array:
 	return ids
 
 
+# --- the stat vocabulary ------------------------------------------------------
+# Which attribute rows a form offers. The precedence mirrors the engine's, because
+# an editor whose vocabulary is not the engine's is how eight fantasy stats end up
+# on a set that has six:
+#
+#   1. `stats.order` -- the general declaration, read by
+#      `engine/contracts/stats.py` for the status line
+#   2. `ruleset.status.stats` -- the older spelling, still read, and a set may
+#      declare it with no contracts file at all (`World.declared_status_stats`
+#      reads both, in exactly this order)
+#   3. the stats `stats.roles` names -- a set that says which stat fills which
+#      role has named its vocabulary even without a display list
+#   4. the stats the set's own NPCs carry -- data rather than a declaration
+#
+# Nothing falls back to the engine's *default* stat names. For a set that has
+# declared nothing and authored nothing the honest answer is no rows and a
+# sentence saying so; inventing the defaults would put rows in front of an author
+# whose set does not have those stats, which is the defect this replaced.
+
+func contract_stat_order() -> Array:
+	var order = stats.get("order", [])
+	if typeof(order) != TYPE_ARRAY:
+		return []
+	return _clean_string_list(order)
+
+
+func declared_stat_order() -> Array:
+	var from_contract := contract_stat_order()
+	if not from_contract.is_empty():
+		return from_contract
+	return ruleset_stats.duplicate()
+
+
+func declared_stat_roles() -> Dictionary:
+	var roles = stats.get("roles", {})
+	var out := {}
+	if typeof(roles) != TYPE_DICTIONARY:
+		return out
+	for role in roles:
+		var stat := str(roles[role]).strip_edges()
+		if stat != "":
+			out[str(role)] = stat
+	return out
+
+
+## The distinct stats the declared roles name, in the order they are declared.
+func role_stat_names() -> Array:
+	var out: Array = []
+	for stat in declared_stat_roles().values():
+		var text := str(stat).strip_edges()
+		if text != "" and not out.has(text):
+			out.append(text)
+	return out
+
+
+func has_stats_declaration() -> bool:
+	return not declared_stat_order().is_empty() or not declared_stat_roles().is_empty()
+
+
+## The stats a form should offer, and where they came from. `observed` is what the
+## set's own data carries, used only when nothing is declared.
+func stat_vocabulary(observed: Array = []) -> Array:
+	var declared := declared_stat_order()
+	if not declared.is_empty():
+		return declared
+	var by_role := role_stat_names()
+	if not by_role.is_empty():
+		return by_role
+	var carried := _clean_string_list(observed)
+	carried.sort()
+	return carried
+
+
+## Where a form's attribute rows come from, as a phrase that reads after "comes
+## from". Named so an author can tell a declaration from a fallback.
+func stat_vocabulary_source(observed: Array = []) -> String:
+	if not contract_stat_order().is_empty():
+		return "the contracts' `stats.order`"
+	if not ruleset_stats.is_empty():
+		return "the ruleset's `status.stats`"
+	if not role_stat_names().is_empty():
+		return "the stats `stats.roles` names"
+	if not _clean_string_list(observed).is_empty():
+		return "the stats this set's NPCs carry"
+	return "nothing: this set declares no stats"
+
+
+## The label a content set gives one of its resources, by `kind`. The engine
+## resolves the ability pool the same way -- first by id among the matching kind
+## (`contracts/resources.py::ability_resource`) -- so a set that calls its pool
+## Charge reads Charge here too.
+func resource_label(kind: String, fallback: String) -> String:
+	var matches: Array = []
+	for resource_id in resources:
+		if str(resources[resource_id].get("kind", "")) == kind:
+			matches.append(resource_id)
+	matches.sort()
+	if matches.is_empty():
+		return fallback
+	var label := str(resources[matches[0]].get("label", "")).strip_edges()
+	return label if label != "" else fallback
+
+
+func _clean_string_list(values: Array) -> Array:
+	var out: Array = []
+	for value in values:
+		var text := str(value).strip_edges()
+		if text != "" and not out.has(text):
+			out.append(text)
+	return out
+
+
 # --- reporting ----------------------------------------------------------------
 
 # Everything this content set declares, grouped for a read-only browser. Each
@@ -242,7 +400,29 @@ func sections() -> Array:
 		abilities, ["effect_packet", "cost", "cooldown", "target_type", "level_required"])})
 	out.append({"title": "Effect packets (%d)" % effect_packets.size(), "entries": _simple_entries(
 		effect_packets, ["kind", "resource", "value", "duration", "tags"])})
+	out.append({"title": "Work that takes time (%d)" % work.size(), "entries": _simple_entries(
+		work, ["duration_days", "station", "inputs", "outputs", "skill", "difficulty"])})
+	# Last, and not a list of entries with ids: the stat vocabulary is what the
+	# *other* sections' numbers are read against, and what every attribute form in
+	# the editor is built from. Showing it is how an author sees where those rows
+	# come from.
+	out.append({"title": "Stats (%d)" % stat_vocabulary().size(), "entries": _stat_entries()})
 	return out
+
+
+func _stat_entries() -> Array:
+	var roles := declared_stat_roles()
+	var entries: Array = []
+	for stat in stat_vocabulary():
+		var fills: Array = []
+		for role in roles:
+			if str(roles[role]) == str(stat):
+				fills.append(str(role))
+		var detail := "no role: a flavour stat, or one a skill or resource names"
+		if not fills.is_empty():
+			detail = "fills: %s" % ", ".join(fills)
+		entries.append({"id": str(stat), "detail": detail})
+	return entries
 
 
 func _family_entries() -> Array:

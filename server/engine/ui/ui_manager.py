@@ -7,6 +7,7 @@ from engine.utils.text_formatter import ClickableZone
 from engine.items.item import Item
 from engine.magic.spell import Spell
 from engine.npcs.npc import NPC
+from engine.world import factions
 
 GAP = 10
 PREVIEW_BORDER_COLOR = (100, 200, 255)
@@ -80,7 +81,7 @@ class UIManager:
         elif isinstance(data, NPC):
             options.append(("Look", f"look {data.name}"))
             options.append(("Talk", f"talk {data.name}"))
-            if data.faction == "hostile":
+            if factions.is_hostile(data):
                 options.append(("Attack", f"attack {data.name}"))
             elif data.properties.get("is_vendor"):
                 options.append(("Trade", f"trade {data.name}"))

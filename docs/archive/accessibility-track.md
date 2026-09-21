@@ -3,7 +3,7 @@
 Accessibility is a release-blocking quality bar across desktop and mobile clients.
 
 Reference QA matrix:
-- [Accessibility QA Matrix](C:/python/old/restart/docs/archive/accessibility-qa-matrix.md)
+- [Accessibility QA Matrix](accessibility-qa-matrix.md)
 
 ## Core Principles
 
@@ -64,8 +64,8 @@ Exit:
 - [ ] Accessibility gates pass before release candidate is approved.
 
 Evidence:
-- Text scaling presets + runtime application: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
-- High-contrast/low-vision/screen-reader presets: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
-- Color-independent status markers (`[DEAD]`, `[CRIT]`, `[OOM]`): [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
-- Reduced-motion capability propagation: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
-- Screen-reader metadata mode and alt-text-first asset handling: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
+- Text scaling presets + runtime application: [main_controller.gd](../../client/scripts/ui/main_controller.gd)
+- High-contrast/low-vision/screen-reader presets: [main_controller.gd](../../client/scripts/ui/main_controller.gd)
+- Color-independent status markers (`[DEAD]`, `[CRIT]`, `[OOM]`): [main_controller.gd](../../client/scripts/ui/main_controller.gd)
+- Reduced-motion capability propagation: [main_controller.gd](../../client/scripts/ui/main_controller.gd)
+- Screen-reader metadata mode and alt-text-first asset handling: [main_controller.gd](../../client/scripts/ui/main_controller.gd)

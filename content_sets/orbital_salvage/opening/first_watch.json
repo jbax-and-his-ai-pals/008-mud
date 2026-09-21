@@ -5,6 +5,7 @@
   "objectives": [
     { "id": "orient", "instruction": "Take in the dock ring and its exits", "command": "look" },
     { "id": "salvage", "instruction": "Strip the salvage bench for usable components", "command": "gather bench" },
-    { "id": "fabricate", "instruction": "Fabricate a patch kit from what you stripped", "command": "craft patch kit" }
+    { "id": "fabricate", "instruction": "Fabricate a patch kit from what you stripped", "command": "craft patch kit" },
+    { "id": "leave_a_batch", "instruction": "Leave a batch running in the workshop's fabrication bay -- it works while you do something else", "command": "begin patch-kit batch" }
   ]
 }

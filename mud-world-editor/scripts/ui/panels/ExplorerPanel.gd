@@ -9,7 +9,11 @@ signal request_district_modal_open
 signal request_validate
 signal request_validate_region_policy
 signal request_validate_content
+signal request_run_release_gate
+signal request_edit_ruleset
 signal request_show_contracts
+signal request_edit_contracts
+signal request_edit_combat_vocabulary
 signal request_choose_content_set
 signal request_auto_layout
 signal snap_toggled(enabled)
@@ -23,6 +27,8 @@ var show_districts_checkbox: CheckBox
 var expanded_regions: Dictionary = {}
 var expanded_districts: Dictionary = {}
 var _is_programmatic_selection: bool = false
+var content_validation_button: Button
+var release_gate_button: Button
 
 func setup():
 	add_theme_constant_override("separation", 12)
@@ -88,17 +94,38 @@ func setup():
 	btn_policy.pressed.connect(func(): request_validate_region_policy.emit())
 	add_child(btn_policy)
 
-	var btn_content = Button.new(); btn_content.text="Validate Content (engine)"
-	btn_content.tooltip_text = "Run the game's own content validation over this content set: schema, references, text templates, stale ids and file integrity. The same checks the command line runs."
-	_apply_style(btn_content, Color(0.22, 0.3, 0.26))
-	btn_content.pressed.connect(func(): request_validate_content.emit())
-	add_child(btn_content)
+	content_validation_button = Button.new(); content_validation_button.text="Validate Open Set"
+	content_validation_button.tooltip_text = "Validate and play-test the content set currently open in the editor. The report names release-only checks that still require run_content_checks.py."
+	_apply_style(content_validation_button, Color(0.22, 0.3, 0.26))
+	content_validation_button.pressed.connect(func(): request_validate_content.emit())
+	add_child(content_validation_button)
+	var btn_ruleset = Button.new(); btn_ruleset.text="Ruleset…"
+	btn_ruleset.tooltip_text = "Edit this content set's world rules: metadata, declared stats, and region policy."
+	_apply_style(btn_ruleset, Color(0.25, 0.23, 0.34))
+	btn_ruleset.pressed.connect(func(): request_edit_ruleset.emit())
+	add_child(btn_ruleset)
+
+	release_gate_button = Button.new(); release_gate_button.text="Run Release Gate"
+	release_gate_button.tooltip_text = "Run the full repository shipping gate: every content set, themes, manifests, contract coverage, and playability checks. This can take longer than Validate Open Set."
+	_apply_style(release_gate_button, Color(0.28, 0.24, 0.18))
+	release_gate_button.pressed.connect(func(): request_run_release_gate.emit())
+	add_child(release_gate_button)
 
 	var btn_contracts = Button.new(); btn_contracts.text="Contracts"
 	btn_contracts.tooltip_text = "What this content set declares: item families, roll tables, resources, attack/defense profiles, abilities and effect packets. Read-only -- the engine's schema decides what may exist."
 	_apply_style(btn_contracts, Color(0.24, 0.22, 0.3))
 	btn_contracts.pressed.connect(func(): request_show_contracts.emit())
 	add_child(btn_contracts)
+	var btn_edit_contracts = Button.new(); btn_edit_contracts.text="Edit Contracts…"
+	btn_edit_contracts.tooltip_text = "Edit shared resources and item families without exposing or replacing the rest of the contract file."
+	_apply_style(btn_edit_contracts, Color(0.29, 0.24, 0.37))
+	btn_edit_contracts.pressed.connect(func(): request_edit_contracts.emit())
+	add_child(btn_edit_contracts)
+	var btn_combat = Button.new(); btn_combat.text="Combat Vocabulary…"
+	btn_combat.tooltip_text = "Edit damage channels and room hazards used by this content set."
+	_apply_style(btn_combat, Color(0.36, 0.25, 0.22))
+	btn_combat.pressed.connect(func(): request_edit_combat_vocabulary.emit())
+	add_child(btn_combat)
 
 	var btn_world = Button.new(); btn_world.text="Open Content Set…"
 	btn_world.tooltip_text = "Switch to another content set beside this checkout. The choice is remembered in editor_settings.json."
@@ -110,6 +137,24 @@ func setup():
 	_apply_style(btn_layout, Color(0.2, 0.25, 0.3))
 	btn_layout.pressed.connect(func(): request_auto_layout.emit())
 	add_child(btn_layout)
+
+
+## A full check boots a real in-memory game session. Keep the editor interactive
+## while it runs, but make its state unmistakable and prevent duplicate runs.
+func set_content_validation_running(running: bool):
+	if not is_instance_valid(content_validation_button):
+		return
+	content_validation_button.disabled = running
+	content_validation_button.text = "Validating Open Set…" if running else "Validate Open Set"
+	content_validation_button.tooltip_text = (
+		"Validating and play-testing the open content set…" if running
+		else "Validate and play-test the content set currently open in the editor. The report names release-only checks that still require run_content_checks.py."
+	)
+
+func set_release_gate_running(running: bool):
+	if not is_instance_valid(release_gate_button): return
+	release_gate_button.disabled = running
+	release_gate_button.text = "Running Release Gate…" if running else "Run Release Gate"
 
 # --- INPUT HANDLERS ---
 

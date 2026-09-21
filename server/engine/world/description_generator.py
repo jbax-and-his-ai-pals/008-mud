@@ -5,6 +5,7 @@ from engine.config import (
     FORMAT_GRAY, FORMAT_CATEGORY
 )
 from engine.utils.utils import format_name_for_display, get_article, simple_plural
+from engine.world import factions
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -73,8 +74,8 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
 
     # 5. Entity Listings
     all_npcs_in_room = world.get_npcs_for_player(player)
-    friendly_npcs = [npc for npc in all_npcs_in_room if npc.faction != "hostile"]
-    hostile_npcs = [npc for npc in all_npcs_in_room if npc.faction == "hostile"]
+    friendly_npcs = [npc for npc in all_npcs_in_room if not factions.is_hostile(npc, world)]
+    hostile_npcs = [npc for npc in all_npcs_in_room if factions.is_hostile(npc, world)]
     items_in_room = world.get_items_for_player(player)
 
     # --- FRIENDLY NPCs ---

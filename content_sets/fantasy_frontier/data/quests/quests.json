@@ -256,8 +256,11 @@
                 "objective": {
                     "type": "deliver",
                     "item_template_id": "item_treaty",
-                    "recipient_instance_id": "bandit_king",
-                    "item_to_deliver_name": "Peace Treaty"
+                    "item_to_deliver_name": "Peace Treaty",
+                    "item_instance_id": "treaty_of_the_valley",
+                    "item_to_deliver_description": "A sealed treaty from Elder Thorne, marked with the valley's sign and bound for the Bandit King.",
+                    "recipient_template_id": "bandit_leader",
+                    "recipient_name": "the Bandit King"
                 },
                 "turn_in_id": "bandit_leader"
             }
@@ -730,6 +733,133 @@
                 {
                     "npc_template_id": "harbourmaster_voss",
                     "amount": 15
+                }
+            ]
+        }
+    },
+    "quest_hermit_of_the_deep_wood": {
+        "title": "The Hermit of the Deep Wood",
+        "type": "quest",
+        "description": "Elder Thorne has had no word of Old Bryn, the hermit who lives by the ancient oak, since the first frost. Bryn will not open the door to a stranger, but he remembers a kindness.",
+        "completion_check_enabled": true,
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Get Old Bryn at the ancient oak in the Whispering Woods to remember you, then carry word of him back to Elder Thorne.",
+                "objective": {
+                    "type": "relationship",
+                    "target_npc_template_id": "forest_hermit",
+                    "npc_name": "Old Bryn",
+                    "required_score": 5
+                },
+                "turn_in_id": "village_elder",
+                "start_dialogue": "No one has had a word from Old Bryn since the first frost, and the woods are no place to grow old alone. He won't open the door to a stranger -- but he remembers a face, and he remembers a kindness. Something made by your own hands would go further than anything bought. Go and be remembered.",
+                "completion_dialogue": "So he is alive, and eating, and still cursing the village. That is the best news I have had this season."
+            }
+        ],
+        "rewards": {
+            "xp": 120,
+            "gold": 35,
+            "relationships": [
+                {
+                    "npc_template_id": "village_elder",
+                    "amount": 12
+                }
+            ]
+        }
+    },
+    "quest_catalogue_of_the_valley": {
+        "title": "A Catalogue of the Valley",
+        "type": "quest",
+        "description": "Curator Vane is not asking for donations. She wants to know what is out here: a traveller's journal with a decent number of different things entered in it.",
+        "completion_check_enabled": true,
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Handle six different kinds of thing out in the valley, then bring Curator Vane your journal.",
+                "objective": {
+                    "type": "discover_n",
+                    "kind": "item",
+                    "required_count": 6
+                },
+                "turn_in_id": "curator",
+                "start_dialogue": "The museum's cases are full of things people were given and never looked at. What I cannot buy is a record of what the valley holds. Six different things, taken up in your own hands -- that is a catalogue worth having. Bring me your journal and I will copy from it.",
+                "completion_dialogue": "Six entries, and your hands have been on every one of them. This is the sort of list that outlives the objects on it."
+            }
+        ],
+        "rewards": {
+            "xp": 110,
+            "gold": 30,
+            "relationships": [
+                {
+                    "npc_template_id": "curator",
+                    "amount": 10
+                }
+            ]
+        }
+    },
+    "quest_house_brew": {
+        "title": "The House Brew",
+        "type": "quest",
+        "description": "Barlin has kept the Drunken Dragon's cellar for thirty years and would like to stop. He will not hand the mash paddle to anyone who has not laid down a barrel he would serve.",
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Brew Ferment House Ale at a drying rack until it comes out Fine, then show Barlin the barrel.",
+                "objective": {
+                    "type": "craft_quality",
+                    "recipe_id": "ferment_house_ale",
+                    "required_quality_id": "fine"
+                },
+                "turn_in_id": "tavern_keeper",
+                "start_dialogue": "Anyone can boil wort. What I want to know is whether you can lay a barrel down the same way eight times running, until it comes out Fine without you hoping. Steep your gruit at the drying rack, ferment it, and bring me one you would put your own name on. I won't take it off you -- I want to know the cellar is in good hands.",
+                "completion_dialogue": "Now that is a barrel. Same colour, same nose, and you did it on purpose. Keep it, drink it, or sell it -- you have earned the right to all three."
+            }
+        ],
+        "rewards": {
+            "xp": 180,
+            "gold": 60,
+            "relationships": [
+                {
+                    "npc_template_id": "tavern_keeper",
+                    "amount": 12
+                }
+            ]
+        }
+    },
+    "quest_upcountry_packets": {
+        "title": "Two Sealed Packets",
+        "type": "commission",
+        "description": "Talia has two packets that must go out with someone she trusts: one to Nell at the Sailors' Rest in Portbridge, and one up the pass to Mara Vale at the Frostpeak Mining Lodge.",
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Carry Talia's two sealed packets -- one to Nell the Innkeeper in Portbridge, one to Mara Vale, Lodgekeeper, at the Frostpeak Mining Lodge.",
+                "objective": {
+                    "type": "deliver_multi",
+                    "item_template_id": "quest_package_generic",
+                    "item_to_deliver_name": "sealed packet",
+                    "recipients": [
+                        {
+                            "template_id": "portbridge_innkeeper",
+                            "name": "Nell the Innkeeper"
+                        },
+                        {
+                            "template_id": "frostpeak_lodgekeeper",
+                            "name": "Mara Vale, Lodgekeeper"
+                        }
+                    ]
+                },
+                "turn_in_id": "merchant"
+            }
+        ],
+        "rewards": {
+            "xp": 90,
+            "gold": 40,
+            "relationships": [
+                {
+                    "npc_template_id": "merchant",
+                    "amount": 6
                 }
             ]
         }

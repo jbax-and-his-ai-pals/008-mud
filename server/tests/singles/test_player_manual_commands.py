@@ -114,21 +114,57 @@ class TestTheManualOnlyNamesRealCommands(unittest.TestCase):
     def test_the_manual_is_not_missing_major_commands(self):
         """A command the manual omits is one a player will never find.
 
-        Scoped to commands with a group: these are the ones surfaced in `help`.
-        An alias or an operator/GM command is out of the manual's scope.
+        Scoped to commands a *player* can type: no alias of its own (the table
+        lists the primary name), no capability or entitlement gate (that is an
+        operator or GM command), and a player-facing category.
+
+        **This assertion used to be vacuous.** It filtered on `meta["group"]`,
+        which nothing in the engine sets -- the registry key is `category` -- so
+        `undocumented` was always empty and the check could not fail. Found while
+        adding the three work commands, which is the only kind of evidence that a
+        check works. Switching it to `category` immediately surfaced two real
+        gaps (`plant` and `stop`), both now in the table.
         """
+        player_categories = {
+            "movement", "information", "interaction", "combat", "crafting",
+            "inventory", "abilities", "gathering", "trade", "quests", "property",
+            "crime", "gambling", "system",
+        }
         documented = {name.lower() for name in self.listed}
         undocumented = sorted(
             name for name, meta in self.registered.items()
             if name.lower() not in documented
             and not meta.get("aliases")
-            and str(meta.get("group", "")).lower() in {
-                "movement", "information", "interaction", "combat", "magic",
-                "crafting", "trade", "inventory",
-            }
+            and not meta.get("capabilities")
+            and not meta.get("entitlements")
+            and str(meta.get("category", "")).lower() in player_categories
         )
         self.assertEqual([], undocumented,
                          "registered player commands that the quick-reference table omits")
+
+    def test_the_scope_of_that_check_is_real(self):
+        """Guards the guard: a filter matching no command at all proves nothing.
+
+        The bug this replaces was a key name, and a key name fails quietly. So
+        assert the three things the filter above depends on are all true of this
+        registry: the category names are used, some commands are gated, and some
+        carry aliases.
+        """
+        used = {str(meta.get("category", "")).lower() for meta in self.registered.values()}
+        self.assertTrue(
+            used & {"crafting", "inventory", "movement", "information"},
+            "the registry should use the player-facing category names this file filters on: %s"
+            % sorted(used),
+        )
+        self.assertTrue(
+            any(meta.get("capabilities") or meta.get("entitlements")
+                for meta in self.registered.values()),
+            "some commands are gated, which is what keeps operator commands out of the manual",
+        )
+        self.assertTrue(
+            any(meta.get("aliases") for meta in self.registered.values()),
+            "some commands have aliases, which the table lists beside their primary name",
+        )
 
 
 class TestTheCorrectionsHold(unittest.TestCase):

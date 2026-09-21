@@ -4,7 +4,7 @@ from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, USE_COMMAND_PREPOSITIONS, GIVE_COMMAND_PREPOSITION
 from engine.items.consumable import Consumable
 from engine.items.key import Key
-from engine.social.relationships import apply_relationship_milestones, next_relationship_milestone, relationship_key, relationship_rules, relationship_tier
+from engine.social.relationships import apply_relationship_milestones, has_ladder, next_relationship_milestone, relationship_key, relationship_rules, relationship_tier
 
 
 def _world_day_key(world) -> str:
@@ -240,6 +240,13 @@ def give_handler(args, context):
         
     else:
         # Standard Gift
+        if item.get_property("quest_item"):
+            # The vendor path has always refused to buy a quest item ("isn't
+            # something you can part with"); handing one over as a gift is the
+            # same act with the same consequence. Left unguarded, a courier who
+            # gave one of two sealed packets to a bystander could never finish
+            # the delivery, and nothing in the game can hand it back.
+            return f"{FORMAT_ERROR}{item.name} isn't something you can part with.{FORMAT_RESET}"
         npc_key = relationship_key(npc)
         today = _world_day_key(world)
         if player.npc_gift_days.get(npc_key) == today:
@@ -251,6 +258,12 @@ def give_handler(args, context):
             old_score = int(player.npc_relationships.get(npc_key, 0))
             gained, affinity_reasons = _gift_affinity(npc, item, world)
             new_score = min(100, old_score + gained)
+            # Handing something over always works; a *bond* is what a set has to
+            # declare. Without a ladder there are no tiers, no names and no vendor
+            # discount, so nothing is tracked and the line is not printed -- the
+            # score would be a number with no meaning attached to it.
+            if not has_ladder(world):
+                return f"{FORMAT_SUCCESS}You give the {item.name} to {npc.name}.{FORMAT_RESET}"
             player.npc_relationships[npc_key] = new_score
             player.npc_gift_days[npc_key] = today
             milestone_note = apply_relationship_milestones(player, npc, old_score, new_score, world)
@@ -267,12 +280,17 @@ def give_handler(args, context):
         return f"{FORMAT_ERROR}Failed to remove item.{FORMAT_RESET}"
 
 
-@command("relationship", ["bond", "friendship"], "information", "Check your relationship with an NPC.\nUsage: relationship <npc>")
+@command("relationship", ["bond", "friendship"], "information", "Check your relationship with an NPC.\nUsage: relationship <npc>", content_capability="social")
 def relationship_handler(args, context):
     world = context["world"]
     player = context.get("player")
     if not player:
         return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    # A set can present the surface without declaring a ladder -- a scaffolded set
+    # inherits its source's capabilities before it has content -- so say what is
+    # true instead of printing a score with no name attached to it.
+    if not has_ladder(world):
+        return f"{FORMAT_HIGHLIGHT}This game does not track bonds.{FORMAT_RESET}"
     if not args:
         return f"{FORMAT_ERROR}Relationship with whom? Usage: relationship <npc>{FORMAT_RESET}"
     npc = world.find_npc_in_room_for_player(" ".join(args).lower(), player)
@@ -286,12 +304,14 @@ def relationship_handler(args, context):
     return f"{FORMAT_HIGHLIGHT}{npc.name}: {relationship_tier(score, world)} ({score}/100){FORMAT_RESET}\n{next_gift}.{milestone_note}"
 
 
-@command("relationships", ["bonds", "friends"], "information", "Review all known personal relationships.")
+@command("relationships", ["bonds", "friends"], "information", "Review all known personal relationships.", content_capability="social")
 def relationships_handler(args, context):
     world = context["world"]
     player = context.get("player")
     if not player:
         return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    if not has_ladder(world):
+        return f"{FORMAT_HIGHLIGHT}This game does not track bonds.{FORMAT_RESET}"
     if not player.npc_relationships:
         return "You have not built a personal relationship yet. Gifts, orders, and commissions can help."
     npcs_by_key = {relationship_key(npc): npc for npc in world.npcs.values()}

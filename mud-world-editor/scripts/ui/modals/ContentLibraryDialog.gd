@@ -108,6 +108,19 @@ func show_entry(type: String, entry_id: String):
 	_build_editor()
 	popup_centered(_library_size())
 
+## Forget which entry was open, and rebuild against the caches as they are now.
+##
+## Called when the content set is switched: `update_data` only refreshes the
+## entry list, so a selection whose id exists in both sets kept an inspector
+## bound to the previous set's dictionary -- an edit then wrote into an orphaned
+## object while reporting this set's id as modified.
+func clear_selection():
+	selected_id = ""
+	current_editor = null
+	_refresh_entries()
+	if visible:
+		_build_editor()
+
 func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
@@ -273,7 +286,7 @@ func _refresh_entries():
 	var ids: Array = entries.keys()
 	ids.sort_custom(func(a, b):
 		if category == "magic":
-			var school_order := _magic_school(entries[a]).nocasecmp_to(_magic_school(entries[b]))
+			var school_order := _magic_school(str(a), entries[a]).nocasecmp_to(_magic_school(str(b), entries[b]))
 			if school_order != 0: return school_order < 0
 		if category == "item":
 			var type_order := _item_group(entries[a]).nocasecmp_to(_item_group(entries[b]))
@@ -290,7 +303,7 @@ func _refresh_entries():
 		if not query.is_empty() and not (label.to_lower().contains(query) or entry_id.to_lower().contains(query)):
 			continue
 		if category == "magic":
-			var school := _magic_school(entry)
+			var school := _magic_school(entry_id, entry)
 			if school != current_school:
 				current_school = school
 				var is_collapsed := bool(collapsed_magic_groups.get(school, false))
@@ -539,9 +552,13 @@ func _item_group(entry: Dictionary) -> String:
 	}
 	return str(source_groups.get(source, "Miscellaneous"))
 
-func _magic_school(entry: Dictionary) -> String:
-	var group_id := str(entry.get("magic_group", "")).strip_edges()
-	if not group_id.is_empty() and database_mgr.magic_groups.has(group_id):
+func _magic_school(entry_id: String, entry: Dictionary) -> String:
+	var group_id := database_mgr.magic_group_of(entry_id) if database_mgr != null else ""
+	if group_id.is_empty():
+		# An older editor wrote the grouping into the entry itself; the manager
+		# migrates it out on load, so this only catches a stale in-memory copy.
+		group_id = str(entry.get("magic_group", "")).strip_edges()
+	if not group_id.is_empty() and database_mgr != null and database_mgr.magic_groups.has(group_id):
 		return str(database_mgr.magic_groups[group_id].get("name", group_id))
 	var source := str(entry.get("_filename", "")).get_file().replace(".json", "")
 	match source:

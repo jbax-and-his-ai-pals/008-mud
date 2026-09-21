@@ -219,6 +219,18 @@ class ItemFactory:
             else:
                 init_args = {k: v for k, v in creation_args.items() if k in valid_params or k == 'obj_id'}
 
+            # A container's authored inventory lives in `properties.contains`, and
+            # `Container.__init__` is what turns those references into items -- but
+            # the template's properties are popped out of `creation_args` above, so
+            # the constructor never saw them and every container authored with
+            # contents came out empty. The loop below skips `contains` on the
+            # assumption the constructor had already hydrated it, which made the
+            # omission invisible: two comments describing an intent neither of them
+            # implemented. Found by authoring `night_shift`'s till and tool crib.
+            for key in ("contains", "capacity", "locked", "key_id", "is_open"):
+                if key in template_properties and key not in init_args:
+                    init_args[key] = template_properties[key]
+
             if 'equip_slot' in valid_params:
                 if 'equip_slot' in overrides:
                     init_args['equip_slot'] = overrides['equip_slot']
@@ -254,13 +266,24 @@ class ItemFactory:
             item.update_property("value", item.value)
             item.update_property("stackable", item.stackable)
 
+            # The instance carries its family, for the same reason it carries
+            # `icon_style`: the family is what content declared, and the readers
+            # that care -- the advancement ledger deciding what a find is worth,
+            # the vendor rules deciding what a shop will buy -- should be able to
+            # ask the item rather than the world or the item's class name. Before
+            # this, three of fantasy's five item grants matched on `type(item)
+            # .__name__` and had therefore never fired: a gem is a `Gem` in the
+            # contract and an `Item` in Python.
+            family_id = str(template.get("item_family", "") or "")
+            if family_id and "item_family" not in item.properties:
+                item.properties["item_family"] = family_id
+
             # Presentation follows the contract too. A family may declare an
             # `icon_style`, and the instance carries it so drawing code needs
             # neither the world nor the item's class name to decide what a thing
             # looks like. Items from families that declare none keep the old
             # class-name behaviour.
             if "icon_style" not in item.properties:
-                family_id = str(template.get("item_family", "") or "")
                 if family_id:
                     from engine.contracts.registry import registry_for
 

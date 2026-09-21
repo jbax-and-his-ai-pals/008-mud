@@ -8,6 +8,7 @@ from engine.config import (
     DEFAULT_COLORS, FORMAT_RESET, FORMAT_PURPLE, FORMAT_RED,
     FORMAT_ORANGE, FORMAT_YELLOW, FORMAT_CYAN, FORMAT_GREEN, FORMAT_GRAY
 )
+from engine.world import factions
 
 # This module is imported transitively by headless/server code (via
 # engine/utils/utils.py) that never touches pygame at all -- a module-scope
@@ -196,8 +197,7 @@ def format_target_name(viewer, target) -> str:
     format_code = FORMAT_RESET 
 
     if hasattr(target, 'faction'):
-        faction = target.faction
-        if faction == "hostile" and viewer:
+        if factions.is_hostile(target, getattr(target, 'world', None)) and viewer:
              viewer_level = getattr(viewer, 'level', 1)
              color_category = get_level_diff_category(viewer_level, target_level)
              format_code = LEVEL_DIFF_COLORS.get(color_category, FORMAT_RESET)

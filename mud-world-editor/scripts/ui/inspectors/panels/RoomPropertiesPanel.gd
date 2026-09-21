@@ -155,44 +155,22 @@ func _refresh_props():
 		var l = Label.new(); l.text = "None."; l.modulate = Color(1,1,1,0.3); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		flow_container.add_child(l)
 		return
-	
-	for key in cur_props:
-		var val = cur_props[key]
-		var tag = _create_prop_tag(key, val)
-		flow_container.add_child(tag)
 
-func _create_prop_tag(key, val) -> PanelContainer:
-	var panel = PanelContainer.new()
-	var style = StyleBoxFlat.new(); style.bg_color = Color(0.25, 0.25, 0.28); style.set_corner_radius_all(12)
-	style.content_margin_left = 10; style.content_margin_right = 6; style.content_margin_top = 2; style.content_margin_bottom = 2
-	panel.add_theme_stylebox_override("panel", style)
-	
-	var hb = HBoxContainer.new(); panel.add_child(hb)
-	
-	var lbl = Label.new(); lbl.text = key + ": "; lbl.modulate = Color(0.7, 0.9, 1.0)
-	lbl.add_theme_font_size_override("font_size", 12); hb.add_child(lbl)
-	
-	if typeof(val) == TYPE_BOOL:
-		var btn = Button.new(); btn.text = str(val).to_upper(); btn.flat = true
-		btn.add_theme_font_size_override("font_size", 12)
-		btn.add_theme_color_override("font_color", InspectorStyle.COLOR_SUCCESS if val else InspectorStyle.COLOR_DANGER)
-		btn.pressed.connect(func(): cur_props[key] = !val; data_modified.emit(); _refresh_props())
-		hb.add_child(btn)
-	else:
-		var ed = LineEdit.new(); ed.text = str(val); ed.flat = true; ed.expand_to_text_length = true; ed.custom_minimum_size.x = 30
-		ed.add_theme_font_size_override("font_size", 12); ed.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
-		ed.text_submitted.connect(func(t): 
-			if typeof(val) == TYPE_FLOAT or typeof(val) == TYPE_INT:
-				cur_props[key] = t.to_float() if t.is_valid_float() else val
-			else:
-				cur_props[key] = t
-			data_modified.emit()
-			_refresh_props() # Refresh to ensure type consistency if input was bad
-		)
-		hb.add_child(ed)
-		
-	var del = Button.new(); del.text = "×"; del.flat = true
-	del.add_theme_font_size_override("font_size", 14); del.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	del.add_theme_color_override("font_hover_color", Color(1, 0.5, 0.5))
-	del.pressed.connect(func(): cur_props.erase(key); data_modified.emit(); _refresh_props()); hb.add_child(del)
-	return panel
+	# Which properties this panel may edit is not a decision made here: a nested
+	# value rendered into a LineEdit is stringified and then written back over the
+	# object. Six shipped rooms carry one -- `hidden_exits` on obsidian_trial's
+	# hall_of_gates is a real traversable link the engine reads -- so the rule
+	# lives in PropertyTagRow, shared with RegionInspector, which had it and this
+	# panel did not.
+	for key in PropertyTagRow.editable_keys(cur_props):
+		flow_container.add_child(PropertyTagRow.build_row(
+			key, cur_props[key], cur_props, _on_row_modified, _refresh_props
+		))
+
+	# Added to props_box rather than the flow container: a structured value is a
+	# full-width note, not another chip in the row.
+	PropertyTagRow.add_nested_rows(props_box, cur_props, "the room's own editor")
+
+func _on_row_modified() -> void:
+	data_modified.emit()
+

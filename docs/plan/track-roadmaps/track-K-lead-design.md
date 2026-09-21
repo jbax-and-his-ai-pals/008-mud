@@ -250,13 +250,29 @@ human session (date)`. Questions fixed in advance from the still-open list.
 | `advancement.json` alternate config path (`ROADMAP.md:590–593`) | deferred-until | "Supported but unused" — split the rules out or drop the path. |
 | Player-chosen starting towns (`ROADMAP.md:959–963`) | deferred-until | Word-for-word "deliberately deferred"; lives only in P7 prose. |
 | Restoring LLM ambient text (`work-tracks.md:531–552`, `archive/ai-conversation/`) | refused-for-now | Idea kept, implementation archived; the README records what must be true, including a content-declared text source. |
-| Editor batch E onward — contract editing, campaign authoring (`ROADMAP.md:1503–1505`) | deferred-until | The A–D series stops with no closing entry while four later smoke tests exist. |
+| Editor batch E onward — contract editing, campaign authoring (`ROADMAP.md:1503–1505`) | deferred-until → **half un-deferred 2026-09-20** | The A–D series stops with no closing entry while four later smoke tests exist. **Updated:** contract editing is no longer deferred — it is Track G item 9 and `ROADMAP.md` P10, on the condition that the editor asks `ContractRegistry` rather than modelling families. Campaign authoring is still open, as Track G item 11, and it needs this track's build-or-drop call (below). |
 | `escort` / `defend-hold` / `timed` / `puzzle` / `theft-smuggling` objectives (`ROADMAP.md:881–882`) | refused-for-now | Each "needs its own subsystem"; `timed` overlaps the duration primitive and must not be built twice. |
 | A performance/evaluation-cost track (`work-tracks.md:501–503`) | deferred-until | Already a named gap; as a row it stops being rediscovered. Trigger: the first set with enough timers to matter. |
 | `chat_sim/` disposition (`work-tracks.md:512–513`) | deferred-until | On disk with `main.py`, `src/`, `requirements.txt`; give it a lane or archive it. |
 
 Not refusals, just defects: `server/engine/ui/ui_manager.py:65–73` still branches
 on `__class__.__name__`, and `ROADMAP.md:360–361` cites a stale line number.
+
+## Handoffs
+
+1. **Campaign authoring: build or drop** (to this track, from G item 11, 2026-09-20).
+   The editor loads `data/campaigns/` into a cache no panel shows, no button creates
+   and `save_all()` never writes, while the dialogue vocabulary lets an author write a
+   `start_campaign` effect naming a campaign the editor cannot list. The decision is
+   cheap and it unblocks the item either way: build the graph editor (the quest stage
+   view is most of it) or stop loading campaigns and narrow the `start_campaign`
+   picker in the same change.
+2. **The editor batch's sequencing is this track's call** (G, B, F). Chunk 6 of
+   `docs/plan/chunks-of-work.md` is the next batch by the user's direction of
+   2026-09-20; the pieces that can run at once are marked there, and the one hard
+   dependency is Track B's per-section validation surface. If capacity is one
+   conversation, the order in `editor-readiness.md` §7 is the answer and campaigns
+   are last.
 
 ## Explicitly not proposing
 

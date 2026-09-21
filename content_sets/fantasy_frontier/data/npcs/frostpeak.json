@@ -67,7 +67,8 @@
         "dialog": {
             "greeting": "The Frostpeak Mining Lodge keeps a light on for people who bring each other home.",
             "lodge": "We do not sell ranks. We notice steady hands, sound judgement, and who shares a rope when it matters.",
-            "mountains": "The pass is open today. That is not the same thing as safe."
+            "mountains": "The pass is open today. That is not the same thing as safe.",
+            "quest_complete": "From the market, and carried up the pass by hand. Set it down and get warm -- the Lodge remembers who brings things the whole way."
         },
         "default_dialog": "Mara studies the mountain weather through the open door.",
         "properties": {

@@ -20,14 +20,14 @@ Define the platform contract: engine boundaries, toolkit scope, modding model, a
 - [ ] Write ADR: pack compatibility windows and migration guarantees.
 
 Evidence:
-- Product SKU strategy: [README.md](C:/python/old/restart/docs/archive/roadmap-README-superseded.md)
-- Runtime/content boundaries: [platform-architecture.md](C:/python/old/restart/docs/reference/platform-architecture.md)
-- Modding levels: [platform-architecture.md](C:/python/old/restart/docs/reference/platform-architecture.md)
-- First four sample themes: [platform-architecture.md](C:/python/old/restart/docs/reference/platform-architecture.md)
-- World mode baseline contract: [engine-capability-track.md](C:/python/old/restart/docs/archive/engine-capability-track.md)
-- Finite-adventure runtime contract: [finite-adventure-contract.md](C:/python/old/restart/docs/archive/finite-adventure-contract.md)
-- Party runtime contract: [party-lifecycle-contract.md](C:/python/old/restart/docs/archive/party-lifecycle-contract.md)
-- Persistent shard contract: [persistent-shard-contract.md](C:/python/old/restart/docs/archive/persistent-shard-contract.md)
+- Product SKU strategy: [README.md](../roadmap-README-superseded.md)
+- Runtime/content boundaries: [platform-architecture.md](../../reference/platform-architecture.md)
+- Modding levels: [platform-architecture.md](../../reference/platform-architecture.md)
+- First four sample themes: [platform-architecture.md](../../reference/platform-architecture.md)
+- World mode baseline contract: [engine-capability-track.md](../engine-capability-track.md)
+- Finite-adventure runtime contract: [finite-adventure-contract.md](../finite-adventure-contract.md)
+- Party runtime contract: [party-lifecycle-contract.md](../party-lifecycle-contract.md)
+- Persistent shard contract: [persistent-shard-contract.md](../persistent-shard-contract.md)
 
 ## Exit Gate
 

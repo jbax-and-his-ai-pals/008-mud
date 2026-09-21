@@ -27,17 +27,17 @@ Establish a production-grade, headless, authoritative runtime that any client ca
 - [x] Add party-aware reconnect/session-resume contract tests.
 
 Evidence:
-- World-mode baseline enforcement and policy helpers: [headless_server.py](C:/python/old/restart/server/engine/server/headless_server.py)
-- Profile world-mode resolution: [feature_profile.py](C:/python/old/restart/server/engine/server/feature_profile.py)
-- TCP policy payload contract: [poc_server.py](C:/python/old/restart/server/poc_server.py)
-- WebSocket policy/resume parity: [poc_ws_server.py](C:/python/old/restart/server/poc_ws_server.py)
-- Party lifecycle contract: [party-lifecycle-contract.md](C:/python/old/restart/docs/archive/party-lifecycle-contract.md)
-- Persistent shard contract: [persistent-shard-contract.md](C:/python/old/restart/docs/archive/persistent-shard-contract.md)
-- Party lifecycle coverage: [test_party_lifecycle.py](C:/python/old/restart/server/tests/singles/test_party_lifecycle.py)
-- Party runtime policy coverage: [test_party_policy_runtime.py](C:/python/old/restart/server/tests/singles/test_party_policy_runtime.py)
-- TCP resume coverage: [test_tcp_session_resume.py](C:/python/old/restart/server/tests/singles/test_tcp_session_resume.py)
-- WebSocket resume coverage: [test_ws_session_resume.py](C:/python/old/restart/server/tests/singles/test_ws_session_resume.py)
-- Transport parity snapshots: [test_transport_parity_snapshots.py](C:/python/old/restart/server/tests/singles/test_transport_parity_snapshots.py)
+- World-mode baseline enforcement and policy helpers: [headless_server.py](../../../server/engine/server/headless_server.py)
+- Profile world-mode resolution: [feature_profile.py](../../../server/engine/server/feature_profile.py)
+- TCP policy payload contract: [poc_server.py](../../../server/poc_server.py)
+- WebSocket policy/resume parity: [poc_ws_server.py](../../../server/poc_ws_server.py)
+- Party lifecycle contract: [party-lifecycle-contract.md](../party-lifecycle-contract.md)
+- Persistent shard contract: [persistent-shard-contract.md](../persistent-shard-contract.md)
+- Party lifecycle coverage: [test_party_lifecycle.py](../../../server/tests/singles/test_party_lifecycle.py)
+- Party runtime policy coverage: [test_party_policy_runtime.py](../../../server/tests/singles/test_party_policy_runtime.py)
+- TCP resume coverage: [test_tcp_session_resume.py](../../../server/tests/singles/test_tcp_session_resume.py)
+- WebSocket resume coverage: [test_ws_session_resume.py](../../../server/tests/singles/test_ws_session_resume.py)
+- Transport parity snapshots: [test_transport_parity_snapshots.py](../../../server/tests/singles/test_transport_parity_snapshots.py)
 
 ## Exit Gate
 

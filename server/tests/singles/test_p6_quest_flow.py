@@ -9,6 +9,7 @@ import unittest
 
 from engine.server.headless_server import HeadlessServer
 from tests.fixtures import FANTASY_FRONTIER
+from tests.journey_runner import GotoDirective
 
 
 class TestP6QuestFlow(unittest.TestCase):
@@ -31,6 +32,22 @@ class TestP6QuestFlow(unittest.TestCase):
             for event in self.server.execute_command(self.session.session_id, text)
             if event.get("type") == "text"
         )
+
+    def walk_to(self, region_id: str, room_id: str, limit: int = 60) -> None:
+        """Walk to a room by name.
+
+        These walks used to list the moves, which asserted town's shape. When town
+        was re-arranged the route stopped arriving and the failure read as a
+        missing quest item. Naming the room keeps the assertion about the quest.
+        """
+        directive = GotoDirective()
+        command = "__goto__:%s:%s" % (region_id, room_id)
+        for _ in range(limit):
+            direction = directive.next_direction(command, self.server, self.session.session_id)
+            if direction == "":
+                return
+            self.command(direction)
+        self.fail("could not reach %s:%s" % (region_id, room_id))
 
     def _active(self, template_id: str) -> tuple[str, dict]:
         for quest_id, quest in self.player.runtime_state.quests.active.items():
@@ -97,8 +114,9 @@ class TestP6QuestFlow(unittest.TestCase):
         quest_id, quest = self._active("quest_missing_guard")
         self.assertEqual(0, quest["current_stage_index"])
 
-        for command in ("south", "south", "east", "east", "take bloody tabard", "west", "west", "north", "north"):
-            self.command(command)
+        self.walk_to("town", "old_mill")
+        self.command("take bloody tabard")
+        self.walk_to("town", "town_square")
         self.assertEqual(1, self.player.inventory.count_item("item_bloody_tabard"))
 
         first_turn_in = self.command("talk Guard Captain Elara complete")
@@ -111,8 +129,11 @@ class TestP6QuestFlow(unittest.TestCase):
         self.assertEqual(2, quest["current_stage_index"])
         self.assertEqual(0, self.player.inventory.count_item("item_bloody_tabard"))
 
-        for command in ("south", "downstream", "south"):
-            self.command(command)
+        # The quest names the destination: "the Stagnant Pool in Murkwater,
+        # downstream from Riverside". Walking to that room is what triggers the
+        # stage's `spawn_on_entry`, so the room is the assertion and the moves
+        # were never the point.
+        self.walk_to("swamp", "stagnant_pool")
         troll = next(
             npc for npc in self.server.world.npcs.values()
             if npc.template_id == "river_troll" and npc.current_region_id == "swamp"
@@ -120,8 +141,7 @@ class TestP6QuestFlow(unittest.TestCase):
         self.server.world.dispatch_event("npc_killed", {"player": self.player, "npc": troll})
         self.assertEqual("ready_to_complete", quest["state"])
 
-        for command in ("north", "upstream", "north"):
-            self.command(command)
+        self.walk_to("town", "town_square")
         completed = self.command("talk Guard Captain Elara complete")
         self.assertIn("Quest Complete", completed)
         self.assertNotIn(quest_id, self.player.runtime_state.quests.active)

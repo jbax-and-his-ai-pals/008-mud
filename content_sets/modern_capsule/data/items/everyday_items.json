@@ -20,10 +20,30 @@
     "community_flyer": {
         "type": "Item",
         "name": "community flyer",
-        "description": "A flyer for a neighborhood repair café this Saturday at the library.",
+        "description": "A flyer for a neighborhood repair café this Saturday at the library. Small print along the bottom: 'Bring one broken thing. We will show you how, not do it for you.'",
         "weight": 0.1,
         "value": 0,
         "stackable": false,
         "properties": {}
+    },
+    "broken_lamp": {
+        "type": "Item",
+        "name": "broken desk lamp",
+        "description": "A small desk lamp with a frayed cord, wrapped in tape that stopped helping a while ago. The switch has to be held down to stay on.",
+        "weight": 0.6,
+        "value": 0,
+        "stackable": false,
+        "properties": {}
+    },
+    "mended_lamp": {
+        "type": "Item",
+        "name": "mended desk lamp",
+        "description": "The same small desk lamp with a new cord, a re-seated socket, and a strip of masking tape on the base in someone else's handwriting: 'Fixed at the library. Keep it dry.'",
+        "weight": 0.6,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "use_text": "You click the switch once. The lamp comes on and stays on, the way it is supposed to."
+        }
     }
 }

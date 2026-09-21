@@ -1,0 +1,81 @@
+{
+    "id": "maya_neighbourhood",
+    "_comment": "Maya is the neighbour who tells you how the place works: where the noticeboard is, who runs the repair cafe's electronics table, and the one rule about the library's shelf of left things. Her replies are gated on carrying the flyer, so reading the noticeboard first is what makes the invitation a thing you can ask about.",
+    "root": "plaza",
+    "nodes": {
+        "plaza": {
+            "text": "Morning. You have the look of somebody deciding something. The trains run every six minutes, so there is no hurry.",
+            "choices": [
+                {
+                    "text": "What's worth knowing around here?",
+                    "aliases": [
+                        "neighbourhood",
+                        "neighborhood",
+                        "around here"
+                    ],
+                    "next_node": "neighbourhood"
+                },
+                {
+                    "text": "Do you know anything about the repair cafe?",
+                    "aliases": [
+                        "repair cafe",
+                        "the flyer",
+                        "saturday"
+                    ],
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "community_flyer"
+                    },
+                    "next_node": "invitation"
+                },
+                {
+                    "text": "Just waiting for a train.",
+                    "end": true
+                }
+            ]
+        },
+        "neighbourhood": {
+            "text": "The library north of here keeps the noticeboard and the good water fountain. Devon at the corner cafe does the electronics table at the repair cafe -- he will talk your ear off about sockets if you let him. And anything on the shelf in the library lobby is fair game. That is the rule: if it is on the shelf, it is yours to take.",
+            "choices": [
+                {
+                    "text": "What is the repair cafe?",
+                    "aliases": [
+                        "repair cafe",
+                        "saturday"
+                    ],
+                    "next_node": "invitation"
+                },
+                {
+                    "text": "I'll have a look at the shelf.",
+                    "aliases": [
+                        "shelf",
+                        "library"
+                    ],
+                    "end": true
+                }
+            ]
+        },
+        "invitation": {
+            "text": "First Saturday of the month, in the library's community room. You bring something broken and somebody sits down with you and shows you how to fix it -- that is the whole idea. It is not a repair shop. Half the people there are holding a torch for somebody else. Devon keeps a box of spare cords under the cafe counter, which tells you how most of it goes.",
+            "choices": [
+                {
+                    "text": "I don't have anything broken.",
+                    "next_node": "nothing_broken"
+                },
+                {
+                    "text": "Good to know. Thanks.",
+                    "end": true
+                }
+            ]
+        },
+        "nothing_broken": {
+            "text": "Then come and hold a torch for somebody. That is most of what fixing things is, if you ask me. There is usually a lamp on the library shelf with nobody's name on it.",
+            "choices": [
+                {
+                    "text": "I'll take a look.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

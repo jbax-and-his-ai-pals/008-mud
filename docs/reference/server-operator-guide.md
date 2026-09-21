@@ -1,20 +1,32 @@
 # Server Operator Guide (Master-Config-First)
 
+> **Verified 2026-09-20.** Every command below was run in this checkout. Two of
+> them used to fail as written: the wizard requires `--content-set`, and
+> `poc_server.py` requires it too, so a bare `--config` launch exits with a
+> missing-argument error. What the wizard actually writes is
+> `<server-slug>.server_config.json`, not `server_config.json`.
+
 ## Goal
 
 Run and manage servers primarily through one master config, with CLI overrides as optional.
 
 ## 1. Core Files
 
-1. Master config:
-- `C:\python\old\restart\server\config\server_config.json` (or your custom file)
+1. Master config — **you write it; nothing creates it for you.**
+   The wizard (section 3) writes `<server-slug>.server_config.json` into
+   `--config-dir` (default `server/config/`). `server/config/server_config.json`
+   is only `poc_server.py`'s default *path*, and it does not exist in a fresh
+   checkout, so either generate one or pass `--config` explicitly.
 
-2. Feature profile:
-- `C:\python\old\restart\server\data\profiles\*.profile.json`
+2. Feature profile — profiles live **in the content set they describe**:
+   - `content_sets/<set>/data/profiles/*.profile.json`
+   - `fantasy_frontier` ships five: `static_world`, `locked_static_no_combat`,
+     `social_no_combat`, `creative_world`, `mobile_low_fx`.
+   - The wizard writes a new one here, named after the server.
 
 3. Optional presets/examples:
-- `C:\python\old\restart\server\config\server_config.example.json`
-- `C:\python\old\restart\server\config\server_config.static_lockeddown.example.json`
+- `server/config/server_config.example.json`
+- `server/config/server_config.static_lockeddown.example.json`
 
 ## 2. Baseline Config Model
 
@@ -44,36 +56,37 @@ Note:
 
 ## 3. Launching
 
-Bootstrap config/profile generation (wizard CLI):
+Every command below runs from the repository root with the project interpreter
+(`.venv\Scripts\python.exe` after `bootstrap.ps1`; `python` is shorthand).
+
+Bootstrap config + profile generation (wizard CLI). It writes a profile into the
+content set and a config into `--config-dir`, and **refuses to overwrite** an
+existing file unless you pass `--force`:
 
 ```powershell
-python C:\python\old\restart\server\setup_wizard_cli.py --preset creator_sandbox --server-name "Builder Lab"
+python server/setup_wizard_cli.py --preset creator_sandbox --server-name "Builder Lab" --content-set content_sets/fantasy_frontier
 ```
 
-TCP server:
+Launch a content set over either transport — the supported entry point, which
+also owns `--presentation-mode player|test`:
 
 ```powershell
-python C:\python\old\restart\server\poc_server.py --config C:\python\old\restart\server\config\server_config.json
+python server/launch_content_set.py --transport tcp --content-set content_sets/fantasy_frontier
+python server/launch_content_set.py --transport ws  --content-set content_sets/fantasy_frontier
+python server/launch_content_set.py --dry-run        # print the resolved command, start nothing
 ```
 
-TCP server from migrated fixture content:
+The servers underneath take the same arguments directly:
 
 ```powershell
-python server/poc_server.py --content-set content_sets/fantasy_frontier
+python server/poc_server.py    --content-set content_sets/fantasy_frontier --config server/config/<slug>.server_config.json
+python server/poc_ws_server.py --content-set content_sets/fantasy_frontier --config server/config/<slug>.server_config.json
 ```
 
-WebSocket server:
-
-```powershell
-python C:\python\old\restart\server\poc_ws_server.py --config C:\python\old\restart\server\config\server_config.json
-```
-
-Launch using latest refreshed fixture selected by `LATEST_REFRESH.json`:
-
-```powershell
-python C:\python\old\restart\server\launch_from_latest_fixture.py --transport tcp
-python C:\python\old\restart\server\launch_from_latest_fixture.py --transport ws
-```
+`--content-set` is **required** by both servers and accepts a content-set
+directory or a manifest path. There is no longer a launcher that picks a fixture
+from `LATEST_REFRESH.json`; that file is a log of a past fixture refresh, and
+`run_content_checks.py` reads it to find the tree it recorded.
 
 ## 4. Feature Modes vs Entitlement Gates
 
@@ -114,13 +127,16 @@ Rule of thumb:
 ## 7. Recommended Starter Patterns
 
 1. Static narrative world:
-- start from `server_config.static_lockeddown.example.json`.
+- start from `server/config/server_config.static_lockeddown.example.json`.
+- the matching shipped profile is `locked_static_no_combat.profile.json`.
 
 2. Social no-combat world:
-- disable combat in profile, keep mutation/authoring as needed.
+- ship profile `social_no_combat.profile.json`, or disable combat in your own
+  profile and keep mutation/authoring as needed.
 
 3. Creator sandbox:
-- mutable world + broader entitlements in controlled environment.
+- mutable world + broader entitlements in controlled environment
+  (`--preset creator_sandbox`).
 
 ## 8. Troubleshooting Checklist
 
@@ -131,9 +147,11 @@ Rule of thumb:
 - verify entitlement gate + session entitlements + GM session state.
 
 3. Unexpected content failures:
-- run toolkit validators before launch:
-  - `data_integrity_validator.py`
-  - `reference_integrity_validator.py`
+- run the one content gate before launch, which runs both validators across every
+  set and plays each one:
+  - `python run_content_checks.py`
+  - individually: `toolkit/data_integrity_validator.py`,
+    `toolkit/reference_integrity_validator.py`
 
 ## 9. Next Docs To Add
 

@@ -40,6 +40,7 @@ func _init() -> void:
 	DataRoot._source = "test fixture"
 
 	_check_the_catalog_reads_the_set()
+	_check_safe_contract_draft_round_trip()
 	_check_family_picker_writes_the_family()
 	_check_class_mismatch_is_named()
 	_check_rarity_comes_from_the_profile()
@@ -80,6 +81,29 @@ func _check_the_catalog_reads_the_set() -> void:
 		"families can be asked for by engine class")
 	_assert(catalog.family_ids_for_capability("generated_instance") == ["salvaged_part"],
 		"and by capability")
+
+
+func _check_safe_contract_draft_round_trip() -> void:
+	print("\n[the contract draft]")
+	var path := data_root.path_join("contracts/world_contracts.json")
+	var loaded := ContractDraft.load(path)
+	_assert(loaded.get("ok", false), "the editable draft loads")
+	if not loaded.get("ok", false):
+		return
+	var draft: ContractDraft = loaded["draft"]
+	var resources: Array = draft.data.get("resources", [])
+	var families: Array = draft.data.get("item_families", [])
+	var changed_resource: Dictionary = resources[1].duplicate(true)
+	changed_resource["label"] = "Reserve Charge"
+	resources[1] = changed_resource
+	draft.set_resources(resources)
+	draft.set_item_families(families)
+	var saved := draft.save()
+	_assert(saved.get("ok", false), "resources and families save through the safe draft: %s" % str(saved))
+	var after = JSON.parse_string(FileAccess.get_file_as_string(path))
+	_assert(after is Dictionary and str(after.get("label", "")) == "Contract fixture", "unowned root fields survive the edit")
+	var profiles: Array = after.get("generation_profiles", []) if after is Dictionary else []
+	_assert(profiles.size() == 1 and str(profiles[0].get("id", "")) == "salvage_grade", "generation profiles survive untouched")
 
 
 func _check_family_picker_writes_the_family() -> void:
@@ -149,11 +173,15 @@ func _check_rarity_comes_from_the_profile() -> void:
 func _check_browser_sections() -> void:
 	print("\n[the contract browser]")
 	var sections := catalog.sections()
-	_assert(sections.size() == 7, "every contract kind has a section (%d)" % sections.size())
+	# Seven contract kinds, plus the stat vocabulary (a mapping rather than a list
+	# of entries) and work that takes time.
+	_assert(sections.size() == 9, "every contract kind has a section (%d)" % sections.size())
 	var titles: Array = []
 	for section in sections:
 		titles.append(str(section["title"]))
 	_assert(str(titles[0]).begins_with("Item families"), "families come first: %s" % str(titles))
+	_assert(str(titles[7]).begins_with("Work"), "work that takes time is shown too: %s" % str(titles))
+	_assert(str(titles[8]).begins_with("Stats"), "and the stat vocabulary: %s" % str(titles))
 	var families: Array = sections[0]["entries"]
 	_assert(not families.is_empty(), "with entries")
 	var detail := str(families[0].get("detail", "")) if families.size() > 0 else ""

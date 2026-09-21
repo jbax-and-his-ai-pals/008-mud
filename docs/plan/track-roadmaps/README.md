@@ -21,6 +21,19 @@ and propose that track's roadmap. Each wrote one file and touched nothing else.
 
 This is a review artifact, not the plan. Accepted items belong in `ROADMAP.md`.
 
+**2026-09-21:** the current editor push is
+[chunks §6A–6G](../chunks-of-work.md), scoped by the
+[game-authoring roadmap](../game-authoring-roadmap.md). Use the current addendum in
+[editor-readiness](../editor-readiness.md), not historical absent-surface claims,
+when deciding what to build next.
+
+> **Dated 2026-09-18; annotated since.** The per-track files are being kept current
+> where a later pass answered one of their findings (search for "Answered" or a dated
+> `>` block). The two that moved the plan on 2026-09-20: **Track G** gained items
+> 8–14 for the authoring-surface batch (`../editor-readiness.md`), and **Track B**
+> gained a `Handoffs` section for the validation surface that batch needs. The
+> editor batch itself is `ROADMAP.md` P10 and `../chunks-of-work.md` §6.
+
 ---
 
 ## Verified findings

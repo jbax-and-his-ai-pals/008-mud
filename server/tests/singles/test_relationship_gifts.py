@@ -63,6 +63,43 @@ class TestRelationshipGifts(unittest.TestCase):
         self.assertIn("another day", text)
         self.assertEqual(1, self.player.inventory.count_item("item_leather_cap"))
 
+    def test_a_quest_item_cannot_be_given_away(self) -> None:
+        """Selling one is already refused ("isn't something you can part with");
+        a gift is the same act. Unguarded, a courier carrying two sealed packets
+        could hand one to a bystander and never finish the delivery."""
+        treaty = ItemFactory.create_item_from_template("item_treaty", self.server.world)
+        self.player.inventory.add_item(treaty)
+
+        events = self.server.execute_command(self.session.session_id, "give peace treaty to grenda")
+        text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
+
+        self.assertIn("isn't something you can part with", text)
+        self.assertEqual(1, self.player.inventory.count_item("item_treaty"))
+        self.assertEqual({}, dict(self.player.npc_relationships))
+
+    def test_a_quest_item_is_still_handed_over_to_its_quest_recipient(self) -> None:
+        """The guard sits on the ordinary-gift path only: a delivery still works."""
+        treaty = ItemFactory.create_item_from_template("item_treaty", self.server.world)
+        self.player.inventory.add_item(treaty)
+        objective = {
+            "type": "deliver",
+            "item_template_id": "item_treaty",
+            "item_instance_id": "item_treaty",
+            "recipient_template_id": "blacksmith",
+        }
+        self.player.runtime_state.quests.active["q_treaty"] = {
+            "instance_id": "q_treaty", "title": "The White Flag", "type": "quest",
+            "current_stage_index": 0, "rewards": {}, "state": "active",
+            "objective": objective,
+            "stages": [{"stage_index": 0, "objective": objective, "turn_in_id": "blacksmith"}],
+        }
+
+        events = self.server.execute_command(self.session.session_id, "give peace treaty to grenda")
+        text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
+
+        self.assertIn("Quest Complete", text)
+        self.assertEqual(0, self.player.inventory.count_item("item_treaty"))
+
     def test_friendship_tiers_lower_vendor_prices(self) -> None:
         base_price = _get_price_multiplier(self.blacksmith, self.player)
         self.player.npc_relationships[relationship_key(self.blacksmith)] = 30

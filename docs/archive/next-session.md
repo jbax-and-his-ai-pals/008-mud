@@ -239,7 +239,7 @@
 - `python -m unittest tests.singles.test_server_config_resolution tests.singles.test_headless_entitlement_policy_wiring -v`
 - `python -m unittest tests.singles.test_transport_startup_diagnostics_parity tests.singles.test_poc_policy_commands tests.singles.test_server_policy_payload -v`
 - Headless Godot parse:
-  - `Godot_v4.6-stable_win64_console.exe --headless --path C:\python\old\restart\client --quit`
+  - `Godot_v4.6-stable_win64_console.exe --headless --path ../../client --quit`
 
 ## Deliverables
 

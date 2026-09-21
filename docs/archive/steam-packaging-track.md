@@ -35,6 +35,6 @@ This track runs alongside all phases. Do not leave this to the end.
 - [ ] Mobile lifecycle/connectivity UX policy documented.
 
 Evidence:
-- Offline/online launcher flow + handoff: [launcher_controller.gd](C:/python/old/restart/client/scripts/ui/launcher_controller.gd)
-- Runtime interpretation of launch mode + transport selection: [main_controller.gd](C:/python/old/restart/client/scripts/ui/main_controller.gd)
-- Keyboard command UX and remapping baseline: [keybindings_manager.gd](C:/python/old/restart/client/scripts/ui/keybindings_manager.gd)
+- Offline/online launcher flow + handoff: [launcher_controller.gd](../../client/scripts/ui/launcher_controller.gd)
+- Runtime interpretation of launch mode + transport selection: [main_controller.gd](../../client/scripts/ui/main_controller.gd)
+- Keyboard command UX and remapping baseline: [keybindings_manager.gd](../../client/scripts/ui/keybindings_manager.gd)

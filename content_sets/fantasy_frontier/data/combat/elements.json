@@ -51,23 +51,43 @@
       "strong_resistance": "{target_name} strongly resists the attack."
     }
   },
+  "_hazards_comment": "One record per hazard: what channel it damages through, what a player reads when it does, and the base damage and tick interval a room inherits by naming it. A room may override `hazard_damage`/`hazard_tick_interval` when its instance of the same hazard is worse -- `extreme_heat` runs hotter in the trial's inner sanctum than on the salt flat -- and may scale it with `weather_hazard_multipliers`. The prose used to be keyed by damage channel, which meant two hazards sharing a channel shared a sentence and a hazard's own name never reached a player.",
   "hazards": {
-    "mapping": {
-      "extreme_heat": "fire",
-      "extreme_cold": "ice",
-      "poison_gas": "poison",
-      "electrified_floor": "lightning",
-      "unholy_aura": "shadow",
-      "quicksand": "physical"
+    "extreme_heat": {
+      "channel": "fire",
+      "flavor": "The intense heat scorches you!",
+      "damage": 5,
+      "tick_interval": 5
     },
-    "flavor": {
-      "fire": "The intense heat scorches you!",
-      "ice": "The biting cold freezes your skin!",
-      "poison": "You choke on the toxic fumes!",
-      "lightning": "Sparks from the floor shock you!",
-      "shadow": "The oppressive darkness drains your life!",
-      "physical": "The sucking mud drags you under!",
-      "default": "The environment hurts you!"
+    "extreme_cold": {
+      "channel": "ice",
+      "flavor": "The biting cold freezes your skin!",
+      "damage": 5,
+      "tick_interval": 5
+    },
+    "poison_gas": {
+      "channel": "poison",
+      "flavor": "You choke on the toxic fumes!",
+      "damage": 6,
+      "tick_interval": 5
+    },
+    "electrified_floor": {
+      "channel": "lightning",
+      "flavor": "Sparks from the floor shock you!",
+      "damage": 6,
+      "tick_interval": 5
+    },
+    "unholy_aura": {
+      "channel": "shadow",
+      "flavor": "The oppressive darkness drains your life!",
+      "damage": 4,
+      "tick_interval": 5
+    },
+    "quicksand": {
+      "channel": "physical",
+      "flavor": "The sucking mud drags you under!",
+      "damage": 4,
+      "tick_interval": 5
     }
   }
 }

@@ -228,9 +228,15 @@ func _check_the_engine_accepts_what_this_wrote() -> void:
 
 	var result := EngineValidator.run(content_set_root, repo_root, python_exe)
 	_assert(result.get("ran", false), "the validator runs: %s" % result.get("error", ""))
+	# Errors only, and only for the files this check authored. The path filter used
+	# to be the bare word "crafting", which also matched the skill audit's
+	# `engine:crafting_manager` warning -- an accurate advisory about a set that
+	# names a skill without declaring a level, and not this check's business.
 	var recipe_errors: Array = []
 	for issue in result.get("issues", []):
-		if str(issue.get("path", "")).contains("crafting"):
+		if str(issue.get("severity", "")) != "error":
+			continue
+		if str(issue.get("path", "")).contains("crafting/"):
 			recipe_errors.append(issue)
 	_assert(recipe_errors.is_empty(), "a recipe edited here validates: %s" % str(recipe_errors))
 	_assert(result.get("ok", false), "and the content set as a whole passes: %s" % str(result.get("issues", [])))

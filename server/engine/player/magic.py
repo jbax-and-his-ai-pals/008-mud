@@ -114,7 +114,8 @@ class PlayerMagicMixin:
             # Single Target Validation
             if target_type == 'enemy':
                  from engine.npcs.npc import NPC
-                 is_npc_friendly = isinstance(target, NPC) and target.faction != 'hostile'
+                 from engine.world import factions
+                 is_npc_friendly = isinstance(target, NPC) and not factions.is_hostile(target, world or p.world)
                  is_self = (target == p)
                  
                  if is_self or is_npc_friendly:

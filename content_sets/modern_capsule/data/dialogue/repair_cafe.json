@@ -1,0 +1,148 @@
+{
+    "id": "repair_cafe",
+    "_comment": "Devon runs the electronics table at the library's repair cafe. Demonstrates what a content set with NO progression, NO economy, NO quests and NO crafting can still do: a conversation with a real outcome (take_item + give_item + set_flag), a reply gated on carrying the thing that needs fixing, and a second visit that remembers the first. The flyer on the library bench is the invitation; the shelf in the library lobby is where the broken thing comes from.",
+    "root": "counter",
+    "nodes": {
+        "counter": {
+            "text": "Morning. Coffee's on if you want one. If you're here about Saturday, sit anywhere -- the machine can wait.",
+            "choices": [
+                {
+                    "text": "I brought something that needs fixing.",
+                    "aliases": [
+                        "fix this",
+                        "the lamp",
+                        "i have something broken"
+                    ],
+                    "condition": {
+                        "all": [
+                            {
+                                "kind": "has_item",
+                                "item_id": "broken_lamp"
+                            },
+                            {
+                                "not": {
+                                    "kind": "flag",
+                                    "flag": "lamp_mended"
+                                }
+                            }
+                        ]
+                    },
+                    "next_node": "bench"
+                },
+                {
+                    "text": "Tell me about the repair cafe.",
+                    "aliases": [
+                        "repair cafe",
+                        "saturday",
+                        "the cafe"
+                    ],
+                    "condition": {
+                        "not": {
+                            "kind": "flag",
+                            "flag": "lamp_mended"
+                        }
+                    },
+                    "next_node": "about"
+                },
+                {
+                    "text": "The lamp's still working.",
+                    "aliases": [
+                        "the lamp",
+                        "it works"
+                    ],
+                    "condition": {
+                        "kind": "flag",
+                        "flag": "lamp_mended"
+                    },
+                    "next_node": "working"
+                },
+                {
+                    "text": "Just a coffee, thanks.",
+                    "end": true
+                }
+            ]
+        },
+        "about": {
+            "text": "First Saturday of the month, community room at the library. I do the electronics table -- cords, sockets, anything that plugs in and has given up. People think it's about the fixing. It's about sitting next to somebody for twenty minutes. There's a shelf in the library lobby for things people leave behind, and there's usually a lamp on it. Bring one on Saturday and I'll show you the two faults that account for most of it.",
+            "choices": [
+                {
+                    "text": "I'll go and look at that shelf.",
+                    "aliases": [
+                        "shelf",
+                        "library"
+                    ],
+                    "end": true
+                },
+                {
+                    "text": "What are the two faults?",
+                    "next_node": "two_faults"
+                },
+                {
+                    "text": "Maybe another time.",
+                    "end": true
+                }
+            ]
+        },
+        "two_faults": {
+            "text": "Cords and sockets. The cord frays where it bends, and the socket works loose from people pulling the plug out by the wire. Nearly everything on that shelf is one of the two, and both of them are ten minutes with a screwdriver once somebody has shown you. Nobody is born knowing that.",
+            "choices": [
+                {
+                    "text": "Fair enough. I'll bring one.",
+                    "end": true
+                }
+            ]
+        },
+        "bench": {
+            "text": "Frayed cord, and the socket's loose. Two faults, and the loose one is why it kept cutting out. Come round this side of the counter -- I'll show you where the wires seat, and you can hold the tape when we get to it. There. That's yours again, and now you know the two things to look at before you give up on the next one.",
+            "effects": {
+                "give_item": "mended_lamp",
+                "take_item": "broken_lamp",
+                "set_flag": "lamp_mended"
+            },
+            "choices": [
+                {
+                    "text": "Where did you learn to do this?",
+                    "aliases": [
+                        "where did you learn"
+                    ],
+                    "next_node": "where_learned"
+                },
+                {
+                    "text": "Thanks, Devon.",
+                    "end": true
+                }
+            ]
+        },
+        "where_learned": {
+            "text": "My dad's shop, mostly, back when things came in to be fixed instead of replaced. I do four lamps and a kettle every first Saturday now. Bring the tape next time -- I want to see how bad it got before you gave up on it.",
+            "choices": [
+                {
+                    "text": "I'll keep it.",
+                    "end": true
+                }
+            ]
+        },
+        "working": {
+            "text": "Good. If it starts buzzing, that's the socket working loose again, not the bulb -- bring it back and I'll show you the second time. Second time is when it sticks.",
+            "choices": [
+                {
+                    "text": "I'll remember that.",
+                    "end": true
+                },
+                {
+                    "text": "What else do you fix?",
+                    "next_node": "what_else"
+                }
+            ]
+        },
+        "what_else": {
+            "text": "Kettles, radios, the library's laminator twice a year. Somebody brought in a bread machine in March and we got it going before the coffee ran out. It's a good Saturday.",
+            "choices": [
+                {
+                    "text": "Sounds like it.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

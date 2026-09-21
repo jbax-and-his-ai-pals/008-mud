@@ -1,7 +1,7 @@
 {
     "region_id": "depot",
     "name": "Riverside Distribution Depot",
-    "description": "A small overnight freight depot: a loading dock, a supply room, and an alley out back.",
+    "description": "A small overnight freight depot: a loading dock, a supply room, a locked storeroom, and an alley out back.",
     "properties": {
         "safe_zone": true
     },
@@ -16,13 +16,29 @@
         },
         "supply_room": {
             "name": "Supply Room",
-            "description": "Metal shelving holds crates of everyday stock. A hand-lettered sign reads 'ask before you take.'",
+            "description": "Metal shelving holds crates of everyday stock. A hand-lettered sign reads 'ask before you take.' A storeroom door east has a cylinder lock on it, and the register sits where Dana can watch it.",
             "properties": {
-                "outdoors": false
+                "outdoors": false,
+                "exit_requirements": {
+                    "east": {
+                        "type": "locked",
+                        "key_id": null,
+                        "pick_difficulty": 30
+                    }
+                }
             },
             "exits": {
-                "south": "loading_dock"
+                "south": "loading_dock",
+                "east": "storeroom"
             },
+            "items": [
+                {
+                    "item_id": "item_register"
+                },
+                {
+                    "item_id": "item_tool_crib"
+                }
+            ],
             "initial_npcs": [
                 {
                     "template_id": "dana",
@@ -34,20 +50,53 @@
                 }
             ]
         },
+        "storeroom": {
+            "name": "Storeroom",
+            "description": "Locked stock, stacked to the ceiling and inventoried twice a week. A wire cage on wheels is chained to the wall beside the door.",
+            "properties": {
+                "outdoors": false
+            },
+            "exits": {
+                "west": "supply_room"
+            },
+            "items": [
+                {
+                    "item_id": "item_storeroom_cage"
+                }
+            ]
+        },
         "back_alley": {
             "name": "Back Alley",
-            "description": "A narrow service alley behind the depot, lit by a single flickering lamp.",
+            "description": "A narrow service alley behind the depot, lit by a single flickering lamp. Crates are stacked against the wall, and the far end of the alley turns out of sight.",
             "properties": {
                 "outdoors": true,
                 "safe_zone": false
             },
             "exits": {
-                "west": "loading_dock"
+                "west": "loading_dock",
+                "east": "alley_end"
             },
             "initial_npcs": [
                 {
                     "template_id": "stray_dog",
                     "instance_id": "stray_dog_alley"
+                }
+            ]
+        },
+        "alley_end": {
+            "name": "End of the Alley",
+            "description": "The alley dead-ends at a fire door nobody uses. Otis keeps a folding chair here, a battery lantern, and no particular interest in where things came from.",
+            "properties": {
+                "outdoors": true,
+                "safe_zone": false
+            },
+            "exits": {
+                "west": "back_alley"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "otis",
+                    "instance_id": "otis_alley"
                 }
             ]
         },

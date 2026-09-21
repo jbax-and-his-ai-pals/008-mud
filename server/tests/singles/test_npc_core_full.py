@@ -72,7 +72,14 @@ class TestDie(GameTestBase):
         npc.current_room_id = self.player.current_room_id
         npc.loot_table = {"item_iron_sword": {"chance": 1.0, "quantity": [3, 3]}}
         dropped = npc.die(self.world)
-        self.assertEqual(len(dropped), 3)
+        # What this test is about is the loot *quantity* range: one entry asking
+        # for 3..3 must produce three swords. The total length of `dropped` is not
+        # that number -- the same call also rolls the ruleset's ambient loot pools,
+        # which add their own items on a chance roll, so asserting the total made
+        # this test pass or fail on the global `random` state left by whichever
+        # test ran before it.
+        swords = [item for item in dropped if getattr(item, "obj_id", "") == "item_iron_sword"]
+        self.assertEqual(3, len(swords))
 
     def test_failed_loot_item_creation_within_the_drop_loop_is_skipped(self):
         npc = NPCFactory.create_npc_from_template("goblin", self.world, instance_id="npc_core_failed_loot")

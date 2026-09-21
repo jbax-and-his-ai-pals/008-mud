@@ -30,7 +30,7 @@
     "item_impact_vest": {
         "type": "Armor",
         "name": "impact vest",
-        "description": "Layered composite panels over a padded shell. Rated for tools, not for people.",
+        "description": "Layered composite panels over a padded shell. Rated for tools, not for people -- but it holds warmth in, which the hold has none of.",
         "item_family": "protective_gear",
         "weight": 3.4,
         "value": 95,
@@ -38,7 +38,11 @@
         "equip_slot": [
             "body"
         ],
-        "properties": {}
+        "properties": {
+            "resistances": {
+                "thermal": 30
+            }
+        }
     },
     "item_locker": {
         "type": "Container",
@@ -50,6 +54,18 @@
         "properties": {
             "locked": false,
             "is_open": false
+        }
+    },
+    "item_fabricator": {
+        "type": "Item",
+        "name": "fabrication bay",
+        "description": "The frame the workshop is built around: a hopper, a clamp, and a screen that has been asking for maintenance for eleven years. It works slowly and wastes less than hands do.",
+        "weight": 240,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "crafting_station_type": "fabricator",
+            "can_take": false
         }
     }
 }

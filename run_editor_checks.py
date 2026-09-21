@@ -58,10 +58,17 @@ def find_godot(explicit: str | None) -> str:
         directory = home / location
         if not directory.is_dir():
             continue
-        for name in GODOT_NAMES:
-            for candidate in sorted(directory.glob(f"*{name}*")) + [directory / name]:
-                if candidate.is_file():
-                    return str(candidate)
+        # Godot's Windows archive normally extracts into a versioned directory
+        # under Downloads (for example, ``Godot_v4.7.2-stable_win64.exe/``).
+        # Probe that immediate level as well as the location itself; recursing
+        # through all of Downloads would be slow and surprising.
+        directories = [directory]
+        directories += sorted(child for child in directory.glob("Godot*") if child.is_dir())
+        for search_directory in directories:
+            for name in GODOT_NAMES:
+                for candidate in sorted(search_directory.glob(f"*{name}*")) + [search_directory / name]:
+                    if candidate.is_file():
+                        return str(candidate)
     return ""
 
 
@@ -78,14 +85,21 @@ def run_check(godot: str, test: Path) -> tuple[bool, str]:
         "--script", "tests/%s" % test.name,
         "--", "--python", sys.executable,
     ]
-    completed = subprocess.run(
-        command, cwd=str(REPO_ROOT), capture_output=True, text=True, errors="replace",
-    )
+    try:
+        completed = subprocess.run(
+            command, cwd=str(REPO_ROOT), capture_output=True, text=True, errors="replace", timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "    Timed out after 120 seconds (possible script error before quit)."
+    output = completed.stdout + completed.stderr
+    # Godot can report script failures and still exit zero. A smoke test which
+    # never reached its assertions must not be reported as green.
+    ok = completed.returncode == 0 and "SCRIPT ERROR:" not in output
     detail = ""
-    if completed.returncode != 0:
-        tail = (completed.stdout + completed.stderr).strip().splitlines()[-12:]
+    if not ok:
+        tail = output.strip().splitlines()[-24:]
         detail = "\n".join("    " + line for line in tail)
-    return completed.returncode == 0, detail
+    return ok, detail
 
 
 def main() -> int:

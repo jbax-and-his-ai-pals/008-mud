@@ -5,7 +5,6 @@ import copy
 from engine.config import FORMAT_CATEGORY, FORMAT_RESET, FORMAT_HIGHLIGHT
 from engine.game_object import GameObject
 from engine.items.item import Item
-from engine.config.config_combat import HAZARD_TYPE_MAP, HAZARD_FLAVOR_TEXT
 
 class Room(GameObject):
     def __init__(self, name: str, description: str, exits: Optional[Dict[str, str]] = None, obj_id: Optional[str] = None):
@@ -109,36 +108,19 @@ class Room(GameObject):
         return None
 
     def apply_hazards(self, entity, current_time: float) -> Optional[str]:
-        if not entity.is_alive: return None
-        hazard_type = self.properties.get("hazard_type")
-        if not hazard_type: return None
+        """Damage `entity` for this room's hazard, in this room's own words.
 
-        entity_id = getattr(entity, "obj_id", None)
-        hazard_tick_interval = float(self.properties.get("hazard_tick_interval", 3.0))
-        if entity_id:
-            last_tick = self._hazard_last_tick_by_entity.get(entity_id, 0.0)
-            if current_time - last_tick < hazard_tick_interval:
-                return None
-            self._hazard_last_tick_by_entity[entity_id] = current_time
+        The reading lives in `engine/world/environment.py` -- one declaration
+        resolved once -- and this is the delegation `Room` owns, because the tick
+        cache is per-room state. The lookup that used to be here read a channel
+        map and a channel-keyed sentence; see that module for what replaced it.
+        """
+        from engine.world import environment
 
-        hazard_damage = self.properties.get("hazard_damage", 5)
-        weather_multipliers = self.properties.get("weather_hazard_multipliers", {})
         world = getattr(entity, "world", None)
-        if isinstance(weather_multipliers, dict) and world is not None:
-            weather_manager = getattr(getattr(world, "game", None), "weather_manager", None)
-            region = world.get_region(getattr(entity, "current_region_id", ""))
-            if weather_manager is not None and region is not None:
-                weather = weather_manager.effective_weather(region, self)
-                multiplier = weather_multipliers.get(weather, 1)
-                if isinstance(multiplier, (int, float)) and not isinstance(multiplier, bool) and multiplier > 0:
-                    hazard_damage = max(1, round(float(hazard_damage) * multiplier))
-        dtype = HAZARD_TYPE_MAP.get(hazard_type, "physical")
-        dmg_taken = entity.take_damage(hazard_damage, dtype)
-        
-        if dmg_taken > 0:
-            msg = HAZARD_FLAVOR_TEXT.get(dtype, HAZARD_FLAVOR_TEXT.get("default", "The environment hurts you!"))
-            return f"{msg} (-{dmg_taken} HP)"
-        return None
+        return environment.apply(
+            world, self, entity, current_time, self._hazard_last_tick_by_entity
+        )
 
     # ... (get_full_description, to_dict, from_dict etc. remain same) ...
     def get_full_description(self, time_period: str = "day", weather: str = "clear", is_outdoors: bool = True,

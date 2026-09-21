@@ -73,7 +73,7 @@ func _build_district_attachment():
 		if not selected_ids.has(room_id):
 			district_target.add_item(region_mgr.data.rooms[room_id].get("name", room_id))
 			district_target.set_item_metadata(district_target.item_count - 1, room_id)
-	for direction in ["north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest", "up", "down", "climb", "dive"]:
+	for direction in Constants.AUTHORABLE_DIRECTIONS:
 		district_direction.add_item(direction.capitalize())
 		district_direction.set_item_metadata(district_direction.item_count - 1, direction)
 	for pair in [["District port:", district_anchor], ["Attach to:", district_target], ["Direction from target:", district_direction]]:
@@ -107,32 +107,68 @@ func _refresh_district_preview():
 	if not warnings.is_empty():
 		district_status.text += "\n[color=orange]" + "\n".join(warnings) + "[/color]"
 
+func _analyze_selected() -> Dictionary:
+	"""The intersection of the selected rooms' properties, and the split by shape.
+
+	Returns `counts` (key -> how many selected rooms carry it), `values`
+	(key -> the first value seen), `mixed` (key -> the rooms disagree), and the two
+	key lists a panel may act on: `editable` and `nested`.
+
+	The split is here rather than inline in the render loop so the rule can be
+	asserted without constructing the panel, which needs an ActionHandler wired to a
+	live controller.
+	"""
+	var counts := {}
+	var values := {}
+	var mixed := {}
+
+	for id in selected_ids:
+		if not region_mgr.data.rooms.has(id):
+			continue
+		var room: Dictionary = region_mgr.data.rooms[id]
+		var props: Dictionary = room.get("properties", {})
+		for k in props:
+			if not counts.has(k):
+				counts[k] = 0
+				values[k] = props[k]
+				mixed[k] = false
+			counts[k] += 1
+			if values[k] != props[k]:
+				mixed[k] = true
+
+	var editable: Array = []
+	var nested: Array = []
+	for k in counts.keys():
+		if PropertyTagRow.is_inline_editable(values[k]):
+			editable.append(k)
+		else:
+			nested.append(k)
+	editable.sort()
+	nested.sort()
+
+	return {
+		"counts": counts, "values": values, "mixed": mixed,
+		"editable": editable, "nested": nested,
+	}
+
+
 func _refresh_props():
 	for c in props_box.get_children(): c.queue_free()
-	
-	# 1. Analyze Intersection
-	var prop_counts = {} # key -> count
-	var prop_values = {} # key -> first_val
-	var prop_mixed = {} # key -> bool
-	
-	for id in selected_ids:
-		if not region_mgr.data.rooms.has(id): continue
-		var r = region_mgr.data.rooms[id]
-		var p = r.get("properties", {})
-		
-		for k in p:
-			if not prop_counts.has(k):
-				prop_counts[k] = 0
-				prop_values[k] = p[k]
-				prop_mixed[k] = false
-			
-			prop_counts[k] += 1
-			if prop_values[k] != p[k]:
-				prop_mixed[k] = true
-	
-	# 2. Build UI for properties that exist in AT LEAST ONE selected room
-	var keys = prop_counts.keys()
-	keys.sort()
+
+	# 1 + 2. The intersection, and which of it this panel may edit inline.
+	#
+	# Nested values are excluded for the same reason RoomPropertiesPanel excludes
+	# them: `str(val)` into a LineEdit then writes the stringified form back over
+	# the object -- and a multi-room edit writes it into *every* selected room. The
+	# rule is PropertyTagRow's, shared by every panel that edits a property list;
+	# this was the third panel to carry the shape and the third to be missing the
+	# guard, which is what makes it a shared rule rather than a fix in one place.
+	var analysis := _analyze_selected()
+	var prop_counts: Dictionary = analysis["counts"]
+	var prop_values: Dictionary = analysis["values"]
+	var prop_mixed: Dictionary = analysis["mixed"]
+	var keys: Array = analysis["editable"]
+	var nested: Array = analysis["nested"]
 	
 	popup_menu.clear()
 	# Populate Add Menu (Common props not present in ALL)
@@ -142,7 +178,7 @@ func _refresh_props():
 	popup_menu.add_separator()
 	popup_menu.add_item("Custom...")
 	
-	if keys.is_empty():
+	if keys.is_empty() and nested.is_empty():
 		var l = Label.new(); l.text = "No properties found."; l.modulate = Color(1,1,1,0.3)
 		props_box.add_child(l)
 		return
@@ -193,6 +229,15 @@ func _refresh_props():
 		hb.add_child(btn_del)
 		
 		props_box.add_child(row)
+
+	# Structured values are listed, not edited here: a multi-room edit would write
+	# the same stringified object into every selected room.
+	if not nested.is_empty():
+		props_box.add_child(InspectorStyle.create_sub_header("STRUCTURED (not editable here)"))
+		for k in nested:
+			props_box.add_child(PropertyTagRow.build_nested_row(
+				k, prop_values[k], "each room's own properties panel"
+			))
 
 func _edit_prop(key: String, new_val):
 	var old_vals = {}

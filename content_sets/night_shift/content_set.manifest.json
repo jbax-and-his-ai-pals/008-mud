@@ -16,5 +16,10 @@
     "region_id": "depot",
     "room_id": "loading_dock"
   },
-  "capabilities": ["inventory", "dialogue", "combat"]
+  "capabilities": [
+    "inventory",
+    "dialogue",
+    "combat",
+    "social"
+  ]
 }

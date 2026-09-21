@@ -188,6 +188,29 @@ class ChestLootGenerator:
                 contents.append(item)
 
     @staticmethod
+    def fill_owned_container(world: 'World', container: Container) -> None:
+        """Give a container somebody owns its contents, once, before it is robbed.
+
+        Lazy generation used to live only in the theft path, which is where it did
+        the least good: `steal <item> from <container>` matches by *name*, so loot
+        that appears at the moment of the theft is loot no player could have named.
+        Contents become knowable when the container is opened, so that is when they
+        are made.
+
+        A container that authors `contains` keeps them: a till or a tool crib is a
+        deliberate inventory, and household loot on top of it would bury what its
+        author put there. Marking it settled also means emptying it does not refill
+        it -- `loot_generated` was already the flag for "this container's contents
+        are decided", and this is the second way of deciding them.
+        """
+        if not container.properties.get("owned_by_npc"):
+            return
+        if container.properties.get("contains"):
+            container.properties["loot_generated"] = True
+            return
+        ChestLootGenerator.generate_household_loot(world, container)
+
+    @staticmethod
     def _roll_material(world: 'World', level: int) -> Optional[str]:
         available = _chest_material_ids(world)
         if not available:

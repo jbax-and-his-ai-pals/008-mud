@@ -1537,7 +1537,7 @@ primitives. Prove the boundary with a deliberately minimal sci-fi content set,
 not a second large game.
 
 The canonical design and delivery sequence live in
-[`docs/design/cross_theme_engine_contracts.md`](docs/design/cross_theme_engine_contracts.md).
+[`docs/design/cross_theme_engine_contracts.md`](../design/cross_theme_engine_contracts.md).
 That document is the detailed contract reference; this section is the active
 work order.
 

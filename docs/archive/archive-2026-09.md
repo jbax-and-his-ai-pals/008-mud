@@ -1,4 +1,4 @@
-# Roadmap archive ó 2026-09
+# Roadmap archive ‚Äî 2026-09
 
 This is the roadmap as it stood immediately before the 2026-09-14 rewrite, kept
 verbatim so the completed work it recorded is not lost.
@@ -9,7 +9,7 @@ It is **superseded** by [/ROADMAP.md](../../ROADMAP.md) and
 Two things to know when reading it:
 
 1. Every `[x]` item in here describes real, verified work. The rewrite did not
-   invalidate any of it ó the engine those items built is what makes the current
+   invalidate any of it ‚Äî the engine those items built is what makes the current
    expansion plan cheap.
 2. Its *ordering* is what changed. This roadmap prioritized engine capability,
    QA machinery, and operator/live-service concerns. The audit found the
@@ -21,10 +21,10 @@ treated as withdrawn rather than pending:
 
 > `- [ ] Densify existing regions before creating new ones.`
 
-The new commitment is *sparse rooms in a dense world* ó most rooms should carry
+The new commitment is *sparse rooms in a dense world* ‚Äî most rooms should carry
 prose and exits, and the fix for an "empty" region is better prose, landmarks,
 and things to discover, not more objects placed per room. See
-`docs/design/WORLD_DESIGN.md` ß4.4.
+`docs/design/WORLD_DESIGN.md` ¬ß4.4.
 
 ---
 # Roadmap
@@ -372,7 +372,7 @@ number of new mechanics.
   concrete access/behavior/opportunity change.
 - [ ] Make gifts personal rather than merely valuable: preserve broad gem
   appreciation, while letting preferences and remembered context distinguish
-  ìvaluableî from ìthoughtful.î
+  ‚Äúvaluable‚Äù from ‚Äúthoughtful.‚Äù
 - [ ] Extend commissions and campaigns with multiple useful resolutions:
   gathering, craft, combat, payment, exploration, social effort, or a
   combination where appropriate. Each resolution should leave a visible
@@ -640,7 +640,7 @@ existing authored candidates) -- see place-making below.
   precursor to later NPC intent selection without coupling NPCs to commands.
 - Crafted equipment, tools, furnishings, gifts, curios, and commission goods.
 - Vendor specialties, buy orders, local needs, and quality/provenance-aware
-  tradeówithout punitive market simulation.
+  trade‚Äîwithout punitive market simulation.
 - Content-authored vendor buy orders now provide repeatable or one-time
   delivery outlets with item, quantity, provenance, gold, and relationship
   terms. The first merchant orders connect river gathering and crafted charms
@@ -793,7 +793,7 @@ existing authored candidates) -- see place-making below.
 Grew in conversation into a combined housing/theft/town-security design (a
 home worth having implies things worth stealing, which implies guards and a
 place for them to patrol). Full decision log, engine-fact grounding, and
-open questions: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+open questions: [docs/design/place_making_and_town_security.md](../design/place_making_and_town_security.md).
 
 - [x] **First implementation slice shipped: a persistent, player-owned
   house.** A property agent (`town:player_house_exterior`, off the
@@ -874,7 +874,7 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   permanently ruins the lock -- a real idea, but what happens to that
   chest afterward needs more thought first (open question in the design
   doc). Full detail:
-  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+  [docs/design/place_making_and_town_security.md](../design/place_making_and_town_security.md).
 - [x] **Crime and notoriety system shipped.** A `steal` command covers
   both robbing a vendor's shop stock and burgling an NPC's home, either
   way resolved by one perception-vs-stealth witness roll against NPCs
@@ -895,7 +895,7 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   the ambient multi-room threat-detection system from the original
   brainstorm (a separate exploration-awareness feature, not a crime
   prerequisite) and guard patrol AI (guards remain stationary). Full
-  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+  detail: [docs/design/place_making_and_town_security.md](../design/place_making_and_town_security.md).
 - [x] **Guard patrol AI shipped.** Turned out to be almost entirely a
   content task -- a `"patrol"` NPC behavior already existed end-to-end in
   the engine (dispatcher routing, pathfinding movement, three pre-existing
@@ -905,7 +905,7 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   stay stationary at their posts. One small engine addition: per-NPC-
   placement route overrides, extending an existing room-level NPC-override
   allow-list that already supported per-instance `behavior_type`. Full
-  detail: [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+  detail: [docs/design/place_making_and_town_security.md](../design/place_making_and_town_security.md).
 - [x] **Residential district shipped -- closes the original housing/theft/
   guards/district trio.** Needed zero new engine mechanics: a "gate" is
   just an exit keyed `in`/`out` instead of a compass direction (already
@@ -921,7 +921,7 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   design -- but the registry shape leaves room for future patrol routes
   or encounter posture to attach to a district without re-tagging every
   room in it. Full detail:
-  [docs/design/place_making_and_town_security.md](docs/design/place_making_and_town_security.md).
+  [docs/design/place_making_and_town_security.md](../design/place_making_and_town_security.md).
 - Still to build: further house tiers beyond 2 (a Manor-level tier, and
   whether a later tier lets a player pick up the branch they didn't
   originally choose); the ambient perception/threat-detection system.
@@ -1040,7 +1040,7 @@ open questions: [docs/design/place_making_and_town_security.md](docs/design/plac
   order or slot adjacency. Each disruption's outcome check asserts both
   the refusal text and the subsequent recovery.
 - [ ] **Run coached and uncoached human sessions.** Observe at least a maker,
-  explorer/collector, social player, and adventurer. Record where a playerís
+  explorer/collector, social player, and adventurer. Record where a player‚Äôs
   intention fails to become an action, not just crashes or rules violations.
 - [ ] **Track player validation separately from implementation.** Every
   feature should record: engine contract verified, authored content available,

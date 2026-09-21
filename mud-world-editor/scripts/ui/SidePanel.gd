@@ -11,7 +11,11 @@ signal show_districts_toggled(is_on)
 signal request_validate
 signal request_validate_region_policy
 signal request_validate_content
+signal request_run_release_gate
+signal request_edit_ruleset
 signal request_show_contracts
+signal request_edit_contracts
+signal request_edit_combat_vocabulary
 signal request_choose_content_set
 signal tool_changed(mode, data)
 signal request_create_db_entry(type) 
@@ -112,6 +116,8 @@ func refresh_explorer(h, c, s): explorer_panel.update_data(h, c, s)
 func select_room_item(id): explorer_panel.select_room_item(id)
 func update_dirty_visuals(cur, dirty, rooms): explorer_panel.update_dirty_visuals(cur, dirty, rooms)
 func update_layout_btn_text(is_world: bool): explorer_panel.update_layout_btn_text(is_world)
+func set_content_validation_running(running: bool): explorer_panel.set_content_validation_running(running)
+func set_release_gate_running(running: bool): explorer_panel.set_release_gate_running(running)
 
 # --- INTERNAL SETUP ---
 
@@ -136,7 +142,11 @@ func _setup_explorer_tab(tabs: TabContainer):
 	explorer_panel.request_validate.connect(func(): request_validate.emit())
 	explorer_panel.request_validate_region_policy.connect(func(): request_validate_region_policy.emit())
 	explorer_panel.request_validate_content.connect(func(): request_validate_content.emit())
+	explorer_panel.request_run_release_gate.connect(func(): request_run_release_gate.emit())
+	explorer_panel.request_edit_ruleset.connect(func(): request_edit_ruleset.emit())
 	explorer_panel.request_show_contracts.connect(func(): request_show_contracts.emit())
+	explorer_panel.request_edit_contracts.connect(func(): request_edit_contracts.emit())
+	explorer_panel.request_edit_combat_vocabulary.connect(func(): request_edit_combat_vocabulary.emit())
 	explorer_panel.request_choose_content_set.connect(func(): request_choose_content_set.emit())
 	explorer_panel.request_auto_layout.connect(func(): request_auto_layout.emit())
 	explorer_panel.snap_toggled.connect(func(b): snap_toggled.emit(b))

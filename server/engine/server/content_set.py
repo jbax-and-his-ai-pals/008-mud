@@ -20,6 +20,19 @@ _CONTENT_SET_ID_PATTERN = re.compile(r"[a-z][a-z0-9_]*")
 _REQUIRED_DATA_DIRECTORIES = ("regions", "items", "npcs")
 _CAPABILITY_SYSTEMS = ("inventory", "dialogue", "combat", "abilities", "magic", "crafting", "gathering", "quests", "collections", "discoveries", "social")
 _RULESET_SYSTEMS = ("progression", "economy")
+
+# The manifest's shape, as module constants rather than literals inside the loader.
+#
+# The editor's create-set flow has to write a manifest this file accepts, and an
+# editor that keeps its own copy of the rules is only safe while something checks
+# the copy -- so these are the checked source. `toolkit/engine_vocabulary_dump.py`
+# reads them and `mud-world-editor/tests/schema_parity_smoke.gd` compares the
+# editor's table against it in both directions. `load_content_set` below reads
+# them too, so there is one spelling of each rule rather than two.
+REQUIRED_MANIFEST_STRINGS = ("id", "title", "version", "manifest_schema_version", "engine_api_min", "engine_api_max")
+REQUIRED_MANIFEST_PATHS = ("content_root", "ruleset", "presentation")
+OPTIONAL_MANIFEST_PATHS = ("feature_profile", "opening")
+REQUIRED_START_FIELDS = ("scenario_id", "region_id", "room_id")
 _DISABLED_PROGRESSION_MODELS = {"", "none", "off", "disabled"}
 
 
@@ -418,45 +431,98 @@ def _validate_region_level_bands(
 def _validate_region_hazard_coverage(
     content_root: Path, issues: list[ContentSetIssue], *, required: bool = False
 ) -> None:
-    """Validate room hazards against content-defined mappings and coverage.
+    """Validate room hazards against the set's own declarations and coverage.
 
-    Only a ruleset that opts in has to place every mapped hazard. Whenever an
-    elements file exists, individual room hazards are still checked for valid
-    names and safe numeric timing/damage values.
+    A hazard is one record in `combat/elements.json` -- channel, prose, base
+    damage, tick interval -- and a room names it. Only a ruleset that opts in has
+    to place every declared hazard; whenever an elements file exists, individual
+    room hazards are still checked for valid names and safe numeric values.
     """
     elements_path = content_root / "combat" / "elements.json"
     if not elements_path.is_file():
         if required:
             issues.append(ContentSetIssue(
                 "error", str(elements_path),
-                "hazard coverage requires data/combat/elements.json with hazards.mapping",
+                "hazard coverage requires data/combat/elements.json declaring hazards",
             ))
         return
 
     elements_payload = _load_json(elements_path, issues, "combat elements")
     if not isinstance(elements_payload, dict):
         return
-    hazards = elements_payload.get("hazards")
-    mapping = hazards.get("mapping") if isinstance(hazards, dict) else None
-    if not isinstance(mapping, dict):
+    declared_hazards = elements_payload.get("hazards")
+    if not isinstance(declared_hazards, dict):
         if required:
             issues.append(ContentSetIssue(
                 "error", str(elements_path),
-                "hazard coverage requires hazards.mapping to be an object",
+                "hazard coverage requires hazards to be an object of hazard records",
             ))
         return
 
-    valid_hazards: set[str] = set()
-    for hazard_type in mapping:
-        if isinstance(hazard_type, str) and hazard_type.strip():
-            valid_hazards.add(hazard_type.strip())
-        else:
+    # The old shape, named explicitly. Its two keys would otherwise be read as two
+    # hazards whose records are missing everything, and the author would get four
+    # confusing errors instead of one sentence about what changed.
+    for retired in ("mapping", "flavor"):
+        if retired in declared_hazards:
             issues.append(ContentSetIssue(
-                "error", str(elements_path), "hazards.mapping keys must be non-empty strings",
+                "error", str(elements_path),
+                f"hazards.{retired} is the retired shape: each hazard is now one record "
+                f"with its own `channel`, `flavor`, `damage` and `tick_interval`, keyed by "
+                f"the id a room names",
             ))
+
+    valid_damage_types = {
+        str(entry).strip() for entry in elements_payload.get("valid_damage_types", [])
+        if isinstance(entry, str) and entry.strip()
+    }
+    valid_hazards: set[str] = set()
+    for hazard_id, record in declared_hazards.items():
+        if hazard_id in ("mapping", "flavor"):
+            continue
+        label = f"hazards.{hazard_id}"
+        if not isinstance(hazard_id, str) or not hazard_id.strip():
+            issues.append(ContentSetIssue(
+                "error", str(elements_path), "hazard ids must be non-empty strings",
+            ))
+            continue
+        if not isinstance(record, dict):
+            issues.append(ContentSetIssue(
+                "error", str(elements_path), f"{label} must be an object",
+            ))
+            continue
+        valid_hazards.add(hazard_id.strip())
+
+        channel = record.get("channel")
+        if not isinstance(channel, str) or not channel.strip():
+            issues.append(ContentSetIssue(
+                "error", str(elements_path),
+                f"{label}.channel must name the damage channel this hazard deals through",
+            ))
+        elif valid_damage_types and channel.strip() not in valid_damage_types:
+            issues.append(ContentSetIssue(
+                "error", str(elements_path),
+                f"{label}.channel '{channel.strip()}' is not one of this set's damage types "
+                f"({', '.join(sorted(valid_damage_types))})",
+            ))
+        flavor = record.get("flavor")
+        if not isinstance(flavor, str) or not flavor.strip():
+            issues.append(ContentSetIssue(
+                "error", str(elements_path),
+                f"{label}.flavor must say what a player reads when it hurts them: content's "
+                f"words, because the engine's own sentence is the leak hazards are worst at",
+            ))
+        for field in ("damage", "tick_interval"):
+            if field not in record:
+                continue
+            value = record.get(field)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+                issues.append(ContentSetIssue(
+                    "error", str(elements_path), f"{label}.{field} must be a positive number",
+                ))
+
     if required and not valid_hazards:
         issues.append(ContentSetIssue(
-            "error", str(elements_path), "hazard coverage requires at least one hazards.mapping entry",
+            "error", str(elements_path), "hazard coverage requires at least one declared hazard",
         ))
 
     authored_locations: dict[str, list[str]] = {}
@@ -484,10 +550,14 @@ def _validate_region_hazard_coverage(
             hazard_type = hazard_type.strip()
             if hazard_type not in valid_hazards:
                 issues.append(ContentSetIssue(
-                    "error", str(path), f"{room_label} uses unknown hazard_type '{hazard_type}'",
+                    "error", str(path),
+                    f"{room_label} uses unknown hazard_type '{hazard_type}': no hazard of that "
+                    f"name is declared in {elements_path.name}",
                 ))
                 continue
             authored_locations.setdefault(hazard_type, []).append(f"{region_id}:{room_id}")
+            # Room-side numbers are *overrides* of the declared record, so they are
+            # optional and only checked for being usable when present.
             for property_name in ("hazard_damage", "hazard_tick_interval"):
                 value = properties.get(property_name)
                 if value is None:
@@ -513,7 +583,7 @@ def _validate_region_hazard_coverage(
             if hazard_type not in authored_locations:
                 issues.append(ContentSetIssue(
                     "error", str(elements_path),
-                    f"hazard '{hazard_type}' is defined in hazards.mapping but is not used by any room",
+                    f"hazard '{hazard_type}' is declared but is not used by any room",
                 ))
 
 
@@ -779,6 +849,251 @@ def _validate_authored_world(
                     f"player there."
                 ),
             ))
+
+
+def _validate_faction_rules(
+    ruleset: Any,
+    issues: list[ContentSetIssue],
+    ruleset_path: Optional[Path] = None,
+) -> None:
+    """`ruleset.factions`: a set's own names for enemies, allies and bystanders.
+
+    The engine's five factions and their attitudes have always been engine
+    vocabulary, which is fine until a set wants to call its raiders something
+    else -- and then two dozen call sites quietly stop working, because they used
+    to ask the question by comparing the string `"hostile"`. The declaration is
+    the fix; this is what refuses a malformed one, through the same `issues()`
+    the reader uses, so the shape and its refusals cannot drift apart.
+    """
+    from engine.world import factions as faction_rules
+
+    section = ruleset.get("factions") if isinstance(ruleset, dict) else None
+    if section is None:
+        return
+    if not isinstance(section, dict):
+        issues.append(ContentSetIssue(
+            "error", str(ruleset_path or "ruleset"), "ruleset.factions must be an object"
+        ))
+        return
+
+    for problem in faction_rules.issues(faction_rules.RulesetView({"factions": section})):
+        issues.append(ContentSetIssue("error", str(ruleset_path or "ruleset"), problem))
+
+
+def _validate_npc_vocabulary(
+    content_root: Path,
+    issues: list[ContentSetIssue],
+    ruleset: Any = None,
+) -> None:
+    """The two engine-owned words an NPC template names: `faction`, `behavior_type`.
+
+    Both are closed vocabularies, both are invisible from the content side, and a
+    wrong value in either fails *quietly* and completely differently from what the
+    author meant: an undeclared faction makes an NPC nobody can fight or talk to
+    in the way they intended, and a misspelled `behavior_type` means no AI routine
+    at all -- a guard who never moves and never reacts. Warnings, because both
+    still load and run; the message names the consequence so the fix is obvious.
+    """
+    from engine.config import FACTION_DISPOSITIONS, NPC_BEHAVIOR_TYPES
+    from engine.world import factions as faction_rules
+
+    declared = faction_rules.dispositions(faction_rules.RulesetView(ruleset))
+    known_behaviors = ", ".join(NPC_BEHAVIOR_TYPES)
+    for path in sorted((content_root / "npcs").glob("*.json")):
+        payload = _load_json(path, issues, "NPC definitions")
+        if not isinstance(payload, dict):
+            continue
+        for template_id, template in payload.items():
+            if str(template_id).startswith("_") or not isinstance(template, dict):
+                continue
+            behavior = template.get("behavior_type")
+            if isinstance(behavior, str) and behavior.strip() and behavior.strip() not in NPC_BEHAVIOR_TYPES:
+                issues.append(ContentSetIssue(
+                    "warning", str(path),
+                    f"NPC '{template_id}'.behavior_type '{behavior}' is not one of the engine's "
+                    f"behaviours ({known_behaviors}); this NPC will stand still and do nothing",
+                ))
+            faction = template.get("faction")
+            if not isinstance(faction, str) or not faction.strip():
+                continue
+            if faction.strip() not in declared:
+                issues.append(ContentSetIssue(
+                    "warning", str(path),
+                    f"NPC '{template_id}'.faction '{faction}' is declared nowhere: not an engine "
+                    f"faction, and not in this set's ruleset `factions`. It will be treated as a "
+                    f"bystander -- no side, no attacks, no reputation. Declare it with a "
+                    f"disposition (one of {', '.join(FACTION_DISPOSITIONS)}) to give it one",
+                ))
+
+
+def _validate_social_rules(
+    ruleset: Any,
+    issues: list[ContentSetIssue],
+    ruleset_path: Optional[Path] = None,
+    content_root: Optional[Path] = None,
+    capabilities: Any = None,
+) -> None:
+    """`ruleset.social`: the tiers a relationship passes through, and what a gift is worth.
+
+    Until now nothing checked this section at all, and the failure mode was the
+    quiet kind this project keeps meeting: a set that declares `tier` instead of
+    `tiers`, or a `min` that is a string, silently falls back to the engine's
+    defaults -- which are fantasy's tier names and a 15% discount -- and the author
+    believes they configured something. So the keys are a closed vocabulary, the
+    numbers are ranges the reader can honour, and the two things a *partial* set
+    gets wrong are errors:
+
+    * a tier set with no threshold at or below zero, which leaves every score
+      under the lowest one wearing the engine's generic label;
+    * two tiers at the same threshold, where one of them can never be reached.
+
+    A set that declares nothing at all gets a **warning** rather than an error when
+    it has any NPC in it: the engine then presents no bond surface at all -- gifts
+    still change hands, but no score is kept, no tier is named and no vendor
+    discount applies -- and the message says so, so keeping that is a choice rather
+    than a surprise. **The capability and the section are one decision**: presenting
+    the surface without a ladder is an error, and declaring a ladder nobody can see
+    is an error too. `gift_tag_values` is open by design: its keys are item tags,
+    which are content's.
+    """
+    social = ruleset.get("social") if isinstance(ruleset, dict) else None
+    presents_surface = isinstance(capabilities, (list, tuple)) and "social" in capabilities
+    if social is None:
+        if presents_surface:
+            # A *warning*, not an error: a scaffolded set inherits its source's
+            # capability list before it has content for any of it, and that is a
+            # legitimate first day. The engine degrades honestly (the commands say
+            # this game tracks no bonds), and the author is told what to add.
+            issues.append(ContentSetIssue(
+                "warning", str(ruleset_path),
+                "this set declares the `social` capability but no `social` section: bonds are "
+                "presented with no ladder behind them, so `relationship` will report that this "
+                "game tracks none. Declare `social.tiers`, or drop the capability from the manifest",
+            ))
+        elif content_root is not None and any((content_root / "npcs").glob("*.json")):
+            issues.append(ContentSetIssue(
+                "warning", str(ruleset_path),
+                "no `social` section and no `social` capability: this set's NPCs have no bond "
+                "surface. Gifts still change hands, but no score is kept, no tier is named and "
+                "no vendor discount applies. Declare `social.tiers` and the capability to turn "
+                "relationships on",
+            ))
+        return
+    if capabilities is not None and not presents_surface:
+        # The inverse stays an error: the ladder is authored and unreachable, which
+        # is a declaration the engine ignores rather than a surface that says so.
+        issues.append(ContentSetIssue(
+            "error", str(ruleset_path),
+            "this set declares a `social` ladder but not the `social` capability, so nobody can "
+            "see or climb it. Add `social` to the manifest's capabilities, or drop the section",
+        ))
+    label_root = "social"
+    if not isinstance(social, dict):
+        issues.append(ContentSetIssue("error", str(ruleset_path), f"{label_root} must be an object"))
+        return
+
+    known = {"gift_values", "gift_tag_values", "tiers"}
+    for key in sorted(social):
+        if str(key).startswith("_") or key in known:
+            continue
+        issues.append(ContentSetIssue(
+            "error", str(ruleset_path),
+            f"{label_root}.{key} is not a field the engine reads (known: {', '.join(sorted(known))})",
+        ))
+
+    # The categories `use_give._gift_affinity` reads. A key outside this set is
+    # never consulted, so it is a value an author set and no gift ever used.
+    gift_categories = {
+        "ordinary", "crafted", "preferred_item", "preferred_category",
+        "preferred_tag", "disliked_item", "disliked_tag",
+    }
+    gift_values = social.get("gift_values")
+    if gift_values is not None:
+        if not isinstance(gift_values, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label_root}.gift_values must be an object"))
+        else:
+            for category in sorted(gift_values):
+                if str(category).startswith("_"):
+                    continue
+                if category not in gift_categories:
+                    issues.append(ContentSetIssue(
+                        "error", str(ruleset_path),
+                        f"{label_root}.gift_values.{category} is not a gift category the engine scores "
+                        f"(known: {', '.join(sorted(gift_categories))})",
+                    ))
+                    continue
+                value = gift_values[category]
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    issues.append(ContentSetIssue(
+                        "error", str(ruleset_path),
+                        f"{label_root}.gift_values.{category} must be a number",
+                    ))
+    gift_tags = social.get("gift_tag_values")
+    if gift_tags is not None:
+        if not isinstance(gift_tags, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label_root}.gift_tag_values must be an object"))
+        elif any(
+            isinstance(value, bool) or not isinstance(value, (int, float))
+            for key, value in gift_tags.items() if not str(key).startswith("_")
+        ):
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{label_root}.gift_tag_values must map an item tag to a number",
+            ))
+
+    tiers = social.get("tiers")
+    if tiers is None:
+        return
+    if not isinstance(tiers, list):
+        issues.append(ContentSetIssue("error", str(ruleset_path), f"{label_root}.tiers must be a list"))
+        return
+    thresholds: dict[int, int] = {}
+    for index, tier in enumerate(tiers):
+        label = f"{label_root}.tiers[{index}]"
+        if not isinstance(tier, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} must be an object"))
+            continue
+        minimum = tier.get("min")
+        if isinstance(minimum, bool) or not isinstance(minimum, int) or minimum < 0:
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{label}.min must be a whole number of relationship points, zero or more",
+            ))
+            continue
+        if minimum in thresholds:
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{label}.min repeats {minimum}, which tiers[{thresholds[minimum]}] already uses: "
+                f"one of the two can never be reached",
+            ))
+        else:
+            thresholds[minimum] = index
+        tier_label = tier.get("label")
+        if not isinstance(tier_label, str) or not tier_label.strip():
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{label}.label must be the name a player reads for this tier",
+            ))
+        discount = tier.get("vendor_discount")
+        if discount is not None:
+            if isinstance(discount, bool) or not isinstance(discount, (int, float)) or discount < 0:
+                issues.append(ContentSetIssue(
+                    "error", str(ruleset_path), f"{label}.vendor_discount must be a number, zero or more",
+                ))
+            elif discount > 0.95:
+                # `relationship_discount` clamps to 0.95, so anything above it is a
+                # number content wrote that the engine will quietly reduce.
+                issues.append(ContentSetIssue(
+                    "error", str(ruleset_path),
+                    f"{label}.vendor_discount {discount} is above the 0.95 the engine will honour",
+                ))
+
+    if tiers and not any(minimum <= 0 for minimum in thresholds):
+        issues.append(ContentSetIssue(
+            "error", str(ruleset_path),
+            f"{label_root}.tiers has no tier at or below zero relationship, so a stranger wears the "
+            f"engine's own label instead of one this set chose",
+        ))
 
 
 def _validate_skills_rules(ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
@@ -1981,6 +2296,62 @@ def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], i
                     f"(known: {', '.join(sorted(KNOWN_ENTRY_KINDS))})",
                 ))
 
+        # An item rule narrows by family (what content declared), tags, or the
+        # engine's Python class name. The third is a trap: `Gem`, `Junk` and
+        # `Treasure` are families whose class the engine retired, so an item built
+        # from one reports `Item` and the rule can never fire. Three of
+        # fantasy_frontier's five item rules were dead for exactly this reason, and
+        # nothing said so -- the ledger recorded the find and paid the fallback.
+        if "item" in [str(kind).strip() for kind in kinds]:
+            _validate_item_grant_matchers(match, label, content_root, issues, ruleset_path)
+
+
+def _validate_item_grant_matchers(
+    match: dict[str, Any],
+    label: str,
+    content_root: Path,
+    issues: list[ContentSetIssue],
+    ruleset_path: Path,
+) -> None:
+    """Whether an item grant can ever match a real item, and say why not."""
+
+    declared_type = str(match.get("item_type", "") or "").strip()
+    if declared_type:
+        from engine.items.item_factory import ITEM_CLASS_MAP
+
+        resolved = ITEM_CLASS_MAP.get(declared_type)
+        if resolved is None:
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{label}.match.item_type '{declared_type}' is not an item class the engine has "
+                f"(known: {', '.join(sorted(ITEM_CLASS_MAP))})",
+            ))
+        elif resolved.__name__ != declared_type:
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path),
+                f"{label}.match.item_type '{declared_type}' can never match: that class was "
+                f"retired and now resolves to '{resolved.__name__}', which is what an item "
+                f"reports. Match on `item_family` instead",
+            ))
+
+    declared_family = str(match.get("item_family", "") or "").strip()
+    if not declared_family:
+        return
+    families: set[str] = set()
+    for path in sorted((content_root / "items").glob("*.json")):
+        payload = _load_json(path, issues, "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item in payload.values():
+            if isinstance(item, dict) and item.get("item_family"):
+                families.add(str(item["item_family"]).strip())
+    if families and declared_family not in families:
+        issues.append(ContentSetIssue(
+            "warning", str(ruleset_path),
+            f"{label}.match.item_family '{declared_family}' is declared by no item in this set, "
+            f"so this grant pays nothing (families in use: {', '.join(sorted(families))})",
+        ))
+
 
 def _player_stat_names() -> set[str]:
     """The stat names a player really has: the scalar keys of the engine defaults.
@@ -2526,8 +2897,7 @@ def load_content_set(
         return None, issues
 
     package_root = manifest_path.parent
-    required_strings = ("id", "title", "version", "manifest_schema_version", "engine_api_min", "engine_api_max")
-    for key in required_strings:
+    for key in REQUIRED_MANIFEST_STRINGS:
         value = payload.get(key)
         if not isinstance(value, str) or value.strip() == "":
             issues.append(ContentSetIssue("error", str(manifest_path), f"missing/invalid string field '{key}'"))
@@ -2570,36 +2940,39 @@ def load_content_set(
         return None, issues
 
     resolved_paths: dict[str, Path] = {}
-    for key in ("content_root", "ruleset", "presentation"):
+    for key in REQUIRED_MANIFEST_PATHS:
         value = paths.get(key)
         if not isinstance(value, str) or value.strip() == "":
             issues.append(ContentSetIssue("error", str(manifest_path), f"paths.{key} must be a non-empty string"))
             continue
         resolved_paths[key] = (package_root / value).resolve()
 
+    # Every optional path must be a non-empty string when it is named at all; what
+    # each one *contains* is checked by its own branch below.
+    for key in OPTIONAL_MANIFEST_PATHS:
+        if key not in paths:
+            continue
+        value = paths.get(key)
+        if not isinstance(value, str) or value.strip() == "":
+            issues.append(ContentSetIssue("error", str(manifest_path), f"paths.{key} must be a non-empty string when provided"))
+
     feature_profile_path: Path | None = None
-    if "feature_profile" in paths:
-        profile_value = paths.get("feature_profile")
-        if not isinstance(profile_value, str) or profile_value.strip() == "":
-            issues.append(ContentSetIssue("error", str(manifest_path), "paths.feature_profile must be a non-empty string when provided"))
-        else:
-            feature_profile_path = (package_root / profile_value).resolve()
-            profile_payload = _load_json(feature_profile_path, issues, "feature profile")
-            if profile_payload is not None and not isinstance(profile_payload, dict):
-                issues.append(ContentSetIssue("error", str(feature_profile_path), "feature profile must be a JSON object"))
+    profile_value = paths.get("feature_profile")
+    if isinstance(profile_value, str) and profile_value.strip():
+        feature_profile_path = (package_root / profile_value).resolve()
+        profile_payload = _load_json(feature_profile_path, issues, "feature profile")
+        if profile_payload is not None and not isinstance(profile_payload, dict):
+            issues.append(ContentSetIssue("error", str(feature_profile_path), "feature profile must be a JSON object"))
     opening_path: Path | None = None
     opening_payload: dict[str, Any] = {}
-    if "opening" in paths:
-        opening_value = paths.get("opening")
-        if not isinstance(opening_value, str) or opening_value.strip() == "":
-            issues.append(ContentSetIssue("error", str(manifest_path), "paths.opening must be a non-empty string when provided"))
-        else:
-            opening_path = (package_root / opening_value).resolve()
-            raw_opening = _load_json(opening_path, issues, "opening scenario")
-            if raw_opening is not None and not isinstance(raw_opening, dict):
-                issues.append(ContentSetIssue("error", str(opening_path), "opening scenario must be a JSON object"))
-            elif isinstance(raw_opening, dict):
-                opening_payload = raw_opening
+    opening_value = paths.get("opening")
+    if isinstance(opening_value, str) and opening_value.strip():
+        opening_path = (package_root / opening_value).resolve()
+        raw_opening = _load_json(opening_path, issues, "opening scenario")
+        if raw_opening is not None and not isinstance(raw_opening, dict):
+            issues.append(ContentSetIssue("error", str(opening_path), "opening scenario must be a JSON object"))
+        elif isinstance(raw_opening, dict):
+            opening_payload = raw_opening
 
     content_root = resolved_paths.get("content_root")
     if content_root is not None:
@@ -2637,6 +3010,18 @@ def load_content_set(
             issues.append(ContentSetIssue("error", str(manifest_path), "capabilities entries must be non-empty strings"))
         if len(set(normalized)) != len(normalized):
             issues.append(ContentSetIssue("error", str(manifest_path), "capabilities entries must be unique"))
+        # The vocabulary is the engine's, and until now it had no allowlist here:
+        # `"craftting"` validated clean and enabled nothing at all, so a set could
+        # be born with a system it never got. The world editor has always filtered
+        # against this same list (and parity-checks its copy), which made the
+        # editor stricter than the engine it is editing for.
+        unknown = sorted(set(normalized) - set(_CAPABILITY_SYSTEMS))
+        for capability in unknown:
+            issues.append(ContentSetIssue(
+                "error", str(manifest_path),
+                f"capabilities names '{capability}', which is not an engine capability "
+                f"(known: {', '.join(_CAPABILITY_SYSTEMS)}) -- it would enable nothing",
+            ))
         capability_values = tuple(normalized)
 
     start = payload.get("start")
@@ -2645,7 +3030,7 @@ def load_content_set(
     if not isinstance(start, dict):
         issues.append(ContentSetIssue("error", str(manifest_path), "start must be an object"))
     else:
-        for key in ("scenario_id", "region_id", "room_id"):
+        for key in REQUIRED_START_FIELDS:
             value = start.get(key)
             if not isinstance(value, str) or value.strip() == "":
                 issues.append(ContentSetIssue("error", str(manifest_path), f"start.{key} must be a non-empty string"))
@@ -2701,6 +3086,9 @@ def load_content_set(
             _validate_advancement_content(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_starting_content(content_root, issues, ruleset_payload)
         _validate_skills_rules(ruleset_payload, issues, ruleset_source_path)
+        _validate_social_rules(ruleset_payload, issues, ruleset_source_path, content_root, capability_values)
+        _validate_faction_rules(ruleset_payload, issues, ruleset_source_path)
+        _validate_npc_vocabulary(content_root, issues, ruleset_payload)
         _validate_weather_profiles(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)

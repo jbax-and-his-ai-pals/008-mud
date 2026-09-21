@@ -366,6 +366,44 @@ class TestQuestTurnInDialogue(_NpcTestBase):
         self.assertIn("Quest Complete", result)
         self.assertNotIn("q1", self.player.runtime_state.quests.active)
 
+    def test_final_stage_completion_dialogue_is_what_the_player_is_told(self):
+        """Content has always been able to author a closing line on the last
+        stage. `advance_quest_stage` answers the end of a quest with a sentinel,
+        so for single-stage quests -- most of them -- the authored line used to
+        be thrown away and the player got "Thank you!"."""
+        elder = _place_npc(self.world, "village_elder", "elder1", "town", "town_square", name="Sage")
+        self.player.runtime_state.quests.active["q1"] = {
+            "instance_id": "q1", "title": "Rat Problem", "type": "kill",
+            "giver_instance_id": elder.obj_id, "current_stage_index": 0,
+            "rewards": {"xp": 10}, "state": "ready_to_complete",
+            "objective": {"type": "kill"},
+            "stages": [{
+                "stage_index": 0,
+                "objective": {"type": "kill"},
+                "completion_dialogue": "The village sleeps easier for it.",
+            }],
+        }
+
+        result = self.game.process_command("talk Sage complete")
+
+        self.assertIn("The village sleeps easier for it.", result)
+        self.assertNotIn("Thank you!", result)
+
+    def test_an_npcs_own_parting_line_is_used_when_the_stage_authors_none(self):
+        elder = _place_npc(self.world, "village_elder", "elder1", "town", "town_square", name="Sage")
+        elder.dialog = {"quest_complete": "Come back any time."}
+        self.player.runtime_state.quests.active["q1"] = {
+            "instance_id": "q1", "title": "Rat Problem", "type": "kill",
+            "giver_instance_id": elder.obj_id, "current_stage_index": 0,
+            "rewards": {"xp": 10}, "state": "ready_to_complete",
+            "objective": {"type": "kill"},
+            "stages": [{"stage_index": 0, "objective": {"type": "kill"}}],
+        }
+
+        result = self.game.process_command("talk Sage complete")
+
+        self.assertIn("Come back any time.", result)
+
     def test_active_fetch_quest_reports_missing_items(self):
         elder = _place_npc(self.world, "village_elder", "elder1", "town", "town_square", name="Sage")
         self.player.runtime_state.quests.active["q1"] = {

@@ -11,6 +11,8 @@
 > the way it is, never changes). See [`docs/README.md`](docs/README.md).
 
 **Companion documents**
+
+- [`docs/plan/game-authoring-roadmap.md`](docs/plan/game-authoring-roadmap.md) — the full author journey, production-oriented editor milestones, and safe changes to systems after content exists.
 - [`docs/plan/work-tracks.md`](docs/plan/work-tracks.md) — how work is divided into eleven tracks, what each may not do, and the contract-first handoff.
 - [`docs/plan/track-roadmaps/README.md`](docs/plan/track-roadmaps/README.md) — eleven independent track evaluations and the findings verified from them.
 - [`docs/design/WORLD_DESIGN.md`](docs/design/WORLD_DESIGN.md) — target world shape, design pillars, open decisions.
@@ -33,6 +35,10 @@ These are complementary routes, not classes or mandatory checklists.
 
 ### Design commitments
 
+The gameplay commitments describe Fantasy Frontier's target experience; other
+content sets may deliberately omit progression, combat or economy. The shared
+engine/editor commitments apply to every set without imposing fantasy's loop.
+
 - The engine stays content-neutral. Mechanics and contracts live in
   `server/engine`; names, values, lore, preferences, recipes, drops, and world
   layouts live in content sets.
@@ -50,6 +56,10 @@ These are complementary routes, not classes or mandatory checklists.
 - **Sparse rooms in a dense world.** Most rooms carry prose and exits.
   Interest comes from the region, its landmarks, and what a curious player
   finds by looking — not from filling every room with objects.
+- **The editor is the authoring front-end.** Every declaration the engine reads —
+  content *and* configuration — is editable there, and the engine's own validators
+  are what tell an author they are wrong. The editor never becomes a second schema:
+  it shows fields, asks the engine, and holds no rule the engine does not.
 - New work ships as a small playable vertical slice with automated coverage.
 
 ---
@@ -60,22 +70,80 @@ Live work pulled out of the phase bodies when they were archived. Each keeps
 the phase it came from, because the reason it is unfinished is usually in that
 phase's narrative.
 
+### P10: The game-authoring workbench — **active, expanded 2026-09-21**
+
+The next push is production-oriented **authoring readiness**, not merely more
+forms and not a promise of commercial release readiness. Cover the whole journey:
+scaffold a content set, choose its systems and flows, bring it to life with content,
+revise the rules safely, then prepare a reproducible candidate for human testers.
+Broad world expansion and balance tuning remain outside this push; small playable
+content slices are required evidence, not optional work after the editor is done.
+
+The current working tree has preliminary ruleset, contract and combat-vocabulary
+editors. Older “two keys / browse-only / no surface” descriptions are historical.
+The first 6A pass now covers real dialog events, typed edits, staged engine validation
+and single-file save recovery; full field coverage and visual retesting remain open.
+See [`docs/plan/editor-readiness.md`](docs/plan/editor-readiness.md). Execution order
+is [`docs/plan/chunks-of-work.md`](docs/plan/chunks-of-work.md) §6; detailed scope,
+coverage and gates are in the
+[game-authoring roadmap](docs/plan/game-authoring-roadmap.md).
+
+- [ ] **M0 — Trust an edit.** Harden real dialog save paths, typed/nested values,
+  dirty/cancel/switch behavior, unknown-field preservation and recovery before
+  expanding configuration coverage.
+- [ ] **M1 — Create a coherent game.** Complete scaffold/manifest/start management,
+  coordinate capabilities and rules, and establish dependency indexing, change
+  previews and recoverable multi-file edits.
+- [ ] **M2 — Fully author Fantasy Frontier.** Cover every supported engine-read
+  declaration it uses: world, characters, items/generation, crafting/work,
+  combat/abilities, progression/flows and system policy. A read-only or deferred
+  field is an explicit gap, not a completed checkbox. Prove edits in real journeys.
+- [ ] **M3 — Prove different games.** Use the existing orbital, night-shift and
+  modern sets for small, genuinely different uses of the shared systems. Optional
+  systems remain optional; the modern vignette does not need fantasy's progression.
+- [ ] **M4 — Evolve rules after content exists.** Rehearse a crafting overhaul with
+  dependent content, generated items and active jobs: diff, disposition, migration,
+  compatibility testing and rollback. Keep risky settings editable through staged
+  changes; never silently delete their content or rewrite player saves.
+- [ ] **M5 — Produce an editor-made test candidate.** Export/checkpoint, compatibility
+  information, scoped validation, gameplay checks and a second-person clean-install
+  retest. Document remaining limitations before calling it authoring-ready.
+
+**Boundary:** “modify everything” means everything the supported engine declares,
+not arbitrary new algorithms through a UI. New mechanics still require an engine
+contract, implementation and validator. The engine owns runtime meaning; the
+editor owns a safe, understandable way to author it. Full live deployment,
+collaboration, plugin ecosystems and commercial certification remain later work.
+
 ### P2: Content neutrality cleanup
 
 
-- [ ] **Consolidate the faction model behind an accessor.** `== "hostile"` is
-  still compared inline in ~25 places across commands, UI, AI, world, and utils.
-  The validator treats faction *values* as shared engine vocabulary, so this is
-  not a leak — but a content set that extends or renames its factions still
-  requires editing many call sites. Introduce something like
-  `world.is_hostile(a, b)`.
-- [ ] **Document the reserved `behavior_type` values.** They are an engine-owned
-  closed set (`aggressive`, `stationary`, `wanderer`, `scheduled`, `patrol`,
-  `healer`, `minion`, …), currently knowable only by reading
-  `npcs/ai/dispatcher.py`. Put them in the content-authoring guidelines so an
-  author knows `healer` is special and a typo means "no AI routine".
-- [ ] **`game_object.py:147`** — `self.__class__.__name__ == "Player"` as a type
-  check. Fragile; use `isinstance`. Not a content leak, hence not blocking.
+- [x] **Consolidate the faction model behind an accessor** (done 2026-09-20).
+  `engine/world/factions.py` is now the one place that answers "is this thing an
+  enemy / an ally / somebody you can talk to", and every one of the ~29 call sites
+  that compared a faction *string* to `"hostile"` asks it instead — display,
+  target lists, conversation gating, wander destinations, quest generation,
+  reputation on a kill, the combat matrix itself. Two things fell out of it that
+  the string comparisons were hiding: `npcs/combat.py` read the engine's flat
+  matrix, so a set's own factions would never have been enemies *in combat*; and
+  a set can now declare its own names once
+  (`ruleset.factions.extra`/`overrides` with a disposition). `test_faction_dispositions.py`
+  (18 tests) proves the derived matrix is byte-identical to the shipped one, plays
+  a set whose enemies are called `raiders` end to end, and carries a tripwire that
+  fails if any inline faction comparison reappears in the engine.
+- [x] **Document the reserved `behavior_type` values** (done 2026-09-20). The list
+  in `config_npc.NPC_BEHAVIOR_TYPES` had **no reader at all** and was wrong:
+  `healer`, which three shipped templates use, was missing from it. It is now
+  complete, the dispatcher dispatches through a routine table
+  (`IDLE_ROUTINES`) that a test holds equal to the declared list, the content gate
+  **warns** about a value outside it (a misspelled behaviour means an NPC with no
+  AI routine at all, which nothing used to say), and the list is written out with
+  what each value does in
+  [`docs/reference/content-authoring-and-mod-publishing-guidelines.md`](docs/reference/content-authoring-and-mod-publishing-guidelines.md),
+  alongside the other closed engine vocabularies.
+- [x] **`game_object.py`'s class-name type check** (done 2026-09-20). It is
+  `isinstance(self, Player)` now, behind a lazy import — the cycle the old comment
+  named is real, but a string comparison also missed Player subclasses.
 - [x] **Move XP curve constants into the ruleset** (done in P4:
   `advancement.curve` in `rules/ruleset.json`, read by
   `engine/core/advancement.py`).
@@ -107,6 +175,14 @@ phase's narrative.
   once there is a world big enough to walk, and revisit the level-26-ish
   completionist plateau then. The ×1.25 multiplier is also a starting value —
   vary it freely during testing, it is one number in the ruleset.
+  **Two things fixed on the way (2026-09-20), without touching the numbers:**
+  three of the five item grants (`item_gem`, `item_treasure`, `item_curio`) had
+  never fired — they narrowed on a Python class name that the retired `Gem`/
+  `Junk`/`Treasure` classes no longer produce — so gems paid a material's XP and
+  the ledger's "A stone worth cataloguing." had never been shown to a player.
+  Item rules now narrow on the declared `item_family`, and the gate errors on a
+  class-name match that cannot match. Separately, **no rule pays for weapons or
+  armour** (25 and 32 templates): still a balance decision, still open.
 - [ ] **Decide whether a mirrored party quest should pay every member the
   first-completion bonus.** Today it does, because each member's ledger entry is
   their own. Defensible ("you were there"), but it means a party levels faster

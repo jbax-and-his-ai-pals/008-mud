@@ -17,6 +17,7 @@ from engine.items.inventory import Inventory
 from engine.items.item import Item
 from engine.items.item_factory import ItemFactory
 from engine.items.chest_loot_generator import ChestLootGenerator
+from engine.world import factions
 from engine.magic.spell_registry import SPELL_REGISTRY
 from engine.utils.utils import format_loot_drop_message, format_name_for_display, calculate_xp_gain
 
@@ -146,7 +147,7 @@ class NPC(GameObject):
             return []
 
         is_respawnable = (
-            self.faction in ["friendly", "neutral"] and
+            not factions.is_hostile(self, world) and not factions.is_player_side(self, world) and
             self.home_room_id is not None and
             self.template_id and
             not self.properties.get("ambient_wanderer", False)

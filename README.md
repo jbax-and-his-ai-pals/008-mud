@@ -53,11 +53,33 @@ than misleading test failures. Logs land in `tmp/test-results/`. Pass
 `-Interpreter "py -3.14"` only when intentionally diagnosing another Python.
 
 ### Running the Game
+
+There is no root `main.py`; the game is a server plus clients, and both entry
+points live in `server/`. Every command runs from the repository root.
+
 ```bash
-python main.py
+# Play in a terminal (headless server, stdin command loop) -- quickest way in:
+python server/server_main.py --content-set content_sets/fantasy_frontier
+
+# Serve a content set over TCP or WebSocket for the Godot client:
+python server/launch_content_set.py --transport ws --content-set content_sets/fantasy_frontier
+
+# Same thing underneath, if you want the server's own arguments:
+python server/poc_ws_server.py --content-set content_sets/fantasy_frontier
 ```
-*   **Arguments:**
-    *   `--save <filename>`: Load a specific save file (default: `default_save.json`).
+
+`--content-set` is required by the servers and accepts a content-set directory or
+its manifest. `--presentation-mode player|test` decides whether debug and GM
+commands are visible to the session (`player` is the honest default for anyone
+playing; `test` is for authoring). The pygame client is still in the tree behind
+`server/main.py --content-set …`; the Godot client in `client/` and the world
+editor in `mud-world-editor/` are the supported front ends.
+
+*   **Arguments (all servers):**
+    *   `--content-set <path>`: which game to serve (required).
+    *   `--save <filename>`: save file to load/save (default: `server_save.json`).
+    *   `--config <path>`: master server config (see
+        [`docs/reference/server-operator-guide.md`](docs/reference/server-operator-guide.md)).
 
 ## ⚙️ Engine Systems
 

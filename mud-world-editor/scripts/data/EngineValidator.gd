@@ -18,6 +18,7 @@ class_name EngineValidator
 extends RefCounted
 
 const SCRIPT_RELATIVE_PATH := "toolkit/editor_validate.py"
+const RELEASE_GATE_RELATIVE_PATH := "run_content_checks.py"
 
 # Issue sources, in the order the validator runs them, for display.
 const SOURCE_LABELS := {
@@ -31,7 +32,7 @@ const SOURCE_LABELS := {
 
 
 # Returns {"ok": bool, "ran": bool, "error": String, "issues": Array, "counts": Dictionary}.
-# `ran` is false when the toolchain is missing, which is a setup problem and not a
+	# `ran` is false when the toolchain is missing, which is a setup problem and not a
 # content problem -- the two are reported differently so neither is mistaken for
 # the other.
 static func run(content_set_root: String, repo_root: String, python_exe: String) -> Dictionary:
@@ -57,20 +58,51 @@ static func run(content_set_root: String, repo_root: String, python_exe: String)
 		)
 
 	var issues: Array = payload.get("issues", []) if payload.get("issues") is Array else []
+	# The engine owns issue wording; the editor only derives a stable key for an
+	# author acknowledgement. Errors are never assigned a suppressible key.
+	var annotated_issues: Array = []
+	for raw_issue in issues:
+		if raw_issue is Dictionary:
+			var issue: Dictionary = raw_issue.duplicate(true)
+			if str(issue.get("severity", "error")) == "warning":
+				issue["warning_id"] = warning_id(issue)
+			annotated_issues.append(issue)
+		else:
+			annotated_issues.append(raw_issue)
 	return {
 		"ok": bool(payload.get("ok", false)),
 		"ran": true,
 		"error": "",
-		"issues": issues,
+		"issues": annotated_issues,
 		"counts": payload.get("counts", {"error": 0, "warning": 0}),
 		"ran_checks": payload.get("ran", []),
 		"skipped": payload.get("skipped", []),
+		"not_run": payload.get("not_run", {}),
 		"exit_code": exit_code,
+	}
+
+static func warning_id(issue: Dictionary) -> String:
+	return "content:%s:%s" % [str(issue.get("path", "")), str(issue.get("message", ""))]
+
+# The repository gate deliberately remains separate from open-set validation:
+# it audits every shipped set, themes, manifests and fixtures. The editor runs
+# the existing canonical runner rather than growing a second implementation.
+static func run_release_gate(repo_root: String, python_exe: String) -> Dictionary:
+	var script_path := repo_root.path_join(RELEASE_GATE_RELATIVE_PATH)
+	if python_exe == "": return _not_run("No Python interpreter was found to run %s." % RELEASE_GATE_RELATIVE_PATH)
+	if not FileAccess.file_exists(script_path): return _not_run("Release gate not found at %s." % script_path)
+	var output: Array = []
+	var exit_code := OS.execute(python_exe, [script_path], output, false)
+	return {
+		"ran": true,
+		"ok": exit_code == 0,
+		"exit_code": exit_code,
+		"report": str(output[0]) if not output.is_empty() else "The release gate produced no output.",
 	}
 
 
 static func _not_run(reason: String) -> Dictionary:
-	return {"ok": false, "ran": false, "error": reason, "issues": [], "counts": {}, "ran_checks": [], "skipped": []}
+	return {"ok": false, "ran": false, "error": reason, "issues": [], "counts": {}, "ran_checks": [], "skipped": [], "not_run": {}}
 
 
 # Parse the last complete JSON object in `text`. The engine logs on import, so the

@@ -21,6 +21,9 @@ var state: EditorState
 var view_states: Dictionary = {}
 var editor_clipboard: Array = []
 var cached_hierarchy: Dictionary = {}
+var _content_validation_thread: Thread = null
+var _content_validation_label := ""
+var _release_gate_thread: Thread = null
 
 # Input state
 var mouse_down_pos: Vector2
@@ -90,6 +93,21 @@ func _process(_delta):
 		ui_mgr.update_status_coords(get_global_mouse_position())
 		if ui_mgr.search_modal.visible and ui_mgr.search_data_cache.is_empty():
 			ui_mgr.cache_search_data(world_mgr.get_all_world_data(), database_mgr.npcs, database_mgr.items)
+	_poll_content_validation()
+	_poll_release_gate()
+
+
+func _exit_tree():
+	# A thread may still be booting the test world while the editor closes. Join it
+	# before Godot tears down its runtime; it never touches scene objects itself.
+	if _content_validation_thread != null:
+		if _content_validation_thread.is_alive():
+			_content_validation_thread.wait_to_finish()
+		_content_validation_thread = null
+	if _release_gate_thread != null:
+		if _release_gate_thread.is_alive():
+			_release_gate_thread.wait_to_finish()
+		_release_gate_thread = null
 
 # The content set's own start region (`town` in fantasy_frontier), discovered by
 # name rather than hard-coded, so a different content set opens on its own world.
@@ -160,6 +178,16 @@ func _connect_ui_signals():
 	ui_mgr.request_validate.connect(_show_validation_results)
 	ui_mgr.request_acknowledge_validation_warning.connect(func(warning_id): world_mgr.acknowledge_warning(warning_id); _show_validation_results())
 	ui_mgr.request_reset_ignored_validation_warnings.connect(func(): world_mgr.reset_ignored_warnings(); _show_validation_results())
+	ui_mgr.request_acknowledge_content_validation_warnings.connect(func(warning_ids):
+		world_mgr.acknowledge_content_warnings(warning_ids)
+		ui_mgr.hide_content_validation()
+		_validate_content()
+	)
+	ui_mgr.request_reset_ignored_content_validation_warnings.connect(func():
+		world_mgr.reset_ignored_content_warnings()
+		ui_mgr.hide_content_validation()
+		_validate_content()
+	)
 	ui_mgr.label_arrange_mode_changed.connect(func(enabled):
 		if state.is_world_view: return
 		graph_controller.set_label_arrange_mode(enabled)
@@ -173,7 +201,27 @@ func _connect_ui_signals():
 	ui_mgr.technical_ids_visibility_changed.connect(func(enabled): graph_controller.set_show_technical_ids(enabled))
 	ui_mgr.request_validate_region_policy.connect(_validate_region_policy)
 	ui_mgr.request_validate_content.connect(_validate_content)
+	ui_mgr.request_run_release_gate.connect(_run_release_gate)
+	ui_mgr.request_edit_ruleset.connect(func(): ui_mgr.show_ruleset_editor())
+	ui_mgr.ruleset_saved.connect(func():
+		database_mgr.catalog.load_contracts()
+		_load_region_vocab_into_creator()
+		_update_db_ui()
+		ui_mgr.refresh_configuration_views(database_mgr.catalog)
+	)
 	ui_mgr.request_show_contracts.connect(func(): ui_mgr.show_contracts())
+	ui_mgr.request_edit_contracts.connect(func(): ui_mgr.show_contract_editor())
+	ui_mgr.contracts_saved.connect(func():
+		database_mgr.catalog.load_contracts()
+		_update_db_ui()
+		ui_mgr.refresh_configuration_views(database_mgr.catalog)
+	)
+	ui_mgr.request_edit_combat_vocabulary.connect(func(): ui_mgr.show_combat_vocabulary_editor())
+	ui_mgr.combat_vocabulary_saved.connect(func():
+		database_mgr.combat_vocabulary.load()
+		_update_db_ui()
+		ui_mgr.refresh_configuration_views(database_mgr.catalog)
+	)
 	ui_mgr.request_choose_content_set.connect(func(): ui_mgr.show_content_set_chooser())
 	ui_mgr.request_switch_content_set.connect(_request_switch_content_set)
 	ui_mgr.request_open_creator_modal.connect(func(): ui_mgr.creator_modal.set_target_options(world_mgr.get_global_hierarchy()))
@@ -248,7 +296,21 @@ func _connect_ui_signals():
 				})
 				database_mgr.add_item(id, d)
 			"magic":
-				d.merge({"magic_group": "general", "target_type": "enemy", "mana_cost": 0.0, "level_required": 1.0, "cooldown": 0.0, "effects": []})
+				# A new ability has to be *loadable*, not merely present: the
+				# engine's `Spell` requires a description and at least one typed
+				# effect, and `spell_registry` builds a whole file inside one
+				# `try` -- so one placeholder that raises stops every remaining
+				# ability in that file from registering. This used to seed
+				# `effects: []` and no description, which made "Create Ability"
+				# the one button in the editor that could break a content set.
+				d.merge({
+					"description": "A newly defined ability.",
+					"target_type": "enemy",
+					"mana_cost": 5,
+					"cooldown": 3,
+					"level_required": 1,
+					"effects": [{"type": "damage", "value": 5, "damage_type": "physical"}],
+				})
 				database_mgr.add_magic(id, d)
 			"quest": database_mgr.add_quest(id, d)
 			"recipe":
@@ -308,10 +370,21 @@ func _connect_inspector_signals():
 	inspector.request_connection_modal.connect(func(): 
 		if state.selected_ids.size() == 1: 
 			var id = state.selected_ids[0]
-			inspector.load_connection_form(id, region_mgr.data.rooms[id].name, world_mgr.get_global_hierarchy(), region_mgr.current_filename)
+			_open_connection_form(id, region_mgr.data.rooms[id].name)
 	)
-	inspector.connection_created.connect(action_handler.create_connection)
+	inspector.connection_created.connect(func(src, dir, target, two_way, rev):
+		action_handler.create_connection(src, dir, target, two_way, rev)
+		_close_connection_mode(src)
+	)
+	# Same connection, but the form stays open on the same source so the next room
+	# can be connected without re-picking the source and the direction.
+	inspector.connection_created_and_continue.connect(
+		func(src, dir, target, two_way, rev):
+			action_handler.create_connection(src, dir, target, two_way, rev)
+	)
 	inspector.target_selected_in_connector.connect(_on_connection_target_selected)
+	inspector.request_delete_connection.connect(_on_delete_connection_requested)
+	inspector.request_curve_change.connect(_on_curve_change_requested)
 	inspector.request_save_template.connect(_on_save_template_request)
 	inspector.request_jump_to_room.connect(_jump_to_room)
 	inspector.save_triggered.connect(func(): _save_everything())
@@ -395,6 +468,11 @@ func _connect_graph_signals():
 	graph_controller.node_selected.connect(func(id): _on_node_click(id, Input.is_key_pressed(KEY_SHIFT)))
 	graph_controller.node_double_clicked.connect(func(id): camera_controller.focus_on(graph_controller.get_node_position(id), true))
 	graph_controller.node_drag_started.connect(func(id):
+		# No moving rooms while the connection form is open. Dragging a room to
+		# pick it is the same gesture as dragging it to move it, and a room moved
+		# by accident is a content change that reaches the save -- so in connection
+		# mode the drag simply does not start, rather than starting and being undone.
+		if state.connection_mode: return
 		if not state.is_selected(id): return 
 		state.drag_start_positions.clear()
 		for sel_id in state.selected_ids: state.drag_start_positions[sel_id] = graph_controller.get_node_position(sel_id)
@@ -493,8 +571,8 @@ func _unhandled_input(event):
 			var target_id = graph_controller.get_room_under_mouse(get_global_mouse_position())
 			var src_name = region_mgr.data.rooms.get(state.dragging_conn.src, {}).get("name", "...")
 			if target_id != "" and target_id != state.dragging_conn.src: 
-				inspector.load_connection_form(state.dragging_conn.src, src_name, world_mgr.get_global_hierarchy(), region_mgr.current_filename, target_id)
-			else: inspector.load_connection_form(state.dragging_conn.src, src_name, world_mgr.get_global_hierarchy(), region_mgr.current_filename)
+				_open_connection_form(state.dragging_conn.src, src_name, target_id)
+			else: _open_connection_form(state.dragging_conn.src, src_name)
 			state.dragging_conn.active = false; graph_controller.queue_redraw()
 		elif event is InputEventMouseMotion: graph_controller.queue_redraw()
 		return
@@ -836,12 +914,60 @@ func _wire_entrance_connection(new_region_id: String, rooms_data: Dictionary, co
 func _show_validation_results():
 	var visible_findings: Array = []
 	var ignored_count := 0
+
+	# The engine's own reference verdict first, because it is the one that decides
+	# whether the game loads the region. This used to be the editor's walker alone,
+	# so an author reading this modal got one wording for "this exit points nowhere"
+	# here and a different one from the Content Validation button for the same fact.
+	#
+	# Filtered to the two reference sources: the rest of `editor_validate.py`'s
+	# checks are about items, quests and contracts, and this modal is about links.
+	# Nothing is lost by that -- the unfiltered run has its own button.
+	visible_findings.append_array(_engine_reference_findings())
+
 	for finding in world_mgr.validate_world_links():
 		if world_mgr.is_suppressible_warning(finding) and world_mgr.is_warning_ignored(finding):
 			ignored_count += 1
 		else:
 			visible_findings.append(finding)
 	ui_mgr.show_validation_results(visible_findings, ignored_count)
+
+
+## Reference findings from the engine, as display strings.
+##
+## Empty when it cannot run -- no interpreter, no validator -- because a link modal
+## that refuses to open is worse than one that shows only its own findings. The
+## Content Validation button reports the same gap in full.
+func _engine_reference_findings() -> Array:
+	var project_root: String = ProjectSettings.globalize_path("res://")
+	var repo_root: String = project_root.trim_suffix("/").get_base_dir()
+	var validator_script: String = repo_root.path_join("toolkit/editor_validate.py")
+	var python_exe: String = _find_python(repo_root)
+	if not FileAccess.file_exists(validator_script) or python_exe == "":
+		return []
+
+	var output: Array = []
+	OS.execute(
+		python_exe,
+		[validator_script, DataRoot.root(), "--only", "references,stale"],
+		output, false,
+	)
+	var raw: String = str(output[0]) if output.size() > 0 else ""
+	var parsed = EngineValidator._last_json_object(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return []
+
+	var findings: Array = []
+	for issue in parsed.get("issues", []):
+		var severity := str(issue.get("severity", "warning"))
+		if severity != "error":
+			# This modal is a to-do list. Warnings have their own place, and mixing
+			# them in makes the errors harder to find.
+			continue
+		findings.append("[%s] %s: %s" % [
+			str(issue.get("path", "")), "engine", str(issue.get("message", "")),
+		])
+	return findings
 
 func _validate_region_policy():
 	# Everything here used to be built from `res://data/...`, the editor's own
@@ -889,11 +1015,87 @@ func _validate_region_policy():
 # validation the build runs, so "the editor is happy" and "the game will load it"
 # stop being different questions.
 func _validate_content():
+	if _content_validation_thread != null:
+		return
 	var project_root: String = ProjectSettings.globalize_path("res://")
 	var repo_root: String = project_root.trim_suffix("/").get_base_dir()
 	var python_exe: String = _find_python(repo_root)
-	var result := EngineValidator.run(DataRoot.root(), repo_root, python_exe)
-	ui_mgr.show_content_validation(result, DataRoot.root())
+	_content_validation_label = DataRoot.root()
+	_content_validation_thread = Thread.new()
+	var started := _content_validation_thread.start(
+		_run_content_validation.bind(_content_validation_label, repo_root, python_exe)
+	)
+	if started != OK:
+		_content_validation_thread = null
+		ui_mgr.show_content_validation({
+			"ran": false,
+			"error": "Could not start open-set validation (error %d)." % started,
+		}, _content_validation_label)
+		return
+	ui_mgr.set_content_validation_running(true)
+
+
+func _run_content_validation(content_set_root: String, repo_root: String, python_exe: String) -> Dictionary:
+	return EngineValidator.run(content_set_root, repo_root, python_exe)
+
+
+func _poll_content_validation():
+	if _content_validation_thread == null or _content_validation_thread.is_alive():
+		return
+	var result = _content_validation_thread.wait_to_finish()
+	_content_validation_thread = null
+	ui_mgr.set_content_validation_running(false)
+	var displayed_result: Dictionary = result if result is Dictionary else {
+		"ran": false,
+		"error": "Open-set validation stopped before returning a result.",
+	}
+	ui_mgr.show_content_validation(_filter_acknowledged_content_warnings(displayed_result), _content_validation_label)
+
+# Acknowledgement is a presentation choice in the editor only: the validator's
+# raw result remains intact, error findings always remain visible, and the next
+# changed warning receives a different stable key and returns to the report.
+func _filter_acknowledged_content_warnings(result: Dictionary) -> Dictionary:
+	if not result.get("ran", false): return result
+	var visible: Array = []
+	var ignored_count := 0
+	for raw_issue in result.get("issues", []):
+		if raw_issue is Dictionary and str(raw_issue.get("severity", "")) == "warning":
+			var warning_id := str(raw_issue.get("warning_id", ""))
+			if warning_id != "" and world_mgr.is_content_warning_ignored(warning_id):
+				ignored_count += 1
+				continue
+		visible.append(raw_issue)
+	var filtered := result.duplicate(true)
+	filtered["issues"] = visible
+	filtered["ignored_warning_count"] = ignored_count
+	var counts: Dictionary = filtered.get("counts", {}).duplicate(true)
+	counts["warning"] = 0
+	for issue in visible:
+		if issue is Dictionary and str(issue.get("severity", "")) == "warning": counts["warning"] += 1
+	filtered["counts"] = counts
+	return filtered
+
+func _run_release_gate():
+	if _release_gate_thread != null: return
+	var project_root: String = ProjectSettings.globalize_path("res://")
+	var repo_root: String = project_root.trim_suffix("/").get_base_dir()
+	var python_exe: String = _find_python(repo_root)
+	_release_gate_thread = Thread.new()
+	var started := _release_gate_thread.start(EngineValidator.run_release_gate.bind(repo_root, python_exe))
+	if started != OK:
+		_release_gate_thread = null
+		ui_mgr.show_release_gate_result({"ran": false, "error": "Could not start the release gate (error %d)." % started})
+		return
+	ui_mgr.set_release_gate_running(true)
+
+func _poll_release_gate():
+	if _release_gate_thread == null or _release_gate_thread.is_alive(): return
+	var result = _release_gate_thread.wait_to_finish()
+	_release_gate_thread = null
+	ui_mgr.set_release_gate_running(false)
+	ui_mgr.show_release_gate_result(result if result is Dictionary else {
+		"ran": false, "error": "The release gate stopped before returning a result.",
+	})
 
 # The first interpreter that actually exists, so this does not depend on one
 # particular virtualenv layout. Returns "" when there is none.
@@ -915,39 +1117,45 @@ func _find_python(repo_root: String) -> String:
 # click with no confirmation and no undo.
 
 func _has_unsaved_work() -> bool:
-	return region_mgr.is_region_dirty or database_mgr.has_unsaved_changes()
+	return region_mgr.is_region_dirty or database_mgr.has_unsaved_changes() or ui_mgr.has_configuration_drafts()
 
 func _save_everything() -> bool:
+	# Every dirty thing, in one press, whatever view is on screen. This used to
+	# return early twice: in the world view it saved the layout and stopped, and
+	# with a clean region it returned without ever reaching `save_all()`. Both
+	# paths are reachable from the "Save and switch" button, so an author who had
+	# edited an NPC or an item -- library work, not region work -- was told their
+	# work was saved and then had it dropped when the next set's `load_all()`
+	# cleared the dirty flags.
 	if state.is_world_view:
 		var layout := world_mgr.save_world_layout()
 		if not layout.get("ok", false):
 			ui_mgr.show_error("Could not save the world layout", layout.get("error", ""))
 			return false
-		return true
 
-	if not region_mgr.is_region_dirty:
-		return true
+	if region_mgr.is_region_dirty:
+		var saved := region_mgr.save_region()
+		if not saved.get("ok", false):
+			# Deliberately still dirty. A Save that failed but cleared the dirty flag
+			# is how an author closed the editor believing their work was on disk.
+			ui_mgr.show_error("Could not save %s" % region_mgr.current_filename, saved.get("error", ""))
+			_update_explorer_dirty_state()
+			return false
+		region_mgr.mark_clean()
 
-	var saved := region_mgr.save_region()
-	if not saved.get("ok", false):
-		# Deliberately still dirty. A Save that failed but cleared the dirty flag
-		# is how an author closed the editor believing their work was on disk.
-		ui_mgr.show_error("Could not save %s" % region_mgr.current_filename, saved.get("error", ""))
-		_update_explorer_dirty_state()
-		return false
-
-	region_mgr.mark_clean()
 	# The same button saves the content library, which is where a region's item
 	# and NPC changes live. Report its failures with the same loudness.
-	var database := database_mgr.save_all()
-	if not database.get("ok", true):
-		ui_mgr.show_error(
-			"Some content files could not be saved",
-			"\n".join(database.get("errors", [])),
-		)
-		_update_explorer_dirty_state(); _update_db_ui()
-		return false
+	if database_mgr.has_unsaved_changes():
+		var database := database_mgr.save_all()
+		if not database.get("ok", true):
+			ui_mgr.show_error(
+				"Some content files could not be saved",
+				"\n".join(database.get("errors", [])),
+			)
+			_update_explorer_dirty_state(); _update_db_ui()
+			return false
 
+	if not ui_mgr.save_configuration_drafts(): return false
 	_update_explorer_dirty_state(); _update_db_ui()
 	return true
 
@@ -1019,6 +1227,14 @@ func _switch_content_set(path: String):
 	if not written.get("ok", false):
 		ui_mgr.show_error("Could not remember this content set", str(written.get("error", "")))
 
+	# Everything below this line refers to the set being left. Undo closures in
+	# particular capture the *old* dictionaries, so they must go before the load
+	# replaces them -- clearing them after a successful load (as this did) left
+	# them armed when the new set's start region failed to load, where an undo
+	# would push the previous world's data into this one.
+	cmd_proc.clear_history()
+	_reset_per_set_state()
+
 	region_mgr.reset()
 	view_states.clear()
 	cached_hierarchy.clear()
@@ -1032,6 +1248,23 @@ func _switch_content_set(path: String):
 	var start_region := _start_region_filename()
 	_load_region(start_region if start_region != "" else "")
 
+## State that belongs to the content set being left, cleared on the way out.
+##
+## Each of these is keyed by, or holds, an id from one world: a tool armed with
+## the previous set's stamp id draws that id into this set's rooms, a clipboard
+## pastes a template that does not exist here, a cached search index answers with
+## entries that are gone, and a library selection keeps an inspector writing into
+## an orphaned dictionary while reporting this set's id as dirty.
+func _reset_per_set_state():
+	ui_mgr.discard_configuration_drafts()
+	state.cur_tool_mode = EditorUIManager.ToolMode.SELECT
+	state.cur_tool_data = {}
+	editor_clipboard = []
+	world_mgr.ignored_validation_warnings.clear()
+	world_mgr.ignored_content_validation_warnings.clear()
+	ui_mgr.clear_search_cache()
+	ui_mgr.clear_library_selection()
+
 func _request_quit():
 	if not _has_unsaved_work():
 		get_tree().quit()
@@ -1039,12 +1272,28 @@ func _request_quit():
 	var what: Array = []
 	if region_mgr.is_region_dirty: what.append(region_mgr.current_filename)
 	if database_mgr.has_unsaved_changes(): what.append("the content library")
+	if ui_mgr.has_configuration_drafts(): what.append("game configuration")
 	ui_mgr.show_quit_prompt(
 		"Unsaved changes in %s.\n\nSave before quitting, or leave the changes behind." % ", ".join(what)
 	)
 
 func _on_node_click(id: String, shift_mod: bool):
 	if state.is_world_view: return
+
+	# Connection mode first, before every tool: while the form is open, a click on
+	# the map means "this is the far end of the connection" and nothing else. The
+	# paint and stamp tools are checked below, so leaving this late would let a
+	# click both pick a target AND paint a property onto it.
+	if state.connection_mode or inspector.cur_mode == "connection":
+		# A cross-region target (from a proxy node) carries "region:room"; a
+		# same-region target is just the bare room id, since it's already in
+		# whichever region is currently loaded.
+		if ":" in id:
+			var parts = id.split(":"); inspector.set_connection_target(parts[0], parts[1])
+		else:
+			inspector.set_connection_target(str(region_mgr.data.get("region_id", "")), id)
+		return
+
 	match state.cur_tool_mode:
 		EditorUIManager.ToolMode.PAINT:
 			var k = state.cur_tool_data.get("key", ""); var v = state.cur_tool_data.get("val", "")
@@ -1064,16 +1313,6 @@ func _on_node_click(id: String, shift_mod: bool):
 			return
 	
 	if state.dragging_conn.active and id != state.dragging_conn.src: return
-	
-	if inspector.cur_mode == "connection":
-		# A cross-region target (from a proxy node) carries "region:room"; a
-		# same-region target is just the bare room id, since it's already in
-		# whichever region is currently loaded.
-		if ":" in id:
-			var parts = id.split(":"); inspector.set_connection_target(parts[0], parts[1])
-		else:
-			inspector.set_connection_target(str(region_mgr.data.get("region_id", "")), id)
-		return
 
 	if shift_mod:
 		if state.is_selected(id): state.remove_from_selection(id)
@@ -1083,6 +1322,32 @@ func _on_node_click(id: String, shift_mod: bool):
 	
 	_update_selection_state()
 
+## Open the connection form and enter connection mode.
+##
+## One entry point for both ways in (the Link button and a drag from one room to
+## another), so the mode cannot be set on one path and forgotten on the other.
+func _open_connection_form(src_id: String, src_name: String, target_id: String = "", dir: String = ""):
+	state.connection_mode = true
+	inspector.load_connection_form(src_id, src_name, world_mgr.get_global_hierarchy(), region_mgr.current_filename, target_id, dir)
+	graph_controller.queue_redraw()
+
+
+## Leave connection mode and put the inspector back on the room it started from.
+##
+## Called when a connection is made, so the form closes and the map returns to its
+## normal state rather than leaving the author in a half-finished dialog.
+func _close_connection_mode(src_id: String = ""):
+	state.connection_mode = false
+	var back_to := src_id
+	if back_to == "" and inspector.connection_editor != null:
+		back_to = str(inspector.connection_editor.conn_src_id)
+	if back_to != "" and region_mgr.data.rooms.has(back_to):
+		inspector.load_room(back_to, region_mgr.data.rooms[back_to])
+	else:
+		inspector.clear_selection()
+	graph_controller.queue_redraw()
+
+
 func _on_connection_target_selected(target_id: String):
 	state.highlighted_target_id = target_id
 	if target_id != "" and inspector.connection_editor:
@@ -1091,7 +1356,133 @@ func _on_connection_target_selected(target_id: String):
 		state.connection_preview.target_id = target_id
 	else:
 		state.connection_preview.active = false
+		# Cleared target with no form left means the author cancelled: leave
+		# connection mode so the map stops reading clicks as target picks.
+		if inspector.cur_mode != "connection":
+			state.connection_mode = false
 	graph_controller.update_highlight_visuals(); graph_controller.queue_redraw()
+
+
+## Re-shape how one exit is drawn. Editor-only state: it lives in
+## `_editor_exit_layout`, which `EditorLayout.split_region` keeps out of the
+## content files, so a bow choice never reaches the game.
+##
+## Committed through `cmd_proc` like every other edit, because which way a curve
+## bows is a decision an author changes their mind about.
+func _on_curve_change_requested(source_id: String, direction: String, curve_action: String):
+	if not region_mgr.data.rooms.has(source_id):
+		return
+	var room: Dictionary = region_mgr.data.rooms[source_id]
+	var before: Dictionary = {}
+	if room.has("_editor_exit_layout"):
+		before = (room["_editor_exit_layout"] as Dictionary).duplicate(true)
+
+	var after := before.duplicate(true)
+	var entry: Dictionary = {}
+	if after.has(direction) and after[direction] is Dictionary:
+		entry = (after[direction] as Dictionary).duplicate(true)
+
+	if curve_action == "straight":
+		# Clear back to the automatic side, dropping the entry when it holds
+		# nothing else -- an empty override is state a save would carry for nothing.
+		entry.erase("curve")
+	elif curve_action == "amount_default":
+		entry.erase("curve_amount")
+	elif curve_action == "amount":
+		# Cycle the three distances. The cycle returns to `normal` by returning an
+		# empty string, because `normal` is what the renderer draws with no
+		# override -- writing it as a key would be state that means nothing.
+		var next_amount := RoomConnectionsPanel.next_curve_amount(
+			str(entry.get("curve_amount", RoomConnectionsPanel.CURVE_AMOUNT_DEFAULT))
+		)
+		if next_amount == "":
+			entry.erase("curve_amount")
+		else:
+			entry["curve_amount"] = next_amount
+	else:
+		# Cycle: automatic -> left -> right -> automatic. Cycling rather than
+		# toggling means there is a way back to automatic without a modifier.
+		match str(entry.get("curve", "")):
+			"": entry["curve"] = "left"
+			"left": entry["curve"] = "right"
+			_: entry.erase("curve")
+
+	if entry.is_empty(): after.erase(direction)
+	else: after[direction] = entry
+
+	cmd_proc.commit(
+		func():
+			if after.is_empty(): room.erase("_editor_exit_layout")
+			else: room["_editor_exit_layout"] = after
+			region_mgr.mark_room_dirty(source_id)
+			_refresh_view()
+			_update_explorer_dirty_state(),
+		func():
+			if before.is_empty(): room.erase("_editor_exit_layout")
+			else: room["_editor_exit_layout"] = before
+			region_mgr.mark_room_dirty(source_id)
+			_refresh_view()
+			_update_explorer_dirty_state(),
+		"Curve Direction"
+	)
+	graph_controller.queue_redraw()
+
+
+## Remove an exit, and by default the exit pointing back the other way.
+##
+## Reciprocity is the default because that is what an author means almost every
+## time: connections are authored in pairs, and removing one end of a pair leaves
+## a half-link that still draws on the map and still claims to lead somewhere.
+## Removing a single end is the case that needs saying so, which is why the panel
+## offers it as a separate, quieter button.
+##
+## Committed through `cmd_proc` so it undoes as one step: a delete that removed
+## two ends but undid one would be worse than no undo at all.
+func _on_delete_connection_requested(source_id: String, direction: String, target: String, also_reciprocal: bool):
+	var forward_target := str(target)
+	if ":" in forward_target:
+		var parts := forward_target.split(":")
+		if parts[0] == region_mgr.data.region_id:
+			forward_target = parts[1]
+
+	# The far end, when there is one and it is in this region. A cross-region
+	# reciprocal lives in another file; deleting both ends there means editing a
+	# region this view has not loaded, so it is left to the one-way removal.
+	var back_dir := ""
+	if also_reciprocal and not ":" in str(target) and region_mgr.data.rooms.has(forward_target):
+		var target_exits: Dictionary = region_mgr.data.rooms[forward_target].get("exits", {})
+		for other_dir in target_exits:
+			if str(target_exits[other_dir]) == str(source_id) and str(other_dir) != str(direction):
+				back_dir = str(other_dir)
+				break
+
+	var removed_forward := false
+	cmd_proc.commit(
+		func():
+			region_mgr.remove_exit(source_id, direction)
+			region_mgr.mark_room_dirty(source_id)
+			removed_forward = true
+			if back_dir != "":
+				region_mgr.remove_exit(forward_target, back_dir)
+				region_mgr.mark_room_dirty(forward_target)
+			_refresh_view()
+			_update_explorer_dirty_state(),
+		func():
+			if removed_forward:
+				region_mgr.add_exit(source_id, direction, forward_target)
+				region_mgr.mark_room_dirty(source_id)
+			if back_dir != "":
+				region_mgr.add_exit(forward_target, back_dir, source_id)
+				region_mgr.mark_room_dirty(forward_target)
+			_refresh_view()
+			_update_explorer_dirty_state(),
+		"Remove Connection" if back_dir == "" else "Remove Connection (both ways)"
+	)
+	# The panel renders from the room's own exits, so reload it. `_on_node_click`
+	# is how every other edit refreshes the inspector, and it is safe here because
+	# this room is already the one being inspected.
+	_on_node_click(source_id, false)
+
 
 func _on_world_region_selected(region_id: String):
 	if not state.is_world_view: return
