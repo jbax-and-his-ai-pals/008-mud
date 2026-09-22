@@ -34,10 +34,11 @@ func _remember_fields(node: Node):
 	if node is LineEdit or node is TextEdit: node.set_meta("loaded_value", node.text)
 	elif node is OptionButton: node.set_meta("loaded_value", node.selected)
 	elif node is CheckBox: node.set_meta("loaded_value", node.button_pressed)
+	elif node is SpinBox: node.set_meta("loaded_value", node.value)
 	for child in node.get_children(): _remember_fields(child)
 
 func _field_changed(node: Control) -> bool:
-	var value = node.text if node is LineEdit or node is TextEdit else (node.selected if node is OptionButton else node.button_pressed)
+	var value = node.text if node is LineEdit or node is TextEdit else (node.selected if node is OptionButton else (node.value if node is SpinBox else node.button_pressed))
 	return value != node.get_meta("loaded_value", null)
 
 func _put_path(data: Dictionary, path: String, value):
@@ -57,6 +58,7 @@ func _form_state(node: Node) -> Array:
 	if node is LineEdit or node is TextEdit: values.append([node.get_instance_id(), node.text])
 	elif node is OptionButton: values.append([node.get_instance_id(), node.selected])
 	elif node is CheckBox: values.append([node.get_instance_id(), node.button_pressed])
+	elif node is SpinBox: values.append([node.get_instance_id(), node.value])
 	for child in node.get_children(): values.append_array(_form_state(child))
 	return values
 

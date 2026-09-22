@@ -19,10 +19,12 @@ var faction_rows: VBoxContainer
 var salvage_default: OptionButton
 var salvage_rows: VBoxContainer
 var salvage_baseline: Dictionary = {}
+var skill_bonus_rows: VBoxContainer
 var content_database: DatabaseManager
 var form_dirty := false
 var loading := false
 var faction_baseline: Array = []
+var skill_bonus_baseline: Dictionary = {}
 
 const SYSTEM_LABELS := {
 	"combat": "Combat", "abilities": "Abilities", "magic": "Magic", "crafting": "Crafting",
@@ -61,6 +63,14 @@ func setup():
 	box.add_child(InspectorStyle.create_sub_header("Declared Stats"))
 	stats = _field(box, "Stats (comma-separated)")
 	stats.tooltip_text = "The active stat vocabulary for this ruleset. Existing unknown sections remain untouched."
+	var skill_header := HBoxContainer.new(); skill_header.add_child(InspectorStyle.create_sub_header("Skill Stat Bonuses"))
+	var skill_spacer := Control.new(); skill_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; skill_header.add_child(skill_spacer)
+	var add_skill_bonus := Button.new(); add_skill_bonus.text = "+ Skill Bonus"; InspectorStyle.apply_button_style(add_skill_bonus, InspectorStyle.COLOR_SUCCESS)
+	add_skill_bonus.pressed.connect(func(): _add_skill_bonus_row("", {}); _mark_dirty())
+	skill_header.add_child(add_skill_bonus); box.add_child(skill_header)
+	var skill_hint := InspectorStyle.lbl("Which stat backs a skill check, and how much each point above 10 adds (skill_system.py). Leaving the stat blank means no bonus.", InspectorStyle.COLOR_TEXT_DIM)
+	skill_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(skill_hint)
+	skill_bonus_rows = VBoxContainer.new(); skill_bonus_rows.add_theme_constant_override("separation", 5); box.add_child(skill_bonus_rows)
 	box.add_child(InspectorStyle.create_sub_header("Region Policy"))
 	require_classification = _check(box, "Require region classification")
 	require_level_bands = _check(box, "Require level bands")
@@ -103,6 +113,7 @@ func open_active():
 		if entry is Dictionary: _add_faction_row(str(entry.get("id", "")), str(entry.get("disposition", "neutral")), entry)
 	faction_baseline = _faction_entries().duplicate(true)
 	_load_salvage_rules()
+	_load_skill_bonuses()
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -119,6 +130,7 @@ func _save():
 	var factions := _faction_entries()
 	if factions != faction_baseline: draft.set_faction_extras(factions)
 	if _salvage_rules_changed(): draft.set_salvage_rules(_salvage_rules())
+	if _skill_bonuses_changed(): draft.set_skill_stat_bonuses(_skill_bonuses())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)
@@ -236,6 +248,85 @@ func _salvage_rules() -> Dictionary:
 
 func _salvage_rules_changed() -> bool:
 	return JSON.stringify(_salvage_rules()) != JSON.stringify(salvage_baseline)
+
+
+# `skills.stat_bonuses` (`skill_system.py:43-49`; `content_set.py::
+# _validate_skills_rules`): which stat backs a skill check, and how much each
+# point above 10 adds. Only the shape is engine-checked -- a stat name is
+# whatever this ruleset says it is, since the ruleset is where stats are
+# declared in the first place -- so the stat field is free text, the same as
+# the "Declared Stats" field above it, rather than a picker over a vocabulary
+# that would be circular.
+func _load_skill_bonuses():
+	for child in skill_bonus_rows.get_children(): _remove_row(child)
+	var skills: Dictionary = draft.data.get("skills", {}) if draft.data.get("skills", {}) is Dictionary else {}
+	var bonuses: Dictionary = skills.get("stat_bonuses", {}) if skills.get("stat_bonuses", {}) is Dictionary else {}
+	# `JSON.parse_string` always returns a float for `per_point`, no matter what
+	# the file spells -- normalized the same way `_skill_bonuses()` reads its
+	# rows so an unedited bonus does not report itself dirty merely for having
+	# been read off disk (the SpinBox int-coercion, applied consistently).
+	skill_bonus_baseline = _normalized_bonuses(bonuses)
+	for skill_id in bonuses:
+		if bonuses[skill_id] is Dictionary: _add_skill_bonus_row(str(skill_id), bonuses[skill_id].duplicate(true))
+	if skill_bonus_rows.get_child_count() == 0:
+		skill_bonus_rows.add_child(InspectorStyle.lbl("No skill bonuses declared.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+func _normalized_bonuses(bonuses: Dictionary) -> Dictionary:
+	var out := {}
+	for skill_id in bonuses:
+		var rule = bonuses[skill_id]
+		if not (rule is Dictionary): continue
+		var entry := {}
+		var stat := str(rule.get("stat", "")).strip_edges()
+		if stat != "": entry["stat"] = stat
+		entry["per_point"] = int(rule.get("per_point", 1))
+		out[str(skill_id)] = entry
+	return out
+
+
+func _add_skill_bonus_row(skill_id: String, rule: Dictionary):
+	for child in skill_bonus_rows.get_children():
+		if child is Label and child.text.begins_with("No skill bonuses"): _remove_row(child)
+	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+	row.set_meta("source", rule.duplicate(true)); row.set_meta("initial_id", skill_id)
+	var id_field := LineEdit.new(); id_field.placeholder_text = "skill id"; id_field.text = skill_id
+	id_field.custom_minimum_size.x = 130; InspectorStyle.apply_input_style(id_field)
+	id_field.text_changed.connect(func(_text): _mark_dirty()); row.add_child(id_field)
+	var stat_field := LineEdit.new(); stat_field.placeholder_text = "stat this skill uses"; stat_field.text = str(rule.get("stat", ""))
+	stat_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(stat_field)
+	stat_field.text_changed.connect(func(_text): _mark_dirty()); row.add_child(stat_field)
+	row.add_child(InspectorStyle.lbl("per point above 10:", InspectorStyle.COLOR_TEXT_DIM))
+	var per_point := SpinBox.new(); per_point.min_value = 0; per_point.max_value = 20; per_point.step = 1
+	per_point.value = int(rule.get("per_point", 1)); per_point.custom_minimum_size.x = 60
+	InspectorStyle.apply_input_style(per_point); per_point.value_changed.connect(func(_value): _mark_dirty())
+	row.add_child(per_point)
+	var remove := Button.new(); remove.text = "×"; remove.tooltip_text = "Remove skill bonus"
+	remove.pressed.connect(func(): _remove_row(row); _mark_dirty())
+	row.add_child(remove)
+	skill_bonus_rows.add_child(row)
+
+
+func _skill_bonuses() -> Dictionary:
+	var out := {}
+	for row in skill_bonus_rows.get_children():
+		if not (row is HBoxContainer) or row.get_child_count() < 4: continue
+		var id_field: LineEdit = row.get_child(0)
+		var stat_field: LineEdit = row.get_child(1)
+		var per_point: SpinBox = row.get_child(3)
+		var skill_id := id_field.text.strip_edges()
+		if skill_id == "": continue
+		var entry: Dictionary = row.get_meta("source").duplicate(true)
+		var stat := stat_field.text.strip_edges()
+		if stat == "": entry.erase("stat")
+		else: entry["stat"] = stat
+		entry["per_point"] = int(per_point.value)
+		out[skill_id] = entry
+	return out
+
+
+func _skill_bonuses_changed() -> bool:
+	return JSON.stringify(_skill_bonuses()) != JSON.stringify(skill_bonus_baseline)
 
 func _mark_dirty():
 	if loading or draft == null: return

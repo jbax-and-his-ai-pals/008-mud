@@ -21,7 +21,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra"], ["world", "world.regions", "status", "systems", "factions"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra"], ["world", "world.regions", "status", "systems", "factions", "skills", "skills.stat_bonuses"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -54,6 +54,9 @@ func set_faction_extras(extras: Array):
 
 func set_salvage_rules(rules: Dictionary):
 	_section("crafting")["salvage_rules"] = rules.duplicate(true)
+
+func set_skill_stat_bonuses(bonuses: Dictionary):
+	_section("skills")["stat_bonuses"] = bonuses.duplicate(true)
 
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):
@@ -91,6 +94,17 @@ func validate() -> Array:
 				faction_ids[faction_id] = true
 				if not disposition in ["hostile", "friendly", "neutral", "player"]:
 					errors.append("Faction '%s' has invalid disposition '%s'." % [faction_id, disposition])
+	var skills = data.get("skills", {})
+	if skills is Dictionary and skills.has("stat_bonuses"):
+		var bonuses = skills["stat_bonuses"]
+		if not (bonuses is Dictionary): errors.append("skills.stat_bonuses must be an object.")
+		else:
+			var skill_ids := {}
+			for skill_id_variant in bonuses:
+				var skill_id := str(skill_id_variant).strip_edges()
+				if skill_id == "": errors.append("A skill bonus needs a skill id.")
+				elif skill_ids.has(skill_id): errors.append("skills.stat_bonuses repeats '%s'." % skill_id)
+				skill_ids[skill_id] = true
 	return errors
 
 func save() -> Dictionary:
