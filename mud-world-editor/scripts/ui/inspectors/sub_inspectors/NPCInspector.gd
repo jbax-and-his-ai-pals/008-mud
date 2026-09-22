@@ -30,9 +30,50 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	db_manager = db_mgr
 	catalog = db_mgr.catalog if db_mgr != null else ContractCatalog.new()
 	_build_faction_and_behavior()
+	_build_dialogue_binding()
 	_build_stats()
 	_build_gift_preferences()
 	_build_loot_table()
+
+# `properties.dialogue` (`dialogue/manager.py::NPC_GRAPH_KEY`): which authored
+# conversation graph this NPC uses. A graph an NPC binds to that does not exist
+# is an orphan the gate catches (`content_set.py:1545-1549`), so the picker only
+# offers graphs the set actually has -- and still shows an already-authored id
+# that no longer resolves, rather than silently dropping it on the next save.
+func _build_dialogue_binding():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Dialogue"))
+	var card = InspectorStyle.create_card(); var vbox: VBoxContainer = card.get_child(0).get_child(0)
+	container.add_child(card)
+
+	var graph_ids: Array = (db_manager.dialogues.keys() if db_manager != null else [])
+	graph_ids.sort()
+	var current_graph := ""
+	var props = cur_data.get("properties", {})
+	if props is Dictionary:
+		current_graph = str(props.get("dialogue", ""))
+
+	var row := HBoxContainer.new(); row.add_child(InspectorStyle.lbl("Graph", InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new(); picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.add_item("(none)"); picker.set_item_metadata(0, "")
+	var selected := 0
+	for graph_id in graph_ids:
+		picker.add_item(str(graph_id)); picker.set_item_metadata(picker.item_count - 1, str(graph_id))
+		if str(graph_id) == current_graph: selected = picker.item_count - 1
+	if current_graph != "" and not graph_ids.has(current_graph):
+		picker.add_item("Missing: " + current_graph); picker.set_item_metadata(picker.item_count - 1, current_graph)
+		selected = picker.item_count - 1
+	picker.select(selected)
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(index):
+		var chosen := str(picker.get_item_metadata(index))
+		if chosen == "":
+			if cur_data.get("properties") is Dictionary: cur_data["properties"].erase("dialogue")
+		else:
+			if not (cur_data.get("properties") is Dictionary): cur_data["properties"] = {}
+			cur_data["properties"]["dialogue"] = chosen
+		database_modified.emit())
+	row.add_child(picker); vbox.add_child(row)
 
 # Track G ledger, family C: `faction` and `behavior_type` were the two
 # engine-owned vocabulary words on an NPC template with no editor control at
