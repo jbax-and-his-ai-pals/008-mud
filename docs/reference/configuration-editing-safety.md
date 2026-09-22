@@ -1,9 +1,16 @@
 # Configuration editing: current safety behavior
 
-**Updated 2026-09-21.** Applies to the Ruleset, Contract and Combat Vocabulary
-dialogs. This is the first hardening slice of [batch 6A](../plan/chunks-of-work.md),
-not the multi-file migration workflow proposed in the
-[game-authoring roadmap](../plan/game-authoring-roadmap.md).
+**Updated 2026-09-21.** Applies to the Ruleset, Manifest, Contract and Combat
+Vocabulary dialogs. This is the first hardening slice of
+[batch 6A](../plan/chunks-of-work.md), not the multi-file migration workflow proposed in
+the [game-authoring roadmap](../plan/game-authoring-roadmap.md).
+
+**What each dialog can author** — field by field against the engine's schemas — is
+recorded in [the coverage ledger](../plan/editor-coverage-ledger.md) §H.2 and pinned by
+`server/tests/singles/test_configuration_dialog_coverage.py`: the contract dialog covers
+67 of the schema's 69 fields, the combat-vocabulary dialog covers every hazard key the
+shipped file uses, and the ruleset dialog covers 7 of the reference ruleset's 23
+top-level keys.
 
 ## Editing and closing
 

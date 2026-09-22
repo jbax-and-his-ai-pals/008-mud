@@ -43,10 +43,24 @@ def save_configuration(path: Path, candidate: dict, expected: str) -> dict:
             raise ValueError("Configuration saving does not yet support linked content directories or files.")
     relative = path.relative_to(root)
     content = Path(manifest.get("paths", {}).get("content_root", "data"))
+    manifest_relative = Path("content_set.manifest.json")
     allowed = {Path(manifest.get("paths", {}).get("ruleset", "rules/ruleset.json")),
-               content / "contracts/world_contracts.json", content / "combat/elements.json"}
+               content / "contracts/world_contracts.json", content / "combat/elements.json",
+               manifest_relative}
     if relative not in allowed:
         raise ValueError("This is not a supported configuration file.")
+    if relative == manifest_relative:
+        # The check above read the manifest on disk. A draft that moves its own
+        # paths would make the staged validation read another tree -- and, once
+        # saved, point the engine there for real. So the candidate is checked too,
+        # before it is staged.
+        if not isinstance(candidate.get("paths", {}), dict):
+            raise ValueError("Manifest paths must be an object.")
+        for key, value in candidate.get("paths", {}).items():
+            if isinstance(value, str) and not (root / value).resolve().is_relative_to(root):
+                raise ValueError(
+                    "A manifest path may not point outside the content set: paths.%s = %s" % (key, value)
+                )
     text = json.dumps(candidate, indent=4, ensure_ascii=False, allow_nan=False)
     with tempfile.TemporaryDirectory(prefix="mud-config-") as temporary:
         staged = Path(temporary) / root.name

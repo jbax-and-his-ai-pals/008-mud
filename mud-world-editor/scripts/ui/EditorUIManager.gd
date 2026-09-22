@@ -10,6 +10,8 @@ signal request_validate_content
 signal request_run_release_gate
 signal request_edit_ruleset
 signal ruleset_saved
+signal request_edit_manifest
+signal manifest_saved
 signal request_show_contracts
 signal request_edit_contracts
 signal contracts_saved
@@ -89,6 +91,10 @@ var content_visible_warning_ids: Array = []
 var release_gate_modal: AcceptDialog
 var release_gate_label: RichTextLabel
 var ruleset_editor: RulesetEditorDialog
+# Untyped on purpose, like the other new dialogs: a `class_name` is not in the
+# project's class cache until the editor has scanned it, and a headless check must
+# not depend on that having happened.
+var manifest_editor
 var contract_browser
 var contract_editor: ContractEditorDialog
 var combat_vocabulary_editor
@@ -139,6 +145,11 @@ const CONTRACT_EDITOR_SCRIPT = preload("res://scripts/ui/modals/ContractEditorDi
 const COMBAT_VOCABULARY_EDITOR_SCRIPT = preload("res://scripts/ui/modals/CombatVocabularyDialog.gd")
 const CREATE_CONTENT_SET_SCRIPT = preload("res://scripts/ui/modals/CreateContentSetDialog.gd")
 const RULESET_EDITOR_SCRIPT = preload("res://scripts/ui/modals/RulesetEditorDialog.gd")
+const MANIFEST_EDITOR_SCRIPT = preload("res://scripts/ui/modals/ManifestEditorDialog.gd")
+# Preloaded rather than reached by class name: a fresh `class_name` is not in the
+# project's class cache until the editor has scanned it, and a headless check must
+# not depend on that.
+const CONTENT_SET_ADMIN_SCRIPT = preload("res://scripts/data/ContentSetAdmin.gd")
 
 func setup(layer: CanvasLayer, database_mgr: DatabaseManager, world_mgr: WorldManager):
 	ui_layer = layer
@@ -177,6 +188,7 @@ func _forward_side_panel_signals():
 	side_panel.request_run_release_gate.connect(func(): request_run_release_gate.emit())
 	side_panel.request_show_contracts.connect(func(): request_show_contracts.emit())
 	side_panel.request_edit_ruleset.connect(func(): request_edit_ruleset.emit())
+	side_panel.request_edit_manifest.connect(func(): request_edit_manifest.emit())
 	side_panel.request_edit_contracts.connect(func(): request_edit_contracts.emit())
 	side_panel.request_edit_combat_vocabulary.connect(func(): request_edit_combat_vocabulary.emit())
 	side_panel.request_choose_content_set.connect(func(): request_choose_content_set.emit())
@@ -362,6 +374,10 @@ func _setup_modals_and_popups():
 	ui_layer.add_child(ruleset_editor)
 	ruleset_editor.setup()
 	ruleset_editor.ruleset_saved.connect(func(): ruleset_saved.emit())
+	manifest_editor = MANIFEST_EDITOR_SCRIPT.new()
+	ui_layer.add_child(manifest_editor)
+	manifest_editor.setup()
+	manifest_editor.manifest_saved.connect(func(): manifest_saved.emit())
 	contract_browser = CONTRACT_BROWSER_SCRIPT.new()
 	ui_layer.add_child(contract_browser)
 	contract_browser.setup(database_manager.catalog)
@@ -390,8 +406,11 @@ func show_combat_vocabulary_editor():
 func show_ruleset_editor():
 	if is_instance_valid(ruleset_editor): ruleset_editor.open_active()
 
+func show_manifest_editor():
+	if is_instance_valid(manifest_editor): manifest_editor.open_active()
+
 func has_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, contract_editor, combat_vocabulary_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed(): return true
 	return false
 
@@ -401,14 +420,14 @@ func refresh_configuration_views(catalog: ContractCatalog):
 		content_library._build_editor()
 
 func save_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, contract_editor, combat_vocabulary_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed():
 			dialog._save()
 			if dialog._form_changed(): return false
 	return true
 
 func discard_configuration_drafts():
-	for dialog in [ruleset_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, contract_editor, combat_vocabulary_editor]:
 		if is_instance_valid(dialog):
 			dialog._allow_close = true
 			dialog._form_baseline.clear()
@@ -460,6 +479,22 @@ func _setup_content_set_modal():
 		show_create_content_set()
 	)
 	vbox.add_child(btn_new)
+
+	# Rename and remove, which until now needed a file manager. Both refuse the
+	# set that is open (the editor is holding its files) and both ask for the name
+	# to be typed: a delete cannot be undone with Ctrl+Z.
+	var manage_row := HBoxContainer.new()
+	var btn_rename := Button.new()
+	btn_rename.text = "Rename..."
+	btn_rename.tooltip_text = "Rename the selected set's directory and its manifest id. Existing saves carry the old id and will refuse to load into the renamed set."
+	btn_rename.pressed.connect(func(): _rename_selected_content_set())
+	manage_row.add_child(btn_rename)
+	var btn_delete := Button.new()
+	btn_delete.text = "Delete..."
+	btn_delete.tooltip_text = "Remove the selected set from disk. There is no undo; the set's name has to be typed to confirm."
+	btn_delete.pressed.connect(func(): _delete_selected_content_set())
+	manage_row.add_child(btn_delete)
+	vbox.add_child(manage_row)
 	content_set_modal.add_child(vbox)
 	content_set_modal.confirmed.connect(_confirm_content_set_choice)
 	ui_layer.add_child(content_set_modal)
@@ -485,6 +520,106 @@ func _confirm_content_set_choice():
 	if path == "" or path == DataRoot.root():
 		return
 	request_switch_content_set.emit(path)
+
+# --- renaming and removing a set ------------------------------------------------
+#
+# Both act on the selected row, refuse the set that is currently open (the editor
+# holds its files), and ask for the name to be typed. `ContentSetAdmin` does the
+# work and owns the refusals; this owns the asking.
+
+func _selected_content_set() -> String:
+	var selected := content_set_list.get_selected_items()
+	if selected.is_empty():
+		return ""
+	return str(content_set_list.get_item_metadata(selected[0]))
+
+func _rename_selected_content_set():
+	var path := _selected_content_set()
+	if path == "":
+		_show_content_set_error("Select a content set first.")
+		return
+	if path == DataRoot.root():
+		_show_content_set_error("This is the set the editor has open. Switch to another one before renaming it.")
+		return
+	var described := CONTENT_SET_ADMIN_SCRIPT.report(path)
+	if not described.get("ok", false):
+		_show_content_set_error(str(described.get("error", "")))
+		return
+	_prompt_content_set_name(
+		"Rename %s" % path.get_file(),
+		"New set id for '%s' (%d files). Existing saves carry the old id and will refuse to load into the renamed set." % [path.get_file(), int(described.get("files", 0))],
+		path.get_file(),
+		func(typed: String) -> Dictionary:
+			var result := CONTENT_SET_ADMIN_SCRIPT.rename(path, typed, ContentSetScaffold.sets_root())
+			if result.get("ok", false):
+				show_content_set_chooser()
+			return result
+	)
+
+func _delete_selected_content_set():
+	var path := _selected_content_set()
+	if path == "":
+		_show_content_set_error("Select a content set first.")
+		return
+	if path == DataRoot.root():
+		_show_content_set_error("This is the set the editor has open. Switch to another one before deleting it.")
+		return
+	var described := CONTENT_SET_ADMIN_SCRIPT.report(path)
+	if not described.get("ok", false):
+		_show_content_set_error(str(described.get("error", "")))
+		return
+	_prompt_content_set_name(
+		"Delete %s" % path.get_file(),
+		"Remove %s?\n\n%d files, %d KB, and this cannot be undone.\n\nType the set's name to confirm." % [
+			path, int(described.get("files", 0)), int(int(described.get("bytes", 0)) / 1024),
+		],
+		"",
+		func(typed: String) -> Dictionary:
+			var result := CONTENT_SET_ADMIN_SCRIPT.delete(path, typed, ContentSetScaffold.sets_root())
+			if result.get("ok", false):
+				show_content_set_chooser()
+			return result
+	)
+
+## One prompt for both actions: a name field, the reason, and the refusal text
+## when it fails. `expected` is prefilled for a rename and left empty for a
+## delete, where typing the name is the point.
+func _prompt_content_set_name(title_text: String, body: String, expected: String, act: Callable):
+	var prompt := ConfirmationDialog.new()
+	prompt.title = title_text
+	prompt.min_size = Vector2i(560, 260)
+	prompt.ok_button_text = title_text.split(" ")[0]
+	var box := VBoxContainer.new()
+	box.custom_minimum_size = Vector2(540, 200)
+	var label := Label.new()
+	label.text = body
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(label)
+	var field := LineEdit.new()
+	field.text = expected
+	InspectorStyle.apply_input_style(field)
+	box.add_child(field)
+	var status := Label.new()
+	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	status.modulate = DialogStyle.COLOR_DANGER
+	box.add_child(status)
+	prompt.add_child(box)
+	prompt.confirmed.connect(func():
+		var result: Dictionary = act.call(field.text.strip_edges())
+		if not result.get("ok", false):
+			status.text = str(result.get("error", "That did not work."))
+			prompt.popup_centered()
+		else:
+			prompt.queue_free()
+	)
+	prompt.canceled.connect(func(): prompt.queue_free())
+	prompt.close_requested.connect(func(): prompt.queue_free())
+	ui_layer.add_child(prompt)
+	prompt.popup_centered()
+	field.grab_focus()
+
+func _show_content_set_error(message: String):
+	show_error("Content set", message)
 
 # The engine's verdict on this content set, in a scrollable list. Deliberately a
 # read-only report rather than the link validator's jump-to-room tree: these
@@ -809,9 +944,9 @@ func clear_library_selection():
 	if content_library != null:
 		content_library.clear_selection()
 
-func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, dirty_flags: Dictionary):
+func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
 	side_panel.update_db_lists(npcs, items, templates, magic, quests, dirty_flags)
-	content_library.update_data(npcs, items, templates, magic, quests, recipes, dialogues, titles, collections, discoveries, backgrounds, dirty_flags)
+	content_library.update_data(npcs, items, templates, magic, quests, recipes, dialogues, titles, collections, discoveries, backgrounds, affix_prefixes, affix_suffixes, item_sets, dirty_flags)
 func refresh_explorer(h, c, s): side_panel.refresh_explorer(h, c, s) 
 func select_room_item(id): side_panel.select_room_item(id)
 func update_dirty_visuals(cur, dirty, rooms): side_panel.update_dirty_visuals(cur, dirty, rooms)

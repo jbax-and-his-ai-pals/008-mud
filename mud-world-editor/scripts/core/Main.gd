@@ -2,12 +2,18 @@
 extends Node2D
 
 const SaveIO = preload("res://scripts/data/SaveIO.gd")
+const ReferenceIndexScript = preload("res://scripts/data/ReferenceIndex.gd")
+const SaveCheckpoint = preload("res://scripts/data/SaveCheckpoint.gd")
 
 # Managers
 var region_mgr: RegionManager
 var world_mgr: WorldManager
 var database_mgr: DatabaseManager
 var cmd_proc: CommandProcessor
+
+# "What names this id?", answered by the toolkit's reference index. Cached per
+# content set: it is a subprocess, and the answer only changes when the set does.
+var reference_index = ReferenceIndexScript.new()
 
 # Controllers
 var ui_mgr: EditorUIManager
@@ -170,6 +176,9 @@ func _update_db_ui():
 		database_mgr.collections,
 		database_mgr.discoveries,
 		database_mgr.backgrounds,
+		database_mgr.affix_prefixes,
+		database_mgr.affix_suffixes,
+		database_mgr.item_sets,
 		database_mgr.dirty_flags
 	)
 
@@ -203,11 +212,22 @@ func _connect_ui_signals():
 	ui_mgr.request_validate_content.connect(_validate_content)
 	ui_mgr.request_run_release_gate.connect(_run_release_gate)
 	ui_mgr.request_edit_ruleset.connect(func(): ui_mgr.show_ruleset_editor())
+	ui_mgr.request_edit_manifest.connect(func(): ui_mgr.show_manifest_editor())
 	ui_mgr.ruleset_saved.connect(func():
 		database_mgr.catalog.load_contracts()
 		_load_region_vocab_into_creator()
 		_update_db_ui()
 		ui_mgr.refresh_configuration_views(database_mgr.catalog)
+	)
+	# The manifest decides where a character starts and which systems exist, so a
+	# save reloads the catalog and revalidates rather than leaving the title and
+	# the inspector's vocabulary describing the previous configuration.
+	ui_mgr.manifest_saved.connect(func():
+		database_mgr.catalog.load_contracts()
+		_load_region_vocab_into_creator()
+		_update_db_ui()
+		ui_mgr.refresh_configuration_views(database_mgr.catalog)
+		_validate_content()
 	)
 	ui_mgr.request_show_contracts.connect(func(): ui_mgr.show_contracts())
 	ui_mgr.request_edit_contracts.connect(func(): ui_mgr.show_contract_editor())
@@ -347,9 +367,20 @@ func _connect_ui_signals():
 			"background":
 				d = {"name": "New Background", "description": "", "stats": {}, "inventory": [], "starting_gold": 0}
 				database_mgr.add_background(id, d)
+			"affix_prefix", "affix_suffix":
+				# Applies to nothing until the author names item types, and does
+				# nothing until a modifier row exists -- so a new affix is inert
+				# rather than silently changing every generated item.
+				d = {"allowed_types": [], "level_min": 1, "modifiers": {}, "value_mult": 1.0}
+				if t == "affix_suffix": database_mgr.add_affix_suffix(id, d)
+				else: database_mgr.add_affix_prefix(id, d)
+			"item_set":
+				d = {"name": "New Item Set", "items": [], "bonuses": {}}
+				database_mgr.add_item_set(id, d)
 		_update_db_ui()
 	)
 	ui_mgr.request_delete_db_entry.connect(_confirm_delete_db_entry)
+	inspector.request_entry_rename.connect(_on_request_entry_rename)
 	ui_mgr.database_modified.connect(func(t, id):
 		database_mgr.mark_dirty(t, id)
 		_update_db_ui()
@@ -953,7 +984,7 @@ func _engine_reference_findings() -> Array:
 		output, false,
 	)
 	var raw: String = str(output[0]) if output.size() > 0 else ""
-	var parsed = EngineValidator._last_json_object(raw)
+	var parsed = EngineValidator.last_json_object(raw)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return []
 
@@ -1127,20 +1158,23 @@ func _save_everything() -> bool:
 	# edited an NPC or an item -- library work, not region work -- was told their
 	# work was saved and then had it dropped when the next set's `load_all()`
 	# cleared the dirty flags.
+	#
+	# A checkpoint is taken first because this writes many files one at a time:
+	# atomic writes still leave a half-updated set if the fourth fails. The
+	# in-memory caches are deliberately *not* rolled back -- the author's work
+	# stays on screen and stays dirty, so the fix is to save again.
+	var checkpoint := SaveCheckpoint.begin(DataRoot.root())
 	if state.is_world_view:
 		var layout := world_mgr.save_world_layout()
 		if not layout.get("ok", false):
-			ui_mgr.show_error("Could not save the world layout", layout.get("error", ""))
-			return false
+			return _report_failed_save(checkpoint, "Could not save the world layout", str(layout.get("error", "")))
 
 	if region_mgr.is_region_dirty:
 		var saved := region_mgr.save_region()
 		if not saved.get("ok", false):
 			# Deliberately still dirty. A Save that failed but cleared the dirty flag
 			# is how an author closed the editor believing their work was on disk.
-			ui_mgr.show_error("Could not save %s" % region_mgr.current_filename, saved.get("error", ""))
-			_update_explorer_dirty_state()
-			return false
+			return _report_failed_save(checkpoint, "Could not save %s" % region_mgr.current_filename, str(saved.get("error", "")))
 		region_mgr.mark_clean()
 
 	# The same button saves the content library, which is where a region's item
@@ -1148,28 +1182,57 @@ func _save_everything() -> bool:
 	if database_mgr.has_unsaved_changes():
 		var database := database_mgr.save_all()
 		if not database.get("ok", true):
-			ui_mgr.show_error(
-				"Some content files could not be saved",
-				"\n".join(database.get("errors", [])),
-			)
-			_update_explorer_dirty_state(); _update_db_ui()
-			return false
+			return _report_failed_save(checkpoint, "Some content files could not be saved",
+				"\n".join(database.get("errors", [])))
 
 	if not ui_mgr.save_configuration_drafts(): return false
+	SaveCheckpoint.prune(DataRoot.root())
 	_update_explorer_dirty_state(); _update_db_ui()
 	return true
+
+## Report a failed save, after putting the set back the way it was.
+##
+## The message says which of the two happened, because "your set was restored"
+## and "restoring it also failed" call for different next steps, and a silent
+## half-written set is the state this checkpoint exists to prevent.
+func _report_failed_save(checkpoint: Dictionary, title: String, message: String) -> bool:
+	var note := ""
+	if checkpoint.get("ok", false):
+		var restored := SaveCheckpoint.restore(str(checkpoint.get("dir", "")), DataRoot.root())
+		if restored.get("ok", false):
+			note = "\n\nThe content set was put back as it was before this save (%d files). Your unsaved work is still open; fix the cause and save again." % int(restored.get("restored", 0))
+		else:
+			note = "\n\nThe content set could NOT be put back, so some files may be half-written: %s" % str(restored.get("error", ""))
+	elif str(checkpoint.get("error", "")) != "":
+		note = "\n\nNo checkpoint was taken, so the set may be partly written: %s" % str(checkpoint.get("error", ""))
+	ui_mgr.show_error(title, message + note)
+	_update_explorer_dirty_state(); _update_db_ui()
+	return false
 
 func _confirm_delete_db_entry(type: String, id: String):
 	if not database_mgr.has_entry(type, id):
 		return
 	ui_mgr.confirm(
 		"Delete %s" % id,
-		"Delete the %s '%s' from the content library?\n\nIts file is rewritten on the next save. Ctrl+Z will put it back until then." % [type, id],
+		"Delete the %s '%s' from the content library?\n\n%s\n\nIts file is rewritten on the next save. Ctrl+Z will put it back until then." % [type, id, _referrers_note(type, id)],
 		"Delete",
 		func(): _delete_db_entry(type, id),
 		"Cancel",
 		DialogStyle.COLOR_DANGER,
 	)
+
+## What names this id, before it is deleted.
+##
+## The answer comes from `toolkit/reference_index.py` -- the reverse of the gate's
+## reference sweep, sharing its families so the two cannot disagree about what a
+## reference is. The index is run on first use and cached; a failure says so rather
+## than quietly reading as "nothing refers to this".
+func _referrers_note(type: String, id: String) -> String:
+	if not reference_index.loaded():
+		var loaded := reference_index.load_for(DataRoot.data_dir())
+		if not loaded.get("ok", false):
+			return "Reference check unavailable: %s" % str(loaded.get("error", "the index did not run."))
+	return reference_index.describe(id, type)
 
 func _delete_db_entry(type: String, id: String):
 	var existing := database_mgr.entry(type, id)
@@ -1183,6 +1246,109 @@ func _delete_db_entry(type: String, id: String):
 			database_mgr.restore_entry(type, id, existing)
 			_update_db_ui(); inspector.clear_selection(),
 		"Delete %s '%s'" % [type, id],
+	)
+
+# --- renaming an entry ---------------------------------------------------------
+#
+# A rename is the one edit that can break content the author is not looking at: a
+# recipe's result, a loot table key, a vendor line, a spawner weight. The index
+# says where those are, so the confirmation can name them and the rename can
+# repair the ones it can reach.
+
+func _on_request_entry_rename(type: String, old_id: String, new_id: String):
+	if not database_mgr.has_entry(type, old_id):
+		return
+	if database_mgr.has_entry(type, new_id):
+		ui_mgr.confirm(
+			"Rename %s" % old_id,
+			"'%s' already exists in this content set. Nothing was changed." % new_id,
+			"OK", func(): pass, "", DialogStyle.COLOR_DANGER,
+		)
+		return
+	var plan := _rename_plan(type, old_id)
+	ui_mgr.confirm(
+		"Rename %s to %s" % [old_id, new_id],
+		"Rename the %s '%s' to '%s'?\n\n%s" % [type, old_id, new_id, plan["summary"]],
+		"Rename",
+		func(): _apply_entry_rename(type, old_id, new_id, plan),
+		"Cancel",
+	)
+
+## What the index knows about this id, split by what a rename can do about it:
+## the library caches, the region files, and anything that fails at apply time.
+func _rename_plan(type: String, old_id: String) -> Dictionary:
+	var plan := {"repairable": [], "region": [], "summary": ""}
+	if not reference_index.loaded():
+		var loaded := reference_index.load_for(DataRoot.data_dir())
+		if not loaded.get("ok", false):
+			plan["summary"] = "Reference check unavailable: %s\n\nNothing can be checked, so nothing will be repaired." % str(loaded.get("error", "the index did not run."))
+			return plan
+	var family := reference_index.family_for_type(type)
+	if family == "":
+		plan["summary"] = "The reference index does not read %s entries yet, so no referrers can be checked or repaired." % type
+		return plan
+	for hit in reference_index.referrers_of(old_id, family):
+		if str(hit["file"]).begins_with("regions/"):
+			plan["region"].append(hit)
+		else:
+			plan["repairable"].append(hit)
+	var lines: Array = []
+	if plan["repairable"].is_empty() and plan["region"].is_empty():
+		lines.append("Nothing in the indexed families names this id, so no other file needs to change.")
+	else:
+		if not plan["repairable"].is_empty():
+			lines.append("%d reference(s) will be updated:" % plan["repairable"].size())
+			for hit in plan["repairable"]:
+				lines.append("  %s\n    %s" % [hit["file"], hit["path"]])
+		if not plan["region"].is_empty():
+			lines.append("%d reference(s) live in region files and will be updated there:" % plan["region"].size())
+			for hit in plan["region"]:
+				lines.append("  %s\n    %s" % [hit["file"], hit["path"]])
+			lines.append("  (a region file that cannot be parsed is left alone and reported)")
+	lines.append("")
+	lines.append(reference_index.scope_note())
+	plan["summary"] = "\n".join(lines)
+	return plan
+
+func _apply_entry_rename(type: String, old_id: String, new_id: String, plan: Dictionary):
+	var patched: Array = []
+	var failures: Array = []
+	for hit in plan["repairable"]:
+		var result := database_mgr.patch_reference(hit["file"], hit["path"], old_id, new_id)
+		if result.get("ok", false):
+			patched.append({"file": hit["file"], "path": str(result.get("path_after", hit["path"]))})
+		else:
+			failures.append("%s\n    %s\n    %s" % [hit["file"], hit["path"], str(result.get("error", "could not be updated"))])
+	for hit in plan["region"]:
+		var result := region_mgr.patch_reference(hit["file"], hit["path"], old_id, new_id)
+		if result.get("ok", false):
+			patched.append({"file": hit["file"], "path": str(result.get("path_after", hit["path"]))})
+		else:
+			failures.append("%s\n    %s\n    %s" % [hit["file"], hit["path"], str(result.get("error", "could not be updated"))])
+
+	cmd_proc.commit(
+		func():
+			database_mgr.rename_entry(type, old_id, new_id)
+			_update_db_ui()
+			inspector.load_db_object(type, new_id, database_mgr.entry(type, new_id))
+			if not failures.is_empty():
+				ui_mgr.confirm(
+					"Rename partly applied",
+					"Renamed to '%s'. These references could not be updated and still name '%s':\n\n%s" % [new_id, old_id, "\n".join(failures)],
+					"OK", func(): pass, "", DialogStyle.COLOR_DANGER,
+				),
+		func():
+			# Undo in reverse: the recorded `path_after` is the path the reference
+			# now lives at, which differs from the original in key mode.
+			for hit in patched:
+				if str(hit["file"]).begins_with("regions/"):
+					region_mgr.patch_reference(hit["file"], hit["path"], new_id, old_id)
+				else:
+					database_mgr.patch_reference(hit["file"], hit["path"], new_id, old_id)
+			database_mgr.rename_entry(type, new_id, old_id)
+			_update_db_ui()
+			inspector.load_db_object(type, old_id, database_mgr.entry(type, old_id)),
+		"Rename %s '%s' to '%s'" % [type, old_id, new_id],
 	)
 
 func _notification(what):
@@ -1264,6 +1430,9 @@ func _reset_per_set_state():
 	world_mgr.ignored_content_validation_warnings.clear()
 	ui_mgr.clear_search_cache()
 	ui_mgr.clear_library_selection()
+	# The reference index describes the set that was open when it ran, so its
+	# answer would be about the wrong world after a switch.
+	reference_index.clear()
 
 func _request_quit():
 	if not _has_unsaved_work():

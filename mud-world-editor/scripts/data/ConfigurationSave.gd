@@ -38,7 +38,7 @@ static func write(path: String, data: Dictionary, expected_hash: String) -> Dict
 		ProjectSettings.globalize_path(temporary), expected_hash], output, true)
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(temporary))
 	var raw := str(output[0]) if not output.is_empty() else ""
-	var result = Validator._last_json_object(raw)
+	var result = Validator.last_json_object(raw)
 	if not result is Dictionary:
 		return {"ok": false, "error": "Configuration validation could not run (exit %d). Nothing was saved.\n%s" % [exit_code, raw.right(1600)]}
 	if exit_code != 0: result["ok"] = false

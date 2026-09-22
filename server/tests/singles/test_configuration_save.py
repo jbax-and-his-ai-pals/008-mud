@@ -89,6 +89,62 @@ class ConfigurationSaveTests(unittest.TestCase):
         self.assertEqual(self.before, self.path.read_bytes())
 
 
+class ManifestSaveTests(unittest.TestCase):
+    """The manifest is configuration too: batch 6B's "change the start or a
+    capability after creation" needs the same staged engine verdict the other
+    configuration files get."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name) / "orbital_salvage"
+        shutil.copytree(REPO / "content_sets/orbital_salvage", self.root,
+                        ignore=shutil.ignore_patterns("editor", "*.bak"))
+        self.path = self.root / "content_set.manifest.json"
+        self.before = self.path.read_bytes()
+        self.expected = hashlib.sha256(self.before).hexdigest()
+        self.draft = json.loads(self.before)
+
+    def test_the_manifest_is_a_supported_configuration_file(self):
+        self.draft["title"] = "Orbital Salvage (edited)"
+        result = save_configuration(self.path, self.draft, self.expected)
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(self.draft, json.loads(self.path.read_bytes()))
+        self.assertEqual(self.before, self.path.with_name(self.path.name + ".bak").read_bytes())
+
+    def test_moving_the_start_is_validated_and_saved(self):
+        self.draft["start"]["room_id"] = "cargo_bay"
+        result = save_configuration(self.path, self.draft, self.expected)
+        # Whether that room exists is the engine's call, not this test's: what
+        # matters is that the verdict came from the staged set either way.
+        if result["ok"]:
+            self.assertEqual("cargo_bay", json.loads(self.path.read_bytes())["start"]["room_id"])
+        else:
+            self.assertIn("cargo_bay", result["error"])
+            self.assertEqual(self.before, self.path.read_bytes())
+
+    def test_a_capability_that_contradicts_the_ruleset_is_refused(self):
+        # `combat` is enabled in this set's ruleset; dropping the capability alone
+        # is the contradiction the engine reports.
+        self.draft["capabilities"] = [c for c in self.draft["capabilities"] if c != "combat"]
+        result = save_configuration(self.path, self.draft, self.expected)
+        self.assertFalse(result["ok"], result)
+        self.assertIn("combat", result["error"])
+        self.assertEqual(self.before, self.path.read_bytes())
+
+    def test_a_draft_that_moves_its_own_paths_out_is_refused(self):
+        self.draft["paths"]["content_root"] = "../outside"
+        with self.assertRaisesRegex(ValueError, "may not point outside"):
+            save_configuration(self.path, self.draft, self.expected)
+        self.assertEqual(self.before, self.path.read_bytes())
+
+    def test_paths_must_stay_an_object(self):
+        self.draft["paths"] = ["data"]
+        with self.assertRaisesRegex(ValueError, "paths must be an object"):
+            save_configuration(self.path, self.draft, self.expected)
+        self.assertEqual(self.before, self.path.read_bytes())
+
+
 class EditorRunnerTests(unittest.TestCase):
     def test_script_error_is_failure_even_when_godot_exits_zero(self):
         completed = subprocess.CompletedProcess([], 0, "OK first check\n", "SCRIPT ERROR: Invalid call\n")

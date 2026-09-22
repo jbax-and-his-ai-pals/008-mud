@@ -592,11 +592,16 @@ REFERENCE_FAMILIES: tuple[tuple[str, str, Any, tuple[str, ...]], ...] = (
 )
 
 
-def _reference_sweep_issues(catalogs: dict[str, Any]) -> list[RefIssue]:
-    """Ids the engine resolves out of files no audit used to read."""
-    issues: list[RefIssue] = []
+def reference_tables(catalogs: dict[str, Any]) -> dict[str, set[str]]:
+    """The id table each reference family resolves against.
+
+    Shared with `toolkit/reference_index.py` on purpose: an index that knew a
+    different set of ids than the sweep would be a second opinion about what a
+    reference is, which is the defect class this project has paid for most. The
+    index locates references; this decides whether their target exists.
+    """
     root: Path = catalogs["root"]
-    tables: dict[str, set[str]] = {
+    return {
         "items": catalogs["item_ids"],
         "npcs": catalogs["npc_template_ids"],
         "recipes": _collect_templates(root / "crafting"),
@@ -614,6 +619,13 @@ def _reference_sweep_issues(catalogs: dict[str, Any]) -> list[RefIssue]:
             for room_id in room_ids
         },
     }
+
+
+def _reference_sweep_issues(catalogs: dict[str, Any]) -> list[RefIssue]:
+    """Ids the engine resolves out of files no audit used to read."""
+    issues: list[RefIssue] = []
+    root: Path = catalogs["root"]
+    tables = reference_tables(catalogs)
 
     for table_name, singular, walker, patterns in REFERENCE_FAMILIES:
         known = tables[table_name]
@@ -664,6 +676,30 @@ def _file_of(label: str, files: list[tuple[str, Any]]) -> str:
         if any(room_id == entry_id for room_id, _room in _rooms(payload)):
             return name
     return files[0][0] if files else "?"
+
+
+def reference_json_path(family: str, file_name: str, label: str) -> str:
+    """The JSON location of a reference a walker labelled for a human.
+
+    A label answers "what is this?", which is what a finding needs to say; a tool
+    that *edits* the reference needs "where is this?", which is a path relative to
+    the file's payload. For most families the two are the same: the label starts
+    with the entry id and continues with the path inside that entry.
+
+    Region labels are the exception. They name the room -- or, for a spawner
+    weight, the field -- without the container the file nests it under, so the
+    container is added here, spelled out per family rather than guessed. A guess
+    that is wrong by one level edits the wrong place, and this feeds a writer.
+    """
+    if not str(file_name).startswith("regions/"):
+        return label
+    if family == "npcs":
+        # `_npc_references` labels a spawner weight as `<field>.<template_id>`.
+        return "spawner.%s" % label
+    if family in ("items", "rooms"):
+        # Room-scoped labels: `<room_id>.properties...`, under the rooms map.
+        return "rooms.%s" % label
+    return label
 
 
 # Two vocabularies share the words `damage_type`, and they are not the same

@@ -313,13 +313,22 @@ func _check_opening_and_saving_it_changes_nothing() -> void:
 	var after := _snapshot(created)
 
 	var dropped: Array = []
-	var invented: Array = []
+	var invented_content: Array = []
+	var invented_editor: Array = []
 	for path in before:
 		if not after.has(path): dropped.append(path)
 	for path in after:
-		if not before.has(path): invented.append(path)
+		if before.has(path): continue
+		# A save checkpoints `data/` before writing it, so a successful save leaves
+		# a checkpoint behind. That is recovery state under `editor/`, not content,
+		# and the two are asserted separately so neither hides the other.
+		if path.begins_with("editor/"): invented_editor.append(path)
+		else: invented_content.append(path)
 	_assert(dropped.is_empty(), "no file disappeared: %s" % str(dropped))
-	_assert(invented.is_empty(), "no file was invented: %s" % str(invented))
+	_assert(invented_content.is_empty(), "no content file was invented: %s" % str(invented_content))
+	for path in invented_editor:
+		_assert(path.begins_with("editor/checkpoints/"),
+			"the save only added its own recovery state: %s" % path)
 
 	var changed: Array = []
 	for path in before:

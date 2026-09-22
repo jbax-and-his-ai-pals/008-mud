@@ -329,6 +329,8 @@ a number out of authored JSON.
 ```
 toolkit/content_set_validator.py, toolkit/editor_validate.py
 toolkit/reference_integrity_validator.py
+toolkit/reference_index.py     (not a gate: the same families read backwards --
+                                it locates references, the validator judges them)
 toolkit/skill_audit.py
 toolkit/content_playability_check.py
 toolkit/data_integrity_validator.py

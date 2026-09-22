@@ -11,6 +11,7 @@ signal request_validate_region_policy
 signal request_validate_content
 signal request_run_release_gate
 signal request_edit_ruleset
+signal request_edit_manifest
 signal request_show_contracts
 signal request_edit_contracts
 signal request_edit_combat_vocabulary
@@ -104,6 +105,11 @@ func setup():
 	_apply_style(btn_ruleset, Color(0.25, 0.23, 0.34))
 	btn_ruleset.pressed.connect(func(): request_edit_ruleset.emit())
 	add_child(btn_ruleset)
+	var btn_manifest = Button.new(); btn_manifest.text="Manifest…"
+	btn_manifest.tooltip_text = "This content set's identity, where a character starts, and which systems it declares. The engine refuses a capability that contradicts the ruleset."
+	_apply_style(btn_manifest, Color(0.24, 0.26, 0.32))
+	btn_manifest.pressed.connect(func(): request_edit_manifest.emit())
+	add_child(btn_manifest)
 
 	release_gate_button = Button.new(); release_gate_button.text="Run Release Gate"
 	release_gate_button.tooltip_text = "Run the full repository shipping gate: every content set, themes, manifests, contract coverage, and playability checks. This can take longer than Validate Open Set."

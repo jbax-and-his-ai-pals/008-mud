@@ -71,11 +71,12 @@ need a human retest in addition to headless tests.
 
 ### How future updates should record coverage
 
-For each engine-read field family, record its reader, validator, UI writer,
-dependency/refactor support, no-op survival, meaningful edit, runtime journey and
-recovery evidence. Use **absent / read-only / prototype / validated writer /
-journey-proven** explicitly. Revisit stale claims below as work lands; do not
-declare an entire game authorable while engine-used fields remain unsupported.
+The record itself is [`editor-coverage-ledger.md`](editor-coverage-ledger.md) — one row
+per engine-read declaration, with the status ladder **absent / read-only / prototype /
+validated writer / journey-proven**. For each engine-read field family, record its
+reader, validator, UI writer, dependency/refactor support, no-op survival, meaningful
+edit, runtime journey and recovery evidence. Revisit stale claims below as work lands;
+do not declare an entire game authorable while engine-used fields remain unsupported.
 
 ---
 

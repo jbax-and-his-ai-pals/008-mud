@@ -223,7 +223,13 @@ class TestTheEditorHasAnImplementationForWhatItClaims(unittest.TestCase):
     def test_the_editor_names_what_it_did_not_run(self):
         payload = self._editor_payload("fantasy_frontier")
         not_run = payload["not_run"]
-        self.assertIn("playability", not_run, "the slow check must be declared, not omitted")
+        # The editor boots the set the author has open, so `playability` itself
+        # runs; what it must still declare is that the *other* shipped sets were
+        # not played. Both halves are asserted, because "it ran" alone would let
+        # the slow four-set form be dropped without a word.
+        self.assertIn("playability", payload["ran"], "the open set is booted and exercised")
+        self.assertIn("playability_other_sets", not_run,
+                      "the sets the editor did not play must be declared, not omitted")
         self.assertIn("theme_packs", not_run)
         for check_id, reason in not_run.items():
             with self.subTest(check=check_id):

@@ -83,7 +83,10 @@ The current working tree has preliminary ruleset, contract and combat-vocabulary
 editors. Older “two keys / browse-only / no surface” descriptions are historical.
 The first 6A pass now covers real dialog events, typed edits, staged engine validation
 and single-file save recovery; full field coverage and visual retesting remain open.
-See [`docs/plan/editor-readiness.md`](docs/plan/editor-readiness.md). Execution order
+See [`docs/plan/editor-readiness.md`](docs/plan/editor-readiness.md) and the
+[field-level coverage ledger](docs/plan/editor-coverage-ledger.md), which records per
+declaration what the engine reads, what validates it, what the editor writes and which
+batch closes it. Execution order
 is [`docs/plan/chunks-of-work.md`](docs/plan/chunks-of-work.md) §6; detailed scope,
 coverage and gates are in the
 [game-authoring roadmap](docs/plan/game-authoring-roadmap.md).

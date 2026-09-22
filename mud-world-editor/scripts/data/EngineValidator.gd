@@ -50,7 +50,7 @@ static func run(content_set_root: String, repo_root: String, python_exe: String)
 	# The validator prints the engine's own startup logging first, so the JSON
 	# document is the last balanced object in the output rather than the whole of
 	# it. Anything else means it failed before printing a verdict.
-	var payload = _last_json_object(raw)
+	var payload = last_json_object(raw)
 	if typeof(payload) != TYPE_DICTIONARY:
 		return _not_run(
 			"The validator did not print a verdict (exit code %d).\n\n%s"
@@ -112,7 +112,10 @@ static func _not_run(reason: String) -> Dictionary:
 # column zero -- inner objects are indented. Anchoring on column zero is what keeps
 # this quiet: every candidate is real JSON rather than a fragment handed to the
 # parser to complain about.
-static func _last_json_object(text: String):
+#
+# Public because `ReferenceIndex.gd` runs a second toolkit tool the same way and
+# must read its output with the same rule, not with a copy of it.
+static func last_json_object(text: String):
 	# Windows pipes CRLF even for a program that writes "\n", so normalise before
 	# anchoring on column zero -- otherwise every line ends in "\r" and nothing
 	# matches.

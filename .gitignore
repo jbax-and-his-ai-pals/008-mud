@@ -7,6 +7,9 @@ server/data/saves/
 server/tests.log
 tmp/
 server/tests/_tmp/
+# Recovery state the editor writes before a multi-file save: timestamped copies of
+# a set's `data/` tree, kept per machine rather than shared with the project.
+content_sets/*/editor/checkpoints/
 .venv/
 .DS_Store
 server/.coverage

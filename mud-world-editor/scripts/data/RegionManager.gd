@@ -3,6 +3,9 @@ class_name RegionManager
 extends RefCounted
 
 const SaveIO = preload("res://scripts/data/SaveIO.gd")
+# Preloaded rather than reached through the project's class cache: a headless
+# check must not depend on the editor having scanned a new script first.
+const ReferencePatch = preload("res://scripts/data/ReferencePatch.gd")
 
 # Regions come from the shared content set, not from a mirror of it. The path is
 # resolved at load/save time rather than frozen in a constant, because the
@@ -106,6 +109,41 @@ func reset() -> void:
 func can_save() -> bool:
 	return current_filename != "" and loaded_ok
 
+# --- repairing references in region files --------------------------------------
+#
+# A rename reaches references that live here too: a spawner weight, a locked
+# door's key, a jail's release destination. The region the editor has open is
+# patched in memory, so the author's unsaved edits survive and the normal save
+# path writes it. Any other region file is read, patched and written with the
+# same stripper and verified writer a normal save uses -- and a file that cannot
+# be parsed is never rewritten, because that is how a repair becomes a
+# truncation. (Same rule as `_patch_external_references`, which does this for
+# exits one room rename at a time.)
+func patch_reference(file_name: String, path: String, old_id: String, new_id: String) -> Dictionary:
+	var target := file_name.get_file()
+	if target == current_filename and loaded_ok:
+		var in_memory := ReferencePatch.rename(data, path, old_id, new_id)
+		if in_memory.get("ok", false):
+			is_region_dirty = true
+		return in_memory
+
+	var full := regions_dir().path_join(target)
+	if not FileAccess.file_exists(full):
+		return {"ok": false, "error": "%s is not in this content set" % target}
+	var raw := FileAccess.get_file_as_string(full)
+	var json := JSON.new()
+	if json.parse(raw) != OK:
+		return {"ok": false, "error": "%s could not be parsed, so nothing was changed" % target}
+	var payload = json.get_data()
+	if not payload is Dictionary:
+		return {"ok": false, "error": "%s is not a region object" % target}
+	var patched := ReferencePatch.rename(payload, path, old_id, new_id)
+	if not patched.get("ok", false):
+		return patched
+	var written := SaveIO.write_json(full, EditorLayout.strip_region(payload))
+	if not written.get("ok", false):
+		return {"ok": false, "error": str(written.get("error", "could not write %s" % target))}
+	return patched
 func save_region() -> Dictionary:
 	if current_filename == "":
 		return {"ok": false, "error": "No region is loaded, so there is nothing to save."}

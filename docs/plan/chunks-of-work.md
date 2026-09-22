@@ -729,9 +729,9 @@ not an instruction to split the batch across agents.
 | Order | Batch / milestone | Scope and exit evidence | Owners |
 |---|---|---|---|
 | **6A — active** | **Safe configuration edits (M0)** | First hardening slice landed 2026-09-21: signal/refresh wiring, typed edits, draft lifecycle, staged engine validation and atomic single-file saves with backups/conflict checks. Next: visual/error-layout retest, exhaustive field/default coverage, teardown cleanup and async validation for large sets. See [current safety behavior](../reference/configuration-editing-safety.md). M0 is not yet closed. | G + B; H/I prove |
-| **6B** | **Project setup and change foundations (M1)** | Scaffold/manifest/start/opening coherence, minimal vs copied starter semantics, capabilities/ruleset reconciliation. Build engine-known dependency index, “used by,” refactor preview, external-change detection and recoverable multi-file staging. Gate: fresh authored set boots, used-ID deletion is caught, interrupted apply recovers. | G + B/C; F first user |
+| **6B** | **Project setup and change foundations (M1)** — *spec below* | Scaffold/manifest/start/opening coherence, minimal vs copied starter semantics, capabilities/ruleset reconciliation. Build engine-known dependency index, “used by,” refactor preview, external-change detection and recoverable multi-file staging. Gate: fresh authored set boots, used-ID deletion is caught, interrupted apply recovers. | G + B/C; F first user |
 | **6C** | **Fantasy materials-to-outcomes (M2, first slice)** | Resources, families/profiles/distributions, items, loot/yields, stations, recipes, work, relevant skill/policy fields. Harden existing forms rather than adding duplicate editors. Gate: author changes a gather → craft/work → use route, samples generation, saves/reloads and plays it; no hidden nested-field rewrite. | G + B/E; F/H/I |
-| **6D** | **Fantasy actors, progression and flows (M2, remainder)** | NPC behavior/social/vendor/schedules; combat/ability configuration; quest rewards/campaigns/dialogue/knowledge; backgrounds, advancement, collections/discoveries; remaining world/policy/presentation fields. Work from the field-level coverage ledger and preserve district editing/continuity. Gate: complete fantasy inventory and representative authored journeys, with exceptions explicitly still open. | G + B/E; F/H/I; K campaign boundary |
+| **6D** | **Fantasy actors, progression and flows (M2, remainder)** | NPC behavior/social/vendor/schedules; combat/ability configuration; quest rewards/campaigns/dialogue/knowledge; backgrounds, advancement, collections/discoveries; remaining world/policy/presentation fields. Work from the [field-level coverage ledger](editor-coverage-ledger.md) and preserve district editing/continuity. Gate: complete fantasy inventory and representative authored journeys, with exceptions explicitly still open. | G + B/E; F/H/I; K campaign boundary |
 | **6E** | **Contrasting consumers (M3)** | Small editor-authored orbital repair/device/resource proof, night-shift consequence/access proof, modern non-progression interaction. Do not build new full games or force absent systems on. Gate: new generalizations work in two themes; all four existing sets boot. | F/G + B/E; H/I |
 | **6F** | **Established-game overhaul (M4)** | Extend 6B's reference/transaction foundation to semantic impacts, versioned change plans, generated-item and active-job compatibility. Rehearse the crafting overhaul: apply, abandon, interrupted apply and rollback. Unsupported old-save conversion requires an isolated fresh-save revision, not silent data loss. | B/C/G + E; H/I |
 | **6G** | **Authoring release candidate (M5)** | Reproducible export/checkpoint, compatibility and validation reports, clear warning acknowledgments, clean-install journey, human usability/accessibility and large-world performance/recovery passes. Gate: another person can create/edit/test and play the candidate using the documentation. | G/C/J + F/H/I |
@@ -748,6 +748,217 @@ malformed shapes, and Main's Ruleset request/save/dirty-state route. Python test
 exercise the staged engine verdict and failure paths. The runner now fails on a
 Godot script error even with exit code zero. This is not evidence that every
 configuration field is journey-proven; keep the remaining M0 gates open.
+
+### 6B — Project setup and change foundations (M1)
+
+**What.** Four deliverables, in this order. The first two are the reason the batch
+exists; the last cannot be honest without them.
+
+1. **A reference index, built from the engine's own readers.** The gate already walks
+   six reference families and knows which files each may appear in
+   (`toolkit/reference_integrity_validator.py:582-592` — items, npcs, abilities, rooms,
+   collections, recipes). The editor needs that same walk **in reverse**: id → the files
+   and JSON paths that name it. New `toolkit/reference_index.py` emits
+   `{id: [{file, path, family}]}` for one set, consuming `REFERENCE_FAMILIES` rather
+   than re-deriving the shapes, so the index and the gate cannot disagree about what a
+   reference is.
+2. **"Used by" in the inspectors, and a refusal instead of silence on delete.** Today
+   `DatabaseManager.delete_entry` (`:647-656`) removes the entry and marks it dirty, and
+   `rename_entry` (`:593-613`) renames the cache key and patches *nothing* — for five
+   types only (npc, item, magic, quest, template). The one repair path that exists
+   covers room ids in `exits` (`RegionManager.gd:247-289`) and does not touch content
+   references to a room — an NPC schedule, a title's guild `place`, a quest's
+   `spawn_on_entry.room_id` all keep pointing at the old id.
+3. **A change preview before applying.** Rename and delete show the referrer list with
+   paths and offer patch / leave / deprecate per family; the write waits until the author
+   has seen it. This is M4's rehearsal shape, single-set and unversioned — enough to make
+   6C/6D's new rename/delete paths safe without pretending to be a migration system.
+4. **The project lifecycle half.** Register a content set outside `content_sets/`, rename
+   and delete a set behind a typed confirmation that names the path and the file count,
+   and edit an existing manifest's `capabilities` and `start` (creation-only today).
+   Manifest edits stay single-file and go through the staged engine verdict that
+   `ConfigurationSave.gd` already uses.
+
+**Why now.** The ledger's §J puts it plainly: 6B is the batch that stops destructive
+controls existing before the index does. Every family the ledger marks *prototype* gains
+a rename or delete path in 6C/6D, and without the index each one deletes silently. The
+reference facts are already written, tested and green — so this is a re-projection of
+what the gate knows, not a new validator.
+
+**Depends on.** **B** for field-level ownership: the index may only claim a reference the
+engine resolves, so any family the readers do not actually consume stays out (the ledger
+lists several). **C** for the write protocol: a multi-file apply needs a journal and
+external-change detection, and `ConfigurationSave.gd` is the single-file precedent to
+generalise. **H/I** for fault injection — "an interrupted apply recovers" is a claim that
+needs a test that interrupts one.
+
+**Done when.** (a) a used identifier cannot be deleted without its referrers being shown;
+(b) renaming an item, recipe, ability or NPC patches every index-known referrer or names
+the ones it deliberately leaves, and a test asserts both directions; (c) an interrupted
+multi-file apply leaves the previous coherent set, proven by fault injection rather than
+by reading the code; (d) a set outside `content_sets/` can be opened, renamed and deleted
+from the editor; (e) the three gates stay green and the four-set byte round trip stays
+empty.
+
+**Risk.** The index becomes a second opinion about what a reference is — the exact defect
+class this project keeps paying for. The mitigation is structural: it consumes the gate's
+`REFERENCE_FAMILIES`, and it never decides whether a reference is *valid*, only where it
+is. Second risk: patching references rewrites files the author never opened, so it must
+use the same stripper and verified writer as a normal save (precedent:
+`RegionManager.gd:283-289`) and must never rewrite a file it could not parse.
+
+**First 6B evidence (2026-09-21).** Deliverable 1 is built and the first half of
+deliverable 2 is wired:
+
+- **`toolkit/reference_index.py`** — the reverse of the gate's sweep, sharing
+  `REFERENCE_FAMILIES` *and* a new `reference_tables()` in
+  `reference_integrity_validator.py` (extracted, not copied) so the index and the
+  gate cannot disagree about what a reference is. `--json` for tools, `--id <id>`
+  for "what names this", and a readable report that ranks the ids a rename would
+  touch — `item_healing_potion_small` in the reference set is named 12 times across
+  recipes and three NPC files.
+- **The index states its own coverage** in the payload and in the report: the six
+  families it reads, and the bindings it does not (room placements and exits,
+  dialogue bindings, guild places, quest spawn rooms, contract references), so an
+  empty answer cannot be read as "unused".
+- **`mud-world-editor/scripts/data/ReferenceIndex.gd`** runs it, caches it per set,
+  and phrases it; **the delete confirmation now names the referrers** before an
+  entry goes (`Main._confirm_delete_db_entry`), and the cache is cleared when the
+  set changes. A failed run says the check did not happen rather than reading as
+  "nothing refers to this".
+- **Evidence:** `server/tests/singles/test_reference_index.py` (10 tests, parity
+  with the gate on one fixture) and `mud-world-editor/tests/reference_index_smoke.gd`
+  (a real recipe and a real vendor line found in two different files). The parity
+  test was falsified by pretending the index never learned the `items` family: four
+  sub-tests fail.
+
+**Third piece, the same day — the manifest is editable after creation.** 6B's own gate
+asks for "changes its start and one capability safely, saves/reopens, and boots the new
+start", and until now the manifest was written once by the scaffold and never again.
+`ManifestEditorDialog` + `ManifestDraft` now edit the title, the start (scenario, region,
+room) and the capability set, through the same staged engine verdict the other
+configuration dialogs use — `configuration_save.py` gained the manifest as a supported
+file, and checks the *draft's* `paths` for escape rather than only the file on disk,
+because a draft that moves its own paths would make the staged validation read another
+tree. Deliberately not offered: the `id` (the directory name, and the identity saves are
+partitioned by) and `paths`.
+
+The evidence is the interesting part: `manifest_editing_smoke.gd` (33rd editor check)
+asserts that an unrelated edit preserves every field the form does not show, that
+dropping a capability the ruleset enables is refused **by the engine with the form raising
+no objection**, that a title save keeps a `.bak`, and that a start room the set does not
+have is refused while the draft is kept so the author can fix it.
+
+**Fourth piece, the same day — a set can be renamed and removed.** The last of 6B's
+project-lifecycle half, and the first pair of actions in the editor that cannot be
+undone. `ContentSetAdmin` does the work and owns the refusals; the content-set chooser
+owns the asking:
+
+- **Only inside the sets root.** The editor lists sets beside the checkout and removes
+  only what it lists; a set opened from elsewhere is refused rather than
+  half-supported (external roots are still unbuilt, and the message says so).
+- **Nothing without the name typed.** The delete prompt shows the file count and the
+  size and asks for the directory name back; a rename is pre-filled with the current
+  name so an accidental Enter is not a rename.
+- **The directory and the manifest id move together.** A rename that cannot rewrite
+  the id reports exactly that, rather than a clean rename with a disagreeing manifest.
+  Existing saves carry the old id and the prompt says they will refuse to load.
+- The open set is refused by the UI, not by the admin layer: that is a fact about the
+  editor's state, not about disk.
+
+**Evidence:** `content_set_lifecycle_smoke.gd` (34th editor check) works entirely in a
+scratch parent under `tmp/` and tests the refusals more than the actions: a directory
+without a manifest, a set outside the sets root, an empty allowed-parent, a partial
+typed name, an id the engine would reject, an id another directory holds, and the same
+name twice — each followed by "the set is still where it was". Then the rename, and a
+delete asserted to remove *exactly* the files its report promised.
+
+**Fifth piece, the same day — a failed save puts the set back.** M1's other gate line
+is "a failed multi-file apply recovers the previous coherent set", and the editor had
+the ingredients without the guarantee: every individual write is atomic and verified,
+but `save_all()` rewrites a dozen files one at a time, so a failure on the fourth left
+three new files beside an old rest. `SaveCheckpoint` copies the set's `data/` tree
+before the first write (610 KB, 92 files for the reference set — small enough that the
+whole tree is the honest unit), and `Main._save_everything` restores it on any failure
+before reporting.
+
+Two decisions worth keeping:
+
+- **Restore replaces rather than merges.** A file the failed save *created* has to go
+  and a file it truncated has to come back whole, so the checkpoint carries the tree
+  and a restore refuses a checkpoint belonging to a different set.
+- **The in-memory caches are deliberately not rolled back.** The author's work stays on
+  screen and stays dirty, so the fix is to save again; the message says whether the set
+  was restored or whether restoring also failed, because those need different next steps.
+
+Checkpoints live under `<set>/editor/checkpoints/` (editor state, pruned to the newest
+three, now in `.gitignore`), and `content_set_scaffold_smoke.gd` was tightened rather
+than loosened when it noticed them: it now asserts that no *content* file was invented
+**and** that the only files a save adds are its own recovery state.
+
+**First 6C evidence (2026-09-21).** The two families the ledger listed as `absent` in the
+item family — the ones an author tunes a distribution with — are authorable:
+
+- **Affixes** (`data/items/affixes.json`, 14 prefixes + 13 suffixes in the reference set)
+  and **item sets** (`data/items/sets.json`) were the only content files the editor never
+  loaded, deliberately: an old save rewrote `affixes.json` from the *items* cache and
+  deleted its string-valued keys. They are now loaded as themselves —
+  `DatabaseManager._load_affixes`/`_load_item_sets`, their own caches, never the items
+  cache — with `AffixInspector` (types, level floor, modifiers, worn stats, value
+  multiplier) and `ItemSetInspector` (members with a "does this item exist" marker,
+  per-count bonus tiers) and the library's *Prefixes*, *Suffixes* and *Item Sets*
+  categories, which until now were grouping labels over unrelated files.
+- **The corruption is now pinned, not avoided.** `affix_and_set_authoring_smoke.gd` (36th
+  editor check) edits an affix and a set and asserts the generator's string keys survived
+  the save, that untouched entries are untouched, that a no-op save is byte-identical, and
+  that a set with neither file does not grow one merely by being opened and saved.
+
+**Two things the gates caught while landing it**, both worth more than the feature:
+
+- The editor was *inventing* `affixes.json`/`sets.json` in the three sets that have none —
+  the rule that keeps it from creating `magic/` or `quests/` for sets that lack them
+  applies here too, and now does.
+- Those two files were the only content files not in `SaveIO`'s byte form (2-space
+  indentation, CRLF, `2.0` where the editor writes `2`), because they were the only ones
+  the editor never wrote. The round-trip gate said so immediately; they are normalised,
+  and the check is green again.
+
+**Still open in 6B:** rename/delete previews for every inspector and external
+content-set roots. **Still open in 6C:** node yields, container contents, the nested item
+properties the panel will not write, and station pickers.
+
+**Second piece, the same day — rename repairs what it can reach.** The ID field in an
+entry inspector no longer renames in place: it asks (`DatabaseInspector.request_entry_rename`
+→ `InspectorController` → `Main._on_request_entry_rename`), and the answer is the
+index's referrer list split in two:
+
+- **Repaired automatically:** references held in the loaded library caches. New  `ReferencePatch.gd` walks an indexed path and edits it — value mode
+  (`merchant.properties.work_location`) or key mode
+  (`spawner.monster_types.giant_rat`, where the walker spells a keyed reference by
+  ending the path with the id). A key rename rebuilds the dictionary in place, so
+  the renamed key keeps its position and the byte round trip still passes.
+  `DatabaseManager.patch_reference` resolves which cache owns the path, and the
+  whole rename is one `cmd_proc.commit`, with the undo built from the paths *after*
+  the patch (`path_after`), because a key rename moves the path.
+- **Also repaired, since the same day: region files.** The index now reports a
+  reference's **JSON path** as well as its human label
+  (`reference_json_path()` in the validator — region labels name the room or the
+  spawner field without the container the file nests it under, and that is spelled
+  out per family rather than guessed, because it feeds a writer). `RegionManager.patch_reference`
+  then patches a spawner weight or a locked door: in memory when the region is the
+  one the editor has open (so unsaved edits survive and the normal save path writes
+  it), or read-patch-write with the same stripper and verified writer when it is
+  another file. A file that cannot be parsed is never rewritten.
+- **Evidence:** `reference_index_smoke.gd` now drives the real content — it reads the
+  recipe that produces `item_patch_kit`, renames it through `DatabaseManager`, and
+  asserts the loaded recipe *and* the vendor line that sells it both follow; it
+  plants a spawner weight in a copied region, sees the index report
+  `spawner.npc_types.<id>`, and renames it both on disk and in an open region. Plus
+  the refusals: an id the path does not hold, a path that does not exist, a key
+  rename onto an existing key, an entry that is not loaded, an unparseable region
+  file left byte-for-byte alone, and a region file that is not in the set.
+
+### Shared rules for 6A–6G
 
 **Shared completion rule:** the engine defines schemas, runtime semantics and
 validation; the editor consumes them. Unsupported sections remain read-only with

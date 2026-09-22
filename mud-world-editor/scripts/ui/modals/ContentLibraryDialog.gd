@@ -22,6 +22,9 @@ var cached_dialogues: Dictionary = {}
 var cached_templates: Dictionary = {}
 var cached_titles: Dictionary = {}
 var cached_collections: Dictionary = {}
+var cached_affix_prefixes: Dictionary = {}
+var cached_affix_suffixes: Dictionary = {}
+var cached_item_sets: Dictionary = {}
 var cached_discoveries: Dictionary = {}
 var cached_backgrounds: Dictionary = {}
 var cached_dirty: Dictionary = {}
@@ -60,6 +63,8 @@ const TITLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspecto
 const DISCOVERY_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DiscoveryInspector.gd")
 const COLLECTION_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/CollectionInspector.gd")
 const BACKGROUND_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/BackgroundInspector.gd")
+const AFFIX_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/AffixInspector.gd")
+const ITEM_SET_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/ItemSetInspector.gd")
 
 const CATEGORIES := [
 	{"key": "npc", "label": "NPCs", "color": Color.LIGHT_GREEN},
@@ -78,6 +83,11 @@ const CATEGORIES := [
 	{"key": "collection", "label": "Collections", "color": Color(0.6, 0.75, 0.95)},
 	{"key": "discovery", "label": "Discoveries", "color": Color(0.55, 0.85, 0.75)},
 	{"key": "background", "label": "Backgrounds", "color": Color(0.8, 0.7, 0.95)},
+	# Real categories now, not grouping labels over unrelated item files: these are
+	# the two item-directory contracts the editor never loaded.
+	{"key": "affix_prefix", "label": "Prefixes", "color": Color(0.9, 0.75, 0.55)},
+	{"key": "affix_suffix", "label": "Suffixes", "color": Color(0.85, 0.7, 0.6)},
+	{"key": "item_set", "label": "Item Sets", "color": Color(0.85, 0.72, 0.35)},
 	{"key": "template", "label": "Templates", "color": Color(0.85, 0.72, 0.35)}
 ]
 
@@ -121,7 +131,7 @@ func clear_selection():
 	if visible:
 		_build_editor()
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
@@ -133,6 +143,9 @@ func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, mag
 	cached_collections = collections
 	cached_discoveries = discoveries
 	cached_backgrounds = backgrounds
+	cached_affix_prefixes = affix_prefixes
+	cached_affix_suffixes = affix_suffixes
+	cached_item_sets = item_sets
 	cached_dirty = dirty_flags
 	_refresh_entries()
 	_refresh_save_state()
@@ -346,6 +359,9 @@ func _get_current_entries() -> Dictionary:
 		"collection": return cached_collections
 		"discovery": return cached_discoveries
 		"background": return cached_backgrounds
+		"affix_prefix": return cached_affix_prefixes
+		"affix_suffix": return cached_affix_suffixes
+		"item_set": return cached_item_sets
 		"template": return cached_templates
 	return {}
 
@@ -442,6 +458,18 @@ func _build_editor():
 			current_editor = background_inspector
 			background_inspector.database_modified.connect(_mark_current_dirty)
 			background_inspector.build(selected_id, entry)
+			return
+		if storage_type == "affix_prefix" or storage_type == "affix_suffix":
+			var affix_inspector = AFFIX_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = affix_inspector
+			affix_inspector.database_modified.connect(_mark_current_dirty)
+			affix_inspector.build(selected_id, entry, "prefix" if storage_type == "affix_prefix" else "suffix")
+			return
+		if storage_type == "item_set":
+			var set_inspector = ITEM_SET_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = set_inspector
+			set_inspector.database_modified.connect(_mark_current_dirty)
+			set_inspector.build(selected_id, entry)
 			return
 		inspector.build(storage_type, selected_id, entry)
 

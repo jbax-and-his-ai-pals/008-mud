@@ -23,6 +23,18 @@ Reference checks enforced by gate:
 - Cross-file references: `toolkit/reference_integrity_validator.py`
 - Content-set contract, vocabulary and playability: `run_content_checks.py`
 
+Before renaming or deleting an id, ask what names it — the same reference families,
+read the other way:
+
+```
+python toolkit/reference_index.py content_sets/<set>/data --id item_iron_sword
+```
+
+The index covers the six families the gate resolves (items, NPCs, abilities, rooms,
+collections, recipes). Bindings it does not read yet — room placements and exits,
+dialogue bindings, guild places, quest spawn rooms, contract references — are listed
+in its own output, so "nothing names this" is never a claim about those.
+
 ### Closed engine vocabularies
 
 Some words in a content set are the engine's, not yours. Every one of them is a

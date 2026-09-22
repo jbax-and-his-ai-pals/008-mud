@@ -14,12 +14,16 @@ var combat_vocabulary = COMBAT_VOCABULARY_CATALOG_SCRIPT.new()
 
 # Item-directory files the engine reads as something other than item templates.
 # `definition_loader` skips exactly these two when it builds `item_templates`
-# (sets.json feeds SetManager, affixes.json feeds the affix generator), and the
-# editor used to load them into the Items cache anyway -- so `prefixes` and
-# `suffixes` appeared in the library as if they were items, and saving any item
-# rewrote affixes.json from that cache, deleting its two string-valued
-# top-level keys (`generated_effect_name_pattern`,
-# `generated_description_suffix`) that the engine reads.
+# (sets.json feeds SetManager, affixes.json feeds the affix generator). The editor
+# used to load them into the Items cache, so `prefixes` and `suffixes` appeared in
+# the library as if they were items, and saving any item rewrote affixes.json from
+# that cache, deleting its string-valued top-level keys
+# (`generated_effect_name_pattern`, `generated_description_suffix`).
+#
+# They stay excluded from the *items* cache, and are now loaded as what they are:
+# `_load_affixes` and `_load_item_sets` read them into their own caches, keep their
+# non-entry keys, and write them back whole. Excluding them was the workaround;
+# this is the fix.
 const READ_ONLY_ITEM_FILES := ["sets.json", "affixes.json"]
 
 # Content paths come from the shared content set (DataRoot), not from a mirror.
@@ -58,6 +62,10 @@ static func discoveries_file() -> String: return DataRoot.content_file("discover
 # without a leading underscore are the titles themselves.
 static func titles_file() -> String: return DataRoot.content_file("titles.json")
 static func backgrounds_file() -> String: return DataRoot.content_file("player/backgrounds.json")
+# Affixes and item sets live in the item directory but are their own contracts:
+# `affix_data.py` reads `prefixes`/`suffixes`, `set_manager.py` reads the sets.
+static func affixes_file() -> String: return DataRoot.content_file("items/affixes.json")
+static func sets_file() -> String: return DataRoot.content_file("items/sets.json")
 static func magic_groups_file() -> String: return DataRoot.editor_file("magic_groups.json")
 # Branching campaign graphs (CampaignDefinition/CampaignNode) -- distinct
 # from the simple linear quest-chain list in quests/campaigns.json, which
@@ -104,7 +112,21 @@ var titles_file_known := false
 var collections_file_known := false
 var discoveries_file_known := false
 var backgrounds: Dictionary = {}
-# Top-level keys of backgrounds.json that are not a background (`_comment`,
+# Affixes and item sets: the two item-directory files that are contracts rather
+# than templates. Kept in their own caches so an affix can never be edited as an
+# item -- which is what corrupted `affixes.json` before -- while still being
+# authorable, which it was not until now.
+var affix_prefixes: Dictionary = {}
+var affix_suffixes: Dictionary = {}
+var item_sets: Dictionary = {}
+# Non-entry top-level keys of those two files (`generated_effect_name_pattern`,
+# `generated_description_suffix`, a `_comment`), kept verbatim and written back.
+var affix_extras: Dictionary = {}
+var sets_extras: Dictionary = {}
+# Whether those two files existed at load. A set that has neither must not grow
+# one merely because the editor was opened and saved.
+var affixes_file_known := false
+var sets_file_known := false# Top-level keys of backgrounds.json that are not a background (`_comment`,
 # `_kit_rule`); `_default` is tracked separately since it is a meaningful id,
 # not inert commentary.
 var backgrounds_extras: Dictionary = {}
@@ -114,7 +136,8 @@ var backgrounds_file_known := false
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
 	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}, "title": {},
-	"collection": {}, "discovery": {}, "background": {}
+	"collection": {}, "discovery": {}, "background": {},
+	"affix_prefix": {}, "affix_suffix": {}, "item_set": {}
 }
 
 # Top-level keys of a content file that are not entries: a `_comment`, a pattern
@@ -193,6 +216,8 @@ func load_all():
 	_load_magic_groups()
 	_load_titles()
 	_load_backgrounds()
+	_load_affixes()
+	_load_item_sets()
 
 # Titles are one file, not a directory of entries, and it carries a second
 # registry (`_guilds`) alongside the titles themselves -- `_load_file`'s
@@ -528,6 +553,12 @@ func save_all() -> Dictionary:
 	var groups := _save_magic_groups()
 	if not groups.get("ok", false):
 		errors.append(groups.get("error", "Could not save magic groups."))
+	var affixes := _save_affixes()
+	if not affixes.get("ok", false):
+		errors.append(str(affixes.get("error", "Could not save affixes.")))
+	var sets := _save_item_sets()
+	if not sets.get("ok", false):
+		errors.append(str(sets.get("error", "Could not save item sets.")))
 	if errors.is_empty():
 		mark_clean()
 	return {"ok": errors.is_empty(), "errors": errors}
@@ -589,6 +620,9 @@ func add_item(id: String, data: Dictionary): _add_entry(id, data, items); mark_d
 func add_magic(id: String, data: Dictionary): _add_entry(id, data, magic); mark_dirty("magic", id)
 func add_quest(id: String, data: Dictionary): _add_entry(id, data, quests); mark_dirty("quest", id)
 func save_template(id: String, data: Dictionary): _add_entry(id, data, templates); mark_dirty("template", id)
+func add_affix_prefix(id: String, data: Dictionary): _add_entry(id, data, affix_prefixes); mark_dirty("affix_prefix", id)
+func add_affix_suffix(id: String, data: Dictionary): _add_entry(id, data, affix_suffixes); mark_dirty("affix_suffix", id)
+func add_item_set(id: String, data: Dictionary): _add_entry(id, data, item_sets); mark_dirty("item_set", id)
 
 func rename_entry(type: String, old_id: String, new_id: String) -> bool:
 	var target_dict
@@ -631,6 +665,9 @@ func _cache_for(type: String) -> Dictionary:
 		"collection": return collections
 		"discovery": return discoveries
 		"background": return backgrounds
+		"affix_prefix": return affix_prefixes
+		"affix_suffix": return affix_suffixes
+		"item_set": return item_sets
 	return {}
 
 func has_entry(type: String, id: String) -> bool:
@@ -658,6 +695,136 @@ func delete_entry(type: String, id: String) -> Dictionary:
 func restore_entry(type: String, id: String, data: Dictionary) -> void:
 	_cache_for(type)[id] = data.duplicate(true)
 	mark_dirty(type, id)
+
+# --- affixes and item sets ------------------------------------------------------
+#
+# Both are libraries of entries keyed by id, with extra non-entry keys beside them.
+# Loaded by hand rather than through `_load_recursive`, because that heuristic
+# decides single-vs-library by counting dictionary values -- and `affixes.json` has
+# exactly two (`prefixes`, `suffixes`) with string keys next to them, which is the
+# shape it reads as "one entry". Guessing wrong here is what deleted those keys.
+
+func _load_affixes() -> void:
+	affix_prefixes.clear(); affix_suffixes.clear(); affix_extras.clear()
+	affixes_file_known = FileAccess.file_exists(affixes_file())
+	var payload = _read_object(affixes_file())
+	if payload.is_empty(): return
+	for section in ["prefixes", "suffixes"]:
+		var library = payload.get(section, {})
+		if not (library is Dictionary): continue
+		var target := affix_prefixes if section == "prefixes" else affix_suffixes
+		for id in library:
+			if library[id] is Dictionary:
+				var entry: Dictionary = (library[id] as Dictionary).duplicate(true)
+				entry["_filename"] = "affixes.json"
+				target[str(id)] = entry
+	for key in payload:
+		if key != "prefixes" and key != "suffixes":
+			affix_extras[key] = payload[key]
+
+func _load_item_sets() -> void:
+	item_sets.clear(); sets_extras.clear()
+	sets_file_known = FileAccess.file_exists(sets_file())
+	var payload = _read_object(sets_file())
+	if payload.is_empty(): return
+	for id in payload:
+		if payload[id] is Dictionary:
+			var entry: Dictionary = (payload[id] as Dictionary).duplicate(true)
+			entry["_filename"] = "sets.json"
+			item_sets[str(id)] = entry
+		else:
+			sets_extras[id] = payload[id]
+
+func _read_object(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path): return {}
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return parsed if parsed is Dictionary else {}
+
+func _save_affixes() -> Dictionary:
+	# A set that never had the file must not grow one: the editor does not write
+	# vocabulary a world does not have (the same rule that keeps it from creating
+	# `magic/`, `quests/` or `campaigns/` for sets that lack them).
+	if not affixes_file_known and affix_prefixes.is_empty() and affix_suffixes.is_empty() and affix_extras.is_empty():
+		return {"ok": true}
+	var payload := {}
+	payload["prefixes"] = _entries_without_internal(affix_prefixes)
+	payload["suffixes"] = _entries_without_internal(affix_suffixes)
+	# Written last so the string keys keep the position they had in the file.
+	for key in affix_extras:
+		payload[key] = affix_extras[key]
+	_ensure_dir(affixes_file().get_base_dir())
+	var result: Dictionary = SaveIO.write_json(affixes_file(), payload)
+	if result.get("ok", false): affixes_file_known = true
+	return result
+
+func _save_item_sets() -> Dictionary:
+	if not sets_file_known and item_sets.is_empty() and sets_extras.is_empty():
+		return {"ok": true}
+	var payload := _entries_without_internal(item_sets)
+	for key in sets_extras:
+		payload[key] = sets_extras[key]
+	_ensure_dir(sets_file().get_base_dir())
+	var result: Dictionary = SaveIO.write_json(sets_file(), payload)
+	if result.get("ok", false): sets_file_known = true
+	return result
+
+func _entries_without_internal(cache: Dictionary) -> Dictionary:
+	var out := {}
+	for id in cache:
+		var entry = cache[id]
+		if not entry is Dictionary: continue
+		var copy: Dictionary = (entry as Dictionary).duplicate(true)
+		copy.erase("_filename")
+		out[id] = EditorLayout.strip_entry(copy)
+	return out
+
+
+#
+# `toolkit/reference_index.py` reports where an id is named: a file, a path inside
+# it, and which entry that path starts from. Renaming an entry has to fix those,
+# or the content keeps naming something that no longer exists.
+
+const CACHE_TYPES := ["npc", "item", "magic", "quest", "recipe", "dialogue", "title",
+	"collection", "discovery", "background", "template"]
+
+# Preloaded like the editor's other helpers: a fresh `class_name` is not in the
+# project's class cache until the editor has scanned it, and a headless check must
+# not depend on that having happened.
+const Patch = preload("res://scripts/data/ReferencePatch.gd")
+
+# The entry one indexed path belongs to: its first segment is an entry id, and the
+# file says which category holds it. Matching on `_filename` rather than on a
+# directory table keeps this honest when an id exists in two categories.
+func entry_named_by(file: String, entry_id: String) -> Dictionary:
+	for type in CACHE_TYPES:
+		var cache := _cache_for(type)
+		if not cache.has(entry_id):
+			continue
+		var candidate = cache[entry_id]
+		if not candidate is Dictionary:
+			continue
+		var home := str(candidate.get("_filename", ""))
+		if home == "" or home == file or file.ends_with("/" + home):
+			return {"entry": candidate, "type": type}
+	return {}
+
+# Apply one indexed reference path. The path minus its entry id is what
+# `ReferencePatch` walks.
+func patch_reference(file: String, path: String, old_id: String, new_id: String) -> Dictionary:
+	var parts: Array = Patch.parse_path(path)
+	if parts.size() < 2:
+		return {"ok": false, "error": "the index reported no path inside %s" % file}
+	var owner := entry_named_by(file, str(parts[0]))
+	if owner.is_empty():
+		return {"ok": false, "error": "no %s entry named by %s is loaded" % [str(parts[0]), file]}
+	var inner := ".".join(parts.slice(1))
+	var result: Dictionary = Patch.rename(owner["entry"], inner, old_id, new_id)
+	if result.get("ok", false):
+		mark_dirty(str(owner["type"]), str(parts[0]))
+		# The inner path is what the caller needs to undo the patch: in key mode the
+		# id is part of the path, so it changes with the rename.
+		result["path_after"] = "%s.%s" % [str(parts[0]), str(result.get("path_after", inner))]
+	return result
 
 func mark_dirty(type: String, id: String):
 	if dirty_flags.has(type): dirty_flags[type][id] = true

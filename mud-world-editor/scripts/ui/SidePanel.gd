@@ -13,6 +13,7 @@ signal request_validate_region_policy
 signal request_validate_content
 signal request_run_release_gate
 signal request_edit_ruleset
+signal request_edit_manifest
 signal request_show_contracts
 signal request_edit_contracts
 signal request_edit_combat_vocabulary
@@ -144,6 +145,7 @@ func _setup_explorer_tab(tabs: TabContainer):
 	explorer_panel.request_validate_content.connect(func(): request_validate_content.emit())
 	explorer_panel.request_run_release_gate.connect(func(): request_run_release_gate.emit())
 	explorer_panel.request_edit_ruleset.connect(func(): request_edit_ruleset.emit())
+	explorer_panel.request_edit_manifest.connect(func(): request_edit_manifest.emit())
 	explorer_panel.request_show_contracts.connect(func(): request_show_contracts.emit())
 	explorer_panel.request_edit_contracts.connect(func(): request_edit_contracts.emit())
 	explorer_panel.request_edit_combat_vocabulary.connect(func(): request_edit_combat_vocabulary.emit())

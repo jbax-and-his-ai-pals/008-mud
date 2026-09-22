@@ -3,6 +3,7 @@ class_name InspectorController
 extends RefCounted
 
 signal request_rename(old, new)
+signal request_entry_rename(type, old_id, new_id)
 signal request_connection_modal
 signal connection_created(src, dir, target, twoway, reverse_dir)
 signal connection_created_and_continue(src, dir, target, twoway, reverse_dir)
@@ -185,6 +186,7 @@ func load_db_object(type: String, id: String, data: Dictionary):
 		insp.set_db_manager(database_mgr)
 		current_inspector = insp
 		insp.database_modified.connect(func(): database_modified.emit())
+		insp.request_entry_rename.connect(func(type, old_id, new_id): request_entry_rename.emit(type, old_id, new_id))
 		insp.build(type, id, data)
 
 func load_external_ref(full_id: String):

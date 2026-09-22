@@ -158,7 +158,8 @@ For **each** family record: engine reader, validator, widget/draft writer,
 reference picker/index, unsupported fields, no-op survival test, nontrivial edit
 test, runtime journey and recovery test. “Read-only,” “prototype,” “validated
 writer,” and “journey-proven” are separate statuses. Do not use a single percentage
-of CRUD panels as a completeness measure.
+of CRUD panels as a completeness measure. The live record of this is the
+[coverage ledger](editor-coverage-ledger.md).
 
 **Gate:** on an isolated fantasy copy, edit every supported family above through
 the editor, including existing rich records and newly created ones. Prove the
@@ -321,7 +322,8 @@ when their contracts are implemented. Before each dependent batch, settle:
 - **G/F/J:** the exact small fantasy and orbital authoring journeys, minimal starter
   contents, and what a new author can complete without repository knowledge.
 
-For every completed batch update the coverage ledger with the affected reader,
+For every completed batch update the [coverage ledger](editor-coverage-ledger.md) with
+the affected reader,
 writer, tests actually run and a short human retest recipe. Never upgrade status
 solely because a menu was added. Keep older audit evidence dated rather than
 allowing yesterday's “not implemented” or “all tests passed” to become today's

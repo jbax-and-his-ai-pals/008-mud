@@ -4,6 +4,9 @@ extends RefCounted
 
 signal data_modified
 signal database_modified
+## A rename is a question, not an edit: the entry may be named by recipes, loot
+## tables or spawner weights, and only the index knows where. Main answers it.
+signal request_entry_rename(type, old_id, new_id)
 
 var container: VBoxContainer
 var cur_mode: String
@@ -68,10 +71,9 @@ func _build_header_card():
 	ed_id.text = cur_id
 	InspectorStyle.apply_input_style(ed_id)
 	ed_id.text_submitted.connect(func(new_id):
-		if new_id != cur_id:
-			if db_mgr_ref.rename_entry(cur_mode, cur_id, new_id):
-				cur_id = new_id
-				database_modified.emit()
+		var wanted := str(new_id).strip_edges()
+		if wanted != "" and wanted != cur_id:
+			request_entry_rename.emit(cur_mode, cur_id, wanted)
 	)
 	vbox.add_child(ed_id)
 	
