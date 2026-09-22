@@ -32,9 +32,21 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	_build_faction_and_behavior()
 	_build_dialogue_binding()
 	_build_dialog_topics()
+	_build_vendor_stock()
+	_build_buy_orders()
 	_build_stats()
 	_build_gift_preferences()
 	_build_loot_table()
+
+## Made on the first write and not before -- shared by the vendor sections.
+func _ensure_npc_properties() -> Dictionary:
+	if not (cur_data.get("properties") is Dictionary):
+		cur_data["properties"] = {}
+	return cur_data["properties"]
+
+func _npc_properties() -> Dictionary:
+	var props = cur_data.get("properties", {})
+	return props if props is Dictionary else {}
 
 # `dialog` (`npc_factory.py:156`; `npc.py:85,124-125`): a flat topic -> reply
 # map for `ask <npc> about <topic>`, independent of the graph above -- a hostile
@@ -209,6 +221,201 @@ func _build_faction_and_behavior():
 		else: cur_data["behavior_type"] = chosen
 		database_modified.emit())
 	behavior_row.add_child(behavior_picker); vbox.add_child(behavior_row)
+
+# `properties.sells_items` (`mercantile.py:81-122`) and `sell_rate_multiplier`
+# (`mercantile.py:68-70`): what this vendor sells outright, at what markup, and
+# how generously it buys from the player. Unlike a buy order, a sold item is
+# read only by `item_id` -- `_display_vendor_inventory` never asks for a family
+# or a capability -- so this stays a plain item picker rather than the generic
+# reference editor.
+func _build_vendor_stock():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Vendor Stock"))
+	var card = InspectorStyle.create_card(); var vbox: VBoxContainer = card.get_child(0).get_child(0)
+	container.add_child(card)
+
+	var rate_row := HBoxContainer.new(); rate_row.add_child(InspectorStyle.lbl("Buys from player at", InspectorStyle.COLOR_TEXT_DIM))
+	var rate := SpinBox.new(); rate.min_value = 0.0; rate.max_value = 5.0; rate.step = 0.05
+	rate.value = float(_npc_properties().get("sell_rate_multiplier", 0.4))
+	rate.tooltip_text = "fraction of an item's value paid when the player sells to this vendor (engine default 0.4)"
+	rate.custom_minimum_size.x = 70
+	InspectorStyle.apply_input_style(rate)
+	rate.value_changed.connect(func(value):
+		_ensure_npc_properties()["sell_rate_multiplier"] = float(value)
+		database_modified.emit())
+	rate_row.add_child(rate); vbox.add_child(rate_row)
+
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Sells"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Item"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var list := _sells_items().duplicate(true); list.append({"item_id": ""})
+		_ensure_npc_properties()["sells_items"] = list
+		database_modified.emit()
+		_refresh_sells_items(container.find_child("SellsItems", true, false)))
+	header.add_child(add); vbox.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "SellsItems"; rows.add_theme_constant_override("separation", 4); vbox.add_child(rows)
+	_refresh_sells_items(rows)
+
+func _sells_items() -> Array:
+	var list = _npc_properties().get("sells_items", [])
+	return list if list is Array else []
+
+func _refresh_sells_items(rows: VBoxContainer):
+	for child in rows.get_children(): child.queue_free()
+	var list := _sells_items()
+	for index in range(list.size()):
+		if not (list[index] is Dictionary): continue
+		var entry: Dictionary = list[index]
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+
+		var picker := _item_id_picker(str(entry.get("item_id", "")))
+		picker.item_selected.connect(func(selected):
+			entry["item_id"] = str(picker.get_item_metadata(selected))
+			database_modified.emit())
+		row.add_child(picker)
+
+		row.add_child(InspectorStyle.lbl("×", InspectorStyle.COLOR_TEXT_DIM))
+		var mult := SpinBox.new(); mult.min_value = 0.1; mult.max_value = 20.0; mult.step = 0.1
+		mult.value = float(entry.get("price_multiplier", 2.0)); mult.custom_minimum_size.x = 70
+		mult.tooltip_text = "sell price = item value × this (engine default 2.0)"
+		InspectorStyle.apply_input_style(mult)
+		mult.value_changed.connect(func(value): entry["price_multiplier"] = float(value); database_modified.emit())
+		row.add_child(mult)
+
+		row.add_child(InspectorStyle.lbl("Friendship ≥", InspectorStyle.COLOR_TEXT_DIM))
+		var rel := SpinBox.new(); rel.min_value = 0; rel.max_value = 100; rel.step = 1
+		rel.value = int(entry.get("relationship_min", 0)); rel.custom_minimum_size.x = 60
+		InspectorStyle.apply_input_style(rel)
+		rel.value_changed.connect(func(value): entry["relationship_min"] = int(value); database_modified.emit())
+		row.add_child(rel)
+
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = _ensure_npc_properties().get("sells_items", [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): _ensure_npc_properties().erase("sells_items")
+			database_modified.emit()
+			_refresh_sells_items(rows))
+		row.add_child(remove); rows.add_child(row)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("Nothing for sale.", InspectorStyle.COLOR_TEXT_DIM))
+
+# `properties.buy_orders` (`mercantile.py:153-155`; `content_set.py::
+# _validate_vendor_orders`): delivery orders the player fulfills for a reward,
+# independent of what this vendor sells outright. An order wants an item the
+# same way a recipe ingredient does -- an exact template, a family, or a
+# capability, with an optional material-grade floor -- so this reuses
+# `ReferenceEditor`, the same control the item panel's salvage output uses.
+func _build_buy_orders():
+	container.add_child(HSeparator.new())
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Buy Orders"))
+	header.tooltip_text = "Delivery orders the player fulfills for a reward."
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Order"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var list := _buy_orders().duplicate(true)
+		var existing_ids := {}
+		for order in list:
+			if order is Dictionary: existing_ids[str(order.get("id", ""))] = true
+		var order_id := "order"; var n := 1
+		while existing_ids.has(order_id): order_id = "order_%d" % n; n += 1
+		list.append({"id": order_id, "quantity": 1, "reward_gold": 0})
+		_ensure_npc_properties()["buy_orders"] = list
+		database_modified.emit()
+		_refresh_buy_orders(container.find_child("BuyOrders", true, false)))
+	header.add_child(add); container.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "BuyOrders"; rows.add_theme_constant_override("separation", 6)
+	container.add_child(rows)
+	_refresh_buy_orders(rows)
+
+func _buy_orders() -> Array:
+	var list = _npc_properties().get("buy_orders", [])
+	return list if list is Array else []
+
+func _refresh_buy_orders(rows: VBoxContainer):
+	for child in rows.get_children(): child.queue_free()
+	var list := _buy_orders()
+	for index in range(list.size()):
+		if not (list[index] is Dictionary): continue
+		var order: Dictionary = list[index]
+		var card := InspectorStyle.create_card(); var vbox: VBoxContainer = card.get_child(0).get_child(0)
+		rows.add_child(card)
+
+		var id_row := HBoxContainer.new(); id_row.add_theme_constant_override("separation", 6)
+		id_row.add_child(InspectorStyle.lbl("ID", InspectorStyle.COLOR_TEXT_DIM))
+		var id_field := LineEdit.new(); id_field.text = str(order.get("id", "")); id_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(id_field)
+		id_field.text_submitted.connect(func(new_text: String):
+			var live: Array = _ensure_npc_properties().get("buy_orders", [])
+			var new_id: String = new_text.strip_edges()
+			var collision := false
+			for other_index in range(live.size()):
+				if other_index != index and live[other_index] is Dictionary and str(live[other_index].get("id", "")) == new_id:
+					collision = true
+			if new_id == "" or collision:
+				_refresh_buy_orders(rows)
+				return
+			if index < live.size() and live[index] is Dictionary: live[index]["id"] = new_id
+			database_modified.emit()
+			_refresh_buy_orders(rows))
+		id_row.add_child(id_field)
+
+		var remove := Button.new(); remove.text = "Remove Order"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = _ensure_npc_properties().get("buy_orders", [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): _ensure_npc_properties().erase("buy_orders")
+			database_modified.emit()
+			_refresh_buy_orders(rows))
+		id_row.add_child(remove)
+		vbox.add_child(id_row)
+
+		var ref_row := HBoxContainer.new(); ref_row.add_theme_constant_override("separation", 6)
+		ref_row.add_child(InspectorStyle.lbl("Wants:", InspectorStyle.COLOR_TEXT_DIM))
+		vbox.add_child(ref_row)
+		var reference_editor := ReferenceEditor.new()
+		var _reference_row := reference_editor.build(ref_row, order, Callable(self, "_buy_order_suggestions"))
+		reference_editor.changed.connect(func(): database_modified.emit())
+
+		var numbers := HBoxContainer.new(); numbers.add_theme_constant_override("separation", 12)
+		vbox.add_child(numbers)
+
+		numbers.add_child(InspectorStyle.lbl("Quantity", InspectorStyle.COLOR_TEXT_DIM))
+		var qty := SpinBox.new(); qty.min_value = 1; qty.max_value = 999; qty.step = 1
+		qty.value = int(order.get("quantity", 1)); qty.custom_minimum_size.x = 60
+		InspectorStyle.apply_input_style(qty)
+		qty.value_changed.connect(func(value): order["quantity"] = int(value); database_modified.emit())
+		numbers.add_child(qty)
+
+		numbers.add_child(InspectorStyle.lbl("Reward gold", InspectorStyle.COLOR_TEXT_DIM))
+		var reward := SpinBox.new(); reward.min_value = 0; reward.max_value = 100000; reward.step = 1
+		reward.value = int(order.get("reward_gold", 0)); reward.custom_minimum_size.x = 80
+		InspectorStyle.apply_input_style(reward)
+		reward.value_changed.connect(func(value): order["reward_gold"] = int(value); database_modified.emit())
+		numbers.add_child(reward)
+
+		var repeatable := CheckBox.new(); repeatable.text = "Repeatable"
+		repeatable.button_pressed = bool(order.get("repeatable", false))
+		repeatable.toggled.connect(func(pressed):
+			if pressed: order["repeatable"] = true
+			else: order.erase("repeatable")
+			database_modified.emit())
+		numbers.add_child(repeatable)
+
+		var crafted_only := CheckBox.new(); crafted_only.text = "Crafted only"
+		crafted_only.button_pressed = bool(order.get("crafted_only", false))
+		crafted_only.toggled.connect(func(pressed):
+			if pressed: order["crafted_only"] = true
+			else: order.erase("crafted_only")
+			database_modified.emit())
+		numbers.add_child(crafted_only)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("No buy orders.", InspectorStyle.COLOR_TEXT_DIM))
+
+func _buy_order_suggestions(kind: String) -> Array:
+	match kind:
+		"item_family": return catalog.family_ids() if catalog != null else []
+		"capability": return catalog.capability_ids() if catalog != null else []
+		_: return db_manager.get_item_ids() if db_manager != null else []
 
 func _build_stats():
 	container.add_child(HSeparator.new())
