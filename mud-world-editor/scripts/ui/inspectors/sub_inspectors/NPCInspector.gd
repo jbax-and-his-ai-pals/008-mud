@@ -35,6 +35,9 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	_build_vendor_stock()
 	_build_buy_orders()
 	_build_stats()
+	_build_behavior_tuning()
+	_build_usable_spells()
+	_build_initial_inventory()
 	_build_gift_preferences()
 	_build_loot_table()
 
@@ -176,6 +179,14 @@ func _build_faction_and_behavior():
 	container.add_child(InspectorStyle.create_sub_header("Faction & Behavior"))
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
 	container.add_child(card)
+
+	# `friendly` (`npc_factory.py:81`): the starting disposition before faction
+	# and combat resolve it further -- the one field of this section that was
+	# already top-level and simply had no checkbox.
+	var friendly := CheckBox.new(); friendly.text = "Friendly"
+	friendly.button_pressed = bool(cur_data.get("friendly", true))
+	friendly.toggled.connect(func(pressed): cur_data["friendly"] = pressed; database_modified.emit())
+	vbox.add_child(friendly)
 
 	var dispositions := NPCVocabulary.resolved_dispositions(NPCVocabulary.load_ruleset())
 	var faction_ids := dispositions.keys(); faction_ids.sort()
@@ -505,6 +516,228 @@ func _add_stat_row(parent, label, key):
 	InspectorStyle.apply_input_style(sb)
 	hb.add_child(sb)
 	parent.add_child(hb)
+
+# `properties.{aggression,flee_threshold,respawn_cooldown,wander_chance,
+# move_cooldown,spell_cast_chance,work_location,can_unlock_chests,
+# sells_houses}` and top-level `patrol_points` (`npc_factory.py:202-207,194`;
+# `ai/movement.py:101-105`; `housing.py`; `locksmithing.py`): the numbers and
+# flags that decide how an NPC moves and fights on its own, none of them
+# authorable before. Defaults shown are the engine's own
+# (`config/config_npc.py`), so a field an author never touches behaves exactly
+# as if it were absent -- nothing is written until it is actually edited.
+const _BEHAVIOR_FRACTIONS := [
+	["aggression", "Aggression", 0.0, "chance per tick to attack an enemy in the room unprompted"],
+	["flee_threshold", "Flee below", 0.2, "health fraction at which this NPC tries to flee"],
+	["wander_chance", "Wander chance", 0.3, "chance per tick to wander to an adjacent room"],
+	["spell_cast_chance", "Spell cast chance", 0.0, "chance per combat tick to cast instead of attacking"],
+]
+
+func _build_behavior_tuning():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Behavior Tuning"))
+	var card = InspectorStyle.create_card(); var vbox: VBoxContainer = card.get_child(0).get_child(0)
+	container.add_child(card)
+	var properties := _npc_properties()
+
+	for spec in _BEHAVIOR_FRACTIONS:
+		var key: String = spec[0]; var label: String = spec[1]; var default: float = spec[2]; var note: String = spec[3]
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var lbl := InspectorStyle.lbl(label, InspectorStyle.COLOR_TEXT_DIM); lbl.tooltip_text = note
+		row.add_child(lbl)
+		var field := SpinBox.new(); field.min_value = 0.0; field.max_value = 1.0; field.step = 0.05
+		field.value = float(properties.get(key, default)); field.custom_minimum_size.x = 70
+		InspectorStyle.apply_input_style(field)
+		field.value_changed.connect(func(value): _ensure_npc_properties()[key] = float(value); database_modified.emit())
+		row.add_child(field); vbox.add_child(row)
+
+	var cooldowns := HBoxContainer.new(); cooldowns.add_theme_constant_override("separation", 12); vbox.add_child(cooldowns)
+	cooldowns.add_child(InspectorStyle.lbl("Move cooldown (s)", InspectorStyle.COLOR_TEXT_DIM))
+	var move_cd := SpinBox.new(); move_cd.min_value = 0; move_cd.max_value = 3600; move_cd.step = 1
+	move_cd.value = int(properties.get("move_cooldown", 10)); move_cd.custom_minimum_size.x = 70
+	InspectorStyle.apply_input_style(move_cd)
+	move_cd.value_changed.connect(func(value): _ensure_npc_properties()["move_cooldown"] = int(value); database_modified.emit())
+	cooldowns.add_child(move_cd)
+
+	cooldowns.add_child(InspectorStyle.lbl("Respawn cooldown (s)", InspectorStyle.COLOR_TEXT_DIM))
+	var respawn_cd := SpinBox.new(); respawn_cd.min_value = 0; respawn_cd.max_value = 86400; respawn_cd.step = 1
+	respawn_cd.value = int(properties.get("respawn_cooldown", 600)); respawn_cd.custom_minimum_size.x = 80
+	InspectorStyle.apply_input_style(respawn_cd)
+	respawn_cd.value_changed.connect(func(value): _ensure_npc_properties()["respawn_cooldown"] = int(value); database_modified.emit())
+	cooldowns.add_child(respawn_cd)
+
+	var work_row := HBoxContainer.new(); work_row.add_theme_constant_override("separation", 6)
+	work_row.add_child(InspectorStyle.lbl("Work location", InspectorStyle.COLOR_TEXT_DIM))
+	var work_field := LineEdit.new(); work_field.text = str(properties.get("work_location", ""))
+	work_field.placeholder_text = "region_id:room_id"; work_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	work_field.tooltip_text = "read by the `npc_schedules` property_or_self slot type"
+	InspectorStyle.apply_input_style(work_field)
+	work_field.text_changed.connect(func(new_text: String):
+		var value := new_text.strip_edges()
+		if value == "": _ensure_npc_properties().erase("work_location")
+		else: _ensure_npc_properties()["work_location"] = value
+		database_modified.emit())
+	work_row.add_child(work_field); vbox.add_child(work_row)
+
+	var flags := HBoxContainer.new(); flags.add_theme_constant_override("separation", 16); vbox.add_child(flags)
+	var can_unlock := CheckBox.new(); can_unlock.text = "Can unlock chests"
+	can_unlock.button_pressed = bool(properties.get("can_unlock_chests", false))
+	can_unlock.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["can_unlock_chests"] = true
+		else: _ensure_npc_properties().erase("can_unlock_chests")
+		database_modified.emit())
+	flags.add_child(can_unlock)
+	var sells_houses := CheckBox.new(); sells_houses.text = "Sells houses"
+	sells_houses.button_pressed = bool(properties.get("sells_houses", false))
+	sells_houses.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["sells_houses"] = true
+		else: _ensure_npc_properties().erase("sells_houses")
+		database_modified.emit())
+	flags.add_child(sells_houses)
+
+	var patrol_header := HBoxContainer.new(); patrol_header.add_child(InspectorStyle.create_sub_header("Patrol Points"))
+	patrol_header.tooltip_text = "Room ids in this NPC's own region, visited in order (behavior_type: patrol)."
+	var patrol_spacer := Control.new(); patrol_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; patrol_header.add_child(patrol_spacer)
+	var add_patrol := Button.new(); add_patrol.text = "+ Room"; InspectorStyle.apply_button_style(add_patrol, Color(0.2, 0.3, 0.4))
+	add_patrol.pressed.connect(func():
+		var list := _patrol_points().duplicate(); list.append("")
+		cur_data["patrol_points"] = list
+		database_modified.emit()
+		_refresh_patrol_points(container.find_child("PatrolPoints", true, false)))
+	patrol_header.add_child(add_patrol); vbox.add_child(patrol_header)
+	var patrol_rows := VBoxContainer.new(); patrol_rows.name = "PatrolPoints"; patrol_rows.add_theme_constant_override("separation", 4); vbox.add_child(patrol_rows)
+	_refresh_patrol_points(patrol_rows)
+
+func _patrol_points() -> Array:
+	var list = cur_data.get("patrol_points", [])
+	return list if list is Array else []
+
+func _refresh_patrol_points(rows: VBoxContainer):
+	for child in rows.get_children(): child.queue_free()
+	var list := _patrol_points()
+	for index in range(list.size()):
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var field := LineEdit.new(); field.text = str(list[index]); field.placeholder_text = "room_id"; field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(field)
+		field.text_changed.connect(func(new_text):
+			var live: Array = cur_data.get("patrol_points", [])
+			if index < live.size(): live[index] = new_text
+			database_modified.emit())
+		row.add_child(field)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = cur_data.get("patrol_points", [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): cur_data.erase("patrol_points")
+			database_modified.emit()
+			_refresh_patrol_points(rows))
+		row.add_child(remove); rows.add_child(row)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+
+# `usable_spells` (`npc_factory.py:168`; `combat.py:174-180`; `specialized.py:22`):
+# the baseline spell pool this NPC casts from, before any per-level learning
+# adds to it. A closed reference to a real spell, so this is a picker, not text.
+func _build_usable_spells():
+	container.add_child(HSeparator.new())
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Usable Spells"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Spell"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var list := _usable_spells().duplicate(); list.append("")
+		cur_data["usable_spells"] = list
+		database_modified.emit()
+		_refresh_usable_spells(container.find_child("UsableSpells", true, false)))
+	header.add_child(add); container.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "UsableSpells"; rows.add_theme_constant_override("separation", 4)
+	container.add_child(rows)
+	_refresh_usable_spells(rows)
+
+func _usable_spells() -> Array:
+	var list = cur_data.get("usable_spells", [])
+	return list if list is Array else []
+
+func _refresh_usable_spells(rows: VBoxContainer):
+	for child in rows.get_children(): child.queue_free()
+	var list := _usable_spells()
+	var spell_ids: Array = db_manager.get_ids("magic") if db_manager != null else []
+	for index in range(list.size()):
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var current := str(list[index])
+		var picker := OptionButton.new(); picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		picker.add_item("choose spell"); picker.set_item_metadata(0, "")
+		var selected := 0
+		for spell_id in spell_ids:
+			var label := str(spell_id)
+			if db_manager != null and db_manager.magic.get(spell_id) is Dictionary:
+				label = "%s — %s" % [str(db_manager.magic[spell_id].get("name", spell_id)), spell_id]
+			picker.add_item(label); picker.set_item_metadata(picker.item_count - 1, str(spell_id))
+			if str(spell_id) == current: selected = picker.item_count - 1
+		if current != "" and selected == 0:
+			picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); selected = picker.item_count - 1
+		picker.select(selected)
+		InspectorStyle.apply_button_style(picker)
+		picker.item_selected.connect(func(chosen_index):
+			var live: Array = cur_data.get("usable_spells", [])
+			if index < live.size(): live[index] = str(picker.get_item_metadata(chosen_index))
+			database_modified.emit())
+		row.add_child(picker)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = cur_data.get("usable_spells", [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): cur_data.erase("usable_spells")
+			database_modified.emit()
+			_refresh_usable_spells(rows))
+		row.add_child(remove); rows.add_child(row)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+
+# `initial_inventory` (`npc_factory.py:216-235`): starting items, distinct from
+# `loot_table` -- these go into the NPC's carried inventory (stealable, tradeable
+# with a vendor NPC) rather than a post-death drop table.
+func _build_initial_inventory():
+	container.add_child(HSeparator.new())
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Initial Inventory"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Item"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var list := _initial_inventory().duplicate(true); list.append({"item_id": "", "quantity": 1})
+		cur_data["initial_inventory"] = list
+		database_modified.emit()
+		_refresh_initial_inventory(container.find_child("InitialInventory", true, false)))
+	header.add_child(add); container.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "InitialInventory"; rows.add_theme_constant_override("separation", 4)
+	container.add_child(rows)
+	_refresh_initial_inventory(rows)
+
+func _initial_inventory() -> Array:
+	var list = cur_data.get("initial_inventory", [])
+	return list if list is Array else []
+
+func _refresh_initial_inventory(rows: VBoxContainer):
+	for child in rows.get_children(): child.queue_free()
+	var list := _initial_inventory()
+	for index in range(list.size()):
+		if not (list[index] is Dictionary): continue
+		var entry: Dictionary = list[index]
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var picker := _item_id_picker(str(entry.get("item_id", "")))
+		picker.item_selected.connect(func(selected):
+			entry["item_id"] = str(picker.get_item_metadata(selected))
+			database_modified.emit())
+		row.add_child(picker)
+		var qty := SpinBox.new(); qty.min_value = 1; qty.max_value = 999; qty.step = 1
+		qty.value = int(entry.get("quantity", 1)); qty.custom_minimum_size.x = 60
+		InspectorStyle.apply_input_style(qty)
+		qty.value_changed.connect(func(value): entry["quantity"] = int(value); database_modified.emit())
+		row.add_child(qty)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = cur_data.get("initial_inventory", [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): cur_data.erase("initial_inventory")
+			database_modified.emit()
+			_refresh_initial_inventory(rows))
+		row.add_child(remove); rows.add_child(row)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("Nothing carried.", InspectorStyle.COLOR_TEXT_DIM))
 
 # `properties.gift_preferences` (`use_give.py::_gift_affinity`): five lists
 # nothing authored before this -- an NPC could be given anything and never show

@@ -108,24 +108,24 @@ lives in the feature profile — so a row for it would be invented; what exists 
 | NPC envelope (name, description, level, health/mana, `stats`, attack/defense) | `definition_loader.py:108-157`; `npc_factory.py:77-149` | loader requires `name` only (`definition_loader.py:141-143`) | `NPCInspector.gd:46-122` | prototype | `npc_stat_vocabulary_smoke.gd` | 6D |
 | NPC `faction` | `npc_factory.py:141`; `world/factions.py:155-176` | `content_set.py:883-926` — **warning only**; unknown faction silently becomes a bystander | `NPCInspector.gd` faction picker: the engine's five plus this set's `ruleset.factions.extra`/`overrides`, each labelled with its resolved disposition; an already-authored but undeclared value is shown, not dropped | prototype | `npc_faction_behavior_smoke.gd`; `schema_parity_smoke.gd` checks `NPCVocabulary.gd` against the engine | 6D |
 | NPC `behavior_type` | `npc_factory.py:142`; `ai/dispatcher.py` | `content_set.py:909-915` — warning only; unknown value means the NPC never acts | `NPCInspector.gd` behavior picker, from `NPCVocabulary.BEHAVIOR_TYPES` | prototype | `npc_faction_behavior_smoke.gd`; `schema_parity_smoke.gd` | 6D |
-| NPC `friendly` | `npc_factory.py:81` (overridden by `factions.is_hostile`) | **none** | absent | absent | none | 6D |
+| NPC `friendly` | `npc_factory.py:81` (overridden by `factions.is_hostile`) | **none** | `NPCInspector.gd` checkbox | prototype | `npc_faction_behavior_smoke.gd` | 6D |
 | NPC `dialog` (flat keyword dict) | `npc_factory.py:156-157`; `npc.py:85-86,124-125` | `template_placeholder_validator.py:97-134` (braces only) | `NPCInspector.gd` topic/reply rows; renaming a topic is a key rebuild, refused on a collision | prototype | `hostile_dialog_no_leftover_placeholders.py`; `npc_dialog_topics_smoke.gd` | 6D |
 | NPC `properties.dialogue` (graph binding) | `dialogue/manager.py:243-250` | `content_set.py:1522-1540`; orphans `:1545-1549` | `NPCInspector.gd` graph picker, offering only graphs this set has; an already-bound but missing graph is shown, not dropped | prototype | `p5_dialogue.py` (engine side); `npc_dialogue_binding_smoke.gd` | 6D |
 | Vendor stock (`properties.sells_items`, `sell_rate_multiplier`, `tariff`) | `mercantile.py:81-122, 370` | ids only (`reference_integrity_validator.py:470-479`) | `NPCInspector.gd`: a rate control plus a plain item picker per sold item (price multiplier, friendship floor); `tariff` remains absent (a region/world policy, not per-NPC) | prototype | `vendor_order_references.py` (orbital orders); `npc_vendor_stock_smoke.gd` | 6D |
 | Vendor `properties.buy_orders` | `mercantile.py:135-155, 211-232` | `content_set.py:_validate_vendor_orders` | `NPCInspector.gd`: one card per order (id, `ReferenceEditor` for what it wants, quantity, reward, repeatable/crafted-only); id rename refused on a collision | prototype | `vendor_buy_order_relationship_gate.py`; `npc_vendor_stock_smoke.gd` | 6D |
 | Gift preferences (`preferred_item_ids`, `preferred_gift_tags`, disliked…) | `use_give.py:19-51` | ids only (`reference_integrity_validator.py:458-469`) | `NPCInspector.gd`: item pickers for the two id lists, text rows for the three open-vocabulary tag/category lists; nothing written by opening, an emptied list erases its key | prototype | `relationship_gifts.py`; `npc_gift_preferences_smoke.gd` | 6D |
-| `schedule`, `properties.work_location`, `can_unlock_chests`, `sells_houses` | `npc_factory.py:60-73,161`; `ai/schedules.py:143` | **none** | absent | absent | `npc_schedules_full.py` (engine side) | 6D |
+| `schedule`, `properties.work_location`, `can_unlock_chests`, `sells_houses` | `npc_factory.py:60-73,161`; `ai/schedules.py:143` | **none** | `NPCInspector.gd`: `work_location`/`can_unlock_chests`/`sells_houses` fields. `schedule` itself remains absent -- it is generated per `ruleset.npc_schedules` role-matching (a config-editor surface, not a per-NPC field), not authored on the template | prototype (schedule role config still absent) | `npc_schedules_full.py` (engine side); `npc_behavior_tuning_smoke.gd` | 6D |
 | `loot_table` | `npc_factory.py:159-240`; `npc.py:160-174` | **none** | `NPCInspector.gd` — an item picker per drop (renames the entry's key; refuses a collision rather than merging two drops); no longer writes `loot_table: {}` merely by being opened | prototype | `content_round_trip_smoke.gd`, `npc_loot_table_smoke.gd` | 6D |
-| Behaviour tuning (`aggression`, `flee_threshold`, `respawn_cooldown`, `wander_chance`, `move_cooldown`, `spell_cast_chance`) | `npc_factory.py:204-240`; `ai/movement.py:101-105` | **none** | absent | absent | none | 6D |
-| `usable_spells`, `initial_inventory`, `patrol_points` | `npc_factory.py:159-240` | spell ids only (`reference_integrity_validator.py:557-562`) | absent | absent | `guard_patrol_content.py` | 6D |
+| Behaviour tuning (`aggression`, `flee_threshold`, `respawn_cooldown`, `wander_chance`, `move_cooldown`, `spell_cast_chance`) | `npc_factory.py:204-240`; `ai/movement.py:101-105` | **none** | `NPCInspector.gd` numeric fields, defaults shown match the engine's own | prototype | none; `npc_behavior_tuning_smoke.gd` | 6D |
+| `usable_spells`, `initial_inventory`, `patrol_points` | `npc_factory.py:159-240` | spell ids only (`reference_integrity_validator.py:557-562`) | `NPCInspector.gd`: a spell picker, an item-picker+quantity list, and a room-id text list respectively | prototype | `guard_patrol_content.py`; `npc_behavior_tuning_smoke.gd` | 6D |
 | Ruleset `factions.extra` / `overrides` | `world/factions.py:48-118, 228-277` | `content_set.py:854-880` | `RulesetEditorDialog.gd:129-147` — `extra` (id + disposition) only | prototype | `configuration_dialog_smoke.gd` | 6D |
 
 **Notes.** This was the largest single block of `absent` rows, and it is the block a
-player notices first. `faction`, `behavior_type`, `loot_table` and gift preferences are
-now prototype (2026-09-22); still absent is the rest of it: an NPC created in the editor
-still cannot be bound to a dialogue graph, cannot stock a shop, and cannot have a
-schedule. The engine reads and validates most of these shapes; only the editor is
-missing. `ReferenceEditor.gd:10-13` documents "a vendor's buy order" as a shape the
+player notices first. As of 2026-09-22, every row above is prototype except the
+`schedule` role config (a ruleset/config-editor surface, deliberately not folded into
+the per-NPC template) and `friendly`'s combat-side override. The engine reads and
+validates most of these shapes; only the editor was missing.
+`ReferenceEditor.gd:10-13` documents "a vendor's buy order" as a shape the
 editor knows about, which makes the absence read as a bug rather than a decision.
 
 ## D. Items & generation

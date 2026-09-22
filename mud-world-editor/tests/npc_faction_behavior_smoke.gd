@@ -32,6 +32,7 @@ func _init() -> void:
 	_check_selecting_a_faction_writes_it()
 	_check_selecting_none_erases_the_key()
 	_check_selecting_a_behavior_writes_it()
+	_check_the_friendly_checkbox_writes_and_defaults_true()
 
 	if failure_count > 0:
 		push_error("npc faction/behavior failed (%d)" % failure_count)
@@ -129,6 +130,27 @@ func _check_selecting_a_behavior_writes_it() -> void:
 	_assert(index != -1, "the picker offers 'wanderer'")
 	picker.item_selected.emit(index)
 	_assert(str(manager.npcs["npc_probe"].get("behavior_type", "")) == "wanderer", "the NPC's behavior_type was written")
+
+
+func _check_the_friendly_checkbox_writes_and_defaults_true() -> void:
+	print("\n[the friendly checkbox]")
+	var manager := _manager()
+	var holder := _build_inspector_from("npc_probe", manager)
+	var box := _checkbox_labeled(holder, "Friendly")
+	_assert(box != null, "the checkbox was found")
+	_assert(box.button_pressed, "an NPC with no friendly key defaults to checked (npc_factory.py's own default)")
+	box.toggled.emit(false)
+	_assert(manager.npcs["npc_probe"]["friendly"] == false, "unchecking it was written")
+
+
+func _checkbox_labeled(node: Node, text: String) -> CheckBox:
+	if node is CheckBox and str(node.text) == text:
+		return node
+	for child in node.get_children():
+		var found := _checkbox_labeled(child, text)
+		if found != null:
+			return found
+	return null
 
 
 # --- fixture ----------------------------------------------------------------
