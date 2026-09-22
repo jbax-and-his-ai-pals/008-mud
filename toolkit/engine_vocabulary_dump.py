@@ -57,6 +57,12 @@ def main() -> int:
         from engine.dialogue.effects import KNOWN_EFFECTS
         from engine.core.quests import tracker  # noqa: F401 - imported to prove it exists
         from engine.utils.utils import DIRECTION_OPPOSITES
+        from engine.config import (
+            FACTIONS,
+            FACTION_DISPOSITIONS,
+            FACTION_DEFAULT_DISPOSITIONS,
+            NPC_BEHAVIOR_TYPES,
+        )
 
         cs = _content_set_module()
     except Exception as error:  # noqa: BLE001 - report, do not traceback at the caller
@@ -83,6 +89,15 @@ def main() -> int:
         # readers. Only the effects whose value is an object are listed: the rest
         # take a bare id or number, which is what the editor's "kind" already says.
         "effect_fields": _effect_fields(),
+        # The two engine-owned words an NPC template names directly (see
+        # `content_set.py::_validate_npc_faction_and_behavior`). `NPCVocabulary.gd`
+        # is the editor's copy; `schema_parity_smoke.gd` checks it against this.
+        "factions": {
+            "built_in": sorted(FACTIONS),
+            "dispositions": sorted(FACTION_DISPOSITIONS),
+            "default_dispositions": dict(sorted(FACTION_DEFAULT_DISPOSITIONS.items())),
+        },
+        "npc_behavior_types": sorted(NPC_BEHAVIOR_TYPES),
         # The manifest's shape, for the editor's create-set flow. `content_set.py`
         # is what refuses a set, so it owns these; the editor keeps a copy only
         # because writing a manifest needs field *names* to build a form with, and

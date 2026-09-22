@@ -29,8 +29,65 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	cur_data = data
 	db_manager = db_mgr
 	catalog = db_mgr.catalog if db_mgr != null else ContractCatalog.new()
+	_build_faction_and_behavior()
 	_build_stats()
 	_build_loot_table()
+
+# Track G ledger, family C: `faction` and `behavior_type` were the two
+# engine-owned vocabulary words on an NPC template with no editor control at
+# all -- an NPC created here had no side and no AI routine, silently. Both are
+# closed vocabularies (`NPCVocabulary.gd`, checked against the engine by
+# `schema_parity_smoke.gd`), so both are pickers, not free text.
+func _build_faction_and_behavior():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Faction & Behavior"))
+	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
+	container.add_child(card)
+
+	var dispositions := NPCVocabulary.resolved_dispositions(NPCVocabulary.load_ruleset())
+	var faction_ids := dispositions.keys(); faction_ids.sort()
+	var current_faction := str(cur_data.get("faction", ""))
+
+	var faction_row := HBoxContainer.new(); faction_row.add_child(InspectorStyle.lbl("Faction", InspectorStyle.COLOR_TEXT_DIM))
+	var faction_picker := OptionButton.new(); faction_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	faction_picker.add_item("(none — bystander)"); faction_picker.set_item_metadata(0, "")
+	var faction_selected := 0
+	for faction_id in faction_ids:
+		faction_picker.add_item("%s (%s)" % [faction_id, dispositions[faction_id]])
+		faction_picker.set_item_metadata(faction_picker.item_count - 1, faction_id)
+		if str(faction_id) == current_faction: faction_selected = faction_picker.item_count - 1
+	if current_faction != "" and not dispositions.has(current_faction):
+		faction_picker.add_item("Undeclared: " + current_faction); faction_picker.set_item_metadata(faction_picker.item_count - 1, current_faction)
+		faction_selected = faction_picker.item_count - 1
+	faction_picker.select(faction_selected)
+	InspectorStyle.apply_button_style(faction_picker)
+	faction_picker.item_selected.connect(func(index):
+		var chosen := str(faction_picker.get_item_metadata(index))
+		if chosen == "": cur_data.erase("faction")
+		else: cur_data["faction"] = chosen
+		database_modified.emit())
+	faction_row.add_child(faction_picker); vbox.add_child(faction_row)
+
+	var current_behavior := str(cur_data.get("behavior_type", ""))
+	var behavior_row := HBoxContainer.new(); behavior_row.add_child(InspectorStyle.lbl("Behavior", InspectorStyle.COLOR_TEXT_DIM))
+	var behavior_picker := OptionButton.new(); behavior_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	behavior_picker.add_item("(none — stands still)"); behavior_picker.set_item_metadata(0, "")
+	var behavior_selected := 0
+	for behavior in NPCVocabulary.BEHAVIOR_TYPES:
+		behavior_picker.add_item(str(behavior).capitalize())
+		behavior_picker.set_item_metadata(behavior_picker.item_count - 1, behavior)
+		if str(behavior) == current_behavior: behavior_selected = behavior_picker.item_count - 1
+	if current_behavior != "" and not NPCVocabulary.BEHAVIOR_TYPES.has(current_behavior):
+		behavior_picker.add_item("Unknown: " + current_behavior); behavior_picker.set_item_metadata(behavior_picker.item_count - 1, current_behavior)
+		behavior_selected = behavior_picker.item_count - 1
+	behavior_picker.select(behavior_selected)
+	InspectorStyle.apply_button_style(behavior_picker)
+	behavior_picker.item_selected.connect(func(index):
+		var chosen := str(behavior_picker.get_item_metadata(index))
+		if chosen == "": cur_data.erase("behavior_type")
+		else: cur_data["behavior_type"] = chosen
+		database_modified.emit())
+	behavior_row.add_child(behavior_picker); vbox.add_child(behavior_row)
 
 func _build_stats():
 	container.add_child(HSeparator.new())

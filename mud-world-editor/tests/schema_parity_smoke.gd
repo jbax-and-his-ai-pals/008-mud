@@ -67,6 +67,7 @@ func _init() -> void:
 	_check_effect_shape_hints(vocabulary)
 	_check_direction_reciprocals(vocabulary)
 	_check_manifest_shape(vocabulary)
+	_check_npc_vocabulary(vocabulary)
 
 	if failure_count > 0:
 		push_error("schema parity failed (%d)" % failure_count)
@@ -230,6 +231,33 @@ func _check_manifest_shape(vocabulary: Dictionary) -> void:
 	_assert(not ContentSetScaffold.matches_id_pattern("new-frontier"), "a hyphen is not")
 	_assert(not ContentSetScaffold.matches_id_pattern("new_frontier "), "trailing space is not")
 	_assert(not ContentSetScaffold.matches_id_pattern(""), "an empty id is not")
+
+
+## `NPCVocabulary.gd` copies the engine's faction and behaviour vocabularies for
+## the NPC inspector's pickers (see its own header for why a copy at all).
+func _check_npc_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[NPC vocabulary: editor vs engine]")
+	var factions: Dictionary = vocabulary.get("factions", {})
+	_assert(not factions.is_empty(), "the engine's faction vocabulary was read")
+
+	var engine_built_in := _as_set(factions.get("built_in", []))
+	var editor_built_in := _as_set(NPCVocabulary.BUILT_IN_FACTIONS)
+	_assert(engine_built_in == editor_built_in,
+		"the built-in factions match exactly (engine %s, editor %s)" % [str(_sorted(engine_built_in)), str(_sorted(editor_built_in))])
+
+	var engine_dispositions := _as_set(factions.get("dispositions", []))
+	var editor_dispositions := _as_set(NPCVocabulary.FACTION_DISPOSITIONS)
+	_assert(engine_dispositions == editor_dispositions,
+		"the disposition vocabulary matches exactly (engine %s, editor %s)" % [str(_sorted(engine_dispositions)), str(_sorted(editor_dispositions))])
+
+	var engine_defaults: Dictionary = factions.get("default_dispositions", {})
+	_assert(engine_defaults == NPCVocabulary.FACTION_DEFAULT_DISPOSITIONS,
+		"the default disposition per built-in faction matches exactly (engine %s, editor %s)" % [str(engine_defaults), str(NPCVocabulary.FACTION_DEFAULT_DISPOSITIONS)])
+
+	var engine_behaviors := _as_set(vocabulary.get("npc_behavior_types", []))
+	var editor_behaviors := _as_set(NPCVocabulary.BEHAVIOR_TYPES)
+	_assert(engine_behaviors == editor_behaviors,
+		"the behaviour vocabulary matches exactly (engine %s, editor %s)" % [str(_sorted(engine_behaviors)), str(_sorted(editor_behaviors))])
 
 
 # --- helpers ------------------------------------------------------------------
