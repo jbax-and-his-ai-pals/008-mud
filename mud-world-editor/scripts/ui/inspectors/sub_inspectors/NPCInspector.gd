@@ -31,9 +31,88 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	catalog = db_mgr.catalog if db_mgr != null else ContractCatalog.new()
 	_build_faction_and_behavior()
 	_build_dialogue_binding()
+	_build_dialog_topics()
 	_build_stats()
 	_build_gift_preferences()
 	_build_loot_table()
+
+# `dialog` (`npc_factory.py:156`; `npc.py:85,124-125`): a flat topic -> reply
+# map for `ask <npc> about <topic>`, independent of the graph above -- a hostile
+# NPC with no dialogue graph can still answer a handful of topics. Had no
+# editor control at all. The map is keyed by topic, so renaming one is a key
+# rebuild (same shape as the loot table's item rename), refused on a collision
+# rather than merging two topics' replies into one.
+func _build_dialog_topics():
+	container.add_child(HSeparator.new())
+	var hb := HBoxContainer.new()
+	hb.add_child(InspectorStyle.create_sub_header("Dialog Topics"))
+	hb.tooltip_text = "Flat `ask <npc> about <topic>` replies -- independent of the dialogue graph above."
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; hb.add_child(spacer)
+	var add := Button.new(); add.text = "+ Topic"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var dialog := _ensure_dialog()
+		var key := "topic"; var n := 1
+		while dialog.has(key): key = "topic_%d" % n; n += 1
+		dialog[key] = ""
+		database_modified.emit()
+		_refresh_dialog_topics(container.get_node("DialogTopics")))
+	hb.add_child(add); container.add_child(hb)
+	var rows := VBoxContainer.new(); rows.name = "DialogTopics"; rows.add_theme_constant_override("separation", 4)
+	container.add_child(rows)
+	_refresh_dialog_topics(rows)
+
+## Read-only: `dialog` as it stands, without creating it.
+func _dialog() -> Dictionary:
+	var d = cur_data.get("dialog", {})
+	return d if d is Dictionary else {}
+
+## Made on the first write and not before.
+func _ensure_dialog() -> Dictionary:
+	if not (cur_data.get("dialog") is Dictionary):
+		cur_data["dialog"] = {}
+	return cur_data["dialog"]
+
+func _refresh_dialog_topics(rows: VBoxContainer):
+	for child in rows.get_children(): child.queue_free()
+	var dialog := _dialog()
+	var topics := dialog.keys(); topics.sort()
+	for topic_variant in topics:
+		var current_topic: String = str(topic_variant)
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+
+		var topic_field := LineEdit.new(); topic_field.text = current_topic; topic_field.custom_minimum_size.x = 120
+		InspectorStyle.apply_input_style(topic_field)
+		topic_field.text_submitted.connect(func(new_text: String):
+			var live := _ensure_dialog()
+			var new_key: String = new_text.strip_edges()
+			if new_key == "" or new_key == current_topic or live.has(new_key):
+				_refresh_dialog_topics(rows)
+				return
+			var value = live[current_topic]
+			live.erase(current_topic)
+			live[new_key] = value
+			database_modified.emit()
+			_refresh_dialog_topics(rows))
+		row.add_child(topic_field)
+
+		var text_field := LineEdit.new(); text_field.text = str(dialog[topic_variant]); text_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(text_field)
+		text_field.text_changed.connect(func(new_text):
+			var live := _ensure_dialog()
+			if live.has(current_topic): live[current_topic] = new_text
+			database_modified.emit())
+		row.add_child(text_field)
+
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live := _ensure_dialog()
+			live.erase(current_topic)
+			if live.is_empty(): cur_data.erase("dialog")
+			database_modified.emit()
+			_refresh_dialog_topics(rows))
+		row.add_child(remove)
+		rows.add_child(row)
+	if topics.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
 
 # `properties.dialogue` (`dialogue/manager.py::NPC_GRAPH_KEY`): which authored
 # conversation graph this NPC uses. A graph an NPC binds to that does not exist
