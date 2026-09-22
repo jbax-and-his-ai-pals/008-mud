@@ -30,8 +30,103 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	_build_container()
 	_build_resource_node()
 	_build_salvage()
+	_build_resistances()
 	_build_contract()
 	_build_properties()
+
+# `properties.resistances` (`contracts/equipment.py::armor_resistances`; schema
+# `contracts/registry.py:129`): per-damage-type resistance this item grants
+# when worn. Had no editor control -- it is a map, so the generic property
+# table only ever showed it read-only (`PropertyTagRow.build_nested_row`),
+# alongside a note that a dedicated editor did not exist yet. Damage types
+# come from this set's own combat vocabulary (`data/combat/elements.json`),
+# the same source `CombatVocabularyDialog` authors it from, so the picker
+# cannot offer a type nothing in this set recognizes.
+func _build_resistances():
+	if database_mgr == null or database_mgr.combat_vocabulary.damage_types.is_empty():
+		return
+	container.add_child(HSeparator.new())
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Resistances"))
+	header.tooltip_text = "Per-damage-type resistance this item grants when worn."
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Resistance"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var res := _ensure_resistances()
+		var candidate := ""
+		for type_id in database_mgr.combat_vocabulary.damage_types:
+			if not res.has(type_id): candidate = str(type_id); break
+		if candidate == "": return
+		res[candidate] = 0.0
+		database_modified.emit()
+		_refresh_resistances(container.find_child("Resistances", true, false)))
+	header.add_child(add); container.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "Resistances"; rows.add_theme_constant_override("separation", 4)
+	container.add_child(rows)
+	_refresh_resistances(rows)
+
+## Read-only: `properties.resistances` as it stands, without creating it.
+func _resistances() -> Dictionary:
+	var props := _properties()
+	var res = props.get("resistances", {})
+	return res if res is Dictionary else {}
+
+## Made on the first write and not before.
+func _ensure_resistances() -> Dictionary:
+	if not (cur_data.get("properties") is Dictionary): cur_data["properties"] = {}
+	if not (cur_data["properties"].get("resistances") is Dictionary): cur_data["properties"]["resistances"] = {}
+	return cur_data["properties"]["resistances"]
+
+func _refresh_resistances(rows: VBoxContainer):
+	for child in rows.get_children(): child.queue_free()
+	var res := _resistances()
+	var keys := res.keys(); keys.sort()
+	for damage_type_variant in keys:
+		var current_type: String = str(damage_type_variant)
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+
+		var picker := OptionButton.new(); picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var selected := -1
+		for type_id in database_mgr.combat_vocabulary.damage_types:
+			picker.add_item(str(type_id)); picker.set_item_metadata(picker.item_count - 1, str(type_id))
+			if str(type_id) == current_type: selected = picker.item_count - 1
+		if selected == -1:
+			picker.add_item("Unknown: " + current_type); picker.set_item_metadata(picker.item_count - 1, current_type)
+			selected = picker.item_count - 1
+		picker.select(selected)
+		InspectorStyle.apply_button_style(picker)
+		picker.item_selected.connect(func(index):
+			var live := _ensure_resistances()
+			var new_type := str(picker.get_item_metadata(index))
+			# The map is keyed by damage type, so picking a type already in use
+			# would merge two resistances into one; refuse rather than lose one.
+			if new_type == current_type or live.has(new_type):
+				_refresh_resistances(rows)
+				return
+			var value = live[current_type]
+			live.erase(current_type)
+			live[new_type] = value
+			database_modified.emit()
+			_refresh_resistances(rows))
+		row.add_child(picker)
+
+		var value_field := SpinBox.new(); value_field.min_value = 0.0; value_field.max_value = 1.0; value_field.step = 0.01
+		value_field.value = float(res.get(damage_type_variant, 0.0)); value_field.custom_minimum_size.x = 70
+		InspectorStyle.apply_input_style(value_field)
+		value_field.value_changed.connect(func(value):
+			var live := _ensure_resistances()
+			if live.has(current_type): live[current_type] = float(value)
+			database_modified.emit())
+		row.add_child(value_field)
+
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live := _ensure_resistances()
+			live.erase(current_type)
+			if live.is_empty() and cur_data.get("properties") is Dictionary: cur_data["properties"].erase("resistances")
+			database_modified.emit()
+			_refresh_resistances(rows))
+		row.add_child(remove); rows.add_child(row)
+	if keys.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
 
 func _build_details():
 	container.add_child(HSeparator.new())
@@ -635,7 +730,7 @@ func _refresh_props():
 	# These fields have a dedicated, lossless authoring surface above. Showing
 	# them again as generic rows invites two conflicting edits and makes the
 	# useful controls look like decoration.
-	var specialized := ["salvage_output"]
+	var specialized := ["salvage_output", "resistances"]
 	if _engine_item_class() == "Container":
 		specialized.append_array(["capacity", "locked", "key_id", "is_open", "contains"])
 	if _engine_item_class() == "ResourceNode":

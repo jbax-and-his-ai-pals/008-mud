@@ -133,7 +133,8 @@ editor knows about, which makes the absence read as a bug rather than a decision
 | Declaration | Engine reader | Validator | Editor writer | Status | Evidence | Batch |
 |---|---|---|---|---|---|---|
 | Item envelope (`name`, `type`, `weight`, `value`, `stackable`, `equip_slot`) | `definition_loader.py:51-106`; `item_factory.py:142-298` | loader `:92-94`; `data_integrity_validator.py:80-95` (warning only in the gate); `content_playability_check.py:329-339` (fatal) | `ItemInspector.gd:34-78` | prototype — **unknown top-level keys are silently dropped** (`item_factory.py:220`) | `item_authoring_smoke.gd` | 6C |
-| Item `properties` — nested objects (`resistances`, `substitute_resource_ids`, …) | `item_factory.py:205-259` | `content_set.py:2775-2875` (a named subset only) | read-only row (`ItemInspector.gd:386-399`) | read-only | `nested_property_survival_smoke.gd` | 6C |
+| Item `properties.resistances` (`{damage_type: float}`) | `contracts/equipment.py::armor_resistances`; schema `contracts/registry.py:129` | shape checked only via the registry's map type | `ItemInspector.gd`: a picker (this set's own `data/combat/elements.json` damage types) + value per row; switching a row's type is a key rebuild, refused on a collision | prototype | `item_resistances_smoke.gd` | 6C |
+| Item `properties` — other nested objects (`substitute_resource_ids`, …) | `item_factory.py:205-259` | `content_set.py:2775-2875` (a named subset only) | read-only row (`ItemInspector.gd:386-399`) | read-only | `nested_property_survival_smoke.gd` | 6C |
 | `properties.salvage_output` | `crafting_manager.py:401-464` | `content_set.py:2065-2170` | `ItemInspector.gd:93-162` via `ReferenceEditor.gd:52-120` | journey-proven | `item_authoring_smoke.gd` + playability `salvage` | 6C |
 | `item_family`, `generation_profile`, rarity bands | `registry.py:285-305`; `instance_generator.py:98-118, 199-323` | `content_set.py:1986-2011, 2602-2630` | `ItemInspector.gd:175-345` (catalog-driven pickers) | prototype (save path runs no validator) | `contract_authoring_smoke.gd` | 6C |
 | Affixes (`data/items/affixes.json`) | `affix_data.py:23-35`; `loot_generator.py:34-77` | **none for structure** (`data_integrity_validator.py:82` exempts it) | `AffixInspector.gd`, loaded/saved by `DatabaseManager._load_affixes`/`_save_affixes` | prototype — authorable now, still no structural validator (Track B) | `affix_and_set_authoring_smoke.gd` | 6C |
@@ -145,9 +146,11 @@ editor knows about, which makes the absence read as a bug rather than a decision
 **Notes.** Generation is the family where the engine is most configurable and the editor
 least: families, profiles, rarity bands and salvage are authorable, and — since
 2026-09-21 — so are the two item-directory contracts that were excluded outright
-(affixes, item sets). What remains unauthorable is what an author tunes most: node
-yields, container contents, and the nested item properties the item panel shows but
-will not write.
+(affixes, item sets), node yields and container contents (both now prototype above),
+and `resistances` (2026-09-22). What remains unauthorable is the rest of the nested
+item-property table (`substitute_resource_ids` and any other object/array-valued
+property nothing else declares) — still read-only, by design, until each gets its own
+control the way `resistances` and salvage did rather than a second generic guess.
 
 **The affix/set history is worth keeping in view.** They were excluded from load
 because an old editor save rewrote `affixes.json` from the *items* cache and deleted
