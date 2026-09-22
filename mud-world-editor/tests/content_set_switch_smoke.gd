@@ -54,6 +54,7 @@ func _process(_delta: float) -> bool:
 
 	_check_the_first_world_is_loaded()
 	_check_switching_reloads_everything()
+	_check_engine_rejection_restores_library_data()
 	_check_save_and_switch_writes_both_kinds_of_work()
 	_check_per_set_state_does_not_travel()
 	_check_the_choice_is_remembered()
@@ -75,6 +76,27 @@ func _process(_delta: float) -> bool:
 # stopped -- so a library edit (an NPC's stats, an item's value) was reported as
 # saved and then dropped by the next set's `load_all()`, which clears the dirty
 # flags that were the only evidence it existed.
+
+func _check_engine_rejection_restores_library_data() -> void:
+	print("\n[engine refusal restores data]")
+	main._switch_content_set(first_set)
+	var original: Dictionary = main.database_mgr.entry("item", "item_alpha_part").duplicate(true)
+	main.database_mgr.items["item_alpha_part"]["item_family"] = "family_that_does_not_exist"
+	main.database_mgr.mark_dirty("item", "item_alpha_part")
+	_assert(not main._save_everything(), "the engine rejects an invalid library edit")
+	var on_disk = JSON.parse_string(FileAccess.get_file_as_string(first_set.path_join("data/items/library.json")))
+	_assert(str(on_disk.get("item_alpha_part", {}).get("item_family", "")) == "alpha_family",
+		"the checkpoint restored the previous library file")
+	_assert(main.database_mgr.has_unsaved_changes(),
+		"the visible invalid draft remains dirty for correction")
+	_assert(main.ui_mgr.error_modal.visible, "the rejection is shown to the author")
+	main.ui_mgr.error_modal.hide()
+
+	# Repair the in-memory draft and prove the same path saves after validation.
+	main.database_mgr.items["item_alpha_part"] = original
+	main.database_mgr.mark_dirty("item", "item_alpha_part")
+	_assert(main._save_everything(), "the corrected library edit saves")
+
 
 func _check_save_and_switch_writes_both_kinds_of_work() -> void:
 	print("\n[save and switch]")
@@ -272,7 +294,7 @@ func _build_set(root_path: String, id: String, region: String, item_id: String,
 			"ruleset": "rules/ruleset.json",
 			"presentation": "presentation/default.json",
 		},
-		"start": {"scenario_id": id, "region_id": id, "room_id": "start"},
+		"start": {"scenario_id": id, "region_id": region, "room_id": "start"},
 		"capabilities": ["inventory", "crafting"],
 	})
 	SaveIO.write_json(root_path.path_join("presentation/default.json"), {
@@ -308,7 +330,11 @@ func _build_set(root_path: String, id: String, region: String, item_id: String,
 		"effect_packets": [],
 	})
 	SaveIO.write_json(data_root.path_join("abilities/%s.json" % ability_id), {
-		ability_id: {"name": ability_id.capitalize(), "mana_cost": 1, "target_type": "enemy"},
+		ability_id: {
+			"name": ability_id.capitalize(), "description": "A test ability.",
+			"mana_cost": 1, "target_type": "enemy",
+			"effects": [{"type": "damage", "value": 1}],
+		},
 	})
 
 

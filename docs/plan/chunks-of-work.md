@@ -923,7 +923,21 @@ item family — the ones an author tunes a distribution with — are authorable:
   the editor never wrote. The round-trip gate said so immediately; they are normalised,
   and the check is green again.
 
-**Still open in 6B:** rename/delete previews for every inspector and external
+**Latest 6B safety hardening (2026-09-22).** The rename review is now a
+preflight, not merely a report: every indexed library or region path is tested on
+a copy before the first real reference changes. A path that is stale, malformed,
+unparseable or would collide blocks the entire rename and names the failing path;
+it cannot leave the earlier references half-repaired. Deleting an entry that has
+indexed referrers is now refused rather than confirmed with known breakage. The
+ordinary **Save Changes** path also runs the open-set engine validator after
+writing region/library content. A rejection restores the checkpointed `data/`
+tree and keeps the editor's visible data dirty for correction. Configuration
+drafts retain their own staged single-file protocol. This is deliberately not a
+general multi-file refactor transaction yet: it does not cover unindexed bindings
+or external roots, and config plus library edits are not one combined commit.
+
+**Still open in 6B:** rename/delete previews and repair dispositions for every
+engine-known reference family, an actual all-file refactor transaction, and external
 content-set roots. **Still open in 6C:** node yields, container contents, the nested item
 properties the panel will not write, and station pickers.
 

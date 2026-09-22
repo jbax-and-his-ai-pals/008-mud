@@ -16,6 +16,10 @@ var require_level_bands: CheckBox
 var require_hazard_coverage: CheckBox
 var system_checks: Dictionary = {}
 var faction_rows: VBoxContainer
+var salvage_default: OptionButton
+var salvage_rows: VBoxContainer
+var salvage_baseline: Dictionary = {}
+var content_database: DatabaseManager
 var form_dirty := false
 var loading := false
 var faction_baseline: Array = []
@@ -42,6 +46,14 @@ func setup():
 	var systems_grid := GridContainer.new(); systems_grid.columns = 2; box.add_child(systems_grid)
 	for system_id in SYSTEM_LABELS:
 		var toggle := CheckBox.new(); toggle.text = str(SYSTEM_LABELS[system_id]); toggle.toggled.connect(func(_value): _mark_dirty()); systems_grid.add_child(toggle); system_checks[system_id] = toggle
+	box.add_child(InspectorStyle.create_sub_header("Crafting salvage"))
+	var salvage_hint := InspectorStyle.lbl("A family rule says what an item becomes when salvaged. An item can still declare its own output.", InspectorStyle.COLOR_TEXT_DIM); salvage_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(salvage_hint)
+	var default_row := HBoxContainer.new(); default_row.add_child(InspectorStyle.lbl("Fallback output", InspectorStyle.COLOR_TEXT_DIM))
+	salvage_default = OptionButton.new(); salvage_default.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_button_style(salvage_default); salvage_default.item_selected.connect(func(index): salvage_default.select(index); _mark_dirty()); default_row.add_child(salvage_default); box.add_child(default_row)
+	var salvage_header := HBoxContainer.new(); salvage_header.add_child(InspectorStyle.create_sub_header("Family rules"))
+	var salvage_spacer := Control.new(); salvage_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; salvage_header.add_child(salvage_spacer)
+	var add_salvage := Button.new(); add_salvage.text = "+ Family Rule"; InspectorStyle.apply_button_style(add_salvage, InspectorStyle.COLOR_SUCCESS); add_salvage.pressed.connect(func(): _add_salvage_row("", {}); _mark_dirty()); salvage_header.add_child(add_salvage); box.add_child(salvage_header)
+	salvage_rows = VBoxContainer.new(); salvage_rows.add_theme_constant_override("separation", 5); box.add_child(salvage_rows)
 	box.add_child(InspectorStyle.create_sub_header("Custom Factions"))
 	var faction_hint := InspectorStyle.lbl("Built-in factions remain engine-owned. Add only this set's custom factions.", InspectorStyle.COLOR_TEXT_DIM); box.add_child(faction_hint)
 	faction_rows = VBoxContainer.new(); faction_rows.add_theme_constant_override("separation", 5); box.add_child(faction_rows)
@@ -68,6 +80,7 @@ func open_active():
 		status_label.text = str(result.get("error", "Could not load ruleset.")); status_label.modulate = DialogStyle.COLOR_DANGER
 		get_ok_button().disabled = true; popup_centered(); return
 	draft = result["draft"]
+	content_database = DatabaseManager.new()
 	loading = true
 	var world: Dictionary = draft.data.get("world", {})
 	var regions: Dictionary = world.get("regions", {}) if world.get("regions", {}) is Dictionary else {}
@@ -89,6 +102,7 @@ func open_active():
 	for entry in extras:
 		if entry is Dictionary: _add_faction_row(str(entry.get("id", "")), str(entry.get("disposition", "neutral")), entry)
 	faction_baseline = _faction_entries().duplicate(true)
+	_load_salvage_rules()
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -104,6 +118,7 @@ func _save():
 		if _field_changed(system_checks[system_id]): draft.set_system_enabled(system_id, system_checks[system_id].button_pressed)
 	var factions := _faction_entries()
 	if factions != faction_baseline: draft.set_faction_extras(factions)
+	if _salvage_rules_changed(): draft.set_salvage_rules(_salvage_rules())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)
@@ -145,6 +160,82 @@ func _faction_entries() -> Array:
 		if entry.has("disposition") or disposition.get_item_text(disposition.selected) != row.get_meta("initial_disposition") or row.get_meta("source").is_empty(): entry["disposition"] = disposition.get_item_text(disposition.selected)
 		out.append(entry)
 	return out
+
+
+func _load_salvage_rules():
+	for child in salvage_rows.get_children(): _remove_row(child)
+	var crafting: Dictionary = draft.data.get("crafting", {}) if draft.data.get("crafting", {}) is Dictionary else {}
+	var rules: Dictionary = crafting.get("salvage_rules", {}) if crafting.get("salvage_rules", {}) is Dictionary else {}
+	salvage_baseline = rules.duplicate(true)
+	_populate_item_picker(salvage_default, str(rules.get("default_item_id", "")), "No fallback output")
+	var families: Dictionary = rules.get("by_family", {}) if rules.get("by_family", {}) is Dictionary else {}
+	for family_id in families:
+		if families[family_id] is Dictionary: _add_salvage_row(str(family_id), families[family_id].duplicate(true))
+	if salvage_rows.get_child_count() == 0:
+		salvage_rows.add_child(InspectorStyle.lbl("No family rules. The fallback is used unless an item declares its own output.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+func _add_salvage_row(family_id: String, rule: Dictionary):
+	for child in salvage_rows.get_children():
+		if child is Label and child.text.begins_with("No family rules"): _remove_row(child)
+	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6); row.set_meta("rule", rule)
+	var family := OptionButton.new(); family.custom_minimum_size.x = 150; family.name = "SalvageFamily"
+	var ids: Array = ["Choose family"]
+	if content_database != null: ids.append_array(content_database.catalog.family_ids())
+	for id in ids:
+		family.add_item(str(id)); family.set_item_metadata(family.item_count - 1, "" if str(id) == "Choose family" else str(id))
+		if str(id) == family_id: family.select(family.item_count - 1)
+	if family_id != "" and family.selected == 0:
+		family.add_item("Missing: " + family_id); family.set_item_metadata(family.item_count - 1, family_id); family.select(family.item_count - 1)
+	InspectorStyle.apply_button_style(family); family.item_selected.connect(func(index): family.select(index); _mark_dirty()); row.add_child(family)
+	var reference := ReferenceEditor.new(); reference.changed.connect(func(): _mark_dirty()); reference.build(row, rule, Callable(self, "_salvage_suggestions"))
+	var rate := SpinBox.new(); rate.min_value = 0; rate.max_value = 20; rate.step = 0.1; rate.value = float(rule.get("quantity_per_weight", 1.0)); rate.tooltip_text = "output per unit of weight"; rate.custom_minimum_size.x = 80; InspectorStyle.apply_input_style(rate)
+	rate.value_changed.connect(func(value): rule["quantity_per_weight"] = float(value); _mark_dirty()); row.add_child(rate)
+	var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, DialogStyle.COLOR_DANGER); remove.pressed.connect(func(): _remove_row(row); _mark_dirty()); row.add_child(remove)
+	salvage_rows.add_child(row)
+
+
+func _populate_item_picker(picker: OptionButton, selected_id: String, empty_label: String):
+	picker.clear(); picker.add_item(empty_label); picker.set_item_metadata(0, "")
+	var ids: Array = content_database.get_item_ids() if content_database != null else []
+	for item_id in ids:
+		var label := str(item_id)
+		if content_database.items.get(item_id) is Dictionary: label = "%s — %s" % [str(content_database.items[item_id].get("name", item_id)), item_id]
+		picker.add_item(label); picker.set_item_metadata(picker.item_count - 1, item_id)
+		if str(item_id) == selected_id: picker.select(picker.item_count - 1)
+	if selected_id != "" and picker.selected == 0:
+		picker.add_item("Missing: " + selected_id); picker.set_item_metadata(picker.item_count - 1, selected_id); picker.select(picker.item_count - 1)
+
+
+func _salvage_suggestions(kind: String) -> Array:
+	if content_database == null: return []
+	match kind:
+		"item_family": return content_database.catalog.family_ids()
+		"capability": return content_database.catalog.capability_ids()
+		_: return content_database.get_item_ids()
+
+
+func _salvage_rules() -> Dictionary:
+	# Preserve comments and legacy class rules while replacing only the family
+	# section this dialog owns.
+	var rules := salvage_baseline.duplicate(true)
+	var by_family := {}
+	for row in salvage_rows.get_children():
+		if not (row is HBoxContainer) or row.get_child_count() < 2: continue
+		var family: OptionButton = row.get_child(0)
+		var family_id := str(family.get_item_metadata(family.selected))
+		var rule: Dictionary = row.get_meta("rule", {})
+		if family_id != "": by_family[family_id] = rule.duplicate(true)
+	if by_family.is_empty(): rules.erase("by_family")
+	else: rules["by_family"] = by_family
+	var default_id := str(salvage_default.get_item_metadata(salvage_default.selected))
+	if default_id == "": rules.erase("default_item_id")
+	else: rules["default_item_id"] = default_id
+	return rules
+
+
+func _salvage_rules_changed() -> bool:
+	return JSON.stringify(_salvage_rules()) != JSON.stringify(salvage_baseline)
 
 func _mark_dirty():
 	if loading or draft == null: return

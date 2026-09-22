@@ -265,6 +265,18 @@ class TestInitializeNewWorldBranches(GameTestBase):
         initialize_new_world(self.world, "iw_region_b", "iw_room_b")
         self.assertEqual(room.items, [])
 
+    def test_item_ref_quantity_and_properties_override_create_placement_instances(self):
+        region, room = self._make_region_with_room("iw_region_placement", "iw_room_placement")
+        item_id = next(iter(self.world.item_templates))
+        room.initial_item_refs = [{
+            "item_id": item_id,
+            "quantity": 2,
+            "properties_override": {"name": "Placed specimen"},
+        }]
+        initialize_new_world(self.world, "iw_region_placement", "iw_room_placement")
+        self.assertEqual(2, len(room.items))
+        self.assertTrue(all(item.name == "Placed specimen" for item in room.items))
+
     def test_npc_ref_missing_template_id_is_skipped(self):
         region, room = self._make_region_with_room("iw_region_c", "iw_room_c")
         room.initial_npc_refs = [{"instance_id": "no_template_here"}]

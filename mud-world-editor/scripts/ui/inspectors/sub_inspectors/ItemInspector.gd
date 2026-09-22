@@ -27,6 +27,8 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	database_mgr = db_mgr
 	catalog = db_mgr.catalog if db_mgr != null else null
 	_build_details()
+	_build_container()
+	_build_resource_node()
 	_build_salvage()
 	_build_contract()
 	_build_properties()
@@ -76,6 +78,250 @@ func _build_details():
 	chk.button_pressed = cur_data.get("stackable", false)
 	chk.toggled.connect(func(b): cur_data["stackable"] = b; database_modified.emit())
 	vbox.add_child(chk)
+
+
+# Containers and resource nodes are both ordinary item templates at load time,
+# but their nested properties are gameplay contracts.  Keeping them out of the
+# generic property table means an author can create a usable chest or harvest
+# point without knowing its JSON shape.
+func _build_container():
+	if _engine_item_class() != "Container":
+		return
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Container"))
+	var card := InspectorStyle.create_card()
+	var vbox: VBoxContainer = card.get_child(0).get_child(0)
+	container.add_child(card)
+	var properties := _properties()
+	var capacity_row := HBoxContainer.new(); capacity_row.add_child(InspectorStyle.lbl("Capacity", InspectorStyle.COLOR_TEXT_DIM))
+	var capacity := SpinBox.new(); capacity.min_value = 0; capacity.max_value = 100000; capacity.step = 0.5; capacity.value = float(properties.get("capacity", 50.0)); capacity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_input_style(capacity)
+	capacity.value_changed.connect(func(value): properties["capacity"] = float(value); database_modified.emit())
+	capacity_row.add_child(capacity); vbox.add_child(capacity_row)
+	var state_row := HBoxContainer.new()
+	var locked := CheckBox.new(); locked.text = "Locked"; locked.button_pressed = bool(properties.get("locked", false))
+	locked.toggled.connect(func(pressed): properties["locked"] = pressed; database_modified.emit())
+	state_row.add_child(locked)
+	var open := CheckBox.new(); open.text = "Starts open"; open.button_pressed = bool(properties.get("is_open", false))
+	open.toggled.connect(func(pressed): properties["is_open"] = pressed; database_modified.emit())
+	state_row.add_child(open); vbox.add_child(state_row)
+	var key_row := HBoxContainer.new(); key_row.add_child(InspectorStyle.lbl("Key template", InspectorStyle.COLOR_TEXT_DIM))
+	var key_picker := _item_picker(str(properties.get("key_id", "")), "no key required")
+	key_picker.item_selected.connect(func(index):
+		var chosen := str(key_picker.get_item_metadata(index))
+		if chosen == "": properties.erase("key_id")
+		else: properties["key_id"] = chosen
+		database_modified.emit()
+	)
+	key_row.add_child(key_picker); vbox.add_child(key_row)
+	var contains: Array = properties.get("contains", []) if properties.get("contains", []) is Array else []
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Starting contents"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Item"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func(): contains.append({"item_id": "", "quantity": 1}); properties["contains"] = contains; database_modified.emit(); _refresh_container_contents(vbox, properties))
+	header.add_child(add); vbox.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "ContainerContents"; rows.add_theme_constant_override("separation", 4); vbox.add_child(rows)
+	_refresh_container_contents(vbox, properties)
+
+
+func _refresh_container_contents(vbox: VBoxContainer, properties: Dictionary):
+	var rows := vbox.get_node_or_null("ContainerContents")
+	if rows == null: return
+	for child in rows.get_children(): child.queue_free()
+	var contains: Array = properties.get("contains", []) if properties.get("contains", []) is Array else []
+	for index in range(contains.size()):
+		if not (contains[index] is Dictionary): continue
+		var entry: Dictionary = contains[index]
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var item_picker := _item_picker(str(entry.get("item_id", "")), "choose contained item")
+		item_picker.item_selected.connect(func(selected): entry["item_id"] = str(item_picker.get_item_metadata(selected)); database_modified.emit())
+		row.add_child(item_picker)
+		var quantity := SpinBox.new(); quantity.min_value = 1; quantity.max_value = 999; quantity.step = 1; quantity.value = int(entry.get("quantity", 1)); quantity.custom_minimum_size.x = 72
+		InspectorStyle.apply_input_style(quantity); quantity.value_changed.connect(func(value): entry["quantity"] = int(value); database_modified.emit())
+		row.add_child(quantity)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func(): contains.remove_at(index); if contains.is_empty(): properties.erase("contains") else: properties["contains"] = contains; database_modified.emit(); _refresh_container_contents(vbox, properties))
+		row.add_child(remove); rows.add_child(row)
+	if contains.is_empty(): rows.add_child(InspectorStyle.lbl("Empty when placed.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+func _build_resource_node():
+	if _engine_item_class() != "ResourceNode":
+		return
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Gathering resource"))
+	var card := InspectorStyle.create_card()
+	var vbox: VBoxContainer = card.get_child(0).get_child(0)
+	container.add_child(card)
+	var properties := _properties()
+	var item_row := HBoxContainer.new(); item_row.add_child(InspectorStyle.lbl("Primary yield", InspectorStyle.COLOR_TEXT_DIM))
+	var yield_picker := _item_picker(str(properties.get("resource_item_id", "")), "choose resource item")
+	yield_picker.item_selected.connect(func(index): properties["resource_item_id"] = str(yield_picker.get_item_metadata(index)); database_modified.emit())
+	item_row.add_child(yield_picker); vbox.add_child(item_row)
+	var tool_row := HBoxContainer.new(); tool_row.add_child(InspectorStyle.lbl("Tool type", InspectorStyle.COLOR_TEXT_DIM))
+	var tool := LineEdit.new(); tool.text = str(properties.get("tool_required", "")); tool.placeholder_text = "empty = no tool"; tool.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(tool)
+	tool.text_changed.connect(func(text): var value := str(text).strip_edges(); if value == "": properties.erase("tool_required") else: properties["tool_required"] = value; database_modified.emit())
+	tool_row.add_child(tool); vbox.add_child(tool_row)
+	var numbers := HBoxContainer.new()
+	for pair in [["Charges", "charges", 3], ["Respawn days", "respawn_days", 0]]:
+		var field := VBoxContainer.new(); field.size_flags_horizontal = Control.SIZE_EXPAND_FILL; field.add_child(InspectorStyle.lbl(pair[0], InspectorStyle.COLOR_TEXT_DIM))
+		var spin := SpinBox.new(); spin.min_value = 0; spin.max_value = 999; spin.step = 1; spin.value = int(properties.get(pair[1], pair[2])); InspectorStyle.apply_input_style(spin)
+		spin.value_changed.connect(func(value): properties[pair[1]] = int(value); database_modified.emit())
+		field.add_child(spin); numbers.add_child(field)
+	vbox.add_child(numbers)
+	var availability := HBoxContainer.new()
+	var season_picker := MenuButton.new(); season_picker.text = _season_button_text(properties.get("seasons", [])); season_picker.tooltip_text = "Leave every season unchecked to make the node available year-round."
+	InspectorStyle.apply_button_style(season_picker)
+	var seasons := ["winter", "spring", "summer", "fall"]
+	var selected_seasons: Array = properties.get("seasons", []) if properties.get("seasons", []) is Array else []
+	var season_menu := season_picker.get_popup(); season_menu.hide_on_checkable_item_selection = false
+	for season in seasons:
+		season_menu.add_check_item(season.capitalize())
+		season_menu.set_item_checked(season_menu.item_count - 1, selected_seasons.has(season))
+	season_menu.index_pressed.connect(func(index):
+		var season := str(seasons[index])
+		if selected_seasons.has(season): selected_seasons.erase(season)
+		else: selected_seasons.append(season)
+		season_menu.set_item_checked(index, selected_seasons.has(season))
+		if selected_seasons.is_empty(): properties.erase("seasons")
+		else: properties["seasons"] = selected_seasons
+		season_picker.text = _season_button_text(selected_seasons)
+		database_modified.emit()
+	)
+	availability.add_child(InspectorStyle.lbl("Available", InspectorStyle.COLOR_TEXT_DIM)); availability.add_child(season_picker)
+	var weather := LineEdit.new(); weather.text = ", ".join(_string_list(properties.get("weather_blocked_by", []))); weather.placeholder_text = "blocked weather, comma separated"; weather.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(weather)
+	weather.text_changed.connect(func(text):
+		var values := _split_csv(text)
+		if values.is_empty(): properties.erase("weather_blocked_by")
+		else: properties["weather_blocked_by"] = values
+		database_modified.emit()
+	)
+	availability.add_child(weather); vbox.add_child(availability)
+	var quality_header := HBoxContainer.new(); quality_header.add_child(InspectorStyle.create_sub_header("Material grade"))
+	var quality_spacer := Control.new(); quality_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; quality_header.add_child(quality_spacer)
+	var has_quality := CheckBox.new(); has_quality.text = "apply a grade"; has_quality.button_pressed = properties.get("material_quality") is Dictionary
+	quality_header.add_child(has_quality); vbox.add_child(quality_header)
+	var quality: Dictionary = properties.get("material_quality", {}) if properties.get("material_quality") is Dictionary else {}
+	var quality_row := HBoxContainer.new(); quality_row.add_child(InspectorStyle.lbl("ID / label / score", InspectorStyle.COLOR_TEXT_DIM))
+	var quality_id := LineEdit.new(); quality_id.text = str(quality.get("id", "")); quality_id.placeholder_text = "refined"; quality_id.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(quality_id)
+	var quality_label := LineEdit.new(); quality_label.text = str(quality.get("label", "")); quality_label.placeholder_text = "Refined"; quality_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(quality_label)
+	var quality_score := SpinBox.new(); quality_score.min_value = 1; quality_score.max_value = 99; quality_score.step = 1; quality_score.value = int(quality.get("score", 1)); quality_score.custom_minimum_size.x = 72; InspectorStyle.apply_input_style(quality_score)
+	for control in [quality_id, quality_label, quality_score]: control.editable = has_quality.button_pressed
+	quality_id.text_changed.connect(func(text): quality["id"] = str(text).strip_edges(); if has_quality.button_pressed: properties["material_quality"] = quality; database_modified.emit())
+	quality_label.text_changed.connect(func(text): quality["label"] = str(text).strip_edges(); if has_quality.button_pressed: properties["material_quality"] = quality; database_modified.emit())
+	quality_score.value_changed.connect(func(value): quality["score"] = int(value); if has_quality.button_pressed: properties["material_quality"] = quality; database_modified.emit())
+	has_quality.toggled.connect(func(pressed):
+		for control in [quality_id, quality_label, quality_score]: control.editable = pressed
+		if pressed:
+			if str(quality.get("id", "")) == "": quality["id"] = "refined"
+			if str(quality.get("label", "")) == "": quality["label"] = "Refined"
+			if int(quality.get("score", 0)) < 1: quality["score"] = 1
+			properties["material_quality"] = quality
+		else: properties.erase("material_quality")
+		database_modified.emit()
+	)
+	quality_row.add_child(quality_id); quality_row.add_child(quality_label); quality_row.add_child(quality_score); vbox.add_child(quality_row)
+	var substitute_header := HBoxContainer.new(); substitute_header.add_child(InspectorStyle.create_sub_header("Substitute resources"))
+	var substitute_spacer := Control.new(); substitute_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; substitute_header.add_child(substitute_spacer)
+	var add_substitute := Button.new(); add_substitute.text = "+ Substitute"; InspectorStyle.apply_button_style(add_substitute, Color(0.2, 0.3, 0.4))
+	add_substitute.pressed.connect(func(): var values: Array = properties.get("substitute_resource_ids", []) if properties.get("substitute_resource_ids", []) is Array else []; values.append(""); properties["substitute_resource_ids"] = values; database_modified.emit(); _refresh_resource_references(vbox, properties))
+	substitute_header.add_child(add_substitute); vbox.add_child(substitute_header)
+	var substitute_rows := VBoxContainer.new(); substitute_rows.name = "ResourceSubstituteRows"; substitute_rows.add_theme_constant_override("separation", 4); vbox.add_child(substitute_rows)
+	_refresh_resource_references(vbox, properties)
+	var yield_header := HBoxContainer.new(); yield_header.add_child(InspectorStyle.create_sub_header("Alternate yields"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; yield_header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Yield"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func(): var yields: Array = properties.get("yield_table", []) if properties.get("yield_table", []) is Array else []; yields.append({"item_id": "", "chance": 0.1}); properties["yield_table"] = yields; database_modified.emit(); _refresh_yield_rows(vbox, properties))
+	yield_header.add_child(add); vbox.add_child(yield_header)
+	var rows := VBoxContainer.new(); rows.name = "ResourceYieldRows"; rows.add_theme_constant_override("separation", 4); vbox.add_child(rows)
+	_refresh_yield_rows(vbox, properties)
+
+
+func _refresh_yield_rows(vbox: VBoxContainer, properties: Dictionary):
+	var rows := vbox.get_node_or_null("ResourceYieldRows")
+	if rows == null: return
+	for child in rows.get_children(): child.queue_free()
+	var yields: Array = properties.get("yield_table", []) if properties.get("yield_table", []) is Array else []
+	for index in range(yields.size()):
+		if not (yields[index] is Dictionary): continue
+		var entry: Dictionary = yields[index]
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var item_picker := _item_picker(str(entry.get("item_id", "")), "choose alternate item")
+		item_picker.item_selected.connect(func(selected): entry["item_id"] = str(item_picker.get_item_metadata(selected)); database_modified.emit())
+		row.add_child(item_picker)
+		var chance := SpinBox.new(); chance.min_value = 0; chance.max_value = 1; chance.step = 0.05; chance.value = float(entry.get("chance", 0.1)); chance.custom_minimum_size.x = 90; chance.tooltip_text = "chance from 0 to 1"
+		InspectorStyle.apply_input_style(chance); chance.value_changed.connect(func(value): entry["chance"] = float(value); database_modified.emit())
+		row.add_child(chance)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func(): yields.remove_at(index); if yields.is_empty(): properties.erase("yield_table") else: properties["yield_table"] = yields; database_modified.emit(); _refresh_yield_rows(vbox, properties))
+		row.add_child(remove); rows.add_child(row)
+	if yields.is_empty(): rows.add_child(InspectorStyle.lbl("The primary yield is guaranteed.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+func _refresh_resource_references(vbox: VBoxContainer, properties: Dictionary):
+	var rows := vbox.get_node_or_null("ResourceSubstituteRows")
+	if rows == null: return
+	for child in rows.get_children(): child.queue_free()
+	var values: Array = properties.get("substitute_resource_ids", []) if properties.get("substitute_resource_ids", []) is Array else []
+	for index in range(values.size()):
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var picker := _item_picker(str(values[index]), "choose substitute item")
+		picker.item_selected.connect(func(selected): values[index] = str(picker.get_item_metadata(selected)); properties["substitute_resource_ids"] = values; database_modified.emit())
+		row.add_child(picker)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func(): values.remove_at(index); if values.is_empty(): properties.erase("substitute_resource_ids") else: properties["substitute_resource_ids"] = values; database_modified.emit(); _refresh_resource_references(vbox, properties))
+		row.add_child(remove); rows.add_child(row)
+	if values.is_empty(): rows.add_child(InspectorStyle.lbl("No alternate source is suggested when this node is depleted.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+func _split_csv(text: String) -> Array:
+	var values: Array = []
+	for raw in text.split(","):
+		var value := str(raw).strip_edges()
+		if value != "" and not values.has(value): values.append(value)
+	return values
+
+
+func _string_list(value) -> Array:
+	var values: Array = []
+	if value is Array:
+		for raw in value:
+			var text := str(raw).strip_edges()
+			if text != "": values.append(text)
+	return values
+
+
+func _season_button_text(value) -> String:
+	var seasons := _string_list(value)
+	return "Year-round" if seasons.is_empty() else ", ".join(seasons)
+
+
+func _properties() -> Dictionary:
+	if not cur_data.has("properties") or not (cur_data["properties"] is Dictionary): cur_data["properties"] = {}
+	return cur_data["properties"]
+
+
+func _engine_item_class() -> String:
+	var family_id := str(cur_data.get("item_family", ""))
+	if catalog != null and family_id != "" and catalog.has_family(family_id):
+		return catalog.item_class_for_family(family_id)
+	return str(cur_data.get("type", "Item"))
+
+
+func _item_picker(current: String, placeholder: String) -> OptionButton:
+	var picker := OptionButton.new(); picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.add_item(placeholder); picker.set_item_metadata(0, "")
+	var ids: Array = database_mgr.get_item_ids() if database_mgr != null else []
+	for item_id in ids:
+		var label := str(item_id)
+		if database_mgr != null and database_mgr.items.get(item_id) is Dictionary:
+			label = "%s — %s" % [str(database_mgr.items[item_id].get("name", item_id)), item_id]
+		picker.add_item(label); picker.set_item_metadata(picker.item_count - 1, str(item_id))
+		if str(item_id) == current: picker.select(picker.item_count - 1)
+	if current != "" and picker.selected == 0:
+		picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); picker.select(picker.item_count - 1)
+	InspectorStyle.apply_button_style(picker)
+	return picker
 
 
 # What this template *is*, to the contract system: the family the engine resolves
@@ -386,8 +632,18 @@ func _add_item_prop(id):
 func _refresh_props():
 	for c in props_box.get_children(): c.queue_free()
 	var props = cur_data.properties
+	# These fields have a dedicated, lossless authoring surface above. Showing
+	# them again as generic rows invites two conflicting edits and makes the
+	# useful controls look like decoration.
+	var specialized := ["salvage_output"]
+	if _engine_item_class() == "Container":
+		specialized.append_array(["capacity", "locked", "key_id", "is_open", "contains"])
+	if _engine_item_class() == "ResourceNode":
+		specialized.append_array(["resource_item_id", "tool_required", "charges", "respawn_days", "yield_table", "substitute_resource_ids", "weather_blocked_by", "seasons", "material_quality"])
 	for key in props:
 		var val = props[key]
+		if specialized.has(str(key)):
+			continue
 		# Objects and arrays cannot make a lossless trip through a LineEdit:
 		# `str(value)` is GDScript debug syntax, not editable JSON. Keep them
 		# visible but read-only until their dedicated item-property controls exist.

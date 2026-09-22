@@ -800,6 +800,41 @@ def _validate_authored_world(
                     else:
                         neighbours.append((target_region, target_room))
 
+            # Room atmosphere is deliberately separate from `properties`: it
+            # composes with district/region environment at read time.  A typo
+            # here used to degrade silently ("dakr" simply never made a room
+            # dark), so its small closed shape belongs in the same authored
+            # world gate as exits and room placements.
+            env_properties = room.get("env_properties")
+            if env_properties is not None:
+                if not isinstance(env_properties, dict):
+                    issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' env_properties must be an object"))
+                else:
+                    bool_fields = ("dark", "outdoors", "has_windows", "noisy")
+                    allowed_env_keys = {*bool_fields, "smell", "temperature"}
+                    for key in env_properties:
+                        if key not in allowed_env_keys:
+                            issues.append(ContentSetIssue("warning", str(region_paths[region_id]), f"room '{region_id}:{room_id}' env_properties.{key} is ignored by the runtime"))
+                    for key in bool_fields:
+                        if key in env_properties and not isinstance(env_properties[key], bool):
+                            issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' env_properties.{key} must be a boolean"))
+                    if "smell" in env_properties and not isinstance(env_properties["smell"], str):
+                        issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' env_properties.smell must be a string"))
+                    if "temperature" in env_properties and env_properties["temperature"] not in ("normal", "cold", "hot"):
+                        issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' env_properties.temperature must be normal, cold, or hot"))
+
+            time_descriptions = room.get("time_descriptions")
+            if time_descriptions is not None:
+                if not isinstance(time_descriptions, dict):
+                    issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' time_descriptions must be an object"))
+                else:
+                    valid_periods = {"dawn", "day", "dusk", "night"}
+                    for period, description in time_descriptions.items():
+                        if period not in valid_periods:
+                            issues.append(ContentSetIssue("warning", str(region_paths[region_id]), f"room '{region_id}:{room_id}' time_descriptions.{period} is ignored by the runtime"))
+                        elif not isinstance(description, str):
+                            issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' time_descriptions.{period} must be a string"))
+
             adjacency[(region_id, room_id)] = neighbours
 
             for npc in room.get("initial_npcs", []):
@@ -809,11 +844,45 @@ def _validate_authored_world(
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' references missing NPC template '{npc['template_id']}'"))
                 elif "overrides" in npc and not isinstance(npc["overrides"], dict):
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' initial NPC overrides must be an object"))
+                elif isinstance(npc.get("overrides"), dict):
+                    overrides = npc["overrides"]
+                    allowed_override_keys = {
+                        "name", "level", "health", "max_health", "mana", "max_mana", "behavior_type",
+                        "properties_override", "patrol_points", "patrol_index",
+                    }
+                    for key in overrides:
+                        if key not in allowed_override_keys:
+                            issues.append(ContentSetIssue("warning", str(region_paths[region_id]), f"room '{region_id}:{room_id}' initial NPC override '{key}' is ignored by the runtime"))
+                    if "name" in overrides and not isinstance(overrides["name"], str):
+                        issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' NPC override name must be a string"))
+                    for key, minimum in (("level", 1), ("health", 1), ("max_health", 1), ("mana", 0), ("max_mana", 0), ("patrol_index", 0)):
+                        if key in overrides:
+                            value = overrides[key]
+                            if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+                                issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' NPC override {key} must be an integer of at least {minimum}"))
+                    if "properties_override" in overrides and not isinstance(overrides["properties_override"], dict):
+                        issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' NPC override properties_override must be an object"))
+                    if "patrol_points" in overrides:
+                        points = overrides["patrol_points"]
+                        if not isinstance(points, list) or any(not isinstance(point, str) or not point.strip() for point in points):
+                            issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' NPC override patrol_points must be an array of room ids"))
+                    if "behavior_type" in overrides:
+                        from engine.config import NPC_BEHAVIOR_TYPES
+                        behavior = overrides["behavior_type"]
+                        if not isinstance(behavior, str) or behavior not in NPC_BEHAVIOR_TYPES:
+                            issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' NPC override behavior_type must be one of: {', '.join(NPC_BEHAVIOR_TYPES)}"))
             for item in room.get("items", []):
                 if not isinstance(item, dict) or not isinstance(item.get("item_id"), str):
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' has an invalid items entry"))
                 elif item["item_id"] not in item_ids:
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' references missing item '{item['item_id']}'"))
+                else:
+                    if "quantity" in item:
+                        quantity = item["quantity"]
+                        if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
+                            issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' item '{item['item_id']}' quantity must be a positive integer"))
+                    if "properties_override" in item and not isinstance(item["properties_override"], dict):
+                        issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' item '{item['item_id']}' properties_override must be an object"))
 
     reachable: set[tuple[str, str]] = set()
     pending = [(start_region_id, start_room_id)]
@@ -2202,6 +2271,19 @@ def _validate_resource_node_yields(content_root: Path, issues: list[ContentSetIs
             resource_item_id = properties.get("resource_item_id")
             if not isinstance(resource_item_id, str) or resource_item_id not in item_ids:
                 issues.append(ContentSetIssue("error", str(path), f"{label}.properties.resource_item_id references a missing item template"))
+            for field in ("tool_required",):
+                if field in properties and not isinstance(properties[field], str):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.{field} must be a string"))
+            for field in ("charges", "max_charges", "respawn_days"):
+                if field in properties:
+                    value = properties[field]
+                    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.{field} must be a non-negative integer"))
+            for field in ("seasons", "weather_blocked_by"):
+                if field in properties:
+                    values = properties[field]
+                    if not isinstance(values, list) or any(not isinstance(value, str) or not value.strip() for value in values):
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.{field} must be an array of non-empty strings"))
             if "substitute_resource_ids" in properties:
                 substitute_ids = properties["substitute_resource_ids"]
                 if not isinstance(substitute_ids, list):
@@ -2229,6 +2311,92 @@ def _validate_resource_node_yields(content_root: Path, issues: list[ContentSetIs
                     issues.append(ContentSetIssue("error", str(path), f"{entry}.chance must be a number from 0 to 1"))
                 if "material_quality" in candidate:
                     validate_quality(candidate["material_quality"], path, entry)
+
+
+def _validate_container_templates(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Validate the authored contents and state of portable containers.
+
+    `Container` hydrates `properties.contains` into real item instances. A bad
+    entry otherwise disappears at runtime (or, before the quantity fix, quietly
+    becomes one item), which is exactly the sort of content problem an author
+    needs to see before playtesting.
+    """
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    for path in sorted((content_root / "items").glob("*.json")):
+        payload = _load_json(path, issues, "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item_id, definition in payload.items():
+            if not isinstance(definition, dict) or definition.get("type") != "Container":
+                continue
+            properties = definition.get("properties", {})
+            if not isinstance(properties, dict):
+                issues.append(ContentSetIssue("error", str(path), f"container '{item_id}'.properties must be an object"))
+                continue
+            label = f"container '{item_id}'.properties"
+            if "capacity" in properties:
+                capacity = properties["capacity"]
+                if isinstance(capacity, bool) or not isinstance(capacity, (int, float)) or capacity < 0:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.capacity must be a non-negative number"))
+            for field in ("locked", "is_open"):
+                if field in properties and not isinstance(properties[field], bool):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.{field} must be a boolean"))
+            if properties.get("key_id") is not None:
+                key_id = properties["key_id"]
+                if not isinstance(key_id, str) or key_id not in item_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.key_id references a missing item template"))
+            if "contains" not in properties:
+                continue
+            contents = properties["contains"]
+            if not isinstance(contents, list):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.contains must be an array"))
+                continue
+            for index, entry in enumerate(contents):
+                entry_label = f"{label}.contains[{index}]"
+                if not isinstance(entry, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry_label} must be an object"))
+                    continue
+                ref = entry.get("item_id")
+                if not isinstance(ref, str) or ref not in item_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{entry_label}.item_id references a missing item template"))
+                if "quantity" in entry:
+                    quantity = entry["quantity"]
+                    if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
+                        issues.append(ContentSetIssue("error", str(path), f"{entry_label}.quantity must be a positive integer"))
+                if "properties_override" in entry and not isinstance(entry["properties_override"], dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry_label}.properties_override must be an object"))
+
+
+def _validate_crafting_station_references(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """A station-required recipe must name a station an item can actually provide."""
+    station_types: set[str] = set()
+    for path in sorted((content_root / "items").glob("*.json")):
+        payload = _load_json(path, issues, "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for definition in payload.values():
+            if not isinstance(definition, dict):
+                continue
+            properties = definition.get("properties", {})
+            if not isinstance(properties, dict):
+                continue
+            station = properties.get("crafting_station_type")
+            if isinstance(station, str) and station.strip():
+                station_types.add(station.strip())
+    for path in sorted((content_root / "crafting").glob("*.json")):
+        payload = _load_json(path, issues, "crafting recipes")
+        if not isinstance(payload, dict):
+            continue
+        for recipe_id, recipe in payload.items():
+            if not isinstance(recipe, dict) or str(recipe_id).startswith("_"):
+                continue
+            station = recipe.get("station_required")
+            if station is None:
+                continue
+            if not isinstance(station, str):
+                issues.append(ContentSetIssue("error", str(path), f"recipe '{recipe_id}'.station_required must be a string or null"))
+            elif station.strip() not in station_types:
+                issues.append(ContentSetIssue("error", str(path), f"recipe '{recipe_id}'.station_required names no authored crafting station: {station!r}"))
 
 
 def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
@@ -3103,6 +3271,8 @@ def load_content_set(
         contract_registry = _load_contract_registry(content_root)
         _validate_vendor_orders(content_root, issues)
         _validate_resource_node_yields(content_root, issues)
+        _validate_container_templates(content_root, issues)
+        _validate_crafting_station_references(content_root, issues)
         _validate_crafting_quality_contracts(content_root, issues, contract_registry)
         _validate_salvage_rules(
             content_root, issues, contract_registry,

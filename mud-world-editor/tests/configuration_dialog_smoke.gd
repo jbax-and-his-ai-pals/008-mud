@@ -91,10 +91,15 @@ func _run():
 	var rules = Rules.new(); root.add_child(rules); rules.setup(); rules.open_active()
 	var rules_path := fixture.path_join("rules/ruleset.json")
 	var rules_before: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
+	_assert(rules._salvage_rules() == rules_before.get("crafting", {}).get("salvage_rules", {}), "ruleset salvage rows preserve authored comments and family rules")
+	var fallback_index := _metadata_index(rules.salvage_default, "item_patch_kit")
+	_assert(fallback_index >= 0, "salvage fallback offers authored item templates")
+	if fallback_index >= 0:
+		rules.salvage_default.item_selected.emit(fallback_index)
 	_edit(rules.ruleset_id, str(rules_before["ruleset_id"]) + "_edited")
 	rules.confirmed.emit()
-	var rules_expected := rules_before.duplicate(true); rules_expected["ruleset_id"] = str(rules_before["ruleset_id"]) + "_edited"
-	_assert(JSON.parse_string(FileAccess.get_file_as_string(rules_path)) == rules_expected, "ruleset save preserves every untouched section/default: " + rules.status_label.text)
+	var rules_expected := rules_before.duplicate(true); rules_expected["ruleset_id"] = str(rules_before["ruleset_id"]) + "_edited"; rules_expected["crafting"]["salvage_rules"]["default_item_id"] = "item_patch_kit"
+	_assert(JSON.parse_string(FileAccess.get_file_as_string(rules_path)) == rules_expected, "ruleset save preserves untouched salvage details while changing its chosen fallback: " + rules.status_label.text)
 	rules.open_active()
 	var rows_before: int = rules.faction_rows.get_child_count(); rules.hide(); rules.open_active()
 	_assert(rules.faction_rows.get_child_count() == rows_before, "faction rows do not duplicate on reopen")
@@ -164,6 +169,11 @@ func _field(node: Node, caption: String) -> LineEdit:
 
 func _edit(field: LineEdit, value: String):
 	field.text = value; field.text_changed.emit(value)
+
+func _metadata_index(picker: OptionButton, wanted: String) -> int:
+	for index in range(picker.item_count):
+		if str(picker.get_item_metadata(index)) == wanted: return index
+	return -1
 
 func _assert(condition: bool, message: String):
 	print("  %s %s" % ["OK" if condition else "FAIL", message])

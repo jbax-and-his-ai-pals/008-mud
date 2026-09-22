@@ -826,6 +826,21 @@ func patch_reference(file: String, path: String, old_id: String, new_id: String)
 		result["path_after"] = "%s.%s" % [str(parts[0]), str(result.get("path_after", inner))]
 	return result
 
+## Ask whether an indexed reference can be repaired without touching the loaded
+## library.  A rename used to learn that a later path was malformed only after it
+## had already changed earlier entries.  The caller preflights every hit first,
+## then either applies all of them or leaves the draft exactly as it was.
+func can_patch_reference(file: String, path: String, old_id: String, new_id: String) -> Dictionary:
+	var parts: Array = Patch.parse_path(path)
+	if parts.size() < 2:
+		return {"ok": false, "error": "the index reported no path inside %s" % file}
+	var owner := entry_named_by(file, str(parts[0]))
+	if owner.is_empty():
+		return {"ok": false, "error": "no %s entry named by %s is loaded" % [str(parts[0]), file]}
+	var copy: Dictionary = (owner["entry"] as Dictionary).duplicate(true)
+	var inner := ".".join(parts.slice(1))
+	return Patch.rename(copy, inner, old_id, new_id)
+
 func mark_dirty(type: String, id: String):
 	if dirty_flags.has(type): dirty_flags[type][id] = true
 
@@ -839,6 +854,15 @@ func has_unsaved_changes() -> bool:
 func mark_clean():
 	for t in dirty_flags: dirty_flags[t].clear()
 	magic_groups_dirty = false
+
+## The disk checkpoint was restored after a failed validation.  The in-memory
+## entries still contain the author's edits, so every affected library section
+## must become visibly dirty again rather than looking saved while disk disagrees.
+func mark_all_dirty() -> void:
+	for type in CACHE_TYPES:
+		for id in _cache_for(type):
+			mark_dirty(type, str(id))
+	magic_groups_dirty = true
 
 func get_ids(type: String) -> Array:
 	var d = _cache_for(type)

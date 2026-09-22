@@ -1164,6 +1164,8 @@ func _save_everything() -> bool:
 	# in-memory caches are deliberately *not* rolled back -- the author's work
 	# stays on screen and stays dirty, so the fix is to save again.
 	var checkpoint := SaveCheckpoint.begin(DataRoot.root())
+	var had_region_changes := region_mgr.is_region_dirty
+	var had_library_changes := database_mgr.has_unsaved_changes()
 	if state.is_world_view:
 		var layout := world_mgr.save_world_layout()
 		if not layout.get("ok", false):
@@ -1182,13 +1184,55 @@ func _save_everything() -> bool:
 	if database_mgr.has_unsaved_changes():
 		var database := database_mgr.save_all()
 		if not database.get("ok", true):
+			_restore_dirty_data_state(had_region_changes, had_library_changes)
 			return _report_failed_save(checkpoint, "Some content files could not be saved",
 				"\n".join(database.get("errors", [])))
 
+	# A file writing successfully is not an accepted authoring operation by itself:
+	# it must still be a set the engine accepts.  Configuration drafts already stage
+	# their own candidate through this verdict; this closes the equivalent gap for
+	# ordinary region and library writes.  On refusal the checkpoint restores disk
+	# while the in-memory edits stay marked dirty for correction or retry.
+	# Headless manager tests and legacy callers can point DataRoot at a bare data
+	# folder. That is not an authorable content set (and the UI's normal chooser
+	# refuses it), so there is no engine manifest to validate. Real editor sets
+	# always carry the manifest and therefore always take the fail-closed path.
+	if (had_region_changes or had_library_changes) and FileAccess.file_exists(DataRoot.root().path_join("content_set.manifest.json")):
+		var repo_root := ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir()
+		var verdict := EngineValidator.run(DataRoot.root(), repo_root, _find_python(repo_root))
+		if not verdict.get("ran", false):
+			_restore_dirty_data_state(had_region_changes, had_library_changes)
+			return _report_failed_save(checkpoint, "Could not validate saved content", str(verdict.get("error", "The engine validator did not run.")))
+		if not verdict.get("ok", false):
+			_restore_dirty_data_state(had_region_changes, had_library_changes)
+			return _report_failed_save(checkpoint, "Engine validation refused the saved content", _validation_error_summary(verdict))
+
 	if not ui_mgr.save_configuration_drafts(): return false
 	SaveCheckpoint.prune(DataRoot.root())
+	if had_region_changes or had_library_changes:
+		reference_index.clear()
 	_update_explorer_dirty_state(); _update_db_ui()
 	return true
+
+## Restore the visible dirty state after `SaveCheckpoint` restores disk.  The
+## values on screen are intentionally kept as the author's draft; hiding their
+## dirty state here would make the next set switch discard them.
+func _restore_dirty_data_state(had_region_changes: bool, had_library_changes: bool) -> void:
+	if had_region_changes:
+		region_mgr.mark_region_dirty()
+	if had_library_changes:
+		database_mgr.mark_all_dirty()
+
+func _validation_error_summary(verdict: Dictionary) -> String:
+	var lines: Array = []
+	for issue in verdict.get("issues", []):
+		if issue is Dictionary and str(issue.get("severity", "error")) == "error":
+			var path := str(issue.get("path", ""))
+			lines.append((path + ": " if path != "" else "") + str(issue.get("message", "Engine validation failed.")))
+			if lines.size() >= 12:
+				lines.append("… additional errors omitted; open Open Set Validation for the full report.")
+				break
+	return "\n".join(lines) if not lines.is_empty() else "The engine rejected this content. Open Set Validation for the full report."
 
 ## Report a failed save, after putting the set back the way it was.
 ##
@@ -1211,6 +1255,19 @@ func _report_failed_save(checkpoint: Dictionary, title: String, message: String)
 
 func _confirm_delete_db_entry(type: String, id: String):
 	if not database_mgr.has_entry(type, id):
+		return
+	# Deleting a referenced identity has no repair path yet.  Refusing is more
+	# honest than asking for confirmation and then knowingly leaving broken content;
+	# use Rename to preserve indexed references, or remove the dependencies first.
+	if not reference_index.loaded():
+		var loaded := reference_index.load_for(DataRoot.data_dir())
+		if not loaded.get("ok", false):
+			ui_mgr.show_error("Delete blocked", "Reference check unavailable. No destructive edit is allowed until it can run:\n\n%s" % str(loaded.get("error", "unknown index error")))
+			return
+	var family := reference_index.family_for_type(type)
+	var referrers: Array = reference_index.referrers_of(id, family) if family != "" else []
+	if not referrers.is_empty():
+		ui_mgr.show_error("Delete blocked", "'%s' is still named %d time(s). This editor does not yet offer a safe delete-and-repair operation. Rename it, or remove these dependencies first.\n\n%s" % [id, referrers.size(), reference_index.describe(id, type)])
 		return
 	ui_mgr.confirm(
 		"Delete %s" % id,
@@ -1266,6 +1323,9 @@ func _on_request_entry_rename(type: String, old_id: String, new_id: String):
 		)
 		return
 	var plan := _rename_plan(type, old_id)
+	if not (plan.get("blocked", []) as Array).is_empty():
+		ui_mgr.show_error("Rename blocked", "Nothing was changed. The reference plan has paths that cannot be repaired safely:\n\n%s" % plan["summary"])
+		return
 	ui_mgr.confirm(
 		"Rename %s to %s" % [old_id, new_id],
 		"Rename the %s '%s' to '%s'?\n\n%s" % [type, old_id, new_id, plan["summary"]],
@@ -1277,7 +1337,7 @@ func _on_request_entry_rename(type: String, old_id: String, new_id: String):
 ## What the index knows about this id, split by what a rename can do about it:
 ## the library caches, the region files, and anything that fails at apply time.
 func _rename_plan(type: String, old_id: String) -> Dictionary:
-	var plan := {"repairable": [], "region": [], "summary": ""}
+	var plan := {"repairable": [], "region": [], "blocked": [], "summary": ""}
 	if not reference_index.loaded():
 		var loaded := reference_index.load_for(DataRoot.data_dir())
 		if not loaded.get("ok", false):
@@ -1289,10 +1349,24 @@ func _rename_plan(type: String, old_id: String) -> Dictionary:
 		return plan
 	for hit in reference_index.referrers_of(old_id, family):
 		if str(hit["file"]).begins_with("regions/"):
-			plan["region"].append(hit)
+			var region_check := region_mgr.can_patch_reference(hit["file"], hit["path"], old_id, "__preview__%s" % old_id)
+			if region_check.get("ok", false):
+				plan["region"].append(hit)
+			else:
+				plan["blocked"].append({"file": hit["file"], "path": hit["path"], "error": region_check.get("error", "could not preflight")})
 		else:
-			plan["repairable"].append(hit)
+			var library_check := database_mgr.can_patch_reference(hit["file"], hit["path"], old_id, "__preview__%s" % old_id)
+			if library_check.get("ok", false):
+				plan["repairable"].append(hit)
+			else:
+				plan["blocked"].append({"file": hit["file"], "path": hit["path"], "error": library_check.get("error", "could not preflight")})
 	var lines: Array = []
+	lines.append("Review before apply — the rename stays in the current draft until Save Changes validates the content set.")
+	if not plan["blocked"].is_empty():
+		lines.append("")
+		lines.append("Cannot safely repair %d reference(s):" % plan["blocked"].size())
+		for hit in plan["blocked"]:
+			lines.append("  %s\n    %s\n    %s" % [hit["file"], hit["path"], hit["error"]])
 	if plan["repairable"].is_empty() and plan["region"].is_empty():
 		lines.append("Nothing in the indexed families names this id, so no other file needs to change.")
 	else:
@@ -1311,6 +1385,9 @@ func _rename_plan(type: String, old_id: String) -> Dictionary:
 	return plan
 
 func _apply_entry_rename(type: String, old_id: String, new_id: String, plan: Dictionary):
+	if not (plan.get("blocked", []) as Array).is_empty():
+		ui_mgr.show_error("Rename blocked", "This rename was not applied because its preflight no longer permits every repair.")
+		return
 	var patched: Array = []
 	var failures: Array = []
 	for hit in plan["repairable"]:

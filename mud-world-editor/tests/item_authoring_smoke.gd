@@ -40,6 +40,7 @@ func _init() -> void:
 
 	_check_items_load()
 	_check_salvage_output_is_editable()
+	_check_container_and_resource_node_authoring()
 	_check_a_written_salvage_output_is_kept()
 
 	if python_exe != "":
@@ -135,6 +136,32 @@ func _check_a_written_salvage_output_is_kept() -> void:
 		"which the editor offers as a suggestion: %s" % str(database.catalog.family_ids()))
 
 
+func _check_container_and_resource_node_authoring() -> void:
+	print("\n[containers and gathering resources]")
+	var database := DatabaseManager.new()
+	var chest: Dictionary = database.items["item_field_chest"]
+	var chest_holder := _inspector_for(chest, database)
+	var node: Dictionary = database.items["item_ore_vein"]
+	var node_holder := _inspector_for(node, database)
+	var labels := _labels(chest_holder)
+	var label_text: Array = []
+	for label in labels: label_text.append(label.text)
+	_assert(label_text.has("Starting contents"), "a container exposes its starting contents")
+	var node_labels := _labels(node_holder)
+	var node_text: Array = []
+	for label in node_labels: node_text.append(label.text)
+	_assert(node_text.has("Primary yield"), "a resource node exposes its primary yield")
+	_assert(node_text.has("Alternate yields"), "and alternate yields")
+	_assert(node_text.has("Material grade"), "with a structured material-grade control")
+	_assert(node_text.has("Substitute resources"), "and a structured substitute-resource list")
+	for button in _buttons(chest_holder):
+		if button.text == "+ Item": button.pressed.emit()
+	_assert(chest.get("properties", {}).get("contains", []).size() == 1, "adding a contained item writes the engine array")
+	for button in _buttons(node_holder):
+		if button.text == "+ Yield": button.pressed.emit()
+	_assert(node.get("properties", {}).get("yield_table", []).size() == 1, "adding an alternate yield writes the engine array")
+
+
 # The proof: the engine resolves what the inspector wrote.
 func _check_the_engine_accepts_what_this_wrote() -> void:
 	print("\n[the engine's verdict]")
@@ -180,6 +207,20 @@ func _check_boxes(node: Node) -> Array:
 		found.append(node)
 	for child in node.get_children():
 		found.append_array(_check_boxes(child))
+	return found
+
+
+func _buttons(node: Node) -> Array:
+	var found: Array = []
+	if node is Button: found.append(node)
+	for child in node.get_children(): found.append_array(_buttons(child))
+	return found
+
+
+func _labels(node: Node) -> Array:
+	var found: Array = []
+	if node is Label: found.append(node)
+	for child in node.get_children(): found.append_array(_labels(child))
 	return found
 
 
@@ -258,6 +299,15 @@ func _build_fixture() -> void:
 		"item_lattice_shard": {
 			"name": "lattice shard", "type": "Item", "value": 210, "weight": 0.3,
 			"item_family": "salvaged_part", "properties": {},
+		},
+		"item_field_chest": {
+			"name": "field chest", "type": "Container", "value": 20, "weight": 4,
+			"properties": {"capacity": 40, "locked": false, "is_open": true, "contains": []},
+		},
+		"item_ore_vein": {
+			"name": "ore vein", "type": "ResourceNode", "properties": {
+				"resource_item_id": "item_scrap_alloy", "charges": 3, "respawn_days": 1,
+			},
 		},
 	})
 

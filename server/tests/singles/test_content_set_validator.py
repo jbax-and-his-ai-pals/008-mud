@@ -113,6 +113,83 @@ class TestContentSetValidator(unittest.TestCase):
         self.assertTrue(any("missing NPC template 'ghost'" in message for message in messages))
         self.assertTrue(any("missing item 'missing_map'" in message for message in messages))
 
+    def test_room_item_placements_require_a_real_quantity_and_override_object(self) -> None:
+        package = self._write_package(self._case_root())
+        (package / "data" / "items" / "items.json").write_text(
+            json.dumps({"item_map": {"name": "Map", "type": "Item"}}), encoding="utf-8"
+        )
+        region_path = package / "data" / "regions" / "town.json"
+        region_path.write_text(
+            json.dumps({
+                "region_id": "town",
+                "rooms": {"square": {"name": "Square", "items": [
+                    {"item_id": "item_map", "quantity": 0, "properties_override": []},
+                ]}},
+            }),
+            encoding="utf-8",
+        )
+        _definition, issues = validator.load_content_set(package)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("item 'item_map' quantity must be a positive integer" in message for message in messages))
+        self.assertTrue(any("item 'item_map' properties_override must be an object" in message for message in messages))
+
+    def test_room_npc_placement_overrides_have_a_checked_runtime_shape(self) -> None:
+        package = self._write_package(self._case_root())
+        (package / "data" / "npcs" / "npcs.json").write_text(
+            json.dumps({"npc_guide": {"name": "Guide"}}), encoding="utf-8"
+        )
+        region_path = package / "data" / "regions" / "town.json"
+        region_path.write_text(
+            json.dumps({
+                "region_id": "town",
+                "rooms": {"square": {"name": "Square", "initial_npcs": [{
+                    "template_id": "npc_guide",
+                    "overrides": {"level": 0, "behavior_type": "hover", "properties_override": [], "extra": True},
+                }]}},
+            }),
+            encoding="utf-8",
+        )
+        _definition, issues = validator.load_content_set(package)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("override level must be an integer of at least 1" in message for message in messages))
+        self.assertTrue(any("override behavior_type must be one of" in message for message in messages))
+        self.assertTrue(any("override properties_override must be an object" in message for message in messages))
+        self.assertTrue(any("override 'extra' is ignored by the runtime" in message for message in messages))
+
+    def test_room_environment_has_a_small_checked_shape(self) -> None:
+        package = self._write_package(self._case_root())
+        region_path = package / "data" / "regions" / "town.json"
+        region_path.write_text(
+            json.dumps({
+                "region_id": "town",
+                "rooms": {"square": {"name": "Square", "env_properties": {
+                    "dark": "yes", "temperature": "warm", "smell": 3, "mystery": True,
+                }}},
+            }),
+            encoding="utf-8",
+        )
+        _definition, issues = validator.load_content_set(package)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("env_properties.dark must be a boolean" in message for message in messages))
+        self.assertTrue(any("env_properties.temperature must be normal, cold, or hot" in message for message in messages))
+        self.assertTrue(any("env_properties.smell must be a string" in message for message in messages))
+        self.assertTrue(any("env_properties.mystery is ignored by the runtime" in message for message in messages))
+
+    def test_room_time_descriptions_have_a_checked_shape(self) -> None:
+        package = self._write_package(self._case_root())
+        region_path = package / "data" / "regions" / "town.json"
+        region_path.write_text(
+            json.dumps({
+                "region_id": "town",
+                "rooms": {"square": {"name": "Square", "time_descriptions": {"day": 3, "midnight": "ignored"}}},
+            }),
+            encoding="utf-8",
+        )
+        _definition, issues = validator.load_content_set(package)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("time_descriptions.day must be a string" in message for message in messages))
+        self.assertTrue(any("time_descriptions.midnight is ignored by the runtime" in message for message in messages))
+
     def test_ruleset_cannot_contradict_manifest_capabilities(self) -> None:
         package = self._write_package(self._case_root())
         (package / "rules" / "ruleset.json").write_text(

@@ -229,9 +229,23 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
             
             for item_ref in getattr(room, 'initial_item_refs', []):
                 if item_ref and "item_id" in item_ref:
-                    item = ItemFactory.create_item_from_template(item_ref["item_id"], world, **item_ref.get("properties_override", {}))
-                    if item:
-                        room.add_item(item)
+                    # Room item references use the same `{item_id, quantity,
+                    # properties_override}` contract as containers and starter
+                    # inventory.  Previously the editor exposed quantity here,
+                    # but loading quietly created one instance regardless.
+                    # Keep malformed legacy data playable (one item) while the
+                    # content validator tells the author how to repair it.
+                    try:
+                        quantity = max(1, int(item_ref.get("quantity", 1)))
+                    except (TypeError, ValueError):
+                        quantity = 1
+                    overrides = item_ref.get("properties_override", {})
+                    if not isinstance(overrides, dict):
+                        overrides = {}
+                    for _ in range(quantity):
+                        item = ItemFactory.create_item_from_template(item_ref["item_id"], world, **overrides)
+                        if item:
+                            room.add_item(item)
             for npc_ref in getattr(room, 'initial_npc_refs', []):
                 instance_id = npc_ref.get("instance_id", f"{npc_ref.get('template_id')}_{uuid.uuid4().hex[:8]}")
                 if npc_ref.get("template_id") and instance_id not in world.npcs:

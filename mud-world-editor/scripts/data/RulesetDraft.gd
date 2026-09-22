@@ -52,6 +52,9 @@ func set_system_enabled(system_id: String, enabled: bool):
 func set_faction_extras(extras: Array):
 	_section("factions")["extra"] = extras.duplicate(true)
 
+func set_salvage_rules(rules: Dictionary):
+	_section("crafting")["salvage_rules"] = rules.duplicate(true)
+
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):
 	var regions: Dictionary = _section("world").get("regions", {})

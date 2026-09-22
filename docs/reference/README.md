@@ -16,6 +16,7 @@ bug report rather than a sign of progress.
 | [`operator-profile-recipes.md`](operator-profile-recipes.md) | operators | Current |
 | [`theme-pack-spec-v1.md`](theme-pack-spec-v1.md) | content authors | The versioned contract for presentation packs |
 | [`mud-world-editor-export-contract.md`](mud-world-editor-export-contract.md) | editor authors | Current |
+| [`configuration-editing-safety.md`](configuration-editing-safety.md) | editor authors, testers | Current behavior and limits for configuration drafts, reference repairs and recoverable saves |
 | [`content-authoring-and-mod-publishing-guidelines.md`](content-authoring-and-mod-publishing-guidelines.md) | content authors | Current, but **narrow**: covers publishing, not authoring from scratch. The authoring guide does not exist yet |
 | [`onboarding-tutorial-flow.md`](onboarding-tutorial-flow.md) | players, docs | Current |
 | [`manual-poc-test-checklist.md`](manual-poc-test-checklist.md) | testers | Current |

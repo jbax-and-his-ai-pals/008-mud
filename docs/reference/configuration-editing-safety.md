@@ -1,7 +1,8 @@
-# Configuration editing: current safety behavior
+# Editor save and configuration safety
 
-**Updated 2026-09-21.** Applies to the Ruleset, Manifest, Contract and Combat
-Vocabulary dialogs. This is the first hardening slice of
+**Updated 2026-09-22.** Applies to the Ruleset, Manifest, Contract and Combat
+Vocabulary dialogs, plus the reference-aware rename/delete and ordinary
+library/region save path. This is the first hardening slice of
 [batch 6A](../plan/chunks-of-work.md), not the multi-file migration workflow proposed in
 the [game-authoring roadmap](../plan/game-authoring-roadmap.md).
 
@@ -62,6 +63,28 @@ capability in the Ruleset dialog alone is rejected; this batch does not silently
 rewrite the manifest or delete that system's content. Inherited system values are
 shown without materializing overrides during unrelated edits.
 
+## Reference-aware library edits
+
+- Before a library entry is renamed, the editor shows every reference found by
+  the engine-shared reverse index, grouped by file and JSON path. It then
+  preflights every path on a copy. If even one path is stale, malformed,
+  unparseable, or would collide with an existing key, the rename is blocked and
+  nothing is changed.
+- The repaired rename remains a normal dirty editor change. **Save Changes**
+  checkpoints `data/`, writes the affected region/library files, then runs the
+  open-set engine validator. An engine error restores the checkpointed files and
+  keeps the visible edits dirty, so the author can correct or discard them.
+- Delete is intentionally narrower: an entry with indexed referrers cannot be
+  deleted yet. The author must rename it or remove the dependencies first. An
+  empty index result is described as partial coverage, never as proof that the
+  identity is unused.
+
+The current reference index covers item, NPC, ability, room, collection and
+recipe references from the same family table used by the validation gate. It does
+not yet cover every engine binding, nor does it offer a multi-file refactor
+transaction, delete dispositions, external roots, or a combined atomic commit of
+configuration and library changes.
+
 ## Regression evidence and human retest
 
 `mud-world-editor/tests/configuration_dialog_smoke.gd` exercises actual control
@@ -71,6 +94,8 @@ external conflicts, and the full editor scene's signal/dirty-state integration.
 write failure, external changes and validator failure, plus runner false-positive
 and timeout checks. The editor runner now treats `SCRIPT ERROR:` as failure even
 when Godot exits zero.
+`reference_index_smoke.gd` also proves that a rename preflight is non-mutating,
+and that a restored checkpoint can return the library to a visible dirty state.
 
 Human retest on a **copy** of a content set:
 
@@ -86,6 +111,11 @@ Human retest on a **copy** of a content set:
 5. With a configuration edit pending, request application close. Keep editing;
    then try save-and-close. Repeat with a deliberately invalid draft and confirm
    the application does not exit after the failed save.
+6. On a copied content set, rename an item used by a recipe or vendor. Review the
+   listed paths, save, reopen the recipe/vendor and confirm they now name the new
+   item. Try deleting that same item: it should be blocked until those references
+   are removed. Introduce an invalid item family, save, and confirm the data file
+   is restored while the editor still shows unsaved work.
 
 Visual layout/accessibility and exhaustive edits across every contract/ruleset
 field are not certified by these headless checks. The full-scene smoke currently

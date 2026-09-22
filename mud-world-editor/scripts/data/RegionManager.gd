@@ -144,6 +144,24 @@ func patch_reference(file_name: String, path: String, old_id: String, new_id: St
 	if not written.get("ok", false):
 		return {"ok": false, "error": str(written.get("error", "could not write %s" % target))}
 	return patched
+
+## Non-mutating companion to `patch_reference`.  A reference refactor calls this
+## for every region hit before changing any cache or file, so a malformed sibling
+## region cannot produce a partly repaired rename.
+func can_patch_reference(file_name: String, path: String, old_id: String, new_id: String) -> Dictionary:
+	var target := file_name.get_file()
+	if target == current_filename and loaded_ok:
+		return ReferencePatch.rename(data.duplicate(true), path, old_id, new_id)
+	var full := regions_dir().path_join(target)
+	if not FileAccess.file_exists(full):
+		return {"ok": false, "error": "%s is not in this content set" % target}
+	var json := JSON.new()
+	if json.parse(FileAccess.get_file_as_string(full)) != OK:
+		return {"ok": false, "error": "%s could not be parsed, so nothing was changed" % target}
+	var payload = json.get_data()
+	if not payload is Dictionary:
+		return {"ok": false, "error": "%s is not a region object" % target}
+	return ReferencePatch.rename((payload as Dictionary).duplicate(true), path, old_id, new_id)
 func save_region() -> Dictionary:
 	if current_filename == "":
 		return {"ok": false, "error": "No region is loaded, so there is nothing to save."}

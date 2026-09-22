@@ -45,6 +45,7 @@ func _run():
 	_check_a_missing_root_fails_loudly()
 	_check_clear_forgets_the_set(data_root)
 	_check_a_path_is_walked_the_way_the_index_spells_it()
+	_check_preflight_never_mutates_a_reference()
 	_check_a_rename_repairs_the_entries_that_name_it(data_root)
 	_check_a_region_reference_is_repaired_too()
 
@@ -190,6 +191,37 @@ func _check_a_path_is_walked_the_way_the_index_spells_it() -> void:
 
 	var collision: Dictionary = PatchScript.rename(entry, "loot_table.item_blade", "item_blade", "item_key")
 	_assert(not collision.get("ok", true), "renaming onto an existing key is refused rather than overwriting")
+
+
+func _check_preflight_never_mutates_a_reference() -> void:
+	# The rename dialog must know every path can be repaired before it alters the
+	# first one.  These probes run the same walkers on copies and prove neither
+	# cache nor file changes merely because an author opened the review.
+	print("\n[reference preflight is non-mutating]")
+	DataRoot._resolved = fixture
+	DataRoot._source = "reference preflight smoke"
+	var db = DatabaseManagerScript.new()
+	db.load_all()
+	var recipe_before: Dictionary = db.entry("recipe", "fabricate_patch_kit").duplicate(true)
+	var check: Dictionary = db.can_patch_reference(
+		"crafting/fabrication.json", "fabricate_patch_kit.result_item_id", "item_patch_kit", "item_patch_kit_preview")
+	_assert(check.get("ok", false), "a valid library reference preflights: %s" % check.get("error", ""))
+	_assert(db.entry("recipe", "fabricate_patch_kit") == recipe_before,
+		"library preflight leaves the loaded entry byte-for-byte equivalent")
+	_assert(not db.has_unsaved_changes(), "library preflight does not mark anything dirty")
+
+	var region_path := fixture.path_join("data/regions/station.json")
+	var region_before := FileAccess.get_file_as_string(region_path)
+	var regions = RegionManagerScript.new()
+	var missing: Dictionary = regions.can_patch_reference(
+		"regions/station.json", "spawner.npc_types.no_such_npc", "no_such_npc", "replacement")
+	_assert(not missing.get("ok", true), "a path that is not present is refused during preflight")
+	_assert(FileAccess.get_file_as_string(region_path) == region_before,
+		"failed region preflight leaves the file untouched")
+	_assert(not regions.is_region_dirty, "and does not mark a region dirty")
+
+	db.mark_all_dirty()
+	_assert(db.has_unsaved_changes(), "a restored checkpoint can make all loaded library entries dirty again")
 
 
 func _check_a_rename_repairs_the_entries_that_name_it(data_root: String) -> void:

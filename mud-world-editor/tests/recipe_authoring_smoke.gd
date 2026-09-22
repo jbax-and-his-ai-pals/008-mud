@@ -37,6 +37,7 @@ func _init() -> void:
 
 	_check_recipes_load()
 	_check_the_inspector_edits_the_engine_fields()
+	_check_station_picker_uses_authored_stations()
 	_check_ingredients_and_tiers_are_structural()
 	_check_an_ingredient_can_name_a_rule()
 	_check_a_new_recipe_is_usable()
@@ -85,6 +86,24 @@ func _check_the_inspector_edits_the_engine_fields() -> void:
 			"and edits write the engine's field: %s" % str(recipe.get("result_item_id", "")))
 
 
+func _check_station_picker_uses_authored_stations() -> void:
+	print("\n[crafting stations]")
+	var database := DatabaseManager.new()
+	var recipe: Dictionary = database.recipes["fabricate_patch_kit"]
+	var holder := _inspector_for(recipe, database)
+	var station_picker: OptionButton = null
+	for picker in _option_buttons(holder):
+		if picker.item_count > 1 and str(picker.get_item_metadata(1)) == "fabricator":
+			station_picker = picker
+			break
+	_assert(station_picker != null, "the station control offers station types authored by item templates")
+	if station_picker == null: return
+	station_picker.item_selected.emit(1)
+	_assert(str(recipe.get("station_required", "")) == "fabricator", "choosing a station writes its engine-facing type")
+	station_picker.item_selected.emit(0)
+	_assert(recipe.get("station_required") == null, "the first option restores handcrafting")
+
+
 func _check_ingredients_and_tiers_are_structural() -> void:
 	print("\n[ingredients and tiers]")
 	var database := DatabaseManager.new()
@@ -131,7 +150,7 @@ func _check_an_ingredient_can_name_a_rule() -> void:
 	recipe["ingredients"] = [{"item_id": "item_servo_cluster", "quantity": 1}]
 	var holder := _inspector_for(recipe, database)
 
-	var pickers := _option_buttons(holder)
+	var pickers := _named(holder, "ReferenceKindPicker")
 	_assert(pickers.size() == 1, "each ingredient row offers a reference kind: %d" % pickers.size())
 	if pickers.is_empty():
 		return
@@ -167,7 +186,7 @@ func _check_an_ingredient_can_name_a_rule() -> void:
 
 	# A template reference is one exact thing, so a grade floor on it would be a
 	# second, contradictory answer; switching back must take it with it.
-	var pickers_after := _option_buttons(holder)
+	var pickers_after := _named(holder, "ReferenceKindPicker")
 	_assert(pickers_after.size() == 1, "the row still has its picker")
 	if not pickers_after.is_empty():
 		pickers_after[0].item_selected.emit(0)
@@ -211,6 +230,7 @@ func _check_the_engine_accepts_what_this_wrote() -> void:
 	var database := DatabaseManager.new()
 	var recipe: Dictionary = database.recipes["fabricate_patch_kit"]
 	recipe["result_item_id"] = "item_patch_kit"
+	recipe["station_required"] = "fabricator"
 	# One ingredient of each kind, so the validator is asked to resolve a
 	# template, a family and a capability from the same recipe.
 	recipe["ingredients"] = [
@@ -282,6 +302,15 @@ func _option_buttons(node: Node) -> Array:
 	return found
 
 
+func _named(node: Node, wanted: String) -> Array:
+	var found: Array = []
+	if node.name == wanted:
+		found.append(node)
+	for child in node.get_children():
+		found.append_array(_named(child, wanted))
+	return found
+
+
 func _labels(node: Node) -> Array:
 	var found: Array = []
 	if node is Label:
@@ -339,6 +368,7 @@ func _build_fixture() -> void:
 	})
 	SaveIO.write_json(data_root.path_join("items/supplies.json"), {
 		"item_patch_kit": {"name": "patch kit", "type": "Consumable", "value": 30, "weight": 0.4},
+		"item_field_fabricator": {"name": "field fabricator", "type": "Interactive", "properties": {"crafting_station_type": "fabricator"}},
 	})
 	DirAccess.make_dir_recursive_absolute(data_root.path_join("contracts"))
 	SaveIO.write_json(data_root.path_join("contracts/world_contracts.json"), {

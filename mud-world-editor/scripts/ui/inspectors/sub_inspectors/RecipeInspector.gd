@@ -109,17 +109,16 @@ func _build_result():
 	_add_spin(quantity_row, "result_quantity", 1, 1, 999)
 
 	var station_row := _row(vbox, "Station required")
-	var station_ed := LineEdit.new(); station_ed.text = str(cur_data.get("station_required", "") if cur_data.get("station_required") != null else "")
-	station_ed.placeholder_text = "empty = handcrafting"
-	station_ed.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	InspectorStyle.apply_input_style(station_ed)
-	station_ed.text_changed.connect(func(text):
-		var trimmed: String = str(text).strip_edges()
-		if trimmed == "": cur_data["station_required"] = null
-		else: cur_data["station_required"] = trimmed
+	var station_picker := _station_picker()
+	station_picker.item_selected.connect(func(index):
+		var selected := str(station_picker.get_item_metadata(index))
+		cur_data["station_required"] = null if selected == "" else selected
 		database_modified.emit()
 	)
-	station_row.add_child(station_ed)
+	station_row.add_child(station_picker)
+	var station_hint := InspectorStyle.lbl("Choose a station type supplied by an item template; leave empty for handcrafting.", InspectorStyle.COLOR_TEXT_DIM)
+	station_hint.add_theme_font_size_override("font_size", 11)
+	vbox.add_child(station_hint)
 
 	# `difficulty` has no default in the engine: absent means "derive it from the
 	# result's value", which is what most recipes do. So it gets a switch rather
@@ -456,6 +455,39 @@ func _suggestions_for(kind: String) -> Array:
 			values = database_mgr.get_item_ids()
 	cached_suggestions[kind] = values
 	return values
+
+
+# Stations are capabilities exposed by placed item templates, not recipe ids.
+# Present the actual authored values so a recipe cannot quietly ask for a bench
+# no item in the set can ever provide. An existing unknown value remains visible
+# for repair instead of being silently erased.
+func _station_picker() -> OptionButton:
+	var picker := OptionButton.new()
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.add_item("Handcrafting (no station)")
+	picker.set_item_metadata(0, "")
+	var stations := {}
+	if database_mgr != null:
+		for item_id in database_mgr.items:
+			var item = database_mgr.items[item_id]
+			if not (item is Dictionary): continue
+			var properties = item.get("properties", {})
+			if not (properties is Dictionary): continue
+			var station_id := str(properties.get("crafting_station_type", "")).strip_edges()
+			if station_id != "":
+				stations[station_id] = str(item.get("name", item_id))
+	var station_ids: Array = stations.keys(); station_ids.sort()
+	var current := str(cur_data.get("station_required", "") if cur_data.get("station_required") != null else "")
+	for station_id in station_ids:
+		picker.add_item("%s — %s" % [str(stations[station_id]), str(station_id)])
+		picker.set_item_metadata(picker.item_count - 1, station_id)
+		if station_id == current: picker.select(picker.item_count - 1)
+	if current != "" and picker.selected == 0:
+		picker.add_item("Missing station: " + current)
+		picker.set_item_metadata(picker.item_count - 1, current)
+		picker.select(picker.item_count - 1)
+	InspectorStyle.apply_button_style(picker)
+	return picker
 
 
 func _row(parent: VBoxContainer, label_text: String) -> HBoxContainer:
