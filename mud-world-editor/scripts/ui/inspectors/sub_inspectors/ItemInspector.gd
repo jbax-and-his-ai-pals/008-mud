@@ -503,6 +503,23 @@ func _build_salvage():
 	)
 
 
+## Every `crafting_station_type` any item in this set already declares --
+## the same scan `RecipeInspector._station_picker` does over `database_mgr.items`,
+## so a recipe's station picker and this suggestion list can never name two
+## different sets of stations.
+func _station_type_suggestions() -> Array:
+	var stations := {}
+	if database_mgr != null:
+		for item_id in database_mgr.items:
+			var item = database_mgr.items[item_id]
+			if not (item is Dictionary): continue
+			var properties = item.get("properties", {})
+			if not (properties is Dictionary): continue
+			var station_id := str(properties.get("crafting_station_type", "")).strip_edges()
+			if station_id != "": stations[station_id] = true
+	var ids: Array = stations.keys(); ids.sort(); return ids
+
+
 func _salvage_suggestions(kind: String) -> Array:
 	match kind:
 		"item_family":
@@ -805,6 +822,13 @@ func _refresh_props():
 			var ed_v = LineEdit.new(); ed_v.text = str(val); ed_v.custom_minimum_size.x = 150
 			InspectorStyle.apply_input_style(ed_v); ed_v.text_changed.connect(func(t): props[key] = t; database_modified.emit())
 			hb.add_child(ed_v)
+			# `crafting_station_type` is the name a recipe's own station
+			# picker matches against (`RecipeInspector._station_picker`) --
+			# still free text (an author can name a station type nothing has
+			# used yet), but offering the ones already in use catches the
+			# typo that would otherwise silently make a station unreachable.
+			if key == "crafting_station_type":
+				InspectorStyle.add_suggestion_button(hb, ed_v, Callable(self, "_station_type_suggestions"))
 			
 		var btn_x = Button.new(); btn_x.text = "×"; btn_x.flat = true
 		btn_x.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
