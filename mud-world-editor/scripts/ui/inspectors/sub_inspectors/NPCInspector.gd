@@ -31,6 +31,7 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	catalog = db_mgr.catalog if db_mgr != null else ContractCatalog.new()
 	_build_faction_and_behavior()
 	_build_stats()
+	_build_gift_preferences()
 	_build_loot_table()
 
 # Track G ledger, family C: `faction` and `behavior_type` were the two
@@ -178,6 +179,126 @@ func _add_stat_row(parent, label, key):
 	hb.add_child(sb)
 	parent.add_child(hb)
 
+# `properties.gift_preferences` (`use_give.py::_gift_affinity`): five lists
+# nothing authored before this -- an NPC could be given anything and never show
+# a preference, because the shape existed only in the reader. Two are item-id
+# lists (reuses the loot table's picker), three are free-text tag lists (item
+# `category` and `gift_tags` are open vocabularies, not engine-closed ones, so
+# these stay text fields rather than pickers).
+const _GIFT_ITEM_LISTS := [["preferred_item_ids", "Preferred items"], ["disliked_item_ids", "Disliked items"]]
+const _GIFT_TEXT_LISTS := [
+	["preferred_categories", "Preferred categories", "matches an item's `category` property"],
+	["preferred_gift_tags", "Preferred gift tags", "matches a tag in an item's `gift_tags`"],
+	["disliked_gift_tags", "Disliked gift tags", "matches a tag in an item's `gift_tags`"],
+]
+
+func _build_gift_preferences():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Gift Preferences"))
+	var card = InspectorStyle.create_card(); var vbox: VBoxContainer = card.get_child(0).get_child(0)
+	container.add_child(card)
+	for spec in _GIFT_ITEM_LISTS:
+		_build_gift_item_list(vbox, str(spec[0]), str(spec[1]))
+	for spec in _GIFT_TEXT_LISTS:
+		_build_gift_text_list(vbox, str(spec[0]), str(spec[1]), str(spec[2]))
+
+## Read-only: `properties.gift_preferences` as it stands, without creating
+## `properties` or `gift_preferences` merely by looking at them.
+func _gift_preferences() -> Dictionary:
+	var props = cur_data.get("properties", {})
+	if not (props is Dictionary):
+		return {}
+	var prefs = props.get("gift_preferences", {})
+	return prefs if prefs is Dictionary else {}
+
+## Made on the first write and not before -- the same rule `_ensure_stats()`
+## follows, so opening an NPC with no gift preferences writes none.
+func _ensure_gift_preferences() -> Dictionary:
+	if not (cur_data.get("properties") is Dictionary):
+		cur_data["properties"] = {}
+	if not (cur_data["properties"].get("gift_preferences") is Dictionary):
+		cur_data["properties"]["gift_preferences"] = {}
+	return cur_data["properties"]["gift_preferences"]
+
+func _gift_list(key: String) -> Array:
+	var list = _gift_preferences().get(key, [])
+	return list if list is Array else []
+
+func _build_gift_item_list(vbox: VBoxContainer, key: String, title: String):
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header(title))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Item"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var list := _gift_list(key).duplicate(); list.append("")
+		_ensure_gift_preferences()[key] = list
+		database_modified.emit()
+		_refresh_gift_item_list(vbox, key))
+	header.add_child(add); vbox.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "GiftItems_" + key; rows.add_theme_constant_override("separation", 4); vbox.add_child(rows)
+	_refresh_gift_item_list(vbox, key)
+
+func _refresh_gift_item_list(vbox: VBoxContainer, key: String):
+	var rows := vbox.get_node_or_null("GiftItems_" + key)
+	if rows == null: return
+	for child in rows.get_children(): child.queue_free()
+	var list := _gift_list(key)
+	for index in range(list.size()):
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var picker := _item_id_picker(str(list[index]))
+		picker.item_selected.connect(func(selected):
+			var live: Array = _ensure_gift_preferences().get(key, [])
+			var chosen := str(picker.get_item_metadata(selected))
+			if index < live.size(): live[index] = chosen
+			database_modified.emit())
+		row.add_child(picker)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = _ensure_gift_preferences().get(key, [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): _ensure_gift_preferences().erase(key)
+			database_modified.emit()
+			_refresh_gift_item_list(vbox, key))
+		row.add_child(remove); rows.add_child(row)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+
+func _build_gift_text_list(vbox: VBoxContainer, key: String, title: String, note: String):
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header(title))
+	header.tooltip_text = note
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.text = "+ Tag"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var list := _gift_list(key).duplicate(); list.append("")
+		_ensure_gift_preferences()[key] = list
+		database_modified.emit()
+		_refresh_gift_text_list(vbox, key))
+	header.add_child(add); vbox.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "GiftTags_" + key; rows.add_theme_constant_override("separation", 4); vbox.add_child(rows)
+	_refresh_gift_text_list(vbox, key)
+
+func _refresh_gift_text_list(vbox: VBoxContainer, key: String):
+	var rows := vbox.get_node_or_null("GiftTags_" + key)
+	if rows == null: return
+	for child in rows.get_children(): child.queue_free()
+	var list := _gift_list(key)
+	for index in range(list.size()):
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var field := LineEdit.new(); field.text = str(list[index]); field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(field)
+		field.text_changed.connect(func(new_text):
+			var live: Array = _ensure_gift_preferences().get(key, [])
+			if index < live.size(): live[index] = new_text
+			database_modified.emit())
+		row.add_child(field)
+		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = _ensure_gift_preferences().get(key, [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): _ensure_gift_preferences().erase(key)
+			database_modified.emit()
+			_refresh_gift_text_list(vbox, key))
+		row.add_child(remove); rows.add_child(row)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+
 func _build_loot_table():
 	container.add_child(HSeparator.new())
 	var hb = HBoxContainer.new()
@@ -219,7 +340,7 @@ func _refresh_loot_table():
 			hb.add_child(lbl_id)
 		else:
 			var current_item_id: String = item_id
-			var item_picker := _loot_item_picker(current_item_id)
+			var item_picker := _item_id_picker(current_item_id)
 			item_picker.item_selected.connect(func(index):
 				var chosen := str(item_picker.get_item_metadata(index))
 				# The table is keyed by item id, so choosing an id already in use
@@ -268,7 +389,7 @@ func _refresh_loot_table():
 ## Mirrors `ItemInspector._item_picker`: every known item id, labelled with its
 ## name, plus the current id even if nothing declares it any more (a stale
 ## reference is a fact to show, not to silently swap out from under the author).
-func _loot_item_picker(current: String) -> OptionButton:
+func _item_id_picker(current: String) -> OptionButton:
 	var picker := OptionButton.new(); picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	picker.add_item("choose item"); picker.set_item_metadata(0, "")
 	var ids: Array = db_manager.get_item_ids() if db_manager != null else []

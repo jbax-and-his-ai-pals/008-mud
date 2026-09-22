@@ -113,17 +113,18 @@ lives in the feature profile — so a row for it would be invented; what exists 
 | NPC `properties.dialogue` (graph binding) | `dialogue/manager.py:243-250` | `content_set.py:1522-1540`; orphans `:1545-1549` | absent | absent | `p5_dialogue.py` (engine side) | 6D |
 | Vendor stock (`properties.sells_items`, `sell_rate_multiplier`, `tariff`) | `mercantile.py:81-122, 370` | ids only (`reference_integrity_validator.py:470-479`) | absent | absent | `vendor_order_references.py` (orbital orders) | 6D |
 | Vendor `properties.buy_orders` | `mercantile.py:135-155, 211-232` | `content_set.py:2014-2062` | absent | absent | `vendor_buy_order_relationship_gate.py` | 6D |
-| Gift preferences (`preferred_item_ids`, `preferred_gift_tags`, disliked…) | `use_give.py:19-51` | ids only (`reference_integrity_validator.py:458-469`) | absent | absent | `relationship_gifts.py` | 6D |
+| Gift preferences (`preferred_item_ids`, `preferred_gift_tags`, disliked…) | `use_give.py:19-51` | ids only (`reference_integrity_validator.py:458-469`) | `NPCInspector.gd`: item pickers for the two id lists, text rows for the three open-vocabulary tag/category lists; nothing written by opening, an emptied list erases its key | prototype | `relationship_gifts.py`; `npc_gift_preferences_smoke.gd` | 6D |
 | `schedule`, `properties.work_location`, `can_unlock_chests`, `sells_houses` | `npc_factory.py:60-73,161`; `ai/schedules.py:143` | **none** | absent | absent | `npc_schedules_full.py` (engine side) | 6D |
 | `loot_table` | `npc_factory.py:159-240`; `npc.py:160-174` | **none** | `NPCInspector.gd` — an item picker per drop (renames the entry's key; refuses a collision rather than merging two drops); no longer writes `loot_table: {}` merely by being opened | prototype | `content_round_trip_smoke.gd`, `npc_loot_table_smoke.gd` | 6D |
 | Behaviour tuning (`aggression`, `flee_threshold`, `respawn_cooldown`, `wander_chance`, `move_cooldown`, `spell_cast_chance`) | `npc_factory.py:204-240`; `ai/movement.py:101-105` | **none** | absent | absent | none | 6D |
 | `usable_spells`, `initial_inventory`, `patrol_points` | `npc_factory.py:159-240` | spell ids only (`reference_integrity_validator.py:557-562`) | absent | absent | `guard_patrol_content.py` | 6D |
 | Ruleset `factions.extra` / `overrides` | `world/factions.py:48-118, 228-277` | `content_set.py:854-880` | `RulesetEditorDialog.gd:129-147` — `extra` (id + disposition) only | prototype | `configuration_dialog_smoke.gd` | 6D |
 
-**Notes.** This is the largest single block of `absent` rows, and it is the block a
-player notices first: an NPC created in the editor has no faction, cannot be bound to a
-dialogue graph, cannot stock a shop, cannot have a schedule, and its loot table cannot
-name an item. The engine reads and validates most of these shapes; only the editor is
+**Notes.** This was the largest single block of `absent` rows, and it is the block a
+player notices first. `faction`, `behavior_type`, `loot_table` and gift preferences are
+now prototype (2026-09-22); still absent is the rest of it: an NPC created in the editor
+still cannot be bound to a dialogue graph, cannot stock a shop, and cannot have a
+schedule. The engine reads and validates most of these shapes; only the editor is
 missing. `ReferenceEditor.gd:10-13` documents "a vendor's buy order" as a shape the
 editor knows about, which makes the absence read as a bug rather than a decision.
 
