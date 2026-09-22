@@ -189,14 +189,16 @@ func _build_loot_table():
 	
 	loot_box = VBoxContainer.new(); loot_box.add_theme_constant_override("separation", 6)
 	container.add_child(loot_box)
-	
-	if not cur_data.has("loot_table"): cur_data["loot_table"] = {}
+
 	_refresh_loot_table()
 
+## Reads `cur_data.loot_table` without creating it: opening an NPC that has none
+## must not add an empty `"loot_table": {}` merely by being viewed. The key is
+## only created by `_add_loot_entry`, when the author actually adds a drop.
 func _refresh_loot_table():
 	for c in loot_box.get_children(): c.queue_free()
-	var table = cur_data.loot_table
-	
+	var table: Dictionary = cur_data.get("loot_table", {}) if cur_data.get("loot_table", {}) is Dictionary else {}
+
 	for item_id in table:
 		var entry = table[item_id]
 		var pc = PanelContainer.new()
@@ -207,11 +209,31 @@ func _refresh_loot_table():
 		pc.add_child(m)
 		var hb = HBoxContainer.new(); m.add_child(hb)
 		
-		# Item ID / Gold
-		var lbl_id = Label.new(); lbl_id.text = item_id
-		if item_id == "gold_value": lbl_id.modulate = Color.GOLD
-		lbl_id.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hb.add_child(lbl_id)
+		# Item ID / Gold. `gold_value` is not a real item -- there is nothing to
+		# pick -- but every other key names an item template, and until now that
+		# name was a Label: an author could add a drop but never say which item it
+		# was, short of hand-editing the JSON afterward.
+		if item_id == "gold_value":
+			var lbl_id = Label.new(); lbl_id.text = "Gold"; lbl_id.modulate = Color.GOLD
+			lbl_id.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			hb.add_child(lbl_id)
+		else:
+			var current_item_id: String = item_id
+			var item_picker := _loot_item_picker(current_item_id)
+			item_picker.item_selected.connect(func(index):
+				var chosen := str(item_picker.get_item_metadata(index))
+				# The table is keyed by item id, so choosing an id already in use
+				# would silently merge two drops into one; refuse rather than lose
+				# an entry, and let the picker snap back on the next refresh.
+				if chosen == "" or chosen == current_item_id or table.has(chosen):
+					_refresh_loot_table()
+					return
+				var moved = entry
+				table.erase(current_item_id)
+				table[chosen] = moved
+				database_modified.emit()
+				_refresh_loot_table())
+			hb.add_child(item_picker)
 		
 		# Chance
 		hb.add_child(InspectorStyle.lbl("Chance:", Color.GRAY))
@@ -243,11 +265,31 @@ func _refresh_loot_table():
 		
 		loot_box.add_child(pc)
 
+## Mirrors `ItemInspector._item_picker`: every known item id, labelled with its
+## name, plus the current id even if nothing declares it any more (a stale
+## reference is a fact to show, not to silently swap out from under the author).
+func _loot_item_picker(current: String) -> OptionButton:
+	var picker := OptionButton.new(); picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.add_item("choose item"); picker.set_item_metadata(0, "")
+	var ids: Array = db_manager.get_item_ids() if db_manager != null else []
+	for item_id in ids:
+		var label := str(item_id)
+		if db_manager != null and db_manager.items.get(item_id) is Dictionary:
+			label = "%s — %s" % [str(db_manager.items[item_id].get("name", item_id)), item_id]
+		picker.add_item(label); picker.set_item_metadata(picker.item_count - 1, str(item_id))
+		if str(item_id) == current: picker.select(picker.item_count - 1)
+	if current != "" and picker.selected == 0:
+		picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); picker.select(picker.item_count - 1)
+	InspectorStyle.apply_button_style(picker)
+	return picker
+
+
 func _add_loot_entry():
 	var popup = PopupMenu.new()
 	popup.add_item("Item from DB")
 	popup.add_item("Gold Value")
 	popup.id_pressed.connect(func(id):
+		if typeof(cur_data.get("loot_table")) != TYPE_DICTIONARY: cur_data["loot_table"] = {}
 		if id == 1:
 			cur_data.loot_table["gold_value"] = {"chance": 0.5, "quantity": [1, 10]}
 		else:
