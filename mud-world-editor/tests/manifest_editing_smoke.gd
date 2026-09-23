@@ -42,6 +42,7 @@ func _run():
 	_check_the_engine_refuses_a_contradictory_capability()
 	_check_the_id_and_paths_cannot_be_smuggled()
 	_check_the_dialog_writes_through_the_form()
+	_check_the_dialog_coordinates_capability_and_ruleset()
 
 	_remove_recursive(fixture)
 	if failures > 0:
@@ -161,6 +162,28 @@ func _check_the_dialog_writes_through_the_form() -> void:
 	dialog._mark_dirty()
 	dialog._save()
 	_assert(_read_raw(manifest_path) == keep, "an empty start room writes nothing")
+
+
+func _check_the_dialog_coordinates_capability_and_ruleset() -> void:
+	print("\n[the dialog coordinates capability and ruleset]")
+	var dialog = DialogScript.new()
+	root.add_child(dialog)
+	dialog.setup()
+	dialog.open_active()
+	_assert(dialog.capability_checks.has("combat"), "the capability control is available")
+	var combat: CheckBox = dialog.capability_checks["combat"]
+	combat.button_pressed = false
+	dialog._mark_dirty()
+	_assert(not dialog.get_ok_button().disabled, "changing a capability enables the coordinated save")
+	_assert(dialog.capability_plan_label.text.contains("Disable combat"), "the form explains the planned inactive-content change")
+	dialog._save()
+	var manifest := _read_json(manifest_path)
+	var ruleset := _read_json(fixture.path_join("rules/ruleset.json"))
+	_assert(not manifest.get("capabilities", []).has("combat"), "the manifest capability is removed")
+	_assert(ruleset.get("systems", {}).get("combat", {}).get("enabled", true) == false,
+		"the matching ruleset system is disabled in the same apply")
+	_assert(FileAccess.file_exists(manifest_path + ".bak") and FileAccess.file_exists(fixture.path_join("rules/ruleset.json.bak")),
+		"both coherent files retain a recovery backup")
 
 
 # --- helpers ------------------------------------------------------------------

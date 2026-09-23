@@ -116,3 +116,14 @@ func save() -> Dictionary:
 		original = data.duplicate(true)
 		disk_hash = FileAccess.get_sha256(path)
 	return result
+
+
+func save_with_ruleset(ruleset_path: String, ruleset_data: Dictionary, ruleset_hash: String) -> Dictionary:
+	var errors := validate()
+	if not errors.is_empty():
+		return {"ok": false, "error": "\n".join(errors)}
+	var result := ConfigurationSave.write_pair(path, data, disk_hash, ruleset_path, ruleset_data, ruleset_hash)
+	if result.get("ok", false):
+		original = data.duplicate(true)
+		disk_hash = FileAccess.get_sha256(path)
+	return result

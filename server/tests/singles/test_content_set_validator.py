@@ -190,6 +190,80 @@ class TestContentSetValidator(unittest.TestCase):
         self.assertTrue(any("time_descriptions.day must be a string" in message for message in messages))
         self.assertTrue(any("time_descriptions.midnight is ignored by the runtime" in message for message in messages))
 
+    def test_npc_template_values_the_editor_authors_have_runtime_contracts(self) -> None:
+        """An NPC form must not be able to save values the factory drops or misreads."""
+        package = self._write_package(self._case_root())
+        (package / "data" / "items" / "items.json").write_text(
+            json.dumps({"item_torch": {"name": "Torch", "type": "Item"}}), encoding="utf-8"
+        )
+        (package / "data" / "abilities").mkdir(parents=True, exist_ok=True)
+        (package / "data" / "abilities" / "spells.json").write_text(
+            json.dumps({"spark": {"name": "Spark", "type": "Attack"}}), encoding="utf-8"
+        )
+        (package / "data" / "npcs" / "npcs.json").write_text(
+            json.dumps({
+                "bad_authoring": {
+                    "name": "Bad", "friendly": "yes", "level": 0, "health": -1,
+                    "properties": {
+                        "aggression": 2, "move_cooldown": -1, "respawn_cooldown": -2,
+                        "can_unlock_chests": "yes", "work_location": "town:missing",
+                    },
+                    "patrol_points": [1],
+                    "usable_spells": ["missing_spell"],
+                    "initial_inventory": [{"item_id": "missing_item", "quantity": 0}],
+                    "schedule": {"25": {
+                        "region_id": "town", "room_id": "missing", "activity": 2,
+                        "behavior_override": "wanderer",
+                    }},
+                },
+                "no_respawn": {
+                    "name": "Summon", "properties": {"respawn_cooldown": -1},
+                },
+            }), encoding="utf-8"
+        )
+        _definition, issues = validator.load_content_set(package)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("'bad_authoring'.friendly must be a boolean" in message for message in messages))
+        self.assertTrue(any("'bad_authoring'.level must be an integer of at least 1" in message for message in messages))
+        self.assertTrue(any("'bad_authoring'.properties.aggression must be a number from 0 to 1" in message for message in messages))
+        self.assertTrue(any("'bad_authoring'.properties.respawn_cooldown must be an integer of -1 or greater" in message for message in messages))
+        self.assertTrue(any("'bad_authoring'.properties.work_location must name an authored region:room" in message for message in messages))
+        self.assertTrue(any("'bad_authoring'.usable_spells references a missing ability" in message for message in messages))
+        self.assertTrue(any("'bad_authoring'.initial_inventory[0].quantity must be a positive integer" in message for message in messages))
+        self.assertTrue(any("'bad_authoring'.schedule['25'] must use an hour from 0 to 23" in message for message in messages))
+        self.assertTrue(any("behavior_override must be 'aggressive'" in message for message in messages))
+        self.assertFalse(any("no_respawn.properties.respawn_cooldown" in message for message in messages))
+
+    def test_npc_schedule_rules_have_a_checked_setting_owned_grammar(self) -> None:
+        """Slots and hours must not quietly fall back to an NPC's home room."""
+        package = self._write_package(self._case_root())
+        (package / "rules" / "ruleset.json").write_text(
+            json.dumps({
+                "npc_schedules": {
+                    "excluded_name_keywords": [""],
+                    "room_categories": {"homes": "house"},
+                    "roles": [{
+                        "id": "merchant", "template_keywords": [],
+                        "location_slots": {
+                            "home": {"type": "category", "categories": ["missing"], "fallback": "work"},
+                            "work": {"type": "elsewhere"},
+                        },
+                        "schedule": {"08": {"activity": "", "slot": "missing", "behavior_override": "wanderer"}},
+                    }],
+                },
+            }), encoding="utf-8"
+        )
+        _definition, issues = validator.load_content_set(package)
+        messages = [issue.message for issue in issues]
+        self.assertTrue(any("excluded_name_keywords must be an array of non-empty strings" in message for message in messages))
+        self.assertTrue(any("room_categories.homes must be an array" in message for message in messages))
+        self.assertTrue(any("template_keywords must be a non-empty array" in message for message in messages))
+        self.assertTrue(any("categories names undeclared category 'missing'" in message for message in messages))
+        self.assertTrue(any("type must be self, property_or_self, or category" in message for message in messages))
+        self.assertTrue(any("schedule['08'] must use a canonical hour" in message for message in messages))
+        self.assertTrue(any("schedule['08'].slot must name this role's location slot" in message for message in messages))
+        self.assertTrue(any("behavior_override must be 'aggressive'" in message for message in messages))
+
     def test_ruleset_cannot_contradict_manifest_capabilities(self) -> None:
         package = self._write_package(self._case_root())
         (package / "rules" / "ruleset.json").write_text(

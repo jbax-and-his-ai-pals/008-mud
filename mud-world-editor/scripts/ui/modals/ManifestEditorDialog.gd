@@ -12,6 +12,7 @@ class_name ManifestEditorDialog
 extends "res://scripts/ui/modals/ConfigurationDialog.gd"
 
 signal manifest_saved
+signal request_edit_opening
 
 const DraftScript = preload("res://scripts/data/ManifestDraft.gd")
 const Scaffold = preload("res://scripts/data/ContentSetScaffold.gd")
@@ -25,6 +26,10 @@ var scenario_field: LineEdit
 var region_field: LineEdit
 var room_field: LineEdit
 var capability_checks: Dictionary = {}
+var capability_plan_label: Label
+var linked_ruleset_path := ""
+var linked_ruleset_original: Dictionary = {}
+var linked_ruleset_hash := ""
 var form_dirty := false
 var loading := false
 
@@ -40,6 +45,7 @@ func setup():
 	box.add_child(InspectorStyle.create_sub_header("Identity (fixed)"))
 	identity_label = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); identity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(identity_label)
 	paths_label = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); paths_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(paths_label)
+	var edit_opening := Button.new(); edit_opening.text = "Edit Opening & First Session..."; edit_opening.tooltip_text = "Edit the opening heading, introduction, and suggested first actions."; InspectorStyle.apply_button_style(edit_opening); edit_opening.pressed.connect(func(): request_edit_opening.emit()); box.add_child(edit_opening)
 	box.add_child(InspectorStyle.create_sub_header("Title"))
 	title_field = _field(box, "Title")
 	box.add_child(InspectorStyle.create_sub_header("Where a character starts"))
@@ -51,9 +57,11 @@ func setup():
 	box.add_child(InspectorStyle.create_sub_header("Capabilities"))
 	var capability_hint := InspectorStyle.lbl("A capability must agree with the ruleset's `systems` section: the engine refuses a contradiction, and the report says which one.", InspectorStyle.COLOR_TEXT_DIM)
 	capability_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(capability_hint)
+	capability_plan_label = InspectorStyle.lbl("Capability changes update matching explicit ruleset system declarations in the same validated save. Related content stays saved and inactive; it is never deleted.", InspectorStyle.COLOR_TEXT_DIM)
+	capability_plan_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(capability_plan_label)
 	var grid := GridContainer.new(); grid.columns = 2; box.add_child(grid)
 	for capability in Scaffold.CAPABILITIES:
-		var toggle := CheckBox.new(); toggle.text = str(capability); toggle.toggled.connect(func(_value): _mark_dirty()); grid.add_child(toggle)
+		var toggle := CheckBox.new(); toggle.text = str(capability); toggle.toggled.connect(func(_value): _refresh_capability_plan(); _mark_dirty()); grid.add_child(toggle)
 		capability_checks[str(capability)] = toggle
 	DialogStyle.style_window(self)
 	get_ok_button().custom_minimum_size = Vector2(280, 40)
@@ -86,10 +94,15 @@ func open_active():
 	var declared: Array = draft.capabilities()
 	for capability in capability_checks:
 		capability_checks[capability].button_pressed = declared.has(capability)
+	var linked := _load_linked_ruleset()
+	if not linked.get("ok", false):
+		status_label.text = str(linked.get("error", "Could not load the linked ruleset.")); status_label.modulate = DialogStyle.COLOR_DANGER
+		get_ok_button().disabled = true; loading = false; popup_centered(); return
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Changing a capability needs the game reloaded before it takes effect." % DataRoot.root().path_join(Scaffold.MANIFEST_FILENAME)
 	status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
+	_refresh_capability_plan()
 	popup_centered()
 
 func _save():
@@ -101,9 +114,19 @@ func _save():
 	for capability in capability_checks:
 		if capability_checks[capability].button_pressed: chosen.append(capability)
 	draft.set_capabilities(chosen)
-	var result: Dictionary = draft.save()
+	var result: Dictionary
+	var capabilities_changed := _capabilities_changed()
+	var reconciled: Dictionary = {}
+	if capabilities_changed:
+		reconciled = _reconciled_ruleset(draft.capabilities())
+		result = draft.save_with_ruleset(linked_ruleset_path, reconciled, linked_ruleset_hash)
+	else:
+		result = draft.save()
 	if not result.get("ok", false):
 		status_label.text = str(result.get("error", "Could not save the manifest.")); status_label.modulate = DialogStyle.COLOR_DANGER; return
+	if capabilities_changed:
+		linked_ruleset_original = reconciled
+		linked_ruleset_hash = FileAccess.get_sha256(linked_ruleset_path)
 	form_dirty = false; get_ok_button().disabled = true
 	manifest_saved.emit()
 	_finish_save()
@@ -119,3 +142,58 @@ func _mark_dirty():
 	get_ok_button().disabled = not form_dirty
 	status_label.text = "Unsaved manifest changes." if form_dirty else "No unsaved changes."
 	status_label.modulate = Color("f2cf74") if form_dirty else InspectorStyle.COLOR_TEXT_DIM
+
+
+func _load_linked_ruleset() -> Dictionary:
+	linked_ruleset_path = DataRoot.ruleset_path()
+	if not FileAccess.file_exists(linked_ruleset_path):
+		return {"ok": false, "error": "The manifest names a content set without a ruleset at %s." % linked_ruleset_path}
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(linked_ruleset_path))
+	if not parsed is Dictionary:
+		return {"ok": false, "error": "The linked ruleset is not a JSON object; capability changes cannot safely reconcile it."}
+	linked_ruleset_original = parsed.duplicate(true)
+	linked_ruleset_hash = FileAccess.get_sha256(linked_ruleset_path)
+	return {"ok": true}
+
+
+func _capabilities_changed() -> bool:
+	if draft == null: return false
+	var baseline := {}
+	for entry in draft.original.get("capabilities", []): baseline[str(entry)] = true
+	for capability in capability_checks:
+		if bool(capability_checks[capability].button_pressed) != baseline.has(capability): return true
+	return false
+
+
+func _reconciled_ruleset(chosen_capabilities: Array) -> Dictionary:
+	var reconciled := linked_ruleset_original.duplicate(true)
+	var systems: Dictionary = reconciled.get("systems", {}) if reconciled.get("systems") is Dictionary else {}
+	reconciled["systems"] = systems
+	var before := {}
+	for entry in draft.original.get("capabilities", []): before[str(entry)] = true
+	var after := {}
+	for entry in chosen_capabilities: after[str(entry)] = true
+	for capability in Scaffold.CAPABILITIES:
+		if before.has(capability) == after.has(capability): continue
+		var system: Dictionary = systems.get(capability, {}) if systems.get(capability) is Dictionary else {}
+		system["enabled"] = after.has(capability)
+		systems[capability] = system
+	return reconciled
+
+
+func _refresh_capability_plan():
+	if capability_plan_label == null or draft == null: return
+	var baseline := {}
+	for entry in draft.original.get("capabilities", []): baseline[str(entry)] = true
+	var changes: Array = []
+	for capability in Scaffold.CAPABILITIES:
+		if not capability_checks.has(capability): continue
+		var enabled := bool(capability_checks[capability].button_pressed)
+		if enabled == baseline.has(capability): continue
+		changes.append(("Enable " if enabled else "Disable ") + str(capability))
+	if changes.is_empty():
+		capability_plan_label.text = "No capability changes planned. Matching explicit ruleset system declarations stay untouched."
+		capability_plan_label.modulate = InspectorStyle.COLOR_TEXT_DIM
+	else:
+		capability_plan_label.text = "%s. This saves the manifest and matching ruleset system declaration together; existing related content remains inactive, never deleted." % "; ".join(changes)
+		capability_plan_label.modulate = Color("f2cf74")

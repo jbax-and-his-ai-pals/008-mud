@@ -12,6 +12,8 @@ from unittest.mock import patch
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO))
 from toolkit.configuration_save import save_configuration
+import toolkit.configuration_transaction as configuration_transaction
+from toolkit.configuration_transaction import save_configuration_pair
 import run_editor_checks
 
 
@@ -143,6 +145,62 @@ class ManifestSaveTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "paths must be an object"):
             save_configuration(self.path, self.draft, self.expected)
         self.assertEqual(self.before, self.path.read_bytes())
+
+
+class CoordinatedConfigurationSaveTests(unittest.TestCase):
+    """Capabilities and explicit ruleset systems must change as one decision."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name) / "orbital_salvage"
+        shutil.copytree(REPO / "content_sets/orbital_salvage", self.root,
+                        ignore=shutil.ignore_patterns("editor", "*.bak"))
+        self.manifest_path = self.root / "content_set.manifest.json"
+        self.ruleset_path = self.root / "rules/ruleset.json"
+        self.manifest_before = self.manifest_path.read_bytes()
+        self.ruleset_before = self.ruleset_path.read_bytes()
+        self.manifest = json.loads(self.manifest_before)
+        self.ruleset = json.loads(self.ruleset_before)
+        self.manifest["capabilities"].remove("combat")
+        self.ruleset["systems"]["combat"]["enabled"] = False
+
+    def _save(self):
+        return save_configuration_pair(
+            self.manifest_path, self.manifest, hashlib.sha256(self.manifest_before).hexdigest(),
+            self.ruleset_path, self.ruleset, hashlib.sha256(self.ruleset_before).hexdigest(),
+        )
+
+    def test_capability_and_ruleset_save_together(self):
+        result = self._save()
+        self.assertTrue(result["ok"], result)
+        self.assertNotIn("combat", json.loads(self.manifest_path.read_bytes())["capabilities"])
+        self.assertFalse(json.loads(self.ruleset_path.read_bytes())["systems"]["combat"]["enabled"])
+        self.assertEqual(self.manifest_before, self.manifest_path.with_name(self.manifest_path.name + ".bak").read_bytes())
+        self.assertEqual(self.ruleset_before, self.ruleset_path.with_name(self.ruleset_path.name + ".bak").read_bytes())
+
+    def test_engine_refusal_leaves_both_files_unchanged(self):
+        # A manifest capability and `systems` must still agree after the pair is
+        # staged; a coordinated write does not weaken the engine's verdict.
+        self.ruleset["systems"]["combat"]["enabled"] = True
+        result = self._save()
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(self.manifest_before, self.manifest_path.read_bytes())
+        self.assertEqual(self.ruleset_before, self.ruleset_path.read_bytes())
+
+    def test_second_replace_failure_rolls_back_first_file(self):
+        real_atomic = configuration_transaction._atomic_bytes
+
+        def fail_only_second_destination(path, data):
+            if Path(path) == self.ruleset_path and data != self.ruleset_before:
+                raise OSError("second destination unavailable")
+            return real_atomic(path, data)
+
+        with patch("toolkit.configuration_transaction._atomic_bytes", side_effect=fail_only_second_destination):
+            with self.assertRaisesRegex(OSError, "second destination unavailable"):
+                self._save()
+        self.assertEqual(self.manifest_before, self.manifest_path.read_bytes())
+        self.assertEqual(self.ruleset_before, self.ruleset_path.read_bytes())
 
 
 class EditorRunnerTests(unittest.TestCase):

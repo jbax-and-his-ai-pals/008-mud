@@ -559,8 +559,12 @@ func _build_behavior_tuning():
 	cooldowns.add_child(move_cd)
 
 	cooldowns.add_child(InspectorStyle.lbl("Respawn cooldown (s)", InspectorStyle.COLOR_TEXT_DIM))
-	var respawn_cd := SpinBox.new(); respawn_cd.min_value = 0; respawn_cd.max_value = 86400; respawn_cd.step = 1
+	# -1 is the engine's explicit "never respawn" sentinel, used by summoned
+	# minions.  Offering it here avoids a form that cannot faithfully preserve a
+	# shipped template's authored state.
+	var respawn_cd := SpinBox.new(); respawn_cd.min_value = -1; respawn_cd.max_value = 86400; respawn_cd.step = 1
 	respawn_cd.value = int(properties.get("respawn_cooldown", 600)); respawn_cd.custom_minimum_size.x = 80
+	respawn_cd.tooltip_text = "seconds before respawn; -1 means this NPC never respawns"
 	InspectorStyle.apply_input_style(respawn_cd)
 	respawn_cd.value_changed.connect(func(value): _ensure_npc_properties()["respawn_cooldown"] = int(value); database_modified.emit())
 	cooldowns.add_child(respawn_cd)

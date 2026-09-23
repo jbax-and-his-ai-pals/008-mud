@@ -47,6 +47,9 @@ def save_configuration(path: Path, candidate: dict, expected: str) -> dict:
     allowed = {Path(manifest.get("paths", {}).get("ruleset", "rules/ruleset.json")),
                content / "contracts/world_contracts.json", content / "combat/elements.json",
                manifest_relative}
+    opening = manifest.get("paths", {}).get("opening")
+    if isinstance(opening, str) and opening.strip():
+        allowed.add(Path(opening))
     if relative not in allowed:
         raise ValueError("This is not a supported configuration file.")
     if relative == manifest_relative:

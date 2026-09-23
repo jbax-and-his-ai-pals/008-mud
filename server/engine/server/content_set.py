@@ -995,6 +995,286 @@ def _validate_npc_vocabulary(
                 ))
 
 
+def _validate_npc_template_runtime_shapes(
+    content_root: Path,
+    issues: list[ContentSetIssue],
+) -> None:
+    """Refuse malformed NPC values the runtime otherwise silently normalises.
+
+    The template editor writes these fields directly.  A bad probability makes an
+    NPC act in ways its author cannot reason about, a missing inventory/spell
+    reference disappears at load, and a malformed direct schedule can reach the
+    movement loop as a half-entry.  Keeping the contract here gives every editor
+    surface one honest answer before a world is started.
+
+    This intentionally validates *direct* schedules only.  The separate
+    ``ruleset.npc_schedules`` generator has a broader, setting-owned vocabulary
+    and remains read-only until it has its own complete validator and editor.
+    """
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    spell_ids = _ability_ids(content_root, issues)
+
+    room_refs: set[str] = set()
+    for region_path in sorted((content_root / "regions").glob("*.json")):
+        region = _load_json(region_path, issues, "region definitions")
+        if not isinstance(region, dict):
+            continue
+        region_id = str(region.get("region_id", region_path.stem)).strip()
+        rooms = region.get("rooms", {})
+        if not region_id or not isinstance(rooms, dict):
+            continue
+        for room_id in rooms:
+            if isinstance(room_id, str) and room_id.strip():
+                room_refs.add(f"{region_id}:{room_id}")
+
+    def number_in_range(value: Any, label: str, path: Path) -> None:
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
+            issues.append(ContentSetIssue("error", str(path), f"{label} must be a number from 0 to 1"))
+
+    def non_negative_integer(value: Any, label: str, path: Path) -> None:
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            issues.append(ContentSetIssue("error", str(path), f"{label} must be a non-negative integer"))
+
+    for path in sorted((content_root / "npcs").glob("*.json")):
+        payload = _load_json(path, issues, "NPC definitions")
+        if not isinstance(payload, dict):
+            continue
+        for npc_id, template in payload.items():
+            if str(npc_id).startswith("_") or not isinstance(template, dict):
+                continue
+            label = f"NPC '{npc_id}'"
+
+            for field in ("friendly",):
+                if field in template and not isinstance(template[field], bool):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.{field} must be a boolean"))
+            for field in ("level",):
+                if field in template:
+                    value = template[field]
+                    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.{field} must be an integer of at least 1"))
+            for field in ("health", "max_mana", "attack_power", "defense"):
+                if field in template:
+                    value = template[field]
+                    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.{field} must be a non-negative number"))
+
+            properties = template.get("properties", {})
+            if properties is not None and not isinstance(properties, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.properties must be an object"))
+                properties = {}
+            if isinstance(properties, dict):
+                for field in ("aggression", "flee_threshold", "wander_chance", "spell_cast_chance"):
+                    if field in properties:
+                        number_in_range(properties[field], f"{label}.properties.{field}", path)
+                if "move_cooldown" in properties:
+                    non_negative_integer(properties["move_cooldown"], f"{label}.properties.move_cooldown", path)
+                if "respawn_cooldown" in properties:
+                    value = properties["respawn_cooldown"]
+                    # Existing summoned/minion definitions use -1 as their explicit
+                    # no-respawn sentinel.  It is a real engine convention, not a
+                    # malformed duration, so preserve it while still refusing all
+                    # other negative values.
+                    if isinstance(value, bool) or not isinstance(value, int) or value < -1:
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.respawn_cooldown must be an integer of -1 or greater"))
+                for field in ("can_unlock_chests", "sells_houses"):
+                    if field in properties and not isinstance(properties[field], bool):
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.{field} must be a boolean"))
+                if "work_location" in properties:
+                    work_location = properties["work_location"]
+                    if not isinstance(work_location, str) or work_location not in room_refs:
+                        issues.append(ContentSetIssue(
+                            "error", str(path),
+                            f"{label}.properties.work_location must name an authored region:room",
+                        ))
+
+            if "patrol_points" in template:
+                points = template["patrol_points"]
+                if not isinstance(points, list) or any(not isinstance(point, str) or not point.strip() for point in points):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.patrol_points must be an array of non-empty room ids"))
+            if "usable_spells" in template:
+                spells = template["usable_spells"]
+                if not isinstance(spells, list):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.usable_spells must be an array"))
+                else:
+                    for spell_id in spells:
+                        if not isinstance(spell_id, str) or spell_id not in spell_ids:
+                            issues.append(ContentSetIssue("error", str(path), f"{label}.usable_spells references a missing ability: {spell_id!r}"))
+            if "initial_inventory" in template:
+                inventory = template["initial_inventory"]
+                if not isinstance(inventory, list):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.initial_inventory must be an array"))
+                else:
+                    for index, entry in enumerate(inventory):
+                        entry_label = f"{label}.initial_inventory[{index}]"
+                        if not isinstance(entry, dict):
+                            issues.append(ContentSetIssue("error", str(path), f"{entry_label} must be an object"))
+                            continue
+                        item_id = entry.get("item_id")
+                        if not isinstance(item_id, str) or item_id not in item_ids:
+                            issues.append(ContentSetIssue("error", str(path), f"{entry_label}.item_id references a missing item template"))
+                        if "quantity" in entry:
+                            quantity = entry["quantity"]
+                            if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
+                                issues.append(ContentSetIssue("error", str(path), f"{entry_label}.quantity must be a positive integer"))
+
+            if "schedule" not in template:
+                continue
+            schedule = template["schedule"]
+            if not isinstance(schedule, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.schedule must be an object keyed by hour"))
+                continue
+            for hour, entry in schedule.items():
+                try:
+                    hour_number = int(hour)
+                except (TypeError, ValueError):
+                    hour_number = -1
+                entry_label = f"{label}.schedule[{hour!r}]"
+                if not 0 <= hour_number <= 23:
+                    issues.append(ContentSetIssue("error", str(path), f"{entry_label} must use an hour from 0 to 23"))
+                if not isinstance(entry, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry_label} must be an object"))
+                    continue
+                for field in ("region_id", "room_id", "activity"):
+                    if field in entry and not isinstance(entry[field], str):
+                        issues.append(ContentSetIssue("error", str(path), f"{entry_label}.{field} must be a string"))
+                region_id = entry.get("region_id")
+                room_id = entry.get("room_id")
+                if isinstance(region_id, str) and isinstance(room_id, str) and f"{region_id}:{room_id}" not in room_refs:
+                    issues.append(ContentSetIssue("error", str(path), f"{entry_label} names missing room '{region_id}:{room_id}'"))
+                if "behavior_override" in entry and entry["behavior_override"] != "aggressive":
+                    issues.append(ContentSetIssue(
+                        "error", str(path),
+                        f"{entry_label}.behavior_override must be 'aggressive' (the only override the scheduler reads)",
+                    ))
+
+
+def _validate_npc_schedule_rules(
+    ruleset: Any,
+    issues: list[ContentSetIssue],
+    ruleset_path: Optional[Path] = None,
+) -> None:
+    """Validate the setting-owned grammar consumed by ``ai.schedules``.
+
+    The scheduler deliberately has no fantasy vocabulary: content provides its
+    own role names, template keywords, room categories, slots, and activities.
+    That makes its *shape* especially important.  Before this gate, a misspelled
+    slot or category quietly fell back to an NPC's home room, and a non-canonical
+    hour such as ``"08"`` was never selected by the hourly reader.
+    """
+    if not isinstance(ruleset, dict) or "npc_schedules" not in ruleset:
+        return
+    section = ruleset["npc_schedules"]
+    source = str(ruleset_path or "ruleset")
+    if not isinstance(section, dict):
+        issues.append(ContentSetIssue("error", source, "npc_schedules must be an object"))
+        return
+
+    excluded = section.get("excluded_name_keywords", [])
+    if not isinstance(excluded, list) or any(not isinstance(value, str) or not value.strip() for value in excluded):
+        issues.append(ContentSetIssue("error", source, "npc_schedules.excluded_name_keywords must be an array of non-empty strings"))
+
+    categories = section.get("room_categories", {})
+    if not isinstance(categories, dict):
+        issues.append(ContentSetIssue("error", source, "npc_schedules.room_categories must be an object"))
+        categories = {}
+    else:
+        for category_id, keywords in categories.items():
+            label = f"npc_schedules.room_categories.{category_id}"
+            if not isinstance(category_id, str) or not category_id.strip():
+                issues.append(ContentSetIssue("error", source, "npc_schedules.room_categories needs non-empty category ids"))
+            if not isinstance(keywords, list) or any(not isinstance(value, str) or not value.strip() for value in keywords):
+                issues.append(ContentSetIssue("error", source, f"{label} must be an array of non-empty room-name keywords"))
+
+    roles = section.get("roles", [])
+    if not isinstance(roles, list):
+        issues.append(ContentSetIssue("error", source, "npc_schedules.roles must be an array"))
+        return
+    seen_roles: set[str] = set()
+    for index, role in enumerate(roles):
+        role_label = f"npc_schedules.roles[{index}]"
+        if not isinstance(role, dict):
+            issues.append(ContentSetIssue("error", source, f"{role_label} must be an object"))
+            continue
+        role_id = role.get("id")
+        if not isinstance(role_id, str) or not role_id.strip():
+            issues.append(ContentSetIssue("error", source, f"{role_label}.id must be a non-empty string"))
+        elif role_id in seen_roles:
+            issues.append(ContentSetIssue("error", source, f"npc_schedules.roles repeats id '{role_id}'"))
+        else:
+            seen_roles.add(role_id)
+
+        keywords = role.get("template_keywords", [])
+        if not isinstance(keywords, list) or not keywords or any(not isinstance(value, str) or not value.strip() for value in keywords):
+            issues.append(ContentSetIssue("error", source, f"{role_label}.template_keywords must be a non-empty array of strings"))
+
+        slots = role.get("location_slots", {})
+        if not isinstance(slots, dict) or not slots:
+            issues.append(ContentSetIssue("error", source, f"{role_label}.location_slots must be a non-empty object"))
+            slots = {}
+        resolved_slots: set[str] = set()
+        for slot_id, definition in slots.items():
+            slot_label = f"{role_label}.location_slots.{slot_id}"
+            if not isinstance(slot_id, str) or not slot_id.strip():
+                issues.append(ContentSetIssue("error", source, f"{role_label}.location_slots needs non-empty slot ids"))
+                continue
+            if not isinstance(definition, dict):
+                issues.append(ContentSetIssue("error", source, f"{slot_label} must be an object"))
+                resolved_slots.add(slot_id)
+                continue
+            kind = definition.get("type", "self")
+            if kind not in ("self", "property_or_self", "category"):
+                issues.append(ContentSetIssue("error", source, f"{slot_label}.type must be self, property_or_self, or category"))
+            if kind == "property_or_self":
+                prop = definition.get("property")
+                if not isinstance(prop, str) or not prop.strip():
+                    issues.append(ContentSetIssue("error", source, f"{slot_label}.property must be a non-empty NPC property name"))
+            if kind == "category":
+                requested = definition.get("categories", [])
+                if not isinstance(requested, list) or not requested or any(not isinstance(value, str) or not value.strip() for value in requested):
+                    issues.append(ContentSetIssue("error", source, f"{slot_label}.categories must be a non-empty array of category ids"))
+                elif isinstance(categories, dict):
+                    for category_id in requested:
+                        if category_id not in categories:
+                            issues.append(ContentSetIssue("error", source, f"{slot_label}.categories names undeclared category '{category_id}'"))
+                for relation in ("exclude", "fallback"):
+                    if relation not in definition:
+                        continue
+                    target = definition[relation]
+                    if not isinstance(target, str) or target not in resolved_slots:
+                        issues.append(ContentSetIssue(
+                            "error", source,
+                            f"{slot_label}.{relation} must name an earlier location slot",
+                        ))
+            resolved_slots.add(slot_id)
+
+        schedule = role.get("schedule", {})
+        if not isinstance(schedule, dict) or not schedule:
+            issues.append(ContentSetIssue("error", source, f"{role_label}.schedule must be a non-empty object keyed by hour"))
+            continue
+        for hour, entry in schedule.items():
+            entry_label = f"{role_label}.schedule[{hour!r}]"
+            try:
+                hour_number = int(hour)
+            except (TypeError, ValueError):
+                hour_number = -1
+            if not 0 <= hour_number <= 23 or str(hour) != str(hour_number):
+                issues.append(ContentSetIssue("error", source, f"{entry_label} must use a canonical hour from 0 to 23"))
+            if not isinstance(entry, dict):
+                issues.append(ContentSetIssue("error", source, f"{entry_label} must be an object"))
+                continue
+            activity = entry.get("activity")
+            if not isinstance(activity, str) or not activity.strip():
+                issues.append(ContentSetIssue("error", source, f"{entry_label}.activity must be a non-empty string"))
+            slot = entry.get("slot")
+            if not isinstance(slot, str) or slot not in resolved_slots:
+                issues.append(ContentSetIssue("error", source, f"{entry_label}.slot must name this role's location slot"))
+            if "behavior_override" in entry and entry["behavior_override"] != "aggressive":
+                issues.append(ContentSetIssue(
+                    "error", source,
+                    f"{entry_label}.behavior_override must be 'aggressive' (the only override the dispatcher reads)",
+                ))
+
+
 def _validate_social_rules(
     ruleset: Any,
     issues: list[ContentSetIssue],
@@ -3257,6 +3537,8 @@ def load_content_set(
         _validate_social_rules(ruleset_payload, issues, ruleset_source_path, content_root, capability_values)
         _validate_faction_rules(ruleset_payload, issues, ruleset_source_path)
         _validate_npc_vocabulary(content_root, issues, ruleset_payload)
+        _validate_npc_template_runtime_shapes(content_root, issues)
+        _validate_npc_schedule_rules(ruleset_payload, issues, ruleset_source_path)
         _validate_weather_profiles(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
