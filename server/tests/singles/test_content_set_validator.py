@@ -1375,6 +1375,74 @@ class TestRoomPassageProperties(unittest.TestCase):
         self.assertTrue(any("env_interactions.frost names a damage type" in m for m in errors), errors)
 
 
+class TestDynamicThemes(unittest.TestCase):
+    """`regions/dynamic_themes.json` had no validator; a missing theme builds no
+    region, an unmatched brace reaches players, an empty list stops generation."""
+
+    def _theme(self, **overrides) -> dict:
+        theme = {
+            "name_templates": ["The {Adjective} Caves"],
+            "description": "A cave.",
+            "room_names": ["Tunnel"],
+            "room_descriptions": ["A {adjective} tunnel."],
+            "spawner": {"monster_types": {"rat": 2}, "level_range": [1, 3]},
+        }
+        theme.update(overrides)
+        return theme
+
+    def _errors(self, themes: dict | None, default_theme: str | None = None, quest: dict | None = None) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "npcs" / "beasts.json").write_text(json.dumps({"rat": {"name": "rat", "level": 1}}), encoding="utf-8")
+        if themes is not None:
+            (package / "data" / "regions" / "dynamic_themes.json").write_text(
+                json.dumps({"themes": themes, "placeholders": {"adjective": ["damp", "dark"]}}), encoding="utf-8"
+            )
+        if default_theme is not None:
+            ruleset_path = package / "rules" / "ruleset.json"
+            ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+            ruleset["quest_generation"] = {"instance_quest": {"default_procedural_theme": default_theme}}
+            ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+        if quest is not None:
+            (package / "data" / "quests").mkdir()
+            (package / "data" / "quests" / "quests.json").write_text(json.dumps(quest), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and ("theme" in i.message or "themes." in i.message)]
+
+    def test_a_well_formed_theme_is_accepted(self):
+        self.assertEqual([], self._errors({"caves": self._theme()}, default_theme="caves"))
+
+    def test_an_unmatched_placeholder_is_an_error(self):
+        errors = self._errors({"caves": self._theme(room_descriptions=["A {colour} tunnel."])})
+        self.assertTrue(any("room_descriptions[0]" in m and "{colour}" in m for m in errors), errors)
+
+    def test_braces_in_unformatted_fields_are_errors(self):
+        errors = self._errors({"caves": self._theme(room_names=["{Adjective} Tunnel"], description="A {adjective} cave.")})
+        self.assertTrue(any("room_names[0]" in m and "never formatted" in m for m in errors), errors)
+        self.assertTrue(any("themes.caves.description" in m for m in errors), errors)
+
+    def test_an_empty_list_is_an_error(self):
+        errors = self._errors({"caves": self._theme(room_names=[])})
+        self.assertTrue(any("themes.caves.room_names" in m for m in errors), errors)
+
+    def test_a_missing_spawner_monster_is_an_error(self):
+        errors = self._errors({"caves": self._theme(spawner={"monster_types": {"dragon": 1}})})
+        self.assertTrue(any("'dragon'" in m for m in errors), errors)
+
+    def test_a_missing_default_theme_is_an_error(self):
+        errors = self._errors({"caves": self._theme()}, default_theme="swamp")
+        self.assertTrue(any("default_procedural_theme" in m and "'swamp'" in m for m in errors), errors)
+
+    def test_a_default_theme_with_no_themes_file_is_an_error(self):
+        errors = self._errors(None, default_theme="caves")
+        self.assertTrue(any("declares no themes" in m for m in errors), errors)
+
+    def test_a_quests_procedural_region_theme_must_exist(self):
+        quest = {"q": {"title": "Q", "procedural_regions": [{"theme": "swamp", "rooms": 3}],
+                       "stages": [{"objective": {"type": "kill", "target_template_id": "rat", "required_quantity": 1}}]}}
+        errors = self._errors({"caves": self._theme()}, quest=quest)
+        self.assertTrue(any("procedural_regions[0].theme" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

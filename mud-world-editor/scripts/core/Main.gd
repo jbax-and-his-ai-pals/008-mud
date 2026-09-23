@@ -178,6 +178,7 @@ func _update_db_ui():
 		database_mgr.backgrounds,
 		database_mgr.campaigns,
 		database_mgr.topics,
+		database_mgr.themes,
 		database_mgr.affix_prefixes,
 		database_mgr.affix_suffixes,
 		database_mgr.item_sets,
@@ -394,6 +395,10 @@ func _connect_ui_signals():
 					"nodes": {"start": {"description": "The story ends.", "type": "END", "outcome": "complete"}},
 				}
 				database_mgr.add_campaign(id, d)
+			"theme":
+				# Buildable from the moment it exists: every list non-empty, braces-free.
+				d = {"name_templates": ["New Region"], "description": "", "room_names": ["Room"], "room_descriptions": ["An empty space."]}
+				database_mgr.add_theme(id, d)
 			"topic":
 				d = {"display_name": "New Topic", "keywords": [], "responses": []}
 				database_mgr.add_topic(id, d)

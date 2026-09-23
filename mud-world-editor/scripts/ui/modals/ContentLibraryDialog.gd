@@ -29,6 +29,7 @@ var cached_discoveries: Dictionary = {}
 var cached_backgrounds: Dictionary = {}
 var cached_campaigns: Dictionary = {}
 var cached_topics: Dictionary = {}
+var cached_themes: Dictionary = {}
 var cached_dirty: Dictionary = {}
 
 var category_box: VBoxContainer
@@ -91,6 +92,7 @@ const CATEGORIES := [
 	{"key": "background", "label": "Backgrounds", "color": Color(0.8, 0.7, 0.95)},
 	{"key": "campaign", "label": "Campaigns", "color": Color(0.8, 0.65, 0.5)},
 	{"key": "topic", "label": "Knowledge Topics", "color": Color(0.55, 0.75, 0.85)},
+	{"key": "theme", "label": "Region Themes", "color": Color(0.45, 0.7, 0.45)},
 	# Real categories now, not grouping labels over unrelated item files: these are
 	# the two item-directory contracts the editor never loaded.
 	{"key": "affix_prefix", "label": "Prefixes", "color": Color(0.9, 0.75, 0.55)},
@@ -139,7 +141,7 @@ func clear_selection():
 	if visible:
 		_build_editor()
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, campaigns: Dictionary, topics: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, campaigns: Dictionary, topics: Dictionary, themes: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
@@ -153,6 +155,7 @@ func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, mag
 	cached_backgrounds = backgrounds
 	cached_campaigns = campaigns
 	cached_topics = topics
+	cached_themes = themes
 	cached_affix_prefixes = affix_prefixes
 	cached_affix_suffixes = affix_suffixes
 	cached_item_sets = item_sets
@@ -372,6 +375,7 @@ func _get_current_entries() -> Dictionary:
 		"background": return cached_backgrounds
 		"campaign": return cached_campaigns
 		"topic": return cached_topics
+		"theme": return cached_themes
 		"affix_prefix": return cached_affix_prefixes
 		"affix_suffix": return cached_affix_suffixes
 		"item_set": return cached_item_sets
@@ -498,6 +502,12 @@ func _build_editor():
 			current_editor = knowledge_inspector
 			knowledge_inspector.database_modified.connect(_mark_current_dirty)
 			knowledge_inspector.build(selected_id, entry)
+			return
+		if storage_type == "theme":
+			var theme_inspector := ThemeInspector.new(editor_box, database_mgr)
+			current_editor = theme_inspector
+			theme_inspector.database_modified.connect(_mark_current_dirty)
+			theme_inspector.build(selected_id, entry)
 			return
 		if storage_type == "affix_prefix" or storage_type == "affix_suffix":
 			var affix_inspector = AFFIX_INSPECTOR_SCRIPT.new(editor_box, database_mgr)

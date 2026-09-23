@@ -65,6 +65,9 @@ static func backgrounds_file() -> String: return DataRoot.content_file("player/b
 # `__common_topics__` is a registry of topic ids always askable, the same
 # not-an-entry-but-shares-the-file shape titles.json's `_guilds` is.
 static func topics_file() -> String: return DataRoot.content_file("knowledge/topics.json")
+# Region-generation themes (`world/region_generator.py`): `themes` holds one
+# entry per theme and `placeholders` the word lists every theme shares.
+static func themes_file() -> String: return DataRoot.content_dir("regions").path_join("dynamic_themes.json")
 # Affixes and item sets live in the item directory but are their own contracts:
 # `affix_data.py` reads `prefixes`/`suffixes`, `set_manager.py` reads the sets.
 static func affixes_file() -> String: return DataRoot.content_file("items/affixes.json")
@@ -126,6 +129,12 @@ var common_topics: Array = []
 # topic, kept and re-emitted on save -- the same reason `titles_extras` exists.
 var topics_extras: Dictionary = {}
 var topics_file_known := false
+var themes: Dictionary = {}
+var theme_placeholders: Dictionary = {}
+# The file's other top-level keys, and the order all of them were written in.
+var themes_extras: Dictionary = {}
+var themes_key_order: Array = []
+var themes_file_known := false
 # Affixes and item sets: the two item-directory files that are contracts rather
 # than templates. Kept in their own caches so an affix can never be edited as an
 # item -- which is what corrupted `affixes.json` before -- while still being
@@ -150,7 +159,7 @@ var backgrounds_file_known := false
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
 	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}, "title": {},
-	"collection": {}, "discovery": {}, "background": {}, "campaign": {}, "topic": {},
+	"collection": {}, "discovery": {}, "background": {}, "campaign": {}, "topic": {}, "theme": {},
 	"affix_prefix": {}, "affix_suffix": {}, "item_set": {}
 }
 
@@ -201,6 +210,7 @@ func load_all():
 	campaigns.clear(); campaign_files.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	titles.clear(); guilds.clear(); titles_extras.clear(); titles_file_known = false
 	topics.clear(); common_topics.clear(); topics_extras.clear(); topics_file_known = false
+	themes.clear(); theme_placeholders.clear(); themes_extras.clear(); themes_key_order.clear(); themes_file_known = false
 	collections_file_known = false; discoveries_file_known = false
 	backgrounds.clear(); backgrounds_extras.clear(); backgrounds_default = ""; backgrounds_file_known = false
 	file_extras.clear(); known_files.clear()
@@ -231,6 +241,7 @@ func load_all():
 	_load_magic_groups()
 	_load_titles()
 	_load_topics()
+	_load_themes()
 	_load_backgrounds()
 	_load_affixes()
 	_load_item_sets()
@@ -300,6 +311,42 @@ func _save_topics(errors: Array) -> void:
 		topics_file_known = true
 	else:
 		errors.append(result.get("error", "Could not save knowledge topics."))
+
+func _load_themes():
+	themes_file_known = FileAccess.file_exists(themes_file())
+	if not themes_file_known: return
+	var json := JSON.new()
+	if json.parse(FileAccess.get_file_as_string(themes_file())) != OK: return
+	var data = json.get_data()
+	if typeof(data) != TYPE_DICTIONARY: return
+	for key in data:
+		var id := str(key)
+		themes_key_order.append(id)
+		if id == "themes" and data[key] is Dictionary:
+			for theme_id in data[key]:
+				if data[key][theme_id] is Dictionary: themes[str(theme_id)] = (data[key][theme_id] as Dictionary).duplicate(true)
+		elif id == "placeholders" and data[key] is Dictionary:
+			theme_placeholders = (data[key] as Dictionary).duplicate(true)
+		else:
+			themes_extras[id] = data[key]
+
+func _save_themes(errors: Array) -> void:
+	if not themes_file_known and themes.is_empty() and theme_placeholders.is_empty():
+		return
+	var payload := {}
+	var order: Array = themes_key_order.duplicate()
+	for key in ["themes", "placeholders"]:
+		if not order.has(key): order.append(key)
+	for key in order:
+		match key:
+			"themes": payload["themes"] = themes
+			"placeholders": payload["placeholders"] = theme_placeholders
+			_: if themes_extras.has(key): payload[key] = themes_extras[key]
+	var result: Dictionary = SaveIO.write_json(themes_file(), payload)
+	if result.get("ok", false):
+		themes_file_known = true
+	else:
+		errors.append(result.get("error", "Could not save region themes."))
 
 # A single-file, one-entry-per-key category (collections, discoveries): write
 # its entries back over whatever non-entry keys the file already carried, and
@@ -630,6 +677,7 @@ func save_all() -> Dictionary:
 	_save_category(templates, template_dir(), errors)
 	_save_titles(errors)
 	_save_topics(errors)
+	_save_themes(errors)
 	_save_backgrounds(errors)
 	collections_file_known = _save_single_file(collections, collections_file(), "collections.json", collections_file_known, errors)
 	discoveries_file_known = _save_single_file(discoveries, discoveries_file(), "discoveries.json", discoveries_file_known, errors)
@@ -750,6 +798,7 @@ func _cache_for(type: String) -> Dictionary:
 		"background": return backgrounds
 		"campaign": return campaigns
 		"topic": return topics
+		"theme": return themes
 		"affix_prefix": return affix_prefixes
 		"affix_suffix": return affix_suffixes
 		"item_set": return item_sets
@@ -870,7 +919,7 @@ func _entries_without_internal(cache: Dictionary) -> Dictionary:
 # or the content keeps naming something that no longer exists.
 
 const CACHE_TYPES := ["npc", "item", "magic", "quest", "recipe", "dialogue", "title",
-	"collection", "discovery", "background", "campaign", "topic", "template"]
+	"collection", "discovery", "background", "campaign", "topic", "theme", "template"]
 
 # Preloaded like the editor's other helpers: a fresh `class_name` is not in the
 # project's class cache until the editor has scanned it, and a headless check must
@@ -968,6 +1017,10 @@ func add_campaign(id: String, data: Dictionary):
 	mark_dirty("campaign", id)
 func get_campaign_ids() -> Array: return get_ids("campaign")
 func add_topic(id: String, data: Dictionary): topics[id] = data; mark_dirty("topic", id)
+func add_theme(id: String, data: Dictionary): themes[id] = data; mark_dirty("theme", id)
+func set_theme_placeholders(lists: Dictionary):
+	theme_placeholders = lists.duplicate(true)
+	mark_dirty("theme", "__placeholders__")
 func get_topic_ids() -> Array: return get_ids("topic")
 
 func set_common_topics(ids: Array):

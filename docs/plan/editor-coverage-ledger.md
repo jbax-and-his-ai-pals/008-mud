@@ -142,7 +142,7 @@ editor knows about, which makes the absence read as a bug rather than a decision
 | Item sets (`data/items/sets.json`) | `set_manager.py:19-46` | `reference_integrity_validator.py:267-345` (members) | `ItemSetInspector.gd`, loaded/saved by `DatabaseManager._load_item_sets`/`_save_item_sets` | prototype — authorable now; member ids are checked by the reference gate | `affix_and_set_authoring_smoke.gd` | 6C |
 | Containers (`contains`, `capacity`, `locked`, `key_id`, `is_open`) | `container.py:26-38, 339-351`; `item_factory.py:230-232` | `content_set.py:_validate_container_templates` — references, quantities, and basic state | `ItemInspector.gd` guided Container section; a room placement can locally set open/locked state | prototype | `item_authoring_smoke.gd`, `room_item_placement_smoke.gd` | 6C |
 | Resource nodes (`resource_item_id`, `yield_table`, `substitute_resource_ids`, `charges`, `respawn_days`, `weather_blocked_by`) | `resource_node.py:16-30, 85-277`; `commands/gathering.py:68-74` | `content_set.py:2173-2231` — yield references and grades | `ItemInspector.gd` primary yield, tool, charges, respawn, alternate yields; a room placement can locally set charges/respawn | prototype | `item_authoring_smoke.gd`, `room_item_placement_smoke.gd` | 6C |
-| `data/regions/dynamic_themes.json` (generation templates) | `region_generator.py:22-33, 68-70` | **none** (deliberately out of scope) | editor-owned `editor/templates/` instead | absent | none | 6C |
+| `data/regions/dynamic_themes.json` (generation templates) | `region_generator.py:22-33, 68-70`; used by `quest_generation/generator.py::_instantiate_quest_logic` and the `genregion` debug command | `content_set.py::_validate_dynamic_themes` — known keys, non-empty lists (an empty one raised in `random.choice`), every `{placeholder}` backed by a word list and none in the never-formatted `room_names`/`description`, real spawner creatures, and every theme a quest's `procedural_regions` or the ruleset's `default_procedural_theme` names | `ThemeInspector.gd` under a "Region Themes" library category, including the shared word lists | validated writer | `region_theme_authoring_smoke.gd` (ends with the engine validator), `test_content_set_validator.py::TestDynamicThemes`, `content_round_trip_smoke.gd` | 6C |
 
 **Notes.** Generation is the family where the engine is most configurable and the editor
 least: families, profiles, rarity bands and salvage are authorable, and — since
@@ -380,8 +380,7 @@ target kinds.
 ### I.4 Read by the engine, validated by nothing
 
 Room `env_properties` and `properties.locked_by`;
-`spawner` toggles and weights; NPC `loot_table` and gift preferences; containers; affixes;
-`dynamic_themes.json`; and
+`spawner` toggles and weights; NPC `loot_table` and gift preferences; containers; affixes; and
 `presentation/*.json`. Each is a value a content author can write, the engine will act
 on, and no gate will refuse. Room time descriptions plus the NPC template envelope
 (`friendly`, stats/level, direct schedule, patrol, inventory and behaviour tuning) now
