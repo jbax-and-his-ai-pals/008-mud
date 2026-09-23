@@ -15,6 +15,7 @@ signal request_edit_manifest
 signal request_show_contracts
 signal request_edit_contracts
 signal request_edit_combat_vocabulary
+signal request_edit_field_interactions
 signal request_choose_content_set
 signal request_auto_layout
 signal snap_toggled(enabled)
@@ -132,6 +133,11 @@ func setup():
 	_apply_style(btn_combat, Color(0.36, 0.25, 0.22))
 	btn_combat.pressed.connect(func(): request_edit_combat_vocabulary.emit())
 	add_child(btn_combat)
+	var btn_fields = Button.new(); btn_fields.text="Ambient Fields…"
+	btn_fields.tooltip_text = "Edit the ambient fields this world spreads (field_interactions.json): their polarity and how they suppress one another."
+	_apply_style(btn_fields, Color(0.24, 0.3, 0.24))
+	btn_fields.pressed.connect(func(): request_edit_field_interactions.emit())
+	add_child(btn_fields)
 
 	var btn_world = Button.new(); btn_world.text="Open Content Set…"
 	btn_world.tooltip_text = "Switch to another content set beside this checkout. The choice is remembered in editor_settings.json."

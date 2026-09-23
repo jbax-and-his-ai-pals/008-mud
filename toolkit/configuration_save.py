@@ -22,14 +22,25 @@ def _digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+ABSENT = "absent"
+
+
+def _creatable_paths(content: Path) -> set[Path]:
+    """Optional configuration files a dialog may create; their absence is meaningful."""
+    return {content / "world/field_interactions.json"}
+
+
 def save_configuration(path: Path, candidate: dict, expected: str) -> dict:
     path = path.resolve()
-    before = path.read_bytes()
-    if _digest(before) != expected:
+    # ABSENT (not an empty string, which OS.execute drops on Windows) means the
+    # dialog opened with no file: only an optional file may be created that
+    # way, and only if it is still absent.
+    before = path.read_bytes() if path.is_file() else None
+    if (before is None and expected != ABSENT) or (before is not None and _digest(before) != expected):
         raise ValueError("This file changed outside this dialog. Reopen it before saving; your draft has not been written.")
     if not isinstance(candidate, dict):
         raise ValueError("Configuration must be a JSON object.")
-    if json.loads(before) == candidate:
+    if before is not None and json.loads(before) == candidate:
         return {"ok": True, "unchanged": True}
     root = next((p for p in path.parents if (p / "content_set.manifest.json").is_file()), None)
     if root is None:
@@ -46,12 +57,14 @@ def save_configuration(path: Path, candidate: dict, expected: str) -> dict:
     manifest_relative = Path("content_set.manifest.json")
     allowed = {Path(manifest.get("paths", {}).get("ruleset", "rules/ruleset.json")),
                content / "contracts/world_contracts.json", content / "combat/elements.json",
-               manifest_relative}
+               manifest_relative} | _creatable_paths(content)
     opening = manifest.get("paths", {}).get("opening")
     if isinstance(opening, str) and opening.strip():
         allowed.add(Path(opening))
     if relative not in allowed:
         raise ValueError("This is not a supported configuration file.")
+    if before is None and relative not in _creatable_paths(content):
+        raise ValueError("This configuration file does not exist, and it is not one that may be created here.")
     if relative == manifest_relative:
         # The check above read the manifest on disk. A draft that moves its own
         # paths would make the staged validation read another tree -- and, once
@@ -68,6 +81,7 @@ def save_configuration(path: Path, candidate: dict, expected: str) -> dict:
     with tempfile.TemporaryDirectory(prefix="mud-config-") as temporary:
         staged = Path(temporary) / root.name
         shutil.copytree(root, staged, ignore=shutil.ignore_patterns(".git", "editor", "saves", "__pycache__", "*.bak"))
+        (staged / relative).parent.mkdir(parents=True, exist_ok=True)
         (staged / relative).write_text(text, encoding="utf-8")
         issues = validate_content_set(staged)
         errors = [f"{issue.path}: {issue.message}".replace(str(staged), str(root))
@@ -75,9 +89,12 @@ def save_configuration(path: Path, candidate: dict, expected: str) -> dict:
         if errors:
             return {"ok": False, "error": "Engine validation refused this draft:\n" + "\n".join(errors)}
     # Check again after validation, before either backup or destination is changed.
-    if _digest(path.read_bytes()) != expected:
+    now = path.read_bytes() if path.is_file() else None
+    if (now is None) != (before is None) or (now is not None and _digest(now) != expected):
         raise ValueError("This file changed during validation. Nothing was saved; reopen and reconcile the changes.")
-    _atomic_bytes(path.with_name(path.name + ".bak"), before)
+    if before is not None:
+        _atomic_bytes(path.with_name(path.name + ".bak"), before)
+    path.parent.mkdir(parents=True, exist_ok=True)
     _atomic_bytes(path, text.encode("utf-8"))
     return {"ok": True, "unchanged": False}
 

@@ -212,7 +212,7 @@ the *engine* has a second consumer, the *reference content* does not.
 | Collections (`data/collections.json`) | `core/collection_manager.py:20-34` | `content_set.py:1259-1296` | `CollectionInspector.gd:23-135` | journey-proven | `collection_authoring_smoke.gd`, playability examine/get | 6D |
 | Discoveries (`data/discoveries.json`) | `core/discovery_manager.py:27` | `content_set.py:1299-1334` | `DiscoveryInspector.gd:26-131` | journey-proven | `p7_sunken_lake.py` fires an authored discovery | 6D |
 | Knowledge topics (`data/knowledge/topics.json`) | `knowledge_manager.py:31-57, 302` | `content_set.py::_validate_knowledge_topics` (new) checks shape, `__common_topics__` self-references, and every response's condition/effect keys | `KnowledgeInspector.gd`: display name, keywords, and per-response text/priority/conditions/effects. Conditions are this system's own vocabulary (region_id/faction/template_id/knowledge_state/campaign_state/campaign_outcome/quest_state), hardcoded and not yet parity-tested against the engine the way `NPCVocabulary.gd` is (a named debt, not an oversight); effects reuse `DialogueSchema.gd`'s vocabulary exactly | prototype | `knowledge_authoring_smoke.gd` (round-trips fantasy_frontier's real 14 topics); `test_content_set_validator.py` | 6D |
-| Field interactions (`data/world/field_interactions.json`) | `headless/field_fx.py:207-263` via `headless_server.py:213` | **none** | absent | absent | `sample_world_effects_provider` plugin only | 6D/6E |
+| Field interactions (`data/world/field_interactions.json`) | `headless/field_fx.py:60-116, 207-263` via `headless_server.py:213` | `content_set.py::_validate_field_interactions` — known keys, polarity vocabulary, 0–1 coefficients, lower-case field ids, no self-suppression; undeclared fields warn | `FieldInteractionsDialog.gd` (Explorer › Ambient Fields…) over `FieldInteractionsDraft.gd`; saves through `configuration_save.py`, which may now create this one optional file | validated writer | `field_interactions_authoring_smoke.gd`, `test_content_set_validator.py::TestFieldInteractions`, `test_configuration_save.py` | 6D/6E |
 
 ## H. World & system policy — the ruleset
 
@@ -378,7 +378,7 @@ target kinds.
 
 Room `env_properties` and `properties.exit_requirements`/`env_interactions`/`locked_by`;
 `spawner` toggles and weights; NPC `loot_table` and gift preferences; containers; affixes;
-`field_interactions.json`; `dynamic_themes.json`; and
+`dynamic_themes.json`; and
 `presentation/*.json`. Each is a value a content author can write, the engine will act
 on, and no gate will refuse. Room time descriptions plus the NPC template envelope
 (`friendly`, stats/level, direct schedule, patrol, inventory and behaviour tuning) now

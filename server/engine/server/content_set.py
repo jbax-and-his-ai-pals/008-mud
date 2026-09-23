@@ -2608,6 +2608,88 @@ def _validate_instance_quests(content_root: Path, issues: list[ContentSetIssue])
                 issues.append(ContentSetIssue("error", source, f"{layout_label}.target_count minimum ({count[0]}) is greater than its maximum ({count[1]})"))
 
 
+FIELD_POLARITIES = ("positive", "neutral", "negative")
+_FIELD_INTERACTION_KEYS = ("fallback_positive_suppresses_negative", "default_field_id", "polarities", "pairwise_rules")
+
+
+def _validate_field_interactions(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """`world/field_interactions.json` (`headless/field_fx.py::_load_field_interaction_config`).
+
+    The loader forgives everything: an unreadable file, an unknown top-level
+    key, a polarity outside the three it knows and a non-numeric coefficient are
+    all dropped without a word, and an out-of-range coefficient is clamped. Keys
+    are lower-cased on read, so a field id written any other way only works by
+    accident. Its presence alone turns the ambient field system on.
+    """
+    path = content_root / "world" / "field_interactions.json"
+    if not path.is_file():
+        return
+    payload = _load_json(path, issues, "field interactions")
+    if payload is None:
+        return
+    source = str(path)
+    if not isinstance(payload, dict):
+        issues.append(ContentSetIssue("error", source, "field_interactions.json must be an object"))
+        return
+
+    def field_id_ok(value: Any, label: str) -> bool:
+        if not isinstance(value, str) or not value.strip():
+            issues.append(ContentSetIssue("error", source, f"{label} must be a non-empty field id"))
+            return False
+        if value != value.strip().lower():
+            issues.append(ContentSetIssue("error", source, f"{label} '{value}' must be lower-case with no surrounding spaces (the engine reads it as '{value.strip().lower()}')"))
+            return False
+        return True
+
+    def coefficient_ok(value: Any, label: str) -> None:
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
+            issues.append(ContentSetIssue("error", source, f"{label} must be a number from 0 to 1"))
+
+    for key in payload:
+        if not str(key).startswith("_") and key not in _FIELD_INTERACTION_KEYS:
+            issues.append(ContentSetIssue("error", source, f"'{key}' is not a field-interaction setting (known: {', '.join(_FIELD_INTERACTION_KEYS)})"))
+
+    if "fallback_positive_suppresses_negative" in payload:
+        coefficient_ok(payload["fallback_positive_suppresses_negative"], "fallback_positive_suppresses_negative")
+
+    declared: set[str] = set()
+    polarities = payload.get("polarities", {})
+    if not isinstance(polarities, dict):
+        issues.append(ContentSetIssue("error", source, "polarities must be an object of field id -> polarity"))
+    else:
+        for field_id, polarity in polarities.items():
+            if field_id_ok(field_id, "polarities key"):
+                declared.add(field_id)
+            if polarity not in FIELD_POLARITIES:
+                issues.append(ContentSetIssue("error", source, f"polarities.{field_id} must be one of {', '.join(FIELD_POLARITIES)}"))
+
+    default_field_id = payload.get("default_field_id")
+    if default_field_id is not None and field_id_ok(default_field_id, "default_field_id") and declared and default_field_id not in declared:
+        issues.append(ContentSetIssue(
+            "warning", source,
+            f"default_field_id '{default_field_id}' has no declared polarity, so it is treated as neutral",
+        ))
+
+    rules = payload.get("pairwise_rules", {})
+    if not isinstance(rules, dict):
+        issues.append(ContentSetIssue("error", source, "pairwise_rules must be an object of source field -> {target field: coefficient}"))
+        return
+    for source_id, targets in rules.items():
+        field_id_ok(source_id, "pairwise_rules key")
+        if not isinstance(targets, dict) or not targets:
+            issues.append(ContentSetIssue("error", source, f"pairwise_rules.{source_id} must be a non-empty object of target field -> coefficient"))
+            continue
+        for target_id, coefficient in targets.items():
+            label = f"pairwise_rules.{source_id}.{target_id}"
+            field_id_ok(target_id, f"pairwise_rules.{source_id} key")
+            coefficient_ok(coefficient, label)
+            if target_id == source_id:
+                issues.append(ContentSetIssue("error", source, f"{label}: a field never suppresses itself, so this rule never applies"))
+            for named in (source_id, target_id):
+                if declared and named not in declared:
+                    issues.append(ContentSetIssue("warning", source, f"{label} names '{named}', which has no declared polarity"))
+
+
 def _validate_quest_choice_outcomes(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """A branching objective must say where each of its outcomes leads.
 
@@ -4045,6 +4127,7 @@ def load_content_set(
         _validate_knowledge_topics(content_root, issues)
         _validate_quest_stages(content_root, issues)
         _validate_instance_quests(content_root, issues)
+        _validate_field_interactions(content_root, issues)
         _validate_quest_choice_outcomes(content_root, issues)
         _validate_new_quest_objective_types(content_root, issues)
         _validate_collection_references(content_root, issues)

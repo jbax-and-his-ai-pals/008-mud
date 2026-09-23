@@ -29,6 +29,40 @@ class ConfigurationSaveTests(unittest.TestCase):
         self.expected = hashlib.sha256(self.before).hexdigest()
         self.draft = json.loads(self.before)
 
+    def _field_path(self) -> Path:
+        path = self.root / "data/world/field_interactions.json"
+        self.assertFalse(path.exists(), "modern_capsule ships no field interactions")
+        return path
+
+    def test_an_absent_optional_file_is_created_after_validation(self):
+        path = self._field_path()
+        config = {"default_field_id": "static", "polarities": {"static": "negative"}}
+        result = save_configuration(path, config, "absent")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(config, json.loads(path.read_bytes()))
+        self.assertFalse(path.with_name(path.name + ".bak").exists(), "there was nothing to back up")
+
+    def test_an_invalid_new_file_is_not_created(self):
+        path = self._field_path()
+        result = save_configuration(path, {"polarities": {"static": "bad"}}, "absent")
+        self.assertFalse(result["ok"], result)
+        self.assertIn("polarities.static", result["error"])
+        self.assertFalse(path.exists())
+
+    def test_a_file_that_appeared_meanwhile_is_not_overwritten(self):
+        path = self._field_path()
+        path.parent.mkdir(parents=True)
+        path.write_text("{}", encoding="utf-8")
+        with self.assertRaises(ValueError):
+            save_configuration(path, {"polarities": {}}, "absent")
+        self.assertEqual("{}", path.read_text(encoding="utf-8"))
+
+    def test_a_required_file_is_never_created(self):
+        self.path.unlink()
+        with self.assertRaises(ValueError):
+            save_configuration(self.path, self.draft, "absent")
+        self.assertFalse(self.path.exists())
+
     def test_noop_preserves_bytes(self):
         self.assertTrue(save_configuration(self.path, self.draft, self.expected)["unchanged"])
         self.assertEqual(self.before, self.path.read_bytes())

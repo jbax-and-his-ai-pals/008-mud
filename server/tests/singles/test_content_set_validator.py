@@ -1095,6 +1095,61 @@ class TestInstanceQuests(unittest.TestCase):
         self.assertTrue(any("rewards.xp" in m for m in errors), errors)
 
 
+class TestFieldInteractions(unittest.TestCase):
+    """`world/field_interactions.json` had no validator, and its loader drops
+    or clamps anything it does not understand without a word."""
+
+    def _issues(self, config) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "world").mkdir()
+        (package / "data" / "world" / "field_interactions.json").write_text(json.dumps(config), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if i.path.endswith("field_interactions.json")]
+
+    def _errors(self, config) -> list:
+        return [message for severity, message in self._issues(config) if severity == "error"]
+
+    def test_a_well_formed_file_is_accepted(self):
+        self.assertEqual([], self._issues({
+            "fallback_positive_suppresses_negative": 0.6,
+            "default_field_id": "blight",
+            "polarities": {"sanctity": "positive", "blight": "negative"},
+            "pairwise_rules": {"sanctity": {"blight": 0.5}},
+        }))
+
+    def test_an_unknown_polarity_is_an_error(self):
+        errors = self._errors({"polarities": {"hope": "good"}})
+        self.assertTrue(any("polarities.hope" in m for m in errors), errors)
+
+    def test_coefficients_must_be_between_zero_and_one(self):
+        errors = self._errors({"fallback_positive_suppresses_negative": 1.5, "pairwise_rules": {"a": {"b": "strong"}}})
+        self.assertTrue(any(m.startswith("fallback_positive_suppresses_negative") for m in errors), errors)
+        self.assertTrue(any("pairwise_rules.a.b" in m for m in errors), errors)
+
+    def test_an_unknown_top_level_key_is_an_error(self):
+        errors = self._errors({"pairwise_rule": {}})
+        self.assertTrue(any("'pairwise_rule' is not" in m for m in errors), errors)
+
+    def test_field_ids_must_be_lower_case(self):
+        errors = self._errors({"polarities": {"Blight": "negative"}})
+        self.assertTrue(any("'Blight'" in m and "'blight'" in m for m in errors), errors)
+
+    def test_a_self_suppression_rule_is_an_error(self):
+        errors = self._errors({"pairwise_rules": {"blight": {"blight": 0.5}}})
+        self.assertTrue(any("never suppresses itself" in m for m in errors), errors)
+
+    def test_undeclared_fields_are_warnings(self):
+        issues = self._issues({
+            "default_field_id": "mist",
+            "polarities": {"blight": "negative"},
+            "pairwise_rules": {"sanctty": {"blight": 0.5}},
+        })
+        warnings = [m for severity, m in issues if severity == "warning"]
+        self.assertEqual([], [m for severity, m in issues if severity == "error"])
+        self.assertTrue(any("'mist'" in m for m in warnings), warnings)
+        self.assertTrue(any("'sanctty'" in m for m in warnings), warnings)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

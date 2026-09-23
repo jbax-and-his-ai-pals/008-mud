@@ -16,6 +16,7 @@ signal request_show_contracts
 signal request_edit_contracts
 signal contracts_saved
 signal request_edit_combat_vocabulary
+signal request_edit_field_interactions
 signal combat_vocabulary_saved
 signal request_choose_content_set
 signal request_switch_content_set(path)
@@ -99,6 +100,7 @@ var opening_editor
 var contract_browser
 var contract_editor: ContractEditorDialog
 var combat_vocabulary_editor
+var field_interactions_editor
 var content_set_modal: AcceptDialog
 var content_set_list: ItemList
 var create_content_set_dialog: CreateContentSetDialog
@@ -193,6 +195,7 @@ func _forward_side_panel_signals():
 	side_panel.request_edit_manifest.connect(func(): request_edit_manifest.emit())
 	side_panel.request_edit_contracts.connect(func(): request_edit_contracts.emit())
 	side_panel.request_edit_combat_vocabulary.connect(func(): request_edit_combat_vocabulary.emit())
+	side_panel.request_edit_field_interactions.connect(func(): request_edit_field_interactions.emit())
 	side_panel.request_choose_content_set.connect(func(): request_choose_content_set.emit())
 	side_panel.tool_changed.connect(func(m, d): tool_changed.emit(m, d))
 	side_panel.request_create_db_entry.connect(func(t): request_create_db_entry.emit(t))
@@ -395,6 +398,9 @@ func _setup_modals_and_popups():
 	ui_layer.add_child(combat_vocabulary_editor)
 	combat_vocabulary_editor.setup()
 	combat_vocabulary_editor.combat_vocabulary_saved.connect(func(): combat_vocabulary_saved.emit())
+	field_interactions_editor = FieldInteractionsDialog.new()
+	ui_layer.add_child(field_interactions_editor)
+	field_interactions_editor.setup()
 	_setup_content_set_modal()
 
 # What this content set declares: families, roll tables, resources, attack and
@@ -409,6 +415,9 @@ func show_contract_editor():
 func show_combat_vocabulary_editor():
 	if is_instance_valid(combat_vocabulary_editor): combat_vocabulary_editor.open_active()
 
+func show_field_interactions_editor():
+	if is_instance_valid(field_interactions_editor): field_interactions_editor.open_active()
+
 func show_ruleset_editor():
 	if is_instance_valid(ruleset_editor): ruleset_editor.open_active()
 
@@ -419,7 +428,7 @@ func show_opening_editor():
 	if is_instance_valid(opening_editor): opening_editor.open_active()
 
 func has_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed(): return true
 	return false
 
@@ -429,14 +438,14 @@ func refresh_configuration_views(catalog: ContractCatalog):
 		content_library._build_editor()
 
 func save_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed():
 			dialog._save()
 			if dialog._form_changed(): return false
 	return true
 
 func discard_configuration_drafts():
-	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor]:
 		if is_instance_valid(dialog):
 			dialog._allow_close = true
 			dialog._form_baseline.clear()
