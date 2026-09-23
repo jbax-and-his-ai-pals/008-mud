@@ -1477,6 +1477,50 @@ def _validate_skills_rules(ruleset: dict[str, Any], issues: list[ContentSetIssue
             issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.stat must be a non-empty string"))
 
 
+def _validate_weather_shapes(ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """`weather.descriptions` and each profile's `map`/`travel_notes`.
+
+    Weather types are this ruleset's own open vocabulary -- whatever
+    `weather.chances` or a profile's own `map` names -- so nothing here checks a
+    type against a closed list. What is checked is the shape every reader
+    assumes: `information.py`'s `weather` command indexes `descriptions` by
+    type and expects a string back, and `WeatherManager.effective_weather`/
+    `travel_note` do the same for a profile's `map`/`travel_notes`. A non-string
+    value there is not a "no flavor text" case, it is a crash the next time
+    that weather rolls.
+    """
+    weather = ruleset.get("weather")
+    if not isinstance(weather, dict):
+        return
+
+    def string_map_issues(value: Any, label: str) -> None:
+        if not isinstance(value, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} must be an object"))
+            return
+        for key, mapped in value.items():
+            if str(key).startswith("_"):
+                continue
+            if not isinstance(mapped, str):
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{label}.{key} must be a string"))
+
+    if "descriptions" in weather:
+        string_map_issues(weather["descriptions"], "weather.descriptions")
+
+    profiles = weather.get("profiles", {})
+    if isinstance(profiles, dict):
+        for profile_id, profile in profiles.items():
+            if str(profile_id).startswith("_"):
+                continue
+            label = f"weather.profiles.{profile_id}"
+            if not isinstance(profile, dict):
+                issues.append(ContentSetIssue("error", str(ruleset_path), f"{label} must be an object"))
+                continue
+            if "map" in profile:
+                string_map_issues(profile["map"], f"{label}.map")
+            if "travel_notes" in profile:
+                string_map_issues(profile["travel_notes"], f"{label}.travel_notes")
+
+
 def _validate_weather_profiles(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
     """A `weather_profile` a region selects must be one the ruleset declares.
 
@@ -1484,6 +1528,7 @@ def _validate_weather_profiles(content_root: Path, ruleset: dict[str, Any], issu
     weather, which is a reasonable default and also completely invisible: a
     region authored to have alpine weather just reports rain.
     """
+    _validate_weather_shapes(ruleset, issues, ruleset_path)
     weather = ruleset.get("weather")
     profiles = weather.get("profiles", {}) if isinstance(weather, dict) else {}
     declared = {

@@ -36,6 +36,10 @@ var advancement_base: SpinBox
 var advancement_multiplier: SpinBox
 var advancement_grant_rows: VBoxContainer
 var advancement_baseline: Dictionary = {}
+var weather_description_rows: VBoxContainer
+var weather_profile_rows: VBoxContainer
+var weather_description_baseline: Dictionary = {}
+var weather_profile_baseline: Dictionary = {}
 
 const SYSTEM_LABELS := {
 	"combat": "Combat", "abilities": "Abilities", "magic": "Magic", "crafting": "Crafting",
@@ -121,6 +125,23 @@ func setup():
 	require_hazard_coverage = _check(box, "Require hazard coverage")
 	biomes = _field(box, "Biomes (comma-separated)")
 	region_types = _field(box, "Region types (comma-separated)")
+	box.add_child(InspectorStyle.create_sub_header("Weather"))
+	var weather_hint := InspectorStyle.lbl("Weather types are this ruleset's own vocabulary -- whatever weather.chances or a profile's own mapping names.", InspectorStyle.COLOR_TEXT_DIM)
+	weather_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(weather_hint)
+	var desc_header := HBoxContainer.new(); desc_header.add_child(InspectorStyle.lbl("Descriptions", InspectorStyle.COLOR_TEXT_DIM))
+	var desc_spacer := Control.new(); desc_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; desc_header.add_child(desc_spacer)
+	var add_desc := Button.new(); add_desc.text = "+ Description"; InspectorStyle.apply_button_style(add_desc, InspectorStyle.COLOR_SUCCESS)
+	add_desc.pressed.connect(func(): _add_string_map_row(weather_description_rows, "", "", "weather type", "flavor text"); _mark_dirty())
+	desc_header.add_child(add_desc); box.add_child(desc_header)
+	weather_description_rows = VBoxContainer.new(); weather_description_rows.add_theme_constant_override("separation", 5); box.add_child(weather_description_rows)
+	var profile_header := HBoxContainer.new(); profile_header.add_child(InspectorStyle.lbl("Profiles", InspectorStyle.COLOR_TEXT_DIM))
+	var profile_spacer := Control.new(); profile_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; profile_header.add_child(profile_spacer)
+	var add_profile := Button.new(); add_profile.text = "+ Profile"; InspectorStyle.apply_button_style(add_profile, InspectorStyle.COLOR_SUCCESS)
+	add_profile.pressed.connect(func(): _add_weather_profile_row("", {}); _mark_dirty())
+	profile_header.add_child(add_profile); box.add_child(profile_header)
+	var profile_hint := InspectorStyle.lbl("A profile translates global weather into a region's local expression (an alpine pass turning rain into snow) and adds a travel advisory per local type.", InspectorStyle.COLOR_TEXT_DIM)
+	profile_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(profile_hint)
+	weather_profile_rows = VBoxContainer.new(); weather_profile_rows.add_theme_constant_override("separation", 7); box.add_child(weather_profile_rows)
 	DialogStyle.style_window(self)
 	get_ok_button().custom_minimum_size = Vector2(300, 40)
 	get_ok_button().disabled = true
@@ -162,6 +183,7 @@ func open_active():
 	_load_skill_bonuses()
 	_load_npc_schedules()
 	_load_advancement()
+	_load_weather_section()
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -185,6 +207,8 @@ func _save():
 	if _skill_bonuses_changed(): draft.set_skill_stat_bonuses(_skill_bonuses())
 	if _npc_schedules_changed(): draft.set_npc_schedules(_npc_schedules())
 	if _advancement_changed(): draft.set_advancement(_advancement())
+	if _weather_descriptions_changed(): draft.set_weather_descriptions(_weather_descriptions())
+	if _weather_profiles_changed(): draft.set_weather_profiles(_weather_profiles())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)
@@ -655,6 +679,125 @@ func _ensure_schedule_empty_hints():
 		npc_schedule_categories.add_child(InspectorStyle.lbl("No categories. Add a category to match room-name keywords.", InspectorStyle.COLOR_TEXT_DIM))
 	if npc_schedule_roles.get_child_count() == 0:
 		npc_schedule_roles.add_child(InspectorStyle.lbl("No scheduled roles. NPCs can still use explicit schedules on their templates.", InspectorStyle.COLOR_TEXT_DIM))
+
+# `weather.descriptions` (flat topic-like map) and `weather.profiles.<id>.map`/
+# `.travel_notes` (`weather_manager.py::effective_weather`/`travel_note`;
+# `information.py`'s `weather` command). Weather-type keys are this ruleset's
+# own vocabulary, so both are string maps rather than pickers over a closed
+# list -- the same generic row shared by every string-map field here.
+func _add_string_map_row(rows: VBoxContainer, key: String, value: String, key_placeholder: String, value_placeholder: String):
+	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+	var key_field := LineEdit.new(); key_field.text = key; key_field.placeholder_text = key_placeholder
+	key_field.custom_minimum_size.x = 130; InspectorStyle.apply_input_style(key_field)
+	key_field.text_changed.connect(func(_t): _mark_dirty())
+	row.add_child(key_field)
+	var value_field := LineEdit.new(); value_field.text = value; value_field.placeholder_text = value_placeholder
+	value_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(value_field)
+	value_field.text_changed.connect(func(_t): _mark_dirty())
+	row.add_child(value_field)
+	var remove := Button.new(); remove.text = "×"; remove.pressed.connect(func(): _remove_row(row); _mark_dirty())
+	row.add_child(remove)
+	rows.add_child(row)
+
+
+func _load_string_map_rows(rows: VBoxContainer, source: Dictionary, key_placeholder: String, value_placeholder: String):
+	for child in rows.get_children(): _remove_row(child)
+	var keys: Array = source.keys(); keys.sort()
+	for key in keys: _add_string_map_row(rows, str(key), str(source[key]), key_placeholder, value_placeholder)
+
+
+func _read_string_map_rows(rows: VBoxContainer) -> Dictionary:
+	var out := {}
+	for row in rows.get_children():
+		if not (row is HBoxContainer) or row.get_child_count() < 3: continue
+		var key := str(row.get_child(0).text).strip_edges()
+		if key == "": continue
+		out[key] = str(row.get_child(1).text)
+	return out
+
+
+func _load_weather_section():
+	var weather: Dictionary = draft.data.get("weather", {}) if draft.data.get("weather", {}) is Dictionary else {}
+	var descriptions: Dictionary = weather.get("descriptions", {}) if weather.get("descriptions", {}) is Dictionary else {}
+	weather_description_baseline = descriptions.duplicate(true)
+	_load_string_map_rows(weather_description_rows, descriptions, "weather type", "flavor text")
+	for child in weather_profile_rows.get_children(): _remove_row(child)
+	var profiles: Dictionary = weather.get("profiles", {}) if weather.get("profiles", {}) is Dictionary else {}
+	weather_profile_baseline = profiles.duplicate(true)
+	for profile_id in profiles:
+		if profiles[profile_id] is Dictionary: _add_weather_profile_row(str(profile_id), profiles[profile_id].duplicate(true))
+
+
+func _weather_descriptions() -> Dictionary:
+	return _read_string_map_rows(weather_description_rows)
+
+
+func _weather_descriptions_changed() -> bool:
+	return JSON.stringify(_weather_descriptions()) != JSON.stringify(weather_description_baseline)
+
+
+## One card per profile: its id, a `map` string-map and a `travel_notes`
+## string-map. The two sub-lists are found by name rather than child index, so
+## a card built at load time and one built fresh by "+ Profile" are read back
+## identically.
+func _add_weather_profile_row(profile_id: String, profile: Dictionary):
+	var card := InspectorStyle.create_card(); var vbox: VBoxContainer = card.get_child(0).get_child(0)
+	# A profile that authored an explicit empty `map`/`travel_notes` (fantasy_
+	# frontier's "underground" does exactly this) must keep that key on an
+	# untouched save; a card built fresh by "+ Profile" should not gain one it
+	# was never given. The read alone cannot tell those apart once both are ""
+	# empty, so the fact of having started with the key is remembered here.
+	card.set_meta("had_map", profile.has("map"))
+	card.set_meta("had_travel_notes", profile.has("travel_notes"))
+	weather_profile_rows.add_child(card)
+
+	var id_row := HBoxContainer.new(); id_row.add_theme_constant_override("separation", 6)
+	id_row.add_child(InspectorStyle.lbl("Profile ID", InspectorStyle.COLOR_TEXT_DIM))
+	var id_field := LineEdit.new(); id_field.name = "ProfileId"; id_field.text = profile_id
+	id_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(id_field)
+	id_field.text_changed.connect(func(_t): _mark_dirty())
+	id_row.add_child(id_field)
+	var remove_profile := Button.new(); remove_profile.text = "Remove Profile"
+	remove_profile.pressed.connect(func(): _remove_row(card); _mark_dirty())
+	id_row.add_child(remove_profile)
+	vbox.add_child(id_row)
+
+	vbox.add_child(InspectorStyle.lbl("Map (global weather -> local expression)", InspectorStyle.COLOR_TEXT_DIM))
+	var map_rows := VBoxContainer.new(); map_rows.name = "MapRows"; map_rows.add_theme_constant_override("separation", 4); vbox.add_child(map_rows)
+	var add_map := Button.new(); add_map.text = "+ Mapping"; InspectorStyle.apply_button_style(add_map, InspectorStyle.COLOR_SUCCESS)
+	add_map.pressed.connect(func(): _add_string_map_row(map_rows, "", "", "global type", "local type"); _mark_dirty())
+	vbox.add_child(add_map)
+	_load_string_map_rows(map_rows, profile.get("map", {}) if profile.get("map", {}) is Dictionary else {}, "global type", "local type")
+
+	vbox.add_child(InspectorStyle.lbl("Travel notes", InspectorStyle.COLOR_TEXT_DIM))
+	var note_rows := VBoxContainer.new(); note_rows.name = "TravelNoteRows"; note_rows.add_theme_constant_override("separation", 4); vbox.add_child(note_rows)
+	var add_note := Button.new(); add_note.text = "+ Travel Note"; InspectorStyle.apply_button_style(add_note, InspectorStyle.COLOR_SUCCESS)
+	add_note.pressed.connect(func(): _add_string_map_row(note_rows, "", "", "weather type", "advisory text"); _mark_dirty())
+	vbox.add_child(add_note)
+	_load_string_map_rows(note_rows, profile.get("travel_notes", {}) if profile.get("travel_notes", {}) is Dictionary else {}, "weather type", "advisory text")
+
+
+func _weather_profiles() -> Dictionary:
+	var out := {}
+	for card in weather_profile_rows.get_children():
+		var id_field: LineEdit = card.find_child("ProfileId", true, false)
+		if id_field == null: continue
+		var profile_id := id_field.text.strip_edges()
+		if profile_id == "": continue
+		var map_rows: VBoxContainer = card.find_child("MapRows", true, false)
+		var note_rows: VBoxContainer = card.find_child("TravelNoteRows", true, false)
+		var profile := {}
+		var map := _read_string_map_rows(map_rows)
+		var notes := _read_string_map_rows(note_rows)
+		if not map.is_empty() or bool(card.get_meta("had_map", false)): profile["map"] = map
+		if not notes.is_empty() or bool(card.get_meta("had_travel_notes", false)): profile["travel_notes"] = notes
+		out[profile_id] = profile
+	return out
+
+
+func _weather_profiles_changed() -> bool:
+	return JSON.stringify(_weather_profiles()) != JSON.stringify(weather_profile_baseline)
+
 
 func _mark_dirty():
 	if loading or draft == null: return

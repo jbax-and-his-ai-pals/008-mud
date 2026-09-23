@@ -70,6 +70,14 @@ func set_advancement(advancement: Dictionary):
 	if advancement.is_empty(): data.erase("advancement")
 	else: data["advancement"] = advancement.duplicate(true)
 
+func set_weather_descriptions(descriptions: Dictionary):
+	if descriptions.is_empty(): _section("weather").erase("descriptions")
+	else: _section("weather")["descriptions"] = descriptions.duplicate(true)
+
+func set_weather_profiles(profiles: Dictionary):
+	if profiles.is_empty(): _section("weather").erase("profiles")
+	else: _section("weather")["profiles"] = profiles.duplicate(true)
+
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):
 	var regions: Dictionary = _section("world").get("regions", {})
@@ -125,6 +133,19 @@ func validate() -> Array:
 	if retreat is Dictionary and not retreat.is_empty():
 		for key in ["base_difficulty", "difficulty_per_hostile_level"]:
 			if retreat.has(key) and (typeof(retreat[key]) not in [TYPE_INT, TYPE_FLOAT] or float(retreat[key]) < 0): errors.append("combat.retreat.%s must be a non-negative number." % key)
+	var weather = data.get("weather", {})
+	if weather is Dictionary:
+		if weather.has("descriptions"): _validate_string_map(weather["descriptions"], "weather.descriptions", errors)
+		if weather.has("profiles"):
+			if not (weather["profiles"] is Dictionary): errors.append("weather.profiles must be an object.")
+			else:
+				for profile_id_variant in weather["profiles"]:
+					var profile_id := str(profile_id_variant).strip_edges()
+					var profile = weather["profiles"][profile_id_variant]
+					if profile_id == "": errors.append("A weather profile needs an id.")
+					if not (profile is Dictionary): errors.append("weather.profiles.%s must be an object." % profile_id); continue
+					if profile.has("map"): _validate_string_map(profile["map"], "weather.profiles.%s.map" % profile_id, errors)
+					if profile.has("travel_notes"): _validate_string_map(profile["travel_notes"], "weather.profiles.%s.travel_notes" % profile_id, errors)
 	return errors
 
 func save() -> Dictionary:
@@ -157,3 +178,13 @@ static func _validate_unique_strings(value, label: String, errors: Array):
 		if text == "": errors.append("%s cannot contain an empty value." % label)
 		elif seen.has(text): errors.append("%s repeats '%s'." % [label, text])
 		seen[text] = true
+
+## `information.py`'s `weather` command and `WeatherManager` index these by key
+## and expect a string back -- mirrors `content_set.py::_validate_weather_shapes`.
+static func _validate_string_map(value, label: String, errors: Array):
+	if not (value is Dictionary):
+		errors.append("%s must be an object." % label)
+		return
+	for key in value:
+		if not (value[key] is String):
+			errors.append("%s.%s must be a string." % [label, str(key)])

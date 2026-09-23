@@ -226,7 +226,7 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `world_mode` | **no reader** (world mode comes from the feature profile) | none | yes (free text) | prototype (same) | 6D |
 | `progression_model` | `content_set.py:108-110`; `world.py:128` | `content_set.py:108-118` | yes (free text) | prototype | 6D |
 | `world.regions` (policy flags, `biomes`, `region_types`) | `world.py:797-798` | `content_set.py:236-343` | yes (3 checkboxes + 2 lists) | validated writer | 6C |
-| `weather` (`profiles`, `descriptions`) | `weather_manager.py:27-67`; `information.py:185` | `content_set.py:1138-1166` — profile names only; **`chances` is read by the engine and absent here** | no | absent | 6D |
+| `weather` (`profiles`, `descriptions`) | `weather_manager.py:27-67`; `information.py:185` | `content_set.py::_validate_weather_shapes` checks `descriptions` and each profile's `map`/`travel_notes` are string maps, alongside the existing profile-reference check; **`chances` is read by the engine and remains absent here** | `RulesetEditorDialog.gd`: description rows plus one card per profile (id, map rows, travel-note rows); an authored empty `map`/`travel_notes` round-trips as empty rather than being dropped | prototype | `configuration_dialog_smoke.gd`; `ruleset_weather_smoke.gd`; `test_content_set_validator.py` | 6D |
 | `systems` | `content_set.py:80-124` | `content_set.py:80-124` (manifest mismatch = error) | 8 toggles | validated writer | 6B |
 | `combat.retreat` | `world.py:361-369` | `RulesetDraft.gd` rejects negative difficulties; staged engine verdict protects the full set | typed skill and difficulty controls in `RulesetEditorDialog.gd` | prototype | `configuration_dialog_smoke.gd` | 6D |
 | `locksmithing` | `world.py:540`; `items/lockpick.py:67` | none | no | absent | 6D |
@@ -248,9 +248,10 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `npc_schedules` | `ai/schedules.py:58-173` | `content_set.py:_validate_npc_schedule_rules` validates roles, category keywords, slot ordering/references, canonical hours, and the one dispatcher-supported override | `RulesetEditorDialog.gd`: excluded names, room-name categories, role/template matching, ordered location slots, and daily activities. It preserves unknown setting-specific data on touched rows | prototype | `test_content_set_validator.py`; `configuration_dialog_smoke.gd` | 6D |
 | `debug` | `commands/debug_crafting.py:62`, … | none | no | absent | 6D |
 
-**Notes.** The editor can write 10 of the 23 top-level keys: three scalars
+**Notes.** The editor can write 11 of the 23 top-level keys: three scalars
 (`ruleset_id`, `world_mode`, `progression_model`), `systems` (8 toggles),
 `world.regions` (3 flags + 2 lists), `status` (`stats` only), `factions` (`extra` only),
+`weather` (`descriptions` and `profiles` only, not `chances`),
 plus structured `npc_schedules`, `advancement` and `skills.stat_bonuses` sections. Nine
 sections are validated by nothing at all: `locksmithing`, `crime`,
 `player_defaults`, `economy`, `npc_naming`, `calendar`, `spawning`, `elites`, and

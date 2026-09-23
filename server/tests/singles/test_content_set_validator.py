@@ -615,7 +615,7 @@ class TestSalvageRuleValidation(unittest.TestCase):
 
 def _background_package(case: unittest.TestCase, *, stats: dict, skills: dict | None = None,
                         stat_bonuses: dict | None = None, weather: dict | None = None,
-                        weather_profile: str | None = None) -> Path:
+                        weather_profile: str | None = None, weather_section: dict | None = None) -> Path:
     """A minimal package whose backgrounds, ruleset and weather a test controls."""
     root = Path(tempfile.mkdtemp())
     case.addCleanup(shutil.rmtree, root, ignore_errors=True)
@@ -640,6 +640,8 @@ def _background_package(case: unittest.TestCase, *, stats: dict, skills: dict | 
         ruleset["skills"] = {"stat_bonuses": stat_bonuses}
     if weather is not None:
         ruleset["weather"] = {"profiles": weather}
+    if weather_section is not None:
+        ruleset["weather"] = weather_section
     (package / "rules" / "ruleset.json").write_text(json.dumps(ruleset), encoding="utf-8")
     (package / "presentation" / "default.json").write_text("{}", encoding="utf-8")
     properties = {"weather_profile": weather_profile} if weather_profile else {}
@@ -747,6 +749,58 @@ class TestRegionWeatherProfiles(unittest.TestCase):
         _definition, issues = validator.load_content_set(package)
         errors = [i.message for i in issues if i.severity == "error"]
         self.assertIn("declares no profiles at all", errors[0])
+
+
+class TestWeatherShapes(unittest.TestCase):
+    """`weather.descriptions` and a profile's `map`/`travel_notes` are string
+    maps `information.py`'s `weather` command and `WeatherManager` index
+    directly -- a non-string value there is not missing flavor text, it is a
+    crash the next time that weather rolls, so the shape is checked even
+    though the weather-type keys themselves are this ruleset's own open
+    vocabulary."""
+
+    def _package(self, weather_section: dict) -> Path:
+        return _background_package(self, stats={"strength": 10}, weather_section=weather_section)
+
+    def _errors(self, package: Path) -> list:
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error"]
+
+    def test_string_descriptions_are_accepted(self):
+        package = self._package({"descriptions": {"rain": "A steady drizzle."}})
+        self.assertEqual([], self._errors(package))
+
+    def test_a_non_string_description_is_an_error(self):
+        package = self._package({"descriptions": {"rain": {"text": "A steady drizzle."}}})
+        errors = self._errors(package)
+        self.assertTrue(any("weather.descriptions.rain" in message for message in errors), errors)
+
+    def test_descriptions_must_be_an_object(self):
+        package = self._package({"descriptions": ["A steady drizzle."]})
+        errors = self._errors(package)
+        self.assertTrue(any("weather.descriptions must be an object" in message for message in errors), errors)
+
+    def test_a_profiles_map_and_travel_notes_accept_strings(self):
+        package = self._package({"profiles": {"alpine": {
+            "map": {"rain": "snow"},
+            "travel_notes": {"snow": "The pass may be closed."},
+        }}})
+        self.assertEqual([], self._errors(package))
+
+    def test_a_non_string_map_value_is_an_error(self):
+        package = self._package({"profiles": {"alpine": {"map": {"rain": 3}}}})
+        errors = self._errors(package)
+        self.assertTrue(any("weather.profiles.alpine.map.rain" in message for message in errors), errors)
+
+    def test_a_non_string_travel_note_is_an_error(self):
+        package = self._package({"profiles": {"alpine": {"travel_notes": {"snow": ["closed"]}}}})
+        errors = self._errors(package)
+        self.assertTrue(any("weather.profiles.alpine.travel_notes.snow" in message for message in errors), errors)
+
+    def test_a_profile_that_is_not_an_object_is_an_error(self):
+        package = self._package({"profiles": {"alpine": "cold"}})
+        errors = self._errors(package)
+        self.assertTrue(any("weather.profiles.alpine must be an object" in message for message in errors), errors)
 
 
 class TestContentSetValidatorMain(unittest.TestCase):
