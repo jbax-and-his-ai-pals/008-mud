@@ -1150,6 +1150,40 @@ class TestFieldInteractions(unittest.TestCase):
         self.assertTrue(any("'sanctty'" in m for m in warnings), warnings)
 
 
+class TestAlternateAdvancementFile(unittest.TestCase):
+    """`AdvancementManager` also reads `<content_root>/advancement.json`, with
+    the ruleset section laid over it key by key. Only the ruleset section was
+    checked, so a dead grant kind in the file paid nothing and said nothing."""
+
+    def _issues(self, table, ruleset_section=None) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "advancement.json").write_text(json.dumps(table), encoding="utf-8")
+        if ruleset_section is not None:
+            ruleset_path = package / "rules" / "ruleset.json"
+            ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+            ruleset["advancement"] = ruleset_section
+            ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if i.path.endswith("advancement.json")]
+
+    def test_a_well_formed_file_is_accepted(self):
+        self.assertEqual([], self._issues({
+            "curve": {"base": 120, "multiplier": 1.3},
+            "grants": [{"id": "first_region", "xp": 20, "match": {"kind": "region"}}],
+        }))
+
+    def test_the_file_gets_the_same_checks_as_the_ruleset(self):
+        issues = self._issues({"grants": [{"id": "odd", "xp": 5, "match": {"kind": "sneezing"}}]})
+        self.assertTrue(any(s == "error" and "'sneezing'" in m for s, m in issues), issues)
+
+    def test_a_key_the_ruleset_also_sets_is_reported_as_ignored(self):
+        issues = self._issues(
+            {"grants": [{"id": "first_region", "xp": 20, "match": {"kind": "region"}}]},
+            ruleset_section={"grants": [{"id": "first_npc", "xp": 10, "match": {"kind": "npc"}}]},
+        )
+        self.assertTrue(any(s == "warning" and "'grants' here is ignored" in m for s, m in issues), issues)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

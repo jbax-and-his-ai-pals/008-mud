@@ -3269,11 +3269,32 @@ def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], i
     and a rule whose kind is unrecognised is rejected outright. Either way the
     activity looks supported in the ruleset and rewards nothing in the game.
     """
+    section = ruleset.get("advancement", {})
+    if section is not None:
+        _validate_advancement_section(section, content_root, issues, ruleset_path)
+
+    # `AdvancementManager._config` also reads `<content_root>/advancement.json`
+    # and lays the ruleset section over it one top-level key at a time, so a
+    # ruleset `grants` list replaces the file's list outright rather than
+    # adding to it. The file gets the same checks, and a key it loses is said.
+    path = content_root / "advancement.json"
+    if not path.is_file():
+        return
+    payload = _load_json(path, issues, "advancement table")
+    if payload is None:
+        return
+    _validate_advancement_section(payload, content_root, issues, path)
+    if isinstance(payload, dict) and isinstance(section, dict):
+        for key in sorted(set(payload) & set(section)):
+            issues.append(ContentSetIssue(
+                "warning", str(path),
+                f"'{key}' here is ignored: the ruleset's advancement.{key} replaces it entirely",
+            ))
+
+
+def _validate_advancement_section(section: Any, content_root: Path, issues: list[ContentSetIssue], ruleset_path: Path) -> None:
     from engine.core.advancement import KNOWN_ENTRY_KINDS
 
-    section = ruleset.get("advancement", {})
-    if section is None:
-        return
     if not isinstance(section, dict):
         issues.append(ContentSetIssue("error", str(ruleset_path), "advancement must be an object"))
         return
