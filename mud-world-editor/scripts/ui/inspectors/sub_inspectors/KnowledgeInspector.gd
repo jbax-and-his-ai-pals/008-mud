@@ -9,8 +9,9 @@
 # the NPC being asked (`region_id`, `faction`, `template_id`) and on player/
 # world state (`knowledge_state`, `campaign_state`, `campaign_outcome`,
 # `quest_state`), and every key present in the object must hold at once (a
-# flat AND) -- mirrors `content_set.py::_validate_knowledge_topics`, which is
-# this vocabulary's only other copy. `effects` is the one place this reuses a
+# flat AND). The constants below copy `knowledge_manager.py`'s
+# KNOWLEDGE_CONDITION_KINDS and state tuples; schema_parity_smoke.gd checks the
+# copy against them. `effects` is the one place this reuses a
 # shared language: it is exactly `engine/dialogue/effects.py`'s, so the picker
 # and shape hints come from `DialogueSchema.gd` rather than a second table.
 

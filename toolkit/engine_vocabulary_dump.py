@@ -55,6 +55,9 @@ def main() -> int:
     try:
         from engine.conditions import KNOWN_KINDS
         from engine.dialogue.effects import KNOWN_EFFECTS
+        from engine.core.knowledge_manager import (
+            CAMPAIGN_STATES, KNOWLEDGE_CONDITION_KINDS, KNOWLEDGE_STATES, QUEST_STATES,
+        )
         from engine.core.quests import tracker  # noqa: F401 - imported to prove it exists
         from engine.utils.utils import DIRECTION_OPPOSITES
         from engine.config import (
@@ -98,6 +101,14 @@ def main() -> int:
             "default_dispositions": dict(sorted(FACTION_DEFAULT_DISPOSITIONS.items())),
         },
         "npc_behavior_types": sorted(NPC_BEHAVIOR_TYPES),
+        # A topic response's own condition vocabulary (not `condition_kinds`
+        # above, which is dialogue's). `KnowledgeInspector.gd` holds the copy.
+        "knowledge_conditions": {
+            "kinds": sorted(KNOWLEDGE_CONDITION_KINDS),
+            "knowledge_states": sorted(KNOWLEDGE_STATES),
+            "campaign_states": sorted(CAMPAIGN_STATES),
+            "quest_states": sorted(QUEST_STATES),
+        },
         # The manifest's shape, for the editor's create-set flow. `content_set.py`
         # is what refuses a set, so it owns these; the editor keeps a copy only
         # because writing a manifest needs field *names* to build a form with, and

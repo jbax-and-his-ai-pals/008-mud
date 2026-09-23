@@ -10,6 +10,19 @@ if TYPE_CHECKING:
     from engine.player import Player
     from engine.npcs.npc import NPC
 
+# What a topic response's `conditions` may gate on: its own vocabulary, not
+# `engine.conditions`. `_check_conditions` compares against exactly these words
+# (test_knowledge_condition_vocabulary.py reads its source to keep them equal);
+# the validator imports them, and the editor's copy in KnowledgeInspector.gd is
+# checked against them through toolkit/engine_vocabulary_dump.py.
+KNOWLEDGE_CONDITION_KINDS = (
+    "region_id", "faction", "template_id",
+    "knowledge_state", "campaign_state", "campaign_outcome", "quest_state",
+)
+KNOWLEDGE_STATES = ("known", "discussed", "revealed")
+CAMPAIGN_STATES = ("active", "completed", "not_active")
+QUEST_STATES = ("active", "completed")
+
 class KnowledgeManager:
     def __init__(self, world, warning_sink=None):
         self.world = world

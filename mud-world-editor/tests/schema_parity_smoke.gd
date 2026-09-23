@@ -68,6 +68,7 @@ func _init() -> void:
 	_check_direction_reciprocals(vocabulary)
 	_check_manifest_shape(vocabulary)
 	_check_npc_vocabulary(vocabulary)
+	_check_knowledge_conditions(vocabulary)
 
 	if failure_count > 0:
 		push_error("schema parity failed (%d)" % failure_count)
@@ -258,6 +259,21 @@ func _check_npc_vocabulary(vocabulary: Dictionary) -> void:
 	var editor_behaviors := _as_set(NPCVocabulary.BEHAVIOR_TYPES)
 	_assert(engine_behaviors == editor_behaviors,
 		"the behaviour vocabulary matches exactly (engine %s, editor %s)" % [str(_sorted(engine_behaviors)), str(_sorted(editor_behaviors))])
+
+
+## `KnowledgeInspector.gd` copies a topic response's condition vocabulary for its
+## kind and state pickers. The engine's constants sit beside the reader and are
+## tied to it by test_knowledge_condition_vocabulary.py; this ties the copy to them.
+func _check_knowledge_conditions(vocabulary: Dictionary) -> void:
+	print("
+[knowledge conditions: editor vs engine]")
+	var knowledge: Dictionary = vocabulary.get("knowledge_conditions", {})
+	_assert(not knowledge.is_empty(), "the engine's knowledge-condition vocabulary was read")
+	for pair in [["kinds", KnowledgeInspector.CONDITION_KINDS], ["knowledge_states", KnowledgeInspector.KNOWLEDGE_STATES],
+			["campaign_states", KnowledgeInspector.CAMPAIGN_STATES], ["quest_states", KnowledgeInspector.QUEST_STATES]]:
+		var engine := _as_set(knowledge.get(pair[0], []))
+		var editor := _as_set(pair[1])
+		_assert(engine == editor, "%s match exactly (engine %s, editor %s)" % [pair[0], str(_sorted(engine)), str(_sorted(editor))])
 
 
 # --- helpers ------------------------------------------------------------------

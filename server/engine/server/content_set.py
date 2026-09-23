@@ -2536,12 +2536,6 @@ def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]
                     check_effects(choice.check.get("fail_effects"), f"{choice_where}.check.fail_effects")
 
 
-_KNOWLEDGE_CONDITION_KINDS = (
-    "region_id", "faction", "template_id",
-    "knowledge_state", "campaign_state", "campaign_outcome", "quest_state",
-)
-
-
 def _knowledge_region_ids(content_root: Path, issues: list[ContentSetIssue]) -> set[str]:
     ids: set[str] = set()
     region_dir = content_root / "regions"
@@ -2579,6 +2573,10 @@ def _validate_knowledge_topics(content_root: Path, issues: list[ContentSetIssue]
     reuses the dialogue effect language exactly, so it is checked the same way
     `_validate_dialogue_content` checks a choice's effects.
     """
+    from engine.core.knowledge_manager import (
+        CAMPAIGN_STATES, KNOWLEDGE_CONDITION_KINDS, KNOWLEDGE_STATES, QUEST_STATES,
+    )
+
     from engine.dialogue.effects import KNOWN_EFFECTS
 
     path = content_root / "knowledge" / "topics.json"
@@ -2641,11 +2639,11 @@ def _validate_knowledge_topics(content_root: Path, issues: list[ContentSetIssue]
             else:
                 for key, value in conditions.items():
                     cond_label = f"{resp_label}.conditions.{key}"
-                    if key not in _KNOWLEDGE_CONDITION_KINDS:
+                    if key not in KNOWLEDGE_CONDITION_KINDS:
                         issues.append(ContentSetIssue(
                             "error", str(path),
                             f"{cond_label} is not a condition this engine checks "
-                            f"(known: {', '.join(_KNOWLEDGE_CONDITION_KINDS)})",
+                            f"(known: {', '.join(KNOWLEDGE_CONDITION_KINDS)})",
                         ))
                     elif key in ("region_id", "faction", "template_id"):
                         if not isinstance(value, str) or not value.strip():
@@ -2661,8 +2659,8 @@ def _validate_knowledge_topics(content_root: Path, issues: list[ContentSetIssue]
                             topic_ref = value.get("topic_id")
                             if not isinstance(topic_ref, str) or topic_ref not in topic_ids:
                                 issues.append(ContentSetIssue("error", str(path), f"{cond_label}.topic_id must name a topic this file declares"))
-                            if value.get("state") not in ("known", "discussed", "revealed"):
-                                issues.append(ContentSetIssue("error", str(path), f"{cond_label}.state must be one of known, discussed, revealed"))
+                            if value.get("state") not in KNOWLEDGE_STATES:
+                                issues.append(ContentSetIssue("error", str(path), f"{cond_label}.state must be one of {', '.join(KNOWLEDGE_STATES)}"))
                     elif key == "campaign_state":
                         if not isinstance(value, dict):
                             issues.append(ContentSetIssue("error", str(path), f"{cond_label} must be an object"))
@@ -2670,8 +2668,8 @@ def _validate_knowledge_topics(content_root: Path, issues: list[ContentSetIssue]
                             campaign_ref = value.get("campaign_id")
                             if not isinstance(campaign_ref, str) or (campaign_ids and campaign_ref not in campaign_ids):
                                 issues.append(ContentSetIssue("error", str(path), f"{cond_label}.campaign_id references an unknown campaign"))
-                            if value.get("state") not in ("active", "completed", "not_active"):
-                                issues.append(ContentSetIssue("error", str(path), f"{cond_label}.state must be one of active, completed, not_active"))
+                            if value.get("state") not in CAMPAIGN_STATES:
+                                issues.append(ContentSetIssue("error", str(path), f"{cond_label}.state must be one of {', '.join(CAMPAIGN_STATES)}"))
                     elif key == "campaign_outcome":
                         if not isinstance(value, dict):
                             issues.append(ContentSetIssue("error", str(path), f"{cond_label} must be an object"))
@@ -2685,8 +2683,8 @@ def _validate_knowledge_topics(content_root: Path, issues: list[ContentSetIssue]
                         if not isinstance(value, dict):
                             issues.append(ContentSetIssue("error", str(path), f"{cond_label} must be an object"))
                         else:
-                            if value.get("state") not in ("active", "completed"):
-                                issues.append(ContentSetIssue("error", str(path), f"{cond_label}.state must be one of active, completed"))
+                            if value.get("state") not in QUEST_STATES:
+                                issues.append(ContentSetIssue("error", str(path), f"{cond_label}.state must be one of {', '.join(QUEST_STATES)}"))
                             if "from_this_npc" in value and not isinstance(value["from_this_npc"], bool):
                                 issues.append(ContentSetIssue("error", str(path), f"{cond_label}.from_this_npc must be a boolean"))
                             if "id_pattern" in value and not isinstance(value["id_pattern"], str):
