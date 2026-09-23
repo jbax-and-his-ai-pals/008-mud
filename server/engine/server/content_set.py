@@ -1149,6 +1149,179 @@ def _validate_npc_template_runtime_shapes(
                     ))
 
 
+_SIMPLE_RULESET_SECTION_KEYS = {
+    "locksmithing": ("skill",),
+    "economy": ("currency_name",),
+    "calendar": ("day_names", "month_names", "start_time"),
+    "spawning": ("no_spawn_keywords",),
+    "elites": ("chance", "stat_multiplier", "loot_guaranteed_chance", "loot_quantity_multiplier", "name_pattern", "prefixes"),
+    "player_defaults": ("player_class", "magic", "starting_inventory"),
+    "npc_naming": ("first_names", "random_name_pattern"),
+}
+
+
+def _validate_simple_ruleset_sections(
+    content_root: Path, ruleset: Any, issues: list[ContentSetIssue], ruleset_path: Path | None = None,
+) -> None:
+    """Seven small ruleset sections the engine reads leniently.
+
+    Each reader falls back without a word on a value it cannot use -- a calendar
+    with an empty or non-string name reverts to the default names, a start time
+    out of range starts at midnight, a misspelt key is simply never read -- and
+    two raise: `elites.name_pattern` and `npc_naming.random_name_pattern` are
+    `str.format`ted with fixed fields, so any other placeholder is a KeyError the
+    first time an elite or a randomly named NPC spawns.
+    """
+    if not isinstance(ruleset, dict):
+        return
+    source = str(ruleset_path or "ruleset")
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", source, message))
+
+    def warn(message: str) -> None:
+        issues.append(ContentSetIssue("warning", source, message))
+
+    def strings(value: Any, label: str, *, allow_empty_list: bool = False) -> bool:
+        if not isinstance(value, list) or (not value and not allow_empty_list) or any(
+            not isinstance(entry, str) or not entry.strip() for entry in value
+        ):
+            error(f"{label} must be a {'' if allow_empty_list else 'non-empty '}array of non-empty strings")
+            return False
+        return True
+
+    def number(value: Any, label: str, *, low: float, high: float | None = None, low_inclusive: bool = True) -> None:
+        in_range = (value >= low if low_inclusive else value > low) if isinstance(value, (int, float)) else False
+        ok = not isinstance(value, bool) and isinstance(value, (int, float)) and in_range and (high is None or value <= high)
+        if not ok:
+            if high is not None:
+                bound = f"from {low} to {high}"
+            else:
+                bound = f"of at least {low}" if low_inclusive else f"greater than {low}"
+            error(f"{label} must be a number {bound}")
+
+    def pattern(value: Any, label: str, fields: set[str]) -> None:
+        if not isinstance(value, str) or not value.strip():
+            error(f"{label} must be a non-empty string")
+            return
+        extra = _format_placeholders(value) - fields
+        if extra:
+            allowed = ", ".join("{" + field + "}" for field in sorted(fields))
+            error(f"{label} uses unknown placeholder(s) {sorted(extra)}; only {allowed} are filled in, and any other raises when it is used")
+
+    sections: dict[str, dict[str, Any]] = {}
+    for name, known in _SIMPLE_RULESET_SECTION_KEYS.items():
+        if name not in ruleset:
+            continue
+        section = ruleset[name]
+        if not isinstance(section, dict):
+            error(f"{name} must be an object")
+            continue
+        sections[name] = section
+        for key in section:
+            if not str(key).startswith("_") and key not in known:
+                error(f"{name}.{key} is not a setting the engine reads (known: {', '.join(known)})")
+
+    locksmithing = sections.get("locksmithing", {})
+    if "skill" in locksmithing:
+        skill = locksmithing["skill"]
+        if not isinstance(skill, str):
+            error("locksmithing.skill must be a string (empty means locks cannot be picked)")
+        else:
+            skills = ruleset.get("skills")
+            bonuses = skills.get("stat_bonuses") if isinstance(skills, dict) else None
+            if skill.strip() and isinstance(bonuses, dict) and bonuses and skill.strip() not in bonuses:
+                warn(f"locksmithing.skill '{skill}' has no skills.stat_bonuses rule, so no stat backs lockpicking")
+
+    economy = sections.get("economy", {})
+    if "currency_name" in economy and (not isinstance(economy["currency_name"], str) or not economy["currency_name"].strip()):
+        error("economy.currency_name must be a non-empty string")
+
+    calendar = sections.get("calendar", {})
+    for key in ("day_names", "month_names"):
+        if key in calendar and strings(calendar[key], f"calendar.{key}"):
+            repeated = sorted({name for name in calendar[key] if calendar[key].count(name) > 1})
+            if repeated:
+                error(f"calendar.{key} repeats {repeated}")
+    if "start_time" in calendar:
+        start = calendar["start_time"]
+        if not isinstance(start, dict):
+            error("calendar.start_time must be an object with hour and minute")
+        else:
+            for key, high in (("hour", 23), ("minute", 59)):
+                value = start.get(key, 0)
+                if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= high:
+                    error(f"calendar.start_time.{key} must be an integer from 0 to {high} (otherwise the clock starts at midnight)")
+
+    spawning = sections.get("spawning", {})
+    if "no_spawn_keywords" in spawning and strings(spawning["no_spawn_keywords"], "spawning.no_spawn_keywords", allow_empty_list=True):
+        room_text: list[str] = []
+        for region_path in sorted((content_root / "regions").glob("*.json")):
+            region = _load_json(region_path, [], "region definitions")
+            rooms = region.get("rooms", {}) if isinstance(region, dict) else {}
+            if isinstance(rooms, dict):
+                for room_id, room in rooms.items():
+                    room_text.append(str(room_id).lower())
+                    if isinstance(room, dict):
+                        room_text.append(str(room.get("name", "")).lower())
+        for keyword in spawning["no_spawn_keywords"]:
+            if room_text and not any(keyword.lower() in text for text in room_text):
+                warn(f"spawning.no_spawn_keywords '{keyword}' matches no room id or name, so it protects nothing")
+
+    elites = sections.get("elites", {})
+    for key in ("chance", "loot_guaranteed_chance"):
+        if key in elites:
+            number(elites[key], f"elites.{key}", low=0, high=1)
+    for key in ("stat_multiplier", "loot_quantity_multiplier"):
+        if key in elites:
+            number(elites[key], f"elites.{key}", low=0, low_inclusive=False)
+    if "name_pattern" in elites:
+        pattern(elites["name_pattern"], "elites.name_pattern", {"prefix", "name"})
+    if "prefixes" in elites:
+        strings(elites["prefixes"], "elites.prefixes")
+
+    defaults = sections.get("player_defaults", {})
+    if "player_class" in defaults and (not isinstance(defaults["player_class"], str) or not defaults["player_class"].strip()):
+        error("player_defaults.player_class must be a non-empty string")
+    if "magic" in defaults:
+        magic = defaults["magic"]
+        if not isinstance(magic, dict):
+            error("player_defaults.magic must be an object")
+        elif "known_spells" in magic and strings(magic["known_spells"], "player_defaults.magic.known_spells", allow_empty_list=True):
+            ability_ids = _ability_ids(content_root, issues)
+            for spell_id in magic["known_spells"]:
+                if spell_id.strip() not in ability_ids:
+                    error(f"player_defaults.magic.known_spells references missing ability '{spell_id}'")
+    if "starting_inventory" in defaults:
+        entries = defaults["starting_inventory"]
+        if not isinstance(entries, list):
+            error("player_defaults.starting_inventory must be an array")
+        else:
+            item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+            for index, entry in enumerate(entries):
+                label = f"player_defaults.starting_inventory[{index}]"
+                if isinstance(entry, str):
+                    item_id = entry.strip()
+                elif isinstance(entry, dict):
+                    item_id = str(entry.get("item_id", "")).strip()
+                    quantity = entry.get("quantity", 1)
+                    if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
+                        error(f"{label}.quantity must be a positive integer (anything else stops character creation)")
+                else:
+                    error(f"{label} must be an item id or an object with item_id and quantity")
+                    continue
+                if item_id not in item_ids:
+                    error(f"{label} references missing item '{item_id}' (the engine skips it and the player starts without it)")
+
+    naming = sections.get("npc_naming", {})
+    if "first_names" in naming and strings(naming["first_names"], "npc_naming.first_names"):
+        repeated = sorted({name for name in naming["first_names"] if naming["first_names"].count(name) > 1})
+        if repeated:
+            warn(f"npc_naming.first_names lists {repeated} more than once, which makes each of them twice as likely")
+    if "random_name_pattern" in naming:
+        pattern(naming["random_name_pattern"], "npc_naming.random_name_pattern", {"first_name", "title"})
+
+
 def _validate_npc_schedule_rules(
     ruleset: Any,
     issues: list[ContentSetIssue],
@@ -4143,6 +4316,7 @@ def load_content_set(
         _validate_npc_template_runtime_shapes(content_root, issues)
         _validate_npc_schedule_rules(ruleset_payload, issues, ruleset_source_path)
         _validate_weather_profiles(content_root, ruleset_payload, issues, ruleset_source_path)
+        _validate_simple_ruleset_sections(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)

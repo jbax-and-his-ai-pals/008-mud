@@ -1184,6 +1184,73 @@ class TestAlternateAdvancementFile(unittest.TestCase):
         self.assertTrue(any(s == "warning" and "'grants' here is ignored" in m for s, m in issues), issues)
 
 
+class TestSimpleRulesetSections(unittest.TestCase):
+    """locksmithing, economy, calendar, spawning, elites, player_defaults and
+    npc_naming were validated by nothing. Their readers fall back silently on a
+    value they cannot use, and two `str.format` patterns raise at spawn time."""
+
+    def _issues(self, **sections) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "items" / "goods.json").write_text(
+            json.dumps({"knife": {"type": "Item", "name": "knife"}}), encoding="utf-8"
+        )
+        ruleset_path = package / "rules" / "ruleset.json"
+        ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+        ruleset.update(sections)
+        ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if i.path.endswith("ruleset.json")]
+
+    def _errors(self, **sections) -> list:
+        return [m for s, m in self._issues(**sections) if s == "error"]
+
+    def test_well_formed_sections_are_accepted(self):
+        self.assertEqual([], self._issues(
+            locksmithing={"skill": "lockpicking"},
+            economy={"currency_name": "credits"},
+            calendar={"day_names": ["One", "Two"], "month_names": ["First"], "start_time": {"hour": 9, "minute": 30}},
+            spawning={"no_spawn_keywords": ["square"]},
+            elites={"chance": 0.1, "stat_multiplier": 1.5, "name_pattern": "{prefix} {name}", "prefixes": ["Alpha"]},
+            player_defaults={"player_class": "Scout", "starting_inventory": ["knife", {"item_id": "knife", "quantity": 2}]},
+            npc_naming={"first_names": ["Ada", "Bo"], "random_name_pattern": "{first_name} the {title}"},
+        ))
+
+    def test_a_misspelt_key_is_an_error(self):
+        errors = self._errors(spawning={"no_spawn_keyword": ["square"]})
+        self.assertTrue(any("spawning.no_spawn_keyword is not" in m for m in errors), errors)
+
+    def test_pattern_placeholders_that_would_raise_are_errors(self):
+        errors = self._errors(elites={"name_pattern": "{rank} {name}"}, npc_naming={"random_name_pattern": "{surname}"})
+        self.assertTrue(any("elites.name_pattern" in m and "rank" in m for m in errors), errors)
+        self.assertTrue(any("npc_naming.random_name_pattern" in m and "surname" in m for m in errors), errors)
+
+    def test_a_calendar_the_engine_would_replace_is_an_error(self):
+        errors = self._errors(calendar={"day_names": ["One", ""], "start_time": {"hour": 24}})
+        self.assertTrue(any("calendar.day_names" in m for m in errors), errors)
+        self.assertTrue(any("calendar.start_time.hour" in m for m in errors), errors)
+
+    def test_elite_numbers_are_range_checked(self):
+        errors = self._errors(elites={"chance": 2, "stat_multiplier": 0})
+        self.assertTrue(any("elites.chance" in m for m in errors), errors)
+        self.assertTrue(any("elites.stat_multiplier" in m for m in errors), errors)
+
+    def test_starting_inventory_must_name_real_items_with_integer_quantities(self):
+        errors = self._errors(player_defaults={"starting_inventory": ["ghost_item", {"item_id": "knife", "quantity": "two"}]})
+        self.assertTrue(any("'ghost_item'" in m for m in errors), errors)
+        self.assertTrue(any("starting_inventory[1].quantity" in m for m in errors), errors)
+
+    def test_default_spells_must_exist(self):
+        errors = self._errors(player_defaults={"magic": {"known_spells": ["fireball"]}})
+        self.assertTrue(any("'fireball'" in m for m in errors), errors)
+
+    def test_repeated_first_names_and_unused_keywords_are_warnings(self):
+        issues = self._issues(npc_naming={"first_names": ["Ada", "Ada"]}, spawning={"no_spawn_keywords": ["cathedral"]})
+        warnings = [m for s, m in issues if s == "warning"]
+        self.assertEqual([], [m for s, m in issues if s == "error"])
+        self.assertTrue(any("'Ada'" in m for m in warnings), warnings)
+        self.assertTrue(any("'cathedral'" in m for m in warnings), warnings)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib
