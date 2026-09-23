@@ -12,6 +12,7 @@ signal request_save_template(room_id) # New Signal
 # Sub-panel controllers
 var props_panel: RoomPropertiesPanel
 var environment_panel
+var passages_panel
 var conn_panel: RoomConnectionsPanel
 var content_panel: RoomContentPanel
 
@@ -24,6 +25,7 @@ var cur_data: Dictionary
 
 const PROPS_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomPropertiesPanel.gd")
 const ENVIRONMENT_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomEnvironmentPanel.gd")
+const PASSAGES_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomPassagesPanel.gd")
 const CONN_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomConnectionsPanel.gd")
 const CONTENT_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomContentPanel.gd")
 
@@ -49,6 +51,10 @@ func build(id: String, data: Dictionary):
 	environment_panel = ENVIRONMENT_PANEL_SCRIPT.new()
 	environment_panel.build(container, cur_data, database_mgr)
 	environment_panel.data_modified.connect(func(): data_modified.emit())
+
+	passages_panel = PASSAGES_PANEL_SCRIPT.new()
+	passages_panel.build(container, cur_data, database_mgr)
+	passages_panel.data_modified.connect(func(): data_modified.emit())
 
 	conn_panel = CONN_PANEL_SCRIPT.new()
 	conn_panel.build(container, cur_id, cur_data.get("name", "Unnamed"), cur_data.exits, region_mgr, world_mgr)

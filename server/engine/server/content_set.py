@@ -2763,6 +2763,128 @@ def _check_reveal_exit(
         ))
 
 
+_EXIT_REQUIREMENT_KEYS = {
+    "skill": ("type", "skill_name", "difficulty", "failure_message"),
+    "locked": ("type", "key_id", "pick_difficulty", "failure_message"),
+}
+_ENV_INTERACTION_KEYS = {
+    "clear_exit_req": ("type", "direction", "duration", "message"),
+    "suppress_hazard": ("type", "duration", "message"),
+}
+
+
+def _validate_room_passage_properties(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Room `properties.exit_requirements` and `properties.env_interactions`.
+
+    Both fail open. `World.move_player` checks a requirement only when its type
+    is `skill` or `locked` and only for a direction the room actually has, so a
+    misspelt type or direction leaves the way free; a `skill` requirement whose
+    name is misspelt as `skill` rolls against no skill at all. An interaction
+    (`Room.apply_elemental_interaction`, fired by a spell's damage type) that
+    clears a requirement the room does not have, or suppresses a hazard the room
+    does not carry, does nothing.
+    """
+    region_dir = content_root / "regions"
+    if not region_dir.is_dir():
+        return
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    damage_types: set[str] = set()
+    elements = _load_json(content_root / "combat" / "elements.json", [], "combat vocabulary") if (content_root / "combat" / "elements.json").is_file() else None
+    if isinstance(elements, dict) and isinstance(elements.get("valid_damage_types"), list):
+        damage_types = {str(value) for value in elements["valid_damage_types"]}
+
+    def whole(value: Any) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+    for path in sorted(region_dir.glob("*.json")):
+        region = _load_json(path, [], "region definitions")
+        if not isinstance(region, dict) or isinstance(region.get("themes"), dict):
+            continue
+        region_id = str(region.get("region_id", path.stem))
+        rooms = region.get("rooms", {})
+        if not isinstance(rooms, dict):
+            continue
+        for room_id, room in rooms.items():
+            if not isinstance(room, dict) or not isinstance(room.get("properties"), dict):
+                continue
+            properties = room["properties"]
+            where = f"room '{region_id}:{room_id}'"
+            source = str(path)
+
+            def error(message: str) -> None:
+                issues.append(ContentSetIssue("error", source, f"{where} {message}"))
+
+            directions = set(room.get("exits", {}) or {}) if isinstance(room.get("exits"), dict) else set()
+            hidden = properties.get("hidden_exits", {})
+            if isinstance(hidden, dict):
+                directions |= set(hidden)
+
+            requirements = properties.get("exit_requirements")
+            requirement_directions: set[str] = set()
+            if requirements is not None:
+                if not isinstance(requirements, dict):
+                    error("properties.exit_requirements must be an object of direction -> requirement")
+                    requirements = {}
+                for direction, requirement in requirements.items():
+                    label = f"properties.exit_requirements.{direction}"
+                    requirement_directions.add(direction)
+                    if direction not in directions:
+                        error(f"{label} guards a direction the room has no exit for, so it never applies")
+                    if not isinstance(requirement, dict):
+                        error(f"{label} must be an object")
+                        continue
+                    kind = requirement.get("type")
+                    if kind not in _EXIT_REQUIREMENT_KEYS:
+                        error(f"{label}.type must be 'skill' or 'locked' (anything else leaves the way open)")
+                        continue
+                    for key in requirement:
+                        if key not in _EXIT_REQUIREMENT_KEYS[kind]:
+                            error(f"{label}.{key} is not read for a '{kind}' requirement (known: {', '.join(_EXIT_REQUIREMENT_KEYS[kind])})")
+                    if "failure_message" in requirement and not isinstance(requirement["failure_message"], str):
+                        error(f"{label}.failure_message must be a string")
+                    if kind == "skill":
+                        if not isinstance(requirement.get("skill_name"), str) or not requirement["skill_name"].strip():
+                            error(f"{label}.skill_name is required for a skill requirement")
+                        if "difficulty" in requirement and not whole(requirement["difficulty"]):
+                            error(f"{label}.difficulty must be a non-negative integer")
+                    else:
+                        key_id = requirement.get("key_id")
+                        if key_id is not None and key_id not in item_ids:
+                            error(f"{label}.key_id references missing item '{key_id}'")
+                        if "pick_difficulty" in requirement and not whole(requirement["pick_difficulty"]):
+                            error(f"{label}.pick_difficulty must be a non-negative integer (over 100 means it cannot be picked)")
+
+            interactions = properties.get("env_interactions")
+            if interactions is None:
+                continue
+            if not isinstance(interactions, dict):
+                error("properties.env_interactions must be an object of damage type -> reaction")
+                continue
+            for damage_type, reaction in interactions.items():
+                label = f"properties.env_interactions.{damage_type}"
+                if damage_types and damage_type not in damage_types:
+                    error(f"{label} names a damage type combat/elements.json does not declare, so no spell triggers it")
+                if not isinstance(reaction, dict):
+                    error(f"{label} must be an object")
+                    continue
+                kind = reaction.get("type")
+                if kind not in _ENV_INTERACTION_KEYS:
+                    error(f"{label}.type must be 'clear_exit_req' or 'suppress_hazard'")
+                    continue
+                for key in reaction:
+                    if key not in _ENV_INTERACTION_KEYS[kind]:
+                        error(f"{label}.{key} is not read for '{kind}' (known: {', '.join(_ENV_INTERACTION_KEYS[kind])})")
+                duration = reaction.get("duration", 10.0)
+                if isinstance(duration, bool) or not isinstance(duration, (int, float)) or duration <= 0:
+                    error(f"{label}.duration must be a positive number of seconds")
+                if "message" in reaction and not isinstance(reaction["message"], str):
+                    error(f"{label}.message must be a string")
+                if kind == "clear_exit_req" and reaction.get("direction") not in requirement_directions:
+                    error(f"{label}.direction must name one of this room's exit_requirements, or the reaction does nothing")
+                if kind == "suppress_hazard" and not properties.get("hazard_type"):
+                    error(f"{label} suppresses a hazard, but the room has no hazard_type")
+
+
 def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Every stage must say what it is waiting for.
 
@@ -4475,6 +4597,7 @@ def load_content_set(
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)
+        _validate_room_passage_properties(content_root, issues)
         _validate_quest_stages(content_root, issues)
         _validate_instance_quests(content_root, issues)
         _validate_field_interactions(content_root, issues)

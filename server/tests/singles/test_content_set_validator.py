@@ -1314,6 +1314,67 @@ class TestCrimeAndDebugRules(unittest.TestCase):
         self.assertTrue(any("'knock'" in m for m in errors), errors)
 
 
+class TestRoomPassageProperties(unittest.TestCase):
+    """`exit_requirements` and `env_interactions` fail open: a misspelt type or
+    direction leaves the way free, and a reaction aimed at nothing does nothing."""
+
+    def _errors(self, properties: dict, elements: dict | None = None) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "items" / "keys.json").write_text(
+            json.dumps({"iron_key": {"type": "Key", "name": "iron key"}}), encoding="utf-8"
+        )
+        (package / "data" / "regions" / "town.json").write_text(json.dumps({
+            "region_id": "town",
+            "rooms": {
+                "square": {"name": "Square", "exits": {"north": "gate"}, "properties": properties},
+                "gate": {"name": "Gate", "exits": {"south": "square"}},
+            },
+        }), encoding="utf-8")
+        if elements is not None:
+            (package / "data" / "combat").mkdir()
+            (package / "data" / "combat" / "elements.json").write_text(json.dumps(elements), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and "properties." in i.message]
+
+    def test_well_formed_requirements_and_interactions_are_accepted(self):
+        self.assertEqual([], self._errors({
+            "exit_requirements": {"north": {"type": "locked", "key_id": "iron_key", "pick_difficulty": 30}},
+            "env_interactions": {"fire": {"type": "clear_exit_req", "direction": "north", "duration": 20, "message": "The door chars away."}},
+        }, elements={"valid_damage_types": ["fire"], "default_damage_type": "fire"}))
+
+    def test_an_unknown_type_leaves_the_way_open(self):
+        errors = self._errors({"exit_requirements": {"north": {"type": "lock"}}})
+        self.assertTrue(any("leaves the way open" in m for m in errors), errors)
+
+    def test_a_direction_with_no_exit_never_applies(self):
+        errors = self._errors({"exit_requirements": {"west": {"type": "locked"}}})
+        self.assertTrue(any("exit_requirements.west" in m and "never applies" in m for m in errors), errors)
+
+    def test_a_misspelt_skill_field_is_an_error(self):
+        errors = self._errors({"exit_requirements": {"north": {"type": "skill", "skill": "climbing", "difficulty": 10}}})
+        self.assertTrue(any("north.skill is not read" in m for m in errors), errors)
+        self.assertTrue(any("skill_name is required" in m for m in errors), errors)
+
+    def test_a_missing_key_item_is_an_error(self):
+        errors = self._errors({"exit_requirements": {"north": {"type": "locked", "key_id": "ghost_key"}}})
+        self.assertTrue(any("'ghost_key'" in m for m in errors), errors)
+
+    def test_a_reaction_aimed_at_nothing_is_an_error(self):
+        errors = self._errors({"env_interactions": {
+            "ice": {"type": "clear_exit_req", "direction": "north"},
+            "water": {"type": "suppress_hazard"},
+        }})
+        self.assertTrue(any("env_interactions.ice.direction" in m for m in errors), errors)
+        self.assertTrue(any("env_interactions.water" in m and "no hazard_type" in m for m in errors), errors)
+
+    def test_an_undeclared_damage_type_is_an_error(self):
+        errors = self._errors(
+            {"hazard_type": "smoke", "env_interactions": {"frost": {"type": "suppress_hazard"}}},
+            elements={"valid_damage_types": ["fire"], "default_damage_type": "fire"},
+        )
+        self.assertTrue(any("env_interactions.frost names a damage type" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib
