@@ -918,6 +918,90 @@ class TestKnowledgeTopics(unittest.TestCase):
         self.assertTrue(any("rumor" in message and "must be an object" in message for message in errors), errors)
 
 
+def _quest_generation_package(case: unittest.TestCase, quest_generation: dict) -> Path:
+    package = _background_package(case, stats={"strength": 10})
+    (package / "data" / "npcs" / "people.json").write_text(
+        json.dumps({"elder": {"name": "Elder", "level": 1}}), encoding="utf-8"
+    )
+    (package / "data" / "items" / "goods.json").write_text(
+        json.dumps({"parcel": {"type": "Item", "name": "parcel"}}), encoding="utf-8"
+    )
+    ruleset_path = package / "rules" / "ruleset.json"
+    ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+    ruleset["quest_generation"] = quest_generation
+    ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+    return package
+
+
+class TestQuestGenerationPolicy(unittest.TestCase):
+    """Only `authored_board_templates` used to be checked. Everything else in
+    `quest_generation` failed quietly: an NPC-interest key naming no template
+    was never read (fantasy_frontier's `guard`/`villager` keys, so town guards
+    never offered procedural work), a bad text placeholder became "Task", and a
+    bad `instance_quest` placeholder raised mid-generation."""
+
+    def _errors(self, quest_generation: dict) -> list:
+        package = _quest_generation_package(self, quest_generation)
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error"]
+
+    def test_a_well_formed_section_is_accepted(self):
+        self.assertEqual([], self._errors({
+            "quest_board_locations": ["town:square"],
+            "delivery_package_item_id": "parcel",
+            "board_display_name": "Notices",
+            "turn_in_phrases": ["complete"],
+            "npc_quest_interests": {"elder": ["kill", "fetch"]},
+            "procedural_naming": {"adjectives": ["Old"], "nouns": ["Key"], "default_name_pattern": "{Adjective} {Noun}", "default_base_template_id": "parcel"},
+            "instance_quest": {"title_pattern": "Rats: {creature_name}", "description_pattern": "Clear {creature_name}."},
+            "text_templates": {"kill": {"title": "Hunt {target_name_plural}", "description": "{giver_name} wants {quantity} gone."}},
+        }))
+
+    def test_a_board_location_must_name_a_real_room(self):
+        errors = self._errors({"quest_board_locations": ["town:nowhere", "no_colon"]})
+        self.assertTrue(any("town:nowhere" in m for m in errors), errors)
+        self.assertTrue(any("quest_board_locations[1]" in m and "region_id:room_id" in m for m in errors), errors)
+
+    def test_the_delivery_package_must_be_a_real_item(self):
+        errors = self._errors({"delivery_package_item_id": "ghost_parcel"})
+        self.assertTrue(any("ghost_parcel" in m for m in errors), errors)
+
+    def test_an_interest_key_must_name_a_real_npc_template(self):
+        errors = self._errors({"npc_quest_interests": {"guard": ["kill"]}})
+        self.assertTrue(any("npc_quest_interests.guard" in m and "missing NPC template" in m for m in errors), errors)
+
+    def test_interest_tags_must_be_strings(self):
+        errors = self._errors({"npc_quest_interests": {"elder": ["kill", 3]}})
+        self.assertTrue(any("npc_quest_interests.elder" in m for m in errors), errors)
+
+    def test_turn_in_phrases_must_be_non_empty_strings(self):
+        errors = self._errors({"turn_in_phrases": ["complete", ""]})
+        self.assertTrue(any("turn_in_phrases" in m for m in errors), errors)
+
+    def test_a_naming_pattern_only_fills_adjective_and_noun(self):
+        errors = self._errors({"procedural_naming": {"default_name_pattern": "{Adjective} {Colour} {Noun}"}})
+        self.assertTrue(any("default_name_pattern" in m and "Colour" in m for m in errors), errors)
+
+    def test_an_instance_pattern_only_fills_creature_name(self):
+        errors = self._errors({"instance_quest": {"title_pattern": "Clear the {region_name}"}})
+        self.assertTrue(any("instance_quest.title_pattern" in m and "region_name" in m for m in errors), errors)
+
+    def test_a_text_template_placeholder_must_be_one_the_generator_fills(self):
+        errors = self._errors({"text_templates": {"fetch": {"title": "Get {item_name_plural}", "description": "From {villain}."}}})
+        self.assertTrue(any("text_templates.fetch.description" in m and "villain" in m for m in errors), errors)
+
+    def test_a_text_template_must_be_for_a_generated_quest_type(self):
+        errors = self._errors({"text_templates": {"escort": {"title": "Escort", "description": "Walk."}}})
+        self.assertTrue(any("text_templates.escort" in m for m in errors), errors)
+
+    def test_escaped_braces_are_not_placeholders(self):
+        self.assertEqual([], self._errors({"text_templates": {"kill": {"title": "{{Bounty}} {target_name_plural}", "description": "Go."}}}))
+
+    def test_other_checks_run_without_authored_board_templates(self):
+        errors = self._errors({"authored_board_templates": None, "delivery_package_item_id": "ghost_parcel"})
+        self.assertTrue(any("ghost_parcel" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

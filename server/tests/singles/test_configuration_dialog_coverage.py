@@ -100,6 +100,7 @@ RULESET_WRITABLE_KEYS = {
     "npc_schedules",
     "advancement",
     "weather",
+    "quest_generation",
 }
 
 # Top-level keys of `combat/elements.json` the dialog does not write.
@@ -220,6 +221,7 @@ RULESET_SETTER_KEYS = {
     "set_advancement": "advancement",
     "set_weather_descriptions": "weather",
     "set_weather_profiles": "weather",
+    "set_quest_generation": "quest_generation",
 }
 
 

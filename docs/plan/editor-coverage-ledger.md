@@ -205,7 +205,7 @@ the *engine* has a second consumer, the *reference content* does not.
 | `data/advancement.json` (alternate config) | merged first (`advancement.py:275-289`) | **none** | absent | absent | none | 6D |
 | Quests (`data/quests/quests.json`) | `core/quests/loader.py:22-72` | `content_set.py:1714-1940` (this file only); `reference_integrity_validator.py:172-231` | `QuestInspector.gd:40-137`; `QuestObjectiveEditor.gd:40-257` | journey-proven | `quest_inspector_smoke.gd`, `p6_new_objective_types_journey.py` | 6D |
 | `quests/instances.json` (instance seeds) | `quests/loader.py:22-72` | **none** (`content_set.py` reads `quests.json` only) | absent | absent | `quest_loader_is_not_abandoned.py` | 6D |
-| Ruleset `quest_generation` (boards, naming, interests, text templates) | `quests/manager.py:24-43, 213-287`; `quest_generation/generator.py:57, 113-126` | `content_set.py:1171-1211` — `authored_board_templates` only | absent | absent | `p6_new_objective_types_journey.py` (board locations) | 6D |
+| Ruleset `quest_generation` (boards, naming, interests, text templates) | `quests/manager.py:24-43, 213-287`; `quest_generation/generator.py:57, 113-126` | `content_set.py::_validate_ruleset_references` — every key: board rooms, delivery item, notices, turn-in phrases, NPC-interest keys against real templates, and `str.format` placeholders (the `instance_quest` patterns crash on an unknown one) | `QuestGenerationSection.gd` inside `RulesetEditorDialog.gd`; `RulesetDraft.gd::_validate_quest_generation` rechecks free-typed patterns | validated writer — no journey authors a notice through the editor | `ruleset_quest_generation_smoke.gd`, `test_content_set_validator.py::TestQuestGenerationPolicy`, `p6_new_objective_types_journey.py` (board locations) | 6D |
 | Campaigns (`data/campaigns/*.json`) | `campaign_manager.py:21-34` | `reference_integrity_validator.py:233-261` (ids) | `CampaignInspector.gd`: envelope only (id, name, description, a start-node picker sourced from the campaign's own declared nodes). `nodes` (a branching graph of `CampaignNode`/`CampaignTransition`) is preserved byte-for-byte and shown read-only -- a dedicated graph editor is unbuilt, the size DialogueInspector's node editing was. Now saved (`DatabaseManager.gd::_save_campaigns`, one file per campaign, mirroring dialogue graphs) and has a library category | prototype | `campaign_authoring_smoke.gd` (round-trips fantasy_frontier's real `bandit_rebellion`) | 6D |
 | Dialogue graphs (`data/dialogue/*.json`) | `dialogue/manager.py:199-210, 240-253` | `content_set.py:1483-1653, 1675-1711` | `DialogueInspector.gd:54-262` | journey-proven — **one gap: presentation variants on a node's `text` are flattened** (`:646-651`, `:218-229`) | `dialogue_authoring_smoke.gd`, `p5_dialogue.py` | 6D |
 | Titles (`data/titles.json`, `_guilds`) | `core/titles.py:75-83` | `content_set.py:2492-2534` | `TitleInspector.gd:40-347` | validated writer — no runtime journey confers an authored title | `title_authoring_smoke.gd`, `skill_audit.py` | 6D |
@@ -232,7 +232,7 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `locksmithing` | `world.py:540`; `items/lockpick.py:67` | none | no | absent | 6D |
 | `crime` (+ `custody`) | `core/crime_manager.py:26-211`; `commands/jail.py:36-47` | none | no | absent | 6D |
 | `player_defaults` | `world.py:135-146`; `player/core.py:72` | none | no | absent | 6D |
-| `quest_generation` | `quests/manager.py`; `generator.py` | `authored_board_templates` only | no | absent | 6D |
+| `quest_generation` | `quests/manager.py`; `generator.py` | `content_set.py::_validate_ruleset_references` (all keys) | yes | validated writer | 6D |
 | `crafting.salvage_rules` | `crafting_manager.py:424-464` | `content_set.py:2083-2129` | no | absent | 6C |
 | `social` (`tiers`, `gift_values`, `gift_tag_values`) | `social/relationships.py:28-70`; `mercantile.py:64` | `content_set.py:959-1093` | no | absent | 6D |
 | `economy.currency_name` | `world.py:155-157` | none | no | absent | 6D |
@@ -248,11 +248,14 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `npc_schedules` | `ai/schedules.py:58-173` | `content_set.py:_validate_npc_schedule_rules` validates roles, category keywords, slot ordering/references, canonical hours, and the one dispatcher-supported override | `RulesetEditorDialog.gd`: excluded names, room-name categories, role/template matching, ordered location slots, and daily activities. It preserves unknown setting-specific data on touched rows | prototype | `test_content_set_validator.py`; `configuration_dialog_smoke.gd` | 6D |
 | `debug` | `commands/debug_crafting.py:62`, … | none | no | absent | 6D |
 
-**Notes.** The editor can write 11 of the 23 top-level keys: three scalars
+**Notes.** The editor can write 14 of the 23 top-level keys: three scalars
 (`ruleset_id`, `world_mode`, `progression_model`), `systems` (8 toggles),
 `world.regions` (3 flags + 2 lists), `status` (`stats` only), `factions` (`extra` only),
+`combat` (`retreat` only), `crafting` (`salvage_rules` only),
 `weather` (`descriptions` and `profiles` only, not `chances`),
-plus structured `npc_schedules`, `advancement` and `skills.stat_bonuses` sections. Nine
+plus structured `npc_schedules`, `advancement`, `skills.stat_bonuses` and
+`quest_generation` sections. `test_configuration_dialog_coverage.py` holds the exact
+set and fails on any `RulesetDraft` setter it cannot map. Nine
 sections are validated by nothing at all: `locksmithing`, `crime`,
 `player_defaults`, `economy`, `npc_naming`, `calendar`, `spawning`, `elites`, and
 `debug`. Under the standing rule — a section gets a form only when a validator can refuse
@@ -273,7 +276,7 @@ was falsified by removing one `_field(...)` line from a builder — it failed na
 |---|---|---|---|
 | `ContractEditorDialog` | `CONTRACT_SCHEMAS`: 8 sections, **69 fields** | 67 | `item_families.description`, `item_families.debug_only` — both read by nothing (§I.5), preserved as authored |
 | `ContractEditorDialog` (file level) | `TOP_LEVEL_FIELDS` | `stats` page (`order`, `short`, `roles`) — validated by `registry._ingest_stats` | `schema_version` (engine-owned), file-level `label`/`description` (unread, preserved) |
-| `RulesetEditorDialog` | 23 top-level keys | **9** (`ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `npc_schedules`, `advancement`) | the other 14 keys, byte-for-byte preserved |
+| `RulesetEditorDialog` | 23 top-level keys | **14** (`ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `combat.retreat`, `crafting.salvage_rules`, `skills.stat_bonuses`, `npc_schedules`, `advancement`, `weather` descriptions/profiles, `quest_generation`) | the other 9 keys, byte-for-byte preserved |
 | `CombatVocabularyDialog` | `combat/elements.json` | `valid_damage_types`, `default_damage_type`, and every hazard field the shipped file uses (`channel`, `damage`, `flavor`, `tick_interval`) | `elemental_opposites`, `flavor_text` |
 
 **What this says about 6A.** The contract and combat-vocabulary dialogs are close to
@@ -375,7 +378,7 @@ target kinds.
 
 Room `env_properties` and `properties.exit_requirements`/`env_interactions`/`locked_by`;
 `spawner` toggles and weights; NPC `loot_table` and gift preferences; containers; affixes;
-`knowledge/topics.json`; `field_interactions.json`; `dynamic_themes.json`; and
+`field_interactions.json`; `dynamic_themes.json`; and
 `presentation/*.json`. Each is a value a content author can write, the engine will act
 on, and no gate will refuse. Room time descriptions plus the NPC template envelope
 (`friendly`, stats/level, direct schedule, patrol, inventory and behaviour tuning) now

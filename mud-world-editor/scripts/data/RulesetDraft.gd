@@ -21,7 +21,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -77,6 +77,10 @@ func set_weather_descriptions(descriptions: Dictionary):
 func set_weather_profiles(profiles: Dictionary):
 	if profiles.is_empty(): _section("weather").erase("profiles")
 	else: _section("weather")["profiles"] = profiles.duplicate(true)
+
+func set_quest_generation(section: Dictionary):
+	if section.is_empty(): data.erase("quest_generation")
+	else: data["quest_generation"] = section.duplicate(true)
 
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):
@@ -146,7 +150,48 @@ func validate() -> Array:
 					if not (profile is Dictionary): errors.append("weather.profiles.%s must be an object." % profile_id); continue
 					if profile.has("map"): _validate_string_map(profile["map"], "weather.profiles.%s.map" % profile_id, errors)
 					if profile.has("travel_notes"): _validate_string_map(profile["travel_notes"], "weather.profiles.%s.travel_notes" % profile_id, errors)
+	_validate_quest_generation(data.get("quest_generation", {}), errors)
 	return errors
+
+## The subset of `content_set.py::_validate_ruleset_references` a form edit can
+## break on its own. Rooms, items, NPCs and quests are chosen from pickers, so
+## only the text an author types freely is rechecked here.
+static func _validate_quest_generation(section, errors: Array):
+	if not (section is Dictionary):
+		errors.append("quest_generation must be an object.")
+		return
+	var notices = section.get("authored_board_templates", [])
+	if notices is Array:
+		for entry in notices:
+			if entry is Dictionary and entry.get("repeatable") is Dictionary and str(entry["repeatable"].get("unavailable_text", "")).strip_edges() == "":
+				errors.append("Repeatable notice '%s' needs text explaining why it is down." % str(entry.get("template_id", "")))
+	var naming = section.get("procedural_naming", {})
+	if naming is Dictionary and naming.get("default_name_pattern") is String:
+		_validate_placeholders(naming["default_name_pattern"], ["Adjective", "Noun"], "quest_generation.procedural_naming.default_name_pattern", errors)
+	var instance = section.get("instance_quest", {})
+	if instance is Dictionary:
+		for key in ["title_pattern", "description_pattern"]:
+			if instance.get(key) is String: _validate_placeholders(instance[key], ["creature_name"], "quest_generation.instance_quest.%s" % key, errors)
+	var templates = section.get("text_templates", {})
+	if templates is Dictionary:
+		for quest_type in templates:
+			if not (templates[quest_type] is Dictionary): continue
+			for key in ["title", "description"]:
+				if templates[quest_type].get(key) is String:
+					_validate_placeholders(templates[quest_type][key], QUEST_TEXT_FIELDS, "quest_generation.text_templates.%s.%s" % [quest_type, key], errors)
+
+const QUEST_TEXT_FIELDS := [
+	"giver_name", "quantity", "target_name_plural", "location_description",
+	"item_name_plural", "source_enemy_name_plural", "item_to_deliver_name",
+	"recipient_name", "recipient_location_description",
+]
+
+static func _validate_placeholders(text: String, allowed: Array, label: String, errors: Array):
+	var regex := RegEx.create_from_string("\\{([^{}]*)\\}")
+	var unescaped := text.replace("{{", "").replace("}}", "")
+	for found in regex.search_all(unescaped):
+		var field_name := found.get_string(1)
+		if not (field_name in allowed): errors.append("%s uses unknown placeholder {%s}." % [label, field_name])
 
 func save() -> Dictionary:
 	var errors := validate()

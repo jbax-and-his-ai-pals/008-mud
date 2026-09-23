@@ -40,6 +40,7 @@ var weather_description_rows: VBoxContainer
 var weather_profile_rows: VBoxContainer
 var weather_description_baseline: Dictionary = {}
 var weather_profile_baseline: Dictionary = {}
+var quest_generation_section: QuestGenerationSection
 
 const SYSTEM_LABELS := {
 	"combat": "Combat", "abilities": "Abilities", "magic": "Magic", "crafting": "Crafting",
@@ -142,6 +143,8 @@ func setup():
 	var profile_hint := InspectorStyle.lbl("A profile translates global weather into a region's local expression (an alpine pass turning rain into snow) and adds a travel advisory per local type.", InspectorStyle.COLOR_TEXT_DIM)
 	profile_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(profile_hint)
 	weather_profile_rows = VBoxContainer.new(); weather_profile_rows.add_theme_constant_override("separation", 7); box.add_child(weather_profile_rows)
+	quest_generation_section = QuestGenerationSection.new()
+	quest_generation_section.build(box, func(): _mark_dirty())
 	DialogStyle.style_window(self)
 	get_ok_button().custom_minimum_size = Vector2(300, 40)
 	get_ok_button().disabled = true
@@ -184,6 +187,8 @@ func open_active():
 	_load_npc_schedules()
 	_load_advancement()
 	_load_weather_section()
+	var quest_generation = draft.data.get("quest_generation", {})
+	quest_generation_section.load(quest_generation if quest_generation is Dictionary else {}, content_database)
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -209,6 +214,7 @@ func _save():
 	if _advancement_changed(): draft.set_advancement(_advancement())
 	if _weather_descriptions_changed(): draft.set_weather_descriptions(_weather_descriptions())
 	if _weather_profiles_changed(): draft.set_weather_profiles(_weather_profiles())
+	if quest_generation_section.changed(): draft.set_quest_generation(quest_generation_section.compose())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)

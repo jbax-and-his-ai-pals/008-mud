@@ -345,7 +345,7 @@
         "kill_nearby_threats",
         "deliver_local"
       ],
-      "guard": [
+      "town_guard": [
         "kill",
         "deliver",
         "fetch",
@@ -354,7 +354,16 @@
         "deliver_reports",
         "kill_nearby_threats"
       ],
-      "villager": [
+      "portbridge_guard": [
+        "kill",
+        "deliver",
+        "fetch",
+        "kill_any_hostile",
+        "patrol_area",
+        "deliver_reports",
+        "kill_nearby_threats"
+      ],
+      "wandering_villager": [
         "kill",
         "deliver",
         "fetch",
