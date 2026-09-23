@@ -1002,6 +1002,99 @@ class TestQuestGenerationPolicy(unittest.TestCase):
         self.assertTrue(any("ghost_parcel" in m for m in errors), errors)
 
 
+def _instance_template(**overrides) -> dict:
+    template = {
+        "type": "instance",
+        "level": 1,
+        "giver_npc_template_id": "homeowner",
+        "possible_entry_regions": ["town"],
+        "objective": {"type": "clear_region", "possible_target_template_ids": ["rat"]},
+        "layout_generation_config": {
+            "min_rooms": 2, "max_rooms": 3, "region_name": "House",
+            "possible_room_names": ["Hall"], "target_count": [1, 2],
+        },
+    }
+    template.update(overrides)
+    return template
+
+
+class TestInstanceQuests(unittest.TestCase):
+    """`quests/instances.json` had no validator: `content_set.py` read only
+    `quests.json`. A template without targets or an existing entry region is
+    never offered, an objective other than `clear_region` never completes, and
+    a reversed range or empty room-name pool raises inside `random` while the
+    quest board fills."""
+
+    def _errors(self, instances: dict, quests: dict | None = None) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "npcs" / "people.json").write_text(json.dumps({
+            "homeowner": {"name": "Homeowner", "level": 1},
+            "rat": {"name": "Rat", "level": 1},
+        }), encoding="utf-8")
+        (package / "data" / "quests").mkdir()
+        (package / "data" / "quests" / "instances.json").write_text(json.dumps(instances), encoding="utf-8")
+        if quests is not None:
+            (package / "data" / "quests" / "quests.json").write_text(json.dumps(quests), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error"]
+
+    def test_a_well_formed_template_is_accepted(self):
+        self.assertEqual([], self._errors({"_comment": "note", "infestation": _instance_template()}))
+
+    def test_only_instance_type_belongs_here(self):
+        errors = self._errors({"infestation": _instance_template(type="kill")})
+        self.assertTrue(any("infestation'.type" in m for m in errors), errors)
+
+    def test_the_objective_must_be_clear_region(self):
+        errors = self._errors({"infestation": _instance_template(objective={"type": "kill", "possible_target_template_ids": ["rat"]})})
+        self.assertTrue(any("clear_region" in m for m in errors), errors)
+
+    def test_targets_are_required_and_must_be_real(self):
+        errors = self._errors({
+            "empty": _instance_template(objective={"type": "clear_region", "possible_target_template_ids": []}),
+            "ghost": _instance_template(objective={"type": "clear_region", "possible_target_template_ids": ["ghoul"]}),
+        })
+        self.assertTrue(any("'empty'" in m and "never offered" in m for m in errors), errors)
+        self.assertTrue(any("'ghoul'" in m for m in errors), errors)
+
+    def test_giver_and_completion_npcs_must_be_real(self):
+        errors = self._errors({"infestation": _instance_template(
+            giver_npc_template_id="stranger",
+            objective={"type": "clear_region", "possible_target_template_ids": ["rat"], "completion_npc_template_id": "ghost"},
+        )})
+        self.assertTrue(any("'stranger'" in m for m in errors), errors)
+        self.assertTrue(any("completion_npc_template_id" in m and "'ghost'" in m for m in errors), errors)
+
+    def test_entry_regions_must_exist(self):
+        errors = self._errors({"infestation": _instance_template(possible_entry_regions=["atlantis"])})
+        self.assertTrue(any("'atlantis'" in m for m in errors), errors)
+
+    def test_reversed_ranges_are_errors(self):
+        layout = {"min_rooms": 5, "max_rooms": 2, "target_count": [4, 1]}
+        errors = self._errors({"infestation": _instance_template(layout_generation_config=layout)})
+        self.assertTrue(any("min_rooms (5)" in m for m in errors), errors)
+        self.assertTrue(any("target_count minimum (4)" in m for m in errors), errors)
+
+    def test_target_count_must_be_a_pair(self):
+        errors = self._errors({"infestation": _instance_template(layout_generation_config={"target_count": 3})})
+        self.assertTrue(any("target_count must be [min, max]" in m for m in errors), errors)
+
+    def test_an_empty_room_name_pool_is_an_error(self):
+        errors = self._errors({"infestation": _instance_template(layout_generation_config={"possible_room_names": []})})
+        self.assertTrue(any("possible_room_names" in m for m in errors), errors)
+
+    def test_an_id_shared_with_quests_json_is_an_error(self):
+        errors = self._errors(
+            {"infestation": _instance_template()},
+            quests={"infestation": {"title": "T", "stages": [{"objective": {"type": "kill", "target_template_id": "rat", "required_quantity": 1}}]}},
+        )
+        self.assertTrue(any("also declared in quests.json" in m for m in errors), errors)
+
+    def test_rewards_must_be_non_negative_integers(self):
+        errors = self._errors({"infestation": _instance_template(rewards={"xp": -5})})
+        self.assertTrue(any("rewards.xp" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

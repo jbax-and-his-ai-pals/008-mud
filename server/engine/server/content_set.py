@@ -2484,6 +2484,130 @@ def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) ->
             ))
 
 
+def _validate_instance_quests(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """`quests/instances.json`: templates `QuestGenerator.generate_instance_quest` builds from.
+
+    Every failure here was silent or a crash at generation time: a template with
+    no target creatures or no existing entry region is never offered; an
+    objective other than `clear_region` is accepted but never completes; and a
+    reversed `min_rooms`/`max_rooms` or `target_count` range, or an empty room-name
+    pool, raises inside `random` while the board is being filled.
+    """
+    path = content_root / "quests" / "instances.json"
+    if not path.is_file():
+        return
+    payload = _load_json(path, issues, "instance quest templates")
+    if payload is None:
+        return
+    source = str(path)
+    if not isinstance(payload, dict):
+        issues.append(ContentSetIssue("error", source, "instances.json must be an object of instance quest templates"))
+        return
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    region_ids = _knowledge_region_ids(content_root, issues)
+    other_quest_ids: set[str] = set()
+    for other in ("quests.json", "sagas.json"):
+        other_payload = _load_json(content_root / "quests" / other, [], "quest definitions") if (content_root / "quests" / other).is_file() else None
+        if isinstance(other_payload, dict):
+            other_quest_ids |= {str(key) for key in other_payload if not str(key).startswith("_")}
+
+    def positive_int(value: Any) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool) and value >= 1
+
+    def npc_ref(value: Any, label: str) -> None:
+        if not isinstance(value, str) or not value.strip():
+            issues.append(ContentSetIssue("error", source, f"{label} must be a non-empty string"))
+        elif value not in npc_ids:
+            issues.append(ContentSetIssue("error", source, f"{label} references missing NPC template '{value}'"))
+
+    for template_id, template in payload.items():
+        if str(template_id).startswith("_"):
+            continue
+        label = f"instance quest '{template_id}'"
+        if not isinstance(template, dict):
+            issues.append(ContentSetIssue("error", source, f"{label} must be an object"))
+            continue
+        if template_id in other_quest_ids:
+            issues.append(ContentSetIssue(
+                "error", source,
+                f"{label} is also declared in quests.json or sagas.json; the loader keeps only one of them",
+            ))
+        if template.get("type") != "instance":
+            issues.append(ContentSetIssue(
+                "error", source,
+                f"{label}.type must be 'instance' (only those are generated; other quests belong in quests.json)",
+            ))
+        if "level" in template and not positive_int(template["level"]):
+            issues.append(ContentSetIssue("error", source, f"{label}.level must be an integer of at least 1"))
+        if "giver_npc_template_id" in template:
+            npc_ref(template["giver_npc_template_id"], f"{label}.giver_npc_template_id")
+
+        if "possible_entry_regions" in template:
+            regions = template["possible_entry_regions"]
+            if not isinstance(regions, list) or not regions or any(not isinstance(r, str) or not r.strip() for r in regions):
+                issues.append(ContentSetIssue("error", source, f"{label}.possible_entry_regions must be a non-empty array of region ids"))
+            else:
+                for region in regions:
+                    if region_ids and region not in region_ids:
+                        issues.append(ContentSetIssue("error", source, f"{label}.possible_entry_regions references missing region '{region}'"))
+
+        rewards = template.get("rewards")
+        if rewards is not None:
+            if not isinstance(rewards, dict):
+                issues.append(ContentSetIssue("error", source, f"{label}.rewards must be an object"))
+            else:
+                for key in ("xp", "gold"):
+                    value = rewards.get(key)
+                    if value is not None and (isinstance(value, bool) or not isinstance(value, int) or value < 0):
+                        issues.append(ContentSetIssue("error", source, f"{label}.rewards.{key} must be a non-negative integer"))
+
+        objective = template.get("objective")
+        if not isinstance(objective, dict):
+            issues.append(ContentSetIssue("error", source, f"{label}.objective must be an object"))
+        else:
+            if objective.get("type") != "clear_region":
+                issues.append(ContentSetIssue(
+                    "error", source,
+                    f"{label}.objective.type must be 'clear_region' (the only instance objective the quest tracker completes)",
+                ))
+            targets = objective.get("possible_target_template_ids")
+            if not isinstance(targets, list) or not targets:
+                issues.append(ContentSetIssue(
+                    "error", source,
+                    f"{label}.objective.possible_target_template_ids must be a non-empty array; without one the template is never offered",
+                ))
+            else:
+                for index, target in enumerate(targets):
+                    npc_ref(target, f"{label}.objective.possible_target_template_ids[{index}]")
+            if "completion_npc_template_id" in objective:
+                npc_ref(objective["completion_npc_template_id"], f"{label}.objective.completion_npc_template_id")
+
+        layout = template.get("layout_generation_config", {})
+        if not isinstance(layout, dict):
+            issues.append(ContentSetIssue("error", source, f"{label}.layout_generation_config must be an object"))
+            continue
+        layout_label = f"{label}.layout_generation_config"
+        for key in ("region_name", "region_description"):
+            if key in layout and (not isinstance(layout[key], str) or not layout[key].strip()):
+                issues.append(ContentSetIssue("error", source, f"{layout_label}.{key} must be a non-empty string"))
+        min_rooms = layout.get("min_rooms", 3)
+        max_rooms = layout.get("max_rooms", 7)
+        if not positive_int(min_rooms) or not positive_int(max_rooms):
+            issues.append(ContentSetIssue("error", source, f"{layout_label}.min_rooms and max_rooms must be integers of at least 1"))
+        elif min_rooms > max_rooms:
+            issues.append(ContentSetIssue("error", source, f"{layout_label}.min_rooms ({min_rooms}) is greater than max_rooms ({max_rooms})"))
+        if "possible_room_names" in layout:
+            names = layout["possible_room_names"]
+            if not isinstance(names, list) or not names or any(not isinstance(n, str) or not n.strip() for n in names):
+                issues.append(ContentSetIssue("error", source, f"{layout_label}.possible_room_names must be a non-empty array of strings"))
+        if "target_count" in layout:
+            count = layout["target_count"]
+            if not (isinstance(count, list) and len(count) == 2 and all(positive_int(n) for n in count)):
+                issues.append(ContentSetIssue("error", source, f"{layout_label}.target_count must be [min, max], two integers of at least 1"))
+            elif count[0] > count[1]:
+                issues.append(ContentSetIssue("error", source, f"{layout_label}.target_count minimum ({count[0]}) is greater than its maximum ({count[1]})"))
+
+
 def _validate_quest_choice_outcomes(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """A branching objective must say where each of its outcomes leads.
 
@@ -3920,6 +4044,7 @@ def load_content_set(
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)
         _validate_quest_stages(content_root, issues)
+        _validate_instance_quests(content_root, issues)
         _validate_quest_choice_outcomes(content_root, issues)
         _validate_new_quest_objective_types(content_root, issues)
         _validate_collection_references(content_root, issues)

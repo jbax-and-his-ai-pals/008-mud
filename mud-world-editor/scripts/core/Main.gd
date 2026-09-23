@@ -335,6 +335,19 @@ func _connect_ui_signals():
 				})
 				database_mgr.add_magic(id, d)
 			"quest": database_mgr.add_quest(id, d)
+			"instance_quest":
+				# Valid from the moment it exists: instances.json, the one objective the
+				# tracker completes, and the first hostile template as its target.
+				d = {
+					"_filename": "instances.json", "type": "instance", "title": "New Instance Quest", "level": 1,
+					"objective": {"type": "clear_region", "possible_target_template_ids": []},
+					"layout_generation_config": {"region_name": "New Instance", "min_rooms": 2, "max_rooms": 3, "possible_room_names": ["Room"], "target_count": [1, 2]},
+					"rewards": {"xp": 100},
+				}
+				for npc_id in database_mgr.get_npc_ids():
+					if not bool(database_mgr.npcs[npc_id].get("friendly", true)):
+						d["objective"]["possible_target_template_ids"] = [npc_id]; break
+				database_mgr.add_quest(id, d)
 			"recipe":
 				# The engine reads a recipe's ids against real templates, so a new
 				# one starts with the result empty rather than naming a placeholder

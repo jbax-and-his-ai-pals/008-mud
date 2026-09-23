@@ -175,7 +175,12 @@ func load_db_object(type: String, id: String, data: Dictionary):
 	cur_mode = type
 	panel.visible = true
 	
-	if type == "quest":
+	if type == "quest" and str(data.get("type", "")) == "instance":
+		var instance_insp := InstanceQuestInspector.new(content_container, database_mgr)
+		current_inspector = instance_insp
+		instance_insp.database_modified.connect(func(): database_modified.emit())
+		instance_insp.build(id, data)
+	elif type == "quest":
 		var insp = QUEST_INSPECTOR_SCRIPT.new(content_container, database_mgr, world_mgr)
 		current_inspector = insp
 		insp.database_modified.connect(func(): database_modified.emit())

@@ -69,6 +69,7 @@ const AFFIX_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspecto
 const ITEM_SET_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/ItemSetInspector.gd")
 const CAMPAIGN_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/CampaignInspector.gd")
 const KNOWLEDGE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/KnowledgeInspector.gd")
+const INSTANCE_QUEST_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/InstanceQuestInspector.gd")
 
 const CATEGORIES := [
 	{"key": "npc", "label": "NPCs", "color": Color.LIGHT_GREEN},
@@ -81,6 +82,7 @@ const CATEGORIES := [
 	# told it is authoring spells.
 	{"key": "magic", "label": "Abilities", "color": Color.VIOLET},
 	{"key": "quest", "label": "Quests", "color": Color.GOLD},
+	{"key": "instance_quest", "label": "Instance Quests", "color": Color(0.85, 0.6, 0.35)},
 	{"key": "recipe", "label": "Recipes", "color": Color(0.7, 0.85, 0.5)},
 	{"key": "dialogue", "label": "Dialogue", "color": Color(0.86, 0.75, 0.95)},
 	{"key": "title", "label": "Titles", "color": Color(0.95, 0.8, 0.4)},
@@ -360,7 +362,8 @@ func _get_current_entries() -> Dictionary:
 		"item": return cached_items
 		"gem": return _filter_gems()
 		"magic": return cached_magic
-		"quest": return cached_quests
+		"quest": return _filter_quests(false)
+		"instance_quest": return _filter_quests(true)
 		"recipe": return cached_recipes
 		"dialogue": return cached_dialogues
 		"title": return cached_titles
@@ -380,6 +383,16 @@ func _filter_characters(want_monsters: bool) -> Dictionary:
 	for entry_id in cached_npcs:
 		var entry: Dictionary = cached_npcs[entry_id]
 		if (not bool(entry.get("friendly", true))) == want_monsters:
+			result[entry_id] = entry
+	return result
+
+## Instance templates share quest storage (quests/instances.json) but not its
+## shape, so they get their own category and inspector.
+func _filter_quests(want_instances: bool) -> Dictionary:
+	var result: Dictionary = {}
+	for entry_id in cached_quests:
+		var entry = cached_quests[entry_id]
+		if entry is Dictionary and (str(entry.get("type", "")) == "instance") == want_instances:
 			result[entry_id] = entry
 	return result
 
@@ -423,7 +436,12 @@ func _build_editor():
 		var help := InspectorStyle.lbl("Generated gems roll their own size and quality. Edit this template's rarity, base value, and generation biases below.", InspectorStyle.COLOR_TEXT_DIM)
 		help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		editor_box.add_child(help)
-	if storage_type == "quest":
+	if category == "instance_quest":
+		var instance_editor = INSTANCE_QUEST_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+		current_editor = instance_editor
+		instance_editor.database_modified.connect(_mark_current_dirty)
+		instance_editor.build(selected_id, entry)
+	elif storage_type == "quest":
 		var quest_editor = QUEST_INSPECTOR_SCRIPT.new(editor_box, database_mgr, world_mgr)
 		current_editor = quest_editor
 		quest_editor.database_modified.connect(_mark_current_dirty)
@@ -568,6 +586,7 @@ func _refresh_create_button():
 func _storage_type() -> String:
 	if category == "monster": return "npc"
 	if category == "gem": return "item"
+	if category == "instance_quest": return "quest"
 	return category
 
 func _category_label(key: String) -> String:
