@@ -145,6 +145,7 @@ class JsonWebSocketMudServer:
                     "session_id": active_session_id,
                     "session_capabilities": list(session.capabilities),
                     "has_character": self.core.server.get_player_for_session(active_session_id) is not None,
+                    "presentation": self.core.server.presentation_payload(),
                     "auth_state": self.core._build_auth_state_payload(active_session_id),
                     "party_state": self.core.server.build_party_state_payload(active_session_id),
                     "server_protocol_version": PROTOCOL_VERSION,

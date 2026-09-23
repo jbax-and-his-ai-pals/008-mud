@@ -1,7 +1,7 @@
 {
   "presentation_id": "orbital_salvage_default",
   "display_name": "Orbital Salvage",
-  "theme_pack": "modern_neutral",
+  "theme_pack": "scifi_frontier",
   "accessibility": {
     "alt_text_required": true,
     "high_contrast_supported": true,

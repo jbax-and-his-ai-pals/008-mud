@@ -1443,6 +1443,33 @@ class TestDynamicThemes(unittest.TestCase):
         self.assertTrue(any("procedural_regions[0].theme" in m for m in errors), errors)
 
 
+class TestPresentationFile(unittest.TestCase):
+    """The presentation file was only checked for being a JSON object."""
+
+    def _errors(self, presentation: dict) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "presentation" / "default.json").write_text(json.dumps(presentation), encoding="utf-8")
+        definition, issues = validator.load_content_set(package)
+        self.definition = definition
+        return [i.message for i in issues if i.severity == "error" and "presentation" in i.message]
+
+    def test_a_well_formed_file_is_accepted_and_kept(self):
+        presentation = {"presentation_id": "p", "display_name": "Probe", "theme_pack": "fantasy_classic",
+                        "accessibility": {"alt_text_required": True}}
+        self.assertEqual([], self._errors(presentation))
+        self.assertEqual(presentation, self.definition.presentation)
+
+    def test_a_path_is_not_a_theme_pack_id(self):
+        errors = self._errors({"theme_pack": "../../../client/themes/fantasy_classic.json"})
+        self.assertTrue(any("theme_pack must be a client theme pack id" in m for m in errors), errors)
+
+    def test_unknown_keys_and_non_boolean_flags_are_errors(self):
+        errors = self._errors({"theme": "x", "accessibility": {"high_contrast_supported": "yes", "sparkles": True}})
+        self.assertTrue(any("presentation.theme is not read" in m for m in errors), errors)
+        self.assertTrue(any("high_contrast_supported must be true or false" in m for m in errors), errors)
+        self.assertTrue(any("accessibility.sparkles" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

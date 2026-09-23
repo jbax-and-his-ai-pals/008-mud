@@ -846,6 +846,7 @@ class JsonLineMudServer:
                     "session_id": session.session_id,
                     "session_capabilities": list(session.capabilities),
                     "has_character": self.server.get_player_for_session(session.session_id) is not None,
+                    "presentation": self.server.presentation_payload(),
                     "auth_state": self._build_auth_state_payload(session.session_id),
                     "party_state": self.server.build_party_state_payload(session.session_id),
                     "startup_diagnostics": self.build_startup_diagnostics_payload(),

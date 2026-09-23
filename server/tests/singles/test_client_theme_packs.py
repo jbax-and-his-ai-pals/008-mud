@@ -227,5 +227,39 @@ class TestTheThemeCommandsAreReachable(unittest.TestCase):
                       "the error should tell the player how to see the real names")
 
 
+
+class TestContentSetsAskForAPackTheClientShips(unittest.TestCase):
+    """A content set's `presentation.theme_pack` reaches the client in `hello`.
+
+    The client applies it only if it ships a pack with that `theme_id`, and
+    otherwise keeps its theme -- so a name no pack has (three sets said
+    `modern_neutral`, which never existed) or a path (fantasy_frontier said
+    `../../../client/themes/fantasy_classic.json`) chooses nothing. The engine
+    checks the id's form; whether it is installed is a client fact, so it is
+    checked here, for the sets this repository ships.
+    """
+
+    def test_every_shipped_set_names_a_shipped_pack(self):
+        pack_ids = {pack.get("theme_id") for pack in _load_packs().values()}
+        for presentation in sorted((ROOT / "content_sets").glob("*/presentation/*.json")):
+            with self.subTest(presentation=str(presentation.relative_to(ROOT))):
+                declared = json.loads(presentation.read_text(encoding="utf-8")).get("theme_pack")
+                self.assertIn(declared, pack_ids)
+
+    def test_hello_applies_the_declared_pack(self):
+        main = MAIN_CONTROLLER.read_text(encoding="utf-8")
+        hello = main[main.index('if event_type == "hello":'):main.index('elif event_type == "session_resumed":')]
+        self.assertIn('body.get("presentation"', hello)
+        self.assertIn("apply_content_set_theme", hello)
+
+    def test_a_players_own_choice_is_not_overridden(self):
+        controller = THEME_CONTROLLER.read_text(encoding="utf-8")
+        handler = controller[controller.index("func _maybe_handle_local_theme_command"):controller.index("func apply_content_set_theme")]
+        self.assertIn("player_chose_theme = true", handler)
+        apply = controller[controller.index("func apply_content_set_theme"):]
+        self.assertIn("player_chose_theme", apply[:apply.index("_apply_theme(theme_id)")],
+                      "the content set's pack must be skipped once the player has chosen one")
+
+
 if __name__ == "__main__":
     unittest.main()

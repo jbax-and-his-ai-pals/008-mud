@@ -1,7 +1,7 @@
 {
   "presentation_id": "modern_capsule_default",
   "display_name": "Modern Capsule",
-  "theme_pack": "modern_neutral",
+  "theme_pack": "default",
   "accessibility": {
     "alt_text_required": true,
     "high_contrast_supported": true,

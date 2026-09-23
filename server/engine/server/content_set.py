@@ -34,6 +34,11 @@ REQUIRED_MANIFEST_STRINGS = ("id", "title", "version", "manifest_schema_version"
 REQUIRED_MANIFEST_PATHS = ("content_root", "ruleset", "presentation")
 OPTIONAL_MANIFEST_PATHS = ("feature_profile", "opening")
 REQUIRED_START_FIELDS = ("scenario_id", "region_id", "room_id")
+# The presentation file: which client theme pack a set asks for (sent to the
+# client in `hello`), plus descriptive fields no runtime reads yet.
+PRESENTATION_KEYS = ("presentation_id", "display_name", "theme_pack", "accessibility")
+PRESENTATION_ACCESSIBILITY_KEYS = ("alt_text_required", "high_contrast_supported", "reduced_motion_supported")
+_THEME_PACK_ID_PATTERN = re.compile(r"[a-z][a-z0-9_]*")
 _DISABLED_PROGRESSION_MODELS = {"", "none", "off", "disabled"}
 
 
@@ -164,12 +169,51 @@ class ContentSetDefinition:
     ruleset_path: Path
     ruleset: dict[str, Any]
     presentation_path: Path
+    presentation: dict[str, Any]
     opening_path: Path | None
     opening: dict[str, Any]
     start_region_id: str
     start_room_id: str
     capabilities: tuple[str, ...]
     game_contract: GameContract
+
+
+def _validate_presentation(payload: dict[str, Any], path: Path, issues: list[ContentSetIssue]) -> bool:
+    """A presentation file the client can act on. Returns whether it is usable.
+
+    `theme_pack` is a client theme pack's `theme_id`, not a path: the client
+    looks it up in its own catalog, so a path (as fantasy_frontier once wrote)
+    or a name no client ships silently falls back to the default theme.
+    Whether a pack of that id is installed is a client fact, checked for the
+    shipped sets by test_presentation_theme_packs.py, not here.
+    """
+    before = len(issues)
+    source = str(path)
+    for key in payload:
+        if not str(key).startswith("_") and key not in PRESENTATION_KEYS:
+            issues.append(ContentSetIssue("error", source, f"presentation.{key} is not read (known: {', '.join(PRESENTATION_KEYS)})"))
+    for key in ("presentation_id", "display_name"):
+        if key in payload and (not isinstance(payload[key], str) or not payload[key].strip()):
+            issues.append(ContentSetIssue("error", source, f"presentation.{key} must be a non-empty string"))
+    if "theme_pack" in payload:
+        pack = payload["theme_pack"]
+        if not isinstance(pack, str) or not _THEME_PACK_ID_PATTERN.fullmatch(pack):
+            issues.append(ContentSetIssue(
+                "error", source,
+                f"presentation.theme_pack must be a client theme pack id such as 'fantasy_classic' (got {pack!r}); "
+                "the client looks it up by id, not by path",
+            ))
+    accessibility = payload.get("accessibility")
+    if accessibility is not None:
+        if not isinstance(accessibility, dict):
+            issues.append(ContentSetIssue("error", source, "presentation.accessibility must be an object"))
+        else:
+            for key, value in accessibility.items():
+                if key not in PRESENTATION_ACCESSIBILITY_KEYS:
+                    issues.append(ContentSetIssue("error", source, f"presentation.accessibility.{key} is not read (known: {', '.join(PRESENTATION_ACCESSIBILITY_KEYS)})"))
+                elif not isinstance(value, bool):
+                    issues.append(ContentSetIssue("error", source, f"presentation.accessibility.{key} must be true or false"))
+    return len(issues) == before
 
 
 def _parse_version(value: Any) -> tuple[int, ...] | None:
@@ -4612,6 +4656,7 @@ def load_content_set(
                     issues.append(ContentSetIssue("error", str(content_root), f"missing required data directory '{directory}'"))
 
     ruleset_payload: dict[str, Any] = {}
+    presentation_payload: dict[str, Any] = {}
     for key, label in (("ruleset", "ruleset"), ("presentation", "presentation")):
         target = resolved_paths.get(key)
         if target is None:
@@ -4621,6 +4666,9 @@ def load_content_set(
             issues.append(ContentSetIssue("error", str(target), f"{label} must be a JSON object"))
         elif key == "ruleset" and isinstance(nested_payload, dict):
             ruleset_payload = nested_payload
+        elif key == "presentation" and isinstance(nested_payload, dict):
+            if _validate_presentation(nested_payload, target, issues):
+                presentation_payload = nested_payload
 
     capabilities = payload.get("capabilities")
     capability_values: tuple[str, ...] = ()
@@ -4760,6 +4808,7 @@ def load_content_set(
             ruleset_path=resolved_paths["ruleset"],
             ruleset=ruleset_payload,
             presentation_path=resolved_paths["presentation"],
+            presentation=presentation_payload,
             opening_path=opening_path,
             opening=opening_payload,
             start_region_id=start_region_id,

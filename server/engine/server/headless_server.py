@@ -266,6 +266,20 @@ class HeadlessServer(
         self._sync_providers_with_profile()
         self._enforce_boot_warning_policy()
 
+    def presentation_payload(self) -> Dict[str, Any]:
+        """What a connecting client needs from the set's presentation file.
+
+        Sent in `hello`. The client applies `theme_pack` if it ships a pack of
+        that id and keeps its default otherwise.
+        """
+        presentation = getattr(self.content_set, "presentation", None) or {}
+        payload: Dict[str, Any] = {}
+        for key in ("theme_pack", "display_name"):
+            value = presentation.get(key)
+            if isinstance(value, str) and value.strip():
+                payload[key] = value.strip()
+        return payload
+
     def _event(self, event_type: str, session_id: str, payload: Any) -> Dict[str, Any]:
         return build_server_event(event_type, session_id, payload, time.time())
 

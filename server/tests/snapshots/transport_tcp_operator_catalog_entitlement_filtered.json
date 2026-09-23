@@ -120,6 +120,10 @@
         "pending_invites": [],
         "supported": false
       },
+      "presentation": {
+        "display_name": "Fantasy Frontier",
+        "theme_pack": "fantasy_classic"
+      },
       "server_policy": {
         "abuse_policy": {
           "command_burst": 16,

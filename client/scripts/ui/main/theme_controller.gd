@@ -7,6 +7,9 @@ extends RefCounted
 class_name ThemeController
 
 var main: MainController
+# Set once the player picks a theme with `theme use`; the content set's
+# declared pack is a default, not an override of the player's choice.
+var player_chose_theme := false
 
 func _init(main_ref: MainController) -> void:
 	main = main_ref
@@ -29,8 +32,21 @@ func _maybe_handle_local_theme_command(cmd: String) -> bool:
 	if not main._theme_catalog.has(theme_id):
 		main._append_log("[color=orange]Unknown theme: %s[/color]" % theme_id)
 		return true
+	player_chose_theme = true
 	_apply_theme(theme_id)
 	return true
+
+## The theme pack the connected content set declares (sent in `hello`).
+## Applied unless the player has chosen one; a pack this client does not
+## ship leaves the current theme in place and says so.
+func apply_content_set_theme(presentation: Dictionary) -> void:
+	var theme_id := str(presentation.get("theme_pack", "")).strip_edges().to_lower()
+	if theme_id == "" or player_chose_theme or theme_id == main._active_theme_id:
+		return
+	if not main._theme_catalog.has(theme_id):
+		main._append_log("[color=orange]This world asks for theme pack '%s', which this client does not have; keeping '%s'.[/color]" % [theme_id, main._active_theme_id])
+		return
+	_apply_theme(theme_id)
 
 func _load_theme_catalog() -> void:
 	main._theme_catalog.clear()

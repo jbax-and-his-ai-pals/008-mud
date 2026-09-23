@@ -123,6 +123,10 @@
           "pending_invites": [],
           "supported": false
         },
+        "presentation": {
+          "display_name": "Fantasy Frontier",
+          "theme_pack": "fantasy_classic"
+        },
         "server_capabilities": {
           "transports": [
             "json",

@@ -486,6 +486,9 @@ func _on_line_received(line: String) -> void:
 			var operator_catalog_value: Variant = body.get("operator_catalog", {})
 			if typeof(operator_catalog_value) == TYPE_DICTIONARY:
 				operator_console._apply_operator_catalog_payload(operator_catalog_value as Dictionary)
+			var presentation_value: Variant = body.get("presentation", {})
+			if typeof(presentation_value) == TYPE_DICTIONARY:
+				theme_controller.apply_content_set_theme(presentation_value as Dictionary)
 			var startup_diag_value: Variant = body.get("startup_diagnostics", {})
 			if typeof(startup_diag_value) == TYPE_DICTIONARY:
 				_apply_startup_diagnostics_payload(startup_diag_value as Dictionary)

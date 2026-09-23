@@ -1,7 +1,7 @@
 {
   "presentation_id": "night_shift_default",
   "display_name": "Night Shift",
-  "theme_pack": "modern_neutral",
+  "theme_pack": "default",
   "accessibility": {
     "alt_text_required": true,
     "high_contrast_supported": true,
