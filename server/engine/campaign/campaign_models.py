@@ -2,6 +2,17 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 
+# The node types CampaignManager._trigger_node acts on: a QUEST node starts its
+# quest, whose completion advances the campaign; an END node records the
+# outcome. Any other type is reached and then nothing happens, so the campaign
+# stays active forever.
+CAMPAIGN_NODE_TYPES = ("QUEST", "END")
+# The resolutions a quest completion reports (quests/manager.py complete_quest,
+# commands/interaction/npcs.py, dialogue/runner.py). A transition's trigger is
+# matched against one; "SUCCESS" also matches both variants. Nothing reports a
+# failure, so a "FAILURE" trigger never fires.
+CAMPAIGN_TRIGGERS = ("SUCCESS", "PEACEFUL_SUCCESS", "VIOLENT_SUCCESS")
+
 @dataclass
 class CampaignTransition:
     trigger: str  # e.g., "VIOLENT_SUCCESS", "SUCCESS", "FAILURE"

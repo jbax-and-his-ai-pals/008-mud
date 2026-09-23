@@ -3402,6 +3402,131 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                     error(f"{label} suppresses a hazard, but the room has no hazard_type")
 
 
+_CAMPAIGN_KEYS = ("campaign_id", "name", "description", "start_node_id", "nodes")
+_CAMPAIGN_NODE_KEYS = ("description", "quest_template_id", "type", "transitions", "outcome")
+_CAMPAIGN_TRANSITION_KEYS = ("trigger", "target_node_id", "narrative_text", "chance")
+
+
+def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """`campaigns/*.json` (`campaign/campaign_models.py`, `campaign_manager.py`).
+
+    A campaign missing a required key fails to load with a log line. Past that
+    every mistake is a campaign that silently stops: a node type the manager
+    does not act on, a QUEST node with no quest or no way out, a transition
+    that names no node, uses a trigger no quest reports, or sits behind an
+    earlier `SUCCESS` that already matches it. A transition's `conditions` are
+    never read.
+    """
+    from engine.campaign.campaign_models import CAMPAIGN_NODE_TYPES, CAMPAIGN_TRIGGERS
+
+    campaign_dir = content_root / "campaigns"
+    if not campaign_dir.is_dir():
+        return
+    quest_ids = _load_definition_ids(content_root / "quests", "quest definitions", issues)
+    seen: dict[str, str] = {}
+    for path in sorted(campaign_dir.glob("*.json")):
+        payload = _load_json(path, issues, "campaign")
+        if payload is None:
+            continue
+        source = str(path)
+
+        def error(message: str) -> None:
+            issues.append(ContentSetIssue("error", source, message))
+
+        if not isinstance(payload, dict):
+            error("a campaign file must be an object")
+            continue
+        for key in payload:
+            if not str(key).startswith("_") and key not in _CAMPAIGN_KEYS:
+                error(f"'{key}' is not read (known: {', '.join(_CAMPAIGN_KEYS)})")
+        for key in ("campaign_id", "name", "description", "start_node_id"):
+            if not isinstance(payload.get(key), str) or (key != "description" and not payload[key].strip()):
+                error(f"{key} is required (without it the campaign does not load)")
+        campaign_id = payload.get("campaign_id")
+        if isinstance(campaign_id, str) and campaign_id.strip():
+            if campaign_id in seen:
+                error(f"campaign_id '{campaign_id}' is also declared by {seen[campaign_id]}; only one of them loads")
+            seen[campaign_id] = path.name
+        nodes = payload.get("nodes")
+        if not isinstance(nodes, dict) or not nodes:
+            error("nodes must be a non-empty object of node id -> node")
+            continue
+        start = payload.get("start_node_id")
+        if isinstance(start, str) and start and start not in nodes:
+            error(f"start_node_id '{start}' is not one of this campaign's nodes, so the campaign cannot start")
+
+        for node_id, node in nodes.items():
+            label = f"nodes.{node_id}"
+            if not isinstance(node, dict):
+                error(f"{label} must be an object")
+                continue
+            for key in node:
+                if not str(key).startswith("_") and key not in _CAMPAIGN_NODE_KEYS:
+                    error(f"{label}.{key} is not read (known: {', '.join(_CAMPAIGN_NODE_KEYS)})")
+            node_type = node.get("type", "QUEST")
+            transitions = node.get("transitions", [])
+            if node_type not in CAMPAIGN_NODE_TYPES:
+                error(f"{label}.type '{node_type}' is not acted on (only {', '.join(CAMPAIGN_NODE_TYPES)}); the campaign stops there for good")
+            elif node_type == "QUEST":
+                quest = node.get("quest_template_id")
+                if not isinstance(quest, str) or not quest.strip():
+                    error(f"{label} is a QUEST node with no quest_template_id, so nothing starts and the campaign stops")
+                elif quest not in quest_ids:
+                    error(f"{label}.quest_template_id references missing quest '{quest}'")
+                if not transitions:
+                    error(f"{label} is a QUEST node with no transitions: finishing its quest leads nowhere and the campaign never ends")
+            else:
+                if not isinstance(node.get("outcome"), str) or not node["outcome"].strip():
+                    error(f"{label} is an END node and needs an outcome (knowledge topics and the summary read it)")
+                if transitions:
+                    error(f"{label} is an END node; its transitions are never followed")
+            if not isinstance(transitions, list):
+                error(f"{label}.transitions must be an array")
+                continue
+            success_seen = False
+            for index, transition in enumerate(transitions):
+                t_label = f"{label}.transitions[{index}]"
+                if not isinstance(transition, dict):
+                    error(f"{t_label} must be an object")
+                    continue
+                for key in transition:
+                    if key == "conditions":
+                        if transition[key]:
+                            error(f"{t_label}.conditions are never read; the transition fires regardless")
+                    elif not str(key).startswith("_") and key not in _CAMPAIGN_TRANSITION_KEYS:
+                        error(f"{t_label}.{key} is not read (known: {', '.join(_CAMPAIGN_TRANSITION_KEYS)})")
+                trigger = transition.get("trigger", "SUCCESS")
+                if trigger not in CAMPAIGN_TRIGGERS:
+                    error(f"{t_label}.trigger '{trigger}' is never reported by a quest (known: {', '.join(CAMPAIGN_TRIGGERS)}), so it never fires")
+                elif success_seen:
+                    error(f"{t_label} can never fire: an earlier SUCCESS transition that always fires already matches every success")
+                chance = transition.get("chance", 1.0)
+                if isinstance(chance, bool) or not isinstance(chance, (int, float)) or not 0 < chance <= 1:
+                    error(f"{t_label}.chance must be a number above 0 and at most 1")
+                elif trigger == "SUCCESS" and chance >= 1:
+                    success_seen = True
+                if transition.get("target_node_id") not in nodes:
+                    error(f"{t_label}.target_node_id '{transition.get('target_node_id')}' is not one of this campaign's nodes")
+                if "narrative_text" in transition and not isinstance(transition["narrative_text"], str):
+                    error(f"{t_label}.narrative_text must be a string")
+
+        if isinstance(start, str) and start in nodes:
+            reachable = {start}
+            frontier = [start]
+            while frontier:
+                current = nodes.get(frontier.pop(), {})
+                for transition in current.get("transitions", []) if isinstance(current, dict) else []:
+                    target = transition.get("target_node_id") if isinstance(transition, dict) else None
+                    if target in nodes and target not in reachable:
+                        reachable.add(target)
+                        frontier.append(target)
+            for node_id in nodes:
+                if node_id not in reachable:
+                    issues.append(ContentSetIssue("warning", source, f"nodes.{node_id} cannot be reached from start_node_id '{start}'"))
+            if not any(isinstance(nodes[n], dict) and nodes[n].get("type") == "END" for n in reachable):
+                error(f"no END node can be reached from start_node_id '{start}', so the campaign never completes")
+
+
 def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Every stage must say what it is waiting for.
 
@@ -5123,6 +5248,7 @@ def load_content_set(
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)
         _validate_room_passage_properties(content_root, issues)
+        _validate_campaigns(content_root, issues)
         _validate_region_spawners(content_root, issues)
         _validate_quest_stages(content_root, issues)
         _validate_instance_quests(content_root, issues)

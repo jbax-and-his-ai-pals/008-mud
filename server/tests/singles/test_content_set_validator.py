@@ -1630,6 +1630,87 @@ class TestItemResistancesAndSets(unittest.TestCase):
         self.assertTrue(any("bonuses.3.type must be 'stat_mod'" in m for m in errors), errors)
 
 
+def _campaign(**nodes) -> dict:
+    return {"campaign_id": "saga", "name": "Saga", "description": "", "start_node_id": "start", "nodes": nodes or {
+        "start": {"description": "Begin.", "quest_template_id": "q", "transitions": [{"trigger": "SUCCESS", "target_node_id": "end"}]},
+        "end": {"description": "Done.", "type": "END", "outcome": "won"},
+    }}
+
+
+class TestCampaigns(unittest.TestCase):
+    """Campaign graphs had only their ids checked; every other mistake left a
+    campaign that silently stops."""
+
+    def _issues(self, campaign: dict) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "quests").mkdir()
+        (package / "data" / "quests" / "quests.json").write_text(json.dumps(
+            {"q": {"title": "Q", "stages": [{"objective": {"type": "kill", "target_template_id": "x", "required_quantity": 1}}]}}
+        ), encoding="utf-8")
+        (package / "data" / "campaigns").mkdir()
+        (package / "data" / "campaigns" / "saga.json").write_text(json.dumps(campaign), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if i.path.endswith("saga.json")]
+
+    def _errors(self, campaign: dict) -> list:
+        return [m for s, m in self._issues(campaign) if s == "error"]
+
+    def test_a_well_formed_campaign_is_accepted(self):
+        self.assertEqual([], self._issues(_campaign()))
+
+    def test_unacted_node_types_and_dead_ends_are_errors(self):
+        errors = self._errors(_campaign(
+            start={"description": "", "type": "CUTSCENE", "transitions": [{"target_node_id": "mid"}]},
+            mid={"description": "", "quest_template_id": "q"},
+            end={"description": "", "type": "END", "outcome": "won"},
+        ))
+        self.assertTrue(any("type 'CUTSCENE' is not acted on" in m for m in errors), errors)
+        self.assertTrue(any("nodes.mid is a QUEST node with no transitions" in m for m in errors), errors)
+        self.assertTrue(any("no END node can be reached" in m for m in errors), errors)
+
+    def test_triggers_that_never_fire_are_errors(self):
+        errors = self._errors(_campaign(
+            start={"description": "", "quest_template_id": "q", "transitions": [
+                {"trigger": "FAILURE", "target_node_id": "end"},
+                {"trigger": "SUCCESS", "target_node_id": "end"},
+                {"trigger": "VIOLENT_SUCCESS", "target_node_id": "end"},
+            ]},
+            end={"description": "", "type": "END", "outcome": "won"},
+        ))
+        self.assertTrue(any("trigger 'FAILURE' is never reported" in m for m in errors), errors)
+        self.assertTrue(any("transitions[2] can never fire" in m for m in errors), errors)
+
+    def test_a_chance_below_one_does_not_shadow_later_transitions(self):
+        self.assertEqual([], self._errors(_campaign(
+            start={"description": "", "quest_template_id": "q", "transitions": [
+                {"trigger": "SUCCESS", "target_node_id": "end", "chance": 0.5},
+                {"trigger": "SUCCESS", "target_node_id": "end"},
+            ]},
+            end={"description": "", "type": "END", "outcome": "won"},
+        )))
+
+    def test_references_and_required_fields_are_checked(self):
+        campaign = _campaign(
+            start={"description": "", "quest_template_id": "ghost_quest", "transitions": [{"trigger": "SUCCESS", "target_node_id": "nowhere", "conditions": {"rep": 5}}]},
+            end={"description": "", "type": "END"},
+        )
+        del campaign["name"]
+        errors = self._errors(campaign)
+        self.assertTrue(any("name is required" in m for m in errors), errors)
+        self.assertTrue(any("'ghost_quest'" in m for m in errors), errors)
+        self.assertTrue(any("'nowhere'" in m for m in errors), errors)
+        self.assertTrue(any("conditions are never read" in m for m in errors), errors)
+        self.assertTrue(any("END node and needs an outcome" in m for m in errors), errors)
+
+    def test_an_unreachable_node_is_a_warning(self):
+        issues = self._issues(_campaign(
+            start={"description": "", "quest_template_id": "q", "transitions": [{"trigger": "SUCCESS", "target_node_id": "end"}]},
+            end={"description": "", "type": "END", "outcome": "won"},
+            orphan={"description": "", "type": "END", "outcome": "lost"},
+        ))
+        self.assertEqual([("warning", "nodes.orphan cannot be reached from start_node_id 'start'")], issues)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib
