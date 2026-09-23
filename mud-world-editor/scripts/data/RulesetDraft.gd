@@ -21,7 +21,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra"], ["world", "world.regions", "status", "systems", "factions", "skills", "skills.stat_bonuses"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -57,6 +57,18 @@ func set_salvage_rules(rules: Dictionary):
 
 func set_skill_stat_bonuses(bonuses: Dictionary):
 	_section("skills")["stat_bonuses"] = bonuses.duplicate(true)
+
+# The scheduler is optional: a setting without this section simply leaves NPC
+# schedules entirely in template content.  Removing the last authored role and
+# category should therefore remove the section instead of leaving a misleading
+# empty configuration behind.
+func set_npc_schedules(schedule_rules: Dictionary):
+	if schedule_rules.is_empty(): data.erase("npc_schedules")
+	else: data["npc_schedules"] = schedule_rules.duplicate(true)
+
+func set_advancement(advancement: Dictionary):
+	if advancement.is_empty(): data.erase("advancement")
+	else: data["advancement"] = advancement.duplicate(true)
 
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):
@@ -105,6 +117,14 @@ func validate() -> Array:
 				if skill_id == "": errors.append("A skill bonus needs a skill id.")
 				elif skill_ids.has(skill_id): errors.append("skills.stat_bonuses repeats '%s'." % skill_id)
 				skill_ids[skill_id] = true
+	if data.has("npc_schedules") and not (data["npc_schedules"] is Dictionary):
+		errors.append("npc_schedules must be an object.")
+	if data.has("advancement") and not (data["advancement"] is Dictionary):
+		errors.append("advancement must be an object.")
+	var retreat = data.get("combat", {}).get("retreat", {}) if data.get("combat", {}) is Dictionary else {}
+	if retreat is Dictionary and not retreat.is_empty():
+		for key in ["base_difficulty", "difficulty_per_hostile_level"]:
+			if retreat.has(key) and (typeof(retreat[key]) not in [TYPE_INT, TYPE_FLOAT] or float(retreat[key]) < 0): errors.append("combat.retreat.%s must be a non-negative number." % key)
 	return errors
 
 func save() -> Dictionary:

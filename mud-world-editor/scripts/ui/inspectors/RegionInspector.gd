@@ -89,7 +89,35 @@ func _build_global_props():
 	
 	props_box = VBoxContainer.new()
 	vbox.add_child(props_box)
+	_build_weather_profile_editor(vbox)
 	_refresh_props()
+
+
+## Region weather profiles are ruleset vocabulary, not arbitrary scalar tags.
+## The free-form tag remains readable for older worlds, but this picker makes a
+## typo impossible and exposes the fact that a profile is optional.
+func _build_weather_profile_editor(vbox: VBoxContainer):
+	var ruleset = JSON.parse_string(FileAccess.get_file_as_string(DataRoot.ruleset_path()))
+	var weather: Dictionary = ruleset.get("weather", {}) if ruleset is Dictionary and ruleset.get("weather") is Dictionary else {}
+	var profiles: Dictionary = weather.get("profiles", {}) if weather.get("profiles") is Dictionary else {}
+	var selected := str(cur_data.properties.get("weather_profile", ""))
+	if profiles.is_empty() and selected == "": return
+	var row := HBoxContainer.new(); row.add_child(InspectorStyle.lbl("Weather profile", InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new(); picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_button_style(picker)
+	picker.add_item("No regional profile"); picker.set_item_metadata(0, "")
+	var ids: Array = profiles.keys(); ids.sort()
+	for profile_id in ids:
+		picker.add_item(str(profile_id)); picker.set_item_metadata(picker.item_count - 1, str(profile_id))
+		if str(profile_id) == selected: picker.select(picker.item_count - 1)
+	if selected != "" and picker.selected == 0:
+		picker.add_item("Missing: " + selected); picker.set_item_metadata(picker.item_count - 1, selected); picker.select(picker.item_count - 1)
+	picker.item_selected.connect(func(index):
+		var profile := str(picker.get_item_metadata(index))
+		if profile == "": cur_data.properties.erase("weather_profile")
+		else: cur_data.properties["weather_profile"] = profile
+		data_modified.emit(); _refresh_props()
+	)
+	row.add_child(picker); vbox.add_child(row)
 
 func _build_districts():
 	var districts: Dictionary = cur_data.get("properties", {}).get("districts", {})
@@ -206,6 +234,9 @@ func _refresh_props():
 	# same shape and did not have the guard, so the two panels disagreed about
 	# which values they could edit and only one of them was safe.
 	var scalar_keys: Array = PropertyTagRow.editable_keys(cur_data.properties)
+	# The controlled picker above owns this string, so do not render a competing
+	# raw tag that could reintroduce a profile id the ruleset does not declare.
+	scalar_keys.erase("weather_profile")
 
 	if scalar_keys.is_empty():
 		var l = Label.new(); l.text = "None."; l.modulate = Color(1,1,1,0.3); l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -221,4 +252,3 @@ func _refresh_props():
 
 func _on_row_modified() -> void:
 	data_modified.emit()
-

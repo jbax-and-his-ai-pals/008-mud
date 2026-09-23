@@ -15,6 +15,9 @@ var require_classification: CheckBox
 var require_level_bands: CheckBox
 var require_hazard_coverage: CheckBox
 var system_checks: Dictionary = {}
+var retreat_skill: LineEdit
+var retreat_base: SpinBox
+var retreat_per_level: SpinBox
 var faction_rows: VBoxContainer
 var salvage_default: OptionButton
 var salvage_rows: VBoxContainer
@@ -25,6 +28,14 @@ var form_dirty := false
 var loading := false
 var faction_baseline: Array = []
 var skill_bonus_baseline: Dictionary = {}
+var npc_schedule_categories: VBoxContainer
+var npc_schedule_roles: VBoxContainer
+var npc_schedule_excluded: LineEdit
+var npc_schedule_baseline: Dictionary = {}
+var advancement_base: SpinBox
+var advancement_multiplier: SpinBox
+var advancement_grant_rows: VBoxContainer
+var advancement_baseline: Dictionary = {}
 
 const SYSTEM_LABELS := {
 	"combat": "Combat", "abilities": "Abilities", "magic": "Magic", "crafting": "Crafting",
@@ -48,6 +59,13 @@ func setup():
 	var systems_grid := GridContainer.new(); systems_grid.columns = 2; box.add_child(systems_grid)
 	for system_id in SYSTEM_LABELS:
 		var toggle := CheckBox.new(); toggle.text = str(SYSTEM_LABELS[system_id]); toggle.toggled.connect(func(_value): _mark_dirty()); systems_grid.add_child(toggle); system_checks[system_id] = toggle
+	box.add_child(InspectorStyle.create_sub_header("Combat Retreat"))
+	var retreat_hint := InspectorStyle.lbl("An empty skill permits retreat freely. Otherwise the skill check starts at the base difficulty and rises per toughest hostile level.", InspectorStyle.COLOR_TEXT_DIM); retreat_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(retreat_hint)
+	retreat_skill = _field(box, "Retreat skill (optional)")
+	var retreat_row := HBoxContainer.new(); retreat_row.add_child(InspectorStyle.lbl("Base difficulty", InspectorStyle.COLOR_TEXT_DIM))
+	retreat_base = SpinBox.new(); retreat_base.min_value = 0; retreat_base.max_value = 1000; retreat_base.step = 1; retreat_base.custom_minimum_size.x = 90; InspectorStyle.apply_input_style(retreat_base); retreat_base.value_changed.connect(func(_value): _mark_dirty()); retreat_row.add_child(retreat_base)
+	retreat_row.add_child(InspectorStyle.lbl("Per hostile level", InspectorStyle.COLOR_TEXT_DIM))
+	retreat_per_level = SpinBox.new(); retreat_per_level.min_value = 0; retreat_per_level.max_value = 1000; retreat_per_level.step = 1; retreat_per_level.custom_minimum_size.x = 90; InspectorStyle.apply_input_style(retreat_per_level); retreat_per_level.value_changed.connect(func(_value): _mark_dirty()); retreat_row.add_child(retreat_per_level); box.add_child(retreat_row)
 	box.add_child(InspectorStyle.create_sub_header("Crafting salvage"))
 	var salvage_hint := InspectorStyle.lbl("A family rule says what an item becomes when salvaged. An item can still declare its own output.", InspectorStyle.COLOR_TEXT_DIM); salvage_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(salvage_hint)
 	var default_row := HBoxContainer.new(); default_row.add_child(InspectorStyle.lbl("Fallback output", InspectorStyle.COLOR_TEXT_DIM))
@@ -60,6 +78,32 @@ func setup():
 	var faction_hint := InspectorStyle.lbl("Built-in factions remain engine-owned. Add only this set's custom factions.", InspectorStyle.COLOR_TEXT_DIM); box.add_child(faction_hint)
 	faction_rows = VBoxContainer.new(); faction_rows.add_theme_constant_override("separation", 5); box.add_child(faction_rows)
 	var add_faction := Button.new(); add_faction.text = "+ Add Custom Faction"; InspectorStyle.apply_button_style(add_faction, InspectorStyle.COLOR_SUCCESS); add_faction.pressed.connect(func(): _add_faction_row("", "neutral"); _mark_dirty()); box.add_child(add_faction)
+	box.add_child(InspectorStyle.create_sub_header("NPC Schedules"))
+	var schedule_hint := InspectorStyle.lbl("Optional setting-wide routines. Roles match NPC template IDs; location slots resolve top-to-bottom, so fallback and exclude can only refer to an earlier slot.", InspectorStyle.COLOR_TEXT_DIM)
+	schedule_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(schedule_hint)
+	npc_schedule_excluded = _field(box, "Exclude NPC names containing (comma-separated)")
+	var category_header := HBoxContainer.new(); category_header.add_child(InspectorStyle.lbl("Room Categories", InspectorStyle.COLOR_TEXT_DIM))
+	var category_spacer := Control.new(); category_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; category_header.add_child(category_spacer)
+	var add_category := Button.new(); add_category.text = "+ Category"; InspectorStyle.apply_button_style(add_category, InspectorStyle.COLOR_SUCCESS)
+	add_category.pressed.connect(func(): _add_schedule_category_row("", [], {}); _mark_dirty()); category_header.add_child(add_category); box.add_child(category_header)
+	npc_schedule_categories = VBoxContainer.new(); npc_schedule_categories.add_theme_constant_override("separation", 5); box.add_child(npc_schedule_categories)
+	var role_header := HBoxContainer.new(); role_header.add_child(InspectorStyle.lbl("Schedule Roles", InspectorStyle.COLOR_TEXT_DIM))
+	var role_spacer := Control.new(); role_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; role_header.add_child(role_spacer)
+	var add_role := Button.new(); add_role.text = "+ Schedule Role"; InspectorStyle.apply_button_style(add_role, InspectorStyle.COLOR_SUCCESS)
+	add_role.pressed.connect(func(): _add_schedule_role({}, "", []); _mark_dirty()); role_header.add_child(add_role); box.add_child(role_header)
+	npc_schedule_roles = VBoxContainer.new(); npc_schedule_roles.add_theme_constant_override("separation", 9); box.add_child(npc_schedule_roles)
+	box.add_child(InspectorStyle.create_sub_header("Advancement"))
+	var advancement_hint := InspectorStyle.lbl("First-time activity rewards. A grant's kinds must be engine-recognized ledger events; use item family before an engine item class whenever possible.", InspectorStyle.COLOR_TEXT_DIM)
+	advancement_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(advancement_hint)
+	var curve_row := HBoxContainer.new(); curve_row.add_theme_constant_override("separation", 8); curve_row.add_child(InspectorStyle.lbl("XP at level 2", InspectorStyle.COLOR_TEXT_DIM))
+	advancement_base = SpinBox.new(); advancement_base.min_value = 1; advancement_base.max_value = 100000; advancement_base.step = 1; advancement_base.custom_minimum_size.x = 100; InspectorStyle.apply_input_style(advancement_base); advancement_base.value_changed.connect(func(_value): _mark_dirty()); curve_row.add_child(advancement_base)
+	curve_row.add_child(InspectorStyle.lbl("Growth multiplier", InspectorStyle.COLOR_TEXT_DIM))
+	advancement_multiplier = SpinBox.new(); advancement_multiplier.min_value = 1.01; advancement_multiplier.max_value = 10; advancement_multiplier.step = 0.01; advancement_multiplier.custom_minimum_size.x = 100; InspectorStyle.apply_input_style(advancement_multiplier); advancement_multiplier.value_changed.connect(func(_value): _mark_dirty()); curve_row.add_child(advancement_multiplier); box.add_child(curve_row)
+	var grants_header := HBoxContainer.new(); grants_header.add_child(InspectorStyle.lbl("Activity grants", InspectorStyle.COLOR_TEXT_DIM))
+	var grants_spacer := Control.new(); grants_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; grants_header.add_child(grants_spacer)
+	var add_grant := Button.new(); add_grant.text = "+ Activity Grant"; InspectorStyle.apply_button_style(add_grant, InspectorStyle.COLOR_SUCCESS)
+	add_grant.pressed.connect(func(): _add_advancement_grant({}, ""); _mark_dirty()); grants_header.add_child(add_grant); box.add_child(grants_header)
+	advancement_grant_rows = VBoxContainer.new(); advancement_grant_rows.add_theme_constant_override("separation", 7); box.add_child(advancement_grant_rows)
 	box.add_child(InspectorStyle.create_sub_header("Declared Stats"))
 	stats = _field(box, "Stats (comma-separated)")
 	stats.tooltip_text = "The active stat vocabulary for this ruleset. Existing unknown sections remain untouched."
@@ -96,6 +140,7 @@ func open_active():
 	var regions: Dictionary = world.get("regions", {}) if world.get("regions", {}) is Dictionary else {}
 	var status: Dictionary = draft.data.get("status", {})
 	var systems: Dictionary = draft.data.get("systems", {})
+	var retreat: Dictionary = draft.data.get("combat", {}).get("retreat", {}) if draft.data.get("combat", {}) is Dictionary and draft.data.get("combat", {}).get("retreat", {}) is Dictionary else {}
 	ruleset_id.text = str(draft.data.get("ruleset_id", "")); world_mode.text = str(draft.data.get("world_mode", "")); progression_model.text = str(draft.data.get("progression_model", ""))
 	stats.text = _joined(status.get("stats", [])); biomes.text = _joined(regions.get("biomes", [])); region_types.text = _joined(regions.get("region_types", []))
 	require_classification.button_pressed = bool(regions.get("require_classification", false)); require_level_bands.button_pressed = bool(regions.get("require_level_bands", false)); require_hazard_coverage.button_pressed = bool(regions.get("require_hazard_coverage", false))
@@ -106,6 +151,7 @@ func open_active():
 		var inherited: bool = capabilities.has(system_id) or system_id == "economy"
 		system_checks[system_id].button_pressed = bool(declaration.get("enabled", inherited)) if declaration is Dictionary else inherited
 		system_checks[system_id].tooltip_text = "Changing a capability must agree with the manifest. Conflicts are refused on save." if system_id != "economy" else "Enabled by default when no override is declared."
+	retreat_skill.text = str(retreat.get("skill", "")); retreat_base.value = float(retreat.get("base_difficulty", 10)); retreat_per_level.value = float(retreat.get("difficulty_per_hostile_level", 2))
 	for child in faction_rows.get_children(): _remove_row(child)
 	var factions: Dictionary = draft.data.get("factions", {})
 	var extras: Array = factions.get("extra", []) if factions.get("extra", []) is Array else []
@@ -114,6 +160,8 @@ func open_active():
 	faction_baseline = _faction_entries().duplicate(true)
 	_load_salvage_rules()
 	_load_skill_bonuses()
+	_load_npc_schedules()
+	_load_advancement()
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -127,10 +175,16 @@ func _save():
 		if _field_changed(pair[0]): _put_path(draft.data, pair[1], pair[0].text.strip_edges())
 	for system_id in system_checks:
 		if _field_changed(system_checks[system_id]): draft.set_system_enabled(system_id, system_checks[system_id].button_pressed)
+	if _field_changed(retreat_skill) or _field_changed(retreat_base) or _field_changed(retreat_per_level):
+		_put_path(draft.data, "combat.retreat.skill", retreat_skill.text.strip_edges())
+		_put_path(draft.data, "combat.retreat.base_difficulty", int(retreat_base.value))
+		_put_path(draft.data, "combat.retreat.difficulty_per_hostile_level", int(retreat_per_level.value))
 	var factions := _faction_entries()
 	if factions != faction_baseline: draft.set_faction_extras(factions)
 	if _salvage_rules_changed(): draft.set_salvage_rules(_salvage_rules())
 	if _skill_bonuses_changed(): draft.set_skill_stat_bonuses(_skill_bonuses())
+	if _npc_schedules_changed(): draft.set_npc_schedules(_npc_schedules())
+	if _advancement_changed(): draft.set_advancement(_advancement())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)
@@ -327,6 +381,280 @@ func _skill_bonuses() -> Dictionary:
 
 func _skill_bonuses_changed() -> bool:
 	return JSON.stringify(_skill_bonuses()) != JSON.stringify(skill_bonus_baseline)
+
+
+# `AdvancementManager` reads a small ruleset-owned curve and an array of
+# first-time ledger grants.  This form owns exactly those runtime fields and
+# leaves any future presentation metadata on each source row intact.
+func _load_advancement():
+	for child in advancement_grant_rows.get_children(): _remove_row(child)
+	var advancement: Dictionary = draft.data.get("advancement", {}) if draft.data.get("advancement", {}) is Dictionary else {}
+	advancement_baseline = advancement.duplicate(true)
+	var curve: Dictionary = advancement.get("curve", {}) if advancement.get("curve", {}) is Dictionary else {}
+	advancement_base.value = float(curve.get("base", 100))
+	advancement_multiplier.value = float(curve.get("multiplier", 1.25))
+	var grants: Array = advancement.get("grants", []) if advancement.get("grants", []) is Array else []
+	for source in grants:
+		if source is Dictionary: _add_advancement_grant(source.duplicate(true), str(source.get("id", "")))
+	if advancement_grant_rows.get_child_count() == 0:
+		advancement_grant_rows.add_child(InspectorStyle.lbl("No activity grants. The engine will record first-time events but award no XP.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+func _add_advancement_grant(source: Dictionary, grant_id: String):
+	for child in advancement_grant_rows.get_children():
+		if child is Label: _remove_row(child)
+	var card := VBoxContainer.new(); card.name = "AdvancementGrant"; card.add_theme_constant_override("separation", 4); card.set_meta("source", source.duplicate(true))
+	var criteria: Dictionary = source.get("match", {}) if source.get("match", {}) is Dictionary else {}
+	var header := HBoxContainer.new(); header.name = "Header"; header.add_theme_constant_override("separation", 6); card.add_child(header)
+	var id_field := LineEdit.new(); id_field.name = "GrantId"; id_field.placeholder_text = "grant id"; id_field.text = grant_id; id_field.custom_minimum_size.x = 150
+	InspectorStyle.apply_input_style(id_field); id_field.text_changed.connect(func(_text): _mark_dirty()); header.add_child(id_field)
+	var kinds := LineEdit.new(); kinds.name = "Kinds"; kinds.placeholder_text = "kind(s), comma-separated"; kinds.text = _joined(criteria.get("kind", [])) if criteria.get("kind", []) is Array else str(criteria.get("kind", "")); kinds.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	kinds.set_meta("was_array", criteria.get("kind", null) is Array); kinds.tooltip_text = "Known: region, landmark, creature, item, recipe, spell, npc, relationship, quest, collection, discovery."
+	InspectorStyle.apply_input_style(kinds); kinds.text_changed.connect(func(_text): _mark_dirty()); header.add_child(kinds)
+	var xp := SpinBox.new(); xp.name = "XP"; xp.min_value = -100000; xp.max_value = 100000; xp.step = 1; xp.value = float(source.get("xp", 0)); xp.custom_minimum_size.x = 80
+	InspectorStyle.apply_input_style(xp); xp.value_changed.connect(func(_value): _mark_dirty()); header.add_child(xp)
+	var remove := Button.new(); remove.text = "Remove Grant"; InspectorStyle.apply_button_style(remove, DialogStyle.COLOR_DANGER)
+	remove.pressed.connect(func(): _remove_row(card); _ensure_advancement_empty_hint(); _mark_dirty()); header.add_child(remove)
+	var message := LineEdit.new(); message.name = "Message"; message.placeholder_text = "optional player-facing first-time message"; message.text = str(source.get("message", "")); message.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_input_style(message); message.text_changed.connect(func(_text): _mark_dirty()); card.add_child(message)
+	var filters := HBoxContainer.new(); filters.name = "Filters"; filters.add_theme_constant_override("separation", 6); card.add_child(filters)
+	for spec in [["Region", "region_id", "region id", 120], ["NPC tags", "npc_tags", "npc tags", 140], ["Item family", "item_family", "item family", 130], ["Item type", "item_type", "engine item class", 130], ["Item tags", "item_tags", "item tags", 130], ["Entry IDs", "entry_ids", "entry ids", 140]]:
+		var field := LineEdit.new(); field.name = spec[0]; field.placeholder_text = spec[2]; field.custom_minimum_size.x = spec[3]
+		field.text = _joined(criteria.get(spec[1], [])) if criteria.get(spec[1], []) is Array else str(criteria.get(spec[1], ""))
+		field.set_meta("key", spec[1]); field.set_meta("was_array", criteria.get(spec[1], null) is Array)
+		InspectorStyle.apply_input_style(field); field.text_changed.connect(func(_text): _mark_dirty()); filters.add_child(field)
+	var once := CheckBox.new(); once.name = "OncePerKind"; once.text = "Once per kind"; once.button_pressed = bool(criteria.get("once_per_kind", false)); once.toggled.connect(func(_value): _mark_dirty()); filters.add_child(once)
+	advancement_grant_rows.add_child(card)
+
+
+func _advancement() -> Dictionary:
+	var out := advancement_baseline.duplicate(true)
+	# Do not manufacture an advancement section/curve just because another
+	# ruleset field was saved. Defaults are displayed for discoverability, but
+	# remain engine defaults until an author changes them.
+	var curve: Dictionary = out.get("curve", {}) if out.get("curve", {}) is Dictionary else {}
+	var curve_was_authored := out.get("curve", null) is Dictionary
+	if curve_was_authored or int(advancement_base.value) != 100 or not is_equal_approx(advancement_multiplier.value, 1.25):
+		curve["base"] = advancement_base.value; curve["multiplier"] = advancement_multiplier.value; out["curve"] = curve
+	var grants: Array = []
+	for card in advancement_grant_rows.get_children():
+		if not (card is VBoxContainer) or card.name != "AdvancementGrant": continue
+		var grant_id := (card.get_node("Header/GrantId") as LineEdit).text.strip_edges()
+		if grant_id == "": continue
+		var grant: Dictionary = card.get_meta("source").duplicate(true); grant["id"] = grant_id; grant["xp"] = (card.get_node("Header/XP") as SpinBox).value
+		var message := (card.get_node("Message") as LineEdit).text.strip_edges()
+		if message == "": grant.erase("message")
+		else: grant["message"] = message
+		var criteria: Dictionary = grant.get("match", {}) if grant.get("match", {}) is Dictionary else {}
+		var kinds_field: LineEdit = card.get_node("Header/Kinds"); var kinds := _split(kinds_field.text)
+		criteria["kind"] = kinds if kinds_field.get_meta("was_array", false) or kinds.size() != 1 else (kinds[0] if not kinds.is_empty() else "")
+		for field in (card.get_node("Filters") as HBoxContainer).get_children():
+			if not field is LineEdit: continue
+			var key := str(field.get_meta("key", "")); var value := (field as LineEdit).text.strip_edges()
+			if value == "": criteria.erase(key)
+			elif field.get_meta("was_array", false) or key in ["npc_tags", "item_tags", "entry_ids"]: criteria[key] = _split(value)
+			else: criteria[key] = value
+		var once_per_kind := (card.get_node("Filters/OncePerKind") as CheckBox).button_pressed
+		if once_per_kind or criteria.has("once_per_kind"): criteria["once_per_kind"] = once_per_kind
+		else: criteria.erase("once_per_kind")
+		grant["match"] = criteria; grants.append(grant)
+	if grants.is_empty(): out.erase("grants")
+	else: out["grants"] = grants
+	return out
+
+
+func _advancement_changed() -> bool:
+	return JSON.stringify(_advancement()) != JSON.stringify(advancement_baseline)
+
+
+func _ensure_advancement_empty_hint():
+	if advancement_grant_rows.get_child_count() == 0:
+		advancement_grant_rows.add_child(InspectorStyle.lbl("No activity grants. The engine will record first-time events but award no XP.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+# NPC schedules deliberately have their own editor rather than falling back to
+# a generic JSON property.  The scheduler's grammar is useful authoring
+# context: category names are chosen by this content set, slots are resolved in
+# their listed order, and every daily activity references one of those slots.
+# Rows carry a copy of their source object so future/setting-specific metadata
+# survives edits to the fields this dialog owns.
+func _load_npc_schedules():
+	for child in npc_schedule_categories.get_children(): _remove_row(child)
+	for child in npc_schedule_roles.get_children(): _remove_row(child)
+	var schedules: Dictionary = draft.data.get("npc_schedules", {}) if draft.data.get("npc_schedules", {}) is Dictionary else {}
+	npc_schedule_baseline = schedules.duplicate(true)
+	npc_schedule_excluded.text = _joined(schedules.get("excluded_name_keywords", []))
+	var categories: Dictionary = schedules.get("room_categories", {}) if schedules.get("room_categories", {}) is Dictionary else {}
+	for category_id in categories:
+		_add_schedule_category_row(str(category_id), categories[category_id] if categories[category_id] is Array else [], {})
+	var roles: Array = schedules.get("roles", []) if schedules.get("roles", []) is Array else []
+	for source in roles:
+		if source is Dictionary:
+			_add_schedule_role(source.duplicate(true), str(source.get("id", "")), source.get("template_keywords", []) if source.get("template_keywords", []) is Array else [])
+	if npc_schedule_categories.get_child_count() == 0:
+		npc_schedule_categories.add_child(InspectorStyle.lbl("No categories. Add a category to match room-name keywords.", InspectorStyle.COLOR_TEXT_DIM))
+	if npc_schedule_roles.get_child_count() == 0:
+		npc_schedule_roles.add_child(InspectorStyle.lbl("No scheduled roles. NPCs can still use explicit schedules on their templates.", InspectorStyle.COLOR_TEXT_DIM))
+
+
+func _add_schedule_category_row(category_id: String, keywords: Array, source: Dictionary):
+	for child in npc_schedule_categories.get_children():
+		if child is Label: _remove_row(child)
+	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6); row.set_meta("source", source.duplicate(true))
+	var id_field := LineEdit.new(); id_field.name = "CategoryId"; id_field.placeholder_text = "category id"; id_field.text = category_id; id_field.custom_minimum_size.x = 145
+	InspectorStyle.apply_input_style(id_field); id_field.text_changed.connect(func(_text): _mark_dirty()); row.add_child(id_field)
+	var keywords_field := LineEdit.new(); keywords_field.name = "Keywords"; keywords_field.placeholder_text = "room-name keywords, comma-separated"; keywords_field.text = _joined(keywords); keywords_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_input_style(keywords_field); keywords_field.text_changed.connect(func(_text): _mark_dirty()); row.add_child(keywords_field)
+	var remove := Button.new(); remove.text = "×"; remove.tooltip_text = "Remove room category"; InspectorStyle.apply_button_style(remove, DialogStyle.COLOR_DANGER)
+	remove.pressed.connect(func(): _remove_row(row); _ensure_schedule_empty_hints(); _mark_dirty()); row.add_child(remove)
+	npc_schedule_categories.add_child(row)
+
+
+func _add_schedule_role(source: Dictionary, role_id: String, keywords: Array):
+	for child in npc_schedule_roles.get_children():
+		if child is Label: _remove_row(child)
+	var card := VBoxContainer.new(); card.add_theme_constant_override("separation", 5); card.set_meta("source", source.duplicate(true)); card.name = "ScheduleRole"
+	var identity := HBoxContainer.new(); identity.name = "Identity"; identity.add_theme_constant_override("separation", 6); card.add_child(identity)
+	var id_field := LineEdit.new(); id_field.name = "RoleId"; id_field.placeholder_text = "role id"; id_field.text = role_id; id_field.custom_minimum_size.x = 145
+	InspectorStyle.apply_input_style(id_field); id_field.text_changed.connect(func(_text): _mark_dirty()); identity.add_child(id_field)
+	var keyword_field := LineEdit.new(); keyword_field.name = "TemplateKeywords"; keyword_field.placeholder_text = "template ID keywords, comma-separated"; keyword_field.text = _joined(keywords); keyword_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_input_style(keyword_field); keyword_field.text_changed.connect(func(_text): _mark_dirty()); identity.add_child(keyword_field)
+	var remove_role := Button.new(); remove_role.text = "Remove Role"; remove_role.tooltip_text = "Remove this schedule role"; InspectorStyle.apply_button_style(remove_role, DialogStyle.COLOR_DANGER)
+	remove_role.pressed.connect(func(): _remove_row(card); _ensure_schedule_empty_hints(); _mark_dirty()); identity.add_child(remove_role)
+	var slots_header := HBoxContainer.new(); slots_header.add_child(InspectorStyle.lbl("Location slots (resolved in order)", InspectorStyle.COLOR_TEXT_DIM))
+	var slots_spacer := Control.new(); slots_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; slots_header.add_child(slots_spacer)
+	var add_slot := Button.new(); add_slot.text = "+ Slot"; InspectorStyle.apply_button_style(add_slot, InspectorStyle.COLOR_SUCCESS)
+	add_slot.pressed.connect(func(): _add_schedule_slot(card.get_node("Slots") as VBoxContainer, "", {}); _mark_dirty()); slots_header.add_child(add_slot); card.add_child(slots_header)
+	var slots := VBoxContainer.new(); slots.name = "Slots"; slots.add_theme_constant_override("separation", 4); card.add_child(slots)
+	var source_slots: Dictionary = source.get("location_slots", {}) if source.get("location_slots", {}) is Dictionary else {}
+	for slot_id in source_slots:
+		if source_slots[slot_id] is Dictionary: _add_schedule_slot(slots, str(slot_id), source_slots[slot_id].duplicate(true))
+	var schedule_header := HBoxContainer.new(); schedule_header.add_child(InspectorStyle.lbl("Daily activities", InspectorStyle.COLOR_TEXT_DIM))
+	var schedule_spacer := Control.new(); schedule_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; schedule_header.add_child(schedule_spacer)
+	var add_activity := Button.new(); add_activity.text = "+ Activity"; InspectorStyle.apply_button_style(add_activity, InspectorStyle.COLOR_SUCCESS)
+	add_activity.pressed.connect(func(): _add_schedule_activity(card.get_node("Activities") as VBoxContainer, -1, {}); _mark_dirty()); schedule_header.add_child(add_activity); card.add_child(schedule_header)
+	var activities := VBoxContainer.new(); activities.name = "Activities"; activities.add_theme_constant_override("separation", 4); card.add_child(activities)
+	var source_schedule: Dictionary = source.get("schedule", {}) if source.get("schedule", {}) is Dictionary else {}
+	for hour in source_schedule:
+		if source_schedule[hour] is Dictionary: _add_schedule_activity(activities, int(str(hour)), source_schedule[hour].duplicate(true))
+	npc_schedule_roles.add_child(card)
+
+
+func _add_schedule_slot(parent: VBoxContainer, slot_id: String, source: Dictionary):
+	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6); row.set_meta("source", source.duplicate(true)); parent.add_child(row)
+	var id_field := LineEdit.new(); id_field.name = "SlotId"; id_field.placeholder_text = "slot"; id_field.text = slot_id; id_field.custom_minimum_size.x = 115
+	InspectorStyle.apply_input_style(id_field); id_field.text_changed.connect(func(_text): _mark_dirty()); row.add_child(id_field)
+	var picker := OptionButton.new(); picker.name = "SlotType"; picker.custom_minimum_size.x = 140
+	for slot_type in ["self", "property_or_self", "category"]: picker.add_item(slot_type)
+	var selected_type := str(source.get("type", "self")); var type_index := ["self", "property_or_self", "category"].find(selected_type)
+	if type_index < 0: picker.add_item(selected_type); type_index = picker.item_count - 1
+	picker.select(type_index); InspectorStyle.apply_button_style(picker); row.add_child(picker)
+	var subject := LineEdit.new(); subject.name = "Subject"; subject.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	subject.text = str(source.get("property", "")) if selected_type == "property_or_self" else _joined(source.get("categories", []))
+	InspectorStyle.apply_input_style(subject); subject.text_changed.connect(func(_text): _mark_dirty()); row.add_child(subject)
+	var exclude := LineEdit.new(); exclude.name = "Exclude"; exclude.placeholder_text = "exclude slot"; exclude.text = str(source.get("exclude", "")); exclude.custom_minimum_size.x = 105
+	InspectorStyle.apply_input_style(exclude); exclude.text_changed.connect(func(_text): _mark_dirty()); row.add_child(exclude)
+	var fallback := LineEdit.new(); fallback.name = "Fallback"; fallback.placeholder_text = "fallback slot"; fallback.text = str(source.get("fallback", "")); fallback.custom_minimum_size.x = 110
+	InspectorStyle.apply_input_style(fallback); fallback.text_changed.connect(func(_text): _mark_dirty()); row.add_child(fallback)
+	var remove := Button.new(); remove.text = "×"; remove.tooltip_text = "Remove location slot"; InspectorStyle.apply_button_style(remove, DialogStyle.COLOR_DANGER)
+	remove.pressed.connect(func(): _remove_row(row); _mark_dirty()); row.add_child(remove)
+	picker.item_selected.connect(func(_index): _refresh_schedule_slot(row); _mark_dirty())
+	_refresh_schedule_slot(row)
+
+
+func _refresh_schedule_slot(row: HBoxContainer):
+	var picker: OptionButton = row.get_node("SlotType")
+	var subject: LineEdit = row.get_node("Subject")
+	var exclude: LineEdit = row.get_node("Exclude")
+	var fallback: LineEdit = row.get_node("Fallback")
+	var slot_type := picker.get_item_text(picker.selected)
+	subject.editable = slot_type != "self"; exclude.editable = slot_type == "category"; fallback.editable = slot_type == "category"
+	if slot_type == "self": subject.placeholder_text = "uses NPC home"; subject.tooltip_text = "The NPC's own home room."
+	elif slot_type == "property_or_self": subject.placeholder_text = "NPC property, e.g. work_location"; subject.tooltip_text = "Reads a region:room value from this NPC property, then falls back to its home."
+	else: subject.placeholder_text = "category IDs, comma-separated"; subject.tooltip_text = "Choose from room categories defined above."
+
+
+func _add_schedule_activity(parent: VBoxContainer, hour: int, source: Dictionary):
+	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6); row.set_meta("source", source.duplicate(true)); parent.add_child(row)
+	row.add_child(InspectorStyle.lbl("Hour", InspectorStyle.COLOR_TEXT_DIM))
+	var hour_box := SpinBox.new(); hour_box.name = "Hour"; hour_box.min_value = 0; hour_box.max_value = 23; hour_box.step = 1; hour_box.value = 0 if hour < 0 else hour; hour_box.custom_minimum_size.x = 62
+	InspectorStyle.apply_input_style(hour_box); hour_box.value_changed.connect(func(_value): _mark_dirty()); row.add_child(hour_box)
+	var activity := LineEdit.new(); activity.name = "Activity"; activity.placeholder_text = "activity"; activity.text = str(source.get("activity", "")); activity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_input_style(activity); activity.text_changed.connect(func(_text): _mark_dirty()); row.add_child(activity)
+	var slot := LineEdit.new(); slot.name = "Slot"; slot.placeholder_text = "location slot"; slot.text = str(source.get("slot", "")); slot.custom_minimum_size.x = 130
+	InspectorStyle.apply_input_style(slot); slot.text_changed.connect(func(_text): _mark_dirty()); row.add_child(slot)
+	var aggressive := CheckBox.new(); aggressive.name = "Aggressive"; aggressive.text = "Aggressive"; aggressive.tooltip_text = "Temporarily use the engine-supported aggressive behavior override."
+	aggressive.button_pressed = str(source.get("behavior_override", "")) == "aggressive"; aggressive.toggled.connect(func(_value): _mark_dirty()); row.add_child(aggressive)
+	var remove := Button.new(); remove.text = "×"; remove.tooltip_text = "Remove activity"; InspectorStyle.apply_button_style(remove, DialogStyle.COLOR_DANGER)
+	remove.pressed.connect(func(): _remove_row(row); _mark_dirty()); row.add_child(remove)
+
+
+func _npc_schedules() -> Dictionary:
+	var out := npc_schedule_baseline.duplicate(true)
+	var excluded := _split(npc_schedule_excluded.text)
+	if excluded.is_empty(): out.erase("excluded_name_keywords")
+	else: out["excluded_name_keywords"] = excluded
+	var categories := {}
+	for row in npc_schedule_categories.get_children():
+		if not (row is HBoxContainer): continue
+		var category_id := (row.get_node("CategoryId") as LineEdit).text.strip_edges()
+		if category_id != "": categories[category_id] = _split((row.get_node("Keywords") as LineEdit).text)
+	if categories.is_empty(): out.erase("room_categories")
+	else: out["room_categories"] = categories
+	var roles: Array = []
+	for card in npc_schedule_roles.get_children():
+		if not (card is VBoxContainer) or card.name != "ScheduleRole": continue
+		var role_id := (card.get_node("Identity/RoleId") as LineEdit).text.strip_edges()
+		if role_id == "": continue
+		var role: Dictionary = card.get_meta("source").duplicate(true)
+		role["id"] = role_id
+		role["template_keywords"] = _split((card.get_node("Identity/TemplateKeywords") as LineEdit).text)
+		var slots := {}
+		for row in (card.get_node("Slots") as VBoxContainer).get_children():
+			if not (row is HBoxContainer): continue
+			var slot_id := (row.get_node("SlotId") as LineEdit).text.strip_edges()
+			if slot_id == "": continue
+			var slot: Dictionary = row.get_meta("source").duplicate(true)
+			var slot_type := (row.get_node("SlotType") as OptionButton).get_item_text((row.get_node("SlotType") as OptionButton).selected)
+			slot["type"] = slot_type
+			var subject := (row.get_node("Subject") as LineEdit).text.strip_edges()
+			if slot_type == "property_or_self":
+				slot["property"] = subject; slot.erase("categories"); slot.erase("exclude"); slot.erase("fallback")
+			elif slot_type == "category":
+				slot["categories"] = _split(subject); slot.erase("property")
+				for pair in [["Exclude", "exclude"], ["Fallback", "fallback"]]:
+					var value := (row.get_node(pair[0]) as LineEdit).text.strip_edges()
+					if value == "": slot.erase(pair[1])
+					else: slot[pair[1]] = value
+			else:
+				slot.erase("property"); slot.erase("categories"); slot.erase("exclude"); slot.erase("fallback")
+			slots[slot_id] = slot
+		role["location_slots"] = slots
+		var activities := {}
+		for row in (card.get_node("Activities") as VBoxContainer).get_children():
+			if not (row is HBoxContainer): continue
+			var entry: Dictionary = row.get_meta("source").duplicate(true)
+			entry["activity"] = (row.get_node("Activity") as LineEdit).text.strip_edges()
+			entry["slot"] = (row.get_node("Slot") as LineEdit).text.strip_edges()
+			if (row.get_node("Aggressive") as CheckBox).button_pressed: entry["behavior_override"] = "aggressive"
+			else: entry.erase("behavior_override")
+			activities[str(int((row.get_node("Hour") as SpinBox).value))] = entry
+		role["schedule"] = activities
+		roles.append(role)
+	if roles.is_empty(): out.erase("roles")
+	else: out["roles"] = roles
+	return out
+
+
+func _npc_schedules_changed() -> bool:
+	return JSON.stringify(_npc_schedules()) != JSON.stringify(npc_schedule_baseline)
+
+
+func _ensure_schedule_empty_hints():
+	if npc_schedule_categories.get_child_count() == 0:
+		npc_schedule_categories.add_child(InspectorStyle.lbl("No categories. Add a category to match room-name keywords.", InspectorStyle.COLOR_TEXT_DIM))
+	if npc_schedule_roles.get_child_count() == 0:
+		npc_schedule_roles.add_child(InspectorStyle.lbl("No scheduled roles. NPCs can still use explicit schedules on their templates.", InspectorStyle.COLOR_TEXT_DIM))
 
 func _mark_dirty():
 	if loading or draft == null: return

@@ -14,6 +14,28 @@ func _run():
 	fixture = repo.path_join("tmp/configuration-dialog-%s/orbital_salvage" % Time.get_ticks_usec())
 	_copy(repo.path_join("content_sets/orbital_salvage"), fixture)
 	DataRoot._resolved = fixture
+	# Give the schedule form a compact setting-owned grammar to render.  The
+	# orbital fixture intentionally has no auto-schedule section of its own.
+	var seeded_rules_path := fixture.path_join("rules/ruleset.json")
+	var seeded_rules: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(seeded_rules_path))
+	seeded_rules["npc_schedules"] = {
+		"excluded_name_keywords": ["guard"],
+		"room_categories": {"quarters": ["bunk", "quarters"]},
+		"roles": [{
+			"id": "crew", "template_keywords": ["crew", "worker"],
+			"location_slots": {
+				"home": {"type": "self"},
+				"work": {"type": "property_or_self", "property": "work_location"},
+				"rest": {"type": "category", "categories": ["quarters"], "exclude": "work", "fallback": "home"},
+			},
+			"schedule": {"8": {"activity": "on shift", "slot": "work"}, "20": {"activity": "off shift", "slot": "rest"}},
+		}],
+	}
+	seeded_rules["advancement"] = {
+		"curve": {"base": 120, "multiplier": 1.2},
+		"grants": [{"id": "first_dock", "match": {"kind": "region"}, "xp": 40, "message": "A new berth."}],
+	}
+	SaveIO.write_json(seeded_rules_path, seeded_rules)
 	var dialog = Contracts.new(); root.add_child(dialog); dialog.setup(); dialog.open_active()
 	var path := fixture.path_join("data/contracts/world_contracts.json")
 	var before := FileAccess.get_file_as_string(path)
@@ -91,14 +113,23 @@ func _run():
 	var rules = Rules.new(); root.add_child(rules); rules.setup(); rules.open_active()
 	var rules_path := fixture.path_join("rules/ruleset.json")
 	var rules_before: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
+	_assert(rules.retreat_skill.text == "evasion" and int(rules.retreat_base.value) == 8 and int(rules.retreat_per_level.value) == 2, "combat retreat controls render the authored policy")
 	_assert(rules._salvage_rules() == rules_before.get("crafting", {}).get("salvage_rules", {}), "ruleset salvage rows preserve authored comments and family rules")
+	_assert(rules._npc_schedules() == rules_before.get("npc_schedules", {}), "schedule roles render without rewriting their runtime grammar")
+	var role_card: VBoxContainer = rules.npc_schedule_roles.get_child(0)
+	var activity_row: HBoxContainer = role_card.get_node("Activities").get_child(0)
+	_edit(activity_row.get_node("Activity"), "starting shift")
+	_assert(not rules.get_ok_button().disabled, "schedule activity edits mark the ruleset dirty")
+	_assert(rules._advancement() == rules_before.get("advancement", {}), "advancement curve and grants render without changing their runtime shape")
+	var grant_card: VBoxContainer = rules.advancement_grant_rows.get_child(0)
+	_edit(grant_card.get_node("Message"), "A familiar berth.")
 	var fallback_index := _metadata_index(rules.salvage_default, "item_patch_kit")
 	_assert(fallback_index >= 0, "salvage fallback offers authored item templates")
 	if fallback_index >= 0:
 		rules.salvage_default.item_selected.emit(fallback_index)
 	_edit(rules.ruleset_id, str(rules_before["ruleset_id"]) + "_edited")
 	rules.confirmed.emit()
-	var rules_expected := rules_before.duplicate(true); rules_expected["ruleset_id"] = str(rules_before["ruleset_id"]) + "_edited"; rules_expected["crafting"]["salvage_rules"]["default_item_id"] = "item_patch_kit"
+	var rules_expected := rules_before.duplicate(true); rules_expected["ruleset_id"] = str(rules_before["ruleset_id"]) + "_edited"; rules_expected["crafting"]["salvage_rules"]["default_item_id"] = "item_patch_kit"; rules_expected["npc_schedules"]["roles"][0]["schedule"]["8"]["activity"] = "starting shift"; rules_expected["advancement"]["grants"][0]["message"] = "A familiar berth."
 	_assert(JSON.parse_string(FileAccess.get_file_as_string(rules_path)) == rules_expected, "ruleset save preserves untouched salvage details while changing its chosen fallback: " + rules.status_label.text)
 	rules.open_active()
 	var rows_before: int = rules.faction_rows.get_child_count(); rules.hide(); rules.open_active()
@@ -128,6 +159,8 @@ func _run():
 	_assert(not ContractDraft.load(malformed_path).get("ok", true), "unrenderable contract entries fail closed instead of being dropped")
 	SaveIO.write_json(malformed_path, {"world": 7})
 	_assert(not RulesetDraft.load(malformed_path).get("ok", true), "malformed ruleset sections fail without a type crash")
+	SaveIO.write_json(malformed_path, {"advancement": []})
+	_assert(not RulesetDraft.load(malformed_path).get("ok", true), "malformed advancement refuses to open instead of risking an empty rewrite")
 	SaveIO.write_json(malformed_path, {"hazards": {"bad": false}})
 	_assert(not CombatVocabularyDraft.load(malformed_path).get("ok", true), "unrenderable hazards cannot be shortened on save")
 	# Full application signal route, not just a standalone draft or dialog.
