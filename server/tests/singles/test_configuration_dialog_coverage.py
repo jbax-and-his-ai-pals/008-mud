@@ -82,9 +82,10 @@ UNCOVERED_CONTRACT_FIELDS = {
     ("<file>", "description"): "file-level description, unread; preserved as authored",
 }
 
-# The ruleset keys the dialog can write. `systems`, `world`, `factions` and
-# `status` are written field-by-field; the rest are scalars. Anything else in
-# `ruleset.json` is preserved byte-for-byte and cannot be authored.
+# The ruleset keys the dialog can write. The first three are scalars; `world`
+# and `combat` are written by `_put_path`, the rest through `RulesetDraft`
+# setters. Anything else in `ruleset.json` is preserved byte-for-byte and
+# cannot be authored.
 RULESET_WRITABLE_KEYS = {
     "ruleset_id",
     "world_mode",
@@ -93,6 +94,12 @@ RULESET_WRITABLE_KEYS = {
     "world",
     "factions",
     "status",
+    "combat",
+    "crafting",
+    "skills",
+    "npc_schedules",
+    "advancement",
+    "weather",
 }
 
 # Top-level keys of `combat/elements.json` the dialog does not write.
@@ -196,14 +203,24 @@ def ruleset_written_keys(dialog_source: str) -> set[str]:
             else:
                 written |= set(pending)
             pending = []
-    for method, key in (
-        ("set_system_enabled", "systems"),
-        ("set_faction_extras", "factions"),
-        ("set_status_stats", "status"),
-    ):
-        if method in body:
-            written.add(key)
+    for method in re.findall(r"draft\.(set_[a-z_]+)\(", body):
+        written.add(RULESET_SETTER_KEYS.get(method, "<unmapped %s>" % method))
     return written
+
+
+# The top-level key each `RulesetDraft` setter writes. A setter missing here
+# shows up as `<unmapped ...>` in the written set rather than being skipped.
+RULESET_SETTER_KEYS = {
+    "set_system_enabled": "systems",
+    "set_faction_extras": "factions",
+    "set_status_stats": "status",
+    "set_salvage_rules": "crafting",
+    "set_skill_stat_bonuses": "skills",
+    "set_npc_schedules": "npc_schedules",
+    "set_advancement": "advancement",
+    "set_weather_descriptions": "weather",
+    "set_weather_profiles": "weather",
+}
 
 
 class TestTheContractDialogAuthorsEverySchemaField(unittest.TestCase):
