@@ -417,6 +417,52 @@ def _validate_region_classification(
                 issues.append(ContentSetIssue("error", str(path), f"region '{region_id}' properties.{key} '{value}' is not in the ruleset vocabulary"))
 
 
+_REGION_SPAWNER_KEYS = ("monster_types", "npc_types", "level_range", "monsters_enabled", "npcs_enabled")
+
+
+def _validate_region_spawners(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """A region's `spawner` (`world/spawner.py`), beyond its `level_range`.
+
+    `weighted_choice` picks a template id and the spawner then skips one with
+    no template, so a misspelt creature simply never appears; a misspelt key or
+    toggle is never read.
+    """
+    region_dir = content_root / "regions"
+    if not region_dir.is_dir():
+        return
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    for path in sorted(region_dir.glob("*.json")):
+        payload = _load_json(path, [], "region")
+        if not isinstance(payload, dict) or isinstance(payload.get("themes"), dict):
+            continue
+        spawner = payload.get("spawner")
+        if spawner is None:
+            continue
+        region_id = str(payload.get("region_id", "")).strip() or path.stem
+        label = f"region '{region_id}' spawner"
+        if not isinstance(spawner, dict):
+            issues.append(ContentSetIssue("error", str(path), f"{label} must be an object"))
+            continue
+        for key in spawner:
+            if not str(key).startswith("_") and key not in _REGION_SPAWNER_KEYS:
+                issues.append(ContentSetIssue("error", str(path), f"{label}.{key} is not read (known: {', '.join(_REGION_SPAWNER_KEYS)})"))
+        for key in ("monsters_enabled", "npcs_enabled"):
+            if key in spawner and not isinstance(spawner[key], bool):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.{key} must be true or false"))
+        for key in ("monster_types", "npc_types"):
+            weights = spawner.get(key)
+            if weights is None:
+                continue
+            if not isinstance(weights, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.{key} must be an object of NPC template -> weight"))
+                continue
+            for template_id, weight in weights.items():
+                if template_id not in npc_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.{key} references missing NPC template '{template_id}' (it never spawns)"))
+                if isinstance(weight, bool) or not isinstance(weight, (int, float)) or weight <= 0:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.{key}.{template_id} must be a positive weight"))
+
+
 def _validate_region_level_bands(
     content_root: Path, issues: list[ContentSetIssue], *, required: bool = False
 ) -> None:
@@ -1316,6 +1362,7 @@ _SIMPLE_RULESET_SECTION_KEYS = {
     "elites": ("chance", "stat_multiplier", "loot_guaranteed_chance", "loot_quantity_multiplier", "name_pattern", "prefixes"),
     "player_defaults": ("player_class", "magic", "starting_inventory"),
     "npc_naming": ("first_names", "random_name_pattern"),
+    "status": ("stats",),
 }
 
 
@@ -1471,6 +1518,12 @@ def _validate_simple_ruleset_sections(
                     continue
                 if item_id not in item_ids:
                     error(f"{label} references missing item '{item_id}' (the engine skips it and the player starts without it)")
+
+    status = sections.get("status", {})
+    if "stats" in status and strings(status["stats"], "status.stats", allow_empty_list=True):
+        repeated = sorted({stat for stat in status["stats"] if status["stats"].count(stat) > 1})
+        if repeated:
+            error(f"status.stats repeats {repeated}")
 
     naming = sections.get("npc_naming", {})
     if "first_names" in naming and strings(naming["first_names"], "npc_naming.first_names"):
@@ -4972,6 +5025,7 @@ def load_content_set(
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)
         _validate_room_passage_properties(content_root, issues)
+        _validate_region_spawners(content_root, issues)
         _validate_quest_stages(content_root, issues)
         _validate_instance_quests(content_root, issues)
         _validate_field_interactions(content_root, issues)

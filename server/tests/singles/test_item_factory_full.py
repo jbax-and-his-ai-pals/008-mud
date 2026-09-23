@@ -87,6 +87,23 @@ class TestCreateItem(GameTestBase):
         self.assertIsNone(result)
 
 
+class TestUnknownTopLevelKeysAreKept(GameTestBase):
+    """An item template's extra top-level key reaches the item as a property.
+
+    The coverage ledger recorded these as silently dropped by the factory's
+    signature filter; every item class takes **kwargs and Item.__init__ stores
+    them, so they are kept -- and this keeps it that way for every class."""
+
+    def test_every_item_class_keeps_an_extra_key(self):
+        for item_type in ("Item", "Weapon", "Armor", "Consumable", "Container", "Key", "Lockpick", "ResourceNode", "Interactive"):
+            with self.subTest(item_type=item_type):
+                template_id = "probe_" + item_type.lower()
+                self.world.item_templates[template_id] = {"type": item_type, "name": "Probe", "glow_colour": "blue", "properties": {}}
+                item = ItemFactory.create_item_from_template(template_id, self.world)
+                self.assertIsNotNone(item)
+                self.assertEqual("blue", item.get_property("glow_colour"))
+
+
 class TestFromDict(GameTestBase):
     def test_uses_template_when_id_and_world_present(self):
         data = {"obj_id": "item_starter_dagger", "properties_override": {"name": "Custom Dagger"}}

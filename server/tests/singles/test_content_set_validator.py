@@ -1551,6 +1551,39 @@ class TestAffixes(unittest.TestCase):
         self.assertTrue(any("generated_effect_name_pattern" in m for m in errors), errors)
 
 
+class TestRegionSpawnersAndStatus(unittest.TestCase):
+    """A region spawner's creature weights and toggles, and ruleset `status`."""
+
+    def _errors(self, spawner: dict | None = None, status: dict | None = None) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "npcs" / "beasts.json").write_text(json.dumps({"rat": {"name": "rat", "level": 1}}), encoding="utf-8")
+        region = json.loads((package / "data" / "regions" / "town.json").read_text(encoding="utf-8"))
+        if spawner is not None:
+            region["spawner"] = spawner
+        (package / "data" / "regions" / "town.json").write_text(json.dumps(region), encoding="utf-8")
+        if status is not None:
+            ruleset_path = package / "rules" / "ruleset.json"
+            ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+            ruleset["status"] = status
+            ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and ("spawner" in i.message or "status" in i.message)]
+
+    def test_a_well_formed_spawner_is_accepted(self):
+        self.assertEqual([], self._errors({"monster_types": {"rat": 2}, "npc_types": {"rat": 1}, "monsters_enabled": False}))
+
+    def test_a_missing_creature_bad_weight_and_misspelt_toggle_are_errors(self):
+        errors = self._errors({"monster_types": {"ghoul": 1, "rat": 0}, "monster_enabled": False})
+        self.assertTrue(any("'ghoul'" in m for m in errors), errors)
+        self.assertTrue(any("monster_types.rat must be a positive weight" in m for m in errors), errors)
+        self.assertTrue(any("spawner.monster_enabled is not read" in m for m in errors), errors)
+
+    def test_status_stats_are_checked(self):
+        errors = self._errors(status={"stats": ["strength", "strength"], "order": []})
+        self.assertTrue(any("status.stats repeats" in m for m in errors), errors)
+        self.assertTrue(any("status.order is not a setting" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib
