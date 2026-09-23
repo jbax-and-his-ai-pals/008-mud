@@ -70,13 +70,6 @@
                 "Weapon"
             ],
             "level_min": 3,
-            "equip_effect": {
-                "type": "stat_mod",
-                "name": "Fire Dmg",
-                "modifiers": {
-                    "damage_fire": 5
-                }
-            },
             "value_mult": 1.5
         },
         "Frozen": {
@@ -84,13 +77,6 @@
                 "Weapon"
             ],
             "level_min": 3,
-            "equip_effect": {
-                "type": "stat_mod",
-                "name": "Ice Dmg",
-                "modifiers": {
-                    "damage_ice": 5
-                }
-            },
             "value_mult": 1.5
         },
         "Shocking": {
@@ -98,13 +84,6 @@
                 "Weapon"
             ],
             "level_min": 4,
-            "equip_effect": {
-                "type": "stat_mod",
-                "name": "Lightning Dmg",
-                "modifiers": {
-                    "damage_lightning": 6
-                }
-            },
             "value_mult": 1.6
         },
         "Insulated": {
@@ -230,13 +209,6 @@
                 "Weapon"
             ],
             "level_min": 2,
-            "equip_effect": {
-                "type": "stat_mod",
-                "name": "Small Fire",
-                "modifiers": {
-                    "damage_fire": 2
-                }
-            },
             "value_mult": 1.2
         },
         "of the Inferno": {
@@ -244,13 +216,6 @@
                 "Weapon"
             ],
             "level_min": 8,
-            "equip_effect": {
-                "type": "stat_mod",
-                "name": "Inferno",
-                "modifiers": {
-                    "damage_fire": 10
-                }
-            },
             "value_mult": 2.5
         },
         "of Grounding": {
@@ -265,8 +230,7 @@
         },
         "of Antidotes": {
             "allowed_types": [
-                "Armor",
-                "Jewelry"
+                "Armor"
             ],
             "level_min": 4,
             "equip_stats": {
@@ -290,13 +254,6 @@
                 "Weapon"
             ],
             "level_min": 6,
-            "equip_effect": {
-                "type": "stat_mod",
-                "name": "Serpent's Bite",
-                "modifiers": {
-                    "damage_poison": 6
-                }
-            },
             "value_mult": 1.6
         },
         "of Stoneskin": {

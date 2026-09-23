@@ -69,6 +69,7 @@ func _init() -> void:
 	_check_manifest_shape(vocabulary)
 	_check_npc_vocabulary(vocabulary)
 	_check_knowledge_conditions(vocabulary)
+	_check_affix_item_classes(vocabulary)
 
 	if failure_count > 0:
 		push_error("schema parity failed (%d)" % failure_count)
@@ -274,6 +275,18 @@ func _check_knowledge_conditions(vocabulary: Dictionary) -> void:
 		var engine := _as_set(knowledge.get(pair[0], []))
 		var editor := _as_set(pair[1])
 		_assert(engine == editor, "%s match exactly (engine %s, editor %s)" % [pair[0], str(_sorted(engine)), str(_sorted(editor))])
+
+
+## `AffixInspector.ITEM_CLASSES` is what an affix's `allowed_types` may name:
+## the engine's item classes plus "All".
+func _check_affix_item_classes(vocabulary: Dictionary) -> void:
+	print("
+[affix item classes: editor vs engine]")
+	var engine := _as_set(vocabulary.get("item_classes", []))
+	_assert(not engine.is_empty(), "the engine's item classes were read")
+	var editor := _as_set(AffixInspector.ITEM_CLASSES)
+	editor.erase("All")
+	_assert(engine == editor, "the affix type list matches the engine's classes (engine %s, editor %s)" % [str(_sorted(engine)), str(_sorted(editor))])
 
 
 # --- helpers ------------------------------------------------------------------

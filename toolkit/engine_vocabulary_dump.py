@@ -101,6 +101,9 @@ def main() -> int:
             "default_dispositions": dict(sorted(FACTION_DEFAULT_DISPOSITIONS.items())),
         },
         "npc_behavior_types": sorted(NPC_BEHAVIOR_TYPES),
+        # What an affix's `allowed_types` is compared with: the generated item's
+        # class name. `AffixInspector.gd` offers these plus "All".
+        "item_classes": _item_classes(),
         # A topic response's own condition vocabulary (not `condition_kinds`
         # above, which is dialogue's). `KnowledgeInspector.gd` holds the copy.
         "knowledge_conditions": {
@@ -127,6 +130,12 @@ def main() -> int:
         },
     }, indent=2, sort_keys=True))
     return 0
+
+
+def _item_classes() -> list:
+    from engine.items.item_factory import ITEM_CLASS_MAP
+
+    return sorted({cls.__name__ for cls in ITEM_CLASS_MAP.values()})
 
 
 def _objective_type_names() -> set:

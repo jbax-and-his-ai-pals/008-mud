@@ -1513,6 +1513,44 @@ class TestNpcTradeAndLoot(unittest.TestCase):
         self.assertTrue(any("gift_preferences.prefered_item_ids is not read" in m for m in errors), errors)
 
 
+class TestAffixes(unittest.TestCase):
+    """`items/affixes.json` had no structural validator. `_pick_affix` indexes
+    `allowed_types` directly and compares it with the item's engine class, and
+    only a few keys are read at all."""
+
+    def _errors(self, affixes: dict) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "items" / "affixes.json").write_text(json.dumps(affixes), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and i.path.endswith("affixes.json")]
+
+    def test_well_formed_affixes_are_accepted(self):
+        self.assertEqual([], self._errors({
+            "prefixes": {"Sharp": {"allowed_types": ["Weapon"], "level_min": 1, "modifiers": {"damage": 2}, "value_mult": 1.2},
+                         "Blank": {"allowed_types": [], "level_min": 1, "value_mult": 1.0}},
+            "suffixes": {"of Warding": {"allowed_types": ["All"], "level_min": 2, "equip_stats": {"resist_fire": 10}, "equip_buff": "Warding", "value_mult": 1.5}},
+            "generated_effect_name_pattern": "Enchantment of {item_name}",
+        }))
+
+    def test_a_missing_allowed_types_and_an_unknown_class_are_errors(self):
+        errors = self._errors({"prefixes": {"Odd": {"level_min": 1}, "Shiny": {"allowed_types": ["Gem"]}}})
+        self.assertTrue(any("prefixes.Odd.allowed_types" in m for m in errors), errors)
+        self.assertTrue(any("'Gem' is not an engine item class" in m for m in errors), errors)
+
+    def test_keys_the_generator_does_not_read_are_errors(self):
+        errors = self._errors({
+            "prefixes": {"Fiery": {"allowed_types": ["Weapon"], "equip_effect": {"type": "stat_mod"}, "modifiers": {"damage_fire": 5}}},
+            "suffixes": {"of Might": {"allowed_types": ["Weapon"], "modifiers": {"damage": 1}}},
+        })
+        self.assertTrue(any("Fiery.equip_effect is not read" in m for m in errors), errors)
+        self.assertTrue(any("modifiers.damage_fire is not applied" in m for m in errors), errors)
+        self.assertTrue(any("of Might.modifiers is not read for suffixes" in m for m in errors), errors)
+
+    def test_the_name_pattern_only_fills_item_name(self):
+        errors = self._errors({"generated_effect_name_pattern": "{rarity} {item_name}"})
+        self.assertTrue(any("generated_effect_name_pattern" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

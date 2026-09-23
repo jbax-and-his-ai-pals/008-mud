@@ -17,8 +17,11 @@ extends RefCounted
 
 signal database_modified
 
-const ITEM_CLASSES := ["Weapon", "Armor", "Consumable", "Container", "Key", "Lockpick",
-	"ResourceNode", "Interactive", "Gem", "Junk", "Treasure", "Item"]
+# `allowed_types` is compared with the generated item's engine class name, so
+# these are the engine's classes (checked by schema_parity_smoke.gd) plus "All".
+# A family such as Gem reports class Item and would match nothing.
+const ITEM_CLASSES := ["All", "Weapon", "Armor", "Consumable", "Container", "Key", "Lockpick",
+	"ResourceNode", "Interactive", "Item"]
 
 var container: VBoxContainer
 var cur_data: Dictionary
@@ -96,7 +99,7 @@ func _build_effects():
 	var vbox := card.get_child(0).get_child(0)
 	container.add_child(card)
 	vbox.add_child(InspectorStyle.create_section_header("WHAT IT DOES", InspectorStyle.COLOR_ACCENT))
-	vbox.add_child(InspectorStyle.lbl("Modifiers change generated numbers (damage, defense, value...). Worn stats add to the wearer while the item is equipped.", InspectorStyle.COLOR_TEXT_DIM))
+	vbox.add_child(InspectorStyle.lbl("Modifiers change the generated item's damage, defense, durability or weight (prefixes only). Worn stats add to the wearer while the item is equipped.", InspectorStyle.COLOR_TEXT_DIM))
 	modifiers_box = VBoxContainer.new()
 	vbox.add_child(modifiers_box)
 	stats_box = VBoxContainer.new()

@@ -1759,6 +1759,92 @@ def _validate_dynamic_themes(content_root: Path, ruleset: Any, issues: list[Cont
                     theme_reference(region.get("theme"), f"quest '{quest_id}'.procedural_regions[{index}].theme", str(quest_path))
 
 
+AFFIX_PREFIX_MODIFIERS = ("damage", "defense", "durability", "weight")
+_AFFIX_KEYS = {
+    "prefixes": ("allowed_types", "level_min", "modifiers", "equip_stats", "value_mult"),
+    "suffixes": ("allowed_types", "level_min", "equip_stats", "equip_buff", "value_mult"),
+}
+_AFFIX_FILE_KEYS = ("prefixes", "suffixes", "generated_effect_name_pattern", "generated_description_suffix")
+
+
+def _validate_affixes(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """`items/affixes.json` (`items/affix_data.py`, `items/loot_generator.py`).
+
+    `LootGenerator._pick_affix` indexes `allowed_types` directly (a missing one
+    raises) and compares it with the item's engine class name, so a family name
+    or a retired class never matches. `_apply_prefix` reads four `modifiers` and
+    nothing else; suffixes' modifiers and prefixes' `equip_buff` are not read at
+    all; `generated_effect_name_pattern` is formatted with `item_name` only.
+    """
+    path = content_root / "items" / "affixes.json"
+    if not path.is_file():
+        return
+    payload = _load_json(path, issues, "affixes")
+    if payload is None:
+        return
+    source = str(path)
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", source, message))
+
+    if not isinstance(payload, dict):
+        error("affixes.json must be an object")
+        return
+    from engine.items.item_factory import ITEM_CLASS_MAP
+
+    classes = {cls.__name__ for cls in ITEM_CLASS_MAP.values()}
+    for key in payload:
+        if not str(key).startswith("_") and key not in _AFFIX_FILE_KEYS:
+            error(f"'{key}' is not read (known: {', '.join(_AFFIX_FILE_KEYS)})")
+    pattern = payload.get("generated_effect_name_pattern")
+    if pattern is not None:
+        if not isinstance(pattern, str) or not pattern.strip():
+            error("generated_effect_name_pattern must be a non-empty string")
+        elif _format_placeholders(pattern) - {"item_name"}:
+            error(f"generated_effect_name_pattern uses {sorted(_format_placeholders(pattern) - {'item_name'})}; only {{item_name}} is filled in, and any other raises")
+    if "generated_description_suffix" in payload and not isinstance(payload["generated_description_suffix"], str):
+        error("generated_description_suffix must be a string")
+
+    for section, known in _AFFIX_KEYS.items():
+        library = payload.get(section, {})
+        if not isinstance(library, dict):
+            error(f"{section} must be an object of affix name -> affix")
+            continue
+        for name, affix in library.items():
+            label = f"{section}.{name}"
+            if not isinstance(affix, dict):
+                error(f"{label} must be an object")
+                continue
+            for key in affix:
+                if not str(key).startswith("_") and key not in known:
+                    error(f"{label}.{key} is not read for {section} (known: {', '.join(known)})")
+            types = affix.get("allowed_types")
+            if not isinstance(types, list) or any(not isinstance(t, str) for t in types):
+                error(f"{label}.allowed_types must be an array of item classes (an absent one stops loot generation)")
+            else:
+                for item_type in types:
+                    if item_type != "All" and item_type not in classes:
+                        error(f"{label}.allowed_types '{item_type}' is not an engine item class, so it matches nothing (known: All, {', '.join(sorted(classes))})")
+            level = affix.get("level_min", 1)
+            if isinstance(level, bool) or not isinstance(level, int) or level < 1:
+                error(f"{label}.level_min must be an integer of at least 1")
+            mult = affix.get("value_mult", 1.0)
+            if isinstance(mult, bool) or not isinstance(mult, (int, float)) or mult <= 0:
+                error(f"{label}.value_mult must be a positive number")
+            for key in ("modifiers", "equip_stats"):
+                values = affix.get(key)
+                if values is None:
+                    continue
+                if not isinstance(values, dict) or any(isinstance(v, bool) or not isinstance(v, (int, float)) for v in values.values()):
+                    error(f"{label}.{key} must be an object of stat -> number")
+                elif key == "modifiers":
+                    for stat in values:
+                        if stat not in AFFIX_PREFIX_MODIFIERS:
+                            error(f"{label}.modifiers.{stat} is not applied (a prefix modifies only {', '.join(AFFIX_PREFIX_MODIFIERS)}; use equip_stats for a worn stat)")
+            if "equip_buff" in affix and (not isinstance(affix["equip_buff"], str) or not affix["equip_buff"].strip()):
+                error(f"{label}.equip_buff must be a non-empty string")
+
+
 def _validate_npc_schedule_rules(
     ruleset: Any,
     issues: list[ContentSetIssue],
@@ -4881,6 +4967,7 @@ def load_content_set(
         _validate_simple_ruleset_sections(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_crime_and_debug_rules(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_dynamic_themes(content_root, ruleset_payload, issues, ruleset_source_path)
+        _validate_affixes(content_root, issues)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)
