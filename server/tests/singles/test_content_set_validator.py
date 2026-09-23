@@ -1292,7 +1292,7 @@ class TestCrimeAndDebugRules(unittest.TestCase):
 
     def test_a_jail_property_no_room_carries_is_an_error(self):
         errors = self._errors(cell_property="is_cell", crime=self._crime())
-        self.assertTrue(any("room_property 'is_jail_cell' is set on no room" in m for m in errors), errors)
+        self.assertTrue(any("room_property 'is_jail_cell' references a missing jail room" in m for m in errors), errors)
 
     def test_required_fields_while_enabled(self):
         errors = self._errors(crime=self._crime(witness={}))

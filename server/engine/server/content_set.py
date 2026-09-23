@@ -1437,8 +1437,8 @@ def _validate_crime_and_debug_rules(
                             cells += 1
                 if cells == 0:
                     error(
-                        f"crime.custody.room_property '{room_property}' is set on no room, so a jailed player keeps "
-                        "their position after their pack is confiscated"
+                        f"crime.custody.room_property '{room_property}' references a missing jail room (no room sets it), "
+                        "so a jailed player keeps their position after their pack is confiscated"
                     )
 
     debug = ruleset.get("debug")
