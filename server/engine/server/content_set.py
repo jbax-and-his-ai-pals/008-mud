@@ -1363,6 +1363,7 @@ _SIMPLE_RULESET_SECTION_KEYS = {
     "player_defaults": ("player_class", "magic", "starting_inventory"),
     "npc_naming": ("first_names", "random_name_pattern"),
     "status": ("stats",),
+    "combat": ("retreat", "additional_blocked_command_names", "additional_combat_message_tokens"),
 }
 
 
@@ -1518,6 +1519,26 @@ def _validate_simple_ruleset_sections(
                     continue
                 if item_id not in item_ids:
                     error(f"{label} references missing item '{item_id}' (the engine skips it and the player starts without it)")
+
+    # `World._attempt_combat_retreat` adds these numbers without a check, so a
+    # quoted one raises the first time a player tries to leave a fight.
+    combat = sections.get("combat", {})
+    retreat = combat.get("retreat")
+    if retreat is not None:
+        if not isinstance(retreat, dict):
+            error("combat.retreat must be an object")
+        else:
+            for key in retreat:
+                if key not in ("skill", "base_difficulty", "difficulty_per_hostile_level"):
+                    error(f"combat.retreat.{key} is not read (known: skill, base_difficulty, difficulty_per_hostile_level)")
+            if "skill" in retreat and not isinstance(retreat["skill"], str):
+                error("combat.retreat.skill must be a string (empty means retreat always succeeds)")
+            for key in ("base_difficulty", "difficulty_per_hostile_level"):
+                if key in retreat:
+                    number(retreat[key], f"combat.retreat.{key}", low=0)
+    for key in ("additional_blocked_command_names", "additional_combat_message_tokens"):
+        if key in combat:
+            strings(combat[key], f"combat.{key}", allow_empty_list=True)
 
     status = sections.get("status", {})
     if "stats" in status and strings(status["stats"], "status.stats", allow_empty_list=True):

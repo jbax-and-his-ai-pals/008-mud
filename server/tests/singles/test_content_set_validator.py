@@ -1578,6 +1578,17 @@ class TestRegionSpawnersAndStatus(unittest.TestCase):
         self.assertTrue(any("monster_types.rat must be a positive weight" in m for m in errors), errors)
         self.assertTrue(any("spawner.monster_enabled is not read" in m for m in errors), errors)
 
+    def test_combat_retreat_numbers_must_be_numbers(self):
+        package = _background_package(self, stats={"strength": 10})
+        ruleset_path = package / "rules" / "ruleset.json"
+        ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+        ruleset["combat"] = {"retreat": {"skill": "stealth", "base_difficulty": "10", "per_level": 2}}
+        ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        messages = [i.message for i in issues if i.severity == "error"]
+        self.assertTrue(any("combat.retreat.base_difficulty" in m for m in messages), messages)
+        self.assertTrue(any("combat.retreat.per_level is not read" in m for m in messages), messages)
+
     def test_status_stats_are_checked(self):
         errors = self._errors(status={"stats": ["strength", "strength"], "order": []})
         self.assertTrue(any("status.stats repeats" in m for m in errors), errors)
