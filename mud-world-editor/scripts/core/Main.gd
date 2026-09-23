@@ -176,6 +176,7 @@ func _update_db_ui():
 		database_mgr.collections,
 		database_mgr.discoveries,
 		database_mgr.backgrounds,
+		database_mgr.campaigns,
 		database_mgr.affix_prefixes,
 		database_mgr.affix_suffixes,
 		database_mgr.item_sets,
@@ -367,6 +368,17 @@ func _connect_ui_signals():
 			"background":
 				d = {"name": "New Background", "description": "", "stats": {}, "inventory": [], "starting_gold": 0}
 				database_mgr.add_background(id, d)
+			"campaign":
+				# A single END node as its own start: the campaign completes the
+				# instant it is started rather than failing to load or crashing on
+				# an unresolved node reference, the same "never invalid merely by
+				# existing" rule the new-dialogue default follows.
+				d = {
+					"campaign_id": id, "name": "New Campaign", "description": "",
+					"start_node_id": "start",
+					"nodes": {"start": {"description": "The story ends.", "type": "END", "outcome": "complete"}},
+				}
+				database_mgr.add_campaign(id, d)
 			"affix_prefix", "affix_suffix":
 				# Applies to nothing until the author names item types, and does
 				# nothing until a modifier row exists -- so a new affix is inert

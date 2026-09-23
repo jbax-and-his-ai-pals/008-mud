@@ -27,6 +27,7 @@ var cached_affix_suffixes: Dictionary = {}
 var cached_item_sets: Dictionary = {}
 var cached_discoveries: Dictionary = {}
 var cached_backgrounds: Dictionary = {}
+var cached_campaigns: Dictionary = {}
 var cached_dirty: Dictionary = {}
 
 var category_box: VBoxContainer
@@ -65,6 +66,7 @@ const COLLECTION_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_ins
 const BACKGROUND_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/BackgroundInspector.gd")
 const AFFIX_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/AffixInspector.gd")
 const ITEM_SET_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/ItemSetInspector.gd")
+const CAMPAIGN_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/CampaignInspector.gd")
 
 const CATEGORIES := [
 	{"key": "npc", "label": "NPCs", "color": Color.LIGHT_GREEN},
@@ -83,6 +85,7 @@ const CATEGORIES := [
 	{"key": "collection", "label": "Collections", "color": Color(0.6, 0.75, 0.95)},
 	{"key": "discovery", "label": "Discoveries", "color": Color(0.55, 0.85, 0.75)},
 	{"key": "background", "label": "Backgrounds", "color": Color(0.8, 0.7, 0.95)},
+	{"key": "campaign", "label": "Campaigns", "color": Color(0.8, 0.65, 0.5)},
 	# Real categories now, not grouping labels over unrelated item files: these are
 	# the two item-directory contracts the editor never loaded.
 	{"key": "affix_prefix", "label": "Prefixes", "color": Color(0.9, 0.75, 0.55)},
@@ -131,7 +134,7 @@ func clear_selection():
 	if visible:
 		_build_editor()
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, campaigns: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
@@ -143,6 +146,7 @@ func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, mag
 	cached_collections = collections
 	cached_discoveries = discoveries
 	cached_backgrounds = backgrounds
+	cached_campaigns = campaigns
 	cached_affix_prefixes = affix_prefixes
 	cached_affix_suffixes = affix_suffixes
 	cached_item_sets = item_sets
@@ -359,6 +363,7 @@ func _get_current_entries() -> Dictionary:
 		"collection": return cached_collections
 		"discovery": return cached_discoveries
 		"background": return cached_backgrounds
+		"campaign": return cached_campaigns
 		"affix_prefix": return cached_affix_prefixes
 		"affix_suffix": return cached_affix_suffixes
 		"item_set": return cached_item_sets
@@ -458,6 +463,12 @@ func _build_editor():
 			current_editor = background_inspector
 			background_inspector.database_modified.connect(_mark_current_dirty)
 			background_inspector.build(selected_id, entry)
+			return
+		if storage_type == "campaign":
+			var campaign_inspector = CAMPAIGN_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = campaign_inspector
+			campaign_inspector.database_modified.connect(_mark_current_dirty)
+			campaign_inspector.build(selected_id, entry)
 			return
 		if storage_type == "affix_prefix" or storage_type == "affix_suffix":
 			var affix_inspector = AFFIX_INSPECTOR_SCRIPT.new(editor_box, database_mgr)

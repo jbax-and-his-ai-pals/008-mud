@@ -86,6 +86,9 @@ var dialogues: Dictionary = {}
 var dialogue_files: Dictionary = {}
 var templates: Dictionary = {}
 var campaigns: Dictionary = {}
+# Filename → campaign id, so a deleted campaign can take its file with it --
+# the same reason `dialogue_files` exists.
+var campaign_files: Dictionary = {}
 var collections: Dictionary = {}
 var discoveries: Dictionary = {}
 var magic_groups: Dictionary = {}
@@ -136,7 +139,7 @@ var backgrounds_file_known := false
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
 	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "dialogue": {}, "title": {},
-	"collection": {}, "discovery": {}, "background": {},
+	"collection": {}, "discovery": {}, "background": {}, "campaign": {},
 	"affix_prefix": {}, "affix_suffix": {}, "item_set": {}
 }
 
@@ -184,7 +187,7 @@ func carried_stats() -> Array:
 
 func load_all():
 	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); dialogues.clear()
-	campaigns.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
+	campaigns.clear(); campaign_files.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	titles.clear(); guilds.clear(); titles_extras.clear(); titles_file_known = false
 	collections_file_known = false; discoveries_file_known = false
 	backgrounds.clear(); backgrounds_extras.clear(); backgrounds_default = ""; backgrounds_file_known = false
@@ -438,6 +441,7 @@ func _save_dialogue_graphs(errors: Array) -> void:
 # campaign's own "nodes" dictionary as if it were a second top-level entry.
 # Load each file as exactly one campaign, keyed by its own campaign_id.
 func _load_campaigns():
+	campaign_files.clear()
 	var dir = DirAccess.open(campaign_dir())
 	if not dir: return
 	dir.list_dir_begin()
@@ -453,9 +457,40 @@ func _load_campaigns():
 						var id = data.get("campaign_id", file_name.replace(".json", ""))
 						data["_filename"] = file_name
 						campaigns[id] = data
+						campaign_files[file_name] = id
 				else:
 					print("Error parsing JSON in %s: %s" % [file_name, json.get_error_message()])
 		file_name = dir.get_next()
+
+
+# One campaign per file, written back to the file it came from -- the same
+# reason `_save_dialogue_graphs` cannot use `_save_category`: a campaign's own
+# `nodes` dictionary would nest one level deeper than the engine reads it if
+# grouped into a `{id: entry}` document.
+func _save_campaigns(errors: Array) -> void:
+	if campaigns.is_empty() and campaign_files.is_empty():
+		return
+	_ensure_dir(campaign_dir())
+	for file_name in campaign_files:
+		# A campaign deleted in the editor takes its file with it; otherwise
+		# the entry would be back on the next load.
+		if not campaigns.has(campaign_files[file_name]):
+			var stale := campaign_dir().path_join(file_name)
+			if FileAccess.file_exists(stale):
+				DirAccess.remove_absolute(stale)
+
+	for campaign_id in campaigns:
+		var data: Dictionary = campaigns[campaign_id]
+		if not (data is Dictionary):
+			continue
+		var file_name := str(data.get("_filename", "%s.json" % campaign_id))
+		var payload: Dictionary = data.duplicate(true)
+		payload.erase("_filename")
+		var result: Dictionary = SaveIO.write_json(campaign_dir().path_join(file_name), payload)
+		if not result.get("ok", false):
+			errors.append(result.get("error", "Could not save campaign %s." % campaign_id))
+		else:
+			campaign_files[file_name] = campaign_id
 
 func _load_recursive(root_dir: String, current_subdir: String, target_dict: Dictionary,
 		skip_filenames: Array = []):
@@ -545,6 +580,7 @@ func save_all() -> Dictionary:
 	_save_category(quests, quest_dir(), errors)
 	_save_category(recipes, recipe_dir(), errors)
 	_save_dialogue_graphs(errors)
+	_save_campaigns(errors)
 	_save_category(templates, template_dir(), errors)
 	_save_titles(errors)
 	_save_backgrounds(errors)
@@ -665,6 +701,7 @@ func _cache_for(type: String) -> Dictionary:
 		"collection": return collections
 		"discovery": return discoveries
 		"background": return backgrounds
+		"campaign": return campaigns
 		"affix_prefix": return affix_prefixes
 		"affix_suffix": return affix_suffixes
 		"item_set": return item_sets
@@ -785,7 +822,7 @@ func _entries_without_internal(cache: Dictionary) -> Dictionary:
 # or the content keeps naming something that no longer exists.
 
 const CACHE_TYPES := ["npc", "item", "magic", "quest", "recipe", "dialogue", "title",
-	"collection", "discovery", "background", "template"]
+	"collection", "discovery", "background", "campaign", "template"]
 
 # Preloaded like the editor's other helpers: a fresh `class_name` is not in the
 # project's class cache until the editor has scanned it, and a headless check must
@@ -874,6 +911,14 @@ func get_ids(type: String) -> Array:
 
 func add_dialogue(id: String, data: Dictionary): _add_entry(id, data, dialogues); mark_dirty("dialogue", id)
 func get_dialogue_ids() -> Array: return get_ids("dialogue")
+# Not `_add_entry`: that defaults `_filename` to a shared "custom.json", which
+# is wrong for a one-file-per-entry store -- two new campaigns would collide
+# on the same file the way `_save_campaigns` writes them.
+func add_campaign(id: String, data: Dictionary):
+	if not data.has("_filename"): data["_filename"] = "%s.json" % id
+	campaigns[id] = data
+	mark_dirty("campaign", id)
+func get_campaign_ids() -> Array: return get_ids("campaign")
 func add_recipe(id: String, data: Dictionary): _add_entry(id, data, recipes); mark_dirty("recipe", id)
 func get_recipe_ids() -> Array: return get_ids("recipe")
 # Titles are one file, not one-entry-per-directory-file, so they carry no
