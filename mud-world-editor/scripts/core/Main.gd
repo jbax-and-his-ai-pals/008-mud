@@ -177,6 +177,7 @@ func _update_db_ui():
 		database_mgr.discoveries,
 		database_mgr.backgrounds,
 		database_mgr.campaigns,
+		database_mgr.topics,
 		database_mgr.affix_prefixes,
 		database_mgr.affix_suffixes,
 		database_mgr.item_sets,
@@ -379,6 +380,9 @@ func _connect_ui_signals():
 					"nodes": {"start": {"description": "The story ends.", "type": "END", "outcome": "complete"}},
 				}
 				database_mgr.add_campaign(id, d)
+			"topic":
+				d = {"display_name": "New Topic", "keywords": [], "responses": []}
+				database_mgr.add_topic(id, d)
 			"affix_prefix", "affix_suffix":
 				# Applies to nothing until the author names item types, and does
 				# nothing until a modifier row exists -- so a new affix is inert

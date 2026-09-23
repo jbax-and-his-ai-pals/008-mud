@@ -615,7 +615,8 @@ class TestSalvageRuleValidation(unittest.TestCase):
 
 def _background_package(case: unittest.TestCase, *, stats: dict, skills: dict | None = None,
                         stat_bonuses: dict | None = None, weather: dict | None = None,
-                        weather_profile: str | None = None, weather_section: dict | None = None) -> Path:
+                        weather_profile: str | None = None, weather_section: dict | None = None,
+                        topics: dict | None = None) -> Path:
     """A minimal package whose backgrounds, ruleset and weather a test controls."""
     root = Path(tempfile.mkdtemp())
     case.addCleanup(shutil.rmtree, root, ignore_errors=True)
@@ -656,6 +657,9 @@ def _background_package(case: unittest.TestCase, *, stats: dict, skills: dict | 
     (package / "data" / "player" / "backgrounds.json").write_text(
         json.dumps({"_comment": "a note", "probe": background}), encoding="utf-8"
     )
+    if topics is not None:
+        (package / "data" / "knowledge").mkdir(parents=True)
+        (package / "data" / "knowledge" / "topics.json").write_text(json.dumps(topics), encoding="utf-8")
     return package
 
 
@@ -817,6 +821,101 @@ class TestContentSetValidatorMain(unittest.TestCase):
             with self.assertRaises(SystemExit) as cm:
                 validator.main()
         self.assertEqual(1, cm.exception.code)
+
+
+class TestKnowledgeTopics(unittest.TestCase):
+    """`data/knowledge/topics.json` (`knowledge_manager.py`) had no validator at
+    all -- `_load_topics` swallows a malformed file into an empty dict with only
+    a print(), so a typo'd condition kind or effect key here reached a player as
+    a topic that simply never answers, with no error anywhere. The condition
+    language (`_check_conditions`) is deliberately separate from
+    `engine/conditions.py`'s `KNOWN_KINDS` -- this is the NPC/world-state
+    vocabulary a topic response gates on, not the shared dialogue/title one."""
+
+    def _package(self, topics: dict) -> Path:
+        return _background_package(self, stats={"strength": 10}, topics=topics)
+
+    def _errors(self, package: Path) -> list:
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error"]
+
+    def test_a_well_formed_topic_is_accepted(self):
+        package = self._package({
+            "__common_topics__": ["rumor"],
+            "rumor": {
+                "display_name": "Rumor",
+                "keywords": ["gossip"],
+                "responses": [{"text": "Word is the bridge is out.", "priority": 1}],
+            },
+        })
+        self.assertEqual([], self._errors(package))
+
+    def test_a_response_needs_non_empty_text(self):
+        package = self._package({"rumor": {"responses": [{"priority": 1}]}})
+        errors = self._errors(package)
+        self.assertTrue(any("responses[0].text" in message for message in errors), errors)
+
+    def test_common_topics_must_name_a_declared_topic(self):
+        package = self._package({"__common_topics__": ["ghost_topic"], "rumor": {"responses": []}})
+        errors = self._errors(package)
+        self.assertTrue(any("ghost_topic" in message for message in errors), errors)
+
+    def test_keywords_must_be_an_array_of_strings(self):
+        package = self._package({"rumor": {"keywords": ["ok", 5], "responses": []}})
+        errors = self._errors(package)
+        self.assertTrue(any("rumor'.keywords" in message for message in errors), errors)
+
+    def test_an_unknown_condition_kind_is_an_error(self):
+        package = self._package({"rumor": {"responses": [{"text": "Hi.", "conditions": {"reputation": 5}}]}})
+        errors = self._errors(package)
+        self.assertTrue(any("conditions.reputation" in message and "not a condition" in message for message in errors), errors)
+
+    def test_an_unknown_effect_key_is_an_error(self):
+        package = self._package({"rumor": {"responses": [{"text": "Hi.", "effects": {"telepathy": True}}]}})
+        errors = self._errors(package)
+        self.assertTrue(any("effects" in message and "telepathy" in message for message in errors), errors)
+
+    def test_knowledge_state_must_reference_a_declared_topic(self):
+        package = self._package({
+            "rumor": {"responses": [{"text": "Hi.", "conditions": {"knowledge_state": {"topic_id": "nope", "state": "known"}}}]},
+        })
+        errors = self._errors(package)
+        self.assertTrue(any("knowledge_state.topic_id" in message for message in errors), errors)
+
+    def test_knowledge_state_accepts_a_self_reference(self):
+        package = self._package({
+            "rumor": {"responses": [{"text": "Hi."}]},
+            "other": {"responses": [{"text": "Hi.", "conditions": {"knowledge_state": {"topic_id": "rumor", "state": "discussed"}}}]},
+        })
+        self.assertEqual([], self._errors(package))
+
+    def test_quest_state_validates_its_own_fields(self):
+        package = self._package({
+            "rumor": {"responses": [{
+                "text": "Hi.",
+                "conditions": {"quest_state": {"state": "sideways", "from_this_npc": "yes"}},
+            }]},
+        })
+        errors = self._errors(package)
+        self.assertTrue(any("quest_state.state" in message for message in errors), errors)
+        self.assertTrue(any("quest_state.from_this_npc" in message for message in errors), errors)
+
+    def test_campaign_state_requires_a_real_campaign(self):
+        package = self._package({
+            "rumor": {"responses": [{"text": "Hi.", "conditions": {"campaign_state": {"campaign_id": "ghost_campaign", "state": "active"}}}]},
+        })
+        (package / "data" / "campaigns").mkdir(parents=True)
+        (package / "data" / "campaigns" / "real.json").write_text(
+            json.dumps({"campaign_id": "real_campaign", "name": "Real", "description": "", "start_node_id": "s", "nodes": {"s": {"description": "", "type": "END"}}}),
+            encoding="utf-8",
+        )
+        errors = self._errors(package)
+        self.assertTrue(any("campaign_state.campaign_id" in message for message in errors), errors)
+
+    def test_a_malformed_topics_file_is_an_error_not_a_silent_empty_dict(self):
+        package = self._package({"rumor": "not an object"})
+        errors = self._errors(package)
+        self.assertTrue(any("rumor" in message and "must be an object" in message for message in errors), errors)
 
 
 class TestServerRootPathInsertion(unittest.TestCase):

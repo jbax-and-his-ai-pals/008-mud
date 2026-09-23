@@ -989,9 +989,9 @@ func clear_library_selection():
 	if content_library != null:
 		content_library.clear_selection()
 
-func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, campaigns: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
+func update_db_lists(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, campaigns: Dictionary, topics: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
 	side_panel.update_db_lists(npcs, items, templates, magic, quests, dirty_flags)
-	content_library.update_data(npcs, items, templates, magic, quests, recipes, dialogues, titles, collections, discoveries, backgrounds, campaigns, affix_prefixes, affix_suffixes, item_sets, dirty_flags)
+	content_library.update_data(npcs, items, templates, magic, quests, recipes, dialogues, titles, collections, discoveries, backgrounds, campaigns, topics, affix_prefixes, affix_suffixes, item_sets, dirty_flags)
 func refresh_explorer(h, c, s): side_panel.refresh_explorer(h, c, s) 
 func select_room_item(id): side_panel.select_room_item(id)
 func update_dirty_visuals(cur, dirty, rooms): side_panel.update_dirty_visuals(cur, dirty, rooms)
