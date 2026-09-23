@@ -1322,6 +1322,160 @@ def _validate_simple_ruleset_sections(
         pattern(naming["random_name_pattern"], "npc_naming.random_name_pattern", {"first_name", "title"})
 
 
+_CRIME_KEYS = {
+    "": ("enabled", "witness", "consequences", "custody"),
+    "witness": ("skill", "base_difficulty", "rank_attribute", "rank_multiplier", "authority_property",
+                "authority_bonus", "excluded_factions", "xp_success", "xp_caught"),
+    "consequences": ("reputation_key", "reputation_per_value", "custody_value_threshold", "custody_cumulative_threshold",
+                     "custody_reputation_threshold", "fine_rate", "fine_minimum"),
+    "custody": ("room_property", "release_destination_property", "base_seconds", "seconds_per_value",
+                "concealed_tool_requirements", "emergency_tool_item_id", "emergency_tool_durability",
+                "escape_alert_margin", "escape_sentence_penalty_seconds", "search_success_chance",
+                "search_currency_min", "search_currency_max"),
+}
+# Numbers that must not be negative; `custody_reputation_threshold` is a
+# reputation floor and may be.
+_CRIME_NON_NEGATIVE = {
+    "witness": ("base_difficulty", "rank_multiplier", "authority_bonus", "xp_success", "xp_caught"),
+    "consequences": ("reputation_per_value", "custody_value_threshold", "custody_cumulative_threshold", "fine_rate", "fine_minimum"),
+    "custody": ("base_seconds", "seconds_per_value", "escape_alert_margin", "escape_sentence_penalty_seconds"),
+}
+
+
+def _validate_crime_and_debug_rules(
+    content_root: Path, ruleset: Any, issues: list[ContentSetIssue], ruleset_path: Path | None = None,
+) -> None:
+    """`crime` (`core/crime_manager.py`, `commands/jail.py`, `world.py`) and `debug`.
+
+    `CrimeManager._number` turns any value that is not a number into 0, and
+    `is_enabled` wants the boolean `true`, so a quoted number or `"true"` changes
+    the law without a word. With crime enabled, a `custody.room_property` no room
+    carries confiscates the player's pack and then leaves them where they stood.
+    """
+    if not isinstance(ruleset, dict):
+        return
+    source = str(ruleset_path or "ruleset")
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", source, message))
+
+    def is_number(value: Any) -> bool:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    crime = ruleset.get("crime")
+    if crime is not None:
+        if not isinstance(crime, dict):
+            error("crime must be an object")
+            crime = {}
+        parts: dict[str, dict[str, Any]] = {"": crime}
+        for name in ("witness", "consequences", "custody"):
+            value = crime.get(name, {})
+            if not isinstance(value, dict):
+                error(f"crime.{name} must be an object")
+                value = {}
+            parts[name] = value
+        for name, part in parts.items():
+            prefix = f"crime.{name}" if name else "crime"
+            for key in part:
+                if not str(key).startswith("_") and key not in _CRIME_KEYS[name]:
+                    error(f"{prefix}.{key} is not a setting the engine reads (known: {', '.join(_CRIME_KEYS[name])})")
+        for name, keys in _CRIME_NON_NEGATIVE.items():
+            for key in keys:
+                if key in parts[name] and (not is_number(parts[name][key]) or parts[name][key] < 0):
+                    error(f"crime.{name}.{key} must be a non-negative number (anything else counts as 0)")
+        consequences, witness, custody = parts["consequences"], parts["witness"], parts["custody"]
+        if "custody_reputation_threshold" in consequences and not is_number(consequences["custody_reputation_threshold"]):
+            error("crime.consequences.custody_reputation_threshold must be a number (anything else counts as 0)")
+        if "enabled" in crime and not isinstance(crime["enabled"], bool):
+            error("crime.enabled must be true or false (anything else leaves crime off)")
+        for key in ("rank_attribute", "authority_property", "skill"):
+            if key in witness and not isinstance(witness[key], str):
+                error(f"crime.witness.{key} must be a string")
+        if "excluded_factions" in witness and (
+            not isinstance(witness["excluded_factions"], list)
+            or any(not isinstance(f, str) or not f.strip() for f in witness["excluded_factions"])
+        ):
+            error("crime.witness.excluded_factions must be an array of faction ids (otherwise nobody is excluded)")
+        chance = custody.get("search_success_chance")
+        if chance is not None and (not is_number(chance) or not 0 <= chance <= 1):
+            error("crime.custody.search_success_chance must be a number from 0 to 1")
+        low, high = custody.get("search_currency_min", 0), custody.get("search_currency_max", custody.get("search_currency_min", 0))
+        if any(isinstance(v, bool) or not isinstance(v, int) or v < 0 for v in (low, high)):
+            error("crime.custody.search_currency_min and search_currency_max must be non-negative integers")
+        elif low > high:
+            error(f"crime.custody.search_currency_min ({low}) is greater than search_currency_max ({high})")
+        if "emergency_tool_durability" in custody:
+            durability = custody["emergency_tool_durability"]
+            if isinstance(durability, bool) or not isinstance(durability, int) or durability < 1:
+                error("crime.custody.emergency_tool_durability must be a positive integer")
+        if "emergency_tool_item_id" in custody:
+            item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+            if custody["emergency_tool_item_id"] not in item_ids:
+                error(f"crime.custody.emergency_tool_item_id references missing item '{custody['emergency_tool_item_id']}' (the concealed tool is silently not given)")
+        requirements = custody.get("concealed_tool_requirements", [])
+        if not isinstance(requirements, list) or any(
+            not isinstance(entry, dict) or not isinstance(entry.get("skill"), str) or not entry.get("skill", "").strip()
+            or not is_number(entry.get("minimum", 0))
+            for entry in requirements
+        ):
+            error("crime.custody.concealed_tool_requirements must be an array of {skill, minimum}")
+
+        if crime.get("enabled") is True:
+            for label, part, key in (("crime.witness.skill", witness, "skill"),
+                                     ("crime.consequences.reputation_key", consequences, "reputation_key"),
+                                     ("crime.custody.room_property", custody, "room_property")):
+                if not isinstance(part.get(key), str) or not part.get(key, "").strip():
+                    error(f"{label} is required while crime is enabled")
+            room_property = custody.get("room_property")
+            if isinstance(room_property, str) and room_property.strip():
+                cells = 0
+                for region_path in sorted((content_root / "regions").glob("*.json")):
+                    region = _load_json(region_path, [], "region definitions")
+                    rooms = region.get("rooms", {}) if isinstance(region, dict) else {}
+                    for room in (rooms.values() if isinstance(rooms, dict) else []):
+                        if isinstance(room, dict) and isinstance(room.get("properties"), dict) and room["properties"].get(room_property):
+                            cells += 1
+                if cells == 0:
+                    error(
+                        f"crime.custody.room_property '{room_property}' is set on no room, so a jailed player keeps "
+                        "their position after their pack is confiscated"
+                    )
+
+    debug = ruleset.get("debug")
+    if debug is None:
+        return
+    if not isinstance(debug, dict):
+        error("debug must be an object")
+        return
+    known = ("gear_item_ids", "spawnable_stations", "lock_test_spells")
+    for key in debug:
+        if not str(key).startswith("_") and key not in known:
+            error(f"debug.{key} is not a setting the engine reads (known: {', '.join(known)})")
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    gear = debug.get("gear_item_ids", [])
+    if not isinstance(gear, list):
+        error("debug.gear_item_ids must be an array of item ids")
+    else:
+        for item_id in gear:
+            if item_id not in item_ids:
+                error(f"debug.gear_item_ids references missing item '{item_id}'")
+    stations = debug.get("spawnable_stations", {})
+    if not isinstance(stations, dict):
+        error("debug.spawnable_stations must be an object of station -> item id")
+    else:
+        for station, item_id in stations.items():
+            if item_id not in item_ids:
+                error(f"debug.spawnable_stations.{station} references missing item '{item_id}'")
+    spells = debug.get("lock_test_spells", [])
+    if not isinstance(spells, list):
+        error("debug.lock_test_spells must be an array of ability ids")
+    elif spells:
+        ability_ids = _ability_ids(content_root, issues)
+        for spell_id in spells:
+            if spell_id not in ability_ids:
+                error(f"debug.lock_test_spells references missing ability '{spell_id}'")
+
+
 def _validate_npc_schedule_rules(
     ruleset: Any,
     issues: list[ContentSetIssue],
@@ -4317,6 +4471,7 @@ def load_content_set(
         _validate_npc_schedule_rules(ruleset_payload, issues, ruleset_source_path)
         _validate_weather_profiles(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_simple_ruleset_sections(content_root, ruleset_payload, issues, ruleset_source_path)
+        _validate_crime_and_debug_rules(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)

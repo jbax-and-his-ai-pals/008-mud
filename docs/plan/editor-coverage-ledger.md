@@ -230,7 +230,7 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `systems` | `content_set.py:80-124` | `content_set.py:80-124` (manifest mismatch = error) | 8 toggles | validated writer | 6B |
 | `combat.retreat` | `world.py:361-369` | `RulesetDraft.gd` rejects negative difficulties; staged engine verdict protects the full set | typed skill and difficulty controls in `RulesetEditorDialog.gd` | prototype | `configuration_dialog_smoke.gd` | 6D |
 | `locksmithing` | `world.py:540`; `items/lockpick.py:67` | `content_set.py::_validate_simple_ruleset_sections` — string skill; warns when no `skills.stat_bonuses` rule backs it | no | absent (validated) | 6D |
-| `crime` (+ `custody`) | `core/crime_manager.py:26-211`; `commands/jail.py:36-47` | none | no | absent | 6D |
+| `crime` (+ `custody`) | `core/crime_manager.py:26-211`; `commands/jail.py:36-47` | `content_set.py::_validate_crime_and_debug_rules` — known keys, real numbers (the reader turns anything else into 0), boolean `enabled`, and while enabled a skill, reputation key and a `room_property` some room carries | no | absent (validated) | 6D |
 | `player_defaults` | `world.py:135-146`; `player/core.py:72`; `definition_loader.py::grant_starting_inventory` | `content_set.py::_validate_simple_ruleset_sections` — real items with integer quantities (a string quantity stopped character creation), real default spells | no | absent (validated) | 6D |
 | `quest_generation` | `quests/manager.py`; `generator.py` | `content_set.py::_validate_ruleset_references` (all keys) | yes | validated writer | 6D |
 | `crafting.salvage_rules` | `crafting_manager.py:424-464` | `content_set.py:2083-2129` | no | absent | 6C |
@@ -246,7 +246,7 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `spawning` | `spawner.py:87,95` | `content_set.py::_validate_simple_ruleset_sections` — warns on a keyword matching no room (fantasy: `temple`, `home`) | no | absent (validated) | 6D |
 | `elites` | `npcs/elite.py:13-46` | `content_set.py::_validate_simple_ruleset_sections` — chance/multiplier ranges, `name_pattern` placeholders (an unknown one raised at spawn) | no | absent (validated) | 6D |
 | `npc_schedules` | `ai/schedules.py:58-173` | `content_set.py:_validate_npc_schedule_rules` validates roles, category keywords, slot ordering/references, canonical hours, and the one dispatcher-supported override | `RulesetEditorDialog.gd`: excluded names, room-name categories, role/template matching, ordered location slots, and daily activities. It preserves unknown setting-specific data on touched rows | prototype | `test_content_set_validator.py`; `configuration_dialog_smoke.gd` | 6D |
-| `debug` | `commands/debug_crafting.py:62`, … | none | no | absent | 6D |
+| `debug` | `commands/debug_crafting.py:62`, … | `content_set.py::_validate_crime_and_debug_rules` — known keys; gear, station and spell references resolve | no | absent (validated) | 6D |
 
 **Notes.** The editor can write 14 of the 23 top-level keys: three scalars
 (`ruleset_id`, `world_mode`, `progression_model`), `systems` (8 toggles),
@@ -258,8 +258,8 @@ plus structured `npc_schedules`, `advancement`, `skills.stat_bonuses` and
 set and fails on any `RulesetDraft` setter it cannot map. Seven small
 sections (`locksmithing`, `player_defaults`, `economy`, `npc_naming`, `calendar`,
 `spawning`, `elites`) now have a validator and so qualify for a form under the standing
-rule — a section gets a form only when a validator can refuse a bad value. Two are still
-validated by nothing at all: `crime` and `debug`.
+rule — a section gets a form only when a validator can refuse a bad value. `crime` and `debug`
+have validators too, so every top-level ruleset section is now checked by something.
 
 ### H.2 The three configuration dialogs, field by field (6A exit evidence)
 

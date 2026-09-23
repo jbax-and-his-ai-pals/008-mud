@@ -1251,6 +1251,69 @@ class TestSimpleRulesetSections(unittest.TestCase):
         self.assertTrue(any("'cathedral'" in m for m in warnings), warnings)
 
 
+class TestCrimeAndDebugRules(unittest.TestCase):
+    """`crime` and `debug` were validated by nothing; the crime reader turns any
+    non-number into 0 and treats anything but `true` as disabled."""
+
+    def _errors(self, cell_property: str = "is_jail_cell", **sections) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "items" / "tools.json").write_text(
+            json.dumps({"shiv": {"type": "Lockpick", "name": "shiv"}}), encoding="utf-8"
+        )
+        (package / "data" / "regions" / "jail.json").write_text(json.dumps({
+            "region_id": "jail",
+            "rooms": {"cell": {"name": "Cell", "properties": {cell_property: True}, "exits": {}}},
+        }), encoding="utf-8")
+        ruleset_path = package / "rules" / "ruleset.json"
+        ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+        ruleset.update(sections)
+        ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and i.path.endswith("ruleset.json")]
+
+    def _crime(self, **overrides) -> dict:
+        crime = {
+            "enabled": True,
+            "witness": {"skill": "stealth", "base_difficulty": 20},
+            "consequences": {"reputation_key": "guard", "fine_rate": 2.0, "custody_reputation_threshold": -30},
+            "custody": {"room_property": "is_jail_cell", "base_seconds": 60, "emergency_tool_item_id": "shiv",
+                        "search_currency_min": 1, "search_currency_max": 5},
+        }
+        crime.update(overrides)
+        return crime
+
+    def test_a_well_formed_section_is_accepted(self):
+        self.assertEqual([], self._errors(crime=self._crime(), debug={"gear_item_ids": ["shiv"], "spawnable_stations": {"bench": "shiv"}}))
+
+    def test_a_quoted_boolean_or_number_is_an_error(self):
+        errors = self._errors(crime=self._crime(enabled="true", witness={"skill": "stealth", "base_difficulty": "20"}))
+        self.assertTrue(any("crime.enabled" in m for m in errors), errors)
+        self.assertTrue(any("crime.witness.base_difficulty" in m for m in errors), errors)
+
+    def test_a_jail_property_no_room_carries_is_an_error(self):
+        errors = self._errors(cell_property="is_cell", crime=self._crime())
+        self.assertTrue(any("room_property 'is_jail_cell' is set on no room" in m for m in errors), errors)
+
+    def test_required_fields_while_enabled(self):
+        errors = self._errors(crime=self._crime(witness={}))
+        self.assertTrue(any("crime.witness.skill is required" in m for m in errors), errors)
+
+    def test_a_reversed_search_range_and_missing_tool_are_errors(self):
+        custody = {"room_property": "is_jail_cell", "emergency_tool_item_id": "ghost_pick", "search_currency_min": 9, "search_currency_max": 2}
+        errors = self._errors(crime=self._crime(custody=custody))
+        self.assertTrue(any("search_currency_min (9)" in m for m in errors), errors)
+        self.assertTrue(any("'ghost_pick'" in m for m in errors), errors)
+
+    def test_a_misspelt_crime_key_is_an_error(self):
+        errors = self._errors(crime=self._crime(consequences={"reputation_key": "guard", "fine_rat": 2}))
+        self.assertTrue(any("crime.consequences.fine_rat" in m for m in errors), errors)
+
+    def test_debug_references_must_exist(self):
+        errors = self._errors(debug={"gear_item_ids": ["ghost_sword"], "lock_test_spells": ["knock"]})
+        self.assertTrue(any("'ghost_sword'" in m for m in errors), errors)
+        self.assertTrue(any("'knock'" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib
