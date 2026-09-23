@@ -879,6 +879,9 @@ func _setup_confirm_and_error_dialogs():
 func _on_confirmed():
 	var action := _confirm_action
 	_confirm_action = Callable()
+	# Closed before the action runs, so an action that reports a failure can
+	# open its own exclusive dialog.
+	confirm_modal.hide()
 	if action.is_valid():
 		action.call()
 

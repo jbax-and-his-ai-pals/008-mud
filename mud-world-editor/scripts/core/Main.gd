@@ -453,6 +453,7 @@ func _connect_inspector_signals():
 	inspector.request_curve_change.connect(_on_curve_change_requested)
 	inspector.request_save_template.connect(_on_save_template_request)
 	inspector.request_jump_to_room.connect(_jump_to_room)
+	inspector.request_delete_region.connect(_confirm_delete_region)
 	inspector.save_triggered.connect(func(): _save_everything())
 	inspector.reload_triggered.connect(func():
 		_deselect_all(); 
@@ -1287,6 +1288,92 @@ func _report_failed_save(checkpoint: Dictionary, title: String, message: String)
 	ui_mgr.show_error(title, message + note)
 	_update_explorer_dirty_state(); _update_db_ui()
 	return false
+
+## Deleting a region removes a file other content may still name, so it is
+## refused up front where the answer is cheap -- the set's start region, other
+## regions' exits and hidden exits into it -- and otherwise done under a
+## checkpoint and the engine's verdict, like a save: anything else that still
+## needs the region (a quest board room, an NPC's work location) is refused
+## and the file put back. Unsaved work is refused first so the verdict judges
+## this delete alone.
+func _confirm_delete_region():
+	var file := region_mgr.current_filename
+	if file == "" or not region_mgr.loaded_ok: return
+	var region_id := str(region_mgr.data.get("region_id", file.get_basename()))
+	if _has_unsaved_work():
+		ui_mgr.show_error("Save first", "Save or discard your other changes before deleting a region, so the engine's check judges the delete on its own.")
+		return
+	var manifest = JSON.parse_string(FileAccess.get_file_as_string(DataRoot.root().path_join("content_set.manifest.json")))
+	var start = manifest.get("start", {}) if manifest is Dictionary else {}
+	if start is Dictionary and str(start.get("region_id", "")) == region_id:
+		ui_mgr.show_error("Delete blocked", "'%s' is where new players start (the manifest's start region). Move the start first." % region_id)
+		return
+	var incoming := _links_into_region(region_id, file)
+	if not incoming.is_empty():
+		var shown: Array = incoming.slice(0, 12)
+		ui_mgr.show_error("Delete blocked", "%d link(s) from other regions lead into '%s'. Remove them first:\n\n%s" % [incoming.size(), region_id, "\n".join(shown)])
+		return
+	var room_count: int = region_mgr.data.get("rooms", {}).size()
+	ui_mgr.confirm(
+		"Delete region %s" % region_id,
+		"Delete the region '%s' (%s) and its %d room(s)?\n\nIts file is removed now, then the engine checks the set; if anything still needs this region the file is put back and you are told what. This cannot be undone with Ctrl+Z." % [region_id, file, room_count],
+		"Delete Region",
+		func(): _delete_region(file, region_id),
+		"Cancel",
+		DialogStyle.COLOR_DANGER,
+	)
+
+## Every exit or hidden exit in another region file that leads into `region_id`.
+func _links_into_region(region_id: String, own_file: String) -> Array:
+	var found: Array = []
+	var directory := DataRoot.content_dir("regions")
+	for file_name in DirAccess.get_files_at(directory):
+		if not file_name.ends_with(".json") or file_name == own_file: continue
+		var region = JSON.parse_string(FileAccess.get_file_as_string(directory.path_join(file_name)))
+		if not (region is Dictionary) or not (region.get("rooms") is Dictionary): continue
+		for room_id in region["rooms"]:
+			var room = region["rooms"][room_id]
+			if not (room is Dictionary): continue
+			var links: Dictionary = {}
+			if room.get("exits") is Dictionary: links.merge(room["exits"])
+			var props = room.get("properties", {})
+			if props is Dictionary and props.get("hidden_exits") is Dictionary:
+				for direction in props["hidden_exits"]: links["%s (hidden)" % direction] = props["hidden_exits"][direction]
+			for direction in links:
+				if str(links[direction]).begins_with(region_id + ":"):
+					found.append("%s:%s %s -> %s" % [file_name.get_basename(), room_id, direction, links[direction]])
+	return found
+
+func _delete_region(file: String, region_id: String):
+	var checkpoint := SaveCheckpoint.begin(DataRoot.root())
+	if not checkpoint.get("ok", false):
+		ui_mgr.show_error("Delete not attempted", "No checkpoint could be taken, so nothing was deleted: %s" % str(checkpoint.get("error", "")))
+		return
+	var path := DataRoot.content_dir("regions").path_join(file)
+	if DirAccess.remove_absolute(path) != OK:
+		ui_mgr.show_error("Delete failed", "Could not remove %s." % path)
+		return
+	if FileAccess.file_exists(DataRoot.root().path_join("content_set.manifest.json")):
+		var repo_root := ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir()
+		var verdict := EngineValidator.run(DataRoot.root(), repo_root, _find_python(repo_root))
+		if not verdict.get("ran", false):
+			_report_failed_save(checkpoint, "Could not validate the delete", str(verdict.get("error", "The engine validator did not run.")))
+			return
+		if not verdict.get("ok", false):
+			_report_failed_save(checkpoint, "Engine validation refused deleting %s" % file, _validation_error_summary(verdict))
+			return
+	# Editor-only state goes once the engine has accepted the delete.
+	if FileAccess.file_exists(DataRoot.region_editor_file(region_id)):
+		DirAccess.remove_absolute(DataRoot.region_editor_file(region_id))
+	if world_mgr.world_node_positions.has(region_id):
+		world_mgr.world_node_positions.erase(region_id)
+		world_mgr.save_world_layout()
+	SaveCheckpoint.prune(DataRoot.root())
+	reference_index.clear()
+	cmd_proc.clear_history()
+	region_mgr.current_filename = ""
+	cached_hierarchy = world_mgr.get_global_hierarchy()
+	_load_region(_start_region_filename(), true)
 
 func _confirm_delete_db_entry(type: String, id: String):
 	if not database_mgr.has_entry(type, id):

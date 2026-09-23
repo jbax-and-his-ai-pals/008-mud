@@ -83,6 +83,13 @@ func build(id: String, r_data: Dictionary):
 	arrange.pressed.connect(func(): action_handler.arrange_district_rooms(district_id); data_modified.emit())
 	vbox.add_child(arrange)
 
+	var delete := Button.new(); delete.text = "Delete District (undoable)"
+	delete.tooltip_text = "Removes the district grouping. Its rooms stay in the region, no longer in any district."
+	delete.disabled = action_handler == null
+	InspectorStyle.apply_button_style(delete, DialogStyle.COLOR_DANGER)
+	delete.pressed.connect(func(): action_handler.delete_district(district_id); data_modified.emit())
+	vbox.add_child(delete)
+
 	var ports: Array = district.get("ports", [])
 	if not ports.is_empty():
 		vbox.add_child(InspectorStyle.lbl("Ports (connect to the rest of the region):", InspectorStyle.COLOR_TEXT_DIM))

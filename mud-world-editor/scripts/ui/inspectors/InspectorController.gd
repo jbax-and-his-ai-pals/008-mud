@@ -17,6 +17,7 @@ signal data_modified
 signal database_modified
 signal request_graph_edit_mode(quest_id) # New Signal
 signal request_jump_to_room(room_id)
+signal request_delete_region
 
 var panel: Panel
 var vbox_main: VBoxContainer
@@ -157,6 +158,7 @@ func load_region_root(data: Dictionary):
 	var insp = RegionInspector.new(content_container, action_handler, database_mgr)
 	current_inspector = insp
 	insp.data_modified.connect(func(): data_modified.emit())
+	insp.request_delete_region.connect(func(): request_delete_region.emit())
 	insp.build(data.get("region_id", "Unknown"), data)
 
 func load_district(district_id: String, region_data: Dictionary):

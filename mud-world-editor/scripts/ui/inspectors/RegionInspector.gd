@@ -4,6 +4,7 @@ class_name RegionInspector
 extends RefCounted
 
 signal data_modified
+signal request_delete_region
 
 var container: VBoxContainer
 var cur_data: Dictionary
@@ -65,6 +66,12 @@ func _build_general():
 	desc_ed.text = cur_data.get("description", "")
 	desc_ed.text_changed.connect(func(): cur_data.description = desc_ed.text; data_modified.emit())
 	InspectorStyle.apply_input_style(desc_ed); vbox.add_child(desc_ed)
+
+	var delete := Button.new(); delete.text = "Delete Region..."
+	delete.tooltip_text = "Removes this region's file. Refused while anything else still links to it; the engine checks the set afterwards."
+	InspectorStyle.apply_button_style(delete, DialogStyle.COLOR_DANGER)
+	delete.pressed.connect(func(): request_delete_region.emit())
+	vbox.add_child(delete)
 
 func _build_global_props():
 	var header_box = HBoxContainer.new()

@@ -443,6 +443,45 @@ func reroll_district(district_id: String, new_seed: int):
 		"Reroll District: " + str(old_district.get("name", district_id))
 	)
 
+## Removes a district but keeps its rooms: the entry in `properties.districts`
+## goes, and so does each member's `_district_id` marker that named it. The
+## last district removes the `districts` key itself, so a region that never
+## had one round-trips unchanged after an undo-and-redo.
+func delete_district(district_id: String):
+	var districts := region_mgr.get_districts()
+	if not districts.has(district_id):
+		push_error("Unknown district '%s'." % district_id)
+		return
+	var old_district: Dictionary = districts[district_id].duplicate(true)
+	var old_order: Array = districts.keys()
+	var marked: Array = []
+	for room_id in region_mgr.data.get("rooms", {}):
+		var props = region_mgr.data.rooms[room_id].get("properties", {})
+		if props is Dictionary and str(props.get("_district_id", "")) == district_id: marked.append(room_id)
+	cmd_proc.commit(
+		func():
+			region_mgr.remove_district(district_id)
+			if region_mgr.get_districts().is_empty(): region_mgr.data["properties"].erase("districts")
+			for room_id in marked:
+				region_mgr.data.rooms[room_id]["properties"].erase("_district_id")
+				region_mgr.mark_room_dirty(room_id)
+			region_mgr.mark_region_dirty()
+			main_node._deselect_all(); main_node._refresh_view(); main_node._update_explorer_dirty_state(),
+		func():
+			var restored := {}
+			var current := region_mgr.get_districts()
+			for key in old_order:
+				if key == district_id: restored[key] = old_district.duplicate(true)
+				elif current.has(key): restored[key] = current[key]
+			region_mgr.data["properties"]["districts"] = restored
+			for room_id in marked:
+				region_mgr.data.rooms[room_id]["properties"]["_district_id"] = district_id
+				region_mgr.mark_room_dirty(room_id)
+			region_mgr.mark_region_dirty()
+			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
+		"Delete District: " + str(old_district.get("name", district_id))
+	)
+
 func _port_requests(ports: Array) -> Array:
 	var requests: Array = []
 	for port in ports:
