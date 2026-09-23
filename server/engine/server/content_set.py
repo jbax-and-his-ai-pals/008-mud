@@ -1919,6 +1919,82 @@ def _validate_affixes(content_root: Path, issues: list[ContentSetIssue]) -> None
                 error(f"{label}.equip_buff must be a non-empty string")
 
 
+def _validate_item_resistances_and_sets(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """Item `properties.resistances` and `items/sets.json` bonuses.
+
+    `armor_resistances` drops a value that is not a number and keys by damage
+    type, so a type `combat/elements.json` does not declare protects against
+    nothing. `SetManager.get_active_bonuses` runs `int()` on each threshold (a
+    non-numeric one raises) and the player applies only `stat_mod` bonuses.
+    """
+    item_dir = content_root / "items"
+    if not item_dir.is_dir():
+        return
+    damage_types: set[str] = set()
+    elements_path = content_root / "combat" / "elements.json"
+    elements = _load_json(elements_path, [], "combat vocabulary") if elements_path.is_file() else None
+    if isinstance(elements, dict) and isinstance(elements.get("valid_damage_types"), list):
+        damage_types = {str(value) for value in elements["valid_damage_types"]}
+
+    def number(value: Any) -> bool:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    for path in sorted(item_dir.glob("*.json")):
+        if path.name in ("affixes.json", "sets.json"):
+            continue
+        payload = _load_json(path, [], "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item_id, item in payload.items():
+            if str(item_id).startswith("_") or not isinstance(item, dict) or not isinstance(item.get("properties"), dict):
+                continue
+            resistances = item["properties"].get("resistances")
+            if resistances is None:
+                continue
+            label = f"item '{item_id}'.properties.resistances"
+            if not isinstance(resistances, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label} must be an object of damage type -> number"))
+                continue
+            for damage_type, value in resistances.items():
+                if not number(value):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.{damage_type} must be a number (anything else is dropped)"))
+                if damage_types and damage_type not in damage_types:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.{damage_type} is not a damage type combat/elements.json declares, so it resists nothing"))
+
+    sets_path = item_dir / "sets.json"
+    if not sets_path.is_file():
+        return
+    sets = _load_json(sets_path, issues, "item sets")
+    if not isinstance(sets, dict):
+        if sets is not None:
+            issues.append(ContentSetIssue("error", str(sets_path), "sets.json must be an object of set id -> set"))
+        return
+    for set_id, item_set in sets.items():
+        if str(set_id).startswith("_"):
+            continue
+        label = f"set '{set_id}'"
+        if not isinstance(item_set, dict):
+            issues.append(ContentSetIssue("error", str(sets_path), f"{label} must be an object"))
+            continue
+        for key in item_set:
+            if not str(key).startswith("_") and key not in ("name", "items", "bonuses"):
+                issues.append(ContentSetIssue("error", str(sets_path), f"{label}.{key} is not read (known: name, items, bonuses)"))
+        bonuses = item_set.get("bonuses", {})
+        if not isinstance(bonuses, dict):
+            issues.append(ContentSetIssue("error", str(sets_path), f"{label}.bonuses must be an object of pieces-worn -> bonus"))
+            continue
+        for threshold, bonus in bonuses.items():
+            bonus_label = f"{label}.bonuses.{threshold}"
+            if not str(threshold).isdigit() or int(threshold) < 1:
+                issues.append(ContentSetIssue("error", str(sets_path), f"{bonus_label}: the key must be a whole number of pieces worn (anything else raises)"))
+            if not isinstance(bonus, dict) or bonus.get("type") != "stat_mod":
+                issues.append(ContentSetIssue("error", str(sets_path), f"{bonus_label}.type must be 'stat_mod' (the only set bonus the player applies)"))
+                continue
+            modifiers = bonus.get("modifiers", {})
+            if not isinstance(modifiers, dict) or any(not number(v) for v in modifiers.values()):
+                issues.append(ContentSetIssue("error", str(sets_path), f"{bonus_label}.modifiers must be an object of stat -> number"))
+
+
 def _validate_npc_schedule_rules(
     ruleset: Any,
     issues: list[ContentSetIssue],
@@ -5042,6 +5118,7 @@ def load_content_set(
         _validate_crime_and_debug_rules(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_dynamic_themes(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_affixes(content_root, issues)
+        _validate_item_resistances_and_sets(content_root, issues)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues)
         _validate_knowledge_topics(content_root, issues)

@@ -1595,6 +1595,41 @@ class TestRegionSpawnersAndStatus(unittest.TestCase):
         self.assertTrue(any("status.order is not a setting" in m for m in errors), errors)
 
 
+class TestItemResistancesAndSets(unittest.TestCase):
+    """Resistances keyed by an undeclared damage type protect against nothing;
+    a set bonus threshold that is not a number raises; only stat_mod applies."""
+
+    def _errors(self, item_properties: dict | None = None, sets: dict | None = None) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "combat").mkdir()
+        (package / "data" / "combat" / "elements.json").write_text(
+            json.dumps({"valid_damage_types": ["fire", "cold"], "default_damage_type": "fire"}), encoding="utf-8"
+        )
+        (package / "data" / "items" / "gear.json").write_text(
+            json.dumps({"cloak": {"type": "Armor", "name": "cloak", "properties": item_properties or {}}}), encoding="utf-8"
+        )
+        if sets is not None:
+            (package / "data" / "items" / "sets.json").write_text(json.dumps(sets), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and ("resistances" in i.message or "set '" in i.message)]
+
+    def test_well_formed_values_are_accepted(self):
+        self.assertEqual([], self._errors(
+            {"resistances": {"fire": 20, "cold": 5.5}},
+            {"pair": {"name": "Pair", "items": ["cloak"], "bonuses": {"2": {"type": "stat_mod", "modifiers": {"defense": 3}}}}},
+        ))
+
+    def test_an_undeclared_damage_type_and_a_non_number_are_errors(self):
+        errors = self._errors({"resistances": {"frost": 10, "fire": "high"}})
+        self.assertTrue(any("resistances.frost is not a damage type" in m for m in errors), errors)
+        self.assertTrue(any("resistances.fire must be a number" in m for m in errors), errors)
+
+    def test_set_bonus_thresholds_and_types_are_checked(self):
+        errors = self._errors(sets={"pair": {"items": ["cloak"], "bonuses": {"two": {"type": "stat_mod"}, "3": {"type": "buff"}}}})
+        self.assertTrue(any("bonuses.two" in m and "whole number" in m for m in errors), errors)
+        self.assertTrue(any("bonuses.3.type must be 'stat_mod'" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib
