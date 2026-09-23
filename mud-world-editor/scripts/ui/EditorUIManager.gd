@@ -95,6 +95,7 @@ var ruleset_editor: RulesetEditorDialog
 # project's class cache until the editor has scanned it, and a headless check must
 # not depend on that having happened.
 var manifest_editor
+var opening_editor
 var contract_browser
 var contract_editor: ContractEditorDialog
 var combat_vocabulary_editor
@@ -146,6 +147,7 @@ const COMBAT_VOCABULARY_EDITOR_SCRIPT = preload("res://scripts/ui/modals/CombatV
 const CREATE_CONTENT_SET_SCRIPT = preload("res://scripts/ui/modals/CreateContentSetDialog.gd")
 const RULESET_EDITOR_SCRIPT = preload("res://scripts/ui/modals/RulesetEditorDialog.gd")
 const MANIFEST_EDITOR_SCRIPT = preload("res://scripts/ui/modals/ManifestEditorDialog.gd")
+const OPENING_EDITOR_SCRIPT = preload("res://scripts/ui/modals/OpeningEditorDialog.gd")
 # Preloaded rather than reached by class name: a fresh `class_name` is not in the
 # project's class cache until the editor has scanned it, and a headless check must
 # not depend on that.
@@ -378,6 +380,10 @@ func _setup_modals_and_popups():
 	ui_layer.add_child(manifest_editor)
 	manifest_editor.setup()
 	manifest_editor.manifest_saved.connect(func(): manifest_saved.emit())
+	opening_editor = OPENING_EDITOR_SCRIPT.new()
+	ui_layer.add_child(opening_editor)
+	opening_editor.setup()
+	manifest_editor.request_edit_opening.connect(func(): manifest_editor.hide(); show_opening_editor())
 	contract_browser = CONTRACT_BROWSER_SCRIPT.new()
 	ui_layer.add_child(contract_browser)
 	contract_browser.setup(database_manager.catalog)
@@ -409,8 +415,11 @@ func show_ruleset_editor():
 func show_manifest_editor():
 	if is_instance_valid(manifest_editor): manifest_editor.open_active()
 
+func show_opening_editor():
+	if is_instance_valid(opening_editor): opening_editor.open_active()
+
 func has_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, manifest_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed(): return true
 	return false
 
@@ -420,14 +429,14 @@ func refresh_configuration_views(catalog: ContractCatalog):
 		content_library._build_editor()
 
 func save_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, manifest_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed():
 			dialog._save()
 			if dialog._form_changed(): return false
 	return true
 
 func discard_configuration_drafts():
-	for dialog in [ruleset_editor, manifest_editor, contract_editor, combat_vocabulary_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor]:
 		if is_instance_valid(dialog):
 			dialog._allow_close = true
 			dialog._form_baseline.clear()
@@ -448,7 +457,7 @@ func show_content_set_chooser():
 		var index := content_set_list.add_item(label)
 		content_set_list.set_item_metadata(index, path)
 	if paths.is_empty():
-		content_set_list.add_item("no content sets found beside this checkout")
+		content_set_list.add_item("no content sets found")
 	content_set_modal.popup_centered()
 
 func _setup_content_set_modal():
@@ -459,7 +468,7 @@ func _setup_content_set_modal():
 	var vbox := VBoxContainer.new()
 	vbox.custom_minimum_size = Vector2(500, 380)
 	var hint := Label.new()
-	hint.text = "Content sets beside this checkout. The choice is remembered in editor_settings.json."
+	hint.text = "Checkout sets and registered external sets. The active choice is remembered in editor_settings.json."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.add_theme_font_size_override("font_size", 11)
 	hint.modulate = Color(0.65, 0.68, 0.74)
@@ -479,6 +488,22 @@ func _setup_content_set_modal():
 		show_create_content_set()
 	)
 	vbox.add_child(btn_new)
+	var btn_add_external := Button.new()
+	btn_add_external.text = "Add external content set..."
+	btn_add_external.tooltip_text = "Register an existing content-set folder outside this checkout. This never copies or moves its files."
+	btn_add_external.pressed.connect(func():
+		_prompt_content_set_name(
+			"Add external content set",
+			"Paste the folder that contains content_set.manifest.json. The editor will remember this exact folder; it will not scan or modify its parent directory.",
+			"",
+			func(typed: String) -> Dictionary:
+				var result := DataRoot.register_content_set_root(typed)
+				if result.get("ok", false):
+					show_content_set_chooser()
+				return result
+		)
+	)
+	vbox.add_child(btn_add_external)
 
 	# Rename and remove, which until now needed a file manager. Both refuse the
 	# set that is open (the editor is holding its files) and both ask for the name
@@ -494,6 +519,11 @@ func _setup_content_set_modal():
 	btn_delete.tooltip_text = "Remove the selected set from disk. There is no undo; the set's name has to be typed to confirm."
 	btn_delete.pressed.connect(func(): _delete_selected_content_set())
 	manage_row.add_child(btn_delete)
+	var btn_forget_external := Button.new()
+	btn_forget_external.text = "Forget external..."
+	btn_forget_external.tooltip_text = "Remove the selected external set from this chooser without deleting any files."
+	btn_forget_external.pressed.connect(_forget_selected_external_content_set)
+	manage_row.add_child(btn_forget_external)
 	vbox.add_child(manage_row)
 	content_set_modal.add_child(vbox)
 	content_set_modal.confirmed.connect(_confirm_content_set_choice)
@@ -580,6 +610,21 @@ func _delete_selected_content_set():
 				show_content_set_chooser()
 			return result
 	)
+
+
+func _forget_selected_external_content_set():
+	var path := _selected_content_set()
+	if path == "":
+		_show_content_set_error("Select an external content set first.")
+		return
+	if not DataRoot.is_registered_content_set_root(path):
+		_show_content_set_error("That set is discovered from this checkout, not an external registration.")
+		return
+	var result := DataRoot.unregister_content_set_root(path)
+	if not result.get("ok", false):
+		_show_content_set_error(str(result.get("error", "Could not remove that registration.")))
+		return
+	show_content_set_chooser()
 
 ## One prompt for both actions: a name field, the reason, and the refusal text
 ## when it fails. `expected` is prefilled for a rename and left empty for a

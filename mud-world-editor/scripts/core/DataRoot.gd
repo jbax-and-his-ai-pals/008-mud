@@ -101,18 +101,24 @@ static func _from_command_line() -> String:
 	return ""
 
 static func _from_settings() -> String:
-	if not FileAccess.file_exists(SETTINGS_PATH):
-		return ""
-	var parsed := JSON.new()
-	if parsed.parse(FileAccess.get_file_as_string(SETTINGS_PATH)) != OK:
-		return ""
-	var payload = parsed.get_data()
-	if typeof(payload) != TYPE_DICTIONARY:
-		return ""
+	var payload := _settings_payload()
 	var configured := _normalize(str(payload.get("content_set_root", "")))
 	if configured != "" and DirAccess.dir_exists_absolute(configured):
 		return configured
 	return ""
+
+
+# Settings are deliberately a small extensible object.  Content-set switching
+# must not erase registered external roots (or a future preference) merely
+# because it updates the active root.
+static func _settings_payload() -> Dictionary:
+	if not FileAccess.file_exists(SETTINGS_PATH):
+		return {}
+	var parsed := JSON.new()
+	if parsed.parse(FileAccess.get_file_as_string(SETTINGS_PATH)) != OK:
+		return {}
+	var payload = parsed.get_data()
+	return payload.duplicate(true) if typeof(payload) == TYPE_DICTIONARY else {}
 
 # Accept either a content-set root (`.../fantasy_frontier`) or one of its
 # subdirectories (`.../fantasy_frontier/data`), because both are natural things
@@ -152,19 +158,88 @@ static func available_content_sets() -> Array:
 	var sets_root := _normalize(ProjectSettings.globalize_path("res://").path_join("../content_sets"))
 	var found: Array = []
 	var dir := DirAccess.open(sets_root)
-	if dir == null:
-		return found
-	dir.list_dir_begin()
-	var name := dir.get_next()
-	while name != "":
-		if dir.current_is_dir() and not name.begins_with("."):
-			var candidate := sets_root.path_join(name)
-			if FileAccess.file_exists(candidate.path_join("content_set.manifest.json")):
-				found.append(candidate)
-		name = dir.get_next()
-	dir.list_dir_end()
+	if dir != null:
+		dir.list_dir_begin()
+		var name := dir.get_next()
+		while name != "":
+			if dir.current_is_dir() and not name.begins_with("."):
+				_add_content_set_if_valid(found, sets_root.path_join(name))
+			name = dir.get_next()
+		dir.list_dir_end()
+	for path in registered_content_set_roots():
+		_add_content_set_if_valid(found, path)
 	found.sort()
 	return found
+
+
+static func _add_content_set_if_valid(found: Array, path: String) -> void:
+	var normalized := _normalize(path)
+	if normalized != "" and FileAccess.file_exists(normalized.path_join(CONTENT_SET_MANIFEST_NAME)) \
+			and not found.has(normalized):
+		found.append(normalized)
+
+
+# A registered root is one exact content-set folder outside the checkout's
+# sibling list, not a broad directory scan.  That keeps startup deterministic
+# and makes removing an entry harmless: it never deletes the author’s files.
+static func registered_content_set_roots() -> Array:
+	var roots: Array = []
+	var raw = _settings_payload().get("content_set_roots", [])
+	if typeof(raw) != TYPE_ARRAY:
+		return roots
+	for entry in raw:
+		var normalized := _normalize(str(entry))
+		if normalized != "" and FileAccess.file_exists(normalized.path_join(CONTENT_SET_MANIFEST_NAME)) \
+				and not roots.has(normalized):
+			roots.append(normalized)
+	roots.sort()
+	return roots
+
+
+static func is_registered_content_set_root(path: String) -> bool:
+	return registered_content_set_roots().has(_normalize(path))
+
+
+static func register_content_set_root(path: String) -> Dictionary:
+	var normalized := _normalize(path)
+	if normalized == "" or not DirAccess.dir_exists_absolute(normalized):
+		return {"ok": false, "error": "That folder does not exist."}
+	if not FileAccess.file_exists(normalized.path_join(CONTENT_SET_MANIFEST_NAME)):
+		return {"ok": false, "error": "That folder is not a content set (content_set.manifest.json is missing)."}
+	var payload := _settings_payload()
+	var roots := registered_content_set_roots()
+	var already_registered := roots.has(normalized)
+	if not already_registered:
+		roots.append(normalized)
+		roots.sort()
+	payload["content_set_roots"] = roots
+	var result := SaveIO.write_json(SETTINGS_PATH, payload)
+	result["path"] = normalized
+	result["already_registered"] = already_registered
+	return result
+
+
+static func unregister_content_set_root(path: String) -> Dictionary:
+	var normalized := _normalize(path)
+	if normalized == "":
+		return {"ok": false, "error": "Choose a registered content set first."}
+	if normalized == root():
+		return {"ok": false, "error": "Switch to another content set before removing this registration."}
+	var payload := _settings_payload()
+	var raw = payload.get("content_set_roots", [])
+	if typeof(raw) != TYPE_ARRAY:
+		return {"ok": false, "error": "That content set is not registered."}
+	var retained: Array = []
+	var removed := false
+	for entry in raw:
+		if _normalize(str(entry)) == normalized:
+			removed = true
+		else:
+			retained.append(entry)
+	if not removed:
+		return {"ok": false, "error": "That content set is not registered."}
+	payload["content_set_roots"] = retained
+	return SaveIO.write_json(SETTINGS_PATH, payload)
 
 
 # Point the editor at another content set for this session. Returns false when
@@ -190,7 +265,9 @@ static func set_root(path: String) -> bool:
 # SaveIO like everything else, because a settings file that silently failed to
 # write would make the editor reopen the wrong world with no explanation.
 static func write_settings(path: String) -> Dictionary:
-	return SaveIO.write_json(SETTINGS_PATH, {"content_set_root": _normalize(path)})
+	var payload := _settings_payload()
+	payload["content_set_root"] = _normalize(path)
+	return SaveIO.write_json(SETTINGS_PATH, payload)
 
 # --- paths --------------------------------------------------------------------
 
