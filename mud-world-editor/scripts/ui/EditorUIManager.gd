@@ -97,6 +97,7 @@ var ruleset_editor: RulesetEditorDialog
 # not depend on that having happened.
 var manifest_editor
 var opening_editor
+var presentation_editor
 var contract_browser
 var contract_editor: ContractEditorDialog
 var combat_vocabulary_editor
@@ -387,6 +388,10 @@ func _setup_modals_and_popups():
 	ui_layer.add_child(opening_editor)
 	opening_editor.setup()
 	manifest_editor.request_edit_opening.connect(func(): manifest_editor.hide(); show_opening_editor())
+	presentation_editor = PresentationDialog.new()
+	ui_layer.add_child(presentation_editor)
+	presentation_editor.setup()
+	manifest_editor.request_edit_presentation.connect(func(): manifest_editor.hide(); if is_instance_valid(presentation_editor): presentation_editor.open_active())
 	contract_browser = CONTRACT_BROWSER_SCRIPT.new()
 	ui_layer.add_child(contract_browser)
 	contract_browser.setup(database_manager.catalog)
@@ -428,7 +433,7 @@ func show_opening_editor():
 	if is_instance_valid(opening_editor): opening_editor.open_active()
 
 func has_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor, presentation_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed(): return true
 	return false
 
@@ -438,14 +443,14 @@ func refresh_configuration_views(catalog: ContractCatalog):
 		content_library._build_editor()
 
 func save_configuration_drafts() -> bool:
-	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor, presentation_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed():
 			dialog._save()
 			if dialog._form_changed(): return false
 	return true
 
 func discard_configuration_drafts():
-	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor]:
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, field_interactions_editor, presentation_editor]:
 		if is_instance_valid(dialog):
 			dialog._allow_close = true
 			dialog._form_baseline.clear()

@@ -13,6 +13,7 @@ extends "res://scripts/ui/modals/ConfigurationDialog.gd"
 
 signal manifest_saved
 signal request_edit_opening
+signal request_edit_presentation
 
 const DraftScript = preload("res://scripts/data/ManifestDraft.gd")
 const Scaffold = preload("res://scripts/data/ContentSetScaffold.gd")
@@ -46,6 +47,7 @@ func setup():
 	identity_label = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); identity_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(identity_label)
 	paths_label = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); paths_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(paths_label)
 	var edit_opening := Button.new(); edit_opening.text = "Edit Opening & First Session..."; edit_opening.tooltip_text = "Edit the opening heading, introduction, and suggested first actions."; InspectorStyle.apply_button_style(edit_opening); edit_opening.pressed.connect(func(): request_edit_opening.emit()); box.add_child(edit_opening)
+	var edit_presentation := Button.new(); edit_presentation.text = "Edit Presentation..."; edit_presentation.tooltip_text = "Choose the client theme pack players see when they connect."; InspectorStyle.apply_button_style(edit_presentation); edit_presentation.pressed.connect(func(): request_edit_presentation.emit()); box.add_child(edit_presentation)
 	box.add_child(InspectorStyle.create_sub_header("Title"))
 	title_field = _field(box, "Title")
 	box.add_child(InspectorStyle.create_sub_header("Where a character starts"))

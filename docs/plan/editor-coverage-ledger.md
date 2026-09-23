@@ -67,11 +67,13 @@ knowledge topics, 7 hazardous rooms, 0 `work` declarations, 2 campaigns.
 | Manifest `capabilities` | `content_set.py:94-106` → `world.py:55,106,114,124` | `content_set.py:3003-3025`; manifest and changed explicit `ruleset.systems` entries are staged and validated together | creation + `ManifestEditorDialog.gd` (checkboxes) | validated writer | `manifest_editing_smoke.gd`, `test_configuration_save.py` | 6B |
 | Manifest `start` | `world.py:230-231`; `definition_loader.py:201-220`; `persistence.py:267-268` | `content_set.py:3027-3061` — an unplaceable start room is refused by the staged verdict | creation + `ManifestEditorDialog.gd` | validated writer | `manifest_editing_smoke.gd` | 6B |
 | `opening/*.json` | `headless/session.py:264-286` (heading, intro, objectives) | `content_set.py:2966-2975, 3040-3045` — scenario match; `OpeningDraft.gd` also guards non-empty prose/objectives and unique action ids | `OpeningEditorDialog.gd` from Manifest | validated writer | `opening_editing_smoke.gd` | 6B |
-| `presentation/*.json` (theme pack, ui strings, accessibility) | **none server-side** — `content_set.py:165, 3129` assign and never read | `pack_tool.py` validates `client/themes`, not the set's declared pack | absent (copied by the scaffold) | absent | `pack_tool_compatibility.py` (client side only) | 6B |
+| `presentation/*.json` (theme pack, ui strings, accessibility) | `theme_pack`: `HeadlessServer.presentation_payload` → `hello` (both transports) → client `ThemeController.apply_content_set_theme` (a player's own `theme use` wins). `display_name`, `presentation_id`, `accessibility` have **no runtime reader** yet | `content_set.py::_validate_presentation` — known keys, a pack *id* not a path, boolean flags; `test_client_theme_packs.py` requires every shipped set's pack to be one the client ships | `PresentationDialog.gd` from the Manifest editor (pack picker over `client/themes`), saved through `configuration_save.py` | validated writer (`theme_pack`); declared-only (the rest) | `presentation_editing_smoke.gd`, `test_content_set_validator.py::TestPresentationFile`, `test_client_theme_packs.py`, transport `hello` snapshots | 6B |
 | Feature profile (`data/profiles/*.profile.json`) | `feature_profile.py:53-59` via `headless_server.py:189-190` | `content_set.py:2963-2965` (object-ness only) | absent | absent | `feature_profile.py` | 6B |
 
-**Notes.** Three of four sets name a `theme_pack` (`modern_neutral`) that does not
-exist, which nothing reports because nothing reads the field. A manifest cannot be
+**Notes.** Three of four sets named a `theme_pack` (`modern_neutral`) that does not
+exist and fantasy_frontier named a file path; nothing reported either because nothing
+read the field. It is read now (2026-09-23), and the four sets name real packs
+(`fantasy_classic`, `default`, `default`, `scifi_frontier`). A manifest cannot be
 edited after creation, so every row here is "rewrite the file by hand" except at
 scaffold time.
 
@@ -381,7 +383,7 @@ target kinds.
 
 Room `env_properties` and `properties.locked_by`;
 `spawner` toggles and weights; NPC `loot_table` and gift preferences; containers; affixes; and
-`presentation/*.json`. Each is a value a content author can write, the engine will act
+the presentation file's descriptive fields. Each is a value a content author can write, the engine will act
 on, and no gate will refuse. Room time descriptions plus the NPC template envelope
 (`friendly`, stats/level, direct schedule, patrol, inventory and behaviour tuning) now
 have runtime-shape validation; the remaining rows are the actual validator debt.
