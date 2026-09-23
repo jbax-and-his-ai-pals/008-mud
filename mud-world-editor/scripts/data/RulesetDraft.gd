@@ -21,7 +21,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -88,6 +88,10 @@ func set_world_rules(sections: Dictionary):
 	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"]:
 		if sections.has(name): data[name] = sections[name].duplicate(true)
 		else: data.erase(name)
+
+func set_crime(section: Dictionary):
+	if section.is_empty(): data.erase("crime")
+	else: data["crime"] = section.duplicate(true)
 
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):

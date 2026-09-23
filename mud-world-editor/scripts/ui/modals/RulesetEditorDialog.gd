@@ -42,6 +42,7 @@ var weather_description_baseline: Dictionary = {}
 var weather_profile_baseline: Dictionary = {}
 var quest_generation_section: QuestGenerationSection
 var world_rules_section: WorldRulesSection
+var crime_section: CrimeSection
 
 const SYSTEM_LABELS := {
 	"combat": "Combat", "abilities": "Abilities", "magic": "Magic", "crafting": "Crafting",
@@ -148,6 +149,8 @@ func setup():
 	quest_generation_section.build(box, func(): _mark_dirty())
 	world_rules_section = WorldRulesSection.new()
 	world_rules_section.build(box, func(): _mark_dirty())
+	crime_section = CrimeSection.new()
+	crime_section.build(box, func(): _mark_dirty())
 	DialogStyle.style_window(self)
 	get_ok_button().custom_minimum_size = Vector2(300, 40)
 	get_ok_button().disabled = true
@@ -193,6 +196,7 @@ func open_active():
 	var quest_generation = draft.data.get("quest_generation", {})
 	quest_generation_section.load(quest_generation if quest_generation is Dictionary else {}, content_database)
 	world_rules_section.load(draft.data, content_database)
+	crime_section.load(draft.data, content_database)
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -220,6 +224,7 @@ func _save():
 	if _weather_profiles_changed(): draft.set_weather_profiles(_weather_profiles())
 	if quest_generation_section.changed(): draft.set_quest_generation(quest_generation_section.compose())
 	if world_rules_section.changed(): draft.set_world_rules(world_rules_section.compose())
+	if crime_section.changed(): draft.set_crime(crime_section.compose())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)

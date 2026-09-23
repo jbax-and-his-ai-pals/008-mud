@@ -108,6 +108,7 @@ RULESET_WRITABLE_KEYS = {
     "elites",
     "npc_naming",
     "player_defaults",
+    "crime",
 }
 
 # Top-level keys of `combat/elements.json` the dialog does not write.
@@ -230,6 +231,7 @@ RULESET_SETTER_KEYS = {
     "set_weather_descriptions": "weather",
     "set_weather_profiles": "weather",
     "set_quest_generation": "quest_generation",
+    "set_crime": "crime",
     "set_world_rules": ("economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"),
 }
 
