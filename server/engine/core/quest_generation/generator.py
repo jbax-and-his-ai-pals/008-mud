@@ -143,11 +143,13 @@ class QuestGenerator:
             "current_stage_index": 0,
             "stages": [stage_0],
             "rewards": chosen_template.get("rewards", {"xp": 100}),
-            "meta_instance_data": { 
+            # Accepting the quest flattens this onto the quest itself, where
+            # `InstanceManager.instantiate_quest_region` reads these exact keys.
+            "meta_instance_data": {
                 "instance_region": instance_region_data,
                 "entry_point": entry_point_data,
-                "layout_config": layout_config,
-                "giver_template_id": chosen_template.get("giver_npc_template_id")
+                "layout_generation_config": layout_config,
+                "giver_npc_template_id": chosen_template.get("giver_npc_template_id")
             }
         }
         return quest_data
@@ -221,7 +223,7 @@ class QuestGenerator:
             
         layout = {
             "region_name": config.get("region_name", "Place"),
-            "region_description": "A place.",
+            "region_description": config.get("region_description", "A place."),
             "rooms": rooms_data
         }
         return layout
