@@ -8,10 +8,8 @@
 #
 #   godot --headless --path mud-world-editor --script tests/campaign_authoring_smoke.gd
 #
-# This is envelope authoring only (id, name, description, start node): `nodes`
-# is a branching graph (CampaignNode/CampaignTransition) preserved byte-for-
-# byte and shown read-only, the same rule the generic item-property table
-# follows for a shape nothing here writes yet.
+# This covers the envelope (id, name, description, start node) and the file
+# lifecycle; campaign_graph_authoring_smoke.gd covers editing the node graph.
 
 extends SceneTree
 

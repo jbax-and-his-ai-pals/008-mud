@@ -70,6 +70,7 @@ func _init() -> void:
 	_check_npc_vocabulary(vocabulary)
 	_check_knowledge_conditions(vocabulary)
 	_check_affix_item_classes(vocabulary)
+	_check_campaign_vocabulary(vocabulary)
 
 	if failure_count > 0:
 		push_error("schema parity failed (%d)" % failure_count)
@@ -287,6 +288,17 @@ func _check_affix_item_classes(vocabulary: Dictionary) -> void:
 	var editor := _as_set(AffixInspector.ITEM_CLASSES)
 	editor.erase("All")
 	_assert(engine == editor, "the affix type list matches the engine's classes (engine %s, editor %s)" % [str(_sorted(engine)), str(_sorted(editor))])
+
+
+func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:
+	print("
+[campaign vocabulary: editor vs engine]")
+	var campaigns: Dictionary = vocabulary.get("campaigns", {})
+	_assert(not campaigns.is_empty(), "the engine's campaign vocabulary was read")
+	for pair in [["node_types", CampaignInspector.NODE_TYPES], ["triggers", CampaignInspector.TRIGGERS]]:
+		var engine := _as_set(campaigns.get(pair[0], []))
+		var editor := _as_set(pair[1])
+		_assert(engine == editor, "campaign %s match exactly (engine %s, editor %s)" % [pair[0], str(_sorted(engine)), str(_sorted(editor))])
 
 
 # --- helpers ------------------------------------------------------------------

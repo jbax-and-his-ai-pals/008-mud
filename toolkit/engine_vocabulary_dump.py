@@ -104,6 +104,9 @@ def main() -> int:
         # What an affix's `allowed_types` is compared with: the generated item's
         # class name. `AffixInspector.gd` offers these plus "All".
         "item_classes": _item_classes(),
+        # What CampaignInspector.gd offers for a node's type and a transition's
+        # trigger (test_campaign_vocabulary.py ties these to the manager).
+        "campaigns": _campaign_vocabulary(),
         # A topic response's own condition vocabulary (not `condition_kinds`
         # above, which is dialogue's). `KnowledgeInspector.gd` holds the copy.
         "knowledge_conditions": {
@@ -130,6 +133,12 @@ def main() -> int:
         },
     }, indent=2, sort_keys=True))
     return 0
+
+
+def _campaign_vocabulary() -> dict:
+    from engine.campaign.campaign_models import CAMPAIGN_NODE_TYPES, CAMPAIGN_TRIGGERS
+
+    return {"node_types": sorted(CAMPAIGN_NODE_TYPES), "triggers": sorted(CAMPAIGN_TRIGGERS)}
 
 
 def _item_classes() -> list:
