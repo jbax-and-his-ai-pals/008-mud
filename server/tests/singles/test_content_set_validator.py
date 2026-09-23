@@ -1470,6 +1470,49 @@ class TestPresentationFile(unittest.TestCase):
         self.assertTrue(any("accessibility.sparkles" in m for m in errors), errors)
 
 
+class TestNpcTradeAndLoot(unittest.TestCase):
+    """Loot tables, vendor stock, tariffs and gift preferences: each reader skips
+    what it cannot use, so a mistake leaves an NPC that drops, sells or values
+    nothing -- or, for a reversed quantity, crashes the drop."""
+
+    def _errors(self, npc: dict) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "items" / "goods.json").write_text(
+            json.dumps({"pelt": {"type": "Item", "name": "pelt"}}), encoding="utf-8"
+        )
+        (package / "data" / "npcs" / "people.json").write_text(json.dumps({"probe": {"name": "Probe", **npc}}), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and "NPC 'probe'" in i.message]
+
+    def test_well_formed_values_are_accepted(self):
+        self.assertEqual([], self._errors({
+            "loot_table": {"pelt": {"chance": 0.5, "quantity": [1, 2]}, "gold_value": {"chance": 1, "quantity": [0, 5]},
+                           "mystery_chest": {"chance": 0.1, "is_chest": True}},
+            "properties": {"sells_items": [{"item_id": "pelt", "price_multiplier": 1.5, "relationship_min": 10}],
+                           "sell_rate_multiplier": 0.3,
+                           "gift_preferences": {"preferred_item_ids": ["pelt"], "preferred_gift_tags": ["fur"]}},
+        }))
+
+    def test_a_loot_item_with_no_template_and_a_reversed_quantity_are_errors(self):
+        errors = self._errors({"loot_table": {"ghost_pelt": {"chance": 0.5}, "pelt": {"chance": 1.5, "quantity": [3, 1]}}})
+        self.assertTrue(any("'ghost_pelt'" in m for m in errors), errors)
+        self.assertTrue(any("loot_table.pelt.chance" in m for m in errors), errors)
+        self.assertTrue(any("quantity minimum (3)" in m for m in errors), errors)
+
+    def test_vendor_stock_must_be_real_and_well_formed(self):
+        errors = self._errors({"properties": {"sells_items": [{"item_id": "ghost", "price": 2}]}})
+        self.assertTrue(any("sells_items[0].item_id" in m for m in errors), errors)
+        self.assertTrue(any("sells_items[0].price is not read" in m for m in errors), errors)
+
+    def test_a_tariff_names_a_real_campaign(self):
+        errors = self._errors({"properties": {"tariff": {"campaign_id": "ghost_campaign", "rate": 0.1}}})
+        self.assertTrue(any("tariff.campaign_id" in m for m in errors), errors)
+
+    def test_a_misspelt_gift_preference_key_is_an_error(self):
+        errors = self._errors({"properties": {"gift_preferences": {"prefered_item_ids": ["pelt"]}}})
+        self.assertTrue(any("gift_preferences.prefered_item_ids is not read" in m for m in errors), errors)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

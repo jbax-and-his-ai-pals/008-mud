@@ -1040,6 +1040,121 @@ def _validate_npc_vocabulary(
                 ))
 
 
+_LOOT_ENTRY_KEYS = ("chance", "quantity", "is_chest")
+_STOCK_ENTRY_KEYS = ("item_id", "price_multiplier", "relationship_min")
+_GIFT_PREFERENCE_KEYS = ("preferred_item_ids", "preferred_categories", "preferred_gift_tags", "disliked_item_ids", "disliked_gift_tags")
+
+
+def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """An NPC's `loot_table`, vendor stock, tariff and gift preferences.
+
+    Each reader skips what it cannot use: `NPC.die` drops nothing for an item id
+    with no template and `random.randint` raises on a reversed quantity; vendor
+    stock with a missing item is left off the list; a misspelt gift-preference
+    key is never read, so the NPC simply has no preferences.
+    """
+    npc_dir = content_root / "npcs"
+    if not npc_dir.is_dir():
+        return
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
+    campaign_ids = _knowledge_campaign_ids(content_root, issues)
+
+    def number(value: Any) -> bool:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    for path in sorted(npc_dir.glob("*.json")):
+        payload = _load_json(path, [], "NPC definitions")
+        if not isinstance(payload, dict):
+            continue
+        source = str(path)
+        for template_id, template in payload.items():
+            if str(template_id).startswith("_") or not isinstance(template, dict):
+                continue
+
+            def error(message: str) -> None:
+                issues.append(ContentSetIssue("error", source, f"NPC '{template_id}'.{message}"))
+
+            loot = template.get("loot_table")
+            if loot is not None:
+                if not isinstance(loot, dict):
+                    error("loot_table must be an object of item id -> {chance, quantity}")
+                    loot = {}
+                for item_id, entry in loot.items():
+                    label = f"loot_table.{item_id}"
+                    if not isinstance(entry, dict):
+                        error(f"{label} must be an object with chance and optional quantity")
+                        continue
+                    for key in entry:
+                        if key not in _LOOT_ENTRY_KEYS:
+                            error(f"{label}.{key} is not read (known: {', '.join(_LOOT_ENTRY_KEYS)})")
+                    if item_id != "gold_value" and not entry.get("is_chest") and item_id not in item_ids:
+                        error(f"{label} references missing item '{item_id}' (it is never dropped)")
+                    chance = entry.get("chance", 0)
+                    if not number(chance) or not 0 <= chance <= 1:
+                        error(f"{label}.chance must be a number from 0 to 1")
+                    if "quantity" in entry:
+                        quantity = entry["quantity"]
+                        low = 0 if item_id == "gold_value" else 1
+                        if not (isinstance(quantity, list) and len(quantity) == 2
+                                and all(isinstance(v, int) and not isinstance(v, bool) and v >= low for v in quantity)):
+                            error(f"{label}.quantity must be [min, max], integers of at least {low}")
+                        elif quantity[0] > quantity[1]:
+                            error(f"{label}.quantity minimum ({quantity[0]}) is greater than its maximum ({quantity[1]})")
+                    if "is_chest" in entry and not isinstance(entry["is_chest"], bool):
+                        error(f"{label}.is_chest must be true or false")
+
+            properties = template.get("properties")
+            if not isinstance(properties, dict):
+                continue
+            stock = properties.get("sells_items")
+            if stock is not None:
+                if not isinstance(stock, list):
+                    error("properties.sells_items must be an array of {item_id, price_multiplier}")
+                    stock = []
+                for index, entry in enumerate(stock):
+                    label = f"properties.sells_items[{index}]"
+                    if not isinstance(entry, dict):
+                        error(f"{label} must be an object")
+                        continue
+                    for key in entry:
+                        if key not in _STOCK_ENTRY_KEYS:
+                            error(f"{label}.{key} is not read (known: {', '.join(_STOCK_ENTRY_KEYS)})")
+                    if entry.get("item_id") not in item_ids:
+                        error(f"{label}.item_id references missing item '{entry.get('item_id')}' (it is left off the list)")
+                    if "price_multiplier" in entry and (not number(entry["price_multiplier"]) or entry["price_multiplier"] <= 0):
+                        error(f"{label}.price_multiplier must be a positive number")
+                    if "relationship_min" in entry and (not isinstance(entry["relationship_min"], int) or isinstance(entry["relationship_min"], bool) or not 0 <= entry["relationship_min"] <= 100):
+                        error(f"{label}.relationship_min must be an integer from 0 to 100")
+            if "sell_rate_multiplier" in properties and (not number(properties["sell_rate_multiplier"]) or properties["sell_rate_multiplier"] < 0):
+                error("properties.sell_rate_multiplier must be a non-negative number")
+            tariff = properties.get("tariff")
+            if tariff is not None:
+                if not isinstance(tariff, dict):
+                    error("properties.tariff must be an object with campaign_id and rate")
+                else:
+                    if tariff.get("campaign_id") not in campaign_ids:
+                        error(f"properties.tariff.campaign_id references missing campaign '{tariff.get('campaign_id')}' (the tariff never applies)")
+                    if not number(tariff.get("rate")) or tariff.get("rate") < 0:
+                        error("properties.tariff.rate must be a non-negative number")
+            preferences = properties.get("gift_preferences")
+            if preferences is not None:
+                if not isinstance(preferences, dict):
+                    error("properties.gift_preferences must be an object")
+                    continue
+                for key, values in preferences.items():
+                    label = f"properties.gift_preferences.{key}"
+                    if key not in _GIFT_PREFERENCE_KEYS:
+                        error(f"{label} is not read (known: {', '.join(_GIFT_PREFERENCE_KEYS)})")
+                        continue
+                    if not isinstance(values, list) or any(not isinstance(v, str) or not v.strip() for v in values):
+                        error(f"{label} must be an array of non-empty strings")
+                        continue
+                    if key.endswith("_item_ids"):
+                        for value in values:
+                            if value not in item_ids:
+                                error(f"{label} references missing item '{value}'")
+
+
 def _validate_npc_template_runtime_shapes(
     content_root: Path,
     issues: list[ContentSetIssue],
@@ -4760,6 +4875,7 @@ def load_content_set(
         _validate_faction_rules(ruleset_payload, issues, ruleset_source_path)
         _validate_npc_vocabulary(content_root, issues, ruleset_payload)
         _validate_npc_template_runtime_shapes(content_root, issues)
+        _validate_npc_trade_and_loot(content_root, issues)
         _validate_npc_schedule_rules(ruleset_payload, issues, ruleset_source_path)
         _validate_weather_profiles(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_simple_ruleset_sections(content_root, ruleset_payload, issues, ruleset_source_path)
