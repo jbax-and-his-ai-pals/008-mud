@@ -230,7 +230,7 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `systems` | `content_set.py:80-124` | `content_set.py:80-124` (manifest mismatch = error) | 8 toggles | validated writer | 6B |
 | `combat.retreat` | `world.py:361-369` | `RulesetDraft.gd` rejects negative difficulties; staged engine verdict protects the full set | typed skill and difficulty controls in `RulesetEditorDialog.gd` | prototype | `configuration_dialog_smoke.gd` | 6D |
 | `locksmithing` | `world.py:540`; `items/lockpick.py:67` | `content_set.py::_validate_simple_ruleset_sections` — string skill; warns when no `skills.stat_bonuses` rule backs it | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
-| `crime` (+ `custody`) | `core/crime_manager.py:26-211`; `commands/jail.py:36-47` | `content_set.py::_validate_crime_and_debug_rules` — known keys, real numbers (the reader turns anything else into 0), boolean `enabled`, and while enabled a skill, reputation key and a `room_property` some room carries | no | absent (validated) | 6D |
+| `crime` (+ `custody`) | `core/crime_manager.py:26-211`; `commands/jail.py:36-47` | `content_set.py::_validate_crime_and_debug_rules` — known keys, real numbers (the reader turns anything else into 0), boolean `enabled`, and while enabled a skill, reputation key and a `room_property` some room carries | yes — Crime (`CrimeSection.gd`); the jail-room check runs in the staged save | validated writer | 6D |
 | `player_defaults` | `world.py:135-146`; `player/core.py:72`; `definition_loader.py::grant_starting_inventory` | `content_set.py::_validate_simple_ruleset_sections` — real items with integer quantities (a string quantity stopped character creation), real default spells | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
 | `quest_generation` | `quests/manager.py`; `generator.py` | `content_set.py::_validate_ruleset_references` (all keys) | yes | validated writer | 6D |
 | `crafting.salvage_rules` | `crafting_manager.py:424-464` | `content_set.py:2083-2129` | no | absent | 6C |
@@ -248,10 +248,10 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `npc_schedules` | `ai/schedules.py:58-173` | `content_set.py:_validate_npc_schedule_rules` validates roles, category keywords, slot ordering/references, canonical hours, and the one dispatcher-supported override | `RulesetEditorDialog.gd`: excluded names, room-name categories, role/template matching, ordered location slots, and daily activities. It preserves unknown setting-specific data on touched rows | prototype | `test_content_set_validator.py`; `configuration_dialog_smoke.gd` | 6D |
 | `debug` | `commands/debug_crafting.py:62`, … | `content_set.py::_validate_crime_and_debug_rules` — known keys; gear, station and spell references resolve | no | absent (validated) | 6D |
 
-**Notes.** The editor can write 21 of the 23 top-level keys: three scalars
+**Notes.** The editor can write 22 of the 23 top-level keys: three scalars
 (`ruleset_id`, `world_mode`, `progression_model`), `systems` (8 toggles),
 `world.regions` (3 flags + 2 lists), `status` (`stats` only), `factions` (`extra` only),
-`combat` (`retreat` only), `crafting` (`salvage_rules` only), the seven World Rules sections,
+`combat` (`retreat` only), `crafting` (`salvage_rules` only), the seven World Rules sections, `crime`,
 `weather` (`descriptions` and `profiles` only, not `chances`),
 plus structured `npc_schedules`, `advancement`, `skills.stat_bonuses` and
 `quest_generation` sections. `test_configuration_dialog_coverage.py` holds the exact
@@ -275,7 +275,7 @@ was falsified by removing one `_field(...)` line from a builder — it failed na
 |---|---|---|---|
 | `ContractEditorDialog` | `CONTRACT_SCHEMAS`: 8 sections, **69 fields** | 67 | `item_families.description`, `item_families.debug_only` — both read by nothing (§I.5), preserved as authored |
 | `ContractEditorDialog` (file level) | `TOP_LEVEL_FIELDS` | `stats` page (`order`, `short`, `roles`) — validated by `registry._ingest_stats` | `schema_version` (engine-owned), file-level `label`/`description` (unread, preserved) |
-| `RulesetEditorDialog` | 23 top-level keys | **21** (the seven World Rules sections, `ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `combat.retreat`, `crafting.salvage_rules`, `skills.stat_bonuses`, `npc_schedules`, `advancement`, `weather` descriptions/profiles, `quest_generation`) | `crime` and `debug`, byte-for-byte preserved |
+| `RulesetEditorDialog` | 23 top-level keys | **22** (`crime`, the seven World Rules sections, `ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `combat.retreat`, `crafting.salvage_rules`, `skills.stat_bonuses`, `npc_schedules`, `advancement`, `weather` descriptions/profiles, `quest_generation`) | `debug` (developer tooling), byte-for-byte preserved |
 | `CombatVocabularyDialog` | `combat/elements.json` | `valid_damage_types`, `default_damage_type`, and every hazard field the shipped file uses (`channel`, `damage`, `flavor`, `tick_interval`) | `elemental_opposites`, `flavor_text` |
 
 **What this says about 6A.** The contract and combat-vocabulary dialogs are close to
