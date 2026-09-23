@@ -21,7 +21,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -81,6 +81,13 @@ func set_weather_profiles(profiles: Dictionary):
 func set_quest_generation(section: Dictionary):
 	if section.is_empty(): data.erase("quest_generation")
 	else: data["quest_generation"] = section.duplicate(true)
+
+## Replaces each WorldRulesSection-owned section with its composed value; a
+## section the form emptied and the file never had is not created.
+func set_world_rules(sections: Dictionary):
+	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"]:
+		if sections.has(name): data[name] = sections[name].duplicate(true)
+		else: data.erase(name)
 
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):
@@ -151,6 +158,12 @@ func validate() -> Array:
 					if profile.has("map"): _validate_string_map(profile["map"], "weather.profiles.%s.map" % profile_id, errors)
 					if profile.has("travel_notes"): _validate_string_map(profile["travel_notes"], "weather.profiles.%s.travel_notes" % profile_id, errors)
 	_validate_quest_generation(data.get("quest_generation", {}), errors)
+	# Both are str.format-ted with fixed fields, so any other placeholder raises
+	# the first time an elite or a randomly named NPC spawns.
+	if data.get("elites") is Dictionary and data["elites"].get("name_pattern") is String:
+		_validate_placeholders(data["elites"]["name_pattern"], ["prefix", "name"], "elites.name_pattern", errors)
+	if data.get("npc_naming") is Dictionary and data["npc_naming"].get("random_name_pattern") is String:
+		_validate_placeholders(data["npc_naming"]["random_name_pattern"], ["first_name", "title"], "npc_naming.random_name_pattern", errors)
 	return errors
 
 ## The subset of `content_set.py::_validate_ruleset_references` a form edit can

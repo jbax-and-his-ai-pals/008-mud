@@ -101,6 +101,13 @@ RULESET_WRITABLE_KEYS = {
     "advancement",
     "weather",
     "quest_generation",
+    "economy",
+    "locksmithing",
+    "calendar",
+    "spawning",
+    "elites",
+    "npc_naming",
+    "player_defaults",
 }
 
 # Top-level keys of `combat/elements.json` the dialog does not write.
@@ -205,7 +212,8 @@ def ruleset_written_keys(dialog_source: str) -> set[str]:
                 written |= set(pending)
             pending = []
     for method in re.findall(r"draft\.(set_[a-z_]+)\(", body):
-        written.add(RULESET_SETTER_KEYS.get(method, "<unmapped %s>" % method))
+        keys = RULESET_SETTER_KEYS.get(method, "<unmapped %s>" % method)
+        written |= set(keys) if isinstance(keys, tuple) else {keys}
     return written
 
 
@@ -222,6 +230,7 @@ RULESET_SETTER_KEYS = {
     "set_weather_descriptions": "weather",
     "set_weather_profiles": "weather",
     "set_quest_generation": "quest_generation",
+    "set_world_rules": ("economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"),
 }
 
 

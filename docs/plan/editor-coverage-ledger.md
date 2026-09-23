@@ -229,36 +229,36 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `weather` (`profiles`, `descriptions`) | `weather_manager.py:27-67`; `information.py:185` | `content_set.py::_validate_weather_shapes` checks `descriptions` and each profile's `map`/`travel_notes` are string maps, alongside the existing profile-reference check; **`chances` is read by the engine and remains absent here** | `RulesetEditorDialog.gd`: description rows plus one card per profile (id, map rows, travel-note rows); an authored empty `map`/`travel_notes` round-trips as empty rather than being dropped | prototype | `configuration_dialog_smoke.gd`; `ruleset_weather_smoke.gd`; `test_content_set_validator.py` | 6D |
 | `systems` | `content_set.py:80-124` | `content_set.py:80-124` (manifest mismatch = error) | 8 toggles | validated writer | 6B |
 | `combat.retreat` | `world.py:361-369` | `RulesetDraft.gd` rejects negative difficulties; staged engine verdict protects the full set | typed skill and difficulty controls in `RulesetEditorDialog.gd` | prototype | `configuration_dialog_smoke.gd` | 6D |
-| `locksmithing` | `world.py:540`; `items/lockpick.py:67` | `content_set.py::_validate_simple_ruleset_sections` — string skill; warns when no `skills.stat_bonuses` rule backs it | no | absent (validated) | 6D |
+| `locksmithing` | `world.py:540`; `items/lockpick.py:67` | `content_set.py::_validate_simple_ruleset_sections` — string skill; warns when no `skills.stat_bonuses` rule backs it | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
 | `crime` (+ `custody`) | `core/crime_manager.py:26-211`; `commands/jail.py:36-47` | `content_set.py::_validate_crime_and_debug_rules` — known keys, real numbers (the reader turns anything else into 0), boolean `enabled`, and while enabled a skill, reputation key and a `room_property` some room carries | no | absent (validated) | 6D |
-| `player_defaults` | `world.py:135-146`; `player/core.py:72`; `definition_loader.py::grant_starting_inventory` | `content_set.py::_validate_simple_ruleset_sections` — real items with integer quantities (a string quantity stopped character creation), real default spells | no | absent (validated) | 6D |
+| `player_defaults` | `world.py:135-146`; `player/core.py:72`; `definition_loader.py::grant_starting_inventory` | `content_set.py::_validate_simple_ruleset_sections` — real items with integer quantities (a string quantity stopped character creation), real default spells | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
 | `quest_generation` | `quests/manager.py`; `generator.py` | `content_set.py::_validate_ruleset_references` (all keys) | yes | validated writer | 6D |
 | `crafting.salvage_rules` | `crafting_manager.py:424-464` | `content_set.py:2083-2129` | no | absent | 6C |
 | `social` (`tiers`, `gift_values`, `gift_tag_values`) | `social/relationships.py:28-70`; `mercantile.py:64` | `content_set.py:959-1093` | no | absent | 6D |
-| `economy.currency_name` | `world.py:155-157` | `content_set.py::_validate_simple_ruleset_sections` | no | absent (validated) | 6D |
+| `economy.currency_name` | `world.py:155-157` | `content_set.py::_validate_simple_ruleset_sections` | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
 | `advancement` | `core/advancement.py:269-368` | `content_set.py:2682-2772` | curve plus grant cards (kinds, XP, message, and engine-read match filters) | prototype | 6D |
 | `loot` (`take_hint`, `chest_materials`, `currency_item_id`, `ambient_pools`) | `utils/utils.py:431-434`; `chest_loot_generator.py:87-126`; `npc.py:184-235` | `content_set.py:1216-1256` — `ambient_pools` only | no | absent | 6C |
 | `skills.stat_bonuses` | `skill_system.py:43-49` | `content_set.py:_validate_skills_rules` | skill id, stat and per-point rows in `RulesetEditorDialog.gd` | prototype | 6C |
 | `factions` (not declared by fantasy) | `world/factions.py:48-118` | `content_set.py:854-880` | `extra` only | prototype | 6D |
 | `status` (orbital only) | `world.py:178` fallback; `contracts/stats.py:175` primary | none | `status.stats` only | prototype | 6C |
-| `npc_naming` | `npc_factory.py:61-73` | `content_set.py::_validate_simple_ruleset_sections` — `random_name_pattern` placeholders (an unknown one raised at spawn); repeated names warn (fantasy listed 18 twice; deduplicated) | no | absent (validated) | 6D |
-| `calendar` | `time_manager.py:23-52` | `content_set.py::_validate_simple_ruleset_sections` — name lists the reader would silently replace, start time range | no | absent (validated) | 6D |
-| `spawning` | `spawner.py:87,95` | `content_set.py::_validate_simple_ruleset_sections` — warns on a keyword matching no room (fantasy: `temple`, `home`) | no | absent (validated) | 6D |
-| `elites` | `npcs/elite.py:13-46` | `content_set.py::_validate_simple_ruleset_sections` — chance/multiplier ranges, `name_pattern` placeholders (an unknown one raised at spawn) | no | absent (validated) | 6D |
+| `npc_naming` | `npc_factory.py:61-73` | `content_set.py::_validate_simple_ruleset_sections` — `random_name_pattern` placeholders (an unknown one raised at spawn); repeated names warn (fantasy listed 18 twice; deduplicated) | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
+| `calendar` | `time_manager.py:23-52` | `content_set.py::_validate_simple_ruleset_sections` — name lists the reader would silently replace, start time range | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
+| `spawning` | `spawner.py:87,95` | `content_set.py::_validate_simple_ruleset_sections` — warns on a keyword matching no room (fantasy: `temple`, `home`) | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
+| `elites` | `npcs/elite.py:13-46` | `content_set.py::_validate_simple_ruleset_sections` — chance/multiplier ranges, `name_pattern` placeholders (an unknown one raised at spawn) | yes — World Rules (`WorldRulesSection.gd`) | validated writer | 6D |
 | `npc_schedules` | `ai/schedules.py:58-173` | `content_set.py:_validate_npc_schedule_rules` validates roles, category keywords, slot ordering/references, canonical hours, and the one dispatcher-supported override | `RulesetEditorDialog.gd`: excluded names, room-name categories, role/template matching, ordered location slots, and daily activities. It preserves unknown setting-specific data on touched rows | prototype | `test_content_set_validator.py`; `configuration_dialog_smoke.gd` | 6D |
 | `debug` | `commands/debug_crafting.py:62`, … | `content_set.py::_validate_crime_and_debug_rules` — known keys; gear, station and spell references resolve | no | absent (validated) | 6D |
 
-**Notes.** The editor can write 14 of the 23 top-level keys: three scalars
+**Notes.** The editor can write 21 of the 23 top-level keys: three scalars
 (`ruleset_id`, `world_mode`, `progression_model`), `systems` (8 toggles),
 `world.regions` (3 flags + 2 lists), `status` (`stats` only), `factions` (`extra` only),
-`combat` (`retreat` only), `crafting` (`salvage_rules` only),
+`combat` (`retreat` only), `crafting` (`salvage_rules` only), the seven World Rules sections,
 `weather` (`descriptions` and `profiles` only, not `chances`),
 plus structured `npc_schedules`, `advancement`, `skills.stat_bonuses` and
 `quest_generation` sections. `test_configuration_dialog_coverage.py` holds the exact
 set and fails on any `RulesetDraft` setter it cannot map. Seven small
 sections (`locksmithing`, `player_defaults`, `economy`, `npc_naming`, `calendar`,
-`spawning`, `elites`) now have a validator and so qualify for a form under the standing
-rule — a section gets a form only when a validator can refuse a bad value. `crime` and `debug`
+`spawning`, `elites`) have a validator and a form, the Ruleset editor's World Rules
+section (`ruleset_world_rules_smoke.gd`). `crime` and `debug`
 have validators too, so every top-level ruleset section is now checked by something.
 
 ### H.2 The three configuration dialogs, field by field (6A exit evidence)
@@ -275,7 +275,7 @@ was falsified by removing one `_field(...)` line from a builder — it failed na
 |---|---|---|---|
 | `ContractEditorDialog` | `CONTRACT_SCHEMAS`: 8 sections, **69 fields** | 67 | `item_families.description`, `item_families.debug_only` — both read by nothing (§I.5), preserved as authored |
 | `ContractEditorDialog` (file level) | `TOP_LEVEL_FIELDS` | `stats` page (`order`, `short`, `roles`) — validated by `registry._ingest_stats` | `schema_version` (engine-owned), file-level `label`/`description` (unread, preserved) |
-| `RulesetEditorDialog` | 23 top-level keys | **14** (`ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `combat.retreat`, `crafting.salvage_rules`, `skills.stat_bonuses`, `npc_schedules`, `advancement`, `weather` descriptions/profiles, `quest_generation`) | the other 9 keys, byte-for-byte preserved |
+| `RulesetEditorDialog` | 23 top-level keys | **21** (the seven World Rules sections, `ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `combat.retreat`, `crafting.salvage_rules`, `skills.stat_bonuses`, `npc_schedules`, `advancement`, `weather` descriptions/profiles, `quest_generation`) | `crime` and `debug`, byte-for-byte preserved |
 | `CombatVocabularyDialog` | `combat/elements.json` | `valid_damage_types`, `default_damage_type`, and every hazard field the shipped file uses (`channel`, `damage`, `flavor`, `tick_interval`) | `elemental_opposites`, `flavor_text` |
 
 **What this says about 6A.** The contract and combat-vocabulary dialogs are close to
