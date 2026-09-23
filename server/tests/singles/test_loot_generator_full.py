@@ -40,6 +40,24 @@ class TestGenerateLootExistingEquipEffect(GameTestBase):
         self.assertEqual(2, effect["modifiers"]["strength"])
 
 
+class TestPrefixEquipStatsAreApplied(GameTestBase):
+    def test_an_armour_prefix_grants_its_resistance(self):
+        """Only suffixes' equip_stats used to be merged, so an armour prefix such as
+        fantasy_frontier's `Insulated` renamed the item and granted nothing."""
+        self.world.item_templates["test_plate"] = {
+            "type": "Armor", "name": "Plate", "value": 100, "weight": 5.0,
+            "properties": {"defense": 5, "equip_slot": ["body"]},
+        }
+        prefix = {"allowed_types": ["Armor"], "level_min": 1, "equip_stats": {"resist_fire": 25}, "value_mult": 1.0}
+        with patch.object(LootGenerator, "_pick_affix") as mock_pick:
+            mock_pick.side_effect = [("Dampening", prefix)]
+            with patch("random.random", side_effect=[0.0, 1.0]):
+                item = LootGenerator.generate_loot("test_plate", self.world, level=1)
+
+        self.assertIsNotNone(item)
+        self.assertEqual(25, item.get_property("equip_effect")["modifiers"]["resist_fire"])
+
+
 class TestPickAffixNoValidCandidates(unittest.TestCase):
     def test_no_matching_type_or_level_returns_empty(self):
         name, data = LootGenerator._pick_affix(PREFIXES, "TotallyUnknownType", level=1)

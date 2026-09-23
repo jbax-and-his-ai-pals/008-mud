@@ -54,10 +54,12 @@ class LootGenerator:
         if existing_effect and existing_effect.get("type") == "stat_mod":
             combined_stats.update(existing_effect.get("modifiers", {}))
             
-        # Merge Suffix Stats
-        if suffix_data and "equip_stats" in suffix_data:
-            for stat, val in suffix_data["equip_stats"].items():
-                combined_stats[stat] = combined_stats.get(stat, 0) + val
+        # Merge affix stats. Prefixes carry them too (an armour prefix granting a
+        # resistance), and only suffixes' used to be read.
+        for affix_data in (prefix_data, suffix_data):
+            if affix_data and isinstance(affix_data.get("equip_stats"), dict):
+                for stat, val in affix_data["equip_stats"].items():
+                    combined_stats[stat] = combined_stats.get(stat, 0) + val
                 
         # Handle named buff (e.g. Vampirism)
         if suffix_data and "equip_buff" in suffix_data:
