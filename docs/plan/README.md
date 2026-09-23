@@ -11,6 +11,7 @@ either the project has stalled or the document has become an archive candidate.
 | [`integrated-roadmap.md`](integrated-roadmap.md) | Historical cross-track merge and ownership concordance; execution order is superseded by chunks, with X12 linked to the expanded authoring plan | historical + handoff updates |
 | [`work-tracks.md`](work-tracks.md) | **How work is divided.** Eleven tracks (A–K) plus the archive: what each owns, what each may not do, and the four handoff types | monthly |
 | [`editor-readiness.md`](editor-readiness.md) | **Evidence, not promises.** Current source-review addendum and a clearly dated historical audit; distinguishes prototype UI from proven authoring workflows | each authoring batch |
+| [`editor-handoff.md`](editor-handoff.md) | **Current handoff.** Milestone estimates, verified commands, known limitations and the next-owner checklist | each handoff |
 | [`editor-coverage-ledger.md`](editor-coverage-ledger.md) | **The field-level work list.** One row per engine-read declaration: reader, validator, editor writer, status (absent → read-only → prototype → validated writer → journey-proven), evidence and closing batch | each authoring batch |
 | [`track-roadmaps/`](track-roadmaps/README.md) | **A review artifact, not the execution queue.** Eleven evaluations, with dated follow-up findings and handoff pointers | historical + dated annotations |
 

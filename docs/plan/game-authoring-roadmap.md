@@ -8,6 +8,17 @@ this document defines its milestones, author journey, and acceptance criteria.
 audit findings. The [authoring guide](../reference/AUTHORING_A_CONTENT_SET.md)
 documents today's supported file/CLI workflow, not the future UI described here.
 
+## Current implementation checkpoint — 2026-09-22
+
+M0 and M1 are technically advanced but remain open pending their human and
+coverage gates; M2 has started and is not close to its family-by-family journey
+gate. The current rough planning estimate is M0 **~90%**, M1 **~92%**, and M2
+**~38%**. Those numbers are useful for sequencing only: the
+[coverage ledger](editor-coverage-ledger.md) remains the source of truth for
+individual declarations. See the [editor handoff](editor-handoff.md) for the
+implemented batch, verified commands, known headless resource-retention warning,
+and the recommended next sequence.
+
 ## 1. The target, and where to stop
 
 The near-term target is a **trustworthy, broadly complete authoring tool for the

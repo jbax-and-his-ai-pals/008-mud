@@ -13,6 +13,7 @@
 **Companion documents**
 
 - [`docs/plan/game-authoring-roadmap.md`](docs/plan/game-authoring-roadmap.md) — the full author journey, production-oriented editor milestones, and safe changes to systems after content exists.
+- [`docs/plan/editor-handoff.md`](docs/plan/editor-handoff.md) — current authoring-workbench status, verified evidence, open gates and the next-owner checklist.
 - [`docs/plan/work-tracks.md`](docs/plan/work-tracks.md) — how work is divided into eleven tracks, what each may not do, and the contract-first handoff.
 - [`docs/plan/track-roadmaps/README.md`](docs/plan/track-roadmaps/README.md) — eleven independent track evaluations and the findings verified from them.
 - [`docs/design/WORLD_DESIGN.md`](docs/design/WORLD_DESIGN.md) — target world shape, design pillars, open decisions.
@@ -70,7 +71,7 @@ Live work pulled out of the phase bodies when they were archived. Each keeps
 the phase it came from, because the reason it is unfinished is usually in that
 phase's narrative.
 
-### P10: The game-authoring workbench — **active, expanded 2026-09-21**
+### P10: The game-authoring workbench — **active, expanded 2026-09-22**
 
 The next push is production-oriented **authoring readiness**, not merely more
 forms and not a promise of commercial release readiness. Cover the whole journey:
@@ -79,10 +80,13 @@ revise the rules safely, then prepare a reproducible candidate for human testers
 Broad world expansion and balance tuning remain outside this push; small playable
 content slices are required evidence, not optional work after the editor is done.
 
-The current working tree has preliminary ruleset, contract and combat-vocabulary
-editors. Older “two keys / browse-only / no surface” descriptions are historical.
-The first 6A pass now covers real dialog events, typed edits, staged engine validation
-and single-file save recovery; full field coverage and visual retesting remain open.
+The current working tree has real ruleset, contract, combat-vocabulary, opening and
+manifest surfaces, plus registered external content roots and coordinated
+manifest/ruleset capability saves. Older “two keys / browse-only / no surface”
+descriptions are historical. The first 6A pass covers real dialog events, typed edits,
+staged engine validation and recovery; M2 has begun with substantial NPC/item/world
+authoring plus early weather and combat-policy controls. Full field coverage, runtime
+journeys and visual retesting remain open.
 See [`docs/plan/editor-readiness.md`](docs/plan/editor-readiness.md) and the
 [field-level coverage ledger](docs/plan/editor-coverage-ledger.md), which records per
 declaration what the engine reads, what validates it, what the editor writes and which

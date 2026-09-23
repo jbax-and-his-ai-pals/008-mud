@@ -2,23 +2,28 @@
 
 ## Current assessment — 2026-09-22
 
-**Basis:** current working tree, including uncommitted configuration dialogs.
-The planning review was followed by the first 6A hardening pass: staged engine
-validation, recoverable single-file writes, actual dialog-event regression tests
-and full-scene wiring/dirty-state checks. The 2026-09-22 follow-up also preflights
-reference repairs, blocks indexed destructive deletes, and restores checkpointed
-library/region writes when the engine rejects them. See
+**Basis:** current working tree, including uncommitted configuration dialogs and
+the latest M2 authoring slices. The planning review was followed by the first 6A
+hardening pass: staged engine validation, recoverable writes, actual dialog-event
+regression tests and full-scene wiring/dirty-state checks. The 2026-09-22 follow-up
+also preflights reference repairs, blocks indexed destructive deletes, restores
+checkpointed library/region writes when the engine rejects them, registers external
+content roots, stages matching manifest/ruleset capability edits together, and adds
+an opening editor. See
 [configuration editing safety](../reference/configuration-editing-safety.md) for
 behavior, limitations and the human retest. No visual usability pass is claimed.
 Counts/line citations in the September 20 audit below remain historical.
 
-**6A update:** the immediate blockers listed below have been addressed, with
-regression coverage. The dialogs remain partial authoring surfaces, not complete
-ruleset/contract coverage. Multi-file migration, broader field validation audits,
-async save validation, visual/error-layout testing, shutdown resource-retention
-cleanup, unindexed-reference treatment and a multi-file revision transaction
+**Current milestone estimate:** M0 ~90%, M1 ~92%, M2 ~38%. These are planning
+estimates, not completion claims. M0 still requires its human visual/interaction
+pass and resource-retention investigation; M1 still needs broader impact reporting
+and opaque-reference treatment; M2 still needs most activity-family runtime
+journeys. The dialogs remain partial authoring surfaces, not complete ruleset/
+contract coverage. General multi-file migrations, broader field validation audits,
+async save validation, visual/error-layout testing and unindexed-reference treatment
 remain open. Save runs the engine's content-set validator; it does not substitute
-for the full release gate or runtime journeys.
+for the full release gate or runtime journeys. The current owner checklist is
+[editor-handoff.md](editor-handoff.md).
 
 **Verdict:** broad content-editing foundations, emerging configuration authoring,
 but not yet a trustworthy complete game-authoring workflow. The next measure is
@@ -31,13 +36,13 @@ Those supersede the ordered tiers in historical §7 below.
 
 | Area | Current evidence | Readiness interpretation |
 |---|---|---|
-| Ruleset | `RulesetEditorDialog` offers general settings, eight system toggles, custom factions, stats and region policy; `RulesetDraft` writes them. | **Prototype**, not “two read-only keys” and not coverage of every ruleset section. Capability coherence, reachability, lossless edits and save/refresh need proof. |
+| Ruleset | `RulesetEditorDialog` offers general settings, eight system toggles, custom factions, stats, region policy, advancement, schedules, skill bonuses and combat retreat; `RulesetDraft` writes them. | **Prototype**, not “two read-only keys” and not coverage of every ruleset section. Capability coherence is staged for matching explicit system declarations; broad reachability, lossless edits and runtime proof remain. |
 | Contracts | `ContractEditorDialog` and `ContractDraft` cover resources, families, generation, attack, defense, effects, abilities, work and stats. | **Prototype**, not browse-only. Typed data and save integration defects below prevent a readiness claim. |
 | Combat vocabulary | `CombatVocabularyDialog`, its draft and catalog provide channel/hazard authoring; the ability inspector has a channel picker. | Preliminary integration; not a complete damage/hazard policy editor or proof that every consumer refreshes. |
 | Item properties/NPCs | `PropertyTagRow` guards structured values; nested-property and NPC-stat vocabulary tests are present. | Historical defects must be rechecked rather than copied verbatim into the next queue. Preserving an unsupported object read-only is safer, but does not make it authorable. |
 | Validation | `toolkit/editor_validate.py` now invokes open-set playability; `Main` has background validation and a separate release-gate path. | Historical “no playability button” is superseded. Preserve scoped/skipped/stale result reporting and test failure paths; bootability alone is not an authored-player-journey proof. |
-| Project lifecycle | `ContentSetScaffold` creates a starter room and copies selected source material; existing set switching and round-trip tests provide foundations. | Not yet full manifest/system evolution, dependency-aware migration or reproducible authoring release workflow. Copying rules can introduce source-world references; that is surfaced in the scaffold's own contract. |
-| Remaining content | Knowledge, campaigns, richer rules/policies, profiles/world data, presentation/opening and unsupported nested fields remain on the coverage ledger. | Inventory engine readers and actual fantasy usage before claiming “everything editable.” No new blanket percentage asserted here. |
+| Project lifecycle | `ContentSetScaffold` creates a starter room and copies selected source material; set switching, external-root registration, opening authoring, capability transaction and round-trip tests provide foundations. | Not yet full manifest/system evolution, dependency-aware migration or reproducible authoring release workflow. Copying rules can introduce source-world references; that is surfaced in the scaffold's own contract. |
+| Remaining content | Knowledge, campaigns, richer rules/policies, profiles/world data, presentation and unsupported nested fields remain on the coverage ledger. | Inventory engine readers and actual fantasy usage before claiming “everything editable.” M2 is roughly 38% by planning scope, not a coverage certification. |
 
 ### Initial M0 blockers (addressed by the first 6A pass)
 

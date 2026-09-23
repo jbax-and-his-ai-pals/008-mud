@@ -36,8 +36,9 @@ needs the named evidence, never a new dialog:
 | **validated writer** | The save path stages the candidate and the engine refuses it on error (not merely a Validate button the author may forget). |
 | **journey-proven** | A test boots a server and plays the authored result, asserting an outcome. |
 
-**Basis.** HEAD `f08146d` (2026-09-22), plus the 2026-09-22 reference-preflight and
-post-save engine-verdict hardening recorded in §I.6. Readers and validators were read out of
+**Basis.** HEAD `4e4355e` (2026-09-22), plus the current uncommitted opening,
+external-root, coordinated-capability, weather and retreat slices and the 2026-09-22
+reference-preflight/post-save engine-verdict hardening recorded in §I.6. Readers and validators were read out of
 `server/engine/**` and `toolkit/**`; writers out of `mud-world-editor/scripts/**`;
 evidence from the three gates:
 `run_tests.py --suite all` (4596 singles + 280 batch + 3 current),
@@ -63,9 +64,9 @@ knowledge topics, 7 hazardous rooms, 0 `work` declarations, 2 campaigns.
 |---|---|---|---|---|---|---|
 | Manifest identity (`id`, `title`, `version`, schema/API range) | `world.py:103` (id); `title`/`version` values have no reader | `content_set.py:2900-2935` | `ContentSetScaffold.gd:231` (creation) + `ManifestEditorDialog.gd` (title, after creation) | validated writer | `content_set_scaffold_smoke.gd`, `manifest_editing_smoke.gd` | 6B |
 | Manifest `paths` (content_root, ruleset, presentation, feature_profile, opening) | `content_set.py:2937-3001`; `headless_server.py:189-190` | `content_set.py:2942-2990`; `configuration_save.py` refuses a draft that moves them | creation only; the manifest dialog shows them and does not edit them | read-only | `content_set_scaffold_smoke.gd` | 6B |
-| Manifest `capabilities` | `content_set.py:94-106` → `world.py:55,106,114,124` | `content_set.py:3003-3025`; the staged verdict refuses a capability that contradicts `ruleset.systems` | creation + `ManifestEditorDialog.gd` (checkboxes) | validated writer | `manifest_editing_smoke.gd`, `test_configuration_save.py` | 6B |
+| Manifest `capabilities` | `content_set.py:94-106` → `world.py:55,106,114,124` | `content_set.py:3003-3025`; manifest and changed explicit `ruleset.systems` entries are staged and validated together | creation + `ManifestEditorDialog.gd` (checkboxes) | validated writer | `manifest_editing_smoke.gd`, `test_configuration_save.py` | 6B |
 | Manifest `start` | `world.py:230-231`; `definition_loader.py:201-220`; `persistence.py:267-268` | `content_set.py:3027-3061` — an unplaceable start room is refused by the staged verdict | creation + `ManifestEditorDialog.gd` | validated writer | `manifest_editing_smoke.gd` | 6B |
-| `opening/*.json` | `headless/session.py:264-286` (heading, intro, objectives) | `content_set.py:2966-2975, 3040-3045` — `scenario_id` match only | absent (scaffold copies the folder) | absent | `character_creation_and_opening_guidance.py` (engine side) | 6B |
+| `opening/*.json` | `headless/session.py:264-286` (heading, intro, objectives) | `content_set.py:2966-2975, 3040-3045` — scenario match; `OpeningDraft.gd` also guards non-empty prose/objectives and unique action ids | `OpeningEditorDialog.gd` from Manifest | validated writer | `opening_editing_smoke.gd` | 6B |
 | `presentation/*.json` (theme pack, ui strings, accessibility) | **none server-side** — `content_set.py:165, 3129` assign and never read | `pack_tool.py` validates `client/themes`, not the set's declared pack | absent (copied by the scaffold) | absent | `pack_tool_compatibility.py` (client side only) | 6B |
 | Feature profile (`data/profiles/*.profile.json`) | `feature_profile.py:53-59` via `headless_server.py:189-190` | `content_set.py:2963-2965` (object-ness only) | absent | absent | `feature_profile.py` | 6B |
 
@@ -91,7 +92,7 @@ scaffold time.
 | Region `spawner` (weights, toggles, level_range) | `spawner.py:104-171`; `region.py:68` | `content_set.py:412-428` — `level_range` only | `SpawnerInspector.gd:22-151` | prototype | `region_policy_validator.py` (partly) | 6C |
 | Region `properties.level_band` | `region.py:20-41`; `spawner.py:143` | `content_set.py:375-428` (policy-gated) | creation-time only; rendered non-editable (`RegionInspector.gd:220`) | read-only | `p7_region_bands.py` | 6C |
 | Region `properties.biome` / `region_type` | **no runtime reader** | `content_set.py:347-372` | creation-time / scalar tag | read-only | `region_policy_validator.py` | 6D |
-| `properties.weather_profile` | `weather_manager.py:55,65` | `content_set.py:1131-1166` | free-form scalar tag | read-only | none | 6D |
+| `properties.weather_profile` | `weather_manager.py:55,65` | `content_set.py:1131-1166` | `RegionInspector.gd` picker sourced from declared ruleset profiles; an already-missing value remains visible | prototype | `configuration_dialog_smoke.gd` | 6D |
 | `editor/world_layout.json` | Godot only (`WorldManager.gd:11-53`) | correctly unvalidated | implicit (drag nodes; acknowledgement state) | prototype | `content_source_check.gd` | — |
 
 **Notes.** The nested-property family is the one place where the editor is *safely*
@@ -105,19 +106,19 @@ lives in the feature profile — so a row for it would be invented; what exists 
 
 | Declaration | Engine reader | Validator | Editor writer | Status | Evidence | Batch |
 |---|---|---|---|---|---|---|
-| NPC envelope (name, description, level, health/mana, `stats`, attack/defense) | `definition_loader.py:108-157`; `npc_factory.py:77-149` | loader requires `name` only (`definition_loader.py:141-143`) | `NPCInspector.gd:46-122` | prototype | `npc_stat_vocabulary_smoke.gd` | 6D |
+| NPC envelope (name, description, level, health/mana, `stats`, attack/defense) | `definition_loader.py:108-157`; `npc_factory.py:77-149` | `content_set.py:_validate_npc_template_runtime_shapes` checks authored primitive bounds; the stat dictionary remains contract-owned | `NPCInspector.gd:46-122` | prototype | `npc_stat_vocabulary_smoke.gd`; `test_content_set_validator.py` | 6D |
 | NPC `faction` | `npc_factory.py:141`; `world/factions.py:155-176` | `content_set.py:883-926` — **warning only**; unknown faction silently becomes a bystander | `NPCInspector.gd` faction picker: the engine's five plus this set's `ruleset.factions.extra`/`overrides`, each labelled with its resolved disposition; an already-authored but undeclared value is shown, not dropped | prototype | `npc_faction_behavior_smoke.gd`; `schema_parity_smoke.gd` checks `NPCVocabulary.gd` against the engine | 6D |
 | NPC `behavior_type` | `npc_factory.py:142`; `ai/dispatcher.py` | `content_set.py:909-915` — warning only; unknown value means the NPC never acts | `NPCInspector.gd` behavior picker, from `NPCVocabulary.BEHAVIOR_TYPES` | prototype | `npc_faction_behavior_smoke.gd`; `schema_parity_smoke.gd` | 6D |
-| NPC `friendly` | `npc_factory.py:81` (overridden by `factions.is_hostile`) | **none** | `NPCInspector.gd` checkbox | prototype | `npc_faction_behavior_smoke.gd` | 6D |
+| NPC `friendly` | `npc_factory.py:81` (overridden by `factions.is_hostile`) | `content_set.py:_validate_npc_template_runtime_shapes` boolean | `NPCInspector.gd` checkbox | prototype | `npc_faction_behavior_smoke.gd`; `test_content_set_validator.py` | 6D |
 | NPC `dialog` (flat keyword dict) | `npc_factory.py:156-157`; `npc.py:85-86,124-125` | `template_placeholder_validator.py:97-134` (braces only) | `NPCInspector.gd` topic/reply rows; renaming a topic is a key rebuild, refused on a collision | prototype | `hostile_dialog_no_leftover_placeholders.py`; `npc_dialog_topics_smoke.gd` | 6D |
 | NPC `properties.dialogue` (graph binding) | `dialogue/manager.py:243-250` | `content_set.py:1522-1540`; orphans `:1545-1549` | `NPCInspector.gd` graph picker, offering only graphs this set has; an already-bound but missing graph is shown, not dropped | prototype | `p5_dialogue.py` (engine side); `npc_dialogue_binding_smoke.gd` | 6D |
 | Vendor stock (`properties.sells_items`, `sell_rate_multiplier`, `tariff`) | `mercantile.py:81-122, 370` | ids only (`reference_integrity_validator.py:470-479`) | `NPCInspector.gd`: a rate control plus a plain item picker per sold item (price multiplier, friendship floor); `tariff` remains absent (a region/world policy, not per-NPC) | prototype | `vendor_order_references.py` (orbital orders); `npc_vendor_stock_smoke.gd` | 6D |
 | Vendor `properties.buy_orders` | `mercantile.py:135-155, 211-232` | `content_set.py:_validate_vendor_orders` | `NPCInspector.gd`: one card per order (id, `ReferenceEditor` for what it wants, quantity, reward, repeatable/crafted-only); id rename refused on a collision | prototype | `vendor_buy_order_relationship_gate.py`; `npc_vendor_stock_smoke.gd` | 6D |
 | Gift preferences (`preferred_item_ids`, `preferred_gift_tags`, disliked…) | `use_give.py:19-51` | ids only (`reference_integrity_validator.py:458-469`) | `NPCInspector.gd`: item pickers for the two id lists, text rows for the three open-vocabulary tag/category lists; nothing written by opening, an emptied list erases its key | prototype | `relationship_gifts.py`; `npc_gift_preferences_smoke.gd` | 6D |
-| `schedule`, `properties.work_location`, `can_unlock_chests`, `sells_houses` | `npc_factory.py:60-73,161`; `ai/schedules.py:143` | **none** | `NPCInspector.gd`: `work_location`/`can_unlock_chests`/`sells_houses` fields. `schedule` itself remains absent -- it is generated per `ruleset.npc_schedules` role-matching (a config-editor surface, not a per-NPC field), not authored on the template | prototype (schedule role config still absent) | `npc_schedules_full.py` (engine side); `npc_behavior_tuning_smoke.gd` | 6D |
+| `schedule`, `properties.work_location`, `can_unlock_chests`, `sells_houses` | `npc_factory.py:60-73,161`; `ai/schedules.py:143` | `content_set.py:_validate_npc_template_runtime_shapes` checks direct template schedule entries, real work locations, and flags | `NPCInspector.gd`: `work_location`/`can_unlock_chests`/`sells_houses` fields. `schedule` itself remains generated per `ruleset.npc_schedules`, rather than being a per-NPC raw field | prototype | `npc_schedules_full.py` (engine side); `npc_behavior_tuning_smoke.gd`; `test_content_set_validator.py` | 6D |
 | `loot_table` | `npc_factory.py:159-240`; `npc.py:160-174` | **none** | `NPCInspector.gd` — an item picker per drop (renames the entry's key; refuses a collision rather than merging two drops); no longer writes `loot_table: {}` merely by being opened | prototype | `content_round_trip_smoke.gd`, `npc_loot_table_smoke.gd` | 6D |
-| Behaviour tuning (`aggression`, `flee_threshold`, `respawn_cooldown`, `wander_chance`, `move_cooldown`, `spell_cast_chance`) | `npc_factory.py:204-240`; `ai/movement.py:101-105` | **none** | `NPCInspector.gd` numeric fields, defaults shown match the engine's own | prototype | none; `npc_behavior_tuning_smoke.gd` | 6D |
-| `usable_spells`, `initial_inventory`, `patrol_points` | `npc_factory.py:159-240` | spell ids only (`reference_integrity_validator.py:557-562`) | `NPCInspector.gd`: a spell picker, an item-picker+quantity list, and a room-id text list respectively | prototype | `guard_patrol_content.py`; `npc_behavior_tuning_smoke.gd` | 6D |
+| Behaviour tuning (`aggression`, `flee_threshold`, `respawn_cooldown`, `wander_chance`, `move_cooldown`, `spell_cast_chance`) | `npc_factory.py:204-240`; `ai/movement.py:101-105` | `content_set.py:_validate_npc_template_runtime_shapes` bounds each control; `-1` remains the explicit no-respawn sentinel | `NPCInspector.gd` numeric fields, defaults shown match the engine's own | prototype | `npc_behavior_tuning_smoke.gd`; `test_content_set_validator.py` | 6D |
+| `usable_spells`, `initial_inventory`, `patrol_points` | `npc_factory.py:159-240` | `content_set.py:_validate_npc_template_runtime_shapes` checks ability/item references, quantities, and patrol shape | `NPCInspector.gd`: a spell picker, an item-picker+quantity list, and a room-id text list respectively | prototype | `guard_patrol_content.py`; `npc_behavior_tuning_smoke.gd`; `test_content_set_validator.py` | 6D |
 | Ruleset `factions.extra` / `overrides` | `world/factions.py:48-118, 228-277` | `content_set.py:854-880` | `RulesetEditorDialog.gd:129-147` — `extra` (id + disposition) only | prototype | `configuration_dialog_smoke.gd` | 6D |
 
 **Notes.** This was the largest single block of `absent` rows, and it is the block a
@@ -192,7 +193,7 @@ the *engine* has a second consumer, the *reference content* does not.
 | Contract `defense_profiles` | `contracts/equipment.py:120-154` | `registry.py:125-132` | `ContractEditorDialog.gd` (tab) | validated writer — `tags` unread | `contract_field_audit.py` | 6C |
 | Contract `effect_packets` | **none — `registry.effect_packet()` has zero call sites** | `registry.py:145-158` | `ContractEditorDialog.gd` (tab) | validated writer for a dead section | `contract_field_audit.py:153-167` | 6C (engine decision) |
 | Contract `abilities` | `contracts/equipment.py:159-207` | `registry.py:134-143` | `ContractEditorDialog.gd` (tab) | validated writer — `effect_packet` unread | `contract_field_audit.py` | 6C |
-| Ruleset `combat.retreat` | `world.py:361-369` | **none** | absent | absent | `skill_audit.py` (skill name only) | 6D |
+| Ruleset `combat.retreat` | `world.py:361-369` | `RulesetDraft.gd` rejects negative difficulties; staged engine verdict protects the full set | typed skill and difficulty controls in `RulesetEditorDialog.gd` | prototype | `configuration_dialog_smoke.gd` | 6D |
 | Ruleset `combat.additional_blocked_command_names`, `additional_combat_message_tokens` | `command_execution.py:373`; `status_payloads.py:650` | **none** | absent | absent | none | 6D |
 
 ## G. Progression & flows
@@ -200,7 +201,7 @@ the *engine* has a second consumer, the *reference content* does not.
 | Declaration | Engine reader | Validator | Editor writer | Status | Evidence | Batch |
 |---|---|---|---|---|---|---|
 | Backgrounds (`data/player/backgrounds.json`) | `core/backgrounds.py:100-102`; `game_manager.py:144` | `content_set.py:2394-2490` | `BackgroundInspector.gd:35-410` — **8 fantasy stat names hard-coded** (`:18`) | journey-proven | `background_authoring_smoke.gd`, `p4_progression.py` | 6D |
-| Ruleset `advancement` (`curve`, `grants`) | `core/advancement.py:269-368` | `content_set.py:2234-2307` | absent | absent | `p4_progression.py` | 6D |
+| Ruleset `advancement` (`curve`, `grants`) | `core/advancement.py:269-368` | `content_set.py:2682-2772` checks the curve, grant IDs, known ledger kinds, and item matchers | `RulesetEditorDialog.gd`: curve controls plus grant cards for kinds, XP, message, and all engine-read match filters; unowned row metadata is preserved | prototype | `configuration_dialog_smoke.gd`; `p4_progression.py` | 6D |
 | `data/advancement.json` (alternate config) | merged first (`advancement.py:275-289`) | **none** | absent | absent | none | 6D |
 | Quests (`data/quests/quests.json`) | `core/quests/loader.py:22-72` | `content_set.py:1714-1940` (this file only); `reference_integrity_validator.py:172-231` | `QuestInspector.gd:40-137`; `QuestObjectiveEditor.gd:40-257` | journey-proven | `quest_inspector_smoke.gd`, `p6_new_objective_types_journey.py` | 6D |
 | `quests/instances.json` (instance seeds) | `quests/loader.py:22-72` | **none** (`content_set.py` reads `quests.json` only) | absent | absent | `quest_loader_is_not_abandoned.py` | 6D |
@@ -227,7 +228,7 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `world.regions` (policy flags, `biomes`, `region_types`) | `world.py:797-798` | `content_set.py:236-343` | yes (3 checkboxes + 2 lists) | validated writer | 6C |
 | `weather` (`profiles`, `descriptions`) | `weather_manager.py:27-67`; `information.py:185` | `content_set.py:1138-1166` — profile names only; **`chances` is read by the engine and absent here** | no | absent | 6D |
 | `systems` | `content_set.py:80-124` | `content_set.py:80-124` (manifest mismatch = error) | 8 toggles | validated writer | 6B |
-| `combat` | `world.py:361-369` | none | no | absent | 6D |
+| `combat.retreat` | `world.py:361-369` | `RulesetDraft.gd` rejects negative difficulties; staged engine verdict protects the full set | typed skill and difficulty controls in `RulesetEditorDialog.gd` | prototype | `configuration_dialog_smoke.gd` | 6D |
 | `locksmithing` | `world.py:540`; `items/lockpick.py:67` | none | no | absent | 6D |
 | `crime` (+ `custody`) | `core/crime_manager.py:26-211`; `commands/jail.py:36-47` | none | no | absent | 6D |
 | `player_defaults` | `world.py:135-146`; `player/core.py:72` | none | no | absent | 6D |
@@ -235,26 +236,26 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `crafting.salvage_rules` | `crafting_manager.py:424-464` | `content_set.py:2083-2129` | no | absent | 6C |
 | `social` (`tiers`, `gift_values`, `gift_tag_values`) | `social/relationships.py:28-70`; `mercantile.py:64` | `content_set.py:959-1093` | no | absent | 6D |
 | `economy.currency_name` | `world.py:155-157` | none | no | absent | 6D |
-| `advancement` | `core/advancement.py:269-368` | `content_set.py:2244-2307` | no | absent | 6D |
+| `advancement` | `core/advancement.py:269-368` | `content_set.py:2682-2772` | curve plus grant cards (kinds, XP, message, and engine-read match filters) | prototype | 6D |
 | `loot` (`take_hint`, `chest_materials`, `currency_item_id`, `ambient_pools`) | `utils/utils.py:431-434`; `chest_loot_generator.py:87-126`; `npc.py:184-235` | `content_set.py:1216-1256` — `ambient_pools` only | no | absent | 6C |
-| `skills.stat_bonuses` | `skill_system.py:43-49` | `content_set.py:1109-1129` | no | absent | 6C |
+| `skills.stat_bonuses` | `skill_system.py:43-49` | `content_set.py:_validate_skills_rules` | skill id, stat and per-point rows in `RulesetEditorDialog.gd` | prototype | 6C |
 | `factions` (not declared by fantasy) | `world/factions.py:48-118` | `content_set.py:854-880` | `extra` only | prototype | 6D |
 | `status` (orbital only) | `world.py:178` fallback; `contracts/stats.py:175` primary | none | `status.stats` only | prototype | 6C |
 | `npc_naming` | `npc_factory.py:61-73` | none | no | absent | 6D |
 | `calendar` | `time_manager.py:23-52` | none | no | absent | 6D |
 | `spawning` | `spawner.py:87,95` | none | no | absent | 6D |
 | `elites` | `npcs/elite.py:13-46` | none — the only test patches `ruleset_section` and never reads the shipped section | no | absent | 6D |
-| `npc_schedules` | `ai/schedules.py:58-173` | none | no | absent | 6D |
+| `npc_schedules` | `ai/schedules.py:58-173` | `content_set.py:_validate_npc_schedule_rules` validates roles, category keywords, slot ordering/references, canonical hours, and the one dispatcher-supported override | `RulesetEditorDialog.gd`: excluded names, room-name categories, role/template matching, ordered location slots, and daily activities. It preserves unknown setting-specific data on touched rows | prototype | `test_content_set_validator.py`; `configuration_dialog_smoke.gd` | 6D |
 | `debug` | `commands/debug_crafting.py:62`, … | none | no | absent | 6D |
 
-**Notes.** The editor can write 7 of the 23 top-level keys, and five of those are a
-single field: three scalars (`ruleset_id`, `world_mode`, `progression_model`), `systems`
-(8 toggles), `world.regions` (3 flags + 2 lists), `status` (`stats` only) and `factions`
-(`extra` only). Eleven
-sections are validated by nothing at all: `combat`, `locksmithing`, `crime`,
-`player_defaults`, `economy`, `npc_naming`, `calendar`, `spawning`, `elites`,
-`npc_schedules`, `debug`. Under the standing rule — a section gets a form only when a
-validator can refuse a bad value — those eleven stay read-only until Track B supplies the
+**Notes.** The editor can write 10 of the 23 top-level keys: three scalars
+(`ruleset_id`, `world_mode`, `progression_model`), `systems` (8 toggles),
+`world.regions` (3 flags + 2 lists), `status` (`stats` only), `factions` (`extra` only),
+plus structured `npc_schedules`, `advancement` and `skills.stat_bonuses` sections. Nine
+sections are validated by nothing at all: `locksmithing`, `crime`,
+`player_defaults`, `economy`, `npc_naming`, `calendar`, `spawning`, `elites`, and
+`debug`. Under the standing rule — a section gets a form only when a validator can refuse
+a bad value — those nine stay read-only until Track B supplies the
 check, and the ledger is where that debt is visible rather than implied.
 
 ### H.2 The three configuration dialogs, field by field (6A exit evidence)
@@ -271,7 +272,7 @@ was falsified by removing one `_field(...)` line from a builder — it failed na
 |---|---|---|---|
 | `ContractEditorDialog` | `CONTRACT_SCHEMAS`: 8 sections, **69 fields** | 67 | `item_families.description`, `item_families.debug_only` — both read by nothing (§I.5), preserved as authored |
 | `ContractEditorDialog` (file level) | `TOP_LEVEL_FIELDS` | `stats` page (`order`, `short`, `roles`) — validated by `registry._ingest_stats` | `schema_version` (engine-owned), file-level `label`/`description` (unread, preserved) |
-| `RulesetEditorDialog` | 23 top-level keys | **7** (`ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`) | the other 16 keys, byte-for-byte preserved |
+| `RulesetEditorDialog` | 23 top-level keys | **9** (`ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `npc_schedules`, `advancement`) | the other 14 keys, byte-for-byte preserved |
 | `CombatVocabularyDialog` | `combat/elements.json` | `valid_damage_types`, `default_damage_type`, and every hazard field the shipped file uses (`channel`, `damage`, `flavor`, `tick_interval`) | `elemental_opposites`, `flavor_text` |
 
 **What this says about 6A.** The contract and combat-vocabulary dialogs are close to
@@ -305,8 +306,11 @@ compare SHA-256, run the engine verdict and keep a `.bak`
 (`content_round_trip_smoke.gd`); **a set can now be renamed or removed from the
 chooser** (`ContentSetAdmin.gd`), inside the sets root only and only with the name
 typed, and a rename moves the directory and the manifest `id` together
-(`content_set_lifecycle_smoke.gd`). Still missing: external content-set roots and
-editing `paths` after creation.
+(`content_set_lifecycle_smoke.gd`). **Registered external roots are now supported**
+without scanning or mutating their parents (`DataRoot.gd`,
+`external_content_set_roots_smoke.gd`): registration is an exact manifest-bearing
+folder stored alongside the active-root preference, and forgetting it never deletes
+its files. Editing `paths` after creation remains deliberately unavailable.
 
 **Multi-file saves have a checkpoint now** (2026-09-21). `SaveCheckpoint` copies the
 set's `data/` tree before `Main._save_everything` writes anything and restores it if a
@@ -316,6 +320,14 @@ back), refuses a checkpoint from another set, and prunes to the newest three. Th
 content-library and region saves still run no engine verdict on save
 (`DatabaseManager.gd:512-533`, `RegionManager.gd:109-124`) — what changed is that a
 failure no longer leaves the set half-written.
+
+**Manifest capability changes now coordinate their matching explicit ruleset system
+declarations** (2026-09-22). `configuration_transaction.py` validates the pair in one
+staged set, writes per-file backups before either replacement, and restores the first
+file if the second write fails. The manifest dialog tells the author that disabling a
+capability retains related content as inactive; it does not delete recipes, items or
+NPCs. `test_configuration_save.py` covers successful coordinated save, staged refusal
+and a forced second-write rollback; `manifest_editing_smoke.gd` drives the actual UI.
 
 **Change foundations, precisely** (verified for 6B's spec in `chunks-of-work.md` §6B;
 updated 2026-09-21 as the first piece landed):
@@ -360,12 +372,13 @@ target kinds.
 
 ### I.4 Read by the engine, validated by nothing
 
-Room `env_properties` and `properties.exit_requirements`/`env_interactions`/
-`time_descriptions`/`locked_by`; `spawner` toggles and weights; NPC `friendly`, `stats`,
-`level`, `loot_table`, `schedule`, `patrol_points`, `initial_inventory`, the behaviour
-tuning block, gift preferences; containers; affixes; `knowledge/topics.json`;
-`field_interactions.json`; `dynamic_themes.json`; `presentation/*.json`. Each is a value
-a content author can write, the engine will act on, and no gate will refuse.
+Room `env_properties` and `properties.exit_requirements`/`env_interactions`/`locked_by`;
+`spawner` toggles and weights; NPC `loot_table` and gift preferences; containers; affixes;
+`knowledge/topics.json`; `field_interactions.json`; `dynamic_themes.json`; and
+`presentation/*.json`. Each is a value a content author can write, the engine will act
+on, and no gate will refuse. Room time descriptions plus the NPC template envelope
+(`friendly`, stats/level, direct schedule, patrol, inventory and behaviour tuning) now
+have runtime-shape validation; the remaining rows are the actual validator debt.
 
 ### I.5 Dead declarations and disagreements
 
