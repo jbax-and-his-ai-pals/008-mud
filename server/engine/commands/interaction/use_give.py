@@ -7,6 +7,19 @@ from engine.items.key import Key
 from engine.social.relationships import apply_relationship_milestones, has_ladder, next_relationship_milestone, relationship_key, relationship_rules, relationship_tier
 
 
+def _closing_line(quest_data) -> str:
+    """The authored `completion_dialogue` of the stage a delivery finishes.
+
+    Handing over the item used to end every delivery quest on the NPC's
+    generic "Thank you!", while `talk`-ing the same quest to completion showed
+    the authored line (interaction/npcs.py `_final_stage_dialogue`). Read before
+    `complete_quest`, which moves the quest out of the active list.
+    """
+    from engine.commands.interaction.npcs import _final_stage_dialogue
+
+    return _final_stage_dialogue(quest_data)
+
+
 def _world_day_key(world) -> str:
     manager = getattr(getattr(world, "game", None), "time_manager", None)
     if manager is None:
@@ -153,8 +166,9 @@ def give_handler(args, context):
             title = q_data.get("title", "Task")
             required_ids = {r.get("template_id") for r in recipients}
             if required_ids <= set(delivered):
+                authored = _closing_line(q_data)
                 rewards_msg = world.quest_manager.complete_quest(player, q_id)
-                npc_response = npc.dialog.get(f"complete_{q_id}", npc.dialog.get("quest_complete", "Thank you!"))
+                npc_response = authored or npc.dialog.get(f"complete_{q_id}", npc.dialog.get("quest_complete", "Thank you!"))
                 msg = f"{FORMAT_SUCCESS}[Quest Complete] {title}{FORMAT_RESET}\n"
                 msg += f"{FORMAT_HIGHLIGHT}\"{npc_response}\"{FORMAT_RESET}\n"
                 if rewards_msg: msg += rewards_msg
@@ -228,9 +242,10 @@ def give_handler(args, context):
         
         # Complete Quest
         qm = world.quest_manager
+        authored = _closing_line(quest_data)
         rewards_msg = qm.complete_quest(player, quest_id)
         
-        npc_response = npc.dialog.get(f"complete_{quest_id}", npc.dialog.get("quest_complete", "Thank you!"))
+        npc_response = authored or npc.dialog.get(f"complete_{quest_id}", npc.dialog.get("quest_complete", "Thank you!"))
         
         msg = f"{FORMAT_SUCCESS}[Quest Complete] {quest_data.get('title')}{FORMAT_RESET}\n"
         msg += f"{FORMAT_HIGHLIGHT}\"{npc_response}\"{FORMAT_RESET}\n"

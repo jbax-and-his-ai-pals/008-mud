@@ -226,6 +226,9 @@ class TestFantasyGatheringRoute(unittest.TestCase):
             completed = server.execute_command(session.session_id, "give wildflower posy to Elder Thorne")
             completed_text = "\n".join(str(event["payload"]) for event in completed)
             self.assertIn("Quest Complete", completed_text)
+            # The stage's authored closing line, not the NPC's generic "Thank
+            # you!": handing an item over used to skip it.
+            self.assertIn("Riverside is fortunate to have you here", completed_text)
             self.assertIn("25 XP", completed_text)
             self.assertIn("12 Gold", completed_text)
             self.assertEqual(10, player.npc_relationships["village_elder"])
