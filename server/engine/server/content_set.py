@@ -4626,6 +4626,68 @@ def _validate_contract_content(content_root: Path, issues: list[ContentSetIssue]
                     ))
 
 
+FLAVOR_LINES = {"weakness": "a weakness", "resistance": "a resistance", "strong_resistance": "a resistance of 50 or more"}
+
+
+def _validate_combat_flavor(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """`combat/elements.json`'s `flavor_text`, and the retired `elemental_opposites`.
+
+    config_combat.py replaces the engine's flavor table with the authored one,
+    and magic/effects.py looks a hit's channel up there, falling back to the
+    `default` entry by indexing it directly: a table without `default` raises
+    on the first spell that finds a weakness or resistance in an unlisted
+    channel. Each line is formatted with `target_name` only.
+
+    `elemental_opposites` was loaded into a constant nothing read; it declared
+    a mechanic the engine never had, so it is refused rather than kept inert.
+    """
+    path = content_root / "combat" / "elements.json"
+    if not path.is_file():
+        return
+    payload = _load_json(path, [], "combat elements")
+    if not isinstance(payload, dict):
+        return
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", str(path), message))
+
+    if "elemental_opposites" in payload:
+        error("elemental_opposites is read by nothing (no mechanic uses it) and has been removed; delete it")
+    if "flavor_text" not in payload:
+        return
+    flavor = payload["flavor_text"]
+    if not isinstance(flavor, dict):
+        error("flavor_text must be an object of damage channel -> lines")
+        return
+    channels = {str(value) for value in payload.get("valid_damage_types", [])} if isinstance(payload.get("valid_damage_types"), list) else set()
+    if "default" not in flavor:
+        error("flavor_text needs a `default` entry: a hit in a channel with no lines of its own looks it up and raises without one")
+    for channel, lines in flavor.items():
+        if str(channel).startswith("_"):
+            continue
+        label = f"flavor_text.{channel}"
+        if channel != "default" and channels and channel not in channels:
+            error(f"{label} is not a declared damage channel, so no hit ever uses it")
+        if not isinstance(lines, dict):
+            error(f"{label} must be an object of weakness / resistance / strong_resistance lines")
+            continue
+        for key, text in lines.items():
+            if str(key).startswith("_"):
+                continue
+            if key not in FLAVOR_LINES:
+                error(f"{label}.{key} is not a line the engine shows (known: {', '.join(FLAVOR_LINES)})")
+            elif not isinstance(text, str):
+                error(f"{label}.{key} must be text")
+            else:
+                try:
+                    extra = sorted(_format_placeholders(text) - {"target_name"})
+                except ValueError as problem:
+                    error(f"{label}.{key} is not a valid message template ({problem})")
+                    continue
+                if extra:
+                    error(f"{label}.{key} uses {', '.join('{' + name + '}' for name in extra)}; only {{target_name}} is filled")
+
+
 def _validate_item_envelopes(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """What `definition_loader.load_item_templates` keeps and `ItemFactory` builds.
 
@@ -5907,6 +5969,7 @@ def load_content_set(
         _validate_campaigns(content_root, issues)
         _validate_abilities(content_root, issues)
         _validate_item_envelopes(content_root, issues)
+        _validate_combat_flavor(content_root, issues)
         _validate_region_spawners(content_root, issues)
         _validate_quest_stages(content_root, issues)
         _validate_quest_rewards(content_root, issues)

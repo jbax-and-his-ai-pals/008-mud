@@ -1406,6 +1406,42 @@ class TestLootSettings(unittest.TestCase):
             self.assertTrue(any(expected in m for m in errors), (expected, errors))
 
 
+class TestCombatFlavor(unittest.TestCase):
+    """combat/elements.json flavor_text was unchecked (a table without `default`
+    raises on the first unlisted-channel resistance), and elemental_opposites
+    was loaded into a constant nothing read."""
+
+    def _errors(self, **elements) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        combat = package / "data" / "combat"
+        combat.mkdir(exist_ok=True)
+        payload = {"valid_damage_types": ["physical", "fire"], "default_damage_type": "physical", "hazards": {}}
+        payload.update(elements)
+        (combat / "elements.json").write_text(json.dumps(payload), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and i.path.endswith("elements.json")]
+
+    def test_a_complete_table_is_accepted(self):
+        self.assertEqual([], self._errors(flavor_text={
+            "default": {"weakness": "Hits weak!", "resistance": "Resisted.", "strong_resistance": "Shrugged off."},
+            "fire": {"weakness": "{target_name} burns!"},
+        }))
+
+    def test_what_the_engine_cannot_show_is_an_error(self):
+        errors = self._errors(
+            elemental_opposites={"fire": "water"},
+            flavor_text={"fire": {"weakness": "{caster} burns {target_name}", "crit": "Ouch"}, "frost": {"resistance": "Cold."}},
+        )
+        for expected in (
+            "elemental_opposites is read by nothing",
+            "flavor_text needs a `default` entry",
+            "flavor_text.fire.weakness uses {caster}",
+            "flavor_text.fire.crit is not a line the engine shows",
+            "flavor_text.frost is not a declared damage channel",
+        ):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+
 class TestRetiredRulesetKeys(unittest.TestCase):
     """`ruleset_id` and `world_mode` were written by the editor and read by
     nothing (the world mode is the server's feature profile). They are removed,

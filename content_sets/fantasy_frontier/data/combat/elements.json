@@ -5,15 +5,6 @@
     "holy", "shadow", "arcane", "magical", "disease"
   ],
   "default_damage_type": "magical",
-  "elemental_opposites": {
-    "fire": "water",
-    "water": "lightning",
-    "ice": "fire",
-    "earth": "air",
-    "air": "earth",
-    "holy": "shadow",
-    "shadow": "holy"
-  },
   "flavor_text": {
     "fire": {
       "weakness": "The flames roar, incinerating {target_name}'s vulnerability!",

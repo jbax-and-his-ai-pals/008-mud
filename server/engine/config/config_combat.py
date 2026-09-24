@@ -70,7 +70,6 @@ EFFECT_POISON_DAMAGE_TYPE = "poison"
 _DEFAULT_ELEMENTAL_DATA = {
     "valid_damage_types": ["physical", "magical"],
     "default_damage_type": "magical",
-    "elemental_opposites": {},
     "flavor_text": {"default": {"weakness": "Hits weak!", "resistance": "Resisted.", "strong_resistance": "Strongly resisted."}},
     "hazards": {},
 }
@@ -81,7 +80,6 @@ VALID_DAMAGE_TYPES = list(_DEFAULT_ELEMENTAL_DATA["valid_damage_types"])
 # plain module-level string would freeze the default at the built-in value and
 # silently ignore the set's own. Read it through `spell_default_damage_type()`.
 _SPELL_DEFAULT = [_DEFAULT_ELEMENTAL_DATA["default_damage_type"]]
-ELEMENTAL_OPPOSITES: dict = {}
 DAMAGE_TYPE_FLAVOR_TEXT: dict = dict(_DEFAULT_ELEMENTAL_DATA["flavor_text"])
 
 # One record per hazard, keyed by the id a room names. A hazard used to be three
@@ -147,7 +145,6 @@ def configure_combat_elements(content_root: str) -> None:
             data = parsed
     VALID_DAMAGE_TYPES[:] = list(data.get("valid_damage_types", _DEFAULT_ELEMENTAL_DATA["valid_damage_types"]))
     _SPELL_DEFAULT[0] = str(data.get("default_damage_type", _DEFAULT_ELEMENTAL_DATA["default_damage_type"]))
-    ELEMENTAL_OPPOSITES.clear(); ELEMENTAL_OPPOSITES.update(data.get("elemental_opposites", {}))
     DAMAGE_TYPE_FLAVOR_TEXT.clear(); DAMAGE_TYPE_FLAVOR_TEXT.update(data.get("flavor_text", _DEFAULT_ELEMENTAL_DATA["flavor_text"]))
     declared = data.get("hazards", {})
     HAZARD_TYPES.clear()

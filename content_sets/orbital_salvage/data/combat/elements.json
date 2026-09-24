@@ -2,9 +2,6 @@
   "_comment": "This set's damage channels. Loading them from content is what keeps 'kinetic' and 'thermal' out of engine code.",
   "valid_damage_types": ["kinetic", "thermal", "electric", "physical"],
   "default_damage_type": "kinetic",
-  "elemental_opposites": {
-    "thermal": "thermal"
-  },
   "flavor_text": {
     "default": {
       "weakness": "That went straight through.",
