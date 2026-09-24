@@ -27,7 +27,17 @@ const COMMON_PROPS = {
 	"Safe Zone": {"key": "safe_zone", "val": true},
 	"Noisy": {"key": "noisy", "val": true},
 	"Smell": {"key": "smell", "val": "damp earth"},
-	"Weather": {"key": "weather", "val": "clear"},
+}
+# "Weather" used to be offered here: a region's `weather` is read by nothing
+# (a room's is; a region's weather comes from its `weather_profile`).
+
+# A region's properties something reads (engine `region.py`
+# REGION_PROPERTY_KINDS), kept equal by schema_parity_smoke.gd.
+const REGION_PROPERTY_KINDS := {
+	"dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string",
+	"outdoors": "boolean", "safe_zone": "boolean",
+	"weather_profile": "string", "level_band": "object", "districts": "object",
+	"biome": "string", "region_type": "string",
 }
 
 func _init(c: VBoxContainer, handler: ActionHandler = null, db_mgr: DatabaseManager = null):
@@ -239,6 +249,11 @@ func _refresh_props():
 	# The rule is PropertyTagRow's, not this panel's: RoomPropertiesPanel is the
 	# same shape and did not have the guard, so the two panels disagreed about
 	# which values they could edit and only one of them was safe.
+	var old_note := props_box.get_node_or_null("UnreadKeys")
+	if old_note != null: props_box.remove_child(old_note); old_note.queue_free()
+	var note := PropertyTagRow.unread_note(cur_data.properties, REGION_PROPERTY_KINDS)
+	if note != null: props_box.add_child(note)
+
 	var scalar_keys: Array = PropertyTagRow.editable_keys(cur_data.properties)
 	# The controlled picker above owns this string, so do not render a competing
 	# raw tag that could reintroduce a profile id the ruleset does not declare.

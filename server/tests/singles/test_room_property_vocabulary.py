@@ -50,6 +50,32 @@ class TestRoomPropertyVocabulary(unittest.TestCase):
             self.assertNotIn(key, ROOM_EDITOR_PROPERTY_KINDS)
 
 
+class TestRegionAndDistrictVocabulary(unittest.TestCase):
+    """The same promise for `region.py`'s REGION_PROPERTY_KINDS and
+    DISTRICT_PROPERTY_KINDS: each listed key has a reader."""
+
+    # Read only by the validator's classification policy (ruleset.world.regions).
+    CLASSIFICATION = {"biome", "region_type"}
+
+    def test_every_region_and_district_key_has_a_reader(self):
+        from engine.world.region import DISTRICT_PROPERTY_KINDS, REGION_PROPERTY_KINDS
+
+        source = _sources(ENGINE, "*.py", skip=("content_set.py", "region.py"))
+        # region.py itself counts, past the constants that list the keys.
+        source += (ENGINE / "world" / "region.py").read_text(encoding="utf-8").split("class Region", 1)[1]
+        for key in {**REGION_PROPERTY_KINDS, **DISTRICT_PROPERTY_KINDS}:
+            if key in self.CLASSIFICATION:
+                continue
+            self.assertRegex(source, r'[\'"]%s[\'"]' % re.escape(key), f"'{key}' is listed as read, but nothing in the engine names it")
+
+    def test_retired_region_keys_are_not_known(self):
+        from engine.world.region import DISTRICT_PROPERTY_KINDS, REGION_PROPERTY_KINDS
+
+        for key in ("indoors", "weather", "music", "spawn_templates", "spawn_level_range"):
+            self.assertNotIn(key, REGION_PROPERTY_KINDS)
+            self.assertNotIn(key, DISTRICT_PROPERTY_KINDS)
+
+
 class TestIndoorRoomsAreIndoors(unittest.TestCase):
     """fantasy_frontier authored `"indoors": true`, which nothing read; with
     `outdoors` unset the room fell through to its region and counted as

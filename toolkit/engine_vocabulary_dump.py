@@ -109,6 +109,8 @@ def main() -> int:
         "item_type_names": _item_type_names(),
         # The room properties something reads; RoomPropertiesPanel.gd holds the copy.
         "room_property_kinds": _room_property_kinds(),
+        "region_property_kinds": _region_vocabulary()["region"],
+        "district_property_kinds": _region_vocabulary()["district"],
         # What CampaignInspector.gd offers for a node's type and a transition's
         # trigger (test_campaign_vocabulary.py ties these to the manager).
         "campaigns": _campaign_vocabulary(),
@@ -157,6 +159,12 @@ def _ability_vocabulary() -> dict:
         "effect_fields": {name: sorted(fields) for name, fields in sorted(ABILITY_EFFECT_FIELDS.items())},
         "message_placeholders": {name: sorted(names) for name, names in sorted(ABILITY_MESSAGE_PLACEHOLDERS.items())},
     }
+
+
+def _region_vocabulary() -> dict:
+    from engine.world.region import DISTRICT_PROPERTY_KINDS, REGION_PROPERTY_KINDS
+
+    return {"region": dict(sorted(REGION_PROPERTY_KINDS.items())), "district": dict(sorted(DISTRICT_PROPERTY_KINDS.items()))}
 
 
 def _room_property_kinds() -> dict:

@@ -23,7 +23,14 @@ const COMMON_PROPS = {
 	"Safe Zone": {"key": "safe_zone", "val": true},
 	"Noisy": {"key": "noisy", "val": true},
 	"Smell": {"key": "smell", "val": "damp earth"},
-	"Weather": {"key": "weather", "val": "clear"},
+}
+# "Weather" used to be offered here; a district's `weather` is read by nothing.
+
+# The district keys play reads (engine `region.py` DISTRICT_PROPERTY_KINDS), kept
+# equal by schema_parity_smoke.gd. RESERVED_KEYS below are this editor's own.
+const DISTRICT_PROPERTY_KINDS := {
+	"dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string",
+	"outdoors": "boolean", "safe_zone": "boolean", "members": "array", "rooms": "array",
 }
 # The district dict's own structural fields -- never offered or edited as a
 # free-form property tag, since that would silently corrupt the district.
@@ -244,6 +251,8 @@ func _refresh_district_props():
 
 	for key in keys:
 		props_flow.add_child(_create_district_prop_tag(key, district_ref[key]))
+	var note := PropertyTagRow.unread_note(district_ref, DISTRICT_PROPERTY_KINDS, RESERVED_KEYS)
+	if note != null: props_flow.add_child(note)
 
 func _create_district_prop_tag(key, val) -> PanelContainer:
 	var panel := PanelContainer.new()

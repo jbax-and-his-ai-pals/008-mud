@@ -1825,6 +1825,41 @@ def _validate_room_property_keys(content_root: Path, ruleset: Any, issues: list[
                     issues.append(ContentSetIssue("error", str(path), f"{label}.locked_by references missing item '{value}', so the room can never be entered"))
 
 
+def _validate_region_property_keys(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """A region's `properties`, and each district's fields, against what reads
+    them (`region.py`). As for rooms: a key nothing reads is a warning, a read
+    key of the wrong type an error. The editor's own district fields are known.
+    """
+    from engine.world.region import DISTRICT_EDITOR_KEYS, DISTRICT_PROPERTY_KINDS, REGION_PROPERTY_KINDS
+
+    def check(values: dict, kinds: dict, extra: tuple, label: str, path: Path) -> None:
+        for key, value in values.items():
+            if str(key).startswith("_") or key in extra:
+                continue
+            kind = kinds.get(key)
+            if kind is None:
+                issues.append(ContentSetIssue("warning", str(path), f"{label}.{key} is read by nothing, so it does nothing (known: {', '.join(sorted(kinds))})"))
+            elif _json_kind(value) != kind:
+                issues.append(ContentSetIssue("error", str(path), f"{label}.{key} must be a {kind} (got {_json_kind(value)})"))
+            elif key == "temperature" and value not in ("normal", "cold", "hot"):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.temperature must be normal, cold, or hot"))
+
+    for path in sorted((content_root / "regions").glob("*.json")):
+        region = _load_json(path, [], "region definitions")
+        if not isinstance(region, dict) or not isinstance(region.get("rooms"), dict):
+            continue
+        region_id = str(region.get("region_id", path.stem))
+        properties = region.get("properties")
+        if not isinstance(properties, dict):
+            continue
+        check(properties, REGION_PROPERTY_KINDS, (), f"region '{region_id}' properties", path)
+        districts = properties.get("districts")
+        if isinstance(districts, dict):
+            for district_id, district in districts.items():
+                if isinstance(district, dict):
+                    check(district, DISTRICT_PROPERTY_KINDS, DISTRICT_EDITOR_KEYS, f"region '{region_id}' district '{district_id}'", path)
+
+
 # Ruleset keys that were read by nothing and have been removed. Refused rather
 # than ignored, so an author is not left setting a value that changes nothing.
 _RETIRED_RULESET_KEYS = {
@@ -5741,6 +5776,7 @@ def load_content_set(
         _validate_crime_and_debug_rules(content_root, ruleset_payload, issues, ruleset_source_path)
         _refuse_retired_ruleset_keys(ruleset_payload, issues, ruleset_source_path)
         _validate_room_property_keys(content_root, ruleset_payload, issues)
+        _validate_region_property_keys(content_root, issues)
         _validate_dynamic_themes(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_affixes(content_root, issues)
         _validate_item_resistances_and_sets(content_root, issues)

@@ -72,6 +72,8 @@ func _init() -> void:
 	_check_affix_item_classes(vocabulary)
 	_check_item_type_names(vocabulary)
 	_check_room_property_kinds(vocabulary)
+	_check_holder_kinds(vocabulary, "region_property_kinds", RegionInspector.REGION_PROPERTY_KINDS)
+	_check_holder_kinds(vocabulary, "district_property_kinds", DistrictInspector.DISTRICT_PROPERTY_KINDS)
 	_check_campaign_vocabulary(vocabulary)
 	_check_ability_vocabulary(vocabulary)
 
@@ -308,6 +310,15 @@ func _check_room_property_kinds(vocabulary: Dictionary) -> void:
 	_assert(_as_set(engine.keys()) == _as_set(RoomPropertiesPanel.ROOM_PROPERTY_KINDS.keys()), "the room property keys match (engine %s, editor %s)" % [str(_sorted(_as_set(engine.keys()))), str(_sorted(_as_set(RoomPropertiesPanel.ROOM_PROPERTY_KINDS.keys())))])
 	for key in engine:
 		_assert(str(RoomPropertiesPanel.ROOM_PROPERTY_KINDS.get(key, "")) == str(engine[key]), "room property %s is a %s in both" % [key, engine[key]])
+
+
+func _check_holder_kinds(vocabulary: Dictionary, name: String, editor: Dictionary) -> void:
+	print("\n[%s: editor vs engine]" % name)
+	var engine: Dictionary = vocabulary.get(name, {})
+	_assert(not engine.is_empty(), "the engine's %s were read" % name)
+	_assert(_as_set(engine.keys()) == _as_set(editor.keys()), "%s keys match (engine %s, editor %s)" % [name, str(_sorted(_as_set(engine.keys()))), str(_sorted(_as_set(editor.keys())))])
+	for key in engine:
+		_assert(str(editor.get(key, "")) == str(engine[key]), "%s.%s is a %s in both" % [name, key, engine[key]])
 
 
 func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:

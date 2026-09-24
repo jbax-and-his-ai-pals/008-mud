@@ -1295,6 +1295,41 @@ class TestRoomPropertyKeys(unittest.TestCase):
         self.assertTrue(any("properties.locked_by references missing item 'skeleton_key', so the room can never be entered" in m for m in errors), errors)
 
 
+class TestRegionPropertyKeys(unittest.TestCase):
+    """Region properties and district fields were never checked; a region's
+    `weather` or `indoors` was kept and did nothing."""
+
+    def _issues(self, properties: dict) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        region_path = package / "data" / "regions" / "town.json"
+        region = json.loads(region_path.read_text(encoding="utf-8"))
+        region["properties"] = {**(region.get("properties") or {}), **properties}
+        region_path.write_text(json.dumps(region), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if "region 'town'" in i.message]
+
+    def test_read_keys_and_editor_district_fields_are_accepted(self):
+        self.assertEqual([], self._issues({
+            "dark": False, "safe_zone": True, "weather_profile": "coast", "_note": "annotation",
+            "districts": {"docks": {"name": "Docks", "kind": "market", "seed": 4, "color": "#aa0", "shape": "blob",
+                                    "members": ["square"], "noisy": True}},
+        }))
+
+    def test_unread_keys_warn_and_wrong_types_are_errors(self):
+        issues = self._issues({
+            "weather": "rain", "indoors": True, "outdoors": "no", "temperature": "tepid",
+            "districts": {"docks": {"members": ["square"], "music": "sea shanty", "dark": 1}},
+        })
+        warnings = [m for s, m in issues if s == "warning"]
+        errors = [m for s, m in issues if s == "error"]
+        self.assertTrue(any("region 'town' properties.weather is read by nothing" in m for m in warnings), warnings)
+        self.assertTrue(any("region 'town' properties.indoors is read by nothing" in m for m in warnings), warnings)
+        self.assertTrue(any("district 'docks'.music is read by nothing" in m for m in warnings), warnings)
+        self.assertTrue(any("properties.outdoors must be a boolean (got string)" in m for m in errors), errors)
+        self.assertTrue(any("properties.temperature must be normal, cold, or hot" in m for m in errors), errors)
+        self.assertTrue(any("district 'docks'.dark must be a boolean (got number)" in m for m in errors), errors)
+
+
 class TestRetiredRulesetKeys(unittest.TestCase):
     """`ruleset_id` and `world_mode` were written by the editor and read by
     nothing (the world mode is the server's feature profile). They are removed,

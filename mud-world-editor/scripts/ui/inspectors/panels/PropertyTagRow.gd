@@ -30,6 +30,22 @@ extends RefCounted
 ## faithful one-line text form. Deliberately a positive test of the two shapes
 ## rather than `typeof(val) in [...]`, so a new Variant type defaults to editable
 ## rather than silently vanishing from every panel.
+# A note naming the keys nothing reads (the bag is open, so they are kept and do
+# nothing in play), or null when there are none. `known` is the engine's
+# vocabulary for this kind of holder; `ignored` are keys the caller owns.
+static func unread_note(properties: Dictionary, known: Dictionary, ignored: Array = []) -> Label:
+	var unread: Array = []
+	for key in properties.keys():
+		if str(key).begins_with("_") or known.has(key) or ignored.has(key): continue
+		unread.append(str(key))
+	if unread.is_empty(): return null
+	unread.sort()
+	var note := InspectorStyle.lbl("Read by nothing, so no effect in play: %s" % ", ".join(PackedStringArray(unread)), InspectorStyle.COLOR_DANGER)
+	note.name = "UnreadKeys"; note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.tooltip_text = "Keys the engine reads here: %s." % ", ".join(PackedStringArray(known.keys()))
+	return note
+
+
 static func is_inline_editable(value: Variant) -> bool:
 	var t := typeof(value)
 	return t != TYPE_DICTIONARY and t != TYPE_ARRAY

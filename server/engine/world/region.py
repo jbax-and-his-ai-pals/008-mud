@@ -3,13 +3,34 @@ from typing import Dict, List, Optional, Any
 from engine.world.room import Room
 from engine.game_object import GameObject
 
+# What a room, district and region share: the atmosphere keys World.get_env_property
+# resolves room -> district -> region, and safe_zone (World.is_location_safe).
+ENV_PROPERTY_KINDS = {
+    "dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string",
+    "outdoors": "boolean", "safe_zone": "boolean",
+}
+# A region's `properties` that something reads. `biome` and `region_type` are
+# read only by the content validator's classification policy
+# (ruleset.world.regions). test_room_property_vocabulary.py ties each to a reader.
+REGION_PROPERTY_KINDS = {
+    **ENV_PROPERTY_KINDS,
+    "weather_profile": "string",   # WeatherManager
+    "level_band": "object",        # Region.get_level_band
+    "districts": "object",         # World.get_district
+    "biome": "string", "region_type": "string",
+}
+# A district (region.properties.districts.<id>) the engine reads: its members
+# (or the older `rooms`) and the atmosphere it overrides.
+DISTRICT_PROPERTY_KINDS = {**ENV_PROPERTY_KINDS, "members": "array", "rooms": "array"}
+# The world editor's own district fields (its generator and map); not read in play.
+DISTRICT_EDITOR_KEYS = ("id", "name", "kind", "seed", "generator", "ports", "reroll_policy", "color", "shape")
+
 class Region(GameObject):
     def __init__(self, name: str, description: str, obj_id: Optional[str] = None):
         region_obj_id = obj_id if obj_id else f"region_{name.lower().replace(' ', '_')}"
         super().__init__(obj_id=region_obj_id, name=name, description=description)
         self.rooms: Dict[str, Room] = {}
         self.spawner_config: Dict[str, Any] = {} # <<< ADDED: To hold spawn data
-        self.properties.setdefault("indoors", False)
 
     def add_room(self, room_id: str, room: Room):
         self.rooms[room_id] = room
