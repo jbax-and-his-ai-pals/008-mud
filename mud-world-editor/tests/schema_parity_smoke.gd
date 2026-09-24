@@ -76,6 +76,7 @@ func _init() -> void:
 	_check_holder_kinds(vocabulary, "district_property_kinds", DistrictInspector.DISTRICT_PROPERTY_KINDS)
 	_check_campaign_vocabulary(vocabulary)
 	_check_ability_vocabulary(vocabulary)
+	_check_weather_vocabulary(vocabulary)
 
 	if failure_count > 0:
 		push_error("schema parity failed (%d)" % failure_count)
@@ -319,6 +320,24 @@ func _check_holder_kinds(vocabulary: Dictionary, name: String, editor: Dictionar
 	_assert(_as_set(engine.keys()) == _as_set(editor.keys()), "%s keys match (engine %s, editor %s)" % [name, str(_sorted(_as_set(engine.keys()))), str(_sorted(_as_set(editor.keys())))])
 	for key in engine:
 		_assert(str(editor.get(key, "")) == str(engine[key]), "%s.%s is a %s in both" % [name, key, engine[key]])
+
+
+func _check_weather_vocabulary(vocabulary: Dictionary) -> void:
+	print("
+[weather: editor vs engine]")
+	var weather: Dictionary = vocabulary.get("weather", {})
+	_assert(Array(weather.get("seasons", [])) == WeatherChancesSection.SEASONS, "the seasons match, in calendar order (engine %s)" % str(weather.get("seasons")))
+	_assert(JSON.stringify(SaveIO._normalize_numbers(weather.get("default_chances", {}))) == JSON.stringify(SaveIO._normalize_numbers(_sorted_table(WeatherChancesSection.DEFAULT_CHANCES))), "the engine's default seasonal table matches the one the editor shows")
+
+
+func _sorted_table(table: Dictionary) -> Dictionary:
+	var out := {}
+	var seasons := table.keys(); seasons.sort()
+	for season in seasons:
+		var entries: Dictionary = table[season]; var types := entries.keys(); types.sort()
+		out[season] = {}
+		for weather_type in types: out[season][weather_type] = entries[weather_type]
+	return out
 
 
 func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:

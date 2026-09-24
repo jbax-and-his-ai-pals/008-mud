@@ -229,6 +229,7 @@ RULESET_SETTER_KEYS = {
     "set_advancement": "advancement",
     "set_weather_descriptions": "weather",
     "set_weather_profiles": "weather",
+    "set_weather_chances": "weather",
     "set_quest_generation": "quest_generation",
     "set_crime": "crime",
     "set_social": "social",

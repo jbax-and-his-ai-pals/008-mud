@@ -47,6 +47,7 @@ var world_rules_section: WorldRulesSection
 var crime_section: CrimeSection
 var social_section: SocialSection
 var loot_section: LootSection
+var weather_chances_section: WeatherChancesSection
 
 const SYSTEM_LABELS := {
 	"combat": "Combat", "abilities": "Abilities", "magic": "Magic", "crafting": "Crafting",
@@ -150,6 +151,8 @@ func setup():
 	var profile_hint := InspectorStyle.lbl("A profile translates global weather into a region's local expression (an alpine pass turning rain into snow) and adds a travel advisory per local type.", InspectorStyle.COLOR_TEXT_DIM)
 	profile_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(profile_hint)
 	weather_profile_rows = VBoxContainer.new(); weather_profile_rows.add_theme_constant_override("separation", 7); box.add_child(weather_profile_rows)
+	weather_chances_section = WeatherChancesSection.new()
+	weather_chances_section.build(box, func(): _mark_dirty())
 	quest_generation_section = QuestGenerationSection.new()
 	quest_generation_section.build(box, func(): _mark_dirty())
 	world_rules_section = WorldRulesSection.new()
@@ -211,6 +214,7 @@ func open_active():
 	crime_section.load(draft.data, content_database)
 	social_section.load(draft.data)
 	loot_section.load(draft.data, content_database)
+	weather_chances_section.load(draft.data)
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -246,6 +250,7 @@ func _save():
 	if crime_section.changed(): draft.set_crime(crime_section.compose())
 	if social_section.changed(): draft.set_social(social_section.compose())
 	if loot_section.changed(): draft.set_loot(loot_section.compose())
+	if weather_chances_section.changed(): draft.set_weather_chances(weather_chances_section.compose())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)

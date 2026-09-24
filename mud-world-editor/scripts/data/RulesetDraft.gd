@@ -78,6 +78,11 @@ func set_weather_profiles(profiles: Dictionary):
 	if profiles.is_empty(): _section("weather").erase("profiles")
 	else: _section("weather")["profiles"] = profiles.duplicate(true)
 
+# null: no table of the set's own, so the engine's plays.
+func set_weather_chances(chances):
+	if chances == null or (chances is Dictionary and chances.is_empty()): _section("weather").erase("chances")
+	else: _section("weather")["chances"] = chances.duplicate(true)
+
 func set_quest_generation(section: Dictionary):
 	if section.is_empty(): data.erase("quest_generation")
 	else: data["quest_generation"] = section.duplicate(true)

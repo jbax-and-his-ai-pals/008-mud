@@ -51,6 +51,13 @@ def _content_set_module():
     return module
 
 
+def _weather_vocabulary() -> dict:
+    from engine.core.time_manager import SEASONS
+    from engine.core.weather_manager import DEFAULT_WEATHER_CHANCES
+
+    return {"seasons": list(SEASONS), "default_chances": DEFAULT_WEATHER_CHANCES}
+
+
 def main() -> int:
     try:
         from engine.conditions import KNOWN_KINDS
@@ -117,6 +124,9 @@ def main() -> int:
         # What MagicInspector.gd offers for an ability's target and an effect's
         # type, and the keys each effect type reads (magic/spell.py).
         "abilities": _ability_vocabulary(),
+        # The calendar's seasons and the weather table a set without its own
+        # `weather.chances` plays with; WeatherChancesSection.gd holds the copy.
+        "weather": _weather_vocabulary(),
         # A topic response's own condition vocabulary (not `condition_kinds`
         # above, which is dialogue's). `KnowledgeInspector.gd` holds the copy.
         "knowledge_conditions": {
