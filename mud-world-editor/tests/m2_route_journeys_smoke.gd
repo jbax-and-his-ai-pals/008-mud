@@ -48,6 +48,8 @@ func _run() -> void:
 	_hazard_route()
 	_spawner_route()
 	await _weather_route()
+	await _economy_route()
+	await _crime_route()
 	if failures > 0: push_error("m2 route journeys failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -384,6 +386,65 @@ func _weather_route() -> void:
 	_assert(after.get("ok", false) and edited_types == ["clear", "heatwave"] and int(counts.get("heatwave", 0)) > int(counts.get("clear", 0)), "edited: summer is now clear or, mostly, a heatwave (%s)" % _brief_weather(after))
 	if "Heatwave" in str(after.get("report", "")):
 		_assert(HEATWAVE in str(after.get("report", "")), "and the weather command describes it in the set's words")
+
+
+# --- system policy / economy -----------------------------------------------------------
+# The same theft, caught the same way, before the crime edit below: the fine
+# is charged in "gold". Renamed in the Ruleset dialog's World Rules, the same
+# fine is charged in crowns.
+
+func _economy_route() -> void:
+	print("
+[system policy / economy: rename the currency, then pay a fine in it]")
+	var arguments := ["vendor=merchant", "item=healing potion"]
+	var before := _route(shipped, "crime_theft", arguments)
+	_assert("20 gold fine" in str(before.get("output", "")), "shipped: the fine is 20 gold (%s)" % str(before.get("output", "")).replace("
+", " "))
+
+	main.ui_mgr.side_panel.request_edit_ruleset.emit()
+	await process_frame
+	var rules = main.ui_mgr.ruleset_editor
+	var currency: LineEdit = rules.world_rules_section.controls["economy.currency_name"]
+	currency.text = "crowns"; currency.text_changed.emit("crowns")
+	rules.confirmed.emit()
+	await process_frame
+	var ruleset: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(fixture.path_join("rules/ruleset.json")))
+	_assert(ruleset.get("economy", {}).get("currency_name") == "crowns", "saved by the Ruleset dialog (staged, engine-validated)")
+
+	var after := _route(fixture, "crime_theft", arguments)
+	_assert("20 crowns fine" in str(after.get("output", "")) and int(after.get("fine", 0)) == 20, "edited: the same fine is charged in crowns (%s)" % str(after.get("output", "")).replace("
+", " "))
+
+
+# --- system policy / crime ----------------------------------------------------------
+# Steal a healing potion from Talia's stall until someone notices: the Guard
+# Captain does, and a small theft is a fine. Edited in the Ruleset dialog's
+# Crime section: any theft worth 5 or more means a cell, so the same catch
+# ends in jail with nothing paid.
+
+func _crime_route() -> void:
+	print("
+[system policy / crime: lower the jail threshold, then get caught stealing]")
+	var arguments := ["vendor=merchant", "item=healing potion"]
+	var before := _route(shipped, "crime_theft", arguments)
+	_assert(before.get("ok", false) and before.get("caught_on") != null and int(before.get("fine", 0)) > 0 and not before.get("jailed", true), "shipped: caught, a fine, no cell (%s)" % _brief_crime(before))
+
+	main.ui_mgr.side_panel.request_edit_ruleset.emit()
+	await process_frame
+	var rules = main.ui_mgr.ruleset_editor
+	(rules.crime_section.controls["consequences.custody_value_threshold"] as SpinBox).value = 5
+	rules.confirmed.emit()
+	await process_frame
+	var ruleset: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(fixture.path_join("rules/ruleset.json")))
+	_assert(int(ruleset["crime"]["consequences"]["custody_value_threshold"]) == 5 and is_equal_approx(float(ruleset["crime"]["consequences"]["fine_rate"]), 2.0), "saved by the Ruleset dialog (staged, engine-validated); the fine rate untouched")
+
+	var after := _route(fixture, "crime_theft", arguments)
+	_assert(after.get("ok", false) and after.get("caught_on") == before.get("caught_on") and after.get("jailed", false) and int(after.get("fine", -1)) == 0, "edited: the same catch now ends in a cell, nothing paid (%s)" % _brief_crime(after))
+
+
+func _brief_crime(result: Dictionary) -> String:
+	if not result.get("ok", false): return "error: %s" % str(result.get("error", ""))
+	return "caught on %s, fine %s, jailed %s, reputation %s" % [str(result.get("caught_on")), str(result.get("fine")), str(result.get("jailed")), str(result.get("reputation"))]
 
 
 func _brief_weather(result: Dictionary) -> String:

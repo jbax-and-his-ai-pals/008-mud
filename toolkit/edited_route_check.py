@@ -348,11 +348,47 @@ def weather_rolls(content_set: str, season: str = "summer", changes: str = "200"
         server.shutdown()
 
 
+def crime_theft(content_set: str, vendor: str, item: str, gold: str = "500", attempts: str = "20") -> dict:
+    """Place the vendor template `vendor` beside the player and `steal <item>`
+    from it until someone notices (at most `attempts`); report what being
+    caught cost -- the fine, whether it meant a cell, the reputation lost."""
+    from engine.npcs.npc_factory import NPCFactory
+
+    server = _server(content_set)
+    try:
+        session, player = _player(server)
+        world = server.world
+        npc = NPCFactory.create_npc_from_template(vendor, world, f"route_{vendor}", current_region_id=player.current_region_id, current_room_id=player.current_room_id)
+        if npc is None:
+            return {"ok": False, "error": f"NPC template '{vendor}' did not build"}
+        world.add_npc(npc)
+        player.runtime_state.gold = int(gold)
+        consequences = world.ruleset_section("crime").get("consequences", {})
+        key = str(consequences.get("reputation_key", "")) if isinstance(consequences, dict) else ""
+        custody_property = str(world.ruleset_section("crime").get("custody", {}).get("room_property", ""))
+        for attempt in range(1, int(attempts) + 1):
+            gold_before = player.runtime_state.gold
+            output = _text(server.execute_command(session.session_id, f"steal {item} from {npc.name}"))
+            if "catches you" in output:
+                room = world.get_region(player.current_region_id).get_room(player.current_room_id)
+                return {
+                    "ok": True, "route": "crime_theft", "caught_on": attempt,
+                    "fine": gold_before - player.runtime_state.gold,
+                    "jailed": bool(custody_property and room.properties.get(custody_property)),
+                    "reputation": player.get_reputation(key) if key else None,
+                    "output": output[-300:],
+                }
+        return {"ok": True, "route": "crime_theft", "caught_on": None, "fine": 0, "jailed": False}
+    finally:
+        server.shutdown()
+
+
 ROUTES = {
     "combat_ability": combat_ability, "gather_craft_use": gather_craft_use,
     "dialogue_quest_reward": dialogue_quest_reward, "discovery_advancement": discovery_advancement,
     "gift_relationship": gift_relationship, "kill_loot": kill_loot, "hazard_exposure": hazard_exposure,
     "region_spawns": region_spawns, "weather_rolls": weather_rolls,
+    "crime_theft": crime_theft,
 }
 
 
