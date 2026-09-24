@@ -457,6 +457,7 @@ def journal_handler(args, context):
     for quest_data in sorted_active:
          if quest_data.get("state") in ["active", "ready_to_complete"]:
              found_active = True
+             fetch_in_hand = False
              
              # Use manager helper
              objective = context["world"].quest_manager.get_active_objective(quest_data) or {}
@@ -538,8 +539,11 @@ def journal_handler(args, context):
 
              elif obj_type == "fetch":
                   required_item_id = objective.get("item_id", ""); current_have = player.inventory.count_item(required_item_id)
-                  item_plural = _optional(objective.get("item_name_plural")) or "the required items"
+                  item_plural = _optional(objective.get("item_name_plural")) or _optional(objective.get("item_name")) or "the required items"
                   required = objective.get("required_quantity")
+                  # A fetch is checked when it is handed in, so its state stays
+                  # "active" with the items in hand; say it is ready then too.
+                  fetch_in_hand = required not in (None, "") and current_have >= int(required)
                   progress = f"{current_have}/{required} " if required not in (None, "") else f"{current_have} "
                   task = f"  Task: Gather {progress}{item_plural}"
                   source = _optional(objective.get("source_enemy_name_plural"))
@@ -576,7 +580,7 @@ def journal_handler(args, context):
              if instruction and obj_type != "unknown":
                  response += f"  {FORMAT_HIGHLIGHT}{instruction}{FORMAT_RESET}\n"
              
-             if quest_data.get('state') == "ready_to_complete":
+             if quest_data.get('state') == "ready_to_complete" or (obj_type == "fetch" and fetch_in_hand):
                  # Say how, not only that: talking to the giver does not offer
                  # the hand-in, so "Ready to turn in!" alone left a player who
                  # had done the work standing in front of the right person.

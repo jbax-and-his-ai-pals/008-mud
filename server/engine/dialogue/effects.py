@@ -159,8 +159,12 @@ def _apply_quest_effects(effects: Dict[str, Any], player, world, report: EffectR
                     report.applied.append("%s %s" % (label.lower(), quest_id))
                     title = ""
                     active = getattr(getattr(player, "runtime_state", None), "quests", None)
-                    for entry in (getattr(active, "active", {}) or {}).values():
-                        if str(entry.get("template_id", "")) == quest_id:
+                    # An active entry is keyed "<quest id>_<suffix>" and does
+                    # not carry a template_id, so matching only on that field
+                    # announced the raw id ("[Quest Accepted] quest_x") to
+                    # the player instead of the quest's title.
+                    for instance_id, entry in (getattr(active, "active", {}) or {}).items():
+                        if str(entry.get("template_id", "")) == quest_id or str(instance_id).startswith(quest_id + "_"):
                             title = str(entry.get("title", "") or "")
                             break
                     report.messages.append("[Quest Accepted] %s" % (title or quest_id))
