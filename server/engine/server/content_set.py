@@ -4000,6 +4000,77 @@ def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> No
                 error(f"no END node can be reached from start_node_id '{start}', so the campaign never completes")
 
 
+QUEST_REWARD_KEYS = ("xp", "gold", "items", "generated_item_data", "relationships")
+
+
+def _validate_quest_rewards(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """`quests.json` rewards, as `QuestManager._grant_rewards` pays them.
+
+    It compares `xp` and `gold` with `> 0` (a string raises), indexes each item
+    reward's `item_id` and `quantity` directly (a missing quantity raises, and
+    the quest completes without paying), and skips a relationship reward whose
+    NPC is not in the world. Only instance quests had their rewards checked.
+    """
+    quests_path = content_root / "quests" / "quests.json"
+    if not quests_path.is_file():
+        return
+    payload = _load_json(quests_path, [], "quest definitions")
+    if not isinstance(payload, dict):
+        return
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", [])
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", [])
+
+    def integer(value: Any) -> bool:
+        return isinstance(value, int) and not isinstance(value, bool)
+
+    for quest_id, quest in payload.items():
+        if str(quest_id).startswith("_") or not isinstance(quest, dict) or "rewards" not in quest:
+            continue
+        label = f"quest '{quest_id}' rewards"
+
+        def error(message: str) -> None:
+            issues.append(ContentSetIssue("error", str(quests_path), f"{label}{message}"))
+
+        rewards = quest["rewards"]
+        if not isinstance(rewards, dict):
+            error(" must be an object")
+            continue
+        for key in rewards:
+            if not str(key).startswith("_") and key not in QUEST_REWARD_KEYS:
+                error(f".{key} is not paid (known: {', '.join(QUEST_REWARD_KEYS)})")
+        for key in ("xp", "gold"):
+            if key in rewards and (not integer(rewards[key]) or rewards[key] < 0):
+                error(f".{key} must be a whole number, 0 or more")
+        items = rewards.get("items", [])
+        if not isinstance(items, list):
+            error(".items must be an array")
+            items = []
+        for index, entry in enumerate(items):
+            where = f".items[{index}]"
+            if not isinstance(entry, dict):
+                error(f"{where} must be an object")
+                continue
+            if entry.get("item_id") not in item_ids:
+                error(f"{where}.item_id references missing item {entry.get('item_id')!r}")
+            if not integer(entry.get("quantity")) or entry["quantity"] < 1:
+                error(f"{where}.quantity must be a whole number of at least 1 (it is read directly; without it the quest pays nothing)")
+        if "generated_item_data" in rewards and not isinstance(rewards["generated_item_data"], dict):
+            error(".generated_item_data must be an object")
+        relationships = rewards.get("relationships", [])
+        if not isinstance(relationships, list):
+            error(".relationships must be an array")
+            relationships = []
+        for index, entry in enumerate(relationships):
+            where = f".relationships[{index}]"
+            if not isinstance(entry, dict):
+                error(f"{where} must be an object")
+                continue
+            if entry.get("npc_template_id") not in npc_ids:
+                error(f"{where}.npc_template_id references missing NPC template {entry.get('npc_template_id')!r}")
+            if not integer(entry.get("amount")) or entry["amount"] == 0:
+                error(f"{where}.amount must be a non-zero whole number")
+
+
 def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Every stage must say what it is waiting for.
 
@@ -5789,6 +5860,7 @@ def load_content_set(
         _validate_item_envelopes(content_root, issues)
         _validate_region_spawners(content_root, issues)
         _validate_quest_stages(content_root, issues)
+        _validate_quest_rewards(content_root, issues)
         _validate_instance_quests(content_root, issues)
         _validate_field_interactions(content_root, issues)
         _validate_quest_choice_outcomes(content_root, issues)

@@ -67,6 +67,7 @@ func build(id: String, data: Dictionary):
 	desc_ed.text_changed.connect(func(): cur_data.description = desc_ed.text; database_modified.emit())
 	InspectorStyle.apply_input_style(desc_ed); vbox.add_child(desc_ed)
 	_add_quest_extras()
+	_build_rewards_section()
 
 	_build_stages_section()
 
@@ -86,6 +87,90 @@ func _add_quest_extras():
 	note.modulate = Color(0.7, 0.72, 0.6)
 	container.add_child(note)
 
+# --- rewards ------------------------------------------------------------------
+# What QuestManager._grant_rewards pays on completion (checked by
+# content_set.py::_validate_quest_rewards): xp, gold, items (id + quantity, both
+# read directly), relationships (template + non-zero amount). A zero xp/gold is
+# not written; `generated_item_data` is kept as authored.
+
+var rewards_box: VBoxContainer
+
+
+func _build_rewards_section():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_section_header("REWARDS", Color.GOLD))
+	rewards_box = VBoxContainer.new(); rewards_box.name = "QuestRewards"; rewards_box.add_theme_constant_override("separation", 6)
+	container.add_child(rewards_box)
+	_refresh_rewards()
+
+
+func _rewards() -> Dictionary:
+	if not cur_data.get("rewards") is Dictionary: cur_data["rewards"] = {}
+	return cur_data["rewards"]
+
+
+func _refresh_rewards():
+	for child in rewards_box.get_children():
+		rewards_box.remove_child(child); child.queue_free()
+	var rewards: Dictionary = cur_data.get("rewards", {}) if cur_data.get("rewards") is Dictionary else {}
+	var numbers := HBoxContainer.new(); rewards_box.add_child(numbers)
+	for pair in [["XP", "xp"], ["Gold", "gold"]]:
+		numbers.add_child(InspectorStyle.lbl(pair[0], InspectorStyle.COLOR_TEXT_DIM))
+		var spin := SpinBox.new(); spin.name = "Reward" + str(pair[0]).capitalize(); spin.min_value = 0; spin.max_value = 999999; spin.step = 1
+		spin.value = int(rewards.get(pair[1], 0)); spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(spin)
+		var key := str(pair[1])
+		spin.value_changed.connect(func(value):
+			if int(value) > 0: _rewards()[key] = int(value)
+			elif cur_data.get("rewards") is Dictionary: cur_data["rewards"].erase(key)
+			_tidy_rewards(); database_modified.emit())
+		numbers.add_child(spin)
+
+	_reward_rows("Items", "items", "item_id", "quantity", 1, 1, func(): return database_mgr.get_item_ids())
+	_reward_rows("Relationships", "relationships", "npc_template_id", "amount", 5, -999, func(): return database_mgr.get_npc_ids())
+	if rewards.has("generated_item_data"):
+		var note := InspectorStyle.lbl("A generated item reward is kept as authored (edit it in the file).", InspectorStyle.COLOR_TEXT_DIM)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; rewards_box.add_child(note)
+
+
+func _reward_rows(title: String, key: String, id_key: String, amount_key: String, default_amount: int, minimum: int, suggestions: Callable):
+	var header := HBoxContainer.new(); rewards_box.add_child(header)
+	header.add_child(InspectorStyle.lbl(title, InspectorStyle.COLOR_TEXT_DIM))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.name = "Add" + title; add.text = "+ " + title.trim_suffix("s"); add.flat = true
+	add.pressed.connect(func():
+		var list = _rewards().get(key)
+		if not list is Array: list = []; _rewards()[key] = list
+		list.append({id_key: "", amount_key: default_amount})
+		database_modified.emit(); _refresh_rewards())
+	header.add_child(add)
+	var rewards: Dictionary = cur_data.get("rewards", {}) if cur_data.get("rewards") is Dictionary else {}
+	var entries = rewards.get(key, [])
+	if not entries is Array: return
+	for index in entries.size():
+		var entry = entries[index]
+		if not entry is Dictionary: continue
+		var row := HBoxContainer.new(); row.name = "%s_%d" % [title, index]; rewards_box.add_child(row)
+		var id_edit := LineEdit.new(); id_edit.name = "Id"; id_edit.text = str(entry.get(id_key, "")); id_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		id_edit.placeholder_text = id_key; InspectorStyle.apply_input_style(id_edit)
+		id_edit.text_changed.connect(func(text): entry[id_key] = text.strip_edges(); database_modified.emit())
+		row.add_child(id_edit)
+		InspectorStyle.add_suggestion_button(row, id_edit, suggestions)
+		var amount := SpinBox.new(); amount.name = "Amount"; amount.min_value = minimum; amount.max_value = 999999; amount.step = 1
+		amount.value = int(entry.get(amount_key, default_amount)); InspectorStyle.apply_input_style(amount)
+		amount.value_changed.connect(func(value): entry[amount_key] = int(value); database_modified.emit())
+		row.add_child(amount)
+		var drop := Button.new(); drop.text = "×"; drop.flat = true
+		drop.pressed.connect(func():
+			entries.remove_at(index)
+			if entries.is_empty(): _rewards().erase(key)
+			_tidy_rewards(); database_modified.emit(); _refresh_rewards())
+		row.add_child(drop)
+
+
+# An emptied reward block is removed rather than left as `{}`.
+func _tidy_rewards():
+	if cur_data.get("rewards") is Dictionary and cur_data["rewards"].is_empty(): cur_data.erase("rewards")
 
 # --- stages -------------------------------------------------------------------
 

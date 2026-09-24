@@ -1330,6 +1330,47 @@ class TestRegionPropertyKeys(unittest.TestCase):
         self.assertTrue(any("district 'docks'.dark must be a boolean (got number)" in m for m in errors), errors)
 
 
+class TestQuestRewards(unittest.TestCase):
+    """quests.json rewards were checked only by the toolkit's reference audit;
+    the engine reads an item reward's quantity directly, so leaving it out made
+    the completion pay nothing."""
+
+    def _errors(self, rewards) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        data = package / "data"
+        (data / "items" / "gear.json").write_text(json.dumps({"lamp": {"name": "Lamp", "type": "Item"}}), encoding="utf-8")
+        (data / "npcs" / "people.json").write_text(json.dumps({"elder": {"name": "Elder"}}), encoding="utf-8")
+        (data / "quests").mkdir(exist_ok=True)
+        (data / "quests" / "quests.json").write_text(json.dumps({"errand": {
+            "title": "Errand", "stages": [{"objective": {"type": "kill", "target_template_id": "elder", "required_quantity": 1}}],
+            "rewards": rewards,
+        }}), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and "rewards" in i.message]
+
+    def test_well_formed_rewards_are_accepted(self):
+        self.assertEqual([], self._errors({
+            "xp": 25, "gold": 12, "items": [{"item_id": "lamp", "quantity": 2}],
+            "relationships": [{"npc_template_id": "elder", "amount": -3}],
+        }))
+
+    def test_rewards_the_engine_cannot_pay_are_errors(self):
+        errors = self._errors({
+            "xp": "lots", "gold": -5, "items": [{"item_id": "lamp"}, {"item_id": "ghost_lamp", "quantity": 1}],
+            "relationships": [{"npc_template_id": "stranger", "amount": 0}], "fame": 3,
+        })
+        for expected in (
+            "rewards.xp must be a whole number, 0 or more",
+            "rewards.gold must be a whole number, 0 or more",
+            "rewards.items[0].quantity must be a whole number of at least 1",
+            "rewards.items[1].item_id references missing item 'ghost_lamp'",
+            "rewards.relationships[0].npc_template_id references missing NPC template 'stranger'",
+            "rewards.relationships[0].amount must be a non-zero whole number",
+            "rewards.fame is not paid",
+        ):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+
 class TestRetiredRulesetKeys(unittest.TestCase):
     """`ruleset_id` and `world_mode` were written by the editor and read by
     nothing (the world mode is the server's feature profile). They are removed,
