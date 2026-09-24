@@ -9,14 +9,14 @@
         "level_band": {
             "min": 14,
             "max": 15
-        }
+        },
+        "outdoors": false
     },
     "rooms": {
         "sealed_stair": {
             "name": "Sealed Archive Stair",
             "description": "A bronze door opens onto a narrow stair spiralling beneath the museum. Dust lies undisturbed on the upper steps, but pale starlight flickers from far below.",
             "properties": {
-                "outdoors": false,
                 "dark": true
             },
             "exits": {
@@ -28,7 +28,6 @@
             "name": "Catalogue Gallery",
             "description": "Stone shelves carry metal-bound catalogues whose labels have oxidised into unreadable green. The remaining filing mechanisms click without hands to operate them.",
             "properties": {
-                "outdoors": false,
                 "dark": true
             },
             "exits": {
@@ -47,7 +46,6 @@
             "name": "Sealed Stacks",
             "description": "Iron latticework encloses shelves of forbidden observations. Most volumes have crumbled to powder, but a few star charts still shine with ink that seems newly laid.",
             "properties": {
-                "outdoors": false,
                 "dark": true
             },
             "exits": {
@@ -58,7 +56,6 @@
             "name": "Orrery Bridge",
             "description": "A narrow bridge crosses a dry circular well beneath slowly revolving brass planets. Their motion is wrong by centuries, and every turn sends a quiet tremor through the stone.",
             "properties": {
-                "outdoors": false,
                 "dark": true
             },
             "exits": {
@@ -76,7 +73,6 @@
             "name": "Starwell Chamber",
             "description": "A shaft opens above a black mirror of water, reflecting a sky no one can see from Aurelia. At its rim an imperial guardian still interprets every visitor as an intrusion in the record.",
             "properties": {
-                "outdoors": false,
                 "dark": true
             },
             "exits": {

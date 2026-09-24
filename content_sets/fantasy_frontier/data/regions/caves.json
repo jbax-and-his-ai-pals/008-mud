@@ -10,7 +10,8 @@
         "level_band": {
             "min": 3,
             "max": 6
-        }
+        },
+        "outdoors": false
     },
     "spawner": {
         "monster_types": {
@@ -29,7 +30,8 @@
     "rooms": {
         "cave_entrance": {
             "properties": {
-                "dark": false
+                "dark": false,
+                "outdoors": true
             },
             "name": "Cave Entrance",
             "description": "A dark opening in the hillside marks the entrance to the caves. Cool, damp air flows out. Moss grows around the entrance, and you can hear water dripping somewhere inside.",

@@ -9,7 +9,8 @@
         "level_band": {
             "min": 6,
             "max": 8
-        }
+        },
+        "outdoors": false
     },
     "rooms": {
         "entrance": {

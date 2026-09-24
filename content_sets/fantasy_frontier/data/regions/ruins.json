@@ -129,7 +129,8 @@
             "name": "Shadowy Crypt Entrance",
             "description": "A dark, gaping entryway leads down beneath the plaza. The air flowing out is cold and smells of dust and decay. Stone steps descend into blackness.",
             "properties": {
-                "dark": true
+                "dark": true,
+                "outdoors": false
             },
             "exits": {
                 "east": "central_plaza",
@@ -140,7 +141,8 @@
             "name": "Crypt - Upper Level",
             "description": "You stand in a grand burial chamber. Stone sarcophagi line the walls, their lids heavy with dust. The air is deathly still. Another flight of stairs leads deeper down.",
             "properties": {
-                "dark": true
+                "dark": true,
+                "outdoors": false
             },
             "exits": {
                 "up": "shadowy_crypt_entrance",
@@ -152,7 +154,8 @@
             "name": "Burial Niches",
             "description": "This chamber is lined with hundreds of small, square niches carved into the stone, likely for holding the ashes of the dead. Most have been looted or disturbed.",
             "properties": {
-                "dark": true
+                "dark": true,
+                "outdoors": false
             },
             "exits": {
                 "east": "crypt_upper_level"
@@ -162,7 +165,8 @@
             "name": "Crypt - Lower Level",
             "description": "Deeper in the crypt, the air is colder. More sarcophagi are here, some broken open. A faint draft from the northwest hints at a hidden passage.",
             "properties": {
-                "dark": true
+                "dark": true,
+                "outdoors": false
             },
             "exits": {
                 "up": "crypt_upper_level",
@@ -180,7 +184,8 @@
             "description": "This section of the crypt is partially flooded with stagnant, murky water. Sarcophagi jut out of the water like islands. The air is heavy with the smell of mildew.",
             "properties": {
                 "dark": true,
-                "smell": "mildew"
+                "smell": "mildew",
+                "outdoors": false
             },
             "exits": {
                 "north": "crypt_lower_level"
@@ -190,7 +195,8 @@
             "name": "Secret Passage",
             "description": "This rough-hewn passage seems to connect the ancient crypt to the natural cave systems. The air feels slightly fresher here.",
             "properties": {
-                "dark": true
+                "dark": true,
+                "outdoors": false
             },
             "exits": {
                 "southeast": "crypt_lower_level",
@@ -201,7 +207,8 @@
             "name": "Connecting Tunnel",
             "description": "The worked stone of the ruins gives way completely to natural rock here. The passage ahead clearly leads into the Shadow Caves.",
             "properties": {
-                "dark": true
+                "dark": true,
+                "outdoors": false
             },
             "exits": {
                 "southeast": "secret_passage",

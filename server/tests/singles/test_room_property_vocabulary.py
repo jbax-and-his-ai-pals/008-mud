@@ -90,6 +90,23 @@ class TestIndoorRoomsAreIndoors(unittest.TestCase):
             for room in rooms:
                 self.assertFalse(server.world.is_location_outdoors(region_id, room), (region_id, room))
 
+    def test_underground_regions_are_not_outdoors(self):
+        """`outdoors` defaults to true and no cave, warren or crypt said
+        otherwise, so every one of them had weather. The region now says so,
+        and the only room that opts back out is the caves' hillside mouth."""
+        from engine.server.headless_server import HeadlessServer
+
+        server = HeadlessServer(db_path=":memory:", content_set_path=str(REPO / "content_sets" / "fantasy_frontier"))
+        openings = {("caves", "cave_entrance")}
+        for region_id, region in server.world.regions.items():
+            enclosed = region.get_property("biome") in ("natural_caverns", "catacombs", "underground") or region.get_property("region_type") == "underground"
+            if not enclosed:
+                continue
+            for room_id in region.rooms:
+                self.assertEqual((region_id, room_id) in openings, server.world.is_location_outdoors(region_id, room_id), (region_id, room_id))
+        self.assertFalse(server.world.is_location_outdoors("ruins", "crypt_lower_level"))
+        self.assertTrue(server.world.is_location_outdoors("ruins", "central_plaza"), "the ruins above ground stay open-air")
+
 
 if __name__ == "__main__":
     unittest.main()
