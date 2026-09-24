@@ -29,3 +29,38 @@ class TestSafeRoomLogic(GameTestBase):
             if result:
                 self.assertEqual(result[0], "town")
                 self.assertEqual(result[1], "town_square")
+    def test_a_room_can_depart_from_its_regions_safety(self):
+        """`is_location_safe` took a room id and ignored it, so a room authored
+        `"safe_zone": false` in a safe region (night_shift's back alley,
+        orbital_salvage's hold) stayed safe and its hostiles never attacked."""
+        town = self.world.get_region("town")
+        town.update_property("safe_zone", True)
+        alley = Room("Alley", "Dark.", {"west": "town_square"}, obj_id="alley")
+        alley.update_property("safe_zone", False)
+        town.add_room("alley", alley)
+        self.assertTrue(self.world.is_location_safe("town", "town_square"))
+        self.assertFalse(self.world.is_location_safe("town", "alley"))
+        self.assertTrue(self.world.is_location_safe("town"), "without a room the region decides")
+
+    def test_a_safe_room_in_a_dangerous_region_is_found(self):
+        wilds = Region("Wilds", "Rough.", obj_id="wilds")
+        camp = Room("Camp", "A warded camp.", {}, obj_id="camp")
+        camp.update_property("safe_zone", True)
+        start = Room("Trail", "Open ground.", {"north": "camp"}, obj_id="trail")
+        wilds.add_room("camp", camp)
+        wilds.add_room("trail", start)
+        self.world.add_region("wilds", wilds)
+        self.world.get_region("town").update_property("safe_zone", False)
+        self.assertEqual(("wilds", "camp"), self.world.find_nearest_safe_room("wilds", "trail"))
+
+    def test_the_shipped_unsafe_rooms_are_unsafe(self):
+        from engine.server.headless_server import HeadlessServer
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[3] / "content_sets"
+        for content_set, region_id, room_id in (
+            ("night_shift", "depot", "back_alley"), ("night_shift", "depot", "alley_end"),
+            ("orbital_salvage", "station", "hold"),
+        ):
+            server = HeadlessServer(db_path=":memory:", content_set_path=str(root / content_set))
+            self.assertTrue(server.world.is_location_safe(region_id), content_set)
+            self.assertFalse(server.world.is_location_safe(region_id, room_id), (content_set, room_id))

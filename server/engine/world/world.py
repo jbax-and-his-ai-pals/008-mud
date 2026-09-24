@@ -760,9 +760,11 @@ class World:
          return room.remove_item(obj_id) if room else None
     
     def is_location_safe(self, region_id: str, room_id: Optional[str] = None) -> bool:
-        region = self.get_region(region_id)
-        if not region: return False
-        return region.get_property("safe_zone", False)
+        # Through the same room -> district -> region chain as the atmosphere
+        # properties, so a room (or district) can depart from its region. The
+        # room id used to be taken and ignored: a hostile placed in a room
+        # authored `"safe_zone": false` inside a safe region never attacked.
+        return bool(self.get_env_property(region_id, room_id, "safe_zone", False))
     
     def get_district(self, region_id: Optional[str], room_id: Optional[str]) -> Optional[Dict[str, Any]]:
         """Return the district (a plain dict, content-authored on the
@@ -912,8 +914,8 @@ class World:
             return (source_region_id, source_room_id)
         candidate_paths = []
         for region_id, region in self.regions.items():
-            if region.get_property("safe_zone", False):
-                for room_id in region.rooms.keys():
+            for room_id in region.rooms.keys():
+                if self.is_location_safe(region_id, room_id):
                     path = self.find_path(source_region_id, source_room_id, region_id, room_id)
                     if path is not None:
                         heapq.heappush(candidate_paths, (len(path), (region_id, room_id)))
