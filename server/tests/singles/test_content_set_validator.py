@@ -1777,6 +1777,62 @@ class TestPatrolRoutes(unittest.TestCase):
         self.assertTrue(any("properties_override.work_location must name an authored region:room" in m for m in messages), messages)
 
 
+class TestItemPlacementOverrides(unittest.TestCase):
+    """A room item's properties_override was only checked to be an object; every
+    key reaches the item (as a constructor field or a property), so a wrong type
+    was stored and failed wherever it was used."""
+
+    def _issues(self, *placements: dict) -> list:
+        root = REPO_ROOT / "tmp" / f"item_overrides_{uuid.uuid4().hex}"
+        root.mkdir(parents=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        package = TestContentSetValidator._write_package(self, root)
+        data = package / "data"
+        (data / "items" / "items.json").write_text(json.dumps({
+            "chest": {"name": "Chest", "type": "Container", "properties": {"capacity": 20, "locked": False, "contains": []}},
+            "ore_vein": {"name": "Ore Vein", "type": "ResourceNode", "properties": {"resource_item_id": "ore", "charges": 3}},
+            "ore": {"name": "Ore", "type": "Item", "properties": {"glint": True}},
+            "chest_key": {"name": "Chest Key", "type": "Key"},
+        }), encoding="utf-8")
+        (data / "regions" / "town.json").write_text(json.dumps({"region_id": "town", "rooms": {
+            "square": {"name": "Square", "items": list(placements)},
+        }}), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if "properties_override" in i.message]
+
+    def test_overrides_of_the_right_type_are_accepted(self):
+        self.assertEqual([], self._issues(
+            {"item_id": "chest", "properties_override": {"name": "Old Chest", "locked": True, "key_id": "chest_key", "is_open": False,
+                                                         "contains": [{"item_id": "ore"}]}},
+            {"item_id": "ore_vein", "properties_override": {"charges": 5, "respawn_days": 2}},
+            {"item_id": "ore", "properties_override": {"glint": False, "weight": 2.5, "_note": "annotations are skipped"}},
+        ))
+
+    def test_a_value_of_the_wrong_type_is_an_error(self):
+        errors = [m for s, m in self._issues(
+            {"item_id": "chest", "properties_override": {"locked": "yes", "capacity": -4, "key_id": "skeleton_key", "contains": [{"item_id": "gold"}]}},
+            {"item_id": "ore_vein", "properties_override": {"charges": "plenty"}},
+            {"item_id": "ore", "properties_override": {"glint": 1, "weight": "heavy", "type": "Weapon"}},
+        ) if s == "error"]
+        for expected in (
+            "item 'chest' properties_override.locked must be a boolean (got string)",
+            "item 'chest' properties_override.capacity must not be negative",
+            "properties_override.key_id references missing item 'skeleton_key'",
+            "properties_override.contains references missing item 'gold'",
+            "item 'ore_vein' properties_override.charges must be a number (got string)",
+            "item 'ore' properties_override.glint must be a boolean (got number)",
+            "item 'ore' properties_override.weight must be a number (got string)",
+            "item 'ore' properties_override.type cannot be changed by a placement",
+        ):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+    def test_a_key_the_template_does_not_have_is_a_warning(self):
+        self.assertEqual(
+            [("warning", "room 'town:square' item 'ore' properties_override.sparkle is not a property of this item's template; it is kept, but only code that reads 'sparkle' will notice")],
+            self._issues({"item_id": "ore", "properties_override": {"sparkle": True}}),
+        )
+
+
 def _ability(**overrides) -> dict:
     ability = {"name": "Zap", "description": "A jolt.", "mana_cost": 5, "cooldown": 2.0, "target_type": "enemy",
                "level_required": 1, "effects": [{"type": "damage", "value": 6, "damage_type": "fire"}]}

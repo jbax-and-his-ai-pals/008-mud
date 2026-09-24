@@ -243,6 +243,111 @@ def _load_json(path: Path, issues: list[ContentSetIssue], label: str) -> Any:
     return None
 
 
+def _load_definitions(directory: Path) -> dict[str, dict]:
+    """Every definition in a content directory by id (load errors are reported
+    by the id pass that reads the same files)."""
+    definitions: dict[str, dict] = {}
+    for path in sorted(directory.glob("*.json")):
+        payload = _load_json(path, [], "definitions")
+        if isinstance(payload, dict):
+            definitions.update({
+                str(key): value for key, value in payload.items()
+                if isinstance(value, dict) and not str(key).startswith("_")
+            })
+    return definitions
+
+
+# `ItemFactory.create_item_from_template` flattens a room placement's
+# `properties_override` into the constructor's keywords; every item class takes
+# `**kwargs`, so a key that is not a constructor field becomes an item property.
+# Nothing refuses a value, so a wrong type is stored and fails where it is used
+# (a string weight in an inventory's sum). A constructor field's type is its
+# default's; these are the fields whose default is None, and the properties an
+# item class reads without taking them as a field.
+_ITEM_FIELD_KINDS_WHEN_NONE = {
+    "key_id": "string", "target_id": "string", "linked_target_id": "string", "linked_action": "string",
+    "equip_slot": "array", "contents": "array", "max_durability": "number", "weight": "number",
+}
+_ITEM_CLASS_READ_PROPERTIES = {"ResourceNode": {"respawn_days": "number"}}
+_ITEM_FIXED_KEYS = ("type", "item_family", "obj_id", "id", "world", "properties")
+
+
+def _item_field_kinds(item_type: str) -> dict[str, str]:
+    """The constructor fields of the class `ITEM_CLASS_MAP` builds for `item_type`
+    (plain `Item` for anything else), with the JSON type each one takes."""
+    import inspect
+
+    from engine.items.item_factory import ITEM_CLASS_MAP
+    from engine.items.item import Item
+
+    item_class = ITEM_CLASS_MAP.get(item_type, Item)
+    kinds: dict[str, str] = {}
+    for klass in (item_class, Item):
+        for name, parameter in inspect.signature(klass.__init__).parameters.items():
+            if name in ("self", "obj_id") or parameter.kind is parameter.VAR_KEYWORD or name in kinds:
+                continue
+            default = parameter.default
+            kinds[name] = _ITEM_FIELD_KINDS_WHEN_NONE.get(name, "") if default is None else _json_kind(default)
+    kinds.update(_ITEM_CLASS_READ_PROPERTIES.get(item_class.__name__, {}))
+    return {name: kind for name, kind in kinds.items() if kind}
+
+
+def _json_kind(value: Any) -> str:
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, (int, float)):
+        return "number"
+    if isinstance(value, str):
+        return "string"
+    if isinstance(value, list):
+        return "array"
+    if isinstance(value, dict):
+        return "object"
+    return "null"
+
+
+def _item_placement_override_issues(overrides: dict, template: dict, item_ids: set[str]) -> list[tuple[str, str]]:
+    """A room item placement's `properties_override`, checked against its template.
+
+    An override replaces a value, so it keeps the value's type: the constructor
+    fields have fixed types, and any other key takes the type the template's own
+    property has. The item's class and family come from the template and cannot
+    be changed per placement. A key the template does not have is kept as a new
+    property, which only code that reads it will notice (a warning).
+    """
+    found: list[tuple[str, str]] = []
+    properties = template.get("properties", {}) if isinstance(template.get("properties"), dict) else {}
+    fields = _item_field_kinds(str(template.get("type", "Item")))
+    for key, value in overrides.items():
+        if str(key).startswith("_"):
+            continue
+        if key in _ITEM_FIXED_KEYS:
+            found.append(("error", f"{key} cannot be changed by a placement (the template decides what the item is)"))
+            continue
+        expected = fields.get(key)
+        if expected is None and key in properties and properties[key] is not None:
+            expected = _json_kind(properties[key])
+        if expected is None:
+            if key not in properties and key not in fields:
+                found.append(("warning", f"{key} is not a property of this item's template; it is kept, but only code that reads '{key}' will notice"))
+            continue
+        if _json_kind(value) != expected:
+            found.append(("error", f"{key} must be a {expected} (got {_json_kind(value)}); an override keeps the type of the value it replaces"))
+            continue
+        if expected == "number" and value < 0:
+            found.append(("error", f"{key} must not be negative"))
+        if key in ("name",) and not value.strip():
+            found.append(("error", "name must not be empty"))
+        if key == "key_id" and value and value not in item_ids:
+            found.append(("error", f"key_id references missing item '{value}'"))
+        if expected == "array" and key in ("contents", "contains"):
+            for entry in value:
+                target = entry.get("item_id") if isinstance(entry, dict) else None
+                if target not in item_ids:
+                    found.append(("error", f"{key} references missing item {target!r}"))
+    return found
+
+
 def _load_definition_ids(directory: Path, label: str, issues: list[ContentSetIssue]) -> set[str]:
     """Read template ids from a content directory without constructing a world."""
     definition_ids: set[str] = set()
@@ -839,6 +944,7 @@ def _validate_authored_world(
 
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
     npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    item_templates: Optional[dict[str, dict]] = None
 
     # Build an adjacency map first, then traverse outwards from the start room.
     #
@@ -985,6 +1091,13 @@ def _validate_authored_world(
                             issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' item '{item['item_id']}' quantity must be a positive integer"))
                     if "properties_override" in item and not isinstance(item["properties_override"], dict):
                         issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' item '{item['item_id']}' properties_override must be an object"))
+                    elif isinstance(item.get("properties_override"), dict):
+                        if item_templates is None:
+                            item_templates = _load_definitions(content_root / "items")
+                        for severity, message in _item_placement_override_issues(
+                            item["properties_override"], item_templates.get(item["item_id"], {}), item_ids,
+                        ):
+                            issues.append(ContentSetIssue(severity, str(region_paths[region_id]), f"room '{region_id}:{room_id}' item '{item['item_id']}' properties_override.{message}"))
 
     _validate_patrol_routes(content_root, regions, region_paths, walkable, patrol_placements, issues)
 
