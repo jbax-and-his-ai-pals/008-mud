@@ -1427,6 +1427,12 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
     for field in ("can_unlock_chests", "sells_houses"):
         if field in properties and not isinstance(properties[field], bool):
             errors.append(f"{label}.{field} must be a boolean")
+    if "loot_tags" in properties:
+        # npc.py::_matches_ambient_loot_pool drops anything but a list, so a
+        # bare string would leave the NPC out of every tag-selected pool.
+        tags = properties["loot_tags"]
+        if not isinstance(tags, list) or not all(isinstance(tag, str) and tag.strip() for tag in tags):
+            errors.append(f"{label}.loot_tags must be an array of non-empty strings")
     if "work_location" in properties:
         work_location = properties["work_location"]
         if not isinstance(work_location, str) or work_location not in room_refs:

@@ -1989,6 +1989,17 @@ class TestPatrolRoutes(unittest.TestCase):
         self.assertTrue(any("properties_override.move_cooldown must be a non-negative integer" in m for m in messages), messages)
         self.assertTrue(any("properties_override.work_location must name an authored region:room" in m for m in messages), messages)
 
+    def test_loot_tags_must_be_a_list_of_names(self):
+        # A bare string was dropped by the ambient-pool matcher, leaving the
+        # NPC out of every tag-selected pool without a word.
+        messages = self._issues(
+            {"template_id": "clerk", "overrides": {"properties_override": {"loot_tags": ["living", "humanoid"]}}},
+            {"template_id": "clerk", "overrides": {"properties_override": {"loot_tags": "living"}}},
+            {"template_id": "clerk", "overrides": {"properties_override": {"loot_tags": ["living", ""]}}},
+        )
+        self.assertEqual(2, len(messages), messages)
+        self.assertTrue(all("properties_override.loot_tags must be an array of non-empty strings" in m for m in messages), messages)
+
 
 class TestItemPlacementOverrides(unittest.TestCase):
     """A room item's properties_override was only checked to be an object; every

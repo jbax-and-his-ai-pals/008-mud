@@ -46,7 +46,7 @@ func build(type: String, id: String, data: Dictionary):
 		# The manager carries the contract catalog, which the NPC inspector needs
 		# for the content set's own stat vocabulary -- and the set's other NPCs,
 		# which is where that vocabulary comes from when nothing is declared.
-		npc_inspector.build(container, cur_data, db_mgr_ref)
+		npc_inspector.build(container, cur_data, db_mgr_ref, cur_id)
 		npc_inspector.database_modified.connect(func(): database_modified.emit())
 	elif type == "item":
 		item_inspector = ITEM_INSP_SCRIPT.new()

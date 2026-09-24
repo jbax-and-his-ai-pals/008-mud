@@ -23,9 +23,12 @@ var loot_box: VBoxContainer
 # other NPCs -- which is where the vocabulary comes from when nothing is declared.
 var catalog: ContractCatalog
 var db_manager: DatabaseManager
+var template_id := ""
+var loot_pools_label: Label
 
-func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
+func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null, id: String = ""):
 	container = c
+	template_id = id
 	cur_data = data
 	db_manager = db_mgr
 	catalog = db_mgr.catalog if db_mgr != null else ContractCatalog.new()
@@ -40,6 +43,7 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	_build_initial_inventory()
 	_build_gift_preferences()
 	_build_loot_table()
+	_build_loot_tags()
 
 ## Made on the first write and not before -- shared by the vendor sections.
 func _ensure_npc_properties() -> Dictionary:
@@ -876,6 +880,63 @@ func _build_loot_table():
 	container.add_child(loot_box)
 
 	_refresh_loot_table()
+
+# `properties.loot_tags` (`npc.py::_matches_ambient_loot_pool`): what the
+# ruleset's ambient loot pools select on. The line below the field says which
+# pools this NPC falls into, so an untagged creature's silence is visible.
+func _build_loot_tags():
+	var row := HBoxContainer.new(); row.add_child(InspectorStyle.lbl("Loot tags", InspectorStyle.COLOR_TEXT_DIM))
+	var field := LineEdit.new(); field.name = "LootTags"; field.placeholder_text = "comma-separated, e.g. living, beast"
+	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(field)
+	var tags = _npc_properties().get("loot_tags", [])
+	field.text = ", ".join(PackedStringArray(tags if tags is Array else []))
+	row.add_child(field); container.add_child(row)
+	loot_pools_label = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); loot_pools_label.name = "LootPools"
+	loot_pools_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; container.add_child(loot_pools_label)
+	field.text_changed.connect(func(text):
+		var values := QuestGenerationSection._split(text)
+		if values.is_empty(): _ensure_npc_properties().erase("loot_tags")
+		else: _ensure_npc_properties()["loot_tags"] = values
+		_refresh_loot_pools()
+		database_modified.emit())
+	_refresh_loot_pools()
+
+
+func _refresh_loot_pools():
+	var loot = NPCVocabulary.load_ruleset().get("loot", {})
+	var pools = loot.get("ambient_pools", []) if loot is Dictionary else []
+	var tags = _npc_properties().get("loot_tags", [])
+	var matched := ambient_pools_matched(pools if pools is Array else [], tags if tags is Array else [], template_id)
+	if pools is Array and not pools.is_empty() and matched.is_empty(): loot_pools_label.text = "No ambient loot pool selects this NPC."
+	elif matched.is_empty(): loot_pools_label.text = ""
+	else: loot_pools_label.text = "Ambient loot pools: " + ", ".join(PackedStringArray(matched))
+
+
+# Mirrors npc.py::_matches_ambient_loot_pool: "#n (chance%)" per pool that
+# would roll for an NPC with these tags and this template id.
+static func ambient_pools_matched(pools: Array, tags: Array, template: String) -> Array:
+	var have := {}
+	for tag in tags: if str(tag).strip_edges() != "": have[str(tag).strip_edges()] = true
+	var out: Array = []
+	for index in pools.size():
+		var pool = pools[index]
+		if not pool is Dictionary: continue
+		var ids := _tag_set(pool.get("npc_template_ids"))
+		if not ids.is_empty() and not ids.has(template): continue
+		var any := _tag_set(pool.get("npc_tags_any"))
+		if not any.is_empty() and not any.keys().any(func(t): return have.has(t)): continue
+		if not _tag_set(pool.get("npc_tags_all")).keys().all(func(t): return have.has(t)): continue
+		if _tag_set(pool.get("npc_tags_none")).keys().any(func(t): return have.has(t)): continue
+		out.append("#%d (%d%%)" % [index + 1, roundi(float(pool.get("chance", 0.0)) * 100)])
+	return out
+
+
+static func _tag_set(value) -> Dictionary:
+	var out := {}
+	if value is Array:
+		for tag in value: if str(tag).strip_edges() != "": out[str(tag).strip_edges()] = true
+	return out
+
 
 ## Reads `cur_data.loot_table` without creating it: opening an NPC that has none
 ## must not add an empty `"loot_table": {}` merely by being viewed. The key is
