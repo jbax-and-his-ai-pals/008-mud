@@ -807,6 +807,41 @@ class TestWeatherShapes(unittest.TestCase):
         self.assertTrue(any("weather.profiles.alpine must be an object" in message for message in errors), errors)
 
 
+class TestWeatherChances(unittest.TestCase):
+    """`weather.chances` had no check: a table without `summer` raised on the
+    first weather change (the fallback is looked up on every roll), a bad weight
+    quietly made the weather "clear", and a misnamed season was never read."""
+
+    def _errors(self, chances) -> list:
+        package = _background_package(self, stats={"strength": 10}, weather_section={"chances": chances})
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error"]
+
+    def test_a_table_with_summer_is_accepted(self):
+        self.assertEqual([], self._errors({"summer": {"clear": 3, "heatwave": 1}, "winter": {"snow": 1, "clear": 0}}))
+
+    def test_summer_is_required(self):
+        errors = self._errors({"winter": {"snow": 1}, "spring": {"rain": 1}, "fall": {"rain": 1}})
+        self.assertTrue(any("weather.chances needs a summer table" in m for m in errors), errors)
+
+    def test_a_season_the_calendar_never_produces_is_an_error(self):
+        errors = self._errors({"summer": {"clear": 1}, "autumn": {"rain": 1}})
+        self.assertTrue(any("weather.chances.autumn is not a season the calendar produces (winter, spring, summer, fall)" in m for m in errors), errors)
+
+    def test_bad_weights_and_empty_tables_are_errors(self):
+        errors = self._errors({"summer": {"clear": -1, "rain": "often", "_note": "hot"}, "winter": {}, "fall": {"rain": 0}})
+        for expected in ("weather.chances.summer.clear must be a weight of 0 or more",
+                         "weather.chances.summer.rain must be a weight of 0 or more",
+                         "weather.chances.summer._note must be a weight of 0 or more",
+                         "weather.chances.winter must be a non-empty object",
+                         "weather.chances.fall needs at least one weight above 0"):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+    def test_chances_must_be_an_object(self):
+        errors = self._errors([["summer", "clear"]])
+        self.assertTrue(any("weather.chances must be an object of seasons" in m for m in errors), errors)
+
+
 class TestContentSetValidatorMain(unittest.TestCase):
     def test_valid_content_set_prints_success_and_does_not_exit(self) -> None:
         argv = ["content_set_validator.py", str(REPO_ROOT / "content_sets" / "fantasy_frontier")]

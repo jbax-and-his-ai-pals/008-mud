@@ -2677,6 +2677,53 @@ def _validate_weather_shapes(ruleset: dict[str, Any], issues: list[ContentSetIss
             if "travel_notes" in profile:
                 string_map_issues(profile["travel_notes"], f"{label}.travel_notes")
 
+    if "chances" in weather:
+        _validate_weather_chances(weather["chances"], issues, ruleset_path)
+
+
+def _validate_weather_chances(chances: Any, issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """`weather.chances`: per season, the weather types and their weights.
+
+    `WeatherManager._update_weather` reads `chances.get(season, chances["summer"])`
+    -- the summer fallback is evaluated on every roll, so a table without it
+    raises on the first weather change, whatever the season. A season that is not
+    a table raises too. A bad weight is caught there and the weather quietly
+    becomes "clear"; a season the calendar never produces is never read. Every
+    key in a season is a weather type (`_` keys included: nothing skips them).
+    """
+    from engine.core.time_manager import SEASONS
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", str(ruleset_path), message))
+
+    if not isinstance(chances, dict):
+        error("weather.chances must be an object of seasons")
+        return
+    if not chances:
+        return
+    seasons = [key for key in chances if not str(key).startswith("_")]
+    for season in seasons:
+        if season not in SEASONS:
+            error(f"weather.chances.{season} is not a season the calendar produces ({', '.join(SEASONS)})")
+    if "summer" not in chances:
+        error("weather.chances needs a summer table: a season it omits uses summer's, and the engine looks summer up on every weather change")
+    for season in seasons:
+        table = chances[season]
+        label = f"weather.chances.{season}"
+        if not isinstance(table, dict) or not table:
+            error(f"{label} must be a non-empty object of weather type to weight")
+            continue
+        positive = False
+        for weather_type, weight in table.items():
+            if not str(weather_type).strip():
+                error(f"{label} has an empty weather type")
+            if isinstance(weight, bool) or not isinstance(weight, (int, float)) or weight < 0:
+                error(f"{label}.{weather_type} must be a weight of 0 or more")
+            elif weight > 0:
+                positive = True
+        if not positive:
+            error(f"{label} needs at least one weight above 0")
+
 
 def _validate_weather_profiles(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
     """A `weather_profile` a region selects must be one the ruleset declares.

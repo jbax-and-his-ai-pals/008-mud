@@ -13,6 +13,10 @@ from engine.config import (TIME_DAWN_HOUR, DEFAULT_TIME_DAY_NAMES,
                          TIME_REAL_SECONDS_PER_GAME_DAY, TIME_UPDATE_THRESHOLD)
 from engine.config.config_game import TIME_AFTERNOON_HOUR, TIME_MORNING_HOUR
 
+# The calendar's seasons, in month order. `weather.chances` is keyed by these
+# (weather_manager.py), which is why content_set.py checks against them.
+SEASONS = ("winter", "spring", "summer", "fall")
+
 
 def _resolve_calendar_names(world, key: str, default: List[str]) -> List[str]:
     if world is None:
@@ -119,7 +123,7 @@ class TimeManager:
     def _update_time_data_for_ui(self):
         day_name = self.day_names[(self.day - 1) % len(self.day_names)]
         month_name = self.month_names[(self.month - 1) % len(self.month_names)]
-        seasons = ["winter", "spring", "summer", "fall"]
+        seasons = SEASONS
         season_idx = (self.month - 1) * len(seasons) // TIME_MONTHS_PER_YEAR
         self.time_data = {
             "hour": self.hour, "minute": self.minute, "day": self.day, "month": self.month, "year": self.year,
