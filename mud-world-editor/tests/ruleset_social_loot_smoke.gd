@@ -87,6 +87,23 @@ func _run():
 	after = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
 	_assert(after["loot"]["take_hint"] == false, "an unticked hint is saved as false (no hint), not deleted")
 
+	print("\n[what counts as combat when combat is off]")
+	rules.open_active()
+	var blocked: LineEdit = rules.combat_blocked_commands
+	var tokens: LineEdit = rules.combat_message_tokens
+	_assert(blocked.text == "" and tokens.text == "", "fantasy declares neither list")
+	blocked.text = "bash, shove"; blocked.text_changed.emit(blocked.text)
+	tokens.text = "bludgeons"; tokens.text_changed.emit(tokens.text)
+	rules.confirmed.emit()
+	after = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
+	_assert(after["combat"].get("additional_blocked_command_names") == ["bash", "shove"] and after["combat"].get("additional_combat_message_tokens") == ["bludgeons"], "both lists are saved into combat")
+	_assert(_same(after["combat"]["retreat"], before["combat"]["retreat"]), "and the retreat policy beside them is untouched")
+	rules.open_active()
+	rules.combat_message_tokens.text = ""; rules.combat_message_tokens.text_changed.emit("")
+	rules.confirmed.emit()
+	after = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
+	_assert(not after["combat"].has("additional_combat_message_tokens") and after["combat"].has("additional_blocked_command_names"), "an emptied list is removed; the other stays")
+
 	if failures > 0: push_error("ruleset social/loot smoke failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 

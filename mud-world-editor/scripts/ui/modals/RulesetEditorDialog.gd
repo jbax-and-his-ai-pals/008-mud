@@ -16,6 +16,10 @@ var system_checks: Dictionary = {}
 var retreat_skill: LineEdit
 var retreat_base: SpinBox
 var retreat_per_level: SpinBox
+# combat.additional_* (command_execution.py / status_payloads.py): what else
+# counts as combat when a server runs with combat switched off.
+var combat_blocked_commands: LineEdit
+var combat_message_tokens: LineEdit
 var faction_rows: VBoxContainer
 var salvage_default: OptionButton
 var salvage_rows: VBoxContainer
@@ -71,6 +75,9 @@ func setup():
 	retreat_base = SpinBox.new(); retreat_base.min_value = 0; retreat_base.max_value = 1000; retreat_base.step = 1; retreat_base.custom_minimum_size.x = 90; InspectorStyle.apply_input_style(retreat_base); retreat_base.value_changed.connect(func(_value): _mark_dirty()); retreat_row.add_child(retreat_base)
 	retreat_row.add_child(InspectorStyle.lbl("Per hostile level", InspectorStyle.COLOR_TEXT_DIM))
 	retreat_per_level = SpinBox.new(); retreat_per_level.min_value = 0; retreat_per_level.max_value = 1000; retreat_per_level.step = 1; retreat_per_level.custom_minimum_size.x = 90; InspectorStyle.apply_input_style(retreat_per_level); retreat_per_level.value_changed.connect(func(_value): _mark_dirty()); retreat_row.add_child(retreat_per_level); box.add_child(retreat_row)
+	var combat_off_hint := InspectorStyle.lbl("When a server runs with combat off, attack/kill/flee/cast are refused and combat lines hidden. Name any other commands and message words this set uses for fighting.", InspectorStyle.COLOR_TEXT_DIM); combat_off_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(combat_off_hint)
+	combat_blocked_commands = _field(box, "Also refuse these commands (comma-separated)"); combat_blocked_commands.name = "CombatBlockedCommands"
+	combat_message_tokens = _field(box, "Also hide messages containing (comma-separated)"); combat_message_tokens.name = "CombatMessageTokens"
 	box.add_child(InspectorStyle.create_sub_header("Crafting salvage"))
 	var salvage_hint := InspectorStyle.lbl("A family rule says what an item becomes when salvaged. An item can still declare its own output.", InspectorStyle.COLOR_TEXT_DIM); salvage_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(salvage_hint)
 	var default_row := HBoxContainer.new(); default_row.add_child(InspectorStyle.lbl("Fallback output", InspectorStyle.COLOR_TEXT_DIM))
@@ -184,6 +191,9 @@ func open_active():
 		system_checks[system_id].button_pressed = bool(declaration.get("enabled", inherited)) if declaration is Dictionary else inherited
 		system_checks[system_id].tooltip_text = "Changing a capability must agree with the manifest. Conflicts are refused on save." if system_id != "economy" else "Enabled by default when no override is declared."
 	retreat_skill.text = str(retreat.get("skill", "")); retreat_base.value = float(retreat.get("base_difficulty", 10)); retreat_per_level.value = float(retreat.get("difficulty_per_hostile_level", 2))
+	var combat_section: Dictionary = draft.data.get("combat", {}) if draft.data.get("combat", {}) is Dictionary else {}
+	combat_blocked_commands.text = ", ".join(combat_section.get("additional_blocked_command_names", [])) if combat_section.get("additional_blocked_command_names") is Array else ""
+	combat_message_tokens.text = ", ".join(combat_section.get("additional_combat_message_tokens", [])) if combat_section.get("additional_combat_message_tokens") is Array else ""
 	for child in faction_rows.get_children(): _remove_row(child)
 	var factions: Dictionary = draft.data.get("factions", {})
 	var extras: Array = factions.get("extra", []) if factions.get("extra", []) is Array else []
@@ -217,6 +227,12 @@ func _save():
 		_put_path(draft.data, "combat.retreat.skill", retreat_skill.text.strip_edges())
 		_put_path(draft.data, "combat.retreat.base_difficulty", int(retreat_base.value))
 		_put_path(draft.data, "combat.retreat.difficulty_per_hostile_level", int(retreat_per_level.value))
+	for pair in [[combat_blocked_commands, "additional_blocked_command_names"], [combat_message_tokens, "additional_combat_message_tokens"]]:
+		if not _field_changed(pair[0]): continue
+		var values: Array = Array((pair[0] as LineEdit).text.split(",", false)).map(func(value): return str(value).strip_edges()).filter(func(value): return value != "")
+		if values.is_empty():
+			if draft.data.get("combat") is Dictionary: draft.data["combat"].erase(pair[1])
+		else: _put_path(draft.data, "combat." + str(pair[1]), values)
 	var factions := _faction_entries()
 	if factions != faction_baseline: draft.set_faction_extras(factions)
 	if _salvage_rules_changed(): draft.set_salvage_rules(_salvage_rules())

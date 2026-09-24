@@ -196,7 +196,7 @@ the *engine* has a second consumer, the *reference content* does not.
 | Contract `effect_packets` | **none — `registry.effect_packet()` has zero call sites** | `registry.py:145-158` | `ContractEditorDialog.gd` (tab) | validated writer for a dead section | `contract_field_audit.py:153-167` | 6C (engine decision) |
 | Contract `abilities` | `contracts/equipment.py:159-207` | `registry.py:134-143` | `ContractEditorDialog.gd` (tab) | validated writer — `effect_packet` unread | `contract_field_audit.py` | 6C |
 | Ruleset `combat.retreat` | `world.py:361-369` | `content_set.py::_validate_simple_ruleset_sections` (`combat`) — string skill, non-negative numeric difficulties (a quoted one raised mid-fight) | typed skill and difficulty controls in `RulesetEditorDialog.gd` | validated writer | `configuration_dialog_smoke.gd`, `test_configuration_save.py` (staged engine verdict) | 6D |
-| Ruleset `combat.additional_blocked_command_names`, `additional_combat_message_tokens` | `command_execution.py:373`; `status_payloads.py:650` | **none** | absent | absent | none | 6D |
+| Ruleset `combat.additional_blocked_command_names`, `additional_combat_message_tokens` | `command_execution.py:373`; `status_payloads.py:650` | `content_set.py::_validate_simple_ruleset_sections` (arrays of strings) | Ruleset dialog, under Combat Retreat: two comma-separated lists, written only when changed, removed when emptied | validated writer | `ruleset_social_loot_smoke.gd`; validated by `content_set.py` (combat section) | 6D |
 
 ## G. Progression & flows
 
