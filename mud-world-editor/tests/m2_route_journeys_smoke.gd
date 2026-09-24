@@ -50,6 +50,7 @@ func _run() -> void:
 	await _weather_route()
 	await _economy_route()
 	await _crime_route()
+	await _feature_profile_route()
 	if failures > 0: push_error("m2 route journeys failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -440,6 +441,33 @@ func _crime_route() -> void:
 
 	var after := _route(fixture, "crime_theft", arguments)
 	_assert(after.get("ok", false) and after.get("caught_on") == before.get("caught_on") and after.get("jailed", false) and int(after.get("fine", -1)) == 0, "edited: the same catch now ends in a cell, nothing paid (%s)" % _brief_crime(after))
+
+
+# --- system policy / feature profile ---------------------------------------------------
+# Last, because it switches a whole system off: the fixture's edited Magic
+# Missile (the first route) still kills a cave bear. Edited in the Feature
+# Profile dialog: combat disabled, and the same cast is refused.
+
+func _feature_profile_route() -> void:
+	print("
+[system policy / feature profile: switch combat off, then cast]")
+	var arguments := ["spell=magic_missile", "target=cave_bear"]
+	var before := _route(fixture, "combat_ability", arguments)
+	_assert(before.get("ok", false) and before.get("died", false), "before: the edited cast kills a cave bear (%s)" % _brief(before))
+
+	main.ui_mgr.side_panel.request_edit_feature_profile.emit()
+	await process_frame
+	var dialog: FeatureProfileDialog = main.ui_mgr.feature_profile_editor
+	_assert(dialog.visible and dialog.path.ends_with("creative_world.profile.json"), "the Feature Profile dialog opens from the Explorer on the selected profile")
+	var combat: OptionButton = dialog.mode_pickers["combat"]
+	for index in combat.item_count:
+		if str(combat.get_item_metadata(index)) == "disabled": combat.select(index); combat.item_selected.emit(index)
+	dialog.confirmed.emit()
+	var profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(fixture.path_join("data/profiles/creative_world.profile.json")))
+	_assert(profile["combat"]["mode"] == "disabled", "saved by the dialog (staged, engine-validated)")
+
+	var after := _route(fixture, "combat_ability", arguments)
+	_assert(after.get("ok", false) and not after.get("died", true) and int(after.get("health_after", 0)) == int(after.get("health_before", -1)), "edited: the same cast is refused and the bear is untouched (%s)" % _brief(after))
 
 
 func _brief_crime(result: Dictionary) -> String:
