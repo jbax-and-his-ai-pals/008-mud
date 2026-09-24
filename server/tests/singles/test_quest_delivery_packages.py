@@ -225,3 +225,38 @@ class TestAcceptingADeliveryAtTheBoard(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPackagesFromOtherStarts(unittest.TestCase):
+    """A delivery started in conversation or by a campaign carries its goods
+    too, and a single delivery's package survives a save. Only accepting at
+    the board used to hand a package over, and a package whose id is the
+    delivery's (not a template's) could not be rebuilt from a save."""
+
+    def setUp(self) -> None:
+        self.server = HeadlessServer(db_path=":memory:", content_set_path=FANTASY_FRONTIER, deterministic_test_mode=True)
+        self.session = self.server.create_session(player_id="courier_elsewhere")
+        self.server.execute_command(self.session.session_id, "char create Courier")
+        self.player = self.server.get_player_for_session(self.session.session_id)
+
+    def tearDown(self) -> None:
+        self.server.shutdown()
+
+    def test_a_quest_started_off_the_board_hands_over_its_packages_once(self) -> None:
+        manager = self.server.world.quest_manager
+        self.assertTrue(manager.start_quest("quest_upcountry_packets", self.player))
+        self.assertEqual(2, self.player.inventory.count_item(PACKAGE_TEMPLATE))
+        self.assertTrue(manager.start_quest("quest_deliver_treaty", self.player))
+        self.assertIsNotNone(self.player.inventory.find_item_by_id("treaty_of_the_valley"))
+        manager._hand_over_packages(self.player, manager.get_active_objective(
+            next(q for k, q in self.player.runtime_state.quests.active.items() if k.startswith("quest_upcountry_packets"))))
+        self.assertEqual(2, self.player.inventory.count_item(PACKAGE_TEMPLATE), "not issued twice")
+
+    def test_a_single_delivery_package_survives_a_save(self) -> None:
+        from engine.items.inventory import Inventory
+
+        self.server.world.quest_manager.start_quest("quest_deliver_treaty", self.player)
+        reloaded = Inventory.from_dict(self.player.inventory.to_dict(self.server.world), self.server.world)
+        treaty = reloaded.find_item_by_id("treaty_of_the_valley")
+        self.assertIsNotNone(treaty)
+        self.assertEqual("Peace Treaty", treaty.name)

@@ -70,6 +70,14 @@ def _serialize_item_reference(item: 'Item', quantity: int, world: 'World') -> Op
     template = ItemFactory.get_template(template_id, world)
 
     override_props: Dict[str, Any] = {}
+    # An instance whose id is not a template's (a quest package: its id is the
+    # delivery's) names its template instead; it is saved against that and
+    # rebuilt with its own id.
+    recorded_template = item.properties.get("template_id") if isinstance(getattr(item, "properties", None), dict) else None
+    if template is None and isinstance(recorded_template, str) and ItemFactory.get_template(recorded_template, world):
+        override_props["obj_id"] = item.obj_id
+        template_id = recorded_template
+        template = ItemFactory.get_template(template_id, world)
     # target_id scopes one specific key instance to one specific target
     # (a house region, a locked container) -- genuinely per-instance state
     # with no other persistence path, the same reason durability/uses/etc.

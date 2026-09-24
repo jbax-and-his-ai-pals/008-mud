@@ -106,4 +106,10 @@ def _build_package(world, item_template_id: str, *, obj_id: str, name, descripti
     authored_description = str(description or "").strip()
     if authored_description:
         overrides["description"] = authored_description
-    return ItemFactory.create_item_from_template(item_template_id, world, **overrides)
+    package = ItemFactory.create_item_from_template(item_template_id, world, **overrides)
+    if package is not None and obj_id != item_template_id:
+        # The package's id is the delivery's, not a template's, so it records
+        # the template it was made from; saving looks it up by this (without
+        # it a saved single delivery could not be rebuilt and was lost).
+        package.properties["template_id"] = item_template_id
+    return package

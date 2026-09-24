@@ -344,7 +344,7 @@ class QuestManager:
         
         # Initialize stage 0 spawns if any
         if quest_data.get("stages"):
-             self._setup_stage_mechanics(quest_data, quest_data["stages"][0])
+             self._setup_stage_mechanics(quest_data, quest_data["stages"][0], player)
 
         # Check immediately if we are already satisfying a scout objective
         updates = self.handle_room_entry(player)
@@ -359,6 +359,35 @@ class QuestManager:
                     server.pending_broadcasts.append(event)
 
         return True
+
+    def _hand_over_packages(self, player, objective) -> None:
+        """Give the player what a delivery stage asks them to carry.
+
+        Only accepting at the board handed a package over, so a delivery started
+        any other way -- in conversation, by a campaign, or as a later stage --
+        asked the player to deliver something they had never been given (the
+        Bandit Rebellion's "White Flag" had no treaty). A package the player
+        already holds (the board hands it over itself) is not issued twice; one
+        that does not fit is left at their feet rather than lost.
+        """
+        from engine.core.quests.packages import declared_packages
+
+        packages, problem = declared_packages(self.world, objective)
+        if problem or not packages:
+            return
+        # A courier run's packages share one id (one per recipient), so count:
+        # issue only as many as the player is short of.
+        wanted: Dict[str, int] = {}
+        for package in packages:
+            wanted[package.obj_id] = wanted.get(package.obj_id, 0) + 1
+        for package in packages:
+            if player.inventory.count_item(package.obj_id) >= wanted[package.obj_id]:
+                continue
+            can_add, _message = player.inventory.can_add_item(package)
+            if can_add:
+                player.inventory.add_item(package)
+            elif player.current_region_id and player.current_room_id:
+                self.world.add_item_to_room(player.current_region_id, player.current_room_id, package)
 
     def start_campaign(self, campaign_id: str, player) -> bool:
         if self.world.campaign_manager:
@@ -497,11 +526,13 @@ class QuestManager:
         quest["objective"] = next_stage["objective"]
         quest["state"] = "active"
         
-        self._setup_stage_mechanics(quest, next_stage)
+        self._setup_stage_mechanics(quest, next_stage, player)
         return completion_text
     
-    def _setup_stage_mechanics(self, quest_data, stage_data):
+    def _setup_stage_mechanics(self, quest_data, stage_data, player=None):
         objective = stage_data.get("objective", {})
+        if player is not None:
+            self._hand_over_packages(player, objective)
         if objective.get("is_procedural_item"):
             item_data = objective.get("procedural_item_data")
             # Some entries in world.regions (e.g. procedural-generation
