@@ -438,7 +438,7 @@ func _load_advancement():
 func _add_advancement_grant(source: Dictionary, grant_id: String):
 	for child in advancement_grant_rows.get_children():
 		if child is Label: _remove_row(child)
-	var card := VBoxContainer.new(); card.name = "AdvancementGrant"; card.add_theme_constant_override("separation", 4); card.set_meta("source", source.duplicate(true))
+	var card := VBoxContainer.new(); card.name = "AdvancementGrant"; card.set_meta("row_kind", "AdvancementGrant"); card.add_theme_constant_override("separation", 4); card.set_meta("source", source.duplicate(true))
 	var criteria: Dictionary = source.get("match", {}) if source.get("match", {}) is Dictionary else {}
 	var header := HBoxContainer.new(); header.name = "Header"; header.add_theme_constant_override("separation", 6); card.add_child(header)
 	var id_field := LineEdit.new(); id_field.name = "GrantId"; id_field.placeholder_text = "grant id"; id_field.text = grant_id; id_field.custom_minimum_size.x = 150
@@ -473,7 +473,10 @@ func _advancement() -> Dictionary:
 		curve["base"] = advancement_base.value; curve["multiplier"] = advancement_multiplier.value; out["curve"] = curve
 	var grants: Array = []
 	for card in advancement_grant_rows.get_children():
-		if not (card is VBoxContainer) or card.name != "AdvancementGrant": continue
+		# By tag, not by name: Godot renames every same-named sibling after the
+		# first, so matching on the name saved only the first grant and silently
+		# dropped the rest.
+		if not (card is VBoxContainer) or card.get_meta("row_kind", "") != "AdvancementGrant": continue
 		var grant_id := (card.get_node("Header/GrantId") as LineEdit).text.strip_edges()
 		if grant_id == "": continue
 		var grant: Dictionary = card.get_meta("source").duplicate(true); grant["id"] = grant_id; grant["xp"] = (card.get_node("Header/XP") as SpinBox).value
@@ -548,7 +551,7 @@ func _add_schedule_category_row(category_id: String, keywords: Array, source: Di
 func _add_schedule_role(source: Dictionary, role_id: String, keywords: Array):
 	for child in npc_schedule_roles.get_children():
 		if child is Label: _remove_row(child)
-	var card := VBoxContainer.new(); card.add_theme_constant_override("separation", 5); card.set_meta("source", source.duplicate(true)); card.name = "ScheduleRole"
+	var card := VBoxContainer.new(); card.add_theme_constant_override("separation", 5); card.set_meta("source", source.duplicate(true)); card.name = "ScheduleRole"; card.set_meta("row_kind", "ScheduleRole")
 	var identity := HBoxContainer.new(); identity.name = "Identity"; identity.add_theme_constant_override("separation", 6); card.add_child(identity)
 	var id_field := LineEdit.new(); id_field.name = "RoleId"; id_field.placeholder_text = "role id"; id_field.text = role_id; id_field.custom_minimum_size.x = 145
 	InspectorStyle.apply_input_style(id_field); id_field.text_changed.connect(func(_text): _mark_dirty()); identity.add_child(id_field)
@@ -638,7 +641,8 @@ func _npc_schedules() -> Dictionary:
 	else: out["room_categories"] = categories
 	var roles: Array = []
 	for card in npc_schedule_roles.get_children():
-		if not (card is VBoxContainer) or card.name != "ScheduleRole": continue
+		# By tag, not by name (see the advancement grants above).
+		if not (card is VBoxContainer) or card.get_meta("row_kind", "") != "ScheduleRole": continue
 		var role_id := (card.get_node("Identity/RoleId") as LineEdit).text.strip_edges()
 		if role_id == "": continue
 		var role: Dictionary = card.get_meta("source").duplicate(true)
