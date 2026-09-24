@@ -319,7 +319,7 @@ class TestQuestStageObjectives(unittest.TestCase):
             "start": {"region_id": "town", "room_id": "square"},
             "capabilities": ["inventory", "quests"],
         }), encoding="utf-8")
-        (package / "rules" / "ruleset.json").write_text(json.dumps({"ruleset_id": "probe"}), encoding="utf-8")
+        (package / "rules" / "ruleset.json").write_text(json.dumps({}), encoding="utf-8")
         (package / "data" / "regions" / "town.json").write_text(json.dumps({
             "region_id": "town", "rooms": {"square": {"name": "Square", "exits": {}}},
         }), encoding="utf-8")
@@ -393,7 +393,7 @@ class TestRecipeIngredientReferences(unittest.TestCase):
             "start": {"scenario_id": "start", "region_id": "town", "room_id": "square"},
             "capabilities": ["inventory", "crafting"],
         }), encoding="utf-8")
-        (package / "rules" / "ruleset.json").write_text(json.dumps({"ruleset_id": "probe"}), encoding="utf-8")
+        (package / "rules" / "ruleset.json").write_text(json.dumps({}), encoding="utf-8")
         (package / "presentation" / "default.json").write_text("{}", encoding="utf-8")
         (package / "data" / "regions" / "town.json").write_text(json.dumps({
             "region_id": "town", "rooms": {"square": {"name": "Square", "exits": {}}},
@@ -514,7 +514,7 @@ class TestSalvageRuleValidation(unittest.TestCase):
         }), encoding="utf-8")
         (package / "presentation" / "default.json").write_text("{}", encoding="utf-8")
         (package / "rules" / "ruleset.json").write_text(json.dumps({
-            "ruleset_id": "salvage_probe", "crafting": {"salvage_rules": salvage_rules},
+            "crafting": {"salvage_rules": salvage_rules},
         }), encoding="utf-8")
         (package / "data" / "regions" / "town.json").write_text(json.dumps({
             "region_id": "town", "rooms": {"square": {"name": "Square", "exits": {}}},
@@ -636,7 +636,7 @@ def _background_package(case: unittest.TestCase, *, stats: dict, skills: dict | 
         "start": {"scenario_id": "start", "region_id": "town", "room_id": "square"},
         "capabilities": ["inventory"],
     }), encoding="utf-8")
-    ruleset: dict = {"ruleset_id": "probe"}
+    ruleset: dict = {}
     if stat_bonuses is not None:
         ruleset["skills"] = {"stat_bonuses": stat_bonuses}
     if weather is not None:
@@ -1249,6 +1249,28 @@ class TestSimpleRulesetSections(unittest.TestCase):
         self.assertEqual([], [m for s, m in issues if s == "error"])
         self.assertTrue(any("'Ada'" in m for m in warnings), warnings)
         self.assertTrue(any("'cathedral'" in m for m in warnings), warnings)
+
+
+class TestRetiredRulesetKeys(unittest.TestCase):
+    """`ruleset_id` and `world_mode` were written by the editor and read by
+    nothing (the world mode is the server's feature profile). They are removed,
+    and refused so an author is not left setting a value that changes nothing."""
+
+    def test_they_are_refused_with_the_reason(self):
+        package = _background_package(self, stats={"strength": 10})
+        path = package / "rules" / "ruleset.json"
+        ruleset = json.loads(path.read_text(encoding="utf-8"))
+        ruleset.update({"ruleset_id": "old_core", "world_mode": "single_player_story"})
+        path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        errors = [i.message for i in issues if i.severity == "error"]
+        self.assertTrue(any("ruleset.ruleset_id is not read by anything and has been removed; the manifest's `id` names the content set" in m for m in errors), errors)
+        self.assertTrue(any("ruleset.world_mode is not read by anything and has been removed; the world mode is the server's" in m for m in errors), errors)
+
+    def test_no_shipped_set_carries_them(self):
+        for ruleset_path in sorted((REPO_ROOT / "content_sets").glob("*/rules/ruleset.json")):
+            ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+            self.assertFalse({"ruleset_id", "world_mode"} & set(ruleset), ruleset_path)
 
 
 class TestCrimeAndDebugRules(unittest.TestCase):

@@ -1779,6 +1779,25 @@ _CRIME_NON_NEGATIVE = {
 }
 
 
+# Ruleset keys that were read by nothing and have been removed. Refused rather
+# than ignored, so an author is not left setting a value that changes nothing.
+_RETIRED_RULESET_KEYS = {
+    "ruleset_id": "the manifest's `id` names the content set",
+    "world_mode": "the world mode is the server's (the feature profile's `world.mode`), not the content set's",
+}
+
+
+def _refuse_retired_ruleset_keys(ruleset: Any, issues: list[ContentSetIssue], ruleset_path: Path | None = None) -> None:
+    if not isinstance(ruleset, dict):
+        return
+    for key, reason in _RETIRED_RULESET_KEYS.items():
+        if key in ruleset:
+            issues.append(ContentSetIssue(
+                "error", str(ruleset_path or "ruleset"),
+                f"ruleset.{key} is not read by anything and has been removed; {reason}. Delete it",
+            ))
+
+
 def _validate_crime_and_debug_rules(
     content_root: Path, ruleset: Any, issues: list[ContentSetIssue], ruleset_path: Path | None = None,
 ) -> None:
@@ -5674,6 +5693,7 @@ def load_content_set(
         _validate_weather_profiles(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_simple_ruleset_sections(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_crime_and_debug_rules(content_root, ruleset_payload, issues, ruleset_source_path)
+        _refuse_retired_ruleset_keys(ruleset_payload, issues, ruleset_source_path)
         _validate_dynamic_themes(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_affixes(content_root, issues)
         _validate_item_resistances_and_sets(content_root, issues)

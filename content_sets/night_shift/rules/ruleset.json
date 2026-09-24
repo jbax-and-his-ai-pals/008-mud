@@ -1,6 +1,4 @@
 {
-  "ruleset_id": "night_shift_core",
-  "world_mode": "single_player_slice",
   "progression_model": "level_based",
   "systems": {
     "combat": { "enabled": true }

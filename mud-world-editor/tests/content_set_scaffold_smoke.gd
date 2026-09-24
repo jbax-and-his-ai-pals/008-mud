@@ -443,8 +443,8 @@ func _check_the_default_rules_choice_validates() -> void:
 		_assert(not str(path).contains("/rules/"),
 			"the source's rules were not copied (%s)" % str(path))
 	var ruleset := _read_json(str(result.get("path", "")).path_join("rules/ruleset.json"))
-	_assert(ruleset.get("ruleset_id") == created_id, "the placeholder ruleset names the new set")
-	_assert(ruleset.size() == 2, "and declares nothing else: %s" % str(ruleset.keys()))
+	_assert(str(ruleset.get("label", "")).ends_with(" rules"), "the placeholder ruleset is labelled for the new set")
+	_assert(ruleset.size() == 1, "and declares nothing else: %s" % str(ruleset.keys()))
 
 	var verdict := EngineValidator.run(str(result.get("path", "")), repo_root, python_exe)
 	if not verdict.get("ran", false):
@@ -490,7 +490,7 @@ func _build_source_set() -> void:
 		"capabilities": ["inventory", "crafting"],
 	})
 	SaveIO.write_json(source_set.path_join("rules/ruleset.json"), {
-		"ruleset_id": "source_set", "label": "Source Set rules",
+		"label": "Source Set rules",
 	})
 	SaveIO.write_json(source_set.path_join("presentation/default.json"), {
 		"presentation_id": "source_set", "display_name": "Source Set",

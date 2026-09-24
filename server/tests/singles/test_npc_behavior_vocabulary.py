@@ -159,7 +159,7 @@ class TestAnUnknownBehaviourIsReported(unittest.TestCase):
             },
         }), encoding="utf-8")
         (package / "rules" / "ruleset.json").write_text(
-            json.dumps({"ruleset_id": "wander_core"}), encoding="utf-8"
+            json.dumps({}), encoding="utf-8"
         )
         (package / "presentation" / "default.json").write_text("{}", encoding="utf-8")
         (package / cs.CONTENT_SET_MANIFEST_NAME).write_text(json.dumps({

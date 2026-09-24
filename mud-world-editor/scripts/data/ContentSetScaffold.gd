@@ -203,7 +203,6 @@ static func create(
 		var ruleset_path := target.path_join(_ruleset_relative(source_manifest))
 		DirAccess.make_dir_recursive_absolute(ruleset_path.get_base_dir())
 		var placeholder := SaveIO.write_json(ruleset_path, {
-			"ruleset_id": identity,
 			"label": "%s rules" % (title.strip_edges() if title.strip_edges() != "" else identity.capitalize()),
 		})
 		if not placeholder.get("ok", false):

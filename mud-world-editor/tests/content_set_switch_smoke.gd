@@ -300,7 +300,7 @@ func _build_set(root_path: String, id: String, region: String, item_id: String,
 	SaveIO.write_json(root_path.path_join("presentation/default.json"), {
 		"presentation_id": id, "display_name": id.capitalize(),
 	})
-	SaveIO.write_json(root_path.path_join("rules/ruleset.json"), {"ruleset_id": id})
+	SaveIO.write_json(root_path.path_join("rules/ruleset.json"), {})
 	SaveIO.write_json(data_root.path_join("regions/%s.json" % region), {
 		"region_id": region, "name": id.capitalize(),
 		"rooms": {"start": {"name": "%s start" % id.capitalize(), "exits": {}}},

@@ -76,7 +76,7 @@ class ConfigurationSaveTests(unittest.TestCase):
         self.assertEqual(self.before, self.path.read_bytes())
 
     def test_edit_is_validated_saved_and_backed_up(self):
-        self.draft["ruleset_id"] = "edited_modern"
+        self.draft["label"] = "Edited modern rules"
         result = save_configuration(self.path, self.draft, self.expected)
         self.assertTrue(result["ok"], result)
         self.assertEqual(self.draft, json.loads(self.path.read_bytes()))
@@ -90,7 +90,7 @@ class ConfigurationSaveTests(unittest.TestCase):
         self.assertEqual(changed, self.path.read_bytes())
 
     def test_failed_replace_preserves_original(self):
-        self.draft["ruleset_id"] = "edited_modern"
+        self.draft["label"] = "Edited modern rules"
         with patch("toolkit.configuration_save.os.replace", side_effect=OSError("disk failure")):
             with self.assertRaisesRegex(OSError, "disk failure"):
                 save_configuration(self.path, self.draft, self.expected)
@@ -98,14 +98,14 @@ class ConfigurationSaveTests(unittest.TestCase):
         self.assertEqual([], list(self.path.parent.glob("*.tmp")))
 
     def test_validator_failure_does_not_write(self):
-        self.draft["ruleset_id"] = "edited_modern"
+        self.draft["label"] = "Edited modern rules"
         with patch("toolkit.configuration_save.validate_content_set", side_effect=RuntimeError("unavailable")):
             with self.assertRaisesRegex(RuntimeError, "unavailable"):
                 save_configuration(self.path, self.draft, self.expected)
         self.assertEqual(self.before, self.path.read_bytes())
 
     def test_change_during_validation_does_not_write(self):
-        self.draft["ruleset_id"] = "edited_modern"
+        self.draft["label"] = "Edited modern rules"
         def mutate(_root):
             self.path.write_bytes(self.before + b"\n")
             return []
@@ -119,7 +119,7 @@ class ConfigurationSaveTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_bytes())
         manifest["paths"]["content_root"] = "../outside"
         manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
-        self.draft["ruleset_id"] = "edited_modern"
+        self.draft["label"] = "Edited modern rules"
         with self.assertRaisesRegex(ValueError, "outside this content set"):
             save_configuration(self.path, self.draft, self.expected)
         self.assertEqual(self.before, self.path.read_bytes())

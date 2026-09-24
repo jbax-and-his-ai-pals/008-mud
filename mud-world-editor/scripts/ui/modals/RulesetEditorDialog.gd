@@ -5,8 +5,6 @@ signal ruleset_saved
 
 var draft: RulesetDraft
 var status_label: Label
-var ruleset_id: LineEdit
-var world_mode: LineEdit
 var progression_model: LineEdit
 var stats: LineEdit
 var biomes: LineEdit
@@ -59,8 +57,6 @@ func setup():
 	var box := VBoxContainer.new(); box.custom_minimum_size = Vector2(740, 0); box.add_theme_constant_override("separation", 12); scroll.add_child(box)
 	status_label = Label.new(); status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; status_label.modulate = InspectorStyle.COLOR_TEXT_DIM; box.add_child(status_label)
 	box.add_child(InspectorStyle.create_sub_header("General"))
-	ruleset_id = _field(box, "Ruleset ID")
-	world_mode = _field(box, "World Mode")
 	progression_model = _field(box, "Progression Model")
 	box.add_child(InspectorStyle.create_sub_header("Enabled Systems"))
 	var systems_grid := GridContainer.new(); systems_grid.columns = 2; box.add_child(systems_grid)
@@ -171,7 +167,7 @@ func open_active():
 	var status: Dictionary = draft.data.get("status", {})
 	var systems: Dictionary = draft.data.get("systems", {})
 	var retreat: Dictionary = draft.data.get("combat", {}).get("retreat", {}) if draft.data.get("combat", {}) is Dictionary and draft.data.get("combat", {}).get("retreat", {}) is Dictionary else {}
-	ruleset_id.text = str(draft.data.get("ruleset_id", "")); world_mode.text = str(draft.data.get("world_mode", "")); progression_model.text = str(draft.data.get("progression_model", ""))
+	progression_model.text = str(draft.data.get("progression_model", ""))
 	stats.text = _joined(status.get("stats", [])); biomes.text = _joined(regions.get("biomes", [])); region_types.text = _joined(regions.get("region_types", []))
 	require_classification.button_pressed = bool(regions.get("require_classification", false)); require_level_bands.button_pressed = bool(regions.get("require_level_bands", false)); require_hazard_coverage.button_pressed = bool(regions.get("require_hazard_coverage", false))
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string(DataRoot.root().path_join("content_set.manifest.json")))
@@ -206,8 +202,7 @@ func _save():
 	if draft == null: return
 	if not _form_changed(): _finish_save(); return
 	draft.data = draft.original.duplicate(true)
-	for pair in [[ruleset_id, "ruleset_id"], [world_mode, "world_mode"], [progression_model, "progression_model"]]:
-		if _field_changed(pair[0]): _put_path(draft.data, pair[1], pair[0].text.strip_edges())
+	if _field_changed(progression_model): _put_path(draft.data, "progression_model", progression_model.text.strip_edges())
 	for system_id in system_checks:
 		if _field_changed(system_checks[system_id]): draft.set_system_enabled(system_id, system_checks[system_id].button_pressed)
 	if _field_changed(retreat_skill) or _field_changed(retreat_base) or _field_changed(retreat_per_level):

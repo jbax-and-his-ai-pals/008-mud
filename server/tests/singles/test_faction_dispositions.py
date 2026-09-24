@@ -128,7 +128,7 @@ class FactionSetBase(unittest.TestCase):
             },
         }), encoding="utf-8")
 
-        ruleset = {"ruleset_id": "raider_core", "progression_model": "level_based"}
+        ruleset = {"progression_model": "level_based"}
         if ruleset_extra:
             ruleset.update(ruleset_extra)
         (package / "rules" / "ruleset.json").write_text(json.dumps(ruleset), encoding="utf-8")

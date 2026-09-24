@@ -352,7 +352,7 @@ func _build_fixture() -> void:
 	SaveIO.write_json(content_set_root.path_join("presentation/default.json"), {
 		"presentation_id": "recipe_fixture", "display_name": "Recipe Fixture",
 	})
-	SaveIO.write_json(content_set_root.path_join("rules/ruleset.json"), {"ruleset_id": "recipe_fixture"})
+	SaveIO.write_json(content_set_root.path_join("rules/ruleset.json"), {})
 	SaveIO.write_json(data_root.path_join("regions/fixture.json"), {
 		"region_id": "fixture", "rooms": {"start": {"name": "Start", "exits": {}}},
 	})

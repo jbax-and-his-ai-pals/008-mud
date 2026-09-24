@@ -206,8 +206,6 @@ no bonds at all.
 
 ```json
 {
-  "ruleset_id": "wayfarer_core",
-  "world_mode": "single_player_story",
   "progression_model": "level_based",
   "systems": {
     "inventory": { "enabled": true },

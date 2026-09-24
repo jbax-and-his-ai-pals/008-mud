@@ -122,7 +122,7 @@ func _build_broken_fixture() -> void:
 		"start": {"region_id": "fixture", "room_id": "start"},
 		"capabilities": ["inventory"],
 	})
-	SaveIO.write_json(scratch_root.path_join("rules/ruleset.json"), {"ruleset_id": "fixture"})
+	SaveIO.write_json(scratch_root.path_join("rules/ruleset.json"), {})
 	SaveIO.write_json(scratch_root.path_join("data/regions/fixture.json"), {
 		"region_id": "fixture", "rooms": {"start": {"name": "Start", "exits": {}}},
 	})

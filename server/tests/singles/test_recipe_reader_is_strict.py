@@ -196,7 +196,7 @@ class TestTheValidatorAsksTheSameReader(unittest.TestCase):
             "start": {"scenario_id": "start", "region_id": "town", "room_id": "square"},
             "capabilities": ["inventory", "crafting"],
         }), encoding="utf-8")
-        (package / "rules" / "ruleset.json").write_text(json.dumps({"ruleset_id": "probe"}), encoding="utf-8")
+        (package / "rules" / "ruleset.json").write_text(json.dumps({}), encoding="utf-8")
         (package / "presentation" / "default.json").write_text("{}", encoding="utf-8")
         (package / "data" / "regions" / "town.json").write_text(json.dumps({
             "region_id": "town", "rooms": {"square": {"name": "Square", "exits": {}}},

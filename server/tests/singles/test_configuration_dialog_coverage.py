@@ -82,13 +82,11 @@ UNCOVERED_CONTRACT_FIELDS = {
     ("<file>", "description"): "file-level description, unread; preserved as authored",
 }
 
-# The ruleset keys the dialog can write. The first three are scalars; `world`
+# The ruleset keys the dialog can write. `progression_model` is a scalar; `world`
 # and `combat` are written by `_put_path`, the rest through `RulesetDraft`
 # setters. Anything else in `ruleset.json` is preserved byte-for-byte and
 # cannot be authored.
 RULESET_WRITABLE_KEYS = {
-    "ruleset_id",
-    "world_mode",
     "progression_model",
     "systems",
     "world",

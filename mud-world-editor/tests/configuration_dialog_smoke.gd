@@ -127,9 +127,8 @@ func _run():
 	_assert(fallback_index >= 0, "salvage fallback offers authored item templates")
 	if fallback_index >= 0:
 		rules.salvage_default.item_selected.emit(fallback_index)
-	_edit(rules.ruleset_id, str(rules_before["ruleset_id"]) + "_edited")
 	rules.confirmed.emit()
-	var rules_expected := rules_before.duplicate(true); rules_expected["ruleset_id"] = str(rules_before["ruleset_id"]) + "_edited"; rules_expected["crafting"]["salvage_rules"]["default_item_id"] = "item_patch_kit"; rules_expected["npc_schedules"]["roles"][0]["schedule"]["8"]["activity"] = "starting shift"; rules_expected["advancement"]["grants"][0]["message"] = "A familiar berth."
+	var rules_expected := rules_before.duplicate(true); rules_expected["crafting"]["salvage_rules"]["default_item_id"] = "item_patch_kit"; rules_expected["npc_schedules"]["roles"][0]["schedule"]["8"]["activity"] = "starting shift"; rules_expected["advancement"]["grants"][0]["message"] = "A familiar berth."
 	_assert(JSON.parse_string(FileAccess.get_file_as_string(rules_path)) == rules_expected, "ruleset save preserves untouched salvage details while changing its chosen fallback: " + rules.status_label.text)
 	rules.open_active()
 	var rows_before: int = rules.faction_rows.get_child_count(); rules.hide(); rules.open_active()
@@ -170,12 +169,12 @@ func _run():
 	app.ui_mgr.side_panel.request_edit_ruleset.emit()
 	var live_rules = app.ui_mgr.ruleset_editor
 	_assert(live_rules.visible, "Ruleset request reaches the dialog through the actual UI manager")
-	_edit(live_rules.ruleset_id, live_rules.ruleset_id.text + "_app")
+	_edit(live_rules.progression_model, live_rules.progression_model.text + " ")
 	_assert(app.ui_mgr.has_configuration_drafts() and app._has_unsaved_work(), "application quit/switch sees pending configuration")
 	live_rules.confirmed.emit()
 	_assert(not live_rules.visible and not app.ui_mgr.has_configuration_drafts(), "save refresh callbacks work in the full application")
 	app.ui_mgr.side_panel.request_edit_ruleset.emit()
-	_edit(live_rules.ruleset_id, live_rules.ruleset_id.text + "_discard")
+	_edit(live_rules.progression_model, live_rules.progression_model.text + " ")
 	app._reset_per_set_state()
 	_assert(not live_rules.visible and live_rules.draft == null and not app.ui_mgr.has_configuration_drafts(), "set reset discards only after the application chooses that path")
 	app.queue_free()

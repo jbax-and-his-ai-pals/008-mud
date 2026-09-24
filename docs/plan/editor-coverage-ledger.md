@@ -218,14 +218,13 @@ the *engine* has a second consumer, the *reference content* does not.
 
 ## H. World & system policy — the ruleset
 
-One row per section of `content_sets/fantasy_frontier/rules/ruleset.json` (23 top-level
+One row per section of `content_sets/fantasy_frontier/rules/ruleset.json` (21 top-level
 keys). "Editor" is what `RulesetEditorDialog`/`RulesetDraft` can write today; everything
 else in the file is preserved byte-for-byte and cannot be authored.
 
 | Section | Engine reader | Validated by | Editor writes | Status | Batch |
 |---|---|---|---|---|---|
-| `ruleset_id` | **no reader** | none | yes (free text) | prototype (a value nothing reads) | 6D |
-| `world_mode` | **no reader** (world mode comes from the feature profile) | none | yes (free text) | prototype (same) | 6D |
+| ~~`ruleset_id`~~, ~~`world_mode`~~ | removed 2026-09-23: read by nothing (the world mode is the server's feature profile `world.mode`) | `content_set.py::_refuse_retired_ruleset_keys` refuses both | no (the dialog's fields are gone) | retired | 6D |
 | `progression_model` | `content_set.py:108-110`; `world.py:128` | `content_set.py:108-118` | yes (free text) | validated writer | 6D |
 | `world.regions` (policy flags, `biomes`, `region_types`) | `world.py:797-798` | `content_set.py:236-343` | yes (3 checkboxes + 2 lists) | validated writer | 6C |
 | `weather` (`profiles`, `descriptions`) | `weather_manager.py:27-67`; `information.py:185` | `content_set.py::_validate_weather_shapes` checks `descriptions` and each profile's `map`/`travel_notes` are string maps, alongside the existing profile-reference check; **`chances` is read by the engine and remains absent here** | `RulesetEditorDialog.gd`: description rows plus one card per profile (id, map rows, travel-note rows); an authored empty `map`/`travel_notes` round-trips as empty rather than being dropped | validated writer | `configuration_dialog_smoke.gd`; `ruleset_weather_smoke.gd`; `test_content_set_validator.py`, `test_configuration_save.py` (staged engine verdict) | 6D |
@@ -250,8 +249,8 @@ else in the file is preserved byte-for-byte and cannot be authored.
 | `npc_schedules` | `ai/schedules.py:58-173` | `content_set.py:_validate_npc_schedule_rules` validates roles, category keywords, slot ordering/references, canonical hours, and the one dispatcher-supported override | `RulesetEditorDialog.gd`: excluded names, room-name categories, role/template matching, ordered location slots, and daily activities. It preserves unknown setting-specific data on touched rows | validated writer | `test_content_set_validator.py`; `configuration_dialog_smoke.gd`, `test_configuration_save.py` (staged engine verdict) | 6D |
 | `debug` | `commands/debug_crafting.py:62`, … | `content_set.py::_validate_crime_and_debug_rules` — known keys; gear, station and spell references resolve | no | absent (validated) | 6D |
 
-**Notes.** The editor can write 22 of the 23 top-level keys: three scalars
-(`ruleset_id`, `world_mode`, `progression_model`), `systems` (8 toggles),
+**Notes.** The editor can write 20 of the 21 top-level keys: one scalar
+(`progression_model`), `systems` (8 toggles),
 `world.regions` (3 flags + 2 lists), `status` (`stats` only), `factions` (`extra` only),
 `combat` (`retreat` only), `crafting` (`salvage_rules` only), the seven World Rules sections, `crime`,
 `weather` (`descriptions` and `profiles` only, not `chances`),
@@ -277,15 +276,15 @@ was falsified by removing one `_field(...)` line from a builder — it failed na
 |---|---|---|---|
 | `ContractEditorDialog` | `CONTRACT_SCHEMAS`: 8 sections, **69 fields** | 67 | `item_families.description`, `item_families.debug_only` — both read by nothing (§I.5), preserved as authored |
 | `ContractEditorDialog` (file level) | `TOP_LEVEL_FIELDS` | `stats` page (`order`, `short`, `roles`) — validated by `registry._ingest_stats` | `schema_version` (engine-owned), file-level `label`/`description` (unread, preserved) |
-| `RulesetEditorDialog` | 23 top-level keys | **22** (`crime`, the seven World Rules sections, `ruleset_id`, `world_mode`, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `combat.retreat`, `crafting.salvage_rules`, `skills.stat_bonuses`, `npc_schedules`, `advancement`, `weather` descriptions/profiles, `quest_generation`) | `debug` (developer tooling), byte-for-byte preserved |
+| `RulesetEditorDialog` | 21 top-level keys | **20** (`crime`, the seven World Rules sections, `progression_model`, `systems` ×8, `world.regions` ×5, `factions.extra`, `status.stats`, `combat.retreat`, `crafting.salvage_rules`, `skills.stat_bonuses`, `npc_schedules`, `advancement`, `weather` descriptions/profiles, `quest_generation`) | `debug` (developer tooling), byte-for-byte preserved |
 | `CombatVocabularyDialog` | `combat/elements.json` | `valid_damage_types`, `default_damage_type`, and every hazard field the shipped file uses (`channel`, `damage`, `flavor`, `tick_interval`) | `elemental_opposites`, `flavor_text` |
 
 **What this says about 6A.** The contract and combat-vocabulary dialogs are close to
 field-complete against the schema, which is better than the §F rows imply — their
 remaining gaps are validation scope and journeys, not missing controls. The ruleset
 dialog is the one that is genuinely partial (7 of 23 keys), and the test records two
-facts worth keeping: `ruleset_id` and `world_mode` are writable but read by nothing
-(§I.5), and `factions` is writable although **no shipped set declares it**, so the
+facts worth keeping: `ruleset_id` and `world_mode` were writable but read by nothing
+(§I.5; both removed 2026-09-23), and `factions` is writable although **no shipped set declares it**, so the
 "Custom Factions" panel has no example to copy from.
 
 ---
@@ -393,7 +392,7 @@ have runtime-shape validation; the remaining rows are the actual validator debt.
 Parsed and read by nothing: contract `effect_packets` (whole section),
 `attack_profiles.cooldown`/`.resource_cost`/`tags`, `work[].tags`,
 `work.declaration_issues()`, `manifest.title`/`version`, `presentation_path`,
-`region.properties.biome`/`region_type`, ruleset `ruleset_id`/`world_mode`.
+`region.properties.biome`/`region_type` (ruleset `ruleset_id`/`world_mode` removed 2026-09-23).
 
 Validators that disagree about the same fact (engine vs toolkit): `behavior_type`
 vocabulary (toolkit invents three names, omits `follower`); vendor stock

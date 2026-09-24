@@ -117,7 +117,6 @@ class TestADeadItemGrantIsReported(unittest.TestCase):
             "rooms": {"square": {"name": "Square", "description": "A square."}},
         }), encoding="utf-8")
         (package / "rules" / "ruleset.json").write_text(json.dumps({
-            "ruleset_id": "grant_core",
             "advancement": {"grants": [{"id": "probe", "match": match, "xp": 5}]},
         }), encoding="utf-8")
         (package / "presentation" / "default.json").write_text("{}", encoding="utf-8")

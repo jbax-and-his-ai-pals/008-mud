@@ -315,7 +315,7 @@ func _rebuild_fixture() -> void:
 	_write(data_root.path_join("abilities/overcharge.json"), {
 		"overcharge": {"name": "Overcharge", "mana_cost": 6, "cooldown": 6.0, "target_type": "enemy"},
 	})
-	_write(content_set_root.path_join("rules/ruleset.json"), {"ruleset_id": "fixture", "world": {"regions": {}}})
+	_write(content_set_root.path_join("rules/ruleset.json"), {"world": {"regions": {}}})
 
 
 func _write(path: String, payload: Dictionary) -> void:

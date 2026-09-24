@@ -33,9 +33,9 @@ static func load(ruleset_path: String) -> Dictionary:
 func is_dirty() -> bool:
 	return JSON.stringify(data) != JSON.stringify(original)
 
-func set_general(ruleset_id: String, world_mode: String, progression_model: String):
-	data["ruleset_id"] = ruleset_id.strip_edges()
-	data["world_mode"] = world_mode.strip_edges()
+# `ruleset_id` and `world_mode` were written here and read by nothing (the
+# world mode is the server's feature profile); the engine now refuses both.
+func set_progression_model(progression_model: String):
 	data["progression_model"] = progression_model.strip_edges()
 
 func set_status_stats(stats: Array):
@@ -106,8 +106,9 @@ func set_region_policy(require_classification: bool, require_level_bands: bool,
 
 func validate() -> Array:
 	var errors: Array = []
-	if str(data.get("ruleset_id", "")).strip_edges() == "":
-		errors.append("Ruleset ID is required.")
+	for retired in ["ruleset_id", "world_mode"]:
+		if data.has(retired):
+			errors.append("%s is not read by anything and has been removed; delete it from the ruleset." % retired)
 	var status = data.get("status", {})
 	if status is Dictionary and status.has("stats"):
 		_validate_unique_strings(status["stats"], "status.stats", errors)

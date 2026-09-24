@@ -266,7 +266,6 @@ func _build_fixture() -> void:
 		"presentation_id": "item_fixture", "display_name": "Item Fixture",
 	})
 	SaveIO.write_json(content_set_root.path_join("rules/ruleset.json"), {
-		"ruleset_id": "item_fixture",
 		"crafting": {
 			"salvage_rules": {
 				"by_family": {"salvaged_part": {"item_id": "item_scrap_alloy"}},
