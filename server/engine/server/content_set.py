@@ -4406,6 +4406,66 @@ def _validate_contract_content(content_root: Path, issues: list[ContentSetIssue]
                     ))
 
 
+def _validate_item_envelopes(content_root: Path, issues: list[ContentSetIssue]) -> None:
+    """What `definition_loader.load_item_templates` keeps and `ItemFactory` builds.
+
+    The loader skips a template that is not an object or lacks a `name` or
+    `type` key, counting it and saying nothing else, so every room, shop, loot
+    table and quest naming it gets nothing. Past the loader, the class comes
+    from the template's family (when its contract names one) and then from
+    `type`; a class `ITEM_CLASS_MAP` does not have makes the factory return
+    None for every instance. The data-integrity gate only warned about a
+    missing name or type, and nothing checked the class.
+    """
+    from engine.contracts import ContractRegistry
+    from engine.items.item_factory import ITEM_CLASS_MAP
+
+    items_dir = content_root / "items"
+    if not items_dir.is_dir():
+        return
+    registry = ContractRegistry.load(str(content_root))
+    seen: dict[str, str] = {}
+    for path in sorted(items_dir.glob("*.json")):
+        if path.name in ("sets.json", "affixes.json"):
+            continue
+        payload = _load_json(path, [], "item definitions")
+        if not isinstance(payload, dict):
+            continue
+        for item_id, template in payload.items():
+            if str(item_id).startswith("_"):
+                continue
+
+            def error(message: str) -> None:
+                issues.append(ContentSetIssue("error", str(path), f"item '{item_id}' {message}"))
+
+            if not isinstance(template, dict):
+                error("must be an object; the loader skips it")
+                continue
+            if item_id in seen:
+                issues.append(ContentSetIssue("warning", str(path), f"item '{item_id}' is also defined in {seen[item_id]}; the file loaded last wins"))
+            seen[item_id] = path.name
+            name = template.get("name")
+            if not isinstance(name, str) or not name.strip():
+                error("needs a non-empty name; the loader skips a template without one" if "name" not in template else "name must be a non-empty string")
+            if "type" not in template:
+                error("needs a type; the loader skips a template without one, so everything that names it gets nothing")
+                continue
+            family_id = str(template.get("item_family", "") or "")
+            family_class = registry.item_class_for_family(family_id) if family_id and not registry.is_empty else ""
+            resolved = family_class or str(template.get("type") or "")
+            if resolved not in ITEM_CLASS_MAP:
+                source = f"item_family '{family_id}'" if family_class else "type"
+                error(f"resolves to class {resolved!r} (from its {source}), which the item factory cannot build (known: {', '.join(sorted(ITEM_CLASS_MAP))})")
+            if "description" in template and not isinstance(template["description"], str):
+                error("description must be a string")
+            for key in ("weight", "value"):
+                value = template.get(key)
+                if key in template and (isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0):
+                    error(f"{key} must be a number, 0 or more")
+            if "stackable" in template and not isinstance(template["stackable"], bool):
+                error("stackable must be a boolean")
+
+
 def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Validate optional, setting-agnostic vendor delivery orders."""
     item_ids = _load_definition_ids(content_root / "items", "item definitions", issues)
@@ -5623,6 +5683,7 @@ def load_content_set(
         _validate_room_passage_properties(content_root, issues)
         _validate_campaigns(content_root, issues)
         _validate_abilities(content_root, issues)
+        _validate_item_envelopes(content_root, issues)
         _validate_region_spawners(content_root, issues)
         _validate_quest_stages(content_root, issues)
         _validate_instance_quests(content_root, issues)

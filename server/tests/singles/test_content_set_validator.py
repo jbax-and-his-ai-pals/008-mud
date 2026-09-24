@@ -1833,6 +1833,48 @@ class TestItemPlacementOverrides(unittest.TestCase):
         )
 
 
+class TestItemEnvelopes(unittest.TestCase):
+    """The loader skips an item template without a name or type, and the factory
+    builds nothing for a class it lacks; the gate only warned about the first
+    and nothing checked the second."""
+
+    def _issues(self, items: dict) -> list:
+        root = REPO_ROOT / "tmp" / f"item_envelopes_{uuid.uuid4().hex}"
+        root.mkdir(parents=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        package = TestContentSetValidator._write_package(self, root)
+        (package / "data" / "items" / "items.json").write_text(json.dumps(items), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if i.path.endswith("items.json")]
+
+    def test_complete_templates_are_accepted(self):
+        self.assertEqual([], self._issues({
+            "_note": "annotations are skipped",
+            "torch": {"name": "Torch", "type": "Item", "weight": 1, "value": 2, "stackable": True, "description": "Lit."},
+            "chest": {"name": "Chest", "type": "Container"},
+        }))
+
+    def test_what_the_loader_skips_or_the_factory_cannot_build_is_an_error(self):
+        errors = [m for s, m in self._issues({
+            "nameless": {"type": "Item"},
+            "typeless": {"name": "Thing"},
+            "blank": {"name": "  ", "type": "Item"},
+            "wand": {"name": "Wand", "type": "MagicWand"},
+            "odd": "not an object",
+            "heavy": {"name": "Anvil", "type": "Item", "weight": "a lot", "stackable": "no"},
+        }) if s == "error"]
+        for expected in (
+            "item 'nameless' needs a non-empty name; the loader skips a template without one",
+            "item 'typeless' needs a type; the loader skips a template without one",
+            "item 'blank' name must be a non-empty string",
+            "item 'wand' resolves to class 'MagicWand' (from its type), which the item factory cannot build",
+            "item 'odd' must be an object",
+            "item 'heavy' weight must be a number, 0 or more",
+            "item 'heavy' stackable must be a boolean",
+        ):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+
 def _ability(**overrides) -> dict:
     ability = {"name": "Zap", "description": "A jolt.", "mana_cost": 5, "cooldown": 2.0, "target_type": "enemy",
                "level_required": 1, "effects": [{"type": "damage", "value": 6, "damage_type": "fire"}]}

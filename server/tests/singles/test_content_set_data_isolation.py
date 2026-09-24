@@ -35,7 +35,7 @@ class TestContentSetDataIsolation(unittest.TestCase):
             encoding="utf-8",
         )
         (content_root / "items" / "items.json").write_text(
-            json.dumps({"alternate_token": {"name": "Alternate Token", "type": "misc", "description": "A token."}}),
+            json.dumps({"alternate_token": {"name": "Alternate Token", "type": "Item", "description": "A token."}}),
             encoding="utf-8",
         )
         (content_root / "items" / "sets.json").write_text(
