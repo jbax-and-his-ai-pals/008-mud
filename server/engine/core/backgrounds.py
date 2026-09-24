@@ -352,6 +352,14 @@ class BackgroundManager:
             lines.append(chosen.description)
         return "\n".join(lines)
 
+    def _item_label(self, item_id: str, quantity=1) -> str:
+        templates = getattr(self.world, "item_templates", None) or {}
+        template = templates.get(item_id) if isinstance(templates, dict) else None
+        name = str(template.get("name", "")).strip() if isinstance(template, dict) else ""
+        name = name or item_id.removeprefix("item_").replace("_", " ")
+        count = quantity if isinstance(quantity, int) and not isinstance(quantity, bool) else 1
+        return "%s x%d" % (name, count) if count > 1 else name
+
     def listing(self) -> str:
         from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_TITLE
         if not self.backgrounds:
@@ -363,8 +371,10 @@ class BackgroundManager:
             lines.append("%s%s%s" % (FORMAT_HIGHLIGHT, background.name, FORMAT_RESET))
             if background.description:
                 lines.append("  " + background.description)
-            kit = ", ".join(sorted(background.equipment.values()) + [
-                str(e.get("item_id", "")) for e in background.inventory
+            # Item names, not template ids: this is the screen a new player
+            # reads to choose, and it used to list `item_padded_tunic`.
+            kit = ", ".join(sorted(self._item_label(item_id) for item_id in background.equipment.values()) + [
+                self._item_label(str(e.get("item_id", "")), e.get("quantity", 1)) for e in background.inventory
             ])
             if kit:
                 lines.append("  Starts with: " + kit)
