@@ -76,6 +76,21 @@ nohup ../.venv/bin/python run_playtest_lab.py \
   --repeat 0 --sleep-seconds 5 > tmp/playtest_lab/background.log 2>&1 &
 ```
 
+Each run's summary also has `progress`: every agent's level, lifetime XP and
+skill levels at the end. Comparing it across policies is the check on
+WORLD_DESIGN section 9 item 7 ("advances at a steady pace regardless of which
+activities they prefer"). Measured 2026-09-24, fantasy_frontier, seed 1:
+
+| Policy | 1 hour (level, XP) | 3 hours (level, XP) |
+|---|---|---|
+| explorer | 9, 2080 | 11, 4140 |
+| combat | 9, 2214 | 11, 3949 |
+| opportunity (gathering/trade) | 10, 3038 | 12, 4738 |
+| sweep (every system) | 9, 2560 | 12, 4440 |
+
+The styles sit within about 20% of each other by hour three; most of the first
+hour is one-time discovery/"first" grants, and the pace roughly halves after.
+
 For a short, outcome-asserted first-session regression, use the `first-hour`
 policy. Its JSON result includes `outcome_errors` separately from state
 invariants, so a route that stayed technically alive but failed to deliver its

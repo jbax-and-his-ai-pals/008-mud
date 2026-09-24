@@ -115,6 +115,7 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
                 "outcome_errors": getattr(report, "outcome_errors", []),
                 "stall_errors": getattr(report, "stall_errors", []),
                 "agents": args.agents,
+                "progress": _progress(server),
             }
             if args.keep_passing_traces or not report.passed:
                 trace_path = trace_directory / f"journey_seed_{seed}.json"
@@ -123,6 +124,21 @@ def _run_one_quiet(args: argparse.Namespace, seed: int, trace_directory: Path) -
             return summary
         finally:
             server.shutdown()
+
+
+def _progress(server) -> list[dict[str, Any]]:
+    """Where each agent ended: level, lifetime XP and skill levels -- what
+    WORLD_DESIGN section 9 item 7 ("advances at a steady pace regardless of
+    which activities they prefer") compares across policies."""
+    out = []
+    for player in server.world.players.values():
+        progression = player.runtime_state.progression
+        if progression is None:
+            continue
+        lifetime = sum(player._next_level_cost(level) for level in range(1, progression.level)) + progression.experience
+        skills = {name: player.get_skill_level(name) for name in sorted(getattr(progression, "skills", {}) or {})}
+        out.append({"name": player.name, "level": progression.level, "xp_total": lifetime, "skills": skills})
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
