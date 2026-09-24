@@ -52,6 +52,14 @@ func _check_hazard(holder: Node, room: Dictionary) -> void:
 	_assert(damage != null and damage.editable, "hazard overrides enable only after a hazard is selected")
 	if damage != null: damage.value_changed.emit(4.0)
 	_assert(room.get("properties", {}).get("hazard_damage") == 4.0, "room damage is written as an optional per-room override")
+	_assert(typeof(room["properties"]["hazard_damage"]) == TYPE_INT, "as the whole number the engine reads")
+	var defaults: Label = _first_named(holder, "HazardDefaults")
+	_assert(defaults != null and defaults.text.begins_with("Declared: "), "the declared numbers that 0 stands for are shown (%s)" % (defaults.text if defaults else "missing"))
+	if damage != null:
+		damage.value = 9
+		_assert(damage.value == 9.0, "a whole damage stays whole in the spin box (no 0.1 step offset)")
+		damage.value_changed.emit(0.0)
+	_assert(not room.get("properties", {}).has("hazard_damage"), "0 removes the override, back to the declared damage")
 	var add_weather: Button = _button_named(holder, "+ Weather")
 	_assert(add_weather != null and not add_weather.disabled, "weather multipliers are available for a selected hazard")
 	if add_weather != null: add_weather.pressed.emit()

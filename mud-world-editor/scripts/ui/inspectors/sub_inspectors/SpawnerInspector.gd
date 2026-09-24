@@ -73,14 +73,11 @@ func _build_weight_section(vbox: VBoxContainer, sp: Dictionary, config_key: Stri
 	var box := VBoxContainer.new(); vbox.add_child(box)
 	var catalog := _get_catalog(category)
 
-	var refresh: Callable
-	refresh = func():
-		for c in box.get_children(): c.queue_free()
-		var types: Dictionary = sp.get(config_key, {})
-		var entry_ids: Array = types.keys()
-		entry_ids.sort()
-		for entry_id in entry_ids:
-			box.add_child(_create_weight_row(types, str(entry_id), catalog, refresh))
+	# A method, not a lambda that hands itself to its rows: a GDScript lambda
+	# captures `refresh` by value when it is made, before it is assigned, so every
+	# row got a null Callable -- removing or re-picking a creature changed the
+	# data and then errored, leaving the stale row on screen.
+	var refresh := func(): _refresh_weight_rows(box, sp, config_key, catalog)
 
 	var add_row := HBoxContainer.new()
 	var picker := OptionButton.new()
@@ -102,6 +99,9 @@ func _build_weight_section(vbox: VBoxContainer, sp: Dictionary, config_key: Stri
 		var entry_id := str(picker.get_item_metadata(picker.selected))
 		if entry_id.is_empty(): return
 		if not sp.has(config_key): sp[config_key] = {}
+		# The picker is built once, so it can still offer a creature already
+		# added; adding it again must not reset that creature's weight.
+		if sp[config_key].has(entry_id): return
 		sp[config_key][entry_id] = 1.0
 		refresh.call(); data_modified.emit()
 	)
@@ -109,6 +109,15 @@ func _build_weight_section(vbox: VBoxContainer, sp: Dictionary, config_key: Stri
 	add_row.add_child(btn_add)
 	vbox.add_child(add_row)
 	refresh.call()
+
+func _refresh_weight_rows(box: VBoxContainer, sp: Dictionary, config_key: String, catalog: Array):
+	for c in box.get_children(): box.remove_child(c); c.queue_free()
+	var types: Dictionary = sp.get(config_key, {})
+	var entry_ids: Array = types.keys()
+	entry_ids.sort()
+	var refresh := func(): _refresh_weight_rows(box, sp, config_key, catalog)
+	for entry_id in entry_ids:
+		box.add_child(_create_weight_row(types, str(entry_id), catalog, refresh))
 
 func _create_weight_row(types: Dictionary, entry_id: String, catalog: Array, refresh: Callable) -> PanelContainer:
 	var panel = PanelContainer.new()

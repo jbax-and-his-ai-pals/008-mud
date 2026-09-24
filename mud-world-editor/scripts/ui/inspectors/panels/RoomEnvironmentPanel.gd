@@ -14,6 +14,7 @@ var database_mgr: DatabaseManager
 var weather_rows: VBoxContainer
 var hazard_value_controls: Array[Control] = []
 var weather_add_button: Button
+var hazard_defaults: Label
 
 
 func build(parent: VBoxContainer, room_data: Dictionary, db_mgr: DatabaseManager) -> void:
@@ -85,15 +86,21 @@ func _build_hazard(parent: VBoxContainer) -> void:
 	picker.select(selected); InspectorStyle.apply_button_style(picker)
 	picker.item_selected.connect(func(index): _set_hazard(str(picker.get_item_metadata(index))))
 	row.add_child(picker)
-	var damage := SpinBox.new(); damage.name = "HazardDamage"; damage.min_value = 0.1; damage.max_value = 9999; damage.step = 0.5; damage.value = float(props.get("hazard_damage", 1.0)); damage.custom_minimum_size.x = 86; damage.tooltip_text = "Optional room-specific damage override"
+	# 0 is "no override": environment.py::_override ignores a value of 0 or less
+	# and uses the declared one. Damage is a whole number (the engine casts it);
+	# a minimum of 0 keeps the step grid on whole values, where a 0.1 minimum
+	# had turned a damage of 9 into 9.1 and a 5-second tick into 5.1.
+	var damage := SpinBox.new(); damage.name = "HazardDamage"; damage.min_value = 0; damage.max_value = 9999; damage.step = 1; damage.value = float(props.get("hazard_damage", 0)); damage.custom_minimum_size.x = 86; damage.tooltip_text = "Room-specific damage per tick (0: the hazard's own)"
 	damage.editable = current != ""; InspectorStyle.apply_input_style(damage); damage.value_changed.connect(func(value): _set_hazard_number("hazard_damage", float(value)))
 	row.add_child(damage)
-	var tick := SpinBox.new(); tick.name = "HazardTickInterval"; tick.min_value = 0.1; tick.max_value = 9999; tick.step = 0.5; tick.value = float(props.get("hazard_tick_interval", 1.0)); tick.custom_minimum_size.x = 86; tick.tooltip_text = "Optional room-specific tick interval override"
+	var tick := SpinBox.new(); tick.name = "HazardTickInterval"; tick.min_value = 0; tick.max_value = 9999; tick.step = 0.5; tick.value = float(props.get("hazard_tick_interval", 0)); tick.custom_minimum_size.x = 86; tick.tooltip_text = "Room-specific seconds between ticks (0: the hazard's own)"
 	tick.editable = current != ""; InspectorStyle.apply_input_style(tick); tick.value_changed.connect(func(value): _set_hazard_number("hazard_tick_interval", float(value)))
 	row.add_child(tick); parent.add_child(row)
 	hazard_value_controls = [damage, tick]
-	var hint := InspectorStyle.lbl("Choose a declared hazard. Damage and interval are optional per-room overrides.", InspectorStyle.COLOR_TEXT_DIM)
+	var hint := InspectorStyle.lbl("Choose a declared hazard. Damage and interval are optional per-room overrides; 0 uses the hazard's own. Defense (physical) or resistance (other channels) comes off each tick.", InspectorStyle.COLOR_TEXT_DIM)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; parent.add_child(hint)
+	hazard_defaults = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); hazard_defaults.name = "HazardDefaults"; parent.add_child(hazard_defaults)
+	_refresh_hazard_defaults()
 	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Weather multiplier"))
 	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
 	weather_add_button = Button.new(); weather_add_button.text = "+ Weather"; InspectorStyle.apply_button_style(weather_add_button, Color(0.18, 0.31, 0.39)); weather_add_button.disabled = current == ""
@@ -166,11 +173,28 @@ func _set_hazard(hazard_id: String) -> void:
 	for control in hazard_value_controls: control.editable = hazard_id != ""
 	if weather_add_button != null: weather_add_button.disabled = hazard_id == ""
 	_refresh_weather_rows()
+	_refresh_hazard_defaults()
+
+
+# What 0 means for this hazard: its declaration in combat/elements.json.
+func _refresh_hazard_defaults() -> void:
+	if hazard_defaults == null: return
+	var hazard_id := str(_properties().get("hazard_type", ""))
+	var record = database_mgr.combat_vocabulary.hazards.get(hazard_id) if database_mgr != null and hazard_id != "" else null
+	if not record is Dictionary: hazard_defaults.text = ""; return
+	hazard_defaults.text = "Declared: %s %s damage every %s s." % [_number(record.get("damage", "?")), str(record.get("channel", "")), _number(record.get("tick_interval", "?"))]
+
+
+static func _number(value) -> String:
+	if (value is float or value is int) and float(value) == floor(float(value)): return str(int(value))
+	return str(value)
 
 
 func _set_hazard_number(key: String, value: float) -> void:
 	if str(_properties().get("hazard_type", "")) == "": return
-	_properties()[key] = value
+	if value <= 0: _properties().erase(key)
+	elif key == "hazard_damage": _properties()[key] = int(value)
+	else: _properties()[key] = value
 	data_modified.emit()
 
 
