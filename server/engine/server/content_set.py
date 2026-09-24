@@ -850,6 +850,10 @@ def _validate_authored_world(
     # the only quest giver for an entire campaign) shipped with no way in while
     # this validator reported the content set clean.
     adjacency: dict[tuple[str, str], list[tuple[str, str]]] = {}
+    # What an NPC can walk: `find_path` follows `room.exits` only, and a hidden
+    # exit is not among them until something reveals it.
+    walkable: dict[tuple[str, str], list[tuple[str, str]]] = {}
+    patrol_placements: list[tuple[str, str, dict]] = []
 
     for region_id, rooms in regions.items():
         for room_id, room in rooms.items():
@@ -873,6 +877,7 @@ def _validate_authored_world(
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"exit '{region_id}:{room_id}:{direction}' targets missing room '{destination}'"))
                 else:
                     neighbours.append((target_region, target_room))
+            walkable[(region_id, room_id)] = list(neighbours)
 
             # `properties.hidden_exits` are real traversable links (a lever
             # opens one, for example). Treating them as edges keeps a
@@ -935,7 +940,9 @@ def _validate_authored_world(
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' references missing NPC template '{npc['template_id']}'"))
                 elif "overrides" in npc and not isinstance(npc["overrides"], dict):
                     issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' initial NPC overrides must be an object"))
-                elif isinstance(npc.get("overrides"), dict):
+                else:
+                    patrol_placements.append((region_id, room_id, npc))
+                if isinstance(npc, dict) and isinstance(npc.get("overrides"), dict) and npc.get("template_id") in npc_ids:
                     overrides = npc["overrides"]
                     allowed_override_keys = {
                         "name", "level", "health", "max_health", "mana", "max_mana", "behavior_type",
@@ -953,6 +960,10 @@ def _validate_authored_world(
                                 issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' NPC override {key} must be an integer of at least {minimum}"))
                     if "properties_override" in overrides and not isinstance(overrides["properties_override"], dict):
                         issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' NPC override properties_override must be an object"))
+                    elif isinstance(overrides.get("properties_override"), dict):
+                        room_refs = {f"{r}:{room}" for r, region_rooms in regions.items() for room in region_rooms}
+                        for message in _npc_property_errors(overrides["properties_override"], f"room '{region_id}:{room_id}' {npc['template_id']} placement properties_override", room_refs):
+                            issues.append(ContentSetIssue("error", str(region_paths[region_id]), message))
                     if "patrol_points" in overrides:
                         points = overrides["patrol_points"]
                         if not isinstance(points, list) or any(not isinstance(point, str) or not point.strip() for point in points):
@@ -974,6 +985,8 @@ def _validate_authored_world(
                             issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' item '{item['item_id']}' quantity must be a positive integer"))
                     if "properties_override" in item and not isinstance(item["properties_override"], dict):
                         issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"room '{region_id}:{room_id}' item '{item['item_id']}' properties_override must be an object"))
+
+    _validate_patrol_routes(content_root, regions, region_paths, walkable, patrol_placements, issues)
 
     reachable: set[tuple[str, str]] = set()
     pending = [(start_region_id, start_room_id)]
@@ -1009,6 +1022,84 @@ def _validate_authored_world(
                     f"player there."
                 ),
             ))
+
+
+def _validate_patrol_routes(
+    content_root: Path,
+    regions: dict[str, dict],
+    region_paths: dict[str, Path],
+    walkable: dict[tuple[str, str], list[tuple[str, str]]],
+    placements: list[tuple[str, str, dict]],
+    issues: list[ContentSetIssue],
+) -> None:
+    """A placed NPC's patrol, as `npcs/ai/movement.py::perform_patrol` walks it.
+
+    The route is the template's `patrol_points` unless the placement overrides
+    them, and each point is a room id in the NPC's *home* region -- the region
+    it is placed in. A point that is not a room there, or that cannot be walked
+    to (`find_path` follows visible exits only), silently turns the patrol into
+    wandering; a `patrol_index` past the end raises in the AI tick; a patrol NPC
+    with no points stands still; and points on an NPC whose behaviour is not
+    `patrol` are never walked.
+    """
+    from collections import deque
+
+    templates: dict[str, dict] = {}
+    for path in sorted((content_root / "npcs").glob("*.json")):
+        payload = _load_json(path, [], "NPC definitions")
+        if isinstance(payload, dict):
+            templates.update({str(k): v for k, v in payload.items() if isinstance(v, dict) and not str(k).startswith("_")})
+
+    def walk(start: tuple[str, str], goal: tuple[str, str]) -> bool:
+        seen = {start}
+        queue = deque([start])
+        while queue:
+            node = queue.popleft()
+            if node == goal:
+                return True
+            for neighbour in walkable.get(node, ()):
+                if neighbour not in seen:
+                    seen.add(neighbour)
+                    queue.append(neighbour)
+        return False
+
+    for region_id, room_id, placement in placements:
+        template_id = placement.get("template_id")
+        template = templates.get(template_id)
+        if template is None:
+            continue
+        overrides = placement.get("overrides") if isinstance(placement.get("overrides"), dict) else {}
+        effective = {**template, **overrides}
+        points = effective.get("patrol_points")
+        source = "placement" if "patrol_points" in overrides else f"template '{template_id}'"
+        label = f"room '{region_id}:{room_id}' {template_id} placement"
+
+        def error(message: str) -> None:
+            issues.append(ContentSetIssue("error", str(region_paths[region_id]), f"{label}: {message}"))
+
+        behavior = effective.get("behavior_type")
+        if behavior == "patrol" and (not isinstance(points, list) or not points):
+            error("behavior_type is 'patrol' but it has no patrol_points, so it stands still")
+            continue
+        if not isinstance(points, list) or not points or not all(isinstance(p, str) and p.strip() for p in points):
+            continue
+        if behavior != "patrol":
+            if "patrol_points" in overrides:
+                error(f"patrol_points are walked only by a 'patrol' NPC; this one's behavior_type is {behavior!r}")
+            continue
+        index = effective.get("patrol_index", 0)
+        if isinstance(index, int) and not isinstance(index, bool) and index >= len(points):
+            error(f"patrol_index {index} is past the end of its {len(points)} patrol points (the AI tick raises)")
+        missing = [p for p in points if p not in regions.get(region_id, {})]
+        for point in missing:
+            error(f"patrol point '{point}' (from the {source}) is not a room in region '{region_id}', where patrol points are resolved, so it wanders instead")
+        if missing:
+            continue
+        legs = [((region_id, room_id), (region_id, points[0]))]
+        legs += [((region_id, points[i]), (region_id, points[(i + 1) % len(points)])) for i in range(len(points))]
+        for start, goal in legs:
+            if start != goal and not walk(start, goal):
+                error(f"patrol point '{goal[1]}' (from the {source}) cannot be walked to from '{start[1]}' by visible exits, so it wanders instead")
 
 
 def _validate_faction_rules(
@@ -1201,6 +1292,35 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
                                 error(f"{label} references missing item '{value}'")
 
 
+def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> list[str]:
+    """What `npc_factory.py` reads from an NPC's `properties`, whether the values
+    come from the template or from a room placement's `properties_override`
+    (merged over the template's). Other keys are open-ended and not checked."""
+    errors: list[str] = []
+    for field in ("aggression", "flee_threshold", "wander_chance", "spell_cast_chance"):
+        value = properties.get(field)
+        if field in properties and (isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1):
+            errors.append(f"{label}.{field} must be a number from 0 to 1")
+    if "move_cooldown" in properties:
+        value = properties["move_cooldown"]
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            errors.append(f"{label}.move_cooldown must be a non-negative integer")
+    if "respawn_cooldown" in properties:
+        value = properties["respawn_cooldown"]
+        # Summoned/minion definitions use -1 as their explicit no-respawn
+        # sentinel: a real engine convention, not a malformed duration.
+        if isinstance(value, bool) or not isinstance(value, int) or value < -1:
+            errors.append(f"{label}.respawn_cooldown must be an integer of -1 or greater")
+    for field in ("can_unlock_chests", "sells_houses"):
+        if field in properties and not isinstance(properties[field], bool):
+            errors.append(f"{label}.{field} must be a boolean")
+    if "work_location" in properties:
+        work_location = properties["work_location"]
+        if not isinstance(work_location, str) or work_location not in room_refs:
+            errors.append(f"{label}.work_location must name an authored region:room")
+    return errors
+
+
 def _validate_npc_template_runtime_shapes(
     content_root: Path,
     issues: list[ContentSetIssue],
@@ -1233,14 +1353,6 @@ def _validate_npc_template_runtime_shapes(
             if isinstance(room_id, str) and room_id.strip():
                 room_refs.add(f"{region_id}:{room_id}")
 
-    def number_in_range(value: Any, label: str, path: Path) -> None:
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
-            issues.append(ContentSetIssue("error", str(path), f"{label} must be a number from 0 to 1"))
-
-    def non_negative_integer(value: Any, label: str, path: Path) -> None:
-        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-            issues.append(ContentSetIssue("error", str(path), f"{label} must be a non-negative integer"))
-
     for path in sorted((content_root / "npcs").glob("*.json")):
         payload = _load_json(path, issues, "NPC definitions")
         if not isinstance(payload, dict):
@@ -1269,29 +1381,8 @@ def _validate_npc_template_runtime_shapes(
                 issues.append(ContentSetIssue("error", str(path), f"{label}.properties must be an object"))
                 properties = {}
             if isinstance(properties, dict):
-                for field in ("aggression", "flee_threshold", "wander_chance", "spell_cast_chance"):
-                    if field in properties:
-                        number_in_range(properties[field], f"{label}.properties.{field}", path)
-                if "move_cooldown" in properties:
-                    non_negative_integer(properties["move_cooldown"], f"{label}.properties.move_cooldown", path)
-                if "respawn_cooldown" in properties:
-                    value = properties["respawn_cooldown"]
-                    # Existing summoned/minion definitions use -1 as their explicit
-                    # no-respawn sentinel.  It is a real engine convention, not a
-                    # malformed duration, so preserve it while still refusing all
-                    # other negative values.
-                    if isinstance(value, bool) or not isinstance(value, int) or value < -1:
-                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.respawn_cooldown must be an integer of -1 or greater"))
-                for field in ("can_unlock_chests", "sells_houses"):
-                    if field in properties and not isinstance(properties[field], bool):
-                        issues.append(ContentSetIssue("error", str(path), f"{label}.properties.{field} must be a boolean"))
-                if "work_location" in properties:
-                    work_location = properties["work_location"]
-                    if not isinstance(work_location, str) or work_location not in room_refs:
-                        issues.append(ContentSetIssue(
-                            "error", str(path),
-                            f"{label}.properties.work_location must name an authored region:room",
-                        ))
+                for message in _npc_property_errors(properties, f"{label}.properties", room_refs):
+                    issues.append(ContentSetIssue("error", str(path), message))
 
             if "patrol_points" in template:
                 points = template["patrol_points"]

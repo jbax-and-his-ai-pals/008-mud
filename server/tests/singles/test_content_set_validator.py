@@ -1711,6 +1711,72 @@ class TestCampaigns(unittest.TestCase):
         self.assertEqual([("warning", "nodes.orphan cannot be reached from start_node_id 'start'")], issues)
 
 
+class TestPatrolRoutes(unittest.TestCase):
+    """A placed guard's patrol was checked only for shape; a route the NPC could
+    not walk silently became wandering, and a bad index raised in the AI tick."""
+
+    def _issues(self, *placements: dict, guard: dict | None = None) -> list:
+        root = REPO_ROOT / "tmp" / f"patrol_routes_{uuid.uuid4().hex}"
+        root.mkdir(parents=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        package = TestContentSetValidator._write_package(self, root)
+        data = package / "data"
+        (data / "npcs" / "npcs.json").write_text(json.dumps({
+            "guard": guard or {"name": "Guard", "behavior_type": "patrol", "patrol_points": ["square", "lane"]},
+            "clerk": {"name": "Clerk", "behavior_type": "stationary"},
+        }), encoding="utf-8")
+        (data / "regions" / "town.json").write_text(json.dumps({"region_id": "town", "rooms": {
+            "square": {"name": "Square", "exits": {"east": "lane"}, "initial_npcs": list(placements),
+                       "properties": {"hidden_exits": {"down": "closet"}}},
+            "lane": {"name": "Lane", "exits": {"west": "square", "east": "yard"}},
+            "yard": {"name": "Yard", "exits": {"west": "lane"}},
+            "closet": {"name": "Closet", "exits": {"up": "square"}},
+        }}), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if "placement" in i.message]
+
+    def test_walkable_routes_from_template_or_placement_are_accepted(self):
+        self.assertEqual([], self._issues(
+            {"template_id": "guard"},
+            {"template_id": "guard", "overrides": {"patrol_points": ["yard", "square"], "patrol_index": 1}},
+            {"template_id": "clerk"},
+        ))
+
+    def test_points_the_npc_cannot_reach_are_errors(self):
+        messages = self._issues(
+            {"template_id": "guard", "overrides": {"patrol_points": ["square", "market"]}},
+            {"template_id": "guard", "overrides": {"patrol_points": ["square", "closet"]}},
+        )
+        self.assertTrue(any("patrol point 'market' (from the placement) is not a room in region 'town'" in m for m in messages), messages)
+        self.assertTrue(any("patrol point 'closet' (from the placement) cannot be walked to from 'square' by visible exits" in m for m in messages), messages)
+
+    def test_a_template_route_is_checked_where_it_is_placed(self):
+        messages = self._issues({"template_id": "guard"}, guard={"name": "Guard", "behavior_type": "patrol", "patrol_points": ["gatehouse"]})
+        self.assertTrue(any("patrol point 'gatehouse' (from the template 'guard')" in m for m in messages), messages)
+
+    def test_routes_that_never_run_or_crash_are_errors(self):
+        messages = self._issues(
+            {"template_id": "guard", "overrides": {"patrol_index": 2}},
+            {"template_id": "guard", "overrides": {"patrol_points": []}},
+            {"template_id": "clerk", "overrides": {"patrol_points": ["square", "lane"]}},
+        )
+        self.assertTrue(any("patrol_index 2 is past the end of its 2 patrol points" in m for m in messages), messages)
+        self.assertTrue(any("behavior_type is 'patrol' but it has no patrol_points" in m for m in messages), messages)
+        self.assertTrue(any("clerk placement: patrol_points are walked only by a 'patrol' NPC; this one's behavior_type is 'stationary'" in m for m in messages), messages)
+
+    def test_placement_properties_follow_the_template_property_rules(self):
+        # properties_override merges over the template's properties, so the same
+        # values are read the same way; it was only checked to be an object.
+        messages = self._issues(
+            {"template_id": "clerk", "overrides": {"properties_override": {"aggression": 0, "wander_chance": 0.25, "vendor_note": "open-ended"}}},
+            {"template_id": "clerk", "overrides": {"properties_override": {"aggression": 5, "move_cooldown": -3, "work_location": "town:vault"}}},
+        )
+        self.assertEqual(3, len(messages), messages)
+        self.assertTrue(any("clerk placement properties_override.aggression must be a number from 0 to 1" in m for m in messages), messages)
+        self.assertTrue(any("properties_override.move_cooldown must be a non-negative integer" in m for m in messages), messages)
+        self.assertTrue(any("properties_override.work_location must name an authored region:room" in m for m in messages), messages)
+
+
 def _ability(**overrides) -> dict:
     ability = {"name": "Zap", "description": "A jolt.", "mana_cost": 5, "cooldown": 2.0, "target_type": "enemy",
                "level_required": 1, "effects": [{"type": "damage", "value": 6, "damage_type": "fire"}]}
