@@ -1251,6 +1251,50 @@ class TestSimpleRulesetSections(unittest.TestCase):
         self.assertTrue(any("'cathedral'" in m for m in warnings), warnings)
 
 
+class TestRoomPropertyKeys(unittest.TestCase):
+    """A room's properties are an open bag: a key nothing reads was kept and did
+    nothing (fantasy_frontier's `indoors` rooms were treated as outdoors)."""
+
+    def _issues(self, properties: dict, crime: dict | None = None) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        data = package / "data"
+        (data / "items" / "keys.json").write_text(json.dumps({"vault_key": {"name": "Vault Key", "type": "Key"}}), encoding="utf-8")
+        region_path = data / "regions" / "town.json"
+        region = json.loads(region_path.read_text(encoding="utf-8"))
+        room_id = next(iter(region["rooms"]))
+        region["rooms"][room_id]["properties"] = properties
+        region_path.write_text(json.dumps(region), encoding="utf-8")
+        if crime is not None:
+            ruleset_path = package / "rules" / "ruleset.json"
+            ruleset = json.loads(ruleset_path.read_text(encoding="utf-8"))
+            ruleset["crime"] = crime
+            ruleset_path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if " properties." in i.message]
+
+    def test_read_keys_editor_keys_and_annotations_are_accepted(self):
+        self.assertEqual([], self._issues({
+            "dark": True, "smell": "brine", "temperature": "cold", "outdoors": False, "safe_zone": False,
+            "locked_by": "vault_key", "is_start_node": True, "icon": "tower", "_district_id": "docks",
+        }))
+
+    def test_a_key_nothing_reads_is_a_warning(self):
+        issues = self._issues({"indoors": True})
+        self.assertEqual(1, len(issues), issues)
+        self.assertEqual("warning", issues[0][0])
+        self.assertIn("properties.indoors is read by nothing, so it does nothing", issues[0][1])
+
+    def test_keys_the_ruleset_names_are_known(self):
+        crime = {"custody": {"room_property": "is_cell", "release_destination_property": "release_to"}}
+        self.assertEqual([], [i for i in self._issues({"is_cell": True, "release_to": "town:square"}, crime) if i[0] == "warning"])
+
+    def test_wrong_types_and_missing_keys_are_errors(self):
+        errors = [m for s, m in self._issues({"dark": "yes", "temperature": "tepid", "locked_by": "skeleton_key"}) if s == "error"]
+        self.assertTrue(any("properties.dark must be a boolean (got string)" in m for m in errors), errors)
+        self.assertTrue(any("properties.temperature must be normal, cold, or hot" in m for m in errors), errors)
+        self.assertTrue(any("properties.locked_by references missing item 'skeleton_key', so the room can never be entered" in m for m in errors), errors)
+
+
 class TestRetiredRulesetKeys(unittest.TestCase):
     """`ruleset_id` and `world_mode` were written by the editor and read by
     nothing (the world mode is the server's feature profile). They are removed,

@@ -24,7 +24,6 @@ const COMMON_PROPS = {
 	"Noisy": {"key": "noisy", "val": true},
 	"Smell": {"key": "smell", "val": "damp earth"},
 	"Weather": {"key": "weather", "val": "clear"},
-	"Music": {"key": "music", "val": "default_theme"}
 }
 # The district dict's own structural fields -- never offered or edited as a
 # free-form property tag, since that would silently corrupt the district.

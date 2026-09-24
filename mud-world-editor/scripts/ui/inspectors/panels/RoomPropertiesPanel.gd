@@ -13,6 +13,7 @@ var flow_container: HFlowContainer
 var creation_tag: PanelContainer = null
 var popup_menu: PopupMenu # New property to hold a direct reference
 
+# "Music" used to be offered here; nothing reads `music`, so it is gone.
 const COMMON_PROPS = {
 	"Dark": {"key": "dark", "val": true},
 	"Outdoors": {"key": "outdoors", "val": true},
@@ -22,7 +23,18 @@ const COMMON_PROPS = {
 	"Icon": {"key": "icon", "val": "none"},
 	"Smell": {"key": "smell", "val": "damp earth"},
 	"Weather": {"key": "weather", "val": "clear"},
-	"Music": {"key": "music", "val": "default_theme"}
+}
+
+# The room properties something reads (engine `room.py` ROOM_PROPERTY_KINDS
+# plus this editor's own map keys), kept equal by schema_parity_smoke.gd. The
+# bag is open, so any other key is kept and does nothing; the panel says so.
+const ROOM_PROPERTY_KINDS := {
+	"dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string", "outdoors": "boolean",
+	"safe_zone": "boolean", "weather": "string",
+	"hazard_type": "string", "hazard_damage": "number", "hazard_tick_interval": "number",
+	"weather_hazard_multipliers": "object", "exit_requirements": "object", "hidden_exits": "object",
+	"env_interactions": "object", "locked_by": "string", "entered_by_system": "string",
+	"is_start_node": "boolean", "icon": "string",
 }
 
 func build(parent_container: VBoxContainer, properties_data: Dictionary):
@@ -170,6 +182,39 @@ func _refresh_props():
 	# Added to props_box rather than the flow container: a structured value is a
 	# full-width note, not another chip in the row.
 	PropertyTagRow.add_nested_rows(props_box, cur_props, "the room's own editor")
+	_note_unread_keys()
+
+
+# The ruleset's custody section names two room keys of its own.
+static func ruleset_room_keys() -> Array:
+	var keys: Array = []
+	var text := FileAccess.get_file_as_string(DataRoot.ruleset_path()) if FileAccess.file_exists(DataRoot.ruleset_path()) else ""
+	var ruleset = JSON.parse_string(text) if text != "" else null
+	var custody = ruleset.get("crime", {}).get("custody", {}) if ruleset is Dictionary and ruleset.get("crime") is Dictionary else {}
+	if custody is Dictionary:
+		if str(custody.get("room_property", "")).strip_edges() != "": keys.append(str(custody["room_property"]).strip_edges())
+		keys.append(str(custody.get("release_destination_property", "release_destination")).strip_edges())
+	return keys
+
+
+static func unread_keys(properties: Dictionary, extra_known: Array = []) -> Array:
+	var out: Array = []
+	for key in properties.keys():
+		if str(key).begins_with("_") or ROOM_PROPERTY_KINDS.has(key) or extra_known.has(key): continue
+		out.append(str(key))
+	out.sort()
+	return out
+
+
+func _note_unread_keys() -> void:
+	var existing := props_box.get_node_or_null("UnreadRoomKeys")
+	if existing != null: props_box.remove_child(existing); existing.queue_free()
+	var unread := unread_keys(cur_props, ruleset_room_keys())
+	if unread.is_empty(): return
+	var note := InspectorStyle.lbl("Read by nothing, so no effect in play: %s" % ", ".join(PackedStringArray(unread)), InspectorStyle.COLOR_DANGER)
+	note.name = "UnreadRoomKeys"; note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.tooltip_text = "Room properties the engine reads: %s." % ", ".join(PackedStringArray(ROOM_PROPERTY_KINDS.keys()))
+	props_box.add_child(note)
 
 func _on_row_modified() -> void:
 	data_modified.emit()

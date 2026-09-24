@@ -28,7 +28,6 @@ const COMMON_PROPS = {
 	"Noisy": {"key": "noisy", "val": true},
 	"Smell": {"key": "smell", "val": "damp earth"},
 	"Weather": {"key": "weather", "val": "clear"},
-	"Music": {"key": "music", "val": "default_theme"}
 }
 
 func _init(c: VBoxContainer, handler: ActionHandler = null, db_mgr: DatabaseManager = null):

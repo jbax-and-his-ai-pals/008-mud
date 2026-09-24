@@ -71,6 +71,7 @@ func _init() -> void:
 	_check_knowledge_conditions(vocabulary)
 	_check_affix_item_classes(vocabulary)
 	_check_item_type_names(vocabulary)
+	_check_room_property_kinds(vocabulary)
 	_check_campaign_vocabulary(vocabulary)
 	_check_ability_vocabulary(vocabulary)
 
@@ -298,6 +299,15 @@ func _check_item_type_names(vocabulary: Dictionary) -> void:
 	_assert(not engine.is_empty(), "the engine's item type names were read")
 	var editor := _as_set(ItemInspector.ITEM_CLASSES)
 	_assert(engine == editor, "the item type picker matches the factory's names (engine %s, editor %s)" % [str(_sorted(engine)), str(_sorted(editor))])
+
+
+func _check_room_property_kinds(vocabulary: Dictionary) -> void:
+	print("\n[room property vocabulary: editor vs engine]")
+	var engine: Dictionary = vocabulary.get("room_property_kinds", {})
+	_assert(not engine.is_empty(), "the engine's room property vocabulary was read")
+	_assert(_as_set(engine.keys()) == _as_set(RoomPropertiesPanel.ROOM_PROPERTY_KINDS.keys()), "the room property keys match (engine %s, editor %s)" % [str(_sorted(_as_set(engine.keys()))), str(_sorted(_as_set(RoomPropertiesPanel.ROOM_PROPERTY_KINDS.keys())))])
+	for key in engine:
+		_assert(str(RoomPropertiesPanel.ROOM_PROPERTY_KINDS.get(key, "")) == str(engine[key]), "room property %s is a %s in both" % [key, engine[key]])
 
 
 func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:

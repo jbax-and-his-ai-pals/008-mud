@@ -107,6 +107,8 @@ def main() -> int:
         # Every word a template's `type` may be (ITEM_CLASS_MAP's keys, retired
         # names included); `ItemInspector.gd` offers these.
         "item_type_names": _item_type_names(),
+        # The room properties something reads; RoomPropertiesPanel.gd holds the copy.
+        "room_property_kinds": _room_property_kinds(),
         # What CampaignInspector.gd offers for a node's type and a transition's
         # trigger (test_campaign_vocabulary.py ties these to the manager).
         "campaigns": _campaign_vocabulary(),
@@ -155,6 +157,12 @@ def _ability_vocabulary() -> dict:
         "effect_fields": {name: sorted(fields) for name, fields in sorted(ABILITY_EFFECT_FIELDS.items())},
         "message_placeholders": {name: sorted(names) for name, names in sorted(ABILITY_MESSAGE_PLACEHOLDERS.items())},
     }
+
+
+def _room_property_kinds() -> dict:
+    from engine.world.room import ROOM_EDITOR_PROPERTY_KINDS, ROOM_PROPERTY_KINDS
+
+    return dict(sorted({**ROOM_PROPERTY_KINDS, **ROOM_EDITOR_PROPERTY_KINDS}.items()))
 
 
 def _item_type_names() -> list:

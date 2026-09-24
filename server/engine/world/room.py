@@ -6,6 +6,30 @@ from engine.config import FORMAT_CATEGORY, FORMAT_RESET, FORMAT_HIGHLIGHT
 from engine.game_object import GameObject
 from engine.items.item import Item
 
+# The room `properties` the engine reads, and the JSON type each takes. A
+# room's properties are an open bag, so a misspelt or invented key is kept and
+# silently does nothing; content_set.py warns about any key not listed here.
+# test_room_property_vocabulary.py ties each to its reader.
+ROOM_PROPERTY_KINDS = {
+    # Atmosphere, resolved room -> district -> region (World.get_env_property).
+    "dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string", "outdoors": "boolean",
+    "safe_zone": "boolean",                      # World.is_location_safe
+    "weather": "string",                         # WeatherManager.effective_weather
+    "hazard_type": "string", "hazard_damage": "number", "hazard_tick_interval": "number",
+    "weather_hazard_multipliers": "object",      # world/environment.py
+    "exit_requirements": "object",               # Room / World movement
+    "hidden_exits": "object",                    # items/interactive.py, dialogue effects
+    "env_interactions": "object",                # Room.apply_elemental_interaction
+    "locked_by": "string",                       # World movement: the key item's id
+    "entered_by_system": "string",               # the reachability check's declaration
+}
+# Keys the world editor reads back (its map view); kept in content by design.
+ROOM_EDITOR_PROPERTY_KINDS = {"is_start_node": "boolean", "icon": "string"}
+# The ruleset names two more: `crime.custody.room_property` (a boolean marking a
+# holding room) and `crime.custody.release_destination_property` (default
+# "release_destination", a string room reference). Keys starting with "_" are
+# annotations or editor bookkeeping.
+
 class Room(GameObject):
     def __init__(self, name: str, description: str, exits: Optional[Dict[str, str]] = None, obj_id: Optional[str] = None):
         room_obj_id = obj_id if obj_id else f"room_{name.lower().replace(' ', '_')}_{uuid.uuid4().hex[:4]}"

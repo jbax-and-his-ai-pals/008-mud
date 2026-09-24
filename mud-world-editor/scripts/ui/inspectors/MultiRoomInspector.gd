@@ -172,7 +172,7 @@ func _refresh_props():
 	
 	popup_menu.clear()
 	# Populate Add Menu (Common props not present in ALL)
-	var common = ["dark", "outdoors", "safe_zone", "noisy", "smell", "weather", "music"]
+	var common = ["dark", "outdoors", "safe_zone", "noisy", "smell", "weather"]
 	for c in common:
 		popup_menu.add_item(c)
 	popup_menu.add_separator()

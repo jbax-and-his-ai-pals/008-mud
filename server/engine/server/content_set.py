@@ -1779,6 +1779,52 @@ _CRIME_NON_NEGATIVE = {
 }
 
 
+def _validate_room_property_keys(content_root: Path, ruleset: Any, issues: list[ContentSetIssue]) -> None:
+    """A room's `properties` against what reads them (`room.py` ROOM_PROPERTY_KINDS).
+
+    The bag is open, so a key nothing reads is kept and does nothing: a
+    warning, since a plugin might read it. A read key of the wrong type is an
+    error, and so is a `locked_by` naming no item (the door can never open).
+    The ruleset's custody section names two more keys.
+    """
+    from engine.world.room import ROOM_EDITOR_PROPERTY_KINDS, ROOM_PROPERTY_KINDS
+
+    kinds = {**ROOM_PROPERTY_KINDS, **ROOM_EDITOR_PROPERTY_KINDS}
+    custody = ((ruleset.get("crime") or {}).get("custody") or {}) if isinstance(ruleset, dict) and isinstance(ruleset.get("crime"), dict) else {}
+    if isinstance(custody, dict):
+        if isinstance(custody.get("room_property"), str) and custody["room_property"].strip():
+            kinds[custody["room_property"].strip()] = "boolean"
+        release = custody.get("release_destination_property", "release_destination")
+        if isinstance(release, str) and release.strip():
+            kinds[release.strip()] = "string"
+    item_ids = _load_definition_ids(content_root / "items", "item definitions", [])
+    known = ", ".join(sorted(kinds))
+    for path in sorted((content_root / "regions").glob("*.json")):
+        region = _load_json(path, [], "region definitions")
+        if not isinstance(region, dict) or not isinstance(region.get("rooms"), dict):
+            continue
+        region_id = str(region.get("region_id", path.stem))
+        for room_id, room in region["rooms"].items():
+            properties = room.get("properties") if isinstance(room, dict) else None
+            if not isinstance(properties, dict):
+                continue
+            label = f"room '{region_id}:{room_id}' properties"
+            for key, value in properties.items():
+                if str(key).startswith("_"):
+                    continue
+                kind = kinds.get(key)
+                if kind is None:
+                    issues.append(ContentSetIssue("warning", str(path), f"{label}.{key} is read by nothing, so it does nothing (known: {known})"))
+                    continue
+                if _json_kind(value) != kind:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.{key} must be a {kind} (got {_json_kind(value)})"))
+                    continue
+                if key == "temperature" and value not in ("normal", "cold", "hot"):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.temperature must be normal, cold, or hot"))
+                if key == "locked_by" and value and value not in item_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.locked_by references missing item '{value}', so the room can never be entered"))
+
+
 # Ruleset keys that were read by nothing and have been removed. Refused rather
 # than ignored, so an author is not left setting a value that changes nothing.
 _RETIRED_RULESET_KEYS = {
@@ -5694,6 +5740,7 @@ def load_content_set(
         _validate_simple_ruleset_sections(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_crime_and_debug_rules(content_root, ruleset_payload, issues, ruleset_source_path)
         _refuse_retired_ruleset_keys(ruleset_payload, issues, ruleset_source_path)
+        _validate_room_property_keys(content_root, ruleset_payload, issues)
         _validate_dynamic_themes(content_root, ruleset_payload, issues, ruleset_source_path)
         _validate_affixes(content_root, issues)
         _validate_item_resistances_and_sets(content_root, issues)
