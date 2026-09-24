@@ -190,7 +190,7 @@
         },
         "north_gate": {
             "name": "North Gate",
-            "description": "A sturdy wooden gate marks the northern exit of Riverside. Two guards stand watch, observing travelers as they come and go. A watchtower rises just to the east.",
+            "description": "A sturdy wooden gate marks the northern exit of Riverside. Two guards stand watch, observing travelers as they come and go. A watchtower rises just to the east. Beyond it the Whispering Woods crowd close to the road. Fresh wolf pelts hang from the gatepost, and most of the foragers who go out come back with baskets of berries.",
             "exits": {
                 "south": "north_gate_road",
                 "north": "forest:forest_edge",
@@ -427,7 +427,7 @@
         },
         "shrine_interior": {
             "name": "Inside the Shrine",
-            "description": "The air inside the small shrine is calm and smells of incense. Acolytes tend to a central altar; a narrow stair behind it descends to the old catacombs.",
+            "description": "The air inside the small shrine is calm and smells of incense. Acolytes tend to a central altar; a narrow stair behind it descends to the old catacombs. The acolytes keep a lamp burning by the stair, and none of them goes down it alone.",
             "properties": {
                 "outdoors": false,
                 "smell": "incense",
@@ -583,7 +583,7 @@
         },
         "east_gate": {
             "name": "East Gate",
-            "description": "A smaller gate that leads out of town towards the rolling foothills. A single guard watches the path.",
+            "description": "A smaller gate that leads out of town towards the rolling foothills. A single guard watches the path. Past it the slope climbs toward shepherds' country. The guard waves herb-gatherers through without a glance, but tells anyone heading higher that orcs have been seen above the pastures.",
             "exits": {
                 "west": "east_gate_road",
                 "east": "foothills:grassy_slope"
@@ -692,7 +692,7 @@
         },
         "tavern_cellar": {
             "name": "Tavern Cellar",
-            "description": "A cool, damp cellar beneath the tavern, smelling strongly of ale and earth. Barrels are stacked against the walls; behind them, a patched breach leads into older stone.",
+            "description": "A cool, damp cellar beneath the tavern, smelling strongly of ale and earth. Barrels are stacked against the walls; behind them, a patched breach leads into older stone. Someone has chalked a warning on the nearest barrel: NOTHING DOWN THERE WORTH YOUR NECK.",
             "properties": {
                 "outdoors": false,
                 "dark": true,
@@ -731,7 +731,7 @@
         },
         "river_road": {
             "name": "River Road",
-            "description": "A wide dirt road that runs parallel to the Silver River. The sound of flowing water is louder here, and you can see boats moving along the river.",
+            "description": "A wide dirt road that runs parallel to the Silver River. The sound of flowing water is louder here, and you can see boats moving along the river. Downstream the road gives out into the reeds of Murkwater. Nobody fishes past the last post, and a board nailed to it reads, in several hands, KEEP TO THE HARD GROUND.",
             "exits": {
                 "north": "riverside_path",
                 "south": "riverside_docks",
@@ -834,7 +834,7 @@
         },
         "bridge_approach_east": {
             "name": "East Bridge Approach",
-            "description": "The stone bridge descends here, leading to a path that continues into the vast, open farmlands.",
+            "description": "The stone bridge descends here, leading to a path that continues into the vast, open farmlands. Carts heavy with grain and apples rattle past toward the market; the fields beyond are open, tilled and quiet.",
             "exits": {
                 "west": "bridge_middle",
                 "east": "farmland:farm_bridge"
