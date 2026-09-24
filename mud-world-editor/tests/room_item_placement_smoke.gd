@@ -22,6 +22,7 @@ func _init() -> void:
 	_check_add_row_is_unresolved_until_chosen(database)
 	_check_resource_placement_overrides(database)
 	_check_container_placement_overrides(database)
+	_check_other_item_overrides(database)
 	_check_npc_placement_overrides(database)
 	if failures > 0:
 		push_error("room item placement smoke failed (%d)" % failures)
@@ -70,6 +71,34 @@ func _check_container_placement_overrides(database: DatabaseManager) -> void:
 			boxes[1].toggled.emit(true)
 	_assert(placement.get("properties_override", {}).get("is_open") == true and placement.get("properties_override", {}).get("locked") == true,
 		"container state changes are captured as placement overrides")
+
+
+func _check_other_item_overrides(database: DatabaseManager) -> void:
+	print("
+[other item overrides]")
+	var placement := {"item_id": "item_ore", "properties_override": {"glint": false, "legacy_tag": [1, 2]}}
+	var holder := _panel_for({"items": [placement]}, database)
+	var glint := _named(holder, "ItemOverride_glint")
+	_assert(glint.size() == 1 and _check_boxes(glint[0]).size() == 1 and not _check_boxes(glint[0])[0].button_pressed,
+		"a boolean override the form does not cover is shown as a checkbox with its value")
+	_assert(_named(holder, "ItemOverride_legacy_tag").size() == 1, "an array override is listed, not dropped")
+	var picker: Array = _named(holder, "AddItemOverride")
+	var offered: Array = []
+	if not picker.is_empty():
+		for index in range(1, picker[0].item_count): offered.append(str(picker[0].get_item_metadata(index)))
+	_assert(offered == ["grade", "vein_note"], "only the template's other scalar properties can be added (got %s)" % str(offered))
+	if not picker.is_empty():
+		picker[0].select(1); picker[0].item_selected.emit(1)
+	_assert(placement["properties_override"].get("grade") == 2, "adding one starts from the template's value")
+	holder = _panel_for({"items": [placement]}, database)
+	var grade := _named(holder, "ItemOverride_grade")
+	if not grade.is_empty(): (grade[0].find_child("Value", true, false) as SpinBox).value_changed.emit(4.0)
+	_assert(placement["properties_override"].get("grade") == 4 and placement["properties_override"]["grade"] is int, "a whole-number property stays a whole number")
+	var legacy := _named(holder, "ItemOverride_legacy_tag")
+	if not legacy.is_empty():
+		for button in _buttons(legacy[0]):
+			if button.text == "×": button.pressed.emit()
+	_assert(not placement["properties_override"].has("legacy_tag") and placement["properties_override"].has("glint"), "an override can be removed, leaving the others")
 
 
 func _check_npc_placement_overrides(database: DatabaseManager) -> void:
@@ -133,7 +162,7 @@ func _build_fixture() -> void:
 	SaveIO.write_json(content_root.path_join("presentation/default.json"), {})
 	SaveIO.write_json(data_root.path_join("regions/fixture.json"), {"region_id": "fixture", "rooms": {"start": {"name": "Start"}}})
 	SaveIO.write_json(data_root.path_join("items/items.json"), {
-		"item_ore": {"name": "Ore", "type": "Item"},
+		"item_ore": {"name": "Ore", "type": "Item", "properties": {"glint": true, "grade": 2, "vein_note": "north", "assay": [1, 2]}},
 		"item_node": {"name": "Ore vein", "type": "ResourceNode", "properties": {"resource_item_id": "item_ore", "charges": 3, "respawn_days": 2}},
 		"item_chest": {"name": "Chest", "type": "Container", "properties": {"is_open": false, "locked": false}},
 	})

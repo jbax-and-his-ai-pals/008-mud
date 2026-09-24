@@ -69,6 +69,7 @@ func _refresh_content():
 		var idx = 0
 		for i in cur_data.items:
 			var row = _create_content_row("item", i, idx)
+			row.name = "ItemPlacement_%d" % idx
 			item_box.add_child(row)
 			idx += 1
 	else:
@@ -194,11 +195,93 @@ func _build_item_placement_overrides(parent: VBoxContainer, placement: Dictionar
 			field.add_child(amount); resource.add_child(field)
 		card.add_child(resource)
 
+	_build_item_extra_overrides(card, placement, template)
+
 	if not overrides.is_empty():
 		var clear := Button.new(); clear.name = "ClearPlacementOverrides"; clear.text = "Clear placement overrides"
 		InspectorStyle.apply_button_style(clear, Color(0.34, 0.18, 0.18))
 		clear.pressed.connect(func(): placement.erase("properties_override"); data_modified.emit(); _refresh_content())
 		card.add_child(clear)
+
+
+# Keys the fields above do not cover: any other property the template has
+# (or an extension added). Each keeps the type of the value it replaces --
+# content_set.py::_item_placement_override_issues refuses anything else -- so
+# the control is chosen by that type; arrays and objects are shown, not edited.
+const _ITEM_FORM_OVERRIDES := ["name", "description", "is_open", "locked", "charges", "respawn_days"]
+
+func _build_item_extra_overrides(card: VBoxContainer, placement: Dictionary, template: Dictionary) -> void:
+	var overrides: Dictionary = placement.get("properties_override", {}) if placement.get("properties_override", {}) is Dictionary else {}
+	var template_properties: Dictionary = template.get("properties", {}) if template.get("properties", {}) is Dictionary else {}
+	var box := VBoxContainer.new(); box.name = "OtherItemOverrides"; box.add_theme_constant_override("separation", 2); card.add_child(box)
+	for key in overrides.keys():
+		if _ITEM_FORM_OVERRIDES.has(key) or str(key).begins_with("_"): continue
+		box.add_child(_item_override_row(placement, str(key), overrides[key], template_properties.has(key)))
+	var addable: Array = []
+	for key in template_properties.keys():
+		var value = template_properties[key]
+		if overrides.has(key) or _ITEM_FORM_OVERRIDES.has(key) or str(key).begins_with("_"): continue
+		if value is bool or value is int or value is float or value is String: addable.append(str(key))
+	if addable.is_empty(): return
+	addable.sort()
+	var picker := OptionButton.new(); picker.name = "AddItemOverride"
+	picker.add_item("Override a template property…"); picker.set_item_metadata(0, "")
+	for key in addable:
+		picker.add_item(key); picker.set_item_metadata(picker.item_count - 1, key)
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(index):
+		var key := str(picker.get_item_metadata(index))
+		if key.is_empty(): return
+		var value = template_properties[key]
+		_set_placement_override(placement, key, value.duplicate() if value is Array or value is Dictionary else value)
+		_refresh_content.call_deferred())
+	box.add_child(picker)
+
+
+func _item_override_row(placement: Dictionary, key: String, value, from_template: bool) -> HBoxContainer:
+	var row := HBoxContainer.new(); row.name = "ItemOverride_%s" % key
+	var caption := InspectorStyle.lbl(key, InspectorStyle.COLOR_TEXT_DIM); caption.custom_minimum_size.x = 92
+	if not from_template: caption.tooltip_text = "Not a property of this item's template; kept as written."
+	row.add_child(caption)
+	var control: Control
+	if value is bool:
+		var check := CheckBox.new(); check.button_pressed = value
+		check.toggled.connect(func(on): _set_placement_override(placement, key, on))
+		control = check
+	elif value is int or value is float:
+		var number := SpinBox.new(); number.allow_greater = true; number.allow_lesser = true
+		number.step = 1.0 if value is int or is_equal_approx(value, round(value)) else 0.01
+		number.value = float(value); InspectorStyle.apply_input_style(number)
+		number.value_changed.connect(func(amount): _set_placement_override(placement, key, int(amount) if number.step >= 1.0 else amount))
+		control = number
+	elif value is String:
+		var text := LineEdit.new(); text.text = value; InspectorStyle.apply_input_style(text)
+		# An empty string is a value here, not "remove": removal is the × button.
+		text.text_changed.connect(func(changed): _set_placement_override_raw(placement, key, changed))
+		control = text
+	else:
+		control = InspectorStyle.lbl(JSON.stringify(value), InspectorStyle.COLOR_TEXT_DIM)
+		control.tooltip_text = "Edited outside this form; kept as written."
+	control.name = "Value"; control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(control)
+	var drop := Button.new(); drop.text = "×"; drop.flat = true; drop.tooltip_text = "Remove this override (the template's value applies)"
+	drop.pressed.connect(func(): _erase_placement_override(placement, key); _refresh_content.call_deferred())
+	row.add_child(drop)
+	return row
+
+
+func _set_placement_override_raw(placement: Dictionary, key: String, value) -> void:
+	var overrides: Dictionary = placement.get("properties_override", {}) if placement.get("properties_override", {}) is Dictionary else {}
+	overrides[key] = value
+	placement["properties_override"] = overrides
+	data_modified.emit()
+
+
+func _erase_placement_override(placement: Dictionary, key: String) -> void:
+	var overrides = placement.get("properties_override")
+	if not overrides is Dictionary or not overrides.erase(key): return
+	if overrides.is_empty(): placement.erase("properties_override")
+	data_modified.emit()
 
 
 func _placement_field(label: String, control: Control) -> HBoxContainer:
