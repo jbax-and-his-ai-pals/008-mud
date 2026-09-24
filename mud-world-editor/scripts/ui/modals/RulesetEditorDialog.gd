@@ -41,6 +41,8 @@ var weather_profile_baseline: Dictionary = {}
 var quest_generation_section: QuestGenerationSection
 var world_rules_section: WorldRulesSection
 var crime_section: CrimeSection
+var social_section: SocialSection
+var loot_section: LootSection
 
 const SYSTEM_LABELS := {
 	"combat": "Combat", "abilities": "Abilities", "magic": "Magic", "crafting": "Crafting",
@@ -147,6 +149,10 @@ func setup():
 	world_rules_section.build(box, func(): _mark_dirty())
 	crime_section = CrimeSection.new()
 	crime_section.build(box, func(): _mark_dirty())
+	social_section = SocialSection.new()
+	social_section.build(box, func(): _mark_dirty())
+	loot_section = LootSection.new()
+	loot_section.build(box, func(): _mark_dirty())
 	DialogStyle.style_window(self)
 	get_ok_button().custom_minimum_size = Vector2(300, 40)
 	get_ok_button().disabled = true
@@ -193,6 +199,8 @@ func open_active():
 	quest_generation_section.load(quest_generation if quest_generation is Dictionary else {}, content_database)
 	world_rules_section.load(draft.data, content_database)
 	crime_section.load(draft.data, content_database)
+	social_section.load(draft.data)
+	loot_section.load(draft.data, content_database)
 	_reset_form_baseline()
 	loading = false; form_dirty = false; get_ok_button().disabled = true
 	status_label.text = "Editing %s. Untouched ruleset sections are preserved exactly." % DataRoot.ruleset_path(); status_label.modulate = InspectorStyle.COLOR_TEXT_DIM
@@ -220,6 +228,8 @@ func _save():
 	if quest_generation_section.changed(): draft.set_quest_generation(quest_generation_section.compose())
 	if world_rules_section.changed(): draft.set_world_rules(world_rules_section.compose())
 	if crime_section.changed(): draft.set_crime(crime_section.compose())
+	if social_section.changed(): draft.set_social(social_section.compose())
+	if loot_section.changed(): draft.set_loot(loot_section.compose())
 	if _field_changed(stats): draft.set_status_stats(_split(stats.text))
 	for pair in [[require_classification, "require_classification"], [require_level_bands, "require_level_bands"], [require_hazard_coverage, "require_hazard_coverage"]]:
 		if _field_changed(pair[0]): _put_path(draft.data, "world.regions." + pair[1], pair[0].button_pressed)

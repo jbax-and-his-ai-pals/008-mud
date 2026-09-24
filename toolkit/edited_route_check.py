@@ -205,9 +205,33 @@ def discovery_advancement(content_set: str, item: str) -> dict:
         server.shutdown()
 
 
+def gift_relationship(content_set: str, item: str, npc: str, template: str) -> dict:
+    """Give `item` to the NPC named `npc` (template `template`); report the
+    relationship points it earned, the tier reached and its vendor discount."""
+    from engine.social.relationships import relationship_discount, relationship_tier
+
+    server = _server(content_set)
+    try:
+        session, player = _player(server)
+        _give(server, player, item)
+        from engine.items.item_factory import ItemFactory
+
+        name = ItemFactory.create_item_from_template(item, server.world).name
+        output = _text(server.execute_command(session.session_id, f"give {name} to {npc}"))
+        score = int(player.npc_relationships.get(template, 0))
+        return {
+            "ok": True, "route": "gift_relationship", "points": score,
+            "tier": relationship_tier(score, server.world), "discount": relationship_discount(score, server.world),
+            "output": output[-300:],
+        }
+    finally:
+        server.shutdown()
+
+
 ROUTES = {
     "combat_ability": combat_ability, "gather_craft_use": gather_craft_use,
     "dialogue_quest_reward": dialogue_quest_reward, "discovery_advancement": discovery_advancement,
+    "gift_relationship": gift_relationship,
 }
 
 

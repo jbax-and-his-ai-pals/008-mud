@@ -43,6 +43,7 @@ func _run() -> void:
 	_gather_craft_use_route()
 	_dialogue_quest_reward_route()
 	await _discovery_advancement_route()
+	await _gift_relationship_route()
 	if failures > 0: push_error("m2 route journeys failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -192,6 +193,47 @@ func _discovery_advancement_route() -> void:
 	_assert(after.get("ok", false) and int(after.get("xp_gained", 0)) == 95, "edited: the same find now pays 95 XP (%s)" % _brief_discovery(after))
 	var told := str(after.get("output", ""))
 	_assert(NEW_DISCOVERY_NAME in told and NEW_GEM_MESSAGE in told, "and the player is told the new discovery name and grant message")
+
+
+# --- characters / social ----------------------------------------------------------
+# Give Elder Thorne a rose quartz: any gift (1) plus the gem tag (1) is 2
+# points, a Stranger with no discount. Edited in the Ruleset dialog's
+# Relationships section: the gem tag is worth 12, and the 10-point tier is
+# renamed "Neighbour" with an 8% discount -- the same gift now reaches it.
+
+func _gift_relationship_route() -> void:
+	print("\n[characters / social: edit gift values and the ladder, then give a gift]")
+	var arguments := ["item=item_rose_quartz", "npc=Elder Thorne", "template=village_elder"]
+	var before := _route(shipped, "gift_relationship", arguments)
+	_assert(before.get("ok", false) and int(before.get("points", 0)) == 2 and before.get("tier", "") == "Stranger" and is_zero_approx(float(before.get("discount", 1))), "shipped: one gem gift is 2 points, a Stranger with no discount (%s)" % _brief_gift(before))
+
+	main.ui_mgr.side_panel.request_edit_ruleset.emit()
+	await process_frame
+	var rules = main.ui_mgr.ruleset_editor
+	var social: SocialSection = rules.social_section
+	var acquaintance: Node = null
+	for row in social.tier_rows.get_children():
+		if int((row.get_node("Min") as SpinBox).value) == 10: acquaintance = row
+	_assert(acquaintance != null, "the Relationships section shows the 10-point tier")
+	if acquaintance == null: return
+	var label: LineEdit = acquaintance.get_node("Label")
+	label.text = "Neighbour"; label.text_changed.emit("Neighbour")
+	(acquaintance.get_node("Discount") as SpinBox).value = 0.08
+	for row in social.tag_rows.get_children():
+		if (row.get_node("Tag") as LineEdit).text == "gem": (row.get_node("Points") as SpinBox).value = 12
+	rules.confirmed.emit()
+	await process_frame
+	var ruleset: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(fixture.path_join("rules/ruleset.json")))
+	_assert(int(ruleset["social"]["gift_tag_values"]["gem"]) == 12 and ruleset["social"]["tiers"][2]["label"] == "Neighbour", "saved by the Ruleset dialog (staged, engine-validated)")
+
+	var after := _route(fixture, "gift_relationship", arguments)
+	_assert(after.get("ok", false) and int(after.get("points", 0)) == 13 and after.get("tier", "") == "Neighbour" and is_equal_approx(float(after.get("discount", 0)), 0.08), "edited: the same gift is 13 points, a Neighbour with 8%% off (%s)" % _brief_gift(after))
+	_assert("Neighbour" in str(after.get("output", "")), "and the player is told the new tier name")
+
+
+func _brief_gift(result: Dictionary) -> String:
+	if not result.get("ok", false): return "error: %s" % str(result.get("error", ""))
+	return "points %s, tier %s, discount %s" % [str(result.get("points")), str(result.get("tier")), str(result.get("discount"))]
 
 
 func _brief_discovery(result: Dictionary) -> String:

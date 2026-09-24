@@ -93,6 +93,14 @@ func set_crime(section: Dictionary):
 	if section.is_empty(): data.erase("crime")
 	else: data["crime"] = section.duplicate(true)
 
+func set_social(section: Dictionary):
+	if section.is_empty(): data.erase("social")
+	else: data["social"] = section.duplicate(true)
+
+func set_loot(section: Dictionary):
+	if section.is_empty(): data.erase("loot")
+	else: data["loot"] = section.duplicate(true)
+
 func set_region_policy(require_classification: bool, require_level_bands: bool,
 		require_hazard_coverage: bool, biomes: Array, region_types: Array):
 	var regions: Dictionary = _section("world").get("regions", {})
