@@ -7,14 +7,20 @@ signal data_modified
 # Data
 var cur_data: Dictionary
 var database_mgr: DatabaseManager
+# The room's own id and its region: a patrol point is a room id resolved in the
+# placed NPC's home region, which is this one.
+var room_id: String = ""
+var region_mgr: RegionManager = null
 
 # UI
 var npc_box: VBoxContainer
 var item_box: VBoxContainer
 
-func build(parent_container: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager):
+func build(parent_container: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager, id: String = "", r_mgr: RegionManager = null):
 	cur_data = data
 	database_mgr = db_mgr
+	room_id = id
+	region_mgr = r_mgr
 
 	parent_container.add_child(InspectorStyle.create_section_header("CONTENT"))
 	var card = InspectorStyle.create_card()
@@ -34,14 +40,15 @@ func build(parent_container: VBoxContainer, data: Dictionary, db_mgr: DatabaseMa
 	_refresh_content()
 
 func _refresh_content():
-	for c in npc_box.get_children(): c.queue_free()
-	for c in item_box.get_children(): c.queue_free()
+	for c in npc_box.get_children(): npc_box.remove_child(c); c.queue_free()
+	for c in item_box.get_children(): item_box.remove_child(c); c.queue_free()
 	
 	# NPCs
 	if cur_data.has("initial_npcs") and not cur_data.initial_npcs.is_empty():
 		var idx = 0
 		for n in cur_data.initial_npcs:
 			var row = _create_content_row("npc", n, idx)
+			row.name = "NPCPlacement_%d" % idx
 			npc_box.add_child(row)
 			idx += 1
 	else:
@@ -244,19 +251,205 @@ func _build_npc_placement_overrides(parent: VBoxContainer, placement: Dictionary
 	var behaviour_row := HBoxContainer.new(); behaviour_row.add_child(InspectorStyle.lbl("Behaviour", InspectorStyle.COLOR_TEXT_DIM))
 	var behaviour := OptionButton.new(); behaviour.name = "NPCPlacementBehaviour"; behaviour.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	behaviour.add_item("Template default"); behaviour.set_item_metadata(0, "")
-	for value in ["stationary", "wanderer", "aggressive", "patrol", "follower", "scheduled", "healer", "minion"]:
+	for value in NPCVocabulary.BEHAVIOR_TYPES:
 		behaviour.add_item(value.capitalize()); behaviour.set_item_metadata(behaviour.item_count - 1, value)
 	var selected := str(overrides.get("behavior_type", "")); var selected_index := 0
 	for index in range(1, behaviour.item_count):
 		if str(behaviour.get_item_metadata(index)) == selected: selected_index = index
 	behaviour.select(selected_index); InspectorStyle.apply_button_style(behaviour)
-	behaviour.item_selected.connect(func(index): _set_npc_placement_override(placement, "behavior_type", str(behaviour.get_item_metadata(index))))
+	# The route section depends on the behaviour, so a change rebuilds the row.
+	behaviour.item_selected.connect(func(index): _set_npc_placement_override(placement, "behavior_type", str(behaviour.get_item_metadata(index))); _refresh_content.call_deferred())
 	behaviour_row.add_child(behaviour); card.add_child(behaviour_row)
+	_build_patrol_route(card, placement, template)
+	_build_placement_tuning(card, placement, template)
 	if not overrides.is_empty():
 		var clear := Button.new(); clear.name = "ClearNPCPlacementOverrides"; clear.text = "Clear placement overrides"
 		InspectorStyle.apply_button_style(clear, Color(0.34, 0.18, 0.18))
 		clear.pressed.connect(func(): placement.erase("overrides"); data_modified.emit(); _refresh_content())
 		card.add_child(clear)
+
+
+# `overrides.properties_override` merges over the template's `properties`
+# (npc_factory.py), so a placement can tune how this one NPC behaves: the same
+# values NPCInspector's Behavior Tuning edits, and checked by the same rules
+# (content_set.py::_npc_property_errors). A value is written only while its
+# Override box is ticked; unticked, the template's value (or the engine
+# default) applies. Other keys are listed and can be removed, never rewritten.
+const _PLACEMENT_TUNING_INTEGERS := [
+	["move_cooldown", "Move cooldown (s)", 10, 0],
+	["respawn_cooldown", "Respawn (s, -1 never)", 600, -1],
+]
+
+func _build_placement_tuning(card: VBoxContainer, placement: Dictionary, template: Dictionary) -> void:
+	var overrides: Dictionary = placement.get("overrides", {}) if placement.get("overrides", {}) is Dictionary else {}
+	var own: Dictionary = overrides.get("properties_override", {}) if overrides.get("properties_override", {}) is Dictionary else {}
+	var inherited: Dictionary = template.get("properties", {}) if template.get("properties", {}) is Dictionary else {}
+	var box := VBoxContainer.new(); box.name = "NPCPlacementTuning"; box.add_theme_constant_override("separation", 2); card.add_child(box)
+	box.add_child(InspectorStyle.lbl("Behaviour tuning (this placement)", InspectorStyle.COLOR_TEXT_DIM))
+	var known: Array = []
+	for spec in NPCInspector._BEHAVIOR_FRACTIONS:
+		known.append(spec[0])
+		box.add_child(_tuning_row(placement, own, inherited, str(spec[0]), str(spec[1]), float(spec[2]), 0.0, 1.0, 0.05, str(spec[3])))
+	for spec in _PLACEMENT_TUNING_INTEGERS:
+		known.append(spec[0])
+		box.add_child(_tuning_row(placement, own, inherited, str(spec[0]), str(spec[1]), float(spec[2]), float(spec[3]), 99999.0, 1.0, ""))
+	for key in own.keys():
+		if known.has(key): continue
+		var row := HBoxContainer.new(); row.name = "OtherProperty_%s" % key
+		var text := InspectorStyle.lbl("%s = %s" % [key, JSON.stringify(own[key])], InspectorStyle.COLOR_TEXT_DIM)
+		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL; text.tooltip_text = "Set outside this form; kept as written."
+		row.add_child(text)
+		var drop := Button.new(); drop.text = "×"; drop.flat = true; drop.tooltip_text = "Remove this property override"
+		drop.pressed.connect(func(): _erase_npc_property_override(placement, str(key)); _refresh_content())
+		row.add_child(drop); box.add_child(row)
+
+
+func _tuning_row(placement: Dictionary, own: Dictionary, inherited: Dictionary, key: String, label: String, engine_default: float, min_value: float, max_value: float, step: float, tip: String) -> HBoxContainer:
+	var row := HBoxContainer.new(); row.name = "Tuning_%s" % key
+	var toggle := CheckBox.new(); toggle.name = "Override"; toggle.text = label; toggle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	toggle.button_pressed = own.has(key); toggle.tooltip_text = tip
+	row.add_child(toggle)
+	var fallback := float(inherited.get(key, engine_default))
+	var value := SpinBox.new(); value.name = "Value"; value.min_value = min_value; value.max_value = max_value; value.step = step
+	value.value = float(own.get(key, fallback)); value.editable = own.has(key); value.custom_minimum_size.x = 80
+	value.tooltip_text = "Template: %s" % str(inherited.get(key, "engine default %s" % str(engine_default)))
+	InspectorStyle.apply_input_style(value)
+	var written := func(amount: float): return int(amount) if step >= 1.0 else amount
+	value.value_changed.connect(func(amount):
+		if toggle.button_pressed: _set_npc_property_override(placement, key, written.call(amount)))
+	toggle.toggled.connect(func(on):
+		value.editable = on
+		if on: _set_npc_property_override(placement, key, written.call(value.value))
+		else:
+			_erase_npc_property_override(placement, key)
+			value.set_value_no_signal(fallback))
+	row.add_child(value)
+	return row
+
+
+func _set_npc_property_override(placement: Dictionary, key: String, value) -> void:
+	var overrides: Dictionary = placement.get("overrides", {}) if placement.get("overrides", {}) is Dictionary else {}
+	var own: Dictionary = overrides.get("properties_override", {}) if overrides.get("properties_override", {}) is Dictionary else {}
+	if own.get(key) == value and own.has(key): return
+	own[key] = value
+	overrides["properties_override"] = own; placement["overrides"] = overrides
+	data_modified.emit()
+
+
+func _erase_npc_property_override(placement: Dictionary, key: String) -> void:
+	var overrides: Dictionary = placement.get("overrides", {}) if placement.get("overrides", {}) is Dictionary else {}
+	var own = overrides.get("properties_override")
+	if not own is Dictionary or not own.erase(key): return
+	if own.is_empty(): overrides.erase("properties_override")
+	if overrides.is_empty(): placement.erase("overrides")
+	data_modified.emit()
+
+
+# The route `npcs/ai/movement.py::perform_patrol` walks: the template's
+# `patrol_points` unless this placement sets its own, starting at `patrol_index`.
+# Points are offered from this region only, since that is where they resolve;
+# the engine refuses one the NPC cannot walk to when the region is saved.
+func _build_patrol_route(card: VBoxContainer, placement: Dictionary, template: Dictionary) -> void:
+	var overrides: Dictionary = placement.get("overrides", {}) if placement.get("overrides", {}) is Dictionary else {}
+	var behaviour := str(overrides.get("behavior_type", template.get("behavior_type", "")))
+	var own_route: bool = overrides.has("patrol_points")
+	var template_points: Array = template.get("patrol_points", []) if template.get("patrol_points", []) is Array else []
+	if behaviour != "patrol" and not own_route: return
+	var box := VBoxContainer.new(); box.name = "PatrolRoute"; box.add_theme_constant_override("separation", 4); card.add_child(box)
+	box.add_child(InspectorStyle.lbl("Patrol route", InspectorStyle.COLOR_TEXT_DIM))
+	if behaviour != "patrol":
+		box.add_child(_hint("Only a Patrol NPC walks a route; this one's behaviour is %s, so the route is ignored." % (behaviour if behaviour != "" else "unset")))
+	if not own_route:
+		box.add_child(_hint("Template route: " + (" → ".join(PackedStringArray(template_points)) if not template_points.is_empty() else "none, so it stands still")))
+		var customise := Button.new(); customise.name = "SetPatrolRoute"; customise.text = "Set a route for this placement"
+		InspectorStyle.apply_button_style(customise, Color(0.2, 0.25, 0.3))
+		customise.pressed.connect(func():
+			var first: Array = template_points.duplicate() if not template_points.is_empty() else ([room_id] if room_id != "" else [])
+			_set_npc_placement_override(placement, "patrol_points", first); _refresh_content())
+		box.add_child(customise)
+		return
+	var points: Array = overrides["patrol_points"] if overrides["patrol_points"] is Array else []
+	if points.is_empty(): box.add_child(_hint("No points: a Patrol NPC with an empty route stands still."))
+	for index in points.size(): box.add_child(_patrol_point_row(placement, points, index))
+	var actions := HBoxContainer.new(); box.add_child(actions)
+	var add := Button.new(); add.name = "AddPatrolPoint"; add.text = "+ Point"; add.flat = true
+	add.pressed.connect(func():
+		var rooms := _region_room_ids()
+		points.append(room_id if room_id != "" else (rooms[0] if not rooms.is_empty() else ""))
+		data_modified.emit(); _refresh_content())
+	actions.add_child(add)
+	actions.add_child(InspectorStyle.lbl("Starts at", InspectorStyle.COLOR_TEXT_DIM))
+	var start := SpinBox.new(); start.name = "PatrolStart"; start.min_value = 1; start.max_value = max(1, points.size()); start.step = 1
+	start.value = int(overrides.get("patrol_index", 0)) + 1; InspectorStyle.apply_input_style(start)
+	start.tooltip_text = "Which point it heads for first."
+	start.value_changed.connect(func(value):
+		if int(value) <= 1: _erase_npc_placement_override(placement, "patrol_index")
+		else: _set_npc_placement_override(placement, "patrol_index", int(value) - 1))
+	actions.add_child(start)
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; actions.add_child(spacer)
+	var reset := Button.new(); reset.name = "UseTemplateRoute"; reset.text = "Use template route"; reset.flat = true
+	reset.pressed.connect(func():
+		_erase_npc_placement_override(placement, "patrol_points"); _erase_npc_placement_override(placement, "patrol_index"); _refresh_content())
+	actions.add_child(reset)
+
+
+func _patrol_point_row(placement: Dictionary, points: Array, index: int) -> HBoxContainer:
+	var row := HBoxContainer.new(); row.name = "PatrolPoint_%d" % index
+	row.add_child(InspectorStyle.lbl("%d." % (index + 1), InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new(); picker.name = "Room"; picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var current := str(points[index])
+	var rooms := _region_room_ids()
+	for room in rooms:
+		picker.add_item(_room_label(room)); picker.set_item_metadata(picker.item_count - 1, room)
+		if room == current: picker.select(picker.item_count - 1)
+	if not rooms.has(current):
+		picker.add_item("Missing: %s" % current); picker.set_item_metadata(picker.item_count - 1, current); picker.select(picker.item_count - 1)
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(choice):
+		points[index] = str(picker.get_item_metadata(choice)); data_modified.emit())
+	row.add_child(picker)
+	for pair in [["^", -1], ["v", 1]]:
+		var move := Button.new(); move.text = pair[0]; move.flat = true
+		move.disabled = index + int(pair[1]) < 0 or index + int(pair[1]) >= points.size()
+		move.pressed.connect(func():
+			var other := index + int(pair[1])
+			var held = points[other]; points[other] = points[index]; points[index] = held
+			data_modified.emit(); _refresh_content())
+		row.add_child(move)
+	var drop := Button.new(); drop.text = "×"; drop.flat = true; drop.tooltip_text = "Remove this point"
+	drop.pressed.connect(func():
+		points.remove_at(index)
+		# A start past the end raises in the AI tick.
+		if int(placement.get("overrides", {}).get("patrol_index", 0)) >= points.size(): _erase_npc_placement_override(placement, "patrol_index")
+		data_modified.emit(); _refresh_content())
+	row.add_child(drop)
+	return row
+
+
+func _region_room_ids() -> Array:
+	var ids: Array = []
+	if region_mgr != null and region_mgr.data.get("rooms") is Dictionary: ids = region_mgr.data.rooms.keys()
+	ids.sort()
+	return ids
+
+
+func _room_label(room: String) -> String:
+	var rooms: Dictionary = region_mgr.data.get("rooms", {}) if region_mgr != null else {}
+	var name := str(rooms[room].get("name", "")) if rooms.get(room) is Dictionary else ""
+	return "%s (%s)" % [name, room] if name != "" and name != room else room
+
+
+func _hint(text: String) -> Label:
+	var label := InspectorStyle.lbl(text, InspectorStyle.COLOR_TEXT_DIM)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label
+
+
+func _erase_npc_placement_override(placement: Dictionary, key: String) -> void:
+	var overrides: Dictionary = placement.get("overrides", {}) if placement.get("overrides", {}) is Dictionary else {}
+	if not overrides.erase(key): return
+	if overrides.is_empty(): placement.erase("overrides")
+	data_modified.emit()
 
 
 func _set_npc_placement_override(placement: Dictionary, key: String, value) -> void:

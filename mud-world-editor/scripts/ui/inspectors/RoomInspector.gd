@@ -68,7 +68,7 @@ func build(id: String, data: Dictionary):
 	)
 
 	content_panel = CONTENT_PANEL_SCRIPT.new()
-	content_panel.build(container, cur_data, database_mgr)
+	content_panel.build(container, cur_data, database_mgr, cur_id, region_mgr)
 	content_panel.data_modified.connect(func(): data_modified.emit())
 	
 	# Template Button
