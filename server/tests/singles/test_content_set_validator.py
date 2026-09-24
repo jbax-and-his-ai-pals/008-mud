@@ -1371,6 +1371,41 @@ class TestQuestRewards(unittest.TestCase):
             self.assertTrue(any(expected in m for m in errors), (expected, errors))
 
 
+class TestLootSettings(unittest.TestCase):
+    """loot.take_hint, chest_materials and currency_item_id each fell back
+    without a word; only ambient_pools was checked."""
+
+    def _errors(self, loot: dict) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        (package / "data" / "items" / "loot.json").write_text(json.dumps({
+            "chest": {"name": "Chest", "type": "Container"}, "coin": {"name": "Coin", "type": "Item"},
+            "rock": {"name": "Rock", "type": "Item"},
+        }), encoding="utf-8")
+        path = package / "rules" / "ruleset.json"
+        ruleset = json.loads(path.read_text(encoding="utf-8"))
+        ruleset["loot"] = loot
+        path.write_text(json.dumps(ruleset), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and "loot" in i.message]
+
+    def test_well_formed_settings_are_accepted(self):
+        self.assertEqual([], self._errors({"take_hint": "Take {items} ({count}).", "chest_materials": ["chest"], "currency_item_id": "coin"}))
+        self.assertEqual([], self._errors({"take_hint": False}))
+
+    def test_settings_that_fall_back_silently_are_errors(self):
+        errors = self._errors({
+            "take_hint": "Grab {loot}!", "chest_materials": ["chest", "rock", "vault"], "currency_item_id": "doubloon", "drops": 3,
+        })
+        for expected in (
+            "loot.take_hint uses {loot}",
+            "loot.chest_materials[1] 'rock' is not a Container",
+            "loot.chest_materials[2] references missing item 'vault'",
+            "loot.currency_item_id references missing item 'doubloon'",
+            "loot.drops is not read",
+        ):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+
 class TestRetiredRulesetKeys(unittest.TestCase):
     """`ruleset_id` and `world_mode` were written by the editor and read by
     nothing (the world mode is the server's feature profile). They are removed,

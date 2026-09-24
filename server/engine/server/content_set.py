@@ -2917,6 +2917,54 @@ def _validate_ruleset_references(content_root: Path, ruleset: dict[str, Any], is
                         ))
 
 
+LOOT_KEYS = ("take_hint", "chest_materials", "currency_item_id", "ambient_pools")
+
+
+def _validate_loot_settings(content_root: Path, loot: dict, issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """`loot.take_hint`, `chest_materials` and `currency_item_id`.
+
+    Each falls back without a word (utils.py `_loot_take_hint`,
+    chest_loot_generator.py): a chest material that is not an item template is
+    dropped, and with none left any Container is used; a currency id that is not
+    an item is replaced by whichever item is typed as coin; a hint whose
+    placeholder is not `{items}` or `{count}` becomes the engine's default.
+    """
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", str(ruleset_path), message))
+
+    for key in loot:
+        if not str(key).startswith("_") and key not in LOOT_KEYS:
+            error(f"loot.{key} is not read (known: {', '.join(LOOT_KEYS)})")
+    items = _load_definitions(content_root / "items")
+    if "take_hint" in loot:
+        hint = loot["take_hint"]
+        if hint is not False and not isinstance(hint, str):
+            error("loot.take_hint must be text, or false for no hint")
+        elif isinstance(hint, str):
+            try:
+                unknown = sorted(_format_placeholders(hint) - {"items", "count"})
+            except ValueError as problem:
+                error(f"loot.take_hint is not a valid message template ({problem})")
+            else:
+                if unknown:
+                    error(f"loot.take_hint uses {', '.join('{' + name + '}' for name in unknown)}; only {{items}} and {{count}} are filled, so the default hint is shown instead")
+    if "chest_materials" in loot:
+        materials = loot["chest_materials"]
+        if not isinstance(materials, list) or not materials:
+            error("loot.chest_materials must be a non-empty array of chest item ids, plainest first")
+        else:
+            for index, item_id in enumerate(materials):
+                template = items.get(item_id) if isinstance(item_id, str) else None
+                if template is None:
+                    error(f"loot.chest_materials[{index}] references missing item {item_id!r} (it is dropped from the list)")
+                elif template.get("type") != "Container":
+                    error(f"loot.chest_materials[{index}] '{item_id}' is not a Container, so it cannot hold loot")
+    if "currency_item_id" in loot:
+        currency = loot["currency_item_id"]
+        if not isinstance(currency, str) or currency not in items:
+            error(f"loot.currency_item_id references missing item {currency!r} (a coin-typed item is used instead)")
+
+
 def _validate_ambient_loot_references(content_root: Path, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
     """Validate generic, content-authored ambient loot pools."""
     loot = ruleset.get("loot", {})
@@ -2925,6 +2973,7 @@ def _validate_ambient_loot_references(content_root: Path, ruleset: dict[str, Any
     if not isinstance(loot, dict):
         issues.append(ContentSetIssue("error", str(ruleset_path), "loot must be an object"))
         return
+    _validate_loot_settings(content_root, loot, issues, ruleset_path)
     pools = loot.get("ambient_pools", [])
     if pools is None:
         return
