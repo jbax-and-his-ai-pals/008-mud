@@ -4,7 +4,7 @@
     "description": "A drowned network of old Portbridge drainage works, smuggler storehouses, and failing tide machinery beneath the harbor. The sea reaches every low point eventually.",
     "properties": {
         "dark": true,
-        "indoors": true,
+        "outdoors": false,
         "biome": "underground",
         "weather_profile": "underground",
         "region_type": "dungeon",

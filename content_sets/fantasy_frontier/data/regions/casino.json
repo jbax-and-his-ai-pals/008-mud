@@ -4,7 +4,7 @@
     "description": "An upscale establishment contrasting sharply with the rustic village outside. Thick carpets muffle footsteps, and the air smells of expensive perfume and cigar smoke.",
     "properties": {
         "safe_zone": true,
-        "indoors": true,
+        "outdoors": false,
         "biome": "settled",
         "region_type": "interior",
         "level_band": {

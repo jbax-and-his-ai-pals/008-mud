@@ -139,8 +139,7 @@
                 "up": "sunken_structure"
             },
             "properties": {
-                "dark": true,
-                "underwater": true
+                "dark": true
             }
         },
         "deep_swamp": {

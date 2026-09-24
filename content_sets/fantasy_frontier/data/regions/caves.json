@@ -86,9 +86,7 @@
         "flooded_passage": {
             "name": "Flooded Passage",
             "description": "Submerged in icy water, this passage connects the pool to deeper parts of the cave. You must hold your breath. Strange phosphorescent fungi provide a dim, eerie light.",
-            "properties": {
-                "underwater": true
-            },
+            "properties": {},
             "exits": {
                 "surface": "underground_pool",
                 "east": "submerged_chamber"
@@ -263,9 +261,7 @@
         "drowned_gallery": {
             "name": "Drowned Gallery",
             "description": "Diving along the lake bed leads to an air pocket in a gallery that was never natural: squared-off walls, a collapsed archway, tool marks older than anything in the mine above. Someone built here long before the mine ever broke through. Something pale and smooth is wedged in the silt near the archway.",
-            "properties": {
-                "underwater": true
-            },
+            "properties": {},
             "exits": {
                 "surface": "sunken_lake"
             },

@@ -42,7 +42,7 @@
             "name": "Outpost Forge",
             "description": "A practical stone forge fills this low building with the smell of coal and hot iron. Most of the work here is repair work: pitons, picks, and the occasional blade.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "west": "supply_yard"
@@ -63,7 +63,7 @@
             "name": "Frostpeak Mining Lodge",
             "description": "The Lodge's common room is plain but warm. Maps of old workings are pinned beside names of people who did not return, and a long table has room for any miner willing to share news. A notice board by the door carries work posted from the outpost and the road below.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "south": "supply_yard",
@@ -80,7 +80,7 @@
             "name": "Mine Office",
             "description": "Shelves of survey tubes and battered ledgers fill this narrow room. A relief map of the high country is marked with working shafts, unsafe timber, and several routes that have been crossed out in red wax.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "south": "mining_lodge"
@@ -90,7 +90,7 @@
             "name": "Miners' Bunkhouse",
             "description": "Tiered bunks crowd beneath a low timber roof. Wet boots line the stove, and each bed has a small shelf for a lamp, a keepsake, and the things a miner wants close when the weather shuts the road.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "north": "supply_yard"

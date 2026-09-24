@@ -88,4 +88,6 @@ class TestUniformlyDarkRegionsMigratedToRegionDefault(GameTestBase):
         self.assertIn("very dark", desc)
 
     def test_tidewell_underworks_room_is_indoors_via_region_default(self):
-        self.assertTrue(self.world.get_env_property("tidewell_underworks", "sluice_gate", "indoors", False))
+        # The region used to say `"indoors": true`, which nothing reads; the key
+        # the engine resolves is `outdoors`, and it defaults to true.
+        self.assertFalse(self.world.is_location_outdoors("tidewell_underworks", "sluice_gate"))

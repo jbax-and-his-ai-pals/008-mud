@@ -36,7 +36,7 @@
             "name": "Auction Hall",
             "description": "A high-ceilinged hall holds locked display cases, raised bidding tiers, and a brass bell for closing sales. Appraisers inspect uncommon goods with the care of people who have seen fortunes hidden in ordinary-looking parcels.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "west": "guild_square"
@@ -60,7 +60,7 @@
             "name": "Aurelia Museum Atrium",
             "description": "Sunlight falls through a glass roof onto maps, statuary, and carefully labelled mineral displays. A sealed bronze door in the eastern wall bears an older museum mark: the original archive below. The city treats knowledge as an asset to catalogue, protect, and occasionally charge visitors to see.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "south": "museum_steps",
@@ -84,7 +84,7 @@
             "name": "Surveyors' Hall",
             "description": "Route maps, measuring chains, and field journals cover the long tables of this practical guild hall. Its members turn uncertain country into distances that merchants, patrols, and ordinary travellers can rely on.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "southeast": "guild_square"
@@ -100,7 +100,7 @@
             "name": "Artificers' Exchange",
             "description": "Guild workbenches, sample racks, and a carefully watched tool counter fill this bright workshop. Makers compare materials and commissions under the approving eye of a master who has no patience for fragile craftsmanship.",
             "properties": {
-                "indoors": true
+                "outdoors": false
             },
             "exits": {
                 "southwest": "guild_square"
