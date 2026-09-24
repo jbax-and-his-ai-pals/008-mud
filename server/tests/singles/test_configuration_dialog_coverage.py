@@ -112,10 +112,9 @@ RULESET_WRITABLE_KEYS = {
 }
 
 # Top-level keys of `combat/elements.json` the dialog does not write.
-UNCOVERED_COMBAT_KEYS = {
-    "elemental_opposites": "no editor control; the engine reads it for prose only",
-    "flavor_text": "no editor control; read for hazard prose",
-}
+# (`elemental_opposites` was retired 2026-09-24: nothing read it. `flavor_text`
+# is written by the dialog's Hit Flavor section.)
+UNCOVERED_COMBAT_KEYS: dict[str, str] = {}
 
 # Hazard fields the dialog builds by hand, so the scan cannot see them.
 HAND_BUILT_HAZARD_FIELDS = {
