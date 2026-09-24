@@ -38,7 +38,11 @@
             "weapon_damage_type": "piercing",
             "armor_material": "leather",
             "wander_chance": 0,
-            "move_cooldown": 10
+            "move_cooldown": 10,
+            "loot_tags": [
+                "living",
+                "humanoid"
+            ]
         }
     },
     "brine_eel": {
@@ -77,7 +81,11 @@
             "weapon_damage_type": "piercing",
             "armor_material": "leather",
             "wander_chance": 0,
-            "move_cooldown": 10
+            "move_cooldown": 10,
+            "loot_tags": [
+                "living",
+                "beast"
+            ]
         }
     },
     "drowned_enforcer": {
@@ -120,7 +128,10 @@
             "armor_material": "chain",
             "attack_cooldown": 4.5,
             "wander_chance": 0,
-            "move_cooldown": 10
+            "move_cooldown": 10,
+            "loot_tags": [
+                "undead"
+            ]
         }
     }
 }

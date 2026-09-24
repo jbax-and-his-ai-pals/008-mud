@@ -35,7 +35,11 @@
                 "damage_type": "poison"
             },
             "weapon_damage_type": "piercing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "living",
+                "beast"
+            ]
         }
     },
     "sand_raider": {
@@ -75,7 +79,12 @@
         },
         "properties": {
             "weapon_damage_type": "slashing",
-            "armor_material": "leather"
+            "armor_material": "leather",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "bandit"
+            ]
         }
     },
     "glass_elemental": {
@@ -109,7 +118,10 @@
         "properties": {
             "attack_cooldown": 4,
             "weapon_damage_type": "crushing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "elemental"
+            ]
         }
     }
 }

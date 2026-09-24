@@ -42,7 +42,11 @@
                 }
             },
             "weapon_damage_type": "piercing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "living",
+                "beast"
+            ]
         }
     },
     "ruin_reaver": {
@@ -82,7 +86,12 @@
         },
         "properties": {
             "weapon_damage_type": "slashing",
-            "armor_material": "chain"
+            "armor_material": "chain",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "bandit"
+            ]
         }
     },
     "ash_warden": {
@@ -120,7 +129,10 @@
         "properties": {
             "attack_cooldown": 4.5,
             "weapon_damage_type": "crushing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "construct"
+            ]
         }
     },
     "astral_sentinel": {
@@ -161,7 +173,10 @@
         "properties": {
             "attack_cooldown": 5,
             "weapon_damage_type": "crushing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "construct"
+            ]
         }
     }
 }

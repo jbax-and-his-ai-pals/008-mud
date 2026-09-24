@@ -112,7 +112,10 @@
             "spell_cast_chance": 0.25,
             "wander_chance": 0.4,
             "move_cooldown": 10,
-            "weapon_damage_type": "slashing"
+            "weapon_damage_type": "slashing",
+            "loot_tags": [
+                "undead"
+            ]
         }
     },
     "wolf": {
@@ -649,7 +652,10 @@
                 "tick_interval": 3,
                 "damage_type": "disease"
             },
-            "weapon_damage_type": "crushing"
+            "weapon_damage_type": "crushing",
+            "loot_tags": [
+                "undead"
+            ]
         }
     },
     "kobold_skirmisher": {
@@ -677,7 +683,12 @@
             }
         },
         "properties": {
-            "weapon_damage_type": "piercing"
+            "weapon_damage_type": "piercing",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "kobold"
+            ]
         }
     },
     "slime": {
@@ -712,7 +723,10 @@
                 "tick_interval": 3,
                 "damage_type": "poison"
             },
-            "weapon_damage_type": "crushing"
+            "weapon_damage_type": "crushing",
+            "loot_tags": [
+                "ooze"
+            ]
         }
     },
     "orc_grunt": {
@@ -782,7 +796,11 @@
             }
         },
         "properties": {
-            "weapon_damage_type": "piercing"
+            "weapon_damage_type": "piercing",
+            "loot_tags": [
+                "living",
+                "beast"
+            ]
         }
     },
     "bandit_archer": {
@@ -863,7 +881,12 @@
         "properties": {
             "spell_cast_chance": 0.5,
             "weapon_damage_type": "piercing",
-            "armor_material": "cloth"
+            "armor_material": "cloth",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "cultist"
+            ]
         }
     },
     "ghoul": {
@@ -897,7 +920,10 @@
                 "name": "Stun",
                 "base_duration": 4
             },
-            "weapon_damage_type": "slashing"
+            "weapon_damage_type": "slashing",
+            "loot_tags": [
+                "undead"
+            ]
         }
     },
     "lizardfolk_warrior": {
@@ -929,7 +955,12 @@
         },
         "properties": {
             "weapon_damage_type": "piercing",
-            "armor_material": "chain"
+            "armor_material": "chain",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "lizardfolk"
+            ]
         }
     },
     "giant_scorpion": {
@@ -967,7 +998,11 @@
                 "damage_type": "poison"
             },
             "weapon_damage_type": "piercing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "living",
+                "beast"
+            ]
         }
     },
     "hobgoblin_soldier": {
@@ -1007,7 +1042,12 @@
         },
         "properties": {
             "weapon_damage_type": "slashing",
-            "armor_material": "chain"
+            "armor_material": "chain",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "goblinoid"
+            ]
         }
     },
     "orc_shaman": {
@@ -1056,7 +1096,12 @@
         "properties": {
             "spell_cast_chance": 0.7,
             "weapon_damage_type": "crushing",
-            "armor_material": "cloth"
+            "armor_material": "cloth",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "orc"
+            ]
         }
     },
     "wraith": {
@@ -1092,7 +1137,10 @@
         ],
         "properties": {
             "spell_cast_chance": 0.6,
-            "weapon_damage_type": "crushing"
+            "weapon_damage_type": "crushing",
+            "loot_tags": [
+                "undead"
+            ]
         }
     },
     "cave_bear": {
@@ -1128,7 +1176,11 @@
             }
         },
         "properties": {
-            "weapon_damage_type": "slashing"
+            "weapon_damage_type": "slashing",
+            "loot_tags": [
+                "living",
+                "beast"
+            ]
         }
     },
     "bandit_leader": {
@@ -1172,7 +1224,12 @@
         },
         "properties": {
             "weapon_damage_type": "slashing",
-            "armor_material": "leather"
+            "armor_material": "leather",
+            "loot_tags": [
+                "living",
+                "humanoid",
+                "bandit"
+            ]
         }
     },
     "harpy": {
@@ -1200,7 +1257,11 @@
             }
         },
         "properties": {
-            "weapon_damage_type": "piercing"
+            "weapon_damage_type": "piercing",
+            "loot_tags": [
+                "living",
+                "beast"
+            ]
         }
     },
     "shambling_mound": {
@@ -1235,7 +1296,10 @@
                     "strength": -3
                 }
             },
-            "weapon_damage_type": "crushing"
+            "weapon_damage_type": "crushing",
+            "loot_tags": [
+                "plant"
+            ]
         }
     },
     "earth_elemental": {
@@ -1269,7 +1333,10 @@
         "properties": {
             "attack_cooldown": 4,
             "weapon_damage_type": "crushing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "elemental"
+            ]
         }
     },
     "obsidian_construct": {
@@ -1300,7 +1367,10 @@
         "properties": {
             "attack_cooldown": 4.5,
             "weapon_damage_type": "crushing",
-            "armor_material": "plate"
+            "armor_material": "plate",
+            "loot_tags": [
+                "construct"
+            ]
         }
     },
     "river_troll": {
@@ -1355,7 +1425,11 @@
             "wander_chance": 0.25,
             "move_cooldown": 15,
             "weapon_damage_type": "crushing",
-            "armor_material": "leather"
+            "armor_material": "leather",
+            "loot_tags": [
+                "living",
+                "giant"
+            ]
         }
     }
 }
