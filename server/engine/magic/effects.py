@@ -226,6 +226,18 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                   tid = effect_def.get("summon_template_id")
                   dur = effect_def.get("summon_duration", 0)
                   if tid and caster.world:
+                       # At the cap, the oldest living summon from this ability
+                       # is dismissed to make room: the cost is already paid, so
+                       # refusing would waste the cast.
+                       cap = effect_def.get("max_summons")
+                       if isinstance(cap, int) and not isinstance(cap, bool) and cap > 0:
+                            owned = caster.runtime_state.magic.summons.get(spell.spell_id, [])
+                            owned[:] = [i for i in owned if (n := caster.world.get_npc(i)) is not None and n.is_alive]
+                            while len(owned) >= cap:
+                                 oldest = caster.world.get_npc(owned.pop(0))
+                                 if oldest is not None:
+                                      oldest.despawn(caster.world, silent=True)
+                                      messages.append(f"Your {oldest.name} fades away.")
                        instance_id = f"sum_{uuid.uuid4().hex[:4]}"
                        overrides = {"owner_id": caster.obj_id, "properties_override": {"summon_duration": dur, "creation_time": caster.world.clock.now(), "is_summoned": True}, "faction": "player_minion"}
                        npc = NPCFactory.create_npc_from_template(tid, caster.world, instance_id, **overrides)

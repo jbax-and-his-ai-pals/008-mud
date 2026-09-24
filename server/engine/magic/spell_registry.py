@@ -54,19 +54,31 @@ def load_spells_from_json(content_root: str) -> dict[str, int]:
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    stats["files_loaded"] += 1
-                    for spell_id, spell_data in data.items():
-                        if spell_id in SPELL_REGISTRY:
-                            stats["overwrites"] += 1
-                        spell_object = Spell.from_dict(spell_id, spell_data)
-                        register_spell(spell_object)
-                        stats["spells_loaded"] += 1
-            except json.JSONDecodeError:
+            except (OSError, json.JSONDecodeError):
                 stats["file_errors"] += 1
                 Logger.error("SpellRegistry", f"Could not decode JSON from '{file_path}'. Check for syntax errors.")
-            except Exception as e:
+                continue
+            if not isinstance(data, dict):
                 stats["file_errors"] += 1
-                Logger.error("SpellRegistry", f"An unexpected error occurred while loading spells from '{filename}': {e}")
+                Logger.error("SpellRegistry", f"'{filename}' must be an object of ability id -> ability.")
+                continue
+            stats["files_loaded"] += 1
+            # Each ability is built on its own: one the engine refuses used to stop
+            # every later ability in the same file from registering. `_` keys are
+            # annotations, as everywhere else in content.
+            for spell_id, spell_data in data.items():
+                if str(spell_id).startswith("_"):
+                    continue
+                try:
+                    spell_object = Spell.from_dict(spell_id, spell_data)
+                except Exception as e:
+                    stats["file_errors"] += 1
+                    Logger.error("SpellRegistry", f"Ability '{spell_id}' in '{filename}' was not loaded: {e}")
+                    continue
+                if spell_id in SPELL_REGISTRY:
+                    stats["overwrites"] += 1
+                register_spell(spell_object)
+                stats["spells_loaded"] += 1
     if stats["overwrites"] > 0:
         Logger.warning(
             "SpellRegistry",

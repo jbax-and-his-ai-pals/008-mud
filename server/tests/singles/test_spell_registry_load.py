@@ -55,6 +55,24 @@ class TestSpellRegistryLoad(unittest.TestCase):
         self.assertEqual(1, stats["overwrites"])
         self.assertEqual(1, len(spell_registry.SPELL_REGISTRY))
 
+    def test_one_refused_ability_does_not_drop_the_rest_of_its_file(self) -> None:
+        # The whole file used to be built inside one `try`, so the refused entry
+        # (and a `_note` annotation, which the engine did not skip) took every
+        # later ability in the file with it.
+        self._write_magic_file(
+            "mixed.json",
+            {
+                "_note": "annotations are not abilities",
+                "broken": {"name": "Broken", "description": "x", "cast_time": 1, "effects": [{"type": "damage", "value": 1}]},
+                "after": {"name": "After", "description": "y", "effects": [{"type": "damage", "value": 1}]},
+            },
+        )
+        stats = spell_registry.load_spells_from_json(str(self._tmp_dir))
+
+        self.assertEqual(["after"], sorted(spell_registry.SPELL_REGISTRY))
+        self.assertEqual(1, stats["file_errors"])
+        self.assertEqual(1, stats["files_loaded"])
+
 
 if __name__ == "__main__":
     unittest.main()

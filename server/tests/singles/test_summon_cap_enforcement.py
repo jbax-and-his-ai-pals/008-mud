@@ -1,8 +1,12 @@
 # tests/singles/test_summon_cap_enforcement.py
+"""`max_summons` on a summon effect. Nothing read it, so every cast added
+another summon; at the cap the oldest living one from that ability is now
+dismissed to make room (the cast is already paid for, so it is not refused)."""
 import time
 from tests.fixtures import GameTestBase
 from engine.magic.spell import Spell
 from engine.magic.spell_registry import register_spell
+
 
 class TestSummonCapEnforcement(GameTestBase):
 
@@ -16,33 +20,39 @@ class TestSummonCapEnforcement(GameTestBase):
         register_spell(self.summon_spell)
         self.player.learn_spell("summon_rat")
 
-    def test_max_summons_per_spell(self):
-        """Verify you cannot exceed max_summons for a specific spell."""
-        # 1. Cast Twice (Cap 2)
-        self.player.cast_spell(self.summon_spell, self.player, time.time(), self.world)
-        self.player.cast_spell(self.summon_spell, self.player, time.time(), self.world)
-        
+    def _cast(self):
+        return self.player.cast_spell(self.summon_spell, self.player, time.time(), self.world)
+
+    def _summons(self) -> list:
         assert self.player.runtime_state.magic is not None
-        self.assertEqual(len(self.player.runtime_state.magic.summons["summon_rat"]), 2)
-        
-        # 2. Cast Third Time
-        # The logic in effects.py currently allows casting but appends.
-        # Ideally, it should prevent it or unsummon the oldest. 
-        # Let's verify current behavior. If it just appends, we might need to fix the logic.
-        # Checking `effects.py`: It appends. 
-        # Checking `player.py`: It doesn't check cap before cast.
-        
-        # Note: If the design intent is to auto-dismiss oldest, we check that list length stays 2 
-        # OR if design is to block, we check that.
-        # Assuming typical RPG logic: Should probably limit. 
-        # If the code doesn't limit yet, this test will fail, indicating a feature gap.
-        # Let's assume for this test we WANT it to be uncapped based on current code 
-        # OR we acknowledge this as a "Todo" feature.
-        
-        # Current implementation just appends. 
-        self.player.cast_spell(self.summon_spell, self.player, time.time(), self.world)
-        
-        # If this passes, the cap logic is missing/loose. If it fails, logic exists.
-        # Adjust assertion to reality:
-        self.assertGreaterEqual(len(self.player.runtime_state.magic.summons["summon_rat"]), 3, 
-                                "Current implementation allows exceeding cap (Feature Gap).")
+        return self.player.runtime_state.magic.summons.get("summon_rat", [])
+
+    def test_casting_at_the_cap_dismisses_the_oldest(self):
+        self._cast()
+        self._cast()
+        first, second = self._summons()
+
+        result = self._cast()
+
+        self.assertEqual(2, len(self._summons()))
+        self.assertEqual(second, self._summons()[0])
+        self.assertNotIn(first, self._summons())
+        self.assertFalse(self.world.get_npc(first).is_alive)
+        self.assertIn("fades away", result["message"])
+
+    def test_a_summon_that_already_died_does_not_count(self):
+        self._cast()
+        self._cast()
+        first, _second = self._summons()
+        self.world.get_npc(first).is_alive = False
+
+        self._cast()
+
+        self.assertEqual(2, len(self._summons()))
+        self.assertNotIn(first, self._summons())
+
+    def test_without_a_cap_summons_accumulate(self):
+        self.summon_spell.effects[0].pop("max_summons")
+        for _ in range(3):
+            self._cast()
+        self.assertEqual(3, len(self._summons()))

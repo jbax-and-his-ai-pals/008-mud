@@ -21,8 +21,11 @@ class TestMagicEffects(GameTestBase):
         self.assertIn("test_summon", self.player.runtime_state.magic.summons)
         self.assertEqual(len(self.player.runtime_state.magic.summons["test_summon"]), 1)
         
+        first = self.player.runtime_state.magic.summons["test_summon"][0]
         self.player.cast_spell(summon_spell, self.player, time.time(), self.world)
-        self.assertEqual(len(self.player.runtime_state.magic.summons["test_summon"]), 2)
+        # At the cap the oldest is dismissed to make room.
+        self.assertEqual(len(self.player.runtime_state.magic.summons["test_summon"]), 1)
+        self.assertNotIn(first, self.player.runtime_state.magic.summons["test_summon"])
 
     def test_buff_duration(self):
         """Verify buffs expire after duration."""
