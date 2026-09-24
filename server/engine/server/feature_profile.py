@@ -18,6 +18,56 @@ _ALLOWED_MODES: dict[str, set[str]] = {
 }
 
 
+# Categories whose `provider_id` names a plugin provider (read by
+# headless/world_effects.py::_configured_custom_provider_id, only in "custom").
+PROVIDER_CATEGORIES = ("weather", "world_effects")
+
+# The policy sections the server reads beside the modes, and what each key's
+# reader acts on. A list is the values it distinguishes (the first is its
+# default); "bool", "seconds", "text" and "campaign" are typed values. Written
+# from the readers in headless/party.py, shard.py and finite_adventure.py.
+PROFILE_POLICIES: dict[str, dict[str, Any]] = {
+    "party": {
+        "loot_policy": ["round_robin", "leader_discretion", "finder_keep"],
+        "shared_rewards_policy": ["split", "leader_claims"],
+        "shared_quest_policy": ["leader_driven", "mirror_all"],
+        "offline_invites_supported": "bool",
+    },
+    "persistent_shard": {
+        "session_resume_policy": ["enabled", "disabled"],
+        "late_join_policy": ["enabled", "disabled"],
+        "disconnect_timeout_policy": ["indefinite", "grace_window"],
+        "disconnect_timeout_seconds": "seconds",
+        "initial_runtime_state": ["normal", "drain", "freeze", "maintenance"],
+        "initial_runtime_message": "text",
+    },
+    "finite_adventure": {
+        "default_campaign_id": "campaign",
+        "replay_supported": "bool",
+        "checkpoint_policy": ["manual_save", "disabled"],
+    },
+}
+# `shard` is read as another name for `persistent_shard` (shard.py).
+POLICY_ALIASES = {"shard": "persistent_shard"}
+# Words the readers treat as "disabled" for these policies.
+POLICY_SYNONYMS: dict[str, dict[str, str]] = {
+    "session_resume_policy": {"forbidden": "disabled", "off": "disabled"},
+    "late_join_policy": {"forbidden": "disabled", "off": "disabled", "closed": "disabled"},
+    "checkpoint_policy": {"off": "disabled", "none": "disabled"},
+}
+
+
+def allowed_modes() -> dict[str, list[str]]:
+    """Each category's modes, the default first (for the editor's parity check)."""
+    defaults = FeatureProfile()
+    out: dict[str, list[str]] = {}
+    for path, values in _ALLOWED_MODES.items():
+        category = path.split(".")[0]
+        default = getattr(defaults, f"{category}_mode")
+        out[category] = [default] + sorted(value for value in values if value != default)
+    return out
+
+
 @dataclass
 class FeatureProfile:
     world_mode: str = ""

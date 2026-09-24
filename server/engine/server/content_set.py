@@ -2970,6 +2970,70 @@ def _validate_ruleset_references(content_root: Path, ruleset: dict[str, Any], is
                         ))
 
 
+def _validate_feature_profile(profile: dict[str, Any], path: Path, issues: list[ContentSetIssue], campaign_ids: set[str]) -> None:
+    """A feature profile's modes and policies (`feature_profile.py`; the
+    policy readers in `headless/party.py`, `shard.py`, `finite_adventure.py`).
+
+    An unknown mode was a boot warning and the default; a misspelled category
+    or key, a policy value its reader does not act on, or a non-boolean switch
+    was read as the default with no word at all. `_` keys are notes.
+    """
+    from engine.server.feature_profile import (
+        _ALLOWED_MODES, POLICY_ALIASES, POLICY_SYNONYMS, PROFILE_POLICIES, PROVIDER_CATEGORIES,
+    )
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", str(path), message))
+
+    modes = {mode_path.split(".")[0]: values for mode_path, values in _ALLOWED_MODES.items()}
+    for category, node in profile.items():
+        if str(category).startswith("_"):
+            continue
+        policy_name = POLICY_ALIASES.get(category, category)
+        if category not in modes and policy_name not in PROFILE_POLICIES:
+            known = sorted(set(modes) | set(PROFILE_POLICIES) | set(POLICY_ALIASES))
+            error(f"'{category}' is not a feature profile section the server reads ({', '.join(known)})")
+            continue
+        if not isinstance(node, dict):
+            error(f"{category} must be an object")
+            continue
+        if category in modes:
+            for key, value in node.items():
+                if str(key).startswith("_"):
+                    continue
+                if key == "mode":
+                    if str(value).strip().lower() not in modes[category]:
+                        error(f"{category}.mode '{value}' is not one of {sorted(v for v in modes[category] if v)} (the server would use its default)")
+                elif key == "provider_id" and category in PROVIDER_CATEGORIES:
+                    if not isinstance(value, str) or not value.strip():
+                        error(f"{category}.provider_id must be a non-empty string")
+                    elif str(node.get("mode", "")).strip().lower() != "custom":
+                        error(f"{category}.provider_id is read only when {category}.mode is 'custom'")
+                else:
+                    error(f"{category}.{key} is not read by the server")
+            continue
+        for key, value in node.items():
+            if str(key).startswith("_"):
+                continue
+            kind = PROFILE_POLICIES[policy_name].get(key)
+            label = f"{category}.{key}"
+            if kind is None:
+                error(f"{label} is not read by the server ({', '.join(sorted(PROFILE_POLICIES[policy_name]))})")
+            elif isinstance(kind, list):
+                word = str(value).strip().lower() if isinstance(value, str) else None
+                word = POLICY_SYNONYMS.get(key, {}).get(word, word)
+                if word not in kind:
+                    error(f"{label} '{value}' is not one of {kind}")
+            elif kind == "bool" and not isinstance(value, bool):
+                error(f"{label} must be true or false")
+            elif kind == "seconds" and (isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0):
+                error(f"{label} must be a number of seconds, 0 or more")
+            elif kind == "text" and not isinstance(value, str):
+                error(f"{label} must be a string")
+            elif kind == "campaign" and (not isinstance(value, str) or (value.strip() and value.strip() not in campaign_ids)):
+                error(f"{label} '{value}' is not a campaign in this set")
+
+
 LOOT_KEYS = ("take_hint", "chest_materials", "currency_item_id", "ambient_pools")
 
 
@@ -5873,6 +5937,18 @@ def load_content_set(
         profile_payload = _load_json(feature_profile_path, issues, "feature profile")
         if profile_payload is not None and not isinstance(profile_payload, dict):
             issues.append(ContentSetIssue("error", str(feature_profile_path), "feature profile must be a JSON object"))
+        content_dir = resolved_paths.get("content_root")
+        campaign_ids = _knowledge_campaign_ids(content_dir, []) if content_dir is not None else set()
+        # The selected profile, and the set's other profiles beside it: they are
+        # authored to be selected, and would boot with the same silent defaults.
+        profile_paths = [feature_profile_path] + [
+            path.resolve() for path in sorted(feature_profile_path.parent.glob("*.profile.json"))
+            if path.resolve() != feature_profile_path
+        ]
+        for path in profile_paths:
+            payload_here = profile_payload if path == feature_profile_path else _load_json(path, issues, "feature profile")
+            if isinstance(payload_here, dict):
+                _validate_feature_profile(payload_here, path, issues, campaign_ids)
     opening_path: Path | None = None
     opening_payload: dict[str, Any] = {}
     opening_value = paths.get("opening")

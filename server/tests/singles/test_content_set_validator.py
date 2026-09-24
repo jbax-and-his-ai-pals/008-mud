@@ -807,6 +807,73 @@ class TestWeatherShapes(unittest.TestCase):
         self.assertTrue(any("weather.profiles.alpine must be an object" in message for message in errors), errors)
 
 
+class TestFeatureProfile(unittest.TestCase):
+    """A feature profile was checked only for being an object: an unknown mode
+    was a boot warning and the default, and a misspelled section or key, a policy
+    value its reader does not act on, or a non-boolean switch were read as the
+    default without a word. The set's other profiles are checked too."""
+
+    def _errors(self, profile: dict, others: dict | None = None, campaign: bool = False) -> list:
+        root = REPO_ROOT / "tmp" / f"feature_profile_{uuid.uuid4().hex}"
+        root.mkdir(parents=True)
+        self.addCleanup(lambda: shutil.rmtree(root, ignore_errors=True))
+        package = TestContentSetValidator._write_package(self, root)
+        manifest_path = package / validator.CONTENT_SET_MANIFEST_NAME
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["paths"]["feature_profile"] = "data/profiles/main.profile.json"
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        profiles = package / "data" / "profiles"
+        profiles.mkdir(parents=True, exist_ok=True)
+        (profiles / "main.profile.json").write_text(json.dumps(profile), encoding="utf-8")
+        for name, other in (others or {}).items():
+            (profiles / f"{name}.profile.json").write_text(json.dumps(other), encoding="utf-8")
+        if campaign:
+            (package / "data" / "campaigns").mkdir(parents=True, exist_ok=True)
+            (package / "data" / "campaigns" / "siege.json").write_text(json.dumps({"campaign_id": "siege"}), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error" and i.path.endswith(".profile.json")]
+
+    def test_a_full_valid_profile_is_accepted(self):
+        self.assertEqual([], self._errors({
+            "_description": "notes are fine",
+            "world": {"mode": "persistent_shard"}, "combat": {"mode": "Disabled"},
+            "world_effects": {"mode": "custom", "provider_id": "sample.effects.balance"},
+            "party": {"loot_policy": "finder_keep", "offline_invites_supported": False},
+            "shard": {"late_join_policy": "closed", "disconnect_timeout_seconds": 120, "initial_runtime_message": ""},
+            "finite_adventure": {"default_campaign_id": "siege", "checkpoint_policy": "none"},
+        }, campaign=True))
+
+    def test_bad_modes_sections_and_keys_are_errors(self):
+        errors = self._errors({
+            "combat": {"mode": "off"}, "weather": {"mode": "builtin", "provider_id": "x"},
+            "authoring": {"modes": "all"}, "multiplayer": {"mode": "on"}, "mods": "enabled",
+        })
+        for expected in ("combat.mode 'off' is not one of ['disabled', 'enabled']",
+                         "weather.provider_id is read only when weather.mode is 'custom'",
+                         "authoring.modes is not read by the server",
+                         "'multiplayer' is not a feature profile section the server reads",
+                         "mods must be an object"):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+    def test_policy_values_follow_their_readers(self):
+        errors = self._errors({
+            "party": {"loot_policy": "need_before_greed", "offline_invites_supported": "yes", "invite_conflict_policy": "replace_existing"},
+            "persistent_shard": {"disconnect_timeout_seconds": -5, "initial_runtime_state": "paused"},
+            "finite_adventure": {"default_campaign_id": "nowhere"},
+        })
+        for expected in ("party.loot_policy 'need_before_greed' is not one of ['round_robin', 'leader_discretion', 'finder_keep']",
+                         "party.offline_invites_supported must be true or false",
+                         "party.invite_conflict_policy is not read by the server",
+                         "persistent_shard.disconnect_timeout_seconds must be a number of seconds, 0 or more",
+                         "persistent_shard.initial_runtime_state 'paused' is not one of",
+                         "finite_adventure.default_campaign_id 'nowhere' is not a campaign in this set"):
+            self.assertTrue(any(expected in m for m in errors), (expected, errors))
+
+    def test_the_sets_other_profiles_are_checked_too(self):
+        errors = self._errors({"combat": {"mode": "enabled"}}, others={"night": {"weather": {"mode": "stormy"}}})
+        self.assertTrue(any("weather.mode 'stormy'" in m for m in errors), errors)
+
+
 class TestWeatherChances(unittest.TestCase):
     """`weather.chances` had no check: a table without `summer` raised on the
     first weather change (the fallback is looked up on every roll), a bad weight
