@@ -83,13 +83,20 @@ activities they prefer"). Measured 2026-09-24, fantasy_frontier, seed 1:
 
 | Policy | 1 hour (level, XP) | 3 hours (level, XP) |
 |---|---|---|
-| explorer | 9, 2080 | 11, 4140 |
-| combat | 9, 2214 | 11, 3949 |
-| opportunity (gathering/trade) | 10, 3038 | 12, 4738 |
-| sweep (every system) | 9, 2560 | 12, 4440 |
+| explorer | 5, 672 | 8, 1897 |
+| combat | 5, 706 | 8, 1796 |
+| opportunity (gathering/trade) | 7, 1428 | 9, 2317 |
+| sweep (every system) | 6, 941 | 9, 2049 |
 
-The styles sit within about 20% of each other by hour three; most of the first
-hour is one-time discovery/"first" grants, and the pace roughly halves after.
+Before that day's retune these read 9-10 after one hour and 11-12 after three:
+every room's first visit paid 25 XP wherever it was (283 rooms, about 7,000
+XP, most of every route's XP) and every region 90, so the starter town alone
+was worth level 5. Now a room pays by its region's danger (3 XP in the
+level 1-3 regions up to 200 in the Starwell), 32 named places pay 25 on top,
+and a region 30. Walking every public room still reaches level 15
+(`test_p7_exploration_route.py`). Read these policies as scripted routes, not
+play styles: the combat route kills one creature in three hours, so the table
+says more about the routes than about how fighting paces against gathering.
 
 For a short, outcome-asserted first-session regression, use the `first-hour`
 policy. Its JSON result includes `outcome_errors` separately from state

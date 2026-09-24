@@ -473,16 +473,242 @@
         "match": {
           "kind": "region"
         },
-        "xp": 90,
+        "xp": 30,
         "message": "You have not been this way before."
       },
       {
         "id": "landmark",
         "match": {
-          "kind": "landmark"
+          "kind": "landmark",
+          "entry_ids": [
+            "town:watchtower_top",
+            "town:museum_interior",
+            "town:old_mill",
+            "forest:ancient_oak",
+            "forest:abandoned_cabin",
+            "farmland:scarecrow_field",
+            "foothills:standing_stone",
+            "coastal_path:shipwreck_debris",
+            "coastal_path:sea_cave_back",
+            "riverside_catacombs:sealed_chapel",
+            "caves:crystal_chamber",
+            "caves:sunken_lake",
+            "swamp:sunken_structure",
+            "ruins:library_ruins",
+            "mountains:summit",
+            "mountains:hidden_valley",
+            "mountains:frozen_waterfall_base",
+            "portbridge:main_pier",
+            "goblin_scrapcamp:trophy_stash",
+            "kobold_warren:lookout_niche",
+            "gallows_hollow:watch_perch",
+            "reedscale_village:shamans_platform",
+            "frostpeak_outpost:mining_lodge",
+            "obsidian_trial:inner_sanctum",
+            "tidewell_underworks:blackwater_vault",
+            "sunscorch_road:mirror_oasis",
+            "sunscorch_caravanserai:map_house",
+            "aurelia_outlands:old_observatory",
+            "aurelia_outlands:broken_aqueduct",
+            "aurelia_city:museum_atrium",
+            "starwell_archive:starwell_chamber",
+            "casino:arcane_vault"
+          ]
         },
         "xp": 25,
         "message": "You commit the place to memory."
+      },
+      {
+        "id": "rooms_casino",
+        "match": {
+          "kind": "landmark",
+          "region_id": "casino"
+        },
+        "xp": 3
+      },
+      {
+        "id": "rooms_coastal_path",
+        "match": {
+          "kind": "landmark",
+          "region_id": "coastal_path"
+        },
+        "xp": 3
+      },
+      {
+        "id": "rooms_farmland",
+        "match": {
+          "kind": "landmark",
+          "region_id": "farmland"
+        },
+        "xp": 3
+      },
+      {
+        "id": "rooms_forest",
+        "match": {
+          "kind": "landmark",
+          "region_id": "forest"
+        },
+        "xp": 3
+      },
+      {
+        "id": "rooms_riverside_catacombs",
+        "match": {
+          "kind": "landmark",
+          "region_id": "riverside_catacombs"
+        },
+        "xp": 3
+      },
+      {
+        "id": "rooms_town",
+        "match": {
+          "kind": "landmark",
+          "region_id": "town"
+        },
+        "xp": 3
+      },
+      {
+        "id": "rooms_foothills",
+        "match": {
+          "kind": "landmark",
+          "region_id": "foothills"
+        },
+        "xp": 8
+      },
+      {
+        "id": "rooms_goblin_scrapcamp",
+        "match": {
+          "kind": "landmark",
+          "region_id": "goblin_scrapcamp"
+        },
+        "xp": 8
+      },
+      {
+        "id": "rooms_kobold_warren",
+        "match": {
+          "kind": "landmark",
+          "region_id": "kobold_warren"
+        },
+        "xp": 8
+      },
+      {
+        "id": "rooms_portbridge",
+        "match": {
+          "kind": "landmark",
+          "region_id": "portbridge"
+        },
+        "xp": 8
+      },
+      {
+        "id": "rooms_swamp",
+        "match": {
+          "kind": "landmark",
+          "region_id": "swamp"
+        },
+        "xp": 8
+      },
+      {
+        "id": "rooms_caves",
+        "match": {
+          "kind": "landmark",
+          "region_id": "caves"
+        },
+        "xp": 20
+      },
+      {
+        "id": "rooms_gallows_hollow",
+        "match": {
+          "kind": "landmark",
+          "region_id": "gallows_hollow"
+        },
+        "xp": 20
+      },
+      {
+        "id": "rooms_ruins",
+        "match": {
+          "kind": "landmark",
+          "region_id": "ruins"
+        },
+        "xp": 20
+      },
+      {
+        "id": "rooms_reedscale_village",
+        "match": {
+          "kind": "landmark",
+          "region_id": "reedscale_village"
+        },
+        "xp": 30
+      },
+      {
+        "id": "rooms_frostpeak_outpost",
+        "match": {
+          "kind": "landmark",
+          "region_id": "frostpeak_outpost"
+        },
+        "xp": 45
+      },
+      {
+        "id": "rooms_mountains",
+        "match": {
+          "kind": "landmark",
+          "region_id": "mountains"
+        },
+        "xp": 45
+      },
+      {
+        "id": "rooms_obsidian_trial",
+        "match": {
+          "kind": "landmark",
+          "region_id": "obsidian_trial"
+        },
+        "xp": 60
+      },
+      {
+        "id": "rooms_tidewell_underworks",
+        "match": {
+          "kind": "landmark",
+          "region_id": "tidewell_underworks"
+        },
+        "xp": 60
+      },
+      {
+        "id": "rooms_sunscorch_road",
+        "match": {
+          "kind": "landmark",
+          "region_id": "sunscorch_road"
+        },
+        "xp": 90
+      },
+      {
+        "id": "rooms_sunscorch_caravanserai",
+        "match": {
+          "kind": "landmark",
+          "region_id": "sunscorch_caravanserai"
+        },
+        "xp": 110
+      },
+      {
+        "id": "rooms_aurelia_city",
+        "match": {
+          "kind": "landmark",
+          "region_id": "aurelia_city"
+        },
+        "xp": 150
+      },
+      {
+        "id": "rooms_aurelia_outlands",
+        "match": {
+          "kind": "landmark",
+          "region_id": "aurelia_outlands"
+        },
+        "xp": 150
+      },
+      {
+        "id": "rooms_starwell_archive",
+        "match": {
+          "kind": "landmark",
+          "region_id": "starwell_archive"
+        },
+        "xp": 200
       },
       {
         "id": "creature_first",

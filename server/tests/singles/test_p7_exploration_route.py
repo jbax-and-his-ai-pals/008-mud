@@ -12,7 +12,12 @@ FANTASY_FRONTIER = REPO_ROOT / "content_sets" / "fantasy_frontier"
 
 class TestP7ExplorationRoute(unittest.TestCase):
     def test_forty_new_rooms_pay_landmark_xp_without_other_activities(self) -> None:
-        """Walking the authored town is a meaningful, once-only progression path."""
+        """Walking the authored town is a rewarded, once-only progression path
+        -- scaled to the town's own level band (2026-09-24). Every room's first
+        visit used to pay 25 XP wherever it was, so these forty town rooms paid
+        1,000+ XP (level 5) in a level 1-3 region; rooms now pay by their
+        region's danger, and the whole public walk still reaches level 15
+        (the test below)."""
         server = HeadlessServer(
             db_path=":memory:",
             content_set_path=str(FANTASY_FRONTIER),
@@ -51,7 +56,9 @@ class TestP7ExplorationRoute(unittest.TestCase):
                     server.advancement_manager.has_entry(player, f"landmark:town:{room_id}"),
                 )
 
-            self.assertGreaterEqual(player.total_experience(), 1_000)
+            earned = player.total_experience()
+            self.assertGreaterEqual(earned, 100, "the town walk should still be worth a level")
+            self.assertLess(earned, 381, "walking the town alone must not carry a character past its level 1-3 band")
             route_entries = player.advancement_entries - seeded_entries
             self.assertTrue(
                 all(
