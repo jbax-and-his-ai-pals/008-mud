@@ -104,6 +104,9 @@ def main() -> int:
         # What an affix's `allowed_types` is compared with: the generated item's
         # class name. `AffixInspector.gd` offers these plus "All".
         "item_classes": _item_classes(),
+        # Every word a template's `type` may be (ITEM_CLASS_MAP's keys, retired
+        # names included); `ItemInspector.gd` offers these.
+        "item_type_names": _item_type_names(),
         # What CampaignInspector.gd offers for a node's type and a transition's
         # trigger (test_campaign_vocabulary.py ties these to the manager).
         "campaigns": _campaign_vocabulary(),
@@ -152,6 +155,12 @@ def _ability_vocabulary() -> dict:
         "effect_fields": {name: sorted(fields) for name, fields in sorted(ABILITY_EFFECT_FIELDS.items())},
         "message_placeholders": {name: sorted(names) for name, names in sorted(ABILITY_MESSAGE_PLACEHOLDERS.items())},
     }
+
+
+def _item_type_names() -> list:
+    from engine.items.item_factory import ITEM_CLASS_MAP
+
+    return sorted(ITEM_CLASS_MAP)
 
 
 def _item_classes() -> list:

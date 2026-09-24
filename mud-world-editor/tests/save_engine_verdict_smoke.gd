@@ -33,6 +33,7 @@ func _process(_delta: float) -> bool:
 	checks_run = true
 	_check_a_refused_region_edit_is_put_back()
 	_check_a_refused_library_edit_is_put_back()
+	_check_an_item_the_loader_would_skip_is_refused()
 	if failures > 0: push_error("save engine verdict failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 	return true
@@ -82,6 +83,28 @@ func _check_a_refused_library_edit_is_put_back() -> void:
 
 	template["objective"]["type"] = "clear_region"
 	_assert(main._save_everything(), "once fixed, the same save succeeds")
+
+
+func _check_an_item_the_loader_would_skip_is_refused() -> void:
+	print("\n[an item template the engine would skip]")
+	# One with no item_family: a family decides the class, and `type` is then only
+	# the legacy fallback the engine rightly ignores.
+	var item_id := "node_herb_bed"
+	var item: Dictionary = main.database_mgr.items[item_id]
+	var file_name := str(item.get("_filename", "")).get_file()
+	var path := fixture.path_join("data/items").path_join(file_name)
+	var before := FileAccess.get_file_as_string(path)
+	var name := str(item["name"]); var item_type := str(item["type"])
+	item["name"] = ""
+	item["type"] = "MagicWand"
+	main.database_mgr.mark_dirty("item", item_id)
+	_assert(not main._save_everything(), "a blank name and an unbuildable type are refused (was only a warning; the loader drops the template)")
+	_assert(FileAccess.get_file_as_string(path) == before, "%s is back to its bytes before the save" % file_name)
+	var message := _error_text()
+	_assert("name must be a non-empty string" in message and "MagicWand" in message, "and both problems are named: %s" % message.left(300))
+	main.ui_mgr.error_modal.hide()
+	item["name"] = name; item["type"] = item_type
+	_assert(main._save_everything(), "restored, it saves")
 
 
 func _error_text() -> String:

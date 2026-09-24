@@ -212,7 +212,7 @@ func _build_fixture() -> void:
 		"region_id": "fixture", "rooms": {"start": {"name": "Start", "exits": {}}},
 	})
 	SaveIO.write_json(data_root.path_join("items/materials.json"), {
-		"item_river_clay": {"name": "river clay", "type": "Material", "value": 5, "weight": 0.3},
+		"item_river_clay": {"name": "river clay", "type": "Item", "value": 5, "weight": 0.3},
 	})
 	SaveIO.write_json(data_root.path_join("discoveries.json"), {
 		"_comment": "kept",

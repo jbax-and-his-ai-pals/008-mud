@@ -70,6 +70,7 @@ func _init() -> void:
 	_check_npc_vocabulary(vocabulary)
 	_check_knowledge_conditions(vocabulary)
 	_check_affix_item_classes(vocabulary)
+	_check_item_type_names(vocabulary)
 	_check_campaign_vocabulary(vocabulary)
 	_check_ability_vocabulary(vocabulary)
 
@@ -268,8 +269,7 @@ func _check_npc_vocabulary(vocabulary: Dictionary) -> void:
 ## kind and state pickers. The engine's constants sit beside the reader and are
 ## tied to it by test_knowledge_condition_vocabulary.py; this ties the copy to them.
 func _check_knowledge_conditions(vocabulary: Dictionary) -> void:
-	print("
-[knowledge conditions: editor vs engine]")
+	print("\n[knowledge conditions: editor vs engine]")
 	var knowledge: Dictionary = vocabulary.get("knowledge_conditions", {})
 	_assert(not knowledge.is_empty(), "the engine's knowledge-condition vocabulary was read")
 	for pair in [["kinds", KnowledgeInspector.CONDITION_KINDS], ["knowledge_states", KnowledgeInspector.KNOWLEDGE_STATES],
@@ -282,8 +282,7 @@ func _check_knowledge_conditions(vocabulary: Dictionary) -> void:
 ## `AffixInspector.ITEM_CLASSES` is what an affix's `allowed_types` may name:
 ## the engine's item classes plus "All".
 func _check_affix_item_classes(vocabulary: Dictionary) -> void:
-	print("
-[affix item classes: editor vs engine]")
+	print("\n[affix item classes: editor vs engine]")
 	var engine := _as_set(vocabulary.get("item_classes", []))
 	_assert(not engine.is_empty(), "the engine's item classes were read")
 	var editor := _as_set(AffixInspector.ITEM_CLASSES)
@@ -291,9 +290,18 @@ func _check_affix_item_classes(vocabulary: Dictionary) -> void:
 	_assert(engine == editor, "the affix type list matches the engine's classes (engine %s, editor %s)" % [str(_sorted(engine)), str(_sorted(editor))])
 
 
+## `ItemInspector.ITEM_CLASSES` is what a template's `type` picker offers: every
+## name ITEM_CLASS_MAP accepts (a type outside it is refused by the engine).
+func _check_item_type_names(vocabulary: Dictionary) -> void:
+	print("\n[item type names: editor vs engine]")
+	var engine := _as_set(vocabulary.get("item_type_names", []))
+	_assert(not engine.is_empty(), "the engine's item type names were read")
+	var editor := _as_set(ItemInspector.ITEM_CLASSES)
+	_assert(engine == editor, "the item type picker matches the factory's names (engine %s, editor %s)" % [str(_sorted(engine)), str(_sorted(editor))])
+
+
 func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:
-	print("
-[campaign vocabulary: editor vs engine]")
+	print("\n[campaign vocabulary: editor vs engine]")
 	var campaigns: Dictionary = vocabulary.get("campaigns", {})
 	_assert(not campaigns.is_empty(), "the engine's campaign vocabulary was read")
 	for pair in [["node_types", CampaignInspector.NODE_TYPES], ["triggers", CampaignInspector.TRIGGERS]]:
@@ -303,8 +311,7 @@ func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:
 
 
 func _check_ability_vocabulary(vocabulary: Dictionary) -> void:
-	print("
-[ability vocabulary: editor vs engine]")
+	print("\n[ability vocabulary: editor vs engine]")
 	var abilities: Dictionary = vocabulary.get("abilities", {})
 	_assert(not abilities.is_empty(), "the engine's ability vocabulary was read")
 	var engine_targets := _as_set(abilities.get("target_types", []))

@@ -135,7 +135,7 @@ editor knows about, which makes the absence read as a bug rather than a decision
 
 | Declaration | Engine reader | Validator | Editor writer | Status | Evidence | Batch |
 |---|---|---|---|---|---|---|
-| Item envelope (`name`, `type`, `weight`, `value`, `stackable`, `equip_slot`) | `definition_loader.py:51-106`; `item_factory.py:142-298` | loader `:92-94`; `data_integrity_validator.py:80-95` (warning only in the gate); `content_playability_check.py:329-339` (fatal) | `ItemInspector.gd:34-78` | prototype — a missing `name`/`type` is only a warning in the gate (fatal in playability). Extra top-level keys are kept as properties (`test_item_factory_full.py`), not dropped as this row once said | `item_authoring_smoke.gd` | 6C |
+| Item envelope (`name`, `type`, `weight`, `value`, `stackable`, `equip_slot`) | `definition_loader.py:51-106` (skips a template without `name`/`type`); `item_factory.py:142-298` | `content_set.py::_validate_item_envelopes`: an object with a non-empty `name` and a `type`, resolving (family first, then `type`) to a class `ITEM_CLASS_MAP` builds; `description`/`weight`/`value`/`stackable` typed; duplicate ids warned. `data_integrity_validator.py` still warns too | `ItemInspector.gd:34-78`; its type list is parity-checked against `ITEM_CLASS_MAP` | validated writer — a missing name or type was only a warning while the loader dropped the template. Extra top-level keys are kept as properties (`test_item_factory_full.py`) | `item_authoring_smoke.gd`, `save_engine_verdict_smoke.gd` (a blank name and an unbuildable type are refused and the file put back), `schema_parity_smoke.gd`, `test_content_set_validator.py` | 6C |
 | Item `properties.resistances` (`{damage_type: float}`) | `contracts/equipment.py::armor_resistances`; schema `contracts/registry.py:129` | `content_set.py::_validate_item_resistances_and_sets` — numeric values, keys among `combat/elements.json`'s damage types | `ItemInspector.gd`: a picker (this set's own `data/combat/elements.json` damage types) + value per row; switching a row's type is a key rebuild, refused on a collision | validated writer | `item_resistances_smoke.gd`, `save_engine_verdict_smoke.gd` (library saves roll back on refusal) | 6C |
 | Item `properties` — other nested objects (`substitute_resource_ids`, …) | `item_factory.py:205-259` | `content_set.py:2775-2875` (a named subset only) | read-only row (`ItemInspector.gd:386-399`) | read-only | `nested_property_survival_smoke.gd` | 6C |
 | `properties.salvage_output` | `crafting_manager.py:401-464` | `content_set.py:2065-2170` | `ItemInspector.gd:93-162` via `ReferenceEditor.gd:52-120` | journey-proven | `item_authoring_smoke.gd` + playability `salvage` | 6C |
@@ -399,7 +399,7 @@ Validators that disagree about the same fact (engine vs toolkit): `behavior_type
 vocabulary (toolkit invents three names, omits `follower`); vendor stock
 (`sells_items` vs `buy_orders`); `damage_type` (toolkit rejects unknown channels, engine
 only checks hazard channels); `spawner.monster_types`/`npc_types` ids (toolkit errors,
-engine never resolves); item `name`/`type` (warning in the gate, fatal in playability);
+engine never resolves); item `name`/`type` (warning in the gate, fatal in playability -- the engine validator now refuses both, 2026-09-23);
 `normalize_content_numbers.py` lists `defense` as both int and float, and `FLOAT_FIELDS`
 is never read. Every one is a Track I finding with a citation, not an editor gap — but
 each makes the editor's "no issues" less meaningful than it looks.

@@ -74,8 +74,7 @@ func _check_container_placement_overrides(database: DatabaseManager) -> void:
 
 
 func _check_other_item_overrides(database: DatabaseManager) -> void:
-	print("
-[other item overrides]")
+	print("\n[other item overrides]")
 	var placement := {"item_id": "item_ore", "properties_override": {"glint": false, "legacy_tag": [1, 2]}}
 	var holder := _panel_for({"items": [placement]}, database)
 	var glint := _named(holder, "ItemOverride_glint")
