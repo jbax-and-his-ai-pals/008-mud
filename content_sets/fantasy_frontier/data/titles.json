@@ -139,6 +139,14 @@
         },
         "requirements": [
             {
+                "kind": "visited_region",
+                "region_id": "forest"
+            },
+            {
+                "kind": "visited_region",
+                "region_id": "farmland"
+            },
+            {
                 "kind": "level_at_least",
                 "value": 3
             }
@@ -179,8 +187,8 @@
         },
         "requirements": [
             {
-                "kind": "level_at_least",
-                "value": 5
+                "kind": "quest_completed",
+                "quest_id": "quest_frostpeak_deep_sounding"
             }
         ]
     },
@@ -198,8 +206,8 @@
         },
         "requirements": [
             {
-                "kind": "level_at_least",
-                "value": 4
+                "kind": "quest_completed",
+                "quest_id": "quest_catalogue_of_the_valley"
             }
         ]
     },
@@ -285,8 +293,16 @@
         },
         "requirements": [
             {
-                "kind": "level_at_least",
-                "value": 5
+                "kind": "quest_completed",
+                "quest_id": "quest_wildflower_commission"
+            },
+            {
+                "kind": "quest_completed",
+                "quest_id": "quest_riverside_charm_commission"
+            },
+            {
+                "kind": "quest_completed",
+                "quest_id": "quest_local_provisions"
             }
         ]
     },
