@@ -279,10 +279,59 @@ def kill_loot(content_set: str, target: str, kills: str = "10", spell: str = "ma
         server.shutdown()
 
 
+def hazard_exposure(content_set: str, region: str, room: str, ticks: str = "60") -> dict:
+    """Stand in `region:room` for `ticks` server ticks; report the health the
+    room's hazard took, how many times it struck, and the lines it printed."""
+    server = _server(content_set)
+    try:
+        session, player = _player(server)
+        if server.world.get_region(region) is None or server.world.get_region(region).get_room(room) is None:
+            return {"ok": False, "error": f"no room '{region}:{room}'"}
+        player.current_region_id, player.current_room_id = region, room
+        player.max_health = player.health = 10_000
+        lines, start = [], server.world.clock.now()
+        for _ in range(int(ticks)):
+            lines.extend(line for line in _text(server.tick(session.session_id)).split("\n") if "HP)" in line)
+        return {
+            "ok": True, "route": "hazard_exposure", "seconds": round(server.world.clock.now() - start, 1),
+            "health_lost": 10_000 - player.health, "strikes": len(lines), "lines": lines[:3],
+        }
+    finally:
+        server.shutdown()
+
+
+def region_spawns(content_set: str, region: str, ticks: str = "3000") -> dict:
+    """Let the world run `ticks` server ticks with the player in `region` and
+    count the NPCs the spawner put there, by template and level."""
+    server = _server(content_set)
+    try:
+        session, player = _player(server)
+        world = server.world
+        target = world.get_region(region)
+        if target is None:
+            return {"ok": False, "error": f"no region '{region}'"}
+        # The spawner works only the regions players stand in (never their
+        # own room), so the player waits in the region's first room.
+        player.current_region_id, player.current_room_id = region, next(iter(target.rooms))
+        player.max_health = player.health = 1_000_000
+        present = set(world.npcs)
+        for _ in range(int(ticks)):
+            server.tick(session.session_id)
+        spawned = [npc for obj_id, npc in world.npcs.items() if obj_id not in present and npc.current_region_id == region]
+        templates: dict = {}
+        for npc in spawned:
+            templates[npc.template_id] = templates.get(npc.template_id, 0) + 1
+        levels = sorted({int(npc.level) for npc in spawned})
+        return {"ok": True, "route": "region_spawns", "spawned": len(spawned), "templates": templates, "levels": levels}
+    finally:
+        server.shutdown()
+
+
 ROUTES = {
     "combat_ability": combat_ability, "gather_craft_use": gather_craft_use,
     "dialogue_quest_reward": dialogue_quest_reward, "discovery_advancement": discovery_advancement,
-    "gift_relationship": gift_relationship, "kill_loot": kill_loot,
+    "gift_relationship": gift_relationship, "kill_loot": kill_loot, "hazard_exposure": hazard_exposure,
+    "region_spawns": region_spawns,
 }
 
 

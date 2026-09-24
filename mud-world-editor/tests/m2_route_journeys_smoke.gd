@@ -45,6 +45,8 @@ func _run() -> void:
 	await _discovery_advancement_route()
 	await _gift_relationship_route()
 	await _kill_loot_route()
+	_hazard_route()
+	_spawner_route()
 	if failures > 0: push_error("m2 route journeys failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -264,6 +266,94 @@ func _kill_loot_route() -> void:
 	var after := _route(fixture, "kill_loot", arguments)
 	_assert(after.get("ok", false) and int(after.get("drops", {}).get("item_alexandrite", 0)) == 10, "edited: every wolf now drops an alexandrite (%s)" % _brief_loot(after))
 	_assert(int(after.get("drops", {}).get("item_wolf_pelt", 0)) > 0, "and still drops its own loot table")
+
+
+# --- world / hazards ------------------------------------------------------------
+# Thirty seconds in the swamp's quicksand pit: six strikes of 6 (9 physical,
+# raised by the swamp's mist, less a new character's defense). Edited in the
+# room's environment panel: 20 damage every 2.5 seconds.
+
+func _hazard_route() -> void:
+	print("
+[world / hazards: edit a room's hazard, then stand in it]")
+	var arguments := ["region=swamp", "room=quicksand_pit", "ticks=300"]
+	var before := _route(shipped, "hazard_exposure", arguments)
+	_assert(before.get("ok", false) and int(before.get("strikes", 0)) == 6 and int(before.get("health_lost", 0)) == 36, "shipped: thirty seconds in the pit is six strikes, 36 health (%s)" % _brief_hazard(before))
+
+	main._load_region_now("swamp.json", true)
+	var pit: Dictionary = main.region_mgr.data.rooms["quicksand_pit"]
+	var holder := VBoxContainer.new(); root.add_child(holder)
+	var panel := RoomEnvironmentPanel.new(); inspectors.append(panel)
+	panel.build(holder, pit, main.database_mgr)
+	(holder.find_child("HazardDamage", true, false) as SpinBox).value = 20
+	(holder.find_child("HazardTickInterval", true, false) as SpinBox).value = 2.5
+	_assert(int(pit["properties"]["hazard_damage"]) == 20 and is_equal_approx(float(pit["properties"]["hazard_tick_interval"]), 2.5), "the damage and interval are edited through the environment panel")
+	main.region_mgr.mark_room_dirty("quicksand_pit")
+	var saved: bool = main._save_everything()
+	if not saved: print("    refusal: ", _error_text().left(400))
+	_assert(saved, "and saved through the engine-checked save path")
+
+	var after := _route(fixture, "hazard_exposure", arguments)
+	_assert(after.get("ok", false) and int(after.get("strikes", 0)) == 12 and int(after.get("health_lost", 0)) == 240, "edited: the same thirty seconds is twelve strikes, 240 health (%s)" % _brief_hazard(after))
+
+
+# --- world / spawners -------------------------------------------------------------
+# Five minutes in the swamp: its spawner fills the region with its own mix at
+# levels 2-4 and never a cave bear. Edited in the region's spawner inspector:
+# cave bears only, all at level 4.
+
+func _spawner_route() -> void:
+	print("
+[world / spawners: edit a region's spawner, then let the world run]")
+	var arguments := ["region=swamp", "ticks=3000"]
+	var before := _route(shipped, "region_spawns", arguments)
+	_assert(before.get("ok", false) and int(before.get("spawned", 0)) > 0 and not before.get("templates", {}).has("cave_bear"), "shipped: the swamp spawns its own mix, no cave bear (%s)" % _brief_spawns(before))
+
+	var region: Dictionary = main.region_mgr.data
+	_assert(str(region.get("region_id", "")) == "swamp", "the swamp is the open region")
+	var holder := VBoxContainer.new(); root.add_child(holder)
+	var spawner := SpawnerInspector.new(); inspectors.append(spawner)
+	spawner.build(holder, region, main.database_mgr)
+	# The add row's picker offers what is not yet in the table; choose the bear.
+	for node in holder.find_children("*", "Button", true, false):
+		if str(node.text) == "Add Monster":
+			var picker: OptionButton = node.get_parent().get_child(0)
+			for index in picker.item_count:
+				if str(picker.get_item_metadata(index)) == "cave_bear": picker.select(index)
+			node.pressed.emit()
+			break
+	# Remove every other creature, one row at a time (each removal rebuilds the list).
+	var removed := true
+	var passes := 0
+	while removed and passes < 20:
+		removed = false; passes += 1
+		for node in holder.find_children("*", "Button", true, false):
+			if str(node.text) != "x" or node.is_queued_for_deletion() or node.get_parent().get_parent().is_queued_for_deletion(): continue
+			var row_picker: OptionButton = node.get_parent().get_child(0)
+			if str(row_picker.get_item_metadata(row_picker.selected)) == "cave_bear": continue
+			node.pressed.emit(); removed = true; break
+	var ranges: Array = []
+	for node in holder.find_children("*", "SpinBox", true, false):
+		if node.get_parent().get_child(0) is Label and str(node.get_parent().get_child(0).text) == "Level Range:": ranges.append(node)
+	for spin in ranges: (spin as SpinBox).value = 4
+	_assert(region["spawner"]["monster_types"].keys() == ["cave_bear"] and int(region["spawner"]["level_range"][0]) == 4 and int(region["spawner"]["level_range"][1]) == 4, "cave bears only, at level 4, through the spawner inspector (%s)" % JSON.stringify(region["spawner"]))
+	main.region_mgr.mark_region_dirty()
+	var saved: bool = main._save_everything()
+	if not saved: print("    refusal: ", _error_text().left(400))
+	_assert(saved, "and saved through the engine-checked save path")
+
+	var after := _route(fixture, "region_spawns", arguments)
+	_assert(after.get("ok", false) and int(after.get("spawned", 0)) > 0 and after.get("templates", {}).keys() == ["cave_bear"] and after.get("levels", []) == [4.0], "edited: the same five minutes spawn only level-4 cave bears (%s)" % _brief_spawns(after))
+
+
+func _brief_spawns(result: Dictionary) -> String:
+	if not result.get("ok", false): return "error: %s" % str(result.get("error", ""))
+	return "%s spawned: %s, levels %s" % [str(result.get("spawned")), str(result.get("templates")), str(result.get("levels"))]
+
+
+func _brief_hazard(result: Dictionary) -> String:
+	if not result.get("ok", false): return "error: %s" % str(result.get("error", ""))
+	return "%s s, %s strikes, %s health: %s" % [str(result.get("seconds")), str(result.get("strikes")), str(result.get("health_lost")), str(result.get("lines", []).slice(0, 1))]
 
 
 func _brief_loot(result: Dictionary) -> String:
