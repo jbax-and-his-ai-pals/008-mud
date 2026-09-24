@@ -7,6 +7,7 @@ created. These tests pin both halves of the one rule, plus the two ways it is
 allowed to refuse.
 """
 
+import re
 import unittest
 
 from engine.core.quests.packages import declared_packages
@@ -156,11 +157,19 @@ class TestAcceptingADeliveryAtTheBoard(unittest.TestCase):
         self.server.shutdown()
 
     def _accept(self, template_id: str) -> str:
-        board = self.server.world.quest_board
-        index = next(
-            i for i, quest in enumerate(board) if str(quest.get("template_id", "")) == template_id
+        # As a player does: read the board and use the number shown beside the
+        # notice. (The board hides notices a player cannot take yet, so a
+        # position in the raw list is not the number they see.)
+        title = next(
+            str(quest.get("title", "")) for quest in self.server.world.quest_board
+            if str(quest.get("template_id", "")) == template_id
         )
-        events = self.server.execute_command(self.session.session_id, "accept quest %d" % (index + 1))
+        board = "\n".join(
+            str(event.get("payload", "")) for event in self.server.execute_command(self.session.session_id, "look board")
+            if event.get("type") == "text"
+        )
+        number = re.search(r"\[(\d+)\]\S*\s+" + re.escape(title), board).group(1)
+        events = self.server.execute_command(self.session.session_id, "accept quest %s" % number)
         return "\n".join(str(event.get("payload", "")) for event in events if event.get("type") == "text")
 
     def _board_holds(self, template_id: str) -> bool:

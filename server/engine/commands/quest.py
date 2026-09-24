@@ -146,6 +146,26 @@ def _store_board_mapping(world, session_id, mapping):
     store[session_id] = {"fingerprint": _board_fingerprint(world), "map": dict(mapping)}
 
 
+def _shown_on_board(world, player, quest_manager, quest_data, player_mode) -> bool:
+    """Whether `look board` lists this notice for this player (and so gives it
+    a number): the notice is currently offered, and in player mode its giver
+    already trusts them."""
+    board_available, _notice = quest_manager.authored_board_entry_available(player, quest_data)
+    if not board_available:
+        return False
+    available, _current, _required = _board_availability(world, player, quest_data)
+    return available or not player_mode
+
+
+def _visible_board_mapping(world, player, quest_manager, player_mode) -> dict:
+    """Displayed number -> board index, as `look board` would number it now."""
+    mapping = {}
+    for index, quest_data in enumerate(world.quest_board):
+        if _shown_on_board(world, player, quest_manager, quest_data, player_mode):
+            mapping[len(mapping) + 1] = index
+    return mapping
+
+
 def _resolve_board_index(world, session_id, displayed_number):
     """Map a displayed board number to a board list index.
 
@@ -204,14 +224,11 @@ def look_board_handler(args, context):
         rewards = quest_data.get("rewards", {})
 
         board_available, unavailable_notice = quest_manager.authored_board_entry_available(player, quest_data)
-        if not board_available:
-            if unavailable_notice and unavailable_notice not in unavailable_notices:
-                unavailable_notices.append(unavailable_notice)
+        if not board_available and unavailable_notice and unavailable_notice not in unavailable_notices:
+            unavailable_notices.append(unavailable_notice)
+        if not _shown_on_board(world, player, quest_manager, quest_data, player_mode):
             continue
-
         available, current_trust, required_trust = _board_availability(world, player, quest_data)
-        if not available and player_mode:
-            continue
 
         giver_name = f"{board_name} Notice"
         if giver_instance_id != "quest_board":
@@ -307,8 +324,13 @@ def accept_quest_handler(args, context):
     # differs from the underlying list order. In test mode the mapping is the
     # identity, but it is consulted either way so both modes share one path.
     mapped_index = _resolve_board_index(world, context.get("session_id"), quest_index + 1)
-    if mapped_index is not None:
-        quest_index = mapped_index
+    if mapped_index is None:
+        # Nothing displayed yet, or the board changed since: number it the way
+        # `look board` would for this player now. Falling back to the raw list
+        # counted the notices a player-mode board hides, so "accept quest 4"
+        # before looking took a different, trust-gated notice.
+        mapped_index = _visible_board_mapping(world, player, quest_manager, is_player_mode(context)).get(quest_index + 1, -1)
+    quest_index = mapped_index
 
     if quest_index < 0 or quest_index >= len(world.quest_board):
         return f"{FORMAT_ERROR}Invalid quest number.{FORMAT_RESET}"
@@ -554,7 +576,16 @@ def journal_handler(args, context):
              if instruction and obj_type != "unknown":
                  response += f"  {FORMAT_HIGHLIGHT}{instruction}{FORMAT_RESET}\n"
              
-             if quest_data.get('state') == "ready_to_complete": response += f"  {FORMAT_HIGHLIGHT}Ready to turn in!{FORMAT_RESET}\n"
+             if quest_data.get('state') == "ready_to_complete":
+                 # Say how, not only that: talking to the giver does not offer
+                 # the hand-in, so "Ready to turn in!" alone left a player who
+                 # had done the work standing in front of the right person.
+                 # The phrase is the content set's own first turn-in phrase.
+                 how = ""
+                 if giver_npc is not None and turn_in_target != "quest_board":
+                     phrases = context["world"].ruleset_section("quest_generation").get("turn_in_phrases") or ["complete"]
+                     how = f" ({FORMAT_RESET}talk {giver_name} {phrases[0]}{FORMAT_HIGHLIGHT})"
+                 response += f"  {FORMAT_HIGHLIGHT}Ready to turn in!{how}{FORMAT_RESET}\n"
              response += "\n"
 
     if not found_active:
