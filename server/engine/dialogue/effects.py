@@ -242,6 +242,11 @@ def _record_discovery(player, discovery_id: str) -> bool:
     if discovery_id in discoveries:
         return True
     discoveries[discovery_id] = {"discovery_id": discovery_id}
+    # Recorded with the advancement ledger too, so a discovery grant pays for a
+    # discovery made in conversation exactly as for one found by picking it up.
+    from engine.core import advancement
+
+    advancement.award(player, advancement.KIND_DISCOVERY, discovery_id)
     return True
 
 

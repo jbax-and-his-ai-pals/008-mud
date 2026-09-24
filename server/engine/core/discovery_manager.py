@@ -59,6 +59,7 @@ class DiscoveryManager:
     def handle_item_discovery(self, player: 'Player', item: 'Item') -> str:
         """Unlock matching entries once and return concise first-discovery feedback."""
         unlocked: List[str] = []
+        awards: List[str] = []
         for discovery_id in self._matching_ids(item):
             if discovery_id in player.discoveries:
                 continue
@@ -67,10 +68,19 @@ class DiscoveryManager:
                 "day": self._day_number(),
             }
             unlocked.append(str(self.discoveries[discovery_id].get("name", discovery_id)))
+            # The advancement ledger's `discovery` kind was never recorded here,
+            # so a ruleset's discovery grant (fantasy: `discovery_made`) could not
+            # pay; load only folded past discoveries in, paying nothing.
+            from engine.core import advancement
+
+            paid = advancement.award(player, advancement.KIND_DISCOVERY, discovery_id)
+            if paid:
+                awards.append(paid)
         if not unlocked:
             return ""
         names = ", ".join(unlocked)
-        return f"{FORMAT_HIGHLIGHT}(New discovery: {names}. Type 'discoveries' to review it.){FORMAT_RESET}"
+        note = f"{FORMAT_HIGHLIGHT}(New discovery: {names}. Type 'discoveries' to review it.){FORMAT_RESET}"
+        return "\n".join([note] + awards)
 
     def _day_number(self) -> int:
         time_manager = getattr(getattr(self.world, "game", None), "time_manager", None)
