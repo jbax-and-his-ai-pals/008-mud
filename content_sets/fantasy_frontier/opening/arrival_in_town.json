@@ -15,14 +15,19 @@
       "command": "look board"
     },
     {
-      "id": "equip_starter_weapon",
+      "id": "visit_the_market",
       "instruction": "Trade and prepare: visit Talia at the market by going east twice",
       "command": "east"
     },
     {
+      "id": "find_the_hermit",
+      "instruction": "Look in on a neighbour: Elder Thorne has had no word of Old Bryn, the hermit by the ancient oak in the woods; the board has the details",
+      "command": "look board"
+    },
+    {
       "id": "explore_beyond_town",
-      "instruction": "Explore and face danger: equip your rusty dagger, then take the north road to the woods",
-      "command": "equip rusty dagger"
+      "instruction": "Explore and face danger: equip a weapon from your pack, then take the north road to the woods",
+      "command": "inventory"
     }
   ]
 }

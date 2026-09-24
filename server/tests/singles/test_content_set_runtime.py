@@ -554,7 +554,9 @@ class TestContentSetRuntime(unittest.TestCase):
             self.assertIn("Welcome to Riverside", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("talk Elder Thorne", "\n".join(str(event["payload"]) for event in creation_events))
-            self.assertIn("equip rusty dagger", "\n".join(str(event["payload"]) for event in creation_events))
+            # Background-neutral: four of six backgrounds carry no rusty dagger.
+            self.assertIn("equip a weapon from your pack", "\n".join(str(event["payload"]) for event in creation_events))
+            self.assertIn("Old Bryn", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("Choose a first path", "\n".join(str(event["payload"]) for event in creation_events))
             self.assertIn("Talia", "\n".join(str(event["payload"]) for event in creation_events))
 

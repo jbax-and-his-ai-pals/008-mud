@@ -753,7 +753,7 @@
                     "required_score": 5
                 },
                 "turn_in_id": "village_elder",
-                "start_dialogue": "No one has had a word from Old Bryn since the first frost, and the woods are no place to grow old alone. He won't open the door to a stranger -- but he remembers a face, and he remembers a kindness. Something made by your own hands would go further than anything bought. Go and be remembered.",
+                "start_dialogue": "No one has had a word from Old Bryn since the first frost, and the woods are no place to grow old alone. He won't open the door to a stranger -- but he remembers a face, and he remembers a kindness. Something made by your own hands would go further than anything bought -- and his knees ache in the damp, so herbs from the garden would not go amiss either. Go and be remembered.",
                 "completion_dialogue": "So he is alive, and eating, and still cursing the village. That is the best news I have had this season."
             }
         ],

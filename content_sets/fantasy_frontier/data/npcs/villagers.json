@@ -492,7 +492,12 @@
             "wander_chance": 0.2,
             "move_cooldown": 90,
             "spell_cast_chance": 0.05,
-            "can_give_generic_quests": true
+            "can_give_generic_quests": true,
+            "gift_preferences": {
+                "preferred_item_ids": [
+                    "item_wild_herbs"
+                ]
+            }
         }
     },
     "guard_captain": {
