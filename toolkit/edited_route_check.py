@@ -327,11 +327,32 @@ def region_spawns(content_set: str, region: str, ticks: str = "3000") -> dict:
         server.shutdown()
 
 
+def weather_rolls(content_set: str, season: str = "summer", changes: str = "200") -> dict:
+    """Fire `changes` time-of-day transitions in `season` through the server's
+    weather provider (what a tick does at dawn, dusk and the rest) and count the
+    weather each left behind; then read the `weather` command where the player
+    stands."""
+    server = _server(content_set)
+    try:
+        session, _player_obj = _player(server)
+        counts: dict = {}
+        for _ in range(int(changes)):
+            server.weather_provider.on_time_period_change(server, season)
+            weather = server.weather_manager.current_weather
+            counts[weather] = counts.get(weather, 0) + 1
+        return {
+            "ok": True, "route": "weather_rolls", "season": season, "weather": counts,
+            "report": _text(server.execute_command(session.session_id, "weather"))[-300:],
+        }
+    finally:
+        server.shutdown()
+
+
 ROUTES = {
     "combat_ability": combat_ability, "gather_craft_use": gather_craft_use,
     "dialogue_quest_reward": dialogue_quest_reward, "discovery_advancement": discovery_advancement,
     "gift_relationship": gift_relationship, "kill_loot": kill_loot, "hazard_exposure": hazard_exposure,
-    "region_spawns": region_spawns,
+    "region_spawns": region_spawns, "weather_rolls": weather_rolls,
 }
 
 

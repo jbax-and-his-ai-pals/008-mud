@@ -47,6 +47,7 @@ func _run() -> void:
 	await _kill_loot_route()
 	_hazard_route()
 	_spawner_route()
+	await _weather_route()
 	if failures > 0: push_error("m2 route journeys failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -344,6 +345,51 @@ func _spawner_route() -> void:
 
 	var after := _route(fixture, "region_spawns", arguments)
 	_assert(after.get("ok", false) and int(after.get("spawned", 0)) > 0 and after.get("templates", {}).keys() == ["cave_bear"] and after.get("levels", []) == [4.0], "edited: the same five minutes spawn only level-4 cave bears (%s)" % _brief_spawns(after))
+
+
+# --- system policy / weather ------------------------------------------------------
+# Two hundred summer weather changes on the engine's own table: clear, cloudy,
+# rain and storm. Edited in the Ruleset dialog: fantasy gets its own seasonal
+# table, where summer is clear or a heatwave (three to one), and the heatwave a
+# description the `weather` command shows.
+
+const HEATWAVE := "The air shimmers over baking ground."
+
+func _weather_route() -> void:
+	print("
+[system policy / weather: give summer its own table, then let the weather turn]")
+	var arguments := ["season=summer", "changes=200"]
+	var before := _route(shipped, "weather_rolls", arguments)
+	var shipped_types: Array = before.get("weather", {}).keys(); shipped_types.sort()
+	_assert(before.get("ok", false) and shipped_types == ["clear", "cloudy", "rain", "storm"], "shipped: summer rolls the engine's clear, cloudy, rain and storm (%s)" % _brief_weather(before))
+
+	main.ui_mgr.side_panel.request_edit_ruleset.emit()
+	await process_frame
+	var rules = main.ui_mgr.ruleset_editor
+	var section: WeatherChancesSection = rules.weather_chances_section
+	section.own_table.button_pressed = true
+	for row in section.season_rows["summer"].get_children():
+		if (row.get_node("Type") as LineEdit).text != "clear": (row.get_node("Remove") as Button).pressed.emit()
+		else: (row.get_node("Weight") as SpinBox).value = 1
+	section._add_row(section.season_rows["summer"], "heatwave", 3)
+	rules._add_string_map_row(rules.weather_description_rows, "heatwave", HEATWAVE, "weather type", "flavor text")
+	rules.confirmed.emit()
+	await process_frame
+	var ruleset: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(fixture.path_join("rules/ruleset.json")))
+	_assert(JSON.stringify(SaveIO._normalize_numbers(ruleset["weather"]["chances"]["summer"])) == JSON.stringify({"clear": 1, "heatwave": 3}) and ruleset["weather"]["descriptions"].get("heatwave") == HEATWAVE, "saved by the Ruleset dialog (staged, engine-validated)")
+
+	var after := _route(fixture, "weather_rolls", arguments)
+	var counts: Dictionary = after.get("weather", {})
+	var edited_types: Array = counts.keys(); edited_types.sort()
+	_assert(after.get("ok", false) and edited_types == ["clear", "heatwave"] and int(counts.get("heatwave", 0)) > int(counts.get("clear", 0)), "edited: summer is now clear or, mostly, a heatwave (%s)" % _brief_weather(after))
+	if "Heatwave" in str(after.get("report", "")):
+		_assert(HEATWAVE in str(after.get("report", "")), "and the weather command describes it in the set's words")
+
+
+func _brief_weather(result: Dictionary) -> String:
+	if not result.get("ok", false): return "error: %s" % str(result.get("error", ""))
+	return "%s; report: %s" % [str(result.get("weather")), str(result.get("report", "")).replace("
+", " ")]
 
 
 func _brief_spawns(result: Dictionary) -> String:
