@@ -11,15 +11,6 @@
         "level_band": {
             "min": 6,
             "max": 8
-        },
-        "spawn_templates": [
-            "tidewell_scavenger",
-            "brine_eel",
-            "drowned_enforcer"
-        ],
-        "spawn_level_range": {
-            "min": 6,
-            "max": 8
         }
     },
     "rooms": {

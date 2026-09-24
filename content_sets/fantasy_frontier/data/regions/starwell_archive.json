@@ -9,14 +9,6 @@
         "level_band": {
             "min": 14,
             "max": 15
-        },
-        "spawn_templates": [
-            "ash_warden",
-            "astral_sentinel"
-        ],
-        "spawn_level_range": {
-            "min": 14,
-            "max": 15
         }
     },
     "rooms": {
