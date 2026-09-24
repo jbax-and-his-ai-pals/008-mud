@@ -71,6 +71,7 @@ func _init() -> void:
 	_check_knowledge_conditions(vocabulary)
 	_check_affix_item_classes(vocabulary)
 	_check_campaign_vocabulary(vocabulary)
+	_check_ability_vocabulary(vocabulary)
 
 	if failure_count > 0:
 		push_error("schema parity failed (%d)" % failure_count)
@@ -299,6 +300,25 @@ func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:
 		var engine := _as_set(campaigns.get(pair[0], []))
 		var editor := _as_set(pair[1])
 		_assert(engine == editor, "campaign %s match exactly (engine %s, editor %s)" % [pair[0], str(_sorted(engine)), str(_sorted(editor))])
+
+
+func _check_ability_vocabulary(vocabulary: Dictionary) -> void:
+	print("
+[ability vocabulary: editor vs engine]")
+	var abilities: Dictionary = vocabulary.get("abilities", {})
+	_assert(not abilities.is_empty(), "the engine's ability vocabulary was read")
+	var engine_targets := _as_set(abilities.get("target_types", []))
+	_assert(engine_targets == _as_set(MagicInspector.TARGET_TYPES), "ability target types match exactly (engine %s, editor %s)" % [str(_sorted(engine_targets)), str(_sorted(_as_set(MagicInspector.TARGET_TYPES)))])
+	var engine_fields: Dictionary = abilities.get("effect_fields", {})
+	_assert(_as_set(engine_fields.keys()) == _as_set(MagicInspector.EFFECT_FIELDS.keys()), "effect types match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine_fields.keys()))), str(_sorted(_as_set(MagicInspector.EFFECT_FIELDS.keys())))])
+	for effect_type in engine_fields:
+		var editor: Array = MagicInspector.EFFECT_FIELDS.get(effect_type, [])
+		_assert(_as_set(engine_fields[effect_type]) == _as_set(editor), "a %s effect's fields match (engine %s, editor %s)" % [effect_type, str(engine_fields[effect_type]), str(editor)])
+	var engine_messages: Dictionary = abilities.get("message_placeholders", {})
+	for key in engine_messages:
+		var editor_names: Array = MagicInspector.MESSAGE_PLACEHOLDERS.get(key, [])
+		_assert(_as_set(engine_messages[key]) == _as_set(editor_names), "%s placeholders match (engine %s, editor %s)" % [key, str(engine_messages[key]), str(editor_names)])
+	_assert(_as_set(engine_messages.keys()) == _as_set(MagicInspector.MESSAGE_PLACEHOLDERS.keys()), "the editor offers every message the engine formats")
 
 
 # --- helpers ------------------------------------------------------------------

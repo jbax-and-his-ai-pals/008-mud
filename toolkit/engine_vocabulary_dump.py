@@ -107,6 +107,9 @@ def main() -> int:
         # What CampaignInspector.gd offers for a node's type and a transition's
         # trigger (test_campaign_vocabulary.py ties these to the manager).
         "campaigns": _campaign_vocabulary(),
+        # What MagicInspector.gd offers for an ability's target and an effect's
+        # type, and the keys each effect type reads (magic/spell.py).
+        "abilities": _ability_vocabulary(),
         # A topic response's own condition vocabulary (not `condition_kinds`
         # above, which is dialogue's). `KnowledgeInspector.gd` holds the copy.
         "knowledge_conditions": {
@@ -139,6 +142,16 @@ def _campaign_vocabulary() -> dict:
     from engine.campaign.campaign_models import CAMPAIGN_NODE_TYPES, CAMPAIGN_TRIGGERS
 
     return {"node_types": sorted(CAMPAIGN_NODE_TYPES), "triggers": sorted(CAMPAIGN_TRIGGERS)}
+
+
+def _ability_vocabulary() -> dict:
+    from engine.magic.spell import ABILITY_EFFECT_FIELDS, ABILITY_MESSAGE_PLACEHOLDERS, ABILITY_TARGET_TYPES
+
+    return {
+        "target_types": sorted(ABILITY_TARGET_TYPES),
+        "effect_fields": {name: sorted(fields) for name, fields in sorted(ABILITY_EFFECT_FIELDS.items())},
+        "message_placeholders": {name: sorted(names) for name, names in sorted(ABILITY_MESSAGE_PLACEHOLDERS.items())},
+    }
 
 
 def _item_classes() -> list:

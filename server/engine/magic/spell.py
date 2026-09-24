@@ -2,6 +2,38 @@
 
 from typing import Any, Dict, List
 
+# The target types the cast path resolves (commands/magic.py cast_handler,
+# player/magic.py cast_spell, npcs/combat.py). Any other value falls through to
+# "cast it on yourself".
+ABILITY_TARGET_TYPES = ("self", "friendly", "enemy", "all_enemies", "item")
+
+# The effect types apply_spell_effect (magic/effects.py) executes, and the keys
+# each one reads besides `type` and `damage_type` (every effect's `damage_type`
+# is read when the ability is cast at a room). Any other type does nothing.
+ABILITY_EFFECT_FIELDS = {
+    "damage": ("value",),
+    "heal": ("value",),
+    "life_tap": ("value",),
+    "apply_dot": ("dot_name", "dot_duration", "dot_damage_per_tick", "dot_tick_interval", "dot_damage_type", "effect_data"),
+    "apply_effect": ("effect_data", "dot_duration", "base_duration"),
+    "cleanse": ("effect_data",),
+    "remove_curse": (),
+    "summon": ("summon_template_id", "summon_duration", "max_summons"),
+    "unlock": (),
+    "lock": (),
+}
+
+# The names each message is formatted with. The cast and remove-curse messages
+# are formatted unguarded, so any other placeholder raises mid-cast.
+ABILITY_MESSAGE_PLACEHOLDERS = {
+    "cast_message": ("caster_name", "spell_name"),
+    "hit_message": ("caster_name", "target_name", "spell_name", "value", "damage_type"),
+    "heal_message": ("caster_name", "target_name", "spell_name", "value"),
+    "self_heal_message": ("caster_name", "target_name", "spell_name", "value"),
+    "remove_curse_item_message": ("target_name",),
+    "remove_curse_equipment_message": ("target_name", "value"),
+}
+
 
 class Spell:
     def __init__(

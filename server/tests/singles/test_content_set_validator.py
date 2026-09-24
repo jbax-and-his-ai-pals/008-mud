@@ -1711,6 +1711,93 @@ class TestCampaigns(unittest.TestCase):
         self.assertEqual([("warning", "nodes.orphan cannot be reached from start_node_id 'start'")], issues)
 
 
+def _ability(**overrides) -> dict:
+    ability = {"name": "Zap", "description": "A jolt.", "mana_cost": 5, "cooldown": 2.0, "target_type": "enemy",
+               "level_required": 1, "effects": [{"type": "damage", "value": 6, "damage_type": "fire"}]}
+    ability.update(overrides)
+    return ability
+
+
+class TestAbilities(unittest.TestCase):
+    """Ability entries were only checked by building a `Spell`; what the effect
+    executor then did with them (nothing, for most mistakes) was unchecked."""
+
+    def _issues(self, **abilities) -> list:
+        package = _background_package(self, stats={"strength": 10})
+        data = package / "data"
+        (data / "combat").mkdir(exist_ok=True)
+        (data / "combat" / "elements.json").write_text(json.dumps({"valid_damage_types": ["physical", "fire"]}), encoding="utf-8")
+        (data / "npcs").mkdir(exist_ok=True)
+        (data / "npcs" / "summons.json").write_text(json.dumps({
+            "imp": {"name": "Imp", "behavior_type": "minion"},
+            "wolf": {"name": "Wolf", "behavior_type": "aggressive"},
+        }), encoding="utf-8")
+        (data / "magic").mkdir(exist_ok=True)
+        (data / "magic" / "spells.json").write_text(json.dumps(abilities), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [(i.severity, i.message) for i in issues if i.path.endswith("spells.json")]
+
+    def _errors(self, **abilities) -> list:
+        return [m for s, m in self._issues(**abilities) if s == "error"]
+
+    def test_well_formed_abilities_are_accepted(self):
+        self.assertEqual([], self._issues(
+            _note="annotations are skipped",
+            zap=_ability(cast_message="{caster_name} casts {spell_name}!"),
+            ignite=_ability(effects=[{"type": "apply_dot", "dot_name": "Burn", "dot_duration": 9, "dot_damage_per_tick": 3, "dot_damage_type": "fire"}]),
+            weaken=_ability(effects=[{"type": "apply_effect", "dot_duration": 20, "effect_data": {"type": "stat_mod", "name": "Weak", "modifiers": {"strength": -5}}}]),
+            imp=_ability(target_type="self", effects=[{"type": "summon", "summon_template_id": "imp", "summon_duration": 60, "max_summons": 2}]),
+            knock=_ability(target_type="item", effects=[{"type": "unlock"}]),
+            purify=_ability(target_type="friendly", effects=[{"type": "cleanse", "effect_data": {"tags": ["poison"]}}]),
+        ))
+
+    def test_what_the_constructor_refuses_is_an_error(self):
+        errors = self._errors(bad=_ability(cast_time=1.5, effects=[]), nameless={"description": "x", "effects": [{"type": "heal", "value": 1}]})
+        self.assertTrue(any("bad: 'cast_time' is not an ability field" in m for m in errors), errors)
+        self.assertTrue(any("bad: effects must be a non-empty array" in m for m in errors), errors)
+        self.assertTrue(any("nameless: name is required" in m for m in errors), errors)
+
+    def test_targets_and_effects_the_engine_ignores_are_errors(self):
+        errors = self._errors(
+            aoe=_ability(target_type="area"),
+            odd=_ability(effects=[{"type": "teleport"}]),
+            stray=_ability(effects=[{"type": "heal", "value": 5, "dot_duration": 3}]),
+            locked=_ability(effects=[{"type": "lock"}]),
+            noop=_ability(effects=[{"type": "apply_effect", "dot_duration": 5}]),
+        )
+        self.assertTrue(any("aoe: target_type 'area' is not one the cast command resolves" in m for m in errors), errors)
+        self.assertTrue(any("odd: effects[0].type 'teleport' is not an effect the engine executes" in m for m in errors), errors)
+        self.assertTrue(any("stray: effects[0].dot_duration is not read by a heal effect" in m for m in errors), errors)
+        self.assertTrue(any("locked: effects[0] is a lock effect" in m and "must be 'item'" in m for m in errors), errors)
+        self.assertTrue(any("noop: effects[0] is an apply_effect with no effect_data" in m for m in errors), errors)
+
+    def test_effect_payloads_are_checked(self):
+        errors = self._errors(
+            unnamed=_ability(effects=[{"type": "apply_effect", "effect_data": {"type": "stat_mod", "modifiers": {}, "base_duration": 5}}]),
+            element=_ability(effects=[{"type": "damage", "value": 3, "damage_type": "holy"}]),
+            wolf=_ability(effects=[{"type": "summon", "summon_template_id": "wolf", "max_summons": 0}]),
+            ghost=_ability(effects=[{"type": "summon", "summon_template_id": "ghost"}]),
+            scrub=_ability(effects=[{"type": "cleanse", "effect_data": {"tags": [], "power": 3}}]),
+        )
+        self.assertTrue(any("unnamed: effects[0].effect_data.name is required" in m for m in errors), errors)
+        self.assertTrue(any("unnamed: effects[0].effect_data.modifiers must be a non-empty object" in m for m in errors), errors)
+        self.assertTrue(any("element: effects[0].damage_type 'holy' is not a damage type" in m for m in errors), errors)
+        self.assertTrue(any("wolf: effects[0].summon_template_id 'wolf' has behavior_type 'aggressive'" in m for m in errors), errors)
+        self.assertTrue(any("wolf: effects[0].max_summons must be a whole number of at least 1" in m for m in errors), errors)
+        self.assertTrue(any("ghost: effects[0].summon_template_id references missing NPC template 'ghost'" in m for m in errors), errors)
+        self.assertTrue(any("scrub: effects[0].effect_data.power is not read" in m for m in errors), errors)
+        self.assertTrue(any("scrub: effects[0].effect_data.tags must be a non-empty array" in m for m in errors), errors)
+
+    def test_message_placeholders_the_engine_does_not_fill_are_errors(self):
+        errors = self._errors(loud=_ability(cast_message="{caster_name} shouts {target_name}!", hit_message="{broken"))
+        self.assertTrue(any("loud: cast_message uses {target_name}, which the engine does not fill" in m for m in errors), errors)
+        self.assertTrue(any("loud: hit_message is not a valid message template" in m for m in errors), errors)
+
+    def test_an_effect_that_never_wears_off_is_a_warning(self):
+        issues = self._issues(forever=_ability(effects=[{"type": "apply_effect", "effect_data": {"name": "Blessed", "type": "stat_mod", "modifiers": {"strength": 1}}}]))
+        self.assertEqual([("warning", "forever: effects[0] has no duration (effect_data.base_duration or dot_duration), so it never wears off")], issues)
+
+
 class TestServerRootPathInsertion(unittest.TestCase):
     def test_reload_inserts_missing_server_root_onto_sys_path(self) -> None:
         import importlib

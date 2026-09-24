@@ -1,11 +1,11 @@
 """Check that every authored ability is one the engine can actually build.
 
-`data/abilities/*.json` (or `magic/`) is loaded by `spell_registry`, which builds
-a whole *file* inside one `try` -- so a single ability the engine refuses stops
-every remaining ability in that file from registering, and the only trace is a log
-line at boot. Nothing validated these files: `content_set_validator` checks the
-contract's ability *declarations*, not the entry files, so the world editor could
-report "No issues found" for a set whose abilities the engine drops.
+`data/abilities/*.json` (or `magic/`) is loaded by `spell_registry`, which skips
+an ability the engine refuses with only a log line at boot. (It used to build a
+whole file inside one `try`, so one refusal dropped every later ability in the
+file.) `content_set.py::_validate_abilities` now checks these entries too, down
+to what each effect type reads; this check stays as the direct proof that every
+entry builds a `Spell`.
 
 An authored entry is passed straight into `Spell(**data)`, which takes keywords
 and no `**kwargs`: an unknown key (an editor-only annotation, a field from a
