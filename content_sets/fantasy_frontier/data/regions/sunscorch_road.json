@@ -49,7 +49,7 @@
             },
             "properties": {
                 "hazard_type": "extreme_heat",
-                "hazard_damage": 4,
+                "hazard_damage": 15,
                 "hazard_tick_interval": 6,
                 "weather_hazard_multipliers": {
                     "sandstorm": 1.25

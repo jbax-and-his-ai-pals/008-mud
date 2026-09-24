@@ -624,12 +624,15 @@ class TestContentSetRuntime(unittest.TestCase):
                 player.runtime_state.combat.defense = 0
             player.stats["dexterity"] = 0
             expected_hazards = {
-                "extreme_heat": ("obsidian_trial", "inner_sanctum", 6, "intense heat"),
-                "extreme_cold": ("mountains", "ice_cave_chamber", 5, "biting cold"),
-                "poison_gas": ("caves", "mine_lower_level", 6, "toxic fumes"),
-                "electrified_floor": ("coastal_path", "shipwreck_debris", 6, "Sparks"),
-                "unholy_aura": ("ruins", "ritual_chamber", 4, "oppressive darkness"),
-                "quicksand": ("swamp", "quicksand_pit", 4, "sucking mud"),
+                # Retuned 2026-09-24 to bite at the top of each region's level
+                # band (test_fantasy_hazards_bite.py); the old numbers did
+                # nothing to a player at the level the region is for.
+                "extreme_heat": ("obsidian_trial", "inner_sanctum", 13, "intense heat"),
+                "extreme_cold": ("mountains", "ice_cave_chamber", 13, "biting cold"),
+                "poison_gas": ("caves", "mine_lower_level", 11, "toxic fumes"),
+                "electrified_floor": ("coastal_path", "shipwreck_debris", 8, "Sparks"),
+                "unholy_aura": ("ruins", "ritual_chamber", 11, "oppressive darkness"),
+                "quicksand": ("swamp", "quicksand_pit", 9, "sucking mud"),
             }
 
             for hazard_type, (region_id, room_id, damage, flavor) in expected_hazards.items():

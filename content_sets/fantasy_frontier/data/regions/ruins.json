@@ -118,7 +118,7 @@
                 "dark": true,
                 "smell": "dust and old blood",
                 "hazard_type": "unholy_aura",
-                "hazard_damage": 4,
+                "hazard_damage": 11,
                 "hazard_tick_interval": 5
             },
             "exits": {

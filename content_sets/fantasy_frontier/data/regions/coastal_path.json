@@ -43,7 +43,7 @@
             },
             "properties": {
                 "hazard_type": "electrified_floor",
-                "hazard_damage": 6,
+                "hazard_damage": 8,
                 "hazard_tick_interval": 5,
                 "weather_hazard_multipliers": {
                     "storm": 1.5

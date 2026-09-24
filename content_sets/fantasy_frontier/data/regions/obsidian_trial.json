@@ -73,7 +73,7 @@
             "properties": {
                 "temperature": "hot",
                 "hazard_type": "extreme_heat",
-                "hazard_damage": 6,
+                "hazard_damage": 13,
                 "hazard_tick_interval": 5
             }
         }
