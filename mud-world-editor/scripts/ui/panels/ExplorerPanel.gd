@@ -15,6 +15,7 @@ signal request_edit_manifest
 signal request_show_contracts
 signal request_edit_contracts
 signal request_edit_combat_vocabulary
+signal request_edit_feature_profile
 signal request_edit_field_interactions
 signal request_choose_content_set
 signal request_auto_layout
@@ -133,6 +134,11 @@ func setup():
 	_apply_style(btn_combat, Color(0.36, 0.25, 0.22))
 	btn_combat.pressed.connect(func(): request_edit_combat_vocabulary.emit())
 	add_child(btn_combat)
+	var btn_profile = Button.new(); btn_profile.text="Feature Profile…"
+	btn_profile.tooltip_text = "Edit which systems a server running this set turns on, and its party, shard and adventure policies."
+	_apply_style(btn_profile, Color(0.22, 0.28, 0.36))
+	btn_profile.pressed.connect(func(): request_edit_feature_profile.emit())
+	add_child(btn_profile)
 	var btn_fields = Button.new(); btn_fields.text="Ambient Fields…"
 	btn_fields.tooltip_text = "Edit the ambient fields this world spreads (field_interactions.json): their polarity and how they suppress one another."
 	_apply_style(btn_fields, Color(0.24, 0.3, 0.24))

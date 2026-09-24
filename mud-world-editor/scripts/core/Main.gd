@@ -240,6 +240,7 @@ func _connect_ui_signals():
 		ui_mgr.refresh_configuration_views(database_mgr.catalog)
 	)
 	ui_mgr.request_edit_combat_vocabulary.connect(func(): ui_mgr.show_combat_vocabulary_editor())
+	ui_mgr.request_edit_feature_profile.connect(func(): ui_mgr.show_feature_profile_editor())
 	ui_mgr.request_edit_field_interactions.connect(func(): ui_mgr.show_field_interactions_editor())
 	ui_mgr.combat_vocabulary_saved.connect(func():
 		database_mgr.combat_vocabulary.load()

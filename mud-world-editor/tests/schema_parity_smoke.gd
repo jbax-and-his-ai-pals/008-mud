@@ -77,6 +77,7 @@ func _init() -> void:
 	_check_campaign_vocabulary(vocabulary)
 	_check_ability_vocabulary(vocabulary)
 	_check_weather_vocabulary(vocabulary)
+	_check_feature_profile_vocabulary(vocabulary)
 
 	if failure_count > 0:
 		push_error("schema parity failed (%d)" % failure_count)
@@ -320,6 +321,19 @@ func _check_holder_kinds(vocabulary: Dictionary, name: String, editor: Dictionar
 	_assert(_as_set(engine.keys()) == _as_set(editor.keys()), "%s keys match (engine %s, editor %s)" % [name, str(_sorted(_as_set(engine.keys()))), str(_sorted(_as_set(editor.keys())))])
 	for key in engine:
 		_assert(str(editor.get(key, "")) == str(engine[key]), "%s.%s is a %s in both" % [name, key, engine[key]])
+
+
+func _check_feature_profile_vocabulary(vocabulary: Dictionary) -> void:
+	print("
+[feature profile: editor vs engine]")
+	var profile: Dictionary = vocabulary.get("feature_profile", {})
+	_assert(not profile.is_empty(), "the engine's feature profile vocabulary was read")
+	var modes: Dictionary = profile.get("modes", {})
+	_assert(_as_set(modes.keys()) == _as_set(FeatureProfileDialog.MODES.keys()), "the same mode categories (engine %s)" % str(_sorted(_as_set(modes.keys()))))
+	for category in modes:
+		_assert(Array(modes[category]) == Array(FeatureProfileDialog.MODES.get(category, [])), "%s modes match, default first (engine %s)" % [category, str(modes[category])])
+	_assert(Array(profile.get("provider_categories", [])) == FeatureProfileDialog.PROVIDER_CATEGORIES, "the categories that take a provider id match")
+	_assert(JSON.stringify(profile.get("policies", {})) == JSON.stringify(FeatureProfileDialog.POLICIES), "the policy sections, keys and values match the readers'")
 
 
 func _check_weather_vocabulary(vocabulary: Dictionary) -> void:

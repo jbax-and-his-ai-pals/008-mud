@@ -17,6 +17,7 @@ signal request_edit_manifest
 signal request_show_contracts
 signal request_edit_contracts
 signal request_edit_combat_vocabulary
+signal request_edit_feature_profile
 signal request_edit_field_interactions
 signal request_choose_content_set
 signal tool_changed(mode, data)
@@ -150,6 +151,7 @@ func _setup_explorer_tab(tabs: TabContainer):
 	explorer_panel.request_show_contracts.connect(func(): request_show_contracts.emit())
 	explorer_panel.request_edit_contracts.connect(func(): request_edit_contracts.emit())
 	explorer_panel.request_edit_combat_vocabulary.connect(func(): request_edit_combat_vocabulary.emit())
+	explorer_panel.request_edit_feature_profile.connect(func(): request_edit_feature_profile.emit())
 	explorer_panel.request_edit_field_interactions.connect(func(): request_edit_field_interactions.emit())
 	explorer_panel.request_choose_content_set.connect(func(): request_choose_content_set.emit())
 	explorer_panel.request_auto_layout.connect(func(): request_auto_layout.emit())

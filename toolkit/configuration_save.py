@@ -58,7 +58,7 @@ def save_configuration(path: Path, candidate: dict, expected: str) -> dict:
     allowed = {Path(manifest.get("paths", {}).get("ruleset", "rules/ruleset.json")),
                content / "contracts/world_contracts.json", content / "combat/elements.json",
                manifest_relative} | _creatable_paths(content)
-    for optional_key in ("opening", "presentation"):
+    for optional_key in ("opening", "presentation", "feature_profile"):
         declared = manifest.get("paths", {}).get(optional_key)
         if isinstance(declared, str) and declared.strip():
             allowed.add(Path(declared))

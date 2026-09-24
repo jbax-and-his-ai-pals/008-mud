@@ -51,6 +51,18 @@ def _content_set_module():
     return module
 
 
+def _feature_profile_vocabulary() -> dict:
+    import contextlib
+    import io
+
+    # `engine.server` loads the command modules on import, and they log to
+    # stdout, which is where this script's one JSON object goes.
+    with contextlib.redirect_stdout(io.StringIO()):
+        from engine.server.feature_profile import PROFILE_POLICIES, PROVIDER_CATEGORIES, allowed_modes
+
+    return {"modes": allowed_modes(), "provider_categories": list(PROVIDER_CATEGORIES), "policies": PROFILE_POLICIES}
+
+
 def _weather_vocabulary() -> dict:
     from engine.core.time_manager import SEASONS
     from engine.core.weather_manager import DEFAULT_WEATHER_CHANCES
@@ -127,6 +139,9 @@ def main() -> int:
         # The calendar's seasons and the weather table a set without its own
         # `weather.chances` plays with; WeatherChancesSection.gd holds the copy.
         "weather": _weather_vocabulary(),
+        # A feature profile's modes (default first), the categories that take a
+        # provider id, and the policy keys; FeatureProfileDialog.gd holds the copy.
+        "feature_profile": _feature_profile_vocabulary(),
         # A topic response's own condition vocabulary (not `condition_kinds`
         # above, which is dialogue's). `KnowledgeInspector.gd` holds the copy.
         "knowledge_conditions": {
