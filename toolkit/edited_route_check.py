@@ -228,10 +228,61 @@ def gift_relationship(content_set: str, item: str, npc: str, template: str) -> d
         server.shutdown()
 
 
+def kill_loot(content_set: str, target: str, kills: str = "10", spell: str = "magic_missile") -> dict:
+    """Kill `kills` NPCs of template `target` with `spell` (each brought to 1
+    health first, so every cast is a kill) and count what fell to the floor.
+    `ambient` counts drops the template's own loot table cannot explain --
+    the ruleset's ambient loot pools. The server is seeded, so the rolls
+    repeat run to run."""
+    from engine.npcs.npc_factory import NPCFactory
+    from engine.magic.spell_registry import get_spell
+
+    server = _server(content_set)
+    try:
+        session, player = _player(server)
+        ability = get_spell(spell)
+        if ability is None:
+            return {"ok": False, "error": f"ability '{spell}' did not load"}
+        player.learn_spell(spell)
+        magic = player.runtime_state.magic
+        world = server.world
+        region, room = player.current_region_id, player.current_room_id
+
+        def floor_ids() -> list:
+            return [item.obj_id for item in world.get_items_in_room(region, room)]
+
+        drops: dict = {}
+        own_table: set = set()
+        killed = 0
+        for index in range(int(kills)):
+            npc = NPCFactory.create_npc_from_template(target, world, f"route_{target}_{index}", current_region_id=region, current_room_id=room)
+            if npc is None:
+                return {"ok": False, "error": f"NPC template '{target}' did not build"}
+            own_table = set((npc.loot_table or {}).keys())
+            world.add_npc(npc)
+            npc.health = 1
+            magic.mana = magic.max_mana = max(magic.max_mana, 999)
+            magic.cooldowns.clear()
+            before = floor_ids()
+            server.execute_command(session.session_id, f"cast {ability.name} on {npc.name}")
+            killed += 0 if npc.is_alive else 1
+            after = floor_ids()
+            for item_id in before:
+                after.remove(item_id)
+            for item_id in after:
+                drops[item_id] = drops.get(item_id, 0) + 1
+            for item in list(world.get_items_in_room(region, room)):
+                world.remove_item_from_room(region, room, item.obj_id)
+        ambient = {item_id: count for item_id, count in drops.items() if item_id not in own_table}
+        return {"ok": True, "route": "kill_loot", "killed": killed, "drops": drops, "ambient": ambient}
+    finally:
+        server.shutdown()
+
+
 ROUTES = {
     "combat_ability": combat_ability, "gather_craft_use": gather_craft_use,
     "dialogue_quest_reward": dialogue_quest_reward, "discovery_advancement": discovery_advancement,
-    "gift_relationship": gift_relationship,
+    "gift_relationship": gift_relationship, "kill_loot": kill_loot,
 }
 
 

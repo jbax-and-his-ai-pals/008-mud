@@ -44,6 +44,7 @@ func _run() -> void:
 	_dialogue_quest_reward_route()
 	await _discovery_advancement_route()
 	await _gift_relationship_route()
+	await _kill_loot_route()
 	if failures > 0: push_error("m2 route journeys failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -229,6 +230,45 @@ func _gift_relationship_route() -> void:
 	var after := _route(fixture, "gift_relationship", arguments)
 	_assert(after.get("ok", false) and int(after.get("points", 0)) == 13 and after.get("tier", "") == "Neighbour" and is_equal_approx(float(after.get("discount", 0)), 0.08), "edited: the same gift is 13 points, a Neighbour with 8%% off (%s)" % _brief_gift(after))
 	_assert("Neighbour" in str(after.get("output", "")), "and the player is told the new tier name")
+
+
+# --- item generation / loot ---------------------------------------------------
+# Ten wolves drop their own pelts and fangs, and now and then a gem from the
+# ambient pools -- never an alexandrite. Edited in the Ruleset dialog's Loot
+# section: a new pool for wolves alone, certain to drop one on every kill.
+
+func _kill_loot_route() -> void:
+	print("
+[item generation / loot: add an ambient loot pool, then kill]")
+	var arguments := ["target=wolf", "kills=10"]
+	var before := _route(shipped, "kill_loot", arguments)
+	_assert(before.get("ok", false) and int(before.get("killed", 0)) == 10 and int(before.get("drops", {}).get("item_alexandrite", 0)) == 0, "shipped: ten wolves drop no alexandrite (%s)" % _brief_loot(before))
+
+	main.ui_mgr.side_panel.request_edit_ruleset.emit()
+	await process_frame
+	var rules = main.ui_mgr.ruleset_editor
+	var loot: LootSection = rules.loot_section
+	var pools_before := loot.pool_rows.get_child_count()
+	loot._add_pool({"chance": 0.0})
+	var card: Node = loot.pool_rows.get_child(loot.pool_rows.get_child_count() - 1)
+	(card.find_child("Chance", true, false) as SpinBox).value = 1.0
+	var only: LineEdit = card.find_child("npc_template_ids", true, false)
+	only.text = "wolf"; only.text_changed.emit("wolf")
+	loot._add_entry(card.get_node("Entries"), {"item_id": "item_alexandrite", "weight": 1})
+	rules.confirmed.emit()
+	await process_frame
+	var ruleset: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(fixture.path_join("rules/ruleset.json")))
+	var pools: Array = ruleset["loot"]["ambient_pools"]
+	_assert(pools.size() == pools_before + 1 and pools[-1].get("npc_template_ids") == ["wolf"] and pools[-1]["entries"][0]["item_id"] == "item_alexandrite", "saved by the Ruleset dialog (staged, engine-validated)")
+
+	var after := _route(fixture, "kill_loot", arguments)
+	_assert(after.get("ok", false) and int(after.get("drops", {}).get("item_alexandrite", 0)) == 10, "edited: every wolf now drops an alexandrite (%s)" % _brief_loot(after))
+	_assert(int(after.get("drops", {}).get("item_wolf_pelt", 0)) > 0, "and still drops its own loot table")
+
+
+func _brief_loot(result: Dictionary) -> String:
+	if not result.get("ok", false): return "error: %s" % str(result.get("error", ""))
+	return "killed %s, ambient %s" % [str(result.get("killed")), str(result.get("ambient"))]
 
 
 func _brief_gift(result: Dictionary) -> String:
