@@ -414,6 +414,9 @@ func _setup_modals_and_popups():
 	ui_layer.add_child(field_interactions_editor)
 	field_interactions_editor.setup()
 	_setup_content_set_modal()
+	# Every dialog opens at its content's size, on screen and centred.
+	for dialog in ui_layer.find_children("*", "AcceptDialog", true, false):
+		DialogStyle.fit_to_screen(dialog)
 
 # What this content set declares: families, roll tables, resources, attack and
 # defense profiles, abilities, effect packets.
@@ -482,24 +485,29 @@ func show_content_set_chooser():
 		content_set_list.set_item_metadata(index, path)
 	if paths.is_empty():
 		content_set_list.add_item("no content sets found")
-	content_set_modal.popup_centered()
+	# A fixed size, clamped to the window and centred: left to size itself the
+	# dialog grew to fit the wrapped hint at a tiny width (2,000+ px tall) and ran
+	# off the bottom of the screen, taking Rename, Delete and Open with it.
+	content_set_modal.popup_centered_clamped(Vector2i(560, 440), 0.9)
 
 func _setup_content_set_modal():
 	content_set_modal = AcceptDialog.new()
 	content_set_modal.title = "Open a content set"
-	content_set_modal.min_size = Vector2i(520, 420)
+	content_set_modal.min_size = Vector2i(520, 360)
 	content_set_modal.ok_button_text = "Open"
 	var vbox := VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(500, 380)
+	vbox.custom_minimum_size = Vector2(500, 300)
 	var hint := Label.new()
 	hint.text = "Checkout sets and registered external sets. The active choice is remembered in editor_settings.json."
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# A wrapping label with no width measures itself one word per line.
+	hint.custom_minimum_size.x = 480
 	hint.add_theme_font_size_override("font_size", 11)
 	hint.modulate = Color(0.65, 0.68, 0.74)
 	vbox.add_child(hint)
 	content_set_list = ItemList.new()
 	content_set_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content_set_list.custom_minimum_size = Vector2(0, 300)
+	content_set_list.custom_minimum_size = Vector2(0, 200)
 	content_set_list.item_activated.connect(func(_index): _confirm_content_set_choice())
 	vbox.add_child(content_set_list)
 	# The one way to get a content set without hand-writing a manifest. It lives

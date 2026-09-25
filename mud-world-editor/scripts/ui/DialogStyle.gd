@@ -62,6 +62,53 @@ static func style_window(dialog: Window, ok_color: Color = COLOR_CONFIRM) -> voi
 	if dialog is ConfirmationDialog:
 		style_button(dialog.get_cancel_button(), COLOR_NEUTRAL)
 
+# Size a dialog to its content each time it opens, clamped to the window it
+# opens in, and centre it. An AcceptDialog grows to fit its content and never
+# shrinks back, and a word-wrapped label measured before it has a width asks
+# for one word per line -- so several dialogs opened thousands of pixels tall
+# and ran off the bottom of the screen with their buttons.
+static func fit_to_screen(dialog: Window) -> void:
+	if dialog.has_meta("fits_screen"):
+		return
+	dialog.set_meta("fits_screen", true)
+	dialog.visibility_changed.connect(func():
+		if dialog.visible:
+			_fit_after_layout(dialog)
+	)
+
+
+# The growth happens during the first layout passes after the dialog shows, so
+# fitting at the moment it becomes visible is undone a frame later.
+static func _fit_after_layout(dialog: Window) -> void:
+	var tree := dialog.get_tree()
+	if tree == null:
+		return
+	await tree.process_frame
+	await tree.process_frame
+	_fit(dialog)
+
+
+static func _fit(dialog: Window) -> void:
+	if not is_instance_valid(dialog) or not dialog.visible:
+		return
+	var parent := dialog.get_parent()
+	if parent == null:
+		return
+	var wanted := dialog.get_contents_minimum_size()
+	var width := maxf(float(dialog.size.x), wanted.x)
+	var height := maxf(float(dialog.min_size.y), wanted.y)
+	var screen := parent.get_viewport().get_visible_rect().size
+	# A headless or placeholder viewport has no real size to clamp or centre in;
+	# the dialog still drops back to its content's height.
+	var real_screen := screen.y >= 300.0
+	if real_screen:
+		width = minf(width, screen.x * 0.92)
+		height = minf(height, screen.y * 0.92)
+	dialog.size = Vector2i(int(width), int(height))
+	if real_screen:
+		dialog.position = Vector2i(int((screen.x - width) / 2.0), int((screen.y - height) / 2.0))
+
+
 static func style_button(button: Button, color: Color) -> void:
 	if button == null: return
 	var normal := StyleBoxFlat.new()

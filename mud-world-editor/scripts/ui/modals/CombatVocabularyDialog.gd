@@ -21,19 +21,22 @@ func setup():
 	min_size = Vector2i(820, 620)
 	ok_button_text = "Save Combat Changes"
 	confirmed.connect(_save)
-	var root := VBoxContainer.new(); root.custom_minimum_size = Vector2(780, 530); root.add_theme_constant_override("separation", 8); add_child(root)
-	status = Label.new(); status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; status.modulate = InspectorStyle.COLOR_TEXT_DIM; root.add_child(status)
+	# The status line stays put; everything else scrolls, because the flavor and
+	# hazard lists together are taller than most screens.
+	var frame := VBoxContainer.new(); frame.custom_minimum_size = Vector2(780, 530); frame.add_theme_constant_override("separation", 8); add_child(frame)
+	status = Label.new(); status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; status.custom_minimum_size.x = 760; status.modulate = InspectorStyle.COLOR_TEXT_DIM; frame.add_child(status)
+	var body := ScrollContainer.new(); body.name = "Body"; body.size_flags_vertical = Control.SIZE_EXPAND_FILL; body.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; frame.add_child(body)
+	var root := VBoxContainer.new(); root.size_flags_horizontal = Control.SIZE_EXPAND_FILL; root.add_theme_constant_override("separation", 8); body.add_child(root)
 	root.add_child(InspectorStyle.create_sub_header("Damage Channels"))
 	types = _field(root, "Channels (comma-separated)"); default_type = _field(root, "Default channel")
 	root.add_child(InspectorStyle.create_sub_header("Hit Flavor"))
 	var flavor_hint := InspectorStyle.lbl("What a spell hit says about a weakness or resistance, per channel. {target_name} is filled in; `default` covers every channel without its own.", InspectorStyle.COLOR_TEXT_DIM)
-	flavor_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; root.add_child(flavor_hint)
+	flavor_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; flavor_hint.custom_minimum_size.x = 740; root.add_child(flavor_hint)
 	flavor_rows = VBoxContainer.new(); flavor_rows.name = "FlavorRows"; flavor_rows.add_theme_constant_override("separation", 6); root.add_child(flavor_rows)
 	var add_flavor := Button.new(); add_flavor.name = "AddFlavor"; add_flavor.text = "+ Channel Flavor"; InspectorStyle.apply_button_style(add_flavor, InspectorStyle.COLOR_SUCCESS)
 	add_flavor.pressed.connect(func(): _add_flavor("", {}); _mark_dirty()); root.add_child(add_flavor)
 	root.add_child(InspectorStyle.create_sub_header("Room Hazards"))
-	var scroll := ScrollContainer.new(); scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL; root.add_child(scroll)
-	hazard_rows = VBoxContainer.new(); hazard_rows.add_theme_constant_override("separation", 8); scroll.add_child(hazard_rows)
+	hazard_rows = VBoxContainer.new(); hazard_rows.add_theme_constant_override("separation", 8); root.add_child(hazard_rows)
 	var add := Button.new(); add.text = "+ Add Hazard"; InspectorStyle.apply_button_style(add, InspectorStyle.COLOR_SUCCESS); add.pressed.connect(func(): _add_hazard("", {}); _mark_dirty()); root.add_child(add)
 	DialogStyle.style_window(self); get_ok_button().custom_minimum_size = Vector2(300, 40); get_ok_button().disabled = true
 
