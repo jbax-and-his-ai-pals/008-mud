@@ -458,6 +458,13 @@ func refresh_configuration_views(catalog: ContractCatalog):
 	if is_instance_valid(content_library) and content_library.visible:
 		content_library._build_editor()
 
+## The titles of the configuration dialogs holding edits not yet saved.
+func configuration_draft_titles() -> Array:
+	var out: Array = []
+	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, feature_profile_editor, field_interactions_editor, presentation_editor]:
+		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed(): out.append(str(dialog.title))
+	return out
+
 func save_configuration_drafts() -> bool:
 	for dialog in [ruleset_editor, manifest_editor, opening_editor, contract_editor, combat_vocabulary_editor, feature_profile_editor, field_interactions_editor, presentation_editor]:
 		if is_instance_valid(dialog) and not dialog._allow_close and dialog.draft != null and dialog._form_changed():

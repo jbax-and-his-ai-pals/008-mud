@@ -843,8 +843,8 @@ func _load_region(file, force_reload: bool = false, keep_ui_visible: bool = fals
 			if _save_everything(): _load_region_now(file, force_reload, keep_ui_visible)
 		ui_mgr.confirm(
 			"Unsaved changes",
-			"%s has unsaved changes. Loading %s will discard them." % [
-				region_mgr.current_filename, target,
+			"%s has unsaved changes. Loading %s will discard them:\n\n%s" % [
+				region_mgr.current_filename, target, _describe_unsaved_work(false),
 			],
 			"Save changes and load",
 			save_then_load,
@@ -1220,6 +1220,45 @@ func _find_python(repo_root: String) -> String:
 
 func _has_unsaved_work() -> bool:
 	return region_mgr.is_region_dirty or database_mgr.has_unsaved_changes() or ui_mgr.has_configuration_drafts()
+
+## What an "unsaved changes" prompt is about to discard, one line each: the
+## region's edited rooms by name, the library entries by kind, and the
+## configuration dialogs with edits. The prompts used to say only *that*
+## something was unsaved, so an author could not tell whether discarding was
+## safe. `include_library` is false where the choice leaves the library alone
+## (loading another region keeps it).
+func _describe_unsaved_work(include_library: bool = true, limit: int = 12) -> String:
+	var lines: Array = []
+	if region_mgr.is_region_dirty:
+		var rooms: Dictionary = region_mgr.data.get("rooms", {})
+		var names: Array = []
+		for id in region_mgr.dirty_room_ids:
+			if rooms.has(id):
+				var label := str(rooms[id].get("name", ""))
+				names.append("%s (%s)" % [label, id] if label != "" and label != id else str(id))
+			else:
+				names.append("%s (removed)" % id)
+		names.sort()
+		var where := region_mgr.current_filename
+		if names.is_empty():
+			lines.append("%s: region settings, districts or layout" % where)
+		for name in names:
+			lines.append("%s: room %s" % [where, name])
+	if include_library:
+		for type in database_mgr.dirty_flags:
+			var ids: Array = database_mgr.dirty_flags[type].keys()
+			ids.sort()
+			for id in ids:
+				lines.append("library %s: %s" % [str(type).replace("_", " "), id])
+		if database_mgr.magic_groups_dirty:
+			lines.append("library: ability groups")
+		for title in ui_mgr.configuration_draft_titles():
+			lines.append("configuration: %s" % title)
+	if lines.size() > limit:
+		var more := lines.size() - (limit - 1)
+		lines = lines.slice(0, limit - 1)
+		lines.append("... and %d more" % more)
+	return "\n".join(lines.map(func(l): return "  • " + l))
 
 func _save_everything() -> bool:
 	# Every dirty thing, in one press, whatever view is on screen. This used to
@@ -1606,8 +1645,8 @@ func _request_switch_content_set(path: String):
 			_switch_content_set(path)
 	ui_mgr.confirm(
 		"Unsaved changes",
-		"%s is not saved. Switching to %s will reload the world; save first, or leave the changes behind."
-			% [DataRoot.root().get_file(), path.get_file()],
+		"%s is not saved. Switching to %s will reload the world; save first, or leave these behind:\n\n%s"
+			% [DataRoot.root().get_file(), path.get_file(), _describe_unsaved_work()],
 		"Save and switch",
 		save_then_switch,
 		"Keep editing",
@@ -1635,8 +1674,8 @@ func _request_rename_open_content_set(new_id: String, new_title: String):
 			_rename_open_content_set_now(new_id, new_title)
 	ui_mgr.confirm(
 		"Unsaved changes",
-		"%s is not saved. Renaming it reopens the world from its new folder; save first, or leave the changes behind."
-			% root.get_file(),
+		"%s is not saved. Renaming it reopens the world from its new folder; save first, or leave these behind:\n\n%s"
+			% [root.get_file(), _describe_unsaved_work()],
 		"Save and rename",
 		save_then_rename,
 		"Keep editing",
@@ -1709,12 +1748,8 @@ func _request_quit():
 	if not _has_unsaved_work():
 		get_tree().quit()
 		return
-	var what: Array = []
-	if region_mgr.is_region_dirty: what.append(region_mgr.current_filename)
-	if database_mgr.has_unsaved_changes(): what.append("the content library")
-	if ui_mgr.has_configuration_drafts(): what.append("game configuration")
 	ui_mgr.show_quit_prompt(
-		"Unsaved changes in %s.\n\nSave before quitting, or leave the changes behind." % ", ".join(what)
+		"Unsaved changes:\n\n%s\n\nSave before quitting, or leave them behind." % _describe_unsaved_work()
 	)
 
 func _on_node_click(id: String, shift_mod: bool):
