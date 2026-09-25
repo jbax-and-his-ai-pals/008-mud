@@ -54,7 +54,12 @@ Keys an inspector does not model are shown and preserved, never dropped.
 
 **Open Content Set…** in the explorer switches between the content sets beside the
 checkout: the world reloads and the choice is written to
-`user://editor_settings.json`, so the next launch opens the same set.
+`user://editor_settings.json`, so the next launch opens the same set. Sets are
+listed as "Title   (id)". **Rename…** changes either: the title is the display
+name and always safe to change; the id is also the folder name and what player
+saves record, so saves made under an old id will not load into a renamed set.
+The open set can be renamed too: a title change is written in place, and an id
+change asks about unsaved work, moves the folder and reopens the set from it.
 
 Not yet: editing the contracts themselves (the browser is read-only), backgrounds,
 titles, collections, discoveries, combat elements, or campaigns.

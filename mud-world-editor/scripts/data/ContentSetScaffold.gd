@@ -113,7 +113,13 @@ static func matches_id_pattern(text: String) -> bool:
 ## The directory new sets are created in: `content_sets/` beside this checkout, so
 ## the engine, the gates and `available_content_sets()` all find them.
 static func sets_root() -> String:
+	if sets_root_override != "":
+		return sets_root_override
 	return ProjectSettings.globalize_path("res://").path_join("../content_sets").simplify_path()
+
+## Tests point this at a scratch directory so renaming and deleting sets never
+## touches `content_sets/`.
+static var sets_root_override := ""
 
 
 ## Create `id` by copying `source_set`'s shape. Returns

@@ -249,6 +249,7 @@ func _connect_ui_signals():
 	)
 	ui_mgr.request_choose_content_set.connect(func(): ui_mgr.show_content_set_chooser())
 	ui_mgr.request_switch_content_set.connect(_request_switch_content_set)
+	ui_mgr.request_rename_open_content_set.connect(_request_rename_open_content_set)
 	ui_mgr.request_open_creator_modal.connect(func(): ui_mgr.creator_modal.set_target_options(world_mgr.get_global_hierarchy()))
 	ui_mgr.request_open_district_modal.connect(func():
 		if not state.is_world_view and not region_mgr.data.get("rooms", {}).is_empty():
@@ -1585,6 +1586,43 @@ func _request_switch_content_set(path: String):
 	# A second exit from the prompt: switching without saving is a real choice an
 	# author makes, and refusing to offer it just means they save junk first.
 	ui_mgr.set_confirm_extra_button("Switch without saving", func(): _switch_content_set(path))
+
+## Rename the set that is open. A title-only change is just a manifest write.
+## Changing the id moves the folder, so what is unsaved is saved or left behind
+## first (the same choice switching sets offers), and the set is reopened from
+## its new folder through the ordinary switch.
+func _request_rename_open_content_set(new_id: String, new_title: String):
+	var root := DataRoot.root()
+	if new_id == root.get_file():
+		var result := ContentSetAdmin.rename(root, new_id, ContentSetScaffold.sets_root(), new_title)
+		if not result.get("ok", false):
+			ui_mgr.show_error("Could not rename %s" % root.get_file(), str(result.get("error", "")))
+		return
+	if not _has_unsaved_work():
+		_rename_open_content_set_now(new_id, new_title)
+		return
+	var save_then_rename := func():
+		if _save_everything():
+			_rename_open_content_set_now(new_id, new_title)
+	ui_mgr.confirm(
+		"Unsaved changes",
+		"%s is not saved. Renaming it reopens the world from its new folder; save first, or leave the changes behind."
+			% root.get_file(),
+		"Save and rename",
+		save_then_rename,
+		"Keep editing",
+	)
+	ui_mgr.set_confirm_extra_button("Rename without saving", func(): _rename_open_content_set_now(new_id, new_title))
+
+
+func _rename_open_content_set_now(new_id: String, new_title: String):
+	var root := DataRoot.root()
+	var result := ContentSetAdmin.rename(root, new_id, ContentSetScaffold.sets_root(), new_title)
+	if not result.get("ok", false):
+		ui_mgr.show_error("Could not rename %s" % root.get_file(), str(result.get("error", "")))
+		return
+	_switch_content_set(str(result.get("path", "")))
+
 
 func _switch_content_set(path: String):
 	if not DataRoot.set_root(path):

@@ -21,6 +21,9 @@ signal request_edit_field_interactions
 signal combat_vocabulary_saved
 signal request_choose_content_set
 signal request_switch_content_set(path)
+# Renaming the set that is open: Main asks about unsaved work, moves it, and
+# reopens it from its new folder.
+signal request_rename_open_content_set(new_id: String, new_title: String)
 signal request_acknowledge_validation_warning(warning_id)
 signal request_reset_ignored_validation_warnings
 signal request_acknowledge_content_validation_warnings(warning_ids)
@@ -478,9 +481,13 @@ func show_content_set_chooser():
 	var paths := DataRoot.available_content_sets()
 	var current := DataRoot.root()
 	for path in paths:
-		var label := str(path).get_file()
+		# Listed by the title people know it by, with the id (its folder, and what
+		# saves record) beside it.
+		var identity := CONTENT_SET_ADMIN_SCRIPT.identity(path)
+		var title := str(identity.get("title", ""))
+		var label := "%s   (%s)" % [title, str(path).get_file()] if title != "" else str(path).get_file()
 		if path == current:
-			label += "   (open now)"
+			label += "   — open now"
 		var index := content_set_list.add_item(label)
 		content_set_list.set_item_metadata(index, path)
 	if paths.is_empty():
@@ -543,7 +550,7 @@ func _setup_content_set_modal():
 	var manage_row := HBoxContainer.new()
 	var btn_rename := Button.new()
 	btn_rename.text = "Rename..."
-	btn_rename.tooltip_text = "Rename the selected set's directory and its manifest id. Existing saves carry the old id and will refuse to load into the renamed set."
+	btn_rename.tooltip_text = "Change the selected set's title, or its id and folder. The title is always safe; saves made under an old id will not load into a renamed one."
 	btn_rename.pressed.connect(func(): _rename_selected_content_set())
 	manage_row.add_child(btn_rename)
 	var btn_delete := Button.new()
@@ -600,23 +607,62 @@ func _rename_selected_content_set():
 	if path == "":
 		_show_content_set_error("Select a content set first.")
 		return
-	if path == DataRoot.root():
-		_show_content_set_error("This is the set the editor has open. Switch to another one before renaming it.")
+	var identity := CONTENT_SET_ADMIN_SCRIPT.identity(path)
+	if not identity.get("ok", false):
+		_show_content_set_error("%s has no readable manifest, so it is not a content set." % path)
 		return
-	var described := CONTENT_SET_ADMIN_SCRIPT.report(path)
-	if not described.get("ok", false):
-		_show_content_set_error(str(described.get("error", "")))
-		return
-	_prompt_content_set_name(
-		"Rename %s" % path.get_file(),
-		"New set id for '%s' (%d files). Existing saves carry the old id and will refuse to load into the renamed set." % [path.get_file(), int(described.get("files", 0))],
-		path.get_file(),
-		func(typed: String) -> Dictionary:
-			var result := CONTENT_SET_ADMIN_SCRIPT.rename(path, typed, ContentSetScaffold.sets_root())
-			if result.get("ok", false):
-				show_content_set_chooser()
-			return result
+	_show_rename_content_set(path, str(identity.get("title", "")))
+
+
+## Title and id in one dialog, because they are the two things "rename" can
+## mean: the title is what players and the editor show and is always safe to
+## change; the id is the folder and what saves record. The open set can be
+## renamed too -- Main saves or discards unsaved work first, then reopens it.
+func _show_rename_content_set(path: String, current_title: String) -> void:
+	var is_open := path == DataRoot.root()
+	var prompt := ConfirmationDialog.new()
+	prompt.name = "RenameContentSet"
+	prompt.title = "Rename %s" % path.get_file()
+	prompt.ok_button_text = "Rename"
+	var box := VBoxContainer.new(); box.add_theme_constant_override("separation", 6)
+	var intro := Label.new(); intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; intro.custom_minimum_size.x = 520
+	intro.text = "The title is the set's display name; changing it is always safe. The id is also its folder name and what player saves record: saves made under the old id will not load into a renamed one."
+	if is_open:
+		intro.text += "\n\nThis set is open. Changing its id reopens it from the new folder; you will be asked about any unsaved work first."
+	box.add_child(intro)
+	box.add_child(InspectorStyle.lbl("Title", InspectorStyle.COLOR_TEXT_DIM))
+	var title_field := LineEdit.new(); title_field.name = "Title"; title_field.text = current_title; InspectorStyle.apply_input_style(title_field); box.add_child(title_field)
+	box.add_child(InspectorStyle.lbl("Id (folder name)", InspectorStyle.COLOR_TEXT_DIM))
+	var id_field := LineEdit.new(); id_field.name = "Id"; id_field.text = path.get_file(); InspectorStyle.apply_input_style(id_field); box.add_child(id_field)
+	var status := Label.new(); status.name = "Status"; status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; status.custom_minimum_size.x = 520; status.modulate = DialogStyle.COLOR_DANGER; box.add_child(status)
+	prompt.add_child(box)
+	DialogStyle.style_window(prompt)
+	DialogStyle.fit_to_screen(prompt)
+	prompt.confirmed.connect(func():
+		var new_id := id_field.text.strip_edges()
+		var new_title := title_field.text.strip_edges()
+		if new_title == "":
+			status.text = "A set needs a title."
+			prompt.popup_centered(); return
+		if new_id == path.get_file() and new_title == current_title:
+			prompt.queue_free(); return
+		if is_open:
+			prompt.queue_free()
+			content_set_modal.hide()
+			request_rename_open_content_set.emit(new_id, new_title)
+			return
+		var result := CONTENT_SET_ADMIN_SCRIPT.rename(path, new_id, ContentSetScaffold.sets_root(), new_title)
+		if not result.get("ok", false):
+			status.text = str(result.get("error", "That did not work."))
+			prompt.popup_centered(); return
+		prompt.queue_free()
+		show_content_set_chooser()
 	)
+	prompt.canceled.connect(func(): prompt.queue_free())
+	prompt.close_requested.connect(func(): prompt.queue_free())
+	ui_layer.add_child(prompt)
+	prompt.popup_centered()
+	title_field.grab_focus()
 
 func _delete_selected_content_set():
 	var path := _selected_content_set()

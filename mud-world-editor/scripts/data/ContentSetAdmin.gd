@@ -42,6 +42,14 @@ static func report(root: String) -> Dictionary:
 		"bytes": counted["bytes"],
 	}
 
+## A set's id and title from its manifest alone -- cheap enough to call for every
+## set in a list, unlike `report`, which counts every file.
+static func identity(root: String) -> Dictionary:
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(root.path_join(Scaffold.MANIFEST_FILENAME))) if FileAccess.file_exists(root.path_join(Scaffold.MANIFEST_FILENAME)) else null
+	if not (parsed is Dictionary):
+		return {"ok": false, "id": root.get_file(), "title": ""}
+	return {"ok": true, "id": str(parsed.get("id", root.get_file())), "title": str(parsed.get("title", "")).strip_edges()}
+
 ## Remove a set. `typed` must be the directory's own name.
 static func delete(root: String, typed: String, allowed_parent: String) -> Dictionary:
 	var described := report(root)
@@ -57,8 +65,10 @@ static func delete(root: String, typed: String, allowed_parent: String) -> Dicti
 	return {"ok": true, "error": "", "removed_files": removed["files"], "path": root}
 
 ## Rename a set: the directory and the manifest's `id`, which must agree because
-## the editor lists sets by directory and the engine reads them by id.
-static func rename(root: String, new_id: String, allowed_parent: String) -> Dictionary:
+## the editor lists sets by directory and the engine reads them by id -- and, when
+## `new_title` is given, its display title. A title-only change moves nothing
+## (the title is what players and the editor show; saves record the id).
+static func rename(root: String, new_id: String, allowed_parent: String, new_title = null) -> Dictionary:
 	var described := report(root)
 	if not described.get("ok", false):
 		return described
@@ -72,15 +82,25 @@ static func rename(root: String, new_id: String, allowed_parent: String) -> Dict
 	pattern.compile("^%s$" % Scaffold.ID_PATTERN)
 	if pattern.search(wanted) == null:
 		return {"ok": false, "error": "'%s' is not a usable set id. Use %s." % [wanted, Scaffold.ID_PATTERN]}
+	var wanted_title = null if new_title == null else str(new_title).strip_edges()
+	if wanted_title != null and wanted_title == "":
+		return {"ok": false, "error": "A set needs a title."}
+	var title_changes: bool = wanted_title != null and wanted_title != str(described.get("title", ""))
 	var target := root.get_base_dir().path_join(wanted)
-	if target == root:
+	var moving := target != root
+	if not moving and not title_changes:
 		return {"ok": false, "error": "That is already this set's name."}
-	if DirAccess.dir_exists_absolute(target):
+	if moving and DirAccess.dir_exists_absolute(target):
 		return {"ok": false, "error": "%s already exists." % target}
 
-	var error := DirAccess.rename_absolute(root, target)
-	if error != OK:
-		return {"ok": false, "error": "Could not rename the directory (error %d). Nothing was changed." % error}
+	if moving:
+		var error := DirAccess.rename_absolute(root, target)
+		if error != OK:
+			# On Windows a folder that anything has open cannot be moved: a game
+			# server running this set, or a file window inside it.
+			return {"ok": false, "error": "Could not rename the directory (error %d). Nothing was changed. If a game server or a file window has this set open, close it and try again." % error}
+	else:
+		target = root
 	var manifest := target.path_join(Scaffold.MANIFEST_FILENAME)
 	var payload = JSON.parse_string(FileAccess.get_file_as_string(manifest))
 	if not (payload is Dictionary):
@@ -88,10 +108,13 @@ static func rename(root: String, new_id: String, allowed_parent: String) -> Dict
 		# rather than reporting a clean rename.
 		return {"ok": false, "error": "The directory is now %s, but its manifest could not be read to update the id." % target}
 	payload["id"] = wanted
+	if title_changes:
+		payload["title"] = wanted_title
 	var written := SaveIO.write_json(manifest, payload)
 	if not written.get("ok", false):
 		return {"ok": false, "error": "The directory is now %s, but writing its manifest failed: %s" % [target, str(written.get("error", ""))]}
-	return {"ok": true, "error": "", "path": target, "previous_id": str(described.get("id", "")), "id": wanted}
+	return {"ok": true, "error": "", "path": target, "previous_id": str(described.get("id", "")), "id": wanted,
+		"title": str(payload.get("title", "")), "moved": moving}
 
 
 static func _is_inside(root: String, parent: String) -> bool:
