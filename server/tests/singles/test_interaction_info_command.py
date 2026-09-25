@@ -1,7 +1,10 @@
 # tests/singles/test_interaction_info_command.py
-"""Coverage for engine/commands/interaction/info.py's `collection` command:
-the missing-args usage error and the happy path that delegates to
-CollectionManager.get_collection_status."""
+"""Coverage for engine/commands/interaction/info.py's `collection` command.
+
+It used to answer a bare `collection` with "Usage: collection
+<collection_id>", an id nothing shows a player. Now a bare `collection`
+lists every collection by name with progress, and a name (whole or part)
+finds one; the id still works for testers."""
 
 from tests.fixtures import GameTestBase
 
@@ -20,9 +23,19 @@ class TestCollectionCommand(GameTestBase):
             "properties": {"collection_id": "bugs"},
         }
 
-    def test_no_args_returns_usage_error(self):
+    def test_no_args_lists_collections_by_name(self):
         result = self.game.process_command("collection")
-        self.assertIn("Usage: collection", result)
+        self.assertIn("Rare Bugs: 0/1 turned in", result)
+        self.assertNotIn("collection_id", result)
+
+    def test_a_name_finds_the_collection(self):
+        self.assertIn("Golden Beetle", self.game.process_command("collection rare bugs"))
+        self.assertIn("Golden Beetle", self.game.process_command("collection rare"))
+
+    def test_an_unknown_name_lists_what_there_is(self):
+        result = self.game.process_command("collection dragons")
+        self.assertIn("No collection called 'dragons'", result)
+        self.assertIn("Rare Bugs", result)
 
     def test_with_id_delegates_to_collection_manager(self):
         result = self.game.process_command("collection bugs")

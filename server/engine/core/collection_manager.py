@@ -173,6 +173,39 @@ class CollectionManager:
 
         return ", ".join(msgs) + "!"
     
+    def find_collections(self, query: str) -> List[str]:
+        """Collection ids a player's words name: the id itself (testers use
+        it), else the collection's name -- whole, then the start of it, then
+        anywhere in it. A player never sees ids, so the name is what they
+        type."""
+        wanted = " ".join(str(query).lower().split())
+        if not wanted:
+            return []
+        if wanted in self.collections:
+            return [wanted]
+        names = {col_id: str(d.get("name", col_id)).lower() for col_id, d in self.collections.items() if isinstance(d, dict)}
+        for rule in (lambda n: n == wanted, lambda n: n.startswith(wanted), lambda n: wanted in n):
+            found = [col_id for col_id, name in sorted(names.items(), key=lambda pair: pair[1]) if rule(name)]
+            if found:
+                return found
+        return []
+
+    def list_collections(self, player: 'Player') -> str:
+        """Every collection by name, with how much of it the player has
+        turned in."""
+        if not self.collections:
+            return "This world keeps no collections."
+        lines = [f"{FORMAT_TITLE}Collections{FORMAT_RESET}"]
+        for col_id, col_def in sorted(self.collections.items(), key=lambda pair: str(pair[1].get("name", pair[0]))):
+            required = col_def.get("items", [])
+            found = len(set(player.collections_progress.get(col_id, [])) & set(required))
+            done = player.collections_completed.get(col_id, False)
+            state = f"{FORMAT_SUCCESS}Complete{FORMAT_RESET}" if done else f"{found}/{len(required)} turned in"
+            lines.append(f"  {col_def.get('name', col_id)}: {state}")
+        lines.append("")
+        lines.append("Type 'collection <name>' to see what one still needs.")
+        return "\n".join(lines)
+
     def get_collection_status(self, player: 'Player', col_id: str) -> str:
         col_def = self.collections.get(col_id)
         if not col_def: return "Unknown collection."

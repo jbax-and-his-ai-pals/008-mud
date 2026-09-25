@@ -30,7 +30,7 @@ FORBIDDEN = {
 }
 OPENING = [
     "backgrounds", "look", "help", "inventory", "equipment", "quests", "board", "look board",
-    "recipes", "skills", "status", "background", "discoveries", "weather", "time",
+    "recipes", "skills", "status", "background", "discoveries", "collection", "collection gem", "weather", "time",
     "east", "look", "east", "look", "west", "west", "west", "look",
 ]
 
