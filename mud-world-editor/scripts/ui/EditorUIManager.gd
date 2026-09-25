@@ -885,6 +885,7 @@ func _setup_confirm_and_error_dialogs():
 	quit_modal.cancel_button_text = "Keep editing"
 	var quit_discard_btn := quit_modal.add_button("Quit without saving", true, "discard")
 	quit_modal.confirmed.connect(func(): request_quit_save.emit())
+	quit_modal.canceled.connect(func(): unpark_dialogs.call_deferred())
 	quit_modal.custom_action.connect(func(action):
 		if action == "discard":
 			quit_modal.hide()
@@ -962,7 +963,40 @@ func show_error(title: String, message: String) -> void:
 
 func show_quit_prompt(message: String) -> void:
 	quit_modal.dialog_text = message
+	# Only one exclusive dialog can be open, so with another one showing the quit
+	# prompt was refused and closing the window did nothing at all. Put open
+	# dialogs away first -- their unsaved form contents stay, so "Save and quit"
+	# still saves them -- and bring them back on "Keep editing".
+	_park_open_dialogs()
 	quit_modal.popup_centered()
+
+
+var _parked_dialogs: Array = []
+
+func _park_open_dialogs() -> void:
+	for window in ui_layer.find_children("*", "Window", true, false):
+		if window == quit_modal or not window.visible or not window.exclusive:
+			continue
+		window.set_meta("parked", true)
+		window.hide()
+		_parked_dialogs.append(window)
+
+## Bring back what the quit prompt put away -- once nothing else is showing: two
+## exclusive dialogs cannot be open at once, so if a save error is up, wait for
+## it to close.
+func unpark_dialogs() -> void:
+	if _parked_dialogs.is_empty():
+		return
+	for window in ui_layer.find_children("*", "Window", true, false):
+		if window.visible and window.exclusive and not window in _parked_dialogs:
+			if not window.visibility_changed.is_connected(unpark_dialogs):
+				window.visibility_changed.connect(unpark_dialogs, CONNECT_ONE_SHOT)
+			return
+	for window in _parked_dialogs:
+		if is_instance_valid(window):
+			window.set_meta("parked", false)
+			window.popup()
+	_parked_dialogs.clear()
 
 func _setup_district_toolbar():
 	district_toolbar = Panel.new(); district_toolbar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)

@@ -20,6 +20,8 @@ func _install_guard():
 	)
 
 func _restore_for_discard():
+	# Put away by the quit prompt, not dismissed: it comes back on "Keep editing".
+	if get_meta("parked", false): return
 	if not is_inside_tree() or _allow_close or not _form_changed(): return
 	popup_centered()
 	_discard_prompt.popup_centered()

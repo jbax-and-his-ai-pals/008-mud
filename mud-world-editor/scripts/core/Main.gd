@@ -423,7 +423,11 @@ func _connect_ui_signals():
 	)
 	ui_mgr.database_saved.connect(func(): _update_db_ui())
 	ui_mgr.request_delete_room_confirm.connect(action_handler.execute_delete_room)
-	ui_mgr.request_quit_save.connect(func(): _save_everything(); if not _has_unsaved_work(): get_tree().quit())
+	ui_mgr.request_quit_save.connect(func():
+		_save_everything()
+		if not _has_unsaved_work(): get_tree().quit()
+		else: ui_mgr.unpark_dialogs()  # the save was refused: back to editing
+	)
 	ui_mgr.request_quit_discard.connect(func(): get_tree().quit())
 
 func _connect_inspector_signals():
