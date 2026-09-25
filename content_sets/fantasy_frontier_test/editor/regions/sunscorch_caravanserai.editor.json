@@ -1,0 +1,54 @@
+{
+    "region": {
+        "_editor_connection_label_sources": {
+            "covered_bazaar|wayfarers_rest": {
+                "source": "wayfarers_rest",
+                "direction": "northeast"
+            }
+        }
+    },
+    "rooms": {
+        "west_gate": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "caravan_yard": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "water_court": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
+        "covered_bazaar": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "wayfarers_rest": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "map_house": {
+            "_editor_pos": [
+                512,
+                -192
+            ]
+        },
+        "east_gate": {
+            "_editor_pos": [
+                768,
+                0
+            ]
+        }
+    }
+}

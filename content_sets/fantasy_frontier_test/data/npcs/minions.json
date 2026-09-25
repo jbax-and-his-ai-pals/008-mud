@@ -1,0 +1,192 @@
+{
+    "_comment": "Three summon spells named templates that were never authored -- `spirit_wolf_minion`, `fire_imp_minion`, `stone_golem_minion` -- so casting them spent the mana and produced nothing, with no message either way. These are those templates.",
+    "skeleton_minion": {
+        "name": "Skeleton Minion",
+        "description": "An animated skeleton bound to its master's will.",
+        "level": 50,
+        "health": 400,
+        "faction": "player_minion",
+        "friendly": false,
+        "stats": {
+            "strength": 20,
+            "dexterity": 8,
+            "constitution": 8,
+            "agility": 7,
+            "intelligence": 0,
+            "wisdom": 0,
+            "spell_power": 0,
+            "magic_resist": 2
+        },
+        "attack_power": 4,
+        "defense": 3,
+        "behavior_type": "minion",
+        "dialog": {},
+        "default_dialog": "The skeleton stands silently, awaiting orders.",
+        "loot_table": {},
+        "usable_spells": [],
+        "properties": {
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0,
+            "creation_time": 0,
+            "respawn_cooldown": -1,
+            "aggression": 1,
+            "flee_threshold": 0,
+            "wander_chance": 0,
+            "move_cooldown": 4
+        }
+    },
+    "skeletal_mage_minion": {
+        "name": "Skeletal Mage Minion",
+        "description": "An animated skeleton crackling with faint arcane energy.",
+        "level": 1,
+        "health": 30,
+        "max_health": 30,
+        "max_mana": 30,
+        "faction": "player_minion",
+        "friendly": false,
+        "stats": {
+            "strength": 4,
+            "dexterity": 7,
+            "constitution": 6,
+            "agility": 7,
+            "intelligence": 14,
+            "wisdom": 10,
+            "spell_power": 8,
+            "magic_resist": 4
+        },
+        "attack_power": 1,
+        "defense": 2,
+        "behavior_type": "minion",
+        "dialog": {},
+        "default_dialog": "The skeletal mage clicks its jawbones, watching its surroundings.",
+        "loot_table": {},
+        "usable_spells": [
+            "bone_shard"
+        ],
+        "properties": {
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0,
+            "creation_time": 0,
+            "respawn_cooldown": -1,
+            "aggression": 1,
+            "flee_threshold": 0,
+            "wander_chance": 0,
+            "move_cooldown": 4,
+            "spell_cast_chance": 0.8
+        }
+    },
+    "spirit_wolf_minion": {
+        "name": "Spirit Wolf",
+        "description": "A wolf of pale light, its paws not quite touching the ground.",
+        "level": 2,
+        "health": 34,
+        "faction": "player_minion",
+        "friendly": false,
+        "stats": {
+            "strength": 11,
+            "dexterity": 13,
+            "constitution": 8,
+            "agility": 13,
+            "intelligence": 2,
+            "wisdom": 6,
+            "spell_power": 0,
+            "magic_resist": 3
+        },
+        "attack_power": 3,
+        "defense": 2,
+        "behavior_type": "minion",
+        "dialog": {},
+        "default_dialog": "The spirit wolf pads in a slow circle, eyes on the treeline.",
+        "loot_table": {},
+        "usable_spells": [],
+        "properties": {
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0,
+            "creation_time": 0,
+            "respawn_cooldown": -1,
+            "aggression": 1,
+            "flee_threshold": 0,
+            "wander_chance": 0,
+            "move_cooldown": 3
+        }
+    },
+    "fire_imp_minion": {
+        "name": "Fire Imp",
+        "description": "A knee-high nuisance of soot and flame, delighted to be here.",
+        "level": 2,
+        "health": 26,
+        "max_mana": 20,
+        "faction": "player_minion",
+        "friendly": false,
+        "stats": {
+            "strength": 5,
+            "dexterity": 12,
+            "constitution": 5,
+            "agility": 12,
+            "intelligence": 9,
+            "wisdom": 4,
+            "spell_power": 7,
+            "magic_resist": 6
+        },
+        "attack_power": 2,
+        "defense": 1,
+        "behavior_type": "minion",
+        "dialog": {},
+        "default_dialog": "The imp hovers, leaving small scorch marks on the floor.",
+        "loot_table": {},
+        "usable_spells": [
+            "ember_bolt"
+        ],
+        "properties": {
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0,
+            "creation_time": 0,
+            "respawn_cooldown": -1,
+            "aggression": 1,
+            "flee_threshold": 0,
+            "wander_chance": 0,
+            "move_cooldown": 3,
+            "spell_cast_chance": 0.6
+        }
+    },
+    "stone_golem_minion": {
+        "name": "Stone Golem",
+        "description": "A squat figure of packed rock and old mortar. It moves like a landslide deciding to.",
+        "level": 2,
+        "health": 60,
+        "faction": "player_minion",
+        "friendly": false,
+        "stats": {
+            "strength": 18,
+            "dexterity": 4,
+            "constitution": 16,
+            "agility": 3,
+            "intelligence": 1,
+            "wisdom": 5,
+            "spell_power": 0,
+            "magic_resist": 5
+        },
+        "attack_power": 5,
+        "defense": 6,
+        "behavior_type": "minion",
+        "dialog": {},
+        "default_dialog": "The golem stands where it was put, and does not fidget.",
+        "loot_table": {},
+        "usable_spells": [],
+        "properties": {
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0,
+            "creation_time": 0,
+            "respawn_cooldown": -1,
+            "aggression": 1,
+            "flee_threshold": 0,
+            "wander_chance": 0,
+            "move_cooldown": 6
+        }
+    }
+}

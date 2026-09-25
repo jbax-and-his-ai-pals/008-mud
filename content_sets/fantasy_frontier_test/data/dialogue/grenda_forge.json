@@ -1,0 +1,207 @@
+{
+    "id": "grenda_forge",
+    "_comment": "Grenda the Blacksmith. Demonstrates a real conversation: a gated reply (you must be carrying the iron), a reply unlocked by having been somewhere (visited_region), a reply that only opens once she trusts you (relationship), and two effects that change the world -- she teaches the traveler's-hatchet pattern and remembers that she told you about the caravan. Her flat `dialog` topics still work alongside this graph: `ask grenda about patterns` reads them.",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Well met. The forge is hot, but my supplies are low.",
+            "choices": [
+                {
+                    "text": "What are you working on?",
+                    "aliases": [
+                        "what are you making",
+                        "your work",
+                        "the forge"
+                    ],
+                    "next_node": "working"
+                },
+                {
+                    "text": "I could use some iron.",
+                    "aliases": [
+                        "buy iron",
+                        "iron",
+                        "sell me iron"
+                    ],
+                    "next_node": "trade",
+                    "effects": {
+                        "adjust_relationship": {
+                            "amount": 1
+                        }
+                    }
+                },
+                {
+                    "text": "That shipment you were waiting on -- what happened to it?",
+                    "aliases": [
+                        "the shipment",
+                        "caravan",
+                        "missing supplies",
+                        "your steel"
+                    ],
+                    "condition": {
+                        "kind": "relationship_at_least",
+                        "npc_id": "blacksmith",
+                        "value": 5
+                    },
+                    "next_node": "missing"
+                },
+                {
+                    "text": "No time. Goodbye.",
+                    "end": true
+                }
+            ]
+        },
+        "working": {
+            "text": "Hatchets, mostly, and horseshoes by the dozen. There's a pattern I'd part with -- a traveler's hatchet. Light enough to carry, heavy enough to argue with.",
+            "choices": [
+                {
+                    "text": "Show me how to make one.",
+                    "aliases": [
+                        "show me the pattern",
+                        "teach me",
+                        "make one",
+                        "learn the pattern"
+                    ],
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "item_iron_ingot",
+                        "quantity": 2
+                    },
+                    "next_node": "teach"
+                },
+                {
+                    "text": "Where would I get the materials?",
+                    "aliases": [
+                        "materials",
+                        "where do I find them",
+                        "what do I need"
+                    ],
+                    "next_node": "where"
+                },
+                {
+                    "text": "Maybe later.",
+                    "end": true
+                }
+            ]
+        },
+        "where": {
+            "text": "Two ingots of good iron and a length of softwood. I sell the iron, or you can salvage a blade you've no use for and bring me the metal. The softwood comes off the fallen boughs up in the Whispering Woods, north past the gate. And you'll want my anvil -- cold-forging a hatchet is a fool's errand.",
+            "choices": [
+                {
+                    "text": "Show me the pattern.",
+                    "aliases": [
+                        "teach me",
+                        "make one",
+                        "learn it"
+                    ],
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "item_iron_ingot",
+                        "quantity": 2
+                    },
+                    "next_node": "teach"
+                },
+                {
+                    "text": "I've been up to the woods already.",
+                    "condition": {
+                        "kind": "visited_region",
+                        "region_id": "forest"
+                    },
+                    "next_node": "woods"
+                },
+                {
+                    "text": "Understood.",
+                    "end": true
+                }
+            ]
+        },
+        "woods": {
+            "text": "Then you've seen the boughs yourself. Good -- a smith likes a customer who has already done the walking. Bring me the iron and the wood, and I'll stand at the anvil with you.",
+            "choices": [
+                {
+                    "text": "Show me the pattern now.",
+                    "aliases": [
+                        "teach me",
+                        "show me how"
+                    ],
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "item_iron_ingot",
+                        "quantity": 2
+                    },
+                    "next_node": "teach"
+                },
+                {
+                    "text": "I'll come back with both.",
+                    "end": true
+                }
+            ]
+        },
+        "missing": {
+            "text": "A caravan was meant to bring me steel from the coast. It never came, and nobody in the village will say why. If you hear anything on the road, I'd pay for the telling.",
+            "effects": {
+                "set_flag": "grenda_asked_about_caravan"
+            },
+            "choices": [
+                {
+                    "text": "What were you expecting?",
+                    "next_node": "missing_more"
+                },
+                {
+                    "text": "I'll keep an eye out.",
+                    "end": true
+                }
+            ]
+        },
+        "missing_more": {
+            "text": "Four bars of coast iron, paid for in advance. If it went into the river I want to know that too -- it's the not knowing that wears at me.",
+            "choices": [
+                {
+                    "text": "I'll ask around.",
+                    "end": true
+                }
+            ]
+        },
+        "teach": {
+            "text": "Watch the hammer, not my hands. Two ingots, one softwood, and the anvil here. Draw the haft out thin or it'll snap on you the first cold morning.",
+            "effects": {
+                "grant_recipe": "forge_travelers_hatchet",
+                "adjust_relationship": {
+                    "amount": 5
+                },
+                "set_flag": "grenda_taught_hatchet"
+            },
+            "choices": [
+                {
+                    "text": "Thank you.",
+                    "end": true
+                },
+                {
+                    "text": "What do I owe you?",
+                    "next_node": "price"
+                }
+            ]
+        },
+        "price": {
+            "text": "Nothing today. Bring me the first one you make and let me look at the haft -- that's payment enough for a smith.",
+            "choices": [
+                {
+                    "text": "Agreed.",
+                    "end": true
+                }
+            ]
+        },
+        "trade": {
+            "text": "Ingots? I keep a few by the door. Ask to trade and we'll see what your purse says.",
+            "choices": [
+                {
+                    "text": "What are you working on?",
+                    "next_node": "working"
+                },
+                {
+                    "text": "Later.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

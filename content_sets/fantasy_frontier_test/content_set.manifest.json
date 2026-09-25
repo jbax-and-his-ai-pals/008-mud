@@ -1,0 +1,33 @@
+{
+    "id": "fantasy_frontier_test",
+    "title": "Fantasy Frontier Test",
+    "version": "0.1.0",
+    "manifest_schema_version": "1",
+    "engine_api_min": "1.0",
+    "engine_api_max": "1.0",
+    "paths": {
+        "content_root": "data",
+        "feature_profile": "data/profiles/creative_world.profile.json",
+        "ruleset": "rules/ruleset.json",
+        "presentation": "presentation/default.json",
+        "opening": "opening/arrival_in_town.json"
+    },
+    "start": {
+        "scenario_id": "arrival_in_town",
+        "region_id": "town",
+        "room_id": "town_square"
+    },
+    "capabilities": [
+        "inventory",
+        "quests",
+        "combat",
+        "abilities",
+        "magic",
+        "crafting",
+        "gathering",
+        "dialogue",
+        "collections",
+        "discoveries",
+        "social"
+    ]
+}

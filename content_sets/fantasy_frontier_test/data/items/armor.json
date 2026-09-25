@@ -1,0 +1,491 @@
+{
+    "item_leather_cap": {
+        "type": "Armor",
+        "name": "leather cap",
+        "description": "A simple cap made of hardened leather. Offers basic head protection.",
+        "weight": 0.5,
+        "value": 10,
+        "stackable": false,
+        "properties": {
+            "defense": 1,
+            "armor_material": "leather",
+            "durability": 30,
+            "max_durability": 30,
+            "equip_slot": [
+                "head"
+            ],
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_leather_tunic": {
+        "type": "Armor",
+        "name": "leather tunic",
+        "description": "A tunic crafted from thick, boiled leather panels sewn together.",
+        "weight": 3,
+        "value": 25,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "leather",
+            "durability": 50,
+            "max_durability": 50,
+            "equip_slot": [
+                "body"
+            ],
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "defense_profile": "light_armour",
+        "item_family": "armor"
+    },
+    "item_leather_gloves": {
+        "type": "Armor",
+        "name": "leather gloves",
+        "description": "Simple gloves made from tough leather.",
+        "weight": 0.3,
+        "value": 8,
+        "stackable": false,
+        "properties": {
+            "defense": 1,
+            "armor_material": "leather",
+            "durability": 25,
+            "max_durability": 25,
+            "equip_slot": [
+                "hands"
+            ],
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_studded_leather_gloves": {
+        "type": "Armor",
+        "name": "studded leather gloves",
+        "description": "Leather gloves reinforced across the knuckles with small iron studs. They trade a little flexibility for a firmer grip in a fight.",
+        "weight": 0.6,
+        "value": 28,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "leather",
+            "durability": 45,
+            "max_durability": 45,
+            "equip_slot": [
+                "hands"
+            ],
+            "requirements": {
+                "dexterity": 11
+            },
+            "equip_effect": {
+                "type": "stat_mod",
+                "name": "Studded Grip",
+                "modifiers": {
+                    "dexterity": 1
+                }
+            },
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_leather_boots": {
+        "type": "Armor",
+        "name": "leather boots",
+        "description": "Sturdy boots made of thick leather, suitable for adventuring.",
+        "weight": 1.2,
+        "value": 12,
+        "stackable": false,
+        "properties": {
+            "defense": 1,
+            "armor_material": "leather",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "feet"
+            ],
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_trailwarden_boots": {
+        "type": "Armor",
+        "name": "trailwarden boots",
+        "description": "Tall, waxed boots packed with bitter herbs. Heavier than common leather boots, but made for bad ground and foul air.",
+        "weight": 1.8,
+        "value": 30,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "leather",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "feet"
+            ],
+            "requirements": {
+                "agility": 11
+            },
+            "resistances": {
+                "poison": 12
+            },
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_padded_tunic": {
+        "type": "Armor",
+        "name": "padded tunic",
+        "description": "A cloth tunic reinforced with layers of thick padding sewn inside.",
+        "weight": 4,
+        "value": 40,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "cloth",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_cultist_robes": {
+        "type": "Armor",
+        "name": "cultist robes",
+        "description": "Dark, hooded robes stained with something unpleasant.",
+        "weight": 2,
+        "value": 15,
+        "properties": {
+            "defense": 1,
+            "armor_material": "cloth",
+            "durability": 20,
+            "max_durability": 20,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_lizardfolk_shield": {
+        "type": "Armor",
+        "name": "lizardfolk shield",
+        "description": "A sturdy shield made from the hardened hide of a large reptile.",
+        "weight": 4,
+        "value": 30,
+        "properties": {
+            "defense": 2,
+            "armor_material": "leather",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "off_hand"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_wolf_pelt_cloak": {
+        "type": "Armor",
+        "name": "wolf pelt cloak",
+        "description": "A cloak stitched from a wolf's pelt, still carrying a hint of the hunt.",
+        "weight": 2,
+        "value": 20,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "leather",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "body"
+            ],
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_trollhide_vest": {
+        "type": "Armor",
+        "name": "trollhide vest",
+        "description": "A heavy vest cut from troll hide, thick enough to have shrugged off more than one blade.",
+        "weight": 5,
+        "value": 45,
+        "stackable": false,
+        "properties": {
+            "defense": 4,
+            "armor_material": "leather",
+            "durability": 70,
+            "max_durability": 70,
+            "equip_slot": [
+                "body"
+            ],
+            "salvage_output": {
+                "item_id": "item_leather_strip",
+                "quantity_per_weight": 1
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_chain_coif": {
+        "type": "Armor",
+        "name": "chain coif",
+        "description": "A hood of fine iron rings, worn over a padded cap.",
+        "weight": 2,
+        "value": 55,
+        "properties": {
+            "defense": 3,
+            "armor_material": "chain",
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
+            "equip_slot": [
+                "head"
+            ],
+            "requirements": {
+                "strength": 11
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_chain_hauberk": {
+        "type": "Armor",
+        "name": "chain hauberk",
+        "description": "A knee-length shirt of interlocking iron rings, worn by soldiers who expect to be hit.",
+        "weight": 8,
+        "value": 95,
+        "properties": {
+            "defense": 6,
+            "armor_material": "chain",
+            "tier": 2,
+            "durability": 70,
+            "max_durability": 70,
+            "equip_slot": [
+                "body"
+            ],
+            "requirements": {
+                "strength": 12
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_chain_gauntlets": {
+        "type": "Armor",
+        "name": "chain gauntlets",
+        "description": "Riveted mail gloves, stiff but far better than bare knuckles.",
+        "weight": 1.5,
+        "value": 50,
+        "properties": {
+            "defense": 3,
+            "armor_material": "chain",
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
+            "equip_slot": [
+                "hands"
+            ],
+            "requirements": {
+                "strength": 11
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_chain_sabatons": {
+        "type": "Armor",
+        "name": "chain sabatons",
+        "description": "Mail-covered boots, laced tight enough not to catch underfoot.",
+        "weight": 2,
+        "value": 50,
+        "properties": {
+            "defense": 3,
+            "armor_material": "chain",
+            "tier": 2,
+            "durability": 55,
+            "max_durability": 55,
+            "equip_slot": [
+                "feet"
+            ],
+            "requirements": {
+                "strength": 11
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_warding_torc": {
+        "type": "Armor",
+        "name": "warding torc",
+        "description": "A twisted iron torc, its ends capped with wardstones against the mine's fouler air.",
+        "weight": 0.2,
+        "value": 60,
+        "properties": {
+            "defense": 1,
+            "tier": 2,
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "neck"
+            ],
+            "resistances": {
+                "poison": 10
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_acolytes_mantle": {
+        "type": "Armor",
+        "name": "acolyte's mantle",
+        "description": "A light shoulder mantle worn over robes, chosen for how little it interferes with a spellcaster's hands.",
+        "weight": 1,
+        "value": 55,
+        "properties": {
+            "defense": 2,
+            "armor_material": "cloth",
+            "tier": 2,
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "body"
+            ],
+            "equip_effect": {
+                "type": "stat_mod",
+                "name": "Acolyte's Focus",
+                "modifiers": {
+                    "spell_power": 3
+                }
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_plate_helm": {
+        "type": "Armor",
+        "name": "plate helm",
+        "description": "A close-fitted steel helm with a hinged visor, its curved surfaces built to glance off a blow rather than absorb it.",
+        "weight": 4,
+        "value": 140,
+        "properties": {
+            "defense": 5,
+            "armor_material": "plate",
+            "tier": 3,
+            "durability": 80,
+            "max_durability": 80,
+            "equip_slot": [
+                "head"
+            ],
+            "requirements": {
+                "strength": 16
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_plate_cuirass": {
+        "type": "Armor",
+        "name": "plate cuirass",
+        "description": "A full breastplate and backplate of hardened steel. It stops almost anything, but its weight is felt in every step.",
+        "weight": 14,
+        "value": 220,
+        "properties": {
+            "defense": 11,
+            "armor_material": "plate",
+            "tier": 3,
+            "durability": 90,
+            "max_durability": 90,
+            "equip_slot": [
+                "body"
+            ],
+            "requirements": {
+                "strength": 17
+            },
+            "equip_effect": {
+                "type": "stat_mod",
+                "name": "Plate Encumbrance",
+                "modifiers": {
+                    "agility": -2
+                }
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_plate_gauntlets": {
+        "type": "Armor",
+        "name": "plate gauntlets",
+        "description": "Articulated steel gauntlets, heavy enough to turn a blade and still let a hand close around a hilt.",
+        "weight": 3,
+        "value": 130,
+        "properties": {
+            "defense": 5,
+            "armor_material": "plate",
+            "tier": 3,
+            "durability": 80,
+            "max_durability": 80,
+            "equip_slot": [
+                "hands"
+            ],
+            "requirements": {
+                "strength": 16
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_plate_sabatons": {
+        "type": "Armor",
+        "name": "plate sabatons",
+        "description": "Segmented steel foot armor, solid enough to double as a weapon in a pinch.",
+        "weight": 3.5,
+        "value": 130,
+        "properties": {
+            "defense": 5,
+            "armor_material": "plate",
+            "tier": 3,
+            "durability": 80,
+            "max_durability": 80,
+            "equip_slot": [
+                "feet"
+            ],
+            "requirements": {
+                "strength": 16
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_vanguards_signet": {
+        "type": "Armor",
+        "name": "vanguard's signet",
+        "description": "A heavy signet ring worn on a chain, marking its bearer as someone who has held a line and survived it.",
+        "weight": 0.2,
+        "value": 150,
+        "properties": {
+            "defense": 2,
+            "tier": 3,
+            "durability": 50,
+            "max_durability": 50,
+            "equip_slot": [
+                "neck"
+            ],
+            "equip_effect": {
+                "type": "stat_mod",
+                "name": "Vanguard's Resolve",
+                "modifiers": {
+                    "constitution": 2
+                }
+            }
+        },
+        "item_family": "armor"
+    }
+}

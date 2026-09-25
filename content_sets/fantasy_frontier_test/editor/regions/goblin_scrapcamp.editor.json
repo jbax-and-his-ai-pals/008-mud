@@ -1,0 +1,41 @@
+{
+	"region": {},
+	"rooms": {
+		"firepit_circle": {
+			"_editor_pos": [
+				0.0,
+				-384.0
+			]
+		},
+		"lookout_ladder": {
+			"_editor_pos": [
+				256.0,
+				-192.0
+			]
+		},
+		"mushroom_hollow": {
+			"_editor_pos": [
+				-256.0,
+				-384.0
+			]
+		},
+		"scrap_gate": {
+			"_editor_pos": [
+				0.0,
+				-192.0
+			]
+		},
+		"snare_trail": {
+			"_editor_pos": [
+				0.0,
+				0.0
+			]
+		},
+		"trophy_stash": {
+			"_editor_pos": [
+				0.0,
+				-576.0
+			]
+		}
+	}
+}

@@ -1,0 +1,89 @@
+{
+    "region_id": "reedscale_village",
+    "name": "Reedscale Village",
+    "description": "A lizardfolk settlement raised on root-bound platforms above Murkwater's deeper channels. Reed walls, fish racks, and narrow boardwalks show a people adapted to the swamp rather than lost in it.",
+    "properties": {
+        "biome": "swamp",
+        "weather_profile": "swamp",
+        "region_type": "settlement",
+        "level_band": {
+            "min": 4,
+            "max": 5
+        }
+    },
+    "spawner": {
+        "monster_types": {
+            "lizardfolk_warrior": 7,
+            "giant_rat": 1
+        },
+        "level_range": [
+            4,
+            5
+        ]
+    },
+    "rooms": {
+        "reed_gate": {
+            "name": "Reedscale Gate",
+            "description": "A raised boardwalk begins beyond a braided wall of reeds and sharpened driftwood. The path is narrow enough for its defenders to control, and the mud below is deep enough to discourage a careless retreat.",
+            "exits": {
+                "north": "swamp:lizard_den",
+                "south": "longhouse_court"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "lizardfolk_warrior",
+                    "instance_id": "reedscale_gate_warrior"
+                }
+            ]
+        },
+        "longhouse_court": {
+            "name": "Longhouse Court",
+            "description": "Several reed-roofed longhouses face a central platform strewn with nets, baskets, and drying scales. The village is plainly defensive, but its careful stores and shared work make clear that it is also a home.",
+            "exits": {
+                "north": "reed_gate",
+                "east": "fish_racks",
+                "south": "shamans_platform",
+                "west": "nursery_channel"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "lizardfolk_warrior",
+                    "instance_id": "reedscale_court_warrior"
+                }
+            ]
+        },
+        "fish_racks": {
+            "name": "Fish Racks",
+            "description": "Rows of smoked fish hang beneath a canopy of broad leaves. Clay jars hold salt and swamp herbs, and a shallow channel beneath the racks gives the village a direct route to the darker water beyond.",
+            "exits": {
+                "west": "longhouse_court"
+            },
+            "items": [
+                {
+                    "item_id": "item_swamp_fungus",
+                    "quantity": 2
+                }
+            ]
+        },
+        "shamans_platform": {
+            "name": "Shaman's Platform",
+            "description": "A high platform woven through an old cypress holds carved bones, bowls of black water, and a view over the mist. Muddy footprints circle the place in a pattern that looks ceremonial as well as practical.",
+            "exits": {
+                "north": "longhouse_court"
+            },
+            "items": [
+                {
+                    "item_id": "item_lizard_scale",
+                    "quantity": 2
+                }
+            ]
+        },
+        "nursery_channel": {
+            "name": "Nursery Channel",
+            "description": "A sheltered channel runs beneath the western houses, screened from the open swamp by roots and reed mats. Small baskets and smooth stones line the water's edge, evidence of lives the warriors keep out of sight.",
+            "exits": {
+                "east": "longhouse_court"
+            }
+        }
+    }
+}

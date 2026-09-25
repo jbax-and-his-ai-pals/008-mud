@@ -1,0 +1,82 @@
+{
+    "region_id": "sunscorch_road",
+    "name": "Sunscorch Expanse",
+    "description": "Beyond Frostpeak's dry eastern pass, broken highland gives way to a severe desert of salt flats, wind-cut stone, and distant dunes. The caravan road is visible only because generations of travellers have left markers where the land would rather erase them.",
+    "properties": {
+        "biome": "desert",
+        "weather_profile": "desert",
+        "region_type": "wilderness",
+        "level_band": {
+            "min": 8,
+            "max": 10
+        }
+    },
+    "spawner": {
+        "monster_types": {
+            "dune_scorpion": 4,
+            "sand_raider": 3,
+            "glass_elemental": 1
+        },
+        "level_range": [
+            8,
+            10
+        ]
+    },
+    "rooms": {
+        "windbreak_pass": {
+            "name": "Windbreak Pass",
+            "description": "The last shoulder of Frostpeak drops away into a dry, copper-coloured horizon. Cairns wrapped in old cloth mark the place where mountain weather gives way to the desert's harsher kind of emptiness. One cairn stands on an outcrop of orange stone that flashes like embers when the sun strikes it.",
+            "exits": {
+                "southwest": "mountains:high_pass",
+                "east": "caravan_track"
+            },
+            "items": [
+                {
+                    "item_id": "node_sunstone_outcrop"
+                }
+            ]
+        },
+        "caravan_track": {
+            "name": "Caravan Track",
+            "description": "Parallel wheel ruts run across hard-baked earth between black stone markers. The track is travelled often enough to survive, but each abandoned crate and bleached harness warns how little forgiveness the open land offers.",
+            "exits": {
+                "west": "windbreak_pass",
+                "east": "salt_flat",
+                "south": "dune_cut"
+            }
+        },
+        "salt_flat": {
+            "name": "White Salt Flat",
+            "description": "A flat sheet of pale salt stretches beneath the sun, broken by shallow cracks and mirages. The brightness makes every distant shape look closer than it is.",
+            "exits": {
+                "west": "caravan_track",
+                "east": "mirror_oasis"
+            },
+            "properties": {
+                "hazard_type": "extreme_heat",
+                "hazard_damage": 15,
+                "hazard_tick_interval": 6,
+                "weather_hazard_multipliers": {
+                    "sandstorm": 1.25
+                }
+            }
+        },
+        "mirror_oasis": {
+            "name": "Mirror Oasis",
+            "description": "A small pool lies beneath date palms and a low sandstone overhang. Its surface reflects the sky so perfectly that it seems deeper than it is; a stone trough and fresh hoofprints prove that caravans still trust this water.",
+            "exits": {
+                "west": "salt_flat"
+            },
+            "properties": {}
+        },
+        "dune_cut": {
+            "name": "Dune Cut",
+            "description": "A narrow route has been cut between two migrating dunes and held open with reed screens. Sand piles against the screens in restless drifts, and the walls give ambushers far too many places to wait.",
+            "exits": {
+                "north": "caravan_track",
+                "east": "sunscorch_caravanserai:west_gate"
+            },
+            "properties": {}
+        }
+    }
+}

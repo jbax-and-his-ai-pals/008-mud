@@ -1,0 +1,93 @@
+{
+    "region": {},
+    "rooms": {
+        "grassy_slope": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "rocky_outcrop": {
+            "_editor_pos": [
+                0,
+                -192
+            ]
+        },
+        "steep_trail": {
+            "_editor_pos": [
+                0,
+                -384
+            ]
+        },
+        "windy_ridge": {
+            "_editor_pos": [
+                256,
+                -576
+            ]
+        },
+        "mountain_pass_approach": {
+            "_editor_pos": [
+                256,
+                -768
+            ]
+        },
+        "high_meadow": {
+            "_editor_pos": [
+                512,
+                -576
+            ]
+        },
+        "hilltop_cave_entrance": {
+            "_editor_pos": [
+                512,
+                -384
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "hilltop_cave",
+                    "visual_direction": "southeast",
+                    "placement": "stacked",
+                    "inferred": true
+                }
+            }
+        },
+        "hilltop_cave": {
+            "_editor_pos": [
+                640,
+                -288
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "hilltop_cave_entrance",
+                    "visual_direction": "northwest",
+                    "placement": "stacked",
+                    "inferred": true
+                }
+            }
+        },
+        "standing_stone": {
+            "_editor_pos": [
+                256,
+                -384
+            ]
+        },
+        "shepherds_path": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "shepherds_hut": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "sheep_pen": {
+            "_editor_pos": [
+                512,
+                -128
+            ]
+        }
+    }
+}

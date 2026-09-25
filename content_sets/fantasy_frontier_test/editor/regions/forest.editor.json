@@ -1,0 +1,125 @@
+{
+	"region": {},
+	"rooms": {
+		"forest_edge": {
+			"_editor_pos": [
+				0.0,
+				0.0
+			]
+		},
+		"forest_path_1": {
+			"_editor_pos": [
+				0.0,
+				-250.0
+			]
+		},
+		"crossroads": {
+			"_editor_pos": [
+				0.0,
+				-500.0
+			]
+		},
+		"western_thicket": {
+			"_editor_pos": [
+				-350.0,
+				-250.0
+			]
+		},
+		"wolf_den_entrance": {
+			"_editor_pos": [
+				-350.0,
+				0.0
+			]
+		},
+		"wolf_den_cave": {
+			"_editor_pos": [
+				-280.0,
+				50.0
+			]
+		},
+		"clearing": {
+			"_editor_pos": [
+				-350.0,
+				-500.0
+			]
+		},
+		"abandoned_cabin": {
+			"_editor_pos": [
+				-350.0,
+				-250.0
+			]
+		},
+		"dense_woods_1": {
+			"_editor_pos": [
+				0.0,
+				-750.0
+			]
+		},
+		"up": {
+			"_editor_pos": [
+				-350.0,
+				-1000.0
+			]
+		},
+		"ruins_approach_path": {
+			"_editor_pos": [
+				-700.0,
+				-1000.0
+			]
+		},
+		"deep_forest_1": {
+			"_editor_pos": [
+				0.0,
+				-1000.0
+			]
+		},
+		"deep_forest_2": {
+			"_editor_pos": [
+				0.0,
+				-1250.0
+			]
+		},
+		"stream_approach": {
+			"_editor_pos": [
+				350.0,
+				-500.0
+			]
+		},
+		"stream_crossing": {
+			"_editor_pos": [
+				175.0,
+				-375.0
+			]
+		},
+		"east_bank": {
+			"_editor_pos": [
+				525.0,
+				-375.0
+			]
+		},
+		"ancient_path_1": {
+			"_editor_pos": [
+				875.0,
+				-375.0
+			]
+		},
+		"spider_nest": {
+			"_editor_pos": [
+				875.0,
+				-625.0
+			]
+		},
+		"ancient_path_2": {
+			"_editor_pos": [
+				1225.0,
+				-375.0
+			]
+		},
+		"ancient_oak": {
+			"_editor_pos": [
+				1575.0,
+				-375.0
+			]
+		}
+	}
+}

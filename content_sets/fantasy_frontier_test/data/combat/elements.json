@@ -1,0 +1,84 @@
+{
+  "valid_damage_types": [
+    "physical",
+    "fire", "ice", "lightning", "water", "earth", "air", "poison", "acid",
+    "holy", "shadow", "arcane", "magical", "disease"
+  ],
+  "default_damage_type": "magical",
+  "flavor_text": {
+    "fire": {
+      "weakness": "The flames roar, incinerating {target_name}'s vulnerability!",
+      "resistance": "{target_name} shrugs off the heat.",
+      "strong_resistance": "The fire washes over {target_name} harmlessly."
+    },
+    "ice": {
+      "weakness": "{target_name} shatters under the extreme cold!",
+      "resistance": "{target_name} ignores the chill.",
+      "strong_resistance": "The ice cracks uselessly against {target_name}."
+    },
+    "lightning": {
+      "weakness": "Electricity arcs through {target_name} violently!",
+      "resistance": "{target_name} grounds the spark.",
+      "strong_resistance": "{target_name} is unfazed by the lightning."
+    },
+    "holy": {
+      "weakness": "{target_name} screams as the divine light burns their corruption!",
+      "resistance": "The holy light dims against {target_name}.",
+      "strong_resistance": "{target_name} is untouched by the light."
+    },
+    "shadow": {
+      "weakness": "The shadows drain the very life essence from {target_name}!",
+      "resistance": "{target_name} resists the encroaching darkness.",
+      "strong_resistance": "{target_name} is one with the shadows."
+    },
+    "poison": {
+      "weakness": "The toxin ravages {target_name}'s body!",
+      "resistance": "{target_name}'s immunity fights off the poison.",
+      "strong_resistance": "{target_name} is immune to the toxin."
+    },
+    "default": {
+      "weakness": "{target_name} is vulnerable to the attack!",
+      "resistance": "{target_name} resists the attack.",
+      "strong_resistance": "{target_name} strongly resists the attack."
+    }
+  },
+  "_hazards_comment": "One record per hazard: what channel it damages through, what a player reads when it does, and the base damage and tick interval a room inherits by naming it. A room may override `hazard_damage`/`hazard_tick_interval` when its instance of the same hazard is worse -- `extreme_heat` runs hotter in the trial's inner sanctum than on the salt flat -- and may scale it with `weather_hazard_multipliers`. The prose used to be keyed by damage channel, which meant two hazards sharing a channel shared a sentence and a hazard's own name never reached a player.",
+  "hazards": {
+    "extreme_heat": {
+      "channel": "fire",
+      "flavor": "The intense heat scorches you!",
+      "damage": 5,
+      "tick_interval": 5
+    },
+    "extreme_cold": {
+      "channel": "ice",
+      "flavor": "The biting cold freezes your skin!",
+      "damage": 5,
+      "tick_interval": 5
+    },
+    "poison_gas": {
+      "channel": "poison",
+      "flavor": "You choke on the toxic fumes!",
+      "damage": 6,
+      "tick_interval": 5
+    },
+    "electrified_floor": {
+      "channel": "lightning",
+      "flavor": "Sparks from the floor shock you!",
+      "damage": 6,
+      "tick_interval": 5
+    },
+    "unholy_aura": {
+      "channel": "shadow",
+      "flavor": "The oppressive darkness drains your life!",
+      "damage": 4,
+      "tick_interval": 5
+    },
+    "quicksand": {
+      "channel": "physical",
+      "flavor": "The sucking mud drags you under!",
+      "damage": 4,
+      "tick_interval": 5
+    }
+  }
+}

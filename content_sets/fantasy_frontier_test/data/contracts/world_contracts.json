@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "label": "Fantasy Frontier contracts",
+  "_comment": "What this content set declares things to BE. The engine resolves item_family -> item_class and generation_profile -> roll tables from here, so it never has to know the word 'gem'. Adding a sci-fi set means declaring families like 'energy_cell' and 'alloy_plate' beside these; nothing in server/engine changes. See docs/design/cross_theme_engine_contracts.md.",
+  "resources": [
+    {
+      "id": "health",
+      "label": "Health",
+      "short": "HP",
+      "kind": "vital",
+      "regenerates": false,
+      "max_stat": "constitution"
+    },
+    {
+      "id": "mana",
+      "label": "Mana",
+      "short": "MP",
+      "kind": "ability",
+      "_comment": "The ability pool. `max_stat` drives how large it is and `regeneration_stat` how fast it refills -- both read by engine/contracts/resources.py, so a set whose abilities draw on something else declares its own resource and inherits nothing.",
+      "regenerates": true,
+      "regeneration_stat": "wisdom",
+      "max_stat": "intelligence"
+    }
+  ],
+  "stats": {
+    "_comment": "The stat vocabulary, and which stat fills which mechanical role. Read through engine/contracts/stats.py. Without this section the engine falls back to exactly these names, so declaring them is how a set says its vocabulary out loud -- and how a set that wants different names changes them.",
+    "roles": {
+      "health": "constitution",
+      "attack": "strength",
+      "defence": "dexterity",
+      "evasion": "agility",
+      "regeneration": "strength",
+      "power": "intelligence",
+      "ability_power": "spell_power",
+      "resistance": "magic_resist"
+    },
+    "short": {
+      "strength": "STR",
+      "dexterity": "DEX",
+      "constitution": "CON",
+      "agility": "AGI",
+      "intelligence": "INT",
+      "wisdom": "WIS",
+      "spell_power": "SP",
+      "magic_resist": "MR"
+    },
+    "order": [
+      "strength", "dexterity", "constitution",
+      "agility", "intelligence", "wisdom",
+      "spell_power", "magic_resist"
+    ]
+  },
+  "item_families": [
+    {
+      "id": "collectible_stone",
+      "label": "Collectible stone",
+      "description": "A found, cut or uncut stone that is worth cataloguing and can be graded.",
+      "item_class": "Gem",
+      "capabilities": [
+        "collectible",
+        "material_quality",
+        "generated_instance"
+      ],
+      "generation_profile": "faceted_stone",
+      "icon_style": "gem"
+    },
+    {
+      "id": "weapon",
+      "label": "Weapon",
+      "description": "Something wielded, with an attack profile.",
+      "item_class": "Weapon",
+      "capabilities": [
+        "equippable",
+        "durability"
+      ],
+      "icon_style": "blade"
+    },
+    {
+      "id": "armor",
+      "label": "Armour",
+      "description": "Something worn for protection, with a defense profile.",
+      "item_class": "Armor",
+      "capabilities": [
+        "equippable",
+        "durability"
+      ],
+      "icon_style": "shield"
+    },
+    {
+      "id": "consumable",
+      "label": "Consumable",
+      "description": "Used up for an effect.",
+      "item_class": "Consumable",
+      "capabilities": [
+        "usable"
+      ],
+      "icon_style": "bottle"
+    },
+    {
+      "id": "material",
+      "label": "Material",
+      "description": "Raw stock that recipes and repairs consume.",
+      "item_class": "Item",
+      "capabilities": [
+        "crafting_input"
+      ],
+      "icon_style": "box"
+    },
+    {
+      "id": "curio",
+      "label": "Curio",
+      "description": "Worth little, kept anyway. Trade goods and salvage.",
+      "item_class": "Junk",
+      "capabilities": [
+        "vendor_trash"
+      ],
+      "icon_style": "box"
+    },
+    {
+      "id": "treasure",
+      "label": "Treasure",
+      "description": "Kept for its worth rather than its use.",
+      "item_class": "Treasure",
+      "capabilities": [
+        "vendor_trash",
+        "valuable"
+      ],
+      "icon_style": "box"
+    },
+    {
+      "id": "container",
+      "label": "Container",
+      "description": "Something that holds other things.",
+      "item_class": "Container",
+      "capabilities": [
+        "container"
+      ],
+      "icon_style": "box"
+    },
+    {
+      "id": "key",
+      "label": "Key",
+      "description": "Opens a specific lock.",
+      "item_class": "Key",
+      "capabilities": [
+        "opens_locks"
+      ],
+      "icon_style": "key"
+    },
+    {
+      "id": "lockpick",
+      "label": "Lockpick",
+      "description": "Opens locks that have no key.",
+      "item_class": "Lockpick",
+      "capabilities": [
+        "bypasses_locks",
+        "durability"
+      ],
+      "icon_style": "pick"
+    }
+  ],
+  "generation_profiles": [
+    {
+      "id": "faceted_stone",
+      "label": "Cut or uncut stone",
+      "item_family": "collectible_stone",
+      "_comment": "Rarity is the species' own (authored per template); size and quality roll per instance. These tables are the ones GemGenerator used to hardcode, now authored so another content set can roll stones differently.",
+      "property_prefix": "gem",
+      "name_template": "{quality} {size} {base}",
+      "rarity_tiers": [
+        {
+          "id": "common",
+          "rank": 1,
+          "weight": 80
+        },
+        {
+          "id": "uncommon",
+          "rank": 2,
+          "weight": 28
+        },
+        {
+          "id": "rare",
+          "rank": 3,
+          "weight": 8
+        },
+        {
+          "id": "legendary",
+          "rank": 4,
+          "weight": 2
+        }
+      ],
+      "size_tiers": [
+        {
+          "id": "tiny",
+          "label": "tiny",
+          "score": 1,
+          "value_multiplier": 0.45,
+          "weight_multiplier": 0.35
+        },
+        {
+          "id": "small",
+          "label": "small",
+          "score": 2,
+          "value_multiplier": 0.7,
+          "weight_multiplier": 0.65
+        },
+        {
+          "id": "standard",
+          "label": "",
+          "score": 3,
+          "value_multiplier": 1.0,
+          "weight_multiplier": 1.0
+        },
+        {
+          "id": "large",
+          "label": "large",
+          "score": 4,
+          "value_multiplier": 1.65,
+          "weight_multiplier": 1.7
+        },
+        {
+          "id": "magnificent",
+          "label": "magnificent",
+          "score": 5,
+          "value_multiplier": 3.0,
+          "weight_multiplier": 3.0
+        }
+      ],
+      "quality_tiers": [
+        {
+          "id": "flawed",
+          "label": "Flawed",
+          "score": 1,
+          "value_multiplier": 0.45
+        },
+        {
+          "id": "rough",
+          "label": "Rough",
+          "score": 2,
+          "value_multiplier": 0.7
+        },
+        {
+          "id": "fine",
+          "label": "Fine",
+          "score": 3,
+          "value_multiplier": 1.0
+        },
+        {
+          "id": "exceptional",
+          "label": "Exceptional",
+          "score": 4,
+          "value_multiplier": 1.6
+        },
+        {
+          "id": "perfect",
+          "label": "Perfect",
+          "score": 5,
+          "value_multiplier": 2.8
+        }
+      ]
+    }
+  ],
+  "attack_profiles": [
+    {
+      "id": "melee_blade",
+      "label": "Bladed weapon",
+      "damage_type": "physical",
+      "cooldown": 3.0,
+      "tags": [
+        "melee",
+        "blade"
+      ],
+      "damage": 8,
+      "weapon_damage_type": "slashing"
+    },
+    {
+      "id": "arcane_bolt",
+      "label": "Arcane projectile",
+      "damage_type": "arcane",
+      "cooldown": 3.0,
+      "resource_cost": {
+        "resource": "mana",
+        "amount": 5
+      },
+      "tags": [
+        "ranged",
+        "magic"
+      ]
+    }
+  ],
+  "defense_profiles": [
+    {
+      "id": "light_armour",
+      "label": "Light armour",
+      "defense": 2,
+      "material": "leather",
+      "tags": [
+        "armour",
+        "light"
+      ]
+    }
+  ],
+  "effect_packets": [
+    {
+      "id": "restore_resource",
+      "label": "Restore a resource",
+      "kind": "restore",
+      "resource": "health",
+      "value": 15
+    },
+    {
+      "id": "damage_packet",
+      "label": "Deal damage",
+      "kind": "damage",
+      "value": 8,
+      "tags": [
+        "physical"
+      ]
+    },
+    {
+      "id": "grant_recipe",
+      "label": "Teach a recipe",
+      "kind": "teach",
+      "payload": {
+        "grants": "recipe"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "id": "magic_missile",
+      "label": "Magic Missile",
+      "description": "A bolt of pure arcane energy strikes your target.",
+      "effect_packet": "damage_packet",
+      "cost": {
+        "resource": "mana",
+        "amount": 5
+      },
+      "cooldown": 3.0,
+      "target_type": "enemy",
+      "level_required": 1
+    },
+    {
+      "id": "minor_heal",
+      "label": "Minor Heal",
+      "description": "Knits a small wound closed.",
+      "effect_packet": "restore_resource",
+      "cost": {
+        "resource": "mana",
+        "amount": 4
+      },
+      "cooldown": 2.0,
+      "target_type": "ally",
+      "level_required": 1
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+    "region_id": "sunscorch_caravanserai",
+    "name": "Sunscorch Caravanserai",
+    "description": "A walled caravan town built around a dependable spring at the desert road's eastern turn. Its people trade water, repairs, news, and safe passage with equal seriousness.",
+    "properties": {
+        "safe_zone": true,
+        "biome": "desert",
+        "weather_profile": "desert",
+        "region_type": "settlement",
+        "level_band": {
+            "min": 9,
+            "max": 12
+        }
+    },
+    "rooms": {
+        "west_gate": {
+            "name": "Sunscorch West Gate",
+            "description": "Thick adobe walls and a shaded gatehouse shelter the caravanserai from the worst of the wind. A water tally is posted beside the entry, because no one enters the desert town without accounting for what they will need to leave it.",
+            "exits": {
+                "west": "sunscorch_road:dune_cut",
+                "east": "caravan_yard"
+            }
+        },
+        "caravan_yard": {
+            "name": "Caravan Yard",
+            "description": "Camels, pack mules, and low wagons crowd around a broad yard of packed earth. Drivers trade route news beneath canvas shades while attendants check harnesses for sand damage.",
+            "exits": {
+                "west": "west_gate",
+                "north": "water_court",
+                "east": "covered_bazaar",
+                "south": "wayfarers_rest"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "sunscorch_caravanmaster",
+                    "instance_id": "sada_sunscorch_yard"
+                }
+            ]
+        },
+        "water_court": {
+            "name": "Water Court",
+            "description": "A stone-lined spring feeds covered cisterns at the heart of the town. The court is quiet compared with the yard: every bucket is measured, every spill noticed, and even visitors lower their voices near the water.",
+            "exits": {
+                "south": "caravan_yard",
+                "east": "map_house"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "sunscorch_waterkeeper",
+                    "instance_id": "nahl_sunscorch_water"
+                }
+            ]
+        },
+        "covered_bazaar": {
+            "name": "Covered Bazaar",
+            "description": "Cloth awnings shade stalls of salt, dried fruit, lamp oil, and travel gear. Most merchants sell necessities first and curiosities second; the desert makes the distinction clear soon enough.",
+            "exits": {
+                "west": "caravan_yard",
+                "east": "east_gate",
+                "southwest": "wayfarers_rest"
+            },
+            "properties": {}
+        },
+        "wayfarers_rest": {
+            "name": "Wayfarers' Rest",
+            "description": "A cool common room opens around a small tiled courtyard. Route maps, old warnings, and names of lost caravans cover the walls between low tables set for travellers who have made it in from the dunes. A board by the courtyard door carries work posted for whoever is heading on next.",
+            "properties": {
+                "outdoors": false
+            },
+            "exits": {
+                "north": "caravan_yard",
+                "northeast": "covered_bazaar"
+            }
+        },
+        "map_house": {
+            "name": "Map House",
+            "description": "Rolls of route cloth, surveyed markers, and water accounts fill this narrow office. The map keeper's work is less about drawing the desert than recording which of its promises can still be trusted.",
+            "properties": {
+                "outdoors": false
+            },
+            "exits": {
+                "west": "water_court"
+            }
+        },
+        "east_gate": {
+            "name": "Sunscorch East Gate",
+            "description": "The eastern gate opens toward the old imperial road and the prosperous country beyond the desert. Fresh wagon tracks head that way beneath a line of shaded milestones, while the gate guards watch the open route for dust clouds.",
+            "exits": {
+                "west": "covered_bazaar",
+                "east": "aurelia_outlands:milestone_road"
+            }
+        }
+    },
+    "spawner": {}
+}

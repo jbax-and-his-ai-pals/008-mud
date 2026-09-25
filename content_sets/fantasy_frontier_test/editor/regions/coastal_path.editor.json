@@ -1,0 +1,81 @@
+{
+    "region": {},
+    "rooms": {
+        "mudflats": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "shipwreck_debris": {
+            "_editor_pos": [
+                -256,
+                0
+            ]
+        },
+        "salt_marsh": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        },
+        "tidal_pools": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "beach_approach": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        },
+        "sandy_beach": {
+            "_editor_pos": [
+                -256,
+                384
+            ]
+        },
+        "south_beach": {
+            "_editor_pos": [
+                -512,
+                576
+            ]
+        },
+        "sea_cave_entrance": {
+            "_editor_pos": [
+                -768,
+                576
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "sea_cave_main",
+                    "visual_direction": "southeast",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "sea_cave_main": {
+            "_editor_pos": [
+                -512,
+                768
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "sea_cave_entrance",
+                    "visual_direction": "northwest",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "sea_cave_back": {
+            "_editor_pos": [
+                -768,
+                768
+            ]
+        }
+    }
+}

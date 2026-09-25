@@ -1,0 +1,192 @@
+{
+    "region": {
+        "_proxy_positions": {
+            "tidewell_underworks:sluice_gate": [
+                128,
+                1184
+            ],
+            "coastal_path:beach_approach": [
+                0,
+                -448
+            ]
+        },
+        "_editor_connection_label_sources": {
+            "inn_cellar_tunnel|smugglers_tunnel_entrance": {
+                "source": "smugglers_tunnel_entrance",
+                "direction": "east"
+            },
+            "inn_cellar|smugglers_tunnel_entrance": {
+                "source": "inn_cellar",
+                "direction": "down"
+            },
+            "port_authority_office|town_center_portbridge": {
+                "source": "town_center_portbridge",
+                "direction": "east"
+            },
+            "harbor_district|lumber_storage": {
+                "source": "lumber_storage",
+                "direction": "southeast"
+            },
+            "shipwright_yard|town_center_portbridge": {
+                "source": "town_center_portbridge",
+                "direction": "west"
+            },
+            "shipwright_road|town_center_portbridge": {
+                "source": "town_center_portbridge",
+                "direction": "northwest"
+            },
+            "town_center_portbridge|town_gate_north": {
+                "source": "town_center_portbridge",
+                "direction": "north"
+            },
+            "harbor_road|town_center_portbridge": {
+                "source": "town_center_portbridge",
+                "direction": "south"
+            }
+        }
+    },
+    "rooms": {
+        "town_gate_north": {
+            "_editor_pos": [
+                0,
+                -224
+            ]
+        },
+        "town_gate_south": {
+            "_editor_pos": [
+                0,
+                800
+            ]
+        },
+        "harbor_road": {
+            "_editor_pos": [
+                0,
+                256
+            ]
+        },
+        "harbor_district": {
+            "_editor_pos": [
+                0,
+                512
+            ]
+        },
+        "sailors_rest_inn_exterior": {
+            "_editor_pos": [
+                -544,
+                512
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "sailors_rest_inn_common",
+                    "visual_direction": "southeast",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "sailors_rest_inn_common": {
+            "_editor_pos": [
+                -864,
+                512
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "sailors_rest_inn_exterior",
+                    "visual_direction": "northwest",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "inn_cellar": {
+            "_editor_pos": [
+                -864,
+                832
+            ]
+        },
+        "inn_cellar_tunnel": {
+            "_editor_pos": [
+                -544,
+                1184
+            ]
+        },
+        "inn_upper_floor": {
+            "_editor_pos": [
+                -928,
+                192
+            ]
+        },
+        "main_pier": {
+            "_editor_pos": [
+                352,
+                512
+            ]
+        },
+        "fish_market": {
+            "_editor_pos": [
+                352,
+                256
+            ]
+        },
+        "fishing_pier": {
+            "_editor_pos": [
+                704,
+                256
+            ]
+        },
+        "town_center_portbridge": {
+            "_editor_pos": [
+                0,
+                32
+            ]
+        },
+        "port_authority_office": {
+            "_editor_pos": [
+                352,
+                32
+            ]
+        },
+        "shipwright_road": {
+            "_editor_pos": [
+                -352,
+                -224
+            ]
+        },
+        "shipwright_yard": {
+            "_editor_pos": [
+                -352,
+                32
+            ]
+        },
+        "lumber_storage": {
+            "_editor_pos": [
+                -352,
+                256
+            ]
+        },
+        "smugglers_tunnel_entrance": {
+            "_editor_pos": [
+                -864,
+                1184
+            ]
+        },
+        "smugglers_tunnel": {
+            "_editor_pos": [
+                -224,
+                1440
+            ]
+        },
+        "smugglers_crossroads": {
+            "_editor_pos": [
+                -224,
+                1184
+            ]
+        },
+        "underground_cache": {
+            "_editor_pos": [
+                -224,
+                960
+            ]
+        }
+    }
+}

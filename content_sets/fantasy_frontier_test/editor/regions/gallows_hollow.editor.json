@@ -1,0 +1,35 @@
+{
+	"region": {},
+	"rooms": {
+		"bramble_screen": {
+			"_editor_pos": [
+				-256.0,
+				-192.0
+			]
+		},
+		"campfire_ring": {
+			"_editor_pos": [
+				-512.0,
+				-192.0
+			]
+		},
+		"supply_gully": {
+			"_editor_pos": [
+				-768.0,
+				-192.0
+			]
+		},
+		"trailhead": {
+			"_editor_pos": [
+				0.0,
+				0.0
+			]
+		},
+		"watch_perch": {
+			"_editor_pos": [
+				-256.0,
+				-384.0
+			]
+		}
+	}
+}

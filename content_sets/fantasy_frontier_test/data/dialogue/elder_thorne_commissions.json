@@ -1,0 +1,81 @@
+{
+    "id": "elder_thorne_commissions",
+    "_comment": "The first commission is deliberately board-first and person-finished: the board advertises a need, then Elder Thorne explains it and teaches the simple recipe. Backgrounds must not pre-teach this recipe.",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Elder Thorne looks up from the notice board, giving each posted request the same careful attention they give the people who bring it back.",
+            "choices": [
+                {
+                    "text": "I took the posy commission. What does Riverside need?",
+                    "aliases": [
+                        "commission",
+                        "posy commission",
+                        "the posy",
+                        "what do you need"
+                    ],
+                    "condition": {
+                        "kind": "quest_active",
+                        "quest_id": "quest_wildflower_commission"
+                    },
+                    "next_node": "wildflower_commission"
+                },
+                {
+                    "text": "What sort of work is on the board?",
+                    "aliases": [
+                        "the board",
+                        "work",
+                        "notice board"
+                    ],
+                    "next_node": "board"
+                },
+                {
+                    "text": "Not today. Goodbye.",
+                    "end": true
+                }
+            ]
+        },
+        "board": {
+            "text": "Small kindnesses keep Riverside whole: a delivery, a repair, a hand where someone is short one. Take a notice that suits you, then come to the person it names before you set out.",
+            "choices": [
+                {
+                    "text": "I will have a look.",
+                    "aliases": [
+                        "i'll look",
+                        "look at the board"
+                    ],
+                    "end": true
+                },
+                {
+                    "text": "Tell me about the posy commission.",
+                    "aliases": [
+                        "posy commission",
+                        "the posy"
+                    ],
+                    "condition": {
+                        "kind": "quest_active",
+                        "quest_id": "quest_wildflower_commission"
+                    },
+                    "next_node": "wildflower_commission"
+                }
+            ]
+        },
+        "wildflower_commission": {
+            "text": "A new household is settling by the river, and a hand-tied posy is the sort of welcome that says they belong. Take two handfuls of wild herbs from the community garden west of the river road, then tie them together. You have the hands for it; this is the pattern. Bring the finished posy back to me.",
+            "effects": {
+                "grant_recipe": "tie_wildflower_posy"
+            },
+            "choices": [
+                {
+                    "text": "I will make it.",
+                    "aliases": [
+                        "i'll make it",
+                        "i understand",
+                        "thank you"
+                    ],
+                    "end": true
+                }
+            ]
+        }
+    }
+}

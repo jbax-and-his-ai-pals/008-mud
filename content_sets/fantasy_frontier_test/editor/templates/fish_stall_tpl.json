@@ -1,0 +1,11 @@
+{
+    "fish_stall_tpl": {
+        "description": "The smell of the nearby river is strong here. A wooden table is covered with the day's fresh catch.",
+        "exits": {
+            "north": "market_square",
+            "west": "alleyway"
+        },
+        "name": "Fish Stall",
+        "properties": {}
+    }
+}

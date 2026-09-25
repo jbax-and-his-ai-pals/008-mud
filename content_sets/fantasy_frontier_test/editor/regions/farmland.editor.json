@@ -1,0 +1,168 @@
+{
+    "region": {
+        "_proxy_positions": {
+            "foothills:grassy_slope": [
+                1632,
+                0
+            ]
+        },
+        "_editor_connection_label_sources": {
+            "orchard_south|orchard_west": {
+                "source": "orchard_west",
+                "direction": "southeast"
+            },
+            "orchard_south|shepherds_pasture": {
+                "source": "orchard_south",
+                "direction": "southwest"
+            },
+            "orchard_west|wheat_field_north": {
+                "source": "wheat_field_north",
+                "direction": "southwest"
+            },
+            "orchard_east|wheat_field_north": {
+                "source": "orchard_east",
+                "direction": "northwest"
+            },
+            "orchard_east|orchard_south": {
+                "source": "orchard_east",
+                "direction": "southwest"
+            },
+            "farmhouse_path|orchard_west": {
+                "source": "farmhouse_path",
+                "direction": "east"
+            },
+            "farmhouse_path|farmhouse_yard": {
+                "source": "farmhouse_path",
+                "direction": "northwest"
+            },
+            "barn_exterior|wheat_field_north": {
+                "source": "wheat_field_north",
+                "direction": "north"
+            }
+        }
+    },
+    "rooms": {
+        "farm_bridge": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "wheat_field_west": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "farmhouse_path": {
+            "_editor_pos": [
+                512,
+                -192
+            ]
+        },
+        "farmhouse_yard": {
+            "_editor_pos": [
+                256,
+                -384
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "farmhouse_interior",
+                    "visual_direction": "east",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "farmhouse_interior": {
+            "_editor_pos": [
+                256,
+                -608
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "farmhouse_yard",
+                    "visual_direction": "west",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "barn_exterior": {
+            "_editor_pos": [
+                1024,
+                -576
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "barn_interior",
+                    "visual_direction": "east",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "barn_interior": {
+            "_editor_pos": [
+                1280,
+                -576
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "barn_exterior",
+                    "visual_direction": "west",
+                    "placement": "adjacent",
+                    "inferred": true
+                }
+            }
+        },
+        "wheat_field_north": {
+            "_editor_pos": [
+                1024,
+                -384
+            ]
+        },
+        "wheat_field_south": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "pumpkin_patch": {
+            "_editor_pos": [
+                256,
+                384
+            ]
+        },
+        "scarecrow_field": {
+            "_editor_pos": [
+                512,
+                192
+            ]
+        },
+        "shepherds_pasture": {
+            "_editor_pos": [
+                768,
+                192
+            ]
+        },
+        "orchard_west": {
+            "_editor_pos": [
+                768,
+                -192
+            ]
+        },
+        "orchard_south": {
+            "_editor_pos": [
+                1024,
+                0
+            ]
+        },
+        "orchard_east": {
+            "_editor_pos": [
+                1280,
+                -192
+            ]
+        }
+    }
+}

@@ -1,0 +1,106 @@
+{
+    "id": "lyra_surveyor",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Lyra has pinned a half-finished map of the Aurelian Outlands to a long table, with an irritating blank left exactly where the old aqueduct passes the Sunstone Fields.",
+            "choices": [
+                {
+                    "text": "What is missing from the outlands map?",
+                    "aliases": [
+                        "outlands",
+                        "map",
+                        "need work",
+                        "survey"
+                    ],
+                    "condition": {
+                        "all": [
+                            {
+                                "not": {
+                                    "kind": "quest_active",
+                                    "quest_id": "quest_aurelia_aqueduct_survey"
+                                }
+                            },
+                            {
+                                "not": {
+                                    "kind": "quest_completed",
+                                    "quest_id": "quest_aurelia_aqueduct_survey"
+                                }
+                            }
+                        ]
+                    },
+                    "next_node": "briefing"
+                },
+                {
+                    "text": "Remind me about the aqueduct survey.",
+                    "aliases": [
+                        "what now",
+                        "assignment",
+                        "aqueduct"
+                    ],
+                    "condition": {
+                        "kind": "quest_active",
+                        "quest_id": "quest_aurelia_aqueduct_survey"
+                    },
+                    "next_node": "in_progress"
+                },
+                {
+                    "text": "The aqueduct survey is complete.",
+                    "aliases": [
+                        "survey complete",
+                        "i returned",
+                        "report"
+                    ],
+                    "condition": {
+                        "kind": "quest_completed",
+                        "quest_id": "quest_aurelia_aqueduct_survey"
+                    },
+                    "next_node": "resolved"
+                },
+                {
+                    "text": "I will leave you to your maps.",
+                    "end": true
+                }
+            ]
+        },
+        "briefing": {
+            "text": "The old aqueduct shifted after the last hard season, and our newest map still relies on a caravan account. Reach the Broken Aqueduct in the outlands, take its measure, and bring back a report a traveller can trust.",
+            "choices": [
+                {
+                    "text": "I will survey the aqueduct.",
+                    "aliases": [
+                        "accept",
+                        "i will go",
+                        "take the work"
+                    ],
+                    "effects": {
+                        "start_quest": "quest_aurelia_aqueduct_survey"
+                    },
+                    "end": true
+                },
+                {
+                    "text": "I need to prepare first.",
+                    "end": true
+                }
+            ]
+        },
+        "in_progress": {
+            "text": "Leave through Aurelia's south gate, follow the old road west, and the broken aqueduct will be impossible to miss. A useful report needs what is actually there, not what a map expects.",
+            "choices": [
+                {
+                    "text": "Understood.",
+                    "end": true
+                }
+            ]
+        },
+        "resolved": {
+            "text": "That is a proper field report: specific, current, and free of heroic flourishes. The road crews will know where to start.",
+            "choices": [
+                {
+                    "text": "Glad to help.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

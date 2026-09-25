@@ -1,0 +1,35 @@
+{
+    "region": {},
+    "rooms": {
+        "entrance": {
+            "_editor_pos": [
+                0.0,
+                0.0
+            ]
+        },
+        "hall_of_gates": {
+            "_editor_pos": [
+                0.0,
+                -192.0
+            ]
+        },
+        "lever_room_west": {
+            "_editor_pos": [
+                -256.0,
+                -192.0
+            ]
+        },
+        "lever_room_east": {
+            "_editor_pos": [
+                256.0,
+                -192.0
+            ]
+        },
+        "inner_sanctum": {
+            "_editor_pos": [
+                0.0,
+                -384.0
+            ]
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+  "scenario_id": "arrival_in_town",
+  "heading": "Welcome to Riverside",
+  "intro": "You have arrived in a village on the edge of the Whispering Woods. Something is stirring beyond its gates, but the square is safe enough to get your bearings. Pick any path below; none closes off the others.",
+  "objectives_heading": "Choose a first path:",
+  "objectives": [
+    {
+      "id": "orient",
+      "instruction": "Get oriented: read your surroundings and the available exits",
+      "command": "look"
+    },
+    {
+      "id": "meet_the_village",
+      "instruction": "Help Riverside: inspect the board, then gather at the community garden west and south",
+      "command": "look board"
+    },
+    {
+      "id": "visit_the_market",
+      "instruction": "Trade and prepare: visit Talia at the market by going east twice",
+      "command": "east"
+    },
+    {
+      "id": "find_the_hermit",
+      "instruction": "Look in on a neighbour: Elder Thorne has had no word of Old Bryn, the hermit by the ancient oak in the woods; the board has the details",
+      "command": "look board"
+    },
+    {
+      "id": "explore_beyond_town",
+      "instruction": "Explore and face danger: equip a weapon from your pack, then take the north road to the woods",
+      "command": "inventory"
+    }
+  ]
+}

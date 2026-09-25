@@ -1,0 +1,101 @@
+{
+    "region": {},
+    "rooms": {
+        "ruins_approach": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "crumbling_wall": {
+            "_editor_pos": [
+                0,
+                -192
+            ]
+        },
+        "overgrown_courtyard": {
+            "_editor_pos": [
+                -256,
+                -192
+            ]
+        },
+        "guard_tower_base": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
+        "guard_tower_top": {
+            "_editor_pos": [
+                512,
+                -384
+            ]
+        },
+        "central_plaza": {
+            "_editor_pos": [
+                0,
+                -384
+            ]
+        },
+        "library_ruins": {
+            "_editor_pos": [
+                256,
+                -384
+            ]
+        },
+        "scriptorium": {
+            "_editor_pos": [
+                256,
+                -576
+            ]
+        },
+        "ritual_chamber": {
+            "_editor_pos": [
+                0,
+                -576
+            ]
+        },
+        "shadowy_crypt_entrance": {
+            "_editor_pos": [
+                -256,
+                -384
+            ]
+        },
+        "crypt_upper_level": {
+            "_editor_pos": [
+                -512,
+                -192
+            ]
+        },
+        "burial_niches": {
+            "_editor_pos": [
+                -768,
+                -192
+            ]
+        },
+        "crypt_lower_level": {
+            "_editor_pos": [
+                -640,
+                96
+            ]
+        },
+        "flooded_tomb": {
+            "_editor_pos": [
+                -640,
+                288
+            ]
+        },
+        "secret_passage": {
+            "_editor_pos": [
+                -1024,
+                -192
+            ]
+        },
+        "final_tunnel": {
+            "_editor_pos": [
+                -1280,
+                -384
+            ]
+        }
+    }
+}

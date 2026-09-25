@@ -1,0 +1,260 @@
+{
+    "_comment": "Backgrounds replace classes. A background decides where you BEGIN -- stats, kit, a couple of starting skills -- and never what you can become. Identity you earn is a title (see titles.json). Every background is viable for every playstyle; none gates content.",
+    "_kit_rule": "Weapons start in the pack, armour is worn. A new player's first 'inventory' should show them the weapon they own, and deciding to draw it is the first thing the game teaches. Every background also carries a foraging knife: the opening commission (A Posy for Riverside) needs one, and no starting choice may lock a player out of the first thing the game asks them to do.",
+    "_default": "wanderer",
+    "wanderer": {
+        "name": "Wanderer",
+        "description": "You arrived with a bedroll, a knife, and a habit of not staying anywhere long. Nothing marks you out yet, which is its own kind of freedom.",
+        "stats": {
+            "strength": 11,
+            "dexterity": 11,
+            "constitution": 11,
+            "agility": 11,
+            "intelligence": 10,
+            "wisdom": 11,
+            "spell_power": 2,
+            "magic_resist": 3
+        },
+        "inventory": [
+            {
+                "item_id": "item_starter_dagger",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_healing_potion_small",
+                "quantity": 2
+            },
+            {
+                "item_id": "item_foraging_knife",
+                "quantity": 1
+            }
+        ],
+        "spells": [],
+        "skills": {
+            "lockpicking": 0,
+            "crafting": 0,
+            "mercantile": 0,
+            "stealth": 0
+        },
+        "recipes": [
+            "pack_travel_rations"
+        ],
+        "starting_gold": 0
+    },
+    "labourer": {
+        "name": "Labourer",
+        "description": "You have done a season of honest work with your hands -- hauling, digging, stacking. You know the weight of things and how to pace yourself.",
+        "stats": {
+            "strength": 14,
+            "dexterity": 9,
+            "constitution": 14,
+            "agility": 9,
+            "intelligence": 9,
+            "wisdom": 10,
+            "spell_power": 0,
+            "magic_resist": 4
+        },
+        "equipment": {
+            "body": "item_leather_tunic"
+        },
+        "inventory": [
+            {
+                "item_id": "item_work_axe",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_foraging_knife",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_healing_potion_small",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_leather_strip",
+                "quantity": 2
+            }
+        ],
+        "spells": [],
+        "skills": {
+            "crafting": 1
+        },
+        "recipes": [
+            "carve_riverside_charm",
+            "bind_herbal_bandage"
+        ],
+        "starting_gold": 10
+    },
+    "apprentice": {
+        "name": "Apprentice",
+        "description": "You were sent away to study and came back knowing just enough to be dangerous. Somebody taught you to read a page and a recipe alike.",
+        "stats": {
+            "strength": 8,
+            "dexterity": 10,
+            "constitution": 9,
+            "agility": 10,
+            "intelligence": 15,
+            "wisdom": 12,
+            "spell_power": 8,
+            "magic_resist": 10
+        },
+        "equipment": {
+            "body": "item_cultist_robes"
+        },
+        "inventory": [
+            {
+                "item_id": "item_shamanic_staff",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_mana_potion_small",
+                "quantity": 2
+            },
+            {
+                "item_id": "item_glass_vial",
+                "quantity": 2
+            },
+            {
+                "item_id": "item_foraging_knife",
+                "quantity": 1
+            }
+        ],
+        "spells": [
+            "magic_missile"
+        ],
+        "skills": {
+            "crafting": 1
+        },
+        "recipes": [
+            "bind_herbal_bandage"
+        ],
+        "starting_gold": 0
+    },
+    "acolyte": {
+        "name": "Acolyte",
+        "description": "You kept a shrine tidy and learned the words that mend. People in the village already half-trust you, which is worth more than coin.",
+        "stats": {
+            "strength": 10,
+            "dexterity": 9,
+            "constitution": 11,
+            "agility": 9,
+            "intelligence": 11,
+            "wisdom": 15,
+            "spell_power": 5,
+            "magic_resist": 8
+        },
+        "equipment": {
+            "body": "item_padded_tunic"
+        },
+        "inventory": [
+            {
+                "item_id": "item_crude_club",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_healing_potion_small",
+                "quantity": 2
+            },
+            {
+                "item_id": "item_wild_herbs",
+                "quantity": 3
+            },
+            {
+                "item_id": "item_foraging_knife",
+                "quantity": 1
+            }
+        ],
+        "spells": [
+            "minor_heal"
+        ],
+        "skills": {
+            "crafting": 1,
+            "mercantile": 1
+        },
+        "recipes": [
+            "bind_herbal_bandage",
+            "pack_travel_rations"
+        ],
+        "starting_gold": 5
+    },
+    "pedlar": {
+        "name": "Pedlar",
+        "description": "You have sold things out of a pack to people who did not need them. You can tell a fair price at a glance and you never pay it.",
+        "stats": {
+            "strength": 9,
+            "dexterity": 12,
+            "constitution": 10,
+            "agility": 12,
+            "intelligence": 11,
+            "wisdom": 13,
+            "spell_power": 2,
+            "magic_resist": 3
+        },
+        "inventory": [
+            {
+                "item_id": "item_starter_dagger",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_healing_potion_small",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_coiled_rope",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_foraging_knife",
+                "quantity": 1
+            }
+        ],
+        "spells": [],
+        "skills": {
+            "mercantile": 2
+        },
+        "recipes": [
+            "carve_riverside_charm"
+        ],
+        "starting_gold": 25
+    },
+    "poacher": {
+        "name": "Poacher",
+        "description": "You know which way a hare will run and how to be somewhere else when the warden looks. You would rather not explain how you learned either.",
+        "stats": {
+            "strength": 11,
+            "dexterity": 14,
+            "constitution": 10,
+            "agility": 14,
+            "intelligence": 10,
+            "wisdom": 9,
+            "spell_power": 0,
+            "magic_resist": 3
+        },
+        "equipment": {
+            "body": "item_wolf_pelt_cloak"
+        },
+        "inventory": [
+            {
+                "item_id": "item_simple_bow",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_foraging_knife",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_lockpick_crude_bronze",
+                "quantity": 2
+            }
+        ],
+        "spells": [],
+        "skills": {
+            "stealth": 2,
+            "lockpicking": 1
+        },
+        "recipes": [
+            "carve_riverside_charm"
+        ],
+        "starting_gold": 5
+    }
+}

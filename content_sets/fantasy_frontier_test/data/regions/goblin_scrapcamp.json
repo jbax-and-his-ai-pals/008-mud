@@ -1,0 +1,112 @@
+{
+    "region_id": "goblin_scrapcamp",
+    "name": "Briarhook Scrapcamp",
+    "description": "A crude goblin camp hidden in a briar-choked fold of the Whispering Woods. Its inhabitants have turned forest castoffs, wagon scraps, and scavenged metal into a defensible little settlement.",
+    "properties": {
+        "biome": "temperate_forest",
+        "region_type": "settlement",
+        "level_band": {
+            "min": 2,
+            "max": 3
+        }
+    },
+    "spawner": {
+        "monster_types": {
+            "goblin": 8,
+            "giant_rat": 2
+        },
+        "level_range": [
+            2,
+            3
+        ]
+    },
+    "rooms": {
+        "snare_trail": {
+            "name": "Snare Trail",
+            "description": "A nearly invisible trail leaves the deep woods through thorny briars. Bent saplings, bone charms, and scuffed patches of ground make it clear that the path is watched and that strangers are expected to make mistakes.",
+            "exits": {
+                "south": "forest:deep_forest_2",
+                "north": "scrap_gate"
+            }
+        },
+        "scrap_gate": {
+            "name": "Scrap Gate",
+            "description": "Broken cart wheels, dented shields, and sharpened branches have been lashed into a gate between two old oaks. It is clumsy construction, but deliberately placed to leave defenders a clear lane of fire.",
+            "exits": {
+                "south": "snare_trail",
+                "north": "firepit_circle",
+                "east": "lookout_ladder"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "goblin",
+                    "instance_id": "briarhook_gate_goblin"
+                }
+            ]
+        },
+        "lookout_ladder": {
+            "name": "Lookout Ladder",
+            "description": "A ladder of mismatched branches climbs to a platform wedged between two trunks. A pile of pebbles, rusty cutlery, and cracked bottles has been arranged to signal movement on the forest trail.",
+            "exits": {
+                "west": "scrap_gate"
+            },
+            "items": [
+                {
+                    "item_id": "item_goblin_bead_blue"
+                },
+                {
+                    "item_id": "item_shiny_rock"
+                }
+            ]
+        },
+        "firepit_circle": {
+            "name": "Firepit Circle",
+            "description": "Lean-tos crowd around a smoky firepit, each patched with bark, canvas, or stolen cloth. Cooking pots bubble over the coals while small heaps of tools and trophies mark out who owns which corner.",
+            "properties": {
+                "smell": "woodsmoke and damp fur"
+            },
+            "exits": {
+                "south": "scrap_gate",
+                "west": "mushroom_hollow",
+                "north": "trophy_stash"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "goblin",
+                    "instance_id": "briarhook_firepit_goblin"
+                }
+            ]
+        },
+        "mushroom_hollow": {
+            "name": "Mushroom Hollow",
+            "description": "A damp hollow under a fallen oak has been tended into a crude mushroom patch. The goblins have kept the area surprisingly orderly, with little channels guiding rainwater away from their crop.",
+            "exits": {
+                "east": "firepit_circle"
+            },
+            "items": [
+                {
+                    "item_id": "item_swamp_fungus",
+                    "quantity": 2
+                }
+            ]
+        },
+        "trophy_stash": {
+            "name": "Trophy Stash",
+            "description": "The rear of the camp holds its best scavenged finds: a wrapped bundle of maps, bright beads, and weapons too large for most goblins to use comfortably. Someone has sorted the pile with more care than the camp's appearance suggests.",
+            "exits": {
+                "south": "firepit_circle"
+            },
+            "items": [
+                {
+                    "item_id": "item_goblin_bead_red"
+                },
+                {
+                    "item_id": "item_crude_club"
+                },
+                {
+                    "item_id": "item_torn_map"
+                }
+            ]
+        }
+    }
+}
