@@ -6,7 +6,7 @@ signal room_double_clicked(room_id)
 signal dragged(new_position)
 signal right_clicked
 signal connection_drag_started(room_id)
-signal creation_drag_started(room_id, anchor_pos)
+signal creation_drag_started(room_id, anchor_pos, direction)
 signal drag_started
 signal drag_ended
 signal label_clicked(room_id)
@@ -37,6 +37,11 @@ var _preview_name := ""
 var _label_arrange_mode := false
 var _label_dragging := false
 var _label_drag_origin := Vector2.ZERO
+# Directions this room already has an exit in: their anchors stay hidden, since
+# dragging out another room that way would overwrite the exit.
+var _used_directions: Dictionary = {}
+var _hovered := false
+var _passive := false
 var _is_label_drag_source := false
 var _is_label_swap_target := false
 var _show_technical_id := false
@@ -105,16 +110,7 @@ func _ready():
 	
 	anchor_container = visual_panel.get_node_or_null("AnchorContainer")
 	if anchor_container:
-		anchor_container.move_to_front()
-		anchor_container.visible = false
-		anchor_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		for child in anchor_container.get_children():
-			if child is Control:
-				child.mouse_filter = Control.MOUSE_FILTER_STOP
-				child.tooltip_text = "Drag out to add a connected room"
-				child.mouse_default_cursor_shape = Control.CURSOR_CROSS
-				child.gui_input.connect(func(ev): _on_anchor_gui_input(ev, child))
-				_add_anchor_handle(child)
+		_build_anchors()
 
 	if _is_proxy: set_as_proxy(true)
 	else: set_node_color(_current_color)
@@ -127,9 +123,92 @@ func _ready():
 	update_icons(_npc_visible, _item_visible, _start_visible, _custom_icon_id, _properties)
 	_update_border()
 
-## The anchors are bare hit areas on each edge; without something drawn on them
-## an author hovering a room saw nothing to drag from. A small round "+" handle
-## in the middle of each makes them findable (shown with the anchors, on hover).
+# One anchor per compass direction: the four edges and the four corners, which
+# is where connection lines for those directions attach.
+const ANCHOR_SIZE := 22.0
+const ANCHOR_DIRECTIONS := {
+	"north": Vector2(0.5, 0.0), "south": Vector2(0.5, 1.0),
+	"east": Vector2(1.0, 0.5), "west": Vector2(0.0, 0.5),
+	"northeast": Vector2(1.0, 0.0), "northwest": Vector2(0.0, 0.0),
+	"southeast": Vector2(1.0, 1.0), "southwest": Vector2(0.0, 1.0),
+}
+
+## Anchors used to be four bare hit areas from the scene, shown by the room
+## card's own hover signals. Each anchor sticks out past the card, so moving
+## onto that part "left" the card, hid the anchor, "entered" the card again and
+## showed it -- a flicker fight with the cursor. Hover is now worked out from
+## the card and anchor rectangles together (`_refresh_hover`), the anchors draw
+## above the connection lines, the corners get anchors too, and a direction the
+## room already has an exit in shows none.
+func _build_anchors() -> void:
+	for child in anchor_container.get_children():
+		anchor_container.remove_child(child)
+		child.queue_free()
+	anchor_container.move_to_front()
+	anchor_container.visible = false
+	anchor_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Above the connection layer (z 10) and district labels (11), whatever the
+	# room's own z.
+	anchor_container.z_as_relative = false
+	anchor_container.z_index = 20
+	for direction in ANCHOR_DIRECTIONS:
+		var anchor := Control.new()
+		anchor.name = "Anchor_" + direction
+		anchor.set_meta("direction", direction)
+		anchor.size = Vector2(ANCHOR_SIZE, ANCHOR_SIZE)
+		anchor.mouse_filter = Control.MOUSE_FILTER_STOP
+		anchor.mouse_default_cursor_shape = Control.CURSOR_CROSS
+		anchor.tooltip_text = "Click to add a room to the %s, or drag to place it" % direction
+		anchor.gui_input.connect(func(ev): _on_anchor_gui_input(ev, anchor))
+		anchor.mouse_exited.connect(_refresh_hover.call_deferred)
+		anchor_container.add_child(anchor)
+		_add_anchor_handle(anchor)
+	_layout_anchors()
+	# `set_used_directions` can arrive before the room is in the tree.
+	_apply_anchor_visibility()
+	if not visual_panel.resized.is_connected(_layout_anchors):
+		visual_panel.resized.connect(_layout_anchors)
+
+func _layout_anchors() -> void:
+	if not anchor_container: return
+	anchor_container.position = Vector2.ZERO
+	anchor_container.size = visual_panel.size
+	for anchor in anchor_container.get_children():
+		var at: Vector2 = ANCHOR_DIRECTIONS[anchor.get_meta("direction")] * visual_panel.size
+		anchor.position = at - anchor.size / 2.0
+
+## Which directions already have exits (lower-case names, as the region file
+## spells them). Their anchors are hidden.
+func set_used_directions(directions: Array) -> void:
+	_used_directions.clear()
+	for direction in directions:
+		_used_directions[str(direction).to_lower()] = true
+	_apply_anchor_visibility()
+
+func _apply_anchor_visibility() -> void:
+	if not anchor_container: return
+	anchor_container.visible = _hovered and not _passive
+	for anchor in anchor_container.get_children():
+		anchor.visible = not _used_directions.has(anchor.get_meta("direction"))
+
+func _mouse_over_room() -> bool:
+	var mouse: Vector2 = visual_panel.get_global_mouse_position()
+	if visual_panel.get_global_rect().has_point(mouse): return true
+	if anchor_container and anchor_container.visible:
+		for anchor in anchor_container.get_children():
+			if anchor.visible and anchor.get_global_rect().has_point(mouse): return true
+	return false
+
+func _refresh_hover() -> void:
+	if not is_inside_tree(): return
+	var hovered := _mouse_over_room()
+	if hovered == _hovered: return
+	_hovered = hovered
+	if panel_style: panel_style.bg_color = _current_color.lightened(0.15) if hovered else _current_color
+	if not _is_selected and not _is_highlighted: z_index = 5 if hovered else 0
+	_apply_anchor_visibility()
+
+## A small round "+" handle in the middle of each anchor makes it findable.
 func _add_anchor_handle(anchor: Control) -> void:
 	if anchor.has_node("Handle"):
 		return
@@ -150,6 +229,7 @@ func _add_anchor_handle(anchor: Control) -> void:
 	handle.size = Vector2(16, 16)
 	handle.position = (anchor.size - handle.size) / 2.0
 	anchor.add_child(handle)
+	anchor.resized.connect(func(): handle.position = (anchor.size - handle.size) / 2.0)
 
 
 func get_connection_anchor_point(dir: String) -> Vector2:
@@ -302,14 +382,12 @@ func _update_border():
 		panel_style.set_border_width_all(1)
 
 func _on_mouse_entered():
-	if panel_style: panel_style.bg_color = _current_color.lightened(0.15)
-	if anchor_container: anchor_container.visible = true
-	if not _is_selected and not _is_highlighted: z_index = 5
+	_refresh_hover()
 
 func _on_mouse_exited():
-	if panel_style: panel_style.bg_color = _current_color
-	if anchor_container: anchor_container.visible = false
-	if not _is_selected and not _is_highlighted: z_index = 0
+	# Deferred: moving onto an anchor that sticks out past the card fires this
+	# first, and the anchor's rectangle should still count as the room.
+	_refresh_hover.call_deferred()
 
 func _on_panel_gui_input(event):
 	# The room card normally absorbs every mouse event over it (mouse_filter
@@ -359,9 +437,10 @@ func _on_panel_gui_input(event):
 func _on_anchor_gui_input(event: InputEvent, anchor_node: Control):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		var anchor_global_pos = anchor_node.get_global_rect().get_center()
-		emit_signal("creation_drag_started", _cached_id, anchor_global_pos)
+		emit_signal("creation_drag_started", _cached_id, anchor_global_pos, str(anchor_node.get_meta("direction", "")))
 
 func set_passive(enabled: bool):
+	_passive = enabled
 	if enabled:
 		if visual_panel: visual_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if anchor_container: 
@@ -370,3 +449,6 @@ func set_passive(enabled: bool):
 				if c is Control: c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
 		if visual_panel: visual_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+		if anchor_container:
+			for c in anchor_container.get_children():
+				if c is Control: c.mouse_filter = Control.MOUSE_FILTER_STOP

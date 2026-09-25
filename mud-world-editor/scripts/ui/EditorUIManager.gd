@@ -327,8 +327,13 @@ func _setup_modals_and_popups():
 	_setup_district_toolbar()
 
 	context_menu = PopupMenu.new(); ui_layer.add_child(context_menu); context_menu.id_pressed.connect(func(id): context_action.emit(id))
+	# Which way the room dragged out of an anchor connects. This menu used to be
+	# twelve blank rows that nothing listened to, so it showed as a thin empty
+	# strip and never created a room.
 	creation_menu = PopupMenu.new(); ui_layer.add_child(creation_menu)
-	for i in range(12): creation_menu.add_item("", i) 
+	creation_menu.id_pressed.connect(func(index):
+		var directions: Array = creation_menu.get_meta("directions", [])
+		if index >= 0 and index < directions.size(): creation_direction_selected.emit(directions[index]))
 	
 	validation_modal = VALIDATION_MODAL_SCRIPT.new()
 	ui_layer.add_child(validation_modal)
@@ -1132,7 +1137,15 @@ func show_context_menu(items: Dictionary):
 	context_menu.clear(); for l in items: context_menu.add_item(l, items[l])
 	context_menu.position = Vector2(ui_layer.get_viewport().get_mouse_position()); context_menu.popup()
 
-func show_creation_menu(position: Vector2): creation_menu.position = position; creation_menu.popup()
+## Offer the directions a new room can connect by, the anchor's own first.
+func show_creation_menu(position: Vector2, directions: Array) -> void:
+	creation_menu.clear()
+	creation_menu.add_separator("New room connects by")
+	for i in directions.size():
+		creation_menu.add_item(str(directions[i]).capitalize(), i)
+	creation_menu.set_meta("directions", directions)
+	creation_menu.reset_size()
+	creation_menu.popup(Rect2i(Vector2i(position), Vector2i.ZERO))
 
 func show_validation_results(errors: Array, ignored_count: int = 0):
 	validation_modal.populate_and_show(errors, ignored_count)

@@ -582,7 +582,7 @@ func _connect_graph_signals():
 		state.world_dragging_conn = {"active": true, "start": world_start, "end": world_start, "src_region": rid, "src_room": anchor_room}
 		is_dragging_object = true
 	)
-	graph_controller.creation_drag_started.connect(func(id, pos): state.creating_conn={"active":true, "start_pos":pos, "end_pos":pos, "src_id":id})
+	graph_controller.creation_drag_started.connect(func(id, pos, direction): state.creating_conn={"active":true, "start_pos":pos, "end_pos":pos, "src_id":id, "direction":direction})
 	graph_controller.region_moved.connect(func(id, old, new):
 		cmd_proc.commit(
 			func(): world_mgr.update_world_node_pos(id, new); _refresh_view(),
@@ -663,6 +663,10 @@ func _unhandled_input(event):
 			if deselection_primed and not is_dragging_object and mouse_pos.distance_to(mouse_down_pos) < DRAG_PIXEL_THRESHOLD: _on_empty_click(mouse_pos)
 			deselection_primed = false; is_dragging_object = false
 
+	if state.creating_conn.get("active", false):
+		_handle_anchor_drag(event)
+		return
+
 	if not state.is_box_selecting and camera_controller.handle_input(event):
 		if camera_controller.is_panning: is_dragging_object = true
 		_redraw_after_camera_input()
@@ -711,13 +715,56 @@ func _unhandled_input(event):
 			graph_controller.queue_redraw()
 		return
 
-	if state.creating_conn.get("active", false) and event is InputEventMouseButton and not event.pressed:
-		ui_mgr.show_creation_menu(event.position); state.creating_conn.active = false; graph_controller.queue_redraw()
-		return
 
 	if state.cur_tool_mode == EditorUIManager.ToolMode.SELECT and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and event.shift_pressed:
 		state.is_box_selecting = true; state.box_select_start = get_global_mouse_position()
 		return
+
+## Dragging out of a room's anchor. The line used to stay stuck at the anchor
+## (nothing followed the mouse) and the release opened an empty menu. Now a
+## click adds a room one step away in the anchor's direction; a drag places it
+## where the mouse is let go and asks which way it connects, the anchor's
+## direction first and the room's used directions left out.
+func _handle_anchor_drag(event) -> void:
+	if event is InputEventMouseMotion:
+		state.creating_conn.end_pos = get_global_mouse_position()
+		graph_controller.queue_redraw()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		state.creating_conn.active = false
+		graph_controller.queue_redraw()
+		var src: String = state.creating_conn.src_id
+		var direction := str(state.creating_conn.get("direction", ""))
+		var dragged: bool = state.creating_conn.start_pos.distance_to(get_global_mouse_position()) >= 24.0
+		if not dragged and direction != "":
+			state.creating_conn.end_pos = _free_spot_from(src, direction)
+			action_handler.create_room_from_anchor(direction)
+			return
+		var end: Vector2 = get_global_mouse_position()
+		if state.snap_enabled: end = end.snapped(Vector2(32, 32))
+		state.creating_conn.end_pos = end
+		var used: Dictionary = region_mgr.data.get("rooms", {}).get(src, {}).get("exits", {})
+		var choices: Array = []
+		if direction != "" and not used.has(direction): choices.append(direction)
+		for d in Constants.AUTHORABLE_DIRECTIONS:
+			if not used.has(d) and not d in choices: choices.append(d)
+		ui_mgr.show_creation_menu(get_viewport().get_mouse_position(), choices)
+
+## The first empty spot one room-spacing step (or more) from `room_id` towards
+## `direction`.
+func _free_spot_from(room_id: String, direction: String) -> Vector2:
+	var rooms: Dictionary = region_mgr.data.get("rooms", {})
+	var p = rooms.get(room_id, {}).get("_editor_pos", [0, 0])
+	var origin := Vector2(p[0], p[1])
+	var step: Vector2 = Constants.DIR_VECTORS.get(direction, Vector2.RIGHT) * LayoutOptimizer.ROOM_SPACING
+	for distance in range(1, 9):
+		var candidate := origin + step * distance
+		var taken := false
+		for other in rooms.values():
+			var q = other.get("_editor_pos", [0, 0])
+			if abs(q[0] - candidate.x) < LayoutOptimizer.ROOM_SPACING.x * 0.75 and abs(q[1] - candidate.y) < LayoutOptimizer.ROOM_SPACING.y * 0.75:
+				taken = true; break
+		if not taken: return candidate
+	return origin + step * 9
 
 func _is_mouse_on_any_node(mouse_pos: Vector2) -> bool:
 	if state.is_world_view:

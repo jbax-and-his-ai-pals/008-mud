@@ -69,10 +69,54 @@ func _run() -> void:
 	_assert(main.main_camera.position != Vector2(-99999, -99999), "F recentres the view, with the Explorer focused")
 	_assert(explorer == null or explorer.get_selected() == selected_before, "and does not type-ahead in the Explorer")
 
-	print("\n[room anchors are visible]")
+	print("\n[room anchors: all eight directions, above the lines, none for a used exit]")
 	var scene = main.graph_controller.get_active_nodes().get(id)
 	var handles: Array = scene.anchor_container.find_children("Handle", "", true, false) if scene else []
-	_assert(handles.size() == 4, "each of the four anchors has a drawn handle (%d)" % handles.size())
+	_assert(handles.size() == 8, "the edges and corners each have an anchor with a handle (%d)" % handles.size())
+	_assert(not scene.anchor_container.z_as_relative and scene.anchor_container.z_index > 11, "anchors draw above the connection lines")
+	var exits: Dictionary = rooms[id].get("exits", {}).duplicate()
+	var shown := []
+	var wrong := []
+	for anchor in scene.anchor_container.get_children():
+		var direction: String = anchor.get_meta("direction")
+		if anchor.visible: shown.append(direction)
+		if anchor.visible == exits.has(direction): wrong.append(direction)
+	_assert(wrong.is_empty() and not shown.is_empty(), "only directions without an exit offer an anchor: %s (exits %s)" % [shown, exits.keys()])
+
+	print("\n[clicking an anchor adds a connected room]")
+	var free: String = shown[0]
+	var before: int = rooms.size()
+	var at: Vector2 = main.get_global_mouse_position()
+	main.graph_controller.creation_drag_started.emit(id, at, free)
+	main._handle_anchor_drag(_release())
+	rooms = main.region_mgr.data.rooms
+	var added := _new_room(rooms, exits, free)
+	_assert(rooms.size() == before + 1 and added != "", "a click makes a room to the %s" % free)
+	if added != "":
+		_assert(rooms[added]["exits"].get(Constants.INV_DIR_MAP[free], "") == id, "connected both ways")
+		var p = rooms[id]["_editor_pos"]; var q = rooms[added]["_editor_pos"]
+		_assert(Vector2(q[0] - p[0], q[1] - p[1]).normalized().dot(Constants.DIR_VECTORS[free].normalized()) > 0.9, "and placed that way from the room")
+	for _i in 3: await process_frame
+
+	print("\n[dragging from an anchor asks which way, with real choices]")
+	exits = rooms[id].get("exits", {}).duplicate()
+	scene = main.graph_controller.get_active_nodes().get(id)
+	var next_free := ""
+	for anchor in scene.anchor_container.get_children():
+		if anchor.visible: next_free = anchor.get_meta("direction"); break
+	main.graph_controller.creation_drag_started.emit(id, at + Vector2(-400, -400), next_free)
+	main._handle_anchor_drag(_release())
+	var menu: PopupMenu = main.ui_mgr.creation_menu
+	_assert(menu.visible, "the direction menu opens")
+	_assert(menu.item_count > 2 and menu.get_item_text(1) == next_free.capitalize(), "listing directions, the anchor's first (%s)" % (menu.get_item_text(1) if menu.item_count > 1 else "none"))
+	var listed := []
+	for i in range(1, menu.item_count): listed.append(menu.get_item_text(i).to_lower())
+	_assert(not listed.has(free), "and not the direction just used (%s)" % free)
+	before = rooms.size()
+	menu.id_pressed.emit(0)
+	menu.hide()
+	rooms = main.region_mgr.data.rooms
+	_assert(rooms.size() == before + 1 and _new_room(rooms, exits, next_free) != "", "choosing one makes the room")
 
 	print("\n[unsaved-change prompts say what]")
 	var summary: String = main._describe_unsaved_work()
@@ -106,6 +150,21 @@ func _press(code: Key, ctrl: bool) -> void:
 	var up := event.duplicate(); up.pressed = false
 	Input.parse_input_event(up)
 	await process_frame
+
+
+func _release() -> InputEventMouseButton:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT; event.pressed = false
+	return event
+
+
+# The room the `direction` exit of the source now leads to, if it is new.
+func _new_room(rooms: Dictionary, old_exits: Dictionary, direction: String) -> String:
+	for rid in rooms:
+		var back: String = str(rooms[rid].get("exits", {}).get(Constants.INV_DIR_MAP.get(direction, ""), ""))
+		if back != "" and not old_exits.has(direction) and rid.begins_with("room_") and rooms.has(back) and rooms[back].get("exits", {}).get(direction, "") == rid:
+			return rid
+	return ""
 
 
 func _copy(source: String, destination: String):

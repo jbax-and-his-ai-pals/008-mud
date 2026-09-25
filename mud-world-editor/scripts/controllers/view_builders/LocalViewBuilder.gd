@@ -17,7 +17,7 @@ signal node_dragging(id, current_pos)
 signal node_dragged(id, final_pos)
 signal node_right_clicked(id)
 signal connection_drag_started(id)
-signal creation_drag_started(id, pos)
+signal creation_drag_started(id, pos, direction)
 signal label_clicked(id)
 signal label_drag_started(id)
 signal label_dragged(id)
@@ -128,7 +128,7 @@ func _connect_node_signals(node: Node, id: String):
 	node.drag_started.connect(func(): node_drag_started.emit(id))
 	node.right_clicked.connect(func(): node_right_clicked.emit(id))
 	node.connection_drag_started.connect(func(_i): connection_drag_started.emit(id))
-	node.creation_drag_started.connect(func(_i, pos): creation_drag_started.emit(id, pos))
+	node.creation_drag_started.connect(func(_i, pos, direction): creation_drag_started.emit(id, pos, direction))
 	node.dragged.connect(func(pos): node_dragging.emit(id, pos))
 	node.drag_ended.connect(func(): node_dragged.emit(id, node.position))
 	node.label_clicked.connect(func(_i): label_clicked.emit(id))
@@ -145,6 +145,8 @@ func update_node_visuals(node, data, view_mode = "Default"):
 	var custom_icon_id = props.get("icon", "")
 	
 	node.update_icons(has_npcs, has_items, is_start, custom_icon_id, props)
+	if node.has_method("set_used_directions"):
+		node.set_used_directions(data.get("exits", {}).keys())
 	
 	var col = _get_room_color(props) # Default
 	if view_mode != "Default":

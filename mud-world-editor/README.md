@@ -98,7 +98,7 @@ the quit prompt is the safety net.
 | `F` | recentre the view |
 | `Escape` | cancel the current tool, box-select or district preview |
 | `Shift`+click | add to the selection |
-| drag a room's `+` handle | add a connected room in that direction (the handles show on hover) |
+| click a room's `+` handle | add a connected room that way; drag it to place the room and pick the direction (handles show on hover, only where the room has no exit yet) |
 
 The shortcuts work whatever panel has focus, except while typing in a field or with a dialog open.
 
