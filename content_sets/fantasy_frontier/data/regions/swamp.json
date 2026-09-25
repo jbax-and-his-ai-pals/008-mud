@@ -39,10 +39,15 @@
         },
         "willow_grove": {
             "name": "Weeping Willow Grove",
-            "description": "A grove of ancient weeping willow trees stands near the marsh edge, their long branches trailing into the murky water, obscuring the view to the west.",
+            "description": "A grove of ancient weeping willow trees stands near the marsh edge, their long branches trailing into the murky water, obscuring the view to the west. In the deepest shade under the willows, moss glows a faint, cold blue.",
             "exits": {
                 "east": "marsh_edge"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_marshlight_moss"
+                }
+            ]
         },
         "stagnant_pool": {
             "name": "Stagnant Pool",
@@ -189,7 +194,7 @@
         },
         "ancient_bog": {
             "name": "Ancient Bog",
-            "description": "This area feels unnaturally old. The water is black and still, preserving fallen trees from centuries past. The air is heavy and silent, save for the hum of insects.",
+            "description": "This area feels unnaturally old. The water is black and still, preserving fallen trees from centuries past. The air is heavy and silent, save for the hum of insects. Pale moss on the drowned trunks glows faintly blue in the gloom.",
             "exits": {
                 "north": "deep_swamp",
                 "south": "bog_end"
@@ -197,7 +202,12 @@
             "properties": {
                 "smell": "peat",
                 "dark": true
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_marshlight_moss"
+                }
+            ]
         },
         "bog_end": {
             "name": "Edge of the Bog",

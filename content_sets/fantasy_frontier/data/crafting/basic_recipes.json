@@ -437,7 +437,12 @@
         "ingredients": [
             {
                 "item_id": "item_rose_quartz",
-                "quantity": 1
+                "quantity": 1,
+                "alternatives": [
+                    {
+                        "item_id": "item_sunstone"
+                    }
+                ]
             },
             {
                 "item_id": "item_glass_vial",
@@ -1211,6 +1216,100 @@
             {
                 "item_id": "item_ale_wort",
                 "quantity": 4
+            }
+        ]
+    },
+    "smelt_iron_ingot": {
+        "name": "Smelt Iron Ingot",
+        "aliases": [
+            "ingot",
+            "iron ingot",
+            "smelt iron",
+            "smelt"
+        ],
+        "description": "Smelt iron ore into a usable ingot at a forge.",
+        "result_item_id": "item_iron_ingot",
+        "result_quantity": 1,
+        "station_required": "anvil",
+        "difficulty": 0,
+        "ingredients": [
+            {
+                "item_id": "item_iron_ore",
+                "quantity": 2
+            }
+        ]
+    },
+    "cut_leather_strips": {
+        "name": "Cut Leather Strips",
+        "aliases": [
+            "leather strips",
+            "strips",
+            "cut leather"
+        ],
+        "description": "Cut a cured hide into bindings.",
+        "result_item_id": "item_leather_strip",
+        "result_quantity": 3,
+        "station_required": null,
+        "difficulty": 0,
+        "ingredients": [
+            {
+                "item_id": "item_wolf_pelt",
+                "quantity": 1,
+                "alternatives": [
+                    {
+                        "item_id": "item_troll_hide"
+                    }
+                ]
+            }
+        ]
+    },
+    "brew_mana_draught": {
+        "name": "Brew Mana Draught",
+        "aliases": [
+            "mana potion",
+            "mana draught",
+            "mana"
+        ],
+        "description": "Steep marshlight moss into a draught that restores a tired mind.",
+        "result_item_id": "item_mana_potion_small",
+        "result_quantity": 1,
+        "station_required": "alchemy_table",
+        "difficulty": 0,
+        "ingredients": [
+            {
+                "item_id": "item_marshlight_moss",
+                "quantity": 2
+            },
+            {
+                "item_id": "item_glass_vial",
+                "quantity": 1
+            }
+        ]
+    },
+    "brew_greater_mana_draught": {
+        "name": "Brew Greater Mana Draught",
+        "aliases": [
+            "greater mana",
+            "greater mana draught",
+            "frostpetal draught"
+        ],
+        "description": "Marshlight moss steeped with a frostpetal bloom: a deeper, colder draught.",
+        "result_item_id": "item_mana_potion_medium",
+        "result_quantity": 1,
+        "station_required": "alchemy_table",
+        "difficulty": 0,
+        "ingredients": [
+            {
+                "item_id": "item_marshlight_moss",
+                "quantity": 2
+            },
+            {
+                "item_id": "item_frostpetal",
+                "quantity": 1
+            },
+            {
+                "item_id": "item_glass_vial",
+                "quantity": 1
             }
         ]
     }

@@ -42,11 +42,16 @@
         },
         "sunstone_fields": {
             "name": "Sunstone Fields",
-            "description": "Terraced fields of tough grain climb the dry slopes north of the road. Their irrigation channels still run, but several plots have been abandoned behind makeshift stone walls after something began hunting at dusk.",
+            "description": "Terraced fields of tough grain climb the dry slopes north of the road. Their irrigation channels still run, but several plots have been abandoned behind makeshift stone walls after something began hunting at dusk. The terrace walls are built of an orange stone that flashes in the sun, and where one has fallen a clear vein lies open.",
             "exits": {
                 "south": "milestone_road",
                 "east": "observatory_approach"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_sunstone_outcrop"
+                }
+            ]
         },
         "observatory_approach": {
             "name": "Observatory Approach",

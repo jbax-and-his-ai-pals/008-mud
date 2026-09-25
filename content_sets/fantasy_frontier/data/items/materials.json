@@ -148,5 +148,29 @@
             "can_take": false
         },
         "item_family": "material"
+    },
+    "item_iron_ore": {
+        "type": "Item",
+        "name": "iron ore",
+        "description": "A lump of rust-streaked rock, heavy with iron. Smelted at a forge, two of them make an ingot.",
+        "weight": 2,
+        "value": 1,
+        "stackable": true,
+        "properties": {
+            "category": "material"
+        },
+        "item_family": "material"
+    },
+    "item_marshlight_moss": {
+        "type": "Item",
+        "name": "marshlight moss",
+        "description": "A damp clump of pale moss that glows faintly blue in the dark. Alchemists steep it for draughts that restore a tired mind.",
+        "weight": 0.1,
+        "value": 4,
+        "stackable": true,
+        "properties": {
+            "category": "material"
+        },
+        "item_family": "material"
     }
 }

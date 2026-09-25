@@ -29,11 +29,16 @@
     "rooms": {
         "mine_exit": {
             "name": "Abandoned Mine Exit",
-            "description": "You emerge from a small hole in the mountainside, the exit of an old mine. The air is thin and cold. A narrow, treacherous path leads east along the cliff face.",
+            "description": "You emerge from a small hole in the mountainside, the exit of an old mine. The air is thin and cold. A narrow, treacherous path leads east along the cliff face. Rust stains run down the rock beside the hole, from a vein the miners never reached from inside.",
             "exits": {
                 "in": "caves:mine_exit",
                 "east": "rocky_ledge"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_iron_vein"
+                }
+            ]
         },
         "rocky_ledge": {
             "name": "Rocky Ledge",
@@ -128,6 +133,9 @@
                 },
                 {
                     "item_id": "node_fallen_bough"
+                },
+                {
+                    "item_id": "node_frostpetal_patch"
                 }
             ]
         },
@@ -148,11 +156,16 @@
         },
         "frozen_waterfall_base": {
             "name": "Frozen Waterfall",
-            "description": "A massive waterfall, frozen solid into shimmering blue ice, clings to the mountainside. The air here is intensely cold. It might be possible to climb the ice, but it looks dangerous.",
+            "description": "A massive waterfall, frozen solid into shimmering blue ice, clings to the mountainside. The air here is intensely cold. It might be possible to climb the ice, but it looks dangerous. At the foot of the ice, a few pale-blue flowers grow where nothing else can.",
             "exits": {
                 "west": "switchback_1",
                 "climb": "ice_cave_entrance"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_frostpetal_patch"
+                }
+            ]
         },
         "ice_cave_entrance": {
             "name": "Ice Cave Entrance",

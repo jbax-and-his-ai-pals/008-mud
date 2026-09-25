@@ -203,12 +203,17 @@
         },
         "mine_upper_level": {
             "name": "Mine - Upper Level",
-            "description": "This level of the mine is high and drafty. A rickety wooden platform overlooks the main shaft. The tunnel continues north towards what looks like an exit to the high peaks.",
+            "description": "This level of the mine is high and drafty. A rickety wooden platform overlooks the main shaft. The tunnel continues north towards what looks like an exit to the high peaks. Where the old miners stopped, a dark vein of ore still shows in the rock.",
             "properties": {},
             "exits": {
                 "down": "forgotten_mine_shaft",
                 "north": "mine_exit"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_iron_vein"
+                }
+            ]
         },
         "mine_exit": {
             "name": "Mine Exit",
@@ -275,12 +280,17 @@
         },
         "east_mine_tunnel": {
             "name": "East Mine Tunnel",
-            "description": "An old mining tunnel heading east. It appears stable but unused for a very long time.",
+            "description": "An old mining tunnel heading east. It appears stable but unused for a very long time. Pick marks end abruptly at a rust-streaked seam nobody finished working.",
             "properties": {},
             "exits": {
                 "west": "forgotten_mine_shaft",
                 "east": "lava_tube_entrance"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_iron_vein"
+                }
+            ]
         },
         "lava_tube_entrance": {
             "name": "Lava Tube Entrance",

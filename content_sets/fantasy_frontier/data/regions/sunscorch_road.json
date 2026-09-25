@@ -25,11 +25,16 @@
     "rooms": {
         "windbreak_pass": {
             "name": "Windbreak Pass",
-            "description": "The last shoulder of Frostpeak drops away into a dry, copper-coloured horizon. Cairns wrapped in old cloth mark the place where mountain weather gives way to the desert's harsher kind of emptiness.",
+            "description": "The last shoulder of Frostpeak drops away into a dry, copper-coloured horizon. Cairns wrapped in old cloth mark the place where mountain weather gives way to the desert's harsher kind of emptiness. One cairn stands on an outcrop of orange stone that flashes like embers when the sun strikes it.",
             "exits": {
                 "southwest": "mountains:high_pass",
                 "east": "caravan_track"
-            }
+            },
+            "items": [
+                {
+                    "item_id": "node_sunstone_outcrop"
+                }
+            ]
         },
         "caravan_track": {
             "name": "Caravan Track",

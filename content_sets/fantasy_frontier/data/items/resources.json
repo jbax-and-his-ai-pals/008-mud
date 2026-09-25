@@ -251,5 +251,74 @@
                 }
             ]
         }
+    },
+    "node_iron_vein": {
+        "type": "ResourceNode",
+        "name": "iron vein",
+        "description": "A dark seam of rust-streaked ore runs through the rock where the old miners stopped digging. A pick would free a few lumps.",
+        "properties": {
+            "resource_item_id": "item_iron_ore",
+            "tool_required": "pickaxe",
+            "charges": 4,
+            "max_charges": 4,
+            "respawn_days": 2,
+            "resource_tags": [
+                "ore",
+                "mineral",
+                "mine"
+            ]
+        }
+    },
+    "node_marshlight_moss": {
+        "type": "ResourceNode",
+        "name": "marshlight moss",
+        "description": "Pale moss clings to the old wood here, glowing faintly blue where the shade is deepest.",
+        "properties": {
+            "resource_item_id": "item_marshlight_moss",
+            "tool_required": "foraging_knife",
+            "charges": 3,
+            "max_charges": 3,
+            "respawn_days": 2,
+            "resource_tags": [
+                "plant",
+                "moss",
+                "swamp"
+            ]
+        }
+    },
+    "node_frostpetal_patch": {
+        "type": "ResourceNode",
+        "name": "frostpetal patch",
+        "description": "A sheltered clutch of pale-blue frostpetals grows where the cold keeps every other plant away.",
+        "properties": {
+            "resource_item_id": "item_frostpetal",
+            "tool_required": "foraging_knife",
+            "charges": 2,
+            "max_charges": 2,
+            "respawn_days": 3,
+            "resource_tags": [
+                "plant",
+                "flower",
+                "alpine"
+            ]
+        }
+    },
+    "node_sunstone_outcrop": {
+        "type": "ResourceNode",
+        "name": "sunstone outcrop",
+        "description": "An outcrop of orange stone catches the sun and seems to keep it; here and there a clearer crystal shows through the weathering.",
+        "properties": {
+            "resource_item_id": "item_sunstone",
+            "tool_required": "pickaxe",
+            "charges": 2,
+            "max_charges": 2,
+            "respawn_days": 4,
+            "resource_tags": [
+                "gem",
+                "mineral",
+                "crystal",
+                "desert"
+            ]
+        }
     }
 }

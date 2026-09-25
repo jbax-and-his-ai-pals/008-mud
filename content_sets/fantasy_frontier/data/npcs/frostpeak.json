@@ -143,7 +143,17 @@
                     "price_multiplier": 1.1
                 }
             ],
-            "can_give_generic_quests": true
+            "can_give_generic_quests": true,
+            "buy_orders": [
+                {
+                    "id": "iron_ore",
+                    "item_id": "item_iron_ore",
+                    "quantity": 4,
+                    "reward_gold": 15,
+                    "relationship_amount": 1,
+                    "repeatable": true
+                }
+            ]
         }
     }
 }
