@@ -73,7 +73,8 @@ failure — a save that did not happen leaves the work dirty and shows a dialog
 rather than greying the button out. Content is written 4-space indented and in
 authored key order.
 
-Leaving a region with unsaved edits asks first; closing the window offers **Save
+Leaving a region with unsaved edits asks first, and lists the rooms, library
+entries and configuration it would discard; closing the window offers **Save
 and quit** / **Quit without saving** / **Keep editing**. There is no autosave, so
 the quit prompt is the safety net.
 
@@ -97,6 +98,9 @@ the quit prompt is the safety net.
 | `F` | recentre the view |
 | `Escape` | cancel the current tool, box-select or district preview |
 | `Shift`+click | add to the selection |
+| drag a room's `+` handle | add a connected room in that direction (the handles show on hover) |
+
+The shortcuts work whatever panel has focus, except while typing in a field or with a dialog open.
 
 Undo does not cover inspector field edits, paste, or the paint and stamp tools,
 and the history is cleared when another region is loaded.

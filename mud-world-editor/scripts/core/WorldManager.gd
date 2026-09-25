@@ -120,7 +120,11 @@ func get_all_world_data() -> Dictionary:
 				if d.get("themes") is Dictionary:
 					continue
 				var rid = d.get("region_id", fname.get_file().replace(".json", ""))
-				world_data[rid] = d
+				# Room positions live in the content set's editor/ folder, not in
+				# the region file, so without the merge every room of every region
+				# but the open one sat at (0, 0) and the world view drew each of
+				# them as a single square.
+				world_data[rid] = EditorLayout.merge_region(str(rid), d)
 	return world_data
 
 func _scan_regions_recursive(root_dir: String, current_subdir: String) -> Array:
