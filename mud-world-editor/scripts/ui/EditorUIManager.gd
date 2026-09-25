@@ -1007,6 +1007,15 @@ func show_error(title: String, message: String) -> void:
 		error_modal.dialog_text = message
 	error_modal.popup_centered()
 
+## Whether a dialog is up (anything that takes the whole editor's attention):
+## map shortcuts wait until it closes.
+func is_dialog_open() -> bool:
+	for window in ui_layer.find_children("*", "Window", true, false):
+		if window.visible and window.exclusive:
+			return true
+	return false
+
+
 func show_quit_prompt(message: String) -> void:
 	quit_modal.dialog_text = message
 	# Only one exclusive dialog can be open, so with another one showing the quit

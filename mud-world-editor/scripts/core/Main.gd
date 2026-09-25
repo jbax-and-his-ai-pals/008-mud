@@ -592,15 +592,44 @@ func _connect_graph_signals():
 	)
 	graph_controller.request_region_edit.connect(func(id): ui_mgr.btn_world_view.button_pressed = false; _load_region(id + ".json", false, true))
 
+## The editor's keyboard shortcuts. They used to be one line of chained
+## `if`s, where every `elif` belonged to the *inner* `if not world_view` -- so
+## redo, Escape, F and Ctrl+F never ran at all. They are read in `_input`, ahead
+## of the interface: otherwise a focused list (the Explorer) takes F as
+## "jump to the next entry starting with F". They step aside while a text field
+## has focus (it has its own undo) and while a dialog is open.
+func _input(event):
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	var focus := get_viewport().gui_get_focus_owner()
+	if focus is LineEdit or focus is TextEdit or ui_mgr.is_dialog_open():
+		return
+	var ctrl: bool = event.ctrl_pressed or event.meta_pressed
+	var handled := true
+	if ctrl and event.keycode == KEY_Z and not event.shift_pressed:
+		cmd_proc.undo(); _after_history_step()
+	elif ctrl and (event.keycode == KEY_Y or (event.keycode == KEY_Z and event.shift_pressed)):
+		cmd_proc.redo(); _after_history_step()
+	elif ctrl and event.keycode == KEY_F:
+		ui_mgr.show_search_modal()
+	elif not ctrl and not event.alt_pressed and event.keycode == KEY_F:
+		camera_controller.center_on_nodes(graph_controller.get_active_nodes())
+	else:
+		handled = false
+	if handled:
+		get_viewport().set_input_as_handled()
+
+
+func _after_history_step():
+	if not state.is_world_view:
+		_refresh_view()
+	_on_data_modified()
+
+
 func _unhandled_input(event):
-	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_Z and event.ctrl_pressed: cmd_proc.undo(); if not state.is_world_view: _refresh_view(); _on_data_modified()
-		elif event.keycode == KEY_Y and event.ctrl_pressed: cmd_proc.redo(); if not state.is_world_view: _refresh_view(); _on_data_modified()
-		elif event.keycode == KEY_ESCAPE:
-			if state.cur_tool_mode != EditorUIManager.ToolMode.SELECT: ui_mgr.tool_changed.emit(EditorUIManager.ToolMode.SELECT, {})
-			elif state.is_box_selecting: state.is_box_selecting = false; graph_controller.update_selection_box(Rect2(), false)
-		elif event.keycode == KEY_F: camera_controller.center_on_nodes(graph_controller.get_active_nodes())
-		elif event.keycode == KEY_F and event.ctrl_pressed: ui_mgr.show_search_modal()
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE and not state.district_preview.get("active", false):
+		if state.cur_tool_mode != EditorUIManager.ToolMode.SELECT: ui_mgr.tool_changed.emit(EditorUIManager.ToolMode.SELECT, {})
+		elif state.is_box_selecting: state.is_box_selecting = false; graph_controller.update_selection_box(Rect2(), false)
 
 	if ui_mgr.is_mouse_over_ui(): return
 
