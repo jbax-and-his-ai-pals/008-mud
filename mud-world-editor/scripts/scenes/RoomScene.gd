@@ -111,7 +111,10 @@ func _ready():
 		for child in anchor_container.get_children():
 			if child is Control:
 				child.mouse_filter = Control.MOUSE_FILTER_STOP
+				child.tooltip_text = "Drag out to add a connected room"
+				child.mouse_default_cursor_shape = Control.CURSOR_CROSS
 				child.gui_input.connect(func(ev): _on_anchor_gui_input(ev, child))
+				_add_anchor_handle(child)
 
 	if _is_proxy: set_as_proxy(true)
 	else: set_node_color(_current_color)
@@ -123,6 +126,31 @@ func _ready():
 	
 	update_icons(_npc_visible, _item_visible, _start_visible, _custom_icon_id, _properties)
 	_update_border()
+
+## The anchors are bare hit areas on each edge; without something drawn on them
+## an author hovering a room saw nothing to drag from. A small round "+" handle
+## in the middle of each makes them findable (shown with the anchors, on hover).
+func _add_anchor_handle(anchor: Control) -> void:
+	if anchor.has_node("Handle"):
+		return
+	var handle := Label.new()
+	handle.name = "Handle"
+	handle.text = "+"
+	handle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	handle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	handle.add_theme_font_size_override("font_size", 13)
+	handle.add_theme_color_override("font_color", Color(0.06, 0.1, 0.16))
+	var dot := StyleBoxFlat.new()
+	dot.bg_color = Color(0.56, 0.81, 1.0)
+	dot.border_color = Color(1, 1, 1, 0.9)
+	dot.set_border_width_all(1)
+	dot.set_corner_radius_all(8)
+	handle.add_theme_stylebox_override("normal", dot)
+	handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	handle.size = Vector2(16, 16)
+	handle.position = (anchor.size - handle.size) / 2.0
+	anchor.add_child(handle)
+
 
 func get_connection_anchor_point(dir: String) -> Vector2:
 	var pos = visual_panel.position
