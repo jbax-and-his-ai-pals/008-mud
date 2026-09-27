@@ -54,7 +54,7 @@ func _check_hazard(holder: Node, room: Dictionary) -> void:
 	_assert(room.get("properties", {}).get("hazard_damage") == 4.0, "room damage is written as an optional per-room override")
 	_assert(typeof(room["properties"]["hazard_damage"]) == TYPE_INT, "as the whole number the engine reads")
 	var defaults: Label = _first_named(holder, "HazardDefaults")
-	_assert(defaults != null and defaults.text.begins_with("Declared: "), "the declared numbers that 0 stands for are shown (%s)" % (defaults.text if defaults else "missing"))
+	_assert(defaults != null and defaults.text.begins_with("The hazard's own: "), "the declared numbers that 0 stands for are shown (%s)" % (defaults.text if defaults else "missing"))
 	if damage != null:
 		damage.value = 9
 		_assert(damage.value == 9.0, "a whole damage stays whole in the spin box (no 0.1 step offset)")

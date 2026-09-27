@@ -85,19 +85,25 @@ func _build_hazard(parent: VBoxContainer) -> void:
 	if hazard_ids.is_empty() and current == "": picker.tooltip_text = "Declare hazards in Combat Vocabulary before placing one."
 	picker.select(selected); InspectorStyle.apply_button_style(picker)
 	picker.item_selected.connect(func(index): _set_hazard(str(picker.get_item_metadata(index))))
-	row.add_child(picker)
+	row.add_child(picker); parent.add_child(row)
+	# The two numbers used to sit unlabelled beside the picker. They get their
+	# own row, each with a label and a unit.
+	var numbers := HBoxContainer.new(); numbers.name = "HazardOverrides"; numbers.add_theme_constant_override("separation", 6)
 	# 0 is "no override": environment.py::_override ignores a value of 0 or less
 	# and uses the declared one. Damage is a whole number (the engine casts it);
 	# a minimum of 0 keeps the step grid on whole values, where a 0.1 minimum
 	# had turned a damage of 9 into 9.1 and a 5-second tick into 5.1.
 	var damage := SpinBox.new(); damage.name = "HazardDamage"; damage.min_value = 0; damage.max_value = 9999; damage.step = 1; damage.value = float(props.get("hazard_damage", 0)); damage.custom_minimum_size.x = 86; damage.tooltip_text = "Room-specific damage per tick (0: the hazard's own)"
 	damage.editable = current != ""; InspectorStyle.apply_input_style(damage); damage.value_changed.connect(func(value): _set_hazard_number("hazard_damage", float(value)))
-	row.add_child(damage)
+	numbers.add_child(InspectorStyle.lbl("Damage per tick", InspectorStyle.COLOR_TEXT_DIM))
+	numbers.add_child(damage)
+	numbers.add_child(InspectorStyle.lbl("  every", InspectorStyle.COLOR_TEXT_DIM))
 	var tick := SpinBox.new(); tick.name = "HazardTickInterval"; tick.min_value = 0; tick.max_value = 9999; tick.step = 0.5; tick.value = float(props.get("hazard_tick_interval", 0)); tick.custom_minimum_size.x = 86; tick.tooltip_text = "Room-specific seconds between ticks (0: the hazard's own)"
 	tick.editable = current != ""; InspectorStyle.apply_input_style(tick); tick.value_changed.connect(func(value): _set_hazard_number("hazard_tick_interval", float(value)))
-	row.add_child(tick); parent.add_child(row)
+	tick.suffix = "s"
+	numbers.add_child(tick); parent.add_child(numbers)
 	hazard_value_controls = [damage, tick]
-	var hint := InspectorStyle.lbl("Choose a declared hazard. Damage and interval are optional per-room overrides; 0 uses the hazard's own. Defense (physical) or resistance (other channels) comes off each tick.", InspectorStyle.COLOR_TEXT_DIM)
+	var hint := InspectorStyle.lbl("Damage and interval are optional overrides for this room; leave them at 0 to use the hazard's own values. Defense (physical) or resistance (other channels) comes off each tick.", InspectorStyle.COLOR_TEXT_DIM)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; parent.add_child(hint)
 	hazard_defaults = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); hazard_defaults.name = "HazardDefaults"; parent.add_child(hazard_defaults)
 	_refresh_hazard_defaults()
@@ -182,7 +188,7 @@ func _refresh_hazard_defaults() -> void:
 	var hazard_id := str(_properties().get("hazard_type", ""))
 	var record = database_mgr.combat_vocabulary.hazards.get(hazard_id) if database_mgr != null and hazard_id != "" else null
 	if not record is Dictionary: hazard_defaults.text = ""; return
-	hazard_defaults.text = "Declared: %s %s damage every %s s." % [_number(record.get("damage", "?")), str(record.get("channel", "")), _number(record.get("tick_interval", "?"))]
+	hazard_defaults.text = "The hazard's own: %s %s damage every %s s." % [_number(record.get("damage", "?")), str(record.get("channel", "")), _number(record.get("tick_interval", "?"))]
 
 
 static func _number(value) -> String:
