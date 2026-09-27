@@ -574,6 +574,8 @@ func _connect_graph_signals():
 		else: ui_mgr.show_context_menu({"Rename":0, "Delete":99, "Set Start":3}); ui_mgr.context_menu.set_meta("target_type", "room"); ui_mgr.context_menu.set_meta("target_id", str(id))
 	)
 	graph_controller.connection_drag_started.connect(func(id): state.dragging_conn={"active":true, "start":graph_controller.get_node_position(id), "end":Vector2.ZERO, "src":id})
+	graph_controller.connection_drag_moved.connect(func(_id): graph_controller.queue_redraw())
+	graph_controller.connection_drag_released.connect(func(_id): _finish_connection_drag(get_global_mouse_position()))
 	graph_controller.region_connection_drag_started.connect(func(rid, local_pos):
 		var node = graph_controller.world_view_builder.world_region_nodes.get(rid)
 		if not node: return
@@ -587,6 +589,8 @@ func _connect_graph_signals():
 	# no drag line and no direction menu to get through first.
 	graph_controller.anchor_clicked.connect(func(id, direction):
 		if state.is_world_view or direction == "": return
+		# Mid-connection, a click on an anchor is not a request for a new room.
+		if state.connection_mode or state.dragging_conn.get("active", false): return
 		action_handler.create_room_from_anchor(str(id), direction, _free_spot_from(str(id), direction)))
 	graph_controller.region_moved.connect(func(id, old, new):
 		cmd_proc.commit(
@@ -867,10 +871,10 @@ func _load_region(file, force_reload: bool = false, keep_ui_visible: bool = fals
 		var target: String = str(file) if file != "" else "an empty view"
 		var save_then_load := func():
 			if _save_everything(): _load_region_now(file, force_reload, keep_ui_visible)
-		ui_mgr.confirm(
+		ui_mgr.confirm_rich(
 			"Unsaved changes",
-			"%s has unsaved changes. Loading %s will discard them:\n\n%s" % [
-				region_mgr.current_filename, target, _describe_unsaved_work(false),
+			"[b]%s[/b] has unsaved changes. Loading [b]%s[/b] will discard them:\n\n%s" % [
+				_bb(_region_title()), _bb(_region_title(str(file))) if file != "" else "an empty view", _unsaved_work_bbcode(false),
 			],
 			"Save changes and load",
 			save_then_load,
@@ -1253,40 +1257,92 @@ func _has_unsaved_work() -> bool:
 ## something was unsaved, so an author could not tell whether discarding was
 ## safe. `include_library` is false where the choice leaves the library alone
 ## (loading another region keeps it).
-func _describe_unsaved_work(include_library: bool = true, limit: int = 12) -> String:
-	var lines: Array = []
+func _unsaved_entries(include_library: bool = true) -> Array:
+	var groups: Array = []
 	if region_mgr.is_region_dirty:
 		var rooms: Dictionary = region_mgr.data.get("rooms", {})
-		var names: Array = []
+		var districts: Dictionary = region_mgr.data.get("properties", {}).get("districts", {})
+		var entries: Array = []
 		for id in region_mgr.dirty_room_ids:
-			var label := str(rooms[id].get("name", "")) if rooms.has(id) else ""
-			var who := "%s (%s)" % [label, id] if label != "" and label != id else str(id)
+			var name := ""
+			var where := ""
+			if ":" in str(id):
+				# A cross-region link card: the room lives in another region, and
+				# only its position on this map changed.
+				var node = graph_controller.get_active_nodes().get(id)
+				var parts := str(id).split(":")
+				name = "Link to %s" % (str(node._cached_id) if node != null and "_cached_id" in node else parts[1])
+				where = str(node._cached_name) if node != null and "_cached_name" in node else parts[0].capitalize()
+			else:
+				name = str(rooms[id].get("name", id)) if rooms.has(id) else str(id)
+				var district_names: Array = []
+				for district_id in region_mgr.district_ids_of(str(id)):
+					district_names.append(str(districts[district_id].get("name", district_id)))
+				where = ", ".join(district_names)
 			# What happened to it, not only that it changed; edits made in the
 			# inspector carry no action of their own and read as "edited".
 			var what: Array = region_mgr.room_changes.get(id, [])
-			if what.is_empty(): what = ["edited"] if rooms.has(id) else ["removed"]
-			names.append("%s: %s" % [who, ", ".join(what)])
-		names.sort()
-		var where := region_mgr.current_filename
-		if names.is_empty():
-			lines.append("%s: region settings, districts or layout" % where)
-		for name in names:
-			lines.append("%s: room %s" % [where, name])
+			if what.is_empty(): what = ["edited"] if rooms.has(id) or ":" in str(id) else ["removed"]
+			entries.append({"name": name, "where": where, "what": ", ".join(what)})
+		entries.sort_custom(func(a, b): return a.name.naturalnocasecmp_to(b.name) < 0)
+		if entries.is_empty():
+			entries.append({"name": "Region settings, districts or layout", "where": "", "what": "edited"})
+		groups.append({"title": _region_title(), "entries": entries})
 	if include_library:
+		var library: Array = []
 		for type in database_mgr.dirty_flags:
 			var ids: Array = database_mgr.dirty_flags[type].keys()
 			ids.sort()
 			for id in ids:
-				lines.append("library %s: %s" % [str(type).replace("_", " "), id])
+				library.append({"name": str(id), "where": str(type).replace("_", " "), "what": "edited"})
 		if database_mgr.magic_groups_dirty:
-			lines.append("library: ability groups")
+			library.append({"name": "Ability groups", "where": "", "what": "edited"})
+		if not library.is_empty(): groups.append({"title": "Content Library", "entries": library})
+		var configuration: Array = []
 		for title in ui_mgr.configuration_draft_titles():
-			lines.append("configuration: %s" % title)
-	if lines.size() > limit:
-		var more := lines.size() - (limit - 1)
-		lines = lines.slice(0, limit - 1)
-		lines.append("... and %d more" % more)
-	return "\n".join(lines.map(func(l): return "  • " + l))
+			configuration.append({"name": str(title), "where": "", "what": "edited"})
+		if not configuration.is_empty(): groups.append({"title": "Game configuration", "entries": configuration})
+	return groups
+
+## The name a region goes by: the open one's own "name", or another region
+## file's, rather than its file name.
+func _region_title(file: String = "") -> String:
+	if file == "" or file == region_mgr.current_filename:
+		return str(region_mgr.data.get("name", region_mgr.current_filename.get_basename().capitalize()))
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(region_mgr.regions_dir().path_join(file)))
+	if parsed is Dictionary and parsed.has("name"): return str(parsed["name"])
+	return file.get_file().get_basename().capitalize()
+
+func _bb(text: String) -> String:
+	return text.replace("[", "[lb]")
+
+## Plain text, one line per change -- for logs and tests.
+func _describe_unsaved_work(include_library: bool = true) -> String:
+	var lines: Array = []
+	for group in _unsaved_entries(include_library):
+		for entry in group.entries:
+			var where: String = (" (%s)" % entry.where) if entry.where != "" else ""
+			lines.append("%s: %s%s: %s" % [group.title, entry.name, where, entry.what])
+	return "\n".join(lines)
+
+## The same, formatted for the prompts: a heading per region, library or
+## configuration; each name bold, where it sits dimmed, then what happened.
+## Long lists stop at `limit` with a count of the rest.
+func _unsaved_work_bbcode(include_library: bool = true, limit: int = 14) -> String:
+	var out: Array = []
+	var shown := 0
+	var total := 0
+	for group in _unsaved_entries(include_library): total += group.entries.size()
+	for group in _unsaved_entries(include_library):
+		if shown >= limit: break
+		out.append("[color=#9fc8e8][b]%s[/b][/color]" % _bb(group.title))
+		for entry in group.entries:
+			if shown >= limit: break
+			var where: String = ("  [color=#7f8a93]%s[/color]" % _bb(entry.where)) if entry.where != "" else ""
+			out.append("   •  [b]%s[/b]%s  [color=#c9b27c]— %s[/color]" % [_bb(entry.name), where, _bb(entry.what)])
+			shown += 1
+	if total > shown: out.append("[color=#7f8a93]   … and %d more[/color]" % (total - shown))
+	return "\n".join(out)
 
 func _save_everything() -> bool:
 	# Every dirty thing, in one press, whatever view is on screen. This used to
@@ -1671,10 +1727,10 @@ func _request_switch_content_set(path: String):
 	var save_then_switch := func():
 		if _save_everything():
 			_switch_content_set(path)
-	ui_mgr.confirm(
+	ui_mgr.confirm_rich(
 		"Unsaved changes",
-		"%s is not saved. Switching to %s will reload the world; save first, or leave these behind:\n\n%s"
-			% [DataRoot.root().get_file(), path.get_file(), _describe_unsaved_work()],
+		"[b]%s[/b] is not saved. Switching to [b]%s[/b] reloads the world; save first, or leave these behind:\n\n%s"
+			% [_bb(DataRoot.root().get_file()), _bb(path.get_file()), _unsaved_work_bbcode()],
 		"Save and switch",
 		save_then_switch,
 		"Keep editing",
@@ -1700,10 +1756,10 @@ func _request_rename_open_content_set(new_id: String, new_title: String):
 	var save_then_rename := func():
 		if _save_everything():
 			_rename_open_content_set_now(new_id, new_title)
-	ui_mgr.confirm(
+	ui_mgr.confirm_rich(
 		"Unsaved changes",
-		"%s is not saved. Renaming it reopens the world from its new folder; save first, or leave these behind:\n\n%s"
-			% [root.get_file(), _describe_unsaved_work()],
+		"[b]%s[/b] is not saved. Renaming it reopens the world from its new folder; save first, or leave these behind:\n\n%s"
+			% [_bb(root.get_file()), _unsaved_work_bbcode()],
 		"Save and rename",
 		save_then_rename,
 		"Keep editing",
@@ -1777,7 +1833,7 @@ func _request_quit():
 		get_tree().quit()
 		return
 	ui_mgr.show_quit_prompt(
-		"Unsaved changes:\n\n%s\n\nSave before quitting, or leave them behind." % _describe_unsaved_work()
+		"These changes are not saved:\n\n%s\n\nSave before quitting, or leave them behind." % _unsaved_work_bbcode(), true
 	)
 
 func _on_node_click(id: String, shift_mod: bool):
@@ -1829,6 +1885,31 @@ func _on_node_click(id: String, shift_mod: bool):
 ##
 ## One entry point for both ways in (the Link button and a drag from one room to
 ## another), so the mode cannot be set on one path and forgotten on the other.
+## Let go of a Ctrl/Shift drag at `at`. Over another room of this region the
+## connection is made at once, both ways, facing the way the rooms sit on the
+## map; Ctrl+Z takes it back. When that direction is already taken at either
+## end, or the target is in another region, the connection form opens with the
+## target filled in, to choose. Let go anywhere else and nothing happens.
+func _finish_connection_drag(at: Vector2) -> void:
+	if not state.dragging_conn.get("active", false): return
+	var src: String = str(state.dragging_conn.src)
+	state.dragging_conn.active = false
+	graph_controller.queue_redraw()
+	var target := graph_controller.get_room_under_mouse(at)
+	if target == "" or target == src: return
+	var src_name: String = str(region_mgr.data.rooms.get(src, {}).get("name", src))
+	var rooms: Dictionary = region_mgr.data.get("rooms", {})
+	if not rooms.has(target):
+		_open_connection_form(src, src_name, target)
+		return
+	var direction := Constants.classify_direction(graph_controller.get_node_position(target) - graph_controller.get_node_position(src))
+	var reverse: String = str(Constants.INV_DIR_MAP.get(direction, ""))
+	if rooms[src].get("exits", {}).has(direction) or rooms[target].get("exits", {}).has(reverse):
+		_open_connection_form(src, src_name, target)
+		return
+	action_handler.create_connection(src, direction, target, true, reverse)
+	_on_node_click(src, false)
+
 func _open_connection_form(src_id: String, src_name: String, target_id: String = "", dir: String = ""):
 	state.connection_mode = true
 	inspector.load_connection_form(src_id, src_name, world_mgr.get_global_hierarchy(), region_mgr.current_filename, target_id, dir)

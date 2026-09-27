@@ -913,6 +913,7 @@ func _setup_confirm_and_error_dialogs():
 	confirm_modal.canceled.connect(func(): _confirm_action = Callable())
 	ui_layer.add_child(confirm_modal)
 	DialogStyle.style_window(confirm_modal)
+	_add_rich_message(confirm_modal)
 
 	error_modal = AcceptDialog.new()
 	error_modal.title = "Something went wrong"
@@ -942,6 +943,7 @@ func _setup_confirm_and_error_dialogs():
 	)
 	ui_layer.add_child(quit_modal)
 	DialogStyle.style_window(quit_modal)
+	_add_rich_message(quit_modal)
 	DialogStyle.style_button(quit_discard_btn, DialogStyle.COLOR_DISCARD)
 
 func _on_confirmed():
@@ -961,11 +963,37 @@ func confirm(title: String, message: String, confirm_text: String, action: Calla
 	_confirm_action = action
 	confirm_modal.title = title
 	confirm_modal.dialog_text = message
+	_show_rich_message(confirm_modal, "")
 	confirm_modal.ok_button_text = confirm_text
 	confirm_modal.cancel_button_text = cancel_text
 	DialogStyle.style_button(confirm_modal.get_ok_button(), confirm_color)
 	confirm_modal.popup_centered()
 
+
+## A formatted body for a confirmation: headings, names in bold, the less
+## important parts dimmed. `dialog_text` is plain, which made a list of
+## unsaved changes one undifferentiated block.
+func confirm_rich(title: String, bbcode: String, confirm_text: String, action: Callable, cancel_text: String = "Cancel") -> void:
+	confirm(title, "", confirm_text, action, cancel_text)
+	_show_rich_message(confirm_modal, bbcode)
+
+func _add_rich_message(dialog: AcceptDialog) -> void:
+	var rich := RichTextLabel.new(); rich.name = "RichMessage"
+	rich.bbcode_enabled = true
+	rich.fit_content = true
+	rich.scroll_active = false
+	rich.custom_minimum_size = Vector2(520, 0)
+	rich.add_theme_color_override("default_color", DialogStyle.COLOR_TEXT)
+	rich.visible = false
+	dialog.add_child(rich)
+
+func _show_rich_message(dialog: AcceptDialog, bbcode: String) -> void:
+	var rich: RichTextLabel = dialog.get_node_or_null("RichMessage")
+	if rich == null: return
+	rich.visible = bbcode != ""
+	rich.text = bbcode
+	if bbcode != "": dialog.dialog_text = ""
+	dialog.reset_size()
 
 # A third option on the confirmation showing now: "switch without saving" and
 # "quit without saving" are real choices, and a dialog offering only
@@ -1019,8 +1047,9 @@ func is_dialog_open() -> bool:
 	return false
 
 
-func show_quit_prompt(message: String) -> void:
+func show_quit_prompt(message: String, rich: bool = false) -> void:
 	quit_modal.dialog_text = message
+	_show_rich_message(quit_modal, message if rich else "")
 	# Only one exclusive dialog can be open, so with another one showing the quit
 	# prompt was refused and closing the window did nothing at all. Put open
 	# dialogs away first -- their unsaved form contents stay, so "Save and quit"

@@ -52,6 +52,21 @@ const MAP_DIRECTION_ALIASES = {
 	"outside": DIR_OUT,
 }
 
+## The compass direction that best describes going from one map point to
+## another (screen y grows southward). Shared by the connection form's
+## suggestion and the drag-to-connect gesture, so both pick the same one.
+static func classify_direction(delta: Vector2) -> String:
+	var x_ratio: float = abs(delta.x) / max(abs(delta.y), 0.001)
+	var y_ratio: float = abs(delta.y) / max(abs(delta.x), 0.001)
+	if x_ratio < 0.45:
+		return "south" if delta.y > 0.0 else "north"
+	elif y_ratio < 0.45:
+		return "east" if delta.x > 0.0 else "west"
+	elif delta.x > 0.0:
+		return "southeast" if delta.y > 0.0 else "northeast"
+	else:
+		return "southwest" if delta.y > 0.0 else "northwest"
+
 const INV_DIR_MAP = {
 	DIR_N: DIR_S, DIR_S: DIR_N, 
 	DIR_E: DIR_W, DIR_W: DIR_E, 

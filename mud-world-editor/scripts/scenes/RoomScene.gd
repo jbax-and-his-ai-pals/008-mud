@@ -6,6 +6,10 @@ signal room_double_clicked(room_id)
 signal dragged(new_position)
 signal right_clicked
 signal connection_drag_started(room_id)
+# While a Ctrl/Shift drag is under way the card holds the mouse, so the map
+# never sees it move or let go; the card reports both.
+signal connection_drag_moved(room_id)
+signal connection_drag_released(room_id)
 signal anchor_clicked(room_id, direction)
 signal drag_started
 signal drag_ended
@@ -18,6 +22,7 @@ signal camera_pan_input(event)
 var dragging = false
 var drag_offset = Vector2()
 var _middle_panning = false
+var _connection_dragging := false
 
 var _current_color: Color = Color(0.2, 0.2, 0.2)
 var _is_selected: bool = false
@@ -60,21 +65,21 @@ func _ready():
 		panel_style = existing_style.duplicate()
 	else:
 		panel_style = StyleBoxFlat.new()
-	
+
 	panel_style.set_corner_radius_all(6)
 	panel_style.set_border_width_all(2)
 	panel_style.border_color = Color(0.8, 0.8, 0.8, 0.5)
 	panel_style.shadow_size = 4
 	panel_style.shadow_offset = Vector2(0, 2)
 	panel_style.shadow_color = Color(0, 0, 0, 0.4)
-	
+
 	visual_panel.add_theme_stylebox_override("panel", panel_style)
 	visual_panel.gui_input.connect(_on_panel_gui_input)
 	visual_panel.mouse_entered.connect(_on_mouse_entered)
 	visual_panel.mouse_exited.connect(_on_mouse_exited)
 	visual_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	visual_panel.draw.connect(_draw_icons)
-	
+
 	main_layout = VBoxContainer.new()
 	main_layout.name = "MainLayout"
 	main_layout.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -83,13 +88,13 @@ func _ready():
 	main_layout.alignment = BoxContainer.ALIGNMENT_CENTER
 	main_layout.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visual_panel.add_child(main_layout)
-	
+
 	name_label = visual_panel.get_node_or_null("NameLabel")
 	if not name_label: name_label = Label.new(); name_label.name = "NameLabel"
 	if name_label.get_parent() != main_layout:
 		if name_label.get_parent(): name_label.get_parent().remove_child(name_label)
 		main_layout.add_child(name_label)
-	
+
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	name_label.add_theme_font_size_override("font_size", 13)
@@ -97,29 +102,29 @@ func _ready():
 	name_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_label.gui_input.connect(_on_name_label_gui_input)
-	
+
 	id_label = visual_panel.get_node_or_null("IDLabel")
 	if not id_label: id_label = Label.new(); id_label.name = "IDLabel"
 	if id_label.get_parent() != main_layout:
 		if id_label.get_parent(): id_label.get_parent().remove_child(id_label)
 		main_layout.add_child(id_label)
-		
+
 	id_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	id_label.add_theme_font_size_override("font_size", 9)
 	id_label.modulate = Color(1, 1, 1, 0.5)
-	
+
 	anchor_container = visual_panel.get_node_or_null("AnchorContainer")
 	if anchor_container:
 		_build_anchors()
 
 	if _is_proxy: set_as_proxy(true)
 	else: set_node_color(_current_color)
-	
+
 	if name_label: name_label.text = _cached_name
 	if id_label: id_label.text = _cached_id
 	if id_label: id_label.visible = _show_technical_id or _is_proxy
 	set_label_arrange_mode(_label_arrange_mode)
-	
+
 	update_icons(_npc_visible, _item_visible, _start_visible, _custom_icon_id, _properties)
 	_update_border()
 
@@ -237,7 +242,7 @@ func get_connection_anchor_point(dir: String) -> Vector2:
 	var size = visual_panel.size
 	var c = pos + (size / 2.0)
 	var d = dir.to_lower()
-	
+
 	if d in ["up", "down", "in", "out", "enter", "exit", "inside", "outside", "climb", "descend", "surface", "dive"]: return to_global(c)
 	if d in ["north", "n"]: return to_global(Vector2(c.x, pos.y))
 	if d in ["south", "s"]: return to_global(Vector2(c.x, pos.y + size.y))
@@ -367,7 +372,7 @@ func set_highlighted(is_highlighted: bool):
 
 func _update_border():
 	if not is_node_ready() or not panel_style: return
-	
+
 	if _is_highlighted:
 		panel_style.border_color = Color(0.2, 0.8, 1.0)
 		panel_style.set_border_width_all(4)
@@ -403,6 +408,13 @@ func _on_panel_gui_input(event):
 	if event is InputEventMouseMotion and _middle_panning:
 		emit_signal("camera_pan_input", event)
 		return
+	if _connection_dragging:
+		if event is InputEventMouseMotion:
+			connection_drag_moved.emit(_cached_id)
+		elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			_connection_dragging = false
+			connection_drag_released.emit(_cached_id)
+		return
 	if _label_arrange_mode:
 		# The label itself owns editing/swapping in this mode; prevent accidental
 		# map movement while an author is arranging presentation.
@@ -413,20 +425,21 @@ func _on_panel_gui_input(event):
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
 				# Allow Ctrl OR Shift to start connection drag
-				if event.ctrl_pressed or event.shift_pressed: 
+				if event.ctrl_pressed or event.shift_pressed:
+					_connection_dragging = true
 					emit_signal("connection_drag_started", _cached_id)
-				else: 
+				else:
 					dragging = true
 					drag_offset = get_global_mouse_position() - global_position
 					emit_signal("room_selected", _cached_id)
 					emit_signal("drag_started")
 					if event.double_click:
 						emit_signal("room_double_clicked", _cached_id)
-			else: 
-				if dragging: 
+			else:
+				if dragging:
 					dragging = false
 					emit_signal("drag_ended")
-		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed: 
+		elif event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			emit_signal("right_clicked")
 
 	if event is InputEventMouseMotion and dragging:
@@ -443,7 +456,7 @@ func set_passive(enabled: bool):
 	_passive = enabled
 	if enabled:
 		if visual_panel: visual_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if anchor_container: 
+		if anchor_container:
 			anchor_container.visible = false
 			for c in anchor_container.get_children():
 				if c is Control: c.mouse_filter = Control.MOUSE_FILTER_IGNORE

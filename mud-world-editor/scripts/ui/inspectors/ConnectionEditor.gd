@@ -9,6 +9,7 @@ signal connection_created(src, dir, target, twoway, reverse_dir)
 # the *form*, and the side that owns the form should be the side that decides.
 signal connection_created_and_continue(src, dir, target, twoway, reverse_dir)
 signal target_selected(target_id) # New signal to report the current target
+signal cancelled
 
 const DIRECTION_ITEMS = Constants.AUTHORABLE_DIRECTIONS
 
@@ -179,7 +180,8 @@ func build_ui(parent_container: Control, src_id: String, src_name: String, hiera
 	btn_box.add_child(btn_another)
 
 	var btn_close = Button.new(); btn_close.text = "Cancel"; btn_close.size_flags_horizontal = 3
-	btn_close.pressed.connect(func(): target_selected.emit(""))
+	btn_close.name = "CancelConnection"
+	btn_close.pressed.connect(func(): cancelled.emit())
 	_apply_style(btn_close, Color(0.3, 0.1, 0.1))
 	btn_box.add_child(btn_close)
 
@@ -365,16 +367,7 @@ func _room_editor_pos(room: Dictionary) -> Vector2:
 	return Vector2(float(raw[0]), float(raw[1])) if raw is Array and raw.size() >= 2 else Vector2.ZERO
 
 func _classify_direction(delta: Vector2) -> String:
-	var x_ratio: float = abs(delta.x) / max(abs(delta.y), 0.001)
-	var y_ratio: float = abs(delta.y) / max(abs(delta.x), 0.001)
-	if x_ratio < 0.45:
-		return "south" if delta.y > 0.0 else "north"
-	elif y_ratio < 0.45:
-		return "east" if delta.x > 0.0 else "west"
-	elif delta.x > 0.0:
-		return "southeast" if delta.y > 0.0 else "northeast"
-	else:
-		return "southwest" if delta.y > 0.0 else "northwest"
+	return Constants.classify_direction(delta)
 
 func _update_connection_info():
 	if not conn_info_label: return

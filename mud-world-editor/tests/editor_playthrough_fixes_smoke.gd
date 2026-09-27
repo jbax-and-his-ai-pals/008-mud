@@ -132,6 +132,52 @@ func _run() -> void:
 	_assert(titles.any(func(m): return m.get("kind") == "item"), "and its item template")
 	main.ui_mgr.search_modal.hide()
 
+	print("\n[Ctrl-drag from one room onto another connects them]")
+	var graph = main.graph_controller
+	var all_rooms: Dictionary = main.region_mgr.data.rooms
+	var pair := []
+	for a in all_rooms:
+		for b in all_rooms:
+			if a == b or pair.size() > 0: continue
+			if not graph.get_active_nodes().has(a) or not graph.get_active_nodes().has(b): continue
+			var way := Constants.classify_direction(graph.get_node_position(b) - graph.get_node_position(a))
+			if graph.get_node_position(a).distance_to(graph.get_node_position(b)) > 700: continue
+			if all_rooms[a].get("exits", {}).has(way) or all_rooms[b].get("exits", {}).has(Constants.INV_DIR_MAP[way]): continue
+			if all_rooms[a].get("exits", {}).values().has(b): continue
+			pair = [a, b, way]
+	_assert(pair.size() == 3, "found two nearby rooms with a free direction between them: %s" % str(pair))
+	if pair.size() == 3:
+		var src_node = graph.get_active_nodes()[pair[0]]
+		var ctrl_press := InputEventMouseButton.new(); ctrl_press.button_index = MOUSE_BUTTON_LEFT; ctrl_press.pressed = true; ctrl_press.ctrl_pressed = true
+		src_node.visual_panel.gui_input.emit(ctrl_press)
+		_assert(main.state.dragging_conn.get("active", false), "Ctrl+press on a room starts a connection drag")
+		var move := InputEventMouseMotion.new()
+		src_node.visual_panel.gui_input.emit(move)
+		var release := InputEventMouseButton.new(); release.button_index = MOUSE_BUTTON_LEFT; release.pressed = false
+		# The card holds the mouse, so it reports the release; where it lands is
+		# the target room's centre.
+		main.graph_controller.connection_drag_released.disconnect(main.graph_controller.connection_drag_released.get_connections()[0].callable)
+		main.graph_controller.connection_drag_released.connect(func(_id): main._finish_connection_drag(graph.get_node_position(pair[1])))
+		src_node.visual_panel.gui_input.emit(release)
+		all_rooms = main.region_mgr.data.rooms
+		_assert(all_rooms[pair[0]]["exits"].get(pair[2], "") == pair[1], "letting go over the other room makes the exit %s" % pair[2])
+		_assert(all_rooms[pair[1]]["exits"].get(Constants.INV_DIR_MAP[pair[2]], "") == pair[0], "and the way back")
+		_assert(not main.state.dragging_conn.get("active", false) and not main.state.connection_mode, "and the drag is over, with no form left open")
+		main.cmd_proc.undo()
+		_assert(not main.region_mgr.data.rooms[pair[0]]["exits"].has(pair[2]), "Ctrl+Z takes the connection back")
+
+	print("\n[the connection form's Cancel closes it]")
+	main._open_connection_form(id, "Town Square")
+	_assert(main.state.connection_mode and main.inspector.cur_mode == "connection", "the form is open")
+	var before_anchor: int = main.region_mgr.data.rooms.size()
+	main.graph_controller.anchor_clicked.emit(id, "southwest")
+	_assert(main.region_mgr.data.rooms.size() == before_anchor, "an anchor click does nothing while connecting")
+	var cancel = main.inspector.content_container.find_child("CancelConnection", true, false)
+	_assert(cancel != null, "it has a Cancel button")
+	if cancel: cancel.pressed.emit()
+	_assert(not main.state.connection_mode and main.inspector.cur_mode != "connection", "Cancel leaves connection mode and closes the form")
+	for _i in 2: await process_frame
+
 	print("\n[districts follow a room through id changes and deletion, and saves]")
 	var rm = main.region_mgr
 	var districts_now: Dictionary = rm.data.get("properties", {}).get("districts", {})
@@ -171,10 +217,12 @@ func _run() -> void:
 	print("\n[unsaved-change prompts say what]")
 	var summary: String = main._describe_unsaved_work()
 	var room_name := str(rooms[id].get("name", id))
-	_assert(room_name in summary and main.region_mgr.current_filename in summary and "moved" in summary, "the moved room is named, with what happened: %s" % summary)
+	_assert(room_name in summary and main._region_title() in summary and "moved" in summary and not "town.json" in summary, "the moved room is named under its region, with what happened: %s" % summary)
+	var rich: String = main._unsaved_work_bbcode()
+	_assert("[b]%s[/b]" % room_name in rich and "[color=" in rich, "and the prompt version is formatted")
 	main.database_mgr.mark_dirty("npc", "old_bryn")
 	summary = main._describe_unsaved_work()
-	_assert("library npc: old_bryn" in summary, "and so is an edited library entry")
+	_assert("Content Library: old_bryn (npc)" in summary, "and so is an edited library entry")
 	_assert(not "old_bryn" in main._describe_unsaved_work(false), "which a region switch (it keeps the library) leaves out")
 
 	print("\n[the world view draws every region's rooms]")

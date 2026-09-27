@@ -10,7 +10,7 @@ signal connection_created_and_continue(src, dir, target, twoway, reverse_dir)
 signal request_delete_connection(source_id, direction, target, also_reciprocal)
 signal request_curve_change(source_id, direction, curve_action)
 signal target_selected_in_connector(target_id)
-signal request_save_template(room_id) 
+signal request_save_template(room_id)
 signal save_triggered
 signal reload_triggered
 signal data_modified
@@ -48,14 +48,14 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	region_mgr = _region_mgr
 	world_mgr = _world_mgr
 	database_mgr = _db_mgr
-	
+
 	connection_editor = ConnectionEditor.new(region_mgr)
 	connection_editor.connection_created.connect(func(src,d,t,two,rev): connection_created.emit(src,d,t,two,rev))
 	connection_editor.connection_created_and_continue.connect(
 		func(src,d,t,two,rev): connection_created_and_continue.emit(src,d,t,two,rev)
 	)
 	connection_editor.target_selected.connect(func(id): target_selected_in_connector.emit(id))
-	
+
 	panel = Panel.new()
 	panel.anchor_left = EXPANDED_ANCHOR_LEFT; panel.anchor_right = 1.0
 	panel.anchor_bottom = 0.96
@@ -81,7 +81,7 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox_main.add_child(scroll)
-	
+
 	content_container = VBoxContainer.new()
 	content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content_container.add_theme_constant_override("separation", 16)
@@ -97,7 +97,7 @@ func setup(parent: Node, _region_mgr: RegionManager, _world_mgr: WorldManager, _
 	InspectorStyle.apply_button_style(save_button, InspectorStyle.COLOR_SUCCESS.darkened(0.2))
 	save_reload_container.add_child(save_button)
 	set_region_dirty(region_mgr.is_region_dirty)
-	
+
 	var btn_reload = Button.new(); btn_reload.text="RELOAD"; btn_reload.size_flags_horizontal = 3
 	btn_reload.pressed.connect(func(): reload_triggered.emit())
 	InspectorStyle.apply_button_style(btn_reload, InspectorStyle.COLOR_DANGER.darkened(0.2))
@@ -124,7 +124,7 @@ func clear_selection(hide_panel: bool = true):
 	save_reload_container.visible = true
 	set_region_dirty(region_mgr.is_region_dirty)
 	if hide_panel: panel.visible = false
-	target_selected_in_connector.emit("") 
+	target_selected_in_connector.emit("")
 
 func load_room(id: String, data: Dictionary):
 	# NOTE: ending connection mode is `Main`'s job, not this controller's -- it has
@@ -133,10 +133,10 @@ func load_room(id: String, data: Dictionary):
 	clear_selection(false)
 	cur_mode = "room"
 	panel.visible = true
-	
+
 	var insp = RoomInspector.new(content_container, region_mgr, database_mgr, world_mgr)
 	current_inspector = insp
-	
+
 	insp.data_modified.connect(func(): data_modified.emit())
 	insp.request_rename.connect(func(o, n): request_rename.emit(o, n))
 	insp.request_connection_form.connect(func(rid, rname): load_connection_form(rid, rname, world_mgr.get_global_hierarchy(), region_mgr.current_filename))
@@ -147,14 +147,14 @@ func load_room(id: String, data: Dictionary):
 		func(sid, dir, action): request_curve_change.emit(sid, dir, action)
 	)
 	insp.request_save_template.connect(func(rid): request_save_template.emit(rid))
-	
+
 	insp.build(id, data)
 
 func load_region_root(data: Dictionary):
 	clear_selection(false)
 	cur_mode = "region_root"
 	panel.visible = true
-	
+
 	var insp = RegionInspector.new(content_container, action_handler, database_mgr)
 	current_inspector = insp
 	insp.data_modified.connect(func(): data_modified.emit())
@@ -176,7 +176,7 @@ func load_db_object(type: String, id: String, data: Dictionary):
 	clear_selection(false)
 	cur_mode = type
 	panel.visible = true
-	
+
 	if type == "quest" and str(data.get("type", "")) == "instance":
 		var instance_insp := InstanceQuestInspector.new(content_container, database_mgr)
 		current_inspector = instance_insp
@@ -197,7 +197,7 @@ func load_db_object(type: String, id: String, data: Dictionary):
 		insp.build(type, id, data)
 
 func load_external_ref(full_id: String):
-	clear_selection(false) 
+	clear_selection(false)
 	panel.visible = true
 	content_container.add_child(InspectorStyle.create_section_header("EXTERNAL REFERENCE", Color.CYAN))
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
@@ -209,7 +209,7 @@ func load_multi_selection(ids: Array):
 	clear_selection(false)
 	cur_mode = "multi"
 	panel.visible = true
-	
+
 	var insp = MULTI_INSPECTOR_SCRIPT.new(content_container, region_mgr, action_handler)
 	current_inspector = insp
 	insp.data_modified.connect(func(): data_modified.emit())
@@ -218,26 +218,26 @@ func load_multi_selection(ids: Array):
 func load_connection_form(src_id: String, src_name: String, hierarchy: Dictionary, cur_filename: String, target_id: String = "", dir: String = ""):
 	cur_mode = "connection"
 	save_reload_container.visible = false
-	panel.visible = true 
+	panel.visible = true
 	_clear_box(content_container)
 	connection_editor.build_ui(content_container, src_id, src_name, hierarchy, cur_filename, target_id, dir)
-	
-	var margin_c = content_container.get_child(content_container.get_child_count()-1)
-	if margin_c and margin_c.get_child_count() > 0:
-		var btn_box = margin_c.get_child(0)
-		var btn_c = btn_box.get_child(1) 
-		if not btn_c.pressed.is_connected(_on_connect_cancel):
-			btn_c.pressed.connect(_on_connect_cancel)
+	# Cancel used to be found by position (the second button), which was
+	# "Connect another" -- the real Cancel only cleared the target and the form
+	# stayed open. The editor now says when it is cancelled.
+	if not connection_editor.cancelled.is_connected(_on_connect_cancel):
+		connection_editor.cancelled.connect(_on_connect_cancel)
 
 func set_connection_target(region_id: String, room_id: String):
 	if cur_mode != "connection": return
 	connection_editor.set_target(region_id, room_id)
 
 func _on_connect_cancel():
-	target_selected_in_connector.emit("") 
-	if region_mgr.data.rooms.has(connection_editor.conn_src_id): 
+	# Leave the form first, so whoever hears the cleared target sees that the
+	# form is gone and leaves connection mode too.
+	if region_mgr.data.rooms.has(connection_editor.conn_src_id):
 		load_room(connection_editor.conn_src_id, region_mgr.data.rooms[connection_editor.conn_src_id])
 	else: clear_selection()
+	target_selected_in_connector.emit("")
 
 func _clear_box(b): for c in b.get_children(): c.queue_free()
 func _on_panel_gui_input(event): if event is InputEventMouseButton and event.button_index in [4,5]: panel.get_viewport().set_input_as_handled()
@@ -296,7 +296,7 @@ func load_quest_mode(quest_id: String):
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
 	content_container.add_child(card)
 	vbox.add_child(InspectorStyle.lbl("Graph View", Color.WHITE))
-	
+
 	var btn = Button.new(); btn.text = "Back to Form View"
 	InspectorStyle.apply_button_style(btn)
 	btn.pressed.connect(func(): load_db_object("quest", quest_id, database_mgr.quests[quest_id]))
