@@ -95,29 +95,27 @@ func _create_content_row(type, data, idx) -> PanelContainer:
 	var style = StyleBoxFlat.new(); style.bg_color = Color(0.15, 0.15, 0.17); style.set_corner_radius_all(4)
 	pc.add_theme_stylebox_override("panel", style)
 	
-	var m = MarginContainer.new(); m.add_theme_constant_override("margin_left", 5); m.add_theme_constant_override("margin_right", 5)
+	# Room to breathe: the row used to sit flush against its card, with the
+	# overrides button touching the bottom edge.
+	var m = MarginContainer.new()
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]: m.add_theme_constant_override(side, 8)
 	pc.add_child(m)
-	
-	var hb = HBoxContainer.new(); m.add_child(hb)
-	var ico = Label.new(); ico.text = "👤" if type == "npc" else "📦"; hb.add_child(ico)
-	
+
+	var hb = HBoxContainer.new(); hb.add_theme_constant_override("separation", 8); m.add_child(hb)
+	var ico = Label.new(); ico.text = "👤" if type == "npc" else "📦"; ico.size_flags_vertical = Control.SIZE_SHRINK_BEGIN; hb.add_child(ico)
+
 	var vb_in = VBoxContainer.new(); vb_in.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vb_in.add_theme_constant_override("separation", 2); hb.add_child(vb_in)
-	
+	vb_in.add_theme_constant_override("separation", 6); hb.add_child(vb_in)
+
+	# A placement can only name a template that exists (new ones are made in the
+	# Content Library), so the template is a picker, not free text with a list
+	# button beside it.
 	if type == "npc":
-		# Spelled-out labels: the row used to read "T:" and "I:", and the template
-		# was kept only on Enter, so a typed-in template was lost on click-away.
 		var hb1 = HBoxContainer.new(); hb1.add_child(_row_label("NPC"))
-		var ed_t = LineEdit.new(); ed_t.name = "NpcTemplate"; ed_t.text = data.get("template_id", ""); ed_t.placeholder_text = "Choose NPC template"
-		ed_t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		InspectorStyle.apply_input_style(ed_t)
-		var npc_hint := _template_hint(database_mgr.npcs if database_mgr else {}, str(data.get("template_id", "")), "NPC")
-		ed_t.text_changed.connect(func(t):
-			data.template_id = str(t).strip_edges(); data_modified.emit()
-			_update_template_hint(npc_hint, database_mgr.npcs if database_mgr else {}, data.template_id, "NPC"))
-		hb1.add_child(ed_t)
-		InspectorStyle.add_suggestion_button(hb1, ed_t, func(): return database_mgr.get_npc_ids()); vb_in.add_child(hb1)
-		vb_in.add_child(npc_hint)
+		var npc_picker := _template_picker("NpcTemplate", database_mgr.npcs if database_mgr else {}, str(data.get("template_id", "")), "NPC")
+		npc_picker.item_selected.connect(func(index):
+			data.template_id = str(npc_picker.get_item_metadata(index)); data_modified.emit(); _refresh_content())
+		hb1.add_child(npc_picker); vb_in.add_child(hb1)
 
 		var hb2 = HBoxContainer.new(); hb2.add_child(_row_label("Instance id"))
 		var ed_i = LineEdit.new(); ed_i.name = "NpcInstance"; ed_i.text = data.get("instance_id", ""); ed_i.placeholder_text = "optional: names this one NPC"
@@ -127,23 +125,15 @@ func _create_content_row(type, data, idx) -> PanelContainer:
 		ed_i.text_changed.connect(func(t): data.instance_id = t; data_modified.emit()); hb2.add_child(ed_i); vb_in.add_child(hb2)
 		_build_npc_placement_overrides(vb_in, data)
 	else:
-		var hb1 = HBoxContainer.new()
-		var ed_id = LineEdit.new(); ed_id.name = "ItemTemplate"; ed_id.text = data.get("item_id", "")
-		ed_id.placeholder_text = "Choose item template"
-		ed_id.size_flags_horizontal = Control.SIZE_EXPAND_FILL; ed_id.flat = true
-		InspectorStyle.apply_input_style(ed_id); ed_id.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
-		ed_id.text_submitted.connect(func(t): data.item_id = t.strip_edges(); data_modified.emit(); _refresh_content()); hb1.add_child(ed_id)
-		InspectorStyle.add_suggestion_button(hb1, ed_id, func(): return database_mgr.get_item_ids())
-		var item_hint := _template_hint(database_mgr.items if database_mgr else {}, str(data.get("item_id", "")), "item")
-		ed_id.text_changed.connect(func(t):
-			data.item_id = str(t).strip_edges(); data_modified.emit()
-			_update_template_hint(item_hint, database_mgr.items if database_mgr else {}, data.item_id, "item"))
-
-		hb1.add_child(InspectorStyle.lbl("x", InspectorStyle.COLOR_TEXT_DIM))
+		var hb1 = HBoxContainer.new(); hb1.add_child(_row_label("Item"))
+		var item_picker := _template_picker("ItemTemplate", database_mgr.items if database_mgr else {}, str(data.get("item_id", "")), "item")
+		item_picker.item_selected.connect(func(index):
+			data.item_id = str(item_picker.get_item_metadata(index)); data_modified.emit(); _refresh_content())
+		hb1.add_child(item_picker)
+		hb1.add_child(InspectorStyle.lbl("×", InspectorStyle.COLOR_TEXT_DIM))
 		var sb = SpinBox.new(); sb.name = "PlacementQuantity"; sb.min_value = 1; sb.max_value = 999; sb.step = 1; sb.value = max(1, int(data.get("quantity", 1))); sb.custom_minimum_size.x = 60
 		InspectorStyle.apply_input_style(sb); sb.value_changed.connect(func(v): data.quantity = int(v); data_modified.emit()); hb1.add_child(sb)
 		vb_in.add_child(hb1)
-		vb_in.add_child(item_hint)
 		_build_item_placement_overrides(vb_in, data)
 	
 	var btn_del = Button.new(); btn_del.text = "🗑"; btn_del.flat = true
@@ -162,28 +152,31 @@ func _row_label(text: String) -> Label:
 	label.custom_minimum_size.x = 78
 	return label
 
-## A line under a template field naming what the id resolves to, so a placed
-## NPC or item reads as "Wandering Villager" rather than only an id -- and an
-## id that matches nothing says so before the save does.
-func _template_hint(templates: Dictionary, template_id: String, kind: String) -> Label:
-	var hint := Label.new(); hint.name = "TemplateHint"
-	hint.add_theme_font_size_override("font_size", 11)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_update_template_hint(hint, templates, template_id, kind)
-	return hint
-
-func _update_template_hint(hint: Label, templates: Dictionary, template_id: String, kind: String) -> void:
-	if template_id == "":
-		hint.text = "Pick a %s template with the ▾ button, or type its id." % kind
-		hint.add_theme_color_override("font_color", InspectorStyle.COLOR_TEXT_DIM)
-	elif templates.has(template_id):
-		var entry = templates[template_id]
-		var label := str(entry.get("name", template_id)) if entry is Dictionary else template_id
-		hint.text = label
-		hint.add_theme_color_override("font_color", InspectorStyle.COLOR_TEXT_DIM)
-	else:
-		hint.text = "No %s template named \"%s\"." % [kind, template_id]
-		hint.add_theme_color_override("font_color", Color(1.0, 0.62, 0.35))
+## Every template of one kind, by name with its id, sorted by name. An id the
+## placement names but no template has stays listed (flagged) and selected, so
+## a broken placement shows as broken instead of silently reading "Choose".
+func _template_picker(node_name: String, templates: Dictionary, current: String, kind: String) -> OptionButton:
+	var picker := OptionButton.new(); picker.name = node_name
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.clip_text = true
+	picker.fit_to_longest_item = false
+	InspectorStyle.apply_input_style(picker)
+	var ids: Array = templates.keys()
+	var label_of := func(id) -> String:
+		var entry = templates.get(id)
+		return str(entry.get("name", id)) if entry is Dictionary else str(id)
+	ids.sort_custom(func(a, b): return label_of.call(a).naturalnocasecmp_to(label_of.call(b)) < 0)
+	picker.add_item("Choose %s template…" % kind); picker.set_item_metadata(0, "")
+	var selected := 0
+	if current != "" and not templates.has(current):
+		picker.add_item("⚠ %s (no such %s template)" % [current, kind]); picker.set_item_metadata(1, current)
+		selected = 1
+	for id in ids:
+		picker.add_item("%s   (%s)" % [label_of.call(id), id])
+		picker.set_item_metadata(picker.item_count - 1, str(id))
+		if str(id) == current: selected = picker.item_count - 1
+	picker.select(selected)
+	return picker
 
 # A room placement is an instance recipe, not a second item template.  The
 # template continues to define its durable contract; this compact disclosure

@@ -127,15 +127,20 @@ func _check_npc_row_reads_plainly(database: DatabaseManager) -> void:
 	_assert(room.initial_npcs.size() == 1 and room.initial_npcs[0] == {"template_id": ""},
 		"a new NPC placement starts empty rather than as fantasy's villager")
 	holder = _panel_for(room, database)
-	var field: Array = _named(holder, "NpcTemplate")
-	var hint: Array = _named(holder, "TemplateHint")
-	_assert(field.size() == 1 and hint.size() == 1, "the NPC row has a template field and a line saying what it names")
-	if field.is_empty() or hint.is_empty(): return
-	field[0].text_changed.emit("npc_guide")
-	_assert(room.initial_npcs[0].template_id == "npc_guide", "a typed template is kept without pressing Enter")
-	_assert(hint[0].text == "Guide", "and the line names it: %s" % hint[0].text)
-	field[0].text_changed.emit("npc_nobody")
-	_assert("No NPC template" in hint[0].text, "an unknown id says so: %s" % hint[0].text)
+	var pickers: Array = _named(holder, "NpcTemplate")
+	_assert(pickers.size() == 1 and pickers[0] is OptionButton, "the NPC template is a picker of existing templates, not free text")
+	if pickers.is_empty(): return
+	var picker: OptionButton = pickers[0]
+	var guide := -1
+	for i in picker.item_count:
+		if str(picker.get_item_metadata(i)) == "npc_guide": guide = i
+	_assert(guide > 0 and picker.get_item_text(guide).begins_with("Guide"), "listed by name with the id: %s" % (picker.get_item_text(guide) if guide > 0 else "missing"))
+	picker.select(guide); picker.item_selected.emit(guide)
+	_assert(room.initial_npcs[0].template_id == "npc_guide", "choosing one sets the placement")
+	room.initial_npcs[0].template_id = "npc_nobody"
+	holder = _panel_for(room, database)
+	picker = _named(holder, "NpcTemplate")[0]
+	_assert("no such NPC template" in picker.get_item_text(picker.selected), "an id matching nothing shows as broken: %s" % picker.get_item_text(picker.selected))
 
 
 func _panel_for(room: Dictionary, database: DatabaseManager) -> VBoxContainer:
