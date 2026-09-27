@@ -52,7 +52,7 @@ labels and fields are the ones the runtime reads:
 
 Keys an inspector does not model are shown and preserved, never dropped.
 
-**Open Content Set…** in the explorer switches between the content sets beside the
+**Content Sets…** in the explorer switches between the content sets beside the
 checkout: the world reloads and the choice is written to
 `user://editor_settings.json`, so the next launch opens the same set. Sets are
 listed as "Title   (id)". **Rename…** changes either: the title is the display
@@ -78,13 +78,27 @@ entries and configuration it would discard; closing the window offers **Save
 and quit** / **Quit without saving** / **Keep editing**. There is no autosave, so
 the quit prompt is the safety net.
 
+## The Explorer's menus
+
+Below the region tree, one row toggles the map (snap to grid, show districts)
+and four controls group the rest by what they act on:
+
+| Menu | Holds |
+|---|---|
+| **Map ▾** | New Region…, New District…, Auto-Arrange Rooms (World on the world map) |
+| **Check ▾** | Validate Region, Validate Region Policy, Validate Open Set, Run Release Gate |
+| **Game Rules ▾** | Ruleset…, Manifest…, Combat Vocabulary…, Feature Profile…, Ambient Fields…, Browse Contracts, Edit Contracts… |
+| **Content Sets…** | open, rename or add a content set |
+
 ## Checking your work before the game does
 
-- **Validate** — the editor's own link check (missing exits, one-way links,
+All of these are in the Explorer's **Check ▾** menu.
+
+- **Validate Region** — the editor's own link check (missing exits, one-way links,
   district continuity).
 - **Validate Region Policy** — every region against the ruleset's biome /
   region_type / level_band / hazard coverage policy.
-- **Validate Content (engine)** — runs the game's own validation
+- **Validate Open Set** — runs the game's own validation
   (`toolkit/editor_validate.py`: schema, references, text templates, stale ids,
   file integrity) and shows its issues. This is the same verdict
   `run_content_checks.py` reaches in CI.

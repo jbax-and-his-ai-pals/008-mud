@@ -30,11 +30,12 @@ var show_districts_checkbox: CheckBox
 var expanded_regions: Dictionary = {}
 var expanded_districts: Dictionary = {}
 var _is_programmatic_selection: bool = false
-var content_validation_button: Button
-var release_gate_button: Button
+var map_menu: MenuButton
+var check_menu: MenuButton
+var rules_menu: MenuButton
 
 func setup():
-	add_theme_constant_override("separation", 12)
+	add_theme_constant_override("separation", 8)
 	
 	search_bar = LineEdit.new()
 	search_bar.placeholder_text = "Filter..."
@@ -58,121 +59,121 @@ func setup():
 	explorer_tree.add_theme_stylebox_override("bg", tree_style)
 	add_child(explorer_tree)
 	
+	# Everything below the tree used to be fifteen full-width buttons and two
+	# checkboxes stacked one per row, in no particular order: they took most of
+	# the column away from the tree, and nothing said which were about the map,
+	# which about checking, and which about the game's rules. They are now one
+	# row of map toggles and four menus named for what they act on.
+	var toggles := HBoxContainer.new(); toggles.name = "MapToggles"
+	toggles.add_theme_constant_override("separation", 8)
 	snap_checkbox = CheckBox.new()
-	snap_checkbox.text = "Snap to Grid"
+	snap_checkbox.text = "Snap to grid"
+	snap_checkbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	snap_checkbox.button_pressed = true
 	_apply_checkbox_style(snap_checkbox)
 	snap_checkbox.toggled.connect(func(b): snap_toggled.emit(b))
-	add_child(snap_checkbox)
-	
+	toggles.add_child(snap_checkbox)
+
 	call_deferred("emit_signal", "snap_toggled", snap_checkbox.button_pressed)
 
 	show_districts_checkbox = CheckBox.new()
-	show_districts_checkbox.text = "Show Districts"
+	show_districts_checkbox.text = "Show districts"
+	show_districts_checkbox.size_flags_horizontal = SIZE_EXPAND_FILL
 	show_districts_checkbox.button_pressed = true
 	_apply_checkbox_style(show_districts_checkbox)
 	show_districts_checkbox.toggled.connect(func(b): show_districts_toggled.emit(b))
-	add_child(show_districts_checkbox)
+	toggles.add_child(show_districts_checkbox)
+	add_child(toggles)
 
-	var btn_row = HBoxContainer.new()
-	btn_row.add_theme_constant_override("separation", 8)
-	var btn_new = Button.new(); btn_new.text="New Region"; btn_new.size_flags_horizontal=3
-	btn_new.pressed.connect(func(): request_create_modal_open.emit())
-	_apply_style(btn_new)
-	btn_row.add_child(btn_new)
-	var btn_district = Button.new(); btn_district.text="New District"; btn_district.size_flags_horizontal=3
-	btn_district.pressed.connect(func(): request_district_modal_open.emit())
-	_apply_style(btn_district)
-	btn_row.add_child(btn_district)
-	
-	var btn_val = Button.new(); btn_val.text="Validate"; btn_val.size_flags_horizontal=3
-	btn_val.pressed.connect(func(): request_validate.emit())
-	_apply_style(btn_val)
-	btn_row.add_child(btn_val)
-	add_child(btn_row)
+	var menus := GridContainer.new(); menus.name = "ExplorerMenus"; menus.columns = 2
+	menus.add_theme_constant_override("h_separation", 8)
+	menus.add_theme_constant_override("v_separation", 8)
+	add_child(menus)
 
-	var btn_policy = Button.new(); btn_policy.text="Validate Region Policy"
-	btn_policy.tooltip_text = "Check every region under data/ against the ruleset's biome/region_type/level_band/hazard-coverage policy (fast -- doesn't need a full loadable world)."
-	_apply_style(btn_policy, Color(0.2, 0.25, 0.3))
-	btn_policy.pressed.connect(func(): request_validate_region_policy.emit())
-	add_child(btn_policy)
+	map_menu = _menu(menus, "MapMenu", "Map", Color(0.2, 0.25, 0.3), "Build and lay out regions and districts")
+	_menu_item(map_menu, "New Region…", "Create a region file and open it.", func(): request_create_modal_open.emit())
+	_menu_item(map_menu, "New District…", "Generate a district of rooms and attach it to this region.", func(): request_district_modal_open.emit())
+	_menu_item(map_menu, "Auto-Arrange Rooms", "Lay this region's rooms out again (undoable).", func(): request_auto_layout.emit())
 
-	content_validation_button = Button.new(); content_validation_button.text="Validate Open Set"
-	content_validation_button.tooltip_text = "Validate and play-test the content set currently open in the editor. The report names release-only checks that still require run_content_checks.py."
-	_apply_style(content_validation_button, Color(0.22, 0.3, 0.26))
-	content_validation_button.pressed.connect(func(): request_validate_content.emit())
-	add_child(content_validation_button)
-	var btn_ruleset = Button.new(); btn_ruleset.text="Ruleset…"
-	btn_ruleset.tooltip_text = "Edit this content set's world rules: metadata, declared stats, and region policy."
-	_apply_style(btn_ruleset, Color(0.25, 0.23, 0.34))
-	btn_ruleset.pressed.connect(func(): request_edit_ruleset.emit())
-	add_child(btn_ruleset)
-	var btn_manifest = Button.new(); btn_manifest.text="Manifest…"
-	btn_manifest.tooltip_text = "This content set's identity, where a character starts, and which systems it declares. The engine refuses a capability that contradicts the ruleset."
-	_apply_style(btn_manifest, Color(0.24, 0.26, 0.32))
-	btn_manifest.pressed.connect(func(): request_edit_manifest.emit())
-	add_child(btn_manifest)
+	check_menu = _menu(menus, "CheckMenu", "Check", Color(0.22, 0.3, 0.26), "Find problems before the game does")
+	_menu_item(check_menu, "Validate Region", "Link problems in the open region: one-way or missing exits, district continuity.", func(): request_validate.emit())
+	_menu_item(check_menu, "Validate Region Policy", "Check every region under data/ against the ruleset's biome/region_type/level_band/hazard-coverage policy (fast -- doesn't need a full loadable world).", func(): request_validate_region_policy.emit())
+	_menu_item(check_menu, "Validate Open Set", "Validate and play-test the content set currently open in the editor. The report names release-only checks that still require run_content_checks.py.", func(): request_validate_content.emit())
+	check_menu.get_popup().add_separator()
+	_menu_item(check_menu, "Run Release Gate", "Run the full repository shipping gate: every content set, themes, manifests, contract coverage, and playability checks. This can take longer than Validate Open Set.", func(): request_run_release_gate.emit())
 
-	release_gate_button = Button.new(); release_gate_button.text="Run Release Gate"
-	release_gate_button.tooltip_text = "Run the full repository shipping gate: every content set, themes, manifests, contract coverage, and playability checks. This can take longer than Validate Open Set."
-	_apply_style(release_gate_button, Color(0.28, 0.24, 0.18))
-	release_gate_button.pressed.connect(func(): request_run_release_gate.emit())
-	add_child(release_gate_button)
+	rules_menu = _menu(menus, "RulesMenu", "Game Rules", Color(0.25, 0.23, 0.34), "Whole-game settings for this content set")
+	_menu_item(rules_menu, "Ruleset…", "Edit this content set's world rules: metadata, declared stats, and region policy.", func(): request_edit_ruleset.emit())
+	_menu_item(rules_menu, "Manifest…", "This content set's identity, where a character starts, and which systems it declares. The engine refuses a capability that contradicts the ruleset.", func(): request_edit_manifest.emit())
+	_menu_item(rules_menu, "Combat Vocabulary…", "Edit damage channels and room hazards used by this content set.", func(): request_edit_combat_vocabulary.emit())
+	_menu_item(rules_menu, "Feature Profile…", "Edit which systems a server running this set turns on, and its party, shard and adventure policies.", func(): request_edit_feature_profile.emit())
+	_menu_item(rules_menu, "Ambient Fields…", "Edit the ambient fields this world spreads (field_interactions.json): their polarity and how they suppress one another.", func(): request_edit_field_interactions.emit())
+	rules_menu.get_popup().add_separator()
+	_menu_item(rules_menu, "Browse Contracts", "What this content set declares: item families, roll tables, resources, attack/defense profiles, abilities and effect packets. Read-only -- the engine's schema decides what may exist.", func(): request_show_contracts.emit())
+	_menu_item(rules_menu, "Edit Contracts…", "Edit shared resources and item families without exposing or replacing the rest of the contract file.", func(): request_edit_contracts.emit())
 
-	var btn_contracts = Button.new(); btn_contracts.text="Contracts"
-	btn_contracts.tooltip_text = "What this content set declares: item families, roll tables, resources, attack/defense profiles, abilities and effect packets. Read-only -- the engine's schema decides what may exist."
-	_apply_style(btn_contracts, Color(0.24, 0.22, 0.3))
-	btn_contracts.pressed.connect(func(): request_show_contracts.emit())
-	add_child(btn_contracts)
-	var btn_edit_contracts = Button.new(); btn_edit_contracts.text="Edit Contracts…"
-	btn_edit_contracts.tooltip_text = "Edit shared resources and item families without exposing or replacing the rest of the contract file."
-	_apply_style(btn_edit_contracts, Color(0.29, 0.24, 0.37))
-	btn_edit_contracts.pressed.connect(func(): request_edit_contracts.emit())
-	add_child(btn_edit_contracts)
-	var btn_combat = Button.new(); btn_combat.text="Combat Vocabulary…"
-	btn_combat.tooltip_text = "Edit damage channels and room hazards used by this content set."
-	_apply_style(btn_combat, Color(0.36, 0.25, 0.22))
-	btn_combat.pressed.connect(func(): request_edit_combat_vocabulary.emit())
-	add_child(btn_combat)
-	var btn_profile = Button.new(); btn_profile.text="Feature Profile…"
-	btn_profile.tooltip_text = "Edit which systems a server running this set turns on, and its party, shard and adventure policies."
-	_apply_style(btn_profile, Color(0.22, 0.28, 0.36))
-	btn_profile.pressed.connect(func(): request_edit_feature_profile.emit())
-	add_child(btn_profile)
-	var btn_fields = Button.new(); btn_fields.text="Ambient Fields…"
-	btn_fields.tooltip_text = "Edit the ambient fields this world spreads (field_interactions.json): their polarity and how they suppress one another."
-	_apply_style(btn_fields, Color(0.24, 0.3, 0.24))
-	btn_fields.pressed.connect(func(): request_edit_field_interactions.emit())
-	add_child(btn_fields)
+	var btn_sets := Button.new(); btn_sets.name = "ContentSetsButton"; btn_sets.text = "Content Sets…"
+	btn_sets.size_flags_horizontal = SIZE_EXPAND_FILL
+	btn_sets.tooltip_text = "Open, rename or add a content set. The choice is remembered in editor_settings.json."
+	_apply_style(btn_sets, Color(0.2, 0.28, 0.28))
+	btn_sets.pressed.connect(func(): request_choose_content_set.emit())
+	menus.add_child(btn_sets)
 
-	var btn_world = Button.new(); btn_world.text="Open Content Set…"
-	btn_world.tooltip_text = "Switch to another content set beside this checkout. The choice is remembered in editor_settings.json."
-	_apply_style(btn_world, Color(0.2, 0.28, 0.28))
-	btn_world.pressed.connect(func(): request_choose_content_set.emit())
-	add_child(btn_world)
-	
-	var btn_layout = Button.new(); btn_layout.text="Auto-Arrange Layout"
-	_apply_style(btn_layout, Color(0.2, 0.25, 0.3))
-	btn_layout.pressed.connect(func(): request_auto_layout.emit())
-	add_child(btn_layout)
+
+## A labelled menu button; its items are added with `_menu_item`.
+func _menu(parent: Control, node_name: String, label: String, color: Color, tooltip: String) -> MenuButton:
+	var menu := MenuButton.new(); menu.name = node_name
+	menu.text = label + "  ▾"
+	menu.tooltip_text = tooltip
+	menu.flat = false
+	menu.size_flags_horizontal = SIZE_EXPAND_FILL
+	_apply_style(menu, color)
+	var popup := menu.get_popup()
+	popup.id_pressed.connect(func(id):
+		var actions: Array = menu.get_meta("actions", [])
+		if id >= 0 and id < actions.size(): (actions[id] as Callable).call())
+	parent.add_child(menu)
+	return menu
+
+func _menu_item(menu: MenuButton, label: String, tooltip: String, action: Callable) -> void:
+	var actions: Array = menu.get_meta("actions", [])
+	var popup := menu.get_popup()
+	popup.add_item(label, actions.size())
+	popup.set_item_tooltip(popup.get_item_index(actions.size()), tooltip)
+	actions.append(action)
+	menu.set_meta("actions", actions)
+
+## The index of a menu item by the text it starts with (the running states
+## change the rest of the text).
+func _menu_index(menu: MenuButton, starts_with: String) -> int:
+	var popup := menu.get_popup()
+	for i in popup.item_count:
+		if popup.get_item_text(i).begins_with(starts_with): return i
+	return -1
 
 
 ## A full check boots a real in-memory game session. Keep the editor interactive
 ## while it runs, but make its state unmistakable and prevent duplicate runs.
 func set_content_validation_running(running: bool):
-	if not is_instance_valid(content_validation_button):
-		return
-	content_validation_button.disabled = running
-	content_validation_button.text = "Validating Open Set…" if running else "Validate Open Set"
-	content_validation_button.tooltip_text = (
-		"Validating and play-testing the open content set…" if running
-		else "Validate and play-test the content set currently open in the editor. The report names release-only checks that still require run_content_checks.py."
-	)
+	if not is_instance_valid(check_menu): return
+	var index := _menu_index(check_menu, "Validate Open Set") if _menu_index(check_menu, "Validate Open Set") >= 0 else _menu_index(check_menu, "Validating Open Set")
+	if index < 0: return
+	check_menu.get_popup().set_item_disabled(index, running)
+	check_menu.get_popup().set_item_text(index, "Validating Open Set…" if running else "Validate Open Set")
+	_update_check_label()
 
 func set_release_gate_running(running: bool):
-	if not is_instance_valid(release_gate_button): return
-	release_gate_button.disabled = running
-	release_gate_button.text = "Running Release Gate…" if running else "Run Release Gate"
+	if not is_instance_valid(check_menu): return
+	var index := _menu_index(check_menu, "Run") if _menu_index(check_menu, "Run") >= 0 else _menu_index(check_menu, "Running")
+	if index < 0: return
+	check_menu.get_popup().set_item_disabled(index, running)
+	check_menu.get_popup().set_item_text(index, "Running Release Gate…" if running else "Run Release Gate")
+	_update_check_label()
+
+# A check running behind the menu shows on the menu button itself.
+func _update_check_label() -> void:
+	var busy := _menu_index(check_menu, "Validating") >= 0 or _menu_index(check_menu, "Running") >= 0
+	check_menu.text = "Checking…  ▾" if busy else "Check  ▾"
 
 # --- INPUT HANDLERS ---
 
@@ -212,8 +213,9 @@ func update_dirty_visuals(current_file: String, is_reg_dirty: bool, dirty_rooms:
 	refresh_tree()
 
 func update_layout_btn_text(is_world: bool):
-	var btn = get_child(get_child_count()-1) as Button
-	if btn: btn.text = "Auto-Arrange World" if is_world else "Auto-Arrange Rooms"
+	if not is_instance_valid(map_menu): return
+	var index := _menu_index(map_menu, "Auto-Arrange")
+	if index >= 0: map_menu.get_popup().set_item_text(index, "Auto-Arrange World" if is_world else "Auto-Arrange Rooms")
 
 func select_room_item(room_id: String):
 	_selected_id = room_id

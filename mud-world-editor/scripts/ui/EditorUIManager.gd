@@ -229,9 +229,11 @@ func _setup_footer(main_vbox: VBoxContainer):
 	footer_container = VBoxContainer.new()
 	footer_margin.add_child(footer_container)
 	
-	# View Mode Dropdown
+	# Colour-by and the world map share one row, leaving the height to the
+	# Explorer tree above.
 	var hb_view = HBoxContainer.new()
-	var lbl_v = Label.new(); lbl_v.text = "Color By:"; lbl_v.add_theme_font_size_override("font_size", 10); lbl_v.modulate = Color(0.7,0.7,0.7)
+	hb_view.add_theme_constant_override("separation", 8)
+	var lbl_v = Label.new(); lbl_v.text = "Color by"; lbl_v.add_theme_font_size_override("font_size", 11); lbl_v.modulate = Color(0.7,0.7,0.7)
 	hb_view.add_child(lbl_v)
 	
 	opt_view_mode = OptionButton.new()
@@ -245,12 +247,11 @@ func _setup_footer(main_vbox: VBoxContainer):
 	opt_view_mode.item_selected.connect(func(idx): view_mode_changed.emit(opt_view_mode.get_item_text(idx)))
 	hb_view.add_child(opt_view_mode)
 	footer_container.add_child(hb_view)
-	
-	footer_container.add_child(HSeparator.new())
-	
+
 	btn_world_view = Button.new()
 	btn_world_view.text = "🌍  WORLD MAP"; btn_world_view.toggle_mode = true
-	btn_world_view.custom_minimum_size.y = 40; btn_world_view.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	btn_world_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn_world_view.custom_minimum_size.y = 30; btn_world_view.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_apply_style(btn_world_view, Color(0.2, 0.2, 0.25))
 	
 	btn_world_view.toggled.connect(func(b): 
@@ -258,7 +259,7 @@ func _setup_footer(main_vbox: VBoxContainer):
 		request_toggle_world_view.emit(b)
 		side_panel.update_layout_btn_text(b)
 	)
-	footer_container.add_child(btn_world_view)
+	hb_view.add_child(btn_world_view)
 	side_panel.gui_input.connect(_on_panel_gui_input)
 
 # Helper to sync button state without emitting signals
