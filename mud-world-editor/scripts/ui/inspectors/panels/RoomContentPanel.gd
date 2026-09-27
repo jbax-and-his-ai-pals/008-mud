@@ -59,7 +59,9 @@ func _refresh_content():
 	InspectorStyle.apply_button_style(btn_n, Color(0.2, 0.2, 0.25))
 	btn_n.pressed.connect(func():
 		if not cur_data.has("initial_npcs"): cur_data.initial_npcs = []
-		cur_data.initial_npcs.append({"template_id": "villager"})
+		# Empty until the author picks one, like an item row: a guessed
+		# "villager" looked valid and tied every content set to fantasy's.
+		cur_data.initial_npcs.append({"template_id": ""})
 		data_modified.emit(); _refresh_content()
 	)
 	npc_box.add_child(btn_n)
@@ -103,17 +105,25 @@ func _create_content_row(type, data, idx) -> PanelContainer:
 	vb_in.add_theme_constant_override("separation", 2); hb.add_child(vb_in)
 	
 	if type == "npc":
-		var hb1 = HBoxContainer.new(); hb1.add_child(InspectorStyle.lbl("T:", InspectorStyle.COLOR_TEXT_DIM))
-		var ed_t = LineEdit.new(); ed_t.text = data.get("template_id", ""); ed_t.placeholder_text = "Template ID"
-		ed_t.size_flags_horizontal = Control.SIZE_EXPAND_FILL; ed_t.flat = true
-		InspectorStyle.apply_input_style(ed_t); ed_t.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
-		ed_t.text_submitted.connect(func(t): data.template_id = t; data_modified.emit()); hb1.add_child(ed_t)
+		# Spelled-out labels: the row used to read "T:" and "I:", and the template
+		# was kept only on Enter, so a typed-in template was lost on click-away.
+		var hb1 = HBoxContainer.new(); hb1.add_child(_row_label("NPC"))
+		var ed_t = LineEdit.new(); ed_t.name = "NpcTemplate"; ed_t.text = data.get("template_id", ""); ed_t.placeholder_text = "Choose NPC template"
+		ed_t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(ed_t)
+		var npc_hint := _template_hint(database_mgr.npcs if database_mgr else {}, str(data.get("template_id", "")), "NPC")
+		ed_t.text_changed.connect(func(t):
+			data.template_id = str(t).strip_edges(); data_modified.emit()
+			_update_template_hint(npc_hint, database_mgr.npcs if database_mgr else {}, data.template_id, "NPC"))
+		hb1.add_child(ed_t)
 		InspectorStyle.add_suggestion_button(hb1, ed_t, func(): return database_mgr.get_npc_ids()); vb_in.add_child(hb1)
-		
-		var hb2 = HBoxContainer.new(); hb2.add_child(InspectorStyle.lbl("I:", InspectorStyle.COLOR_TEXT_DIM))
-		var ed_i = LineEdit.new(); ed_i.text = data.get("instance_id", ""); ed_i.placeholder_text = "Instance (Opt)"
-		ed_i.size_flags_horizontal = Control.SIZE_EXPAND_FILL; ed_i.flat = true
-		InspectorStyle.apply_input_style(ed_i); ed_i.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+		vb_in.add_child(npc_hint)
+
+		var hb2 = HBoxContainer.new(); hb2.add_child(_row_label("Instance id"))
+		var ed_i = LineEdit.new(); ed_i.name = "NpcInstance"; ed_i.text = data.get("instance_id", ""); ed_i.placeholder_text = "optional: names this one NPC"
+		ed_i.tooltip_text = "Give this placed NPC its own id, for quests or dialogue that refer to this one individual. Leave empty for an ordinary spawn."
+		ed_i.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(ed_i)
 		ed_i.text_changed.connect(func(t): data.instance_id = t; data_modified.emit()); hb2.add_child(ed_i); vb_in.add_child(hb2)
 		_build_npc_placement_overrides(vb_in, data)
 	else:
@@ -124,11 +134,16 @@ func _create_content_row(type, data, idx) -> PanelContainer:
 		InspectorStyle.apply_input_style(ed_id); ed_id.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
 		ed_id.text_submitted.connect(func(t): data.item_id = t.strip_edges(); data_modified.emit(); _refresh_content()); hb1.add_child(ed_id)
 		InspectorStyle.add_suggestion_button(hb1, ed_id, func(): return database_mgr.get_item_ids())
-		
+		var item_hint := _template_hint(database_mgr.items if database_mgr else {}, str(data.get("item_id", "")), "item")
+		ed_id.text_changed.connect(func(t):
+			data.item_id = str(t).strip_edges(); data_modified.emit()
+			_update_template_hint(item_hint, database_mgr.items if database_mgr else {}, data.item_id, "item"))
+
 		hb1.add_child(InspectorStyle.lbl("x", InspectorStyle.COLOR_TEXT_DIM))
 		var sb = SpinBox.new(); sb.name = "PlacementQuantity"; sb.min_value = 1; sb.max_value = 999; sb.step = 1; sb.value = max(1, int(data.get("quantity", 1))); sb.custom_minimum_size.x = 60
 		InspectorStyle.apply_input_style(sb); sb.value_changed.connect(func(v): data.quantity = int(v); data_modified.emit()); hb1.add_child(sb)
 		vb_in.add_child(hb1)
+		vb_in.add_child(item_hint)
 		_build_item_placement_overrides(vb_in, data)
 	
 	var btn_del = Button.new(); btn_del.text = "🗑"; btn_del.flat = true
@@ -141,6 +156,34 @@ func _create_content_row(type, data, idx) -> PanelContainer:
 	
 	return pc
 
+
+func _row_label(text: String) -> Label:
+	var label := InspectorStyle.lbl(text, InspectorStyle.COLOR_TEXT_DIM)
+	label.custom_minimum_size.x = 78
+	return label
+
+## A line under a template field naming what the id resolves to, so a placed
+## NPC or item reads as "Wandering Villager" rather than only an id -- and an
+## id that matches nothing says so before the save does.
+func _template_hint(templates: Dictionary, template_id: String, kind: String) -> Label:
+	var hint := Label.new(); hint.name = "TemplateHint"
+	hint.add_theme_font_size_override("font_size", 11)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_update_template_hint(hint, templates, template_id, kind)
+	return hint
+
+func _update_template_hint(hint: Label, templates: Dictionary, template_id: String, kind: String) -> void:
+	if template_id == "":
+		hint.text = "Pick a %s template with the ▾ button, or type its id." % kind
+		hint.add_theme_color_override("font_color", InspectorStyle.COLOR_TEXT_DIM)
+	elif templates.has(template_id):
+		var entry = templates[template_id]
+		var label := str(entry.get("name", template_id)) if entry is Dictionary else template_id
+		hint.text = label
+		hint.add_theme_color_override("font_color", InspectorStyle.COLOR_TEXT_DIM)
+	else:
+		hint.text = "No %s template named \"%s\"." % [kind, template_id]
+		hint.add_theme_color_override("font_color", Color(1.0, 0.62, 0.35))
 
 # A room placement is an instance recipe, not a second item template.  The
 # template continues to define its durable contract; this compact disclosure

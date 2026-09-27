@@ -24,6 +24,7 @@ func _init() -> void:
 	_check_container_placement_overrides(database)
 	_check_other_item_overrides(database)
 	_check_npc_placement_overrides(database)
+	_check_npc_row_reads_plainly(database)
 	if failures > 0:
 		push_error("room item placement smoke failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
@@ -115,6 +116,26 @@ func _check_npc_placement_overrides(database: DatabaseManager) -> void:
 		behaviour[0].item_selected.emit(3) # aggressive
 	_assert(placement.get("overrides", {}).get("behavior_type") == "aggressive",
 		"the selected behaviour writes the runtime placement key")
+
+
+func _check_npc_row_reads_plainly(database: DatabaseManager) -> void:
+	print("\n[npc row]")
+	var room := {"initial_npcs": []}
+	var holder := _panel_for(room, database)
+	for button in _buttons(holder):
+		if button.text == "+ Add NPC": button.pressed.emit()
+	_assert(room.initial_npcs.size() == 1 and room.initial_npcs[0] == {"template_id": ""},
+		"a new NPC placement starts empty rather than as fantasy's villager")
+	holder = _panel_for(room, database)
+	var field: Array = _named(holder, "NpcTemplate")
+	var hint: Array = _named(holder, "TemplateHint")
+	_assert(field.size() == 1 and hint.size() == 1, "the NPC row has a template field and a line saying what it names")
+	if field.is_empty() or hint.is_empty(): return
+	field[0].text_changed.emit("npc_guide")
+	_assert(room.initial_npcs[0].template_id == "npc_guide", "a typed template is kept without pressing Enter")
+	_assert(hint[0].text == "Guide", "and the line names it: %s" % hint[0].text)
+	field[0].text_changed.emit("npc_nobody")
+	_assert("No NPC template" in hint[0].text, "an unknown id says so: %s" % hint[0].text)
 
 
 func _panel_for(room: Dictionary, database: DatabaseManager) -> VBoxContainer:

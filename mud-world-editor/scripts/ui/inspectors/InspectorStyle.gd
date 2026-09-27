@@ -78,7 +78,7 @@ static func lbl(t, c=Color.WHITE) -> Label:
 	var l = Label.new(); l.text=t; l.modulate=c; return l
 
 static func add_suggestion_button(parent: Control, target: LineEdit, getter: Callable):
-	var b = MenuButton.new(); b.text=" v "
+	var b = MenuButton.new(); b.text = "▾"; b.tooltip_text = "Choose from the list"
 	apply_button_style(b)
 	b.about_to_popup.connect(func():
 		var p = b.get_popup(); p.clear()
