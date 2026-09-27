@@ -119,8 +119,48 @@ func _on_search_text_changed(text):
 				count += 1
 				if count >= MAX_RESULTS: return
 	
-	# Search NPCs
+	# Placed NPCs and items, by template id or name: "herb bed" used to find
+	# nothing, because items were never searched and placements not at all.
+	# A placement result jumps to the room it is in.
 	var npcs = search_data_cache.get("npcs", {})
+	var items = search_data_cache.get("items", {})
+	for rid in world:
+		var region_name = world[rid].get("name", rid.capitalize())
+		var rooms = world[rid].get("rooms", {})
+		for room_id in rooms:
+			var placed: Array = []
+			for npc in rooms[room_id].get("initial_npcs", []):
+				if npc is Dictionary: placed.append(["npc", str(npc.get("template_id", ""))])
+			for item in rooms[room_id].get("items", []):
+				if item is Dictionary: placed.append(["item", str(item.get("item_id", ""))])
+			for entry in placed:
+				var templates: Dictionary = npcs if entry[0] == "npc" else items
+				var template_id: String = entry[1]
+				var label := str(templates.get(template_id, {}).get("name", template_id)) if templates.get(template_id) is Dictionary else template_id
+				if template_id == "" or not (term in template_id.to_lower() or term in label.to_lower()): continue
+				_create_search_card(
+					label,
+					"%s in %s • %s" % ["NPC" if entry[0] == "npc" else "Item", rooms[room_id].get("name", room_id), region_name],
+					"👤" if entry[0] == "npc" else "📦", Color(0.4, 0.7, 0.4),
+					{"type": "room", "region": rid, "id": room_id}
+				)
+				count += 1
+				if count >= MAX_RESULTS: return
+
+	# Item templates
+	for iid in items:
+		if not items[iid] is Dictionary: continue
+		if term in iid.to_lower() or term in str(items[iid].get("name", "")).to_lower():
+			_create_search_card(
+				str(items[iid].get("name", "Unnamed")),
+				"Item • " + iid,
+				"📦", Color(0.8, 0.65, 0.3),
+				{"type": "db", "kind": "item", "id": iid}
+			)
+			count += 1
+			if count >= MAX_RESULTS: return
+
+	# Search NPCs
 	for nid in npcs:
 		if term in nid.to_lower() or term in npcs[nid].get("name", "").to_lower():
 			_create_search_card(
