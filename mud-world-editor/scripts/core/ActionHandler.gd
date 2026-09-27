@@ -63,13 +63,20 @@ func create_connection(src_id: String, dir: String, target_id: String, two_way: 
 		"Add Connection"
 	)
 
-func create_room_from_anchor(direction: String):
-	var src = state.creating_conn.src_id
-	var pos = state.creating_conn.end_pos
+## A room added from `src`'s anchor: connected both ways, placed at `pos`, and
+## in the same district as `src` (a room grown out of a district belongs to it).
+func create_room_from_anchor(src: String, direction: String, pos: Vector2):
 	var new_id = "room_" + str(Time.get_ticks_msec()) + "_" + str(randi() % 1000)
 	var inv = Constants.INV_DIR_MAP.get(direction.to_lower(), "")
 	var r_data = { "name": "New Room", "description": "", "exits": {}, "properties": {}, "_editor_pos": [pos.x, pos.y] }
-	
+	var district_members: Array = []
+	var districts: Dictionary = region_mgr.data.get("properties", {}).get("districts", {})
+	for district_id in districts:
+		var members = districts[district_id].get("members", null)
+		if members is Array and members.has(src):
+			district_members = members
+			break
+
 	cmd_proc.commit(
 		func():
 			region_mgr.add_room_data(new_id, r_data)
@@ -77,6 +84,8 @@ func create_room_from_anchor(direction: String):
 			if inv:
 				region_mgr.add_exit(new_id, inv, src)
 				region_mgr.set_connection_label_source(src, new_id, direction)
+			if district_members is Array and not district_members.is_empty() and not district_members.has(new_id):
+				district_members.append(new_id)
 			main_node._refresh_view()
 			main_node._on_node_click(new_id, false)
 			region_mgr.mark_room_dirty(new_id)
@@ -85,6 +94,7 @@ func create_room_from_anchor(direction: String):
 		func():
 			region_mgr.remove_exit(src, direction)
 			region_mgr.remove_room_data(new_id)
+			district_members.erase(new_id)
 			main_node._refresh_view()
 			region_mgr.mark_room_dirty(src)
 			main_node._update_explorer_dirty_state(),

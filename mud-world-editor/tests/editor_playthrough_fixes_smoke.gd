@@ -83,40 +83,54 @@ func _run() -> void:
 		if anchor.visible == exits.has(direction): wrong.append(direction)
 	_assert(wrong.is_empty() and not shown.is_empty(), "only directions without an exit offer an anchor: %s (exits %s)" % [shown, exits.keys()])
 
-	print("\n[clicking an anchor adds a connected room]")
+	print("\n[clicking an anchor adds a connected room at once, in the same district]")
 	var free: String = shown[0]
 	var before: int = rooms.size()
-	var at: Vector2 = main.get_global_mouse_position()
-	main.graph_controller.creation_drag_started.emit(id, at, free)
-	main._handle_anchor_drag(_release())
+	var anchor_node: Control = null
+	for anchor in scene.anchor_container.get_children():
+		if anchor.get_meta("direction") == free: anchor_node = anchor
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT; press.pressed = true
+	anchor_node.gui_input.emit(press)
 	rooms = main.region_mgr.data.rooms
 	var added := _new_room(rooms, exits, free)
-	_assert(rooms.size() == before + 1 and added != "", "a click makes a room to the %s" % free)
+	_assert(rooms.size() == before + 1 and added != "", "one click makes a room to the %s, no menu" % free)
 	if added != "":
 		_assert(rooms[added]["exits"].get(Constants.INV_DIR_MAP[free], "") == id, "connected both ways")
 		var p = rooms[id]["_editor_pos"]; var q = rooms[added]["_editor_pos"]
-		_assert(Vector2(q[0] - p[0], q[1] - p[1]).normalized().dot(Constants.DIR_VECTORS[free].normalized()) > 0.9, "and placed that way from the room")
+		_assert(Vector2(q[0] - p[0], q[1] - p[1]).normalized().dot(Constants.DIR_VECTORS[free].normalized()) > 0.5, "and placed on that side of the room")
+		var districts: Dictionary = main.region_mgr.data.get("properties", {}).get("districts", {})
+		var home := ""
+		for district_id in districts:
+			if districts[district_id].get("members", []).has(id): home = district_id
+		_assert(home == "" or districts[home]["members"].has(added), "the new room joins %s's district (%s)" % [id, home])
+		main.cmd_proc.undo()
+		_assert(not main.region_mgr.data.rooms.has(added) and (home == "" or not districts[home]["members"].has(added)), "and Ctrl+Z takes it back out")
 	for _i in 3: await process_frame
 
-	print("\n[dragging from an anchor asks which way, with real choices]")
-	exits = rooms[id].get("exits", {}).duplicate()
-	scene = main.graph_controller.get_active_nodes().get(id)
-	var next_free := ""
-	for anchor in scene.anchor_container.get_children():
-		if anchor.visible: next_free = anchor.get_meta("direction"); break
-	main.graph_controller.creation_drag_started.emit(id, at + Vector2(-400, -400), next_free)
-	main._handle_anchor_drag(_release())
-	var menu: PopupMenu = main.ui_mgr.creation_menu
-	_assert(menu.visible, "the direction menu opens")
-	_assert(menu.item_count > 2 and menu.get_item_text(1) == next_free.capitalize(), "listing directions, the anchor's first (%s)" % (menu.get_item_text(1) if menu.item_count > 1 else "none"))
-	var listed := []
-	for i in range(1, menu.item_count): listed.append(menu.get_item_text(i).to_lower())
-	_assert(not listed.has(free), "and not the direction just used (%s)" % free)
-	before = rooms.size()
-	menu.id_pressed.emit(0)
-	menu.hide()
-	rooms = main.region_mgr.data.rooms
-	_assert(rooms.size() == before + 1 and _new_room(rooms, exits, next_free) != "", "choosing one makes the room")
+	print("\n[district shapes are not rebuilt by every redraw]")
+	var gc = main.graph_controller
+	gc.queue_redraw(); await process_frame
+	var signature: String = gc._district_shape_signature
+	gc.queue_redraw(); await process_frame
+	_assert(signature != "" and gc._district_shape_signature == signature, "an unchanged map reuses its district shapes")
+	gc.defer_district_reshape = true
+	gc.set_node_position(id, gc.get_node_position(id) + Vector2(64, 0))
+	gc.queue_redraw(); await process_frame
+	_assert(gc._district_shape_signature == signature, "and a room being dragged leaves them alone")
+	gc.defer_district_reshape = false
+	gc.invalidate_district_shape(); await process_frame
+	_assert(gc._district_shape_signature != signature, "until it is dropped")
+
+	print("\n[search finds placed items]")
+	main.ui_mgr.show_search_modal()
+	main.ui_mgr.search_modal._on_search_text_changed("herb bed")
+	var titles := []
+	for card in main.ui_mgr.search_modal.search_results_box.get_children():
+		if not card.is_queued_for_deletion(): titles.append(card.get_meta("search_data"))
+	_assert(titles.any(func(m): return m.get("type") == "room"), "\"herb bed\" finds the rooms it is placed in")
+	_assert(titles.any(func(m): return m.get("kind") == "item"), "and its item template")
+	main.ui_mgr.search_modal.hide()
 
 	print("\n[unsaved-change prompts say what]")
 	var summary: String = main._describe_unsaved_work()
@@ -150,12 +164,6 @@ func _press(code: Key, ctrl: bool) -> void:
 	var up := event.duplicate(); up.pressed = false
 	Input.parse_input_event(up)
 	await process_frame
-
-
-func _release() -> InputEventMouseButton:
-	var event := InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT; event.pressed = false
-	return event
 
 
 # The room the `direction` exit of the source now leads to, if it is new.

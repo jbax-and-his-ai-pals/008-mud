@@ -6,7 +6,7 @@ signal room_double_clicked(room_id)
 signal dragged(new_position)
 signal right_clicked
 signal connection_drag_started(room_id)
-signal creation_drag_started(room_id, anchor_pos, direction)
+signal anchor_clicked(room_id, direction)
 signal drag_started
 signal drag_ended
 signal label_clicked(room_id)
@@ -158,9 +158,10 @@ func _build_anchors() -> void:
 		anchor.size = Vector2(ANCHOR_SIZE, ANCHOR_SIZE)
 		anchor.mouse_filter = Control.MOUSE_FILTER_STOP
 		anchor.mouse_default_cursor_shape = Control.CURSOR_CROSS
-		anchor.tooltip_text = "Click to add a room to the %s, or drag to place it" % direction
+		anchor.tooltip_text = "Add a room to the %s" % direction
 		anchor.gui_input.connect(func(ev): _on_anchor_gui_input(ev, anchor))
-		anchor.mouse_exited.connect(_refresh_hover.call_deferred)
+		anchor.mouse_exited.connect(func(): anchor.queue_redraw(); _refresh_hover.call_deferred())
+		anchor.mouse_entered.connect(anchor.queue_redraw)
 		anchor_container.add_child(anchor)
 		_add_anchor_handle(anchor)
 	_layout_anchors()
@@ -208,28 +209,27 @@ func _refresh_hover() -> void:
 	if not _is_selected and not _is_highlighted: z_index = 5 if hovered else 0
 	_apply_anchor_visibility()
 
-## A small round "+" handle in the middle of each anchor makes it findable.
+## A small round "+" handle, drawn by the anchor itself: a true circle that
+## grows a little under the mouse. (It was a rounded label box, which the font's
+## line height stretched into an egg.) The "Handle" child only marks that an
+## anchor has one.
 func _add_anchor_handle(anchor: Control) -> void:
 	if anchor.has_node("Handle"):
 		return
-	var handle := Label.new()
-	handle.name = "Handle"
-	handle.text = "+"
-	handle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	handle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	handle.add_theme_font_size_override("font_size", 13)
-	handle.add_theme_color_override("font_color", Color(0.06, 0.1, 0.16))
-	var dot := StyleBoxFlat.new()
-	dot.bg_color = Color(0.56, 0.81, 1.0)
-	dot.border_color = Color(1, 1, 1, 0.9)
-	dot.set_border_width_all(1)
-	dot.set_corner_radius_all(8)
-	handle.add_theme_stylebox_override("normal", dot)
-	handle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	handle.size = Vector2(16, 16)
-	handle.position = (anchor.size - handle.size) / 2.0
-	anchor.add_child(handle)
-	anchor.resized.connect(func(): handle.position = (anchor.size - handle.size) / 2.0)
+	var marker := Control.new()
+	marker.name = "Handle"
+	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	anchor.add_child(marker)
+	anchor.draw.connect(func():
+		var hot := anchor.get_global_rect().has_point(anchor.get_global_mouse_position())
+		var center := anchor.size / 2.0
+		var radius := 8.0 if hot else 6.5
+		anchor.draw_circle(center, radius + 1.5, Color(0.05, 0.08, 0.12, 0.9))
+		anchor.draw_circle(center, radius, Color(0.62, 0.86, 1.0) if hot else Color(0.45, 0.72, 0.95))
+		var arm := radius * 0.55
+		var ink := Color(0.05, 0.1, 0.16)
+		anchor.draw_line(center - Vector2(arm, 0), center + Vector2(arm, 0), ink, 1.6, true)
+		anchor.draw_line(center - Vector2(0, arm), center + Vector2(0, arm), ink, 1.6, true))
 
 
 func get_connection_anchor_point(dir: String) -> Vector2:
@@ -436,8 +436,8 @@ func _on_panel_gui_input(event):
 
 func _on_anchor_gui_input(event: InputEvent, anchor_node: Control):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		var anchor_global_pos = anchor_node.get_global_rect().get_center()
-		emit_signal("creation_drag_started", _cached_id, anchor_global_pos, str(anchor_node.get_meta("direction", "")))
+		anchor_node.accept_event()
+		emit_signal("anchor_clicked", _cached_id, str(anchor_node.get_meta("direction", "")))
 
 func set_passive(enabled: bool):
 	_passive = enabled

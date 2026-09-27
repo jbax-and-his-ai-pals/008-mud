@@ -271,7 +271,6 @@ func _connect_ui_signals():
 		# to reappear) even though nothing is visibly selected anymore.
 		if not b and state.selected_district_id != "": _deselect_all()
 	)
-	ui_mgr.creation_direction_selected.connect(action_handler.create_room_from_anchor)
 	ui_mgr.tool_changed.connect(func(m, d): state.cur_tool_mode=m; state.cur_tool_data=d; ui_mgr.update_tool_display(m, d); if m!=EditorUIManager.ToolMode.SELECT: _deselect_all())
 	ui_mgr.request_jump_to_room.connect(_jump_to_room)
 	ui_mgr.request_show_district.connect(func(_region_id, district_id): _select_district(district_id))
@@ -501,7 +500,7 @@ func _redraw_after_camera_input():
 
 func _connect_graph_signals():
 	graph_controller.world_region_selected.connect(_on_world_region_selected)
-	graph_controller.node_drag_started.connect(func(_id): is_dragging_object = true)
+	graph_controller.node_drag_started.connect(func(_id): is_dragging_object = true; graph_controller.defer_district_reshape = true)
 	# A room card normally absorbs every mouse event over it, but middle-
 	# button panning should work no matter what's under the cursor -- the
 	# room forwards that one button's events up through this same signal
@@ -560,6 +559,8 @@ func _connect_graph_signals():
 	)
 	graph_controller.node_dragged.connect(func(id, new_pos):
 		is_dragging_object = false
+		graph_controller.defer_district_reshape = false
+		graph_controller.invalidate_district_shape()
 		var id_str = str(id)
 		if state.drag_start_positions.has(id_str) and state.is_selected(id_str):
 			var delta = new_pos - state.drag_start_positions[id_str]
@@ -582,7 +583,11 @@ func _connect_graph_signals():
 		state.world_dragging_conn = {"active": true, "start": world_start, "end": world_start, "src_region": rid, "src_room": anchor_room}
 		is_dragging_object = true
 	)
-	graph_controller.creation_drag_started.connect(func(id, pos, direction): state.creating_conn={"active":true, "start_pos":pos, "end_pos":pos, "src_id":id, "direction":direction})
+	# A click on a room's anchor adds a room that way at once, with defaults:
+	# no drag line and no direction menu to get through first.
+	graph_controller.anchor_clicked.connect(func(id, direction):
+		if state.is_world_view or direction == "": return
+		action_handler.create_room_from_anchor(str(id), direction, _free_spot_from(str(id), direction)))
 	graph_controller.region_moved.connect(func(id, old, new):
 		cmd_proc.commit(
 			func(): world_mgr.update_world_node_pos(id, new); _refresh_view(),
@@ -657,15 +662,12 @@ func _unhandled_input(event):
 						if region_mgr.data.get("rooms", {}).has(room_id):
 							start_positions[room_id] = graph_controller.get_node_position(room_id)
 					state.district_move_dragging = {"active": true, "district_id": pressed_district_id, "mouse_start": mouse_pos, "positions": start_positions}
+					graph_controller.defer_district_reshape = true
 					return
 				deselection_primed = true; mouse_down_pos = mouse_pos
 		else:
 			if deselection_primed and not is_dragging_object and mouse_pos.distance_to(mouse_down_pos) < DRAG_PIXEL_THRESHOLD: _on_empty_click(mouse_pos)
 			deselection_primed = false; is_dragging_object = false
-
-	if state.creating_conn.get("active", false):
-		_handle_anchor_drag(event)
-		return
 
 	if not state.is_box_selecting and camera_controller.handle_input(event):
 		if camera_controller.is_panning: is_dragging_object = true
@@ -704,6 +706,8 @@ func _unhandled_input(event):
 			var delta: Vector2 = get_global_mouse_position() - state.district_move_dragging.mouse_start
 			var start_positions: Dictionary = state.district_move_dragging.positions
 			state.district_move_dragging = {"active": false, "district_id": "", "mouse_start": Vector2.ZERO, "positions": {}}
+			graph_controller.defer_district_reshape = false
+			graph_controller.invalidate_district_shape()
 			is_dragging_object = false
 			if delta.length_squared() > 1.0: _commit_district_move(start_positions, delta)
 			else: graph_controller.queue_redraw()
@@ -720,50 +724,25 @@ func _unhandled_input(event):
 		state.is_box_selecting = true; state.box_select_start = get_global_mouse_position()
 		return
 
-## Dragging out of a room's anchor. The line used to stay stuck at the anchor
-## (nothing followed the mouse) and the release opened an empty menu. Now a
-## click adds a room one step away in the anchor's direction; a drag places it
-## where the mouse is let go and asks which way it connects, the anchor's
-## direction first and the room's used directions left out.
-func _handle_anchor_drag(event) -> void:
-	if event is InputEventMouseMotion:
-		state.creating_conn.end_pos = get_global_mouse_position()
-		graph_controller.queue_redraw()
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		state.creating_conn.active = false
-		graph_controller.queue_redraw()
-		var src: String = state.creating_conn.src_id
-		var direction := str(state.creating_conn.get("direction", ""))
-		var dragged: bool = state.creating_conn.start_pos.distance_to(get_global_mouse_position()) >= 24.0
-		if not dragged and direction != "":
-			state.creating_conn.end_pos = _free_spot_from(src, direction)
-			action_handler.create_room_from_anchor(direction)
-			return
-		var end: Vector2 = get_global_mouse_position()
-		if state.snap_enabled: end = end.snapped(Vector2(32, 32))
-		state.creating_conn.end_pos = end
-		var used: Dictionary = region_mgr.data.get("rooms", {}).get(src, {}).get("exits", {})
-		var choices: Array = []
-		if direction != "" and not used.has(direction): choices.append(direction)
-		for d in Constants.AUTHORABLE_DIRECTIONS:
-			if not used.has(d) and not d in choices: choices.append(d)
-		ui_mgr.show_creation_menu(get_viewport().get_mouse_position(), choices)
-
-## The first empty spot one room-spacing step (or more) from `room_id` towards
-## `direction`.
+## Where a room added from `room_id`'s anchor goes: the grid spot one step
+## that way, or, when that is taken, the nearest free spot further along or
+## to either side of it -- so it stays on the side the author clicked.
 func _free_spot_from(room_id: String, direction: String) -> Vector2:
 	var rooms: Dictionary = region_mgr.data.get("rooms", {})
 	var p = rooms.get(room_id, {}).get("_editor_pos", [0, 0])
 	var origin := Vector2(p[0], p[1])
 	var step: Vector2 = Constants.DIR_VECTORS.get(direction, Vector2.RIGHT) * LayoutOptimizer.ROOM_SPACING
+	var dir: Vector2 = Constants.DIR_VECTORS.get(direction, Vector2.RIGHT)
+	var side := Vector2(-dir.y, dir.x) * LayoutOptimizer.ROOM_SPACING
 	for distance in range(1, 9):
-		var candidate := origin + step * distance
-		var taken := false
-		for other in rooms.values():
-			var q = other.get("_editor_pos", [0, 0])
-			if abs(q[0] - candidate.x) < LayoutOptimizer.ROOM_SPACING.x * 0.75 and abs(q[1] - candidate.y) < LayoutOptimizer.ROOM_SPACING.y * 0.75:
-				taken = true; break
-		if not taken: return candidate
+		for offset in [0, 1, -1]:
+			var candidate: Vector2 = origin + step * distance + side * offset
+			var taken := false
+			for other in rooms.values():
+				var q = other.get("_editor_pos", [0, 0])
+				if abs(q[0] - candidate.x) < LayoutOptimizer.ROOM_SPACING.x * 0.75 and abs(q[1] - candidate.y) < LayoutOptimizer.ROOM_SPACING.y * 0.75:
+					taken = true; break
+			if not taken: return candidate
 	return origin + step * 9
 
 func _is_mouse_on_any_node(mouse_pos: Vector2) -> bool:
@@ -2089,7 +2068,7 @@ func _set_world_view(enabled: bool):
 	if cache_key != "": view_states[cache_key] = {"pos": main_camera.position, "zoom": main_camera.zoom}
 	
 	state.is_world_view = enabled
-	state.creating_conn = { "active": false }; state.dragging_conn = { "active": false }
+	state.dragging_conn = { "active": false }
 	_deselect_all()
 	grid_layer.visible = state.snap_enabled and not state.is_world_view
 	_refresh_view()

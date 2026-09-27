@@ -32,7 +32,6 @@ var world_dragging_conn: Dictionary = {"active": false, "start": Vector2.ZERO, "
 # connections, and its connections out to the rest of the region all move
 # together the same way a multi-room selection drag already does.
 var district_move_dragging: Dictionary = {"active": false, "district_id": "", "mouse_start": Vector2.ZERO, "positions": {}}
-var creating_conn: Dictionary = { "active": false, "start_pos": Vector2.ZERO, "end_pos": Vector2.ZERO, "src_id": "" }
 
 # True while the connection form is open, which is a *mode* rather than a panel:
 # in it, a click on the map means "make this the far end of the connection", not

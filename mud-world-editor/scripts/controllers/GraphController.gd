@@ -13,7 +13,7 @@ signal node_dragging(id, current_pos)
 signal node_dragged(id, final_pos)
 signal node_right_clicked(id)
 signal connection_drag_started(id)
-signal creation_drag_started(id, pos, direction)
+signal anchor_clicked(id, direction)
 signal request_region_edit(region_id)
 signal region_moved(region_id, old_pos, new_pos)
 signal world_region_selected(region_id)
@@ -68,6 +68,13 @@ var show_technical_ids := false
 # worse than recomputing an extra time.
 var _district_render_cache: Dictionary = {}
 var _district_render_cache_ready := false
+# The district territory is the slowest thing the map draws (~650 ms for the
+# town), and every redraw -- a click, a selection, each mouse move of a room
+# drag -- used to rebuild it. It is now rebuilt only when what it is made of
+# (districts, room positions, exits) changes, and not at all while a room is
+# being dragged: the shape stays put until the drop.
+var _district_shape_signature := ""
+var defer_district_reshape := false
 
 const LOCAL_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/LocalViewBuilder.gd")
 const WORLD_VIEW_BUILDER = preload("res://scripts/controllers/view_builders/WorldViewBuilder.gd")
@@ -122,7 +129,7 @@ func _forward_builder_signals():
 	local_view_builder.node_dragged.connect(func(id, pos): node_dragged.emit(id, pos))
 	local_view_builder.node_right_clicked.connect(func(id): node_right_clicked.emit(id))
 	local_view_builder.connection_drag_started.connect(func(id): connection_drag_started.emit(id))
-	local_view_builder.creation_drag_started.connect(func(id, pos, direction): creation_drag_started.emit(id, pos, direction))
+	local_view_builder.anchor_clicked.connect(func(id, direction): anchor_clicked.emit(id, direction))
 	local_view_builder.label_clicked.connect(func(id): room_label_clicked.emit(id))
 	local_view_builder.label_drag_started.connect(func(id): room_label_drag_started.emit(id))
 	local_view_builder.label_dragged.connect(func(id): room_label_dragged.emit(id))
@@ -361,8 +368,6 @@ func _draw_local_connections():
 			var p2 = local_view_builder.room_nodes[tgt_id].position
 			connection_layer.draw_dashed_line(p1, p2, Color.MAGENTA, 3.0, 10.0)
 	
-	if editor_state.creating_conn.get("active", false):
-		connection_layer.draw_line(editor_state.creating_conn.start_pos, editor_state.creating_conn.end_pos, Color.LIME_GREEN, 3.0)
 	
 	# Connection Drag Visuals
 	if editor_state.dragging_conn.get("active", false):
@@ -555,7 +560,14 @@ func _get_district_render_cache() -> Dictionary:
 	_district_render_cache_ready = true
 	if current_mode != ViewMode.LOCAL or region_data.is_empty():
 		_district_render_cache = {}
+		_district_shape_signature = ""
 		return _district_render_cache
+	if defer_district_reshape and not _district_render_cache.is_empty():
+		return _district_render_cache
+	var signature := _district_signature()
+	if signature == _district_shape_signature:
+		return _district_render_cache
+	_district_shape_signature = signature
 	var fields := _build_district_fields()
 	if fields.is_empty():
 		_district_render_cache = {}
@@ -564,8 +576,25 @@ func _get_district_render_cache() -> Dictionary:
 	if territory.is_empty():
 		_district_render_cache = {}
 		return _district_render_cache
-	_district_render_cache = {"fields": fields, "owners": territory["owners"], "cell_size": territory["cell_size"]}
+	_district_render_cache = {"fields": fields, "owners": territory["owners"], "cell_size": territory["cell_size"], "anchors": {}}
 	return _district_render_cache
+
+func _district_signature() -> String:
+	var parts := PackedStringArray()
+	parts.append(str(region_data.get("properties", {}).get("districts", {})))
+	for id in local_view_builder.room_nodes:
+		var node = local_view_builder.room_nodes[id]
+		if is_instance_valid(node): parts.append("%s@%d,%d" % [id, roundi(node.position.x), roundi(node.position.y)])
+	var rooms: Dictionary = region_data.get("rooms", {})
+	for id in rooms:
+		parts.append(str(rooms[id].get("exits", {})))
+	return "|".join(parts)
+
+## Drop the district shape so the next draw rebuilds it (after a drop, or when
+## the region itself is replaced).
+func invalidate_district_shape() -> void:
+	_district_shape_signature = ""
+	queue_redraw()
 
 func _on_draw_district_backgrounds():
 	if district_layer == null: return
@@ -584,13 +613,16 @@ func _on_draw_district_backgrounds():
 	# on its immediate neighbors along the boundary), which is also why two
 	# districts sharing an edge end up with matching curves there rather than
 	# two independently-wobbling lines that drift apart.
-	var field_loops: Array = []
-	for field_index in range(fields.size()):
-		var loops: Array = []
-		for loop in _trace_field_boundary_loops(owners, field_index, cell_size):
-			var simplified := _simplify_loop_douglas_peucker(loop, BOUNDARY_SIMPLIFY_TOLERANCE)
-			loops.append(_chaikin_smooth_closed_loop(simplified, 4))
-		field_loops.append(loops)
+	if not cache.has("loops"):
+		var traced: Array = []
+		for field_index in range(fields.size()):
+			var loops: Array = []
+			for loop in _trace_field_boundary_loops(owners, field_index, cell_size):
+				var simplified := _simplify_loop_douglas_peucker(loop, BOUNDARY_SIMPLIFY_TOLERANCE)
+				loops.append(_chaikin_smooth_closed_loop(simplified, 4))
+			traced.append(loops)
+		cache["loops"] = traced
+	var field_loops: Array = cache["loops"]
 	var selected_district_id := str(editor_state.selected_district_id) if editor_state else ""
 	for field_index in range(fields.size()):
 		var color: Color = fields[field_index]["color"]
@@ -623,12 +655,14 @@ func _on_draw_district_labels():
 	var owners: Dictionary = cache["owners"]
 	var cell_size: float = cache["cell_size"]
 	var font := ThemeDB.get_fallback_font()
-	var obstacles := _collect_label_obstacles()
+	var anchors: Dictionary = cache.get("anchors", {})
+	var obstacles := {} if anchors.size() == fields.size() else _collect_label_obstacles()
 	const LABEL_FONT_SIZE := 20
 	const LABEL_MIN_FONT_SIZE := 11
 	const LABEL_PADDING := Vector2(16, 8)
 	for field_index in range(fields.size()):
-		var anchor := _find_label_anchor(owners, field_index, cell_size, obstacles)
+		if not anchors.has(field_index): anchors[field_index] = _find_label_anchor(owners, field_index, cell_size, obstacles)
+		var anchor: Dictionary = anchors[field_index]
 		var anchor_cell: Vector2i = anchor["cell"]
 		var clearance: float = anchor["clearance"]
 		var label_pos: Vector2 = (Vector2(anchor_cell) + Vector2(0.5, 0.5)) * cell_size

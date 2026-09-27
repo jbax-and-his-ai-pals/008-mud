@@ -42,7 +42,6 @@ signal request_place_district(definition)
 signal request_district_confirm
 signal request_district_cancel
 signal context_action(action_id)
-signal creation_direction_selected(direction)
 signal request_jump_to_error(region_file, room_id)
 signal tool_changed(mode, data)
 signal request_create_db_entry(type) 
@@ -84,7 +83,6 @@ var district_toolbar_label: Label
 var district_confirm: Button
 var district_discard: Button
 var context_menu: PopupMenu
-var creation_menu: PopupMenu
 var validation_modal: ValidationModal
 var region_policy_modal: AcceptDialog
 var region_policy_label: RichTextLabel
@@ -327,13 +325,6 @@ func _setup_modals_and_popups():
 	_setup_district_toolbar()
 
 	context_menu = PopupMenu.new(); ui_layer.add_child(context_menu); context_menu.id_pressed.connect(func(id): context_action.emit(id))
-	# Which way the room dragged out of an anchor connects. This menu used to be
-	# twelve blank rows that nothing listened to, so it showed as a thin empty
-	# strip and never created a room.
-	creation_menu = PopupMenu.new(); ui_layer.add_child(creation_menu)
-	creation_menu.id_pressed.connect(func(index):
-		var directions: Array = creation_menu.get_meta("directions", [])
-		if index >= 0 and index < directions.size(): creation_direction_selected.emit(directions[index]))
 	
 	validation_modal = VALIDATION_MODAL_SCRIPT.new()
 	ui_layer.add_child(validation_modal)
@@ -1136,16 +1127,6 @@ func update_layout_btn_text(is_world: bool): side_panel.update_layout_btn_text(i
 func show_context_menu(items: Dictionary):
 	context_menu.clear(); for l in items: context_menu.add_item(l, items[l])
 	context_menu.position = Vector2(ui_layer.get_viewport().get_mouse_position()); context_menu.popup()
-
-## Offer the directions a new room can connect by, the anchor's own first.
-func show_creation_menu(position: Vector2, directions: Array) -> void:
-	creation_menu.clear()
-	creation_menu.add_separator("New room connects by")
-	for i in directions.size():
-		creation_menu.add_item(str(directions[i]).capitalize(), i)
-	creation_menu.set_meta("directions", directions)
-	creation_menu.reset_size()
-	creation_menu.popup(Rect2i(Vector2i(position), Vector2i.ZERO))
 
 func show_validation_results(errors: Array, ignored_count: int = 0):
 	validation_modal.populate_and_show(errors, ignored_count)
