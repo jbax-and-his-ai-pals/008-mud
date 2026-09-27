@@ -47,18 +47,18 @@ func create_connection(src_id: String, dir: String, target_id: String, two_way: 
 					region_mgr.add_exit(final_target, inv_dir, src_id)
 					region_mgr.set_connection_label_source(src_id, final_target, dir)
 			main_node._refresh_view()
-			region_mgr.mark_room_dirty(src_id)
+			region_mgr.mark_room_dirty(src_id, "exit %s added" % dir)
 			if region_mgr.data.rooms.has(final_target):
-				region_mgr.mark_room_dirty(final_target)
+				region_mgr.mark_room_dirty(final_target, ("exit %s added" % inv_dir) if two_way and inv_dir != "" else "")
 			main_node._update_explorer_dirty_state(),
 		func():
 			region_mgr.remove_exit(src_id, dir)
 			if two_way and inv_dir != "" and not ":" in final_target:
 				region_mgr.remove_exit(final_target, inv_dir)
 			main_node._refresh_view()
-			region_mgr.mark_room_dirty(src_id)
+			region_mgr.mark_room_dirty(src_id, "exit %s undone" % dir)
 			if region_mgr.data.rooms.has(final_target):
-				region_mgr.mark_room_dirty(final_target)
+				region_mgr.mark_room_dirty(final_target, ("exit %s undone" % inv_dir) if two_way and inv_dir != "" else "")
 			main_node._update_explorer_dirty_state(),
 		"Add Connection"
 	)
@@ -88,15 +88,16 @@ func create_room_from_anchor(src: String, direction: String, pos: Vector2):
 				district_members.append(new_id)
 			main_node._refresh_view()
 			main_node._on_node_click(new_id, false)
-			region_mgr.mark_room_dirty(new_id)
-			region_mgr.mark_room_dirty(src)
+			region_mgr.mark_room_dirty(new_id, "added")
+			region_mgr.mark_room_dirty(src, "exit %s added (to a new room)" % direction)
 			main_node._update_explorer_dirty_state(),
 		func():
 			region_mgr.remove_exit(src, direction)
 			region_mgr.remove_room_data(new_id)
 			district_members.erase(new_id)
 			main_node._refresh_view()
-			region_mgr.mark_room_dirty(src)
+			region_mgr.mark_room_dirty(new_id, "added, then undone")
+			region_mgr.mark_room_dirty(src, "exit %s undone" % direction)
 			main_node._update_explorer_dirty_state(),
 		"Create Room Directional"
 	)
@@ -139,6 +140,7 @@ func handle_context_action(action_id: int):
 
 func execute_delete_room(room_id: String, remove_incoming: bool):
 	var old_room_data = region_mgr.data.rooms[room_id].duplicate(true)
+	var old_districts: Array = region_mgr.district_ids_of(room_id)
 	var incoming_links = []
 	if remove_incoming:
 		incoming_links = region_mgr.find_incoming_connections(room_id)
@@ -146,18 +148,22 @@ func execute_delete_room(room_id: String, remove_incoming: bool):
 	cmd_proc.commit(
 		func(): 
 			region_mgr.remove_room_data(room_id)
+			region_mgr.remove_room_from_districts(room_id)
+			region_mgr.mark_room_dirty(room_id, "removed (was \"%s\")" % str(old_room_data.get("name", room_id)))
 			for link in incoming_links:
 				region_mgr.remove_exit(link.source, link.dir)
-				region_mgr.mark_room_dirty(link.source)
+				region_mgr.mark_room_dirty(link.source, "exit %s removed (its room was deleted)" % link.dir)
 			
 			main_node._refresh_view()
 			main_node._deselect_all()
 			main_node._update_explorer_dirty_state(),
 		func(): 
 			region_mgr.add_room_data(room_id, old_room_data)
+			region_mgr.add_room_to_districts(room_id, old_districts)
+			region_mgr.mark_room_dirty(room_id, "removal undone")
 			for link in incoming_links:
 				region_mgr.add_exit(link.source, link.dir, room_id)
-				region_mgr.mark_room_dirty(link.source)
+				region_mgr.mark_room_dirty(link.source, "exit %s restored" % link.dir)
 				
 			main_node._refresh_view()
 			main_node._update_explorer_dirty_state(),
@@ -178,14 +184,14 @@ func commit_batch_move(delta: Vector2):
 			for id in move_data:
 				region_mgr.set_room_pos(id, move_data[id].new)
 				graph_controller.update_specific_node(id, region_mgr.data)
-				region_mgr.mark_room_dirty(id)
+				region_mgr.mark_room_dirty(id, "moved")
 			main_node._update_explorer_dirty_state()
 			graph_controller.queue_redraw(),
 		func():
 			for id in move_data:
 				region_mgr.set_room_pos(id, move_data[id].old)
 				graph_controller.update_specific_node(id, region_mgr.data)
-				region_mgr.mark_room_dirty(id)
+				region_mgr.mark_room_dirty(id, "move undone")
 			main_node._update_explorer_dirty_state()
 			graph_controller.queue_redraw(),
 		"Move %d Rooms" % move_data.size()
@@ -198,12 +204,12 @@ func rename_room_label(room_id: String, new_name: String):
 	cmd_proc.commit(
 		func():
 			region_mgr.data.rooms[room_id]["name"] = new_name
-			region_mgr.mark_room_dirty(room_id)
+			region_mgr.mark_room_dirty(room_id, "renamed from \"%s\"" % old_name)
 			graph_controller.update_specific_node(room_id, region_mgr.data)
 			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
 		func():
 			region_mgr.data.rooms[room_id]["name"] = old_name
-			region_mgr.mark_room_dirty(room_id)
+			region_mgr.mark_room_dirty(room_id, "rename undone")
 			graph_controller.update_specific_node(room_id, region_mgr.data)
 			main_node._refresh_view(); main_node._update_explorer_dirty_state(),
 		"Rename Room Label"

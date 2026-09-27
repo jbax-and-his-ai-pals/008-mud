@@ -26,11 +26,15 @@ var patch_errors: Array = []
 
 # --- DIRTY STATE TRACKING ---
 var is_region_dirty: bool = false
-var dirty_room_ids: Dictionary = {} 
+var dirty_room_ids: Dictionary = {}
+# What was done to each dirty room, in order ("added", "exit east added", ...),
+# so an unsaved-changes prompt can say what would be lost, not just where.
+var room_changes: Dictionary = {} 
 
 func load_region(filename: String) -> bool:
 	is_region_dirty = false
 	dirty_room_ids.clear()
+	room_changes.clear()
 	load_error = ""
 
 	if filename == "":
@@ -105,6 +109,7 @@ func reset() -> void:
 	patch_errors.clear()
 	is_region_dirty = false
 	dirty_room_ids.clear()
+	room_changes.clear()
 
 func can_save() -> bool:
 	return current_filename != "" and loaded_ok
@@ -171,6 +176,18 @@ func save_region() -> Dictionary:
 			+ "what the file contains. Reload the region first."
 		) % current_filename}
 	var region_id := str(data.get("region_id", current_filename.replace(".json", "")))
+	# A district may only list rooms of this region, and one naming a room that
+	# is gone makes the engine refuse the whole set. Such an entry can only be
+	# left over from an edit (a room deleted or re-id'd before those kept the
+	# lists in step), so it is dropped rather than failing the save.
+	var rooms: Dictionary = data.get("rooms", {})
+	var districts = data.get("properties", {}).get("districts", {})
+	if districts is Dictionary:
+		for district_id in districts:
+			var members = districts[district_id].get("members", null) if districts[district_id] is Dictionary else null
+			if members is Array:
+				for member in members.duplicate():
+					if not rooms.has(str(member)): members.erase(member)
 	# Editor layout goes to the sidecar; the file the game reads stays clean.
 	EditorLayout.split_region(region_id, data)
 	var payload := EditorLayout.strip_region(data)
@@ -231,6 +248,29 @@ func set_district(district_id: String, district: Dictionary):
 func remove_district(district_id: String):
 	get_districts().erase(district_id)
 
+## The districts listing `room_id`, as ids. A district naming a room that is
+## gone makes the engine refuse the whole content set, so deleting and renaming
+## rooms keep these lists in step.
+func district_ids_of(room_id: String) -> Array:
+	var out: Array = []
+	var districts = data.get("properties", {}).get("districts", {})
+	if not districts is Dictionary: return out
+	for district_id in districts:
+		var members = districts[district_id].get("members", null) if districts[district_id] is Dictionary else null
+		if members is Array and members.has(room_id): out.append(district_id)
+	return out
+
+func remove_room_from_districts(room_id: String) -> void:
+	for district_id in district_ids_of(room_id):
+		data["properties"]["districts"][district_id]["members"].erase(room_id)
+
+func add_room_to_districts(room_id: String, district_ids: Array) -> void:
+	var districts = data.get("properties", {}).get("districts", {})
+	for district_id in district_ids:
+		if districts.has(district_id):
+			var members = districts[district_id].get("members", null)
+			if members is Array and not members.has(room_id): members.append(room_id)
+
 func remove_room_data(id: String):
 	if data.get("rooms", {}).has(id):
 		data["rooms"].erase(id)
@@ -281,10 +321,19 @@ func rename_room(old_id: String, new_id: String) -> bool:
 	if dirty_room_ids.has(old_id):
 		dirty_room_ids.erase(old_id)
 		dirty_room_ids[new_id] = true
+	if room_changes.has(old_id):
+		room_changes[new_id] = room_changes[old_id]
+		room_changes.erase(old_id)
 
 	var r = data["rooms"][old_id]
 	data["rooms"][new_id] = r
 	data["rooms"].erase(old_id)
+
+	# Districts list their rooms by id; a rename that left the old id behind
+	# made the engine refuse the save ("district names missing room").
+	for district_id in district_ids_of(old_id):
+		var members: Array = data["properties"]["districts"][district_id]["members"]
+		members[members.find(old_id)] = new_id
 	
 	for rid in data["rooms"]:
 		var exits = data["rooms"][rid].get("exits", {})
@@ -344,8 +393,13 @@ func _patch_external_references(target_region: String, old_room: String, new_roo
 						patch_errors.append(result.get("error", "Could not update %s." % fname))
 		fname = dir.get_next()
 
-func mark_room_dirty(room_id: String):
-	if room_id != "": dirty_room_ids[room_id] = true
+func mark_room_dirty(room_id: String, what: String = ""):
+	if room_id != "":
+		dirty_room_ids[room_id] = true
+		if what != "":
+			if not room_changes.has(room_id): room_changes[room_id] = []
+			var log: Array = room_changes[room_id]
+			if log.is_empty() or log[-1] != what: log.append(what)
 	mark_region_dirty()
 
 # Some edits live on the region or district metadata rather than a single
@@ -356,3 +410,4 @@ func mark_region_dirty():
 func mark_clean():
 	is_region_dirty = false
 	dirty_room_ids.clear()
+	room_changes.clear()

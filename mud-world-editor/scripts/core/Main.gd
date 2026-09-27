@@ -433,8 +433,8 @@ func _connect_ui_signals():
 func _connect_inspector_signals():
 	inspector.request_rename.connect(func(o, n): 
 		cmd_proc.commit(
-			func(): region_mgr.rename_room(o, n); _refresh_view(); _on_node_click(n, false); _update_explorer_dirty_state(),
-			func(): region_mgr.rename_room(n, o); _refresh_view(); _on_node_click(o, false); _update_explorer_dirty_state(),
+			func(): region_mgr.rename_room(o, n); region_mgr.mark_room_dirty(n, "id changed from %s" % o); _refresh_view(); _on_node_click(n, false); _update_explorer_dirty_state(),
+			func(): region_mgr.rename_room(n, o); region_mgr.mark_room_dirty(o, "id change undone"); _refresh_view(); _on_node_click(o, false); _update_explorer_dirty_state(),
 			"Rename Room"
 		)
 	)
@@ -560,7 +560,7 @@ func _connect_graph_signals():
 	graph_controller.node_dragged.connect(func(id, new_pos):
 		is_dragging_object = false
 		graph_controller.defer_district_reshape = false
-		graph_controller.invalidate_district_shape()
+		graph_controller.queue_redraw()  # rebuilds the shape only if a room moved
 		var id_str = str(id)
 		if state.drag_start_positions.has(id_str) and state.is_selected(id_str):
 			var delta = new_pos - state.drag_start_positions[id_str]
@@ -707,7 +707,7 @@ func _unhandled_input(event):
 			var start_positions: Dictionary = state.district_move_dragging.positions
 			state.district_move_dragging = {"active": false, "district_id": "", "mouse_start": Vector2.ZERO, "positions": {}}
 			graph_controller.defer_district_reshape = false
-			graph_controller.invalidate_district_shape()
+			graph_controller.queue_redraw()  # rebuilds the shape only if a room moved
 			is_dragging_object = false
 			if delta.length_squared() > 1.0: _commit_district_move(start_positions, delta)
 			else: graph_controller.queue_redraw()
@@ -806,7 +806,7 @@ func _stamp_template_at(pos: Vector2):
 		func():
 			region_mgr.add_room_data(new_id, new_room_data)
 			_refresh_view(); _on_node_click(new_id, false)
-			region_mgr.mark_room_dirty(new_id); _update_explorer_dirty_state(),
+			region_mgr.mark_room_dirty(new_id, "added from a template"); _update_explorer_dirty_state(),
 		func():
 			region_mgr.remove_room_data(new_id)
 			_refresh_view(); _update_explorer_dirty_state(),
@@ -1259,11 +1259,13 @@ func _describe_unsaved_work(include_library: bool = true, limit: int = 12) -> St
 		var rooms: Dictionary = region_mgr.data.get("rooms", {})
 		var names: Array = []
 		for id in region_mgr.dirty_room_ids:
-			if rooms.has(id):
-				var label := str(rooms[id].get("name", ""))
-				names.append("%s (%s)" % [label, id] if label != "" and label != id else str(id))
-			else:
-				names.append("%s (removed)" % id)
+			var label := str(rooms[id].get("name", "")) if rooms.has(id) else ""
+			var who := "%s (%s)" % [label, id] if label != "" and label != id else str(id)
+			# What happened to it, not only that it changed; edits made in the
+			# inspector carry no action of their own and read as "edited".
+			var what: Array = region_mgr.room_changes.get(id, [])
+			if what.is_empty(): what = ["edited"] if rooms.has(id) else ["removed"]
+			names.append("%s: %s" % [who, ", ".join(what)])
 		names.sort()
 		var where := region_mgr.current_filename
 		if names.is_empty():

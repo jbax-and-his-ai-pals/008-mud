@@ -132,10 +132,46 @@ func _run() -> void:
 	_assert(titles.any(func(m): return m.get("kind") == "item"), "and its item template")
 	main.ui_mgr.search_modal.hide()
 
+	print("\n[districts follow a room through id changes and deletion, and saves]")
+	var rm = main.region_mgr
+	var districts_now: Dictionary = rm.data.get("properties", {}).get("districts", {})
+	var home_district := ""
+	for district_id in districts_now:
+		if districts_now[district_id].get("members", []).has(id): home_district = district_id
+	_assert(home_district != "", "%s is in a district (%s)" % [id, home_district])
+	var members: Array = districts_now[home_district]["members"]
+	main.inspector.request_rename.emit(id, id + "_renamed")
+	_assert(members.has(id + "_renamed") and not members.has(id), "changing a room's id changes it in its district")
+	main.cmd_proc.undo()
+	_assert(members.has(id) and not members.has(id + "_renamed"), "and undo changes it back")
+	var room_name_before_delete := str(rm.data.rooms[id].get("name", id))
+	main.action_handler.execute_delete_room(id, true)
+	_assert(not members.has(id), "deleting a room takes it out of its district")
+	var summary_after_delete: String = main._describe_unsaved_work()
+	_assert(("removed (was \"%s\")" % room_name_before_delete) in summary_after_delete, "and the unsaved list says it was removed, by name")
+	main.cmd_proc.undo()
+	_assert(members.has(id) and rm.data.rooms.has(id), "undo puts room and membership back")
+	members.append("room_that_was_never_there")
+	var saved: Dictionary = rm.save_region()
+	_assert(saved.get("ok", false) and not members.has("room_that_was_never_there"), "a save drops a member naming no room instead of failing")
+	var on_disk: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(rm.regions_dir().path_join(rm.current_filename)))
+	_assert(not str(on_disk.get("properties", {}).get("districts", {})).contains("room_that_was_never_there"), "so the engine never sees it")
+
+	print("\n[search says what each result is]")
+	main.ui_mgr.show_search_modal()
+	main.ui_mgr.search_modal._on_search_text_changed("herb bed")
+	var kinds := []
+	for card in main.ui_mgr.search_modal.search_results_box.get_children():
+		if card.is_queued_for_deletion(): continue
+		var tag = card.find_child("KindTag", true, false)
+		if tag: kinds.append(tag.text)
+	_assert(kinds.has("Placed item") and kinds.has("Item template"), "placements and templates are labelled: %s" % str(kinds))
+	main.ui_mgr.search_modal.hide()
+
 	print("\n[unsaved-change prompts say what]")
 	var summary: String = main._describe_unsaved_work()
 	var room_name := str(rooms[id].get("name", id))
-	_assert(room_name in summary and main.region_mgr.current_filename in summary, "the moved room is named: %s" % summary)
+	_assert(room_name in summary and main.region_mgr.current_filename in summary and "moved" in summary, "the moved room is named, with what happened: %s" % summary)
 	main.database_mgr.mark_dirty("npc", "old_bryn")
 	summary = main._describe_unsaved_work()
 	_assert("library npc: old_bryn" in summary, "and so is an edited library entry")
