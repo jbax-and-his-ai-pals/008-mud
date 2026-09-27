@@ -32,8 +32,29 @@ func _initialize() -> void:
 		scene.free()
 	for line in bad: print("    " + line)
 	_assert(bad.is_empty(), "every region is one fillable outline with all its rooms inside (%d bad)" % bad.size())
+	_check_enclosed_gaps()
 	if failures > 0: push_error("region shape smoke failed (%d)" % failures)
 	quit(1 if failures > 0 else 0)
+
+
+# A district shaped like a ring (rooms around open ground) used to trace the
+# ground as a second loop that was filled again on top of the district. The
+# ground now belongs to the ring; a pocket owned by another district stays a
+# hole, and a hole is never filled.
+func _check_enclosed_gaps() -> void:
+	var owners := {}
+	for x in range(0, 7):
+		for y in range(0, 7):
+			if x == 0 or y == 0 or x == 6 or y == 6: owners[Vector2i(x, y)] = 0
+	owners[Vector2i(3, 3)] = 1
+	var filled := TerritoryShape.fill_enclosed_gaps(owners, 0)
+	_assert(int(filled.get(Vector2i(2, 2), -1)) == 0, "open ground inside a ring joins the ring")
+	_assert(int(filled.get(Vector2i(3, 3), -1)) == 1, "a pocket owned by another district is left to it")
+	var loops := TerritoryShape.trace_boundary_loops(filled, 0, 24.0)
+	var holes := TerritoryShape.hole_flags(loops)
+	_assert(loops.size() == 2 and holes.count(true) == 1, "the pocket is the only hole, and it is marked as one (%d loops)" % loops.size())
+	var plain := TerritoryShape.trace_boundary_loops(owners, 0, 24.0)
+	_assert(plain.size() == 2 and TerritoryShape.hole_flags(plain).count(true) == 1, "an unfilled ring's inner edge is recognised as a hole")
 
 
 func _problems(scene: RegionScene) -> Array:

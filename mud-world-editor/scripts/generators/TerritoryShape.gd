@@ -60,12 +60,21 @@ static func solidify_single_field(owners: Dictionary, field_index: int) -> Dicti
 				if int(out.get(diagonal, -1)) == field_index and int(out.get(side_a, -1)) != field_index and int(out.get(side_b, -1)) != field_index:
 					out[side_a] = field_index
 					changed = true
-	if out.is_empty(): return out
-	var lo: Vector2i = out.keys()[0]
-	var hi: Vector2i = lo
+	return fill_enclosed_gaps(out, field_index)
+
+# Gives a field the unowned cells it encloses. A ring of rooms around open
+# ground traced the ground as a second loop, and a caller filling every loop
+# painted it twice -- a darker blob in the middle of the district. Cells
+# owned by another field (an enclave) are left alone: they are that field's.
+static func fill_enclosed_gaps(owners: Dictionary, field_index: int) -> Dictionary:
+	var out := owners.duplicate()
+	var lo := Vector2i(2147483647, 2147483647)
+	var hi := Vector2i(-2147483647, -2147483647)
 	for cell in out:
+		if int(out[cell]) != field_index: continue
 		lo = Vector2i(mini(lo.x, cell.x), mini(lo.y, cell.y))
 		hi = Vector2i(maxi(hi.x, cell.x), maxi(hi.y, cell.y))
+	if lo.x > hi.x: return out
 	lo -= Vector2i.ONE; hi += Vector2i.ONE
 	var outside := {lo: true}
 	var queue: Array = [lo]
@@ -80,8 +89,20 @@ static func solidify_single_field(owners: Dictionary, field_index: int) -> Dicti
 	for x in range(lo.x, hi.x + 1):
 		for y in range(lo.y, hi.y + 1):
 			var cell := Vector2i(x, y)
-			if not outside.has(cell): out[cell] = field_index
+			if not outside.has(cell) and not out.has(cell): out[cell] = field_index
 	return out
+
+## Which of a field's loops are holes (lying inside another of its loops).
+## A hole is drawn as an outline only; filling it paints over the district.
+static func hole_flags(loops: Array) -> Array:
+	var flags: Array = []
+	for i in loops.size():
+		var hole := false
+		for j in loops.size():
+			if i != j and loops[i].size() > 0 and loops[j].size() >= 3 and Geometry2D.is_point_in_polygon(loops[i][0], PackedVector2Array(loops[j])):
+				hole = true; break
+		flags.append(hole)
+	return flags
 
 # Walks the owned-cell mask for one field into one or more closed,
 # world-space vertex loops (its outer boundary, plus any hole it has been

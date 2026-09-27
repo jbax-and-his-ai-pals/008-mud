@@ -214,6 +214,28 @@ func _run() -> void:
 	_assert(kinds.has("Placed item") and kinds.has("Item template"), "placements and templates are labelled: %s" % str(kinds))
 	main.ui_mgr.search_modal.hide()
 
+	print("\n[a ring of rooms does not leave a darker blob in its district]")
+	var ring_rooms: Dictionary = main.region_mgr.data.rooms
+	var alley := ""
+	for rid in ring_rooms:
+		if ring_rooms[rid].get("name") == "Narrow Alley": alley = rid
+	var ring := [alley]
+	for step in ["southeast", "east", "northeast", "west"]:
+		var known: Array = main.region_mgr.data.rooms.keys()
+		main.action_handler.create_room_from_anchor(ring[-1], step, main._free_spot_from(ring[-1], step))
+		for rid in main.region_mgr.data.rooms:
+			if not known.has(rid): ring.append(rid)
+	_assert(ring.size() == 5, "four rooms grown round from Narrow Alley")
+	main.graph_controller.invalidate_district_shape()
+	main.graph_controller._district_render_cache_ready = false
+	var shape = main.graph_controller._get_district_render_cache()
+	var ring_holes := 0
+	for field_index in shape.fields.size():
+		if shape.fields[field_index].id != "market_row": continue
+		var loops = main.graph_controller._trace_field_boundary_loops(shape.owners, field_index, shape.cell_size)
+		ring_holes = TerritoryShape.hole_flags(loops).count(true)
+	_assert(ring_holes == 0, "the ground inside the ring belongs to Market Row, so no hole is painted twice")
+
 	print("\n[unsaved-change prompts say what]")
 	var summary: String = main._describe_unsaved_work()
 	var room_name := str(rooms[id].get("name", id))

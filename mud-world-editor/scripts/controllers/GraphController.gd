@@ -554,6 +554,8 @@ func _compute_district_territory(fields: Array) -> Dictionary:
 					var room_owner := _district_reserved_room_owner(sample, fields, room_reserve)
 					if room_owner < 0 or room_owner == field_index: owners[cell] = field_index
 	owners = _despeckle_owners(owners)
+	for field_index in range(fields.size()):
+		owners = TerritoryShape.fill_enclosed_gaps(owners, field_index)
 	return {"owners": owners, "cell_size": cell_size}
 
 # fields + territory for right now, computed at most once per
@@ -632,8 +634,10 @@ func _on_draw_district_backgrounds():
 		var color: Color = fields[field_index]["color"]
 		var is_selected: bool = selected_district_id != "" and str(fields[field_index]["id"]) == selected_district_id
 		var fill := Color(color.r, color.g, color.b, 0.24 if is_selected else 0.13)
-		for loop in field_loops[field_index]:
-			if loop.size() >= 3: district_layer.draw_colored_polygon(PackedVector2Array(loop), fill)
+		var holes: Array = TerritoryShape.hole_flags(field_loops[field_index])
+		for loop_index in field_loops[field_index].size():
+			var loop: Array = field_loops[field_index][loop_index]
+			if loop.size() >= 3 and not holes[loop_index]: district_layer.draw_colored_polygon(PackedVector2Array(loop), fill)
 	for field_index in range(fields.size()):
 		var color: Color = fields[field_index]["color"]
 		var is_selected: bool = selected_district_id != "" and str(fields[field_index]["id"]) == selected_district_id
