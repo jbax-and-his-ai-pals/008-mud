@@ -140,9 +140,9 @@ func _on_search_text_changed(text):
 				if template_id == "" or not (term in template_id.to_lower() or term in label.to_lower()): continue
 				_create_search_card(
 					label,
-					"%s in %s • %s" % ["NPC" if entry[0] == "npc" else "Item", rooms[room_id].get("name", room_id), region_name],
+					"in %s • %s  (%s)" % [rooms[room_id].get("name", room_id), region_name, template_id],
 					"👤" if entry[0] == "npc" else "📦", Color(0.4, 0.7, 0.4),
-					{"type": "room", "region": rid, "id": room_id}
+					{"type": "room", "region": rid, "id": room_id, "placed": entry[0]}
 				)
 				count += 1
 				if count >= MAX_RESULTS: return
@@ -218,6 +218,25 @@ func _create_search_card(title: String, subtitle: String, icon: String, color: C
 	vb_text.add_child(l_title); vb_text.add_child(l_sub)
 	hb.add_child(vb_text)
 	
+	# What the result is, spelled out: a room, something placed in a room (goes
+	# there), or a template (opens the library) -- the icon alone left a placed
+	# herb bed and the herb bed template looking the same.
+	var kind := "Room"
+	if meta.get("placed", "") == "npc": kind = "Placed NPC"
+	elif meta.get("placed", "") == "item": kind = "Placed item"
+	elif meta.get("type") == "db": kind = "%s template" % ("NPC" if meta.get("kind") == "npc" else "Item")
+	vb_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var tag := Label.new(); tag.name = "KindTag"; tag.text = kind
+	tag.add_theme_font_size_override("font_size", 11)
+	tag.add_theme_color_override("font_color", color.lightened(0.3))
+	var tag_style := StyleBoxFlat.new(); tag_style.bg_color = color.darkened(0.7); tag_style.set_corner_radius_all(8)
+	tag_style.content_margin_left = 8; tag_style.content_margin_right = 8; tag_style.content_margin_top = 2; tag_style.content_margin_bottom = 2
+	tag.add_theme_stylebox_override("normal", tag_style)
+	tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	tag.tooltip_text = "Goes to the room" if meta.get("type") == "room" else "Opens it in the Content Library"
+	tag.mouse_filter = Control.MOUSE_FILTER_PASS
+	hb.add_child(tag)
+
 	# Store Metadata
 	pc.set_meta("search_data", meta)
 	

@@ -28,13 +28,13 @@ func build(parent_container: VBoxContainer, data: Dictionary, db_mgr: DatabaseMa
 	parent_container.add_child(card)
 	
 	vbox.add_child(InspectorStyle.lbl("NPCs", InspectorStyle.COLOR_TEXT_DIM))
-	npc_box = VBoxContainer.new(); npc_box.add_theme_constant_override("separation", 6)
+	npc_box = VBoxContainer.new(); npc_box.add_theme_constant_override("separation", 10)
 	vbox.add_child(npc_box)
 	
 	vbox.add_child(HSeparator.new())
 	
 	vbox.add_child(InspectorStyle.lbl("Items", InspectorStyle.COLOR_TEXT_DIM))
-	item_box = VBoxContainer.new(); item_box.add_theme_constant_override("separation", 6)
+	item_box = VBoxContainer.new(); item_box.add_theme_constant_override("separation", 10)
 	vbox.add_child(item_box)
 	
 	_refresh_content()
@@ -98,7 +98,8 @@ func _create_content_row(type, data, idx) -> PanelContainer:
 	# Room to breathe: the row used to sit flush against its card, with the
 	# overrides button touching the bottom edge.
 	var m = MarginContainer.new()
-	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]: m.add_theme_constant_override(side, 8)
+	for side in ["margin_left", "margin_right", "margin_top"]: m.add_theme_constant_override(side, 10)
+	m.add_theme_constant_override("margin_bottom", 14)
 	pc.add_child(m)
 
 	var hb = HBoxContainer.new(); hb.add_theme_constant_override("separation", 8); m.add_child(hb)
@@ -190,6 +191,7 @@ func _build_item_placement_overrides(parent: VBoxContainer, placement: Dictionar
 	var overrides: Dictionary = placement.get("properties_override", {}) if placement.get("properties_override", {}) is Dictionary else {}
 	var toggle := Button.new(); toggle.name = "PlacementOverridesToggle"
 	toggle.text = "Placement overrides" if overrides.is_empty() else "Placement overrides • configured"
+	toggle.custom_minimum_size.y = 30
 	toggle.tooltip_text = "Change this placed instance without changing its item template."
 	InspectorStyle.apply_button_style(toggle, Color(0.16, 0.27, 0.34))
 	parent.add_child(toggle)
@@ -349,6 +351,7 @@ func _build_npc_placement_overrides(parent: VBoxContainer, placement: Dictionary
 	var overrides: Dictionary = placement.get("overrides", {}) if placement.get("overrides", {}) is Dictionary else {}
 	var toggle := Button.new(); toggle.name = "NPCPlacementOverridesToggle"
 	toggle.text = "Placement overrides" if overrides.is_empty() else "Placement overrides • configured"
+	toggle.custom_minimum_size.y = 30
 	toggle.tooltip_text = "Change this NPC instance without changing its template."
 	InspectorStyle.apply_button_style(toggle, Color(0.25, 0.22, 0.35))
 	parent.add_child(toggle)
