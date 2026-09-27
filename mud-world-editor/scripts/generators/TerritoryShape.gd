@@ -37,6 +37,52 @@ static func despeckle_owners(owners: Dictionary) -> Dictionary:
 		if best_owner != current and best_count >= 3: cleaned[cell] = best_owner
 	return cleaned
 
+# Makes a single field's mask something `trace_boundary_loops` can walk into
+# clean outlines. Two cells of the field that touch only at a corner share a
+# boundary vertex with two outgoing edges, and the tracer keeps one of them:
+# the loop then jumps across the pinch and crosses itself, and a self-crossing
+# polygon cannot be filled. Gaps enclosed by the field trace as extra loops
+# that a caller filling each loop paints as solid blobs. Both are closed up
+# here: each corner-only touch gets a bridging cell, and every enclosed gap is
+# filled. Only right for a lone field (a region's silhouette) -- competing
+# fields, like districts, need their neighbours' cells left alone.
+static func solidify_single_field(owners: Dictionary, field_index: int) -> Dictionary:
+	var out := owners.duplicate()
+	var changed := true
+	while changed:
+		changed = false
+		for cell in out.keys():
+			if int(out[cell]) != field_index: continue
+			for dx in [-1, 1]:
+				var diagonal: Vector2i = cell + Vector2i(dx, 1)
+				var side_a: Vector2i = cell + Vector2i(dx, 0)
+				var side_b: Vector2i = cell + Vector2i(0, 1)
+				if int(out.get(diagonal, -1)) == field_index and int(out.get(side_a, -1)) != field_index and int(out.get(side_b, -1)) != field_index:
+					out[side_a] = field_index
+					changed = true
+	if out.is_empty(): return out
+	var lo: Vector2i = out.keys()[0]
+	var hi: Vector2i = lo
+	for cell in out:
+		lo = Vector2i(mini(lo.x, cell.x), mini(lo.y, cell.y))
+		hi = Vector2i(maxi(hi.x, cell.x), maxi(hi.y, cell.y))
+	lo -= Vector2i.ONE; hi += Vector2i.ONE
+	var outside := {lo: true}
+	var queue: Array = [lo]
+	while not queue.is_empty():
+		var at: Vector2i = queue.pop_back()
+		for step in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var next: Vector2i = at + step
+			if next.x < lo.x or next.y < lo.y or next.x > hi.x or next.y > hi.y: continue
+			if outside.has(next) or int(out.get(next, -1)) == field_index: continue
+			outside[next] = true
+			queue.append(next)
+	for x in range(lo.x, hi.x + 1):
+		for y in range(lo.y, hi.y + 1):
+			var cell := Vector2i(x, y)
+			if not outside.has(cell): out[cell] = field_index
+	return out
+
 # Walks the owned-cell mask for one field into one or more closed,
 # world-space vertex loops (its outer boundary, plus any hole it has been
 # squeezed into by a neighbor -- rare, but not assumed away). Every owned

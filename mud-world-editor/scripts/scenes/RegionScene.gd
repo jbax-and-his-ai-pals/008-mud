@@ -72,6 +72,7 @@ func setup(id: String, data: Dictionary, color: Color):
 
 	var owners := TerritoryShape.dilate_to_owners(dilation_bounds, SHAPE_CELL_SIZE, SHAPE_RADIUS, positions, segments)
 	owners = TerritoryShape.despeckle_owners(owners)
+	owners = TerritoryShape.solidify_single_field(owners, 0)
 	shape_loops = TerritoryShape.build_smooth_loops(owners, 0, SHAPE_CELL_SIZE, SHAPE_SIMPLIFY_TOLERANCE, SHAPE_CHAIKIN_ITERATIONS)
 
 	var shape_bounds := Rect2()
