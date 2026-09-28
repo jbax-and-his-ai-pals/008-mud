@@ -115,10 +115,18 @@ func _exit_tree():
 			_release_gate_thread.wait_to_finish()
 		_release_gate_thread = null
 
-# The content set's own start region (`town` in fantasy_frontier), discovered by
-# name rather than hard-coded, so a different content set opens on its own world.
+# The content set's own start region (`town` in fantasy_frontier), discovered
+# rather than hard-coded, so a different content set opens on its own world. The
+# manifest says where new players start, so that is where the editor opens; the
+# names below are only for a set whose manifest names a region with no file.
 func _start_region_filename() -> String:
 	var directory := DataRoot.content_dir("regions")
+	var manifest_path := DataRoot.root().path_join("content_set.manifest.json")
+	var manifest = JSON.parse_string(FileAccess.get_file_as_string(manifest_path)) if FileAccess.file_exists(manifest_path) else null
+	var start = manifest.get("start", {}) if manifest is Dictionary else {}
+	var start_region := str(start.get("region_id", "")) if start is Dictionary else ""
+	if start_region != "" and FileAccess.file_exists(directory.path_join("%s.json" % start_region)):
+		return "%s.json" % start_region
 	for candidate in ["town.json", "start.json"]:
 		if FileAccess.file_exists(directory.path_join(candidate)):
 			return candidate
