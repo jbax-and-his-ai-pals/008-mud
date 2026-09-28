@@ -734,45 +734,86 @@ def _validate_region_hazard_coverage(
             if not isinstance(room, dict):
                 continue
             properties = room.get("properties", {})
-            if not isinstance(properties, dict) or "hazard_type" not in properties:
+            if not isinstance(properties, dict) or ("hazard_type" not in properties and "hazards" not in properties):
                 continue
             room_label = f"room '{region_id}:{room_id}'"
-            hazard_type = properties.get("hazard_type")
-            if not isinstance(hazard_type, str) or not hazard_type.strip():
-                issues.append(ContentSetIssue(
-                    "error", str(path), f"{room_label} hazard_type must be a non-empty string",
-                ))
-                continue
-            hazard_type = hazard_type.strip()
-            if hazard_type not in valid_hazards:
-                issues.append(ContentSetIssue(
-                    "error", str(path),
-                    f"{room_label} uses unknown hazard_type '{hazard_type}': no hazard of that "
-                    f"name is declared in {elements_path.name}",
-                ))
-                continue
-            authored_locations.setdefault(hazard_type, []).append(f"{region_id}:{room_id}")
-            # Room-side numbers are *overrides* of the declared record, so they are
-            # optional and only checked for being usable when present.
-            for property_name in ("hazard_damage", "hazard_tick_interval"):
-                value = properties.get(property_name)
-                if value is None:
-                    continue
-                if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+            # A room names several hazards as `hazards: [{type, damage?,
+            # tick_interval?, weather_multipliers?}]`, or one with the flat keys.
+            # Both at once would leave the flat ones silently unread.
+            if "hazards" in properties:
+                if any(key in properties for key in ("hazard_type", "hazard_damage", "hazard_tick_interval", "weather_hazard_multipliers")):
                     issues.append(ContentSetIssue(
                         "error", str(path),
-                        f"{room_label} {property_name} must be a positive number",
+                        f"{room_label} names hazards both ways: move hazard_type and its numbers into the hazards list",
                     ))
-            weather_multipliers = properties.get("weather_hazard_multipliers")
-            if weather_multipliers is not None:
-                if not isinstance(weather_multipliers, dict):
-                    issues.append(ContentSetIssue("error", str(path), f"{room_label} weather_hazard_multipliers must be an object"))
-                elif any(
-                    not isinstance(weather, str) or not weather.strip()
-                    or isinstance(multiplier, bool) or not isinstance(multiplier, (int, float)) or multiplier <= 0
-                    for weather, multiplier in weather_multipliers.items()
-                ):
-                    issues.append(ContentSetIssue("error", str(path), f"{room_label} weather_hazard_multipliers requires non-empty weather names and positive numeric multipliers"))
+                listed = properties.get("hazards")
+                if not isinstance(listed, list):
+                    issues.append(ContentSetIssue("error", str(path), f"{room_label} hazards must be a list of hazard entries"))
+                    continue
+                entries = [(f"{room_label} hazards[{index}]", entry) for index, entry in enumerate(listed)]
+            else:
+                entries = [(room_label, {
+                    "type": properties.get("hazard_type"),
+                    "damage": properties.get("hazard_damage"),
+                    "tick_interval": properties.get("hazard_tick_interval"),
+                    "weather_multipliers": properties.get("weather_hazard_multipliers"),
+                })]
+            flat = "hazards" not in properties
+            seen_in_room: set[str] = set()
+            for entry_label, entry in entries:
+                if not isinstance(entry, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{entry_label} must be an object"))
+                    continue
+                type_key = "hazard_type" if flat else "type"
+                hazard_type = entry.get("type")
+                if not isinstance(hazard_type, str) or not hazard_type.strip():
+                    issues.append(ContentSetIssue(
+                        "error", str(path), f"{entry_label} {type_key} must be a non-empty string",
+                    ))
+                    continue
+                hazard_type = hazard_type.strip()
+                if hazard_type not in valid_hazards:
+                    issues.append(ContentSetIssue(
+                        "error", str(path),
+                        f"{entry_label} uses unknown {type_key} '{hazard_type}': no hazard of that "
+                        f"name is declared in {elements_path.name}",
+                    ))
+                    continue
+                if hazard_type in seen_in_room:
+                    issues.append(ContentSetIssue(
+                        "error", str(path), f"{entry_label} names '{hazard_type}' a second time in the same room",
+                    ))
+                seen_in_room.add(hazard_type)
+                authored_locations.setdefault(hazard_type, []).append(f"{region_id}:{room_id}")
+                if not flat:
+                    for key in entry:
+                        if key not in ("type", "damage", "tick_interval", "weather_multipliers"):
+                            issues.append(ContentSetIssue(
+                                "error", str(path),
+                                f"{entry_label}.{key} is not read (known: type, damage, tick_interval, weather_multipliers)",
+                            ))
+                # Room-side numbers are *overrides* of the declared record, so they are
+                # optional and only checked for being usable when present.
+                for field, flat_name in (("damage", "hazard_damage"), ("tick_interval", "hazard_tick_interval")):
+                    value = entry.get(field)
+                    if value is None:
+                        continue
+                    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+                        issues.append(ContentSetIssue(
+                            "error", str(path),
+                            f"{entry_label} {flat_name if flat else field} must be a positive number",
+                        ))
+                weather_multipliers = entry.get("weather_multipliers")
+                weather_key = "weather_hazard_multipliers" if flat else "weather_multipliers"
+                if weather_multipliers is not None:
+                    if not isinstance(weather_multipliers, dict):
+                        issues.append(ContentSetIssue("error", str(path), f"{entry_label} {weather_key} must be an object"))
+                    elif any(
+                        not isinstance(weather, str) or not weather.strip()
+                        or isinstance(multiplier, bool) or not isinstance(multiplier, (int, float)) or multiplier <= 0
+                        for weather, multiplier in weather_multipliers.items()
+                    ):
+                        issues.append(ContentSetIssue("error", str(path), f"{entry_label} {weather_key} requires non-empty weather names and positive numeric multipliers"))
 
     if required:
         for hazard_type in sorted(valid_hazards):
@@ -3925,7 +3966,7 @@ _EXIT_REQUIREMENT_KEYS = {
 }
 _ENV_INTERACTION_KEYS = {
     "clear_exit_req": ("type", "direction", "duration", "message"),
-    "suppress_hazard": ("type", "duration", "message"),
+    "suppress_hazard": ("type", "duration", "message", "channel"),
 }
 
 
@@ -3948,6 +3989,11 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
     elements = _load_json(content_root / "combat" / "elements.json", [], "combat vocabulary") if (content_root / "combat" / "elements.json").is_file() else None
     if isinstance(elements, dict) and isinstance(elements.get("valid_damage_types"), list):
         damage_types = {str(value) for value in elements["valid_damage_types"]}
+    hazard_channels: dict[str, str] = {}
+    if isinstance(elements, dict) and isinstance(elements.get("hazards"), dict):
+        for hazard_id, record in elements["hazards"].items():
+            if isinstance(record, dict) and isinstance(record.get("channel"), str):
+                hazard_channels[str(hazard_id)] = record["channel"].strip()
 
     def whole(value: Any) -> bool:
         return isinstance(value, int) and not isinstance(value, bool) and value >= 0
@@ -4037,8 +4083,26 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                     error(f"{label}.message must be a string")
                 if kind == "clear_exit_req" and reaction.get("direction") not in requirement_directions:
                     error(f"{label}.direction must name one of this room's exit_requirements, or the reaction does nothing")
-                if kind == "suppress_hazard" and not properties.get("hazard_type"):
-                    error(f"{label} suppresses a hazard, but the room has no hazard_type")
+                if kind == "suppress_hazard":
+                    from engine.world.environment import hazard_entries
+                    room_hazards = [str(entry.get("type", "")).strip() for entry in hazard_entries(properties)]
+                    if not room_hazards:
+                        error(f"{label} suppresses a hazard, but the room has no hazard_type or hazards")
+                        continue
+                    # A `channel` narrows the reaction to the hazards dealing
+                    # through it; one that matches none of the room's does nothing.
+                    wanted = reaction.get("channel")
+                    if wanted is None:
+                        continue
+                    channels = [wanted] if isinstance(wanted, str) else wanted
+                    if not isinstance(channels, list) or not channels or any(not isinstance(value, str) or not value.strip() for value in channels):
+                        error(f"{label}.channel must be a damage channel or a list of them")
+                        continue
+                    for value in channels:
+                        if damage_types and value not in damage_types:
+                            error(f"{label}.channel '{value}' is not one of this set's damage types")
+                    if not any(hazard_channels.get(hazard_id) in channels for hazard_id in room_hazards):
+                        error(f"{label}.channel matches none of this room's hazards ({', '.join(room_hazards)}), so the reaction does nothing")
 
 
 _CAMPAIGN_KEYS = ("campaign_id", "name", "description", "start_node_id", "nodes")

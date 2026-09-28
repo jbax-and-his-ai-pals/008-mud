@@ -15,8 +15,9 @@ ROOM_PROPERTY_KINDS = {
     "dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string", "outdoors": "boolean",
     "safe_zone": "boolean",                      # World.is_location_safe
     "weather": "string",                         # WeatherManager.effective_weather
+    "hazards": "array",                          # world/environment.py: several per room
     "hazard_type": "string", "hazard_damage": "number", "hazard_tick_interval": "number",
-    "weather_hazard_multipliers": "object",      # world/environment.py
+    "weather_hazard_multipliers": "object",      # world/environment.py: the one-hazard form
     "exit_requirements": "object",               # Room / World movement
     "hidden_exits": "object",                    # items/interactive.py, dialogue effects
     "env_interactions": "object",                # Room.apply_elemental_interaction
@@ -77,7 +78,12 @@ class Room(GameObject):
                     messages.append(f"{FORMAT_HIGHLIGHT}The environment returns to normal (Path {direction}).{FORMAT_RESET}")
 
                 elif action == "suppress_hazard":
-                    self.update_property("hazard_type", effect["original_value"])
+                    if "original_entries" in effect:
+                        listed = self.properties.get("hazards")
+                        restored = (list(listed) if isinstance(listed, list) else []) + list(effect["original_entries"])
+                        self.update_property("hazards", restored)
+                    else:
+                        self.update_property("hazard_type", effect["original_value"])
                     messages.append(f"{FORMAT_HIGHLIGHT}The environmental hazard returns!{FORMAT_RESET}")
 
             else:
@@ -119,8 +125,28 @@ class Room(GameObject):
                 return f"{FORMAT_HIGHLIGHT}{msg}{FORMAT_RESET}"
         
         elif action == "suppress_hazard":
+            # A reaction naming a `channel` (or a list of them) quiets only the
+            # hazards dealing through it -- frost quenches heat and leaves the
+            # poison fog. Without one it quiets them all, as it always has.
+            from engine.world import environment
+            wanted = reaction.get("channel")
+            channels = {wanted} if isinstance(wanted, str) else set(wanted) if isinstance(wanted, list) else None
+            def matches(hazard_id: str) -> bool:
+                return channels is None or environment.channel_of(hazard_id) in channels
+            listed = self.properties.get("hazards")
+            if isinstance(listed, list):
+                quiet = [entry for entry in listed if isinstance(entry, dict) and matches(str(entry.get("type", "")))]
+                if not quiet:
+                    return None
+                self.update_property("hazards", [entry for entry in listed if entry not in quiet])
+                self.active_env_effects.append({
+                    "action": "suppress_hazard",
+                    "original_entries": copy.deepcopy(quiet),
+                    "time_remaining": duration
+                })
+                return f"{FORMAT_HIGHLIGHT}{msg}{FORMAT_RESET}"
             current_hazard = self.properties.get("hazard_type")
-            if current_hazard:
+            if current_hazard and matches(str(current_hazard)):
                 self.update_property("hazard_type", None)
                 self.active_env_effects.append({
                     "action": "suppress_hazard",

@@ -33,7 +33,7 @@ second damage path with its own rules.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from engine.config.config_combat import (
     HAZARD_DEFAULT_DAMAGE,
@@ -56,32 +56,69 @@ def declared(hazard_id: str) -> Optional[Dict[str, Any]]:
     return dict(record) if isinstance(record, dict) else None
 
 
-def hazard_in(world: Any, room: Any) -> Optional[Dict[str, Any]]:
-    """The hazard this room presents, with the room's own numbers applied.
+def hazard_entries(properties: Any) -> List[Dict[str, Any]]:
+    """Every hazard a room names, in one shape, however it was written.
 
-    Returns `{id, channel, flavor, damage, tick_interval, multipliers}` or None.
+    A room may name several: `hazards: [{type, damage?, tick_interval?,
+    weather_multipliers?}, ...]`. A room written before that names one, with the
+    flat keys `hazard_type`, `hazard_damage`, `hazard_tick_interval` and
+    `weather_hazard_multipliers`; it reads as a list of one. When both are
+    present the list wins (the validator reports the pair as an error).
     """
-    properties = getattr(room, "properties", None)
     if not isinstance(properties, dict):
-        return None
+        return []
+    listed = properties.get("hazards")
+    if isinstance(listed, list):
+        return [
+            entry for entry in listed
+            if isinstance(entry, dict) and isinstance(entry.get("type"), str) and entry["type"].strip()
+        ]
     hazard_id = properties.get("hazard_type")
-    if not isinstance(hazard_id, str) or not hazard_id.strip():
-        return None
+    if isinstance(hazard_id, str) and hazard_id.strip():
+        return [{
+            "type": hazard_id,
+            "damage": properties.get("hazard_damage"),
+            "tick_interval": properties.get("hazard_tick_interval"),
+            "weather_multipliers": properties.get("weather_hazard_multipliers"),
+        }]
+    return []
+
+
+def channel_of(hazard_id: str) -> str:
+    """The damage channel a declared hazard deals through, or ""."""
+    record = declared(hazard_id)
+    return str(record.get("channel", "")).strip() if record else ""
+
+
+def _resolve(entry: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    hazard_id = str(entry.get("type", "")).strip()
     record = declared(hazard_id)
     if record is None:
         return None
-    record["id"] = hazard_id.strip()
-    record["damage"] = _override(
-        properties.get("hazard_damage"), record.get("damage", HAZARD_DEFAULT_DAMAGE), int
-    )
+    record["id"] = hazard_id
+    record["damage"] = _override(entry.get("damage"), record.get("damage", HAZARD_DEFAULT_DAMAGE), int)
     record["tick_interval"] = _override(
-        properties.get("hazard_tick_interval"),
-        record.get("tick_interval", HAZARD_DEFAULT_TICK_INTERVAL),
-        float,
+        entry.get("tick_interval"), record.get("tick_interval", HAZARD_DEFAULT_TICK_INTERVAL), float,
     )
-    multipliers = properties.get("weather_hazard_multipliers")
+    multipliers = entry.get("weather_multipliers")
     record["multipliers"] = multipliers if isinstance(multipliers, dict) else {}
     return record
+
+
+def hazards_in(world: Any, room: Any) -> List[Dict[str, Any]]:
+    """The hazards this room presents, each with the room's own numbers applied.
+
+    Each is `{id, channel, flavor, damage, tick_interval, multipliers}`; a hazard
+    this set does not declare is left out (inert, as `declared` explains).
+    """
+    resolved = [_resolve(entry) for entry in hazard_entries(getattr(room, "properties", None))]
+    return [record for record in resolved if record is not None]
+
+
+def hazard_in(world: Any, room: Any) -> Optional[Dict[str, Any]]:
+    """The room's first hazard (see `hazards_in` for all of them), or None."""
+    hazards = hazards_in(world, room)
+    return hazards[0] if hazards else None
 
 
 def weather_multiplier(world: Any, hazard: Dict[str, Any], region: Any = None, room: Any = None) -> float:
@@ -129,17 +166,9 @@ def apply(
     """
     if entity is None or not getattr(entity, "is_alive", True):
         return None
-    hazard = hazard_in(world, room)
-    if hazard is None:
+    hazards = hazards_in(world, room)
+    if not hazards:
         return None
-
-    interval = hazard.get("tick_interval", HAZARD_DEFAULT_TICK_INTERVAL)
-    entity_id = getattr(entity, "obj_id", None)
-    if entity_id and isinstance(last_ticks, dict):
-        last = last_ticks.get(entity_id, 0.0)
-        if now - last < interval:
-            return None
-        last_ticks[entity_id] = now
 
     # The weather that applies is the weather where the *target* is standing, not
     # wherever the room object happens to live: rooms carry no region of their own.
@@ -147,10 +176,23 @@ def apply(
     if world is not None:
         region = world.get_region(str(getattr(entity, "current_region_id", "") or ""))
 
-    taken = entity.take_damage(damage_of(world, room, hazard, region), hazard["channel"])
-    if taken <= 0:
-        return None
-    return prose(hazard, taken)
+    # Each hazard keeps its own clock, so a fast one and a slow one in the same
+    # room tick at their own rates.
+    entity_id = getattr(entity, "obj_id", None)
+    lines: List[str] = []
+    for hazard in hazards:
+        if not getattr(entity, "is_alive", True):
+            break
+        interval = hazard.get("tick_interval", HAZARD_DEFAULT_TICK_INTERVAL)
+        if entity_id and isinstance(last_ticks, dict):
+            key = "%s:%s" % (entity_id, hazard["id"])
+            if now - last_ticks.get(key, 0.0) < interval:
+                continue
+            last_ticks[key] = now
+        taken = entity.take_damage(damage_of(world, room, hazard, region), hazard["channel"])
+        if taken > 0:
+            lines.append(prose(hazard, taken))
+    return "\n".join(lines) if lines else None
 
 
 def prose(hazard: Dict[str, Any], taken: int) -> str:
