@@ -44,28 +44,45 @@ func _check_atmosphere(holder: Node, room: Dictionary) -> void:
 
 func _check_hazard(holder: Node, room: Dictionary) -> void:
 	print("\n[hazards]")
-	var picker: OptionButton = _first_named(holder, "HazardPicker")
-	_assert(picker != null and picker.item_count == 2, "the picker lists hazards declared by this content set")
-	if picker != null: picker.item_selected.emit(1)
-	_assert(room.get("properties", {}).get("hazard_type") == "hull_frost", "selecting a hazard writes its declared id")
+	var add: Button = _first_named(holder, "AddHazard")
+	_assert(add != null and not add.disabled, "a room with no hazard offers + Hazard")
+	_assert(_first_named(holder, "HazardPicker") == null, "and shows no picker until one is added")
+	if add != null: add.pressed.emit()
+	_assert(room.get("properties", {}).get("hazard_type") == "hull_frost", "one hazard is written with the flat keys every existing room uses")
 	var damage: SpinBox = _first_named(holder, "HazardDamage")
-	_assert(damage != null and damage.editable, "hazard overrides enable only after a hazard is selected")
+	_assert(damage != null and damage.editable, "the hazard's overrides are there")
 	if damage != null: damage.value_changed.emit(4.0)
-	_assert(room.get("properties", {}).get("hazard_damage") == 4.0, "room damage is written as an optional per-room override")
+	_assert(room.get("properties", {}).get("hazard_damage") == 4, "room damage is written as an optional per-room override")
 	_assert(typeof(room["properties"]["hazard_damage"]) == TYPE_INT, "as the whole number the engine reads")
 	var defaults: Label = _first_named(holder, "HazardDefaults")
 	_assert(defaults != null and defaults.text.begins_with("The hazard's own: "), "the declared numbers that 0 stands for are shown (%s)" % (defaults.text if defaults else "missing"))
-	if damage != null:
-		damage.value = 9
-		_assert(damage.value == 9.0, "a whole damage stays whole in the spin box (no 0.1 step offset)")
-		damage.value_changed.emit(0.0)
-	_assert(not room.get("properties", {}).has("hazard_damage"), "0 removes the override, back to the declared damage")
 	var add_weather: Button = _button_named(holder, "+ Weather")
-	_assert(add_weather != null and not add_weather.disabled, "weather multipliers are available for a selected hazard")
 	if add_weather != null: add_weather.pressed.emit()
 	_assert(room.get("properties", {}).get("weather_hazard_multipliers", {}).get("weather") == 1.0, "a weather multiplier uses the validated object shape")
-	if picker != null: picker.item_selected.emit(0)
-	_assert(not room.get("properties", {}).has("hazard_type") and not room.get("properties", {}).has("weather_hazard_multipliers"), "clearing a hazard clears its dependent overrides")
+
+	print("\n[a second hazard]")
+	add = _first_named(holder, "AddHazard")
+	if add != null: add.pressed.emit()
+	var hazards = room.get("properties", {}).get("hazards", null)
+	_assert(hazards is Array and hazards.size() == 2, "a second hazard moves both into the hazards list")
+	_assert(not room["properties"].has("hazard_type") and not room["properties"].has("weather_hazard_multipliers"), "and the flat keys go, so nothing is named twice")
+	if hazards is Array and hazards.size() == 2:
+		_assert(hazards[0].get("damage") == 4 and hazards[0].get("weather_multipliers", {}).has("weather"), "the first keeps its overrides: %s" % str(hazards[0]))
+		_assert(hazards[1].get("type") == "vent_gas", "the second is the next declared hazard")
+	add = _first_named(holder, "AddHazard")
+	_assert(add != null and add.disabled, "with every declared hazard placed, + Hazard is off")
+	var second: Node = _first_named(holder, "HazardEntry1")
+	var second_damage: SpinBox = _first_named(second, "HazardDamage") if second else null
+	if second_damage != null: second_damage.value_changed.emit(6.0)
+	_assert(room["properties"].get("hazards", [{}, {}])[1].get("damage") == 6, "each hazard has its own overrides")
+	var first: Node = _first_named(holder, "HazardEntry0")
+	var remove: Button = _first_named(first, "RemoveHazard") if first else null
+	if remove != null: remove.pressed.emit()
+	_assert(room["properties"].get("hazard_type") == "vent_gas" and room["properties"].get("hazard_damage") == 6 and not room["properties"].has("hazards"), "removing one leaves the other in the flat form: %s" % str(room["properties"]))
+	first = _first_named(holder, "HazardEntry0")
+	remove = _first_named(first, "RemoveHazard") if first else null
+	if remove != null: remove.pressed.emit()
+	_assert(not room["properties"].has("hazard_type") and not room["properties"].has("hazards"), "and removing the last clears everything it wrote")
 
 
 func _check_time_descriptions(holder: Node, room: Dictionary) -> void:
@@ -110,7 +127,7 @@ func _build_fixture() -> void:
 	SaveIO.write_json(content_root.path_join("presentation/default.json"), {})
 	SaveIO.write_json(data.path_join("regions/fixture.json"), {"region_id": "fixture", "rooms": {"start": {"name": "Start"}}})
 	SaveIO.write_json(data.path_join("combat/elements.json"), {
-		"valid_damage_types": ["frost"], "hazards": {"hull_frost": {"channel": "frost", "flavor": "The hull freezes.", "damage": 2, "tick_interval": 5}},
+		"valid_damage_types": ["frost"], "hazards": {"hull_frost": {"channel": "frost", "flavor": "The hull freezes.", "damage": 2, "tick_interval": 5}, "vent_gas": {"channel": "frost", "flavor": "The vent hisses.", "damage": 1, "tick_interval": 2}},
 	})
 
 

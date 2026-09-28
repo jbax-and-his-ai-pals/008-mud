@@ -31,7 +31,7 @@ const COMMON_PROPS = {
 const ROOM_PROPERTY_KINDS := {
 	"dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string", "outdoors": "boolean",
 	"safe_zone": "boolean", "weather": "string",
-	"hazard_type": "string", "hazard_damage": "number", "hazard_tick_interval": "number",
+	"hazards": "array", "hazard_type": "string", "hazard_damage": "number", "hazard_tick_interval": "number",
 	"weather_hazard_multipliers": "object", "exit_requirements": "object", "hidden_exits": "object",
 	"env_interactions": "object", "locked_by": "string", "entered_by_system": "string",
 	"is_start_node": "boolean", "icon": "string",

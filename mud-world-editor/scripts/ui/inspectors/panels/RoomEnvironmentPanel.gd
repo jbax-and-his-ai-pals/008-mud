@@ -11,10 +11,8 @@ signal data_modified
 
 var room: Dictionary
 var database_mgr: DatabaseManager
-var weather_rows: VBoxContainer
-var hazard_value_controls: Array[Control] = []
-var weather_add_button: Button
-var hazard_defaults: Label
+var hazard_list: VBoxContainer
+var hazard_add_button: Button
 
 
 func build(parent: VBoxContainer, room_data: Dictionary, db_mgr: DatabaseManager) -> void:
@@ -69,73 +67,6 @@ func _build_time_descriptions(parent: VBoxContainer) -> void:
 	parent.add_child(grid)
 
 
-func _build_hazard(parent: VBoxContainer) -> void:
-	parent.add_child(InspectorStyle.create_sub_header("Hazard"))
-	var props := _properties()
-	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
-	var picker := OptionButton.new(); picker.name = "HazardPicker"; picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	picker.add_item("No hazard"); picker.set_item_metadata(0, "")
-	var hazard_ids: Array = database_mgr.combat_vocabulary.hazard_ids() if database_mgr != null else []
-	var current := str(props.get("hazard_type", "")); var selected := 0
-	for hazard_id in hazard_ids:
-		picker.add_item(str(hazard_id).replace("_", " ").capitalize()); picker.set_item_metadata(picker.item_count - 1, hazard_id)
-		if str(hazard_id) == current: selected = picker.item_count - 1
-	if current != "" and not hazard_ids.has(current):
-		picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); selected = picker.item_count - 1
-	if hazard_ids.is_empty() and current == "": picker.tooltip_text = "Declare hazards in Combat Vocabulary before placing one."
-	picker.select(selected); InspectorStyle.apply_button_style(picker)
-	picker.item_selected.connect(func(index): _set_hazard(str(picker.get_item_metadata(index))))
-	row.add_child(picker); parent.add_child(row)
-	# The two numbers used to sit unlabelled beside the picker. They get their
-	# own row, each with a label and a unit.
-	var numbers := HBoxContainer.new(); numbers.name = "HazardOverrides"; numbers.add_theme_constant_override("separation", 6)
-	# 0 is "no override": environment.py::_override ignores a value of 0 or less
-	# and uses the declared one. Damage is a whole number (the engine casts it);
-	# a minimum of 0 keeps the step grid on whole values, where a 0.1 minimum
-	# had turned a damage of 9 into 9.1 and a 5-second tick into 5.1.
-	var damage := SpinBox.new(); damage.name = "HazardDamage"; damage.min_value = 0; damage.max_value = 9999; damage.step = 1; damage.value = float(props.get("hazard_damage", 0)); damage.custom_minimum_size.x = 86; damage.tooltip_text = "Room-specific damage per tick (0: the hazard's own)"
-	damage.editable = current != ""; InspectorStyle.apply_input_style(damage); damage.value_changed.connect(func(value): _set_hazard_number("hazard_damage", float(value)))
-	numbers.add_child(InspectorStyle.lbl("Damage per tick", InspectorStyle.COLOR_TEXT_DIM))
-	numbers.add_child(damage)
-	numbers.add_child(InspectorStyle.lbl("  every", InspectorStyle.COLOR_TEXT_DIM))
-	var tick := SpinBox.new(); tick.name = "HazardTickInterval"; tick.min_value = 0; tick.max_value = 9999; tick.step = 0.5; tick.value = float(props.get("hazard_tick_interval", 0)); tick.custom_minimum_size.x = 86; tick.tooltip_text = "Room-specific seconds between ticks (0: the hazard's own)"
-	tick.editable = current != ""; InspectorStyle.apply_input_style(tick); tick.value_changed.connect(func(value): _set_hazard_number("hazard_tick_interval", float(value)))
-	tick.suffix = "s"
-	numbers.add_child(tick); parent.add_child(numbers)
-	hazard_value_controls = [damage, tick]
-	var hint := InspectorStyle.lbl("Damage and interval are optional overrides for this room; leave them at 0 to use the hazard's own values. Defense (physical) or resistance (other channels) comes off each tick.", InspectorStyle.COLOR_TEXT_DIM)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; parent.add_child(hint)
-	hazard_defaults = InspectorStyle.lbl("", InspectorStyle.COLOR_TEXT_DIM); hazard_defaults.name = "HazardDefaults"; parent.add_child(hazard_defaults)
-	_refresh_hazard_defaults()
-	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Weather multiplier"))
-	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
-	weather_add_button = Button.new(); weather_add_button.text = "+ Weather"; InspectorStyle.apply_button_style(weather_add_button, Color(0.18, 0.31, 0.39)); weather_add_button.disabled = current == ""
-	weather_add_button.pressed.connect(func(): _add_weather_multiplier())
-	header.add_child(weather_add_button); parent.add_child(header)
-	weather_rows = VBoxContainer.new(); weather_rows.name = "HazardWeatherRows"; weather_rows.add_theme_constant_override("separation", 4); parent.add_child(weather_rows)
-	_refresh_weather_rows()
-
-
-func _refresh_weather_rows() -> void:
-	if weather_rows == null: return
-	for child in weather_rows.get_children(): child.queue_free()
-	var multipliers = _properties().get("weather_hazard_multipliers", {})
-	if not (multipliers is Dictionary) or multipliers.is_empty():
-		weather_rows.add_child(InspectorStyle.lbl("No weather-specific adjustment.", InspectorStyle.COLOR_TEXT_DIM))
-		return
-	for weather in multipliers.keys():
-		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
-		var name := LineEdit.new(); name.text = str(weather); name.placeholder_text = "Weather"; name.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(name)
-		name.text_submitted.connect(func(value): _rename_weather_multiplier(str(weather), str(value).strip_edges()))
-		row.add_child(name)
-		var multiplier := SpinBox.new(); multiplier.min_value = 0.1; multiplier.max_value = 99; multiplier.step = 0.1; multiplier.value = float(multipliers[weather]); multiplier.custom_minimum_size.x = 82; InspectorStyle.apply_input_style(multiplier)
-		multiplier.value_changed.connect(func(value): _set_weather_multiplier(str(weather), float(value)))
-		row.add_child(multiplier)
-		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.34, 0.18, 0.18))
-		remove.pressed.connect(func(): _remove_weather_multiplier(str(weather)))
-		row.add_child(remove); weather_rows.add_child(row)
-
-
 func _env() -> Dictionary:
 	var value = room.get("env_properties", {})
 	return value if value is Dictionary else {}
@@ -170,68 +101,190 @@ func _set_env(key: String, value, default) -> void:
 	data_modified.emit()
 
 
-func _set_hazard(hazard_id: String) -> void:
-	var props := _properties()
-	if hazard_id == "":
-		for key in ["hazard_type", "hazard_damage", "hazard_tick_interval", "weather_hazard_multipliers"]: props.erase(key)
-	else: props["hazard_type"] = hazard_id
-	data_modified.emit()
-	for control in hazard_value_controls: control.editable = hazard_id != ""
-	if weather_add_button != null: weather_add_button.disabled = hazard_id == ""
-	_refresh_weather_rows()
-	_refresh_hazard_defaults()
-
-
-# What 0 means for this hazard: its declaration in combat/elements.json.
-func _refresh_hazard_defaults() -> void:
-	if hazard_defaults == null: return
-	var hazard_id := str(_properties().get("hazard_type", ""))
-	var record = database_mgr.combat_vocabulary.hazards.get(hazard_id) if database_mgr != null and hazard_id != "" else null
-	if not record is Dictionary: hazard_defaults.text = ""; return
-	hazard_defaults.text = "The hazard's own: %s %s damage every %s s." % [_number(record.get("damage", "?")), str(record.get("channel", "")), _number(record.get("tick_interval", "?"))]
-
-
 static func _number(value) -> String:
 	if (value is float or value is int) and float(value) == floor(float(value)): return str(int(value))
 	return str(value)
 
 
-func _set_hazard_number(key: String, value: float) -> void:
-	if str(_properties().get("hazard_type", "")) == "": return
-	if value <= 0: _properties().erase(key)
-	elif key == "hazard_damage": _properties()[key] = int(value)
-	else: _properties()[key] = value
+func _build_hazard(parent: VBoxContainer) -> void:
+	# A room may carry several hazards (engine/world/environment.py reads a
+	# `hazards` list, each on its own clock). One hazard is still written with the
+	# flat keys every existing room uses, so opening and saving a one-hazard room
+	# changes nothing; a second one moves them all into the list.
+	var header := HBoxContainer.new()
+	header.add_child(InspectorStyle.create_sub_header("Hazards"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	hazard_add_button = Button.new(); hazard_add_button.name = "AddHazard"; hazard_add_button.text = "+ Hazard"
+	InspectorStyle.apply_button_style(hazard_add_button, Color(0.18, 0.31, 0.39))
+	hazard_add_button.pressed.connect(_add_hazard)
+	header.add_child(hazard_add_button); parent.add_child(header)
+	hazard_list = VBoxContainer.new(); hazard_list.name = "HazardList"; hazard_list.add_theme_constant_override("separation", 8)
+	parent.add_child(hazard_list)
+	var hint := InspectorStyle.lbl("Damage and interval are optional overrides for this room; leave them at 0 to use the hazard's own values. Each hazard ticks on its own; defense (physical) or resistance (other channels) comes off each tick.", InspectorStyle.COLOR_TEXT_DIM)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; parent.add_child(hint)
+	_refresh_hazards()
+
+
+func _declared_hazard_ids() -> Array:
+	return database_mgr.combat_vocabulary.hazard_ids() if database_mgr != null else []
+
+
+## The room's hazards as a list of entries, whichever way the room wrote them.
+func _hazard_entries() -> Array:
+	var props := _properties()
+	if props.get("hazards") is Array:
+		var out: Array = []
+		for entry in props["hazards"]:
+			if entry is Dictionary: out.append(entry.duplicate(true))
+		return out
+	if str(props.get("hazard_type", "")) == "": return []
+	var entry := {"type": str(props["hazard_type"])}
+	if props.has("hazard_damage"): entry["damage"] = props["hazard_damage"]
+	if props.has("hazard_tick_interval"): entry["tick_interval"] = props["hazard_tick_interval"]
+	if props.get("weather_hazard_multipliers") is Dictionary: entry["weather_multipliers"] = props["weather_hazard_multipliers"].duplicate()
+	return [entry]
+
+
+func _write_hazards(entries: Array) -> void:
+	var props := _properties()
+	for key in ["hazards", "hazard_type", "hazard_damage", "hazard_tick_interval", "weather_hazard_multipliers"]: props.erase(key)
+	if entries.size() == 1:
+		var entry: Dictionary = entries[0]
+		props["hazard_type"] = entry["type"]
+		if entry.has("damage"): props["hazard_damage"] = entry["damage"]
+		if entry.has("tick_interval"): props["hazard_tick_interval"] = entry["tick_interval"]
+		if entry.get("weather_multipliers") is Dictionary and not entry["weather_multipliers"].is_empty(): props["weather_hazard_multipliers"] = entry["weather_multipliers"]
+	elif entries.size() > 1:
+		props["hazards"] = entries
 	data_modified.emit()
 
 
-func _add_weather_multiplier() -> void:
-	if str(_properties().get("hazard_type", "")) == "": return
-	var multipliers: Dictionary = _properties().get("weather_hazard_multipliers", {}) if _properties().get("weather_hazard_multipliers", {}) is Dictionary else {}
-	var key := "weather"
-	var suffix := 2
-	while multipliers.has(key): key = "weather_%d" % suffix; suffix += 1
-	multipliers[key] = 1.0; _properties()["weather_hazard_multipliers"] = multipliers
-	data_modified.emit(); _refresh_weather_rows()
+func _refresh_hazards() -> void:
+	if hazard_list == null: return
+	for child in hazard_list.get_children(): hazard_list.remove_child(child); child.queue_free()
+	var entries := _hazard_entries()
+	var declared := _declared_hazard_ids()
+	var used: Array = entries.map(func(e): return str(e.get("type", "")))
+	hazard_add_button.disabled = declared.filter(func(id): return not used.has(str(id))).is_empty()
+	hazard_add_button.tooltip_text = "Declare hazards in Combat Vocabulary before placing one." if declared.is_empty() else ("Every declared hazard is already here." if hazard_add_button.disabled else "Add another hazard to this room.")
+	if entries.is_empty():
+		hazard_list.add_child(InspectorStyle.lbl("No hazards.", InspectorStyle.COLOR_TEXT_DIM))
+		return
+	for index in entries.size():
+		hazard_list.add_child(_hazard_card(index, entries[index], declared, used))
 
 
-func _set_weather_multiplier(weather: String, value: float) -> void:
-	var multipliers: Dictionary = _properties().get("weather_hazard_multipliers", {}) if _properties().get("weather_hazard_multipliers", {}) is Dictionary else {}
-	multipliers[weather] = value; _properties()["weather_hazard_multipliers"] = multipliers
-	data_modified.emit()
+func _hazard_card(index: int, entry: Dictionary, declared: Array, used: Array) -> Control:
+	var panel := PanelContainer.new(); panel.name = "HazardEntry%d" % index
+	var style := StyleBoxFlat.new(); style.bg_color = Color(0.13, 0.13, 0.15); style.set_corner_radius_all(4)
+	style.content_margin_left = 8; style.content_margin_right = 8; style.content_margin_top = 6; style.content_margin_bottom = 8
+	panel.add_theme_stylebox_override("panel", style)
+	var box := VBoxContainer.new(); box.add_theme_constant_override("separation", 6); panel.add_child(box)
+	var current := str(entry.get("type", ""))
+
+	var top := HBoxContainer.new(); top.add_theme_constant_override("separation", 6)
+	var picker := OptionButton.new(); picker.name = "HazardPicker"; picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var selected := -1
+	for hazard_id in declared:
+		picker.add_item(str(hazard_id).replace("_", " ").capitalize()); picker.set_item_metadata(picker.item_count - 1, str(hazard_id))
+		# One entry per hazard: a hazard already in the room is not offered twice.
+		if str(hazard_id) != current and used.has(str(hazard_id)): picker.set_item_disabled(picker.item_count - 1, true)
+		if str(hazard_id) == current: selected = picker.item_count - 1
+	if selected < 0:
+		picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); selected = picker.item_count - 1
+	picker.select(selected); InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(i): _update_hazard(index, func(e): e["type"] = str(picker.get_item_metadata(i)), true))
+	top.add_child(picker)
+	var remove := Button.new(); remove.name = "RemoveHazard"; remove.text = "×"; remove.tooltip_text = "Remove this hazard from the room"
+	InspectorStyle.apply_button_style(remove, Color(0.34, 0.18, 0.18))
+	remove.pressed.connect(func():
+		var entries := _hazard_entries(); entries.remove_at(index); _write_hazards(entries); _refresh_hazards())
+	top.add_child(remove); box.add_child(top)
+
+	# 0 is "no override": environment.py::_override ignores a value of 0 or less
+	# and uses the declared one. Damage is a whole number (the engine casts it);
+	# a minimum of 0 keeps the step grid on whole values.
+	var numbers := HBoxContainer.new(); numbers.name = "HazardOverrides"; numbers.add_theme_constant_override("separation", 6)
+	numbers.add_child(InspectorStyle.lbl("Damage per tick", InspectorStyle.COLOR_TEXT_DIM))
+	var damage := SpinBox.new(); damage.name = "HazardDamage"; damage.min_value = 0; damage.max_value = 9999; damage.step = 1; damage.value = float(entry.get("damage", 0)); damage.custom_minimum_size.x = 86; damage.tooltip_text = "Room-specific damage per tick (0: the hazard's own)"
+	InspectorStyle.apply_input_style(damage)
+	damage.value_changed.connect(func(value): _update_hazard(index, func(e): _set_override(e, "damage", int(value)), false))
+	numbers.add_child(damage)
+	numbers.add_child(InspectorStyle.lbl("  every", InspectorStyle.COLOR_TEXT_DIM))
+	var tick := SpinBox.new(); tick.name = "HazardTickInterval"; tick.min_value = 0; tick.max_value = 9999; tick.step = 0.5; tick.value = float(entry.get("tick_interval", 0)); tick.custom_minimum_size.x = 86; tick.suffix = "s"; tick.tooltip_text = "Room-specific seconds between ticks (0: the hazard's own)"
+	InspectorStyle.apply_input_style(tick)
+	tick.value_changed.connect(func(value): _update_hazard(index, func(e): _set_override(e, "tick_interval", float(value)), false))
+	numbers.add_child(tick); box.add_child(numbers)
+
+	var defaults := InspectorStyle.lbl(_hazard_defaults_text(current), InspectorStyle.COLOR_TEXT_DIM); defaults.name = "HazardDefaults"
+	box.add_child(defaults)
+
+	var weather_header := HBoxContainer.new()
+	weather_header.add_child(InspectorStyle.lbl("Weather multiplier", InspectorStyle.COLOR_TEXT_DIM))
+	var weather_spacer := Control.new(); weather_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; weather_header.add_child(weather_spacer)
+	var add_weather := Button.new(); add_weather.text = "+ Weather"; InspectorStyle.apply_button_style(add_weather, Color(0.18, 0.31, 0.39))
+	add_weather.pressed.connect(func():
+		_update_hazard(index, func(e):
+			var multipliers: Dictionary = e.get("weather_multipliers", {}) if e.get("weather_multipliers") is Dictionary else {}
+			var key := "weather"; var suffix := 2
+			while multipliers.has(key): key = "weather_%d" % suffix; suffix += 1
+			multipliers[key] = 1.0; e["weather_multipliers"] = multipliers, true))
+	weather_header.add_child(add_weather); box.add_child(weather_header)
+	var multipliers = entry.get("weather_multipliers", {})
+	var weather_rows := VBoxContainer.new(); weather_rows.name = "HazardWeatherRows"; weather_rows.add_theme_constant_override("separation", 4)
+	if not (multipliers is Dictionary) or multipliers.is_empty():
+		weather_rows.add_child(InspectorStyle.lbl("No weather-specific adjustment.", InspectorStyle.COLOR_TEXT_DIM))
+	else:
+		for weather in multipliers.keys():
+			var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+			var name_edit := LineEdit.new(); name_edit.text = str(weather); name_edit.placeholder_text = "Weather"; name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(name_edit)
+			name_edit.text_submitted.connect(func(value):
+				var renamed := str(value).strip_edges()
+				if renamed == "" or renamed == str(weather) or multipliers.has(renamed): return
+				_update_hazard(index, func(e):
+					var m: Dictionary = e["weather_multipliers"]; var v = m[weather]; m.erase(weather); m[renamed] = v, true))
+			row.add_child(name_edit)
+			var factor := SpinBox.new(); factor.min_value = 0.1; factor.max_value = 99; factor.step = 0.1; factor.value = float(multipliers[weather]); factor.custom_minimum_size.x = 82; InspectorStyle.apply_input_style(factor)
+			factor.value_changed.connect(func(value): _update_hazard(index, func(e): e["weather_multipliers"][weather] = float(value), false))
+			row.add_child(factor)
+			var drop := Button.new(); drop.text = "×"; InspectorStyle.apply_button_style(drop, Color(0.34, 0.18, 0.18))
+			drop.pressed.connect(func():
+				_update_hazard(index, func(e):
+					e["weather_multipliers"].erase(weather)
+					if e["weather_multipliers"].is_empty(): e.erase("weather_multipliers"), true))
+			row.add_child(drop); weather_rows.add_child(row)
+	box.add_child(weather_rows)
+	return panel
 
 
-func _rename_weather_multiplier(old: String, new: String) -> void:
-	if new == "" or new == old: return
-	var multipliers: Dictionary = _properties().get("weather_hazard_multipliers", {}) if _properties().get("weather_hazard_multipliers", {}) is Dictionary else {}
-	if multipliers.has(new): return
-	var value = multipliers.get(old); multipliers.erase(old); multipliers[new] = value
-	_properties()["weather_hazard_multipliers"] = multipliers
-	data_modified.emit(); _refresh_weather_rows()
+## Change one entry through `change`, write the list back, and redraw the cards
+## when the change alters what they show (not for typed numbers, which would
+## take the focus away mid-edit).
+func _update_hazard(index: int, change: Callable, redraw: bool) -> void:
+	var entries := _hazard_entries()
+	if index < 0 or index >= entries.size(): return
+	change.call(entries[index])
+	_write_hazards(entries)
+	if redraw: _refresh_hazards()
 
 
-func _remove_weather_multiplier(weather: String) -> void:
-	var multipliers: Dictionary = _properties().get("weather_hazard_multipliers", {}) if _properties().get("weather_hazard_multipliers", {}) is Dictionary else {}
-	multipliers.erase(weather)
-	if multipliers.is_empty(): _properties().erase("weather_hazard_multipliers")
-	else: _properties()["weather_hazard_multipliers"] = multipliers
-	data_modified.emit(); _refresh_weather_rows()
+func _add_hazard() -> void:
+	var entries := _hazard_entries()
+	var used: Array = entries.map(func(e): return str(e.get("type", "")))
+	for hazard_id in _declared_hazard_ids():
+		if not used.has(str(hazard_id)):
+			entries.append({"type": str(hazard_id)})
+			_write_hazards(entries); _refresh_hazards()
+			return
+
+
+static func _set_override(entry: Dictionary, key: String, value) -> void:
+	if float(value) <= 0: entry.erase(key)
+	else: entry[key] = value
+
+
+# What 0 means for this hazard: its declaration in combat/elements.json.
+func _hazard_defaults_text(hazard_id: String) -> String:
+	var record = database_mgr.combat_vocabulary.hazards.get(hazard_id) if database_mgr != null and hazard_id != "" else null
+	if not record is Dictionary: return ""
+	return "The hazard's own: %s %s damage every %s s." % [_number(record.get("damage", "?")), str(record.get("channel", "")), _number(record.get("tick_interval", "?"))]
