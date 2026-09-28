@@ -263,6 +263,13 @@ func _select_tree_item_by_id(parent: TreeItem, id: String) -> bool:
 # --- INTERNAL LOGIC ---
 
 func refresh_tree():
+	# Selecting items while rebuilding must not read as the author clicking them.
+	var was := _is_programmatic_selection
+	_is_programmatic_selection = true
+	_rebuild_tree()
+	_is_programmatic_selection = was
+
+func _rebuild_tree():
 	explorer_tree.clear()
 	var root = explorer_tree.create_item()
 	var filter = search_bar.text.to_lower()
@@ -293,7 +300,11 @@ func refresh_tree():
 		
 		var display_name = rid.capitalize()
 		var is_current = (r_data.filename == _current_filename)
-		var is_region_selected = (rid == _selected_id)
+		# With nothing more specific selected, the open region is the selection.
+		# A click on a region loads it, the load rebuilds this tree, and the
+		# rebuilt tree used to highlight only a selected room -- so the first
+		# click never showed, and only a second click (no reload) did.
+		var is_region_selected = (rid == _selected_id) or (is_current and _selected_id == "")
 		
 		if is_current and _is_reg_dirty:
 			item.set_text(0, display_name + " (*)")

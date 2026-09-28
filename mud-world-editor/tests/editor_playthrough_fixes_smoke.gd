@@ -40,6 +40,14 @@ func _process(_delta: float) -> bool:
 
 func _run() -> void:
 	await process_frame
+	print("\n[one click on a region in the Explorer loads it and highlights it]")
+	for region_file in ["farmland.json", "town.json"]:
+		var clicked := _click_explorer_region(region_file)
+		for _i in 3: await process_frame
+		var tree: Tree = main.ui_mgr.side_panel.explorer_panel.explorer_tree
+		var selected := tree.get_selected()
+		_assert(clicked and main.region_mgr.current_filename == region_file, "a click opens %s" % region_file)
+		_assert(selected != null and selected.get_metadata(0).get("file", "") == region_file, "and its row is highlighted after the first click")
 	var rooms: Dictionary = main.region_mgr.data.get("rooms", {})
 	_assert(not rooms.is_empty(), "a region is open (%s)" % main.region_mgr.current_filename)
 	var id: String = rooms.keys()[0]
@@ -279,6 +287,18 @@ func _new_room(rooms: Dictionary, old_exits: Dictionary, direction: String) -> S
 		if back != "" and not old_exits.has(direction) and rid.begins_with("room_") and rooms.has(back) and rooms[back].get("exits", {}).get(direction, "") == rid:
 			return rid
 	return ""
+
+
+# Select a region's row the way a click does (not programmatically).
+func _click_explorer_region(region_file: String) -> bool:
+	var tree: Tree = main.ui_mgr.side_panel.explorer_panel.explorer_tree
+	var item := tree.get_root().get_first_child()
+	while item != null:
+		if item.get_metadata(0).get("file", "") == region_file:
+			item.select(0)
+			return true
+		item = item.get_next()
+	return false
 
 
 func _copy(source: String, destination: String):
