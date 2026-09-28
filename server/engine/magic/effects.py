@@ -239,7 +239,20 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                                       oldest.despawn(caster.world, silent=True)
                                       messages.append(f"Your {oldest.name} fades away.")
                        instance_id = f"sum_{uuid.uuid4().hex[:4]}"
-                       overrides = {"owner_id": caster.obj_id, "properties_override": {"summon_duration": dur, "creation_time": caster.world.clock.now(), "is_summoned": True}, "faction": "player_minion"}
+                       # The minion has to start where the caster is and know whose it is:
+                       # the factory reads its location from `current_*_id` and the AI
+                       # reads its owner from `properties.owner_id`. A summon without
+                       # either was created, listed in the caster's summons, and never
+                       # appeared in any room or acted (`perform_minion_logic` returns
+                       # at once for an NPC with no location, and despawns one with no
+                       # owner).
+                       overrides = {
+                           "owner_id": caster.obj_id,
+                           "current_region_id": caster.current_region_id,
+                           "current_room_id": caster.current_room_id,
+                           "properties_override": {"owner_id": caster.obj_id, "summon_duration": dur, "creation_time": caster.world.clock.now(), "is_summoned": True},
+                           "faction": "player_minion",
+                       }
                        npc = NPCFactory.create_npc_from_template(tid, caster.world, instance_id, **overrides)
                        if npc:
                             caster.world.add_npc(npc)
