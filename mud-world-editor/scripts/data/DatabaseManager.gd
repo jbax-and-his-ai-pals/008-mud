@@ -359,7 +359,16 @@ func _save_single_file(cache: Dictionary, path: String, relative_key: String, fi
 	var payload := {}
 	if file_extras.has(relative_key):
 		payload = (file_extras[relative_key] as Dictionary).duplicate(true)
-	for id in cache: payload[id] = cache[id]
+	# `_filename` is how the editor remembers which file an entry came from (the
+	# loader adds it to every entry). These categories live in one file, so there is
+	# nothing to remember, and it is editor bookkeeping the engine never reads --
+	# writing it put it into the content files.
+	for id in cache:
+		var entry = cache[id]
+		if entry is Dictionary:
+			entry = (entry as Dictionary).duplicate(true)
+			(entry as Dictionary).erase("_filename")
+		payload[id] = entry
 	var result: Dictionary = SaveIO.write_json(path, payload)
 	if result.get("ok", false):
 		return true

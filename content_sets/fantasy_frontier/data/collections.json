@@ -62,8 +62,7 @@
         "rewards": {
             "xp": 100,
             "gold": 75
-        },
-        "_filename": "collections.json"
+        }
     },
     "goblin_culture": {
         "name": "Goblin Culture",
@@ -77,8 +76,7 @@
         "rewards": {
             "xp": 40,
             "gold": 20
-        },
-        "_filename": "collections.json"
+        }
     },
     "numismatics": {
         "name": "Old Coin",
@@ -91,7 +89,6 @@
         "rewards": {
             "xp": 35,
             "gold": 30
-        },
-        "_filename": "collections.json"
+        }
     }
 }
