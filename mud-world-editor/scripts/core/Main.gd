@@ -1885,7 +1885,8 @@ func _on_node_click(id: String, shift_mod: bool):
 ##
 ## One entry point for both ways in (the Link button and a drag from one room to
 ## another), so the mode cannot be set on one path and forgotten on the other.
-## Let go of a Ctrl/Shift drag at `at`. Over another room of this region the
+## Let go of a Ctrl/Shift drag at `at`. Over open map with space for a room,
+## that room is made and connected (see the ghost the drag draws). Over another room of this region the
 ## connection is made at once, both ways, facing the way the rooms sit on the
 ## map; Ctrl+Z takes it back. When that direction is already taken at either
 ## end, or the target is in another region, the connection form opens with the
@@ -1896,7 +1897,14 @@ func _finish_connection_drag(at: Vector2) -> void:
 	state.dragging_conn.active = false
 	graph_controller.queue_redraw()
 	var target := graph_controller.get_room_under_mouse(at)
-	if target == "" or target == src: return
+	if target == "":
+		# Over open map with room for one: a new room there, connected the way
+		# the ghost showed -- the same as clicking the source's anchor.
+		var ghost: Dictionary = graph_controller.ghost_room_at(at, src)
+		if not ghost.is_empty() and not ghost.blocked:
+			action_handler.create_room_from_anchor(src, ghost.direction, ghost.pos)
+		return
+	if target == src: return
 	var src_name: String = str(region_mgr.data.rooms.get(src, {}).get("name", src))
 	var rooms: Dictionary = region_mgr.data.get("rooms", {})
 	if not rooms.has(target):

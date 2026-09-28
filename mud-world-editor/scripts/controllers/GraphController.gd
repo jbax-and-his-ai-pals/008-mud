@@ -267,7 +267,49 @@ func update_selection_visuals(selected_ids: Array):
 			var node = quest_view_builder.quest_nodes[idx]
 			pass
 
+var _snap_enabled := true
+
+## Where a room would go if a Ctrl/Shift drag from `src_id` ended at `at` over
+## empty map: `{pos, direction, blocked}`, or {} when there is no room for one
+## there (too close to a room, or to the source itself). `blocked` names the
+## case where the source already has an exit that way.
+const GHOST_SIZE := Vector2(200, 100)
+func ghost_room_at(at: Vector2, src_id: String) -> Dictionary:
+	if current_mode != ViewMode.LOCAL or not local_view_builder.room_nodes.has(src_id): return {}
+	var pos := at.snapped(Vector2(32, 32)) if _snap_enabled else at
+	var src_pos: Vector2 = local_view_builder.room_nodes[src_id].position
+	if pos.distance_to(src_pos) < GHOST_SIZE.x * 0.9: return {}
+	for id in local_view_builder.room_nodes:
+		var other: Vector2 = local_view_builder.room_nodes[id].position
+		if abs(other.x - pos.x) < GHOST_SIZE.x + 16 and abs(other.y - pos.y) < GHOST_SIZE.y + 16: return {}
+	var direction := Constants.classify_direction(pos - src_pos)
+	var exits: Dictionary = region_data.get("rooms", {}).get(src_id, {}).get("exits", {})
+	return {"pos": pos, "direction": direction, "blocked": exits.has(direction)}
+
+func _draw_ghost_room(src_pos: Vector2, ghost: Dictionary) -> void:
+	var blocked: bool = ghost.blocked
+	var tint := Color(1.0, 0.45, 0.4) if blocked else Color(0.45, 0.9, 0.6)
+	var pos: Vector2 = connection_layer.to_local(ghost.pos)
+	var from := connection_layer.to_local(src_pos)
+	connection_layer.draw_dashed_line(from, pos, Color(tint, 0.9), 3.0, 12.0)
+	var rect := Rect2(pos - GHOST_SIZE / 2.0, GHOST_SIZE)
+	connection_layer.draw_rect(rect, Color(tint, 0.14), true)
+	connection_layer.draw_rect(rect, Color(tint, 0.85), false, 2.0)
+	var font := ThemeDB.get_fallback_font()
+	var title := "New Room" if not blocked else "%s is already used" % str(ghost.direction).capitalize()
+	var title_size := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14)
+	connection_layer.draw_string(font, pos + Vector2(-title_size.x / 2.0, 5), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, 0.85))
+	# The direction the new exit would take, halfway along the line.
+	var label := str(ghost.direction).capitalize()
+	var label_size := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12)
+	var mid := (from + pos) / 2.0
+	var box := Rect2(mid - label_size / 2.0 - Vector2(6, 3), label_size + Vector2(12, 6))
+	connection_layer.draw_rect(box, Color(0.08, 0.1, 0.12, 0.92), true)
+	connection_layer.draw_rect(box, Color(tint, 0.9), false, 1.0)
+	connection_layer.draw_string(font, mid + Vector2(-label_size.x / 2.0, label_size.y * 0.35), label, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color.WHITE)
+
 func set_snap(enabled: bool):
+	_snap_enabled = enabled
 	if current_mode == ViewMode.LOCAL:
 		for node in local_view_builder.room_nodes.values():
 			node.snap_step = 32 if enabled else 0
@@ -377,26 +419,36 @@ func _draw_local_connections():
 	if editor_state.dragging_conn.get("active", false):
 		var mouse_pos = connection_layer.get_global_mouse_position()
 		editor_state.dragging_conn.end = mouse_pos
-		
+
 		# Draw drag line
 		var start_pos = connection_layer.to_local(editor_state.dragging_conn.start)
 		var end_pos = connection_layer.to_local(editor_state.dragging_conn.end)
-		
+
 		# Check for potential target snapping
 		var target_id = get_room_under_mouse(mouse_pos)
 		var src_id = editor_state.dragging_conn.src
-		
+
+		editor_state.dragging_conn.ghost = {}
 		if target_id != "" and target_id != src_id and local_view_builder.room_nodes.has(target_id):
 			var target_node = local_view_builder.room_nodes[target_id]
 			end_pos = target_node.position # Snap line end to center
-			
+
 			# Draw Glow around target
 			var rect = Rect2(target_node.position - Vector2(45, 45), Vector2(90, 90))
 			connection_layer.draw_rect(rect, Color(0.2, 1.0, 0.4, 0.3), false, 4.0)
-			
-		connection_layer.draw_line(start_pos, end_pos, Color(1.0, 0.8, 0.2), 3.0)
-	
-	GraphRenderer.draw_graph(connection_layer, local_view_builder.room_nodes, region_data, editor_state.selected_ids[0] if editor_state.selected_ids.size() == 1 else "", editor_state.dragging_conn)
+		elif target_id == "":
+			# Over open map: a ghost of the room letting go here would make.
+			var ghost := ghost_room_at(mouse_pos, src_id)
+			editor_state.dragging_conn.ghost = ghost
+			if not ghost.is_empty():
+				_draw_ghost_room(editor_state.dragging_conn.start, ghost)
+
+		# One line: GraphRenderer draws the drag line from `start` to `end`
+		# (snapped to a target room's centre above); a ghost draws its own.
+		editor_state.dragging_conn.end = connection_layer.to_global(end_pos)
+
+	var drag_line: Dictionary = editor_state.dragging_conn if editor_state.dragging_conn.get("ghost", {}).is_empty() else {}
+	GraphRenderer.draw_graph(connection_layer, local_view_builder.room_nodes, region_data, editor_state.selected_ids[0] if editor_state.selected_ids.size() == 1 else "", drag_line)
 
 # One field per district: its member rooms' positions (for the
 # nearest-owner/reserved-room rules) and its internal room-to-room

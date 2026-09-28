@@ -174,6 +174,34 @@ func _run() -> void:
 		main.cmd_proc.undo()
 		_assert(not main.region_mgr.data.rooms[pair[0]]["exits"].has(pair[2]), "Ctrl+Z takes the connection back")
 
+	print("\n[Ctrl-drag into open map: a ghost room, made on release]")
+	var src_id: String = id
+	var src_at: Vector2 = graph.get_node_position(src_id)
+	_assert(graph.ghost_room_at(src_at, src_id).is_empty(), "no ghost on top of the room itself")
+	var spot := Vector2.ZERO
+	var ghost := {}
+	for radius in [512, 768, 1024, 1280]:
+		for angle_step in 16:
+			var candidate: Vector2 = src_at + Vector2.RIGHT.rotated(TAU * angle_step / 16.0) * radius
+			var try: Dictionary = graph.ghost_room_at(candidate, src_id)
+			if not try.is_empty() and not try.blocked:
+				spot = candidate; ghost = try; break
+		if not ghost.is_empty(): break
+	_assert(not ghost.is_empty(), "open map near %s offers a ghost room, facing %s" % [src_id, ghost.get("direction", "?")])
+	if not ghost.is_empty():
+		var room_count: int = main.region_mgr.data.rooms.size()
+		main.state.dragging_conn = {"active": true, "start": src_at, "end": spot, "src": src_id}
+		main._finish_connection_drag(spot)
+		var made := ""
+		for rid in main.region_mgr.data.rooms:
+			if main.region_mgr.data.rooms[src_id]["exits"].get(ghost.direction, "") == rid: made = rid
+		_assert(main.region_mgr.data.rooms.size() == room_count + 1 and made != "", "letting go there makes the room and the %s exit" % ghost.direction)
+		if made != "":
+			var placed = main.region_mgr.data.rooms[made]["_editor_pos"]
+			_assert(Vector2(placed[0], placed[1]) == ghost.pos, "where the ghost stood")
+		main.cmd_proc.undo()
+		_assert(main.region_mgr.data.rooms.size() == room_count, "and Ctrl+Z takes it back")
+
 	print("\n[the connection form's Cancel closes it]")
 	main._open_connection_form(id, "Town Square")
 	_assert(main.state.connection_mode and main.inspector.cur_mode == "connection", "the form is open")
