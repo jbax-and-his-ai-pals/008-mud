@@ -1,0 +1,15 @@
+{
+    "id": "mayor_package",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "A messenger from the king? We have done nothing. Please, there must be some mistake.",
+            "choices": [
+                {
+                    "text": "I only carry what I was given.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

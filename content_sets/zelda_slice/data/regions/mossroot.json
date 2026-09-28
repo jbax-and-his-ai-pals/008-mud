@@ -1,0 +1,118 @@
+{
+    "region_id": "mossroot",
+    "name": "Mossroot Hollow",
+    "description": "The hollow heart of an ancient oak, grown into a maze of roots and stone.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "entrance": {
+            "name": "Hollow Entrance",
+            "description": "A ramp of roots leads down into green dark.",
+            "exits": {
+                "east": "root_hall",
+                "up": "aldermark:whispering_wood"
+            }
+        },
+        "root_hall": {
+            "name": "Root Hall",
+            "description": "Roots as thick as pillars hold up the ceiling. A single flagstone sits proud of the floor.",
+            "exits": {
+                "west": "entrance",
+                "north": "mossy_gallery"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "down": "mossroot:secret_larder"
+                }
+            },
+            "items": [
+                {
+                    "item_id": "obj_loose_stone"
+                }
+            ],
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_root_hall"
+                }
+            ]
+        },
+        "mossy_gallery": {
+            "name": "Mossy Gallery",
+            "description": "A gallery of carved stone, furred with moss. Old soldiers stand in the alcoves.",
+            "exits": {
+                "south": "root_hall",
+                "east": "key_chamber",
+                "west": "boss_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_soldier",
+                    "instance_id": "soldier_gallery_a"
+                },
+                {
+                    "template_id": "bone_soldier",
+                    "instance_id": "soldier_gallery_b"
+                }
+            ]
+        },
+        "key_chamber": {
+            "name": "Key Chamber",
+            "description": "A small vaulted room. A guardian of moss and stone stands over an empty plinth.",
+            "exits": {
+                "west": "mossy_gallery"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "stone_warden",
+                    "instance_id": "stone_warden_at_key_chamber"
+                }
+            ]
+        },
+        "secret_larder": {
+            "name": "Secret Larder",
+            "description": "A forgotten store room, dry and dusty.",
+            "exits": {
+                "up": "root_hall"
+            },
+            "items": [
+                {
+                    "item_id": "item_red_potion"
+                },
+                {
+                    "item_id": "item_red_potion"
+                }
+            ]
+        },
+        "boss_hall": {
+            "name": "Wyrm Hall",
+            "description": "A wide hall of blackened stone. The air is hot and smells of struck flint.",
+            "exits": {
+                "east": "mossy_gallery",
+                "north": "raft_vault"
+            },
+            "properties": {
+                "locked_by": "item_key_mossroot"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "horned_wyrm",
+                    "instance_id": "horned_wyrm_at_boss_hall"
+                }
+            ]
+        },
+        "raft_vault": {
+            "name": "Raft Vault",
+            "description": "A quiet vault. Someone left a lashed driftwood raft here, long ago, waiting for a lake.",
+            "exits": {
+                "south": "boss_hall"
+            },
+            "items": [
+                {
+                    "item_id": "item_raft"
+                }
+            ]
+        }
+    }
+}

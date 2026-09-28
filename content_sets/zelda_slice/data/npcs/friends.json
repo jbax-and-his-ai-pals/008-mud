@@ -1,0 +1,94 @@
+{
+    "hermit": {
+        "name": "the hermit",
+        "description": "A stooped man in a patchwork cloak, tending a very small fire.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "You look like you could use a blade."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "hermit_gift"
+        }
+    },
+    "cave_merchant": {
+        "name": "the cave merchant",
+        "description": "A wiry trader with a lantern and too many pockets.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Wares for the brave, or the foolish. I am not fussy."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_red_potion"
+                },
+                {
+                    "item_id": "item_bomb_scroll"
+                },
+                {
+                    "item_id": "item_small_shield"
+                }
+            ],
+            "buys_item_types": [
+                "Consumable",
+                "Weapon",
+                "Armor"
+            ]
+        }
+    },
+    "pool_fairy": {
+        "name": "the pool fairy",
+        "description": "A palm-sized light that hangs above the water, humming.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "healer",
+        "dialog": {
+            "greeting": "Hurt? Stay still, little one."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "can_heal": true,
+            "spell_cast_chance": 1,
+            "required_spells": [
+                "fairy_mend"
+            ]
+        },
+        "usable_spells": [
+            "fairy_mend"
+        ],
+        "max_mana": 100
+    },
+    "sage": {
+        "name": "the sage",
+        "description": "A tall woman with ink on her fingers and a cracked staff of pale wood.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "The Triad is broken. Will you help mend it?"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "sage_triad"
+        }
+    }
+}

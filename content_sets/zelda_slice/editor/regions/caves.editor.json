@@ -1,0 +1,23 @@
+{
+    "region": {},
+    "rooms": {
+        "hermit_cave": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "merchant_cave": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "fairy_pool": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        }
+    }
+}

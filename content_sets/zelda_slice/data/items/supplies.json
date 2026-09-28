@@ -1,0 +1,47 @@
+{
+    "item_red_potion": {
+        "type": "Consumable",
+        "name": "red potion",
+        "description": "A vial of something warm and red.",
+        "weight": 0.5,
+        "value": 20,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 40,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
+    },
+    "item_bomb_scroll": {
+        "type": "Consumable",
+        "name": "bomb primer",
+        "description": "A folded diagram showing how to pack and fuse a bomb.",
+        "weight": 0.1,
+        "value": 40,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "learn_spell",
+            "spell_to_learn": "bomb"
+        },
+        "item_family": "consumable"
+    },
+    "item_heart_container": {
+        "type": "Consumable",
+        "name": "heart container",
+        "description": "A crystal heart that mends every wound.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 200,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
+    }
+}

@@ -1,0 +1,49 @@
+{
+    "region_id": "caves",
+    "name": "The Hillside Caves",
+    "description": "Small caves tucked into the hills of Aldermark.",
+    "properties": {
+        "safe_zone": true
+    },
+    "rooms": {
+        "hermit_cave": {
+            "name": "Hermit's Cave",
+            "description": "A low cave, warm from a small fire. A man sits by it as if he has always been there.",
+            "exits": {
+                "out": "aldermark:hermit_hill"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hermit",
+                    "instance_id": "hermit_at_hermit_cave"
+                }
+            ]
+        },
+        "merchant_cave": {
+            "name": "Merchant's Cave",
+            "description": "Shelves cut into the stone hold bottles, scrolls and folded cloth.",
+            "exits": {
+                "out": "aldermark:market_lane"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_merchant",
+                    "instance_id": "cave_merchant_at_merchant_cave"
+                }
+            ]
+        },
+        "fairy_pool": {
+            "name": "Fairy Pool",
+            "description": "A round pool glows from below. Motes of light drift above it.",
+            "exits": {
+                "out": "aldermark:falls"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "pool_fairy",
+                    "instance_id": "pool_fairy_at_fairy_pool"
+                }
+            ]
+        }
+    }
+}

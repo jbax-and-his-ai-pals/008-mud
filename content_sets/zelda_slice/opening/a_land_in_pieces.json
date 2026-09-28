@@ -1,0 +1,23 @@
+{
+  "scenario_id": "a_land_in_pieces",
+  "heading": "A Land in Pieces",
+  "intro": "You wake in a meadow at the edge of Aldermark with nothing but the clothes you stand in. The Triad that once kept the land whole has broken into shards, and something has taken the old tower on the northern rim. Nobody here will hand you a weapon, but somebody nearby might know where one is kept.",
+  "objectives_heading": "First steps:",
+  "objectives": [
+    {
+      "id": "look_around",
+      "instruction": "Look around the meadow and note the exits",
+      "command": "look"
+    },
+    {
+      "id": "find_a_blade",
+      "instruction": "Find a weapon: the hill to the west hides a cave with a hermit in it",
+      "command": "west"
+    },
+    {
+      "id": "seek_the_sage",
+      "instruction": "Speak to the sage in the village green, north of the meadow",
+      "command": "north"
+    }
+  ]
+}

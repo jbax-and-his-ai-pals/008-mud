@@ -1,0 +1,76 @@
+{
+    "item_key_mossroot": {
+        "type": "Key",
+        "name": "mossroot key",
+        "description": "A key furred with moss. It opens the boss hall of Mossroot Hollow.",
+        "weight": 0.1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "key"
+    },
+    "item_key_vault": {
+        "type": "Key",
+        "name": "vault key",
+        "description": "A green-crusted key, cold to the touch.",
+        "weight": 0.1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "key"
+    },
+    "item_raft": {
+        "type": "Item",
+        "name": "driftwood raft",
+        "description": "A lashed-together raft, small enough to carry and big enough to cross a lake.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "curio"
+    },
+    "item_shard_courage": {
+        "type": "Item",
+        "name": "Shard of Courage",
+        "description": "A warm golden shard, one piece of the broken Triad.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true,
+            "collection_id": "triad_shards"
+        },
+        "item_family": "curio"
+    },
+    "item_shard_wisdom": {
+        "type": "Item",
+        "name": "Shard of Wisdom",
+        "description": "A cool blue shard, one piece of the broken Triad.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true,
+            "collection_id": "triad_shards"
+        },
+        "item_family": "curio"
+    },
+    "item_triad": {
+        "type": "Item",
+        "name": "the Triad",
+        "description": "Two shards forged into one. It hums with the promise of a third.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "curio"
+    }
+}

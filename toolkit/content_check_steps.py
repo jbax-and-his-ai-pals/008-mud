@@ -33,6 +33,9 @@ from typing import Dict, List, Optional, Sequence, Tuple
 # Every shipped content set, in the order the gate sweeps them.
 CONTENT_SETS: Tuple[str, ...] = (
     "fantasy_frontier", "modern_capsule", "night_shift", "orbital_salvage",
+    # Two adaptation slices, written to see how far the engine stretches toward an
+    # action-adventure and a story-driven console RPG (docs/design/adaptation_slices.md).
+    "zelda_slice", "ff4_slice",
 )
 
 # The two sets the neutrality gate runs over: the mature fantasy set, and the

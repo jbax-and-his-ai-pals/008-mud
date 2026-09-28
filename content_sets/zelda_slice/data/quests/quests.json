@@ -1,0 +1,74 @@
+{
+    "quest_courage": {
+        "title": "The Shard of Courage",
+        "type": "quest",
+        "description": "Slay the horned wyrm in Mossroot Hollow and bring back its shard.",
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Slay the horned wyrm in Mossroot Hollow and bring back its shard.",
+                "objective": {
+                    "type": "kill",
+                    "target_template_id": "horned_wyrm",
+                    "target_name": "horned wyrm",
+                    "required_quantity": 1,
+                    "current_quantity": 0
+                },
+                "turn_in_id": "sage",
+                "completion_dialogue": "It is done. I felt the shard change hands."
+            }
+        ],
+        "rewards": {
+            "xp": 200,
+            "gold": 40
+        }
+    },
+    "quest_wisdom": {
+        "title": "The Shard of Wisdom",
+        "type": "quest",
+        "description": "Slay the tide serpent in the Drowned Vault and bring back its shard.",
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Slay the tide serpent in the Drowned Vault and bring back its shard.",
+                "objective": {
+                    "type": "kill",
+                    "target_template_id": "tide_serpent",
+                    "target_name": "tide serpent",
+                    "required_quantity": 1,
+                    "current_quantity": 0
+                },
+                "turn_in_id": "sage",
+                "completion_dialogue": "It is done. I felt the shard change hands."
+            }
+        ],
+        "rewards": {
+            "xp": 300,
+            "gold": 60
+        }
+    },
+    "quest_malgrath": {
+        "title": "The Black Tower",
+        "type": "quest",
+        "description": "End Malgrath in the Black Tower.",
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "End Malgrath in the Black Tower.",
+                "objective": {
+                    "type": "kill",
+                    "target_template_id": "malgrath",
+                    "target_name": "Malgrath",
+                    "required_quantity": 1,
+                    "current_quantity": 0
+                },
+                "turn_in_id": "sage",
+                "completion_dialogue": "It is done. I felt the shard change hands."
+            }
+        ],
+        "rewards": {
+            "xp": 800,
+            "gold": 200
+        }
+    }
+}

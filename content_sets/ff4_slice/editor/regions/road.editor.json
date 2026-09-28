@@ -1,0 +1,29 @@
+{
+    "region": {},
+    "rooms": {
+        "castle_road": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        },
+        "river_bridge": {
+            "_editor_pos": [
+                256,
+                384
+            ]
+        },
+        "signal_hill": {
+            "_editor_pos": [
+                512,
+                384
+            ]
+        },
+        "fogreach_mouth": {
+            "_editor_pos": [
+                512,
+                192
+            ]
+        }
+    }
+}

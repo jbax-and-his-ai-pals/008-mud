@@ -1,0 +1,34 @@
+{
+    "campaign_id": "the_package",
+    "name": "The Package",
+    "description": "A courier run over the mountain that goes wrong.",
+    "start_node_id": "deliver",
+    "nodes": {
+        "deliver": {
+            "description": "Deliver the king's package to Mistvale.",
+            "quest_template_id": "quest_deliver_package",
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "drake",
+                    "narrative_text": "The package was not a gift."
+                }
+            ]
+        },
+        "drake": {
+            "description": "Defeat the Fog Drake.",
+            "quest_template_id": "quest_fog_drake",
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "end_survived",
+                    "narrative_text": "Mistvale is quiet again. Something in you has changed."
+                }
+            ]
+        },
+        "end_survived": {
+            "type": "END",
+            "outcome": "SURVIVED_MISTVALE"
+        }
+    }
+}

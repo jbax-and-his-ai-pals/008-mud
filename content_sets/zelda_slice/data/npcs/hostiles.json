@@ -1,0 +1,420 @@
+{
+    "slime_blob": {
+        "name": "green blob",
+        "description": "A quivering lump of green jelly.",
+        "health": 400,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 3,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    1,
+                    4
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "cave_bat": {
+        "name": "cave bat",
+        "description": "A leathery bat that flutters in erratic loops.",
+        "health": 400,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 4,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.5,
+                "quantity": [
+                    1,
+                    3
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "bone_soldier": {
+        "name": "bone soldier",
+        "description": "A rattling skeleton in the rags of a uniform.",
+        "health": 400,
+        "level": 2,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 2,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 5,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    2,
+                    8
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "rock_spitter": {
+        "name": "rock spitter",
+        "description": "A squat, red creature that fires stones from its snout.",
+        "health": 400,
+        "level": 2,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 4,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    2,
+                    6
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        },
+        "usable_spells": [
+            "rock_spit"
+        ],
+        "max_mana": 60
+    },
+    "river_lurker": {
+        "name": "river lurker",
+        "description": "A pale, eyeless thing that waits in still water.",
+        "health": 400,
+        "level": 3,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 5,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 5,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    3,
+                    9
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "stone_warden": {
+        "name": "stone warden",
+        "description": "A moss-armoured guardian that holds the key to the hall beyond.",
+        "health": 400,
+        "level": 3,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 12,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 6,
+        "defense": 3,
+        "loot_table": {
+            "item_key_mossroot": {
+                "chance": 1
+            },
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    8,
+                    15
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "horned_wyrm": {
+        "name": "horned wyrm",
+        "description": "A lumbering, horned wyrm with a throat that glows before it breathes.",
+        "health": 400,
+        "level": 4,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 18,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "ice": -50,
+                "fire": 75
+            }
+        },
+        "attack_power": 5,
+        "defense": 3,
+        "loot_table": {
+            "item_shard_courage": {
+                "chance": 1
+            },
+            "item_heart_container": {
+                "chance": 1
+            },
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    20,
+                    30
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        },
+        "usable_spells": [
+            "wyrm_flame"
+        ],
+        "max_mana": 60
+    },
+    "tide_serpent": {
+        "name": "tide serpent",
+        "description": "A coil of black scales rising out of the cistern.",
+        "health": 400,
+        "level": 5,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 23,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "lightning": -50,
+                "water": 90
+            }
+        },
+        "attack_power": 6,
+        "defense": 4,
+        "loot_table": {
+            "item_shard_wisdom": {
+                "chance": 1
+            },
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    25,
+                    40
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.4,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        },
+        "usable_spells": [
+            "tidal_lash"
+        ],
+        "max_mana": 60
+    },
+    "malgrath": {
+        "name": "Malgrath",
+        "description": "A tall figure in a crown of black iron, wreathed in the smoke of the ruined tower.",
+        "health": 400,
+        "level": 7,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "stationary",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 27,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "holy": -50,
+                "shadow": 80
+            }
+        },
+        "attack_power": 7,
+        "defense": 5,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    80,
+                    120
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.3,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        },
+        "usable_spells": [
+            "shadow_bolt"
+        ],
+        "max_mana": 60
+    }
+}

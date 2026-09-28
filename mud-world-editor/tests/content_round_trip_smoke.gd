@@ -22,7 +22,7 @@ const SaveIO = preload("res://scripts/data/SaveIO.gd")
 var failure_count := 0
 var repo_root: String = ""
 
-const CONTENT_SETS := ["fantasy_frontier", "modern_capsule", "night_shift", "orbital_salvage"]
+const CONTENT_SETS := ["fantasy_frontier", "modern_capsule", "night_shift", "orbital_salvage", "zelda_slice", "ff4_slice"]
 
 
 func _init() -> void:

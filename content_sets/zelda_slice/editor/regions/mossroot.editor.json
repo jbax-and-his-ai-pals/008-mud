@@ -1,0 +1,47 @@
+{
+    "region": {},
+    "rooms": {
+        "entrance": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        },
+        "root_hall": {
+            "_editor_pos": [
+                256,
+                384
+            ]
+        },
+        "mossy_gallery": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "key_chamber": {
+            "_editor_pos": [
+                512,
+                192
+            ]
+        },
+        "secret_larder": {
+            "_editor_pos": [
+                256,
+                576
+            ]
+        },
+        "boss_hall": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        },
+        "raft_vault": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        }
+    }
+}

@@ -1,0 +1,87 @@
+{
+    "dark_wave": {
+        "name": "Dark Wave",
+        "description": "Give the blade to the dark and let it loose in a wave.",
+        "mana_cost": 12,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} draws the dark blade and looses a wave of shadow!",
+        "hit_message": "The wave breaks over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 26,
+                "damage_type": "shadow"
+            }
+        ]
+    },
+    "cure": {
+        "name": "Cure",
+        "description": "A white-magic mending.",
+        "mana_cost": 6,
+        "cooldown": 1,
+        "target_type": "friendly",
+        "cast_message": "{caster_name} folds her hands.",
+        "heal_message": "{caster_name} heals {target_name} for {value} health!",
+        "self_heal_message": "A warm light closes your wounds, restoring {value} health!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 60
+            }
+        ]
+    },
+    "fog_breath": {
+        "name": "Fog Breath",
+        "description": "A chilling breath of fog.",
+        "mana_cost": 8,
+        "cooldown": 7,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} exhales a rolling bank of fog!",
+        "hit_message": "The fog batters {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 12,
+                "damage_type": "air"
+            }
+        ]
+    },
+    "call_titan": {
+        "name": "Call Titan",
+        "description": "Reach across the gap and call a titan to your side.",
+        "mana_cost": 25,
+        "cooldown": 20,
+        "target_type": "self",
+        "cast_message": "{caster_name} sings the calling, and the ground answers...",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "summon",
+                "summon_template_id": "titan_minion",
+                "summon_duration": 60,
+                "max_summons": 1
+            }
+        ]
+    },
+    "bat_screech": {
+        "name": "Screech",
+        "description": "A shriek that rattles the skull.",
+        "mana_cost": 3,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} shrieks!",
+        "hit_message": "The screech hits {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 5,
+                "damage_type": "air"
+            }
+        ]
+    }
+}

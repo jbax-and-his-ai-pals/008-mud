@@ -1,0 +1,35 @@
+{
+    "region": {},
+    "rooms": {
+        "entry": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "bat_roost": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "crystal_pool": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "narrow_ledge": {
+            "_editor_pos": [
+                512,
+                192
+            ]
+        },
+        "cave_exit": {
+            "_editor_pos": [
+                512,
+                384
+            ]
+        }
+    }
+}

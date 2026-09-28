@@ -1,0 +1,51 @@
+{
+    "id": "hermit_gift",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Take this. Nobody should walk the roads of Aldermark unarmed.",
+            "choices": [
+                {
+                    "text": "Thank you. I'll take it.",
+                    "condition": {
+                        "not": {
+                            "kind": "flag",
+                            "flag": "got_the_sword"
+                        }
+                    },
+                    "next_node": "given",
+                    "effects": {
+                        "give_item": "item_wooden_sword",
+                        "set_flag": "got_the_sword"
+                    }
+                },
+                {
+                    "text": "What can you tell me about the tower?",
+                    "next_node": "tower"
+                },
+                {
+                    "text": "Goodbye.",
+                    "end": true
+                }
+            ]
+        },
+        "given": {
+            "text": "It is a plain blade, but it has done some good. Go and find the sage.",
+            "choices": [
+                {
+                    "text": "I will.",
+                    "end": true
+                }
+            ]
+        },
+        "tower": {
+            "text": "It fell three winters ago. The shards of the Triad went into the deep places. The sage knows more.",
+            "choices": [
+                {
+                    "text": "Goodbye.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

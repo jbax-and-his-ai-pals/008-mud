@@ -1,0 +1,123 @@
+{
+    "king_aldous": {
+        "name": "King Aldous",
+        "description": "An old king in a heavy red mantle, who has stopped looking at the people he speaks to.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Captain. You are late."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "king_orders"
+        }
+    },
+    "captain_kessa": {
+        "name": "Captain Kessa",
+        "description": "A tall woman in a horned helm, your oldest friend in the fleet.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "There you are. I heard the king sent for you."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "kessa_talk"
+        }
+    },
+    "rosalind": {
+        "name": "Rosalind",
+        "description": "A healer in white, sleeves rolled, a basin of clean water at her elbow.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "healer",
+        "dialog": {
+            "greeting": "You look tired. Sit, and let me look at you."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "can_heal": true,
+            "spell_cast_chance": 1,
+            "required_spells": [
+                "cure"
+            ]
+        },
+        "usable_spells": [
+            "cure"
+        ],
+        "max_mana": 100
+    },
+    "quartermaster": {
+        "name": "the quartermaster",
+        "description": "A gruff man behind a counter stacked with fleet stores.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Fleet stores. Nothing fancy."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_potion"
+                },
+                {
+                    "item_id": "item_ether"
+                }
+            ],
+            "buys_item_types": [
+                "Consumable"
+            ]
+        }
+    },
+    "mayor_of_mistvale": {
+        "name": "the mayor of Mistvale",
+        "description": "A soft-spoken man in a village chain of office.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Travellers are rare, these days."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "mayor_package"
+        }
+    },
+    "ryn": {
+        "name": "Ryn",
+        "description": "A small girl in green, clutching a wooden flute, with eyes much older than the rest of her.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Please... are you the one who...?"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "ryn_summoner"
+        }
+    }
+}

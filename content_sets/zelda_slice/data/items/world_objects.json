@@ -1,0 +1,17 @@
+{
+    "obj_loose_stone": {
+        "type": "Interactive",
+        "name": "loose stone",
+        "description": "One flagstone in the floor sits a finger's width proud of the rest.",
+        "properties": {
+            "interaction_type": "toggle",
+            "state": "off",
+            "linked_target_id": "mossroot:root_hall",
+            "linked_action": "toggle_exit:down",
+            "interaction_message": "You lever the stone aside.",
+            "hidden_exits": {
+                "down": "mossroot:secret_larder"
+            }
+        }
+    }
+}

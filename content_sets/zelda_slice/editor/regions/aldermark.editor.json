@@ -1,0 +1,101 @@
+{
+    "region": {},
+    "rooms": {
+        "crag": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "graveyard": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "falls": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "tower_approach": {
+            "_editor_pos": [
+                768,
+                0
+            ]
+        },
+        "whispering_wood": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        },
+        "crossroads": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "reed_marsh": {
+            "_editor_pos": [
+                512,
+                192
+            ]
+        },
+        "lakeshore": {
+            "_editor_pos": [
+                768,
+                192
+            ]
+        },
+        "glade": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        },
+        "village_green": {
+            "_editor_pos": [
+                256,
+                384
+            ]
+        },
+        "old_bridge": {
+            "_editor_pos": [
+                512,
+                384
+            ]
+        },
+        "lake_dock": {
+            "_editor_pos": [
+                768,
+                384
+            ]
+        },
+        "hermit_hill": {
+            "_editor_pos": [
+                0,
+                576
+            ]
+        },
+        "starting_meadow": {
+            "_editor_pos": [
+                256,
+                576
+            ]
+        },
+        "market_lane": {
+            "_editor_pos": [
+                512,
+                576
+            ]
+        },
+        "east_dunes": {
+            "_editor_pos": [
+                768,
+                576
+            ]
+        }
+    }
+}

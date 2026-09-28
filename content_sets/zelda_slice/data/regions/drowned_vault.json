@@ -1,0 +1,114 @@
+{
+    "region_id": "drowned_vault",
+    "name": "The Drowned Vault",
+    "description": "A sunken vault, half above the water on a lonely island.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "island_landing": {
+            "name": "Island Landing",
+            "description": "A shingle beach. A stair goes down into the vault.",
+            "exits": {
+                "east": "flooded_hall",
+                "west": "aldermark:lake_dock"
+            }
+        },
+        "flooded_hall": {
+            "name": "Flooded Hall",
+            "description": "Knee-deep water fills the hall. The air over it is thick and foul, and the cold bites through your boots.",
+            "exits": {
+                "west": "island_landing",
+                "east": "cistern"
+            },
+            "properties": {
+                "hazards": [
+                    {
+                        "type": "poison_gas",
+                        "damage": 8
+                    },
+                    {
+                        "type": "extreme_cold",
+                        "damage": 8
+                    }
+                ]
+            }
+        },
+        "cistern": {
+            "name": "The Cistern",
+            "description": "A round chamber with a pool at its centre. Pale shapes drift under the surface.",
+            "exits": {
+                "west": "flooded_hall",
+                "north": "bomb_chamber",
+                "east": "serpent_lair"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "river_lurker",
+                    "instance_id": "lurker_cistern_a"
+                },
+                {
+                    "template_id": "river_lurker",
+                    "instance_id": "lurker_cistern_b"
+                }
+            ]
+        },
+        "bomb_chamber": {
+            "name": "Cracked Chamber",
+            "description": "One wall is fractured from floor to ceiling, and cold air seeps through the gaps. It wants to be opened.",
+            "exits": {
+                "south": "cistern",
+                "north": "key_niche"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": null,
+                        "pick_difficulty": 999,
+                        "failure_message": "The wall is cracked but solid. Something loud could bring it down."
+                    }
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "clear_exit_req",
+                        "direction": "north",
+                        "duration": 120,
+                        "message": "The wall bursts inward in a cloud of dust!"
+                    }
+                }
+            }
+        },
+        "key_niche": {
+            "name": "Key Niche",
+            "description": "A tiny room behind the wall. A green key hangs from a hook.",
+            "exits": {
+                "south": "bomb_chamber"
+            },
+            "items": [
+                {
+                    "item_id": "item_key_vault"
+                },
+                {
+                    "item_id": "item_white_sword"
+                }
+            ]
+        },
+        "serpent_lair": {
+            "name": "Serpent Lair",
+            "description": "A drowned amphitheatre. Water laps at the stone tiers.",
+            "exits": {
+                "west": "cistern"
+            },
+            "properties": {
+                "locked_by": "item_key_vault"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "tide_serpent",
+                    "instance_id": "tide_serpent_at_serpent_lair"
+                }
+            ]
+        }
+    }
+}

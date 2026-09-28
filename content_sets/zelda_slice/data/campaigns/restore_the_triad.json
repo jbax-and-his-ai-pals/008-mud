@@ -1,0 +1,45 @@
+{
+    "campaign_id": "restore_the_triad",
+    "name": "Restore the Triad",
+    "description": "Recover the shards, forge the Triad, and end what waits in the tower.",
+    "start_node_id": "courage",
+    "nodes": {
+        "courage": {
+            "description": "Recover the Shard of Courage.",
+            "quest_template_id": "quest_courage",
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "wisdom",
+                    "narrative_text": "One shard is home. The lake waits."
+                }
+            ]
+        },
+        "wisdom": {
+            "description": "Recover the Shard of Wisdom.",
+            "quest_template_id": "quest_wisdom",
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "tower",
+                    "narrative_text": "Two shards. Enough to open the tower."
+                }
+            ]
+        },
+        "tower": {
+            "description": "Confront Malgrath.",
+            "quest_template_id": "quest_malgrath",
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "end_victory",
+                    "narrative_text": "The tower falls quiet."
+                }
+            ]
+        },
+        "end_victory": {
+            "type": "END",
+            "outcome": "TRIAD_MENDED"
+        }
+    }
+}

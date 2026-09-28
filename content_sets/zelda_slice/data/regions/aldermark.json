@@ -1,0 +1,216 @@
+{
+    "region_id": "aldermark",
+    "name": "Aldermark",
+    "description": "A small, wounded kingdom of meadows, woods and water.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "crag": {
+            "name": "Northern Crag",
+            "description": "Bare grey rock climbs into cloud. The wind here has a voice.",
+            "exits": {
+                "east": "graveyard",
+                "south": "whispering_wood"
+            }
+        },
+        "graveyard": {
+            "name": "Old Graveyard",
+            "description": "Leaning headstones and a chill that has nothing to do with the weather.",
+            "exits": {
+                "west": "crag",
+                "east": "falls",
+                "south": "crossroads"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_soldier",
+                    "instance_id": "soldier_graveyard"
+                }
+            ]
+        },
+        "falls": {
+            "name": "Falls Ledge",
+            "description": "A thin waterfall drops into a pool of impossibly clear water. Something glimmers behind the spray.",
+            "exits": {
+                "west": "graveyard",
+                "east": "tower_approach",
+                "south": "reed_marsh",
+                "in": "caves:fairy_pool"
+            }
+        },
+        "tower_approach": {
+            "name": "Tower Approach",
+            "description": "A cracked causeway leads north to a tower of black stone, its door sealed by a seam of light.",
+            "exits": {
+                "west": "falls",
+                "south": "lakeshore",
+                "north": "dread_tower:tower_gate"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_triad",
+                        "pick_difficulty": 999,
+                        "failure_message": "The seam of light holds the door shut. Only the Triad, made whole, could open it."
+                    }
+                }
+            }
+        },
+        "whispering_wood": {
+            "name": "Whispering Wood",
+            "description": "Tall trees close overhead. A great hollow oak sits at the heart of the clearing, its trunk split like a doorway.",
+            "exits": {
+                "north": "crag",
+                "east": "crossroads",
+                "south": "glade",
+                "down": "mossroot:entrance"
+            }
+        },
+        "crossroads": {
+            "name": "Crossroads",
+            "description": "Four worn paths meet at a milestone so weathered it names nowhere at all.",
+            "exits": {
+                "north": "graveyard",
+                "west": "whispering_wood",
+                "east": "reed_marsh",
+                "south": "village_green"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "slime_blob",
+                    "instance_id": "blob_crossroads"
+                }
+            ]
+        },
+        "reed_marsh": {
+            "name": "Reed Marsh",
+            "description": "Reeds hiss in the wind and the ground gives underfoot.",
+            "exits": {
+                "north": "falls",
+                "west": "crossroads",
+                "east": "lakeshore",
+                "south": "old_bridge"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "rock_spitter",
+                    "instance_id": "spitter_marsh"
+                }
+            ]
+        },
+        "lakeshore": {
+            "name": "Lakeshore Trail",
+            "description": "A trail follows the shore of a wide, flat lake.",
+            "exits": {
+                "north": "tower_approach",
+                "west": "reed_marsh",
+                "south": "lake_dock"
+            }
+        },
+        "glade": {
+            "name": "Sunlit Glade",
+            "description": "A quiet glade, warm and full of bees.",
+            "exits": {
+                "north": "whispering_wood",
+                "east": "village_green",
+                "south": "hermit_hill"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_glade"
+                }
+            ]
+        },
+        "village_green": {
+            "name": "Village Green",
+            "description": "A handful of cottages around a green. A well, a bench, and a sense of holding breath.",
+            "exits": {
+                "north": "crossroads",
+                "west": "glade",
+                "east": "old_bridge",
+                "south": "starting_meadow"
+            },
+            "properties": {
+                "safe_zone": true
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "sage",
+                    "instance_id": "sage_at_green"
+                }
+            ]
+        },
+        "old_bridge": {
+            "name": "Old Bridge",
+            "description": "A humpbacked stone bridge over a slow stream.",
+            "exits": {
+                "north": "reed_marsh",
+                "west": "village_green",
+                "east": "lake_dock",
+                "south": "market_lane"
+            }
+        },
+        "lake_dock": {
+            "name": "Lake Dock",
+            "description": "A rotted jetty juts into the lake. Far out, a low island shows through the mist.",
+            "exits": {
+                "north": "lakeshore",
+                "west": "old_bridge",
+                "south": "east_dunes",
+                "east": "drowned_vault:island_landing"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_raft",
+                        "pick_difficulty": 999,
+                        "failure_message": "The island is a long swim through cold water. You need something that floats."
+                    }
+                }
+            }
+        },
+        "hermit_hill": {
+            "name": "Hermit's Hill",
+            "description": "A grassy hill with a cave mouth in its flank, a thread of smoke rising from inside.",
+            "exits": {
+                "north": "glade",
+                "east": "starting_meadow",
+                "in": "caves:hermit_cave"
+            }
+        },
+        "starting_meadow": {
+            "name": "Starting Meadow",
+            "description": "A meadow of long grass. Paths lead north, east and up the hill to the west.",
+            "exits": {
+                "north": "village_green",
+                "west": "hermit_hill",
+                "east": "market_lane"
+            },
+            "properties": {
+                "safe_zone": true
+            }
+        },
+        "market_lane": {
+            "name": "Market Lane",
+            "description": "A lane of shuttered stalls. One stall is open, and it is dug into the hillside.",
+            "exits": {
+                "north": "old_bridge",
+                "west": "starting_meadow",
+                "east": "east_dunes",
+                "in": "caves:merchant_cave"
+            }
+        },
+        "east_dunes": {
+            "name": "East Dunes",
+            "description": "Low dunes of pale sand roll toward a horizon that never arrives.",
+            "exits": {
+                "north": "lake_dock",
+                "west": "market_lane"
+            }
+        }
+    }
+}

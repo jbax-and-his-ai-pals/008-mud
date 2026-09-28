@@ -9,6 +9,7 @@ records the reasoning behind a decision, or describes the world as intended.
 | [`WORLD_DESIGN.md`](WORLD_DESIGN.md) | What the world is: concentric difficulty rings, the five towns, the progression spine, and the numbered decisions the rest of the project refers to |
 | [`cross_theme_engine_contracts.md`](cross_theme_engine_contracts.md) | How the engine stays content-neutral, and what the P9 contract work has and has not built |
 | [`place_making_and_town_security.md`](place_making_and_town_security.md) | Why housing, districts and town security are shaped as they are |
+| [`adaptation_slices.md`](adaptation_slices.md) | How far the engine stretches toward an action-adventure and a story-driven RPG: two playable slices, what carried over, what was found and fixed, what is still missing |
 | [`duration-primitive.md`](duration-primitive.md) | **A proposal.** The next primitive: a calendar-anchored timer, why it is not the stopwatch model, and the fantasy preservation chain built on it. Carries two corrections from review |
 
 ## Why this folder is separate from `plan/`

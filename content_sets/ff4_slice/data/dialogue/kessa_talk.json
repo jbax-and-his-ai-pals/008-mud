@@ -1,0 +1,65 @@
+{
+    "id": "kessa_talk",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "There you are. Did you speak to the king?",
+            "choices": [
+                {
+                    "text": "He stripped me of my seal. I am to run his errand.",
+                    "condition": {
+                        "kind": "flag",
+                        "flag": "questioned_king"
+                    },
+                    "next_node": "ahead_stripped",
+                    "effects": {
+                        "move_npc": {
+                            "npc": "captain_kessa",
+                            "region": "mistvale",
+                            "room": "village_square"
+                        },
+                        "set_flag": "kessa_ahead"
+                    }
+                },
+                {
+                    "text": "He sends me to Mistvale with a package.",
+                    "condition": {
+                        "kind": "flag",
+                        "flag": "obeyed_king"
+                    },
+                    "next_node": "ahead_obeyed",
+                    "effects": {
+                        "move_npc": {
+                            "npc": "captain_kessa",
+                            "region": "mistvale",
+                            "room": "village_square"
+                        },
+                        "set_flag": "kessa_ahead"
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "end": true
+                }
+            ]
+        },
+        "ahead_stripped": {
+            "text": "Then he has made a mistake, and I will not watch it happen twice. Go. I will ride ahead and meet you at Mistvale.",
+            "choices": [
+                {
+                    "text": "Thank you, Kessa.",
+                    "end": true
+                }
+            ]
+        },
+        "ahead_obeyed": {
+            "text": "A package for the mayor of Mistvale? Strange. I will ride ahead and meet you there.",
+            "choices": [
+                {
+                    "text": "See you there.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

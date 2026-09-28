@@ -1,0 +1,50 @@
+{
+    "item_commander_seal": {
+        "type": "Item",
+        "name": "commander's seal",
+        "description": "A brass seal on a chain. It marks you as a captain of the Red Fleet.",
+        "weight": 0.3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "curio"
+    },
+    "item_sealed_package": {
+        "type": "Item",
+        "name": "sealed package",
+        "description": "A small package bound in red wax. It is heavier than it looks.",
+        "weight": 0.3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "curio"
+    },
+    "item_iron_chest_fogreach": {
+        "type": "Container",
+        "name": "iron chest",
+        "description": "A rusted iron chest, half swallowed by the cave floor.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_ether",
+                    "quantity": 2
+                },
+                {
+                    "item_id": "item_potion",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    }
+}

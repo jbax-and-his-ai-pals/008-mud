@@ -1,0 +1,28 @@
+{
+  "id": "zelda_slice",
+  "title": "Zelda Slice",
+  "version": "0.1.0",
+  "manifest_schema_version": "1",
+  "engine_api_min": "1.0",
+  "engine_api_max": "1.0",
+  "paths": {
+    "content_root": "data",
+    "ruleset": "rules/ruleset.json",
+    "presentation": "presentation/default.json",
+    "opening": "opening/a_land_in_pieces.json"
+  },
+  "start": {
+    "scenario_id": "a_land_in_pieces",
+    "region_id": "aldermark",
+    "room_id": "starting_meadow"
+  },
+  "capabilities": [
+    "inventory",
+    "quests",
+    "combat",
+    "abilities",
+    "magic",
+    "dialogue",
+    "collections"
+  ]
+}

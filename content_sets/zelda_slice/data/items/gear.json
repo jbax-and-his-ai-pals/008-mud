@@ -1,0 +1,58 @@
+{
+    "item_wooden_sword": {
+        "type": "Weapon",
+        "name": "wooden sword",
+        "description": "A plain practice sword. It is better than a stick.",
+        "weight": 2,
+        "value": 20,
+        "stackable": false,
+        "properties": {
+            "damage": 10,
+            "weapon_damage_type": "slashing",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "attack_profile": "melee_blade",
+        "item_family": "weapon"
+    },
+    "item_white_sword": {
+        "type": "Weapon",
+        "name": "white sword",
+        "description": "A slim blade of pale steel that was never meant to be found.",
+        "weight": 2,
+        "value": 120,
+        "stackable": false,
+        "properties": {
+            "damage": 17,
+            "weapon_damage_type": "slashing",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "attack_profile": "melee_blade",
+        "item_family": "weapon"
+    },
+    "item_small_shield": {
+        "type": "Armor",
+        "name": "small shield",
+        "description": "A round wooden shield with a painted boss.",
+        "weight": 3,
+        "value": 30,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "wood",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "off_hand"
+            ]
+        },
+        "item_family": "armor"
+    }
+}

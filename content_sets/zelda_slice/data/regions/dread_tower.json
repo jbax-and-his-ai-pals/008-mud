@@ -1,0 +1,45 @@
+{
+    "region_id": "dread_tower",
+    "name": "The Black Tower",
+    "description": "A tower of black stone that leans over the northern rim of the land.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "tower_gate": {
+            "name": "Tower Gate",
+            "description": "The great door stands open at last. A stair climbs into smoke.",
+            "exits": {
+                "up": "throne_stair",
+                "out": "aldermark:tower_approach"
+            }
+        },
+        "throne_stair": {
+            "name": "Throne Stair",
+            "description": "A spiral stair, its steps worn to slopes by centuries of boots.",
+            "exits": {
+                "down": "tower_gate",
+                "up": "malgrath_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_soldier",
+                    "instance_id": "soldier_stair"
+                }
+            ]
+        },
+        "malgrath_hall": {
+            "name": "Hall of Malgrath",
+            "description": "A round hall under a broken roof. The sky is the colour of a bruise.",
+            "exits": {
+                "down": "throne_stair"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "malgrath",
+                    "instance_id": "malgrath_at_malgrath_hall"
+                }
+            ]
+        }
+    }
+}

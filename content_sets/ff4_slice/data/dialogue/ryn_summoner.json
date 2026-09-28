@@ -1,0 +1,68 @@
+{
+    "id": "ryn_summoner",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "The fog... the ring... my mother... Are you the one they sent?",
+            "choices": [
+                {
+                    "text": "The dragon is dead. You are safe now.",
+                    "condition": {
+                        "kind": "quest_completed",
+                        "quest_id": "quest_fog_drake"
+                    },
+                    "next_node": "thanks"
+                },
+                {
+                    "text": "Sit. Breathe. I am here.",
+                    "next_node": "calm"
+                },
+                {
+                    "text": "Goodbye.",
+                    "end": true
+                }
+            ]
+        },
+        "calm": {
+            "text": "The fog came from the package. I saw it.",
+            "choices": [
+                {
+                    "text": "I know.",
+                    "end": true
+                }
+            ]
+        },
+        "thanks": {
+            "text": "I can call the titans. Mother taught me before... before. Here, I will teach you the calling song.",
+            "choices": [
+                {
+                    "text": "Teach me.",
+                    "condition": {
+                        "not": {
+                            "kind": "flag",
+                            "flag": "ryn_taught"
+                        }
+                    },
+                    "next_node": "taught",
+                    "effects": {
+                        "teach_spell": "call_titan",
+                        "set_flag": "ryn_taught"
+                    }
+                },
+                {
+                    "text": "Not now.",
+                    "end": true
+                }
+            ]
+        },
+        "taught": {
+            "text": "There. Sing it low and the ground will answer.",
+            "choices": [
+                {
+                    "text": "Thank you, Ryn.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

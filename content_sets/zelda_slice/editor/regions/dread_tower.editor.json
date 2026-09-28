@@ -1,0 +1,23 @@
+{
+    "region": {},
+    "rooms": {
+        "tower_gate": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        },
+        "throne_stair": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        },
+        "malgrath_hall": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        }
+    }
+}

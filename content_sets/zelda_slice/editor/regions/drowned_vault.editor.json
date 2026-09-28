@@ -1,0 +1,41 @@
+{
+    "region": {},
+    "rooms": {
+        "island_landing": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        },
+        "flooded_hall": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "cistern": {
+            "_editor_pos": [
+                512,
+                192
+            ]
+        },
+        "bomb_chamber": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        },
+        "key_niche": {
+            "_editor_pos": [
+                512,
+                -192
+            ]
+        },
+        "serpent_lair": {
+            "_editor_pos": [
+                768,
+                192
+            ]
+        }
+    }
+}

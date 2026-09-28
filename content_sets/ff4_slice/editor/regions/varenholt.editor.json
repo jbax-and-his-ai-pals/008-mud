@@ -1,0 +1,41 @@
+{
+    "region": {},
+    "rooms": {
+        "throne_room": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "courtyard": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        },
+        "barracks": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "chapel": {
+            "_editor_pos": [
+                -256,
+                192
+            ]
+        },
+        "stores": {
+            "_editor_pos": [
+                256,
+                384
+            ]
+        },
+        "castle_gate": {
+            "_editor_pos": [
+                0,
+                384
+            ]
+        }
+    }
+}

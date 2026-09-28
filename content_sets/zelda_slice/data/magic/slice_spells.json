@@ -1,0 +1,104 @@
+{
+    "bomb": {
+        "name": "Bomb",
+        "description": "Light the fuse and throw. Something in the wall may give.",
+        "mana_cost": 10,
+        "cooldown": 2,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} lights a fuse and hurls a bomb!",
+        "hit_message": "The bomb bursts on {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 22,
+                "damage_type": "explosive"
+            }
+        ]
+    },
+    "fairy_mend": {
+        "name": "Fairy Mend",
+        "description": "A shimmer of light that closes wounds.",
+        "mana_cost": 5,
+        "cooldown": 1,
+        "target_type": "friendly",
+        "cast_message": "{caster_name} scatters glittering dust.",
+        "heal_message": "{caster_name} heals {target_name} for {value} health!",
+        "self_heal_message": "Warm light settles on you, restoring {value} health!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 60
+            }
+        ]
+    },
+    "rock_spit": {
+        "name": "Rock Spit",
+        "description": "A stone flung with force.",
+        "mana_cost": 3,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} spits a stone!",
+        "hit_message": "A stone strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 6,
+                "damage_type": "physical"
+            }
+        ]
+    },
+    "wyrm_flame": {
+        "name": "Wyrm Flame",
+        "description": "A gout of flame.",
+        "mana_cost": 8,
+        "cooldown": 7,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} rears back and breathes fire!",
+        "hit_message": "Flame washes over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 10,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "tidal_lash": {
+        "name": "Tidal Lash",
+        "description": "A whip of black water.",
+        "mana_cost": 8,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} coils and strikes with a lash of water!",
+        "hit_message": "Water lashes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 12,
+                "damage_type": "water"
+            }
+        ]
+    },
+    "shadow_bolt": {
+        "name": "Shadow Bolt",
+        "description": "A bolt of hungry dark.",
+        "mana_cost": 10,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} gathers the dark into a bolt!",
+        "hit_message": "The bolt strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 16,
+                "damage_type": "shadow"
+            }
+        ]
+    }
+}

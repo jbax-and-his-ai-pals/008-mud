@@ -1,0 +1,77 @@
+{
+    "id": "sage_triad",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "The Triad was broken and its shards lie in the deep places. Someone has shut the black tower against us.",
+            "choices": [
+                {
+                    "text": "Tell me what to do.",
+                    "condition": {
+                        "not": {
+                            "kind": "flag",
+                            "flag": "campaign_begun"
+                        }
+                    },
+                    "next_node": "begin",
+                    "effects": {
+                        "start_campaign": "restore_the_triad",
+                        "set_flag": "campaign_begun"
+                    }
+                },
+                {
+                    "text": "I have both shards.",
+                    "condition": {
+                        "all": [
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_courage"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_wisdom"
+                            },
+                            {
+                                "not": {
+                                    "kind": "flag",
+                                    "flag": "triad_forged"
+                                }
+                            }
+                        ]
+                    },
+                    "next_node": "forge",
+                    "effects": {
+                        "take_item": [
+                            "item_shard_courage",
+                            "item_shard_wisdom"
+                        ],
+                        "give_item": "item_triad",
+                        "set_flag": "triad_forged"
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "end": true
+                }
+            ]
+        },
+        "begin": {
+            "text": "Two shards remain within reach. One sleeps in Mossroot Hollow, in the oak to the north-west. The other lies on an island in the lake, but you will need something that floats.",
+            "choices": [
+                {
+                    "text": "I'll find them.",
+                    "end": true
+                }
+            ]
+        },
+        "forge": {
+            "text": "Yes. Yes! Hold them together. There, the Triad, incomplete but whole enough to open the tower door.",
+            "choices": [
+                {
+                    "text": "Then I go north.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

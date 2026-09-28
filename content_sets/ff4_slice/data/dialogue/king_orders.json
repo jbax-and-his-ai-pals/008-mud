@@ -1,0 +1,91 @@
+{
+    "id": "king_orders",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "The crystals are not yet ours, and Mistvale keeps a ring of red stones that we want. Carry this package to their mayor. It is a gift. Do not open it.",
+            "choices": [
+                {
+                    "text": "At once, my king.",
+                    "condition": {
+                        "not": {
+                            "any": [
+                                {
+                                    "kind": "flag",
+                                    "flag": "obeyed_king"
+                                },
+                                {
+                                    "kind": "flag",
+                                    "flag": "questioned_king"
+                                }
+                            ]
+                        }
+                    },
+                    "next_node": "obey",
+                    "effects": {
+                        "start_campaign": "the_package",
+                        "set_flag": "obeyed_king"
+                    }
+                },
+                {
+                    "text": "My king, the raid was a slaughter. I will not serve as your blade in this.",
+                    "condition": {
+                        "not": {
+                            "any": [
+                                {
+                                    "kind": "flag",
+                                    "flag": "obeyed_king"
+                                },
+                                {
+                                    "kind": "flag",
+                                    "flag": "questioned_king"
+                                }
+                            ]
+                        }
+                    },
+                    "next_node": "dismissed",
+                    "effects": {
+                        "take_item": "item_commander_seal",
+                        "start_campaign": "the_package",
+                        "set_flag": "questioned_king"
+                    }
+                },
+                {
+                    "text": "Tell me again what the package is.",
+                    "next_node": "package"
+                },
+                {
+                    "text": "I will go.",
+                    "end": true
+                }
+            ]
+        },
+        "obey": {
+            "text": "Good. Be quick. The fleet sails at dawn.",
+            "choices": [
+                {
+                    "text": "Yes, my king.",
+                    "end": true
+                }
+            ]
+        },
+        "dismissed": {
+            "text": "Then you are no captain of mine. Give me your seal. You will deliver the package as a courier, and consider that generous.",
+            "choices": [
+                {
+                    "text": "...",
+                    "end": true
+                }
+            ]
+        },
+        "package": {
+            "text": "It is a gift for the mayor. Nothing more.",
+            "choices": [
+                {
+                    "text": "I will go.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

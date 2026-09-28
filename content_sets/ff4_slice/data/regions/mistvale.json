@@ -1,0 +1,53 @@
+{
+    "region_id": "mistvale",
+    "name": "Mistvale",
+    "description": "A quiet mountain village that keeps to itself, wrapped in a fog that never quite lifts.",
+    "properties": {
+        "safe_zone": true
+    },
+    "rooms": {
+        "valley_path": {
+            "name": "Valley Path",
+            "description": "A path winds down into the village between wet stones.",
+            "exits": {
+                "south": "village_square",
+                "up": "fogreach:cave_exit"
+            }
+        },
+        "village_square": {
+            "name": "Village Square",
+            "description": "A small square with a well. Fog lies in the streets like milk.",
+            "exits": {
+                "north": "valley_path",
+                "east": "ruined_lane",
+                "south": "shrine"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "mayor_of_mistvale",
+                    "instance_id": "mayor_of_mistvale_at_village_square"
+                }
+            ]
+        },
+        "ruined_lane": {
+            "name": "Lane of Cottages",
+            "description": "A lane of low cottages. The doors are shut.",
+            "exits": {
+                "west": "village_square"
+            }
+        },
+        "shrine": {
+            "name": "Village Shrine",
+            "description": "A stone shrine with a ring of small offerings around its base.",
+            "exits": {
+                "north": "village_square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ryn",
+                    "instance_id": "ryn_at_shrine"
+                }
+            ]
+        }
+    }
+}

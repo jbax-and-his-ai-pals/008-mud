@@ -25,7 +25,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-CONTENT_SETS = ("fantasy_frontier", "modern_capsule", "night_shift", "orbital_salvage")
+CONTENT_SETS = ("fantasy_frontier", "modern_capsule", "night_shift", "orbital_salvage", "zelda_slice", "ff4_slice")
 
 
 def _load_tool():

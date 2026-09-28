@@ -1,0 +1,14 @@
+{
+    "triad_shards": {
+        "name": "The Broken Triad",
+        "description": "The shards of the Triad, scattered when the tower fell.",
+        "items": [
+            "item_shard_courage",
+            "item_shard_wisdom"
+        ],
+        "rewards": {
+            "xp": 150,
+            "gold": 50
+        }
+    }
+}
