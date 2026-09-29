@@ -143,6 +143,7 @@ class Launcher:
         self.lines: "queue.Queue[str]" = queue.Queue()
         self.status: dict[str, str] = {}
         self.results: "queue.Queue[tuple[str, str]]" = queue.Queue()   # worker threads never touch tkinter
+        self.ready = threading.Event()
 
         self.transport = tk.StringVar(value=self.settings.get("transport", "tcp"))
         self.port = tk.StringVar(value=str(self.settings.get("port", DEFAULT_PORT)))
@@ -246,6 +247,7 @@ class Launcher:
         env = dict(os.environ, PYTHONUNBUFFERED="1", PYGAME_HIDE_SUPPORT_PROMPT="1")
         self.process = subprocess.Popen(command, cwd=str(REPO), env=env, stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
+        self.ready.clear()
         threading.Thread(target=self._pump, args=(self.process,), daemon=True).start()
         self.settings.update(last_set=entry["id"], transport=self.transport.get(), port=port, mode=self.mode.get())
         save_settings(self.settings)
@@ -259,12 +261,15 @@ class Launcher:
     def _pump(self, process: subprocess.Popen) -> None:
         assert process.stdout is not None
         for line in process.stdout:
-            self.lines.put(line.rstrip("\n"))
+            text = line.rstrip("\n")
+            if "listening on" in text:
+                self.ready.set()   # the server says so itself; no need to knock on the port
+            self.lines.put(text)
 
     def _wait_ready(self, port: int, set_id: str, started: float) -> None:
         if self.process is None or self.process.poll() is not None:
             return
-        if port_open(port):
+        if self.ready.is_set():
             self.state.set("Server running: %s on 127.0.0.1:%d (%s). Connect a client to it." % (set_id, port, self.transport.get()))
         elif time.time() - started < 60:
             self.root.after(500, lambda: self._wait_ready(port, set_id, started))
@@ -369,7 +374,7 @@ def selftest() -> int:
     ok = False
     while time.time() < deadline:
         root.update()
-        if port_open(free):
+        if app.ready.is_set():
             ok = True
             break
         time.sleep(0.2)

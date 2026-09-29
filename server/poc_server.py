@@ -831,6 +831,14 @@ class JsonLineMudServer:
                     pass
                 self._background_tick_task = None
     async def _handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        """Serve one connection. A peer that resets the connection (a port check, a killed
+        client) ends its own session quietly instead of surfacing as an unhandled task error."""
+        try:
+            await self._serve_client(reader, writer)
+        except (ConnectionError, OSError):
+            pass
+
+    async def _serve_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         import uuid
         unique_player_id = f"player_{uuid.uuid4().hex[:8]}"
         session = self.server.create_session(
@@ -1435,11 +1443,19 @@ class JsonLineMudServer:
             self._gm_auth_failures.pop(session.session_id, None)
             self._gm_auth_cooldown_until.pop(session.session_id, None)
             writer.close()
-            await writer.wait_closed()
+            try:
+                await writer.wait_closed()
+            except (ConnectionError, OSError):
+                pass   # the peer reset the connection as it hung up (a port check, a killed client)
 
     async def _send_event(self, writer: asyncio.StreamWriter, event: Dict[str, Any]) -> None:
-        writer.write((json.dumps(event) + "\n").encode("utf-8"))
-        await writer.drain()
+        try:
+            writer.write((json.dumps(event) + "\n").encode("utf-8"))
+            await writer.drain()
+        except (ConnectionError, OSError):
+            # The peer is gone (a port check, a killed client). The read loop sees the
+            # end of the stream next and cleans the session up; a failed send is not news.
+            return
 
     async def _broadcast_policy_update(self) -> None:
         for target_session_id, target_writer in list(self._session_writers.items()):
