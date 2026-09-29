@@ -75,6 +75,10 @@ playing; `test` is for authoring). The pygame client is still in the tree behind
 `server/main.py --content-set …`; the Godot client in `client/` and the world
 editor in `mud-world-editor/` are the supported front ends.
 
+**Launcher GUI:** double-click `launcher.bat` (or run `python toolkit/launcher.py`) to pick a
+content set, see whether it validates, start and stop a server, play in a terminal, and open the
+Godot client or the world editor. Standard library only.
+
 *   **Arguments (all servers):**
     *   `--content-set <path>`: which game to serve (required).
     *   `--save <filename>`: save file to load/save (default: `server_save.json`).
