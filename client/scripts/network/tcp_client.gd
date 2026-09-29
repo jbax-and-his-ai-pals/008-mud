@@ -20,6 +20,9 @@ func connect_to_server(host: String, port: int) -> void:
 	_is_connected = true
 	connected.emit()
 
+func is_connected_to_server() -> bool:
+	return _is_connected
+
 func disconnect_from_server() -> void:
 	if _peer:
 		_peer.disconnect_from_host()

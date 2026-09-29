@@ -17,6 +17,9 @@ func connect_to_server(host: String, port: int) -> void:
 		error.emit("Connect failed: %s" % err)
 		return
 
+func is_connected_to_server() -> bool:
+	return _is_connected
+
 func disconnect_from_server() -> void:
 	if _peer:
 		_peer.close()
