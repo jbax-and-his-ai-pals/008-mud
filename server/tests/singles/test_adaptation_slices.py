@@ -351,6 +351,23 @@ class TestZeldaSlice(_Slice):
         self.assertIn("Quest Complete", self.say("talk sage complete"))
         self.assertIn("The Shard of Wisdom", self.quest_states(), "completing a quest starts the next campaign node")
 
+    # Flipped by item 5.1: a template's own max_health is the maximum.
+    def test_a_template_max_health_is_the_maximum(self):
+        template = self.world.npc_templates["slime_blob"]
+        template["max_health"] = 777
+        self.addCleanup(template.pop, "max_health", None)
+        npc = NPCFactory.create_npc_from_template("slime_blob", self.world, "probe_blob")
+        self.assertEqual(777, npc.max_health)
+        self.assertEqual(777, npc.health, "and it starts at full, not wounded")
+
+    def test_the_slices_state_their_monsters_health_rather_than_solving_for_constitution(self):
+        for template_id in ("horned_wyrm", "malgrath"):
+            template = self.world.npc_templates[template_id]
+            self.assertIn("max_health", template)
+            self.assertNotIn("health", template)
+            npc = NPCFactory.create_npc_from_template(template_id, self.world, "probe_" + template_id)
+            self.assertEqual((template["max_health"], template["max_health"]), (npc.max_health, npc.health))
+
 
 class TestFF4Slice(_Slice):
     SET_ID = "ff4_slice"
@@ -541,14 +558,6 @@ class TestKnownLimits(_Slice):
         self.kill("slime_blob", "blob")
         self.tick(9200)  # 920 s of game time, five times the blob's authored 180
         self.assertEqual([], self.npcs("slime_blob"))
-
-    # FLIP in item 5.1: a template's own max_health is the maximum.
-    def test_limit_a_template_max_health_is_ignored(self):
-        template = self.world.npc_templates["slime_blob"]
-        template["max_health"] = 777
-        self.addCleanup(template.pop, "max_health", None)
-        npc = NPCFactory.create_npc_from_template("slime_blob", self.world, "probe_blob")
-        self.assertNotEqual(777, npc.max_health)
 
     # FLIP in item 5.3: a hazard a fresh hero shrugs off draws a validator warning.
     def test_limit_a_hazard_below_the_resistance_draws_no_warning(self):

@@ -45,7 +45,7 @@ def compute_elite_overrides(template: Dict[str, Any], world) -> Dict[str, Any]:
     name_pattern = config.get("name_pattern", "{prefix} {name}")
     elite_name = name_pattern.format(prefix=prefix, name=template.get("name", "creature"))
 
-    return {
+    promoted = {
         "name": elite_name,
         "stats": stats,
         "attack_power": attack_power,
@@ -53,3 +53,9 @@ def compute_elite_overrides(template: Dict[str, Any], world) -> Dict[str, Any]:
         "loot_table": loot_table,
         "properties_override": {"is_elite": True},
     }
+    # A template that states its own maximum does not get it from constitution,
+    # so boosting the stats would leave an elite exactly as durable as the rest.
+    authored_max = template.get("max_health")
+    if isinstance(authored_max, (int, float)) and not isinstance(authored_max, bool) and authored_max >= 1:
+        promoted["max_health"] = max(1, int(authored_max * multiplier))
+    return promoted

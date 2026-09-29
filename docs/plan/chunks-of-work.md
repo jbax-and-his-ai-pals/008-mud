@@ -1112,6 +1112,8 @@ open and hands the rest to `_arrive` (visited, location, quest room entry, insta
 look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
 `test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
 
+**5.1** a template's `max_health` is the maximum. `NPCFactory` reads it between a saved or placed value and the derived figure (a non-number or a value below 1 is ignored); `compute_elite_overrides` scales an authored maximum, since an elite's boost is to constitution, which an authored maximum does not read. Validator: `max_health` a whole number of at least 1, a warning when `health` is above it. Editor: a "Max Health" field beside the starting health (0 erases the key), and the comment that called this "not a misleading max-health override" is corrected; `editor-readiness.md`'s stale "read by nothing" row is closed. Slices: every monster's `health: 400` (always clamped away) became the maximum it was really getting, so nothing in the balance moved. The only shipped template that already stated a maximum, `fantasy_frontier`'s `skeletal_mage_minion` (30, matching its `health`), now applies.
+
 **4.3** a campaign node can be a scene. `CUTSCENE` applies its `effects` (the conversation vocabulary, run by `apply_effects`) and
 moves on along `SUCCESS` at once; `DIALOGUE` applies them and waits for the new `advance_campaign` effect, which moves a campaign
 only when it is waiting on a `DIALOGUE` node (it cannot skip a quest). `CampaignManager` was split into `_advance` (the

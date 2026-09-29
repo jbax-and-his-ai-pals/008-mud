@@ -439,14 +439,18 @@ func _build_stats():
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
 	container.add_child(card)
 	
-	# Basic. `level`, authored starting `health`, and `max_mana` are engine keys.
-	# The factory clamps starting health to the max derived from level/stats, so
-	# this is not a misleading max-health override. Only labels come from content:
-	# a set whose ability pool is Charge says Charge here.
+	# Basic. `level`, `health` (where it starts), `max_health` (its ceiling) and
+	# `max_mana` are engine keys. The factory reads a template's `max_health` as the
+	# maximum (else it derives one from level and constitution) and clamps the
+	# starting health to it, so "Max" left at 0 is the derived figure and writes
+	# nothing. Only labels come from content: a set whose ability pool is Charge
+	# says Charge here.
 	var hb_basic = HBoxContainer.new()
 	vbox.add_child(hb_basic)
 	_add_spin_field(hb_basic, "Level", "level", 1)
 	_add_spin_field(hb_basic, "Starting " + _pool_label("vital", "Health"), "health", 10)
+	_add_optional_spin_field(hb_basic, "Max " + _pool_label("vital", "Health"), "max_health", "MaxHealth",
+		"0 leaves it derived from level and constitution. Set it to state the maximum outright; an elite scales it.")
 	_add_spin_field(hb_basic, _pool_label("ability", "Ability"), "max_mana", 0)
 	
 	# Attributes Grid: this content set's stats, and only those.
@@ -505,6 +509,20 @@ func _add_spin_field(parent, label, key, default):
 	# float written into `level` is the int-to-float defect the number gate exists
 	# to catch. Coercing here is cheaper than explaining it in a diff.
 	sb.value_changed.connect(func(v): cur_data[key] = int(v); database_modified.emit())
+	InspectorStyle.apply_input_style(sb)
+	vb.add_child(sb); parent.add_child(vb)
+
+## A whole number the engine has a fallback for: 0 means "not authored", so it erases the key
+## rather than writing a 0 the validator would refuse.
+func _add_optional_spin_field(parent, label, key, node_name, tooltip):
+	var vb = VBoxContainer.new(); vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_child(InspectorStyle.lbl(label, InspectorStyle.COLOR_TEXT_DIM))
+	var sb = SpinBox.new(); sb.name = node_name; sb.min_value = 0; sb.max_value = 100000
+	sb.value = int(cur_data.get(key, 0)); sb.tooltip_text = tooltip
+	sb.value_changed.connect(func(v):
+		if int(v) <= 0: cur_data.erase(key)
+		else: cur_data[key] = int(v)
+		database_modified.emit())
 	InspectorStyle.apply_input_style(sb)
 	vb.add_child(sb); parent.add_child(vb)
 

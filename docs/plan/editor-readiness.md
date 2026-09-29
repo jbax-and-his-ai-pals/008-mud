@@ -266,7 +266,7 @@ rest are the remaining work.
 | "Cast Time" / "Range" | Wrote `cast_time`/`range`, which `Spell` does not accept → same file-wide failure | content-breaking — **fixed** |
 | group picker on an ability | Wrote `magic_group` into content, which `Spell` refuses → same failure | content-breaking — **fixed** |
 | nested item `properties` | Rendered with `str(val)` and wrote the string back — flattens `salvage_output`, `resistances`, `yield_table`, `substitute_resource_ids` (11 shipped items have one) | silent data loss — **open** |
-| NPC "Health" | `health` on a template is read by **nothing**; the engine derives `max_health` from the constitution stat and reads `health` only from a room placement's `overrides` | an author sets 250 HP and gets the derived value — **open** |
+| NPC "Health" | A template's `health` is where it starts (clamped to the maximum); its `max_health` is the maximum (else derived from level and constitution); a placement override beats both (chunk 7, item 5.1) | the panel offers both: "Starting Health" and "Max Health" (0 = derived) — **closed** |
 | `rewards` on a quest | No widget, excluded from the "kept as authored" note; a malformed `rewards` raises *between* popping the quest from `active` and archiving it, and the desktop and headless paths disagree about the default quantity | an unreachable, unrepairable, quest-destroying field — **open** |
 | effect `duration` | Written for every effect type except `apply_dot`; the engine reads `dot_duration` / `base_duration` | silently inert — **open** |
 | unknown effect types | Shown as "Damage"; touching the picker rewrites the type | rewrites authored `cleanse`/`life_tap`/`unlock`/`stat_mod` — **open** |

@@ -104,9 +104,13 @@ class NPCFactory:
                 npc_world, npc.stats, "attack", NPC_DEFAULT_STATS
             )
 
-            # Health
+            # Health. Precedence: a saved or placed value (`overrides`), then the
+            # template's own `max_health`, then what level and constitution derive.
+            template_max_health = template.get("max_health")
             if "max_health" in overrides:
                  npc.max_health = overrides["max_health"]
+            elif isinstance(template_max_health, (int, float)) and not isinstance(template_max_health, bool) and template_max_health >= 1:
+                 npc.max_health = int(template_max_health)
             else:
                  base_hp = NPC_BASE_HEALTH + int(final_con * NPC_CON_HEALTH_MULTIPLIER)
                  level_hp_bonus = (npc.level - 1) * (NPC_LEVEL_HEALTH_BASE_INCREASE + int(final_con * NPC_LEVEL_CON_HEALTH_MULTIPLIER))

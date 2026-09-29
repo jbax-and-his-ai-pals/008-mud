@@ -1535,6 +1535,15 @@ def _validate_npc_template_runtime_shapes(
                     value = template[field]
                     if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
                         issues.append(ContentSetIssue("error", str(path), f"{label}.{field} must be a non-negative number"))
+            if "max_health" in template:
+                value = template["max_health"]
+                if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.max_health must be a whole number of at least 1 (leave it out to derive it from level and constitution)"))
+                elif isinstance(template.get("health"), (int, float)) and not isinstance(template.get("health"), bool) and template["health"] > value:
+                    issues.append(ContentSetIssue(
+                        "warning", str(path),
+                        f"{label}.health {template['health']} is above its max_health {value}; it starts at {value}",
+                    ))
 
             properties = template.get("properties", {})
             if properties is not None and not isinstance(properties, dict):

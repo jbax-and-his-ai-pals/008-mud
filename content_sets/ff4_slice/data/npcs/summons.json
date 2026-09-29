@@ -2,7 +2,7 @@
     "titan_minion": {
         "name": "Titan",
         "description": "A vast, grey-skinned giant, summoned from somewhere below the world.",
-        "health": 400,
+        "max_health": 447,
         "level": 50,
         "friendly": false,
         "faction": "player_minion",

@@ -2,7 +2,7 @@
     "slime_blob": {
         "name": "green blob",
         "description": "A quivering lump of green jelly.",
-        "health": 400,
+        "max_health": 31,
         "level": 1,
         "friendly": false,
         "faction": "hostile",
@@ -44,7 +44,7 @@
     "cave_bat": {
         "name": "cave bat",
         "description": "A leathery bat that flutters in erratic loops.",
-        "health": 400,
+        "max_health": 31,
         "level": 1,
         "friendly": false,
         "faction": "hostile",
@@ -86,7 +86,7 @@
     "bone_soldier": {
         "name": "bone soldier",
         "description": "A rattling skeleton in the rags of a uniform.",
-        "health": 400,
+        "max_health": 36,
         "level": 2,
         "friendly": false,
         "faction": "hostile",
@@ -128,7 +128,7 @@
     "rock_spitter": {
         "name": "rock spitter",
         "description": "A squat, red creature that fires stones from its snout.",
-        "health": 400,
+        "max_health": 34,
         "level": 2,
         "friendly": false,
         "faction": "hostile",
@@ -174,7 +174,7 @@
     "river_lurker": {
         "name": "river lurker",
         "description": "A pale, eyeless thing that waits in still water.",
-        "health": 400,
+        "max_health": 45,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -216,7 +216,7 @@
     "stone_warden": {
         "name": "stone warden",
         "description": "A moss-armoured guardian that holds the key to the hall beyond.",
-        "health": 400,
+        "max_health": 60,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -261,7 +261,7 @@
     "horned_wyrm": {
         "name": "horned wyrm",
         "description": "A lumbering, horned wyrm with a throat that glows before it breathes.",
-        "health": 400,
+        "max_health": 81,
         "level": 4,
         "friendly": false,
         "faction": "hostile",
@@ -317,7 +317,7 @@
     "tide_serpent": {
         "name": "tide serpent",
         "description": "A coil of black scales rising out of the cistern.",
-        "health": 400,
+        "max_health": 100,
         "level": 5,
         "friendly": false,
         "faction": "hostile",
@@ -370,7 +370,7 @@
     "malgrath": {
         "name": "Malgrath",
         "description": "A tall figure in a crown of black iron, wreathed in the smoke of the ruined tower.",
-        "health": 400,
+        "max_health": 136,
         "level": 7,
         "friendly": false,
         "faction": "hostile",
