@@ -50,7 +50,7 @@ placeholder_text = "Host"
 [node name="PortInput" type="LineEdit" parent="VBox/ConnectionRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(120, 0)
-text = "8765"
+text = "59399"
 placeholder_text = "Port"
 
 [node name="ConnectButton" type="Button" parent="VBox/ConnectionRow"]

@@ -100,7 +100,7 @@ func has_marker() -> bool:
 func _on_restore_pressed() -> void:
 	visible = false
 	var host: String = str(_marker_data.get("host", "127.0.0.1"))
-	var port: int = int(_marker_data.get("port", 8765))
+	var port: int = int(_marker_data.get("port", 59399))
 	var session_id: String = str(_marker_data.get("session_id", ""))
 	var transport: String = str(_marker_data.get("transport", "WebSocket"))
 	clear_marker()

@@ -16,7 +16,7 @@ extends Control
 
 const MAIN_SCENE := "res://scenes/main.tscn"
 const DEFAULT_OFFLINE_HOST := "127.0.0.1"
-const DEFAULT_PORT := 8765
+const DEFAULT_PORT := 59399
 
 @onready var offline_button: Button = $CenterContainer/LauncherVBox/OfflineButton
 @onready var connect_online_button: Button = $CenterContainer/LauncherVBox/ConnectOnlineButton

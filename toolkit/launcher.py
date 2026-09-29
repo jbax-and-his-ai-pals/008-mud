@@ -31,7 +31,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 CONTENT_SETS = REPO / "content_sets"
 SETTINGS = Path.home() / ".mud_launcher.json"
-DEFAULT_PORT = 8765
+DEFAULT_PORT = 59399
 sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "server"))
 

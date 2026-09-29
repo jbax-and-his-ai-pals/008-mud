@@ -60,13 +60,13 @@ theme_override_constants/separation = 6
 [node name="HostInput" type="LineEdit" parent="CenterContainer/LauncherVBox/OnlinePanel/HostPortRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
+text = "127.0.0.1"
 placeholder_text = "host or IP"
 
 [node name="PortInput" type="LineEdit" parent="CenterContainer/LauncherVBox/OnlinePanel/HostPortRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(100, 0)
-text = "8765"
+text = "59399"
 placeholder_text = "Port"
 
 [node name="ConnectButton" type="Button" parent="CenterContainer/LauncherVBox/OnlinePanel"]
