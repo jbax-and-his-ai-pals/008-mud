@@ -82,7 +82,7 @@
                     "explosive": {
                         "type": "clear_exit_req",
                         "direction": "north",
-                        "duration": 120,
+                        "permanent": true,
                         "message": "The wall bursts inward in a cloud of dust!"
                     }
                 }

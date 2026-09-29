@@ -235,7 +235,7 @@ class TestZeldaSlice(_Slice):
         self.say("go down")
         self.assertEqual("mossroot:secret_larder", self.where())
 
-    def test_a_bomb_opens_a_cracked_wall_and_the_wall_closes_again(self):
+    def test_a_bomb_opens_a_cracked_wall_and_the_wall_stays_open(self):
         self.at("drowned_vault", "bomb_chamber")
         self.say("go north")
         self.assertEqual("drowned_vault:bomb_chamber", self.where())
@@ -245,13 +245,12 @@ class TestZeldaSlice(_Slice):
         self.assertIn("bursts", self.say("cast bomb on here"))
         self.say("go north")
         self.assertEqual("drowned_vault:key_niche", self.where())
-        # Documented limit: a bombed wall does not stay bombed. `env_interactions`
-        # revert after their `duration`, so a wall that should stay open cannot be
-        # written yet. If that is ever fixed, this is the line that should change.
+        # The reaction is `permanent`: a bombed wall stays bombed, however long you
+        # leave it (it used to close again after its 120 s).
         self.say("go south")
         self.tick(1300)
         self.say("go north")
-        self.assertEqual("drowned_vault:bomb_chamber", self.where())
+        self.assertEqual("drowned_vault:key_niche", self.where())
 
     def test_two_hazards_tick_on_their_own_clocks(self):
         self.at("drowned_vault", "flooded_hall")
@@ -427,9 +426,7 @@ class TestKnownLimits(_Slice):
 
     Every test here passes today and describes a limit, not a wish. Each carries the
     plan item that flips it (docs/plan/chunks-of-work.md, chunk 7): the assertion is
-    reversed in that item's commit, which is what proves the item did something. The
-    bomb wall's limit is pinned above, in `test_a_bomb_opens_a_cracked_wall_and_the_
-    wall_closes_again`, and flips in item 3.3.
+    reversed in that item's commit, which is what proves the item did something.
     """
 
     SET_ID = "zelda_slice"
@@ -562,6 +559,26 @@ class TestPersistence(unittest.TestCase):
         self.assertEqual(("varenholt", "throne_room"), (fiends[0].current_region_id, fiends[0].current_room_id))
         self.assertEqual([], [n for n in second.world.npcs.values() if n.template_id == "chancellor"],
                          "and the chancellor is still gone")
+
+    def test_a_bombed_wall_is_still_open_after_a_restart(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        sid, _ = self._join(first, "Restarter", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.current_region_id, hero.current_room_id = "drowned_vault", "bomb_chamber"
+        magic = hero.runtime_state.magic
+        magic.known_spells.add("bomb")
+        magic.mana = magic.max_mana = 100
+        self.assertIn("bursts", self._say(first, sid, "cast bomb on here"))
+        first.shutdown()
+
+        second = self._boot("zelda_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, _ = self._join(second, "Restarter", "another-id")
+        again = second.get_player_for_session(sid2)
+        self.assertEqual("bomb_chamber", again.current_room_id)
+        self._say(second, sid2, "go north")
+        self.assertEqual("key_niche", again.current_room_id, "the wall is still down: the room's change is in the snapshot")
 
     def test_a_spent_key_and_its_open_door_survive_a_restart(self):
         db = self._db()

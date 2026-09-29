@@ -112,6 +112,18 @@ func _run():
 	_assert(not requirements[direction].has("consume"), "and unticking erases it, so a default stays unwritten")
 	requirements[direction] = {"type": "condition", "condition": {"kind": "flag", "flag": "gate_open"}, "failure_message": "The gate is shut."}
 
+	print("\n[a permanent reaction]")
+	var reaction_row: Node = holder.find_child("Reaction_" + damage_type, true, false)
+	var permanent_box: CheckBox = reaction_row.find_child("Permanent", true, false)
+	_assert(permanent_box != null and reaction_row.find_child("Duration", true, false) != null, "a reaction has a permanent box and, until ticked, a duration")
+	permanent_box.button_pressed = true
+	reaction_row = holder.find_child("Reaction_" + damage_type, true, false)
+	_assert(reactions[damage_type].get("permanent") == true and not reactions[damage_type].has("duration"),
+		"ticking it writes permanent and drops the duration it contradicts: %s" % str(reactions[damage_type]))
+	_assert(reaction_row.find_child("Duration", true, false) == null, "and hides the duration box")
+	(reaction_row.find_child("Permanent", true, false) as CheckBox).button_pressed = false
+	_assert(not reactions[damage_type].has("permanent"), "unticking erases it, so the default stays unwritten")
+
 	print("\n[removing]")
 	_button(holder.find_child("Hidden_secret", true, false), "×").pressed.emit()
 	_assert(not square["properties"].has("hidden_exits"), "removing the last hidden exit removes the key")

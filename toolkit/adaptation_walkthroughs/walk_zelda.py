@@ -195,6 +195,10 @@ check("got the shard of wisdom", "item_shard_wisdom" in g.items(), str(g.items()
 print("    collection:", flat(say(g, "collection"), 240))
 
 # --- forge and tower ---------------------------------------------------------
+# The retreat crosses the flooded hall's two hazards, and the serpent fight is seeded
+# and random: how hurt the hero is here depends on every roll before it. Heal, as
+# above, so the walk proves the route and not the luck.
+g.player.health = g.player.max_health
 say(g, "go west"); say(g, "go west"); say(g, "go west"); say(g, "go west")
 check("back at the lake dock", g.where() == "aldermark:lake_dock", g.where())
 say(g, "go west"); say(g, "go west")

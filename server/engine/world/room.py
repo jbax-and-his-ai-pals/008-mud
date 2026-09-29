@@ -104,6 +104,10 @@ class Room(GameObject):
         action = reaction.get("type")
         duration = reaction.get("duration", 10.0)
         msg = reaction.get("message", "The environment shifts.")
+        # A permanent reaction applies the change and schedules no revert. It is a
+        # change to the room's properties, which the world snapshot already keeps, so
+        # it survives a restart. (Not `duration: null`, which the tick would trip on.)
+        permanent = reaction.get("permanent") is True
 
         if action == "clear_exit_req":
             direction = reaction.get("direction")
@@ -116,12 +120,13 @@ class Room(GameObject):
                 del reqs[direction]
                 self.update_property("exit_requirements", reqs)
                 
-                self.active_env_effects.append({
-                    "action": "modify_exit_req",
-                    "direction": direction,
-                    "original_value": original,
-                    "time_remaining": duration
-                })
+                if not permanent:
+                    self.active_env_effects.append({
+                        "action": "modify_exit_req",
+                        "direction": direction,
+                        "original_value": original,
+                        "time_remaining": duration
+                    })
                 return f"{FORMAT_HIGHLIGHT}{msg}{FORMAT_RESET}"
         
         elif action == "suppress_hazard":
@@ -139,20 +144,22 @@ class Room(GameObject):
                 if not quiet:
                     return None
                 self.update_property("hazards", [entry for entry in listed if entry not in quiet])
-                self.active_env_effects.append({
-                    "action": "suppress_hazard",
-                    "original_entries": copy.deepcopy(quiet),
-                    "time_remaining": duration
-                })
+                if not permanent:
+                    self.active_env_effects.append({
+                        "action": "suppress_hazard",
+                        "original_entries": copy.deepcopy(quiet),
+                        "time_remaining": duration
+                    })
                 return f"{FORMAT_HIGHLIGHT}{msg}{FORMAT_RESET}"
             current_hazard = self.properties.get("hazard_type")
             if current_hazard and matches(str(current_hazard)):
                 self.update_property("hazard_type", None)
-                self.active_env_effects.append({
-                    "action": "suppress_hazard",
-                    "original_value": current_hazard,
-                    "time_remaining": duration
-                })
+                if not permanent:
+                    self.active_env_effects.append({
+                        "action": "suppress_hazard",
+                        "original_value": current_hazard,
+                        "time_remaining": duration
+                    })
                 return f"{FORMAT_HIGHLIGHT}{msg}{FORMAT_RESET}"
 
         return None

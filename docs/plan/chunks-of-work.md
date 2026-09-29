@@ -1112,6 +1112,13 @@ open and hands the rest to `_arrive` (visited, location, quest room entry, insta
 look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
 `test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
 
+**3.3** `permanent: true` on an environmental reaction (`clear_exit_req`, `suppress_hazard`) applies the change and
+schedules no revert, in `Room.apply_elemental_interaction`. World-scoped (Decision 11) and carried by the existing snapshot of a
+room's property changes, so a bombed wall is still down after a restart (`test_a_bombed_wall_is_still_open_after_a_restart`). The
+validator refuses `permanent` with a `duration` and a non-boolean `permanent`; the editor's reaction row has a "permanent" box that
+hides the duration it contradicts. Zelda's bomb wall stays open; `test_a_bomb_opens_a_cracked_wall_and_the_wall_closes_again`
+became `..._stays_open`, and the walkthrough's bomb-wall check now passes. Not done: FF4's melted door (no such wall exists yet).
+
 **3.2** `consume` on an exit requirement spends a key when the player actually goes through (`World._commit_exit_gate`, after
 every check and before `_arrive`) and records `exit_open:<region>:<room>:<dir>` in `player.flags` (Decision 11: per player,
 saved with the character, never a rewrite of a static room's requirement). The validator requires a `key_id` to consume, refuses a

@@ -25,8 +25,8 @@ const REQUIREMENT_KEYS := {
 }
 const REACTION_TYPES := ["clear_exit_req", "suppress_hazard"]
 const REACTION_KEYS := {
-	"clear_exit_req": ["type", "direction", "duration", "message"],
-	"suppress_hazard": ["type", "duration", "message", "channel"],
+	"clear_exit_req": ["type", "direction", "duration", "permanent", "message"],
+	"suppress_hazard": ["type", "duration", "permanent", "message", "channel"],
 }
 
 var room: Dictionary
@@ -220,11 +220,26 @@ func _reaction_row(damage_type: String, reaction: Dictionary) -> Control:
 		var target := _choice(directions, str(reaction.get("direction", "")), "Requirement")
 		target.item_selected.connect(func(index): reaction["direction"] = str(target.get_item_metadata(index)); data_modified.emit())
 		row.add_child(target)
-	row.add_child(InspectorStyle.lbl("for (s)", InspectorStyle.COLOR_TEXT_DIM))
-	var duration := SpinBox.new(); duration.name = "Duration"; duration.min_value = 1; duration.max_value = 3600; duration.step = 1
-	duration.value = float(reaction.get("duration", 10.0)); duration.custom_minimum_size.x = 70; InspectorStyle.apply_input_style(duration)
-	duration.value_changed.connect(func(value): reaction["duration"] = int(value); data_modified.emit())
-	row.add_child(duration)
+	# A permanent reaction has nothing to revert, so it has no duration: the two
+	# contradict, and the validator refuses both together.
+	var permanent := CheckBox.new(); permanent.name = "Permanent"; permanent.text = "permanent"
+	permanent.tooltip_text = "The change is never reverted (a wall that stays bombed open)."
+	permanent.button_pressed = reaction.get("permanent", false) == true
+	permanent.toggled.connect(func(on):
+		if on:
+			reaction["permanent"] = true
+			reaction.erase("duration")
+		else:
+			reaction.erase("permanent")
+		data_modified.emit()
+		_refresh())
+	row.add_child(permanent)
+	if reaction.get("permanent", false) != true:
+		row.add_child(InspectorStyle.lbl("for (s)", InspectorStyle.COLOR_TEXT_DIM))
+		var duration := SpinBox.new(); duration.name = "Duration"; duration.min_value = 1; duration.max_value = 3600; duration.step = 1
+		duration.value = float(reaction.get("duration", 10.0)); duration.custom_minimum_size.x = 70; InspectorStyle.apply_input_style(duration)
+		duration.value_changed.connect(func(value): reaction["duration"] = int(value); data_modified.emit())
+		row.add_child(duration)
 	row.add_child(_text(reaction, "message", "message (optional)"))
 	row.add_child(_remove("env_interactions", damage_type))
 	return row

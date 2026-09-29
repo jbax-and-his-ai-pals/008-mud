@@ -4225,8 +4225,8 @@ EXIT_REQUIREMENT_KEYS = {
     "condition": ("type", "condition", "consume", "failure_message"),
 }
 ENV_INTERACTION_KEYS = {
-    "clear_exit_req": ("type", "direction", "duration", "message"),
-    "suppress_hazard": ("type", "duration", "message", "channel"),
+    "clear_exit_req": ("type", "direction", "duration", "permanent", "message"),
+    "suppress_hazard": ("type", "duration", "permanent", "message", "channel"),
 }
 
 
@@ -4391,6 +4391,10 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                 for key in reaction:
                     if key not in ENV_INTERACTION_KEYS[kind]:
                         error(f"{label}.{key} is not read for '{kind}' (known: {', '.join(ENV_INTERACTION_KEYS[kind])})")
+                if "permanent" in reaction and not isinstance(reaction["permanent"], bool):
+                    error(f"{label}.permanent must be true or false")
+                elif reaction.get("permanent") is True and "duration" in reaction:
+                    error(f"{label} is permanent, so a duration contradicts it (there is nothing to revert after)")
                 duration = reaction.get("duration", 10.0)
                 if isinstance(duration, bool) or not isinstance(duration, (int, float)) or duration <= 0:
                     error(f"{label}.duration must be a positive number of seconds")
