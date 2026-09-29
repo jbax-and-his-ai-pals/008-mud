@@ -140,7 +140,11 @@ class NPCFactory:
 
             npc.faction = creation_args.get("faction", npc.faction)
             npc.behavior_type = creation_args.get("behavior_type", npc.behavior_type)
-            npc.attack_power = creation_args.get("attack_power", 3) + final_str // 3
+            # The base the factory was given, before the strength bonus: what a
+            # save must keep (`NPC.to_dict`) for a promoted creature to come back
+            # as strong as it was.
+            npc.base_attack_power = creation_args.get("attack_power", 3)
+            npc.attack_power = npc.base_attack_power + final_str // 3
             npc.defense = creation_args.get("defense", 2)
             # get_effective_stat("defense") (used by GameObject.take_damage
             # to mitigate incoming damage) reads npc.stats, not this bare

@@ -249,8 +249,32 @@ class NPC(GameObject):
         base = base if isinstance(base, dict) else {}
         return {key: copy.deepcopy(value) for key, value in self.properties.items() if key not in base or base[key] != value}
 
+    def _creation_values_differing_from_template(self) -> Dict[str, Any]:
+        """The base attack, defence and loot this NPC was made with, when not the template's.
+
+        The factory builds them from the template unless it is handed them, and only a
+        promotion hands them (an ambient elite, an instanced boss). Saving `stats` alone
+        brought an elite back with its boosted stats and the template's attack, defence
+        and loot. As with properties, only the difference is saved, so an edit to a value
+        no promotion touched still shows through.
+        """
+        templates = getattr(self.world, "npc_templates", None) if self.world is not None else None
+        template = templates.get(self.template_id, {}) if isinstance(templates, dict) else {}
+        template = template if isinstance(template, dict) else {}
+        found: Dict[str, Any] = {}
+        base_attack = getattr(self, "base_attack_power", None)
+        if base_attack is not None and base_attack != template.get("attack_power", 3):
+            found["attack_power"] = base_attack
+        if self.defense != template.get("defense", 2):
+            found["defense"] = self.defense
+        loot = getattr(self, "loot_table", None)
+        if isinstance(loot, dict) and loot != template.get("loot_table", {}):
+            found["loot_table"] = copy.deepcopy(loot)
+        return found
+
     def to_dict(self) -> Dict[str, Any]:
         return {
+            **self._creation_values_differing_from_template(),
             "template_id": self.template_id, "obj_id": self.obj_id, "name": self.name,
             "current_region_id": self.current_region_id, "current_room_id": self.current_room_id,
             "home_region_id": self.home_region_id, "home_room_id": self.home_room_id,
