@@ -400,26 +400,9 @@ class World:
         if not retreat_allowed:
             return retreat_failure_msg or f"{FORMAT_ERROR}You can't break away from the fight!{FORMAT_RESET}"
 
-        reqs = current_room.properties.get("exit_requirements", {})
-        dir_req = reqs.get(direction)
-        
-        if dir_req:
-            req_type = dir_req.get("type")
-            if req_type == "skill":
-                skill = dir_req.get("skill_name")
-                difficulty = dir_req.get("difficulty", 10)
-                fail_msg = dir_req.get("failure_message", "You fail to traverse the path.")
-                
-                success, roll_msg = SkillSystem.practice_check(active_player, skill, difficulty)
-                if not success:
-                    return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET} (Requires {skill} {difficulty}+)"
-            
-            elif req_type == "locked":
-                key_id = dir_req.get("key_id")
-                has_key = any(slot.item and slot.item.obj_id == key_id for slot in active_player.inventory.slots)
-                if not has_key:
-                    fail_msg = dir_req.get("failure_message") or self._locked_message(f"The way {direction} is locked.", key_id)
-                    return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
+        gate_refusal = self._evaluate_exit_gate(active_player, current_room, direction)
+        if gate_refusal:
+            return gate_refusal
 
         destination_id = current_room.get_exit(direction)
         if not destination_id: return f"{FORMAT_ERROR}You cannot go {direction}.{FORMAT_RESET}"
@@ -450,6 +433,46 @@ class World:
                   fail_msg = self._locked_message(f"The door to {target_room.name} is locked.", target_lock_key)
                   return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
 
+        return self._arrive(active_player, new_region_id, new_room_id, old_region_id)
+
+    def _evaluate_exit_gate(self, player: 'Player', room: Room, direction: str) -> Optional[str]:
+        """Whether the way `direction` from `room` is open to `player`.
+
+        Returns the refusal, already formatted for the player, or None when the way is
+        open. Movement, and anything else that asks "may this player go that way", goes
+        through here, so a new kind of requirement is written once.
+        """
+        dir_req = room.properties.get("exit_requirements", {}).get(direction)
+        if not dir_req:
+            return None
+        req_type = dir_req.get("type")
+        if req_type == "skill":
+            skill = dir_req.get("skill_name")
+            difficulty = dir_req.get("difficulty", 10)
+            fail_msg = dir_req.get("failure_message", "You fail to traverse the path.")
+
+            success, roll_msg = SkillSystem.practice_check(player, skill, difficulty)
+            if not success:
+                return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET} (Requires {skill} {difficulty}+)"
+
+        elif req_type == "locked":
+            key_id = dir_req.get("key_id")
+            has_key = any(slot.item and slot.item.obj_id == key_id for slot in player.inventory.slots)
+            if not has_key:
+                fail_msg = dir_req.get("failure_message") or self._locked_message(f"The way {direction} is locked.", key_id)
+                return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
+        return None
+
+    def _arrive(self, active_player: 'Player', new_region_id: str, new_room_id: str, old_region_id: Optional[str]) -> str:
+        """Put `active_player` in a room and everything that follows from being there.
+
+        Marks it visited, sets the location, tells the quest manager, flags an instance
+        quest, and returns the text the player reads: the region banner, the room, the
+        travel note, first-arrival notes, then quest updates. The gate has already been
+        passed (or does not apply, as for a teleport); this does not ask again.
+        """
+        target_region = self.get_region(new_region_id)
+        target_room = target_region.get_room(new_room_id)
         target_room.visited = True
         active_player.current_region_id = new_region_id
         active_player.current_room_id = new_room_id
