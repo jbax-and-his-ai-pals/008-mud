@@ -31,7 +31,16 @@
                         "type": "extreme_cold",
                         "damage": 8
                     }
-                ]
+                ],
+                "exit_requirements": {
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A rusted grate, chained shut with a small iron lock."
+                    }
+                }
             }
         },
         "cistern": {

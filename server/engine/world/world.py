@@ -433,7 +433,52 @@ class World:
                   fail_msg = self._locked_message(f"The door to {target_room.name} is locked.", target_lock_key)
                   return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
 
-        return self._arrive(active_player, new_region_id, new_room_id, old_region_id)
+        # The commit point: every check has passed, so this is the move. A key is spent
+        # here and not in the gate, or a move refused for another reason (a second lock
+        # behind the door) would cost one.
+        spent_note = self._commit_exit_gate(active_player, current_room, direction)
+        arrival = self._arrive(active_player, new_region_id, new_room_id, old_region_id)
+        return f"{FORMAT_SUCCESS}{spent_note}{FORMAT_RESET}\n\n{arrival}" if spent_note else arrival
+
+    @staticmethod
+    def _exit_open_key(player: 'Player', direction: str) -> str:
+        return "exit_open:%s:%s:%s" % (player.current_region_id, player.current_room_id, direction)
+
+    def _exit_is_open_for(self, player: 'Player', direction: str) -> bool:
+        flags = getattr(player, "flags", None)
+        return isinstance(flags, dict) and bool(flags.get(self._exit_open_key(player, direction)))
+
+    def _commit_exit_gate(self, player: 'Player', room: Room, direction: str) -> str:
+        """Spend what a `consume` requirement takes, and remember the door is open.
+
+        The memory is a flag on the *player* (`exit_open:<region>:<room>:<direction>`),
+        never an edit to the room's requirement: a static room is rebuilt from its JSON,
+        so editing the requirement would re-lock a door whose key was spent and soft-lock
+        the player. It survives a save, and is per player.
+        """
+        dir_req = room.properties.get("exit_requirements", {}).get(direction)
+        if not dir_req or not dir_req.get("consume") or self._exit_is_open_for(player, direction):
+            return ""
+        from engine.dialogue.effects import entry_pairs
+
+        req_type = dir_req.get("type")
+        if req_type == "locked":
+            spent = [(dir_req.get("key_id"), 1)] if dir_req.get("key_id") else []
+        elif req_type == "condition":
+            spent = entry_pairs(dir_req.get("consume"))
+        else:
+            spent = []
+        names = []
+        for item_id, quantity in spent:
+            player.inventory.remove_item(item_id, quantity)
+            template = self.item_templates.get(item_id) or {}
+            names.append(str(template.get("name", item_id)))
+        flags = getattr(player, "flags", None)
+        if not isinstance(flags, dict):
+            flags = player.flags = {}
+        flags[self._exit_open_key(player, direction)] = True
+        what = ", ".join(names) if names else "what it asked"
+        return f"You spend the {what}; the way {direction} is open to you from now on."
 
     def _evaluate_exit_gate(self, player: 'Player', room: Room, direction: str) -> Optional[str]:
         """Whether the way `direction` from `room` is open to `player`.
@@ -445,6 +490,8 @@ class World:
         dir_req = room.properties.get("exit_requirements", {}).get(direction)
         if not dir_req:
             return None
+        if dir_req.get("consume") and self._exit_is_open_for(player, direction):
+            return None   # a door this player has already spent a key on
         req_type = dir_req.get("type")
         if req_type == "skill":
             skill = dir_req.get("skill_name")

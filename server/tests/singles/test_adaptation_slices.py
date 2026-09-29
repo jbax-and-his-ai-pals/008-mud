@@ -179,6 +179,38 @@ class TestZeldaSlice(_Slice):
         self.assertEqual(magic.max_mana, magic.mana)
         self.assertEqual(gold, self.player.runtime_state.gold, "the pool is free")
 
+    def test_a_small_key_is_spent_by_the_door_it_opens(self):
+        self.at("mossroot", "mossy_gallery")
+        refused = self.say("go east")
+        self.assertEqual("mossroot:mossy_gallery", self.where())
+        self.assertIn("barred", refused)
+        self.give("item_small_key")
+        opened = self.say("go east")
+        self.assertEqual("mossroot:key_chamber", self.where())
+        self.assertFalse(self.holds("item_small_key"), "the key is spent")
+        self.assertIn("spend the small key", opened)
+        self.say("go west")
+        self.say("go east")
+        self.assertEqual("mossroot:key_chamber", self.where(), "and the door then stays open for this player")
+
+    def test_two_small_keys_open_two_doors_and_no_more(self):
+        self.give("item_small_key")
+        self.give("item_small_key")
+        self.at("mossroot", "mossy_gallery")
+        self.say("go east")
+        self.at("drowned_vault", "flooded_hall")
+        self.say("go east")
+        self.assertEqual("drowned_vault:cistern", self.where())
+        self.assertFalse(self.holds("item_small_key"))
+
+    def test_a_boss_key_is_kept_and_a_small_key_is_not(self):
+        """Boss doors are room locks (`locked_by`) and keep their key; small-key doors spend it."""
+        self.at("mossroot", "mossy_gallery")
+        self.give("item_key_mossroot")
+        self.say("go west")
+        self.assertEqual("mossroot:boss_hall", self.where())
+        self.assertTrue(self.holds("item_key_mossroot"))
+
     def test_a_boss_hall_opens_only_to_its_key(self):
         self.at("mossroot", "mossy_gallery")
         self.say("go west")
@@ -405,14 +437,6 @@ class TestKnownLimits(_Slice):
     def _context(self):
         return {"player": self.player, "world": self.world}
 
-    # FLIP in item 3.2: a key is spent at the commit point, once.
-    def test_limit_a_key_is_never_consumed(self):
-        self.at("mossroot", "mossy_gallery")
-        self.give("item_key_mossroot")
-        self.say("go west")
-        self.assertEqual("mossroot:boss_hall", self.where())
-        self.assertTrue(self.holds("item_key_mossroot"), "the door opened and the key is still in the pack")
-
     # FLIP in item 5.2: a placed hostile with an authored respawn_cooldown comes back.
     def test_limit_a_placed_hostile_never_respawns(self):
         self.kill("slime_blob", "blob")
@@ -538,6 +562,26 @@ class TestPersistence(unittest.TestCase):
         self.assertEqual(("varenholt", "throne_room"), (fiends[0].current_region_id, fiends[0].current_room_id))
         self.assertEqual([], [n for n in second.world.npcs.values() if n.template_id == "chancellor"],
                          "and the chancellor is still gone")
+
+    def test_a_spent_key_and_its_open_door_survive_a_restart(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        sid, _ = self._join(first, "Restarter", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.inventory.add_item(ItemFactory.create_item_from_template("item_small_key", first.world))
+        hero.current_region_id, hero.current_room_id = "mossroot", "mossy_gallery"
+        self._say(first, sid, "go east")
+        self.assertEqual("key_chamber", hero.current_room_id)
+        first.shutdown()
+
+        second = self._boot("zelda_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, _ = self._join(second, "Restarter", "another-id")
+        again = second.get_player_for_session(sid2)
+        self.assertFalse(self._holds(again, "item_small_key"), "the key stays spent")
+        again.current_region_id, again.current_room_id = "mossroot", "mossy_gallery"
+        self._say(second, sid2, "go east")
+        self.assertEqual("key_chamber", again.current_room_id, "the door is still open: the memory is a flag, not a rebuilt room")
 
     def test_a_raised_maximum_and_a_paid_rest_survive_a_restart(self):
         db = self._db()

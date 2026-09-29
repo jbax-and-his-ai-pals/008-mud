@@ -55,7 +55,18 @@
                     "template_id": "bone_soldier",
                     "instance_id": "soldier_gallery_b"
                 }
-            ]
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The door to the key chamber is barred. A small iron lock, and no way to force it."
+                    }
+                }
+            }
         },
         "key_chamber": {
             "name": "Key Chamber",
@@ -67,6 +78,11 @@
                 {
                     "template_id": "stone_warden",
                     "instance_id": "stone_warden_at_key_chamber"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_small_key"
                 }
             ]
         },
@@ -82,6 +98,9 @@
                 },
                 {
                     "item_id": "item_red_potion"
+                },
+                {
+                    "item_id": "item_small_key"
                 }
             ]
         },

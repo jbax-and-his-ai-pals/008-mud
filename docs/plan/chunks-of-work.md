@@ -1112,6 +1112,14 @@ open and hands the rest to `_arrive` (visited, location, quest room entry, insta
 look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
 `test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
 
+**3.2** `consume` on an exit requirement spends a key when the player actually goes through (`World._commit_exit_gate`, after
+every check and before `_arrive`) and records `exit_open:<region>:<room>:<dir>` in `player.flags` (Decision 11: per player,
+saved with the character, never a rewrite of a static room's requirement). The validator requires a `key_id` to consume, refuses a
+`consume` on a skill gate, checks a condition gate's list is items the set defines, and warns when it spends something the
+condition does not require holding. Editor: a "used up" box on key locks and a spends-list on condition gates. Slices: Zelda's
+small keys (larder, key chamber, flooded hall); `test_limit_a_key_is_never_consumed` is retired. Not covered: `pick` still
+deletes a picked requirement for everyone (an existing, world-scoped behaviour).
+
 **3.1** an exit can be gated on any condition: `exit_requirements.<dir> = {type: "condition", condition,
 failure_message}` (`EXIT_REQUIREMENT_KEYS` and `ENV_INTERACTION_KEYS` are now published and dumped, and the
 editor's `RoomPassagesPanel` is parity-checked against them, which also fixed `channel` missing from its
@@ -1320,7 +1328,7 @@ reads through `all`, `not` and a negated `any`); when any gain is over `RAISE_LA
 or `has_item` guard on the choice, also draws a warning: effects are not transactional, so a
 paid service must not rely on the effect to refuse. A stat a `raise` names must exist in this set.
 
-**11. Player-scoped and world-scoped state — proposed 2026-09-28, settle at item 3.2.**
+**11. Player-scoped and world-scoped state — ✅ SETTLED 2026-09-29 at item 3.2** (shipped for an opened exit; the rest applies as items 4.x and 3.3 land).
 Player-scoped: an opened exit (`exit_open:<region>:<room>:<dir>` in `player.flags`, so
 a consumed key opens a door once and a static room rebuilt from JSON does not re-lock
 it), and triggers with `once: player`. World-scoped: `reveal_exit`, `seal_exit`, a

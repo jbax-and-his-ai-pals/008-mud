@@ -61,7 +61,7 @@ class TestTheVocabulary(unittest.TestCase):
 
     def test_the_requirement_keys_are_published(self):
         self.assertIn("condition", content_set.EXIT_REQUIREMENT_KEYS)
-        self.assertEqual(("type", "condition", "failure_message"), content_set.EXIT_REQUIREMENT_KEYS["condition"])
+        self.assertEqual(("type", "condition", "consume", "failure_message"), content_set.EXIT_REQUIREMENT_KEYS["condition"])
         self.assertIn("clear_exit_req", content_set.ENV_INTERACTION_KEYS)
 
 

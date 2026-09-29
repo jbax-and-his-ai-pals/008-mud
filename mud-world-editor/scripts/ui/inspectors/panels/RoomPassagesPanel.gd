@@ -19,9 +19,9 @@ signal data_modified
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
 const REQUIREMENT_TYPES := ["locked", "skill", "condition"]
 const REQUIREMENT_KEYS := {
-	"locked": ["type", "key_id", "pick_difficulty", "failure_message"],
+	"locked": ["type", "key_id", "pick_difficulty", "consume", "failure_message"],
 	"skill": ["type", "skill_name", "difficulty", "failure_message"],
-	"condition": ["type", "condition", "failure_message"],
+	"condition": ["type", "condition", "consume", "failure_message"],
 }
 const REACTION_TYPES := ["clear_exit_req", "suppress_hazard"]
 const REACTION_KEYS := {
@@ -103,6 +103,15 @@ func _requirement_row(direction: String, requirement: Dictionary) -> Control:
 		var pick := _spin(requirement, "pick_difficulty", 999, 0, 999)
 		pick.tooltip_text = "Over 100 cannot be picked."
 		head.add_child(pick)
+		# Set before the signal is connected: a toggle emits on a programmatic set.
+		var consume := CheckBox.new(); consume.name = "Consume"; consume.text = "used up"
+		consume.tooltip_text = "The key is spent when the player goes through, and the door then stays open for them."
+		consume.button_pressed = bool(requirement.get("consume", false))
+		consume.toggled.connect(func(on):
+			if on: requirement["consume"] = true
+			else: requirement.erase("consume")
+			data_modified.emit())
+		head.add_child(consume)
 	head.add_child(_remove("exit_requirements", direction))
 	if kind == "condition":
 		var condition_box := VBoxContainer.new(); condition_box.name = "RequirementCondition"; box.add_child(condition_box)
@@ -117,9 +126,45 @@ func _requirement_row(direction: String, requirement: Dictionary) -> Control:
 			func(replacement: Dictionary):
 				requirement["condition"] = replacement
 				data_modified.emit())
+		box.add_child(_consume_list(requirement))
 	var message := _text(requirement, "failure_message", "message when refused (optional)")
 	box.add_child(message)
 	return box
+
+
+## The items a condition gate spends when the player goes through: item ids, comma
+## separated (or JSON, when an entry carries a quantity). Empty removes the key.
+func _consume_list(requirement: Dictionary) -> LineEdit:
+	var field := LineEdit.new(); field.name = "ConsumeItems"
+	field.placeholder_text = "spends on passing: item ids, comma separated (optional)"
+	field.tooltip_text = "Each must be held (the condition should require it). Spent once; the door then stays open for that player."
+	var listed = requirement.get("consume")
+	var simple := listed is Array
+	if listed is Array:
+		for entry in listed:
+			if not (entry is String): simple = false
+	if listed is Array:
+		if simple: field.text = ", ".join(PackedStringArray(listed))
+		else: field.text = JSON.stringify(listed)
+	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(field)
+	field.text_changed.connect(func(value):
+		var trimmed: String = str(value).strip_edges()
+		if trimmed == "":
+			requirement.erase("consume")
+		elif trimmed.begins_with("["):
+			var json := JSON.new()
+			if json.parse(trimmed) != OK or not (json.data is Array):
+				field.modulate = Color(1.0, 0.6, 0.6)
+				return
+			requirement["consume"] = json.data
+		else:
+			var items: Array = []
+			for part in trimmed.split(","):
+				if part.strip_edges() != "": items.append(part.strip_edges())
+			requirement["consume"] = items
+		field.modulate = Color.WHITE
+		data_modified.emit())
+	return field
 
 
 func _add_requirement() -> void:

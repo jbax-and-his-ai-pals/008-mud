@@ -72,5 +72,15 @@
             "quest_item": true
         },
         "item_family": "curio"
+    },
+    "item_small_key": {
+        "type": "Key",
+        "name": "small key",
+        "description": "A plain iron key, worn bright at the bow. It will open one door, and then it is done.",
+        "weight": 0.1,
+        "value": 0,
+        "stackable": true,
+        "properties": {},
+        "item_family": "key"
     }
 }

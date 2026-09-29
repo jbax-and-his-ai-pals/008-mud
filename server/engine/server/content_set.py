@@ -4221,13 +4221,44 @@ def _check_reveal_exit(
 # panel and the vocabulary dump are checked against them (`schema_parity_smoke.gd`).
 EXIT_REQUIREMENT_KEYS = {
     "skill": ("type", "skill_name", "difficulty", "failure_message"),
-    "locked": ("type", "key_id", "pick_difficulty", "failure_message"),
-    "condition": ("type", "condition", "failure_message"),
+    "locked": ("type", "key_id", "pick_difficulty", "consume", "failure_message"),
+    "condition": ("type", "condition", "consume", "failure_message"),
 }
 ENV_INTERACTION_KEYS = {
     "clear_exit_req": ("type", "direction", "duration", "message"),
     "suppress_hazard": ("type", "duration", "message", "channel"),
 }
+
+
+def _check_exit_consume_list(
+    consume: Any, ids: dict[str, set[str]], condition: Any, label: str, where: str, path: Path,
+    issues: list[ContentSetIssue],
+) -> None:
+    """A `condition` requirement's `consume`: items spent when the player goes through."""
+    from engine.dialogue.effects import effect_shape_issues, entry_pairs
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", str(path), f"{where} {label}.consume {message}"))
+
+    if not isinstance(consume, list) or not consume:
+        error("must be a non-empty list of items (ids, or {item_id, quantity})")
+        return
+    problems = effect_shape_issues({"take_item": consume})
+    for problem in problems:
+        error(problem.replace("take_item", "entry", 1))
+    if problems:
+        return
+    holding, _failing = _guaranteed_leaves(condition)
+    required = {str(leaf.get("item_id", "")) for leaf in holding if leaf.get("kind") == "has_item"}
+    for item_id, _quantity in entry_pairs(consume):
+        if ids["items"] and item_id not in ids["items"]:
+            error(f"names item '{item_id}', which is not defined in this content set")
+        elif item_id not in required:
+            issues.append(ContentSetIssue(
+                "warning", str(path),
+                f"{where} {label}.consume spends '{item_id}', but the condition does not require holding it, "
+                f"so the way can open without it having anything to spend",
+            ))
 
 
 def _validate_room_passage_properties(content_root: Path, issues: list[ContentSetIssue]) -> None:
@@ -4259,6 +4290,12 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
         return isinstance(value, int) and not isinstance(value, bool) and value >= 0
 
     condition_ids: dict[str, set[str]] | None = None   # built on the first condition requirement
+
+    def condition_ids_for() -> dict[str, set[str]]:
+        nonlocal condition_ids
+        if condition_ids is None:
+            condition_ids = _content_identifier_sets(content_root, [])
+        return condition_ids
 
     for path in sorted(region_dir.glob("*.json")):
         region = _load_json(path, [], "region definitions")
@@ -4315,17 +4352,22 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                         if "difficulty" in requirement and not whole(requirement["difficulty"]):
                             error(f"{label}.difficulty must be a non-negative integer")
                     elif kind == "condition":
+                        if "consume" in requirement:
+                            _check_exit_consume_list(requirement["consume"], condition_ids_for(), requirement.get("condition"), label, where, path, issues)
                         condition = requirement.get("condition")
                         if not isinstance(condition, (dict, list)) or not condition:
                             error(f"{label}.condition is required, and may not be empty (an empty condition is open to everyone)")
                         else:
-                            if condition_ids is None:
-                                condition_ids = _content_identifier_sets(content_root, [])
-                            _check_condition(condition, f"{where} {label}.condition", path, condition_ids, issues)
+                            _check_condition(condition, f"{where} {label}.condition", path, condition_ids_for(), issues)
                     else:
                         key_id = requirement.get("key_id")
                         if key_id is not None and key_id not in item_ids:
                             error(f"{label}.key_id references missing item '{key_id}'")
+                        if "consume" in requirement:
+                            if not isinstance(requirement["consume"], bool):
+                                error(f"{label}.consume must be true or false (a key is spent whole)")
+                            elif requirement["consume"] and not key_id:
+                                error(f"{label}.consume spends the key, but the requirement names no key_id")
                         if "pick_difficulty" in requirement and not whole(requirement["pick_difficulty"]):
                             error(f"{label}.pick_difficulty must be a non-negative integer (over 100 means it cannot be picked)")
 

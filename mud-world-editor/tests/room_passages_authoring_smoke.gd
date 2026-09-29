@@ -94,6 +94,24 @@ func _run():
 	_edit(row.find_child("FailureMessage", true, false), "The gate is shut.")
 	_assert(requirements[direction]["failure_message"] == "The gate is shut.", "with its message")
 
+	print("\n[spending a key]")
+	var consume_box: LineEdit = row.find_child("ConsumeItems", true, false)
+	_assert(consume_box != null, "a condition gate has a box for what it spends")
+	_edit(consume_box, "item_small_key, item_lantern")
+	_assert(requirements[direction]["consume"] == ["item_small_key", "item_lantern"], "items are listed: %s" % str(requirements[direction].get("consume")))
+	_edit(consume_box, "")
+	_assert(not requirements[direction].has("consume"), "and emptying it removes the key")
+	requirements[direction] = {"type": "locked", "key_id": "item_small_key"}
+	holder = _panel(square, database)
+	row = holder.find_child("Requirement_" + direction, true, false)
+	var used_up: CheckBox = row.find_child("Consume", true, false)
+	_assert(used_up != null, "a key lock has a used-up box")
+	used_up.button_pressed = true
+	_assert(requirements[direction].get("consume") == true, "ticking it writes consume: true")
+	used_up.button_pressed = false
+	_assert(not requirements[direction].has("consume"), "and unticking erases it, so a default stays unwritten")
+	requirements[direction] = {"type": "condition", "condition": {"kind": "flag", "flag": "gate_open"}, "failure_message": "The gate is shut."}
+
 	print("\n[removing]")
 	_button(holder.find_child("Hidden_secret", true, false), "×").pressed.emit()
 	_assert(not square["properties"].has("hidden_exits"), "removing the last hidden exit removes the key")
