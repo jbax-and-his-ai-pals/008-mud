@@ -9,45 +9,35 @@
                     "text": "At once, my king.",
                     "condition": {
                         "not": {
-                            "any": [
-                                {
-                                    "kind": "flag",
-                                    "flag": "obeyed_king"
-                                },
-                                {
-                                    "kind": "flag",
-                                    "flag": "questioned_king"
-                                }
-                            ]
+                            "kind": "flag",
+                            "flag": "king_ordered"
                         }
                     },
                     "next_node": "obey",
                     "effects": {
                         "start_campaign": "the_package",
-                        "set_flag": "obeyed_king"
+                        "set_flag": [
+                            "king_ordered",
+                            "obeyed_king"
+                        ]
                     }
                 },
                 {
                     "text": "My king, the raid was a slaughter. I will not serve as your blade in this.",
                     "condition": {
                         "not": {
-                            "any": [
-                                {
-                                    "kind": "flag",
-                                    "flag": "obeyed_king"
-                                },
-                                {
-                                    "kind": "flag",
-                                    "flag": "questioned_king"
-                                }
-                            ]
+                            "kind": "flag",
+                            "flag": "king_ordered"
                         }
                     },
                     "next_node": "dismissed",
                     "effects": {
                         "take_item": "item_commander_seal",
                         "start_campaign": "the_package",
-                        "set_flag": "questioned_king"
+                        "set_flag": [
+                            "king_ordered",
+                            "questioned_king"
+                        ]
                     }
                 },
                 {

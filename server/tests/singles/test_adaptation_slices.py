@@ -215,6 +215,18 @@ class TestFF4Slice(_Slice):
         self.assertTrue(self.holds("package_of_the_king"), "a courier run hands you its package")
         self.assertNotIn("slaughter", self.say("talk king"), "the choice cannot be made twice")
 
+    def test_one_choice_sets_two_flags_and_the_one_it_shares_closes_both_answers(self):
+        """`set_flag` takes a list: which way you went, and that the king has spoken."""
+        self.say("talk king")
+        self.say("reply 1")
+        self.assertIs(True, self.player.flags.get("obeyed_king"))
+        self.assertIs(True, self.player.flags.get("king_ordered"))
+        self.assertNotIn("questioned_king", self.player.flags)
+        self.assertIn("The King's Package", self.quest_states())
+        again = self.say("talk king")
+        self.assertNotIn("At once", again, "the choice cannot be made twice")
+        self.assertNotIn("slaughter", again, "and the other answer closed with it")
+
     def test_a_dialogue_effect_sends_a_friend_ahead(self):
         self._question_the_king()
         self.at("varenholt", "barracks")
@@ -283,12 +295,6 @@ class TestKnownLimits(_Slice):
         self.kill("slime_blob", "blob")
         self.tick(9200)  # 920 s of game time, five times the blob's authored 180
         self.assertEqual([], self.npcs("slime_blob"))
-
-    # FLIP in item 2.1: a list sets every flag it names.
-    def test_limit_set_flag_given_a_list_makes_one_flag(self):
-        apply_effects({"set_flag": ["door_open", "guard_alerted"]}, self._context())
-        self.assertIn("['door_open', 'guard_alerted']", self.player.flags)
-        self.assertNotIn("door_open", self.player.flags)
 
     # FLIP in item 2.3: `restore` is an effect.
     def test_limit_restore_is_not_an_effect(self):

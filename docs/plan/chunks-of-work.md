@@ -1075,6 +1075,14 @@ into a second server and requires identical worlds); **1.3** a single-player sto
 character by name, autosaves the world, and takes `--db-path`, `--ephemeral` and `--new-game`
 (`TestPersistence`). A shared world is unchanged, by Decision 7.
 
+Phase 2 has started. **2.1** effect values are checked before the game runs and an effect that
+fails no longer stops the ones after it: `EFFECT_SHAPES` (`dialogue/effects.py`) is the one
+description of what each effect accepts, and the dialogue validator, the knowledge-topic
+validator and `engine_vocabulary_dump.py` read it (`test_effect_shapes.py`; 11 of its 14 checks
+failed on the parent). The editor's effect-row widgets still write `set_flag`/`give_item` as a
+single string; typed rows for the list forms are 2.2. Not done in 2.1, on purpose: knowledge
+topics are shape-checked but their ids are not yet checked against the set.
+
 ---
 
 ## Decisions that gate chunks

@@ -17,9 +17,9 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     teach_spell       "spell_id" | [...]
     give_item         "item_id" | {"item_id": qty} | [...]
     take_item         "item_id" | {"item_id": qty} | [...]
-    give_gold         10
+    give_gold         10                             a whole number, at least 1
     adjust_relationship  {"npc": "template_id", "amount": 5}
-    set_flag          "flag_name" | {"name": "flag_name", "value": true}
+    set_flag          "flag_name" | ["a", "b"] | {"name": "flag_name", "value": true}
     reveal_exit       {"room": "town:cellar", "direction": "down"}
     move_npc          {"npc": "template_id", "region": "forest", "room": "clearing"}
     give_rewards      {"xp": 10, "gold": 5, "items": [...]}   structured bundle
@@ -29,6 +29,16 @@ write an object for that. Anything the interpreter does not recognise is
 reported through `EffectReport.unknown`, and content validation refuses it
 before the game runs -- a typo must not be a line that silently does nothing.
 
+`EFFECT_SHAPES` says what each effect's *value* may be, and `effect_shape_issues`
+checks a mapping against it. The validator and the editor's vocabulary dump use
+the same table, so "what the engine accepts" is written down once. Before it, a
+value was never checked: `"set_flag": ["a", "b"]` set one flag literally called
+`['a', 'b']`, and `"give_gold": 0` was a quiet no-op.
+
+Application order is fixed and each step is guarded on its own, so one effect that
+fails (or raises) is reported and the ones after it still run: quests, learning,
+items, gold, relationship, flags, exits, NPC moves, rewards.
+
 Player-facing lines come from here too, so every system that applies an effect
 says the same sentence about it, and test mode can show the raw effect as well.
 """
@@ -36,6 +46,7 @@ says the same sentence about it, and test mode can show the raw effect as well.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Any, Dict, Iterable, List, Optional
 
 # Every effect key this interpreter understands. Content validation imports it.
@@ -45,6 +56,216 @@ KNOWN_EFFECTS = frozenset({
     "give_item", "take_item", "give_gold", "adjust_relationship",
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
 })
+
+# What each effect's value may be. `form` names the reader's shape:
+#   ids          an id, a list of ids, or a list of {"<x>_id": ...} objects
+#   ids_or_true  the same, or `true` for "every active quest"
+#   entries      ids plus quantities: also `{"id": qty}` and {"item_id", "quantity"}
+#   count        a whole number of at least `minimum`
+#   flags        a flag name, {"name", "value"}, or a list of either
+#   object       an object with `fields` (name -> type), `required` fields, and
+#                `one_of` (at least one of these); `bare` names the type a
+#                non-object value may take instead
+EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
+    "start_quest": {"form": "ids"},
+    "start_campaign": {"form": "ids"},
+    "advance_quest": {"form": "ids_or_true"},
+    "complete_quest": {"form": "ids_or_true"},
+    "grant_recipe": {"form": "ids"},
+    "grant_discovery": {"form": "ids"},
+    "teach_spell": {"form": "ids"},
+    "give_item": {"form": "entries"},
+    "take_item": {"form": "entries"},
+    "give_gold": {"form": "count", "minimum": 1},
+    "adjust_relationship": {
+        "form": "object", "bare": "nonzero",
+        "fields": {"npc": "text", "amount": "nonzero", "delta": "nonzero"},
+        "one_of": ("amount", "delta"),
+    },
+    "set_flag": {"form": "flags"},
+    "reveal_exit": {
+        "form": "object", "fields": {"room": "text", "direction": "text"},
+        "required": ("room", "direction"),
+    },
+    "move_npc": {
+        "form": "object", "fields": {"npc": "text", "region": "text", "room": "text"},
+        "required": ("region", "room"),
+    },
+    "give_rewards": {
+        "form": "object",
+        "fields": {"xp": "count", "gold": "count", "items": "entries", "generated_item_data": "object"},
+    },
+}
+assert set(EFFECT_SHAPES) == KNOWN_EFFECTS, "EFFECT_SHAPES and KNOWN_EFFECTS must name the same effects"
+
+_ENTRY_KEYS = ("item_id", "id", "recipe_id", "spell_id", "discovery_id", "quest_id")
+_QUANTITY_KEYS = ("quantity", "count")
+_FLAG_KEYS = ("name", "flag", "value")
+
+
+def effect_fields() -> Dict[str, List[str]]:
+    """`{effect: sorted field names}` for the effects whose value is an object."""
+    return {name: sorted(shape["fields"]) for name, shape in EFFECT_SHAPES.items() if "fields" in shape}
+
+
+def _describe(value: Any) -> str:
+    text = repr(value)
+    return text if len(text) <= 40 else text[:37] + "..."
+
+
+def _is_whole(value: Any, minimum: int) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= minimum
+
+
+def _is_text(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _value_check(kind: str, value: Any) -> Optional[str]:
+    """None when `value` is a `kind`; else what it should have been."""
+    if kind == "text":
+        return None if _is_text(value) else "a non-empty text"
+    if kind == "count":
+        return None if _is_whole(value, 0) else "a whole number of at least 0"
+    if kind == "nonzero":
+        ok = isinstance(value, int) and not isinstance(value, bool) and value != 0
+        return None if ok else "a whole number other than 0"
+    if kind == "object":
+        return None if isinstance(value, dict) else "an object"
+    return None
+
+
+def _has_entry_key(mapping: Dict[str, Any]) -> bool:
+    return any(key in mapping for key in _ENTRY_KEYS + _QUANTITY_KEYS)
+
+
+def _entry_issues(label: str, value: Any, *, quantities: bool) -> List[str]:
+    issues: List[str] = []
+    if isinstance(value, dict) and not _has_entry_key(value):
+        if not quantities:
+            return ["%s takes ids, not an {id: quantity} mapping" % label]
+        if not value:
+            return ["%s is an empty mapping" % label]
+        for identifier, quantity in value.items():
+            if not _is_text(identifier):
+                issues.append("%s names a blank id" % label)
+            if not _is_whole(quantity, 1):
+                issues.append("%s quantity for '%s' must be a whole number of at least 1; got %s"
+                              % (label, identifier, _describe(quantity)))
+        return issues
+    entries = value if isinstance(value, list) else [value]
+    if not entries:
+        return ["%s is an empty list" % label]
+    for entry in entries:
+        if isinstance(entry, str):
+            if not entry.strip():
+                issues.append("%s names a blank id" % label)
+        elif isinstance(entry, dict):
+            if not any(_is_text(entry.get(key)) for key in _ENTRY_KEYS):
+                issues.append("%s has an entry with no id (%s)" % (label, ", ".join(_ENTRY_KEYS[:2])))
+            if quantities:
+                for key in _QUANTITY_KEYS:
+                    if key in entry and not _is_whole(entry[key], 1):
+                        issues.append("%s %s must be a whole number of at least 1; got %s"
+                                      % (label, key, _describe(entry[key])))
+        else:
+            issues.append("%s entries must be ids or objects; got %s" % (label, _describe(entry)))
+    return issues
+
+
+def _flag_issues(label: str, value: Any) -> List[str]:
+    issues: List[str] = []
+    entries = value if isinstance(value, list) else [value]
+    if not entries:
+        return ["%s is an empty list" % label]
+    for entry in entries:
+        if isinstance(entry, str):
+            if not entry.strip():
+                issues.append("%s names a blank flag" % label)
+        elif isinstance(entry, dict):
+            if not _is_text(entry.get("name", entry.get("flag"))):
+                issues.append("%s needs a name for each flag" % label)
+            for key in sorted(entry):
+                if key not in _FLAG_KEYS:
+                    issues.append("%s has no field '%s' (fields: name, value)" % (label, key))
+            if "value" in entry and not isinstance(entry["value"], (bool, int, float, str)):
+                issues.append("%s value must be true, false, a number or text; got %s"
+                              % (label, _describe(entry["value"])))
+        else:
+            issues.append("%s must be a flag name, {name, value}, or a list of those; got %s"
+                          % (label, _describe(entry)))
+    return issues
+
+
+def _object_issues(effect: str, shape: Dict[str, Any], value: Any) -> List[str]:
+    if not isinstance(value, dict):
+        bare = shape.get("bare")
+        if bare:
+            problem = _value_check(bare, value)
+            return [] if problem is None else [
+                "%s must be %s, or an object; got %s" % (effect, problem, _describe(value))
+            ]
+        return ["%s must be an object (fields: %s); got %s"
+                % (effect, ", ".join(sorted(shape["fields"])), _describe(value))]
+    issues: List[str] = []
+    fields = shape["fields"]
+    for key in sorted(value):
+        if key not in fields:
+            issues.append("%s has no field '%s' (fields: %s)" % (effect, key, ", ".join(sorted(fields))))
+    for key in shape.get("required", ()):
+        if not _is_text(value.get(key)):
+            issues.append("%s needs a %s" % (effect, key))
+    one_of = shape.get("one_of", ())
+    if one_of and not any(key in value for key in one_of):
+        issues.append("%s needs one of: %s" % (effect, ", ".join(one_of)))
+    for key, kind in fields.items():
+        if key not in value or key in shape.get("required", ()):
+            continue
+        if kind == "entries":
+            issues.extend(_entry_issues("%s.%s" % (effect, key), value[key], quantities=True))
+            continue
+        problem = _value_check(kind, value[key])
+        if problem is not None:
+            issues.append("%s.%s must be %s; got %s" % (effect, key, problem, _describe(value[key])))
+    return issues
+
+
+def effect_shape_issues(effects: Any) -> List[str]:
+    """Everything wrong with the *values* in an effects mapping, one sentence each.
+
+    An effect the interpreter does not know is not reported here (the validator
+    reports it, with the list of known ones); neither is an id that names nothing,
+    which needs the content set to answer.
+    """
+    if not isinstance(effects, dict):
+        return []
+    issues: List[str] = []
+    for effect in sorted(effects):
+        shape = EFFECT_SHAPES.get(effect)
+        if shape is None:
+            continue
+        value = effects[effect]
+        form = shape["form"]
+        if form == "ids":
+            issues.extend(_entry_issues(effect, value, quantities=False))
+        elif form == "ids_or_true":
+            if value is True:
+                continue
+            if value is False:
+                issues.append("%s must be true, a quest id, or a list of quest ids; got false" % effect)
+                continue
+            issues.extend(_entry_issues(effect, value, quantities=False))
+        elif form == "entries":
+            issues.extend(_entry_issues(effect, value, quantities=True))
+        elif form == "count":
+            minimum = int(shape.get("minimum", 0))
+            if not _is_whole(value, minimum):
+                issues.append("%s must be a whole number of at least %d; got %s" % (effect, minimum, _describe(value)))
+        elif form == "flags":
+            issues.extend(_flag_issues(effect, value))
+        elif form == "object":
+            issues.extend(_object_issues(effect, shape, value))
+    return issues
 
 
 @dataclass
@@ -79,29 +300,27 @@ def _as_list(value: Any) -> List[Any]:
     return [value]
 
 
-def _entry_pairs(value: Any) -> List[tuple[str, int]]:
+def entry_pairs(value: Any) -> List[tuple[str, int]]:
     """Normalise `"id"`, `["id", ...]`, `{"id": 2}` and `[{"item_id": ..}]`.
 
     Authors write all four shapes within a single session; making the
     interpreter accept them is cheaper than making every author remember which
-    one this key wanted.
+    one this key wanted. A mapping with none of the id keys (`item_id`, `id`, ...)
+    is the `{"id": quantity}` form; one with an id key is a single entry.
     """
     pairs: List[tuple[str, int]] = []
+    if isinstance(value, dict) and not _has_entry_key(value):
+        for identifier, quantity in value.items():
+            if _is_text(identifier) and _is_whole(quantity, 1):
+                pairs.append((identifier.strip(), quantity))
+        return pairs
     for entry in _as_list(value):
         if isinstance(entry, str):
             if entry.strip():
                 pairs.append((entry.strip(), 1))
             continue
         if isinstance(entry, dict):
-            identifier = str(
-                entry.get("item_id")
-                or entry.get("id")
-                or entry.get("recipe_id")
-                or entry.get("spell_id")
-                or entry.get("discovery_id")
-                or entry.get("quest_id")
-                or ""
-            ).strip()
+            identifier = next((str(entry[key]).strip() for key in _ENTRY_KEYS if entry.get(key)), "")
             if not identifier:
                 continue
             try:
@@ -152,7 +371,7 @@ def _apply_quest_effects(effects: Dict[str, Any], player, world, report: EffectR
         if manager is None:
             report.failed.append("%s (no manager)" % key)
             continue
-        for quest_id, _quantity in _entry_pairs(effects[key]):
+        for quest_id, _quantity in entry_pairs(effects[key]):
             if key == "start_quest":
                 started = manager.start_quest(quest_id, player)
                 if started:
@@ -182,29 +401,49 @@ def _apply_quest_effects(effects: Dict[str, Any], player, world, report: EffectR
         if quest_manager is None:
             report.failed.append("%s (no quest manager)" % key)
             continue
-        targets = _quest_targets(effects[key], player, quest_manager)
-        for quest_id in targets:
-            if key == "advance_quest":
-                dialogue = quest_manager.advance_quest_stage(player, quest_id)
-                report.applied.append("advanced %s" % quest_id)
-                if dialogue and dialogue != "QUEST_COMPLETE":
-                    report.messages.append('"%s"' % dialogue)
-            else:
-                rewards = quest_manager.complete_quest(player, quest_id)
-                report.applied.append("completed %s" % quest_id)
-                report.messages.append("[Quest Complete] %s" % quest_id)
-                if rewards:
-                    report.messages.append(str(rewards))
+        for requested, instances in _quest_targets(effects[key], player):
+            if not instances:
+                # Active quests are keyed by instance ("<template>_<suffix>"), so
+                # this used to find nothing for a template id and still say it
+                # had advanced.
+                report.failed.append("%s %s (not active)" % (key, requested))
+                continue
+            for instance_id in instances:
+                if key == "advance_quest":
+                    dialogue = quest_manager.advance_quest_stage(player, instance_id)
+                    if dialogue is None:
+                        report.failed.append("advance_quest %s (not active)" % requested)
+                        continue
+                    report.applied.append("advanced %s" % requested)
+                    if dialogue != "QUEST_COMPLETE":
+                        report.messages.append('"%s"' % dialogue)
+                else:
+                    rewards = quest_manager.complete_quest(player, instance_id)
+                    report.applied.append("completed %s" % requested)
+                    report.messages.append("[Quest Complete] %s" % requested)
+                    if rewards:
+                        report.messages.append(str(rewards))
 
 
-def _quest_targets(value: Any, player, quest_manager) -> List[str]:
-    """Quest ids to act on. `true` means "the quest this conversation is about"."""
-    from engine.core.quests import manager as quest_manager_module  # noqa: F401  (typing only)
+def _active_instances(player, quest_id: str) -> List[str]:
+    """The active quests that came from `quest_id`: an instance id itself, or a template's."""
+    active = getattr(getattr(getattr(player, "runtime_state", None), "quests", None), "active", None) or {}
+    if quest_id in active:
+        return [quest_id]
+    pattern = re.compile(re.escape(quest_id) + r"_[0-9a-f]{4}")
+    return sorted(
+        key for key, entry in active.items()
+        if str(entry.get("template_id", "")) == quest_id or pattern.fullmatch(str(key))
+    )
 
+
+def _quest_targets(value: Any, player) -> List[tuple[str, List[str]]]:
+    """`(id as written, active instance ids)` to act on. `true` means every active quest."""
     if value is True:
-        active = getattr(getattr(player, "runtime_state", None), "quests", None)
-        return sorted((getattr(active, "active", {}) or {}).keys())
-    return [identifier for identifier, _quantity in _entry_pairs(value)]
+        active = getattr(getattr(getattr(player, "runtime_state", None), "quests", None), "active", None) or {}
+        keys = sorted(active)
+        return [(key, [key]) for key in keys] or [("(any quest)", [])]
+    return [(identifier, _active_instances(player, identifier)) for identifier, _quantity in entry_pairs(value)]
 
 
 def _apply_learning_effects(effects: Dict[str, Any], player, report: EffectReport) -> None:
@@ -215,7 +454,7 @@ def _apply_learning_effects(effects: Dict[str, Any], player, report: EffectRepor
     ):
         if key not in effects:
             continue
-        for identifier, _quantity in _entry_pairs(effects[key]):
+        for identifier, _quantity in entry_pairs(effects[key]):
             if key == "grant_discovery":
                 record = _record_discovery(player, identifier)
                 if record:
@@ -260,7 +499,7 @@ def _apply_item_effects(effects: Dict[str, Any], player, world, report: EffectRe
     server = getattr(world, "server", None) if world is not None else None
 
     if "give_item" in effects:
-        for item_id, quantity in _entry_pairs(effects["give_item"]):
+        for item_id, quantity in entry_pairs(effects["give_item"]):
             for _ in range(quantity):
                 item = ItemFactory.create_item_from_template(item_id, world)
                 if item is None:
@@ -281,7 +520,7 @@ def _apply_item_effects(effects: Dict[str, Any], player, world, report: EffectRe
                     report.messages.append("%s receives %s." % (recipient.name, item.name))
 
     if "take_item" in effects:
-        for item_id, quantity in _entry_pairs(effects["take_item"]):
+        for item_id, quantity in entry_pairs(effects["take_item"]):
             inventory = getattr(player, "inventory", None)
             if inventory is None:
                 report.failed.append("take_item %s (no inventory)" % item_id)
@@ -292,28 +531,32 @@ def _apply_item_effects(effects: Dict[str, Any], player, world, report: EffectRe
             inventory.remove_item(item_id, quantity)
             report.applied.append("took %s" % item_id)
 
-    if "give_gold" in effects:
-        try:
-            amount = int(effects.get("give_gold", 0) or 0)
-        except (TypeError, ValueError):
-            amount = 0
-        if amount > 0:
-            if _party_aware(server, player, "grant_party_gold"):
-                routing = str(server.grant_party_gold(player, amount))
-                if routing:
-                    report.messages.append("Rewards: %s" % routing)
-                report.applied.append("gave %s gold" % amount)
-            else:
-                state = getattr(player, "runtime_state", None)
-                if getattr(state, "gold", None) is not None:
-                    state.gold = int(state.gold) + amount
-                    report.applied.append("gave %s gold" % amount)
-                    currency = "gold"
-                    if world is not None and hasattr(world, "currency_name"):
-                        currency = str(world.currency_name())
-                    report.messages.append("You receive %d %s." % (amount, currency.capitalize()))
-                else:
-                    report.failed.append("give_gold %s (economy disabled)" % amount)
+
+
+def _apply_gold_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
+    if "give_gold" not in effects:
+        return
+    amount = effects["give_gold"]
+    if not _is_whole(amount, 1):
+        report.failed.append("give_gold %s (must be a whole number greater than zero)" % _describe(amount))
+        return
+    server = getattr(world, "server", None) if world is not None else None
+    if _party_aware(server, player, "grant_party_gold"):
+        routing = str(server.grant_party_gold(player, amount))
+        if routing:
+            report.messages.append("Rewards: %s" % routing)
+        report.applied.append("gave %s gold" % amount)
+        return
+    state = getattr(player, "runtime_state", None)
+    if getattr(state, "gold", None) is None:
+        report.failed.append("give_gold %s (economy disabled)" % amount)
+        return
+    state.gold = int(state.gold) + amount
+    report.applied.append("gave %s gold" % amount)
+    currency = "gold"
+    if world is not None and hasattr(world, "currency_name"):
+        currency = str(world.currency_name())
+    report.messages.append("You receive %d %s." % (amount, currency.capitalize()))
 
 
 def _apply_relationship_effects(effects: Dict[str, Any], context, report: EffectReport) -> None:
@@ -355,22 +598,23 @@ def _apply_relationship_effects(effects: Dict[str, Any], context, report: Effect
 def _apply_flag_effect(effects: Dict[str, Any], player, report: EffectReport) -> None:
     if "set_flag" not in effects:
         return
-    raw = effects["set_flag"]
-    if isinstance(raw, dict):
-        name = str(raw.get("name", raw.get("flag", "")) or "").strip()
-        value = raw.get("value", True)
-    else:
-        name = str(raw or "").strip()
-        value = True
-    if not name:
-        report.failed.append("set_flag (no name)")
-        return
     flags = getattr(player, "flags", None)
     if not isinstance(flags, dict):
         flags = {}
         setattr(player, "flags", flags)
-    flags[name] = value
-    report.applied.append("flag %s=%r" % (name, value))
+    # A list used to be stringified into one flag named "['a', 'b']".
+    for raw in _as_list(effects["set_flag"]):
+        if isinstance(raw, dict):
+            name = str(raw.get("name", raw.get("flag", "")) or "").strip()
+            value = raw.get("value", True)
+        else:
+            name = str(raw or "").strip()
+            value = True
+        if not name:
+            report.failed.append("set_flag (no name)")
+            continue
+        flags[name] = value
+        report.applied.append("flag %s=%r" % (name, value))
 
 
 def _apply_exit_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
@@ -457,19 +701,7 @@ def _apply_reward_effect(effects: Dict[str, Any], player, world, report: EffectR
         if world is not None and hasattr(world, "currency_name"):
             currency = str(world.currency_name())
         report.messages.append("You receive %d %s." % (gold, currency.capitalize()))
-    for entry in _as_list(rewards.get("items")):
-        identifier = ""
-        quantity = 1
-        if isinstance(entry, dict):
-            identifier = str(entry.get("item_id", "") or "")
-            try:
-                quantity = max(1, int(entry.get("quantity", 1) or 1))
-            except (TypeError, ValueError):
-                quantity = 1
-        elif isinstance(entry, str):
-            identifier = entry
-        if not identifier:
-            continue
+    for identifier, quantity in entry_pairs(rewards.get("items")):
         from engine.items.item_factory import ItemFactory
 
         for _ in range(quantity):
@@ -520,19 +752,25 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         if key not in KNOWN_EFFECTS:
             report.unknown.append(key)
 
-    try:
-        _apply_quest_effects(effects, player, world, report)
-        _apply_learning_effects(effects, player, report)
-        _apply_item_effects(effects, player, world, report)
-        _apply_relationship_effects(effects, context, report)
-        _apply_flag_effect(effects, player, report)
-        _apply_exit_effect(effects, context, report)
-        _apply_move_npc_effect(effects, context, report)
-        _apply_reward_effect(effects, player, world, report)
-    except Exception as error:  # pragma: no cover - defensive
-        # An effect is content. Content must not be able to break a
-        # conversation; report it and carry on.
-        report.failed.append("exception: %s" % error)
+    # The order is part of the contract (see the module docstring). Each step is
+    # guarded on its own: an effect is content, and content must not be able to
+    # break a conversation, or stop the effects written after it.
+    steps = (
+        ("quests", lambda: _apply_quest_effects(effects, player, world, report)),
+        ("learning", lambda: _apply_learning_effects(effects, player, report)),
+        ("items", lambda: _apply_item_effects(effects, player, world, report)),
+        ("gold", lambda: _apply_gold_effect(effects, player, world, report)),
+        ("relationship", lambda: _apply_relationship_effects(effects, context, report)),
+        ("flags", lambda: _apply_flag_effect(effects, player, report)),
+        ("exits", lambda: _apply_exit_effect(effects, context, report)),
+        ("move_npc", lambda: _apply_move_npc_effect(effects, context, report)),
+        ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
+    )
+    for label, step in steps:
+        try:
+            step()
+        except Exception as error:  # noqa: BLE001 - see above
+            report.failed.append("%s raised %s: %s" % (label, type(error).__name__, error))
 
     return report
 

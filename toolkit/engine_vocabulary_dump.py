@@ -229,31 +229,16 @@ def _objective_type_names() -> set:
 
 
 def _effect_fields() -> dict:
-    """`{effect: [required field names]}` for the object-shaped effects.
+    """`{effect: [field names]}` for the object-shaped effects.
 
-    Read from the readers' own `raw.get("...")` calls, so this cannot disagree with
-    what the engine does -- which is the failure the hints drifted into.
+    Read from `EFFECT_SHAPES`, the table the validator checks values against.
+    `test_effect_shapes.py` ties each entry to the `raw.get("...")` calls in the
+    reader, so the table cannot disagree with what the engine does -- which is the
+    failure the editor's hints drifted into.
     """
-    import re
+    from engine.dialogue.effects import effect_fields
 
-    source = (_SERVER_ROOT / "engine" / "dialogue" / "effects.py").read_text(encoding="utf-8")
-    fields: dict = {}
-    for effect, reader in (
-        ("adjust_relationship", "_apply_relationship_effects"),
-        ("move_npc", "_apply_move_npc_effect"),
-        ("reveal_exit", "_apply_exit_effect"),
-        ("give_rewards", "_apply_reward_effect"),
-    ):
-        start = source.find("def %s(" % reader)
-        if start == -1:
-            continue
-        # Up to the next top-level def, so one reader cannot borrow another's keys.
-        end = source.find("\ndef ", start + 1)
-        body = source[start:end if end != -1 else len(source)]
-        keys = set(re.findall(r'(?:raw|rewards|effects\[[^\]]+\])\.get\(\s*"([a-z_]+)"', body))
-        keys.update(re.findall(r'raw\.get\(\s*"([a-z_]+)"', body))
-        fields[effect] = sorted(keys)
-    return fields
+    return effect_fields()
 
 
 if __name__ == "__main__":

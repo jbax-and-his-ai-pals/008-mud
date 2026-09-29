@@ -3562,6 +3562,142 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
     }
 
 
+# The condition kinds whose value names something the set defines: (kind, the field
+# holding the id, the identifier bucket it must be found in).
+_CONDITION_REFERENCES = (
+    ("has_item", "item_id", "items"),
+    ("knows_recipe", "recipe_id", "recipes"),
+    ("spell_known", "spell_id", "spells"),
+    ("quest_completed", "quest_id", "quests"),
+    ("quest_active", "quest_id", "quests"),
+    ("discovery", "discovery_id", "discoveries"),
+    ("visited_region", "region_id", "regions"),
+    ("in_region", "region_id", "regions"),
+    ("relationship_at_least", "npc_id", "npcs"),
+)
+
+# The effects whose value names things the set defines: (effect, identifier bucket).
+_EFFECT_REFERENCES = (
+    ("grant_recipe", "recipes"),
+    ("teach_spell", "spells"),
+    ("grant_discovery", "discoveries"),
+    ("start_quest", "quests"),
+    ("advance_quest", "quests"),
+    ("complete_quest", "quests"),
+    ("start_campaign", "campaigns"),
+    ("give_item", "items"),
+    ("take_item", "items"),
+)
+
+
+def _condition_leaves(node: Any):
+    """Every leaf condition in a tree, descending through `all`, `any`, `not` and lists."""
+    if isinstance(node, list):
+        for child in node:
+            yield from _condition_leaves(child)
+        return
+    if not isinstance(node, dict):
+        return
+    for composite in ("all", "any"):
+        if composite in node:
+            yield from _condition_leaves(node[composite])
+            return
+    if "not" in node:
+        yield from _condition_leaves(node["not"])
+        return
+    yield node
+
+
+def _check_condition(
+    node: Any, where: str, path: Path, ids: dict[str, set[str]], issues: list[ContentSetIssue]
+) -> None:
+    """A condition tree must use known kinds, and every id in it, at any depth, must exist.
+
+    The id check used to look at the top node only, so a `has_item` nested under
+    `all`, `any` or `not` -- how a real gate is written -- was never checked
+    against the items the set defines.
+    """
+    issues.extend(_condition_issues(node, where, path))
+    for leaf in _condition_leaves(node):
+        kind = str(leaf.get("kind", ""))
+        for reference_kind, key, bucket in _CONDITION_REFERENCES:
+            if kind != reference_kind:
+                continue
+            identifier = str(leaf.get(key, "") or "").strip()
+            if identifier and ids[bucket] and identifier not in ids[bucket]:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"{where} names {key} '{identifier}', which is not defined in this content set",
+                ))
+
+
+def _check_effect_block(
+    block: Any, where: str, path: Path, ids: dict[str, set[str]], content_root: Path,
+    issues: list[ContentSetIssue],
+) -> None:
+    """An effects mapping: known effects, values of the right shape, ids that exist."""
+    from engine.dialogue.effects import KNOWN_EFFECTS, effect_shape_issues
+
+    if not isinstance(block, dict):
+        return
+    for key in sorted(block):
+        if key not in KNOWN_EFFECTS:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{where} has unknown effect '{key}' "
+                f"(known: {', '.join(sorted(KNOWN_EFFECTS))})",
+            ))
+    for problem in effect_shape_issues(block):
+        issues.append(ContentSetIssue("error", str(path), f"{where}: {problem}"))
+    for key, bucket in _EFFECT_REFERENCES:
+        if key not in block:
+            continue
+        for identifier in _effect_identifiers(block[key]):
+            if ids[bucket] and identifier not in ids[bucket]:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"{where} effect {key} names '{identifier}', "
+                    f"which is not defined in this content set",
+                ))
+    rewards = block.get("give_rewards")
+    if isinstance(rewards, dict):
+        for identifier in _effect_identifiers(rewards.get("items")):
+            if ids["items"] and identifier not in ids["items"]:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"{where} effect give_rewards names item '{identifier}', "
+                    f"which is not defined in this content set",
+                ))
+    relationship = block.get("adjust_relationship")
+    if isinstance(relationship, dict):
+        npc_id = str(relationship.get("npc", "") or "").strip()
+        if npc_id and ids["npcs"] and npc_id not in ids["npcs"]:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{where} effect adjust_relationship names NPC '{npc_id}', "
+                f"which is not defined in this content set",
+            ))
+    move = block.get("move_npc")
+    if isinstance(move, dict):
+        npc_id = str(move.get("npc", "") or "").strip()
+        region_id = str(move.get("region", "") or "").strip()
+        if npc_id and ids["npcs"] and npc_id not in ids["npcs"]:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{where} effect move_npc names NPC '{npc_id}', "
+                f"which is not defined in this content set",
+            ))
+        if region_id and ids["regions"] and region_id not in ids["regions"]:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{where} effect move_npc names region '{region_id}', "
+                f"which is not defined in this content set",
+            ))
+    reveal = block.get("reveal_exit")
+    if isinstance(reveal, dict):
+        _check_reveal_exit(reveal, where, content_root, path, issues)
+
+
 def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Validate authored conversations, their references, and their wiring.
 
@@ -3570,7 +3706,6 @@ def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]
     naming an item nobody authored must fail *validation*, never a conversation.
     A player should not be the one who discovers that a choice leads nowhere.
     """
-    from engine.dialogue.effects import KNOWN_EFFECTS
     from engine.dialogue.manager import parse_graph
 
     dialogue_dir = content_root / "dialogue"
@@ -3632,107 +3767,20 @@ def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]
         for node in graph.nodes.values():
             where = f"{label} node '{node.node_id}'"
 
-            def check_condition(node_or_block, where_label):
-                for issue in _condition_issues(node_or_block, where_label, path):
-                    issues.append(issue)
-                for kind, key, bucket in (
-                    ("has_item", "item_id", "items"),
-                    ("knows_recipe", "recipe_id", "recipes"),
-                    ("spell_known", "spell_id", "spells"),
-                    ("quest_completed", "quest_id", "quests"),
-                    ("quest_active", "quest_id", "quests"),
-                    ("discovery", "discovery_id", "discoveries"),
-                    ("visited_region", "region_id", "regions"),
-                    ("in_region", "region_id", "regions"),
-                    ("relationship_at_least", "npc_id", "npcs"),
-                ):
-                    current = node_or_block
-                    if not isinstance(current, dict) or str(current.get("kind", "")) != kind:
-                        continue
-                    identifier = str(current.get(key, "") or "").strip()
-                    if identifier and ids[bucket] and identifier not in ids[bucket]:
-                        issues.append(ContentSetIssue(
-                            "error", str(path),
-                            f"{where_label} names {key} '{identifier}', which is not defined in this content set",
-                        ))
-
-            def check_effects(block, where_label):
-                if not isinstance(block, dict):
-                    return
-                for key in sorted(block):
-                    if key not in KNOWN_EFFECTS:
-                        issues.append(ContentSetIssue(
-                            "error", str(path),
-                            f"{where_label} has unknown effect '{key}' "
-                            f"(known: {', '.join(sorted(KNOWN_EFFECTS))})",
-                        ))
-                for key, bucket in (
-                    ("grant_recipe", "recipes"),
-                    ("teach_spell", "spells"),
-                    ("grant_discovery", "discoveries"),
-                    ("start_quest", "quests"),
-                    ("advance_quest", "quests"),
-                    ("complete_quest", "quests"),
-                    ("start_campaign", "campaigns"),
-                    ("give_item", "items"),
-                    ("take_item", "items"),
-                ):
-                    if key not in block:
-                        continue
-                    for identifier in _effect_identifiers(block[key]):
-                        if ids[bucket] and identifier not in ids[bucket]:
-                            issues.append(ContentSetIssue(
-                                "error", str(path),
-                                f"{where_label} effect {key} names '{identifier}', "
-                                f"which is not defined in this content set",
-                            ))
-                rewards = block.get("give_rewards")
-                if isinstance(rewards, dict):
-                    for entry in rewards.get("items", []) or []:
-                        identifier = entry.get("item_id") if isinstance(entry, dict) else entry
-                        if isinstance(identifier, str) and ids["items"] and identifier not in ids["items"]:
-                            issues.append(ContentSetIssue(
-                                "error", str(path),
-                                f"{where_label} effect give_rewards names item '{identifier}', "
-                                f"which is not defined in this content set",
-                            ))
-                relationship = block.get("adjust_relationship")
-                if isinstance(relationship, dict):
-                    npc_id = str(relationship.get("npc", "") or "").strip()
-                    if npc_id and ids["npcs"] and npc_id not in ids["npcs"]:
-                        issues.append(ContentSetIssue(
-                            "error", str(path),
-                            f"{where_label} effect adjust_relationship names NPC '{npc_id}', "
-                            f"which is not defined in this content set",
-                        ))
-                move = block.get("move_npc")
-                if isinstance(move, dict):
-                    npc_id = str(move.get("npc", "") or "").strip()
-                    region_id = str(move.get("region", "") or "").strip()
-                    if npc_id and ids["npcs"] and npc_id not in ids["npcs"]:
-                        issues.append(ContentSetIssue(
-                            "error", str(path),
-                            f"{where_label} effect move_npc names NPC '{npc_id}', "
-                            f"which is not defined in this content set",
-                        ))
-                    if region_id and ids["regions"] and region_id not in ids["regions"]:
-                        issues.append(ContentSetIssue(
-                            "error", str(path),
-                            f"{where_label} effect move_npc names region '{region_id}', "
-                            f"which is not defined in this content set",
-                        ))
-                reveal = block.get("reveal_exit")
-                if isinstance(reveal, dict):
-                    _check_reveal_exit(reveal, where_label, content_root, path, issues)
-
-            check_effects(node.effects, f"{where}.effects")
+            _check_effect_block(node.effects, f"{where}.effects", path, ids, content_root, issues)
             for choice in node.choices:
                 choice_where = f"{where}.choices[{choice.index}]"
-                check_condition(choice.condition, f"{choice_where}.condition")
-                check_effects(choice.effects, f"{choice_where}.effects")
+                _check_condition(choice.condition, f"{choice_where}.condition", path, ids, issues)
+                _check_effect_block(choice.effects, f"{choice_where}.effects", path, ids, content_root, issues)
                 if choice.check:
-                    check_effects(choice.check.get("success_effects"), f"{choice_where}.check.success_effects")
-                    check_effects(choice.check.get("fail_effects"), f"{choice_where}.check.fail_effects")
+                    _check_effect_block(
+                        choice.check.get("success_effects"), f"{choice_where}.check.success_effects",
+                        path, ids, content_root, issues,
+                    )
+                    _check_effect_block(
+                        choice.check.get("fail_effects"), f"{choice_where}.check.fail_effects",
+                        path, ids, content_root, issues,
+                    )
 
 
 def _knowledge_region_ids(content_root: Path, issues: list[ContentSetIssue]) -> set[str]:
@@ -3776,7 +3824,7 @@ def _validate_knowledge_topics(content_root: Path, issues: list[ContentSetIssue]
         CAMPAIGN_STATES, KNOWLEDGE_CONDITION_KINDS, KNOWLEDGE_STATES, QUEST_STATES,
     )
 
-    from engine.dialogue.effects import KNOWN_EFFECTS
+    from engine.dialogue.effects import KNOWN_EFFECTS, effect_shape_issues
 
     path = content_root / "knowledge" / "topics.json"
     if not path.is_file():
@@ -3900,25 +3948,15 @@ def _validate_knowledge_topics(content_root: Path, issues: list[ContentSetIssue]
                             f"{resp_label}.effects names '{key}', which is not an effect this engine knows "
                             f"(known: {', '.join(sorted(KNOWN_EFFECTS))})",
                         ))
+                for problem in effect_shape_issues(effects):
+                    issues.append(ContentSetIssue("error", str(path), f"{resp_label}.effects: {problem}"))
 
 
 def _effect_identifiers(value: Any) -> list[str]:
-    """Ids named by one effect value, in any of its accepted shapes."""
-    found: list[str] = []
-    entries = value if isinstance(value, (list, tuple)) else [value]
-    for entry in entries:
-        if isinstance(entry, str):
-            if entry.strip():
-                found.append(entry.strip())
-            continue
-        if isinstance(entry, dict):
-            identifier = str(
-                entry.get("item_id") or entry.get("id") or entry.get("recipe_id")
-                or entry.get("spell_id") or entry.get("discovery_id") or entry.get("quest_id") or ""
-            ).strip()
-            if identifier:
-                found.append(identifier)
-    return found
+    """Ids named by one effect value, in any of the shapes the engine reads."""
+    from engine.dialogue.effects import entry_pairs
+
+    return [identifier for identifier, _quantity in entry_pairs(value)]
 
 
 def _check_reveal_exit(
@@ -3928,8 +3966,7 @@ def _check_reveal_exit(
     room_ref = str(reveal.get("room", "") or "").strip()
     direction = str(reveal.get("direction", "") or "").strip().lower()
     if not room_ref or not direction:
-        issues.append(ContentSetIssue("error", str(path), f"{where} effect reveal_exit needs room and direction"))
-        return
+        return  # `effect_shape_issues` says which is missing
     region_id, _, room_id = room_ref.partition(":")
     if not room_id:
         issues.append(ContentSetIssue(
