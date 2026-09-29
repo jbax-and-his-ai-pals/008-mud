@@ -143,6 +143,12 @@ feature will assume works.
 **Risk.** Deleting a path someone is mid-way through using - check `git log` for intent. Wiring it is a
 behaviour change, not a config flip, since both entry points pass `:memory:`.
 
+**Decided 2026-09-28: finish it** (chunks-of-work.md chunk 7, Decision 7; single-player modes first, multi-player
+identity deferred). Chunk 7 Phase 1 does the wiring. **1.1 (the store) is done:** `SqliteStore` serialises a write
+on the caller's thread so a queued write is a snapshot, a failed write costs one write (`write_failures`,
+`last_write_error`) instead of killing the writer, `stop_async_writer` and `close` write everything queued,
+`flush` returns when the writes have landed, and a `world_state` table holds the world's changes for 1.2.
+
 ### 6. Extract the command ladder so there is one of it
 
 **What.** Move the pre-route ladder into one transport-agnostic router returning "handled, with these

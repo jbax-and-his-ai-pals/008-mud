@@ -79,6 +79,8 @@ No single modality is required. Operators can combine or disable paths by profil
 
 - Runtime state is memory-resident and authoritative.
 - Persistence uses async SQLite + JSON payload strategy.
+  A queued write is a snapshot taken on the caller's thread; a failed write is counted and
+  never stops the writer; stopping and closing write everything queued.
 - Entity behavior is component-driven from YAML/JSON templates.
 - Player-authored visual assets are SVG-first with validation before broadcast.
 
