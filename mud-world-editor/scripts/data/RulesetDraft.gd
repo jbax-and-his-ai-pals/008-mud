@@ -90,7 +90,7 @@ func set_quest_generation(section: Dictionary):
 ## Replaces each WorldRulesSection-owned section with its composed value; a
 ## section the form emptied and the file never had is not created.
 func set_world_rules(sections: Dictionary):
-	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"]:
+	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "companions"]:
 		if sections.has(name): data[name] = sections[name].duplicate(true)
 		else: data.erase(name)
 

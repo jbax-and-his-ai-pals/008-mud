@@ -254,7 +254,18 @@ class InstanceManager:
         active_player.runtime_state.quests.archived[quest_id] = quest_data
 
     def _remove_region_and_npcs(self, region_id: str):
-        npcs_to_remove = [npc.obj_id for npc in self.world.npcs.values() if npc.current_region_id == region_id]
+        from engine.npcs import companions
+
+        npcs_to_remove = []
+        for npc in self.world.npcs.values():
+            if npc.current_region_id != region_id:
+                continue
+            owner = self.world.get_player_by_id(npc.properties.get("owner_id")) if companions.is_companion(npc) else None
+            if owner is not None and owner.current_region_id != region_id:
+                # A companion is not scenery of the place it was fighting in: it goes to its owner.
+                npc.current_region_id, npc.current_room_id = owner.current_region_id, owner.current_room_id
+                continue
+            npcs_to_remove.append(npc.obj_id)
         for npc_id in npcs_to_remove: del self.world.npcs[npc_id]
         if region_id in self.world.regions: del self.world.regions[region_id]
         

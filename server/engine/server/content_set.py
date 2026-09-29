@@ -1665,6 +1665,7 @@ _SIMPLE_RULESET_SECTION_KEYS = {
     "npc_naming": ("first_names", "random_name_pattern"),
     "status": ("stats",),
     "combat": ("retreat", "additional_blocked_command_names", "additional_combat_message_tokens"),
+    "companions": ("max",),
 }
 
 
@@ -1775,6 +1776,12 @@ def _validate_simple_ruleset_sections(
         for keyword in spawning["no_spawn_keywords"]:
             if room_text and not any(keyword.lower() in text for text in room_text):
                 warn(f"spawning.no_spawn_keywords '{keyword}' matches no room id or name, so it protects nothing")
+
+    companions = sections.get("companions", {})
+    if "max" in companions:
+        value = companions["max"]
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            error("companions.max must be a whole number of 0 or more (0 means no companions in this world)")
 
     elites = sections.get("elites", {})
     for key in ("chance", "loot_guaranteed_chance"):
@@ -3652,6 +3659,7 @@ _CONDITION_REFERENCES = (
     ("visited_region", "region_id", "regions"),
     ("in_region", "region_id", "regions"),
     ("relationship_at_least", "npc_id", "npcs"),
+    ("companion_present", "npc_id", "npcs"),
 )
 
 # The effects whose value names things the set defines: (effect, identifier bucket).
@@ -3667,6 +3675,8 @@ _EFFECT_REFERENCES = (
     ("give_item", "items"),
     ("take_item", "items"),
     ("forget_spell", "spells"),
+    ("recruit", "npcs"),
+    ("dismiss", "npcs"),
 )
 
 # Effects that give the character something. Paired with a `take_*` they make a

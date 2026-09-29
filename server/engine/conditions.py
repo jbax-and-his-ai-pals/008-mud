@@ -45,7 +45,7 @@ KNOWN_KINDS = frozenset({
     "has_item", "skill_at_least", "spell_known", "relationship_at_least",
     "quest_completed", "quest_active", "discovery", "visited_region",
     "level_at_least", "title_earned", "background", "flag", "knows_recipe",
-    "gold_at_least", "in_region", "time_of_day", "season", "room_clear",
+    "gold_at_least", "in_region", "time_of_day", "season", "room_clear", "companion_present",
 })
 
 
@@ -307,6 +307,18 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
         standing = factions.hostiles_in(getattr(player, "world", None), region_id, room_id)
         if standing:
             reasons.append("something hostile still stands in the way (%d)" % len(standing))
+            return False
+        return True
+
+    if kind == "companion_present":
+        # A companion travels with the player: this one (by template or placed id), or any.
+        from engine.npcs import companions
+
+        wanted = str(node.get("npc_id", "")).strip()
+        world = getattr(player, "world", None)
+        mine = companions.companions_of(world, player)
+        if not any(not wanted or wanted in (npc.template_id, npc.obj_id) for npc in mine):
+            reasons.append("needs %s with them" % (wanted or "a companion"))
             return False
         return True
 

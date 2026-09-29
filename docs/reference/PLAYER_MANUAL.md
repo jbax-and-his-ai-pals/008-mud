@@ -620,6 +620,12 @@ round: not *what* you know but *what it was worth*, sorted by kind, with
 the things you haven't met yet conspicuous by their absence. It is the
 closest thing this game has to a quest log for your own curiosity.
 
+Some people will agree to travel with you. A conversation can end with
+one joining you (`companions` lists who is with you and how they are
+faring); they follow you from room to room, across regions, and join
+your fights, and a later conversation can send them home. How many a
+world lets you bring is up to the world: often one, sometimes a party.
+
 ---
 
 ## 17. Games of Chance
@@ -637,7 +643,7 @@ you're up against.
 | Category | Commands |
 |---|---|
 | **Movement** | `north` `south` `east` `west` `northeast` `northwest` `southeast` `southwest` `up` `down` `in` `out` `go <dir>` |
-| **Information** | `look` `status` `skills` `title` `advancement` `background` `backgrounds` `journal` `discoveries` `collection` `relationship(s)` `survey` `appraise` `calendar` `time` `weather` |
+| **Information** | `look` `status` `skills` `title` `advancement` `background` `backgrounds` `journal` `discoveries` `collection` `relationship(s)` `companions` `survey` `appraise` `calendar` `time` `weather` |
 | **Interaction** | `talk` `reply/respond/choose` `ask` `say` `yell` `give` `take/get` `drop` `use` `read` `examine` `open` `close` `unlock` `pick` `pull` `search` `follow` `guide` `wait` `plant` |
 | **Combat** | `attack` `flee`/`retreat` `combat` |
 | **Magic** | `cast` `spells` |

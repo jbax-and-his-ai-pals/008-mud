@@ -115,8 +115,8 @@ class TestTheManifestBlockReadsTheEngine(unittest.TestCase):
     def test_the_options_the_editor_already_used_are_still_present(self):
         """The vocabulary the parity check was built for must not regress."""
         payload = json.loads(_run_dump().stdout)
-        self.assertEqual(18, len(payload["condition_kinds"]))
-        self.assertEqual(25, len(payload["effect_keys"]))
+        self.assertEqual(19, len(payload["condition_kinds"]))
+        self.assertEqual(27, len(payload["effect_keys"]))
         self.assertTrue(payload["objective_types"])
         self.assertEqual(10, len(payload["effect_fields"]))
         self.assertIn("effects", payload["consumable_effect_types"])

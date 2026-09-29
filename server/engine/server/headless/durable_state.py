@@ -215,8 +215,14 @@ class DurableStateMixin:
         if player is None:
             return True, "The saved character %s could not be read." % record.name, False
 
+        saved_id = player.obj_id
         player.obj_id = session.player_id
         player.world = self.world
+        # A resumed character gets the id of the connection that resumed it; whatever
+        # was bound to the old id (a companion) is bound to the new one.
+        from engine.npcs import companions
+
+        companions.rebind_owner(self.world, saved_id, session.player_id)
         self.world.apply_content_player_defaults(player)
         shift_deadlines(player, float(self.world.clock.now()) - float(payload.get("clock_now", self.world.clock.now())))
         if not self.world.get_room_for_player(player):

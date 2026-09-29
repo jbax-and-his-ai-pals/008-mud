@@ -72,6 +72,11 @@ const CONDITION_KINDS := {
 		"fields": {"region_id": "region_id"},
 		"note": "Seeded silently for the region a character starts in.",
 	},
+	"companion_present": {
+		"label": "A companion is travelling with the player",
+		"fields": {"npc_id": "npc_id"},
+		"note": "Name a companion (its template or placed id), or leave it blank for any companion.",
+	},
 	"room_clear": {
 		"label": "A room is clear of enemies",
 		"fields": {"region_id": "region_id", "room_id": "string"},
@@ -154,6 +159,8 @@ const EFFECTS := {
 	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
 	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room}", "kind": "json"},
 	"remove_npc": {"label": "Take an NPC out (not a death)", "shape": "an NPC template or placed id, or {npc, region, room}", "kind": "npc_id"},
+	"recruit": {"label": "Recruit a companion", "shape": "an NPC template or placed id in the room, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": true},
+	"dismiss": {"label": "Dismiss a companion", "shape": "a companion template or placed id, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": true},
 }
 
 # What `restore` can refill (`engine/dialogue/effects.py::RESTORE_RESOURCES`).

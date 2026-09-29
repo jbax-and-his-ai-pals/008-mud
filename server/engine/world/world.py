@@ -580,8 +580,11 @@ class World:
         target_region = self.get_region(new_region_id)
         target_room = target_region.get_room(new_room_id)
         target_room.visited = True
+        came_from = (active_player.current_region_id, active_player.current_room_id)
         active_player.current_region_id = new_region_id
         active_player.current_room_id = new_room_id
+        from engine.npcs import companions
+        companion_lines = companions.travel_with(self, active_player, *came_from)
 
         # NEW: Get quest updates (returns list of strings instead of printing)
         quest_updates = []
@@ -607,6 +610,9 @@ class World:
         travel_note = weather_manager.travel_note(target_region, target_room) if weather_manager else ""
         if travel_note:
             output += "\n\n" + travel_note
+
+        if companion_lines:
+            output += "\n\n" + "\n".join(companion_lines)
 
         if trigger_lines:
             output += "\n\n" + "\n\n".join(trigger_lines)

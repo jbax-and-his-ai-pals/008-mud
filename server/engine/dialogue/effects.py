@@ -29,6 +29,8 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     raise             {"max_health": 10, "max_mana": 4, "stats": {"strength": 1}}   permanent
     forget_spell      "spell_id" | [...]
     message           "text shown to the player"
+    recruit           "npc_id" | true | [...]        an NPC in the room joins the player as a companion
+    dismiss           "npc_id" | true | [...]        a companion stays behind (true = the speaker)
     spawn_npc         {"npc": "template_id", "region": "r", "room": "x", "instance_id": "optional"}
     remove_npc        "template_or_instance_id" | {"npc": "id", "region": "r", "room": "x"}
     teleport          {"region": "r", "room": "x"}   move the player; runs last
@@ -83,7 +85,7 @@ KNOWN_EFFECTS = frozenset({
     "give_item", "take_item", "give_gold", "adjust_relationship",
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
     "take_gold", "restore", "raise", "forget_spell", "message",
-    "spawn_npc", "remove_npc", "teleport", "seal_exit",
+    "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -146,6 +148,8 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     },
     "forget_spell": {"form": "ids"},
     "message": {"form": "text"},
+    "recruit": {"form": "ids_or_true"},
+    "dismiss": {"form": "ids_or_true"},
     "spawn_npc": {
         "form": "object",
         "fields": {"npc": "text", "region": "text", "room": "text", "instance_id": "text"},
@@ -975,6 +979,36 @@ def _apply_move_npc_effect(effects: Dict[str, Any], context, report: EffectRepor
     report.applied.append("moved %s to %s:%s" % (getattr(npc, "name", "?"), region_id, room_id))
 
 
+def _apply_companion_effects(effects: Dict[str, Any], player, context, report: EffectReport) -> None:
+    """`recruit` and `dismiss`: an id, a list of ids, or `true` for whoever is speaking."""
+    from engine.npcs import companions
+
+    world = _context_world(context)
+    for key, action in (("recruit", companions.recruit), ("dismiss", companions.dismiss)):
+        if key not in effects:
+            continue
+        value = effects[key]
+        if value is True:
+            targets = [""]
+        else:
+            targets = [identifier for identifier, _quantity in entry_pairs(value)]
+        for identifier in targets:
+            npc = _resolve_npc(context, identifier)
+            if npc is not None and identifier and not _in_room(npc, player) and key == "recruit":
+                # A template id can match one anywhere in the world; recruiting means the one here.
+                here = [n for n in world.get_npcs_in_room(player.current_region_id, player.current_room_id)
+                        if identifier in (n.template_id, n.obj_id)] if world is not None else []
+                npc = here[0] if here else npc
+            done, message = action(world, player, npc)
+            (report.applied if done else report.failed).append("%s %s" % (key, getattr(npc, "name", identifier) or "someone"))
+            if message:
+                report.messages.append(message)
+
+
+def _in_room(npc, player) -> bool:
+    return (npc.current_region_id, npc.current_room_id) == (player.current_region_id, player.current_room_id)
+
+
 def _apply_spawn_npc_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     if "spawn_npc" not in effects:
         return
@@ -1145,6 +1179,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("move_npc", lambda: _apply_move_npc_effect(effects, context, report)),
         ("spawn_npc", lambda: _apply_spawn_npc_effect(effects, context, report)),
         ("remove_npc", lambda: _apply_remove_npc_effect(effects, context, report)),
+        ("companions", lambda: _apply_companion_effects(effects, player, context, report)),
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
         ("teleport", lambda: _apply_teleport_effect(effects, context, report)),
     )

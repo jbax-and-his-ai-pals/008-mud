@@ -27,6 +27,7 @@ const FIELDS := [
 	["elites", "prefixes", "Elite prefixes (comma-separated)", "list", ""],
 	["npc_naming", "random_name_pattern", "Random NPC name pattern ({first_name} {title})", "text", "{first_name}"],
 	["npc_naming", "first_names", "First names (comma-separated)", "list", ""],
+	["companions", "max", "Companions a character may bring along (0: none)", "int", [0, 12]],
 	["player_defaults", "player_class", "Default player class", "text", "Adventurer"],
 	["player_defaults", "magic.known_spells", "Default known spells (ability ids, comma-separated)", "list", ""],
 ]
@@ -34,6 +35,7 @@ const ENGINE_DEFAULTS := {
 	"calendar.start_time.hour": 0, "calendar.start_time.minute": 0,
 	"elites.chance": 0.0, "elites.stat_multiplier": 1.5,
 	"elites.loot_guaranteed_chance": 1.0, "elites.loot_quantity_multiplier": 1.5,
+	"companions.max": 1,
 }
 
 var on_change: Callable
