@@ -57,7 +57,7 @@ func _on_field_pulse_pressed() -> void:
 	var envelope: Dictionary = main.parser.build_command_envelope(cmd, main._client_capabilities.duplicate(true), main._session_id)
 	main._network_telemetry["lines_sent"] = int(main._network_telemetry.get("lines_sent", 0)) + 1
 	_active_client_send_line(JSON.stringify(envelope))
-	main._append_log("[b]> %s[/b]" % cmd)
+	main._append_game("[b]> %s[/b]" % cmd)
 	_refresh_network_labels()
 
 func _on_command_submitted(_text: String) -> void:
@@ -147,7 +147,7 @@ func _send_command_to_server(cmd: String, display_cmd: String = "") -> void:
 	var shown: String = display_cmd
 	if shown == "":
 		shown = cmd
-	main._append_log("[b]> %s[/b]" % shown)
+	main._append_game("[b]> %s[/b]" % shown)
 
 func _warn_if_command_conflicts_with_policy(cmd: String) -> void:
 	var normalized: String = cmd.strip_edges().to_lower()

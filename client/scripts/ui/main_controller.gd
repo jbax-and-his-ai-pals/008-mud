@@ -161,6 +161,8 @@ var _finite_adventure_catalog_requested: bool = false
 var _latest_quests_payload: Dictionary = {}
 var _game_contract: Dictionary = {}
 
+const SERVER_MARKUP = preload("res://scripts/text/server_markup.gd")
+
 @onready var host_input: LineEdit = $VBox/ConnectionRow/HostInput
 @onready var port_input: LineEdit = $VBox/ConnectionRow/PortInput
 @onready var connect_button: Button = $VBox/ConnectionRow/ConnectButton
@@ -299,30 +301,136 @@ var theme_controller: ThemeController
 var accessibility: AccessibilityController
 var game_state_payloads: GameStatePayloadsController
 
-## The side-panel stack (status, inventory, quests, surroundings...) is tall once a character
-## exists. Directly in the root VBox it forced the whole layout taller than the window, which
-## pushed the log and the command line off the screen and made the client look hung. Inside a
-## scroll container it takes the space the log leaves it and scrolls. The nodes keep their
-## names; the @onready references above are object references, resolved before this runs.
-func _wrap_side_panels_in_scroll() -> void:
+## Two views. The game view is what a player sees: the log, a side column of their own state
+## (status, combat, inventory, crafting, collections, quests, surroundings) and the command line.
+## Everything about the connection, profiles, operator actions, authoring, adventure runs and
+## server diagnostics is tooling; it moves to a Tools view behind one button (F2), so the game
+## screen is not a control panel. The nodes keep their names and the @onready references above
+## are object references resolved before this runs, so nothing that uses them notices the move.
+const TOOLS_PANEL_PREFIXES := ["WorldState", "Network", "ServerPolicy", "StartupDiagnostics", "Adventure", "Asset"]
+const SIDE_PANEL_WIDTH := 330
+
+var _game_view: Control
+var _tools_view: Control
+var _tools_toggle: Button
+var _connection_badge: Label
+var _debug_log: RichTextLabel
+
+
+func _arrange_views() -> void:
+	var root_box: Control = get_node_or_null("VBox")
 	var panels: Control = get_node_or_null("VBox/AssetPreview")
-	if panels == null or panels.get_parent() is ScrollContainer:
+	if root_box == null or panels == null or panels.get_parent() is ScrollContainer:
 		return
-	var vbox: Node = panels.get_parent()
-	var index: int = panels.get_index()
-	var scroll := ScrollContainer.new()
-	scroll.name = "AssetScroll"
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 120)
-	vbox.add_child(scroll)
-	vbox.move_child(scroll, index)
-	panels.reparent(scroll, false)
+
+	# --- game view: log beside the player's own panels, command line underneath
+	var game := VBoxContainer.new()
+	game.name = "GameView"
+	game.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var body := HBoxContainer.new()
+	body.name = "GameBody"
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 10)
+	game.add_child(body)
+	var side := ScrollContainer.new()
+	side.name = "SidePanels"
+	side.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	side.custom_minimum_size = Vector2(SIDE_PANEL_WIDTH, 0)
+
+	# --- tools view: everything that is not the game
+	var tools_scroll := ScrollContainer.new()
+	tools_scroll.name = "ToolsView"
+	tools_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tools_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tools_scroll.visible = false
+	var tools := VBoxContainer.new()
+	tools.name = "Tools"
+	tools.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tools_scroll.add_child(tools)
+
+	for row_name in ["ConnectionRow", "ProfileRow", "ProfileStatusLabel", "OperatorRow", "OperatorStatusLabel", "AdventureRow", "AuthoringRow", "AuthoringStatus"]:
+		var row: Node = root_box.get_node_or_null(row_name)
+		if row != null:
+			row.reparent(tools, false)
+	var diagnostics_title := Label.new()
+	diagnostics_title.text = "Diagnostics"
+	tools.add_child(diagnostics_title)
+	_debug_log = RichTextLabel.new()
+	_debug_log.name = "DiagnosticsLog"
+	_debug_log.bbcode_enabled = true
+	_debug_log.scroll_following = true
+	_debug_log.selection_enabled = true
+	_debug_log.custom_minimum_size = Vector2(0, 240)
+	_debug_log.meta_clicked.connect(_on_meta_clicked)
+	tools.add_child(_debug_log)
+	for child in panels.get_children():
+		for prefix in TOOLS_PANEL_PREFIXES:
+			if str(child.name).begins_with(prefix):
+				child.reparent(tools, false)
+				break
+
+	log_view.reparent(body, false)
+	log_view.clear()   # the scene's placeholder heading is not game text
+	log_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(side)
+	panels.reparent(side, false)
 	panels.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var mobile: Node = root_box.get_node_or_null("MobileControls")
+	if mobile != null:
+		mobile.reparent(game, false)
+	var command_row: Node = root_box.get_node_or_null("CommandRow")
+	if command_row != null:
+		command_row.reparent(game, false)
+
+	# --- a slim bar: connection state and the switch between the two views
+	var bar := HBoxContainer.new()
+	bar.name = "TopBar"
+	_connection_badge = Label.new()
+	_connection_badge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.add_child(_connection_badge)
+	_tools_toggle = Button.new()
+	_tools_toggle.text = "Tools (F2)"
+	_tools_toggle.focus_mode = Control.FOCUS_NONE
+	var key := InputEventKey.new()
+	key.keycode = KEY_F2
+	var shortcut := Shortcut.new()
+	shortcut.events = [key]
+	_tools_toggle.shortcut = shortcut
+	_tools_toggle.pressed.connect(_toggle_tools_view)
+	bar.add_child(_tools_toggle)
+
+	root_box.add_child(bar)
+	root_box.move_child(bar, 0)
+	root_box.add_child(game)
+	root_box.move_child(game, 1)
+	root_box.add_child(tools_scroll)
+	root_box.move_child(tools_scroll, 2)
+	_game_view = game
+	_tools_view = tools_scroll
+
+	for client in [tcp_client, ws_client]:
+		client.connected.connect(_refresh_connection_badge)
+		client.disconnected.connect(_refresh_connection_badge)
+	_refresh_connection_badge()
+
+
+func _toggle_tools_view() -> void:
+	var show_tools: bool = not _tools_view.visible
+	_tools_view.visible = show_tools
+	_game_view.visible = not show_tools
+	_tools_toggle.text = "Back to game (F2)" if show_tools else "Tools (F2)"
+	if not show_tools and command_input != null:
+		command_input.grab_focus()
+
+
+func _refresh_connection_badge() -> void:
+	var connected: bool = tcp_client.is_connected_to_server() or ws_client.is_connected_to_server()
+	_connection_badge.text = "Connected" if connected else "Not connected: open Tools to connect"
+	_connection_badge.add_theme_color_override("font_color", Color(0.55, 0.9, 0.55) if connected else Color(1.0, 0.7, 0.35))
 
 
 func _ready() -> void:
-	_wrap_side_panels_in_scroll()
+	_arrange_views()
 	network_lifecycle = NetworkLifecycleController.new(self)
 	operator_console = OperatorConsoleController.new(self)
 	profiles = ProfileController.new(self)
@@ -550,7 +658,7 @@ func _on_line_received(line: String) -> void:
 	elif event_type == "protocol_mismatch":
 		network_lifecycle._apply_degraded_mode("Protocol mismatch with server; enabling compatibility mode.")
 	elif event_type == "text":
-		_append_log(_render_text_payload(payload))
+		_append_game(_render_text_payload(payload))
 		# Defensive fallback: if the server tells us no character exists, surface
 		# the creation dialog even if the hello trigger was missed.
 		var text_body: String = ""
@@ -561,7 +669,7 @@ func _on_line_received(line: String) -> void:
 		if "No character yet" in text_body and not char_create.visible:
 			char_create.show_dialog()
 	elif event_type == "error":
-		_append_log("[color=red]%s[/color]" % str(payload))
+		_append_game("[color=red]%s[/color]" % SERVER_MARKUP.to_bbcode(str(payload)))
 	elif event_type == "goodbye":
 		crash_recovery.clear_marker()
 		_append_log("[color=yellow]Server closed session.[/color]")
@@ -622,8 +730,18 @@ func _on_line_received(line: String) -> void:
 	else:
 		_append_log("[i]%s[/i] %s" % [event_type, JSON.stringify(payload)])
 
-func _append_log(text: String) -> void:
+## What the player reads: server text, errors, and the commands they typed.
+func _append_game(text: String) -> void:
 	log_view.append_text(text + "\n")
+
+
+## Client and server chatter (connection notes, lock state, profile lists, payload echoes). It
+## goes to the diagnostics log in the Tools view, so the game log is only the game.
+func _append_log(text: String) -> void:
+	if _debug_log != null:
+		_debug_log.append_text(text + "\n")
+	else:
+		log_view.append_text(text + "\n")
 
 func _handle_server_policy_payload(payload: Variant) -> void:
 	if typeof(payload) != TYPE_DICTIONARY:
@@ -871,7 +989,7 @@ func _handle_audit_result_payload(payload: Variant) -> void:
 func _render_text_payload(payload: Variant) -> String:
 	if typeof(payload) == TYPE_DICTIONARY:
 		var body: Dictionary = payload as Dictionary
-		var text: String = str(body.get("text", ""))
+		var text: String = SERVER_MARKUP.to_bbcode(str(body.get("text", "")))
 		var fx: Variant = body.get("fx", {})
 		if typeof(fx) == TYPE_DICTIONARY:
 			var fx_dict: Dictionary = fx as Dictionary
@@ -887,7 +1005,7 @@ func _render_text_payload(payload: Variant) -> String:
 				var rate: float = 2.0 + (6.0 * amp)
 				return "[blight amp=%.3f rate=%.3f]%s[/blight]" % [amp, rate, text]
 		return text
-	return str(payload)
+	return SERVER_MARKUP.to_bbcode(str(payload))
 
 func _resolve_client_capabilities(command_text: String) -> Dictionary:
 	var lowered: String = command_text.strip_edges().to_lower()
