@@ -18,6 +18,8 @@
 class_name TitleInspector
 extends RefCounted
 
+const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
+
 signal database_modified
 
 const NEW_GUILD_SENTINEL := "+ New guild…"
@@ -205,11 +207,19 @@ func _refresh_requirements():
 		remove_row.add_child(remove)
 		row_vbox.add_child(remove_row)
 
-		_condition_fields(row_vbox, requirements[index], func(chosen: String):
-			if chosen == "": requirements[captured_index] = {}
-			else: requirements[captured_index] = {"kind": chosen}
-			database_modified.emit()
-			_refresh_requirements()
+		# One condition per array element, so replacing it means assigning back
+		# to the array, which the shared rows have no reference to.
+		CONDITION_ROWS.build(
+			row_vbox, requirements[index], database_mgr, "Kind", "(none)",
+			func(): database_modified.emit(),
+			func(chosen: String):
+				if chosen == "": requirements[captured_index] = {}
+				else: requirements[captured_index] = {"kind": chosen}
+				database_modified.emit()
+				_refresh_requirements(),
+			func(replacement: Dictionary):
+				requirements[captured_index] = replacement
+				database_modified.emit()
 		)
 
 
@@ -217,119 +227,21 @@ func _refresh_requirements():
 # `condition`. `on_kind_changed` lets a caller with a different storage shape
 # (an array element, for `requirements`) reuse the same field rendering.
 func _condition_editor(parent: VBoxContainer, holder: Dictionary, key: String, on_rebuild: Callable) -> void:
-	# Dictionaries are reference types in GDScript, so mutating `condition` here
-	# mutates `holder[key]` directly when it already exists -- nothing needs
-	# writing back except when a kind is first chosen. A blank `{}` must never
-	# reach `holder[key]`: the content validator reports any condition object
-	# with no `kind` as an error, even an absent-by-convention empty one.
-	var condition = holder.get(key)
-	if not (condition is Dictionary): condition = {}
-	_condition_fields(parent, condition, func(chosen: String):
-		if chosen == "": holder.erase(key)
-		else: holder[key] = {"kind": chosen}
-		database_modified.emit()
-		on_rebuild.call()
+	# A blank `{}` must never reach `holder[key]`: the content validator reports
+	# any condition object with no `kind` as an error, even an absent-by-convention
+	# empty one.
+	CONDITION_ROWS.build(
+		parent, holder.get(key), database_mgr, "Kind", "(none)",
+		func(): database_modified.emit(),
+		func(chosen: String):
+			if chosen == "": holder.erase(key)
+			else: holder[key] = {"kind": chosen}
+			database_modified.emit()
+			on_rebuild.call(),
+		func(replacement: Dictionary):
+			holder[key] = replacement
+			database_modified.emit()
 	)
-
-
-# Renders a condition kind picker plus that kind's fields, operating on the
-# `condition` dictionary in place. `on_kind_changed(chosen_kind)` is called
-# when the picker changes -- `""` means "no condition" -- because replacing a
-# dictionary in an Array requires assigning back to the array, which this
-# function has no reference to.
-func _condition_fields(parent: VBoxContainer, condition: Dictionary, on_kind_changed: Callable) -> void:
-	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
-	row.add_child(InspectorStyle.lbl("Kind", InspectorStyle.COLOR_TEXT_DIM))
-	var picker := OptionButton.new()
-	var kinds: Array = ["(none)"] + DialogueSchema.condition_kinds()
-	var current_kind := str(condition.get("kind", ""))
-	if current_kind != "" and not DialogueSchema.has_condition_kind(current_kind):
-		kinds.append(current_kind)
-	for kind in kinds: picker.add_item(str(kind))
-	var index := kinds.find(current_kind) if current_kind != "" else 0
-	picker.select(index if index >= 0 else 0)
-	InspectorStyle.apply_button_style(picker)
-	picker.item_selected.connect(func(selected):
-		var chosen := str(kinds[selected])
-		on_kind_changed.call("" if chosen == "(none)" else chosen)
-	)
-	row.add_child(picker)
-	parent.add_child(row)
-
-	if current_kind == "":
-		return
-
-	var note := Label.new()
-	note.text = DialogueSchema.condition_note(current_kind)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.add_theme_font_size_override("font_size", 11)
-	note.modulate = Color(0.68, 0.7, 0.78)
-	parent.add_child(note)
-
-	var fields := DialogueSchema.condition_fields(current_kind)
-	for field in fields:
-		_condition_field_row(parent, condition, str(field), str(fields[field]))
-
-	var extras: Array = []
-	for key in condition:
-		if str(key) != "kind" and not fields.has(str(key)):
-			extras.append(key)
-	if not extras.is_empty():
-		_condition_extras_row(parent, condition, extras)
-
-
-func _condition_field_row(parent: VBoxContainer, condition: Dictionary, key: String, kind: String):
-	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
-	row.add_child(InspectorStyle.lbl("    " + key.replace("_", " "), InspectorStyle.COLOR_TEXT_DIM))
-	var line := LineEdit.new()
-	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if kind == "int":
-		line.text = str(int(condition.get(key, 0)))
-	else:
-		line.text = str(condition.get(key, ""))
-	line.placeholder_text = kind
-	InspectorStyle.apply_input_style(line)
-	line.text_changed.connect(func(text):
-		var trimmed: String = str(text).strip_edges()
-		if trimmed == "":
-			condition.erase(key)
-		elif kind == "int" and trimmed.is_valid_int():
-			condition[key] = int(trimmed)
-		else:
-			condition[key] = trimmed
-		database_modified.emit()
-	)
-	row.add_child(line)
-	match kind:
-		"item_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_item_ids())
-		"npc_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_npc_ids())
-		"quest_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_ids("quest"))
-		"recipe_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_recipe_ids())
-	parent.add_child(row)
-
-
-func _condition_extras_row(parent: VBoxContainer, condition: Dictionary, keys: Array):
-	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
-	row.add_child(InspectorStyle.lbl("    other fields", InspectorStyle.COLOR_TEXT_DIM))
-	var line := LineEdit.new()
-	var subset := {}
-	for key in keys: subset[key] = condition[key]
-	line.text = JSON.stringify(subset)
-	line.tooltip_text = "Fields this editor does not model for this condition kind."
-	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	InspectorStyle.apply_input_style(line)
-	line.text_changed.connect(func(text):
-		var parsed = JSON.parse_string(str(text).strip_edges())
-		if typeof(parsed) != TYPE_DICTIONARY:
-			line.modulate = Color(1.0, 0.6, 0.6)
-			return
-		line.modulate = Color.WHITE
-		for key in keys: condition.erase(key)
-		for key in parsed: condition[key] = parsed[key]
-		database_modified.emit()
-	)
-	row.add_child(line)
-	parent.add_child(row)
 
 
 func _build_extras():

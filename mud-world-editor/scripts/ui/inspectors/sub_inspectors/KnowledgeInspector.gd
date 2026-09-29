@@ -18,6 +18,8 @@
 class_name KnowledgeInspector
 extends RefCounted
 
+const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
+
 signal database_modified
 
 var container: VBoxContainer
@@ -293,80 +295,4 @@ func _enum_picker(options: Array, current: String) -> OptionButton:
 # retyping the key list or the shape hints a second time.
 
 func _build_effects(parent: VBoxContainer, response: Dictionary):
-	var header := HBoxContainer.new(); header.add_child(InspectorStyle.lbl("Effects:", InspectorStyle.COLOR_TEXT_DIM))
-	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
-	var add := Button.new(); add.text = "+ Effect"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
-	var rows := VBoxContainer.new(); rows.add_theme_constant_override("separation", 4)
-	add.pressed.connect(func():
-		var effects: Dictionary = response.get("effects", {}) if response.get("effects") is Dictionary else {}
-		var known: Array = DialogueSchema.effect_keys()
-		var chosen := ""
-		for candidate in known:
-			if not effects.has(candidate): chosen = str(candidate); break
-		if chosen == "": return
-		effects[chosen] = ""
-		response["effects"] = effects
-		database_modified.emit()
-		_refresh_effects(rows, response))
-	header.add_child(add); parent.add_child(header); parent.add_child(rows)
-	_refresh_effects(rows, response)
-
-
-func _refresh_effects(rows: VBoxContainer, response: Dictionary):
-	for child in rows.get_children(): child.queue_free()
-	var effects: Dictionary = response.get("effects", {}) if response.get("effects") is Dictionary else {}
-	for key in effects.keys():
-		var current_key: String = str(key)
-		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
-		var picker := OptionButton.new()
-		var keys: Array = DialogueSchema.effect_keys()
-		if not DialogueSchema.has_effect(current_key): keys.append(current_key)
-		for candidate in keys: picker.add_item(str(candidate))
-		picker.select(maxi(0, keys.find(current_key)))
-		InspectorStyle.apply_button_style(picker)
-		var value = effects[key]
-		picker.item_selected.connect(func(selected):
-			var chosen := str(keys[selected])
-			if chosen == current_key: return
-			effects.erase(current_key)
-			effects[chosen] = value
-			database_modified.emit()
-			_refresh_effects(rows, response))
-		row.add_child(picker)
-
-		var value_ed := LineEdit.new()
-		value_ed.text = JSON.stringify(value) if (value is Dictionary or value is Array) else str(value)
-		value_ed.placeholder_text = DialogueSchema.effect_shape(current_key)
-		value_ed.tooltip_text = DialogueSchema.effect_shape(current_key)
-		value_ed.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		InspectorStyle.apply_input_style(value_ed)
-		value_ed.text_changed.connect(func(text):
-			var trimmed: String = str(text).strip_edges()
-			if trimmed == "":
-				effects.erase(current_key)
-				value_ed.modulate = Color.WHITE
-			elif trimmed.begins_with("{") or trimmed.begins_with("["):
-				var parsed = JSON.parse_string(trimmed)
-				if parsed == null:
-					value_ed.modulate = Color(1.0, 0.6, 0.6)
-					return
-				effects[current_key] = parsed
-				value_ed.modulate = Color.WHITE
-			elif trimmed.is_valid_int():
-				effects[current_key] = int(trimmed)
-				value_ed.modulate = Color.WHITE
-			else:
-				effects[current_key] = trimmed
-				value_ed.modulate = Color.WHITE
-			database_modified.emit())
-		row.add_child(value_ed)
-
-		var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
-		remove.pressed.connect(func():
-			effects.erase(current_key)
-			if effects.is_empty(): response.erase("effects")
-			database_modified.emit()
-			_refresh_effects(rows, response))
-		row.add_child(remove)
-		rows.add_child(row)
-	if effects.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+	EFFECT_ROWS.build(parent, response, "Effects:", database_mgr, func(): database_modified.emit())

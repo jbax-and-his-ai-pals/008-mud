@@ -1079,9 +1079,20 @@ Phase 2 has started. **2.1** effect values are checked before the game runs and 
 fails no longer stops the ones after it: `EFFECT_SHAPES` (`dialogue/effects.py`) is the one
 description of what each effect accepts, and the dialogue validator, the knowledge-topic
 validator and `engine_vocabulary_dump.py` read it (`test_effect_shapes.py`; 11 of its 14 checks
-failed on the parent). The editor's effect-row widgets still write `set_flag`/`give_item` as a
-single string; typed rows for the list forms are 2.2. Not done in 2.1, on purpose: knowledge
-topics are shape-checked but their ids are not yet checked against the set.
+failed on the parent). Not done in 2.1, on purpose: knowledge topics are shape-checked but their
+ids are not yet checked against the set.
+
+**2.2** the editor's effect and condition rows are one implementation each (`EffectRows.gd`,
+`ConditionRows.gd`), adopted by the dialogue, knowledge and title inspectors in place of four
+drifted copies (the three inspectors are about 350 lines shorter). What that fixed, each checked against the parent
+inspectors by `effect_condition_rows_smoke.gd` (11 of its checks fail there): `advance_quest:
+true` can be authored; a flag called `42` stays text; `give_gold` is a number box; changing an
+effect's key no longer carries a flag name into a gold amount; "+ Effect" no longer overwrites an
+existing `set_flag`; clearing the last effect no longer leaves `"effects": {}`; and a title's
+composite condition can be seen and changed. Lists and objects (the forms 2.1 made legal) are
+still edited as JSON text in a box, shown whole. Not done: nested rows for `all`/`any`/`not`
+(a composite is one JSON box), and the effects of a skill check's success/fail branches
+(`check.success_effects`), which the dialogue inspector still edits as part of the check's JSON.
 
 ---
 

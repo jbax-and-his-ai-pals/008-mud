@@ -126,9 +126,9 @@ const COMPOSITES := {
 const EFFECTS := {
 	"start_quest": {"label": "Start a quest", "shape": "quest id, or a list of them", "kind": "quest_id"},
 	"start_campaign": {"label": "Start a campaign", "shape": "campaign id", "kind": "string"},
-	"advance_quest": {"label": "Advance a quest stage", "shape": "quest id, or a list of them", "kind": "quest_id"},
-	"complete_quest": {"label": "Complete a quest", "shape": "quest id, or a list of them", "kind": "quest_id"},
-	"grant_recipe": {"label": "Teach a recipe", "shape": "recipe id, or a list of them", "kind": "string"},
+	"advance_quest": {"label": "Advance a quest stage", "shape": "quest id, a list of them, or true (every active quest)", "kind": "quest_id", "accepts_true": true},
+	"complete_quest": {"label": "Complete a quest", "shape": "quest id, a list of them, or true (every active quest)", "kind": "quest_id", "accepts_true": true},
+	"grant_recipe": {"label": "Teach a recipe", "shape": "recipe id, or a list of them", "kind": "recipe_id"},
 	"grant_discovery": {"label": "Grant a discovery", "shape": "discovery id, or a list", "kind": "string"},
 	"teach_spell": {"label": "Teach an ability", "shape": "ability id, or a list of them", "kind": "string"},
 	"give_item": {"label": "Give an item", "shape": "item id, {item_id, quantity}, {item id: quantity}, or a list of those", "kind": "item_id"},
@@ -184,6 +184,23 @@ static func effect_shape(key: String) -> String:
 
 static func effect_kind(key: String) -> String:
 	return str(EFFECTS.get(key, {}).get("kind", "json"))
+
+
+# Only advance_quest and complete_quest take a bare `true` ("every active quest").
+static func effect_accepts_true(key: String) -> bool:
+	return bool(EFFECTS.get(key, {}).get("accepts_true", false))
+
+
+# What a freshly added effect starts as: a value of the right *type* for its key,
+# so adding it never leaves a string where the engine wants a number. An id is
+# left blank on purpose -- the validator flags a blank id, so an unfinished effect
+# is reported rather than passing as a real one.
+static func default_effect_value(key: String):
+	match effect_kind(key):
+		"int": return 1
+		"json": return {}
+	if key == "set_flag": return "flag_name"
+	return ""
 
 
 # GDScript's `or` yields a *bool*, unlike Python's, so `x or ""` used as a value

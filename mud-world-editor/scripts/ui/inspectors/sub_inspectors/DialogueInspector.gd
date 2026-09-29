@@ -24,6 +24,9 @@
 class_name DialogueInspector
 extends RefCounted
 
+const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
+const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
+
 signal database_modified
 
 var container: VBoxContainer
@@ -349,131 +352,20 @@ func _add_target_row(parent: VBoxContainer, choice: Dictionary):
 
 
 func _add_condition_row(parent: VBoxContainer, choice: Dictionary):
-	var row := HBoxContainer.new()
-	row.add_child(InspectorStyle.lbl("Only if", InspectorStyle.COLOR_TEXT_DIM))
-
-	var condition = choice.get("condition")
-	var picker := OptionButton.new()
-	picker.name = "ConditionPicker"
-	var kinds: Array = ["(always offered)"] + DialogueSchema.condition_kinds()
-	if condition is Dictionary and condition.has("kind"):
-		var kind := str(condition["kind"])
-		if not DialogueSchema.has_condition_kind(kind): kinds.append(kind)
-	for kind in kinds: picker.add_item(str(kind))
-	var current_kind := str(condition.get("kind", "")) if condition is Dictionary else ""
-	var index := kinds.find(current_kind) if current_kind != "" else 0
-	picker.select(index if index >= 0 else 0)
-	InspectorStyle.apply_button_style(picker)
-	row.add_child(picker)
-	parent.add_child(row)
-
-	# The current condition's own fields.
-	if not (condition is Dictionary) or not condition.has("kind"):
-		if condition is Dictionary and not condition.is_empty():
-			_condition_json_row(parent, choice, condition)
-		picker.item_selected.connect(func(selected):
-			var chosen := str(kinds[selected])
-			if chosen == "(always offered)":
+	CONDITION_ROWS.build(
+		parent, choice.get("condition"), database_mgr, "Only if", "(always offered)",
+		func(): database_modified.emit(),
+		func(kind: String):
+			if kind == "":
 				choice.erase("condition")
 			else:
-				choice["condition"] = {"kind": chosen}
+				choice["condition"] = {"kind": kind}
 			database_modified.emit()
-			_refresh_nodes()
-		)
-		return
-	var note := Label.new()
-	note.text = DialogueSchema.condition_note(str(condition["kind"]))
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	note.add_theme_font_size_override("font_size", 11)
-	note.modulate = Color(0.68, 0.7, 0.78)
-	parent.add_child(note)
-
-	var fields := DialogueSchema.condition_fields(str(condition["kind"]))
-	for field in fields:
-		_add_condition_field(parent, condition, str(field), str(fields[field]))
-	# Any key the schema does not name (a composite, or a field added to the
-	# engine since) stays visible and editable.
-	var extras: Array = []
-	for key in condition:
-		if str(key) != "kind" and not fields.has(str(key)):
-			extras.append(key)
-	if not extras.is_empty():
-		_condition_json_row(parent, choice, condition, extras)
-
-	picker.item_selected.connect(func(selected):
-		var chosen := str(kinds[selected])
-		if chosen == "(always offered)":
-			choice.erase("condition")
-		else:
-			choice["condition"] = {"kind": chosen}
-		database_modified.emit()
-		_refresh_nodes()
+			_refresh_nodes(),
+		func(replacement: Dictionary):
+			choice["condition"] = replacement
+			database_modified.emit()
 	)
-
-
-func _add_condition_field(parent: VBoxContainer, condition: Dictionary, key: String, kind: String):
-	var row := HBoxContainer.new()
-	row.add_child(InspectorStyle.lbl("    " + key.replace("_", " "), InspectorStyle.COLOR_TEXT_DIM))
-	var editor_kind := kind
-	var line := LineEdit.new()
-	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	match editor_kind:
-		"int":
-			line.text = str(int(condition.get(key, 0)))
-		_:
-			line.text = str(condition.get(key, ""))
-	line.placeholder_text = kind
-	InspectorStyle.apply_input_style(line)
-	line.text_changed.connect(func(text):
-		var trimmed: String = str(text).strip_edges()
-		if trimmed == "":
-			condition.erase(key)
-		elif kind == "int" and trimmed.is_valid_int():
-			condition[key] = int(trimmed)
-		else:
-			condition[key] = trimmed
-		database_modified.emit()
-	)
-	row.add_child(line)
-	if kind == "item_id":
-		InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_item_ids())
-	elif kind == "npc_id":
-		InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_npc_ids())
-	elif kind == "quest_id":
-		InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_ids("quest"))
-	elif kind == "recipe_id":
-		InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_recipe_ids())
-	parent.add_child(row)
-
-
-func _condition_json_row(parent: VBoxContainer, choice: Dictionary, condition: Dictionary, keys: Array = []):
-	var row := HBoxContainer.new()
-	row.add_child(InspectorStyle.lbl("    other fields", InspectorStyle.COLOR_TEXT_DIM))
-	var line := LineEdit.new()
-	var subset := {}
-	if keys.is_empty():
-		for key in condition: subset[key] = condition[key]
-	else:
-		for key in keys: subset[key] = condition[key]
-	line.text = JSON.stringify(subset)
-	line.tooltip_text = "Composite conditions (all/any/not) and fields the editor does not model are edited here."
-	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	InspectorStyle.apply_input_style(line)
-	line.text_changed.connect(func(text):
-		var parsed = JSON.parse_string(str(text).strip_edges())
-		if typeof(parsed) != TYPE_DICTIONARY:
-			line.modulate = Color(1.0, 0.6, 0.6)
-			return
-		line.modulate = Color.WHITE
-		if keys.is_empty():
-			choice["condition"] = parsed
-		else:
-			for key in keys: condition.erase(key)
-			for key in parsed: condition[key] = parsed[key]
-		database_modified.emit()
-	)
-	row.add_child(line)
-	parent.add_child(row)
 
 
 func _add_check_row(parent: VBoxContainer, choice: Dictionary):
@@ -505,86 +397,7 @@ func _add_check_row(parent: VBoxContainer, choice: Dictionary):
 
 
 func _build_effects_row(parent: VBoxContainer, owner: Dictionary, label_text: String):
-	var header := HBoxContainer.new()
-	var label := InspectorStyle.lbl(label_text, InspectorStyle.COLOR_TEXT_DIM)
-	label.add_theme_font_size_override("font_size", 11)
-	header.add_child(label)
-	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(spacer)
-	var add := Button.new(); add.text = "+ Effect"
-	InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
-	add.pressed.connect(func():
-		var effects: Dictionary = owner.get("effects", {}) if owner.get("effects") is Dictionary else {}
-		effects["set_flag"] = "flag_name"
-		owner["effects"] = effects
-		database_modified.emit()
-		_refresh_nodes()
-	)
-	header.add_child(add)
-	parent.add_child(header)
-
-	var effects: Dictionary = owner.get("effects", {}) if owner.get("effects") is Dictionary else {}
-	if effects.is_empty():
-		return
-	for key in effects.keys():
-		var row := HBoxContainer.new()
-		var picker := OptionButton.new()
-		var keys: Array = DialogueSchema.effect_keys()
-		if not DialogueSchema.has_effect(str(key)): keys.append(str(key))
-		for candidate in keys: picker.add_item(str(candidate))
-		var index := keys.find(str(key))
-		picker.select(index if index >= 0 else 0)
-		picker.custom_minimum_size.x = 210
-		InspectorStyle.apply_button_style(picker)
-		var value = effects[key]
-		picker.item_selected.connect(func(selected):
-			var chosen := str(keys[selected])
-			if chosen != str(key):
-				effects.erase(key)
-				effects[chosen] = value
-				database_modified.emit()
-				_refresh_nodes()
-		)
-		row.add_child(picker)
-
-		var value_ed := LineEdit.new()
-		value_ed.text = JSON.stringify(value) if (value is Dictionary or value is Array) else str(value)
-		value_ed.placeholder_text = DialogueSchema.effect_shape(str(key))
-		value_ed.tooltip_text = DialogueSchema.effect_shape(str(key))
-		value_ed.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		InspectorStyle.apply_input_style(value_ed)
-		value_ed.text_changed.connect(func(text):
-			var trimmed: String = str(text).strip_edges()
-			if trimmed == "":
-				effects.erase(key)
-				value_ed.modulate = Color.WHITE
-			elif trimmed.begins_with("{") or trimmed.begins_with("["):
-				var parsed = JSON.parse_string(trimmed)
-				if parsed == null:
-					value_ed.modulate = Color(1.0, 0.6, 0.6)
-					return
-				effects[key] = parsed
-				value_ed.modulate = Color.WHITE
-			elif trimmed.is_valid_int():
-				effects[key] = int(trimmed)
-				value_ed.modulate = Color.WHITE
-			else:
-				effects[key] = trimmed
-				value_ed.modulate = Color.WHITE
-			database_modified.emit()
-		)
-		row.add_child(value_ed)
-
-		var remove := Button.new(); remove.text = "×"
-		InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
-		remove.pressed.connect(func():
-			effects.erase(key)
-			if effects.is_empty(): owner.erase("effects")
-			database_modified.emit()
-			_refresh_nodes()
-		)
-		row.add_child(remove)
-		parent.add_child(row)
+	EFFECT_ROWS.build(parent, owner, label_text, database_mgr, func(): database_modified.emit())
 
 
 func _build_extras():
