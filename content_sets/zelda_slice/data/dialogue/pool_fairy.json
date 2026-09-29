@@ -9,12 +9,57 @@
                     "text": "Let the water take the weariness.",
                     "next_node": "bathed",
                     "effects": {
-                        "restore": "all",
+                        "restore": {
+                            "resource": "all",
+                            "companions": true
+                        },
                         "message": "The water is cool and bright, and every ache goes out of you."
                     }
                 },
                 {
+                    "text": "Come with me. The deep places are lonely.",
+                    "condition": {
+                        "not": {
+                            "kind": "companion_present",
+                            "npc_id": "pool_fairy"
+                        }
+                    },
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true
+                    }
+                },
+                {
+                    "text": "Stay here, little one.",
+                    "condition": {
+                        "kind": "companion_present",
+                        "npc_id": "pool_fairy"
+                    },
+                    "next_node": "stays",
+                    "effects": {
+                        "dismiss": true
+                    }
+                },
+                {
                     "text": "Goodbye.",
+                    "end": true
+                }
+            ]
+        },
+        "joins": {
+            "text": "Oh! Yes. I have not seen the sun in a hundred seasons.",
+            "choices": [
+                {
+                    "text": "Come along.",
+                    "end": true
+                }
+            ]
+        },
+        "stays": {
+            "text": "I will keep the water warm for you.",
+            "choices": [
+                {
+                    "text": "Thank you.",
                     "end": true
                 }
             ]

@@ -383,6 +383,22 @@ class TestZeldaSlice(_Slice):
         self.tick(9200)
         self.assertEqual([], self.npcs("horned_wyrm"))
 
+    def test_the_fairy_will_come_along_and_the_pool_heals_her_too_only_while_she_is_with_you(self):
+        from engine.npcs import companions
+
+        fairy = self.npcs("pool_fairy")[0]
+        self.at(fairy.current_region_id, fairy.current_room_id)
+        self.say("talk fairy")
+        self.say("reply 2")   # "Come with me."
+        self.assertEqual([fairy], companions.companions_of(self.world, self.player))
+        self.assertEqual(1, companions.max_companions(self.world), "one companion at a time in this world")
+        fairy.health = 1
+        self.player.health = 1
+        self.say("talk fairy")
+        self.say("reply 1")   # bathe
+        self.assertEqual(fairy.max_health, fairy.health)
+        self.assertEqual(self.player.max_health, self.player.health)
+
 
 class TestFF4Slice(_Slice):
     SET_ID = "ff4_slice"
@@ -503,6 +519,53 @@ class TestFF4Slice(_Slice):
         self.assertEqual(self.player.max_health, self.player.health)
         self.assertEqual(magic.max_mana, magic.mana)
         self.assertIn("sleep", said)
+
+    def _companions(self):
+        from engine.npcs import companions
+
+        return [n.template_id for n in companions.companions_of(self.world, self.player)]
+
+    def test_kessa_and_ryn_can_join_and_the_inn_heals_the_whole_party(self):
+        self.player.flags["kessa_ahead"] = True
+        self.at("varenholt", "barracks")
+        self.say("talk kessa")
+        self.say("reply 1")   # "Ride with me, Kessa."
+        self.assertEqual(["captain_kessa"], self._companions())
+        self.player.runtime_state.quests.completed["quest_fog_drake"] = {"template_id": "quest_fog_drake"}
+        self.player.flags["ryn_taught"] = True
+        ryn = self.npcs("ryn")[0]
+        self.at(ryn.current_region_id, ryn.current_room_id)
+        self.say("talk ryn")
+        self.say("reply 1")   # "The dragon is dead."
+        self.say("reply 1")   # "Come with me, Ryn."
+        self.assertEqual(["captain_kessa", "ryn"], sorted(self._companions()), "the party of three has room for both")
+        self.at("mistvale", "village_square")
+        self.player.runtime_state.gold = 50
+        for npc in self.world.npcs.values():
+            if npc.template_id in ("captain_kessa", "ryn"):
+                npc.current_region_id, npc.current_room_id = "mistvale", "village_square"
+                npc.health = 1
+        self.player.health = 1
+        self.say("talk innkeeper")
+        self.say("reply 1")
+        for npc in self.world.npcs.values():
+            if npc.template_id in ("captain_kessa", "ryn"):
+                self.assertEqual(npc.max_health, npc.health, npc.template_id)
+        self.assertEqual(self.player.max_health, self.player.health)
+
+    def test_kessa_can_be_sent_back_to_hold_the_square(self):
+        self.player.flags["kessa_ahead"] = True
+        self.at("varenholt", "barracks")
+        self.say("talk kessa")
+        self.say("reply 1")
+        self.say("talk kessa")
+        self.say("reply 1")   # "Hold the square, Kessa."
+        self.assertEqual([], self._companions())
+
+    def test_a_party_of_three_stops_at_three(self):
+        from engine.npcs import companions
+
+        self.assertEqual(3, companions.max_companions(self.world))
 
     def test_the_inn_does_not_offer_a_room_to_someone_who_cannot_pay(self):
         self.at("mistvale", "village_square")

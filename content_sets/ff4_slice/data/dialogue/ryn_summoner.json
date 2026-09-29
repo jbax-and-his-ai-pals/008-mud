@@ -50,7 +50,37 @@
                     }
                 },
                 {
+                    "text": "Come with me, Ryn. Titans answer better with you beside me.",
+                    "condition": {
+                        "all": [
+                            {
+                                "kind": "flag",
+                                "flag": "ryn_taught"
+                            },
+                            {
+                                "not": {
+                                    "kind": "companion_present",
+                                    "npc_id": "ryn"
+                                }
+                            }
+                        ]
+                    },
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true
+                    }
+                },
+                {
                     "text": "Not now.",
+                    "end": true
+                }
+            ]
+        },
+        "joins": {
+            "text": "I... yes. I would rather not be alone with the fog.",
+            "choices": [
+                {
+                    "text": "Stay close.",
                     "end": true
                 }
             ]

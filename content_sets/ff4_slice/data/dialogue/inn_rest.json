@@ -14,8 +14,11 @@
                     "next_node": "slept",
                     "effects": {
                         "take_gold": 30,
-                        "restore": "all",
-                        "message": "You sleep like the dead, and wake to grey light. Every hurt has eased."
+                        "restore": {
+                            "resource": "all",
+                            "companions": true
+                        },
+                        "message": "You sleep like the dead, and wake to grey light. Every hurt has eased, and so have your companions'."
                     }
                 },
                 {

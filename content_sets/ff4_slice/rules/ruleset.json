@@ -21,6 +21,9 @@
       "difficulty_per_hostile_level": 2
     }
   },
+  "companions": {
+    "max": 3
+  },
   "player_defaults": {
     "player_class": "Dark Knight",
     "starting_inventory": [

@@ -38,7 +38,57 @@
                     }
                 },
                 {
+                    "text": "Ride with me, Kessa. I would rather not do this alone.",
+                    "condition": {
+                        "all": [
+                            {
+                                "kind": "flag",
+                                "flag": "kessa_ahead"
+                            },
+                            {
+                                "not": {
+                                    "kind": "companion_present",
+                                    "npc_id": "captain_kessa"
+                                }
+                            }
+                        ]
+                    },
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true
+                    }
+                },
+                {
+                    "text": "Hold the square, Kessa. I will send for you.",
+                    "condition": {
+                        "kind": "companion_present",
+                        "npc_id": "captain_kessa"
+                    },
+                    "next_node": "stays",
+                    "effects": {
+                        "dismiss": true
+                    }
+                },
+                {
                     "text": "Not yet.",
+                    "end": true
+                }
+            ]
+        },
+        "joins": {
+            "text": "Good. Then we do this the way we were taught: side by side.",
+            "choices": [
+                {
+                    "text": "Lead on.",
+                    "end": true
+                }
+            ]
+        },
+        "stays": {
+            "text": "The square is mine. Send word when you need a blade.",
+            "choices": [
+                {
+                    "text": "I will.",
                     "end": true
                 }
             ]
