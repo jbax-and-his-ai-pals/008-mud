@@ -88,6 +88,28 @@ func _run():
 	_assert(nodes["end_war"]["outcome"] == "complete" and not nodes["end_war"].has("transitions"), "and back to END drops the transitions")
 	_edit(holder.find_child("Node_end_war", true, false).find_child("Outcome", true, false), "TOTAL_VICTORY")
 
+	print("\n[scenes]")
+	_button(holder, "+ Node").pressed.emit()
+	var scene_id := "node_8"
+	var scene: Node = holder.find_child("Node_" + scene_id, true, false)
+	_pick(scene.find_child("Type", true, false), "CUTSCENE")
+	_assert(nodes[scene_id]["type"] == "CUTSCENE" and nodes[scene_id]["transitions"] == [] and not nodes[scene_id].has("outcome"),
+		"retyping a node to a cutscene keeps it valid to open: transitions, no outcome")
+	scene = holder.find_child("Node_" + scene_id, true, false)
+	_assert(scene.find_child("SceneEffects", true, false) != null and scene.find_child("Quest", true, false) == null,
+		"a scene shows effect rows and no quest picker")
+	_assert(not nodes[scene_id].has("effects"), "opening its rows writes nothing")
+	_button(scene.find_child("SceneEffects", true, false), "+ Effect").pressed.emit()
+	_assert(nodes[scene_id].get("effects", {}).has("set_flag"), "adding an effect writes it on the node: %s" % str(nodes[scene_id].get("effects")))
+	_pick(holder.find_child("Node_" + scene_id, true, false).find_child("Type", true, false), "DIALOGUE")
+	_assert(nodes[scene_id]["type"] == "DIALOGUE" and nodes[scene_id].has("effects"), "cutscene to dialogue keeps the effects")
+	_pick(holder.find_child("Node_" + scene_id, true, false).find_child("Type", true, false), "QUEST")
+	_assert(not nodes[scene_id].has("effects"), "but a quest node drops them (nothing would apply them)")
+	_pick(holder.find_child("Node_" + scene_id, true, false).find_child("Type", true, false), "END")
+	_assert(nodes[scene_id]["type"] == "END" and not nodes[scene_id].has("transitions"), "and an end node keeps neither")
+	_button(holder.find_child("Node_" + scene_id, true, false), "Remove Node").pressed.emit()
+	_assert(not nodes.has(scene_id), "and the scratch node goes")
+
 	manager.mark_dirty("campaign", CAMPAIGN)
 	_assert(manager.save_all().get("ok", false), "the edited campaign saves")
 	_assert(_engine_accepts(repo), "and the engine's validator accepts the edited graph")

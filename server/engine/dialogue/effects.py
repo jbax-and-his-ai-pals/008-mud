@@ -10,6 +10,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
 
     start_quest       "quest_id"                     start an authored quest
     start_campaign    "campaign_id"
+    advance_campaign  "campaign_id"                  move a campaign on from a DIALOGUE node
     advance_quest     "quest_id" | true              push a stage forward
     complete_quest    "quest_id" | true              finish it outright
     grant_recipe      "recipe_id" | ["a", "b"]       learn to craft
@@ -77,7 +78,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 # Every effect key this interpreter understands. Content validation imports it.
 KNOWN_EFFECTS = frozenset({
-    "start_quest", "start_campaign", "advance_quest", "complete_quest",
+    "start_quest", "start_campaign", "advance_campaign", "advance_quest", "complete_quest",
     "grant_recipe", "grant_discovery", "teach_spell",
     "give_item", "take_item", "give_gold", "adjust_relationship",
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
@@ -106,6 +107,7 @@ RAISE_LARGE = {"max_health": 20, "max_mana": 20, "stats": 3}
 EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     "start_quest": {"form": "ids"},
     "start_campaign": {"form": "ids"},
+    "advance_campaign": {"form": "ids"},
     "advance_quest": {"form": "ids_or_true"},
     "complete_quest": {"form": "ids_or_true"},
     "grant_recipe": {"form": "ids"},
@@ -485,10 +487,20 @@ def _apply_quest_effects(effects: Dict[str, Any], player, world, report: EffectR
                 else:
                     report.failed.append("start_quest %s" % quest_id)
             else:
-                started = manager.start_campaign(quest_id, player)
+                started = manager.start_campaign(quest_id, player, narration=report.messages)
                 report.applied.append("%s %s" % (label.lower(), quest_id)) if started else report.failed.append(
                     "start_campaign %s" % quest_id
                 )
+
+    if "advance_campaign" in effects:
+        campaigns = getattr(world, "campaign_manager", None) if world is not None else None
+        for campaign_id, _quantity in entry_pairs(effects["advance_campaign"]):
+            if campaigns is None:
+                report.failed.append("advance_campaign (no campaign manager)")
+            elif campaigns.advance_from_dialogue(campaign_id, player, narration=report.messages):
+                report.applied.append("advanced campaign %s" % campaign_id)
+            else:
+                report.failed.append("advance_campaign %s (not waiting on a conversation)" % campaign_id)
 
     for key in ("advance_quest", "complete_quest"):
         if key not in effects:

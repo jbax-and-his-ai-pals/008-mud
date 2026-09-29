@@ -131,6 +131,7 @@ const COMPOSITES := {
 const EFFECTS := {
 	"start_quest": {"label": "Start a quest", "shape": "quest id, or a list of them", "kind": "quest_id"},
 	"start_campaign": {"label": "Start a campaign", "shape": "campaign id", "kind": "string"},
+	"advance_campaign": {"label": "Move a campaign on (from a conversation node)", "shape": "campaign id", "kind": "string"},
 	"advance_quest": {"label": "Advance a quest stage", "shape": "quest id, a list of them, or true (every active quest)", "kind": "quest_id", "accepts_true": true},
 	"complete_quest": {"label": "Complete a quest", "shape": "quest id, a list of them, or true (every active quest)", "kind": "quest_id", "accepts_true": true},
 	"grant_recipe": {"label": "Teach a recipe", "shape": "recipe id, or a list of them", "kind": "recipe_id"},

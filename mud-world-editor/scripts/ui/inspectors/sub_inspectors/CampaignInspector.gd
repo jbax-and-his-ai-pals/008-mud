@@ -6,7 +6,9 @@
 #
 # What the engine does with a node decides what this form offers: a QUEST node
 # starts its quest, and the quest's reported resolution picks the first matching
-# transition; an END node records its outcome. NODE_TYPES and TRIGGERS copy the
+# transition; a CUTSCENE node applies its effects and moves straight on; a DIALOGUE
+# node applies its effects and waits for an `advance_campaign` effect; an END node
+# records its outcome. NODE_TYPES and TRIGGERS copy the
 # engine's CAMPAIGN_NODE_TYPES and CAMPAIGN_TRIGGERS (schema_parity_smoke.gd
 # checks them); content_set.py::_validate_campaigns refuses the rest on save.
 # Nodes and transitions are edited in place, so keys this form does not show
@@ -17,10 +19,13 @@ extends RefCounted
 
 signal database_modified
 
-const NODE_TYPES := ["QUEST", "END"]
+const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
+const NODE_TYPES := ["QUEST", "DIALOGUE", "CUTSCENE", "END"]
 const TRIGGERS := ["SUCCESS", "PEACEFUL_SUCCESS", "VIOLENT_SUCCESS"]
 const TYPE_KEYS := {
 	"QUEST": ["description", "quest_template_id", "type", "transitions"],
+	"DIALOGUE": ["description", "type", "effects", "transitions"],
+	"CUTSCENE": ["description", "type", "effects", "transitions"],
 	"END": ["description", "type", "outcome"],
 }
 
@@ -111,7 +116,7 @@ func _build_nodes():
 	add.pressed.connect(add_node)
 	header.add_child(add)
 	container.add_child(header)
-	var hint := InspectorStyle.lbl("A quest node starts its quest; when the quest ends, the first transition whose trigger matches the result is followed (SUCCESS matches any success). An end node finishes the campaign with its outcome.", InspectorStyle.COLOR_TEXT_DIM)
+	var hint := InspectorStyle.lbl("A quest node starts its quest; when the quest ends, the first transition whose trigger matches the result is followed (SUCCESS matches any success). A cutscene node applies its effects and moves straight on. A dialogue node applies its effects and waits until a conversation or trigger gives the advance_campaign effect. An end node finishes the campaign with its outcome.", InspectorStyle.COLOR_TEXT_DIM)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	container.add_child(hint)
 	nodes_box = VBoxContainer.new(); nodes_box.add_theme_constant_override("separation", 10)
@@ -181,17 +186,23 @@ func _node_card(node_id: String, node: Dictionary) -> PanelContainer:
 		row.add_child(outcome)
 		return card
 
-	var quest_row := HBoxContainer.new(); vbox.add_child(quest_row)
-	quest_row.add_child(InspectorStyle.lbl("Quest:", InspectorStyle.COLOR_TEXT_DIM))
-	var quest := OptionButton.new(); quest.name = "Quest"; quest.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	QuestGenerationSection._fill_picker(quest, database_mgr.get_ids("quest") if database_mgr != null else [], {}, str(node.get("quest_template_id", "")), "Choose quest")
-	InspectorStyle.apply_button_style(quest)
-	quest.item_selected.connect(func(index):
-		var value := str(quest.get_item_metadata(index))
-		if value == "": node.erase("quest_template_id")
-		else: node["quest_template_id"] = value
-		database_modified.emit())
-	quest_row.add_child(quest)
+	if kind == "QUEST":
+		var quest_row := HBoxContainer.new(); vbox.add_child(quest_row)
+		quest_row.add_child(InspectorStyle.lbl("Quest:", InspectorStyle.COLOR_TEXT_DIM))
+		var quest := OptionButton.new(); quest.name = "Quest"; quest.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		QuestGenerationSection._fill_picker(quest, database_mgr.get_ids("quest") if database_mgr != null else [], {}, str(node.get("quest_template_id", "")), "Choose quest")
+		InspectorStyle.apply_button_style(quest)
+		quest.item_selected.connect(func(index):
+			var value := str(quest.get_item_metadata(index))
+			if value == "": node.erase("quest_template_id")
+			else: node["quest_template_id"] = value
+			database_modified.emit())
+		quest_row.add_child(quest)
+	elif kind == "CUTSCENE" or kind == "DIALOGUE":
+		var scene_box := VBoxContainer.new(); scene_box.name = "SceneEffects"
+		vbox.add_child(scene_box)
+		var label := "Effects (what plays as the scene starts):" if kind == "CUTSCENE" else "Effects (as the scene starts; then it waits for advance_campaign):"
+		EFFECT_ROWS.build(scene_box, node, label, database_mgr, func(): database_modified.emit())
 
 	var t_header := HBoxContainer.new(); vbox.add_child(t_header)
 	t_header.add_child(InspectorStyle.lbl("Transitions (first match wins)", InspectorStyle.COLOR_TEXT_DIM))
@@ -206,7 +217,7 @@ func _node_card(node_id: String, node: Dictionary) -> PanelContainer:
 	t_header.add_child(add_t)
 	var transitions: Array = node.get("transitions", []) if node.get("transitions") is Array else []
 	if transitions.is_empty():
-		vbox.add_child(InspectorStyle.lbl("No transitions: finishing the quest leads nowhere.", DialogStyle.COLOR_DANGER))
+		vbox.add_child(InspectorStyle.lbl("No transitions: this node leads nowhere.", DialogStyle.COLOR_DANGER))
 	for index in range(transitions.size()):
 		if transitions[index] is Dictionary: vbox.add_child(_transition_row(node, transitions, index))
 	return card
@@ -262,7 +273,7 @@ func _retype(node: Dictionary, kind: String) -> void:
 	for key in node.keys():
 		if not str(key).begins_with("_") and not (key in TYPE_KEYS[kind]): node.erase(key)
 	if kind == "END" and str(node.get("outcome", "")) == "": node["outcome"] = "complete"
-	if kind == "QUEST" and not (node.get("transitions") is Array): node["transitions"] = []
+	if kind != "END" and not (node.get("transitions") is Array): node["transitions"] = []
 	database_modified.emit()
 	_refresh_nodes()
 

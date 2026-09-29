@@ -2,8 +2,21 @@
     "campaign_id": "the_package",
     "name": "The Package",
     "description": "A courier run over the mountain that goes wrong.",
-    "start_node_id": "deliver",
+    "start_node_id": "orders",
     "nodes": {
+        "orders": {
+            "description": "The king seals the package and sends you out.",
+            "type": "CUTSCENE",
+            "effects": {
+                "message": "The king presses his seal into the wax with his own hand. The package is heavier than it looks."
+            },
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "deliver"
+                }
+            ]
+        },
         "deliver": {
             "description": "Deliver the king's package to Mistvale.",
             "quest_template_id": "quest_deliver_package",

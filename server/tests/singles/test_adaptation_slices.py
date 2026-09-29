@@ -224,6 +224,21 @@ class TestZeldaSlice(_Slice):
         self.say("reply 1")
         self.assertEqual("aldermark:tower_approach", self.where())
 
+    def test_the_campaign_waits_at_the_forge_until_the_sage_forges_the_triad(self):
+        self.at("aldermark", "village_green")
+        self.say("talk sage")
+        self.say("reply 1")   # "Tell me what to do."
+        campaign = self.player.runtime_state.quests.active_campaigns["restore_the_triad"]
+        campaign["current_node"] = "forge"   # both shard quests done
+        self.give("item_shard_courage")
+        self.give("item_shard_wisdom")
+        self.assertNotIn("The Black Tower", self.quest_states(), "the tower waits on the sage, not on the second shard")
+        self.assertEqual("forge", campaign["current_node"])
+        self.say("talk sage")
+        self.say("reply 1")   # "I have both shards."
+        self.assertEqual("tower", campaign["current_node"], "forging the Triad is what moves the campaign on")
+        self.assertIn("The Black Tower", self.quest_states())
+
     def test_a_small_key_is_spent_by_the_door_it_opens(self):
         self.at("mossroot", "mossy_gallery")
         refused = self.say("go east")
@@ -347,6 +362,12 @@ class TestFF4Slice(_Slice):
     def _question_the_king(self):
         self.say("talk king")
         self.say("reply 2")
+
+    def test_the_king_seals_the_package_in_a_scene_before_the_first_quest(self):
+        self.say("talk king")
+        printed = self.say("reply 1")   # "At once, my king."
+        self.assertIn("presses his seal", printed)
+        self.assertIn("The King's Package", self.quest_states(), "the cutscene hands straight on to the quest")
 
     def test_questioning_the_king_costs_the_seal_and_is_remembered(self):
         self.assertTrue(self.holds("item_commander_seal"))

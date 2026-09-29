@@ -3,9 +3,9 @@ import os
 import json
 import random
 import time
-from typing import Dict, Optional, TYPE_CHECKING, Any
+from typing import Dict, List, Optional, TYPE_CHECKING, Any
 from engine.utils.logger import Logger
-from .campaign_models import CampaignDefinition, CampaignNode
+from .campaign_models import MAX_CHAIN, CampaignDefinition, CampaignNode
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -33,7 +33,8 @@ class CampaignManager:
                 except Exception as e:
                     Logger.error("CampaignManager", f"Failed to load {fname}: {e}")
 
-    def start_campaign(self, campaign_id: str, player: 'Player') -> bool:
+    def start_campaign(self, campaign_id: str, player: 'Player', narration: Optional[List[str]] = None) -> bool:
+        """`narration`, when given, collects what a cutscene at the start says."""
         if campaign_id not in self.definitions: return False
         
         # Check if already active or completed
@@ -66,7 +67,9 @@ class CampaignManager:
         Logger.info("CampaignManager", f"Started campaign '{definition.name}'")
         
         # Trigger the first node
-        self._trigger_node(campaign_id, start_node, player)
+        lines = self._trigger_node(campaign_id, start_node, player)
+        if narration is not None:
+            narration.extend(lines)
         return True
 
     def handle_quest_completion(self, campaign_id: str, node_id: str, resolution: str, player: 'Player') -> str:
@@ -74,6 +77,30 @@ class CampaignManager:
         Called by QuestManager when a quest linked to a campaign node completes.
         Calculates the next node based on resolution.
         """
+        lines: List[str] = []
+        text = self._advance(campaign_id, node_id, resolution, player, lines)
+        return "\n".join(([text] if text else []) + lines)
+
+    def advance_from_dialogue(self, campaign_id: str, player: 'Player', narration: Optional[List[str]] = None) -> bool:
+        """The `advance_campaign` effect: the player's campaign sits on a DIALOGUE node
+        and moves on. Anything else (no such campaign, not active, waiting on a quest)
+        does nothing and reports False, so a stray effect cannot skip a quest."""
+        definition = self.definitions.get(campaign_id)
+        state = player.runtime_state.quests.active_campaigns.get(campaign_id)
+        if definition is None or not state:
+            return False
+        node = definition.nodes.get(state.get("current_node"))
+        if node is None or node.node_type != "DIALOGUE":
+            return False
+        lines: List[str] = []
+        text = self._advance(campaign_id, node.node_id, "SUCCESS", player, lines)
+        if narration is not None:
+            narration.extend([text] if text else [])
+            narration.extend(lines)
+        return True
+
+    def _advance(self, campaign_id: str, node_id: str, resolution: str, player: 'Player',
+                 lines: List[str], depth: int = 0) -> str:
         definition = self.definitions.get(campaign_id)
         if not definition: return ""
         
@@ -117,14 +144,36 @@ class CampaignManager:
                 
             next_node = definition.nodes.get(next_node_id)
             if next_node:
-                self._trigger_node(campaign_id, next_node, player)
+                lines.extend(self._trigger_node(campaign_id, next_node, player, depth + 1))
                 if transition_text:
                     return f"{transition_text}"
                 return ""
         
         return "The campaign path ends here."
 
-    def _trigger_node(self, campaign_id: str, node: CampaignNode, player: 'Player'):
+    def _apply_node_effects(self, node: CampaignNode, player: 'Player') -> List[str]:
+        if not node.effects:
+            return []
+        from engine.dialogue.effects import apply_effects
+
+        report = apply_effects(node.effects, {"player": player, "world": self.world})
+        for problem in list(report.failed) + list(report.unknown):
+            Logger.warning("CampaignManager", f"node '{node.node_id}' effect did not apply: {problem}")
+        return [str(m) for m in report.messages]
+
+    def _trigger_node(self, campaign_id: str, node: CampaignNode, player: 'Player', depth: int = 0) -> List[str]:
+        """Acts on reaching `node`; returns any narration its effects produced."""
+        lines: List[str] = []
+        if node.node_type in ("CUTSCENE", "DIALOGUE"):
+            lines.extend(self._apply_node_effects(node, player))
+            if node.node_type == "CUTSCENE":
+                if depth >= MAX_CHAIN:
+                    Logger.error("CampaignManager", f"campaign '{campaign_id}' passed {MAX_CHAIN} nodes without a quest or conversation; stopped at '{node.node_id}'")
+                else:
+                    text = self._advance(campaign_id, node.node_id, "SUCCESS", player, lines, depth)
+                    if text and text != "The campaign path ends here.":
+                        lines.append(text)
+            return lines
         if node.node_type == "QUEST" and node.quest_template_id:
             # Context allows the quest to report back upon completion
             context = {"campaign_id": campaign_id, "node_id": node.node_id}
@@ -162,3 +211,4 @@ class CampaignManager:
                     final_node=node.node_id,
                     completed_at=completed_at,
                 )
+        return lines

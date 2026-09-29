@@ -31,7 +31,10 @@ class TestCampaignVocabulary(unittest.TestCase):
 
     def test_node_types_are_the_ones_trigger_node_acts_on(self):
         source = inspect.getsource(CampaignManager._trigger_node)
-        self.assertEqual(set(CAMPAIGN_NODE_TYPES), set(re.findall(r'node_type == "([A-Z_]+)"', source)))
+        acted_on = set(re.findall(r'node_type == "([A-Z_]+)"', source))
+        for group in re.findall(r'node_type in \(([^)]*)\)', source):
+            acted_on.update(re.findall(r'"([A-Z_]+)"', group))
+        self.assertEqual(set(CAMPAIGN_NODE_TYPES), acted_on)
 
 
 if __name__ == "__main__":

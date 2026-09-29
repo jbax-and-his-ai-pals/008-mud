@@ -41,6 +41,7 @@
                     },
                     "next_node": "forge",
                     "effects": {
+                        "advance_campaign": "restore_the_triad",
                         "take_item": [
                             "item_shard_courage",
                             "item_shard_wisdom"

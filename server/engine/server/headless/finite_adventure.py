@@ -795,11 +795,12 @@ class FiniteAdventureMixin:
                 finite_state = {}
             finite_state["world_baseline"] = self._build_finite_adventure_world_baseline()
             player.runtime_state.quests.finite_adventure = finite_state
-            started = self.world.campaign_manager.start_campaign(requested_campaign_id, player)
+            opening: list = []
+            started = self.world.campaign_manager.start_campaign(requested_campaign_id, player, narration=opening)
             if not started:
                 return True, [self._event("text", session_id, f"Failed to start finite adventure campaign '{requested_campaign_id}'.")]
             return True, [
-                self._event("text", session_id, f"Finite adventure started: {requested_campaign_id}"),
+                self._event("text", session_id, "\n".join([f"Finite adventure started: {requested_campaign_id}"] + opening)),
                 self._event("quests", session_id, self._build_quests_payload(session_id)),
                 self._event("finite_adventure_state", session_id, self.build_finite_adventure_state_payload(session_id)),
                 self._event("finite_adventure_summary", session_id, self.build_finite_adventure_summary_payload(session_id)),
@@ -908,9 +909,10 @@ class FiniteAdventureMixin:
                 self._event("finite_adventure_summary", session_id, self.build_finite_adventure_summary_payload(session_id)),
             ]
             if subcommand == "replay" and campaign_id:
-                started = self.world.campaign_manager.start_campaign(campaign_id, player)
+                opening: list = []
+                started = self.world.campaign_manager.start_campaign(campaign_id, player, narration=opening)
                 if started:
-                    events.append(self._event("text", session_id, f"Finite adventure started: {campaign_id}"))
+                    events.append(self._event("text", session_id, "\n".join([f"Finite adventure started: {campaign_id}"] + opening)))
                     events.append(self._event("quests", session_id, self._build_quests_payload(session_id)))
                     events.append(self._event("finite_adventure_state", session_id, self.build_finite_adventure_state_payload(session_id)))
                     events.append(self._event("finite_adventure_summary", session_id, self.build_finite_adventure_summary_payload(session_id)))

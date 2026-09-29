@@ -3613,6 +3613,7 @@ _EFFECT_REFERENCES = (
     ("advance_quest", "quests"),
     ("complete_quest", "quests"),
     ("start_campaign", "campaigns"),
+    ("advance_campaign", "campaigns"),
     ("give_item", "items"),
     ("take_item", "items"),
     ("forget_spell", "spells"),
@@ -4543,11 +4544,11 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
 
 
 _CAMPAIGN_KEYS = ("campaign_id", "name", "description", "start_node_id", "nodes")
-_CAMPAIGN_NODE_KEYS = ("description", "quest_template_id", "type", "transitions", "outcome")
+_CAMPAIGN_NODE_KEYS = ("description", "quest_template_id", "type", "transitions", "outcome", "effects")
 _CAMPAIGN_TRANSITION_KEYS = ("trigger", "target_node_id", "narrative_text", "chance")
 
 
-def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> None:
+def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue], ruleset_payload: Any = None) -> None:
     """`campaigns/*.json` (`campaign/campaign_models.py`, `campaign_manager.py`).
 
     A campaign missing a required key fails to load with a log line. Past that
@@ -4555,7 +4556,8 @@ def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> No
     does not act on, a QUEST node with no quest or no way out, a transition
     that names no node, uses a trigger no quest reports, or sits behind an
     earlier `SUCCESS` that already matches it. A transition's `conditions` are
-    never read.
+    never read. A CUTSCENE node applies its `effects` and moves on; a DIALOGUE node
+    applies them and waits for an `advance_campaign` effect somewhere in the set.
     """
     from engine.campaign.campaign_models import CAMPAIGN_NODE_TYPES, CAMPAIGN_TRIGGERS
 
@@ -4563,6 +4565,8 @@ def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> No
     if not campaign_dir.is_dir():
         return
     quest_ids = _load_definition_ids(content_root / "quests", "quest definitions", issues)
+    effect_ids = _with_ruleset_stats(_content_identifier_sets(content_root, []), ruleset_payload)
+    advancing_text = None
     seen: dict[str, str] = {}
     for path in sorted(campaign_dir.glob("*.json")):
         payload = _load_json(path, issues, "campaign")
@@ -4607,6 +4611,23 @@ def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> No
             transitions = node.get("transitions", [])
             if node_type not in CAMPAIGN_NODE_TYPES:
                 error(f"{label}.type '{node_type}' is not acted on (only {', '.join(CAMPAIGN_NODE_TYPES)}); the campaign stops there for good")
+            elif node_type in ("CUTSCENE", "DIALOGUE"):
+                if not transitions:
+                    error(f"{label} is a {node_type} node with no transitions: it leads nowhere and the campaign never ends")
+                if "effects" in node and not isinstance(node["effects"], dict):
+                    error(f"{label}.effects must be an object of effects")
+                else:
+                    _check_effect_block(node.get("effects"), f"{label}.effects", path, effect_ids, content_root, issues)
+                    if node_type == "CUTSCENE" and isinstance(node.get("effects"), dict) and "advance_campaign" in node["effects"]:
+                        error(f"{label}.effects advance_campaign is for a DIALOGUE node; a CUTSCENE node moves on by itself")
+                if node_type == "DIALOGUE" and isinstance(campaign_id, str):
+                    if advancing_text is None:
+                        advancing_text = _text_of_set_files(content_root, exclude=campaign_dir)
+                    if not any('"advance_campaign"' in text and campaign_id in text for text in advancing_text):
+                        issues.append(ContentSetIssue(
+                            "warning", source,
+                            f"{label} is a DIALOGUE node but nothing in this set carries an advance_campaign effect naming '{campaign_id}', so it waits forever",
+                        ))
             elif node_type == "QUEST":
                 quest = node.get("quest_template_id")
                 if not isinstance(quest, str) or not quest.strip():
@@ -4620,6 +4641,8 @@ def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> No
                     error(f"{label} is an END node and needs an outcome (knowledge topics and the summary read it)")
                 if transitions:
                     error(f"{label} is an END node; its transitions are never followed")
+            if node_type in ("QUEST", "END") and node.get("effects"):
+                error(f"{label}.effects is never applied (only CUTSCENE and DIALOGUE nodes apply effects)")
             if not isinstance(transitions, list):
                 error(f"{label}.transitions must be an array")
                 continue
@@ -4665,6 +4688,37 @@ def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue]) -> No
                     issues.append(ContentSetIssue("warning", source, f"nodes.{node_id} cannot be reached from start_node_id '{start}'"))
             if not any(isinstance(nodes[n], dict) and nodes[n].get("type") == "END" for n in reachable):
                 error(f"no END node can be reached from start_node_id '{start}', so the campaign never completes")
+            # Cutscenes hand straight on, so a loop made only of them never lets the player act.
+            def cutscene_next(node_id: str) -> list:
+                node = nodes.get(node_id)
+                if not isinstance(node, dict) or node.get("type") != "CUTSCENE":
+                    return []
+                return [t.get("target_node_id") for t in node.get("transitions", []) if isinstance(t, dict)]
+
+            for node_id in nodes:
+                stack, visited = list(cutscene_next(node_id)), set()
+                while stack:
+                    current = stack.pop()
+                    if current == node_id:
+                        error(f"nodes.{node_id} is part of a loop of CUTSCENE nodes with no quest or conversation in it; the campaign would never wait for the player")
+                        break
+                    if current in visited:
+                        continue
+                    visited.add(current)
+                    stack.extend(cutscene_next(current))
+
+
+def _text_of_set_files(content_root: Path, exclude: Path) -> list[str]:
+    """The raw text of every JSON file under the set's data folders, for a plain search."""
+    texts: list[str] = []
+    for path in content_root.rglob("*.json"):
+        if exclude in path.parents or "saves" in path.parts or "editor" in path.parts:
+            continue
+        try:
+            texts.append(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError):
+            continue
+    return texts
 
 
 QUEST_REWARD_KEYS = ("xp", "gold", "items", "generated_item_data", "relationships")
@@ -6630,7 +6684,7 @@ def load_content_set(
         _validate_triggers(content_root, issues, ruleset_payload)
         _validate_knowledge_topics(content_root, issues)
         _validate_room_passage_properties(content_root, issues)
-        _validate_campaigns(content_root, issues)
+        _validate_campaigns(content_root, issues, ruleset_payload)
         _validate_abilities(content_root, issues)
         _validate_item_envelopes(content_root, issues)
         _validate_combat_flavor(content_root, issues)

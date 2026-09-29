@@ -7,7 +7,7 @@ sub-cases, quest_state's from_this/pattern continues, get_topics_for_npc,
 item/generated-item local reward bundling, and the start_quest/start_campaign/
 give_item dialogue effects."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 from tests.fixtures import GameTestBase
 from engine.core.knowledge_manager import KnowledgeManager
@@ -301,7 +301,7 @@ class TestDialogueEffects(GameTestBase):
         }
         with patch.object(self.world.campaign_manager, "start_campaign") as mock_start:
             km.get_response(npc, "campaign_topic", self.player)
-            mock_start.assert_called_once_with("some_campaign_id", self.player)
+            mock_start.assert_called_once_with("some_campaign_id", self.player, narration=ANY)
 
     def test_give_item_effect_grants_item_to_player(self):
         km = self.game.knowledge_manager

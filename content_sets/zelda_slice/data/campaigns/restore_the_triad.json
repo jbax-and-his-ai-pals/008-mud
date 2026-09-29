@@ -21,8 +21,19 @@
             "transitions": [
                 {
                     "trigger": "SUCCESS",
+                    "target_node_id": "forge",
+                    "narrative_text": "Two shards. Take them to the sage."
+                }
+            ]
+        },
+        "forge": {
+            "description": "The sage forges the Triad.",
+            "type": "DIALOGUE",
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
                     "target_node_id": "tower",
-                    "narrative_text": "Two shards. Enough to open the tower."
+                    "narrative_text": "The Triad is whole enough. The tower door will know it."
                 }
             ]
         },

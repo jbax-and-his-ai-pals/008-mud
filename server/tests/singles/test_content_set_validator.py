@@ -1975,11 +1975,11 @@ class TestCampaigns(unittest.TestCase):
 
     def test_unacted_node_types_and_dead_ends_are_errors(self):
         errors = self._errors(_campaign(
-            start={"description": "", "type": "CUTSCENE", "transitions": [{"target_node_id": "mid"}]},
+            start={"description": "", "type": "FLASHBACK", "transitions": [{"target_node_id": "mid"}]},
             mid={"description": "", "quest_template_id": "q"},
             end={"description": "", "type": "END", "outcome": "won"},
         ))
-        self.assertTrue(any("type 'CUTSCENE' is not acted on" in m for m in errors), errors)
+        self.assertTrue(any("type 'FLASHBACK' is not acted on" in m for m in errors), errors)
         self.assertTrue(any("nodes.mid is a QUEST node with no transitions" in m for m in errors), errors)
         self.assertTrue(any("no END node can be reached" in m for m in errors), errors)
 

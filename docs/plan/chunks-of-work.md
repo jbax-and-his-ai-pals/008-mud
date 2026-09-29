@@ -1112,6 +1112,19 @@ open and hands the rest to `_arrive` (visited, location, quest room entry, insta
 look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
 `test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
 
+**4.3** a campaign node can be a scene. `CUTSCENE` applies its `effects` (the conversation vocabulary, run by `apply_effects`) and
+moves on along `SUCCESS` at once; `DIALOGUE` applies them and waits for the new `advance_campaign` effect, which moves a campaign
+only when it is waiting on a `DIALOGUE` node (it cannot skip a quest). `CampaignManager` was split into `_advance` (the
+transition search, shared by quest completion, cutscenes and the effect) and `_trigger_node`, which now returns narration;
+`start_campaign` and `advance_from_dialogue` collect it for the caller (an effect's messages, or the finite-adventure start
+text) and quest completion appends it to its message. A run of cutscenes stops at `MAX_CHAIN` (20). Validator: node `effects`
+checked like a conversation's, refused on a quest or end node, `advance_campaign` refused on a cutscene, a loop made only of
+cutscenes refused, a warning on a dialogue node nothing in the set advances. Editor: type picker gains both, a scene node shows
+the shared effect rows and no quest picker, `advance_campaign` joins `DialogueSchema.EFFECTS` (parity-checked with the node
+types). Pinned tests that said the types did nothing were changed to say the truth (`test_campaign_vocabulary.py` now reads the
+`in (...)` form too; the validator test uses an unknown type). Slices: FF4 opens on a cutscene where the king seals the
+package; Zelda's campaign waits at a `forge` dialogue node until the sage forges the Triad, which then starts the tower quest.
+
 **4.2** two more trigger events, `npc_killed` (`on: {event, npc, region?, room?}`, `npc` a template or placed id) and
 `room_cleared` (`on: {event, region, room}`), raised by `World.dispatch_event("npc_killed", ...)`, which the player's blows, spells and
 minions already called. What it returns is now delivered on the spell and minion paths (it was discarded), and a minion that
