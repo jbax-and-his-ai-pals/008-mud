@@ -708,6 +708,68 @@ class World:
         self.npcs[npc.obj_id] = npc
     
     def get_npc(self, instance_id: str) -> Optional[NPC]: return self.npcs.get(instance_id)
+
+    def spawn_npc(
+        self, template_id: str, region_id: str, room_id: str, instance_id: Optional[str] = None
+    ) -> Tuple[Optional[NPC], str]:
+        """Place a new NPC from a template, calling that room home.
+
+        Returns `(npc, "spawned")`; `(existing, "present")` when an NPC with that id is
+        already alive, so asking twice never makes two (the default id is the placement
+        pattern, `<template>_at_<room>`); or `(None, "no_template" | "no_room")`.
+        """
+        if template_id not in self.npc_templates:
+            return None, "no_template"
+        region = self.get_region(region_id)
+        if region is None or region.get_room(room_id) is None:
+            return None, "no_room"
+        instance_id = instance_id or f"{template_id}_at_{room_id}"
+        existing = self.npcs.get(instance_id)
+        if existing is not None and existing.is_alive:
+            return existing, "present"
+        npc = NPCFactory.create_npc_from_template(
+            template_id, self, instance_id,
+            current_region_id=region_id, current_room_id=room_id,
+            home_region_id=region_id, home_room_id=room_id,
+        )
+        if npc is None:
+            return None, "no_template"
+        self.add_npc(npc)
+        return npc, "spawned"
+
+    def remove_npcs(
+        self, identifier: str, region_id: Optional[str] = None, room_id: Optional[str] = None
+    ) -> Tuple[List[NPC], int]:
+        """Take NPCs out of the world without their dying: no loot, no respawn timer, no
+        kill credit, because nothing was killed. `identifier` is an instance id or a
+        template id; a region and room narrow it to those standing there.
+
+        A creature of that kind that was killed earlier and is waiting to return is
+        cancelled too, or "the hermit vanishes" would end with the hermit walking back in.
+        Returns `(the NPCs removed, the pending returns cancelled)`.
+        """
+        removed: List[NPC] = []
+        for npc in list(self.npcs.values()):
+            if not npc.is_alive or identifier not in (npc.obj_id, npc.template_id):
+                continue
+            if region_id is not None and (npc.current_region_id, npc.current_room_id) != (region_id, room_id):
+                continue
+            if npc.properties.get("is_summoned"):
+                npc.despawn(self, silent=True)   # let go of its owner's ledger first
+            npc.is_alive = False
+            self.npcs.pop(npc.obj_id, None)
+            removed.append(npc)
+
+        queue = self.respawn_manager.respawn_queue
+        kept = [
+            entry for entry in queue
+            if not (identifier in (entry.get("template_id"), entry.get("instance_id"))
+                    and (region_id is None or (entry.get("home_region_id"), entry.get("home_room_id")) == (region_id, room_id)))
+        ]
+        cancelled = len(queue) - len(kept)
+        if cancelled:
+            self.respawn_manager.respawn_queue = kept
+        return removed, cancelled
     
     def get_npcs_in_room(self, region_id: str, room_id: str) -> List[NPC]:
         return [npc for npc in self.npcs.values() if npc.current_region_id == region_id and npc.current_room_id == room_id and npc.is_alive]

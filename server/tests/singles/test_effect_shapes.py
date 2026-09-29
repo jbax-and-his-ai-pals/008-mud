@@ -41,8 +41,10 @@ class TestTheTable(unittest.TestCase):
             "give_rewards": ["generated_item_data", "gold", "items", "xp"],
             "move_npc": ["npc", "region", "room"],
             "raise": ["max_health", "max_mana", "stats"],
+            "remove_npc": ["npc", "region", "room"],
             "restore": ["amount", "resource"],
             "reveal_exit": ["direction", "room"],
+            "spawn_npc": ["instance_id", "npc", "region", "room"],
         }, effect_fields())
 
     def test_each_object_effects_fields_are_the_ones_its_reader_reads(self):
@@ -55,6 +57,8 @@ class TestTheTable(unittest.TestCase):
             "give_rewards": "_apply_reward_effect",
             "restore": "_apply_restore_effect",
             "raise": "_apply_raise_effect",
+            "spawn_npc": "_apply_spawn_npc_effect",
+            "remove_npc": "_apply_remove_npc_effect",
         }
         self.assertEqual(set(readers), set(effect_fields()))
         for effect, reader in readers.items():
@@ -89,6 +93,10 @@ class TestShapeIssues(unittest.TestCase):
         {"restore": {"amount": 5}},
         {"raise": {"max_health": 10}}, {"raise": {"max_mana": 4}}, {"raise": {"stats": {"strength": 1}}},
         {"raise": {"max_health": 10, "max_mana": 2, "stats": {"strength": 1, "dexterity": 2}}},
+        {"spawn_npc": {"npc": "fiend", "region": "keep", "room": "hall"}},
+        {"spawn_npc": {"npc": "fiend", "region": "keep", "room": "hall", "instance_id": "the_fiend"}},
+        {"remove_npc": "chancellor"}, {"remove_npc": {"npc": "chancellor"}},
+        {"remove_npc": {"npc": "chancellor", "region": "keep", "room": "hall"}},
     ]
     BAD = [
         ({"set_flag": 5}, "set_flag"), ({"set_flag": []}, "set_flag"), ({"set_flag": [3]}, "set_flag"),
@@ -115,6 +123,15 @@ class TestShapeIssues(unittest.TestCase):
         ({"raise": {"max_mana": "lots"}}, "max_mana"), ({"raise": {"stats": {}}}, "stats"),
         ({"raise": {"stats": {"strength": 0}}}, "stats"), ({"raise": {"stats": ["strength"]}}, "stats"),
         ({"raise": {"max_health": 5, "speed": 3}}, "speed"),
+        ({"spawn_npc": "fiend"}, "spawn_npc"), ({"spawn_npc": {"npc": "fiend"}}, "region"),
+        ({"spawn_npc": {"npc": "fiend", "region": "keep"}}, "room"),
+        ({"spawn_npc": {"region": "keep", "room": "hall"}}, "npc"),
+        ({"spawn_npc": {"npc": "fiend", "region": "keep", "room": "hall", "home": "x"}}, "home"),
+        ({"spawn_npc": {"npc": "fiend", "region": "keep", "room": 5}}, "room"),
+        ({"remove_npc": ""}, "remove_npc"), ({"remove_npc": 5}, "remove_npc"), ({"remove_npc": {}}, "npc"),
+        ({"remove_npc": {"npc": "chancellor", "region": "keep"}}, "together"),
+        ({"remove_npc": {"npc": "chancellor", "room": "hall"}}, "together"),
+        ({"remove_npc": {"npc": "chancellor", "where": "hall"}}, "where"),
     ]
 
     def test_a_valid_value_draws_no_issue(self):

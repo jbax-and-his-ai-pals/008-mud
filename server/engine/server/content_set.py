@@ -3538,6 +3538,8 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
             discovery_ids |= {str(k) for k in payload if not str(k).startswith("_")}
 
     region_ids: set[str] = set()
+    room_refs: set[str] = set()
+    npc_instance_ids: set[str] = set()
     regions_dir = content_root / "regions"
     if regions_dir.is_dir():
         for path in sorted(regions_dir.glob("*.json")):
@@ -3547,7 +3549,14 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
                 if isinstance(region_id, str) and region_id.strip():
                     region_ids.add(region_id)
                 else:
-                    region_ids.add(path.stem)
+                    region_id = path.stem
+                    region_ids.add(region_id)
+                rooms = payload.get("rooms")
+                for room_id, room in (rooms.items() if isinstance(rooms, dict) else ()):
+                    room_refs.add(f"{region_id}:{room_id}")
+                    for placement in (room.get("initial_npcs") if isinstance(room, dict) else None) or ():
+                        if isinstance(placement, dict) and isinstance(placement.get("instance_id"), str):
+                            npc_instance_ids.add(placement["instance_id"])
 
     npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
     return {
@@ -3562,6 +3571,10 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
         # The stats a character has. The engine defaults here; callers that hold the
         # ruleset add the ones it names (`_with_ruleset_stats`).
         "stats": _player_stat_names(),
+        # `region:room` for every room, and the id of every placed NPC: what a
+        # `spawn_npc` and a `remove_npc` may name.
+        "rooms": room_refs,
+        "npc_instances": npc_instance_ids,
     }
 
 
@@ -3712,6 +3725,28 @@ def _check_effect_block(
     reveal = block.get("reveal_exit")
     if isinstance(reveal, dict):
         _check_reveal_exit(reveal, where, content_root, path, issues)
+    spawn = block.get("spawn_npc")
+    if isinstance(spawn, dict):
+        npc_id = str(spawn.get("npc", "") or "").strip()
+        if npc_id and ids["npcs"] and npc_id not in ids["npcs"]:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{where} effect spawn_npc names NPC '{npc_id}', which is not defined in this content set",
+            ))
+        _check_room_reference(spawn.get("region"), spawn.get("room"), f"{where} effect spawn_npc", path, ids, issues)
+    removal = block.get("remove_npc")
+    if removal is not None:
+        target = removal.get("npc") if isinstance(removal, dict) else removal
+        target = str(target or "").strip()
+        known = ids["npcs"] | ids["npc_instances"]
+        if target and known and target not in known:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{where} effect remove_npc names '{target}', which is neither an NPC template nor a placed "
+                f"NPC in this content set",
+            ))
+        if isinstance(removal, dict):
+            _check_room_reference(removal.get("region"), removal.get("room"), f"{where} effect remove_npc", path, ids, issues)
     raised = block.get("raise")
     if isinstance(raised, dict) and isinstance(raised.get("stats"), dict):
         for stat in sorted(str(name) for name in raised["stats"]):
@@ -3721,6 +3756,24 @@ def _check_effect_block(
                     f"{where} effect raise names stat '{stat}', which is not a stat this character has "
                     f"(stats: {', '.join(sorted(ids['stats']))})",
                 ))
+
+
+def _check_room_reference(
+    region: Any, room: Any, where: str, path: Path, ids: dict[str, set[str]], issues: list[ContentSetIssue]
+) -> None:
+    """A region and room an effect names must be ones this set defines (both or neither)."""
+    region_id = str(region or "").strip()
+    room_id = str(room or "").strip()
+    if not region_id or not room_id or not ids["rooms"]:
+        return  # a missing half is `effect_shape_issues`'s to report
+    if region_id not in ids["regions"]:
+        issues.append(ContentSetIssue(
+            "error", str(path), f"{where} names region '{region_id}', which is not defined in this content set"
+        ))
+    elif f"{region_id}:{room_id}" not in ids["rooms"]:
+        issues.append(ContentSetIssue(
+            "error", str(path), f"{where} names room '{room_id}', which region '{region_id}' does not have"
+        ))
 
 
 def _guaranteed_leaves(node: Any, negated: bool = False) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:

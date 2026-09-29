@@ -1097,6 +1097,16 @@ health and mana, FF4 has a paid inn (`take_gold` + `restore`, offered only to so
 pay). Editor: `ItemInspector` gets an `effect_type` picker and, for `effects`, the same rows a
 conversation uses. `test_limit_restore_is_not_an_effect` is retired.
 
+**2.4** `spawn_npc` (`{npc, region, room, instance_id?}`; the default id is the placement pattern
+`<template>_at_<room>`, so asking twice is a no-op) and `remove_npc` (a template or placed id, or
+`{npc, region, room}`) are `World.spawn_npc` / `World.remove_npcs`. A removal is not a death: `die()`
+is never called, so nothing drops, nothing is queued to return and nothing counts as a kill, and a
+pending return of the same creature is cancelled so "the hermit vanishes" does not end with him
+walking back in. The validator checks the template, the region and room, and (for a removal) a
+placed instance id. Slices: FF4's chancellor unmasks into a hostile fiend; Zelda's hermit vanishes
+once he has given his sword. Restart-survival for both is tested (a spawned NPC is in the snapshot;
+a removed one is not, and a resumed game replaces the static placements with the snapshot).
+
 **2.2** the editor's effect and condition rows are one implementation each (`EffectRows.gd`,
 `ConditionRows.gd`), adopted by the dialogue, knowledge and title inspectors in place of four
 drifted copies (the three inspectors are about 350 lines shorter). What that fixed, each checked against the parent

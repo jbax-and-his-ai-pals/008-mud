@@ -136,5 +136,22 @@
             "move_cooldown": 9999,
             "dialogue": "inn_rest"
         }
+    },
+    "chancellor": {
+        "name": "the chancellor",
+        "description": "A gaunt man in grey silks at the king's elbow, smiling as if he had been taught how.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "The king has many burdens. I carry the smaller ones."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "chancellor_talk"
+        }
     }
 }

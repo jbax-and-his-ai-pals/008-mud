@@ -221,5 +221,47 @@
             "fog_breath"
         ],
         "max_mana": 60
+    },
+    "chancellor_fiend": {
+        "name": "the thing in the chancellor's skin",
+        "description": "Grey silks hang from something that is mostly teeth and joints, and it is still smiling.",
+        "health": 400,
+        "level": 4,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 16,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 7,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    30,
+                    50
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
     }
 }

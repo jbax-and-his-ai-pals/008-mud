@@ -113,6 +113,30 @@ class TestZeldaSlice(_Slice):
         again = self.say("talk hermit")
         self.assertNotIn("Thank you", again, "the gift is offered only until it has been taken")
 
+    def _ask_the_hermit_who_he_is(self):
+        self.at("caves", "hermit_cave")
+        self.say("talk hermit")
+        self.say("reply 1")   # the sword
+        self.say("reply 1")   # "I will."
+        self.say("talk hermit")
+        return self.say("reply 2")   # the tower, then: who are you?
+
+    def test_the_hermit_vanishes_when_asked_who_he_is(self):
+        """He is taken out of the world: no corpse, no loot, and no timer to bring him back."""
+        said = self._ask_the_hermit_who_he_is()
+        self.assertEqual([], self.npcs("hermit"))
+        self.assertIs(True, self.player.flags.get("hermit_gone"))
+        self.assertIn("only a cave", said)
+        self.assertEqual([], [e for e in self.world.respawn_manager.respawn_queue if e.get("template_id") == "hermit"])
+        self.assertEqual([], self.world.get_npcs_in_room("caves", "hermit_cave"))
+        self.assertNotIn("CONVERSATION WITH THE HERMIT", self.say("talk hermit"))
+        self.assertTrue(self.holds("item_wooden_sword"), "what he gave stays given")
+
+    def test_the_hermit_does_not_come_back_however_long_you_wait(self):
+        self._ask_the_hermit_who_he_is()
+        self.tick(120)
+        self.assertEqual([], self.npcs("hermit"))
+
     def test_a_heart_container_raises_the_maximum_and_heals(self):
         """It used to heal 200 and leave you as you were; now it is treasure."""
         self.give("item_heart_container")
@@ -248,6 +272,29 @@ class TestFF4Slice(_Slice):
         again = self.say("talk king")
         self.assertNotIn("At once", again, "the choice cannot be made twice")
         self.assertNotIn("slaughter", again, "and the other answer closed with it")
+
+    def test_the_chancellor_unmasks_into_a_fiend(self):
+        self.at("varenholt", "throne_room")
+        self.assertEqual(1, len(self.npcs("chancellor")))
+        self.say("talk chancellor")
+        said = self.say("reply 1")
+        self.assertEqual([], self.npcs("chancellor"))
+        fiends = self.npcs("chancellor_fiend")
+        self.assertEqual(1, len(fiends))
+        self.assertEqual(("varenholt", "throne_room"), (fiends[0].current_region_id, fiends[0].current_room_id))
+        self.assertIs(True, self.player.flags.get("chancellor_unmasked"))
+        self.assertIn("too many teeth", said)
+        self.assertNotIn("CONVERSATION WITH THE CHANCELLOR", self.say("talk chancellor"))
+
+    def test_the_unmasked_fiend_can_be_fought_and_stays_dead(self):
+        self.at("varenholt", "throne_room")
+        self.say("talk chancellor")
+        self.say("reply 1")
+        self.kill("chancellor_fiend", "thing")
+        self.assertEqual([], self.npcs("chancellor_fiend"))
+        self.tick(400)
+        self.assertEqual([], self.npcs("chancellor_fiend"), "a fiend that was killed is not brought back")
+        self.assertEqual([], self.npcs("chancellor"), "and the chancellor never returns")
 
     def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
         self.at("mistvale", "village_square")
@@ -422,6 +469,44 @@ class TestPersistence(unittest.TestCase):
         self.assertEqual(("mossroot", "root_hall"), (again.current_region_id, again.current_room_id))
         self.assertIn("down", second.world.get_region("mossroot").get_room("root_hall").exits,
                       "the lever's door is still open")
+
+    def test_a_vanished_hermit_is_still_gone_after_a_restart(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        sid, _ = self._join(first, "Restarter", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.current_region_id, hero.current_room_id = "caves", "hermit_cave"
+        for command in ("talk hermit", "reply 1", "reply 1", "talk hermit", "reply 2"):
+            self._say(first, sid, command)
+        self.assertEqual([], [n for n in first.world.npcs.values() if n.template_id == "hermit"])
+        first.shutdown()
+
+        second = self._boot("zelda_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, _ = self._join(second, "Restarter", "another-id")
+        again = second.get_player_for_session(sid2)
+        self.assertEqual([], [n for n in second.world.npcs.values() if n.template_id == "hermit"],
+                         "the static placement is not put back over the world's own memory")
+        self.assertTrue(again.flags.get("hermit_gone"))
+
+    def test_an_unmasked_chancellor_is_still_a_fiend_after_a_restart(self):
+        db = self._db()
+        first = self._boot("ff4_slice", db)
+        sid, _ = self._join(first, "Caelan", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.current_region_id, hero.current_room_id = "varenholt", "throne_room"
+        self._say(first, sid, "talk chancellor")
+        self._say(first, sid, "reply 1")
+        first.shutdown()
+
+        second = self._boot("ff4_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, _ = self._join(second, "Caelan", "another-id")
+        fiends = [n for n in second.world.npcs.values() if n.template_id == "chancellor_fiend" and n.is_alive]
+        self.assertEqual(1, len(fiends), "the fiend was spawned mid-game and is still there")
+        self.assertEqual(("varenholt", "throne_room"), (fiends[0].current_region_id, fiends[0].current_room_id))
+        self.assertEqual([], [n for n in second.world.npcs.values() if n.template_id == "chancellor"],
+                         "and the chancellor is still gone")
 
     def test_a_raised_maximum_and_a_paid_rest_survive_a_restart(self):
         db = self._db()

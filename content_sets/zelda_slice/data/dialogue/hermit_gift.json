@@ -24,6 +24,19 @@
                     "next_node": "tower"
                 },
                 {
+                    "text": "Who are you, old man?",
+                    "condition": {
+                        "kind": "flag",
+                        "flag": "got_the_sword"
+                    },
+                    "next_node": "vanished",
+                    "effects": {
+                        "remove_npc": "hermit",
+                        "set_flag": "hermit_gone",
+                        "message": "The old man smiles, and the cave is only a cave."
+                    }
+                },
+                {
                     "text": "Goodbye.",
                     "end": true
                 }
@@ -43,6 +56,15 @@
             "choices": [
                 {
                     "text": "Goodbye.",
+                    "end": true
+                }
+            ]
+        },
+        "vanished": {
+            "text": "You blink, and there is no one here but the echo of your own question.",
+            "choices": [
+                {
+                    "text": "Go on.",
                     "end": true
                 }
             ]

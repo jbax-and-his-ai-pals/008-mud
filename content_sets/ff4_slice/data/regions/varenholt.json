@@ -16,6 +16,10 @@
                 {
                     "template_id": "king_aldous",
                     "instance_id": "king_aldous_at_throne_room"
+                },
+                {
+                    "template_id": "chancellor",
+                    "instance_id": "chancellor_at_throne_room"
                 }
             ]
         },

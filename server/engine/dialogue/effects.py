@@ -28,6 +28,8 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     raise             {"max_health": 10, "max_mana": 4, "stats": {"strength": 1}}   permanent
     forget_spell      "spell_id" | [...]
     message           "text shown to the player"
+    spawn_npc         {"npc": "template_id", "region": "r", "room": "x", "instance_id": "optional"}
+    remove_npc        "template_or_instance_id" | {"npc": "id", "region": "r", "room": "x"}
 
 Shorthands exist because most effects are one id and authors should not have to
 write an object for that. Anything the interpreter does not recognise is
@@ -43,11 +45,15 @@ value was never checked: `"set_flag": ["a", "b"]` set one flag literally called
 Application order is fixed and each step is guarded on its own, so one effect that
 fails (or raises) is reported and the ones after it still run: message, quests,
 forgetting, learning, items, gold, raise, restore, relationship, flags, exits, NPC
-moves, rewards. So a line reads before the numbers do, a swap forgets before it
+moves, spawns, removals, rewards. So a line reads before the numbers do, a swap forgets before it
 teaches, a service is paid for before it is delivered, and a heart container raises
 the maximum before the heal fills it. Effects are not transactional: a step that
 fails does not undo the ones before it, so a paid service gates its choice with a
 condition (`gold_at_least`) instead of relying on the effect to refuse.
+
+`remove_npc` is not a death: nothing is dropped, no return is scheduled and no kill is
+counted, and a pending return of the same creature is cancelled. `spawn_npc` is safe to
+ask twice: an NPC with the same id that is already alive is left alone.
 
 `raise` is a permanent gain outside levelling -- treasure or a story reward, never a
 menu. The engine cannot tell a repeatable choice from a one-off, so the validator
@@ -70,6 +76,7 @@ KNOWN_EFFECTS = frozenset({
     "give_item", "take_item", "give_gold", "adjust_relationship",
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
     "take_gold", "restore", "raise", "forget_spell", "message",
+    "spawn_npc", "remove_npc",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -86,8 +93,9 @@ RAISE_LARGE = {"max_health": 20, "max_mana": 20, "stats": 3}
 #   count        a whole number of at least `minimum`
 #   flags        a flag name, {"name", "value"}, or a list of either
 #   text         a non-empty string
-#   object       an object with `fields` (name -> type), `required` fields, and
-#                `one_of` (at least one of these); `bare` names the type a
+#   object       an object with `fields` (name -> type), `required` fields,
+#                `one_of` (at least one of these), and `together` (groups of fields
+#                that come as a set, or not at all); `bare` names the type a
 #                non-object value may take instead
 EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     "start_quest": {"form": "ids"},
@@ -130,6 +138,17 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     },
     "forget_spell": {"form": "ids"},
     "message": {"form": "text"},
+    "spawn_npc": {
+        "form": "object",
+        "fields": {"npc": "text", "region": "text", "room": "text", "instance_id": "text"},
+        "required": ("npc", "region", "room"),
+    },
+    "remove_npc": {
+        "form": "object", "bare": "text",
+        "fields": {"npc": "text", "region": "text", "room": "text"},
+        "required": ("npc",),
+        "together": (("region", "room"),),
+    },
 }
 assert set(EFFECT_SHAPES) == KNOWN_EFFECTS, "EFFECT_SHAPES and KNOWN_EFFECTS must name the same effects"
 
@@ -266,6 +285,10 @@ def _object_issues(effect: str, shape: Dict[str, Any], value: Any) -> List[str]:
     one_of = shape.get("one_of", ())
     if one_of and not any(key in value for key in one_of):
         issues.append("%s needs one of: %s" % (effect, ", ".join(one_of)))
+    for group in shape.get("together", ()):
+        present = [key for key in group if key in value]
+        if present and len(present) != len(group):
+            issues.append("%s needs %s together, or neither" % (effect, " and ".join(group)))
     for key, kind in fields.items():
         if key not in value or key in shape.get("required", ()):
             continue
@@ -886,6 +909,55 @@ def _apply_move_npc_effect(effects: Dict[str, Any], context, report: EffectRepor
     report.applied.append("moved %s to %s:%s" % (getattr(npc, "name", "?"), region_id, room_id))
 
 
+def _apply_spawn_npc_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    if "spawn_npc" not in effects:
+        return
+    raw = effects["spawn_npc"]
+    if not isinstance(raw, dict):
+        report.failed.append("spawn_npc (must be an object)")
+        return
+    template_id = str(raw.get("npc", "") or "").strip()
+    region_id = str(raw.get("region", "") or "").strip()
+    room_id = str(raw.get("room", "") or "").strip()
+    instance_id = str(raw.get("instance_id", "") or "").strip() or None
+    world = _context_world(context)
+    if world is None or not template_id or not region_id or not room_id:
+        report.failed.append("spawn_npc (needs npc, region and room)")
+        return
+    npc, status = world.spawn_npc(template_id, region_id, room_id, instance_id)
+    if status == "spawned":
+        report.applied.append("spawned %s in %s:%s" % (template_id, region_id, room_id))
+    elif status == "present":
+        report.unchanged.append("spawn_npc %s (already here)" % npc.obj_id)
+    elif status == "no_template":
+        report.failed.append("spawn_npc (no NPC template %s)" % template_id)
+    else:
+        report.failed.append("spawn_npc (no room %s:%s)" % (region_id, room_id))
+
+
+def _apply_remove_npc_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    if "remove_npc" not in effects:
+        return
+    raw = effects["remove_npc"]
+    if isinstance(raw, dict):
+        identifier = str(raw.get("npc", "") or "").strip()
+        region_id = str(raw.get("region", "") or "").strip() or None
+        room_id = str(raw.get("room", "") or "").strip() or None
+    else:
+        identifier, region_id, room_id = str(raw or "").strip(), None, None
+    world = _context_world(context)
+    if world is None or not identifier or (region_id is None) != (room_id is None):
+        report.failed.append("remove_npc (needs an NPC, and a region and room together or neither)")
+        return
+    removed, cancelled = world.remove_npcs(identifier, region_id, room_id)
+    for npc in removed:
+        report.applied.append("removed %s" % npc.obj_id)
+    if cancelled:
+        report.applied.append("cancelled %d pending return of %s" % (cancelled, identifier))
+    if not removed and not cancelled:
+        report.unchanged.append("remove_npc %s (not here)" % identifier)
+
+
 def _apply_reward_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
     rewards = effects.get("give_rewards")
     if not isinstance(rewards, dict):
@@ -979,6 +1051,8 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("flags", lambda: _apply_flag_effect(effects, player, report)),
         ("exits", lambda: _apply_exit_effect(effects, context, report)),
         ("move_npc", lambda: _apply_move_npc_effect(effects, context, report)),
+        ("spawn_npc", lambda: _apply_spawn_npc_effect(effects, context, report)),
+        ("remove_npc", lambda: _apply_remove_npc_effect(effects, context, report)),
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
     )
     for label, step in steps:

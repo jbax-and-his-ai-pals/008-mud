@@ -254,5 +254,6 @@ static func parse_text(key: String, trimmed: String) -> Dictionary:
 static func _add_suggestions(row: HBoxContainer, line: LineEdit, kind: String, database_mgr: DatabaseManager) -> void:
 	match kind:
 		"item_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_item_ids())
+		"npc_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_npc_ids())
 		"quest_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_ids("quest"))
 		"recipe_id": InspectorStyle.add_suggestion_button(row, line, func(): return database_mgr.get_recipe_ids())
