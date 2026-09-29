@@ -13,6 +13,7 @@ from engine.magic.spell_registry import load_spells_from_json
 from engine.npcs.npc_factory import NPCFactory
 from engine.npcs.ai import initialize_npc_schedules
 from engine.player import Player
+from engine.world.placements import placement_overrides
 from engine.world.region import Region
 from engine.utils.logger import Logger
 
@@ -253,15 +254,7 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
                     # (for example a stationary guide or a weakened encounter)
                     # without changing the template used elsewhere.  Location
                     # remains owned by the room, not by authored overrides.
-                    placement_overrides = npc_ref.get("overrides", {})
-                    if not isinstance(placement_overrides, dict):
-                        placement_overrides = {}
-                    allowed_overrides = {
-                        key: placement_overrides[key]
-                        for key in ("name", "level", "health", "max_health", "mana", "max_mana", "behavior_type",
-                                    "properties_override", "patrol_points", "patrol_index")
-                        if key in placement_overrides
-                    }
+                    allowed_overrides = placement_overrides(npc_ref)
                     overrides = {
                         "current_region_id": region_id,
                         "current_room_id": room_id,

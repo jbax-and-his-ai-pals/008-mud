@@ -145,6 +145,21 @@ class NPC(GameObject):
         self.health = min(self.max_health, self.health + amount)
         return self.health - old_health
 
+    def placed_respawn_seconds(self, world: 'World') -> Optional[float]:
+        """How long this creature stays dead, when it is a hostile a room placed and its author
+        wrote a `respawn_cooldown` for it; None otherwise (including an unauthored one, so a
+        content set that never asked for respawns does not get them)."""
+        if world is None or not self.template_id or not self.home_room_id or not self.home_region_id:
+            return None
+        if not factions.is_hostile(self, world) or factions.is_player_side(self, world):
+            return None
+        from engine.world import placements
+
+        placement = placements.find_placement(world, self.home_region_id, self.home_room_id, self.obj_id)
+        if placement is None:
+            return None
+        return placements.authored_respawn_cooldown(world, self.template_id, placement)
+
     def die(self, world: 'World') -> List[Item]:
         # Claimed: the world tick's reaper only looks for deaths nothing has handled.
         self._death_processed = True
@@ -158,6 +173,12 @@ class NPC(GameObject):
             self.template_id and
             not self.properties.get("ambient_wanderer", False)
         )
+        # A hostile the room itself placed comes back when its author gave it a cooldown
+        # (`-1`, or none, means it stays dead). One the ambient spawner made does not: the
+        # spawner refills the region.
+        if not is_respawnable:
+            delay = self.placed_respawn_seconds(world)
+            is_respawnable = delay is not None and delay >= 0
         if is_respawnable:
             world.add_to_respawn_queue(self)
 

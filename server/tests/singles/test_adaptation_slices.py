@@ -368,6 +368,21 @@ class TestZeldaSlice(_Slice):
             npc = NPCFactory.create_npc_from_template(template_id, self.world, "probe_" + template_id)
             self.assertEqual((template["max_health"], template["max_health"]), (npc.max_health, npc.health))
 
+    # Flipped by item 5.2: a placed hostile with an authored respawn_cooldown comes back.
+    def test_a_placed_monster_refills_the_dungeon_once_the_player_has_left(self):
+        self.kill("slime_blob", "blob")
+        self.tick(9200)  # 920 s of game time, five times the blob's authored 180
+        self.assertEqual([], self.npcs("slime_blob"), "not while the player is standing where it fell")
+        self.at("aldermark", "village_green")
+        self.tick(10)
+        self.assertEqual(1, len(self.npcs("slime_blob")), "and it is back when the room is empty")
+
+    def test_a_dungeon_boss_stays_dead(self):
+        self.kill("horned_wyrm", "wyrm")
+        self.at("aldermark", "village_green")
+        self.tick(9200)
+        self.assertEqual([], self.npcs("horned_wyrm"))
+
 
 class TestFF4Slice(_Slice):
     SET_ID = "ff4_slice"
@@ -552,12 +567,6 @@ class TestKnownLimits(_Slice):
 
     def _context(self):
         return {"player": self.player, "world": self.world}
-
-    # FLIP in item 5.2: a placed hostile with an authored respawn_cooldown comes back.
-    def test_limit_a_placed_hostile_never_respawns(self):
-        self.kill("slime_blob", "blob")
-        self.tick(9200)  # 920 s of game time, five times the blob's authored 180
-        self.assertEqual([], self.npcs("slime_blob"))
 
     # FLIP in item 5.3: a hazard a fresh hero shrugs off draws a validator warning.
     def test_limit_a_hazard_below_the_resistance_draws_no_warning(self):
