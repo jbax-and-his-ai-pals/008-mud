@@ -46,7 +46,8 @@
                     "tavern_cellar",
                     "tavern_kitchen",
                     "guest_room_1",
-                    "guest_room_2"
+                    "guest_room_2",
+                    "room_22039_960"
                 ]
             },
             "market_row": {
@@ -667,7 +668,8 @@
             "exits": {
                 "down": "tavern_main_floor",
                 "north": "guest_room_1",
-                "south": "guest_room_2"
+                "south": "guest_room_2",
+                "east": "room_22039_960"
             }
         },
         "guest_room_1": {
@@ -682,7 +684,7 @@
         },
         "guest_room_2": {
             "name": "Guest Room (South)",
-            "description": "This guest room is slightly larger, with a sturdy chest at the foot of the bed. A faded tapestry hangs on one wall.",
+            "description": "This guest room is slightly larger than the other rooms, with a sturdy chest at the foot of the bed. A faded tapestry hangs on one wall.",
             "properties": {
                 "outdoors": false
             },
@@ -874,6 +876,14 @@
                     "template_id": "curator"
                 }
             ]
+        },
+        "room_22039_960": {
+            "name": "Guest Room (East)",
+            "description": "A simple but clean guest room containing a bed, a small table, and a washbasin.",
+            "exits": {
+                "west": "tavern_upper_floor"
+            },
+            "properties": {}
         }
     },
     "spawner": {}

@@ -30,7 +30,8 @@
             "properties": {},
             "exits": {
                 "west": "sluice_gate",
-                "south": "pump_chamber"
+                "south": "pump_chamber",
+                "northeast": "room_264767_726"
             },
             "initial_npcs": [
                 {
@@ -92,6 +93,25 @@
                 {
                     "template_id": "brine_eel",
                     "instance_id": "tidewell_vault_eel"
+                }
+            ]
+        },
+        "room_264767_726": {
+            "name": "Muh new room",
+            "description": "",
+            "exits": {
+                "southwest": "drowned_storehouse"
+            },
+            "properties": {},
+            "initial_npcs": [
+                {
+                    "template_id": "wandering_villager"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "node_herb_bed",
+                    "quantity": 1
                 }
             ]
         }

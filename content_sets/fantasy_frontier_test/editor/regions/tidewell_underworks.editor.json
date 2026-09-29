@@ -4,6 +4,10 @@
             "cistern_steps|pump_chamber": {
                 "source": "pump_chamber",
                 "direction": "southwest"
+            },
+            "drowned_storehouse|room_264767_726": {
+                "source": "drowned_storehouse",
+                "direction": "northeast"
             }
         }
     },
@@ -42,6 +46,12 @@
             "_editor_pos": [
                 0,
                 576
+            ]
+        },
+        "room_264767_726": {
+            "_editor_pos": [
+                512,
+                -192
             ]
         }
     }

@@ -6,7 +6,7 @@
                 -992
             ],
             "riverside_catacombs:shrine_stairs": [
-                -1056,
+                -1216,
                 -448
             ],
             "farmland:farm_bridge": [
@@ -30,6 +30,26 @@
             "player_house_exterior|residential_street_east": {
                 "source": "player_house_exterior",
                 "direction": "north"
+            },
+            "alleyway|room_162856_223": {
+                "source": "alleyway",
+                "direction": "southeast"
+            },
+            "alleyway|room_166655_877": {
+                "source": "alleyway",
+                "direction": "east"
+            },
+            "room_166655_877|room_169459_528": {
+                "source": "room_166655_877",
+                "direction": "east"
+            },
+            "room_162856_223|room_178261_212": {
+                "source": "room_162856_223",
+                "direction": "north"
+            },
+            "room_22039_960|tavern_upper_floor": {
+                "source": "tavern_upper_floor",
+                "direction": "east"
             }
         }
     },
@@ -226,6 +246,12 @@
             "_editor_pos": [
                 -448,
                 192
+            ]
+        },
+        "garden_gate": {
+            "_editor_pos": [
+                -768,
+                416
             ]
         },
         "market_lane": {
@@ -460,8 +486,8 @@
         },
         "museum_interior": {
             "_editor_pos": [
-                -512,
-                384
+                -544,
+                576
             ],
             "_editor_exit_layout": {
                 "out": {
@@ -471,6 +497,12 @@
                     "inferred": true
                 }
             }
+        },
+        "room_22039_960": {
+            "_editor_pos": [
+                1088,
+                -960
+            ]
         }
     }
 }
