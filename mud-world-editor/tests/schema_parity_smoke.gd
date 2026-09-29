@@ -67,6 +67,7 @@ func _init() -> void:
 	_check_effect_shape_hints(vocabulary)
 	_check_character_effect_vocabulary(vocabulary)
 	_check_passage_keys(vocabulary)
+	_check_trigger_vocabulary(vocabulary)
 	_check_direction_reciprocals(vocabulary)
 	_check_manifest_shape(vocabulary)
 	_check_npc_vocabulary(vocabulary)
@@ -130,6 +131,21 @@ func _check_objective_types(vocabulary: Dictionary) -> void:
 
 
 # --- the shape hints ----------------------------------------------------------
+
+func _check_trigger_vocabulary(vocabulary: Dictionary) -> void:
+	print("
+[triggers: editor vs engine]")
+	var schema = load("res://scripts/data/TriggerSchema.gd")
+	var engine: Dictionary = vocabulary.get("triggers", {})
+	_assert(not engine.is_empty(), "the engine's trigger vocabulary was read")
+	_assert(_as_set(engine.get("events", [])) == _as_set(schema.EVENTS),
+		"the events match (engine %s, editor %s)" % [str(engine.get("events")), str(schema.EVENTS)])
+	_assert(_as_set(engine.get("keys", [])) == _as_set(schema.KEYS),
+		"the keys match (engine %s, editor %s)" % [str(engine.get("keys")), str(schema.KEYS)])
+	_assert(_as_set(engine.get("once_modes", [])) == _as_set(schema.ONCE_MODES),
+		"the once modes match (engine %s, editor %s)" % [str(engine.get("once_modes")), str(schema.ONCE_MODES)])
+	_assert(str(engine.get("default_once", "")) == schema.DEFAULT_ONCE, "and so does the default")
+
 
 func _check_passage_keys(vocabulary: Dictionary) -> void:
 	print("\n[exit requirement and reaction keys: editor vs engine]")

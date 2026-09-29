@@ -75,6 +75,7 @@ def main() -> int:
         from engine.conditions import KNOWN_KINDS
         from engine.dialogue.effects import KNOWN_EFFECTS, RESTORE_RESOURCES
         from engine.items.consumable import CONSUMABLE_EFFECT_TYPES
+        from engine.world.triggers import DEFAULT_ONCE, ONCE_MODES, TRIGGER_EVENTS, TRIGGER_KEYS
         from engine.core.knowledge_manager import (
             CAMPAIGN_STATES, KNOWLEDGE_CONDITION_KINDS, KNOWLEDGE_STATES, QUEST_STATES,
         )
@@ -116,6 +117,11 @@ def main() -> int:
         # (`use()` dispatches on exactly these). `DialogueSchema.gd` and
         # `ItemInspector.gd` hold the editor's copies.
         "restore_resources": list(RESTORE_RESOURCES),
+        # What a trigger (`data/triggers/*.json`) may carry; `TriggerSchema.gd` holds the copy.
+        "triggers": {
+            "events": list(TRIGGER_EVENTS), "keys": list(TRIGGER_KEYS),
+            "once_modes": list(ONCE_MODES), "default_once": DEFAULT_ONCE,
+        },
         # The keys a room's exit requirement and environmental reaction may carry,
         # by type (`content_set.py`); `RoomPassagesPanel.gd` holds the editor's copy.
         "exit_requirement_keys": {kind: list(keys) for kind, keys in cs.EXIT_REQUIREMENT_KEYS.items()},

@@ -150,6 +150,7 @@ const EFFECTS := {
 	"raise": {"label": "Raise max health, mana or a stat (permanent)", "shape": "{max_health, max_mana, stats: {stat: gain}}", "kind": "json"},
 	"forget_spell": {"label": "Forget an ability", "shape": "ability id, or a list of them", "kind": "string"},
 	"spawn_npc": {"label": "Bring in an NPC", "shape": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
+	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
 	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room}", "kind": "json"},
 	"remove_npc": {"label": "Take an NPC out (not a death)", "shape": "an NPC template or placed id, or {npc, region, room}", "kind": "npc_id"},
 }

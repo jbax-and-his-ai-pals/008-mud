@@ -26,6 +26,7 @@ var cur_data: Dictionary
 const PROPS_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomPropertiesPanel.gd")
 const ENVIRONMENT_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomEnvironmentPanel.gd")
 const PASSAGES_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomPassagesPanel.gd")
+const TRIGGERS_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomTriggersPanel.gd")
 const CONN_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomConnectionsPanel.gd")
 const CONTENT_PANEL_SCRIPT = preload("res://scripts/ui/inspectors/panels/RoomContentPanel.gd")
 
@@ -55,6 +56,9 @@ func build(id: String, data: Dictionary):
 	passages_panel = PASSAGES_PANEL_SCRIPT.new()
 	passages_panel.build(container, cur_data, database_mgr)
 	passages_panel.data_modified.connect(func(): data_modified.emit())
+
+	var triggers_panel = TRIGGERS_PANEL_SCRIPT.new()
+	triggers_panel.build(container, str(region_mgr.data.get("region_id", "")) if region_mgr != null else "", cur_id, database_mgr)
 
 	conn_panel = CONN_PANEL_SCRIPT.new()
 	conn_panel.build(container, cur_id, cur_data.get("name", "Unnamed"), cur_data.exits, region_mgr, world_mgr)

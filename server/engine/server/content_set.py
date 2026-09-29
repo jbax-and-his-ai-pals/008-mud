@@ -3538,6 +3538,7 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
             discovery_ids |= {str(k) for k in payload if not str(k).startswith("_")}
 
     region_ids: set[str] = set()
+    exit_refs: set[str] = set()
     room_refs: set[str] = set()
     npc_instance_ids: set[str] = set()
     regions_dir = content_root / "regions"
@@ -3554,6 +3555,11 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
                 rooms = payload.get("rooms")
                 for room_id, room in (rooms.items() if isinstance(rooms, dict) else ()):
                     room_refs.add(f"{region_id}:{room_id}")
+                    if isinstance(room, dict):
+                        listed = room.get("exits") if isinstance(room.get("exits"), dict) else {}
+                        hidden = (room.get("properties") or {}).get("hidden_exits") if isinstance(room.get("properties"), dict) else {}
+                        for direction in list(listed) + list(hidden if isinstance(hidden, dict) else {}):
+                            exit_refs.add(f"{region_id}:{room_id}:{direction}")
                     for placement in (room.get("initial_npcs") if isinstance(room, dict) else None) or ():
                         if isinstance(placement, dict) and isinstance(placement.get("instance_id"), str):
                             npc_instance_ids.add(placement["instance_id"])
@@ -3574,6 +3580,7 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
         # `region:room` for every room, and the id of every placed NPC: what a
         # `spawn_npc` and a `remove_npc` may name.
         "rooms": room_refs,
+        "exits": exit_refs,
         "npc_instances": npc_instance_ids,
     }
 
@@ -3742,6 +3749,17 @@ def _check_effect_block(
                 f"{where} effect spawn_npc names NPC '{npc_id}', which is not defined in this content set",
             ))
         _check_room_reference(spawn.get("region"), spawn.get("room"), f"{where} effect spawn_npc", path, ids, issues)
+    seal = block.get("seal_exit")
+    if isinstance(seal, dict):
+        _check_room_reference(seal.get("region"), seal.get("room"), f"{where} effect seal_exit", path, ids, issues)
+        region_id, room_id = str(seal.get("region", "") or "").strip(), str(seal.get("room", "") or "").strip()
+        direction = str(seal.get("direction", "") or "").strip().lower()
+        if region_id and room_id and direction and f"{region_id}:{room_id}" in ids["rooms"] \
+                and f"{region_id}:{room_id}:{direction}" not in ids["exits"]:
+            issues.append(ContentSetIssue(
+                "error", str(path),
+                f"{where} effect seal_exit names direction '{direction}', which room '{region_id}:{room_id}' does not have",
+            ))
     warp = block.get("teleport")
     if isinstance(warp, dict):
         _check_room_reference(warp.get("region"), warp.get("room"), f"{where} effect teleport", path, ids, issues)
@@ -3914,6 +3932,79 @@ def _check_node_effects_do_not_raise(
             f"{where} effect raise in a node's own effects runs every time the node is reached and cannot be "
             f"guarded; put it on a choice that sets a flag and requires it unset",
         ))
+
+
+def _validate_triggers(
+    content_root: Path, issues: list[ContentSetIssue], ruleset_payload: Any = None
+) -> None:
+    """`data/triggers/*.json`: objects of triggers keyed by id (`engine/world/triggers.py`).
+
+    Effects and conditions are checked exactly as a conversation's are, plus what only a
+    trigger has: a known event, the room it fires in, a `once` the runner understands,
+    and an id used once across the set. A repeating trigger (`once: false`) is held to the
+    same repeat guard a dialogue choice is.
+    """
+    from engine.world.triggers import ONCE_MODES, TRIGGER_EVENTS, TRIGGER_KEYS
+
+    directory = content_root / "triggers"
+    if not directory.is_dir():
+        return
+    ids = _with_ruleset_stats(_content_identifier_sets(content_root, []), ruleset_payload)
+    seen: dict[str, str] = {}
+    for path in sorted(directory.glob("*.json")):
+        payload = _load_json(path, issues, "triggers")
+        if payload is None:
+            continue
+        if not isinstance(payload, dict):
+            issues.append(ContentSetIssue("error", str(path), "a triggers file must be an object of triggers keyed by id"))
+            continue
+        for trigger_id, definition in payload.items():
+            if str(trigger_id).startswith("_"):
+                continue
+            label = f"trigger '{trigger_id}'"
+            if trigger_id in seen:
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"{label} is defined twice (also in {seen[trigger_id]}); an id names one trigger"
+                ))
+                continue
+            seen[trigger_id] = path.name
+            if not isinstance(definition, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label} must be an object"))
+                continue
+            for key in definition:
+                if key not in TRIGGER_KEYS:
+                    issues.append(ContentSetIssue(
+                        "error", str(path), f"{label} has unknown key '{key}' (known: {', '.join(TRIGGER_KEYS)})"
+                    ))
+            on = definition.get("on")
+            if not isinstance(on, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.on must be an object with an event, a region and a room"))
+            else:
+                event = on.get("event")
+                if event not in TRIGGER_EVENTS:
+                    issues.append(ContentSetIssue(
+                        "error", str(path),
+                        f"{label}.on.event {event!r} is not an event this engine fires (known: {', '.join(TRIGGER_EVENTS)})",
+                    ))
+                for key in ("region", "room"):
+                    if not isinstance(on.get(key), str) or not on[key].strip():
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.on needs a {key}"))
+                if all(isinstance(on.get(key), str) and on[key].strip() for key in ("region", "room")):
+                    _check_room_reference(on["region"], on["room"], f"{label}.on", path, ids, issues)
+            if "when" in definition:
+                _check_condition(definition["when"], f"{label}.when", path, ids, issues)
+            once = definition.get("once", "player")
+            if once is not False and once not in ONCE_MODES:
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"{label}.once must be 'player', 'world' or false (every time); got {once!r}"
+                ))
+            effects = definition.get("effects")
+            if not isinstance(effects, dict) or not effects:
+                issues.append(ContentSetIssue("error", str(path), f"{label}.effects must be a non-empty object of effects"))
+                continue
+            _check_effect_block(effects, f"{label}.effects", path, ids, content_root, issues)
+            if once is False:
+                _check_effect_guards(definition.get("when"), effects, label, path, issues)
 
 
 def _validate_dialogue_content(
@@ -6516,6 +6607,7 @@ def load_content_set(
         _validate_item_resistances_and_sets(content_root, issues)
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues, ruleset_payload)
+        _validate_triggers(content_root, issues, ruleset_payload)
         _validate_knowledge_topics(content_root, issues)
         _validate_room_passage_properties(content_root, issues)
         _validate_campaigns(content_root, issues)

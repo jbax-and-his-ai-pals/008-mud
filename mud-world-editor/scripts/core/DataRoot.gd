@@ -46,6 +46,7 @@ const CONTENT_DIRS := {
 	"regions": "regions",
 	"combat": "combat",
 	"crafting": "crafting",
+	"triggers": "triggers",
 	"dialogue": "dialogue",
 }
 

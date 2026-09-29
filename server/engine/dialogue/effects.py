@@ -31,6 +31,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     spawn_npc         {"npc": "template_id", "region": "r", "room": "x", "instance_id": "optional"}
     remove_npc        "template_or_instance_id" | {"npc": "id", "region": "r", "room": "x"}
     teleport          {"region": "r", "room": "x"}   move the player; runs last
+    seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
 
 Shorthands exist because most effects are one id and authors should not have to
 write an object for that. Anything the interpreter does not recognise is
@@ -81,7 +82,7 @@ KNOWN_EFFECTS = frozenset({
     "give_item", "take_item", "give_gold", "adjust_relationship",
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
     "take_gold", "restore", "raise", "forget_spell", "message",
-    "spawn_npc", "remove_npc", "teleport",
+    "spawn_npc", "remove_npc", "teleport", "seal_exit",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -147,6 +148,11 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "form": "object",
         "fields": {"npc": "text", "region": "text", "room": "text", "instance_id": "text"},
         "required": ("npc", "region", "room"),
+    },
+    "seal_exit": {
+        "form": "object",
+        "fields": {"region": "text", "room": "text", "direction": "text"},
+        "required": ("region", "room", "direction"),
     },
     "teleport": {
         "form": "object",
@@ -901,6 +907,44 @@ def _apply_exit_effect(effects: Dict[str, Any], context, report: EffectReport) -
     report.messages.append("A way %s opens." % direction)
 
 
+def _apply_seal_exit_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """Close an exit, the inverse of `reveal_exit`: the way is remembered as a hidden exit,
+    so a lever or a later `reveal_exit` can open it again. World state, not the player's:
+    the room's properties change, which the world snapshot keeps."""
+    if "seal_exit" not in effects:
+        return
+    raw = effects["seal_exit"]
+    if not isinstance(raw, dict):
+        report.failed.append("seal_exit (must be an object)")
+        return
+    region_id = str(raw.get("region", "") or "").strip()
+    room_id = str(raw.get("room", "") or "").strip()
+    direction = str(raw.get("direction", "") or "").strip().lower()
+    world = _context_world(context)
+    if world is None or not region_id or not room_id or not direction:
+        report.failed.append("seal_exit (needs region, room and direction)")
+        return
+    region = world.get_region(region_id) if hasattr(world, "get_region") else None
+    room = region.get_room(room_id) if region is not None else None
+    if room is None:
+        report.failed.append("seal_exit (unknown room %s:%s)" % (region_id, room_id))
+        return
+    if direction not in room.exits:
+        hidden = (getattr(room, "properties", {}) or {}).get("hidden_exits")
+        if isinstance(hidden, dict) and direction in hidden:
+            report.unchanged.append("seal_exit %s:%s %s (already sealed)" % (region_id, room_id, direction))
+        else:
+            report.failed.append("seal_exit (%s:%s has no %s exit)" % (region_id, room_id, direction))
+        return
+    destination = room.exits.pop(direction)   # in place: `exits` is linked to the room's properties
+    hidden = room.properties.get("hidden_exits")
+    hidden = dict(hidden) if isinstance(hidden, dict) else {}
+    hidden[direction] = destination
+    room.update_property("hidden_exits", hidden)
+    report.applied.append("sealed %s:%s %s" % (region_id, room_id, direction))
+    report.messages.append("The way %s seals shut." % direction)
+
+
 def _apply_move_npc_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     if "move_npc" not in effects:
         return
@@ -1085,6 +1129,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("relationship", lambda: _apply_relationship_effects(effects, context, report)),
         ("flags", lambda: _apply_flag_effect(effects, player, report)),
         ("exits", lambda: _apply_exit_effect(effects, context, report)),
+        ("seal", lambda: _apply_seal_exit_effect(effects, context, report)),
         ("move_npc", lambda: _apply_move_npc_effect(effects, context, report)),
         ("spawn_npc", lambda: _apply_spawn_npc_effect(effects, context, report)),
         ("remove_npc", lambda: _apply_remove_npc_effect(effects, context, report)),

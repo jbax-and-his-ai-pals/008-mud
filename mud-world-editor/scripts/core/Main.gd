@@ -4,6 +4,7 @@ extends Node2D
 const SaveIO = preload("res://scripts/data/SaveIO.gd")
 const ReferenceIndexScript = preload("res://scripts/data/ReferenceIndex.gd")
 const SaveCheckpoint = preload("res://scripts/data/SaveCheckpoint.gd")
+const TRIGGER_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TriggerInspector.gd")
 
 # Managers
 var region_mgr: RegionManager
@@ -190,6 +191,7 @@ func _update_db_ui():
 		database_mgr.affix_prefixes,
 		database_mgr.affix_suffixes,
 		database_mgr.item_sets,
+		database_mgr.triggers,
 		database_mgr.dirty_flags
 	)
 
@@ -372,6 +374,11 @@ func _connect_ui_signals():
 					"aliases": [],
 				})
 				database_mgr.add_recipe(id, d)
+			"trigger":
+				# Valid from the moment it exists: a room to fire in and a line of
+				# narration, so it never fails validation merely by existing.
+				d = TRIGGER_INSPECTOR_SCRIPT.data_defaults()
+				database_mgr.add_trigger(id, d)
 			"dialogue":
 				# A new conversation is a valid graph before anything is typed:
 				# one opening node with a way out, so it never fails validation

@@ -18,6 +18,7 @@ var cached_items: Dictionary = {}
 var cached_magic: Dictionary = {}
 var cached_quests: Dictionary = {}
 var cached_recipes: Dictionary = {}
+var cached_triggers: Dictionary = {}
 var cached_dialogues: Dictionary = {}
 var cached_templates: Dictionary = {}
 var cached_titles: Dictionary = {}
@@ -61,6 +62,7 @@ var spell_groups_dialog: ConfirmationDialog
 const DATABASE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/DatabaseInspector.gd")
 const QUEST_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/QuestInspector.gd")
 const RECIPE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/RecipeInspector.gd")
+const TRIGGER_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TriggerInspector.gd")
 const DIALOGUE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DialogueInspector.gd")
 const TITLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TitleInspector.gd")
 const DISCOVERY_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DiscoveryInspector.gd")
@@ -86,6 +88,7 @@ const CATEGORIES := [
 	{"key": "instance_quest", "label": "Instance Quests", "color": Color(0.85, 0.6, 0.35)},
 	{"key": "recipe", "label": "Recipes", "color": Color(0.7, 0.85, 0.5)},
 	{"key": "dialogue", "label": "Dialogue", "color": Color(0.86, 0.75, 0.95)},
+	{"key": "trigger", "label": "Triggers", "color": Color(0.95, 0.72, 0.4)},
 	{"key": "title", "label": "Titles", "color": Color(0.95, 0.8, 0.4)},
 	{"key": "collection", "label": "Collections", "color": Color(0.6, 0.75, 0.95)},
 	{"key": "discovery", "label": "Discoveries", "color": Color(0.55, 0.85, 0.75)},
@@ -141,7 +144,8 @@ func clear_selection():
 	if visible:
 		_build_editor()
 
-func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, campaigns: Dictionary, topics: Dictionary, themes: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, dirty_flags: Dictionary):
+func update_data(npcs: Dictionary, items: Dictionary, templates: Dictionary, magic: Dictionary, quests: Dictionary, recipes: Dictionary, dialogues: Dictionary, titles: Dictionary, collections: Dictionary, discoveries: Dictionary, backgrounds: Dictionary, campaigns: Dictionary, topics: Dictionary, themes: Dictionary, affix_prefixes: Dictionary, affix_suffixes: Dictionary, item_sets: Dictionary, triggers: Dictionary, dirty_flags: Dictionary):
+	cached_triggers = triggers
 	cached_npcs = npcs
 	cached_items = items
 	cached_templates = templates
@@ -368,6 +372,7 @@ func _get_current_entries() -> Dictionary:
 		"quest": return _filter_quests(false)
 		"instance_quest": return _filter_quests(true)
 		"recipe": return cached_recipes
+		"trigger": return cached_triggers
 		"dialogue": return cached_dialogues
 		"title": return cached_titles
 		"collection": return cached_collections
@@ -460,6 +465,12 @@ func _build_editor():
 			current_editor = dialogue_inspector
 			dialogue_inspector.database_modified.connect(_mark_current_dirty)
 			dialogue_inspector.build(selected_id, entry)
+			return
+		if storage_type == "trigger":
+			var trigger_inspector = TRIGGER_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = trigger_inspector
+			trigger_inspector.database_modified.connect(_mark_current_dirty)
+			trigger_inspector.build(selected_id, entry)
 			return
 		if storage_type == "recipe":
 			var recipe_inspector = RECIPE_INSPECTOR_SCRIPT.new(editor_box, database_mgr)

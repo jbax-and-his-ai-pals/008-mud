@@ -29,6 +29,7 @@ from engine.world.spawner import Spawner
 from engine.world.save_manager import SaveManager
 from engine.world.definition_loader import load_all_definitions, initialize_new_world
 from engine.world.respawn_manager import RespawnManager
+from engine.world.triggers import TriggerRunner
 from engine.world.instance_manager import InstanceManager
 from engine.world.housing_manager import HousingManager, HOUSE_ENTRY_SENTINEL
 from engine.core.crime_manager import CrimeManager
@@ -82,6 +83,9 @@ class World:
             if self.has_capability("quests")
             else None
         )
+        # Not gated on a capability: a set with no quests can still have a door that
+        # seals behind you. Loaded from `data/triggers/` once the definitions are.
+        self.trigger_runner = TriggerRunner(self)
         self.spawner = Spawner(self)
         self.save_manager = SaveManager(self)
         self.respawn_manager = RespawnManager(self)
@@ -95,6 +99,7 @@ class World:
         self.game: Optional['GameManager'] = None
 
         load_all_definitions(self)
+        self.trigger_runner.load(self.content_root)
 
     def _resolve_save_directory(self, configured_directory: Optional[str]) -> str:
         """Return the writable, content-set-scoped location for save files."""
@@ -572,6 +577,10 @@ class World:
                     quest["completion_check_enabled"] = True
                     break
 
+        # Triggers run here, after the location is set and before the room is described,
+        # so an exit a trigger reveals or seals is what `look` then lists.
+        trigger_lines = self.trigger_runner.fire_on_enter(active_player, new_region_id, new_room_id)
+
         region_change_msg = f"{FORMAT_HIGHLIGHT}You have entered {target_region.name}.{FORMAT_RESET}\n\n" if new_region_id != old_region_id else ""
         
         # Assemble Final Output
@@ -581,6 +590,9 @@ class World:
         travel_note = weather_manager.travel_note(target_region, target_room) if weather_manager else ""
         if travel_note:
             output += "\n\n" + travel_note
+
+        if trigger_lines:
+            output += "\n\n" + "\n\n".join(trigger_lines)
 
         # First arrival somewhere new is worth something, so the world itself is
         # the progress curve (ROADMAP P4). Region and landmark entries pay once;

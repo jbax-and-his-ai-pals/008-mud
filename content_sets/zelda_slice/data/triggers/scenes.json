@@ -1,0 +1,24 @@
+{
+    "wyrm_hall": {
+        "on": {
+            "event": "on_enter",
+            "region": "mossroot",
+            "room": "boss_hall"
+        },
+        "once": "player",
+        "effects": {
+            "message": "The air is hot and smells of old smoke. Something vast lifts its head in the dark and looks at you."
+        }
+    },
+    "tower_gate_opens": {
+        "on": {
+            "event": "on_enter",
+            "region": "dread_tower",
+            "room": "tower_gate"
+        },
+        "once": "player",
+        "effects": {
+            "message": "The great door swung inward at your touch, as if it had been waiting a long time for the Triad."
+        }
+    }
+}

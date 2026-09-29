@@ -1112,6 +1112,20 @@ open and hands the rest to `_arrive` (visited, location, quest room entry, insta
 look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
 `test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
 
+**4.1** triggers exist: `data/triggers/*.json`, each file an object of triggers keyed by id, `{on, when, once, effects}`, run by
+`world/triggers.py::TriggerRunner` (built in `World.__init__`, not gated on any capability) from `World._arrive` after the
+location is set and before the room is described. Only `on_enter` for now; 4.2 adds the kill and cleared events and the
+narration queue they need (nothing fires off-command yet, so it is not built). `once`: `player` (a `_trigger.<id>` flag,
+saved with the character; the default), `world` (`world_state["triggers"]`, in the snapshot) or `false`; the latch is set before
+the effects run so an arrival cannot re-fire it. `seal_exit` is the inverse of `reveal_exit` (the way is remembered as a hidden
+exit). The validator checks event, room, `once`, condition and effects like a conversation's, ids unique across files, and holds
+a repeating trigger to the same repeat guard as a choice; the reference-integrity walkers read trigger rooms and spawned NPCs.
+Editor: `TriggerInspector` (condition and effects are `ConditionRows`/`EffectRows`), a Triggers category in the Content Library,
+a "triggers in this room" panel, `TriggerSchema.gd` parity-checked against the engine, and `trigger_authoring_smoke.gd`. Slices:
+FF4's throne-room scene and fog ambush, Zelda's wyrm hall and tower gate. Deliberately not shipped yet: a boss door that seals,
+because nothing would reopen it before 4.2's kill trigger (a softlock). Not done: the editor cannot yet create a trigger from the
+room inspector, only list them.
+
 **3.4** `teleport: {region, room}` is `World.teleport_player`: it arrives through `_arrive` (3.0's seam) and never asks the
 exit gate, runs last in the effect order, and refuses a chain of arrivals past `TELEPORT_CHAIN_LIMIT` (3) so a loop of warps
 cannot hang the server (nothing fires on arrival yet; the cap is for the triggers of Phase 4). The validator checks the room

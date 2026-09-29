@@ -509,6 +509,12 @@ def _recipe_references(files: list[tuple[str, Any]]):
 def _npc_references(files: list[tuple[str, Any]]):
     """NPC templates named by regions, quests and summoning spells."""
     for name, payload in files:
+        if "triggers/" in name:
+            for trigger_id, trigger in _entries(payload):
+                spawn = _at(trigger, "effects", "spawn_npc")
+                if isinstance(spawn, dict) and spawn.get("npc"):
+                    yield "%s.effects.spawn_npc.npc" % trigger_id, spawn["npc"]
+            continue
         if "regions/" in name:
             for field in ("monster_types", "npc_types"):
                 # A spawner lists template id to spawn weight, so the reference
@@ -565,6 +571,13 @@ def _ability_references(files: list[tuple[str, Any]]):
 def _room_references(files: list[tuple[str, Any]]):
     """`region:room` strings, which an NPC's schedule and a quest spawn use."""
     for name, payload in files:
+        if "triggers/" in name:
+            # The room a trigger fires in: `region` and `room` are two fields.
+            for trigger_id, trigger in _entries(payload):
+                on = _at(trigger, "on")
+                if isinstance(on, dict) and on.get("region") and on.get("room"):
+                    yield "%s.on" % trigger_id, "%s:%s" % (on["region"], on["room"])
+            continue
         for entry_name, entry in _entries(payload):
             value = _at(entry, "properties", "work_location")
             if value:
@@ -583,10 +596,10 @@ REFERENCE_FAMILIES: tuple[tuple[str, str, Any, tuple[str, ...]], ...] = (
     ("items", "item", _item_references,
      ("crafting/*.json", "items/*.json", "npcs/*.json", "regions/*.json")),
     ("npcs", "NPC template", _npc_references,
-     ("regions/*.json", "quests/*.json", "abilities/*.json", "magic/*.json")),
+     ("regions/*.json", "quests/*.json", "abilities/*.json", "magic/*.json", "triggers/*.json")),
     ("abilities", "ability", _ability_references,
      ("items/*.json", "npcs/*.json", "player/backgrounds.json")),
-    ("rooms", "room", _room_references, ("npcs/*.json", "regions/*.json")),
+    ("rooms", "room", _room_references, ("npcs/*.json", "regions/*.json", "triggers/*.json")),
     ("collections", "collection", _collection_references, ("items/*.json",)),
     ("recipes", "recipe", _recipe_references, ("items/*.json",)),
 )

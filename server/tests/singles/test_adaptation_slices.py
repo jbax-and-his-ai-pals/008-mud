@@ -179,6 +179,20 @@ class TestZeldaSlice(_Slice):
         self.assertEqual(magic.max_mana, magic.mana)
         self.assertEqual(gold, self.player.runtime_state.gold, "the pool is free")
 
+    def test_the_wyrms_hall_sets_a_scene_once_for_each_player(self):
+        self.at("mossroot", "mossy_gallery")
+        self.give("item_key_mossroot")
+        first = self.say("go west")
+        self.assertIn("Something vast lifts its head", first)
+        self.player.runtime_state.combat.in_combat = False
+        self.at("mossroot", "mossy_gallery")
+        self.assertNotIn("Something vast", self.say("go west"), "a scene plays once")
+
+    def test_the_tower_gate_swings_open_as_if_it_had_been_waiting(self):
+        self.at("aldermark", "tower_approach")
+        self.give("item_triad")
+        self.assertIn("as if it had been waiting", self.say("go north"))
+
     def test_the_sage_sends_you_to_the_tower_only_once_the_triad_is_forged(self):
         self.at("aldermark", "village_green")
         self.player.flags["campaign_begun"] = True
@@ -345,6 +359,24 @@ class TestFF4Slice(_Slice):
         again = self.say("talk king")
         self.assertNotIn("At once", again, "the choice cannot be made twice")
         self.assertNotIn("slaughter", again, "and the other answer closed with it")
+
+    def test_the_court_falls_silent_the_first_time_you_come_back_in(self):
+        self.at("varenholt", "courtyard")
+        self.assertIn("The banners hang motionless", self.say("go north"))
+        self.say("go south")
+        self.assertNotIn("The banners hang motionless", self.say("go north"))
+
+    def test_the_fog_ambush_springs_once_for_the_whole_world(self):
+        self.at("road", "fogreach_mouth")
+        first = self.say("go in")
+        self.assertIn("something small and red grins", first)
+        imps = [n for n in self.npcs("cave_imp") if n.obj_id == "imp_ambush"]
+        self.assertEqual(1, len(imps))
+        self.assertEqual(("fogreach", "entry"), (imps[0].current_region_id, imps[0].current_room_id))
+        self.say("go out")
+        again = self.say("go in")
+        self.assertNotIn("grins", again)
+        self.assertEqual(1, len([n for n in self.npcs("cave_imp") if n.obj_id == "imp_ambush"]), "no second imp")
 
     def test_the_castle_gate_stays_shut_until_the_king_has_given_orders(self):
         self.at("varenholt", "castle_gate")
@@ -581,6 +613,25 @@ class TestPersistence(unittest.TestCase):
         self.assertEqual(("varenholt", "throne_room"), (fiends[0].current_region_id, fiends[0].current_room_id))
         self.assertEqual([], [n for n in second.world.npcs.values() if n.template_id == "chancellor"],
                          "and the chancellor is still gone")
+
+    def test_the_fog_ambush_does_not_spring_again_after_a_restart(self):
+        db = self._db()
+        first = self._boot("ff4_slice", db)
+        sid, _ = self._join(first, "Caelan", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.current_region_id, hero.current_room_id = "road", "fogreach_mouth"
+        self.assertIn("grins", self._say(first, sid, "go in"))
+        first.shutdown()
+
+        second = self._boot("ff4_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, _ = self._join(second, "Caelan", "another-id")
+        again = second.get_player_for_session(sid2)
+        self.assertTrue(second.world.world_state.get("triggers", {}).get("fog_ambush"), "the latch is in the world's own state")
+        again.current_region_id, again.current_room_id = "road", "fogreach_mouth"
+        self._say(second, sid2, "go in")
+        imps = [n for n in second.world.npcs.values() if n.obj_id == "imp_ambush" and n.is_alive]
+        self.assertEqual(1, len(imps), "the imp from the first run is still the only one")
 
     def test_a_bombed_wall_is_still_open_after_a_restart(self):
         db = self._db()
