@@ -61,8 +61,8 @@ class TestSave(GameTestBase):
         with open(self.save_path) as f:
             import json
             data = json.load(f)
-        self.assertIsNone(data["time_state"])
-        self.assertIsNone(data["weather_state"])
+        self.assertIsNone(data["world"]["time"])
+        self.assertIsNone(data["world"]["weather"])
 
     def test_save_without_content_set_skips_metadata(self):
         original_content_set = getattr(self.world, "content_set", None)
@@ -115,7 +115,7 @@ class TestLoad(GameTestBase):
         import json
         with open(self.save_path) as f:
             data = json.load(f)
-        data["dynamic_regions"] = [None]
+        data["world"]["dynamic_regions"] = [None]
         with open(self.save_path, "w") as f:
             json.dump(data, f)
         success, _, _ = self.manager.load(self.save_file)
@@ -126,7 +126,7 @@ class TestLoad(GameTestBase):
         import json
         with open(self.save_path) as f:
             data = json.load(f)
-        data["dynamic_regions"] = [{"totally": "malformed"}]
+        data["world"]["dynamic_regions"] = [{"totally": "malformed"}]
         with open(self.save_path, "w") as f:
             json.dump(data, f)
         with patch("engine.world.save_manager.Region.from_dict", side_effect=RuntimeError("bad region")):
@@ -162,7 +162,7 @@ class TestLoad(GameTestBase):
         self.assertTrue(self.manager.save(self.save_file))
         self.world.regions["ghost_region_xyz"] = None
         try:
-            with patch("engine.world.save_manager.initialize_npc_schedules"):
+            with patch("engine.world.world_snapshot.initialize_npc_schedules"):
                 success, _, _ = self.manager.load(self.save_file)
         finally:
             self.world.regions.pop("ghost_region_xyz", None)
@@ -173,7 +173,7 @@ class TestLoad(GameTestBase):
         import json
         with open(self.save_path) as f:
             data = json.load(f)
-        data["npc_states"]["ghost_npc"] = {"name": "No Template"}
+        data["world"]["npcs"]["ghost_npc"] = {"name": "No Template"}
         with open(self.save_path, "w") as f:
             json.dump(data, f)
         success, _, _ = self.manager.load(self.save_file)
@@ -199,7 +199,7 @@ class TestLoad(GameTestBase):
                 import json
                 with open(self.save_path) as f:
                     data = json.load(f)
-                data["npc_states"]["forced_npc"] = {"template_id": "goblin"}
+                data["world"]["npcs"]["forced_npc"] = {"template_id": "goblin"}
                 with open(self.save_path, "w") as f:
                     json.dump(data, f)
                 success, time_data, weather_data = self.manager.load(self.save_file)

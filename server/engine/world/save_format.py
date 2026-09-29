@@ -29,7 +29,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # The version this engine writes. Bump it whenever a change makes an older save
 # mean something different, and add a migration below in the same commit.
-SAVE_FORMAT_VERSION = 4
+SAVE_FORMAT_VERSION = 5
 
 # A save with no stamp at all. Older than any version number.
 UNVERSIONED = 0
@@ -87,12 +87,44 @@ def _migrate_3_to_4(save_data: Dict[str, Any]) -> Dict[str, Any]:
     return save_data
 
 
+def _migrate_4_to_5(save_data: Dict[str, Any]) -> Dict[str, Any]:
+    """The world's state moved into one `world` snapshot (`world_snapshot.py`).
+
+    A version 4 file kept NPCs, room items, dynamic regions, the quest board, the
+    respawn queue and the time and weather as separate top-level keys, and kept no
+    room exits or properties at all, which is why a lever, a picked lock or a
+    `reveal_exit` was lost on every load. Version 5 keeps all of it under `world`, as
+    the changes since content built the world.
+
+    Nothing is lost moving a version 4 file, and nothing new appears: room items are
+    read as a *full* list (a version 4 file named every room that held something, so a
+    room it does not name is empty), there are no room changes to apply, and there is
+    no clock reading, so its respawn times stay the absolute readings they always were.
+    """
+    save_data["world"] = {
+        "format": 1,
+        "clock": None,
+        "regions": {},
+        "rooms": {},
+        "room_items": {"mode": "full", "rooms": save_data.pop("room_items_state", None) or {}},
+        "npcs": save_data.pop("npc_states", None) or {},
+        "respawn_queue": save_data.pop("respawn_queue", None) or [],
+        "quest_board": save_data.pop("quest_board", None) or [],
+        "dynamic_regions": save_data.pop("dynamic_regions", None) or [],
+        "time": save_data.pop("time_state", None),
+        "weather": save_data.pop("weather_state", None),
+        "world_state": {},
+    }
+    return save_data
+
+
 # (from_version, to_version) -> what changed. Applied in order, so a version 1
 # file passes through every entry on its way to the current version.
 MIGRATIONS: Dict[Tuple[int, int], Callable[[Dict[str, Any]], Dict[str, Any]]] = {
     (1, 2): _migrate_1_to_2,
     (2, 3): _migrate_2_to_3,
     (3, 4): _migrate_3_to_4,
+    (4, 5): _migrate_4_to_5,
 }
 
 

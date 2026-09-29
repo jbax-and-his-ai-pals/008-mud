@@ -302,3 +302,9 @@ def initialize_new_world(world: 'World', start_region: str, start_room: str):
         Logger.info("Loader", f"New world initialized. Character creation required at {start_region}:{start_room}")
     else:
         Logger.info("Loader", f"New world initialized. Player at {start_region}:{start_room}")
+
+    # The world is exactly what content built: remember that, so a snapshot can carry
+    # only what changes. Recorded once; this function runs again on a reset, when the
+    # static rooms are no longer pristine.
+    from engine.world import world_snapshot
+    world_snapshot.record_baseline(world)

@@ -49,6 +49,7 @@ from engine.items.item_factory import ItemFactory
 from engine.npcs.npc_factory import NPCFactory
 from engine.npcs.ai import initialize_npc_schedules
 from engine.utils.utils import _serialize_item_reference
+from engine.world import world_snapshot
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -339,41 +340,12 @@ class FiniteAdventureMixin:
         }
 
     def _build_finite_adventure_world_baseline(self) -> Dict[str, Any]:
-        dynamic_regions = []
-        for region_id, region in self.world.regions.items():
-            if region_id.startswith("dynamic_") or region_id.startswith("instance_"):
-                dynamic_regions.append(copy.deepcopy(region.to_dict()))
+        """The world as the adventure begins: a world snapshot, and the ambient fields.
 
-        region_states: Dict[str, Dict[str, Any]] = {}
-        room_states: Dict[str, Dict[str, Any]] = {}
-        room_items_state: Dict[str, List[Dict[str, Any]]] = {}
-        for region_id, region in self.world.regions.items():
-            if not region:
-                continue
-            region_states[str(region_id)] = {
-                "properties": copy.deepcopy(getattr(region, "properties", {})),
-            }
-            for room_id, room in region.rooms.items():
-                if not room or not hasattr(room, "items"):
-                    continue
-                room_states[f"{region_id}:{room_id}"] = {
-                    "visited": bool(getattr(room, "visited", False)),
-                    "properties": copy.deepcopy(getattr(room, "properties", {})),
-                    "env_properties": copy.deepcopy(getattr(room, "env_properties", {})),
-                    "time_descriptions": copy.deepcopy(getattr(room, "time_descriptions", {})),
-                }
-                room_items_state[f"{region_id}:{room_id}"] = [
-                    _serialize_item_reference(item, 1, self.world)
-                    for item in getattr(room, "items", [])
-                    if item
-                ]
-
-        npc_states = {
-            instance_id: copy.deepcopy(npc.to_dict())
-            for instance_id, npc in self.world.npcs.items()
-            if npc and not npc.properties.get("is_summoned", False)
-        }
-
+        A baseline is kept inside the saved player, so one written before the world
+        snapshot existed has the older, flat shape; `_restore_finite_adventure_world_baseline`
+        reads both.
+        """
         field_states: Dict[str, Dict[str, Any]] = {}
         for field_id, heartbeat in self.fields.items():
             field_states[str(field_id)] = {
@@ -383,15 +355,9 @@ class FiniteAdventureMixin:
             }
 
         return {
-            "dynamic_regions": dynamic_regions,
-            "region_states": region_states,
-            "room_states": room_states,
-            "room_items_state": room_items_state,
-            "npc_states": npc_states,
-            "quest_board": copy.deepcopy(self.world.quest_board),
-            "respawn_queue": copy.deepcopy(self.world.respawn_manager.respawn_queue),
-            "time_state": self.time_manager.get_time_state_for_save(),
-            "weather_state": self.weather_manager.get_weather_state_for_save(),
+            "world": world_snapshot.capture(
+                self.world, time_manager=self.time_manager, weather_manager=self.weather_manager
+            ),
             "field_states": field_states,
             "default_field_id": str(getattr(self, "default_field_id", "blight")),
             "default_field_polarity": str(getattr(self, "default_field_polarity", "negative")),
@@ -400,6 +366,59 @@ class FiniteAdventureMixin:
     def _restore_finite_adventure_world_baseline(self, baseline: Any) -> bool:
         if not isinstance(baseline, dict):
             return False
+        if "world" not in baseline:
+            return self._restore_legacy_finite_adventure_world_baseline(baseline)
+
+        removable_regions = [
+            region_id
+            for region_id in list(self.world.regions.keys())
+            if str(region_id).startswith("dynamic_") or str(region_id).startswith("instance_")
+        ]
+        for region_id in removable_regions:
+            self.world.regions.pop(region_id, None)
+
+        self.world.initialize_new_world(
+            start_region=str(getattr(self.world, "bootstrap_start_region", "") or self.content_set.start_region_id),
+            start_room=str(getattr(self.world, "bootstrap_start_room", "") or self.content_set.start_room_id),
+        )
+        # Puts every static room back to what content built and applies the baseline's
+        # changes on top, so a door opened since the adventure began is closed again.
+        world_snapshot.restore(
+            self.world,
+            baseline["world"],
+            time_manager=self.time_manager,
+            weather_manager=self.weather_manager,
+        )
+        self._restore_finite_adventure_fields(baseline)
+        return True
+
+    def _restore_finite_adventure_fields(self, baseline: Dict[str, Any]) -> None:
+        self.fields = {}
+        self.field_polarities = {}
+        field_states = baseline.get("field_states", {})
+        if isinstance(field_states, dict):
+            for field_id, state in field_states.items():
+                if not isinstance(field_id, str) or not isinstance(state, dict):
+                    continue
+                heartbeat = self._ensure_field(field_id)
+                heartbeat.load_cells(copy.deepcopy(state.get("cells", {})))
+                heartbeat.tick_index = int(state.get("tick_index", 0))
+                self.field_polarities[field_id] = str(state.get("polarity", self._classify_polarity(field_id)))
+        self.default_field_id = str(baseline.get("default_field_id", self.default_field_id or "blight"))
+        self.default_field_polarity = str(
+            baseline.get(
+                "default_field_polarity",
+                self.field_polarities.get(self.default_field_id, self._classify_polarity(self.default_field_id)),
+            )
+        )
+
+    def _restore_legacy_finite_adventure_world_baseline(self, baseline: Dict[str, Any]) -> bool:
+        """Restore a baseline written before the world snapshot existed.
+
+        Kept as it was for the baselines already saved inside players. It has the
+        old defect (it cannot take away an exit opened after the adventure began,
+        because the exits were never part of what it kept); new baselines do not.
+        """
 
         removable_regions = [
             region_id

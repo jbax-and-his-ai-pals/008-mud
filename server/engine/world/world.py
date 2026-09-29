@@ -65,7 +65,13 @@ class World:
         self._primary_player_id: Optional[str] = None
         self.npcs: Dict[str, NPC] = {}
         self.quest_board: List[Dict[str, Any]] = []
-        
+        # World-scoped flags content sets by triggers and effects (`once: world`).
+        # It rides the world snapshot, so it survives a restart with the rest.
+        self.world_state: Dict[str, Any] = {}
+        # What content built, recorded once by `world_snapshot.record_baseline` so a
+        # snapshot can carry only what changed since.
+        self._content_baseline: Optional[Dict[str, Any]] = None
+
         self.quest_manager = (
             QuestManager(self)
             if self.has_capability("quests")

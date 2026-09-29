@@ -1,5 +1,6 @@
 # engine/npcs/npc.py
 from typing import TYPE_CHECKING, Dict, List, Optional, Any, Tuple
+import copy
 import time
 import random
 from engine.config import (
@@ -234,16 +235,34 @@ class NPC(GameObject):
                 return False
         return True
         
+    def _properties_differing_from_template(self) -> Dict[str, Any]:
+        """The properties that are not simply what the template gave this NPC.
+
+        A placement's `properties_override`, and anything set at runtime (an escort
+        target, a recruit's owner), are the NPC's own; the template stays the source of
+        truth for the rest, so only the difference is saved and a content edit to an
+        untouched property still shows through.
+        """
+        templates = getattr(self.world, "npc_templates", None) if self.world is not None else None
+        template = templates.get(self.template_id, {}) if isinstance(templates, dict) else {}
+        base = template.get("properties", {}) if isinstance(template, dict) else {}
+        base = base if isinstance(base, dict) else {}
+        return {key: copy.deepcopy(value) for key, value in self.properties.items() if key not in base or base[key] != value}
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "template_id": self.template_id, "obj_id": self.obj_id, "name": self.name,
             "current_region_id": self.current_region_id, "current_room_id": self.current_room_id,
+            "home_region_id": self.home_region_id, "home_room_id": self.home_room_id,
             "health": self.health, "max_health": self.max_health,
             "mana": self.mana, "max_mana": self.max_mana,
             "level": self.level,
             "is_alive": self.is_alive, "stats": self.stats,
             "ai_state": self.ai_state, "spell_cooldowns": self.spell_cooldowns,
-            "faction": self.faction, "inventory": self.inventory.to_dict(self.world) if self.world else {}
+            "faction": self.faction, "behavior_type": self.behavior_type,
+            "properties_override": self._properties_differing_from_template(),
+            "patrol_index": getattr(self, "patrol_index", 0),
+            "inventory": self.inventory.to_dict(self.world) if self.world else {}
         }
 
     def despawn(self, world: 'World', silent: bool = False) -> Optional[str]:

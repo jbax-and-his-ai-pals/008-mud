@@ -36,6 +36,7 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.npcs.ai import initialize_npc_schedules
 from engine.player import Player
 from engine.utils.utils import _serialize_item_reference
+from engine.world import world_snapshot
 from engine.world.save_format import (
     SAVE_FORMAT_VERSION,
     UnsupportedSaveVersion,
@@ -138,32 +139,13 @@ class SaveManager:
                 return False
 
             player_data = save_player.to_dict(self.world)
-            npc_states = {
-                instance_id: npc.to_dict() for instance_id, npc in self.world.npcs.items()
-                if npc and not npc.properties.get("is_summoned", False)
-            }
-            
-            # --- Serialize Dynamic Regions ---
-            dynamic_regions = []
-            for region_id, region in self.world.regions.items():
-                # Only save procedural regions, static ones are loaded from data files
-                if region_id.startswith("dynamic_") or region_id.startswith("instance_"):
-                    dynamic_regions.append(region.to_dict())
 
-            dynamic_items = {}
-            for region_id, region in self.world.regions.items():
-                if not region: continue
-                for room_id, room in region.rooms.items():
-                    if room and hasattr(room, 'items') and room.items:
-                        dynamic_items[f"{region_id}:{room_id}"] = [
-                            _serialize_item_reference(item, 1, self.world) for item in room.items if item
-                        ]
-
-            time_state = None
-            weather_state = None
-            if self.world.game:
-                time_state = self.world.game.time_manager.get_time_state_for_save()
-                weather_state = self.world.game.weather_manager.get_weather_state_for_save()
+            game = self.world.game
+            world_data = world_snapshot.capture(
+                self.world,
+                time_manager=game.time_manager if game else None,
+                weather_manager=game.weather_manager if game else None,
+            )
 
             content_set = getattr(self.world, "content_set", None)
             content_set_metadata = None
@@ -179,15 +161,9 @@ class SaveManager:
                 "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                 "content_set": content_set_metadata,
                 "player": player_data,
-                "npc_states": npc_states,
-                "room_items_state": dynamic_items,
-                "dynamic_regions": dynamic_regions, 
-                "quest_board": self.world.quest_board,
-                "time_state": time_state,
-                "weather_state": weather_state,
-                "respawn_queue": self.world.respawn_manager.respawn_queue,
+                "world": world_data,
             }
-            
+
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
             self._keep_backup(save_path)
             self._atomic_write(save_path, save_data)
@@ -247,32 +223,16 @@ class SaveManager:
                     )
                     return False, None, None
 
-            # 1. Restore Quest Board and Respawn Queue
-            self.world.quest_board = save_data.get("quest_board", [])
-            self.world.respawn_manager.respawn_queue = save_data.get("respawn_queue", [])
+            # 1. The world: rooms and regions put back to what content built and then
+            # changed by what was saved, NPCs, items, dynamic regions, the quest board
+            # and the respawn queue (world_snapshot.restore). Time and weather are
+            # handed back to the caller, which owns those managers.
+            world_data = save_data.get("world") or {}
+            world_snapshot.restore(self.world, world_data)
+            time_state = world_data.get("time")
+            weather_state = world_data.get("weather")
 
-            # 2. Restore Dynamic Regions (Must happen before Player/NPC placement)
-            loaded_dynamic_regions = save_data.get("dynamic_regions", [])
-            for region_data in loaded_dynamic_regions:
-                if region_data:
-                    try:
-                        region = Region.from_dict(region_data)
-                        self.world.add_region(region.obj_id, region)
-                        # A dynamic region's door onto a permanent room lives
-                        # only in that permanent room's exits dict, and the
-                        # permanent room's own (static) region was just
-                        # rebuilt fresh from content-set JSON in World.__init__
-                        # -- so any such wiring must be replayed here or it's
-                        # silently lost every time a save is reloaded.
-                        self.world.instance_manager.apply_entry_exit(region)
-                        Logger.debug("SaveManager", f"Restored dynamic region: {region.obj_id}")
-                    except Exception as e:
-                        Logger.error("SaveManager", f"Failed to restore dynamic region: {e}")
-
-            time_state = save_data.get("time_state")
-            weather_state = save_data.get("weather_state")
-
-            # 3. Restore Player
+            # 2. Restore Player
             if "player" not in save_data:
                 Logger.error("SaveManager", f"Save file '{filename}' is missing player data.")
                 return False, None, None
@@ -282,7 +242,7 @@ class SaveManager:
             self.world.player = loaded_player
             loaded_player.world = self.world
             self.world.apply_content_player_defaults(loaded_player)
-            
+
             # Check for invalid location
             if not self.world.get_current_room(loaded_player):
                 bad_region = str(getattr(loaded_player, "current_region_id", "") or "")
@@ -290,25 +250,6 @@ class SaveManager:
                 loaded_player.current_region_id = loaded_player.respawn_region_id
                 loaded_player.current_room_id = loaded_player.respawn_room_id
 
-            # 4. Clear existing NPCs and Items
-            self.world.npcs = {}
-            for region in self.world.regions.values():
-                if region:
-                    for room in region.rooms.values():
-                        if room: room.items = []
-
-            # 5. Restore NPCs
-            for instance_id, npc_state in save_data.get("npc_states", {}).items():
-                template_id = npc_state.get("template_id")
-                if template_id:
-                    state_overrides = npc_state.copy()
-                    state_overrides.pop("template_id", None)
-                    # Ensure location data is passed correctly to factory
-                    npc = NPCFactory.create_npc_from_template(template_id, self.world, instance_id, **state_overrides)
-                    if npc: self.world.add_npc(npc)
-
-            initialize_npc_schedules(self.world)
-            self.world._load_room_items_from_save(save_data.get("room_items_state", {}))
             # The player's summon ledger names NPC instances, so it can only be
             # adopted once they exist -- and a summoned NPC is deliberately not
             # saved, so in practice this drops the ledger rather than restoring
@@ -317,7 +258,7 @@ class SaveManager:
             settle = getattr(loaded_player, "settle_pending_summons", None)
             if callable(settle):
                 settle()
-            
+
             if self.world.quest_manager:
                 self.world.quest_manager.ensure_initial_quests(loaded_player)
             

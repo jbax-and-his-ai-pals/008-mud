@@ -20,11 +20,11 @@ Every save written by `SaveManager.save` carries `save_format_version` at the to
 level, as an **integer**:
 
 ```json
-{ "save_format_version": 4, ... }
+{ "save_format_version": 5, ... }
 ```
 
 - Written by `save_manager.py` from `SAVE_FORMAT_VERSION` in
-  `engine/world/save_format.py`; currently `4`.
+  `engine/world/save_format.py`; currently `5`.
 - It is an integer, not a decimal string. Earlier revisions of this page said
   `"1.3"`, which no save has ever contained.
 - A save with **no** stamp is read as `UNVERSIONED` (`0`), i.e. older than any
@@ -39,6 +39,7 @@ level, as an **integer**:
 | 2 | A save records the content set it was written against (the migration itself is a no-op; the reader started checking) |
 | 3 | The content set is written with a version as well as an id |
 | 4 | Summoned NPCs stopped surviving a save, so the summon ledger is dropped rather than restored stale |
+| 5 | The world's state moved into one `world` snapshot (`engine/world/world_snapshot.py`): the *changes since content built the world* (room exits and properties, room items, NPCs, dynamic regions, the quest board, the respawn queue, time and weather, world-scoped latches), not separate top-level keys. A room's exits and properties are now saved at all, so a lever, a picked lock or a `reveal_exit` survives a load. Respawn deadlines are stored as time *remaining* and rebased on load. A version 4 file is migrated by packing its keys into `world` (room items read as a full list, no clock reading); it keeps loading meaning what it always meant |
 
 ### Compatibility rules, as implemented
 
