@@ -815,6 +815,10 @@ def _validate_region_hazard_coverage(
                     ):
                         issues.append(ContentSetIssue("error", str(path), f"{entry_label} {weather_key} requires non-empty weather names and positive numeric multipliers"))
 
+                bite = _hazard_bite_problem(entry, declared_hazards.get(hazard_type), weather_multipliers)
+                if bite:
+                    issues.append(ContentSetIssue("warning", str(path), f"{entry_label} {bite}"))
+
     if required:
         for hazard_type in sorted(valid_hazards):
             if hazard_type not in authored_locations:
@@ -822,6 +826,43 @@ def _validate_region_hazard_coverage(
                     "error", str(elements_path),
                     f"hazard '{hazard_type}' is declared but is not used by any room",
                 ))
+
+
+def _hazard_bite_problem(entry: dict, record: Any, weather_multipliers: Any) -> str:
+    """A sentence when a hazard would do nothing to a fresh hero, else "".
+
+    Damage goes through the target's flat reduction first (`GameObject.take_damage`): the
+    defence stat for a physical channel, the contract's resistance stat for any other. A hero
+    starts with `PLAYER_BASE_DEFENSE` and `magic_resist` 2, so a hazard whose per-tick damage
+    (the room's own number, else the declared one, at the weather's weakest) is not above
+    that hurts nobody, and nothing tells the author. A background or gear can raise the
+    floor, so this is a warning, and a set that means it can ignore it.
+    """
+    from engine.config.config_combat import HAZARD_DEFAULT_DAMAGE
+    from engine.config.config_player import PLAYER_BASE_DEFENSE, PLAYER_DEFAULT_STATS
+
+    def number(value: Any) -> Any:
+        return value if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0 else None
+
+    damage = number(entry.get("damage"))
+    if damage is None and isinstance(record, dict):
+        damage = number(record.get("damage"))
+    if damage is None:
+        damage = HAZARD_DEFAULT_DAMAGE
+    factor = 1.0
+    if isinstance(weather_multipliers, dict):
+        weakest = [number(v) for v in weather_multipliers.values() if number(v) is not None]
+        if weakest:
+            factor = min(1.0, min(weakest))
+    per_tick = max(1, int(round(float(damage) * factor)))
+    channel = str(record.get("channel", "")).strip() if isinstance(record, dict) else ""
+    physical = channel == "physical"
+    floor = PLAYER_BASE_DEFENSE if physical else PLAYER_DEFAULT_STATS["magic_resist"]
+    if per_tick > floor:
+        return ""
+    kind = "defence" if physical else "resistance"
+    return (f"deals {per_tick} a tick at its weakest, which a fresh hero's flat {kind} of {floor} absorbs entirely: "
+            f"it never hurts anyone (raise its damage above {floor})")
 
 
 def _validate_district_contiguity(content_root: Path, issues: list[ContentSetIssue]) -> None:

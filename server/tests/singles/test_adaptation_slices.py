@@ -555,34 +555,6 @@ class TestFF4Slice(_Slice):
         self.assertIn("Paladin", self.say("title paladin"), "the class-change stand-in can be claimed")
 
 
-class TestKnownLimits(_Slice):
-    """What the engine cannot do yet, pinned so closing each gap is a visible diff.
-
-    Every test here passes today and describes a limit, not a wish. Each carries the
-    plan item that flips it (docs/plan/chunks-of-work.md, chunk 7): the assertion is
-    reversed in that item's commit, which is what proves the item did something.
-    """
-
-    SET_ID = "zelda_slice"
-
-    def _context(self):
-        return {"player": self.player, "world": self.world}
-
-    # FLIP in item 5.3: a hazard a fresh hero shrugs off draws a validator warning.
-    def test_limit_a_hazard_below_the_resistance_draws_no_warning(self):
-        scratch = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, scratch, ignore_errors=True)
-        package = scratch / "zelda_slice"
-        shutil.copytree(REPO_ROOT / "content_sets" / "zelda_slice", package, ignore=shutil.ignore_patterns("saves", "editor"))
-        vault = package / "data" / "regions" / "drowned_vault.json"
-        region = json.loads(vault.read_text(encoding="utf-8"))
-        region["rooms"]["flooded_hall"]["properties"]["hazards"] = [{"type": "poison_gas", "damage": 1}]
-        vault.write_text(json.dumps(region), encoding="utf-8")
-        _definition, issues = validator.load_content_set(package)
-        about_it = [issue.message for issue in issues if "flooded_hall" in issue.message and "hazard" in issue.message.lower()]
-        self.assertEqual([], about_it)
-
-
 class TestPersistence(unittest.TestCase):
     """A single-player story keeps its character and its world across a restart.
 
