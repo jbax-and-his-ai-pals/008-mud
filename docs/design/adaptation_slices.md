@@ -49,35 +49,39 @@ Fixed as part of this work:
 | **The editor wrote its own `_filename` bookkeeping key into `collections.json` and `discoveries.json`.** | Eight stray `_filename` lines in the shipped fantasy set; a freshly generated set diffed on its first round trip. | `DatabaseManager._save_single_file` strips it; the eight lines are removed from the fantasy data. |
 | **The editor opened on the first region alphabetically**, not the manifest's start region (unless the file was `town.json` or `start.json`). | `ff4_slice` opened on Fogreach Cave rather than the castle. | `Main._start_region_filename` reads the manifest first. `editor_start_region_smoke.gd` fails against the old code. |
 
-Still open. Each was hit while writing or playing a slice, and each has a workaround
-in the slices unless noted.
+Still open, with the plan item that closes each
+([chunk 7](../plan/chunks-of-work.md), ROADMAP P11). Each was hit while writing or
+playing a slice and has a workaround in the slices unless noted. Every limit that is a
+behaviour is pinned as a passing test in `test_adaptation_slices.py` (`TestKnownLimits`,
+plus the bomb wall), and the item that closes it reverses that assertion.
 
-| Gap | What happens | Workaround used |
-|---|---|---|
-| **No triggers.** Nothing fires on entering a room, killing an NPC, or clearing a room. A quest stage can spawn a boss (`spawn_on_start`, `spawn_on_entry`) and that is the only event hook. Campaign node types `DIALOGUE` and `CUTSCENE` are declared and do nothing. | "Kill everything and the door opens" and scripted scenes cannot be written. | A key dropped by a mini-boss; quest stages and dialogue for the story beats. |
-| **An element's effect on a room reverts.** `env_interactions` restore after `duration`. | A bombed wall closes again (`test_a_bombed_wall_closes_again_after_its_duration` documents it). | None: the wall is re-bombed. |
-| **Exits gate only on a held key or a skill roll.** No gating on a flag, a quest or a condition, and a key is never consumed. | "Small keys open any door once" cannot be written. | One named key per door; a state (the Triad) modelled as an item. |
-| **Placed hostile NPCs never respawn.** `respawn_cooldown` on a hostile template does nothing: 920 s after a kill the monster is still gone. Only a region's ambient spawner refills a room. | A dungeon does not refill when you leave and return. | Accepted; bosses use `-1` anyway. |
-| **`set_flag` takes one name.** Given a list it stores a single flag named after the list, and the validator checks effect *names* only, never their values. | `"set_flag": ["a", "b"]` set a flag literally called `['a', 'b']`. | One flag per choice. |
-| **A hazard weaker than the target's resistance does nothing, silently.** Non-physical damage is reduced by a flat amount first. | A 2-damage hazard against a hero with 3 resistance never hurt. | Damage of 6 or more. No validator warning exists. |
-| **`health` on an NPC template is where it starts, not its maximum.** The maximum comes from constitution and level. | A template `health` of 22 spawned as 22/42, a wounded monster. | The generator solves for the constitution that gives the intended maximum. |
-| **Two validators disagree.** `content_set_validator` accepted an NPC `weapon_damage_type` of `physical`; `reference_integrity_validator` (in the gate) rejects it. | The first run of the gate over the new sets. | Corrected the content. |
-| **No companions.** A summon is temporary and a party is other players. An authored NPC cannot be made to follow and fight beside you. | The FF4 slice has no party. | A summon (Ryn's Titan); Kessa sent ahead by `move_npc`. |
-| **No classes or jobs, and nothing permanent.** A title grants nothing; no effect raises maximum health or a stat, and no dialogue effect heals. | The "class change" is a title; a heart container heals. | Healers, vendors and the fairy pool for recovery. |
-| **`dark` rooms are only a sentence.** Nothing consults a light source. | A dark room reads "It is very dark here." and plays the same. | Not used. |
-| **Persistence is unverified.** In a headless restart with a real database file, `char create` made a new character and a lever's or a bomb's change to the world was not restored. That may be the harness rather than the engine. | `probe_persist` (see below). | Not concluded. Worth checking on the real transports before a story depends on it. |
+| Gap | What happens | Workaround used | Closed by | Pinned by |
+|---|---|---|---|---|
+| **The running server persists nothing.** Both transports use an in-memory database; the entity table is written after every command and never read back; a returning player cannot be told from a new one; `save`/`load` print an unconditional "saved automatically". The desktop `SaveManager` does not write static-room exits or properties, and `NPC.to_dict` omits `properties`, `behavior_type` and `home_*`. | A restart loses the character, and a lever, a picked lock or a bombed wall. | None. This is why persistence is Phase 1. | 1.1 to 1.3 | `test_limit_a_restart_forgets_the_character_and_the_lever` |
+| **No triggers.** Nothing fires on entering a room, killing an NPC, or clearing a room; a quest stage can spawn a boss and that is the only event hook. `dispatch_event` handles only `npc_killed`, and its narration is dropped for spell and minion kills; damage-over-time and hazard deaths never reach `die()`, so they drop no loot and can never count as "cleared". Campaign node types `DIALOGUE` and `CUTSCENE` are declared and do nothing. | "Kill everything and the door opens" and scripted scenes cannot be written. | A key dropped by a mini-boss; quest stages and dialogue for the story beats. | 4.1, 4.2, 4.3 | — |
+| **An element's effect on a room reverts.** `env_interactions` restore after `duration`, and the timer runs only while someone is in the room. | A bombed wall closes again. | None: the wall is re-bombed. | 3.3 | `test_a_bomb_opens_a_cracked_wall_and_the_wall_closes_again` |
+| **Exits gate only on a held key or a skill roll.** No gating on a flag, a quest or a condition, and a key is never consumed. | "Small keys open any door once" and kill-all shutters cannot be written. | One named key per door; a state (the Triad) modelled as an item. | 3.1, 3.2 | `test_limit_a_key_is_never_consumed` |
+| **Placed hostile NPCs never respawn, and `respawn_cooldown` is inert for every NPC.** Nothing reads it; friendlies respawn on a global constant; only a region's ambient spawner refills a room. | A dungeon does not refill when you leave and return. | Accepted; bosses use `-1` anyway. | 5.2 | `test_limit_a_placed_hostile_never_respawns` |
+| **Dialogue effect *values* are never validated.** `set_flag` given a list stores one flag named after the list; `advance_quest` naming a template id silently does nothing while reporting success; a `has_item` nested under `all`/`any`/`not` is never id-checked. | `"set_flag": ["a", "b"]` set a flag literally called `['a', 'b']`. | One flag per choice. | 2.1 | `test_limit_set_flag_given_a_list_makes_one_flag` |
+| **No permanent or restorative effect.** A title grants nothing; no effect raises maximum health or a stat, and no dialogue effect heals or takes gold. | The "class change" is a title; a heart container heals. | Healers, vendors and the fairy pool for recovery. | 2.3 | `test_limit_restore_is_not_an_effect` |
+| **A hazard weaker than the target's resistance does nothing, silently.** Non-physical damage is reduced by a flat amount first (a fresh hero has 2, and gains 1 a level). | A 2-damage hazard against a hero with 3 resistance never hurt. | Damage of 6 or more. No validator warning exists. | 5.3 | `test_limit_a_hazard_below_the_resistance_draws_no_warning` |
+| **`health` on an NPC template is where it starts, not its maximum**, and a template `max_health` is silently ignored (only a placement override is read). | A template `health` of 22 spawned as 22/42, a wounded monster. | The generator solves for the constitution that gives the intended maximum. | 5.1 | `test_limit_a_template_max_health_is_ignored` |
+| **No companions.** A summon is temporary and a party is other players. An authored NPC cannot be made to follow and fight beside you (`follower` is inert for authored content). | The FF4 slice has no party. | A summon (Ryn's Titan); Kessa sent ahead by `move_npc`. | 6.1, 6.2 | — |
+| **Two validators disagree.** `content_set_validator` accepted an NPC `weapon_damage_type` of `physical`; `reference_integrity_validator` (in the gate) rejects it. | The first run of the gate over the new sets. | Corrected the content. | Unscheduled | — |
+| **`dark` rooms are only a sentence.** Nothing consults a light source. | A dark room reads "It is very dark here." and plays the same. | Not used; a candle needs this. | Deferred (`work-tracks.md`) | — |
 
 ## Where the engine wants a new primitive
 
-In order of how much of both games it would unlock:
+In order, now that persistence is known to be the foundation:
 
+0. **Persistence.** Everything stateful below is meaningless if a restart forgets it.
 1. **Triggers with effects** (on-enter, on-kill, on-room-cleared) running the same
    effect vocabulary dialogue already uses. It is the single change that turns set
    pieces, kill-all-to-open doors and scripted scenes from workarounds into content.
-2. **More effects.** Heal, spawn or remove an NPC, teleport the player, change a
-   room, raise a stat permanently, and a validator that checks effect *values*.
-3. **Conditions on exits**, and consumable keys.
-4. **Persistent room changes** (an option on `env_interactions`).
+2. **More effects, validated.** Heal, spawn or remove an NPC, teleport the player,
+   raise a stat permanently, and a validator that checks effect *values*.
+3. **Conditions on exits**, consumable keys, and reactions that stay.
+4. **NPC lifecycle:** respawn, a real `max_health`.
 5. **A follower NPC**: an authored ally that joins, fights and can be dismissed.
 
 ## Replaying it
@@ -90,7 +94,8 @@ cd server && ../.venv/Scripts/python.exe -m unittest tests.singles.test_adaptati
 .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/walk_zelda.py --verbose
 .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/walk_ff4.py --verbose
 
-# two questions the slices raised (the answers are in each script's header)
+# two questions the slices raised (the answers are in each script's header;
+# the persistence one is now settled and pinned by TestKnownLimits)
 .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/probe_respawn_death.py
 .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/probe_persist.py
 ```
@@ -103,4 +108,4 @@ curve would feel. Combat was exercised as a MUD fights (a swing per cooldown), n
 as the real-time action the first game is about; that part is a translation, not a
 port. The editor was checked for fidelity (a clean round trip, a rendered map, the
 room inspector on real content) and not for the labour of building three hundred
-rooms by hand, and it has no bulk tool for a grid. Persistence is not settled.
+rooms by hand, and it has no bulk tool for a grid.

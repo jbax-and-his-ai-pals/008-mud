@@ -1,7 +1,9 @@
 # Chunks of work
 
 **Status:** chunks 0–4 done; **chunk 5 partly done**; **chunk 6 is where to start**
-(expanded 2026-09-21 into the game-authoring journey). Supersedes the phase framing
+(expanded 2026-09-21 into the game-authoring journey); **chunk 7** (closing the
+gaps the two adaptation slices found, then growing them) is planned 2026-09-28 and
+runs beside it. Supersedes the phase framing
 as the *working* view. `integrated-roadmap.md` still holds the cross-track detail
 and the verification; this is what to actually pick up.
 
@@ -987,6 +989,84 @@ not arbitrary engine scripting, hot migration of a live world, collaborative
 editing, marketplace publishing or full commercial readiness. Broad content growth
 and balance tuning remain later; the small proving content in each batch is required.
 
+## 7. Close the adaptation-slice gaps, then grow both slices — ⏭ **planned 2026-09-28**
+
+**What.** `zelda_slice` and `ff4_slice` ([`adaptation_slices.md`](../design/adaptation_slices.md))
+were written to see how far the engine and editor stretch, and were played from first
+line to last boss. They found gaps. This chunk closes each as a real engine feature
+that the editor can also author, proves it on **both** slices, and then grows the
+slices into better games with what now exists. Ten pieces, in an order the
+dependencies dictate (the reasons are in the plan file this was written from):
+
+| Phase | Items | Size | What it closes |
+|---|---|---|---|
+| **0** | Settle, measure, pin | S | Spikes; Decisions 7–12; every current limit pinned as a passing `TestKnownLimits` test that names the item that flips it |
+| **1** | 1.1 harden the store · 1.2 shared world snapshot · 1.3 resume, autosave, wiring | M · L · M/L | **The running server persists nothing.** Real single-player persistence; Track C items 2 and 5 |
+| **2** | 2.1 effect shape validation · 2.2 shared editor rows · 2.3 `restore`/`raise`/`message`/`take_gold`/`forget_spell` and consumable `effects` · 2.4 `spawn_npc`/`remove_npc` | M · M/L · L · M | One effect vocabulary that dialogue, triggers and consumables share; effect *values* validated at last |
+| **3** | 3.0 arrival refactor · 3.1 `condition` exits and `room_clear` · 3.2 `consume` and per-player open state · 3.3 `permanent` env reaction · 3.4 `teleport` | M · M/L · M · S/M · S/M | Exit conditions, consumable keys, walls that stay open |
+| **4** | 4.1 `on_enter` triggers, `seal_exit`, editor library · 4.2 `room_cleared`, `npc_killed`, death reaper · 4.3 campaign `CUTSCENE`/`DIALOGUE` | L · M · M | Triggers and scenes (global `data/triggers/*.json`) |
+| **5** | 5.1 template `max_health` · 5.2 placed-hostile respawn · 5.3 hazard bite warning | M · L · S | NPC lifecycle; independent of 3 and 4 |
+| **6** | 6.1 companions · 6.2 party payoffs | L · M | A small party with a configurable cap |
+| **7** | Slice rebuilds | — | The growth, gated by Decision 12 |
+
+**Why now.** Both slices are shipped sets, so every gap is a *second-theme* proof
+already in hand: a primitive only one set uses is a workaround, and these two are
+different enough (an action-adventure and a story RPG) to keep a primitive honest.
+The persistence finding is the reason the order is not the obvious one: permanent
+room changes, spawned NPCs, consumed keys and recruited companions are meaningless
+if a restart forgets them, so it comes first.
+
+**Depends on.** Nothing in chunk 6 blocks it and it blocks nothing there, but it
+touches files with different owners: `content_set.py` (D), `conditions.py` and
+`effects.py` (B/E), the save stack (C), `npcs/` (E), the editor (G), tests (H),
+`content_sets/**` (F), docs (J), this plan (K). Owners are responsibilities, not a
+reason to split an item across agents.
+
+**Done when.** Each item meets the repo's definition of done for a declaration: an
+engine reader with a consumer; a validator that refuses bad values; the vocabulary
+constant, dump entry, editor mirror and parity test; an editor writer that writes
+nothing on open, keeps unknown keys and erases defaults; an engine-verdict refusal
+case; a journey proof; a **restart-survival test if it holds state**; the slice
+content converted (both slices, or a tested use in the second); the ledger row and
+the docs; and every test falsified against the parent commit. The chunk is done when
+every pin in `TestKnownLimits` (and the bomb-wall pin) has been flipped or deleted
+with its reason recorded, and all three gates are green.
+
+**Risk.** The snapshot's cost and fidelity (measured below; the restore must skip
+unknown rooms and NPCs rather than crash when a set is edited); a save-format bump
+(`SAVE_FORMAT_VERSION` 5 needs a migration, and a content `version` bump orphans dev
+saves); respawn changes **five shipped sets**, not only the slices (Decision 9); `raise` sits
+against the settled "no level-up choices" decision; and the editor gate is slow, so
+per-item full-gate runs need measuring. Each is handled in the item that meets it.
+
+**First evidence (2026-09-28, Phase 0).** Spikes S1–S4 have run; S5–S7 are deferred to
+the item that needs them because they prototype code that does not exist yet (S5
+file-backed persistence under the walkthroughs, at 1.3; S6 the `on_enter` seam, at
+4.1; S7 extracting the shared editor rows without behaviour change, at 2.2).
+
+- **S1, baseline.** At HEAD with the working tree as it stands: 5,142 unit tests in
+  739 s with three known failures (`test_boot_warning_policy_can_fail_server_start`,
+  `test_the_package_is_actually_installed_here`, and
+  `test_it_knows_about_every_shipped_set`, which fails only on the user's
+  `fantasy_frontier_test`); the content gate passes over all six sets; 81 of 81
+  editor checks pass. The two files git reports as modified in the editor
+  (`RegionManager.gd`, `room_item_placement_smoke.gd`) have **no content difference**
+  (`git diff --stat` is empty: line endings only), so they cannot affect a gate.
+- **S2, the store.** All four traps reproduced against `SqliteStore`: one bad write
+  killed the writer for the process (a later `flush` returned `False`); queueing 300
+  upserts and stopping left **1 row**; a queued "snapshot" stored the game's *later*
+  state, not the captured one (`hp 99`, not `10`); and `flush` returned `True` while
+  the write had not landed. The default path is the working directory's
+  `server_state.sqlite3`, not scoped to a content set.
+- **S3, what a snapshot must carry.** A played `zelda_slice` differs from a fresh boot
+  in exactly these places: a killed placed NPC is gone; rooms' `visited`; a room's
+  `exits` (and the copy of it in `properties["exits"]`); a removed
+  `properties.exit_requirements` entry; timed `active_env_effects`; and an item
+  instance's own properties (a lever's `state`). That is the section list for 1.2.
+- **S4, cost.** A full world dump of `fantasy_frontier` (283 rooms, 78 NPCs) takes
+  about 5 ms and is 169 KB; a player is 2 KB. A snapshot is cheap enough to autosave
+  every few seconds when dirty.
+
 ---
 
 ## Decisions that gate chunks
@@ -1120,6 +1200,68 @@ named consumer. The spike would answer a question nobody is asking, and the
 plugin surface's absence is only a gap if in-game tooling is wanted — which is a
 product decision, not a missing primitive.
 
+**7. Persistence scope and identity — ✅ DECIDED 2026-09-28.** Real single-player
+persistence: a character and the world's changes are saved to a file and resumed by
+character name, with no login. Multi-player identity and accounts are **deferred**,
+because they are a product and security decision (there is no authentication today)
+and nothing in this chunk needs them. Why it cannot wait: the running server
+persists nothing. Both transports build `HeadlessServer` with `db_path=":memory:"`
+(`server/poc_server.py:54`); the entity table is written after every command but
+nothing reads it back; a returning player cannot be told from a new one (TCP makes
+`player_<uuid8>`, WebSocket `session_<hex>`); and `save`/`load` print an unconditional
+"saved automatically" that was not true.
+
+**8. Where triggers live — ✅ DECIDED 2026-09-28.** Global files,
+`data/triggers/*.json`: an event selector, a condition, a once-rule and effects. The
+alternative was a `triggers` list on each room and an `on_death` on NPC templates,
+which is cheaper (no new loader, library or reference family, and world latches ride
+the room snapshot) and was recommended by the sequencing review. Global was chosen
+because cross-room rules ("when both shards are held") are the point of a story
+engine, and because a kill trigger keyed on an NPC template is not a room's business.
+The cost is a loader, `_validate_triggers`, a `REFERENCE_FAMILIES` entry, a
+`DatabaseManager` collection, a triggers library inspector plus a per-room list, and a
+`world_state` snapshot section for `once: world` latches.
+
+**9. Respawn — ✅ DECIDED 2026-09-28.** The engine honours the `respawn_cooldown`
+that authors already write on a placed **hostile** (`-1` means never), and non-boss
+monsters in both slices get sensible values. `respawn_cooldown` is inert today for
+**every** NPC (nothing reads it; friendlies respawn on the global
+`NAMED_NPC_RESPAWN_COOLDOWN`), so this is a behaviour change for every set that
+authors it on a hostile: `fantasy_frontier` (10 templates, 240–900 s), `zelda_slice`
+(5), `ff4_slice` (4), `night_shift` (1), `orbital_salvage` (1), and the user's
+`fantasy_frontier_test`. It was accepted with that in view: those values were
+evidently meant to do something. "Authored" means `respawn_cooldown` is present in the
+NPC's properties, because the runtime default is always set. **Friendlies are out of
+scope:** fantasy authors the key on five friendly templates, which would change from
+the global 60 s to their own values, and the decision was about monsters. They stay
+on the global constant, and the key stays inert for them, until someone decides
+otherwise.
+
+**10. `raise` and the repeat guard — proposed 2026-09-28, settle at item 2.3.**
+`raise` (a permanent gain to maximum health, mana or a stat) is a power channel
+outside levelling, against the settled "no level-up choices" and "classes are replaced
+by backgrounds, skills and earned titles". It is admitted as treasure or story reward
+(a heart container; a class-change trial), never a menu. A dialogue choice can be
+chosen again, so the engine gives no guard: authors gate a `raise` with `set_flag` and
+a `not flag` condition, and the validator warns on a repeatable or large one.
+
+**11. Player-scoped and world-scoped state — proposed 2026-09-28, settle at item 3.2.**
+Player-scoped: an opened exit (`exit_open:<region>:<room>:<dir>` in `player.flags`, so
+a consumed key opens a door once and a static room rebuilt from JSON does not re-lock
+it), and triggers with `once: player`. World-scoped: `reveal_exit`, `seal_exit`, a
+permanent environmental reaction, and `once: world`. In a single-player set the two
+coincide; the split matters only to multi-player, and is recorded now so the
+behaviour is chosen rather than found.
+
+**12. How far the slices grow — proposed 2026-09-28, settle before Phase 7.** Proof-
+sized conversions happen inside each item. Anything beyond proof size (more
+dungeons, items, story beats, the Ordeals-style trial) is content growth, which
+ROADMAP P10 defers and "Additional full content sets" below declines. The proposal:
+the two slices are the only sets that grow, they stay in `content_sets/`, and they
+never bump their `version` casually (a mismatch refuses an existing save). Cut what
+needs a missing primitive: a candle needs dark rooms to matter (deferred), and
+boomerang stun is not a primitive.
+
 ---
 
 ## What is deliberately not scheduled
@@ -1127,8 +1269,9 @@ product decision, not a missing primitive.
 - **Economy and skill-curve tuning.** Blocked on human playtesting, which blocks
   four decisions in `ROADMAP.md`. No chunk substitutes for it.
 - **Faction and territory work.** A system with no consumer; already refused once.
-- **Additional full content sets.** Use the four existing sets as proving slices;
-  `modern_capsule` intentionally remains a vignette.
+- **Additional full content sets.** Use the existing sets as proving slices;
+  `modern_capsule` intentionally remains a vignette. The two adaptation slices
+  (chunk 7) are proving slices too; how far they grow is Decision 12.
 - **The field grid.** First it needs a decision: give cells a world, or delete the
   system. It is currently persisted, client-rendered, and connected to nothing.
 - **In-game tooling ownership.** `tools/` was deleted; no track owns player-facing

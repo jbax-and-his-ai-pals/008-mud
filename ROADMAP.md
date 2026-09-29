@@ -122,6 +122,33 @@ contract, implementation and validator. The engine owns runtime meaning; the
 editor owns a safe, understandable way to author it. Full live deployment,
 collaboration, plugin ecosystems and commercial certification remain later work.
 
+### P11: Close the adaptation-slice gaps — **planned 2026-09-28**
+
+`zelda_slice` and `ff4_slice` (see [`docs/design/adaptation_slices.md`](docs/design/adaptation_slices.md))
+were played from first line to last boss to see how far the engine and editor stretch.
+This closes what they found, as real engine features the editor can also author, each
+proved on both slices, and then grows the slices into better games. Order and reasons:
+[`docs/plan/chunks-of-work.md`](docs/plan/chunks-of-work.md) §7; decisions 7–12 there.
+
+- [ ] **Phase 0 — Settle, measure, pin.** Spikes, decisions, and every current limit
+  pinned as a passing test that names the item which flips it.
+- [ ] **Phase 1 — Persistence.** The running server persists nothing; make a
+  single-player character and the world's changes survive a restart.
+- [ ] **Phase 2 — One effect vocabulary.** Validate effect *values*; `restore`,
+  `raise`, `message`, `take_gold`, `forget_spell`, `spawn_npc`, `remove_npc`;
+  a shared editor effect/condition editor.
+- [ ] **Phase 3 — Exits.** Conditions on exits, consumable keys, walls that stay
+  open, `teleport`.
+- [ ] **Phase 4 — Triggers and scenes.** `on_enter`, `room_cleared`, `npc_killed`,
+  campaign `CUTSCENE`/`DIALOGUE`, in `data/triggers/*.json`.
+- [ ] **Phase 5 — NPC lifecycle.** Template `max_health`; placed hostiles that
+  respawn; a validator warning for hazards a fresh hero shrugs off.
+- [ ] **Phase 6 — Companions.** A small party with a per-set cap.
+- [ ] **Phase 7 — Grow the slices** (gated by Decision 12).
+
+**Boundary:** these are engine primitives with authoring and proof, not arbitrary
+scripting. Multi-player identity and accounts are deliberately out of scope.
+
 ### P2: Content neutrality cleanup
 
 

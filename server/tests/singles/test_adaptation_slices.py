@@ -15,14 +15,25 @@ is arranged directly. See docs/design/adaptation_slices.md for what the slices
 found that the engine could not do.
 """
 
+import json
 import re
+import shutil
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
+from engine.dialogue.effects import apply_effects
 from engine.items.item_factory import ItemFactory
+from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from toolkit import content_set_validator as validator  # noqa: E402
+
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 
 
@@ -241,6 +252,101 @@ class TestFF4Slice(_Slice):
         self.assertEqual(("mistvale", "shrine"), (titans[0].current_region_id, titans[0].current_room_id))
 
         self.assertIn("Paladin", self.say("title paladin"), "the class-change stand-in can be claimed")
+
+
+class TestKnownLimits(_Slice):
+    """What the engine cannot do yet, pinned so closing each gap is a visible diff.
+
+    Every test here passes today and describes a limit, not a wish. Each carries the
+    plan item that flips it (docs/plan/chunks-of-work.md, chunk 7): the assertion is
+    reversed in that item's commit, which is what proves the item did something. The
+    bomb wall's limit is pinned above, in `test_a_bomb_opens_a_cracked_wall_and_the_
+    wall_closes_again`, and flips in item 3.3.
+    """
+
+    SET_ID = "zelda_slice"
+
+    def _context(self):
+        return {"player": self.player, "world": self.world}
+
+    # FLIP in item 3.2: a key is spent at the commit point, once.
+    def test_limit_a_key_is_never_consumed(self):
+        self.at("mossroot", "mossy_gallery")
+        self.give("item_key_mossroot")
+        self.say("go west")
+        self.assertEqual("mossroot:boss_hall", self.where())
+        self.assertTrue(self.holds("item_key_mossroot"), "the door opened and the key is still in the pack")
+
+    # FLIP in item 5.2: a placed hostile with an authored respawn_cooldown comes back.
+    def test_limit_a_placed_hostile_never_respawns(self):
+        self.kill("slime_blob", "blob")
+        self.tick(9200)  # 920 s of game time, five times the blob's authored 180
+        self.assertEqual([], self.npcs("slime_blob"))
+
+    # FLIP in item 2.1: a list sets every flag it names.
+    def test_limit_set_flag_given_a_list_makes_one_flag(self):
+        apply_effects({"set_flag": ["door_open", "guard_alerted"]}, self._context())
+        self.assertIn("['door_open', 'guard_alerted']", self.player.flags)
+        self.assertNotIn("door_open", self.player.flags)
+
+    # FLIP in item 2.3: `restore` is an effect.
+    def test_limit_restore_is_not_an_effect(self):
+        report = apply_effects({"restore": "health"}, self._context())
+        self.assertTrue(any("restore" in str(entry) for entry in report.unknown), report.summary())
+
+    # FLIP in item 5.1: a template's own max_health is the maximum.
+    def test_limit_a_template_max_health_is_ignored(self):
+        template = self.world.npc_templates["slime_blob"]
+        template["max_health"] = 777
+        self.addCleanup(template.pop, "max_health", None)
+        npc = NPCFactory.create_npc_from_template("slime_blob", self.world, "probe_blob")
+        self.assertNotEqual(777, npc.max_health)
+
+    # FLIP in item 5.3: a hazard a fresh hero shrugs off draws a validator warning.
+    def test_limit_a_hazard_below_the_resistance_draws_no_warning(self):
+        scratch = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, scratch, ignore_errors=True)
+        package = scratch / "zelda_slice"
+        shutil.copytree(REPO_ROOT / "content_sets" / "zelda_slice", package, ignore=shutil.ignore_patterns("saves", "editor"))
+        vault = package / "data" / "regions" / "drowned_vault.json"
+        region = json.loads(vault.read_text(encoding="utf-8"))
+        region["rooms"]["flooded_hall"]["properties"]["hazards"] = [{"type": "poison_gas", "damage": 1}]
+        vault.write_text(json.dumps(region), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        about_it = [issue.message for issue in issues if "flooded_hall" in issue.message and "hazard" in issue.message.lower()]
+        self.assertEqual([], about_it)
+
+    # FLIP in item 1.3: a restarted server gives the character and the world back.
+    def test_limit_a_restart_forgets_the_character_and_the_lever(self):
+        scratch = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, scratch, ignore_errors=True)  # registered first, so it runs last
+        db = str(Path(scratch) / "world.sqlite3")
+
+        def boot():
+            return HeadlessServer(
+                db_path=db,
+                content_set_path=str(REPO_ROOT / "content_sets" / self.SET_ID),
+                deterministic_test_mode=True,
+                default_presentation_mode="player",
+            )
+
+        first = boot()
+        sid = first.create_session(player_id="restart").session_id
+        first.execute_command(sid, "char create Restarter")
+        hero = first.get_player_for_session(sid)
+        hero.flags["marker"] = True
+        hero.current_region_id, hero.current_room_id = "mossroot", "root_hall"
+        first.execute_command(sid, "pull loose stone")
+        self.assertIn("down", first.world.get_region("mossroot").get_room("root_hall").exits)
+        first.shutdown()
+
+        second = boot()
+        self.addCleanup(second.shutdown)
+        sid = second.create_session(player_id="restart").session_id
+        second.execute_command(sid, "char create Restarter")
+        again = second.get_player_for_session(sid)
+        self.assertEqual({}, again.flags, "a new character, not the one that was saved")
+        self.assertNotIn("down", second.world.get_region("mossroot").get_room("root_hall").exits)
 
 
 if __name__ == "__main__":
