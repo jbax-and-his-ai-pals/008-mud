@@ -408,10 +408,24 @@ func _arrange_views() -> void:
 	_game_view = game
 	_tools_view = tools_scroll
 
+	# The command line keeps focus: Enter does not drop it, and clicking a button in the game
+	# view (Send, a mobile pad key) hands it straight back.
+	command_input.keep_editing_on_text_submit = true
+	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
+
 	for client in [tcp_client, ws_client]:
 		client.connected.connect(_refresh_connection_badge)
 		client.disconnected.connect(_refresh_connection_badge)
 	_refresh_connection_badge()
+
+
+func _on_gui_focus_changed(node: Control) -> void:
+	if _game_view == null or not _game_view.visible or node == null:
+		return
+	if node is LineEdit or node is TextEdit or node is OptionButton:
+		return
+	if _game_view.is_ancestor_of(node):
+		command_input.call_deferred("grab_focus")
 
 
 func _toggle_tools_view() -> void:

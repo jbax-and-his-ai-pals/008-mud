@@ -8,6 +8,25 @@ from engine.config import FORMAT_ERROR, FORMAT_RESET
 if TYPE_CHECKING:
     from engine.player.core import Player
 
+# Where an item sits, said the way a person would say it. Armour on the body needs no
+# telling ("You equip the dark armor."); the others say where, in their own preposition.
+_WORN_PHRASES = {
+    "body": "",
+    "main_hand": " in your main hand",
+    "off_hand": " in your off hand",
+    "head": " on your head",
+    "hands": " on your hands",
+    "feet": " on your feet",
+    "neck": " around your neck",
+}
+
+
+def _where_worn(slot: str) -> str:
+    if slot in _WORN_PHRASES:
+        return _WORN_PHRASES[slot]
+    return " in your %s" % slot.replace("_", " ")   # a slot a content set added
+
+
 class PlayerEquipmentMixin:
     """Mixin for handling player equipment logic."""
 
@@ -87,7 +106,7 @@ class PlayerEquipmentMixin:
         if effect_data and isinstance(effect_data, dict):
             p.apply_effect(effect_data, p.world.clock.now() if p.world else time.time())
             
-        return True, f"{unequip_message}You equip the {item.name} in your {target_slot.replace('_', ' ')}."
+        return True, f"{unequip_message}You equip the {item.name}{_where_worn(target_slot)}."
 
     def unequip_item(self, slot_name: str) -> Tuple[bool, str]:
         p = cast('Player', self)
