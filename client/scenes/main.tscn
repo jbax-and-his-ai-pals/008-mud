@@ -37,7 +37,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="ConnectionRow" type="HBoxContainer" parent="VBox"]
+[node name="ConnectionRow" type="HFlowContainer" parent="VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
@@ -119,7 +119,7 @@ secret = true
 layout_mode = 2
 text = "GM Auth"
 
-[node name="ProfileRow" type="HBoxContainer" parent="VBox"]
+[node name="ProfileRow" type="HFlowContainer" parent="VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
@@ -145,7 +145,7 @@ layout_mode = 2
 autowrap_mode = 3
 text = "Profile: active (unknown) | pending none"
 
-[node name="OperatorRow" type="HBoxContainer" parent="VBox"]
+[node name="OperatorRow" type="HFlowContainer" parent="VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
@@ -187,7 +187,7 @@ layout_mode = 2
 autowrap_mode = 3
 text = "Operator: choose domain/action, then Run."
 
-[node name="AdventureRow" type="HBoxContainer" parent="VBox"]
+[node name="AdventureRow" type="HFlowContainer" parent="VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 

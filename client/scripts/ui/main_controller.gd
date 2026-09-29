@@ -187,7 +187,7 @@ var _game_contract: Dictionary = {}
 @onready var operator_run_button: Button = $VBox/OperatorRow/OperatorRunButton
 @onready var operator_status_label: Label = $VBox/OperatorStatusLabel
 @onready var adventure_catalog_select: OptionButton = $VBox/AdventureRow/AdventureCatalogSelect
-@onready var adventure_row: HBoxContainer = $VBox/AdventureRow
+@onready var adventure_row: Container = $VBox/AdventureRow
 @onready var adventure_catalog_button: Button = $VBox/AdventureRow/AdventureCatalogButton
 @onready var adventure_campaign_input: LineEdit = $VBox/AdventureRow/AdventureCampaignInput
 @onready var adventure_start_button: Button = $VBox/AdventureRow/AdventureStartButton
@@ -299,7 +299,30 @@ var theme_controller: ThemeController
 var accessibility: AccessibilityController
 var game_state_payloads: GameStatePayloadsController
 
+## The side-panel stack (status, inventory, quests, surroundings...) is tall once a character
+## exists. Directly in the root VBox it forced the whole layout taller than the window, which
+## pushed the log and the command line off the screen and made the client look hung. Inside a
+## scroll container it takes the space the log leaves it and scrolls. The nodes keep their
+## names; the @onready references above are object references, resolved before this runs.
+func _wrap_side_panels_in_scroll() -> void:
+	var panels: Control = get_node_or_null("VBox/AssetPreview")
+	if panels == null or panels.get_parent() is ScrollContainer:
+		return
+	var vbox: Node = panels.get_parent()
+	var index: int = panels.get_index()
+	var scroll := ScrollContainer.new()
+	scroll.name = "AssetScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 120)
+	vbox.add_child(scroll)
+	vbox.move_child(scroll, index)
+	panels.reparent(scroll, false)
+	panels.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+
 func _ready() -> void:
+	_wrap_side_panels_in_scroll()
 	network_lifecycle = NetworkLifecycleController.new(self)
 	operator_console = OperatorConsoleController.new(self)
 	profiles = ProfileController.new(self)
