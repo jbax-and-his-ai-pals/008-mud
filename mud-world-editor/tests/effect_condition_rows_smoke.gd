@@ -47,6 +47,8 @@ func _init() -> void:
 	_check_adding_an_effect_never_replaces_one()
 	_check_clearing_the_last_effect_removes_the_mapping()
 	_check_the_knowledge_inspector_shares_it()
+	_check_the_character_effects_have_typed_rows()
+	_check_a_consumable_can_be_given_effects()
 	_check_a_title_composite_condition_can_be_seen_and_changed()
 	_check_a_title_requirement_composite_can_be_changed()
 	_check_the_dialogue_condition_still_works()
@@ -190,6 +192,91 @@ func _check_the_knowledge_inspector_shares_it() -> void:
 	_assert(typeof(effects["complete_quest"]) == TYPE_BOOL, "the same `true` rule: %s" % str(effects["complete_quest"]))
 	var gold := RowProbe.value_widget(holder, "give_gold")
 	_assert(gold is SpinBox, "and the same number box for gold")
+
+
+func _check_the_character_effects_have_typed_rows() -> void:
+	print("
+[character effects]")
+	var choice := {"text": "Rest.", "end": true, "effects": {"take_gold": 30, "restore": "all", "message": "You sleep."}}
+	var holder: VBoxContainer = _dialogue_holder(choice)[0]
+	var gold := RowProbe.value_widget(holder, "take_gold")
+	_assert(gold is SpinBox, "the price of a service is a number box (%s)" % str(gold))
+	if gold is SpinBox:
+		gold.value = 45
+		gold.value_changed.emit(45.0)
+		_assert(choice["effects"]["take_gold"] == 45, "and writes a whole number")
+	var restore := RowProbe.value_widget(holder, "restore")
+	_assert(restore is LineEdit and (restore as LineEdit).text == "all", "restore shows what was authored")
+	RowProbe.type_into(restore, '{"resource": "health", "amount": "full"}')
+	_assert(choice["effects"]["restore"] is Dictionary, "and takes the object form")
+	RowProbe.type_into(restore, "mana")
+	_assert(choice["effects"]["restore"] == "mana", "or one resource by name: %s" % str(choice["effects"]["restore"]))
+	_assert(RowProbe.value_widget(holder, "message") is LineEdit, "a message is plain text")
+	# A fresh effect starts as a value the engine accepts, of the right type.
+	for candidate in ["restore", "take_gold", "raise", "forget_spell"]:
+		_assert(DialogueSchema.has_effect(candidate), "`%s` is offered" % candidate)
+	_assert(DialogueSchema.default_effect_value("restore") == "all", "restore starts as all")
+	_assert(typeof(DialogueSchema.default_effect_value("take_gold")) == TYPE_INT, "take_gold starts as a number")
+
+
+func _consumable_holder(item: Dictionary) -> VBoxContainer:
+	var holder := VBoxContainer.new()
+	root.add_child(holder)
+	var inspector := ItemInspector.new()
+	inspector.build(holder, item, database)
+	return holder
+
+
+func _check_a_consumable_can_be_given_effects() -> void:
+	print("
+[a consumable's effects]")
+	var item := {"type": "Consumable", "name": "Heart Container", "description": "d",
+		"properties": {"uses": 1, "effect_type": "heal", "effect_value": 20}}
+	var holder := VBoxContainer.new()
+	root.add_child(holder)
+	# The database inspector puts the entry's header in this container first.
+	var header := Label.new()
+	header.name = "EntryHeader"
+	holder.add_child(header)
+	ItemInspector.new().build(holder, item, database)
+	var picker := holder.find_child("ConsumableEffectType", true, false) as OptionButton
+	_assert(picker != null, "a consumable has an effect type picker")
+	if picker == null:
+		return
+	var offered: Array = []
+	for index in range(picker.item_count):
+		offered.append(picker.get_item_text(index))
+	_assert(offered.has("effects") and offered.has("heal"), "offering what the engine runs: %s" % str(offered))
+	_assert(not offered.has("poison"), "and nothing it does not")
+	_assert(holder.find_child("ConsumableEffects", true, false) == null, "effects rows appear only for that type")
+
+	var target := offered.find("effects")
+	picker.select(target)
+	picker.item_selected.emit(target)
+	_assert(item["properties"]["effect_type"] == "effects", "choosing it writes the type: %s" % str(item["properties"]))
+	_assert(holder.find_child("EntryHeader", true, false) != null,
+		"and changing the type rebuilds only the consumable section, not what was already in the container")
+	# The inspector rebuilt itself for the new type; find the new rows.
+	var rebuilt := holder
+	var add_buttons := RowProbe.buttons(rebuilt, "+ Effect")
+	_assert(add_buttons.size() == 1, "and the effect rows appear")
+	if add_buttons.size() == 1:
+		(add_buttons[0] as Button).pressed.emit()
+		_assert(item["properties"].get("effects") is Dictionary and item["properties"]["effects"].has("set_flag"),
+			"adding one writes it under properties.effects: %s" % str(item["properties"]))
+
+	# A consumable whose type the engine does not run is shown, not hidden.
+	var odd := {"type": "Consumable", "name": "Fungus", "description": "d",
+		"properties": {"uses": 1, "effect_type": "poison"}}
+	var odd_holder := _consumable_holder(odd)
+	var odd_picker := odd_holder.find_child("ConsumableEffectType", true, false) as OptionButton
+	_assert(odd_picker != null and odd_picker.get_item_text(odd_picker.selected) == "poison",
+		"an effect type the engine does not run stays visible so it can be fixed")
+
+	# Not a consumable: no section.
+	var sword := {"type": "Weapon", "name": "Sword", "description": "d", "properties": {}}
+	_assert(_consumable_holder(sword).find_child("ConsumableEffectType", true, false) == null,
+		"other item classes get no effect picker")
 
 
 # --- conditions --------------------------------------------------------------

@@ -3,6 +3,15 @@ import time
 from typing import Optional
 from engine.items.item import Item
 
+# Every `effect_type` `use()` dispatches on. Content validation refuses any other,
+# and the editor's item inspector offers these; `test_character_effects.py` ties the
+# list to the branches below so a new one cannot be added in one place only.
+CONSUMABLE_EFFECT_TYPES = (
+    "heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
+    "cleanse", "target_damage", "effects",
+)
+
+
 class Consumable(Item):
     def __init__(self, obj_id: Optional[str] = None, name: str = "Unknown Consumable",
                  description: str = "No description", weight: float = 0.5,
@@ -163,6 +172,24 @@ class Consumable(Item):
                     message = f"You use the {self.name} and cleanse {getattr(target, 'name', 'the target')} of {len(removed)} affliction(s)."
                 else:
                     message = f"You use the {self.name}, but find no matching affliction."
+
+        elif effect_type == "effects":
+            # The dialogue effects vocabulary (`dialogue/effects.py`): restore,
+            # raise, give_item, set_flag... A heart container is `raise` + `restore`.
+            from engine.dialogue.effects import apply_effects
+
+            effects = self.get_property("effects")
+            if not isinstance(effects, dict) or not effects:
+                consumed = False
+                message = f"The {self.name} seems inert or misconfigured."
+            else:
+                report = apply_effects(effects, {"player": user, "world": getattr(user, "world", None)})
+                if report.applied:
+                    message = report.message() or f"You use the {self.name}."
+                else:
+                    # Healing at full health is not a use: the item is kept.
+                    consumed = False
+                    message = f"You use the {self.name}, but nothing happens."
 
         elif effect_type == "target_damage":
             # A consumable can be used on an NPC in the room, which gives

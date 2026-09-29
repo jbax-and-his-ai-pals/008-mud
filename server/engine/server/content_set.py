@@ -3559,7 +3559,15 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
         "regions": region_ids,
         "npcs": npc_ids,
         "spells": _ability_ids(content_root, issues),
+        # The stats a character has. The engine defaults here; callers that hold the
+        # ruleset add the ones it names (`_with_ruleset_stats`).
+        "stats": _player_stat_names(),
     }
+
+
+def _with_ruleset_stats(ids: dict[str, set[str]], ruleset_payload: Any) -> dict[str, set[str]]:
+    ids["stats"] = ids["stats"] | _ruleset_stat_names(ruleset_payload if isinstance(ruleset_payload, dict) else {})
+    return ids
 
 
 # The condition kinds whose value names something the set defines: (kind, the field
@@ -3587,6 +3595,14 @@ _EFFECT_REFERENCES = (
     ("start_campaign", "campaigns"),
     ("give_item", "items"),
     ("take_item", "items"),
+    ("forget_spell", "spells"),
+)
+
+# Effects that give the character something. Paired with a `take_*` they make a
+# service, and a service needs a guard (see `_check_effect_guards`).
+_BENEFIT_EFFECTS = (
+    "give_item", "give_gold", "give_rewards", "restore", "raise",
+    "teach_spell", "grant_recipe", "grant_discovery",
 )
 
 
@@ -3696,9 +3712,149 @@ def _check_effect_block(
     reveal = block.get("reveal_exit")
     if isinstance(reveal, dict):
         _check_reveal_exit(reveal, where, content_root, path, issues)
+    raised = block.get("raise")
+    if isinstance(raised, dict) and isinstance(raised.get("stats"), dict):
+        for stat in sorted(str(name) for name in raised["stats"]):
+            if ids["stats"] and stat not in ids["stats"]:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"{where} effect raise names stat '{stat}', which is not a stat this character has "
+                    f"(stats: {', '.join(sorted(ids['stats']))})",
+                ))
 
 
-def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]) -> None:
+def _guaranteed_leaves(node: Any, negated: bool = False) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """The leaf conditions a tree guarantees: `(must hold, must not hold)`.
+
+    `all` guarantees every child, and so does a negated `any` (not a and not b);
+    `any` and a negated `all` guarantee none. A bare list reads as `all`, as it does
+    in `_condition_issues`.
+    """
+    if isinstance(node, list):
+        children, conjunctive = node, not negated
+    elif isinstance(node, dict):
+        if "all" in node:
+            children, conjunctive = node["all"], not negated
+        elif "any" in node:
+            children, conjunctive = node["any"], negated
+        elif "not" in node:
+            return _guaranteed_leaves(node["not"], not negated)
+        else:
+            return ([], [node]) if negated else ([node], [])
+    else:
+        return [], []
+    if not isinstance(children, list) or not conjunctive:
+        return [], []
+    holding: list[dict[str, Any]] = []
+    failing: list[dict[str, Any]] = []
+    for child in children:
+        held, unheld = _guaranteed_leaves(child, negated)
+        holding.extend(held)
+        failing.extend(unheld)
+    return holding, failing
+
+
+def _flags_set_by(effects: dict[str, Any]) -> set[str]:
+    names: set[str] = set()
+    raw = effects.get("set_flag")
+    for entry in raw if isinstance(raw, list) else [raw]:
+        if isinstance(entry, str) and entry.strip():
+            names.add(entry.strip())
+        elif isinstance(entry, dict) and entry.get("value", True) not in (False, None, 0, ""):
+            name = str(entry.get("name", entry.get("flag", "")) or "").strip()
+            if name:
+                names.add(name)
+    return names
+
+
+def _check_effect_guards(
+    condition: Any, effects: Any, where: str, path: Path, issues: list[ContentSetIssue]
+) -> None:
+    """Warn where a choice can be taken again, or can fail half-way.
+
+    A dialogue choice can be chosen as often as the player likes and effects are not
+    transactional, so two things the engine cannot make safe are the author's to
+    guard, and the validator says so:
+
+    - a `raise` is permanent, so it must not be repeatable: the choice's condition
+      has to require a flag unset that the same choice then sets. And a large one
+      is worth a second look even then.
+    - a `take_gold` / `take_item` beside something given is a service: without a
+      condition proving the character can pay, a character who cannot pay still
+      receives the rest.
+    """
+    from engine.dialogue.effects import RAISE_LARGE
+
+    if not isinstance(effects, dict):
+        return
+    holding, failing = _guaranteed_leaves(condition)
+    label = f"{where}.effects"
+
+    raised = effects.get("raise")
+    if isinstance(raised, dict):
+        unset = {str(leaf.get("flag", "")).strip() for leaf in failing if leaf.get("kind") == "flag"}
+        if not (unset & _flags_set_by(effects)):
+            issues.append(ContentSetIssue(
+                "warning", str(path),
+                f"{label} effect raise can be repeated: gate the choice with a 'not flag' condition on a "
+                f"flag the same choice sets (a raise is treasure or a reward, not something to buy twice)",
+            ))
+        for key, limit in (("max_health", RAISE_LARGE["max_health"]), ("max_mana", RAISE_LARGE["max_mana"])):
+            amount = raised.get(key)
+            if isinstance(amount, int) and not isinstance(amount, bool) and amount > limit:
+                issues.append(ContentSetIssue(
+                    "warning", str(path),
+                    f"{label} effect raise is large ({key} +{amount}; over {limit}): confirm that is intended",
+                ))
+        for stat, gain in (raised.get("stats") or {}).items() if isinstance(raised.get("stats"), dict) else ():
+            if isinstance(gain, int) and not isinstance(gain, bool) and gain > RAISE_LARGE["stats"]:
+                issues.append(ContentSetIssue(
+                    "warning", str(path),
+                    f"{label} effect raise is large ({stat} +{gain}; over {RAISE_LARGE['stats']}): confirm that is intended",
+                ))
+
+    benefits = [name for name in _BENEFIT_EFFECTS if name in effects]
+    if not benefits:
+        return
+    price = effects.get("take_gold")
+    if isinstance(price, int) and not isinstance(price, bool) and price > 0:
+        covered = any(
+            leaf.get("kind") == "gold_at_least" and isinstance(leaf.get("value"), (int, float))
+            and leaf["value"] >= price
+            for leaf in holding
+        )
+        if not covered:
+            issues.append(ContentSetIssue(
+                "warning", str(path),
+                f"{label} effect take_gold has no gold_at_least guard of at least {price} on the choice, so a "
+                f"character who cannot pay still receives the rest ({', '.join(benefits)}); effects are not transactional",
+            ))
+    from engine.dialogue.effects import entry_pairs
+
+    for item_id, _quantity in entry_pairs(effects.get("take_item")):
+        if not any(leaf.get("kind") == "has_item" and str(leaf.get("item_id", "")) == item_id for leaf in holding):
+            issues.append(ContentSetIssue(
+                "warning", str(path),
+                f"{label} effect take_item '{item_id}' has no has_item guard on the choice, so a character who "
+                f"does not carry it still receives the rest ({', '.join(benefits)}); effects are not transactional",
+            ))
+
+
+def _check_node_effects_do_not_raise(
+    effects: Any, where: str, path: Path, issues: list[ContentSetIssue]
+) -> None:
+    """A node's own effects run every time the node is reached, and cannot be guarded."""
+    if isinstance(effects, dict) and "raise" in effects:
+        issues.append(ContentSetIssue(
+            "warning", str(path),
+            f"{where} effect raise in a node's own effects runs every time the node is reached and cannot be "
+            f"guarded; put it on a choice that sets a flag and requires it unset",
+        ))
+
+
+def _validate_dialogue_content(
+    content_root: Path, issues: list[ContentSetIssue], ruleset_payload: Any = None
+) -> None:
     """Validate authored conversations, their references, and their wiring.
 
     The point is the P5 definition of done: a missing graph, a `next_node` that
@@ -3731,7 +3887,7 @@ def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]
             graphs[graph_id] = graph
             graph_paths[graph_id] = path
 
-    ids = _content_identifier_sets(content_root, issues)
+    ids = _with_ruleset_stats(_content_identifier_sets(content_root, issues), ruleset_payload)
 
     # A graph nobody points at is dead content; a pointer to no graph is a
     # broken conversation. The second is an error, the first a warning.
@@ -3768,10 +3924,12 @@ def _validate_dialogue_content(content_root: Path, issues: list[ContentSetIssue]
             where = f"{label} node '{node.node_id}'"
 
             _check_effect_block(node.effects, f"{where}.effects", path, ids, content_root, issues)
+            _check_node_effects_do_not_raise(node.effects, where, path, issues)
             for choice in node.choices:
                 choice_where = f"{where}.choices[{choice.index}]"
                 _check_condition(choice.condition, f"{choice_where}.condition", path, ids, issues)
                 _check_effect_block(choice.effects, f"{choice_where}.effects", path, ids, content_root, issues)
+                _check_effect_guards(choice.condition, choice.effects, choice_where, path, issues)
                 if choice.check:
                     _check_effect_block(
                         choice.check.get("success_effects"), f"{choice_where}.check.success_effects",
@@ -5847,13 +6005,20 @@ def _validate_crafting_quality_contracts(
                 ))
 
 
-def _validate_item_extension_data(content_root: Path, issues: list[ContentSetIssue]) -> None:
+def _validate_item_extension_data(
+    content_root: Path, issues: list[ContentSetIssue], ruleset_payload: Any = None
+) -> None:
     """Validate optional generic item extension contracts used by the engine.
 
     Extension names describe mechanics, not a particular game theme: hosts may
     expose attachment slots and tokens may offer numeric modifiers.  Content
     remains free to author the actual slot and modifier names.
     """
+    from engine.items.consumable import CONSUMABLE_EFFECT_TYPES
+
+    # Built once, on a scratch issue list: a malformed file is reported by whoever
+    # first loaded it, not once more by every check that needs an id.
+    ids: dict[str, set[str]] | None = None
     for path in sorted((content_root / "items").glob("*.json")):
         payload = _load_json(path, issues, "item definitions")
         if not isinstance(payload, dict):
@@ -5866,7 +6031,33 @@ def _validate_item_extension_data(content_root: Path, issues: list[ContentSetIss
                 continue
             label = f"item '{item_id}'"
             effect_type = properties.get("effect_type")
-            if effect_type == "apply_effect":
+            if effect_type is not None and effect_type not in CONSUMABLE_EFFECT_TYPES:
+                # `use()` falls through to "You use the X." and spends it, so this
+                # is a consumable that does nothing and is used up doing it. A
+                # warning, not an error: it is a defect, but not one that stops a set
+                # booting, and sets in the wild carry it (see chunk 7, item 2.3).
+                issues.append(ContentSetIssue(
+                    "warning", str(path),
+                    f"{label}.properties.effect_type {effect_type!r} is not an effect type a consumable "
+                    f"executes (known: {', '.join(CONSUMABLE_EFFECT_TYPES)}), so it does nothing",
+                ))
+            if "effects" in properties and effect_type != "effects":
+                issues.append(ContentSetIssue(
+                    "warning", str(path),
+                    f"{label}.properties.effects is read only when effect_type is 'effects' "
+                    f"(this item's is {effect_type!r}), so it is ignored",
+                ))
+            if effect_type == "effects":
+                effects = properties.get("effects")
+                if not isinstance(effects, dict) or not effects:
+                    issues.append(ContentSetIssue(
+                        "error", str(path), f"{label}.properties.effects must be a non-empty object of effects"
+                    ))
+                else:
+                    if ids is None:
+                        ids = _with_ruleset_stats(_content_identifier_sets(content_root, []), ruleset_payload)
+                    _check_effect_block(effects, f"{label}.properties.effects", path, ids, content_root, issues)
+            elif effect_type == "apply_effect":
                 effect_data = properties.get("effect_data")
                 if not isinstance(effect_data, dict):
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_data must be an object"))
@@ -6193,7 +6384,7 @@ def load_content_set(
         _validate_affixes(content_root, issues)
         _validate_item_resistances_and_sets(content_root, issues)
         _validate_contract_content(content_root, issues)
-        _validate_dialogue_content(content_root, issues)
+        _validate_dialogue_content(content_root, issues, ruleset_payload)
         _validate_knowledge_topics(content_root, issues)
         _validate_room_passage_properties(content_root, issues)
         _validate_campaigns(content_root, issues)
@@ -6224,7 +6415,7 @@ def load_content_set(
             ruleset_payload=ruleset_payload,
         )
         _validate_item_salvage_outputs(content_root, issues, contract_registry)
-        _validate_item_extension_data(content_root, issues)
+        _validate_item_extension_data(content_root, issues, ruleset_payload)
 
     if any(issue.severity == "error" for issue in issues):
         return None, issues

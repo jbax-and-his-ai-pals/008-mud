@@ -14,7 +14,18 @@ const ITEM_CLASSES := [
 	"Junk", "Gem", "Lockpick", "ResourceNode", "Interactive",
 ]
 
+# What a consumable's `effect_type` may be: exactly the branches of
+# `engine/items/consumable.py::Consumable.use` (`CONSUMABLE_EFFECT_TYPES`), which
+# `schema_parity_smoke.gd` checks. Any other value makes an item that does nothing
+# and is used up doing it, so the picker offers no other.
+const CONSUMABLE_EFFECT_TYPES := [
+	"heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
+	"cleanse", "target_damage", "effects",
+]
+const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
+
 var container: VBoxContainer
+var consumable_box: VBoxContainer
 var cur_data: Dictionary
 var props_box: VBoxContainer
 var database_mgr: DatabaseManager
@@ -27,6 +38,7 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	database_mgr = db_mgr
 	catalog = db_mgr.catalog if db_mgr != null else null
 	_build_details()
+	_build_consumable()
 	_build_container()
 	_build_resource_node()
 	_build_salvage()
@@ -173,6 +185,62 @@ func _build_details():
 	chk.button_pressed = cur_data.get("stackable", false)
 	chk.toggled.connect(func(b): cur_data["stackable"] = b; database_modified.emit())
 	vbox.add_child(chk)
+
+
+# A consumable's `effect_type`, and for `effects` the same rows a conversation
+# uses (`properties.effects`): a heart container is `raise` + `restore`. The other
+# types keep their fields in the property table below; this owns only the type and
+# the effects, so the two never edit one key.
+#
+# The section lives in a box of its own because the container is shared: the
+# database inspector puts the entry's header and its name/id card in it before
+# this inspector is built, and a change of type must rebuild only this section.
+func _build_consumable():
+	if _engine_item_class() != "Consumable":
+		return
+	consumable_box = VBoxContainer.new()
+	consumable_box.name = "ConsumableSection"
+	container.add_child(consumable_box)
+	_refill_consumable()
+
+
+func _refill_consumable():
+	for child in consumable_box.get_children():
+		consumable_box.remove_child(child)
+		child.queue_free()
+	var properties := _properties()
+	var card = InspectorStyle.create_card()
+	var vbox = card.get_child(0).get_child(0)
+	consumable_box.add_child(InspectorStyle.create_sub_header("When used"))
+	consumable_box.add_child(card)
+
+	var row := HBoxContainer.new()
+	row.add_child(InspectorStyle.lbl("Effect type:", InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new()
+	picker.name = "ConsumableEffectType"
+	var types: Array = CONSUMABLE_EFFECT_TYPES.duplicate()
+	var current := str(properties.get("effect_type", "heal"))
+	if not types.has(current):
+		types.append(current)   # a value the engine does not run stays visible, so it can be fixed
+	for entry in types:
+		picker.add_item(str(entry))
+	picker.select(types.find(current))
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(selected):
+		properties["effect_type"] = str(types[selected])
+		database_modified.emit()
+		_refill_consumable()
+	)
+	row.add_child(picker)
+	vbox.add_child(row)
+
+	if current == "effects":
+		var effects_box := VBoxContainer.new()
+		effects_box.name = "ConsumableEffects"
+		effects_box.add_theme_constant_override("separation", 4)
+		vbox.add_child(effects_box)
+		EFFECT_ROWS.build(effects_box, properties, "Effects when used:", database_mgr, func(): database_modified.emit())
 
 
 # Containers and resource nodes are both ordinary item templates at load time,
@@ -748,6 +816,9 @@ func _refresh_props():
 	# them again as generic rows invites two conflicting edits and makes the
 	# useful controls look like decoration.
 	var specialized := ["salvage_output", "resistances"]
+	if _engine_item_class() == "Consumable":
+		# The "When used" section owns these two.
+		specialized.append_array(["effect_type", "effects"])
 	if _engine_item_class() == "Container":
 		specialized.append_array(["capacity", "locked", "key_id", "is_open", "contains"])
 	if _engine_item_class() == "ResourceNode":

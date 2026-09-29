@@ -40,6 +40,8 @@ class TestTheTable(unittest.TestCase):
             "adjust_relationship": ["amount", "delta", "npc"],
             "give_rewards": ["generated_item_data", "gold", "items", "xp"],
             "move_npc": ["npc", "region", "room"],
+            "raise": ["max_health", "max_mana", "stats"],
+            "restore": ["amount", "resource"],
             "reveal_exit": ["direction", "room"],
         }, effect_fields())
 
@@ -51,6 +53,8 @@ class TestTheTable(unittest.TestCase):
             "move_npc": "_apply_move_npc_effect",
             "reveal_exit": "_apply_exit_effect",
             "give_rewards": "_apply_reward_effect",
+            "restore": "_apply_restore_effect",
+            "raise": "_apply_raise_effect",
         }
         self.assertEqual(set(readers), set(effect_fields()))
         for effect, reader in readers.items():
@@ -78,6 +82,13 @@ class TestShapeIssues(unittest.TestCase):
         {"move_npc": {"npc": "kessa", "region": "mistvale", "room": "village_square"}},
         {"move_npc": {"region": "mistvale", "room": "village_square"}},
         {"give_rewards": {"xp": 10, "gold": 5, "items": ["item_x", {"item_id": "item_y", "quantity": 2}]}},
+        {"message": "The priestess smiles."},
+        {"take_gold": 30}, {"forget_spell": "fireball"}, {"forget_spell": ["a", "b"]},
+        {"restore": "health"}, {"restore": "mana"}, {"restore": "all"},
+        {"restore": {"resource": "mana", "amount": 5}}, {"restore": {"resource": "health", "amount": "full"}},
+        {"restore": {"amount": 5}},
+        {"raise": {"max_health": 10}}, {"raise": {"max_mana": 4}}, {"raise": {"stats": {"strength": 1}}},
+        {"raise": {"max_health": 10, "max_mana": 2, "stats": {"strength": 1, "dexterity": 2}}},
     ]
     BAD = [
         ({"set_flag": 5}, "set_flag"), ({"set_flag": []}, "set_flag"), ({"set_flag": [3]}, "set_flag"),
@@ -93,6 +104,17 @@ class TestShapeIssues(unittest.TestCase):
         ({"reveal_exit": "down"}, "reveal_exit"), ({"reveal_exit": {"room": "town:cellar"}}, "direction"),
         ({"move_npc": {"npc": "a", "room": "r"}}, "region"), ({"move_npc": {"region": "r", "room": "x", "where": 1}}, "where"),
         ({"give_rewards": {"xp": "lots"}}, "xp"), ({"give_rewards": {"exp": 5}}, "exp"), ({"give_rewards": [1]}, "give_rewards"),
+        ({"message": ""}, "message"), ({"message": 5}, "message"), ({"message": ["a"]}, "message"),
+        ({"take_gold": 0}, "take_gold"), ({"take_gold": "lots"}, "take_gold"), ({"take_gold": True}, "take_gold"),
+        ({"forget_spell": 5}, "forget_spell"), ({"forget_spell": [""]}, "forget_spell"),
+        ({"restore": "everything"}, "restore"), ({"restore": 5}, "restore"),
+        ({"restore": {"resource": "gold"}}, "resource"), ({"restore": {"amount": 0}}, "amount"),
+        ({"restore": {"amount": "half"}}, "amount"), ({"restore": {"resource": "health", "speed": 3}}, "speed"),
+        ({"raise": {}}, "raise"), ({"raise": "health"}, "raise"),
+        ({"raise": {"max_health": 0}}, "max_health"), ({"raise": {"max_health": -3}}, "max_health"),
+        ({"raise": {"max_mana": "lots"}}, "max_mana"), ({"raise": {"stats": {}}}, "stats"),
+        ({"raise": {"stats": {"strength": 0}}}, "stats"), ({"raise": {"stats": ["strength"]}}, "stats"),
+        ({"raise": {"max_health": 5, "speed": 3}}, "speed"),
     ]
 
     def test_a_valid_value_draws_no_issue(self):

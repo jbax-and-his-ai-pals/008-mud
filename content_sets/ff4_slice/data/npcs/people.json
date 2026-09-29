@@ -119,5 +119,22 @@
             "move_cooldown": 9999,
             "dialogue": "ryn_summoner"
         }
+    },
+    "innkeeper": {
+        "name": "the innkeeper",
+        "description": "A stout woman with a ring of keys and a lantern she never seems to put down.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Fog keeps the guests away. There is always a bed."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "inn_rest"
+        }
     }
 }

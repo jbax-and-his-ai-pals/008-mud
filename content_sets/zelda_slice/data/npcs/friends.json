@@ -67,7 +67,8 @@
             "spell_cast_chance": 1,
             "required_spells": [
                 "fairy_mend"
-            ]
+            ],
+            "dialogue": "pool_fairy"
         },
         "usable_spells": [
             "fairy_mend"

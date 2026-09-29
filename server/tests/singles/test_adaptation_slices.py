@@ -113,6 +113,28 @@ class TestZeldaSlice(_Slice):
         again = self.say("talk hermit")
         self.assertNotIn("Thank you", again, "the gift is offered only until it has been taken")
 
+    def test_a_heart_container_raises_the_maximum_and_heals(self):
+        """It used to heal 200 and leave you as you were; now it is treasure."""
+        self.give("item_heart_container")
+        before = self.player.max_health
+        self.player.health = 1
+        said = self.say("use heart container")
+        self.assertEqual(before + 10, self.player.max_health)
+        self.assertEqual(self.player.max_health, self.player.health)
+        self.assertIn("sturdier", said)
+        self.assertFalse(self.holds("item_heart_container"), "and it is used up")
+
+    def test_the_pool_fairy_refills_health_and_mana_for_nothing(self):
+        self.at("caves", "fairy_pool")
+        magic = self.player.runtime_state.magic
+        self.player.health, magic.mana = 1, 0
+        gold = self.player.runtime_state.gold
+        self.say("talk fairy")
+        self.say("reply 1")
+        self.assertEqual(self.player.max_health, self.player.health)
+        self.assertEqual(magic.max_mana, magic.mana)
+        self.assertEqual(gold, self.player.runtime_state.gold, "the pool is free")
+
     def test_a_boss_hall_opens_only_to_its_key(self):
         self.at("mossroot", "mossy_gallery")
         self.say("go west")
@@ -227,6 +249,29 @@ class TestFF4Slice(_Slice):
         self.assertNotIn("At once", again, "the choice cannot be made twice")
         self.assertNotIn("slaughter", again, "and the other answer closed with it")
 
+    def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
+        self.at("mistvale", "village_square")
+        magic = self.player.runtime_state.magic
+        self.player.runtime_state.gold = 50
+        self.player.health, magic.mana = 1, 0
+        self.say("talk innkeeper")
+        said = self.say("reply 1")
+        self.assertEqual(20, self.player.runtime_state.gold)
+        self.assertEqual(self.player.max_health, self.player.health)
+        self.assertEqual(magic.max_mana, magic.mana)
+        self.assertIn("sleep", said)
+
+    def test_the_inn_does_not_offer_a_room_to_someone_who_cannot_pay(self):
+        self.at("mistvale", "village_square")
+        self.player.runtime_state.gold = 5
+        self.player.health = 1
+        offered = self.say("talk innkeeper")
+        self.assertNotIn("take the room", offered, "the paid choice is not shown to someone who cannot pay")
+        self.assertIn("Not tonight", offered)
+        self.say("reply 1")   # all that is left to say is "Not tonight."
+        self.assertEqual(5, self.player.runtime_state.gold)
+        self.assertEqual(1, self.player.health)
+
     def test_a_dialogue_effect_sends_a_friend_ahead(self):
         self._question_the_king()
         self.at("varenholt", "barracks")
@@ -295,11 +340,6 @@ class TestKnownLimits(_Slice):
         self.kill("slime_blob", "blob")
         self.tick(9200)  # 920 s of game time, five times the blob's authored 180
         self.assertEqual([], self.npcs("slime_blob"))
-
-    # FLIP in item 2.3: `restore` is an effect.
-    def test_limit_restore_is_not_an_effect(self):
-        report = apply_effects({"restore": "health"}, self._context())
-        self.assertTrue(any("restore" in str(entry) for entry in report.unknown), report.summary())
 
     # FLIP in item 5.1: a template's own max_health is the maximum.
     def test_limit_a_template_max_health_is_ignored(self):
@@ -382,6 +422,24 @@ class TestPersistence(unittest.TestCase):
         self.assertEqual(("mossroot", "root_hall"), (again.current_region_id, again.current_room_id))
         self.assertIn("down", second.world.get_region("mossroot").get_room("root_hall").exits,
                       "the lever's door is still open")
+
+    def test_a_raised_maximum_and_a_paid_rest_survive_a_restart(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        sid, _ = self._join(first, "Restarter", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.inventory.add_item(ItemFactory.create_item_from_template("item_heart_container", first.world))
+        before = hero.max_health
+        self._say(first, sid, "use heart container")
+        self.assertEqual(before + 10, hero.max_health)
+        first.shutdown()
+
+        second = self._boot("zelda_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, _ = self._join(second, "Restarter", "another-id")
+        again = second.get_player_for_session(sid2)
+        self.assertEqual(before + 10, again.max_health, "a heart container is permanent")
+        self.assertFalse(self._holds(again, "item_heart_container"))
 
     def test_ff4_keeps_the_choice_the_quest_and_a_friend_who_moved(self):
         db = self._db()

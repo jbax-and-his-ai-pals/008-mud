@@ -1,0 +1,32 @@
+{
+    "id": "pool_fairy",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Hurt? Stay still, little one. The water remembers how you were made.",
+            "choices": [
+                {
+                    "text": "Let the water take the weariness.",
+                    "next_node": "bathed",
+                    "effects": {
+                        "restore": "all",
+                        "message": "The water is cool and bright, and every ache goes out of you."
+                    }
+                },
+                {
+                    "text": "Goodbye.",
+                    "end": true
+                }
+            ]
+        },
+        "bathed": {
+            "text": "There. Go well. Mind the deep places.",
+            "choices": [
+                {
+                    "text": "I will.",
+                    "end": true
+                }
+            ]
+        }
+    }
+}

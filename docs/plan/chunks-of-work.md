@@ -1082,6 +1082,21 @@ validator and `engine_vocabulary_dump.py` read it (`test_effect_shapes.py`; 11 o
 failed on the parent). Not done in 2.1, on purpose: knowledge topics are shape-checked but their
 ids are not yet checked against the set.
 
+**2.3** the effect vocabulary can change the character: `restore` (health, the ability pool, or
+both, by an amount or to full), `raise` (permanent; Decision 10), `take_gold` (all or nothing),
+`forget_spell` and `message`; a consumable with `effect_type: "effects"` runs any effects mapping
+(an item that did nothing is not spent). Steps run message, quests, forgetting, learning, items,
+gold, raise, restore, and so on, so a service is paid for before it is delivered and a heart
+container raises the maximum before the heal fills it. The validator now warns on a consumable
+`effect_type` nothing executes, which found a real defect: `item_swamp_fungus` in
+`fantasy_frontier` said `poison` and did nothing while being used up; it is now an `apply_dot`.
+It is a warning, by the user's decision, because the same item is in `fantasy_frontier_test`,
+which was left alone and would otherwise not boot (the playability step plays every set in the
+directory); that set draws the warning until it gets the same fix. Slices: the heart container is `raise` + `restore`, Zelda's pool fairy refills
+health and mana, FF4 has a paid inn (`take_gold` + `restore`, offered only to someone who can
+pay). Editor: `ItemInspector` gets an `effect_type` picker and, for `effects`, the same rows a
+conversation uses. `test_limit_restore_is_not_an_effect` is retired.
+
 **2.2** the editor's effect and condition rows are one implementation each (`EffectRows.gd`,
 `ConditionRows.gd`), adopted by the dialogue, knowledge and title inspectors in place of four
 drifted copies (the three inspectors are about 350 lines shorter). What that fixed, each checked against the parent
@@ -1264,13 +1279,23 @@ the global 60 s to their own values, and the decision was about monsters. They s
 on the global constant, and the key stays inert for them, until someone decides
 otherwise.
 
-**10. `raise` and the repeat guard — proposed 2026-09-28, settle at item 2.3.**
+**10. `raise` and the repeat guard — ✅ SETTLED 2026-09-28 at item 2.3** (the position the approved plan took; see the shipped behaviour after the text).
 `raise` (a permanent gain to maximum health, mana or a stat) is a power channel
 outside levelling, against the settled "no level-up choices" and "classes are replaced
 by backgrounds, skills and earned titles". It is admitted as treasure or story reward
 (a heart container; a class-change trial), never a menu. A dialogue choice can be
 chosen again, so the engine gives no guard: authors gate a `raise` with `set_flag` and
 a `not flag` condition, and the validator warns on a repeatable or large one.
+
+*As shipped.* `raise` takes `{max_health, max_mana, stats: {stat: gain}}`, additive on the
+stored values a save keeps (so nothing recomputes it away), and a gain in `max_health` or
+`max_mana` also fills that much, as a level-up does. The validator warns when a choice
+with a `raise` has no `not flag` condition on a flag the same choice sets (`_guaranteed_leaves`
+reads through `all`, `not` and a negated `any`); when any gain is over `RAISE_LARGE` (20 health,
+20 mana, 3 per stat); and when a node's own effects carry one (they cannot be guarded). A
+`take_gold` or `take_item` beside something given, with no `gold_at_least` (at least the price)
+or `has_item` guard on the choice, also draws a warning: effects are not transactional, so a
+paid service must not rely on the effect to refuse. A stat a `raise` names must exist in this set.
 
 **11. Player-scoped and world-scoped state — proposed 2026-09-28, settle at item 3.2.**
 Player-scoped: an opened exit (`exit_open:<region>:<room>:<dir>` in `player.flags`, so

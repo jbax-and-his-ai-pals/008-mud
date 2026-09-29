@@ -65,6 +65,7 @@ func _init() -> void:
 	_check_effect_keys(vocabulary)
 	_check_objective_types(vocabulary)
 	_check_effect_shape_hints(vocabulary)
+	_check_character_effect_vocabulary(vocabulary)
 	_check_direction_reciprocals(vocabulary)
 	_check_manifest_shape(vocabulary)
 	_check_npc_vocabulary(vocabulary)
@@ -128,6 +129,19 @@ func _check_objective_types(vocabulary: Dictionary) -> void:
 
 
 # --- the shape hints ----------------------------------------------------------
+
+func _check_character_effect_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[restore resources and consumable effect types: editor vs engine]")
+	_assert(Array(vocabulary.get("restore_resources", [])) == DialogueSchema.RESTORE_RESOURCES,
+		"`restore` offers the resources the engine refills (engine %s, editor %s)" % [
+			str(vocabulary.get("restore_resources")), str(DialogueSchema.RESTORE_RESOURCES)])
+	var engine := _as_set(vocabulary.get("consumable_effect_types", []))
+	var editor := _as_set(ItemInspector.CONSUMABLE_EFFECT_TYPES)
+	_assert(not engine.is_empty(), "the engine's consumable effect types were read")
+	_assert(engine == editor,
+		"a consumable's effect types match exactly (engine only %s, editor only %s)" % [
+			str(_only_in(engine, editor)), str(_only_in(editor, engine))])
+
 
 func _check_effect_shape_hints(vocabulary: Dictionary) -> void:
 	print("\n[effect shape hints name real fields]")

@@ -26,6 +26,10 @@
                 {
                     "template_id": "mayor_of_mistvale",
                     "instance_id": "mayor_of_mistvale_at_village_square"
+                },
+                {
+                    "template_id": "innkeeper",
+                    "instance_id": "innkeeper_at_village_square"
                 }
             ]
         },

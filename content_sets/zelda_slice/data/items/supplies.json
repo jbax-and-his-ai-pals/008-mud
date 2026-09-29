@@ -32,15 +32,21 @@
     "item_heart_container": {
         "type": "Consumable",
         "name": "heart container",
-        "description": "A crystal heart that mends every wound.",
+        "description": "A crystal heart. Held to the chest, it mends every wound and leaves you sturdier.",
         "weight": 0.2,
         "value": 0,
         "stackable": false,
         "properties": {
             "uses": 1,
             "max_uses": 1,
-            "effect_value": 200,
-            "effect_type": "heal"
+            "effect_type": "effects",
+            "effects": {
+                "raise": {
+                    "max_health": 10
+                },
+                "restore": "health",
+                "message": "The crystal warms, and dissolves into you. You feel sturdier than before."
+            }
         },
         "item_family": "consumable"
     }

@@ -207,8 +207,12 @@
         "properties": {
             "uses": 1,
             "max_uses": 1,
-            "effect_value": -5,
-            "effect_type": "poison"
+            "effect_type": "apply_dot",
+            "dot_name": "Fungal Sickness",
+            "dot_duration": 5,
+            "dot_damage_per_tick": 1,
+            "dot_tick_interval": 1,
+            "dot_damage_type": "poison"
         },
         "item_family": "consumable"
     },

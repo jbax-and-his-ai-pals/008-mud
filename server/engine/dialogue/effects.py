@@ -23,6 +23,11 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     reveal_exit       {"room": "town:cellar", "direction": "down"}
     move_npc          {"npc": "template_id", "region": "forest", "room": "clearing"}
     give_rewards      {"xp": 10, "gold": 5, "items": [...]}   structured bundle
+    take_gold         30                             a whole number, at least 1; all or nothing
+    restore           "health" | "mana" | "all" | {"resource": "health", "amount": 10 | "full"}
+    raise             {"max_health": 10, "max_mana": 4, "stats": {"strength": 1}}   permanent
+    forget_spell      "spell_id" | [...]
+    message           "text shown to the player"
 
 Shorthands exist because most effects are one id and authors should not have to
 write an object for that. Anything the interpreter does not recognise is
@@ -36,8 +41,17 @@ value was never checked: `"set_flag": ["a", "b"]` set one flag literally called
 `['a', 'b']`, and `"give_gold": 0` was a quiet no-op.
 
 Application order is fixed and each step is guarded on its own, so one effect that
-fails (or raises) is reported and the ones after it still run: quests, learning,
-items, gold, relationship, flags, exits, NPC moves, rewards.
+fails (or raises) is reported and the ones after it still run: message, quests,
+forgetting, learning, items, gold, raise, restore, relationship, flags, exits, NPC
+moves, rewards. So a line reads before the numbers do, a swap forgets before it
+teaches, a service is paid for before it is delivered, and a heart container raises
+the maximum before the heal fills it. Effects are not transactional: a step that
+fails does not undo the ones before it, so a paid service gates its choice with a
+condition (`gold_at_least`) instead of relying on the effect to refuse.
+
+`raise` is a permanent gain outside levelling -- treasure or a story reward, never a
+menu. The engine cannot tell a repeatable choice from a one-off, so the validator
+warns on a `raise` that can be repeated or is large (`RAISE_LARGE`).
 
 Player-facing lines come from here too, so every system that applies an effect
 says the same sentence about it, and test mode can show the raw effect as well.
@@ -55,7 +69,15 @@ KNOWN_EFFECTS = frozenset({
     "grant_recipe", "grant_discovery", "teach_spell",
     "give_item", "take_item", "give_gold", "adjust_relationship",
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
+    "take_gold", "restore", "raise", "forget_spell", "message",
 })
+
+# What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
+RESTORE_RESOURCES = ("health", "mana", "all")
+
+# Above these a `raise` draws a warning even behind a guard: a heart container is
+# ten health; a hundred is a different game.
+RAISE_LARGE = {"max_health": 20, "max_mana": 20, "stats": 3}
 
 # What each effect's value may be. `form` names the reader's shape:
 #   ids          an id, a list of ids, or a list of {"<x>_id": ...} objects
@@ -63,6 +85,7 @@ KNOWN_EFFECTS = frozenset({
 #   entries      ids plus quantities: also `{"id": qty}` and {"item_id", "quantity"}
 #   count        a whole number of at least `minimum`
 #   flags        a flag name, {"name", "value"}, or a list of either
+#   text         a non-empty string
 #   object       an object with `fields` (name -> type), `required` fields, and
 #                `one_of` (at least one of these); `bare` names the type a
 #                non-object value may take instead
@@ -95,6 +118,18 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "form": "object",
         "fields": {"xp": "count", "gold": "count", "items": "entries", "generated_item_data": "object"},
     },
+    "take_gold": {"form": "count", "minimum": 1},
+    "restore": {
+        "form": "object", "bare": "resource",
+        "fields": {"resource": "resource", "amount": "amount"},
+    },
+    "raise": {
+        "form": "object",
+        "fields": {"max_health": "positive", "max_mana": "positive", "stats": "stat_map"},
+        "one_of": ("max_health", "max_mana", "stats"),
+    },
+    "forget_spell": {"form": "ids"},
+    "message": {"form": "text"},
 }
 assert set(EFFECT_SHAPES) == KNOWN_EFFECTS, "EFFECT_SHAPES and KNOWN_EFFECTS must name the same effects"
 
@@ -132,6 +167,19 @@ def _value_check(kind: str, value: Any) -> Optional[str]:
         return None if ok else "a whole number other than 0"
     if kind == "object":
         return None if isinstance(value, dict) else "an object"
+    if kind == "positive":
+        return None if _is_whole(value, 1) else "a whole number of at least 1"
+    if kind == "resource":
+        ok = isinstance(value, str) and value in RESTORE_RESOURCES
+        return None if ok else "one of: %s" % ", ".join(RESTORE_RESOURCES)
+    if kind == "amount":
+        ok = value == "full" or _is_whole(value, 1)
+        return None if ok and not isinstance(value, bool) else 'a whole number of at least 1, or "full"'
+    if kind == "stat_map":
+        ok = isinstance(value, dict) and bool(value) and all(
+            _is_text(stat) and _is_whole(gain, 1) for stat, gain in value.items()
+        )
+        return None if ok else "an object of {stat: whole number of at least 1}"
     return None
 
 
@@ -263,6 +311,9 @@ def effect_shape_issues(effects: Any) -> List[str]:
                 issues.append("%s must be a whole number of at least %d; got %s" % (effect, minimum, _describe(value)))
         elif form == "flags":
             issues.extend(_flag_issues(effect, value))
+        elif form == "text":
+            if not _is_text(value):
+                issues.append("%s must be a non-empty text; got %s" % (effect, _describe(value)))
         elif form == "object":
             issues.extend(_object_issues(effect, shape, value))
     return issues
@@ -276,6 +327,9 @@ class EffectReport:
     applied: List[str] = field(default_factory=list)
     unknown: List[str] = field(default_factory=list)
     failed: List[str] = field(default_factory=list)
+    # Effects that were fine and had nothing to do: healing at full health,
+    # forgetting a spell never learned. Not applied, and not a failure.
+    unchanged: List[str] = field(default_factory=list)
 
     def message(self) -> str:
         return "\n".join(m for m in self.messages if m)
@@ -285,6 +339,8 @@ class EffectReport:
         parts: List[str] = []
         if self.applied:
             parts.append("applied: %s" % ", ".join(self.applied))
+        if self.unchanged:
+            parts.append("nothing to do: %s" % ", ".join(self.unchanged))
         if self.failed:
             parts.append("failed: %s" % ", ".join(self.failed))
         if self.unknown:
@@ -533,7 +589,39 @@ def _apply_item_effects(effects: Dict[str, Any], player, world, report: EffectRe
 
 
 
+def _currency(world) -> str:
+    if world is not None and hasattr(world, "currency_name"):
+        return str(world.currency_name())
+    return "gold"
+
+
 def _apply_gold_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
+    _give_gold(effects, player, world, report)
+    _take_gold(effects, player, world, report)
+
+
+def _take_gold(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
+    """All or nothing: a character who cannot pay is not partly charged."""
+    if "take_gold" not in effects:
+        return
+    amount = effects["take_gold"]
+    if not _is_whole(amount, 1):
+        report.failed.append("take_gold %s (must be a whole number greater than zero)" % _describe(amount))
+        return
+    state = getattr(player, "runtime_state", None)
+    held = getattr(state, "gold", None)
+    if held is None:
+        report.failed.append("take_gold %s (economy disabled)" % amount)
+        return
+    if int(held) < amount:
+        report.failed.append("take_gold %s (has %d)" % (amount, int(held)))
+        return
+    state.gold = int(held) - amount
+    report.applied.append("took %s gold" % amount)
+    report.messages.append("You pay %d %s." % (amount, _currency(world).capitalize()))
+
+
+def _give_gold(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
     if "give_gold" not in effects:
         return
     amount = effects["give_gold"]
@@ -557,6 +645,129 @@ def _apply_gold_effect(effects: Dict[str, Any], player, world, report: EffectRep
     if world is not None and hasattr(world, "currency_name"):
         currency = str(world.currency_name())
     report.messages.append("You receive %d %s." % (amount, currency.capitalize()))
+
+
+def _apply_message_effect(effects: Dict[str, Any], report: EffectReport) -> None:
+    if "message" not in effects:
+        return
+    text = effects["message"]
+    if not _is_text(text):
+        report.failed.append("message %s (must be a non-empty text)" % _describe(text))
+        return
+    report.messages.append(str(text).strip())
+    report.applied.append("message")
+
+
+def _apply_forget_effect(effects: Dict[str, Any], player, report: EffectReport) -> None:
+    if "forget_spell" not in effects:
+        return
+    from engine.magic.spell_registry import SPELL_REGISTRY
+
+    forgetter = getattr(player, "forget_spell", None)
+    for identifier, _quantity in entry_pairs(effects["forget_spell"]):
+        if not callable(forgetter):
+            report.failed.append("forget_spell %s (unsupported)" % identifier)
+            continue
+        if forgetter(identifier):
+            spell = SPELL_REGISTRY.get(identifier)
+            report.applied.append("forgot %s" % identifier)
+            report.messages.append("You forget %s." % (getattr(spell, "name", identifier)))
+        else:
+            report.unchanged.append("forget_spell %s (not known)" % identifier)
+
+
+def _apply_restore_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
+    """Refill health, the ability pool, or both, to the top or by an amount."""
+    if "restore" not in effects:
+        return
+    raw = effects["restore"]
+    if isinstance(raw, dict):
+        resource = raw.get("resource", "all")
+        amount = raw.get("amount", "full")
+    else:
+        resource, amount = raw, "full"
+    if _value_check("resource", resource) is not None or _value_check("amount", amount) is not None:
+        report.failed.append("restore %s (needs health, mana or all, and an amount or \"full\")" % _describe(raw))
+        return
+
+    if resource in ("health", "all"):
+        gained = player.heal(int(player.max_health) if amount == "full" else amount) if hasattr(player, "heal") else 0
+        if gained > 0:
+            report.applied.append("restored health +%d" % gained)
+            report.messages.append("You recover %d health." % gained)
+        else:
+            report.unchanged.append("restore health (already full)")
+
+    if resource in ("mana", "all"):
+        magic = getattr(getattr(player, "runtime_state", None), "magic", None)
+        if magic is None:
+            if resource == "mana":
+                report.failed.append("restore mana (this game has no ability pool)")
+            return
+        from engine.contracts.resources import ability_resource_label
+
+        label = ability_resource_label(world).lower()
+        gained = player.restore_mana(int(magic.max_mana) if amount == "full" else amount)
+        if gained > 0:
+            report.applied.append("restored %s +%d" % (label, gained))
+            report.messages.append("You recover %d %s." % (gained, label))
+        else:
+            report.unchanged.append("restore %s (already full)" % label)
+
+
+def _apply_raise_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
+    """A permanent gain. Additive on the stored values, which are what a save keeps:
+    `max_health` and the pool's `max_mana` are saved as numbers, and `level_up` grows
+    them the same way, so nothing recomputes the gain away."""
+    if "raise" not in effects:
+        return
+    raw = effects["raise"]
+    if not isinstance(raw, dict):
+        report.failed.append("raise (must be an object)")
+        return
+
+    health = raw.get("max_health")
+    if health is not None:
+        if not _is_whole(health, 1):
+            report.failed.append("raise max_health %s (must be a whole number of at least 1)" % _describe(health))
+        else:
+            player.max_health += health
+            player.health += health   # a gain is felt at once, as at a level-up
+            report.applied.append("raised max health +%d" % health)
+            report.messages.append("Your maximum health rises by %d (now %d)." % (health, player.max_health))
+
+    pool = raw.get("max_mana")
+    if pool is not None:
+        magic = getattr(getattr(player, "runtime_state", None), "magic", None)
+        if not _is_whole(pool, 1):
+            report.failed.append("raise max_mana %s (must be a whole number of at least 1)" % _describe(pool))
+        elif magic is None:
+            report.failed.append("raise max_mana (this game has no ability pool)")
+        else:
+            from engine.contracts.resources import ability_resource_label
+
+            label = ability_resource_label(world).lower()
+            magic.max_mana += pool
+            magic.mana += pool
+            report.applied.append("raised max %s +%d" % (label, pool))
+            report.messages.append("Your maximum %s rises by %d (now %d)." % (label, pool, magic.max_mana))
+
+    stats = raw.get("stats")
+    if stats is not None:
+        held = getattr(player, "stats", None)
+        if not isinstance(stats, dict) or not isinstance(held, dict):
+            report.failed.append("raise stats (must be an object of {stat: gain})")
+            stats = {}
+        for stat, gain in stats.items():
+            current = held.get(stat)
+            if not _is_whole(gain, 1):
+                report.failed.append("raise stat %s (gain must be a whole number of at least 1)" % stat)
+            elif isinstance(current, bool) or not isinstance(current, (int, float)):
+                report.failed.append("raise stat %s (this character has no such stat)" % stat)
+            else:
+                held[stat] = current + gain
+                report.applied.append("raised %s +%d" % (stat, gain))
+                report.messages.append("Your %s rises by %d." % (str(stat).replace("_", " "), gain))
 
 
 def _apply_relationship_effects(effects: Dict[str, Any], context, report: EffectReport) -> None:
@@ -756,10 +967,14 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
     # guarded on its own: an effect is content, and content must not be able to
     # break a conversation, or stop the effects written after it.
     steps = (
+        ("message", lambda: _apply_message_effect(effects, report)),
         ("quests", lambda: _apply_quest_effects(effects, player, world, report)),
+        ("forgetting", lambda: _apply_forget_effect(effects, player, report)),
         ("learning", lambda: _apply_learning_effects(effects, player, report)),
         ("items", lambda: _apply_item_effects(effects, player, world, report)),
         ("gold", lambda: _apply_gold_effect(effects, player, world, report)),
+        ("raise", lambda: _apply_raise_effect(effects, player, world, report)),
+        ("restore", lambda: _apply_restore_effect(effects, player, world, report)),
         ("relationship", lambda: _apply_relationship_effects(effects, context, report)),
         ("flags", lambda: _apply_flag_effect(effects, player, report)),
         ("exits", lambda: _apply_exit_effect(effects, context, report)),

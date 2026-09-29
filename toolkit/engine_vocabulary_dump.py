@@ -73,7 +73,8 @@ def _weather_vocabulary() -> dict:
 def main() -> int:
     try:
         from engine.conditions import KNOWN_KINDS
-        from engine.dialogue.effects import KNOWN_EFFECTS
+        from engine.dialogue.effects import KNOWN_EFFECTS, RESTORE_RESOURCES
+        from engine.items.consumable import CONSUMABLE_EFFECT_TYPES
         from engine.core.knowledge_manager import (
             CAMPAIGN_STATES, KNOWLEDGE_CONDITION_KINDS, KNOWLEDGE_STATES, QUEST_STATES,
         )
@@ -111,6 +112,11 @@ def main() -> int:
         # readers. Only the effects whose value is an object are listed: the rest
         # take a bare id or number, which is what the editor's "kind" already says.
         "effect_fields": _effect_fields(),
+        # What `restore` can refill, and what a consumable's `effect_type` may be
+        # (`use()` dispatches on exactly these). `DialogueSchema.gd` and
+        # `ItemInspector.gd` hold the editor's copies.
+        "restore_resources": list(RESTORE_RESOURCES),
+        "consumable_effect_types": list(CONSUMABLE_EFFECT_TYPES),
         # The two engine-owned words an NPC template names directly (see
         # `content_set.py::_validate_npc_faction_and_behavior`). `NPCVocabulary.gd`
         # is the editor's copy; `schema_parity_smoke.gd` checks it against this.

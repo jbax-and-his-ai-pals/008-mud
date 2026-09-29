@@ -139,7 +139,16 @@ const EFFECTS := {
 	"reveal_exit": {"label": "Open a hidden exit", "shape": "{room: \"region:room\", direction}", "kind": "json"},
 	"move_npc": {"label": "Move an NPC", "shape": "{npc, region, room}", "kind": "json"},
 	"give_rewards": {"label": "Give a reward bundle", "shape": "{xp, gold, items: [...]}", "kind": "json"},
+	"message": {"label": "Show a message", "shape": "text shown to the player", "kind": "string"},
+	"take_gold": {"label": "Take currency", "shape": "a whole number, 1 or more (all or nothing)", "kind": "int"},
+	"restore": {"label": "Restore health or mana", "shape": "health, mana, all, or {resource, amount: a number or \"full\"}", "kind": "string"},
+	"raise": {"label": "Raise max health, mana or a stat (permanent)", "shape": "{max_health, max_mana, stats: {stat: gain}}", "kind": "json"},
+	"forget_spell": {"label": "Forget an ability", "shape": "ability id, or a list of them", "kind": "string"},
 }
+
+# What `restore` can refill (`engine/dialogue/effects.py::RESTORE_RESOURCES`).
+# `schema_parity_smoke.gd` checks it against the engine.
+const RESTORE_RESOURCES := ["health", "mana", "all"]
 
 const CHECK_FIELDS := {
 	"skill": "string",
@@ -200,6 +209,7 @@ static func default_effect_value(key: String):
 		"int": return 1
 		"json": return {}
 	if key == "set_flag": return "flag_name"
+	if key == "restore": return "all"
 	return ""
 
 
