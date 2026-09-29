@@ -88,6 +88,30 @@ directory or a manifest path. There is no longer a launcher that picks a fixture
 from `LATEST_REFRESH.json`; that file is a log of a past fixture refresh, and
 `run_content_checks.py` reads it to find the tree it recorded.
 
+### Keeping a game across restarts
+
+A **single-player** world (`world.mode` of `single_player_story` or `finite_adventure` in the
+feature profile) remembers itself: the character after every command, and the world's changes (room
+exits and properties, items, NPCs, the respawn queue, time and weather) on an interval, when a
+session disconnects, and at shutdown. It resumes by **character name**, with no login: `char create
+<the same name>` hands the saved character back ("Welcome back"), and another name is told how to
+start over. A **shared** world (`persistent_shard`, the default, and the rest) keeps nothing across a
+restart. A name is not an identity there and nobody has decided what is, so a shared server never
+resumes anyone.
+
+| Flag | Meaning |
+|---|---|
+| *(none)* | A single-player game is kept in one file per content set, `<state dir>/single_player_mud/state/<content set>.sqlite3`; anything else runs in memory. The state directory is `MUD_STATE_DIR`, else the user's local application data. |
+| `--db-path PATH` | Use this SQLite file for a single-player game. |
+| `--ephemeral` | Keep nothing: play in memory and write no file. |
+| `--new-game` | Delete a saved single-player game first and start over. |
+
+A save belongs to the content set **and version** it was written against. If the game has changed
+(the `version` in its manifest), the server leaves the file untouched, plays without saving, and says
+so on the `Persistence notice` line at startup; run the version it came from or start over with
+`--new-game`. A room or NPC that the saved world names and the content no longer has is skipped and
+reported, never a crash.
+
 ## 4. Feature Modes vs Entitlement Gates
 
 Two layers control behavior:

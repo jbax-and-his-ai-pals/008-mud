@@ -7,6 +7,7 @@
   "engine_api_max": "1.0",
   "paths": {
     "content_root": "data",
+    "feature_profile": "data/profiles/story.profile.json",
     "ruleset": "rules/ruleset.json",
     "presentation": "presentation/default.json",
     "opening": "opening/summoned_to_the_throne.json"

@@ -107,7 +107,7 @@ class CommandExecutionMixin:
             if created_handled:
                 events.append(self._event("text", session_id, created_message))
                 if created:
-                    opening_guidance = self.build_opening_guidance()
+                    opening_guidance = "" if session_obj.resumed else self.build_opening_guidance()
                     if opening_guidance:
                         events.append(self._event("text", session_id, opening_guidance))
                     self.persist_player_snapshot(session_id)
@@ -129,14 +129,17 @@ class CommandExecutionMixin:
         # affect every active character. Keep persistence session-scoped.
         command_name = str(text).strip().split(maxsplit=1)[0].lower() if str(text).strip() else ""
         if command_name in {"save", "load"}:
-            events.append(
-                self._event(
-                    "text",
-                    session_id,
-                    "Character progress is saved automatically on this server. "
-                    "Manual save and load are unavailable in a shared world.",
+            if getattr(self, "durable_persistence", False):
+                message = (
+                    "Your progress is saved automatically as you play, the character and the world. "
+                    "Manual save and load are unavailable; continue later with the same character name."
                 )
-            )
+            else:
+                message = (
+                    "This server does not keep progress across restarts, "
+                    "and manual save and load are unavailable in a shared world."
+                )
+            events.append(self._event("text", session_id, message))
             self.persist_player_snapshot(session_id)
             events.extend(self.tick(session_id))
             events.extend(self._flush_background_batch(session_id))

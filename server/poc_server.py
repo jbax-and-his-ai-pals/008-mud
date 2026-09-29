@@ -38,6 +38,9 @@ class JsonLineMudServer:
         require_character_creation: bool = False,
         boot_warning_fail_codes: list[str] | None = None,
         presentation_mode: str = "player",
+        db_path: str | None = None,
+        ephemeral: bool = False,
+        new_game: bool = False,
     ):
         self.host = host
         self.port = port
@@ -51,7 +54,9 @@ class JsonLineMudServer:
         )
         self.server = HeadlessServer(
             save_file=save_file,
-            db_path=":memory:",
+            db_path=db_path,
+            ephemeral=ephemeral,
+            new_game=new_game,
             content_set_path=content_set_path,
             feature_profile=feature_profile,
             starter_items=starter_items,
@@ -1620,6 +1625,17 @@ class JsonLineMudServer:
         self.server.shutdown()
 
 
+def persistence_summary(server) -> str:
+    """One line for the operator: does this server keep its game, and where."""
+    if getattr(server, "durable_persistence", False):
+        summary = "Persistence: this game is saved to %s (character and world; continue with the same character name)." % server.db_path
+    else:
+        summary = "Persistence: nothing is kept across a restart."
+    for notice in getattr(server, "persistence_notices", []):
+        summary += "\nPersistence notice: %s" % notice
+    return summary
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="PoC TCP JSON-line MUD server")
     parser.add_argument("--config", default="server/config/server_config.json", help="Master server config JSON path.")
@@ -1633,6 +1649,22 @@ def main() -> None:
         choices=["player", "test"],
         default="player",
         help="'player' (default) hides debug/GM commands; 'test' exposes them.",
+    )
+    parser.add_argument(
+        "--db-path",
+        default=None,
+        help="SQLite file for a single-player game (default: one file per content set in the state directory). "
+        "A shared world keeps nothing across restarts, whatever the path.",
+    )
+    parser.add_argument(
+        "--ephemeral",
+        action="store_true",
+        help="Keep nothing: play in memory and write no file.",
+    )
+    parser.add_argument(
+        "--new-game",
+        action="store_true",
+        help="Throw away a saved single-player game and start over.",
     )
     args = parser.parse_args()
     config_payload = load_server_config(args.config)
@@ -1665,9 +1697,13 @@ def main() -> None:
         require_character_creation=settings.session_require_character_creation,
         boot_warning_fail_codes=settings.boot_warning_fail_codes,
         presentation_mode=args.presentation_mode,
+        db_path=args.db_path,
+        ephemeral=args.ephemeral,
+        new_game=args.new_game,
     )
     for warning in app.server.boot_warnings:
         print("Feature profile warning:", warning)
+    print(persistence_summary(app.server))
     print(
         "Effective server settings:",
         json.dumps(

@@ -64,6 +64,10 @@ and none of them decides what you can become. Take any background and any
 path later; nothing is closed to you. If you'd rather not choose, `char
 create Rowan` alone gives you the wanderer.
 
+In a single-player game your progress is saved as you play, the character and the world both.
+To carry on another day, start the game and type `char create` with **the same name**; you will
+be welcomed back where you left off. (A different name is told how to start a new game.)
+
 Once you're standing in the town square, four paths are laid out for you —
 take any one of them, or ignore all four and wander off on your own:
 

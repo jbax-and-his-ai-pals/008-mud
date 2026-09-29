@@ -16,6 +16,7 @@ found that the engine could not do.
 """
 
 import json
+import os
 import re
 import shutil
 import sys
@@ -316,37 +317,189 @@ class TestKnownLimits(_Slice):
         about_it = [issue.message for issue in issues if "flooded_hall" in issue.message and "hazard" in issue.message.lower()]
         self.assertEqual([], about_it)
 
-    # FLIP in item 1.3: a restarted server gives the character and the world back.
-    def test_limit_a_restart_forgets_the_character_and_the_lever(self):
+
+class TestPersistence(unittest.TestCase):
+    """A single-player story keeps its character and its world across a restart.
+
+    This is the pin `test_limit_a_restart_forgets_the_character_and_the_lever` turned
+    over: the running server used to persist nothing (both transports built an
+    in-memory database, and nothing read a saved character back).
+    """
+
+    def _db(self):
         scratch = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, scratch, ignore_errors=True)  # registered first, so it runs last
-        db = str(Path(scratch) / "world.sqlite3")
+        self.addCleanup(shutil.rmtree, scratch, ignore_errors=True)  # registered first, runs last
+        return str(Path(scratch) / "state.sqlite3")
 
-        def boot():
-            return HeadlessServer(
-                db_path=db,
-                content_set_path=str(REPO_ROOT / "content_sets" / self.SET_ID),
-                deterministic_test_mode=True,
-                default_presentation_mode="player",
-            )
+    def _boot(self, set_id, db, **options):
+        return HeadlessServer(
+            db_path=db,
+            content_set_path=str(REPO_ROOT / "content_sets" / set_id),
+            deterministic_test_mode=True,
+            default_presentation_mode="player",
+            **options,
+        )
 
-        first = boot()
-        sid = first.create_session(player_id="restart").session_id
-        first.execute_command(sid, "char create Restarter")
+    def _join(self, server, name, player_id):
+        session = server.create_session(player_id=player_id).session_id
+        events = server.execute_command(session, "char create %s" % name)
+        text = _MARKUP.sub("", "\n".join(str(e.get("payload")) for e in events if e.get("type") == "text"))
+        return session, text
+
+    def _say(self, server, session, command):
+        events = server.execute_command(session, command)
+        return _MARKUP.sub("", "\n".join(str(e.get("payload")) for e in events if e.get("type") in ("text", "error")))
+
+    def _holds(self, player, item_id):
+        return any(slot.item and slot.item.obj_id == item_id for slot in player.inventory.slots)
+
+    def test_zelda_keeps_the_character_the_lever_and_the_pack(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        sid, _ = self._join(first, "Restarter", "transport-1")
         hero = first.get_player_for_session(sid)
-        hero.flags["marker"] = True
+        hero.current_region_id, hero.current_room_id = "caves", "hermit_cave"
+        self._say(first, sid, "talk hermit")
+        self._say(first, sid, "reply 1")
         hero.current_region_id, hero.current_room_id = "mossroot", "root_hall"
-        first.execute_command(sid, "pull loose stone")
+        self._say(first, sid, "pull loose stone")
         self.assertIn("down", first.world.get_region("mossroot").get_room("root_hall").exits)
         first.shutdown()
 
-        second = boot()
+        second = self._boot("zelda_slice", db)
         self.addCleanup(second.shutdown)
-        sid = second.create_session(player_id="restart").session_id
-        second.execute_command(sid, "char create Restarter")
-        again = second.get_player_for_session(sid)
-        self.assertEqual({}, again.flags, "a new character, not the one that was saved")
-        self.assertNotIn("down", second.world.get_region("mossroot").get_room("root_hall").exits)
+        sid2, welcome = self._join(second, "Restarter", "a-different-transport-id")
+        self.assertIn("Welcome back", welcome)
+        again = second.get_player_for_session(sid2)
+        self.assertTrue(self._holds(again, "item_wooden_sword"))
+        self.assertTrue(again.flags.get("got_the_sword"))
+        self.assertEqual(("mossroot", "root_hall"), (again.current_region_id, again.current_room_id))
+        self.assertIn("down", second.world.get_region("mossroot").get_room("root_hall").exits,
+                      "the lever's door is still open")
+
+    def test_ff4_keeps_the_choice_the_quest_and_a_friend_who_moved(self):
+        db = self._db()
+        first = self._boot("ff4_slice", db)
+        sid, _ = self._join(first, "Caelan", "transport-1")
+        hero = first.get_player_for_session(sid)
+        self._say(first, sid, "talk king")
+        self._say(first, sid, "reply 2")
+        hero.current_region_id, hero.current_room_id = "varenholt", "barracks"
+        self._say(first, sid, "talk kessa")
+        self._say(first, sid, "reply 1")
+        first.shutdown()
+
+        second = self._boot("ff4_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, welcome = self._join(second, "Caelan", "another-id")
+        self.assertIn("Welcome back", welcome)
+        again = second.get_player_for_session(sid2)
+        self.assertIs(True, again.flags.get("questioned_king"))
+        self.assertIn("The King's Package", [q.get("title") for q in again.runtime_state.quests.active.values()])
+        self.assertTrue(self._holds(again, "package_of_the_king"))
+        self.assertFalse(self._holds(again, "item_commander_seal"))
+        kessa = next(n for n in second.world.npcs.values() if n.template_id == "captain_kessa")
+        self.assertEqual(("mistvale", "village_square"), (kessa.current_region_id, kessa.current_room_id))
+
+    def test_the_last_autosave_survives_a_crash_with_no_shutdown(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        self.addCleanup(first.shutdown)
+        sid, _ = self._join(first, "Restarter", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.current_region_id, hero.current_room_id = "mossroot", "root_hall"
+        self._say(first, sid, "pull loose stone")
+        for _ in range(80):  # eight seconds of simulated time, past the autosave interval
+            first.tick(sid)
+        self.assertTrue(first.persistence.flush(5))
+
+        second = self._boot("zelda_slice", db)  # the first server is never shut down
+        self.addCleanup(second.shutdown)
+        _sid, welcome = self._join(second, "Restarter", "after-the-crash")
+        self.assertIn("Welcome back", welcome)
+        self.assertIn("down", second.world.get_region("mossroot").get_room("root_hall").exits)
+
+    def test_the_save_command_tells_the_truth(self):
+        durable = self._boot("zelda_slice", self._db())
+        self.addCleanup(durable.shutdown)
+        sid, _ = self._join(durable, "Restarter", "transport-1")
+        self.assertIn("saved automatically as you play", self._say(durable, sid, "save"))
+
+        shared = self._boot("fantasy_frontier", self._db())
+        self.addCleanup(shared.shutdown)
+        sid, _ = self._join(shared, "Restarter", "transport-1")
+        self.assertIn("does not keep progress", self._say(shared, sid, "save"))
+
+    def test_a_different_name_is_not_given_the_saved_game(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        self._join(first, "Restarter", "transport-1")
+        first.shutdown()
+
+        second = self._boot("zelda_slice", db)
+        self.addCleanup(second.shutdown)
+        sid, text = self._join(second, "Intruder", "transport-2")
+        self.assertIn("Restarter", text)
+        self.assertIn("--new-game", text)
+        self.assertIsNone(second.get_player_for_session(sid))
+
+    def test_new_game_starts_over(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        self._join(first, "Restarter", "transport-1")
+        first.shutdown()
+
+        second = self._boot("zelda_slice", db, new_game=True)
+        self.addCleanup(second.shutdown)
+        sid, text = self._join(second, "Somebody Else", "transport-2")
+        self.assertIn("Character created", text)
+        self.assertIsNotNone(second.get_player_for_session(sid))
+
+    def test_ephemeral_keeps_nothing(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db, ephemeral=True)
+        self._join(first, "Restarter", "transport-1")
+        first.shutdown()
+        self.assertFalse(os.path.exists(db), "an ephemeral server writes no file")
+
+        second = self._boot("zelda_slice", db, ephemeral=True)
+        self.addCleanup(second.shutdown)
+        _sid, text = self._join(second, "Restarter", "transport-2")
+        self.assertIn("Character created", text)
+
+    def test_a_shared_world_is_left_as_it_was(self):
+        """Multi-player identity is not decided (Decision 7), so a shard does not resume anyone."""
+        db = self._db()
+        first = self._boot("fantasy_frontier", db)
+        self._join(first, "Restarter", "transport-1")
+        first.shutdown()
+
+        second = self._boot("fantasy_frontier", db)
+        self.addCleanup(second.shutdown)
+        _sid, text = self._join(second, "Restarter", "transport-2")
+        self.assertIn("Character created", text)
+        self.assertNotIn("Welcome back", text)
+
+    def test_a_save_from_a_different_version_of_the_game_is_not_overwritten(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        self._join(first, "Restarter", "transport-1")
+        first.shutdown()
+
+        from engine.server.persistence.sqlite_store import SqliteStore
+        store = SqliteStore(db)
+        world = store.load_world_state("world")
+        world["envelope"]["content_set"]["version"] = "9.9.9"
+        store.queue_world_state("world", world)
+        store.close()
+
+        second = self._boot("zelda_slice", db)
+        self.assertFalse(second.durable_persistence, "the server will not write over a save it cannot read")
+        self.assertTrue(any("9.9.9" in note for note in second.persistence_notices))
+        second.shutdown()
+        store = SqliteStore(db)
+        self.addCleanup(store.close)
+        self.assertEqual("9.9.9", store.load_world_state("world")["envelope"]["content_set"]["version"])
 
 
 if __name__ == "__main__":

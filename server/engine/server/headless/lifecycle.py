@@ -76,11 +76,17 @@ class LifecycleMixin:
         for session_id in list(self.sessions.keys()):
             self.persist_player_snapshot(session_id)
         self._persist_global_player_snapshot()
+        self._autosave_world(force=True)
         self.persistence.flush()
         self.persistence.stop_async_writer()
         self.persistence.close()
 
     def persist_player_snapshot(self, session_id: str) -> None:
+        if getattr(self, "durable_persistence", False):
+            # A single-player game keeps its character under the character's own
+            # name, so a later session can be handed it back (DurableStateMixin).
+            self._persist_character(session_id)
+            return
         player = self.get_player_for_session(session_id)
         if not player:
             return
@@ -212,5 +218,8 @@ class LifecycleMixin:
         # World-effects tick (blight, fields): background — batch.
         for ev in self.world_effects_provider.tick(self, session_id):
             self._background_event_batch.append(ev)
+
+        # A single-player game saves its world on an interval (DurableStateMixin).
+        self._autosave_world()
 
         return events

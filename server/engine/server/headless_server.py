@@ -56,6 +56,7 @@ from engine.server.headless.world_effects import WorldEffectsMixin
 from engine.server.headless.command_execution import CommandExecutionMixin
 from engine.server.headless.field_fx import FieldFxMixin
 from engine.server.headless.status_payloads import StatusPayloadsMixin
+from engine.server.headless.durable_state import DurableStateMixin
 
 
 class _NullRenderer:
@@ -82,6 +83,7 @@ class _NullInputHandler:
 class HeadlessServer(
     BootWarningsMixin, SessionMixin, FiniteAdventureMixin, PartyMixin, ShardMixin,
     LifecycleMixin, WorldEffectsMixin, CommandExecutionMixin, FieldFxMixin, StatusPayloadsMixin,
+    DurableStateMixin,
 ):
     """Minimal authoritative headless runtime that reuses existing world/command systems."""
     def __init__(
@@ -101,7 +103,14 @@ class HeadlessServer(
         boot_warning_fail_codes: Optional[List[str]] = None,
         clock: Optional[Clock] = None,
         default_presentation_mode: str = "test",
+        ephemeral: bool = False,
+        new_game: bool = False,
     ) -> None:
+        # `db_path`: None keeps a single-player game in its own file
+        # (`persistence.paths.default_database_path`) and anything else in memory;
+        # ":memory:" is explicit; a path is used as given. `ephemeral` keeps nothing at
+        # all; `new_game` throws away a saved single-player game first. A shared world
+        # is never resumed (Decision 7), whatever the path.
         self.tick_rate_hz = tick_rate_hz
         self.tick_dt = 1.0 / self.tick_rate_hz
         self.deterministic_test_mode = deterministic_test_mode
@@ -183,11 +192,13 @@ class HeadlessServer(
         self.renderer = _NullRenderer()
         self.input_handler = _NullInputHandler()
         self.current_save_file = save_file
-        self.db_path = db_path or os.path.abspath("server_state.sqlite3")
-        self.persistence = SqliteStore(self.db_path)
-        self.persistence.start_async_writer()
         self.feature_profile_source_path = "injected" if feature_profile is not None else str(definition.feature_profile_path or "")
         self.feature_profile = feature_profile or FeatureProfile.load(self.feature_profile_source_path or None)
+        # The profile decides whether this is a game that remembers itself, so it has to
+        # be known before the store is opened.
+        self.db_path = self._plan_persistence(db_path, ephemeral, new_game)
+        self.persistence = SqliteStore(self.db_path)
+        self.persistence.start_async_writer()
         self._seed_boot_warnings_from_profile()
         self.entitlement_guard = EntitlementGuard(entitlement_policy or {})
         self.mods_dir = mods_dir or os.path.abspath("mods")
@@ -252,6 +263,9 @@ class HeadlessServer(
         self._background_event_batch: List[Dict[str, Any]] = []
         self._background_batch_enabled: bool = True
         self._init_field_state()
+        # A single-player game puts its saved world back now that the world, the clock
+        # and the fields all exist.
+        self._restore_durable_world()
         self._persist_global_player_snapshot()
         self.plugin_manager = PluginManager(self, mods_dir=self.mods_dir)
         if self.feature_profile.mods_mode == "enabled":

@@ -22,6 +22,9 @@ class Session:
     # "player" or "test". Controls whether debug/GM tooling is reachable and
     # (later) whether engine internals are shown. See docs/design/WORLD_DESIGN.md §2.
     presentation_mode: str = "test"
+    # True when this session's character was handed back from a saved game rather
+    # than created (DurableStateMixin), so the opening is not read out again.
+    resumed: bool = False
 
 
 @dataclass

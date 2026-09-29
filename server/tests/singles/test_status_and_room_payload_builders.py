@@ -359,7 +359,7 @@ class TestHeadlessPersistenceBoundary(unittest.TestCase):
 
         text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
         save_game.assert_not_called()
-        self.assertIn("saved automatically", text)
+        self.assertIn("does not keep progress", text)
         self.assertIn("shared world", text)
 
     def test_manual_load_is_not_allowed_to_replace_the_shared_world(self):
@@ -368,7 +368,7 @@ class TestHeadlessPersistenceBoundary(unittest.TestCase):
 
         text = "\n".join(str(event["payload"]) for event in events if event["type"] == "text")
         load_save_game.assert_not_called()
-        self.assertIn("saved automatically", text)
+        self.assertIn("does not keep progress", text)
         self.assertIn("shared world", text)
 
 class TestNormalizeQuestEntries(unittest.TestCase):

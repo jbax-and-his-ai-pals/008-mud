@@ -1067,6 +1067,14 @@ file-backed persistence under the walkthroughs, at 1.3; S6 the `on_enter` seam, 
   about 5 ms and is 169 KB; a player is 2 KB. A snapshot is cheap enough to autosave
   every few seconds when dirty.
 
+**Progress.** Phase 1 (persistence) is done as of 2026-09-28: **1.1** the store keeps what it is
+handed (`test_sqlite_store_durability`); **1.2** one world snapshot serves the desktop save, the
+finite-adventure baseline and a restart, save format 5, and `adventure reset` now closes a door a
+lever opened (`test_world_snapshot_round_trip` plays all six shipped sets, snapshots through JSON, restores
+into a second server and requires identical worlds); **1.3** a single-player story resumes its
+character by name, autosaves the world, and takes `--db-path`, `--ephemeral` and `--new-game`
+(`TestPersistence`). A shared world is unchanged, by Decision 7.
+
 ---
 
 ## Decisions that gate chunks

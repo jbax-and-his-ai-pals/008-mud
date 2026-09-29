@@ -1,13 +1,13 @@
 """Does the engine keep a character, and the changes it made to the world, across a restart?
 
-Asked of zelda_slice with a real database file. Answer as of 2026-09-28: no, and it is
-the engine, not this harness. The running server persists nothing: both transports use
-an in-memory database, the entity table is written after every command and never read
-back, a returning player cannot be told from a new one, and a lever pulled or a wall
-bombed is not restored (the world is rebuilt from content on boot). Pinned by
-`TestKnownLimits.test_limit_a_restart_forgets_the_character_and_the_lever` in
-server/tests/singles/test_adaptation_slices.py and closed by chunk 7, Phase 1
-(docs/plan/chunks-of-work.md).
+Asked of zelda_slice with a real database file. Before chunk 7 Phase 1 (2026-09-28) the answer was
+no, and it was the engine, not this harness: the running server persisted nothing (both transports
+built an in-memory database, the entity table was written and never read back, a returning player
+could not be told from a new one, and a lever pulled or a wall bombed was not restored). Now a
+single-player story (`world.mode: single_player_story`, which both slices are) resumes its character
+by name and its world with it, so this probe prints "Welcome back" and the lever's door and the
+bomb wall still open. A shared world (`persistent_shard`, the default) still keeps nothing, by
+Decision 7. Held by `TestPersistence` in server/tests/singles/test_adaptation_slices.py.
 """
 import os, re, tempfile
 from play import Game

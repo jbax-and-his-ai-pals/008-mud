@@ -207,6 +207,12 @@ class SessionMixin:
         if session.player_id in self.world.players:
             return True, "Character already exists for this session.", False
 
+        # A single-player game that has been saved belongs to its character: the same
+        # name continues it, another name is told how to start over (DurableStateMixin).
+        answered = self._resume_or_refuse(session, raw_name)
+        if answered is not None:
+            return answered
+
         from engine.player import Player
         new_player = Player(raw_name, world=self.world)
         new_player.obj_id = session.player_id
@@ -313,6 +319,11 @@ class SessionMixin:
         if session is not None:
             session.connected = False
             session.disconnected_at = time.time()
+            # Leaving is a moment worth keeping: write the character and the world now
+            # rather than wait for the interval (a no-op unless a single-player game).
+            if getattr(self, "durable_persistence", False):
+                self.persist_player_snapshot(session_id)
+                self._autosave_world(force=True)
 
     def _find_player_id_by_name(self, name: str) -> tuple[str, str]:
         normalized = str(name).strip().lower()
