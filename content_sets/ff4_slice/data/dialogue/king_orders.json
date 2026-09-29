@@ -37,7 +37,12 @@
                         "set_flag": [
                             "king_ordered",
                             "questioned_king"
-                        ]
+                        ],
+                        "message": "Two guards take you by the arms and march you out of the throne room.",
+                        "teleport": {
+                            "region": "varenholt",
+                            "room": "courtyard"
+                        }
                     }
                 },
                 {

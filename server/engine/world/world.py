@@ -480,6 +480,32 @@ class World:
         what = ", ".join(names) if names else "what it asked"
         return f"You spend the {what}; the way {direction} is open to you from now on."
 
+    # How many arrivals may chain, each sending the player on to the next, before the
+    # next is refused: a loop of warps must not hang the server.
+    TELEPORT_CHAIN_LIMIT = 3
+    _teleport_depth = 0
+
+    def teleport_player(self, player: 'Player', region_id: str, room_id: str) -> Tuple[bool, str]:
+        """Put `player` in a room without walking there.
+
+        Arrives through `_arrive` (visited, location, quest room entry, what they see) and
+        never asks the exit gate: a warp does not pass through a door, so a lock on the
+        way in does not stop it. Returns `(True, what the player reads)`, or
+        `(False, "no_room" | "too_deep" | "dead")`.
+        """
+        if player is None or not getattr(player, "is_alive", False):
+            return False, "dead"
+        region = self.get_region(region_id)
+        if region is None or region.get_room(room_id) is None:
+            return False, "no_room"
+        if self._teleport_depth >= self.TELEPORT_CHAIN_LIMIT:
+            return False, "too_deep"
+        self._teleport_depth += 1
+        try:
+            return True, self._arrive(player, region_id, room_id, player.current_region_id)
+        finally:
+            self._teleport_depth -= 1
+
     def _evaluate_exit_gate(self, player: 'Player', room: Room, direction: str) -> Optional[str]:
         """Whether the way `direction` from `room` is open to `player`.
 

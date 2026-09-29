@@ -3742,6 +3742,9 @@ def _check_effect_block(
                 f"{where} effect spawn_npc names NPC '{npc_id}', which is not defined in this content set",
             ))
         _check_room_reference(spawn.get("region"), spawn.get("room"), f"{where} effect spawn_npc", path, ids, issues)
+    warp = block.get("teleport")
+    if isinstance(warp, dict):
+        _check_room_reference(warp.get("region"), warp.get("room"), f"{where} effect teleport", path, ids, issues)
     removal = block.get("remove_npc")
     if removal is not None:
         target = removal.get("npc") if isinstance(removal, dict) else removal

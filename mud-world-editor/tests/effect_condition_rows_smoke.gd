@@ -213,7 +213,7 @@ func _check_the_character_effects_have_typed_rows() -> void:
 	_assert(choice["effects"]["restore"] == "mana", "or one resource by name: %s" % str(choice["effects"]["restore"]))
 	_assert(RowProbe.value_widget(holder, "message") is LineEdit, "a message is plain text")
 	# A fresh effect starts as a value the engine accepts, of the right type.
-	for candidate in ["restore", "take_gold", "raise", "forget_spell", "spawn_npc", "remove_npc"]:
+	for candidate in ["restore", "take_gold", "raise", "forget_spell", "spawn_npc", "remove_npc", "teleport"]:
 		_assert(DialogueSchema.has_effect(candidate), "`%s` is offered" % candidate)
 	_assert(DialogueSchema.effect_kind("remove_npc") == "npc_id", "an NPC to remove is picked from the set's NPCs")
 	_assert(DialogueSchema.default_effect_value("spawn_npc") is Dictionary or typeof(DialogueSchema.default_effect_value("spawn_npc")) == TYPE_DICTIONARY,

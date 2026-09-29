@@ -1112,6 +1112,12 @@ open and hands the rest to `_arrive` (visited, location, quest room entry, insta
 look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
 `test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
 
+**3.4** `teleport: {region, room}` is `World.teleport_player`: it arrives through `_arrive` (3.0's seam) and never asks the
+exit gate, runs last in the effect order, and refuses a chain of arrivals past `TELEPORT_CHAIN_LIMIT` (3) so a loop of warps
+cannot hang the server (nothing fires on arrival yet; the cap is for the triggers of Phase 4). The validator checks the room
+exists. Slices: FF4's guards march you to the courtyard when you defy the king; Zelda's sage sends you to the tower approach
+once the Triad is forged. Phase 3 is complete.
+
 **3.3** `permanent: true` on an environmental reaction (`clear_exit_req`, `suppress_hazard`) applies the change and
 schedules no revert, in `Room.apply_elemental_interaction`. World-scoped (Decision 11) and carried by the existing snapshot of a
 room's property changes, so a bombed wall is still down after a restart (`test_a_bombed_wall_is_still_open_after_a_restart`). The

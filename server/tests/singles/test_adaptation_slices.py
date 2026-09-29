@@ -179,6 +179,17 @@ class TestZeldaSlice(_Slice):
         self.assertEqual(magic.max_mana, magic.mana)
         self.assertEqual(gold, self.player.runtime_state.gold, "the pool is free")
 
+    def test_the_sage_sends_you_to_the_tower_only_once_the_triad_is_forged(self):
+        self.at("aldermark", "village_green")
+        self.player.flags["campaign_begun"] = True
+        self.assertNotIn("Send me to the tower", self.say("talk sage"))
+        self.say("reply 1")   # "Not yet."
+        self.player.flags["triad_forged"] = True
+        offered = self.say("talk sage")
+        self.assertIn("Send me to the tower", offered)
+        self.say("reply 1")
+        self.assertEqual("aldermark:tower_approach", self.where())
+
     def test_a_small_key_is_spent_by_the_door_it_opens(self):
         self.at("mossroot", "mossy_gallery")
         refused = self.say("go east")
@@ -310,7 +321,18 @@ class TestFF4Slice(_Slice):
         self.assertIs(True, self.player.flags.get("questioned_king"))
         self.assertIn("The King's Package", self.quest_states())
         self.assertTrue(self.holds("package_of_the_king"), "a courier run hands you its package")
+        self.assertEqual("varenholt:courtyard", self.where(), "the guards march you out")
+        self.at("varenholt", "throne_room")
         self.assertNotIn("slaughter", self.say("talk king"), "the choice cannot be made twice")
+
+    def test_defying_the_king_gets_you_marched_out_and_the_arrival_is_read_last(self):
+        self.at("varenholt", "throne_room")
+        self.say("talk king")
+        said = self.say("reply 2")
+        self.assertEqual("varenholt:courtyard", self.where())
+        self.assertIn("march you out", said)
+        self.assertLess(said.index("march you out"), said.upper().index("CASTLE COURTYARD"),
+                        "the guards first, and then where you now are")
 
     def test_one_choice_sets_two_flags_and_the_one_it_shares_closes_both_answers(self):
         """`set_flag` takes a list: which way you went, and that the king has spoken."""

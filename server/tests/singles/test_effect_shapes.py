@@ -45,6 +45,7 @@ class TestTheTable(unittest.TestCase):
             "restore": ["amount", "resource"],
             "reveal_exit": ["direction", "room"],
             "spawn_npc": ["instance_id", "npc", "region", "room"],
+            "teleport": ["region", "room"],
         }, effect_fields())
 
     def test_each_object_effects_fields_are_the_ones_its_reader_reads(self):
@@ -59,6 +60,7 @@ class TestTheTable(unittest.TestCase):
             "raise": "_apply_raise_effect",
             "spawn_npc": "_apply_spawn_npc_effect",
             "remove_npc": "_apply_remove_npc_effect",
+            "teleport": "_apply_teleport_effect",
         }
         self.assertEqual(set(readers), set(effect_fields()))
         for effect, reader in readers.items():
@@ -97,6 +99,7 @@ class TestShapeIssues(unittest.TestCase):
         {"spawn_npc": {"npc": "fiend", "region": "keep", "room": "hall", "instance_id": "the_fiend"}},
         {"remove_npc": "chancellor"}, {"remove_npc": {"npc": "chancellor"}},
         {"remove_npc": {"npc": "chancellor", "region": "keep", "room": "hall"}},
+        {"teleport": {"region": "keep", "room": "hall"}},
     ]
     BAD = [
         ({"set_flag": 5}, "set_flag"), ({"set_flag": []}, "set_flag"), ({"set_flag": [3]}, "set_flag"),
@@ -132,6 +135,8 @@ class TestShapeIssues(unittest.TestCase):
         ({"remove_npc": {"npc": "chancellor", "region": "keep"}}, "together"),
         ({"remove_npc": {"npc": "chancellor", "room": "hall"}}, "together"),
         ({"remove_npc": {"npc": "chancellor", "where": "hall"}}, "where"),
+        ({"teleport": "hall"}, "teleport"), ({"teleport": {"region": "keep"}}, "room"),
+        ({"teleport": {"room": "hall"}}, "region"), ({"teleport": {"region": "keep", "room": "hall", "how": 1}}, "how"),
     ]
 
     def test_a_valid_value_draws_no_issue(self):

@@ -50,6 +50,21 @@
                     }
                 },
                 {
+                    "text": "Send me to the tower, sage.",
+                    "condition": {
+                        "kind": "flag",
+                        "flag": "triad_forged"
+                    },
+                    "next_node": "sent",
+                    "effects": {
+                        "message": "The sage lays a cracked staff on your shoulder. The meadow folds up like a page.",
+                        "teleport": {
+                            "region": "aldermark",
+                            "room": "tower_approach"
+                        }
+                    }
+                },
+                {
                     "text": "Not yet.",
                     "end": true
                 }
@@ -69,6 +84,15 @@
             "choices": [
                 {
                     "text": "Then I go north.",
+                    "end": true
+                }
+            ]
+        },
+        "sent": {
+            "text": "Go with my blessing. The door will know what you carry.",
+            "choices": [
+                {
+                    "text": "Thank you.",
                     "end": true
                 }
             ]
