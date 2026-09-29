@@ -322,12 +322,29 @@ class World:
             for player in list(self.players.values()):
                 self.quest_manager.check_quest_completion(player)
 
+        # A creature can die without anyone calling `die()`: `take_damage` clears
+        # `is_alive`, and only the player's own blows went on to `die()`. So a creature
+        # that burned, was poisoned or was killed by another creature was swept away with no
+        # loot, no return timer for a friendly, and no event for a trigger. Find those
+        # deaths, let `die()` run, and raise the event once.
+        for npc in [n for n in self.npcs.values() if not n.is_alive and not getattr(n, "_death_processed", False)]:
+            messages.extend(self._reap_unclaimed_death(npc))
+
         npcs_to_remove = [npc_id for npc_id, npc in self.npcs.items() if not npc.is_alive]
         for npc_id in npcs_to_remove: self.npcs.pop(npc_id, None)
 
         self.instance_manager.check_and_cleanup_completed_instances()
         
         return messages
+
+    def _reap_unclaimed_death(self, npc: NPC) -> List[Tuple[Optional[Tuple[str, str]], str]]:
+        npc.die(self)
+        location = (npc.current_region_id, npc.current_room_id)
+        witness = next(
+            (p for p in self.players.values() if (p.current_region_id, p.current_room_id) == location), None
+        )
+        text = self.dispatch_event("npc_killed", {"player": witness, "npc": npc})
+        return [(location, text)] if text else []
 
     def find_path(self, source_region_id: str, source_room_id: str, target_region_id: str, target_room_id: str) -> Optional[List[str]]:
         return find_path(self, source_region_id, source_room_id, target_region_id, target_room_id)
@@ -638,7 +655,8 @@ class World:
                     payload=advancement.npc_payload(npc),
                 )
 
-            parts = [m for m in (quest_msg, rep_msg, encounter_msg) if m]
+            trigger_lines = self.trigger_runner.fire_npc_killed(player, npc) if npc is not None else []
+            parts = [m for m in (quest_msg, rep_msg, encounter_msg, *trigger_lines) if m]
             return "\n".join(parts) if parts else None
         return None
 

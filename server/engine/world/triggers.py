@@ -14,9 +14,19 @@ quests can still have a door that seals behind you.
                     "message": "The door grinds shut behind you."}
     }
 
-`World._arrive` fires it after the player's location is set and *before* the room is
-described, so an exit it reveals is in the room text. The text it produces is appended
-to what the player reads on arrival.
+Three events fire a trigger:
+
+    on_enter      the player walks into `region`/`room`. `World._arrive` fires it after the
+                  location is set and *before* the room is described, so an exit it
+                  reveals is in the room text.
+    npc_killed    a creature dies: `npc` is a template id or a placed id, optionally
+                  narrowed to the `region`/`room` it died in.
+    room_cleared  the last living hostile in `region`/`room` is gone.
+
+The kill events are raised by `World.dispatch_event("npc_killed", ...)`, from the player's
+blows, a spell, a minion, and the world tick's reaper (a creature that died of something
+that never called `die()`). The text a trigger produces is appended to what the player
+reads at that moment.
 
 `once` is `player` (the default; a flag on the player, `_trigger.<id>`, which saves with
 the character), `world` (a latch in `world.world_state["triggers"]`, which the world
@@ -38,8 +48,19 @@ from engine.utils.logger import Logger
 
 TRIGGERS_DIRECTORY = "triggers"
 
-# The events a trigger can be `on`. `on_enter` needs a region and a room.
-TRIGGER_EVENTS = ("on_enter",)
+# The events a trigger can be `on`, the fields each event's `on` may carry, and the ones it
+# needs. `region` and `room` always come as a pair. `TriggerSchema.gd` is the editor's copy.
+TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared")
+EVENT_FIELDS = {
+    "on_enter": ("region", "room"),
+    "npc_killed": ("npc", "region", "room"),
+    "room_cleared": ("region", "room"),
+}
+EVENT_REQUIRED = {
+    "on_enter": ("region", "room"),
+    "npc_killed": ("npc",),
+    "room_cleared": ("region", "room"),
+}
 # What a trigger may carry, and what `once` may be (`False` is "every time").
 TRIGGER_KEYS = ("on", "when", "once", "effects", "note")
 ONCE_MODES = ("player", "world")
@@ -103,6 +124,43 @@ class TriggerRunner:
                 continue
             lines.extend(self._run(trigger_id, definition, player))
         return lines
+
+    def fire_npc_killed(self, player, npc) -> List[str]:
+        """The lines for a creature's death: `npc_killed` triggers, then `room_cleared` if it
+        was the last hostile standing. `player` is who to run the effects for (the killer,
+        else someone in the room, else the primary player); with nobody, nothing fires."""
+        if npc is None or self._depth >= MAX_DEPTH:
+            return []
+        region_id, room_id = getattr(npc, "current_region_id", None), getattr(npc, "current_room_id", None)
+        player = player or self._player_for(region_id, room_id)
+        if player is None:
+            return []
+        lines: List[str] = []
+        for trigger_id, definition in self.triggers.items():
+            on = definition.get("on")
+            if not isinstance(on, dict) or on.get("event") != "npc_killed":
+                continue
+            if on.get("npc") not in (getattr(npc, "template_id", None), getattr(npc, "obj_id", None)):
+                continue
+            if "region" in on and (on.get("region"), on.get("room")) != (region_id, room_id):
+                continue
+            lines.extend(self._run(trigger_id, definition, player))
+        from engine.world import factions
+
+        if region_id and room_id and factions.is_hostile(npc, self.world) \
+                and not factions.hostiles_in(self.world, region_id, room_id):
+            for trigger_id, definition in self.triggers.items():
+                on = definition.get("on")
+                if isinstance(on, dict) and on.get("event") == "room_cleared" \
+                        and (on.get("region"), on.get("room")) == (region_id, room_id):
+                    lines.extend(self._run(trigger_id, definition, player))
+        return lines
+
+    def _player_for(self, region_id: str, room_id: str):
+        for candidate in getattr(self.world, "players", {}).values():
+            if (candidate.current_region_id, candidate.current_room_id) == (region_id, room_id):
+                return candidate
+        return self.world.resolve_reference_player(None)
 
     def _run(self, trigger_id: str, definition: Dict[str, Any], player) -> List[str]:
         once = definition.get("once", DEFAULT_ONCE)

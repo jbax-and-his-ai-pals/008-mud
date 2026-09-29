@@ -72,6 +72,9 @@ class NPC(GameObject):
         self.aggression = 0.0
         self.attack_power = 5
         self.defense = 2
+        # Set once `die()` (or a despawn) has handled this creature's death; the world
+        # tick reaps a creature that is dead and not yet handled.
+        self._death_processed = False
         self.flee_threshold = 0.2
         self.respawn_cooldown = NPC_DEFAULT_RESPAWN_COOLDOWN
         self.combat_cooldown = 3.0
@@ -143,6 +146,8 @@ class NPC(GameObject):
         return self.health - old_health
 
     def die(self, world: 'World') -> List[Item]:
+        # Claimed: the world tick's reaper only looks for deaths nothing has handled.
+        self._death_processed = True
         if self.properties.get("is_summoned"):
             self.despawn(world, silent=True)
             return []
@@ -292,6 +297,7 @@ class NPC(GameObject):
     def despawn(self, world: 'World', silent: bool = False) -> Optional[str]:
         if not self.properties.get("is_summoned"): return None
         self.is_alive = False
+        self._death_processed = True   # released, not killed: nothing for the reaper or a trigger
         owner_id = self.owner_id or self.properties.get("owner_id")
         if owner_id and world:
             owner = world.get_player_by_id(owner_id)

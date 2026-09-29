@@ -142,6 +142,13 @@ func _check_trigger_vocabulary(vocabulary: Dictionary) -> void:
 		"the events match (engine %s, editor %s)" % [str(engine.get("events")), str(schema.EVENTS)])
 	_assert(_as_set(engine.get("keys", [])) == _as_set(schema.KEYS),
 		"the keys match (engine %s, editor %s)" % [str(engine.get("keys")), str(schema.KEYS)])
+	for key in ["event_fields", "event_required"]:
+		var editor_table: Dictionary = schema.EVENT_FIELDS if key == "event_fields" else schema.EVENT_REQUIRED
+		var engine_table: Dictionary = engine.get(key, {})
+		_assert(_as_set(engine_table.keys()) == _as_set(editor_table.keys()), "the events in %s match" % key)
+		for event in engine_table:
+			_assert(_as_set(engine_table[event]) == _as_set(editor_table.get(event, [])),
+				"%s for %s matches (engine %s, editor %s)" % [key, event, str(engine_table[event]), str(editor_table.get(event))])
 	_assert(_as_set(engine.get("once_modes", [])) == _as_set(schema.ONCE_MODES),
 		"the once modes match (engine %s, editor %s)" % [str(engine.get("once_modes")), str(schema.ONCE_MODES)])
 	_assert(str(engine.get("default_once", "")) == schema.DEFAULT_ONCE, "and so does the default")

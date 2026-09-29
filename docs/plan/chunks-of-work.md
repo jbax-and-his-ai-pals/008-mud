@@ -1112,6 +1112,19 @@ open and hands the rest to `_arrive` (visited, location, quest room entry, insta
 look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
 `test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
 
+**4.2** two more trigger events, `npc_killed` (`on: {event, npc, region?, room?}`, `npc` a template or placed id) and
+`room_cleared` (`on: {event, region, room}`), raised by `World.dispatch_event("npc_killed", ...)`, which the player's blows, spells and
+minions already called. What it returns is now delivered on the spell and minion paths (it was discarded), and a minion that
+finishes a *player* no longer raises the event. The **reaper** in `World.update` finds creatures that are dead and unhandled
+(`NPC._death_processed`, set by `die()`, by `despawn`, and by restoring a dead NPC) and runs `die()` and the event once: loot now
+drops for a poison death, and a friendly that dies that way is queued to return (declared behaviour fix). Events with no player
+in the kill use someone in the room, else the primary player. The planned `pending_narration` queue was not needed: the reaper
+runs inside `World.update`, whose return is already location-tagged. The validator knows each event's fields and requirements
+(`EVENT_FIELDS`, `EVENT_REQUIRED`, published and dumped) and refuses one the event does not read. Editor: the inspector switches
+event, keeping what carries over and filling what the new event needs (a creature picker; the room becomes an optional
+narrowing for a kill). Slices: Zelda's boss door seals on entering and the wyrm's death reopens it (with `hidden_exits` declared
+for `reveal_exit`'s static check), the tower stair's shutters announce themselves on `room_cleared`, FF4's drake scene.
+
 **4.1** triggers exist: `data/triggers/*.json`, each file an object of triggers keyed by id, `{on, when, once, effects}`, run by
 `world/triggers.py::TriggerRunner` (built in `World.__init__`, not gated on any capability) from `World._arrive` after the
 location is set and before the room is described. Only `on_enter` for now; 4.2 adds the kill and cleared events and the

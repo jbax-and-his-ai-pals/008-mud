@@ -112,7 +112,10 @@
                 "north": "raft_vault"
             },
             "properties": {
-                "locked_by": "item_key_mossroot"
+                "locked_by": "item_key_mossroot",
+                "hidden_exits": {
+                    "east": "mossy_gallery"
+                }
             },
             "initial_npcs": [
                 {

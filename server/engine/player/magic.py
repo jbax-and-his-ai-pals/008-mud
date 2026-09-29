@@ -151,8 +151,9 @@ class PlayerMagicMixin:
                  if p.runtime_state.combat is not None:
                      p.exit_combat(t)
                  target_world = world or p.world
+                 kill_note = None   # what a trigger says about the death; was discarded
                  if target_world: 
-                     target_world.dispatch_event("npc_killed", {"player": p, "npc": t})
+                     kill_note = target_world.dispatch_event("npc_killed", {"player": p, "npc": t})
 
                  gold_dropped = 0
                  if hasattr(t, "loot_table"):
@@ -192,6 +193,8 @@ class PlayerMagicMixin:
                      loot_str = format_loot_drop_message(p, t, t.die(target_world))
                      if loot_str:
                          results.append(loot_str)
+                 if kill_note:
+                     results.append(kill_note)
 
         # Formatting Output
         # (Single-target casts can still accumulate multiple result lines --

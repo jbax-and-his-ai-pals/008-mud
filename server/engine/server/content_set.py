@@ -3944,7 +3944,7 @@ def _validate_triggers(
     and an id used once across the set. A repeating trigger (`once: false`) is held to the
     same repeat guard a dialogue choice is.
     """
-    from engine.world.triggers import ONCE_MODES, TRIGGER_EVENTS, TRIGGER_KEYS
+    from engine.world.triggers import EVENT_FIELDS, EVENT_REQUIRED, ONCE_MODES, TRIGGER_EVENTS, TRIGGER_KEYS
 
     directory = content_root / "triggers"
     if not directory.is_dir():
@@ -3981,16 +3981,36 @@ def _validate_triggers(
                 issues.append(ContentSetIssue("error", str(path), f"{label}.on must be an object with an event, a region and a room"))
             else:
                 event = on.get("event")
+
+                def has(key: str) -> bool:
+                    return isinstance(on.get(key), str) and bool(on[key].strip())
+
                 if event not in TRIGGER_EVENTS:
                     issues.append(ContentSetIssue(
                         "error", str(path),
                         f"{label}.on.event {event!r} is not an event this engine fires (known: {', '.join(TRIGGER_EVENTS)})",
                     ))
-                for key in ("region", "room"):
-                    if not isinstance(on.get(key), str) or not on[key].strip():
-                        issues.append(ContentSetIssue("error", str(path), f"{label}.on needs a {key}"))
-                if all(isinstance(on.get(key), str) and on[key].strip() for key in ("region", "room")):
-                    _check_room_reference(on["region"], on["room"], f"{label}.on", path, ids, issues)
+                else:
+                    for key in on:
+                        if key != "event" and key not in EVENT_FIELDS[event]:
+                            issues.append(ContentSetIssue(
+                                "error", str(path),
+                                f"{label}.on.{key} is not read by a {event} trigger (it reads: {', '.join(EVENT_FIELDS[event])})",
+                            ))
+                    for key in EVENT_REQUIRED[event]:
+                        if not has(key):
+                            issues.append(ContentSetIssue("error", str(path), f"{label}.on needs a {key} for a {event} trigger"))
+                    if has("region") != has("room") and "region" in EVENT_FIELDS[event]:
+                        issues.append(ContentSetIssue("error", str(path), f"{label}.on needs region and room together, or neither"))
+                    if has("region") and has("room"):
+                        _check_room_reference(on["region"], on["room"], f"{label}.on", path, ids, issues)
+                    if event == "npc_killed" and has("npc"):
+                        known = ids["npcs"] | ids["npc_instances"]
+                        if known and on["npc"] not in known:
+                            issues.append(ContentSetIssue(
+                                "error", str(path),
+                                f"{label}.on.npc '{on['npc']}' is neither an NPC template nor a placed NPC in this content set",
+                            ))
             if "when" in definition:
                 _check_condition(definition["when"], f"{label}.when", path, ids, issues)
             once = definition.get("once", "player")

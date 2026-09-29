@@ -110,6 +110,30 @@ func _set_on(key: String, value) -> void:
 	database_modified.emit()
 
 
+# Changing the event keeps what the new event still reads, and fills in what it now
+# needs, so the trigger never sits invalid because a field did not carry over.
+func _set_event(event: String) -> void:
+	var old := _on()
+	var on := {"event": event}
+	for key in SCHEMA.EVENT_FIELDS.get(event, []):
+		if old.has(key):
+			on[key] = old[key]
+	var required: Array = SCHEMA.EVENT_REQUIRED.get(event, [])
+	if required.has("npc") and not on.has("npc"):
+		var npc_ids: Array = database_mgr.get_npc_ids() if database_mgr != null else []
+		if not npc_ids.is_empty():
+			on["npc"] = str(npc_ids[0])
+	if required.has("region") and not (on.has("region") and on.has("room")):
+		var refs := room_refs()
+		if not refs.is_empty():
+			var parts: PackedStringArray = str(refs[0]).split(":")
+			on["region"] = parts[0]
+			on["room"] = parts[1]
+	cur_data["on"] = on
+	database_modified.emit()
+	_rebuild()
+
+
 func _build_when_it_fires() -> void:
 	var card = InspectorStyle.create_card()
 	var vbox = card.get_child(0).get_child(0)
@@ -125,17 +149,23 @@ func _build_when_it_fires() -> void:
 	if not events.has(current_event):
 		events.append(current_event)   # an event this editor does not know stays visible
 	for event in events:
-		event_picker.add_item("the player enters a room" if str(event) == "on_enter" else str(event))
+		event_picker.add_item(str(SCHEMA.EVENT_LABELS.get(str(event), str(event))))
 		event_picker.set_item_metadata(event_picker.item_count - 1, str(event))
 	event_picker.select(events.find(current_event))
 	event_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	InspectorStyle.apply_button_style(event_picker)
-	event_picker.item_selected.connect(func(index): _set_on("event", str(event_picker.get_item_metadata(index))))
+	event_picker.item_selected.connect(func(index): _set_event(str(event_picker.get_item_metadata(index))))
 	event_row.add_child(event_picker)
 	vbox.add_child(event_row)
 
+	var fields: Array = SCHEMA.EVENT_FIELDS.get(current_event, ["region", "room"])
+	if fields.has("npc"):
+		vbox.add_child(_npc_row())
+
+	# A room is required for entering and clearing, and only narrows a kill.
+	var room_optional: bool = not SCHEMA.EVENT_REQUIRED.get(current_event, ["region", "room"]).has("room")
 	var room_row := HBoxContainer.new()
-	room_row.add_child(InspectorStyle.lbl("Room:", InspectorStyle.COLOR_TEXT_DIM))
+	room_row.add_child(InspectorStyle.lbl("Only in:" if room_optional else "Room:", InspectorStyle.COLOR_TEXT_DIM))
 	var room_picker := OptionButton.new()
 	room_picker.name = "TriggerRoom"
 	var refs := room_refs()
@@ -145,7 +175,7 @@ func _build_when_it_fires() -> void:
 	var choices: Array = refs.duplicate()
 	if current_ref != "" and not choices.has(current_ref):
 		choices.append(current_ref)   # a room the set does not define stays visible, so it can be fixed
-	room_picker.add_item("(choose a room)")
+	room_picker.add_item("(anywhere)" if room_optional else "(choose a room)")
 	room_picker.set_item_metadata(0, "")
 	for ref in choices:
 		room_picker.add_item(str(ref) if refs.has(ref) else "Missing: %s" % ref)
@@ -156,6 +186,12 @@ func _build_when_it_fires() -> void:
 	room_picker.item_selected.connect(func(index):
 		var ref := str(room_picker.get_item_metadata(index))
 		if ref == "":
+			if room_optional:
+				var narrowed := _on()
+				narrowed.erase("region")
+				narrowed.erase("room")
+				cur_data["on"] = narrowed
+				database_modified.emit()
 			return
 		var parts: PackedStringArray = ref.split(":")
 		var on := _on()
@@ -168,6 +204,33 @@ func _build_when_it_fires() -> void:
 	)
 	room_row.add_child(room_picker)
 	vbox.add_child(room_row)
+
+
+func _npc_row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_child(InspectorStyle.lbl("Creature:", InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new()
+	picker.name = "TriggerNpc"
+	var ids: Array = database_mgr.get_npc_ids() if database_mgr != null else []
+	var current := str(_on().get("npc", ""))
+	var choices: Array = ids.duplicate()
+	if current != "" and not choices.has(current):
+		choices.append(current)   # a name the set does not define (a placed id, say) stays visible
+	picker.add_item("(choose a creature)")
+	picker.set_item_metadata(0, "")
+	for id in choices:
+		picker.add_item(str(id) if ids.has(id) else "Other: %s" % id)
+		picker.set_item_metadata(picker.item_count - 1, str(id))
+	picker.select(choices.find(current) + 1 if current != "" else 0)
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.tooltip_text = "A template id, or the id of one placed creature."
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(index):
+		var chosen := str(picker.get_item_metadata(index))
+		if chosen != "":
+			_set_on("npc", chosen))
+	row.add_child(picker)
+	return row
 
 
 func _build_once() -> void:

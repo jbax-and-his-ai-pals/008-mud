@@ -201,8 +201,11 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
             exit_combat(npc, target)
             
             xp_gainer = owner if owner is not None else npc
-            if owner is not None:
-                world.dispatch_event("npc_killed", {"player": owner, "npc": target})
+            kill_note = None   # what a trigger says about the death; was discarded
+            # Only a creature is "killed": a minion that finishes off a *player* used to
+            # raise an npc_killed for them too.
+            if owner is not None and getattr(target, "runtime_state", None) is None:
+                kill_note = world.dispatch_event("npc_killed", {"player": owner, "npc": target})
 
             if xp_gainer:
                 # Both the killer and the victim need a resolved level. An NPC
@@ -227,6 +230,8 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
             if hasattr(target, 'die'):
                 possible_loot = target.die(world)
                 if possible_loot: messages.append(format_loot_drop_message(player, target, possible_loot))
+            if kill_note:
+                messages.append(kill_note)
         
         final_message = "\n".join(filter(None, messages))
         # Whose screen does this belong on? Normally the co-located player, and

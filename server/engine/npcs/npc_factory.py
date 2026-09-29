@@ -198,6 +198,8 @@ class NPCFactory:
             npc.patrol_points = creation_args.get("patrol_points", [])[:]
 
             npc.is_alive = overrides.get("is_alive", npc.is_alive) if npc.health > 0 else False
+            if not npc.is_alive:
+                npc._death_processed = True   # restored dead: nothing to reap
             npc.ai_state = overrides.get("ai_state", {}).copy()
             npc.spell_cooldowns = overrides.get("spell_cooldowns", {}).copy()
 

@@ -7,7 +7,12 @@
         },
         "once": "player",
         "effects": {
-            "message": "The air is hot and smells of old smoke. Something vast lifts its head in the dark and looks at you."
+            "message": "The air is hot and smells of old smoke. Something vast lifts its head in the dark and looks at you. Behind you the door grinds shut.",
+            "seal_exit": {
+                "region": "mossroot",
+                "room": "boss_hall",
+                "direction": "east"
+            }
         }
     },
     "tower_gate_opens": {
@@ -19,6 +24,31 @@
         "once": "player",
         "effects": {
             "message": "The great door swung inward at your touch, as if it had been waiting a long time for the Triad."
+        }
+    },
+    "wyrm_slain": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "horned_wyrm"
+        },
+        "once": "world",
+        "effects": {
+            "message": "The wyrm's great head sinks to the floor, and somewhere behind you the door grinds open again.",
+            "reveal_exit": {
+                "room": "mossroot:boss_hall",
+                "direction": "east"
+            }
+        }
+    },
+    "stair_shutters_lift": {
+        "on": {
+            "event": "room_cleared",
+            "region": "dread_tower",
+            "room": "throne_stair"
+        },
+        "once": false,
+        "effects": {
+            "message": "With the last guard down, the iron shutters shudder and grind upward."
         }
     }
 }

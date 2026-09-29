@@ -75,7 +75,9 @@ def main() -> int:
         from engine.conditions import KNOWN_KINDS
         from engine.dialogue.effects import KNOWN_EFFECTS, RESTORE_RESOURCES
         from engine.items.consumable import CONSUMABLE_EFFECT_TYPES
-        from engine.world.triggers import DEFAULT_ONCE, ONCE_MODES, TRIGGER_EVENTS, TRIGGER_KEYS
+        from engine.world.triggers import (
+            DEFAULT_ONCE, EVENT_FIELDS, EVENT_REQUIRED, ONCE_MODES, TRIGGER_EVENTS, TRIGGER_KEYS,
+        )
         from engine.core.knowledge_manager import (
             CAMPAIGN_STATES, KNOWLEDGE_CONDITION_KINDS, KNOWLEDGE_STATES, QUEST_STATES,
         )
@@ -120,6 +122,8 @@ def main() -> int:
         # What a trigger (`data/triggers/*.json`) may carry; `TriggerSchema.gd` holds the copy.
         "triggers": {
             "events": list(TRIGGER_EVENTS), "keys": list(TRIGGER_KEYS),
+            "event_fields": {event: list(fields) for event, fields in EVENT_FIELDS.items()},
+            "event_required": {event: list(fields) for event, fields in EVENT_REQUIRED.items()},
             "once_modes": list(ONCE_MODES), "default_once": DEFAULT_ONCE,
         },
         # The keys a room's exit requirement and environmental reaction may carry,

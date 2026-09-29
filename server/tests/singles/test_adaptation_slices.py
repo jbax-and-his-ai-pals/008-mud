@@ -90,11 +90,12 @@ class _Slice(unittest.TestCase):
         self.at(foe.current_region_id, foe.current_room_id)
         foe.health = 1
         self.player.health = self.player.max_health = 500
+        printed = []
         for _ in range(80):
             if not foe.is_alive:
-                return
-            self.say("attack %s" % name)
-            self.tick(21)
+                return " ".join(printed)
+            printed.append(self.say("attack %s" % name))
+            printed.append(self.tick(21))
         self.fail("%s did not fall" % template_id)
 
     def quest_states(self):
@@ -187,6 +188,25 @@ class TestZeldaSlice(_Slice):
         self.player.runtime_state.combat.in_combat = False
         self.at("mossroot", "mossy_gallery")
         self.assertNotIn("Something vast", self.say("go west"), "a scene plays once")
+
+    def test_the_boss_door_seals_behind_you_and_opens_when_the_wyrm_dies(self):
+        self.at("mossroot", "mossy_gallery")
+        self.give("item_key_mossroot")
+        self.say("go west")
+        hall = self.world.get_region("mossroot").get_room("boss_hall")
+        self.assertNotIn("east", hall.exits, "the way back is sealed")
+        self.assertIn("cannot go", self.say("go east"))
+        printed = self.kill("horned_wyrm", "wyrm")
+        self.assertIn("door grinds open", printed)
+        self.assertIn("east", hall.exits, "and the wyrm's death reopens it")
+        self.at("mossroot", "boss_hall")
+        self.say("go east")
+        self.assertEqual("mossroot:mossy_gallery", self.where())
+
+    def test_the_shutters_announce_themselves_when_the_stair_is_cleared(self):
+        self.at("dread_tower", "throne_stair")
+        printed = self.kill("bone_soldier", "bone", room="throne_stair")
+        self.assertIn("shutters shudder", printed)
 
     def test_the_tower_gate_swings_open_as_if_it_had_been_waiting(self):
         self.at("aldermark", "tower_approach")
@@ -377,6 +397,13 @@ class TestFF4Slice(_Slice):
         again = self.say("go in")
         self.assertNotIn("grins", again)
         self.assertEqual(1, len([n for n in self.npcs("cave_imp") if n.obj_id == "imp_ambush"]), "no second imp")
+
+    def test_the_fog_drake_unravelling_starts_a_scene(self):
+        # The drake is spawned by its quest stage; here it is put in the square directly.
+        self.world.spawn_npc("fog_drake", "mistvale", "village_square", instance_id="drake_probe")
+        printed = self.kill("fog_drake", "drake")
+        self.assertIn("unravels into grey ribbons", printed)
+        self.assertIs(True, self.player.flags.get("drake_slain"))
 
     def test_the_castle_gate_stays_shut_until_the_king_has_given_orders(self):
         self.at("varenholt", "castle_gate")
@@ -613,6 +640,28 @@ class TestPersistence(unittest.TestCase):
         self.assertEqual(("varenholt", "throne_room"), (fiends[0].current_region_id, fiends[0].current_room_id))
         self.assertEqual([], [n for n in second.world.npcs.values() if n.template_id == "chancellor"],
                          "and the chancellor is still gone")
+
+    def test_a_sealed_boss_door_is_still_sealed_after_a_restart_and_a_death_reopens_it(self):
+        db = self._db()
+        first = self._boot("zelda_slice", db)
+        sid, _ = self._join(first, "Restarter", "transport-1")
+        hero = first.get_player_for_session(sid)
+        hero.current_region_id, hero.current_room_id = "mossroot", "mossy_gallery"
+        hero.inventory.add_item(ItemFactory.create_item_from_template("item_key_mossroot", first.world))
+        self._say(first, sid, "go west")
+        self.assertNotIn("east", first.world.get_region("mossroot").get_room("boss_hall").exits)
+        first.shutdown()
+
+        second = self._boot("zelda_slice", db)
+        self.addCleanup(second.shutdown)
+        sid2, _ = self._join(second, "Restarter", "another-id")
+        hall = second.world.get_region("mossroot").get_room("boss_hall")
+        self.assertNotIn("east", hall.exits, "sealed, and it stays that way: the room's change is in the snapshot")
+        wyrm = next(n for n in second.world.npcs.values() if n.template_id == "horned_wyrm")
+        wyrm.take_damage(10 ** 6, "physical")   # a death nothing called die() for
+        for _ in range(30):
+            second.tick(sid2)
+        self.assertIn("east", hall.exits, "the world tick found the death, and the trigger reopened the door")
 
     def test_the_fog_ambush_does_not_spring_again_after_a_restart(self):
         db = self._db()

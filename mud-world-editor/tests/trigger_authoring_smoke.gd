@@ -79,6 +79,40 @@ func _run() -> void:
 	room_picker.select(tower); room_picker.item_selected.emit(tower)
 	_assert(wyrm["on"] == {"event": "on_enter", "region": "dread_tower", "room": "tower_gate"}, "choosing a room writes region and room together: %s" % str(wyrm["on"]))
 
+	print("\n[the other events]")
+	holder = _open("wyrm_hall", wyrm)
+	var event_picker := holder.find_child("TriggerEvent", true, false) as OptionButton
+	var events: Array = []
+	for index in range(event_picker.item_count):
+		events.append(str(event_picker.get_item_metadata(index)))
+	_assert(events == ["on_enter", "npc_killed", "room_cleared"], "the picker offers the engine's events: %s" % str(events))
+	var kill_index := events.find("npc_killed")
+	event_picker.select(kill_index); event_picker.item_selected.emit(kill_index)
+	_assert(wyrm["on"]["event"] == "npc_killed" and wyrm["on"].has("npc") and wyrm["on"].has("region"),
+		"a kill trigger gets a creature (and keeps the room as a narrowing): %s" % str(wyrm["on"]))
+	holder = _open("wyrm_hall", wyrm)
+	var npc_picker := holder.find_child("TriggerNpc", true, false) as OptionButton
+	_assert(npc_picker != null, "and a creature picker")
+	var wyrm_index := -1
+	for index in range(npc_picker.item_count):
+		if npc_picker.get_item_text(index) == "horned_wyrm": wyrm_index = index
+	npc_picker.select(wyrm_index); npc_picker.item_selected.emit(wyrm_index)
+	_assert(wyrm["on"]["npc"] == "horned_wyrm", "choosing one writes it")
+	var kill_room := holder.find_child("TriggerRoom", true, false) as OptionButton
+	_assert(kill_room.get_item_text(0) == "(anywhere)", "the room only narrows a kill")
+	kill_room.select(0); kill_room.item_selected.emit(0)
+	_assert(not wyrm["on"].has("region") and not wyrm["on"].has("room"), "and choosing 'anywhere' drops the pair together")
+	holder = _open("wyrm_hall", wyrm)
+	event_picker = holder.find_child("TriggerEvent", true, false) as OptionButton
+	var clear_index := events.find("room_cleared")
+	event_picker.select(clear_index); event_picker.item_selected.emit(clear_index)
+	_assert(wyrm["on"]["event"] == "room_cleared" and not wyrm["on"].has("npc") and wyrm["on"].has("region") and wyrm["on"].has("room"),
+		"a cleared-room trigger drops the creature and gets the room it needs: %s" % str(wyrm["on"]))
+	holder = _open("wyrm_hall", wyrm)
+	event_picker = holder.find_child("TriggerEvent", true, false) as OptionButton
+	event_picker.select(0); event_picker.item_selected.emit(0)
+	_assert(wyrm["on"]["event"] == "on_enter", "and back to entering")
+
 	print("\n[a condition, through the shared rows]")
 	holder = _open("wyrm_hall", wyrm)
 	var kind_picker := holder.find_child("ConditionPicker", true, false) as OptionButton
@@ -107,8 +141,8 @@ func _run() -> void:
 
 	print("\n[the room inspector lists what fires in a room]")
 	var here := RoomTriggersPanelScript.triggers_in(database, "dread_tower", "tower_gate")
-	_assert(here.has("tower_gate_opens") and here.has("wyrm_hall"),
-		"the triggers whose room is this one (the wyrm's was moved here above): %s" % str(here))
+	_assert(here.has("tower_gate_opens") and not here.has("wyrm_slain"),
+		"the triggers whose room is this one, and not others': %s" % str(here))
 	var panel_holder := VBoxContainer.new(); root.add_child(panel_holder)
 	RoomTriggersPanelScript.new().build(panel_holder, "dread_tower", "tower_gate", database)
 	_assert(panel_holder.find_child("Trigger_tower_gate_opens", true, false) != null, "as rows")
