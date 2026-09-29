@@ -84,9 +84,9 @@ class _Slice(unittest.TestCase):
     def npcs(self, template_id):
         return [n for n in self.world.npcs.values() if n.template_id == template_id and n.is_alive]
 
-    def kill(self, template_id, name):
-        """Drop the named NPC to one hit point and swing until it falls."""
-        foe = self.npcs(template_id)[0]
+    def kill(self, template_id, name, room=None):
+        """Drop the named NPC (the one standing in `room`, if given) to one hit point and swing until it falls."""
+        foe = [n for n in self.npcs(template_id) if room is None or n.current_room_id == room][0]
         self.at(foe.current_region_id, foe.current_room_id)
         foe.health = 1
         self.player.health = self.player.max_health = 500
@@ -112,6 +112,26 @@ class TestZeldaSlice(_Slice):
         self.assertTrue(self.player.flags.get("got_the_sword"))
         again = self.say("talk hermit")
         self.assertNotIn("Thank you", again, "the gift is offered only until it has been taken")
+
+    def test_the_tower_stair_is_shuttered_until_its_guard_is_dead(self):
+        """A kill-all room: the way up is a `room_clear` condition, not a key."""
+        self.at("dread_tower", "throne_stair")
+        refused = self.say("go up")
+        self.assertEqual("dread_tower:throne_stair", self.where())
+        self.assertIn("shutters", refused)
+        self.kill("bone_soldier", "bone", room="throne_stair")
+        self.at("dread_tower", "throne_stair")
+        self.say("go up")
+        self.assertEqual("dread_tower:malgrath_hall", self.where())
+
+    def test_a_room_that_fills_again_shuts_the_stair_again(self):
+        """`room_clear` is stateless: it is asked afresh, so a new guard closes the way."""
+        self.at("dread_tower", "throne_stair")
+        self.kill("bone_soldier", "bone", room="throne_stair")
+        self.at("dread_tower", "throne_stair")
+        self.world.spawn_npc("bone_soldier", "dread_tower", "throne_stair", instance_id="soldier_again")
+        self.say("go up")
+        self.assertEqual("dread_tower:throne_stair", self.where())
 
     def _ask_the_hermit_who_he_is(self):
         self.at("caves", "hermit_cave")
@@ -272,6 +292,17 @@ class TestFF4Slice(_Slice):
         again = self.say("talk king")
         self.assertNotIn("At once", again, "the choice cannot be made twice")
         self.assertNotIn("slaughter", again, "and the other answer closed with it")
+
+    def test_the_castle_gate_stays_shut_until_the_king_has_given_orders(self):
+        self.at("varenholt", "castle_gate")
+        refused = self.say("go north")
+        self.assertEqual("varenholt:castle_gate", self.where())
+        self.assertIn("Orders from the king", refused)
+        self.at("varenholt", "throne_room")
+        self._question_the_king()   # either answer: it is that he has spoken that opens the gate
+        self.at("varenholt", "castle_gate")
+        self.say("go north")
+        self.assertEqual("road:castle_road", self.where())
 
     def test_the_chancellor_unmasks_into_a_fiend(self):
         self.at("varenholt", "throne_room")

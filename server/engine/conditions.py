@@ -45,7 +45,7 @@ KNOWN_KINDS = frozenset({
     "has_item", "skill_at_least", "spell_known", "relationship_at_least",
     "quest_completed", "quest_active", "discovery", "visited_region",
     "level_at_least", "title_earned", "background", "flag", "knows_recipe",
-    "gold_at_least", "in_region", "time_of_day", "season",
+    "gold_at_least", "in_region", "time_of_day", "season", "room_clear",
 })
 
 
@@ -294,6 +294,19 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
         region_id = str(node.get("region_id", "")).strip()
         if not _visited_region(player, region_id):
             reasons.append("has not been to %s" % region_id)
+            return False
+        return True
+
+    if kind == "room_clear":
+        # No living hostile is left in a room: the region and room it names, or the
+        # one the player stands in. Stateless, so a room that fills again is not clear.
+        from engine.world import factions
+
+        region_id = str(node.get("region_id") or getattr(player, "current_region_id", "") or "").strip()
+        room_id = str(node.get("room_id") or getattr(player, "current_room_id", "") or "").strip()
+        standing = factions.hostiles_in(getattr(player, "world", None), region_id, room_id)
+        if standing:
+            reasons.append("something hostile still stands in the way (%d)" % len(standing))
             return False
         return True
 

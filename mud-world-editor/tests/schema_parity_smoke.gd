@@ -66,6 +66,7 @@ func _init() -> void:
 	_check_objective_types(vocabulary)
 	_check_effect_shape_hints(vocabulary)
 	_check_character_effect_vocabulary(vocabulary)
+	_check_passage_keys(vocabulary)
 	_check_direction_reciprocals(vocabulary)
 	_check_manifest_shape(vocabulary)
 	_check_npc_vocabulary(vocabulary)
@@ -129,6 +130,23 @@ func _check_objective_types(vocabulary: Dictionary) -> void:
 
 
 # --- the shape hints ----------------------------------------------------------
+
+func _check_passage_keys(vocabulary: Dictionary) -> void:
+	print("\n[exit requirement and reaction keys: editor vs engine]")
+	var requirements: Dictionary = vocabulary.get("exit_requirement_keys", {})
+	_assert(not requirements.is_empty(), "the engine's exit requirement keys were read")
+	_assert(_as_set(requirements.keys()) == _as_set(RoomPassagesPanel.REQUIREMENT_TYPES),
+		"the requirement types match (engine %s, editor %s)" % [str(requirements.keys()), str(RoomPassagesPanel.REQUIREMENT_TYPES)])
+	for kind in requirements:
+		_assert(_as_set(requirements[kind]) == _as_set(RoomPassagesPanel.REQUIREMENT_KEYS.get(kind, [])),
+			"a '%s' requirement's keys match (engine %s, editor %s)" % [kind, str(requirements[kind]), str(RoomPassagesPanel.REQUIREMENT_KEYS.get(kind))])
+	var reactions: Dictionary = vocabulary.get("env_interaction_keys", {})
+	_assert(_as_set(reactions.keys()) == _as_set(RoomPassagesPanel.REACTION_TYPES),
+		"the reaction types match (engine %s, editor %s)" % [str(reactions.keys()), str(RoomPassagesPanel.REACTION_TYPES)])
+	for kind in reactions:
+		_assert(_as_set(reactions[kind]) == _as_set(RoomPassagesPanel.REACTION_KEYS.get(kind, [])),
+			"a '%s' reaction's keys match (engine %s, editor %s)" % [kind, str(reactions[kind]), str(RoomPassagesPanel.REACTION_KEYS.get(kind))])
+
 
 func _check_character_effect_vocabulary(vocabulary: Dictionary) -> void:
 	print("\n[restore resources and consumable effect types: editor vs engine]")

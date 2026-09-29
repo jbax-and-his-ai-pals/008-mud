@@ -71,6 +71,29 @@ func _run():
 	_edit(hidden_row.find_child("Destination", true, false), "north_gate_road")
 	_assert(square["properties"]["hidden_exits"] == {"secret": "north_gate_road"}, "the hidden exit was written")
 
+	print("\n[a condition requirement]")
+	row = holder.find_child("Requirement_" + direction, true, false)
+	type_picker = row.find_child("Type", true, false)
+	type_picker.select(2); type_picker.item_selected.emit(2)
+	_assert(requirements[direction]["type"] == "condition" and requirements[direction].has("condition") and not requirements[direction].has("skill_name"),
+		"switching to a condition drops the skill's fields and starts a condition to fill in: %s" % str(requirements[direction]))
+	row = holder.find_child("Requirement_" + direction, true, false)
+	var kind_picker: OptionButton = row.find_child("ConditionPicker", true, false)
+	_assert(kind_picker != null, "the condition has the shared kind picker")
+	var flag_index := -1
+	var clear_index := -1
+	for index in range(kind_picker.item_count):
+		if kind_picker.get_item_text(index) == "flag": flag_index = index
+		if kind_picker.get_item_text(index) == "room_clear": clear_index = index
+	_assert(flag_index >= 0, "and offers the engine's kinds")
+	_assert(clear_index >= 0, "including room_clear, for a kill-all room")
+	kind_picker.select(flag_index); kind_picker.item_selected.emit(flag_index)
+	row = holder.find_child("Requirement_" + direction, true, false)
+	_edit(row.find_child("ConditionValue", true, false), "gate_open")
+	_assert(requirements[direction]["condition"] == {"kind": "flag", "flag": "gate_open"}, "a flag gate was written: %s" % str(requirements[direction]))
+	_edit(row.find_child("FailureMessage", true, false), "The gate is shut.")
+	_assert(requirements[direction]["failure_message"] == "The gate is shut.", "with its message")
+
 	print("\n[removing]")
 	_button(holder.find_child("Hidden_secret", true, false), "×").pressed.emit()
 	_assert(not square["properties"].has("hidden_exits"), "removing the last hidden exit removes the key")

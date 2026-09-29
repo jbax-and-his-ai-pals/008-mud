@@ -21,6 +21,19 @@
                 "down": "tower_gate",
                 "up": "malgrath_hall"
             },
+            "properties": {
+                "exit_requirements": {
+                    "up": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "dread_tower",
+                            "room_id": "throne_stair"
+                        },
+                        "failure_message": "Iron shutters are down across the stair. They will not lift while something still guards it."
+                    }
+                }
+            },
             "initial_npcs": [
                 {
                     "template_id": "bone_soldier",

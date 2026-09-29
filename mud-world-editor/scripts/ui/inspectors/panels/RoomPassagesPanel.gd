@@ -14,15 +14,19 @@ extends RefCounted
 
 signal data_modified
 
-const REQUIREMENT_TYPES := ["locked", "skill"]
+# Checked against the engine's `EXIT_REQUIREMENT_KEYS` / `ENV_INTERACTION_KEYS`
+# by `schema_parity_smoke.gd`.
+const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
+const REQUIREMENT_TYPES := ["locked", "skill", "condition"]
 const REQUIREMENT_KEYS := {
 	"locked": ["type", "key_id", "pick_difficulty", "failure_message"],
 	"skill": ["type", "skill_name", "difficulty", "failure_message"],
+	"condition": ["type", "condition", "failure_message"],
 }
 const REACTION_TYPES := ["clear_exit_req", "suppress_hazard"]
 const REACTION_KEYS := {
 	"clear_exit_req": ["type", "direction", "duration", "message"],
-	"suppress_hazard": ["type", "duration", "message"],
+	"suppress_hazard": ["type", "duration", "message", "channel"],
 }
 
 var room: Dictionary
@@ -80,6 +84,10 @@ func _requirement_row(direction: String, requirement: Dictionary) -> Control:
 		head.add_child(_text(requirement, "skill_name", "skill"))
 		head.add_child(InspectorStyle.lbl("difficulty", InspectorStyle.COLOR_TEXT_DIM))
 		head.add_child(_spin(requirement, "difficulty", 10, 0, 1000))
+	elif kind == "condition":
+		# Any condition the dialogue and title editors know: a flag, a quest, a held
+		# item, `room_clear` for a kill-all room. Composites are one JSON box.
+		var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; head.add_child(spacer)
 	else:
 		var key := OptionButton.new(); key.name = "KeyId"; key.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var ids: Array = database_mgr.get_item_ids() if database_mgr != null else []
@@ -96,6 +104,19 @@ func _requirement_row(direction: String, requirement: Dictionary) -> Control:
 		pick.tooltip_text = "Over 100 cannot be picked."
 		head.add_child(pick)
 	head.add_child(_remove("exit_requirements", direction))
+	if kind == "condition":
+		var condition_box := VBoxContainer.new(); condition_box.name = "RequirementCondition"; box.add_child(condition_box)
+		CONDITION_ROWS.build(
+			condition_box, requirement.get("condition"), database_mgr, "Only if", "(no condition)",
+			func(): data_modified.emit(),
+			func(chosen: String):
+				if chosen == "": requirement.erase("condition")
+				else: requirement["condition"] = {"kind": chosen}
+				data_modified.emit()
+				_refresh(),
+			func(replacement: Dictionary):
+				requirement["condition"] = replacement
+				data_modified.emit())
 	var message := _text(requirement, "failure_message", "message when refused (optional)")
 	box.add_child(message)
 	return box
@@ -210,6 +231,9 @@ func _retype(entry: Dictionary, kind: String, keys: Dictionary) -> void:
 	entry["type"] = kind
 	for key in entry.keys():
 		if not (key in keys[kind]): entry.erase(key)
+	# A condition requirement with no condition is open to everyone, which the
+	# validator refuses, so it starts as a real one to fill in.
+	if kind == "condition" and not entry.has("condition"): entry["condition"] = {"kind": "flag"}
 	data_modified.emit()
 	_refresh()
 

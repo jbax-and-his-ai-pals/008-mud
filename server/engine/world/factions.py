@@ -195,6 +195,22 @@ def is_hostile(actor: Any, world=None) -> bool:
     return attitude(world, actor, PLAYER_FACTION) < 0
 
 
+def hostiles_in(world, region_id: str, room_id: str) -> List[Any]:
+    """The living hostile NPCs standing in a room.
+
+    What "the room is cleared" means, for the `room_clear` condition and for anything
+    else that asks it. A friendly, a summoned ally and a corpse do not count.
+    """
+    if world is None:
+        return []
+    return [
+        npc for npc in getattr(world, "npcs", {}).values()
+        if getattr(npc, "is_alive", False)
+        and (getattr(npc, "current_region_id", None), getattr(npc, "current_room_id", None)) == (region_id, room_id)
+        and is_hostile(npc, world)
+    ]
+
+
 def is_friendly(actor: Any, world=None) -> bool:
     return disposition_of(actor, world) == "friendly"
 

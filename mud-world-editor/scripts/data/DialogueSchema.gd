@@ -72,6 +72,11 @@ const CONDITION_KINDS := {
 		"fields": {"region_id": "region_id"},
 		"note": "Seeded silently for the region a character starts in.",
 	},
+	"room_clear": {
+		"label": "A room is clear of enemies",
+		"fields": {"region_id": "region_id", "room_id": "string"},
+		"note": "No living hostile is left in the room. Name a region and room together, or neither for the room the player is standing in.",
+	},
 	"in_region": {
 		"label": "Is in a region",
 		"fields": {"region_id": "region_id"},

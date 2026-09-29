@@ -461,6 +461,17 @@ class World:
             if not has_key:
                 fail_msg = dir_req.get("failure_message") or self._locked_message(f"The way {direction} is locked.", key_id)
                 return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
+
+        elif req_type == "condition":
+            # Read afresh every time, so a condition that stopped holding shuts the way
+            # again; an unknown kind fails closed (`conditions.evaluate`).
+            from engine import conditions
+
+            evaluation = conditions.evaluate(dir_req.get("condition"), player)
+            if not evaluation.satisfied:
+                reason = evaluation.reasons[0] if evaluation.reasons else "the requirements are not met yet"
+                fail_msg = dir_req.get("failure_message") or f"The way {direction} is closed to you: {reason}."
+                return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
         return None
 
     def _arrive(self, active_player: 'Player', new_region_id: str, new_room_id: str, old_region_id: Optional[str]) -> str:

@@ -3649,6 +3649,14 @@ def _check_condition(
     issues.extend(_condition_issues(node, where, path))
     for leaf in _condition_leaves(node):
         kind = str(leaf.get("kind", ""))
+        if kind == "room_clear":
+            given = [key for key in ("region_id", "room_id") if str(leaf.get(key, "") or "").strip()]
+            if len(given) == 1:
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"{where} room_clear needs region_id and room_id together, or neither"
+                ))
+            else:
+                _check_room_reference(leaf.get("region_id"), leaf.get("room_id"), f"{where} room_clear", path, ids, issues)
         for reference_kind, key, bucket in _CONDITION_REFERENCES:
             if kind != reference_kind:
                 continue
@@ -4208,11 +4216,15 @@ def _check_reveal_exit(
         ))
 
 
-_EXIT_REQUIREMENT_KEYS = {
+# What `World._evaluate_exit_gate` reads for each requirement type, and what
+# `Room.apply_elemental_interaction` reads for each reaction. Published so the editor's
+# panel and the vocabulary dump are checked against them (`schema_parity_smoke.gd`).
+EXIT_REQUIREMENT_KEYS = {
     "skill": ("type", "skill_name", "difficulty", "failure_message"),
     "locked": ("type", "key_id", "pick_difficulty", "failure_message"),
+    "condition": ("type", "condition", "failure_message"),
 }
-_ENV_INTERACTION_KEYS = {
+ENV_INTERACTION_KEYS = {
     "clear_exit_req": ("type", "direction", "duration", "message"),
     "suppress_hazard": ("type", "duration", "message", "channel"),
 }
@@ -4246,6 +4258,8 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
     def whole(value: Any) -> bool:
         return isinstance(value, int) and not isinstance(value, bool) and value >= 0
 
+    condition_ids: dict[str, set[str]] | None = None   # built on the first condition requirement
+
     for path in sorted(region_dir.glob("*.json")):
         region = _load_json(path, [], "region definitions")
         if not isinstance(region, dict) or isinstance(region.get("themes"), dict):
@@ -4269,6 +4283,9 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
             if isinstance(hidden, dict):
                 directions |= set(hidden)
 
+            def warn(message: str) -> None:
+                issues.append(ContentSetIssue("warning", source, f"{where} {message}"))
+
             requirements = properties.get("exit_requirements")
             requirement_directions: set[str] = set()
             if requirements is not None:
@@ -4284,12 +4301,12 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                         error(f"{label} must be an object")
                         continue
                     kind = requirement.get("type")
-                    if kind not in _EXIT_REQUIREMENT_KEYS:
-                        error(f"{label}.type must be 'skill' or 'locked' (anything else leaves the way open)")
+                    if kind not in EXIT_REQUIREMENT_KEYS:
+                        error(f"{label}.type must be 'skill', 'locked' or 'condition' (anything else leaves the way open)")
                         continue
                     for key in requirement:
-                        if key not in _EXIT_REQUIREMENT_KEYS[kind]:
-                            error(f"{label}.{key} is not read for a '{kind}' requirement (known: {', '.join(_EXIT_REQUIREMENT_KEYS[kind])})")
+                        if key not in EXIT_REQUIREMENT_KEYS[kind]:
+                            error(f"{label}.{key} is not read for a '{kind}' requirement (known: {', '.join(EXIT_REQUIREMENT_KEYS[kind])})")
                     if "failure_message" in requirement and not isinstance(requirement["failure_message"], str):
                         error(f"{label}.failure_message must be a string")
                     if kind == "skill":
@@ -4297,6 +4314,14 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                             error(f"{label}.skill_name is required for a skill requirement")
                         if "difficulty" in requirement and not whole(requirement["difficulty"]):
                             error(f"{label}.difficulty must be a non-negative integer")
+                    elif kind == "condition":
+                        condition = requirement.get("condition")
+                        if not isinstance(condition, (dict, list)) or not condition:
+                            error(f"{label}.condition is required, and may not be empty (an empty condition is open to everyone)")
+                        else:
+                            if condition_ids is None:
+                                condition_ids = _content_identifier_sets(content_root, [])
+                            _check_condition(condition, f"{where} {label}.condition", path, condition_ids, issues)
                     else:
                         key_id = requirement.get("key_id")
                         if key_id is not None and key_id not in item_ids:
@@ -4318,12 +4343,12 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                     error(f"{label} must be an object")
                     continue
                 kind = reaction.get("type")
-                if kind not in _ENV_INTERACTION_KEYS:
+                if kind not in ENV_INTERACTION_KEYS:
                     error(f"{label}.type must be 'clear_exit_req' or 'suppress_hazard'")
                     continue
                 for key in reaction:
-                    if key not in _ENV_INTERACTION_KEYS[kind]:
-                        error(f"{label}.{key} is not read for '{kind}' (known: {', '.join(_ENV_INTERACTION_KEYS[kind])})")
+                    if key not in ENV_INTERACTION_KEYS[kind]:
+                        error(f"{label}.{key} is not read for '{kind}' (known: {', '.join(ENV_INTERACTION_KEYS[kind])})")
                 duration = reaction.get("duration", 10.0)
                 if isinstance(duration, bool) or not isinstance(duration, (int, float)) or duration <= 0:
                     error(f"{label}.duration must be a positive number of seconds")
@@ -4331,6 +4356,10 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                     error(f"{label}.message must be a string")
                 if kind == "clear_exit_req" and reaction.get("direction") not in requirement_directions:
                     error(f"{label}.direction must name one of this room's exit_requirements, or the reaction does nothing")
+                elif kind == "clear_exit_req" and isinstance(requirements, dict) \
+                        and isinstance(requirements.get(reaction.get("direction")), dict) \
+                        and requirements[reaction["direction"]].get("type") == "condition":
+                    warn(f"{label} is a clear_exit_req that clears a 'condition' requirement, so this element opens a way the condition was meant to keep shut")
                 if kind == "suppress_hazard":
                     from engine.world.environment import hazard_entries
                     room_hazards = [str(entry.get("type", "")).strip() for entry in hazard_entries(properties)]

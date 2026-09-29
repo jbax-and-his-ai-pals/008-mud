@@ -116,6 +116,10 @@ def main() -> int:
         # (`use()` dispatches on exactly these). `DialogueSchema.gd` and
         # `ItemInspector.gd` hold the editor's copies.
         "restore_resources": list(RESTORE_RESOURCES),
+        # The keys a room's exit requirement and environmental reaction may carry,
+        # by type (`content_set.py`); `RoomPassagesPanel.gd` holds the editor's copy.
+        "exit_requirement_keys": {kind: list(keys) for kind, keys in cs.EXIT_REQUIREMENT_KEYS.items()},
+        "env_interaction_keys": {kind: list(keys) for kind, keys in cs.ENV_INTERACTION_KEYS.items()},
         "consumable_effect_types": list(CONSUMABLE_EFFECT_TYPES),
         # The two engine-owned words an NPC template names directly (see
         # `content_set.py::_validate_npc_faction_and_behavior`). `NPCVocabulary.gd`

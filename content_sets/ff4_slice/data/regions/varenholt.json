@@ -78,6 +78,18 @@
             "exits": {
                 "north": "road:castle_road",
                 "east": "stores"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "king_ordered"
+                        },
+                        "failure_message": "The guards cross their pikes. \"Orders from the king first, captain. Then the road is yours.\""
+                    }
+                }
             }
         }
     }

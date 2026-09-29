@@ -1107,6 +1107,19 @@ placed instance id. Slices: FF4's chancellor unmasks into a hostile fiend; Zelda
 once he has given his sword. Restart-survival for both is tested (a spawned NPC is in the snapshot;
 a removed one is not, and a resumed game replaces the static placements with the snapshot).
 
+**3.0** arrival is one method: `World.change_room` now asks `_evaluate_exit_gate` whether the way is
+open and hands the rest to `_arrive` (visited, location, quest room entry, instance flag, region banner,
+look, travel note, first-arrival notes, quest updates). No behaviour change, pinned by
+`test_arrival_characterisation.py` beside the unchanged `test_world_change_room_and_events.py`.
+
+**3.1** an exit can be gated on any condition: `exit_requirements.<dir> = {type: "condition", condition,
+failure_message}` (`EXIT_REQUIREMENT_KEYS` and `ENV_INTERACTION_KEYS` are now published and dumped, and the
+editor's `RoomPassagesPanel` is parity-checked against them, which also fixed `channel` missing from its
+reaction keys). `room_clear` (`factions.hostiles_in`, shared with the later room-cleared trigger) is the
+kill-all condition. The validator refuses an empty, unreadable or unresolvable condition, and warns when
+an elemental `clear_exit_req` would open a condition gate. Editor: a `condition` card on the passages panel
+using the shared `ConditionRows`. Slices: Zelda's tower stair, FF4's castle gate.
+
 **2.2** the editor's effect and condition rows are one implementation each (`EffectRows.gd`,
 `ConditionRows.gd`), adopted by the dialogue, knowledge and title inspectors in place of four
 drifted copies (the three inspectors are about 350 lines shorter). What that fixed, each checked against the parent
