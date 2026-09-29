@@ -42,7 +42,7 @@ class TestTheTable(unittest.TestCase):
             "move_npc": ["npc", "region", "room"],
             "raise": ["max_health", "max_mana", "stats"],
             "remove_npc": ["npc", "region", "room"],
-            "restore": ["amount", "resource"],
+            "restore": ["amount", "companions", "resource"],
             "reveal_exit": ["direction", "room"],
             "seal_exit": ["direction", "region", "room"],
             "spawn_npc": ["instance_id", "npc", "region", "room"],

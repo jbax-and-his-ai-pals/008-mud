@@ -25,7 +25,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     move_npc          {"npc": "template_id", "region": "forest", "room": "clearing"}
     give_rewards      {"xp": 10, "gold": 5, "items": [...]}   structured bundle
     take_gold         30                             a whole number, at least 1; all or nothing
-    restore           "health" | "mana" | "all" | {"resource": "health", "amount": 10 | "full"}
+    restore           "health" | "mana" | "all" | {"resource": "health", "amount": 10 | "full", "companions": true}
     raise             {"max_health": 10, "max_mana": 4, "stats": {"strength": 1}}   permanent
     forget_spell      "spell_id" | [...]
     message           "text shown to the player"
@@ -139,7 +139,7 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     "take_gold": {"form": "count", "minimum": 1},
     "restore": {
         "form": "object", "bare": "resource",
-        "fields": {"resource": "resource", "amount": "amount"},
+        "fields": {"resource": "resource", "amount": "amount", "companions": "bool"},
     },
     "raise": {
         "form": "object",
@@ -216,6 +216,8 @@ def _value_check(kind: str, value: Any) -> Optional[str]:
     if kind == "amount":
         ok = value == "full" or _is_whole(value, 1)
         return None if ok and not isinstance(value, bool) else 'a whole number of at least 1, or "full"'
+    if kind == "bool":
+        return None if isinstance(value, bool) else "true or false"
     if kind == "stat_map":
         ok = isinstance(value, dict) and bool(value) and all(
             _is_text(stat) and _is_whole(gain, 1) for stat, gain in value.items()
@@ -745,6 +747,8 @@ def _apply_restore_effect(effects: Dict[str, Any], player, world, report: Effect
         report.failed.append("restore %s (needs health, mana or all, and an amount or \"full\")" % _describe(raw))
         return
 
+    _restore_companions(isinstance(raw, dict) and raw.get("companions") is True, resource, amount, player, world, report)
+
     if resource in ("health", "all"):
         gained = player.heal(int(player.max_health) if amount == "full" else amount) if hasattr(player, "heal") else 0
         if gained > 0:
@@ -768,6 +772,28 @@ def _apply_restore_effect(effects: Dict[str, Any], player, world, report: Effect
             report.messages.append("You recover %d %s." % (gained, label))
         else:
             report.unchanged.append("restore %s (already full)" % label)
+
+
+def _restore_companions(wanted: bool, resource: str, amount: Any, player, world, report: EffectReport) -> None:
+    """`restore` with `companions: true` refills the player's companions too: an inn heals the party."""
+    if not wanted:
+        return
+    from engine.npcs import companions
+
+    healed = []
+    for npc in companions.companions_of(world, player):
+        gained = 0
+        if resource in ("health", "all"):
+            gained += npc.heal(int(npc.max_health) if amount == "full" else amount)
+        if resource in ("mana", "all") and getattr(npc, "max_mana", 0) > 0:
+            top = int(npc.max_mana) if amount == "full" else min(int(npc.max_mana), int(npc.mana) + amount)
+            gained += max(0, top - int(npc.mana))
+            npc.mana = max(int(npc.mana), top)
+        if gained > 0:
+            healed.append(npc.name)
+    if healed:
+        report.applied.append("restored companions %s" % ", ".join(healed))
+        report.messages.append("%s recover%s." % (", ".join(healed), "s" if len(healed) == 1 else ""))
 
 
 def _apply_raise_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:

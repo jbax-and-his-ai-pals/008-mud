@@ -180,6 +180,40 @@ class TestSeeingThem(_Zelda):
         self.assertEqual([], companions.companions_of(self.world, self.player))
 
 
+class TestPartyPayoffs(_Zelda):
+    def test_restore_can_heal_the_party_too(self):
+        self.effects({"recruit": "hermit"})
+        hermit = self.npc("hermit")
+        hermit.health = 1
+        self.player.health = 1
+        report = self.effects({"restore": {"resource": "health", "companions": True}})
+        self.assertEqual(hermit.max_health, hermit.health)
+        self.assertEqual(self.player.max_health, self.player.health)
+        self.assertIn("recovers", " ".join(report.messages))
+
+    def test_without_the_flag_only_the_player_is_healed(self):
+        self.effects({"recruit": "hermit"})
+        hermit = self.npc("hermit")
+        hermit.health = 1
+        self.player.health = 1
+        self.effects({"restore": "health"})
+        self.assertEqual(1, hermit.health)
+
+    def test_a_dismissed_companion_is_not_healed_by_it(self):
+        self.effects({"recruit": "hermit"})
+        self.effects({"dismiss": "hermit"})
+        hermit = self.npc("hermit")
+        hermit.health = 1
+        self.effects({"restore": {"resource": "health", "companions": True}})
+        self.assertEqual(1, hermit.health)
+
+    def test_the_flag_must_be_true_or_false(self):
+        from engine.dialogue.effects import effect_shape_issues
+
+        self.assertEqual([], effect_shape_issues({"restore": {"resource": "all", "companions": True}}))
+        self.assertTrue(effect_shape_issues({"restore": {"resource": "all", "companions": "yes"}}))
+
+
 class TestSurvivesARestart(unittest.TestCase):
     def test_a_companion_is_still_with_the_character_after_a_restart(self):
         scratch = tempfile.mkdtemp()

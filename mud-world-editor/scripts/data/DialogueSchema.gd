@@ -152,7 +152,7 @@ const EFFECTS := {
 	"give_rewards": {"label": "Give a reward bundle", "shape": "{xp, gold, items: [...]}", "kind": "json"},
 	"message": {"label": "Show a message", "shape": "text shown to the player", "kind": "string"},
 	"take_gold": {"label": "Take currency", "shape": "a whole number, 1 or more (all or nothing)", "kind": "int"},
-	"restore": {"label": "Restore health or mana", "shape": "health, mana, all, or {resource, amount: a number or \"full\"}", "kind": "string"},
+	"restore": {"label": "Restore health or mana", "shape": "health, mana, all, or {resource, amount: a number or \"full\", companions: true to heal the party too}", "kind": "string"},
 	"raise": {"label": "Raise max health, mana or a stat (permanent)", "shape": "{max_health, max_mana, stats: {stat: gain}}", "kind": "json"},
 	"forget_spell": {"label": "Forget an ability", "shape": "ability id, or a list of them", "kind": "string"},
 	"spawn_npc": {"label": "Bring in an NPC", "shape": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
