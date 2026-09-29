@@ -61,7 +61,7 @@ points live in `server/`. Every command runs from the repository root.
 # Play in a terminal (headless server, stdin command loop) -- quickest way in:
 python server/server_main.py --content-set content_sets/fantasy_frontier
 
-# Serve a content set over TCP or WebSocket for the Godot client:
+# Serve a content set over TCP or WebSocket (the Godot client's start screen uses WebSocket):
 python server/launch_content_set.py --transport ws --content-set content_sets/fantasy_frontier
 
 # Same thing underneath, if you want the server's own arguments:

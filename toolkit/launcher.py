@@ -145,7 +145,9 @@ class Launcher:
         self.results: "queue.Queue[tuple[str, str]]" = queue.Queue()   # worker threads never touch tkinter
         self.ready = threading.Event()
 
-        self.transport = tk.StringVar(value=self.settings.get("transport", "tcp"))
+        # The Godot client's start screen always connects over WebSocket, so that is the default.
+        # (An older launcher defaulted to TCP and saved it under "transport"; that key is ignored.)
+        self.transport = tk.StringVar(value=self.settings.get("client_transport", "ws"))
         self.port = tk.StringVar(value=str(self.settings.get("port", DEFAULT_PORT)))
         self.mode = tk.StringVar(value=self.settings.get("mode", "player"))
         self.fresh = tk.BooleanVar(value=False)
@@ -185,7 +187,7 @@ class Launcher:
 
         options = ttk.LabelFrame(self.root, text="Server", padding=8)
         options.pack(fill="x", padx=8)
-        ttk.Label(options, text="Transport").grid(row=0, column=0, sticky="w")
+        ttk.Label(options, text="Transport (the Godot client needs ws)").grid(row=0, column=0, sticky="w")
         ttk.Combobox(options, textvariable=self.transport, values=("tcp", "ws"), width=6, state="readonly").grid(row=0, column=1, padx=6)
         ttk.Label(options, text="Port").grid(row=0, column=2, sticky="w")
         ttk.Entry(options, textvariable=self.port, width=7).grid(row=0, column=3, padx=6)
@@ -249,7 +251,7 @@ class Launcher:
                                         stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
         self.ready.clear()
         threading.Thread(target=self._pump, args=(self.process,), daemon=True).start()
-        self.settings.update(last_set=entry["id"], transport=self.transport.get(), port=port, mode=self.mode.get())
+        self.settings.update(last_set=entry["id"], client_transport=self.transport.get(), port=port, mode=self.mode.get())
         save_settings(self.settings)
         self.fresh.set(False)   # a new game is asked for once, not on every start
         self.start_button.config(state="disabled")
@@ -316,6 +318,8 @@ class Launcher:
             return self._say("Godot was not found. Use 'Set Godot location...'.")
         subprocess.Popen([godot, "--path", str(REPO / project)], cwd=str(REPO))
         hint = " Connect to 127.0.0.1:%s." % self.port.get() if project == "client" else ""
+        if project == "client" and self.transport.get() != "ws":
+            hint += " (The client connects over WebSocket; restart the server with transport ws.)"
         self._say("Opened %s in Godot.%s" % (project, hint))
 
     # -- log ---------------------------------------------------------------------------
