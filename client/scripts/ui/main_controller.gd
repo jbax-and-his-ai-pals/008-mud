@@ -230,7 +230,7 @@ const SERVER_MARKUP = preload("res://scripts/text/server_markup.gd")
 @onready var journal_list_label: RichTextLabel = $VBox/AssetPreview/JournalList
 @onready var nearby_title_label: Label = $VBox/AssetPreview/NearbyTitle
 @onready var nearby_location_label: Label = $VBox/AssetPreview/NearbyLocation
-@onready var nearby_exits_label: Label = $VBox/AssetPreview/NearbyExits
+@onready var nearby_exits_label: RichTextLabel = $VBox/AssetPreview/NearbyExits
 @onready var nearby_npcs_label: RichTextLabel = $VBox/AssetPreview/NearbyNpcs
 @onready var nearby_items_label: RichTextLabel = $VBox/AssetPreview/NearbyItems
 @onready var nearby_interactions_label: Label = $VBox/AssetPreview/NearbyInteractions
@@ -301,41 +301,27 @@ var theme_controller: ThemeController
 var accessibility: AccessibilityController
 var game_state_payloads: GameStatePayloadsController
 
-## Two views. The game view is what a player sees: the log, a side column of their own state
-## (status, combat, inventory, crafting, collections, quests, surroundings) and the command line.
-## Everything about the connection, profiles, operator actions, authoring, adventure runs and
-## server diagnostics is tooling; it moves to a Tools view behind one button (F2), so the game
-## screen is not a control panel. The nodes keep their names and the @onready references above
-## are object references resolved before this runs, so nothing that uses them notices the move.
-const TOOLS_PANEL_PREFIXES := ["WorldState", "Network", "ServerPolicy", "StartupDiagnostics", "Adventure", "Asset"]
-const SIDE_PANEL_WIDTH := 330
+## Two views. The game view is what a player sees: the log in the middle, a dock of movable
+## info panels on each side (character, attributes, equipment, world, surroundings, pack, quests...)
+## and the command line. Everything about the connection, profiles, operator actions, authoring,
+## adventure runs and server diagnostics is tooling; it moves to a Tools view behind one button
+## (F2). The nodes keep their names and the @onready references above are object references
+## resolved before this runs, so nothing that uses them notices the move.
+const DOCK_MANAGER = preload("res://scripts/ui/docks/dock_manager.gd")
 
 var _game_view: Control
 var _tools_view: Control
 var _tools_toggle: Button
 var _connection_badge: Label
 var _debug_log: RichTextLabel
+var docks
 
 
 func _arrange_views() -> void:
 	var root_box: Control = get_node_or_null("VBox")
 	var panels: Control = get_node_or_null("VBox/AssetPreview")
-	if root_box == null or panels == null or panels.get_parent() is ScrollContainer:
+	if root_box == null or panels == null or docks != null:
 		return
-
-	# --- game view: log beside the player's own panels, command line underneath
-	var game := VBoxContainer.new()
-	game.name = "GameView"
-	game.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var body := HBoxContainer.new()
-	body.name = "GameBody"
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 10)
-	game.add_child(body)
-	var side := ScrollContainer.new()
-	side.name = "SidePanels"
-	side.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	side.custom_minimum_size = Vector2(SIDE_PANEL_WIDTH, 0)
 
 	# --- tools view: everything that is not the game
 	var tools_scroll := ScrollContainer.new()
@@ -347,11 +333,14 @@ func _arrange_views() -> void:
 	tools.name = "Tools"
 	tools.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tools_scroll.add_child(tools)
-
 	for row_name in ["ConnectionRow", "ProfileRow", "ProfileStatusLabel", "OperatorRow", "OperatorStatusLabel", "AdventureRow", "AuthoringRow", "AuthoringStatus"]:
 		var row: Node = root_box.get_node_or_null(row_name)
 		if row != null:
 			row.reparent(tools, false)
+	var reset_button := Button.new()
+	reset_button.text = "Reset panel layout"
+	reset_button.pressed.connect(func() -> void: docks.reset_layout())
+	tools.add_child(reset_button)
 	var diagnostics_title := Label.new()
 	diagnostics_title.text = "Diagnostics"
 	tools.add_child(diagnostics_title)
@@ -363,18 +352,37 @@ func _arrange_views() -> void:
 	_debug_log.custom_minimum_size = Vector2(0, 240)
 	_debug_log.meta_clicked.connect(_on_meta_clicked)
 	tools.add_child(_debug_log)
-	for child in panels.get_children():
-		for prefix in TOOLS_PANEL_PREFIXES:
-			if str(child.name).begins_with(prefix):
-				child.reparent(tools, false)
-				break
 
+	# --- the docks: panels the game already updates keep their labels, moved into cards
+	var existing := {
+		"pack": [inventory_summary_label, inventory_list_label],
+		"surroundings": [nearby_location_label, nearby_exits_label, nearby_npcs_label, nearby_items_label, nearby_interactions_label],
+		"quests": [journal_summary_label, journal_list_label],
+		"combat": [combat_summary_label, combat_targets_label],
+		"crafting": [crafting_summary_label, crafting_list_label],
+		"collections": [collections_summary_label, collections_list_label],
+		"discoveries": [discoveries_summary_label, discoveries_list_label],
+		"relationships": [relationships_summary_label, relationships_list_label],
+	}
+	docks = DOCK_MANAGER.new(existing, _on_meta_clicked)
+	for node in panels.get_children():
+		node.reparent(tools, false)   # section titles, status, world pulse, network, diagnostics...
+	panels.queue_free()
+
+	# --- game view: [left dock | log | right dock], then the command line
+	var game := VBoxContainer.new()
+	game.name = "GameView"
+	game.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var body := HBoxContainer.new()
+	body.name = "GameBody"
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 8)
+	game.add_child(body)
+	body.add_child(docks.left_scroll)
 	log_view.reparent(body, false)
 	log_view.clear()   # the scene's placeholder heading is not game text
 	log_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.add_child(side)
-	panels.reparent(side, false)
-	panels.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(docks.right_scroll)
 	var mobile: Node = root_box.get_node_or_null("MobileControls")
 	if mobile != null:
 		mobile.reparent(game, false)
@@ -514,6 +522,7 @@ func _ready() -> void:
 	journal_list_label.meta_clicked.connect(_on_meta_clicked)
 	nearby_npcs_label.meta_clicked.connect(_on_meta_clicked)
 	nearby_items_label.meta_clicked.connect(_on_meta_clicked)
+	nearby_exits_label.meta_clicked.connect(_on_meta_clicked)
 
 	var is_mobile = OS.has_feature("mobile") or OS.get_name() in ["Android", "iOS"]
 	_client_capabilities["mobile_variant"] = is_mobile
@@ -689,6 +698,12 @@ func _on_line_received(line: String) -> void:
 		_append_log("[color=yellow]Server closed session.[/color]")
 	elif event_type == "asset":
 		game_state_payloads._handle_asset_payload(payload)
+	elif event_type == "character":
+		if docks != null and typeof(payload) == TYPE_DICTIONARY:
+			docks.apply_character(payload as Dictionary)
+	elif event_type == "world":
+		if docks != null and typeof(payload) == TYPE_DICTIONARY:
+			docks.apply_world(payload as Dictionary)
 	elif event_type == "status":
 		game_state_payloads._handle_status_payload(payload)
 	elif event_type == "combat":
@@ -1003,7 +1018,7 @@ func _handle_audit_result_payload(payload: Variant) -> void:
 func _render_text_payload(payload: Variant) -> String:
 	if typeof(payload) == TYPE_DICTIONARY:
 		var body: Dictionary = payload as Dictionary
-		var text: String = SERVER_MARKUP.to_bbcode(str(body.get("text", "")))
+		var text: String = SERVER_MARKUP.tighten(SERVER_MARKUP.to_bbcode(SERVER_MARKUP.without_weather_line(str(body.get("text", "")))))
 		var fx: Variant = body.get("fx", {})
 		if typeof(fx) == TYPE_DICTIONARY:
 			var fx_dict: Dictionary = fx as Dictionary
@@ -1019,7 +1034,7 @@ func _render_text_payload(payload: Variant) -> String:
 				var rate: float = 2.0 + (6.0 * amp)
 				return "[blight amp=%.3f rate=%.3f]%s[/blight]" % [amp, rate, text]
 		return text
-	return SERVER_MARKUP.to_bbcode(str(payload))
+	return SERVER_MARKUP.tighten(SERVER_MARKUP.to_bbcode(SERVER_MARKUP.without_weather_line(str(payload))))
 
 func _resolve_client_capabilities(command_text: String) -> Dictionary:
 	var lowered: String = command_text.strip_edges().to_lower()

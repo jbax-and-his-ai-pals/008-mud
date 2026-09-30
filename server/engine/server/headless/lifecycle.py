@@ -222,4 +222,8 @@ class LifecycleMixin:
         # A single-player game saves its world on an interval (DurableStateMixin).
         self._autosave_world()
 
+        # Side-panel data for a client, sent only when it changed (panel_payloads.py).
+        if session_id:
+            events.extend(self._panel_events(session_id))
+
         return events

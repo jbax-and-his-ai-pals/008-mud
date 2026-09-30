@@ -56,6 +56,7 @@ from engine.server.headless.world_effects import WorldEffectsMixin
 from engine.server.headless.command_execution import CommandExecutionMixin
 from engine.server.headless.field_fx import FieldFxMixin
 from engine.server.headless.status_payloads import StatusPayloadsMixin
+from engine.server.headless.panel_payloads import PanelPayloadsMixin
 from engine.server.headless.durable_state import DurableStateMixin
 
 
@@ -83,7 +84,7 @@ class _NullInputHandler:
 class HeadlessServer(
     BootWarningsMixin, SessionMixin, FiniteAdventureMixin, PartyMixin, ShardMixin,
     LifecycleMixin, WorldEffectsMixin, CommandExecutionMixin, FieldFxMixin, StatusPayloadsMixin,
-    DurableStateMixin,
+    PanelPayloadsMixin, DurableStateMixin,
 ):
     """Minimal authoritative headless runtime that reuses existing world/command systems."""
     def __init__(

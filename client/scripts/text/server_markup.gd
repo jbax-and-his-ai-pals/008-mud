@@ -30,6 +30,31 @@ const COLORS := {
 }
 
 static var _token_pattern: RegEx
+static var _weather_pattern: RegEx
+static var _blank_lines: RegEx
+
+
+## A room description carries "The weather is cloudy." The world panel shows the weather, so the
+## sentence is dropped from a room description (a text with an "Exits:" line). The `weather`
+## command's own answer is left alone.
+static func without_weather_line(text: String) -> String:
+	if text.find("Exits:") == -1 or text.find("The weather is") == -1:
+		return text
+	if _weather_pattern == null:
+		_weather_pattern = RegEx.new()
+		_weather_pattern.compile("\n*The weather is [^\n]*")
+	return _weather_pattern.sub(text, "", true)
+
+
+## Blank lines are as tall as a line of text, which reads as double spacing. A run of them
+## becomes one short gap, so paragraphs stay apart without the page looking sparse.
+static func tighten(bbcode: String) -> String:
+	if bbcode.find("\n\n") == -1:
+		return bbcode
+	if _blank_lines == null:
+		_blank_lines = RegEx.new()
+		_blank_lines.compile("\n{2,}")
+	return _blank_lines.sub(bbcode, "\n[font_size=5] [/font_size]\n", true)
 
 
 static func to_bbcode(text: String) -> String:

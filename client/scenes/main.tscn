@@ -249,7 +249,7 @@ layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
 scroll_following = true
-text = "[b]MUD Client Shell[/b]\n"
+text = ""
 
 [node name="AssetPreview" type="VBoxContainer" parent="VBox"]
 layout_mode = 2
@@ -388,9 +388,11 @@ layout_mode = 2
 autowrap_mode = 3
 text = "Unknown Region / Unknown Room"
 
-[node name="NearbyExits" type="Label" parent="VBox/AssetPreview"]
+[node name="NearbyExits" type="RichTextLabel" parent="VBox/AssetPreview"]
 layout_mode = 2
-autowrap_mode = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 text = "Exits: --"
 
 [node name="NearbyNpcs" type="RichTextLabel" parent="VBox/AssetPreview"]

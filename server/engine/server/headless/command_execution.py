@@ -111,8 +111,14 @@ class CommandExecutionMixin:
                     if opening_guidance:
                         events.append(self._event("text", session_id, opening_guidance))
                     self.persist_player_snapshot(session_id)
+                    # Show the room the character is in, as `look` would: the opening text and
+                    # the intro say who they are, and this says where.
+                    arrived = self.get_player_for_session(session_id)
+                    if arrived is not None:
+                        events.append(self._event("text", session_id, self.world.look(player=arrived)))
                     events.append(self._event("status", session_id, self._build_status_payload(session_id)))
                     events.append(self._event("nearby", session_id, self._build_nearby_payload(session_id)))
+                    events.extend(self._panel_events(session_id, force=True))
                 return events
             events.append(
                 self._event(

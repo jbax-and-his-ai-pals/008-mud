@@ -23,7 +23,7 @@ class TestOperatorPaletteContract(unittest.TestCase):
 
     def test_scene_has_operator_palette_nodes(self) -> None:
         expected_nodes = [
-            '[node name="OperatorRow" type="HBoxContainer" parent="VBox"]',
+            '[node name="OperatorRow" type="HFlowContainer" parent="VBox"]',
             '[node name="OperatorDomainSelect" type="OptionButton" parent="VBox/OperatorRow"]',
             '[node name="OperatorActionSelect" type="OptionButton" parent="VBox/OperatorRow"]',
             '[node name="OperatorValueSelect" type="OptionButton" parent="VBox/OperatorRow"]',
