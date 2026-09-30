@@ -74,14 +74,15 @@
         },
         "castle_gate": {
             "name": "Castle Gate",
-            "description": "The great gate stands open on the north road. A guard post leans against the wall.",
+            "description": "The great gate stands open on the south road. A guard post leans against the wall.",
             "exits": {
-                "north": "road:castle_road",
+                "north": "courtyard",
+                "south": "road:castle_road",
                 "east": "stores"
             },
             "properties": {
                 "exit_requirements": {
-                    "north": {
+                    "south": {
                         "type": "condition",
                         "condition": {
                             "kind": "flag",

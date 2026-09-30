@@ -476,14 +476,26 @@ class TestFF4Slice(_Slice):
 
     def test_the_castle_gate_stays_shut_until_the_king_has_given_orders(self):
         self.at("varenholt", "castle_gate")
-        refused = self.say("go north")
+        refused = self.say("go south")
         self.assertEqual("varenholt:castle_gate", self.where())
         self.assertIn("Orders from the king", refused)
         self.at("varenholt", "throne_room")
         self._question_the_king()   # either answer: it is that he has spoken that opens the gate
         self.at("varenholt", "castle_gate")
-        self.say("go north")
+        self.say("go south")
         self.assertEqual("road:castle_road", self.where())
+
+    def test_the_way_out_of_the_castle_runs_the_same_way_both_ways(self):
+        self.at("varenholt", "courtyard")
+        self.player.flags["king_ordered"] = True
+        self.say("go south")
+        self.assertEqual("varenholt:castle_gate", self.where(), "the courtyard leads south to the gate")
+        self.say("go south")
+        self.assertEqual("road:castle_road", self.where(), "the gate leads on south to the road")
+        self.say("go north")
+        self.assertEqual("varenholt:castle_gate", self.where(), "and the road leads back north to the gate")
+        self.say("go north")
+        self.assertEqual("varenholt:courtyard", self.where(), "and the gate back north to the courtyard")
 
     def test_the_chancellor_unmasks_into_a_fiend(self):
         self.at("varenholt", "throne_room")

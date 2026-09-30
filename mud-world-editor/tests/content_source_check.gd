@@ -15,6 +15,12 @@ var failure_count := 0
 var catalog: ContractCatalog
 
 func _init() -> void:
+	# This check needs a set that has a `town` region (fantasy_frontier). Left alone it would use
+	# whichever set the editor last had open (`editor_settings.json`), so it failed for anyone
+	# whose editor was pointed at another set.
+	var repo := ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir()
+	DataRoot._resolved = repo.path_join("content_sets/fantasy_frontier")
+	DataRoot._source = "test fixture"
 	print("content root : ", DataRoot.describe())
 
 	_check_resolution()

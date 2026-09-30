@@ -82,7 +82,7 @@ check("at the stores", g.where() == "varenholt:stores", g.where())
 say(g, "go west")
 
 # --- the road and the cave -----------------------------------------------------
-say(g, "go north")
+say(g, "go south")
 check("on the castle road", g.where() == "road:castle_road", g.where())
 r = g.fight("goblin", potion="potion"); check("beat the goblin scout", r.startswith("won"), r); print("   ", r)
 say(g, "go east")

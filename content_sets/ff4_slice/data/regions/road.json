@@ -11,7 +11,7 @@
             "description": "The road bends away from the castle gate between low hedges.",
             "exits": {
                 "east": "river_bridge",
-                "south": "varenholt:castle_gate"
+                "north": "varenholt:castle_gate"
             },
             "initial_npcs": [
                 {
