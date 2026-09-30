@@ -25,7 +25,38 @@ const DEFAULT_PORT := 59399
 @onready var port_input: LineEdit = $CenterContainer/LauncherVBox/OnlinePanel/HostPortRow/PortInput
 @onready var connect_button: Button = $CenterContainer/LauncherVBox/OnlinePanel/ConnectButton
 
+## `godot --path client -- --quick --host H --port P --name N` skips this screen: it connects to
+## the server, makes a character called N and lands in the game. The desktop launcher's "Quick
+## play" button starts the client this way. Nothing is shown, so a stale crash-recovery marker
+## from an earlier window is cleared first rather than offered.
+func _quick_args() -> Dictionary:
+	var args := OS.get_cmdline_user_args()
+	if not args.has("--quick"):
+		return {}
+	var found := {"host": DEFAULT_OFFLINE_HOST, "port": DEFAULT_PORT, "name": "Test"}
+	for index in range(args.size() - 1):
+		match args[index]:
+			"--host": found["host"] = args[index + 1]
+			"--port": found["port"] = _safe_int(args[index + 1], DEFAULT_PORT)
+			"--name": found["name"] = args[index + 1]
+	return found
+
+
+func _start_quick(quick: Dictionary) -> void:
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://session_alive.json"))
+	Engine.set_meta("launch_host", str(quick["host"]))
+	Engine.set_meta("launch_port", int(quick["port"]))
+	Engine.set_meta("launch_mode", "offline")
+	Engine.set_meta("launch_auto_connect", true)
+	Engine.set_meta("launch_auto_character", str(quick["name"]))
+	get_tree().change_scene_to_file(MAIN_SCENE)
+
+
 func _ready() -> void:
+	var quick := _quick_args()
+	if not quick.is_empty():
+		_start_quick.call_deferred(quick)
+		return
 	offline_button.pressed.connect(_on_offline_pressed)
 	connect_online_button.pressed.connect(_on_connect_online_pressed)
 	connect_button.pressed.connect(_on_connect_pressed)

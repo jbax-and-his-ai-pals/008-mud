@@ -144,6 +144,7 @@ class Launcher:
         self.status: dict[str, str] = {}
         self.results: "queue.Queue[tuple[str, str]]" = queue.Queue()   # worker threads never touch tkinter
         self.ready = threading.Event()
+        self._quick_launch = False
 
         # The Godot client's start screen always connects over WebSocket, so that is the default.
         # (An older launcher defaulted to TCP and saved it under "transport"; that key is ignored.)
@@ -198,6 +199,7 @@ class Launcher:
 
         buttons = ttk.Frame(self.root, padding=8)
         buttons.pack(fill="x")
+        ttk.Button(buttons, text="Quick play (Test)", command=self.quick_play).pack(side="left", padx=(0, 12))
         self.start_button = ttk.Button(buttons, text="Start server", command=self.start_server)
         self.start_button.pack(side="left")
         self.stop_button = ttk.Button(buttons, text="Stop server", command=self.stop_server, state="disabled")
@@ -234,7 +236,14 @@ class Launcher:
             return None
         return value if 1 <= value <= 65535 else None
 
-    def start_server(self) -> None:
+    def quick_play(self) -> None:
+        """One click: a throwaway server for the selected set (WebSocket, nothing saved), then the
+        Godot client, which connects, makes a character called Test and starts playing."""
+        if self.process is not None and self.process.poll() is None:
+            self.stop_server()
+        self.start_server(quick=True)
+
+    def start_server(self, quick: bool = False) -> None:
         entry, port = self.selected(), self._port()
         if entry is None:
             return self._say("Choose a content set first.")
@@ -244,8 +253,10 @@ class Launcher:
             return self._say("A server is already running. Stop it first.")
         if port_open(port):
             return self._say("Port %d is already in use." % port)
-        command = server_command(entry["path"], transport=self.transport.get(), port=port, mode=self.mode.get(),
-                                 fresh=self.fresh.get(), ephemeral=self.ephemeral.get())
+        transport = "ws" if quick else self.transport.get()
+        command = server_command(entry["path"], transport=transport, port=port, mode=self.mode.get(),
+                                 fresh=self.fresh.get(), ephemeral=True if quick else self.ephemeral.get())
+        self._quick_launch = quick
         env = dict(os.environ, PYTHONUNBUFFERED="1", PYGAME_HIDE_SUPPORT_PROMPT="1")
         self.process = subprocess.Popen(command, cwd=str(REPO), env=env, stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace")
@@ -272,6 +283,11 @@ class Launcher:
         if self.process is None or self.process.poll() is not None:
             return
         if self.ready.is_set():
+            if self._quick_launch:
+                self._quick_launch = False
+                self.state.set("Quick play: %s on 127.0.0.1:%d (nothing is saved). Opening the client..." % (set_id, port))
+                self.open_godot_quick(port)
+                return
             self.state.set("Server running: %s on 127.0.0.1:%d (%s). Connect a client to it." % (set_id, port, self.transport.get()))
         elif time.time() - started < 60:
             self.root.after(500, lambda: self._wait_ready(port, set_id, started))
@@ -311,6 +327,14 @@ class Launcher:
             self.settings["godot"] = chosen
             save_settings(self.settings)
         return chosen
+
+    def open_godot_quick(self, port: int) -> None:
+        godot = find_godot(self.settings.get("godot", "")) or self.pick_godot()
+        if not godot:
+            return self._say("Godot was not found. Use 'Set Godot location...', then Quick play again.")
+        subprocess.Popen([godot, "--path", str(REPO / "client"), "--", "--quick", "--host", "127.0.0.1",
+                          "--port", str(port), "--name", "Test"], cwd=str(REPO))
+        self._say("Opened the client: connecting to 127.0.0.1:%d as Test." % port)
 
     def open_godot(self, project: str) -> None:
         godot = find_godot(self.settings.get("godot", "")) or self.pick_godot()
@@ -387,8 +411,26 @@ def selftest() -> int:
     root.update()
     stopped = not port_open(free)
     print("server stopped:", stopped)
+
+    # Quick play: one click starts a throwaway WebSocket server and hands the client its address.
+    opened: list = []
+    app.open_godot_quick = lambda quick_port: opened.append(quick_port)
+    app.transport.set("tcp")   # quick play must not care what the options say
+    app.ephemeral.set(False)
+    app.tree.selection_set("ff4_slice")
+    app.quick_play()
+    deadline = time.time() + 90
+    while time.time() < deadline and not opened:
+        root.update()
+        time.sleep(0.2)
+    quick_ok = bool(opened) and port_open(free)
+    command = " ".join(app.process.args) if app.process is not None else ""
+    quick_ok = quick_ok and "poc_ws_server.py" in command and "--ephemeral" in command
+    print("quick play started a ws, ephemeral server and opened the client:", quick_ok)
+    app.stop_server()
+    root.update()
     root.destroy()
-    return 0 if ok and stopped else 1
+    return 0 if ok and stopped and quick_ok else 1
 
 
 def main() -> int:

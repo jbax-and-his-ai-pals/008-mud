@@ -661,7 +661,7 @@ func _on_line_received(line: String) -> void:
 			if typeof(server_policy_val) == TYPE_DICTIONARY:
 				char_creation_required = bool((server_policy_val as Dictionary).get("require_character_creation", false))
 			if char_creation_required and not already_has_char:
-				char_create.show_dialog()
+				_offer_character_creation()
 	elif event_type == "session_resumed":
 		_append_log("[color=green]Session resumed.[/color]")
 		if typeof(payload) == TYPE_DICTIONARY:
@@ -690,7 +690,7 @@ func _on_line_received(line: String) -> void:
 		elif typeof(payload) == TYPE_STRING:
 			text_body = str(payload)
 		if "No character yet" in text_body and not char_create.visible:
-			char_create.show_dialog()
+			_offer_character_creation()
 	elif event_type == "error":
 		_append_game("[color=red]%s[/color]" % SERVER_MARKUP.to_bbcode(str(payload)))
 	elif event_type == "goodbye":
@@ -1104,6 +1104,20 @@ func _notification(what: int) -> void:
 			if _auto_reconnect_enabled and _resume_session_id != "":
 				network_lifecycle._schedule_reconnect()
 
+## A quick-play launch names the character up front: make it instead of asking. Only once, so
+## if the server refuses the name the player gets the dialog rather than a loop.
+var _auto_character: String = ""
+var _auto_character_sent: bool = false
+
+
+func _offer_character_creation() -> void:
+	if _auto_character != "" and not _auto_character_sent:
+		_auto_character_sent = true
+		network_lifecycle._on_char_name_submitted(_auto_character)
+		return
+	char_create.show_dialog()
+
+
 func _apply_launch_config() -> void:
 	## Read launch parameters written by launcher_controller.gd via Engine.set_meta().
 	## All keys are consumed (removed) here so subsequent restarts start clean.
@@ -1136,6 +1150,10 @@ func _apply_launch_config() -> void:
 		_append_log("[color=aqua]Offline mode — connecting to local server.[/color]")
 	elif mode == "online":
 		_append_log("[color=aqua]Online mode — connecting to remote server.[/color]")
+
+	if Engine.has_meta("launch_auto_character"):
+		_auto_character = str(Engine.get_meta("launch_auto_character"))
+		Engine.remove_meta("launch_auto_character")
 
 	if Engine.has_meta("launch_auto_connect"):
 		Engine.remove_meta("launch_auto_connect")
