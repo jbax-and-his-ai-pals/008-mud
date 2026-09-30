@@ -417,6 +417,31 @@ class TestFF4Slice(_Slice):
         self.assertIn("presses his seal", printed)
         self.assertIn("The King's Package", self.quest_states(), "the cutscene hands straight on to the quest")
 
+    def test_the_kings_first_audience_says_how_to_answer(self):
+        self.assertIn("reply <number>", self.say("talk king"))
+
+    def test_the_king_does_not_repeat_his_greeting_once_he_has_spoken(self):
+        first = self.say("talk king")
+        self.assertIn("The crystals are not yet ours", first)
+        self.say("reply 4")   # "I will go." ends it without choosing a side
+        again = self.say("talk king")
+        self.assertNotIn("The crystals are not yet ours", again)
+        self.assertIn("You have your orders", again)
+        self.assertNotIn("slaughter", again, "the choices that settled things are not offered again")
+
+    def test_the_king_remembers_that_you_obeyed_or_questioned_him(self):
+        self.say("talk king")
+        self.say("reply 1")
+        self.assertIn("You have your orders", self.say("talk king"))
+        self.say("reply 2")   # "Yes, my king."
+
+    def test_a_captain_who_questioned_the_king_is_greeted_differently(self):
+        self._question_the_king()
+        self.at("varenholt", "throne_room")
+        again = self.say("talk king")
+        self.assertIn("Deliver the package, courier", again)
+        self.assertNotIn("The crystals are not yet ours", again)
+
     def test_questioning_the_king_costs_the_seal_and_is_remembered(self):
         self.assertTrue(self.holds("item_commander_seal"))
         self._question_the_king()

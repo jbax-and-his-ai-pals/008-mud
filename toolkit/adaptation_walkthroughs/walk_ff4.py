@@ -58,7 +58,7 @@ say(g, "go north")
 check("and you can walk back in", g.where() == "varenholt:throne_room", g.where())
 out = say(g, "talk king", show=V, n=600)
 check("the choice cannot be taken twice", "Tell me again" in out and "slaughter" not in out.split("[")[0] or "unavailable" in out, out[:200])
-say(g, "reply 4")
+say(g, "reply 2")
 
 # --- Kessa: an NPC that moves ahead ------------------------------------------
 say(g, "go south"); say(g, "go east")

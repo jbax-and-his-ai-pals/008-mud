@@ -113,6 +113,10 @@ class DialogueGraph:
     root: str
     nodes: Dict[str, DialogueNode] = field(default_factory=dict)
     source: str = ""
+    # Other ways to open the conversation: [{"node": id, "condition": ...}], tried in order, the
+    # first whose condition holds wins; `root` is what is left. This is how an NPC says something
+    # else the second time ("You have your orders") without a reply to click through first.
+    entries: List[Dict[str, Any]] = field(default_factory=list)
 
     def node(self, node_id: str) -> Optional[DialogueNode]:
         return self.nodes.get(str(node_id))
@@ -127,6 +131,8 @@ class DialogueGraph:
         before anyone walks into it mid-conversation.
         """
         found: List[tuple[str, str, str]] = []
+        for entry in self.entries:
+            found.append(("(entries)", "entry node", str(entry.get("node", ""))))
         for node in self.nodes.values():
             for choice in node.choices:
                 if choice.next_node:

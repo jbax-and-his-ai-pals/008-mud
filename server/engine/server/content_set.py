@@ -4156,6 +4156,8 @@ def _validate_dialogue_content(
                 "warning", str(path),
                 f"{label} is not referenced by any NPC template",
             ))
+        for position, entry in enumerate(graph.entries):
+            _check_condition(entry.get("condition"), f"{label} entries[{position}].condition", path, ids, issues)
         for node in graph.nodes.values():
             where = f"{label} node '{node.node_id}'"
 

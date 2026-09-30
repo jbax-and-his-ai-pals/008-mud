@@ -1,6 +1,30 @@
 {
     "id": "king_orders",
     "root": "greeting",
+    "entries": [
+        {
+            "node": "again_questioned",
+            "condition": {
+                "kind": "flag",
+                "flag": "questioned_king"
+            }
+        },
+        {
+            "node": "again",
+            "condition": {
+                "any": [
+                    {
+                        "kind": "flag",
+                        "flag": "king_ordered"
+                    },
+                    {
+                        "kind": "flag",
+                        "flag": "king_briefed"
+                    }
+                ]
+            }
+        }
+    ],
     "nodes": {
         "greeting": {
             "text": "The crystals are not yet ours, and Mistvale keeps a ring of red stones that we want. Carry this package to their mayor. It is a gift. Do not open it.",
@@ -51,6 +75,35 @@
                 },
                 {
                     "text": "I will go.",
+                    "effects": {
+                        "set_flag": "king_briefed"
+                    },
+                    "end": true
+                }
+            ]
+        },
+        "again": {
+            "text": "You have your orders, captain. The fleet sails at dawn, and you are still standing in my hall.",
+            "choices": [
+                {
+                    "text": "Tell me again what the package is.",
+                    "next_node": "package"
+                },
+                {
+                    "text": "Yes, my king.",
+                    "end": true
+                }
+            ]
+        },
+        "again_questioned": {
+            "text": "Deliver the package, courier. I will not say it twice, and I will not be questioned by a man without a seal.",
+            "choices": [
+                {
+                    "text": "Tell me again what the package is.",
+                    "next_node": "package"
+                },
+                {
+                    "text": "Yes, my king.",
                     "end": true
                 }
             ]
@@ -78,6 +131,9 @@
             "choices": [
                 {
                     "text": "I will go.",
+                    "effects": {
+                        "set_flag": "king_briefed"
+                    },
                     "end": true
                 }
             ]

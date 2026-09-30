@@ -129,7 +129,23 @@ def parse_graph(payload: Any, graph_id: str, source: str = "") -> Tuple[Optional
     if root not in nodes:
         issues.append("%s: dialogue graph '%s' root '%s' is not a node" % (source or graph_id, graph_id, root))
 
-    graph = DialogueGraph(graph_id=graph_id, root=root, nodes=nodes, source=source)
+    entries: List[Dict[str, Any]] = []
+    raw_entries = payload.get("entries", [])
+    if raw_entries not in (None, []):
+        if not isinstance(raw_entries, list):
+            issues.append("%s: dialogue graph '%s' entries must be a list" % (source or graph_id, graph_id))
+        else:
+            for position, raw_entry in enumerate(raw_entries):
+                target = raw_entry.get("node") if isinstance(raw_entry, dict) else None
+                if not isinstance(target, str) or not target.strip():
+                    issues.append(
+                        "%s: dialogue graph '%s' entries[%d] needs a 'node' naming where to open"
+                        % (source or graph_id, graph_id, position)
+                    )
+                    continue
+                entries.append({"node": target.strip(), "condition": raw_entry.get("condition")})
+
+    graph = DialogueGraph(graph_id=graph_id, root=root, nodes=nodes, source=source, entries=entries)
     issues.extend(structural_issues(graph))
     return graph, issues
 
@@ -257,7 +273,15 @@ class DialogueManager:
     def current(self, player) -> Optional[DialogueSession]:
         return self._sessions.get(str(getattr(player, "obj_id", "")))
 
+    def entry_node_id(self, player, graph: DialogueGraph) -> str:
+        """Where a conversation opens: the first `entries` whose condition holds, else the root."""
+        for entry in graph.entries:
+            if evaluate(entry.get("condition"), player).satisfied and graph.node(entry["node"]) is not None:
+                return str(entry["node"])
+        return graph.root
+
     def open(self, player, npc, graph: DialogueGraph, node_id: str = "", quest_id: str = "") -> DialogueNode:
+        node_id = node_id or self.entry_node_id(player, graph)
         node = graph.node(node_id or graph.root) or graph.node(graph.root)
         assert node is not None  # parse_graph guarantees a root node exists
         self._sessions[str(player.obj_id)] = DialogueSession(
@@ -375,6 +399,7 @@ class DialogueManager:
         if choices:
             chunks.append("")
             chunks.append(choices)
+            chunks.append("%s(Answer with: reply <number>)%s" % (FORMAT_CATEGORY, FORMAT_RESET))
         elif not show_internals:
             chunks.append("")
             chunks.append("%s(That seems to be all.)%s" % (FORMAT_CATEGORY, FORMAT_RESET))
