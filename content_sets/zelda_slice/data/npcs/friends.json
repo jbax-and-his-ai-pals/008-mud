@@ -1,6 +1,6 @@
 {
     "hermit": {
-        "name": "the hermit",
+        "name": "hermit",
         "description": "A stooped man in a patchwork cloak, tending a very small fire.",
         "health": 60,
         "level": 3,
@@ -17,7 +17,7 @@
         }
     },
     "cave_merchant": {
-        "name": "the cave merchant",
+        "name": "cave merchant",
         "description": "A wiry trader with a lantern and too many pockets.",
         "health": 60,
         "level": 3,
@@ -50,7 +50,7 @@
         }
     },
     "pool_fairy": {
-        "name": "the pool fairy",
+        "name": "pool fairy",
         "description": "A palm-sized light that hangs above the water, humming.",
         "health": 60,
         "level": 3,
@@ -76,7 +76,7 @@
         "max_mana": 100
     },
     "sage": {
-        "name": "the sage",
+        "name": "sage",
         "description": "A tall woman with ink on her fingers and a cracked staff of pale wood.",
         "health": 60,
         "level": 3,

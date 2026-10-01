@@ -27,12 +27,7 @@
         "calm": {
             "text": "The fog came from the package. I saw it.",
             "pace": "slow",
-            "choices": [
-                {
-                    "text": "I know.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "thanks": {
             "text": "I can call the titans. Mother taught me before... before. Here, I will teach you the calling song.",
@@ -82,22 +77,12 @@
         "joins": {
             "text": "I... yes. I would rather not be alone with the fog.",
             "pace": "slow",
-            "choices": [
-                {
-                    "text": "Stay close.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "taught": {
             "text": "There. Sing it low and the ground will answer.",
             "pace": "slow",
-            "choices": [
-                {
-                    "text": "Thank you, Ryn.",
-                    "end": true
-                }
-            ]
+            "end": true
         }
     }
 }

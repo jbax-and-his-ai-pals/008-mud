@@ -73,30 +73,15 @@
         },
         "begin": {
             "text": "Two shards remain within reach. One sleeps in Mossroot Hollow, in the oak to the north-west. The other lies on an island in the lake, but you will need something that floats.",
-            "choices": [
-                {
-                    "text": "I'll find them.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "forge": {
             "text": "Yes. Yes! Hold them together. There, the Triad, incomplete but whole enough to open the tower door.",
-            "choices": [
-                {
-                    "text": "Then I go north.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "sent": {
             "text": "Go with my blessing. The door will know what you carry.",
-            "choices": [
-                {
-                    "text": "Thank you.",
-                    "end": true
-                }
-            ]
+            "end": true
         }
     }
 }

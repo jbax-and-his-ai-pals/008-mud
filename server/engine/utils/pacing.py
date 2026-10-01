@@ -19,10 +19,10 @@ from typing import Any, Optional
 
 # Characters revealed per second.
 TEXT_PACES = {
-    "brisk": 90,
-    "measured": 55,
-    "slow": 35,
-    "solemn": 20,
+    "brisk": 180,
+    "measured": 110,
+    "slow": 70,
+    "solemn": 40,
 }
 PACE_RANGE = (5, 200)
 

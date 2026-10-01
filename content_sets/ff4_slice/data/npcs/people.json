@@ -59,7 +59,7 @@
         "max_mana": 100
     },
     "quartermaster": {
-        "name": "the quartermaster",
+        "name": "quartermaster",
         "description": "A gruff man behind a counter stacked with fleet stores.",
         "health": 60,
         "level": 3,
@@ -84,7 +84,7 @@
         }
     },
     "mayor_of_mistvale": {
-        "name": "the mayor of Mistvale",
+        "name": "mayor of Mistvale",
         "description": "A soft-spoken man in a village chain of office.",
         "health": 60,
         "level": 3,
@@ -118,7 +118,7 @@
         }
     },
     "innkeeper": {
-        "name": "the innkeeper",
+        "name": "innkeeper",
         "description": "A stout woman with a ring of keys and a lantern she never seems to put down.",
         "health": 60,
         "level": 3,
@@ -135,7 +135,7 @@
         }
     },
     "chancellor": {
-        "name": "the chancellor",
+        "name": "chancellor",
         "description": "A gaunt man in grey silks at the king's elbow, smiling as if he had been taught how.",
         "health": 60,
         "level": 3,
@@ -149,6 +149,22 @@
             "wander_chance": 0,
             "move_cooldown": 9999,
             "dialogue": "chancellor_talk"
+        }
+    },
+    "castle_guard": {
+        "name": "castle guard",
+        "description": "A guard of the Red Fleet in polished plate, halberd grounded, eyes fixed on nothing.",
+        "health": 80,
+        "level": 4,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Move along, captain. The king's business is not ours to discuss."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999
         }
     }
 }

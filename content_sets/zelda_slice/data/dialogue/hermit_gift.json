@@ -44,30 +44,15 @@
         },
         "given": {
             "text": "It is a plain blade, but it has done some good. Go and find the sage.",
-            "choices": [
-                {
-                    "text": "I will.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "tower": {
             "text": "It fell three winters ago. The shards of the Triad went into the deep places. The sage knows more.",
-            "choices": [
-                {
-                    "text": "Goodbye.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "vanished": {
             "text": "You blink, and there is no one here but the echo of your own question.",
-            "choices": [
-                {
-                    "text": "Go on.",
-                    "end": true
-                }
-            ]
+            "end": true
         }
     }
 }

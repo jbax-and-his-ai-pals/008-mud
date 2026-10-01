@@ -31,6 +31,30 @@
                 "east": "barracks",
                 "west": "chapel",
                 "south": "castle_gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "castle_guard",
+                    "instance_id": "castle_guard_courtyard_1"
+                },
+                {
+                    "template_id": "castle_guard",
+                    "instance_id": "castle_guard_courtyard_2"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "not": {
+                                "kind": "flag",
+                                "flag": "king_ordered"
+                            }
+                        },
+                        "failure_message": "The guards at the doors do not so much as look at you. \"The king has given you your orders, captain. Carry them out.\""
+                    }
+                }
             }
         },
         "barracks": {

@@ -33,12 +33,7 @@
         },
         "unmasked": {
             "text": "You should not have looked so closely.",
-            "choices": [
-                {
-                    "text": "Stand back!",
-                    "end": true
-                }
-            ]
+            "end": true
         }
     }
 }

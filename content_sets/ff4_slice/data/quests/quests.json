@@ -14,7 +14,7 @@
                     "item_instance_id": "package_of_the_king",
                     "item_to_deliver_description": "A small package bound in red wax. It is heavier than it looks.",
                     "recipient_template_id": "mayor_of_mistvale",
-                    "recipient_name": "the mayor of Mistvale"
+                    "recipient_name": "mayor of Mistvale"
                 },
                 "turn_in_id": "mayor_of_mistvale",
                 "start_dialogue": "You are handed a heavy little package, bound in red wax.",
@@ -38,12 +38,12 @@
                     "template_id": "fog_drake",
                     "region_id": "mistvale",
                     "room_id": "village_square",
-                    "name_override": "the Fog Drake"
+                    "name_override": "Fog Drake"
                 },
                 "objective": {
                     "type": "kill",
                     "target_template_id": "fog_drake",
-                    "target_name": "the Fog Drake",
+                    "target_name": "Fog Drake",
                     "required_quantity": 1,
                     "current_quantity": 0
                 },

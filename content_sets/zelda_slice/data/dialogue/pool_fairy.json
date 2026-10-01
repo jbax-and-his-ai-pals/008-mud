@@ -48,30 +48,15 @@
         },
         "joins": {
             "text": "Oh! Yes. I have not seen the sun in a hundred seasons.",
-            "choices": [
-                {
-                    "text": "Come along.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "stays": {
             "text": "I will keep the water warm for you.",
-            "choices": [
-                {
-                    "text": "Thank you.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "bathed": {
             "text": "There. Go well. Mind the deep places.",
-            "choices": [
-                {
-                    "text": "I will.",
-                    "end": true
-                }
-            ]
+            "end": true
         }
     }
 }

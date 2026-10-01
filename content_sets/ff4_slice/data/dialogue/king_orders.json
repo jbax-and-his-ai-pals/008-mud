@@ -29,6 +29,7 @@
         "greeting": {
             "text": "The crystals are not yet ours, and Mistvale keeps a ring of red stones that we want. Carry this package to their mayor. It is a gift. Do not open it.",
             "pace": "slow",
+            "must_answer": true,
             "choices": [
                 {
                     "text": "At once, my king.",
@@ -44,7 +45,12 @@
                         "set_flag": [
                             "king_ordered",
                             "obeyed_king"
-                        ]
+                        ],
+                        "teleport": {
+                            "region": "varenholt",
+                            "room": "courtyard",
+                            "message": "Two guards fall in on either side of you and walk you out to the courtyard."
+                        }
                     }
                 },
                 {
@@ -63,10 +69,10 @@
                             "king_ordered",
                             "questioned_king"
                         ],
-                        "message": "Two guards take you by the arms and march you out of the throne room.",
                         "teleport": {
                             "region": "varenholt",
-                            "room": "courtyard"
+                            "room": "courtyard",
+                            "message": "Two guards take you by the arms and march you out of the throne room."
                         }
                     }
                 },
@@ -76,40 +82,31 @@
                 },
                 {
                     "text": "I will go.",
+                    "next_node": "obey",
                     "effects": {
-                        "set_flag": "king_briefed"
-                    },
-                    "end": true
+                        "start_campaign": "the_package",
+                        "set_flag": [
+                            "king_ordered",
+                            "obeyed_king"
+                        ],
+                        "teleport": {
+                            "region": "varenholt",
+                            "room": "courtyard",
+                            "message": "Two guards fall in on either side of you and walk you out to the courtyard."
+                        }
+                    }
                 }
             ]
         },
         "again": {
             "text": "You have your orders, captain. The fleet sails at dawn, and you are still standing in my hall.",
             "pace": "slow",
-            "choices": [
-                {
-                    "text": "Tell me again what the package is.",
-                    "next_node": "package"
-                },
-                {
-                    "text": "Yes, my king.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "again_questioned": {
             "text": "Deliver the package, courier. I will not say it twice, and I will not be questioned by a man without a seal.",
             "pace": "slow",
-            "choices": [
-                {
-                    "text": "Tell me again what the package is.",
-                    "next_node": "package"
-                },
-                {
-                    "text": "Yes, my king.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "obey": {
             "text": "Good. Be quick. The fleet sails at dawn.",
@@ -127,10 +124,19 @@
             "choices": [
                 {
                     "text": "I will go.",
+                    "next_node": "obey",
                     "effects": {
-                        "set_flag": "king_briefed"
-                    },
-                    "end": true
+                        "start_campaign": "the_package",
+                        "set_flag": [
+                            "king_ordered",
+                            "obeyed_king"
+                        ],
+                        "teleport": {
+                            "region": "varenholt",
+                            "room": "courtyard",
+                            "message": "Two guards fall in on either side of you and walk you out to the courtyard."
+                        }
+                    }
                 }
             ]
         }

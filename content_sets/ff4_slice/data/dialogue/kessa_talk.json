@@ -77,39 +77,19 @@
         },
         "joins": {
             "text": "Good. Then we do this the way we were taught: side by side.",
-            "choices": [
-                {
-                    "text": "Lead on.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "stays": {
             "text": "The square is mine. Send word when you need a blade.",
-            "choices": [
-                {
-                    "text": "I will.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "ahead_stripped": {
             "text": "Then he has made a mistake, and I will not watch it happen twice. Go. I will ride ahead and meet you at Mistvale.",
-            "choices": [
-                {
-                    "text": "Thank you, Kessa.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "ahead_obeyed": {
             "text": "A package for the mayor of Mistvale? Strange. I will ride ahead and meet you there.",
-            "choices": [
-                {
-                    "text": "See you there.",
-                    "end": true
-                }
-            ]
+            "end": true
         }
     }
 }

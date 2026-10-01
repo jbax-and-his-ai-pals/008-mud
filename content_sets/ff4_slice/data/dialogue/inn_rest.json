@@ -29,12 +29,7 @@
         },
         "slept": {
             "text": "Come back whenever the road gets the better of you.",
-            "choices": [
-                {
-                    "text": "I will.",
-                    "end": true
-                }
-            ]
+            "end": true
         }
     }
 }
