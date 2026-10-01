@@ -4,6 +4,7 @@ from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET
 from engine.items.container import Container
 from engine.items.item_factory import ItemFactory
 from engine.items.chest_loot_generator import ChestLootGenerator
+from engine.utils.articles import the
 
 
 def taking_is_theft(container) -> bool:
@@ -85,5 +86,5 @@ def steal_handler(args, context):
 
     consequences = taking_consequences(world, player, max(0, int(item.value)))
     if not consequences:
-        return f"{FORMAT_SUCCESS}You slip the {item.name} away, unnoticed.{FORMAT_RESET}"
+        return f"{FORMAT_SUCCESS}You slip {the(item.name)} away, unnoticed.{FORMAT_RESET}"
     return consequences

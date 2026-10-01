@@ -4,6 +4,7 @@ import random
 from engine.items.item import Item
 from engine.config import FORMAT_ERROR, FORMAT_SUCCESS, FORMAT_RESET
 from engine.presentation import is_player_mode, show_internals
+from engine.utils.articles import the
 
 def _is_public_region(region_id: str) -> bool:
     """Exclude per-player houses and quest instances from world-wide
@@ -73,8 +74,8 @@ class ResourceNode(Item):
         world would know.
         """
         if is_player_mode(self._presentation_context(world, player)):
-            return f"You've gathered all you can from the {self.name} for now."
-        base_message = f"The {self.name} has been depleted."
+            return f"You've gathered all you can from {the(self.name)} for now."
+        base_message = f"{the(self.name, capital=True)} has been depleted."
         days_left = self.recovery_days_left(world)
         if days_left is not None:
             base_message += f" It should recover in about {days_left} day{'s' if days_left != 1 else ''}."
@@ -92,7 +93,7 @@ class ResourceNode(Item):
         allowed_seasons = self.get_property("seasons", [])
         current_season = str(getattr(time_manager, "time_data", {}).get("season", "")) if time_manager else ""
         if allowed_seasons and current_season not in allowed_seasons:
-            return f"The {self.name} offers nothing during this season."
+            return f"{the(self.name, capital=True)} offers nothing during this season."
 
         weather_manager = getattr(getattr(world, "game", None), "weather_manager", None)
         if weather_manager is not None:
@@ -101,7 +102,7 @@ class ResourceNode(Item):
             effective_weather = weather_manager.effective_weather(region, room)
             unsafe_weather = self.get_property("weather_blocked_by", [])
             if isinstance(unsafe_weather, list) and effective_weather in unsafe_weather:
-                return f"The {self.name} cannot be worked safely in this {effective_weather}."
+                return f"{the(self.name, capital=True)} cannot be worked safely in this {effective_weather}."
             
         tool_req = self.get_property("tool_required")
         
@@ -167,10 +168,10 @@ class ResourceNode(Item):
                     resource.update_property("stackable", False)
             can_add, space_message = player.inventory.can_add_item(resource)
             if not can_add:
-                return f"{FORMAT_ERROR}You cannot carry the {resource.name}: {space_message}{FORMAT_RESET}"
+                return f"{FORMAT_ERROR}You cannot carry {the(resource.name)}: {space_message}{FORMAT_RESET}"
             added, add_message = player.inventory.add_item(resource)
             if not added:
-                return f"{FORMAT_ERROR}You cannot carry the {resource.name}: {add_message}{FORMAT_RESET}"
+                return f"{FORMAT_ERROR}You cannot carry {the(resource.name)}: {add_message}{FORMAT_RESET}"
             remaining = charges - 1
             self.update_property("charges", remaining)
             if remaining <= 0 and respawn_days > 0:
@@ -187,7 +188,7 @@ class ResourceNode(Item):
             quest_manager = getattr(world, "quest_manager", None)
             quest_note = quest_manager.handle_resource_gathered(player, resource.obj_id) if quest_manager else ""
             quality_note = f" ({resource.get_property('material_quality_label')} quality)" if resource.get_property("material_quality_score", 0) else ""
-            message = f"{FORMAT_SUCCESS}You gather {resource.name}{quality_note} from the {self.name}.{FORMAT_RESET}"
+            message = f"{FORMAT_SUCCESS}You gather {resource.name}{quality_note} from {the(self.name)}.{FORMAT_RESET}"
             # Charge counts are engine internals: a tester needs them, a player
             # should not be counting the world's resets.
             if show_internals(self._presentation_context(world, player)):

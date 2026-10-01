@@ -6,6 +6,7 @@ from engine.items.attachments import installed_attachments
 from engine.items.item_factory import ItemFactory
 from engine.naming import ambiguity_message, resolve_all
 from engine.presentation import show_internals
+from engine.utils.articles import the
 
 @command("recipes", ["craftlist"], "crafting", "List available recipes and crafting stations.\nUsage: recipes [all]", content_capability="crafting")
 def recipes_handler(args, context):
@@ -277,11 +278,11 @@ def attach_handler(args, context):
         return f"{FORMAT_ERROR}You do not have '{token_name}'.{FORMAT_RESET}"
     attachment = token.get_property("attachment")
     if not isinstance(attachment, dict):
-        return f"{FORMAT_ERROR}The {token.name} is not an attachment token.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}{the(token.name, capital=True)} is not an attachment token.{FORMAT_RESET}"
     slot = str(attachment.get("slot", "")).strip()
     modifiers = attachment.get("modifiers", {})
     if not slot or not isinstance(modifiers, dict):
-        return f"{FORMAT_ERROR}The {token.name} has an invalid attachment definition.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}{the(token.name, capital=True)} has an invalid attachment definition.{FORMAT_RESET}"
     host = player.inventory.find_item_by_name(host_name)
     if host is None:
         host = next((item for item in player.equipment.values() if item and host_name.lower() in item.name.lower()), None)
@@ -289,16 +290,16 @@ def attach_handler(args, context):
         return f"{FORMAT_ERROR}You do not have '{host_name}'.{FORMAT_RESET}"
     slots = host.get_property("attachment_slots", [])
     if not isinstance(slots, list) or slot not in slots:
-        return f"{FORMAT_ERROR}The {host.name} has no compatible '{slot}' attachment slot.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}{the(host.name, capital=True)} has no compatible '{slot}' attachment slot.{FORMAT_RESET}"
     attachments = installed_attachments(host)
     if any(str(entry.get("slot", "")) == slot for entry in attachments):
-        return f"{FORMAT_ERROR}The {host.name}'s '{slot}' attachment slot is already occupied.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}{the(host.name, capital=True)}'s '{slot}' attachment slot is already occupied.{FORMAT_RESET}"
     removed, _count, _message = player.inventory.remove_item(token.obj_id, 1)
     if removed is None:
-        return f"{FORMAT_ERROR}Failed to install the {token.name}.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}Failed to install {the(token.name)}.{FORMAT_RESET}"
     attachments.append({"slot": slot, "item_id": token.obj_id, "name": token.name, "modifiers": modifiers})
     host.update_property("attachments", attachments)
-    return f"{FORMAT_SUCCESS}You install {token.name} in the {host.name}'s {slot} slot.{FORMAT_RESET}"
+    return f"{FORMAT_SUCCESS}You install {token.name} in {the(host.name)}'s {slot} slot.{FORMAT_RESET}"
 
 
 @command("detach", ["remove attachment"], "crafting", "Remove an attachment token from an item.\nUsage: detach <slot> from <item>", content_capability="crafting")
@@ -323,7 +324,7 @@ def detach_handler(args, context):
     attachments = installed_attachments(host)
     match_index = next((index for index, entry in enumerate(attachments) if str(entry.get("slot", "")).lower() == slot.lower()), None)
     if match_index is None:
-        return f"{FORMAT_ERROR}The {host.name} has no '{slot}' attachment installed.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}{the(host.name, capital=True)} has no '{slot}' attachment installed.{FORMAT_RESET}"
     attachment = attachments[match_index]
     token_id = str(attachment.get("item_id", "")).strip()
     token = ItemFactory.create_item_from_template(token_id, player.world)
@@ -335,4 +336,4 @@ def detach_handler(args, context):
     attachments.pop(match_index)
     host.update_property("attachments", attachments)
     player.inventory.add_item(token)
-    return f"{FORMAT_SUCCESS}You remove {token.name} from the {host.name}'s {slot} slot.{FORMAT_RESET}"
+    return f"{FORMAT_SUCCESS}You remove {token.name} from {the(host.name)}'s {slot} slot.{FORMAT_RESET}"

@@ -11,6 +11,7 @@ from engine.utils.content_values import ContentValueError
 from engine.items.item_factory import ItemFactory
 from engine.core.skill_system import SkillSystem
 from engine.core import advancement
+from engine.utils.articles import the
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -464,22 +465,22 @@ class CraftingManager:
             output_template_id = str(salvage_rules["default_item_id"])
 
         if not output_template_id:
-            return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"
+            return f"{FORMAT_ERROR}You cannot salvage {the(item.name)}.{FORMAT_RESET}"
 
         result = ItemFactory.create_item_from_template(output_template_id, self.world)
         if not result:
-            return f"{FORMAT_ERROR}You cannot salvage the {item.name}.{FORMAT_RESET}"
+            return f"{FORMAT_ERROR}You cannot salvage {the(item.name)}.{FORMAT_RESET}"
 
         can_add, space_message = player.inventory.can_add_item_after_removing(result, output_qty, [item])
         if not can_add:
-            return f"{FORMAT_ERROR}You cannot salvage the {item.name}: {space_message}{FORMAT_RESET}"
+            return f"{FORMAT_ERROR}You cannot salvage {the(item.name)}: {space_message}{FORMAT_RESET}"
         if not player.inventory.remove_item_instances([item]):
-            return f"{FORMAT_ERROR}You cannot salvage the {item.name} safely.{FORMAT_RESET}"
+            return f"{FORMAT_ERROR}You cannot salvage {the(item.name)} safely.{FORMAT_RESET}"
         added, add_message = player.inventory.add_item(result, output_qty)
         if not added:
             return f"{FORMAT_ERROR}Unable to recover salvage: {add_message}{FORMAT_RESET}"
 
-        return f"{FORMAT_SUCCESS}You salvage the {item.name} and recover {output_qty} {result.name}.{FORMAT_RESET}"
+        return f"{FORMAT_SUCCESS}You salvage {the(item.name)} and recover {output_qty} {result.name}.{FORMAT_RESET}"
 
     def _salvage_quantity(self, rule: Dict[str, Any], item: Item) -> int:
         """How many units a broken-down item yields.

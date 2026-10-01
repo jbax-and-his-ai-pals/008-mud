@@ -24,6 +24,7 @@ from engine.utils.utils import format_loot_drop_message, format_name_for_display
 
 from . import ai as npc_ai 
 from . import combat as npc_combat
+from engine.utils.articles import the
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -115,7 +116,7 @@ class NPC(GameObject):
         # (e.g. "goblin") does -- mirrors format_name_for_display's own
         # is_generic check instead of assuming every NPC name is generic.
         is_proper_name = bool(self.name) and self.name[0].isupper()
-        subject = self.name if is_proper_name else f"The {self.name}"
+        subject = self.name if is_proper_name else f"{the(self.name, capital=True)}"
         health_desc = ""
         if health_percent <= NPC_HEALTH_DESC_THRESHOLDS[0] * 100: health_desc = f"{subject} looks severely injured."
         elif health_percent <= NPC_HEALTH_DESC_THRESHOLDS[1] * 100: health_desc = f"{subject} appears to be wounded."

@@ -2,6 +2,7 @@
 import time
 from typing import Optional
 from engine.items.item import Item
+from engine.utils.articles import the
 
 # Every `effect_type` `use()` dispatches on. Content validation refuses any other,
 # and the editor's item inspector offers these; `test_character_effects.py` ties the
@@ -38,10 +39,10 @@ class Consumable(Item):
     def use(self, user, **kwargs) -> str:
         current_uses = self.get_property("uses")
         if current_uses <= 0:
-            return f"The {self.name} has already been used up."
+            return f"{the(self.name, capital=True)} has already been used up."
 
         consumed = True
-        message = f"You use the {self.name}."
+        message = f"You use {the(self.name)}."
 
         effect_type = self.get_property("effect_type")
         effect_value = self.get_property("effect_value")
@@ -50,28 +51,28 @@ class Consumable(Item):
             if hasattr(user, "heal"):
                 healed_amount = user.heal(effect_value)
                 if healed_amount > 0:
-                    message = f"You consume the {self.name} and regain {healed_amount} health."
+                    message = f"You consume {the(self.name)} and regain {healed_amount} health."
                 else:
-                    message = f"You consume the {self.name}, but feel no different."
+                    message = f"You consume {the(self.name)}, but feel no different."
             else:
-                message = f"You consume the {self.name}, but it has no effect."
+                message = f"You consume {the(self.name)}, but it has no effect."
 
         elif effect_type == "mana_restore":
             if hasattr(user, "restore_mana"):
                 restored_amount = user.restore_mana(effect_value)
                 if restored_amount > 0:
-                    message = f"You consume the {self.name} and regain {restored_amount} mana."
+                    message = f"You consume {the(self.name)} and regain {restored_amount} mana."
                 else:
-                    message = f"You consume the {self.name}, but your mana is already full."
+                    message = f"You consume {the(self.name)}, but your mana is already full."
             else:
-                message = f"You consume the {self.name}, but it has no effect."
+                message = f"You consume {the(self.name)}, but it has no effect."
 
         elif effect_type == "learn_spell":
             spell_id_to_learn = self.get_property("spell_to_learn")
             if not spell_id_to_learn:
-                message = f"The {self.name} seems inert or misconfigured."
+                message = f"{the(self.name, capital=True)} seems inert or misconfigured."
             elif not hasattr(user, "learn_spell"):
-                message = f"You try to learn from the {self.name}, but cannot."
+                message = f"You try to learn from {the(self.name)}, but cannot."
             else:
                 learned, learn_message = user.learn_spell(spell_id_to_learn)
                 # Left unformatted, like every other branch here -- use_handler
@@ -85,9 +86,9 @@ class Consumable(Item):
         elif effect_type == "learn_recipe":
             recipe_id_to_learn = self.get_property("recipe_to_learn")
             if not recipe_id_to_learn:
-                message = f"The {self.name} seems inert or misconfigured."
+                message = f"{the(self.name, capital=True)} seems inert or misconfigured."
             elif not hasattr(user, "learn_recipe"):
-                message = f"You try to learn from the {self.name}, but cannot."
+                message = f"You try to learn from {the(self.name)}, but cannot."
             else:
                 learned, learn_message = user.learn_recipe(recipe_id_to_learn)
                 message = learn_message
@@ -102,7 +103,7 @@ class Consumable(Item):
             dot_damage_type = self.get_property("dot_damage_type")
 
             if not all([dot_name, dot_duration, dot_damage_per_tick, dot_tick_interval, dot_damage_type]):
-                message = f"The {self.name} seems improperly configured."
+                message = f"{the(self.name, capital=True)} seems improperly configured."
             else:
                 target = user
                 if hasattr(target, 'apply_effect'):
@@ -114,9 +115,9 @@ class Consumable(Item):
                     target_world = getattr(target, "world", None)
                     success, _ = target.apply_effect(dot_data, target_world.clock.now() if target_world else time.time())
                     if success:
-                        message = f"You feel a sickly sensation as you use the {self.name}."
+                        message = f"You feel a sickly sensation as you use {the(self.name)}."
                     else:
-                        message = f"You use the {self.name}, but nothing seems to happen."
+                        message = f"You use {the(self.name)}, but nothing seems to happen."
                 else:
                     message = f"You can't seem to apply the effect of {self.name}."
 
@@ -134,19 +135,19 @@ class Consumable(Item):
                 or not effect_data["type"].strip()
             ):
                 consumed = False
-                message = f"The {self.name} seems improperly configured."
+                message = f"{the(self.name, capital=True)} seems improperly configured."
             elif not hasattr(user, "apply_effect"):
                 consumed = False
-                message = f"You can't seem to apply the effect of the {self.name}."
+                message = f"You can't seem to apply the effect of {the(self.name)}."
             else:
                 target_world = getattr(user, "world", None)
                 current_time = target_world.clock.now() if target_world else time.time()
                 success, _ = user.apply_effect(effect_data, current_time)
                 if success:
-                    message = f"You consume the {self.name}. {effect_data['name']} takes hold."
+                    message = f"You consume {the(self.name)}. {effect_data['name']} takes hold."
                 else:
                     consumed = False
-                    message = f"You use the {self.name}, but nothing seems to happen."
+                    message = f"You use {the(self.name)}, but nothing seems to happen."
 
         elif effect_type == "cleanse":
             # Antidotes are deliberately data-driven too.  use already
@@ -160,18 +161,18 @@ class Consumable(Item):
                 or any(not isinstance(tag, str) or not tag.strip() for tag in effect_tags)
             ):
                 consumed = False
-                message = f"The {self.name} seems improperly configured."
+                message = f"{the(self.name, capital=True)} seems improperly configured."
             elif not hasattr(target, "remove_effects_by_tag"):
                 consumed = False
-                message = f"The {self.name} cannot be applied to that target."
+                message = f"{the(self.name, capital=True)} cannot be applied to that target."
             else:
                 removed = []
                 for tag in effect_tags:
                     removed.extend(target.remove_effects_by_tag(tag))
                 if removed:
-                    message = f"You use the {self.name} and cleanse {getattr(target, 'name', 'the target')} of {len(removed)} affliction(s)."
+                    message = f"You use {the(self.name)} and cleanse {getattr(target, 'name', 'the target')} of {len(removed)} affliction(s)."
                 else:
-                    message = f"You use the {self.name}, but find no matching affliction."
+                    message = f"You use {the(self.name)}, but find no matching affliction."
 
         elif effect_type == "effects":
             # The dialogue effects vocabulary (`dialogue/effects.py`): restore,
@@ -181,15 +182,15 @@ class Consumable(Item):
             effects = self.get_property("effects")
             if not isinstance(effects, dict) or not effects:
                 consumed = False
-                message = f"The {self.name} seems inert or misconfigured."
+                message = f"{the(self.name, capital=True)} seems inert or misconfigured."
             else:
                 report = apply_effects(effects, {"player": user, "world": getattr(user, "world", None)})
                 if report.applied:
-                    message = report.message() or f"You use the {self.name}."
+                    message = report.message() or f"You use {the(self.name)}."
                 else:
                     # Healing at full health is not a use: the item is kept.
                     consumed = False
-                    message = f"You use the {self.name}, but nothing happens."
+                    message = f"You use {the(self.name)}, but nothing happens."
 
         elif effect_type == "target_damage":
             # A consumable can be used on an NPC in the room, which gives
@@ -200,7 +201,7 @@ class Consumable(Item):
             damage_type = self.get_property("damage_type")
             if target is None:
                 consumed = False
-                message = f"Use the {self.name} on whom?"
+                message = f"Use {the(self.name)} on whom?"
             elif (
                 isinstance(damage_amount, bool)
                 or not isinstance(damage_amount, (int, float))
@@ -209,17 +210,17 @@ class Consumable(Item):
                 or not damage_type.strip()
             ):
                 consumed = False
-                message = f"The {self.name} seems improperly configured."
+                message = f"{the(self.name, capital=True)} seems improperly configured."
             elif not hasattr(target, "take_damage"):
                 consumed = False
-                message = f"The {self.name} cannot harm that target."
+                message = f"{the(self.name, capital=True)} cannot harm that target."
             else:
                 damage_taken = target.take_damage(int(damage_amount), damage_type)
                 target_name = getattr(target, "name", "the target")
                 if damage_taken > 0:
-                    message = f"You hurl the {self.name} at {target_name}, dealing {damage_taken} {damage_type} damage."
+                    message = f"You hurl {the(self.name)} at {target_name}, dealing {damage_taken} {damage_type} damage."
                 else:
-                    message = f"You hurl the {self.name} at {target_name}, but it does no damage."
+                    message = f"You hurl {the(self.name)} at {target_name}, but it does no damage."
         
         if consumed:
             self.update_property("uses", current_uses - 1)
@@ -229,7 +230,7 @@ class Consumable(Item):
         if max_uses > 1 and new_uses > 0:
             message += f" ({new_uses}/{max_uses} uses remaining)."
         elif new_uses <= 0 and consumed:
-            message += f" The {self.name} is used up."
+            message += f" {the(self.name, capital=True)} is used up."
 
         return message
 

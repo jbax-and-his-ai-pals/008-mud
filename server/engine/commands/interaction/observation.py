@@ -5,6 +5,7 @@ from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_TITLE, QUEST_BOARD_
 from engine.items.container import Container
 from engine.items.item import Item
 from engine.npcs.npc import NPC
+from engine.utils.articles import the
 
 @command("look", ["l"], "interaction", "Look around or examine something.\nUsage: look [target]")
 def look_handler(args: List[str], context: Any):
@@ -73,9 +74,9 @@ def look_handler(args: List[str], context: Any):
     if look_inside:
         if isinstance(target, Container):
             if target.properties.get("is_open", False): 
-                return f"{FORMAT_TITLE}Inside the {target.name}:{FORMAT_RESET}\n{target.list_contents()}"
+                return f"{FORMAT_TITLE}Inside {the(target.name)}:{FORMAT_RESET}\n{target.list_contents()}"
             else: 
-                return f"The {target.name} is {'locked' if target.properties.get('locked', False) else 'closed'}."
+                return f"{the(target.name, capital=True)} is {'locked' if target.properties.get('locked', False) else 'closed'}."
         else: return f"{FORMAT_ERROR}That is not a container.{FORMAT_RESET}"
     else:
         from engine.player.core import Player

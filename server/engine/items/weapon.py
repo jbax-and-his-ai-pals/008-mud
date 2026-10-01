@@ -1,6 +1,7 @@
 # engine/items/weapon.py
 from engine.items.item import Item
 from typing import List, Optional
+from engine.utils.articles import the
 
 class Weapon(Item):
     def __init__(self, obj_id: Optional[str] = None, name: str = "Unknown Weapon",
@@ -32,7 +33,7 @@ class Weapon(Item):
 
         if is_equipped:
              durability = self.get_property("durability")
-             if durability <= 0: return f"The {self.name} is broken and cannot be used."
+             if durability <= 0: return f"{the(self.name, capital=True)} is broken and cannot be used."
              condition = "sturdy" if durability > self.get_property("max_durability", 1) / 2 else "worn"
              return f"You practice swinging the equipped {self.name}. It feels {condition}."
         else:

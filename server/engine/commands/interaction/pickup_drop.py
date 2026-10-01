@@ -7,6 +7,7 @@ from engine.items.item_factory import ItemFactory
 from engine.core import advancement
 from engine.commands.interaction.theft import taking_consequences, taking_is_theft
 from engine.utils.utils import get_article, simple_plural
+from engine.utils.articles import the
 
 def _record_acquisition(context: Dict[str, Any], player, item) -> List[str]:
     """Everything taking an item does besides moving it.
@@ -105,7 +106,7 @@ def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_v
 
     for item, source in targets:
         if not item.get_property("can_take", True):
-             err_msg = f" (The {item.name} is fixed in place)."
+             err_msg = f" ({the(item.name, capital=True)} is fixed in place)."
              continue
              
         can, msg = player.inventory.can_add_item(item)
@@ -281,7 +282,7 @@ def get_handler(args, context):
                        hints.extend(_record_acquisition(context, player, i))
              consequences = taking_consequences(world, player, stolen_value) if taking_is_theft(container) else ""
              return (
-                 f"{FORMAT_SUCCESS}You take {count} items from the {container.name}.{FORMAT_RESET}"
+                 f"{FORMAT_SUCCESS}You take {count} items from {the(container.name)}.{FORMAT_RESET}"
                  f"{consequences}\n" + "\n".join(set(hints))
              )
 
@@ -297,7 +298,7 @@ def get_handler(args, context):
                   )
                   hints = _record_acquisition(context, player, target)
                   return (
-                      f"{FORMAT_SUCCESS}You get the {target.name} from the {container.name}.{FORMAT_RESET}"
+                      f"{FORMAT_SUCCESS}You get {the(target.name)} from {the(container.name)}.{FORMAT_RESET}"
                       f"{consequences}\n" + "\n".join(set(hints))
                   )
         return f"{FORMAT_ERROR}Cannot carry that.{FORMAT_RESET}"

@@ -17,6 +17,7 @@ from engine.player import Player
 from engine.npcs.npc import NPC
 from engine.social.relationships import apply_relationship_milestones, relationship_key, relationship_discount
 from engine.utils.utils import money_from_value
+from engine.utils.articles import the
 
 
 def _grant_party_sale_gold(world, player: Player, total_gold_gain: int) -> str:
@@ -349,7 +350,7 @@ def fulfill_handler(args, context):
 def _calculate_repair_cost(item: Item) -> Tuple[Optional[int], Optional[str]]:
     current_durability = item.get_property("durability")
     max_durability = item.get_property("max_durability")
-    if current_durability is None or max_durability is None: return None, f"The {item.name} doesn't have durability."
+    if current_durability is None or max_durability is None: return None, f"{the(item.name, capital=True)} doesn't have durability."
     if current_durability >= max_durability: return 0, None
     repair_cost = max(REPAIR_MINIMUM_COST, money_from_value(item.value, REPAIR_COST_PER_VALUE_POINT))
     return repair_cost, None
@@ -601,7 +602,7 @@ def repair_handler(args, context):
             if equipped_item and item_name_to_repair in equipped_item.name.lower():
                  if equipped_item.get_property("durability") is not None:
                      item_to_repair = equipped_item; break
-                 else: return f"{FORMAT_ERROR}The {equipped_item.name} cannot be repaired.{FORMAT_RESET}"
+                 else: return f"{FORMAT_ERROR}{the(equipped_item.name, capital=True)} cannot be repaired.{FORMAT_RESET}"
     if not item_to_repair: return f"{FORMAT_ERROR}You don't have an item called '{item_name_to_repair}' that can be repaired.{FORMAT_RESET}"
 
     repair_cost, error_msg = _calculate_repair_cost(item_to_repair)
@@ -612,7 +613,7 @@ def repair_handler(args, context):
     
     if repair_cost == 0: return f"Your {item_to_repair.name} is already in perfect condition."
     
-    if player.runtime_state.gold < repair_cost: return f"{FORMAT_ERROR}You need {repair_cost} {world.currency_name()} to repair the {item_to_repair.name}, but you only have {player.runtime_state.gold}.{FORMAT_RESET}"
+    if player.runtime_state.gold < repair_cost: return f"{FORMAT_ERROR}You need {repair_cost} {world.currency_name()} to repair {the(item_to_repair.name)}, but you only have {player.runtime_state.gold}.{FORMAT_RESET}"
 
     player.runtime_state.gold -= repair_cost
     item_to_repair.update_property("durability", item_to_repair.get_property("max_durability"))
@@ -635,7 +636,7 @@ def repaircost_handler(args, context):
         for slot, equipped_item in player.equipment.items():
             if equipped_item and item_name_to_check in equipped_item.name.lower():
                 if equipped_item.get_property("durability") is not None: item_to_check = equipped_item; break
-                else: return f"{FORMAT_ERROR}The {equipped_item.name} cannot be repaired.{FORMAT_RESET}"
+                else: return f"{FORMAT_ERROR}{the(equipped_item.name, capital=True)} cannot be repaired.{FORMAT_RESET}"
     if not item_to_check: return f"{FORMAT_ERROR}You don't have an item called '{item_name_to_check}' that can be repaired.{FORMAT_RESET}"
     
     repair_cost, error_msg = _calculate_repair_cost(item_to_check)

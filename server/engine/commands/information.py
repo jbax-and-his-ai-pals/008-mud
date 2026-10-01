@@ -8,6 +8,7 @@ from engine.config.config_display import FORMAT_HIGHLIGHT
 from engine.core.skill_system import MAX_SKILL_LEVEL, SkillSystem
 from engine.items.resource_node import ResourceNode
 from engine.presentation import show_internals
+from engine.utils.articles import the
 
 
 @command("appraise", ["assess"], "information", "Inspect content-authored appraisal details for an item.\nUsage: appraise <item>")
@@ -25,7 +26,7 @@ def appraise_handler(args, context):
     quality_score = item.get_property("material_quality_score", 0)
     has_material_grade = isinstance(quality_score, int) and not isinstance(quality_score, bool) and quality_score > 0
     if not isinstance(appraisal, dict) and not has_material_grade:
-        return f"You find no notable appraisal details for the {item.name}."
+        return f"You find no notable appraisal details for {the(item.name)}."
 
     lines = [f"{FORMAT_TITLE}Appraisal: {item.name}{FORMAT_RESET}"]
     if isinstance(appraisal, dict):
@@ -101,7 +102,7 @@ def survey_handler(args, context):
             if charges > 0:
                 lines.append(f"- {node.name}: ready to gather; tool: {required_tool}")
             else:
-                hint = f"You've gathered all you can from the {node.name} for now."
+                hint = f"You've gathered all you can from {the(node.name)} for now."
                 substitutes = node.find_substitutes(world)
                 alternates = node.find_alternate_sources(world)
                 if alternates:

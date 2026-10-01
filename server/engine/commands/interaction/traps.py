@@ -4,6 +4,7 @@ from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS, TRAP_DISAR
 from engine.core.skill_system import SkillSystem
 from engine.items.container import Container
 from engine.items.lockpick import Lockpick
+from engine.utils.articles import the
 
 
 @command("disarm", [], "interaction",
@@ -24,7 +25,7 @@ def disarm_handler(args, context):
         return f"{FORMAT_ERROR}You don't see a container called '{name}'.{FORMAT_RESET}"
 
     if not target.properties.get("trapped"):
-        return f"You look the {target.name} over carefully, but find nothing to disarm."
+        return f"You look {the(target.name)} over carefully, but find nothing to disarm."
 
     lockpick_item = None
     for slot in player.inventory.slots:
@@ -44,7 +45,7 @@ def disarm_handler(args, context):
     if success:
         target.properties["trapped"] = False
         xp_msg = SkillSystem.grant_xp(player, skill, max(10, difficulty // 2))
-        return f"{FORMAT_SUCCESS}You carefully disarm the trap on the {target.name}.{FORMAT_RESET}{xp_msg}"
+        return f"{FORMAT_SUCCESS}You carefully disarm the trap on {the(target.name)}.{FORMAT_RESET}{xp_msg}"
 
     wear_msg = lockpick_item.apply_wear(player, margin) or ""
     xp_msg = SkillSystem.grant_xp(player, skill, 2)

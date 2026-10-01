@@ -4,6 +4,7 @@ from engine.config import FORMAT_ERROR, FORMAT_RESET
 from engine.items.interactive import Interactive
 from engine.items.container import Container # Needed for casting
 from engine.items.lockpick import Lockpick
+from engine.utils.articles import the
 
 @command("pull", ["push", "interact", "flip"], "interaction", "Interact with an object (lever, button, etc).\nUsage: pull <object>")
 def interact_handler(args, context):
@@ -19,7 +20,7 @@ def interact_handler(args, context):
     if isinstance(target, Interactive):
         return target.interact(player, world)
     else:
-        return f"{FORMAT_ERROR}Nothing happens when you interact with the {target.name}.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}Nothing happens when you interact with {the(target.name)}.{FORMAT_RESET}"
 
 @command("pick", [], "interaction", "Pick a lock on a door or container.\nUsage: pick <direction> | pick <container>")
 def pick_handler(args, context):

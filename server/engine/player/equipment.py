@@ -4,6 +4,7 @@ import time
 from engine.contracts.equipment import armor_material, armor_resistances
 from engine.items.item import Item
 from engine.config import FORMAT_ERROR, FORMAT_RESET
+from engine.utils.articles import the
 
 if TYPE_CHECKING:
     from engine.player.core import Player
@@ -64,14 +65,14 @@ class PlayerEquipmentMixin:
 
         # Determine Slot
         valid_slots = self.get_valid_slots(item)
-        if not valid_slots: return False, f"You can't figure out how to equip the {item.name}."
+        if not valid_slots: return False, f"You can't figure out how to equip {the(item.name)}."
         
         target_slot = None
         if slot_name:
             if slot_name in valid_slots: 
                 target_slot = slot_name
             else: 
-                return False, f"The {item.name} cannot be equipped in the '{slot_name}' slot. Valid: {', '.join(valid_slots)}"
+                return False, f"{the(item.name, capital=True)} cannot be equipped in the '{slot_name}' slot. Valid: {', '.join(valid_slots)}"
         else:
             # Auto-find empty
             for s in valid_slots:
@@ -83,7 +84,7 @@ class PlayerEquipmentMixin:
 
         # Verify Ownership
         if not p.inventory.get_item(item.obj_id): 
-            return False, f"You don't have the {item.name} in your inventory."
+            return False, f"You don't have {the(item.name)} in your inventory."
         
         # Handle Swapping
         unequip_message = ""
@@ -92,7 +93,7 @@ class PlayerEquipmentMixin:
             success, msg = self.unequip_item(target_slot)
             if not success: 
                 return False, f"Could not unequip {currently_equipped.name} to make space: {msg}"
-            unequip_message = f"(You unequip the {currently_equipped.name}) "
+            unequip_message = f"(You unequip {the(currently_equipped.name)}) "
 
         # Execute Equip
         removed_item, _, remove_msg = p.inventory.remove_item(item.obj_id, 1)
@@ -106,7 +107,7 @@ class PlayerEquipmentMixin:
         if effect_data and isinstance(effect_data, dict):
             p.apply_effect(effect_data, p.world.clock.now() if p.world else time.time())
             
-        return True, f"{unequip_message}You equip the {item.name}{_where_worn(target_slot)}."
+        return True, f"{unequip_message}You equip {the(item.name)}{_where_worn(target_slot)}."
 
     def unequip_item(self, slot_name: str) -> Tuple[bool, str]:
         p = cast('Player', self)
@@ -117,7 +118,7 @@ class PlayerEquipmentMixin:
         if not item_to_unequip: return False, f"You have nothing equipped in your {slot_name.replace('_', ' ')}."
         
         if item_to_unequip.get_property("cursed"):
-            return False, f"{FORMAT_ERROR}You cannot remove the {item_to_unequip.name}! It binds to your flesh with a dark curse.{FORMAT_RESET}"
+            return False, f"{FORMAT_ERROR}You cannot remove {the(item_to_unequip.name)}! It binds to your flesh with a dark curse.{FORMAT_RESET}"
 
         # Remove Effects
         effect_data = item_to_unequip.get_property("equip_effect")
@@ -133,7 +134,7 @@ class PlayerEquipmentMixin:
             return False, f"Could not unequip {item_to_unequip.name}: {add_message}"
 
         p.equipment[slot_name] = None
-        return True, f"You unequip the {item_to_unequip.name} from your {slot_name.replace('_', ' ')}."
+        return True, f"You unequip {the(item_to_unequip.name)} from your {slot_name.replace('_', ' ')}."
 
     def get_body_armor_material(self) -> Optional[str]:
         p = cast('Player', self)

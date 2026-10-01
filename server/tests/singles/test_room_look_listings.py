@@ -80,6 +80,13 @@ class TestWordingAndSpacing(unittest.TestCase):
         self.assertIn("People here: the quartermaster", said)
         self.assertNotIn("a the", said)
 
+    def test_looking_at_a_thing_whose_name_has_an_article_does_not_double_it(self):
+        server, sid, _events = _boot("ff4_slice")
+        self.addCleanup(server.shutdown)
+        said = "\n".join(_text(server.execute_command(sid, "look the chancellor")))
+        self.assertIn("The chancellor looks healthy", said)
+        self.assertNotIn("The the", said)
+
     def test_something_that_happens_on_its_own_starts_a_line_below_the_last(self):
         from engine.server.headless.lifecycle import _passive
 

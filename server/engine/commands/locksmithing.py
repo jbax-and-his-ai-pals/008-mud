@@ -3,6 +3,7 @@ from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS
 from engine.items.container import Container
 from engine.utils.utils import whole
+from engine.utils.articles import the
 
 
 @command("unlock", [], "interaction",
@@ -29,7 +30,7 @@ def unlock_handler(args, context):
     if not isinstance(target, Container):
         return f"{FORMAT_ERROR}You don't have a container called '{item_name}'.{FORMAT_RESET}"
     if not target.properties.get("locked", False):
-        return f"{FORMAT_ERROR}The {target.name} isn't locked.{FORMAT_RESET}"
+        return f"{FORMAT_ERROR}{the(target.name, capital=True)} isn't locked.{FORMAT_RESET}"
 
     difficulty = int(target.get_property("lock_difficulty", 10))
     # Placeholder formula -- exact tuning is a deliberately deferred design
@@ -38,7 +39,7 @@ def unlock_handler(args, context):
 
     if player.runtime_state.gold < fee:
         return (
-            f"{FORMAT_ERROR}{locksmith.name} wants {fee} {world.currency_name()} to open the {target.name}, "
+            f"{FORMAT_ERROR}{locksmith.name} wants {fee} {world.currency_name()} to open {the(target.name)}, "
             f"but you only have {player.runtime_state.gold}.{FORMAT_RESET}"
         )
 

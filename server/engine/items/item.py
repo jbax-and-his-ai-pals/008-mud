@@ -1,6 +1,7 @@
 # engine/items/item.py
 from typing import Dict, Any, List, Optional
 from engine.game_object import GameObject
+from engine.utils.articles import the
 
 class Item(GameObject):
     """Base class for all items in the game."""
@@ -76,7 +77,7 @@ class Item(GameObject):
                 .replace("{{", "{")
                 .replace("}}", "}")
             )
-        return f"You don't know how to use the {self.name}."
+        return f"You don't know how to use {the(self.name)}."
 
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()

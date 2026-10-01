@@ -3,6 +3,7 @@ from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, FORMAT_TITLE, PUT_COMMAND_PREPOSITION
 from engine.items.chest_loot_generator import ChestLootGenerator
 from engine.items.container import Container
+from engine.utils.articles import the
 
 @command("open", [], "interaction", "Open a container.\nUsage: open <container_name>")
 def open_handler(args, context):
@@ -17,7 +18,7 @@ def open_handler(args, context):
     if not target: target = player.inventory.find_item_by_name(name)
     
     if not target: return f"{FORMAT_ERROR}You don't see '{name}' here.{FORMAT_RESET}"
-    if not isinstance(target, Container): return f"{FORMAT_ERROR}The {target.name} is not a container.{FORMAT_RESET}"
+    if not isinstance(target, Container): return f"{FORMAT_ERROR}{the(target.name, capital=True)} is not a container.{FORMAT_RESET}"
 
     # A container someone owns is filled the first time it is *opened*, not the
     # first time it is robbed: `steal <item> from <container>` matches by name, so
@@ -78,7 +79,7 @@ def put_handler(args, context):
                 if i is container: return True
                 if isinstance(i, Container) and check(i): return True
             return False
-        if check(item): return f"{FORMAT_ERROR}The {container.name} is already inside the {item.name}!{FORMAT_RESET}"
+        if check(item): return f"{FORMAT_ERROR}{the(container.name, capital=True)} is already inside {the(item.name)}!{FORMAT_RESET}"
 
     can_add, msg = container.can_add(item)
     if not can_add: return f"{FORMAT_ERROR}{msg}{FORMAT_RESET}"
@@ -86,7 +87,7 @@ def put_handler(args, context):
     rem_item, _, _ = player.inventory.remove_item(item.obj_id, 1)
     if rem_item:
         if container.add_item(rem_item):
-            return f"{FORMAT_SUCCESS}You put the {rem_item.name} in the {container.name}.{FORMAT_RESET}"
+            return f"{FORMAT_SUCCESS}You put {the(rem_item.name)} in {the(container.name)}.{FORMAT_RESET}"
         else:
             player.inventory.add_item(rem_item)
             return f"{FORMAT_ERROR}Failed to add item.{FORMAT_RESET}"

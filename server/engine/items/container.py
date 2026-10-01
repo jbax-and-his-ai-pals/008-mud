@@ -9,6 +9,7 @@ from engine.config import (
 )
 from engine.items.item import Item
 from engine.utils.utils import _serialize_item_reference
+from engine.utils.articles import the
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -131,19 +132,19 @@ class Container(Item):
      def open(self) -> str:
           """Open the container."""
           if self.properties["locked"]:
-               return f"The {self.name} is locked."
+               return f"{the(self.name, capital=True)} is locked."
           if self.properties["is_open"]:
-               return f"The {self.name} is already open."
+               return f"{the(self.name, capital=True)} is already open."
           self.properties["is_open"] = True
           contents_desc = self.list_contents()
-          return f"You open the {self.name}.\n\n{FORMAT_CATEGORY}Contents:{FORMAT_RESET}\n{contents_desc}"
+          return f"You open {the(self.name)}.\n\n{FORMAT_CATEGORY}Contents:{FORMAT_RESET}\n{contents_desc}"
 
      def close(self) -> str:
           """Close the container."""
           if not self.properties["is_open"]:
-               return f"The {self.name} is already closed."
+               return f"{the(self.name, capital=True)} is already closed."
           self.properties["is_open"] = False
-          return f"You close the {self.name}."
+          return f"You close {the(self.name)}."
 
      def toggle_lock(self, key_item: Item) -> bool:
           """
@@ -193,7 +194,7 @@ class Container(Item):
           This method is called only after the skill check succeeds.
           """
           if not self.properties["locked"]:
-               return False, f"The {self.name} is already unlocked."
+               return False, f"{the(self.name, capital=True)} is already unlocked."
           
           self.properties["locked"] = False
           return True, "Unlocked."
@@ -230,7 +231,7 @@ class Container(Item):
           elif hasattr(user, "take_damage"):
                raw_damage = max(3, round(difficulty * TRAP_DAMAGE_PER_DIFFICULTY))
                actual_damage = user.take_damage(raw_damage, "physical")
-               return (f"\n{FORMAT_ERROR}A hidden spring snaps as you disturb the {self.name}! "
+               return (f"\n{FORMAT_ERROR}A hidden spring snaps as you disturb {the(self.name)}! "
                        f"You take {actual_damage} damage!{FORMAT_RESET}")
           return None
 
@@ -238,31 +239,31 @@ class Container(Item):
           """Handle magical interactions (unlock/lock)."""
           if interaction_type == "unlock":
                if not self.properties["locked"]:
-                    return False, f"The {self.name} is not locked."
+                    return False, f"{the(self.name, capital=True)} is not locked."
                self.properties["locked"] = False
                return True, f"{FORMAT_HIGHLIGHT}The mechanism clicks loudly as the spell forces the lock open.{FORMAT_RESET}"
           
           elif interaction_type == "lock":
                if self.properties["locked"]:
-                    return False, f"The {self.name} is already locked."
+                    return False, f"{the(self.name, capital=True)} is already locked."
                
                self.properties["locked"] = True
                self.properties["is_open"] = False # Magic lock forces it shut
-               return True, f"{FORMAT_HIGHLIGHT}A magical seal forms, locking the {self.name}.{FORMAT_RESET}"
+               return True, f"{FORMAT_HIGHLIGHT}A magical seal forms, locking {the(self.name)}.{FORMAT_RESET}"
           
           return False, "The magic has no effect."
 
      def can_add(self, item: Item) -> Tuple[bool, str]:
           """Check if an item can be added."""
           if item is self:
-              return False, f"You cannot put the {self.name} inside itself."
+              return False, f"You cannot put {the(self.name)} inside itself."
             
           if not self.properties.get("is_open", False):
-              return False, f"The {self.name} is closed."
+              return False, f"{the(self.name, capital=True)} is closed."
           current_weight = self.get_current_weight()
           capacity = self.properties.get("capacity", 0)
           if current_weight + item.weight > capacity:
-              return False, f"The {self.name} is too full to hold the {item.name}."
+              return False, f"{the(self.name, capital=True)} is too full to hold {the(item.name)}."
           return True, ""
 
      def add_item(self, item: Item) -> bool:

@@ -5,6 +5,7 @@ from engine.config import FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_S
 from engine.items.consumable import Consumable
 from engine.items.key import Key
 from engine.social.relationships import apply_relationship_milestones, has_ladder, next_relationship_milestone, relationship_key, relationship_rules, relationship_tier
+from engine.utils.articles import the
 
 
 def _closing_line(quest_data) -> str:
@@ -175,7 +176,7 @@ def give_handler(args, context):
                 return msg
             remaining_names = [r.get("name", r.get("template_id")) for r in recipients if r.get("template_id") not in delivered]
             return (
-                f"{FORMAT_SUCCESS}{npc.name} accepts the {item.name}.{FORMAT_RESET}\n"
+                f"{FORMAT_SUCCESS}{npc.name} accepts {the(item.name)}.{FORMAT_RESET}\n"
                 f"{FORMAT_HIGHLIGHT}[Quest Update] {title}: ({len(delivered)}/{len(recipients)} delivered; "
                 f"still need: {', '.join(str(n) for n in remaining_names)}).{FORMAT_RESET}"
             )
@@ -228,7 +229,7 @@ def give_handler(args, context):
                 matching_quest = (q_id, q_data, objective)
                 break
             # Wrong recipient for a matching route.
-            return f"{FORMAT_ERROR}You should give the {item.name} to {objective.get('recipient_name', 'someone else')}, not {npc.name}.{FORMAT_RESET}"
+            return f"{FORMAT_ERROR}You should give {the(item.name)} to {objective.get('recipient_name', 'someone else')}, not {npc.name}.{FORMAT_RESET}"
         if matching_quest:
             break
 
@@ -278,7 +279,7 @@ def give_handler(args, context):
             # discount, so nothing is tracked and the line is not printed -- the
             # score would be a number with no meaning attached to it.
             if not has_ladder(world):
-                return f"{FORMAT_SUCCESS}You give the {item.name} to {npc.name}.{FORMAT_RESET}"
+                return f"{FORMAT_SUCCESS}You give {the(item.name)} to {npc.name}.{FORMAT_RESET}"
             player.npc_relationships[npc_key] = new_score
             player.npc_gift_days[npc_key] = today
             milestone_note = apply_relationship_milestones(player, npc, old_score, new_score, world)
@@ -287,7 +288,7 @@ def give_handler(args, context):
             disliked_note = " They accept it politely, but it misses the mark." if "disliked" in affinity_reasons else ""
             quality_note = " Its quality is immediately apparent." if "quality" in affinity_reasons else ""
             response = (
-                f"{FORMAT_SUCCESS}You give the {item.name} to {npc.name}.{FORMAT_RESET}"
+                f"{FORMAT_SUCCESS}You give {the(item.name)} to {npc.name}.{FORMAT_RESET}"
                 f"{crafted_note}{preference_note}{disliked_note}{quality_note}\n"
                 f"Relationship: +{gained} ({new_score}/100, {relationship_tier(new_score, world)})."
             )
