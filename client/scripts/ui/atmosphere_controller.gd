@@ -76,7 +76,8 @@ func _fill_audio_buffer() -> void:
 		base_hz = 170.0
 	elif _target_polarity == "neutral":
 		base_hz = 120.0
-	var volume: float = 0.005 + (_current_intensity * 0.02)
+	# Silent until a world field is actually in play; a tone with nothing behind it is just a hum.
+	var volume: float = 0.0 if _current_intensity < 0.01 else 0.005 + (_current_intensity * 0.02)
 	for _i in range(frames_available):
 		_phase += TAU * base_hz / _sample_rate
 		if _phase > TAU:
