@@ -84,7 +84,7 @@ class TestLauncherControllerResolvesItsNodes(unittest.TestCase):
 class TestLaunchMetadataIsAgreedOnBothSides(unittest.TestCase):
     """The launcher's writers and main_controller's readers must name the same keys."""
 
-    LAUNCH_KEYS = ("launch_host", "launch_port", "launch_mode", "launch_auto_connect")
+    LAUNCH_KEYS = ("launch_host", "launch_port", "launch_mode", "launch_auto_connect", "launch_auto_character")
 
     @classmethod
     def setUpClass(cls):

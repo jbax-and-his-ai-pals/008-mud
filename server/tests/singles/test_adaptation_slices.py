@@ -420,6 +420,31 @@ class TestFF4Slice(_Slice):
     def test_the_kings_first_audience_says_how_to_answer(self):
         self.assertIn("reply <number>", self.say("talk king"))
 
+    def test_a_reply_reads_as_a_transcript_not_a_new_conversation(self):
+        opening = self.say("talk king")
+        self.assertIn("CONVERSATION WITH KING ALDOUS", opening)
+        self.assertIn("reply <number>", opening)
+        answered = self.say("reply 1")
+        lines = [line for line in answered.splitlines() if line.strip()]
+        self.assertEqual('You reply: "At once, my king."', lines[0], "what you said comes first, without its number")
+        self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn."', answered)
+        self.assertNotIn("CONVERSATION WITH", answered, "no header the second time round")
+        self.assertNotIn("reply <number>", answered, "and no repeated instructions")
+        self.assertIn("1. Yes, my king.", answered, "the next replies are still numbered")
+
+    def test_ending_a_conversation_says_what_you_said(self):
+        self.say("talk king")
+        self.say("reply 1")
+        ending = self.say("reply 1")
+        self.assertIn('You reply: "Yes, my king."', ending)
+        self.assertNotIn("conversation ends", ending)
+
+    def test_the_sealed_package_is_as_heavy_as_it_is_said_to_be(self):
+        self.say("talk king")
+        self.say("reply 1")
+        package = next(slot.item for slot in self.player.inventory.slots if slot.item and slot.item.name.lower() == "sealed package")
+        self.assertGreaterEqual(package.weight, 3, "heavier than it looks, so not a third of a pound")
+
     def test_the_king_does_not_repeat_his_greeting_once_he_has_spoken(self):
         first = self.say("talk king")
         self.assertIn("The crystals are not yet ours", first)

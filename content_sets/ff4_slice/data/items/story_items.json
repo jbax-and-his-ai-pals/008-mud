@@ -15,7 +15,7 @@
         "type": "Item",
         "name": "sealed package",
         "description": "A small package bound in red wax. It is heavier than it looks.",
-        "weight": 0.3,
+        "weight": 4,
         "value": 0,
         "stackable": false,
         "properties": {

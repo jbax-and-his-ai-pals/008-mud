@@ -380,14 +380,27 @@ class DialogueManager:
             parts.append("ends conversation")
         return "; ".join(parts)
 
-    def render_node(self, player, npc, node: DialogueNode, session: Optional[DialogueSession] = None) -> str:
+    def spoken_line(self, choice: DialogueChoice) -> str:
+        """What the player said, as the transcript shows it: `You reply: "At once, my king."`"""
+        return '%sYou reply:%s "%s"' % (FORMAT_CATEGORY, FORMAT_RESET, choice.label)
+
+    def render_node(self, player, npc, node: DialogueNode, session: Optional[DialogueSession] = None,
+                    reply: bool = False) -> str:
+        """The NPC's words and the replies on offer.
+
+        Opening a conversation shows a header and says how to answer. A node reached by a reply is
+        the next line of a conversation already under way, so it reads as one (`King Aldous
+        speaks: "..."`), with no header and no repeated instructions.
+        """
         context = self.presentation_context(player)
         show_internals = presentation.show_internals(context)
         speaker = getattr(npc, "name", "") or "Someone"
         text = presentation.variant(node.text, context)
-        header = "%sCONVERSATION WITH %s%s" % (FORMAT_TITLE, str(speaker).upper(), FORMAT_RESET)
         body = '%s"%s"%s' % (FORMAT_HIGHLIGHT, text, FORMAT_RESET)
-        chunks = [header, "", body]
+        if reply:
+            chunks = ["%s%s speaks:%s %s" % (FORMAT_TITLE, speaker, FORMAT_RESET, body)]
+        else:
+            chunks = ["%sCONVERSATION WITH %s%s" % (FORMAT_TITLE, str(speaker).upper(), FORMAT_RESET), "", body]
         if show_internals:
             node_effects = dialogue_effects.describe_effects(node.effects)
             if node_effects:
@@ -399,7 +412,8 @@ class DialogueManager:
         if choices:
             chunks.append("")
             chunks.append(choices)
-            chunks.append("%s(Answer with: reply <number>)%s" % (FORMAT_CATEGORY, FORMAT_RESET))
+            if not reply:
+                chunks.append("%s(Answer with: reply <number>)%s" % (FORMAT_CATEGORY, FORMAT_RESET))
         elif not show_internals:
             chunks.append("")
             chunks.append("%s(That seems to be all.)%s" % (FORMAT_CATEGORY, FORMAT_RESET))

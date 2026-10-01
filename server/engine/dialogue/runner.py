@@ -137,14 +137,13 @@ def respond(world, player, npc, query: str) -> Optional[str]:
 
     if choice.ends_conversation or (not choice.next_node and not choice.effects):
         manager.end(player)
-        closing = "\n".join(outcome_lines)
-        return closing or "%sYou say your piece and the conversation ends.%s" % (FORMAT_CATEGORY, FORMAT_RESET)
+        return "\n".join([manager.spoken_line(choice)] + outcome_lines)
 
     if not choice.next_node:
         # Effects on a reply that do not move anywhere: stay put, showing the
         # same node, so a one-off line does not strand the player.
-        body = manager.render_node(player, npc, node, session)
-        return "\n".join([line for line in [body, outcome_lines and "\n".join(outcome_lines)] if line])
+        body = manager.render_node(player, npc, node, session, reply=True)
+        return "\n".join([line for line in [manager.spoken_line(choice), body, outcome_lines and "\n".join(outcome_lines)] if line])
 
     graph = manager.get(session.graph_id)
     next_node = graph.node(choice.next_node) if graph else None
@@ -158,8 +157,8 @@ def respond(world, player, npc, query: str) -> Optional[str]:
     entry_message = entry_report.message()
     if entry_message:
         outcome_lines.append(entry_message)
-    body = manager.render_node(player, npc, next_node, session)
-    return "\n".join([line for line in [body, "\n".join(outcome_lines)] if line])
+    body = manager.render_node(player, npc, next_node, session, reply=True)
+    return "\n".join([line for line in [manager.spoken_line(choice), body, "\n".join(outcome_lines)] if line])
 
 
 def _resolve_check(world, player, npc, manager, session, node, choice) -> str:
@@ -183,7 +182,7 @@ def _resolve_check(world, player, npc, manager, session, node, choice) -> str:
 
     effects = check.get("%s_effects" % outcome)
     report = manager.apply(player, npc, effects, quest_id=session.quest_id)
-    lines: List[str] = []
+    lines: List[str] = [manager.spoken_line(choice)]
     colour = FORMAT_SUCCESS if success else FORMAT_ERROR
     lines.append("%s[%s %s]%s %s" % (colour, skill.capitalize(), outcome.upper(), FORMAT_RESET, message))
     message_text = report.message()
@@ -196,7 +195,7 @@ def _resolve_check(world, player, npc, manager, session, node, choice) -> str:
         manager.end(player)
         return "\n".join(lines)
     session.node_id = next_node.node_id
-    lines.append(manager.render_node(player, npc, next_node, session))
+    lines.append(manager.render_node(player, npc, next_node, session, reply=True))
     return "\n".join(line for line in lines if line)
 
 

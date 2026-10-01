@@ -13,6 +13,7 @@ extends Control
 ##   "launch_port"          int     — port number
 ##   "launch_mode"          String  — "offline" | "online"
 ##   "launch_auto_connect"  bool    — true = main scene connects on _ready()
+##   "launch_auto_character" String — quick play only: make this character instead of asking
 
 const MAIN_SCENE := "res://scenes/main.tscn"
 const DEFAULT_OFFLINE_HOST := "127.0.0.1"
