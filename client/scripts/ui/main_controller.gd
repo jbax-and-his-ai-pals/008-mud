@@ -308,6 +308,7 @@ var game_state_payloads: GameStatePayloadsController
 ## (F2). The nodes keep their names and the @onready references above are object references
 ## resolved before this runs, so nothing that uses them notices the move.
 const DOCK_MANAGER = preload("res://scripts/ui/docks/dock_manager.gd")
+const PANEL_STYLE = preload("res://scripts/ui/docks/panel_style.gd")
 
 var _game_view: Control
 var _tools_view: Control
@@ -382,6 +383,8 @@ func _arrange_views() -> void:
 	log_view.reparent(body, false)
 	log_view.clear()   # the scene's placeholder heading is not game text
 	log_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	log_view.add_theme_stylebox_override("normal", PANEL_STYLE.card(12))
+	log_view.add_theme_stylebox_override("focus", PANEL_STYLE.card(12))
 	body.add_child(docks.right_scroll)
 	var mobile: Node = root_box.get_node_or_null("MobileControls")
 	if mobile != null:

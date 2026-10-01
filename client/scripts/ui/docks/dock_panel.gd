@@ -5,6 +5,8 @@
 # dock. The content is any Control; the card only owns the frame. Reached through `preload`.
 extends PanelContainer
 
+const PANEL_STYLE = preload("res://scripts/ui/docks/panel_style.gd")
+
 signal changed                       # collapsed, or asked to move: the owner saves the layout
 signal move_requested(direction: String)   # "up" | "down" | "side"
 
@@ -23,6 +25,7 @@ func setup(id: String, title: String, content: Control, start_collapsed: bool = 
 	body = content
 	name = "Dock_" + id
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_theme_stylebox_override("panel", PANEL_STYLE.card())
 	var box := VBoxContainer.new()
 	box.name = "Box"
 	box.add_theme_constant_override("separation", 2)
