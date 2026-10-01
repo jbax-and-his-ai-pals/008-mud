@@ -36,6 +36,7 @@ const GAP_FONT_SIZE := 6
 static var _token_pattern: RegEx
 static var _weather_pattern: RegEx
 static var _blank_lines: RegEx
+static var _section_breaks: RegEx
 
 
 ## A room description carries "The weather is cloudy." The world panel shows the weather, so the
@@ -67,7 +68,13 @@ static func tighten(bbcode: String) -> String:
 	if _blank_lines == null:
 		_blank_lines = RegEx.new()
 		_blank_lines.compile("\n{2,}")
-	return lead + _blank_lines.sub(bbcode, "\n[font_size=%d]\n[/font_size]" % GAP_FONT_SIZE, true)
+		_section_breaks = RegEx.new()
+		_section_breaks.compile("\n{3,}")
+	# Two blank lines in the text are a new scene (a story beat, then the room you are taken to): four
+	# small gaps. One blank line is the ordinary gap between paragraphs.
+	var gap := "[font_size=%d]\n[/font_size]" % GAP_FONT_SIZE
+	var spaced := _section_breaks.sub(bbcode, "\n" + gap + gap + gap + gap, true)
+	return lead + _blank_lines.sub(spaced, "\n" + gap, true)
 
 
 static func to_bbcode(text: String) -> String:
@@ -102,6 +109,14 @@ static func to_bbcode(text: String) -> String:
 	return out
 
 
+## A command made safe to sit inside `[url=...]`. RichTextLabel reads an apostrophe or a quote there as
+## the start of a quoted value and swallows the rest of the line (so "commander's seal" lost its
+## name and sent half the markup as the command); they are percent-encoded here and decoded when
+## the link is clicked.
+static func url_target(command: String) -> String:
+	return command.replace("]", "").replace("'", "%27").replace('"', "%22")
+
+
 static func _wrap(segment: String, color: String, command: String) -> String:
 	if segment == "":
 		return ""
@@ -109,5 +124,5 @@ static func _wrap(segment: String, color: String, command: String) -> String:
 	if color != "":
 		wrapped = "[color=%s]%s[/color]" % [color, wrapped]
 	if command != "":
-		wrapped = "[url=cmd:%s]%s[/url]" % [command.replace("]", ""), wrapped]
+		wrapped = "[url=cmd:%s]%s[/url]" % [url_target(command), wrapped]
 	return wrapped

@@ -319,6 +319,8 @@ var _connection_badge: Label
 var _debug_log: RichTextLabel
 var docks
 var typewriter
+var room_label: RichTextLabel      # the pane above the log that shows the current room
+var _room_scroll: ScrollContainer
 
 
 func _arrange_views() -> void:
@@ -401,9 +403,17 @@ func _arrange_views() -> void:
 	body.add_theme_constant_override("separation", 8)
 	game.add_child(body)
 	body.add_child(docks.left_scroll)
-	log_view.reparent(body, false)
+	# the centre: the room you are in on top (what `look` says), the story log below it
+	var center := VBoxContainer.new()
+	center.name = "Center"
+	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	center.add_theme_constant_override("separation", 6)
+	body.add_child(center)
+	center.add_child(_make_room_pane())
+	log_view.reparent(center, false)
 	log_view.clear()   # the scene's placeholder heading is not game text
 	log_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	log_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	log_view.add_theme_stylebox_override("normal", PANEL_STYLE.card(12))
 	log_view.add_theme_stylebox_override("focus", PANEL_STYLE.card(12))
 	body.add_child(docks.right_scroll)
@@ -444,6 +454,7 @@ func _arrange_views() -> void:
 	# view (Send, a mobile pad key) hands it straight back.
 	command_input.keep_editing_on_text_submit = true
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
+	command_input.call_deferred("grab_focus")   # ready to type as soon as the game opens
 
 	for client in [tcp_client, ws_client]:
 		client.connected.connect(_refresh_connection_badge)
@@ -649,7 +660,7 @@ func _is_connected_to_game_server() -> bool:
 func _on_meta_clicked(meta: Variant) -> void:
 	var cmd = str(meta)
 	if cmd.begins_with("cmd:"):
-		network_lifecycle._send_command_immediate(cmd.substr(4))
+		network_lifecycle._send_command_immediate(cmd.substr(4).uri_decode())   # SERVER_MARKUP.url_target encoded it
 
 func _on_line_received(line: String) -> void:
 	_network_telemetry["lines_received"] = int(_network_telemetry.get("lines_received", 0)) + 1
@@ -729,6 +740,9 @@ func _on_line_received(line: String) -> void:
 	elif event_type == "world":
 		if docks != null and typeof(payload) == TYPE_DICTIONARY:
 			docks.apply_world(payload as Dictionary)
+	elif event_type == "room":
+		if typeof(payload) == TYPE_DICTIONARY:
+			_show_room(str((payload as Dictionary).get("text", "")))
 	elif event_type == "status":
 		game_state_payloads._handle_status_payload(payload)
 	elif event_type == "combat":
@@ -790,6 +804,44 @@ func _append_game(text: String) -> void:
 		typewriter.append(text + "\n")
 	else:
 		log_view.append_text(TYPEWRITER.without_pace(text) + "\n")
+
+
+## The pane above the log that always shows the room the player is in. It tops out at a fixed height
+## and scrolls inside itself, so a long description cannot push the story log off the screen.
+const ROOM_PANE_MAX_HEIGHT := 230
+
+
+func _make_room_pane() -> PanelContainer:
+	var card := PanelContainer.new()
+	card.name = "RoomPane"
+	card.add_theme_stylebox_override("panel", PANEL_STYLE.card(12))
+	_room_scroll = ScrollContainer.new()
+	_room_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	card.add_child(_room_scroll)
+	room_label = RichTextLabel.new()
+	room_label.bbcode_enabled = true
+	room_label.fit_content = true
+	room_label.scroll_active = false
+	room_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	room_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	room_label.meta_clicked.connect(_on_meta_clicked)
+	room_label.text = "[i][color=#808080]Waiting for the room...[/color][/i]"
+	room_label.resized.connect(_fit_room_pane)
+	_room_scroll.add_child(room_label)
+	return card
+
+
+func _show_room(text: String) -> void:
+	if room_label == null:
+		return
+	room_label.text = SERVER_MARKUP.tighten(SERVER_MARKUP.to_bbcode(SERVER_MARKUP.without_weather_line(text)))
+	_fit_room_pane.call_deferred()
+
+
+func _fit_room_pane() -> void:
+	if room_label == null or _room_scroll == null:
+		return
+	_room_scroll.custom_minimum_size.y = minf(float(room_label.get_content_height()) + 2.0, float(ROOM_PANE_MAX_HEIGHT))
 
 
 ## Show any slowly revealed text now; the player has moved on.

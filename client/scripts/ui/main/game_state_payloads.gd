@@ -187,7 +187,7 @@ func _handle_combat_payload(payload: Variant) -> void:
 		var target: Dictionary = target_value as Dictionary
 		var name: String = str(target.get("name", "Unknown target"))
 		var current: String = " [b](target)[/b]" if bool(target.get("current_target", false)) else ""
-		lines.append("• [url=cmd:attack %s]%s[/url]%s — HP %d/%d" % [name, main._bbcode_escape(name), current, int(target.get("health", 0)), int(target.get("max_health", 0))])
+		lines.append("• [url=cmd:attack %s]%s[/url]%s — HP %d/%d" % [main.SERVER_MARKUP.url_target(name), main._bbcode_escape(name), current, int(target.get("health", 0)), int(target.get("max_health", 0))])
 
 	var actions: Array = body.get("suggested_actions", []) as Array
 	main.combat_summary_label.text = "Choose an action: %s" % ", ".join(actions)
@@ -241,7 +241,7 @@ func _handle_inventory_payload(payload: Variant) -> void:
 			"%s %d: [url=cmd:look %s]%s[/url]%s x%d (%.1f wt)" % [
 				main.theme_controller._icon_token("inventory_item_prefix", "-"),
 				int(item.get("slot_index", -1)),
-				item_name,
+				main.SERVER_MARKUP.url_target(item_name),
 				item_name,
 				attachment_suffix,
 				int(item.get("quantity", 0)),
@@ -383,13 +383,13 @@ func _handle_quests_payload(payload: Variant) -> void:
 			continue
 		var quest: Dictionary = quest_variant as Dictionary
 		var title: String = str(quest.get("title", "Unnamed Quest"))
-		lines.append("%s [url=cmd:journal %s]%s[/url]" % [completed_prefix, title, title])
+		lines.append("%s [url=cmd:journal %s]%s[/url]" % [completed_prefix, main.SERVER_MARKUP.url_target(title), title])
 	for quest_variant in archived:
 		if typeof(quest_variant) != TYPE_DICTIONARY:
 			continue
 		var quest: Dictionary = quest_variant as Dictionary
 		var title: String = str(quest.get("title", "Unnamed Quest"))
-		lines.append("%s [url=cmd:journal %s]%s[/url]" % [archived_prefix, title, title])
+		lines.append("%s [url=cmd:journal %s]%s[/url]" % [archived_prefix, main.SERVER_MARKUP.url_target(title), title])
 
 	if lines.is_empty():
 		main.journal_list_label.text = "[i]%s[/i]" % main.theme_controller._icon_token("quest_none", "No quests tracked.")
@@ -426,7 +426,7 @@ func _handle_nearby_payload(payload: Variant) -> void:
 		var tag: String = main.theme_controller._icon_token("hostile_tag", "hostile") if hostile_flag else str(npc.get("faction", "neutral"))
 		var npc_name: String = str(npc.get("name", "Unknown NPC"))
 		var action: String = "attack" if hostile_flag else "look"
-		npc_lines.append("[url=cmd:%s %s]%s[/url] [%s]" % [action, npc_name, npc_name, tag])
+		npc_lines.append("[url=cmd:%s %s]%s[/url] [%s]" % [action, main.SERVER_MARKUP.url_target(npc_name), npc_name, tag])
 	if npc_lines.is_empty():
 		main.nearby_npcs_label.text = "[i]%s[/i]" % main.theme_controller._icon_token("npc_none", "No nearby NPCs.")
 	else:
@@ -440,7 +440,7 @@ func _handle_nearby_payload(payload: Variant) -> void:
 		var item_name: String = str(item.get("name", "Unknown Item"))
 		var portable: bool = bool(item.get("portable", true))
 		var action: String = "take" if portable else "look"
-		item_lines.append("%s [url=cmd:%s %s]%s[/url]" % [main.theme_controller._icon_token("item_prefix", "-"), action, item_name, item_name])
+		item_lines.append("%s [url=cmd:%s %s]%s[/url]" % [main.theme_controller._icon_token("item_prefix", "-"), action, main.SERVER_MARKUP.url_target(item_name), item_name])
 	if item_lines.is_empty():
 		main.nearby_items_label.text = "[i]%s[/i]" % main.theme_controller._icon_token("item_none", "No nearby items.")
 	else:

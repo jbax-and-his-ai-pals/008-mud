@@ -10,6 +10,7 @@
 extends RefCounted
 
 const DOCK_PANEL = preload("res://scripts/ui/docks/dock_panel.gd")
+const SERVER_MARKUP = preload("res://scripts/text/server_markup.gd")
 const DOCK_COLUMN = preload("res://scripts/ui/docks/dock_column.gd")
 # One file holds every saved arrangement: "<server>|<character>" -> layout, plus "_last", the most
 # recent one, which a character with no arrangement of their own starts from.
@@ -293,7 +294,7 @@ func _duration(seconds: float) -> String:
 
 ## Text that sends a command when clicked: the answer lands in the game window, as if it had been typed.
 func _link(command: String, text: String) -> String:
-	return "[url=cmd:%s]%s[/url]" % [command.replace("]", ""), _esc(text)]
+	return "[url=cmd:%s]%s[/url]" % [SERVER_MARKUP.url_target(command), _esc(text)]
 
 
 func _esc(text: String) -> String:

@@ -7,6 +7,7 @@ or the time and weather had to ask for text and read it back. Two events carry i
 * `character`: level, experience, gold, health, the ability pool, the set's declared stats,
   equipment by slot (with durability), known spells (with cooldowns), skills and active effects.
 * `world`: the time, date, period of day, season, and the weather where the player stands.
+* `room`: the text `look` would give, for a pane that always shows the current room.
 
 They are sent when they change, per session (`_panel_events`), on every tick and after a
 character is created or resumed, so a panel is never stale and a quiet server sends nothing. The
@@ -43,7 +44,7 @@ class PanelPayloadsMixin:
         sent = self._panel_cache().setdefault(session_id, {})
         events: List[Dict[str, Any]] = []
         builders = [("character", self._build_character_payload), ("world", self._build_world_payload),
-                    ("inventory", self._build_inventory_payload)]
+                    ("room", self._build_room_payload), ("inventory", self._build_inventory_payload)]
         if self.world.has_capability("quests"):
             builders.append(("quests", self._build_quests_payload))
         for kind, build in builders:
@@ -58,6 +59,15 @@ class PanelPayloadsMixin:
                 sent[kind] = signature
                 events.append(self._event(kind, session_id, payload))
         return events
+
+    # -- the room ----------------------------------------------------------------------------
+
+    def _build_room_payload(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """What `look` says, for a pane that always shows where the player is."""
+        player = self.get_player_for_session(session_id)
+        if player is None:
+            return None
+        return {"text": str(self.world.look(minimal=True, player=player))}
 
     # -- the world clock -------------------------------------------------------------------
 

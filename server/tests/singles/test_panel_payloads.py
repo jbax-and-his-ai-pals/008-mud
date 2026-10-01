@@ -68,6 +68,18 @@ class TestPanelPayloads(unittest.TestCase):
         self.assertTrue(world["time"].startswith("12:"), world["time"])
         self.assertNotEqual("night", world["period"])
 
+    def test_the_room_pane_gets_what_look_says_and_follows_the_player(self):
+        room = self.payload(self.created, "room")["text"]
+        self.assertIn("THRONE ROOM", room.upper())
+        self.assertIn("Exits:", room)
+        self.player.current_region_id, self.player.current_room_id = "varenholt", "courtyard"
+        moved = self.server._panel_events(self.sid)
+        self.assertIn("COURTYARD", self.payload(moved, "room")["text"].upper())
+
+    def test_the_room_is_not_resent_while_it_is_the_same(self):
+        self.server._panel_events(self.sid)
+        self.assertEqual([], [e for e in self.server._panel_events(self.sid) if e["type"] == "room"])
+
     def test_nothing_is_resent_when_nothing_changed(self):
         first = self.server._panel_events(self.sid)
         second = self.server._panel_events(self.sid)
