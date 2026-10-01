@@ -147,6 +147,7 @@ func _send_command_to_server(cmd: String, display_cmd: String = "") -> void:
 	var shown: String = display_cmd
 	if shown == "":
 		shown = cmd
+	main._finish_typing()
 	main._append_game("\n[b]> %s[/b]\n" % shown)
 
 func _warn_if_command_conflicts_with_policy(cmd: String) -> void:

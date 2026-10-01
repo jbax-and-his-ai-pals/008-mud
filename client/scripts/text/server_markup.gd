@@ -75,7 +75,7 @@ static func to_bbcode(text: String) -> String:
 		return text
 	if _token_pattern == null:
 		_token_pattern = RegEx.new()
-		_token_pattern.compile("\\[\\[(/CMD|/|CMD:[^\\]]*|[A-Z_]+)\\]\\]")
+		_token_pattern.compile("\\[\\[(/CMD|/PACE|/|CMD:[^\\]]*|PACE:\\d+|[A-Z_]+)\\]\\]")
 	var out := ""
 	var color := ""
 	var command := ""
@@ -90,6 +90,10 @@ static func to_bbcode(text: String) -> String:
 			command = ""
 		elif token.begins_with("CMD:"):
 			command = token.substr(4)
+		elif token.begins_with("PACE:"):
+			out += "[pace=%s]" % token.substr(5)   # typewriter.gd reveals what is between the markers gradually
+		elif token == "/PACE":
+			out += "[/pace]"
 		elif COLORS.has(token):
 			color = COLORS[token]
 		else:

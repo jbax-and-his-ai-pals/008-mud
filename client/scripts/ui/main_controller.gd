@@ -309,6 +309,8 @@ var game_state_payloads: GameStatePayloadsController
 ## resolved before this runs, so nothing that uses them notices the move.
 const DOCK_MANAGER = preload("res://scripts/ui/docks/dock_manager.gd")
 const PANEL_STYLE = preload("res://scripts/ui/docks/panel_style.gd")
+const TYPEWRITER = preload("res://scripts/text/typewriter.gd")
+const PREFS_PATH := "user://client_prefs.cfg"
 
 var _game_view: Control
 var _tools_view: Control
@@ -316,6 +318,7 @@ var _tools_toggle: Button
 var _connection_badge: Label
 var _debug_log: RichTextLabel
 var docks
+var typewriter
 
 
 func _arrange_views() -> void:
@@ -338,10 +341,28 @@ func _arrange_views() -> void:
 		var row: Node = root_box.get_node_or_null(row_name)
 		if row != null:
 			row.reparent(tools, false)
+	# Story text the server marks for slow reveal is typed out; clicking the log or sending a command skips ahead.
+	typewriter = TYPEWRITER.new()
+	typewriter.label = log_view
+	typewriter.enabled = _pref("paced_text", true)
+	add_child(typewriter)
+	log_view.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			typewriter.finish())
 	var reset_button := Button.new()
 	reset_button.text = "Reset panel layout"
 	reset_button.pressed.connect(func() -> void: docks.reset_layout())
 	tools.add_child(reset_button)
+	var paced_toggle := CheckBox.new()
+	paced_toggle.text = "Reveal story text gradually"
+	paced_toggle.tooltip_text = "When a story passage is marked slow, type it out. Off shows all text at once."
+	paced_toggle.button_pressed = typewriter.enabled
+	paced_toggle.toggled.connect(func(on: bool) -> void:
+		typewriter.enabled = on
+		if not on:
+			typewriter.finish()
+		_set_pref("paced_text", on))
+	tools.add_child(paced_toggle)
 	var diagnostics_title := Label.new()
 	diagnostics_title.text = "Diagnostics"
 	tools.add_child(diagnostics_title)
@@ -765,7 +786,30 @@ func _on_line_received(line: String) -> void:
 
 ## What the player reads: server text, errors, and the commands they typed.
 func _append_game(text: String) -> void:
-	log_view.append_text(text + "\n")
+	if typewriter != null:
+		typewriter.append(text + "\n")
+	else:
+		log_view.append_text(TYPEWRITER.without_pace(text) + "\n")
+
+
+## Show any slowly revealed text now; the player has moved on.
+func _finish_typing() -> void:
+	if typewriter != null:
+		typewriter.finish()
+
+
+func _pref(key: String, fallback: Variant) -> Variant:
+	var config := ConfigFile.new()
+	if config.load(PREFS_PATH) != OK:
+		return fallback
+	return config.get_value("text", key, fallback)
+
+
+func _set_pref(key: String, value: Variant) -> void:
+	var config := ConfigFile.new()
+	config.load(PREFS_PATH)
+	config.set_value("text", key, value)
+	config.save(PREFS_PATH)
 
 
 ## Client and server chatter (connection notes, lock state, profile lists, payload echoes). It
