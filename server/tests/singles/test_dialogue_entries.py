@@ -82,5 +82,45 @@ class TestEntries(GameTestBase):
         self.assertIn("reply <number>", text)
 
 
+class TestEndingNodes(GameTestBase):
+    """`"end": true` on a node: the NPC has the last word and the conversation closes."""
+
+    def setUp(self):
+        super().setUp()
+        self.manager = self.world.dialogue_manager
+        self.npc = next(iter(self.world.npcs.values()))
+
+    def graph(self, node_extra=None):
+        payload = {
+            "id": "probe", "root": "first",
+            "nodes": {
+                "first": {"text": "Choose.", "choices": [{"text": "Go on.", "next_node": "last"}]},
+                "last": {"text": "Farewell.", **(node_extra or {"end": True})},
+            },
+        }
+        return parse_graph(payload, "probe", "probe.json")
+
+    def test_an_ending_node_offers_nothing_and_closes_the_conversation(self):
+        graph, issues = self.graph()
+        self.assertEqual([], issues)
+        node = self.manager.open(self.player, self.npc, graph)
+        session = self.manager.current(self.player)
+        session.node_id = "last"
+        text = self.manager.render_node(self.player, self.npc, graph.node("last"), session, reply=True)
+        self.assertIn("speaks:", text)
+        self.assertNotIn("1.", text)
+        self.assertNotIn("That seems to be all", text)
+        self.assertTrue(graph.node("last").ends_conversation)
+        self.assertIsNotNone(node)
+
+    def test_an_ending_node_that_also_offers_replies_is_refused(self):
+        _graph, issues = self.graph({"end": True, "choices": [{"text": "Wait.", "end": True}]})
+        self.assertTrue(any("could never be chosen" in i for i in issues), issues)
+
+    def test_end_must_be_true_or_false(self):
+        _graph, issues = self.graph({"end": "yes"})
+        self.assertTrue(any("end must be true or false" in i for i in issues), issues)
+
+
 if __name__ == "__main__":
     unittest.main()

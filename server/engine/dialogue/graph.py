@@ -104,6 +104,12 @@ class DialogueNode:
             return self.choices[index]
         return None
 
+    @property
+    def ends_conversation(self) -> bool:
+        """`"end": true` on a node: the NPC says it and the conversation is over, with no reply
+        to click through first."""
+        return self.raw.get("end") is True
+
 
 @dataclass
 class DialogueGraph:

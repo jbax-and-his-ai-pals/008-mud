@@ -78,9 +78,14 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
     hostile_npcs = [npc for npc in all_npcs_in_room if factions.is_hostile(npc, world)]
     items_in_room = world.get_items_for_player(player)
 
+    # A listing with nothing in it is left out rather than shown as "(None)": a room with no one
+    # in it just does not mention people. The first listing that does appear is set apart from
+    # the exits by a blank line; the ones after it follow on the next line.
+    separator = "\n\n"
+
     # --- FRIENDLY NPCs ---
-    if friendly_npcs or not minimal:
-        friendly_content_str = f"{FORMAT_GRAY}(None){FORMAT_RESET}"
+    if friendly_npcs:
+        friendly_content_str = ""
         if friendly_npcs:
             friendly_npc_list = []
             for npc in friendly_npcs:
@@ -95,19 +100,19 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
                 
                 friendly_npc_list.append(f"{formatted_name}{status_suffix}")
             friendly_content_str = ", ".join(friendly_npc_list)
-        full_description += f"\n\n{FORMAT_CATEGORY}People here:{FORMAT_RESET} {friendly_content_str}"
+        full_description += f"{separator}{FORMAT_CATEGORY}People here:{FORMAT_RESET} {friendly_content_str}"
+        separator = "\n"
 
     # --- HOSTILE NPCs ---
-    if hostile_npcs or not minimal:
-        hostile_content_str = f"{FORMAT_GRAY}(None){FORMAT_RESET}"
-        if hostile_npcs:
-            hostile_npc_list = [f"{format_name_for_display(player, npc)}" for npc in hostile_npcs]
-            hostile_content_str = ", ".join(hostile_npc_list)
-        full_description += f"\n{FORMAT_CATEGORY}Hostiles:{FORMAT_RESET} {hostile_content_str}"
+    if hostile_npcs:
+        hostile_npc_list = [f"{format_name_for_display(player, npc)}" for npc in hostile_npcs]
+        hostile_content_str = ", ".join(hostile_npc_list)
+        full_description += f"{separator}{FORMAT_CATEGORY}Hostiles:{FORMAT_RESET} {hostile_content_str}"
+        separator = "\n"
 
     # --- ITEMS ---
-    if items_in_room or not minimal:
-        item_content_str = f"{FORMAT_GRAY}(None){FORMAT_RESET}"
+    if items_in_room:
+        item_content_str = ""
         if items_in_room:
             item_counts: Dict[str, Dict[str, Any]] = {}
             for item in items_in_room:
@@ -145,6 +150,6 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
                     item_message_parts.append(f"{count} {formatted_plural}")
                     
             item_content_str = ", ".join(item_message_parts)
-        full_description += f"\n{FORMAT_CATEGORY}Items:{FORMAT_RESET} {item_content_str}"
+        full_description += f"{separator}{FORMAT_CATEGORY}Items:{FORMAT_RESET} {item_content_str}"
     
     return full_description

@@ -110,21 +110,11 @@
         },
         "obey": {
             "text": "Good. Be quick. The fleet sails at dawn.",
-            "choices": [
-                {
-                    "text": "Yes, my king.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "dismissed": {
             "text": "Then you are no captain of mine. Give me your seal. You will deliver the package as a courier, and consider that generous.",
-            "choices": [
-                {
-                    "text": "...",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "package": {
             "text": "It is a gift for the mayor. Nothing more.",

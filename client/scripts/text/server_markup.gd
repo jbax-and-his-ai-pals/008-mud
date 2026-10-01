@@ -29,6 +29,10 @@ const COLORS := {
 	"WHITE": "#ffffff",
 }
 
+# A blank line takes the height of the text on it, so the gap is made by shrinking the newline
+# that ends it. Smaller is tighter; 6 is roughly a quarter of a line.
+const GAP_FONT_SIZE := 6
+
 static var _token_pattern: RegEx
 static var _weather_pattern: RegEx
 static var _blank_lines: RegEx
@@ -49,12 +53,17 @@ static func without_weather_line(text: String) -> String:
 ## Blank lines are as tall as a line of text, which reads as double spacing. A run of them
 ## becomes one short gap, so paragraphs stay apart without the page looking sparse.
 static func tighten(bbcode: String) -> String:
+	# Blank lines the server put at the very start are deliberate separation, so they are kept.
+	var lead := ""
+	while bbcode.begins_with("\n"):
+		lead += "\n"
+		bbcode = bbcode.substr(1)
 	if bbcode.find("\n\n") == -1:
-		return bbcode
+		return lead + bbcode
 	if _blank_lines == null:
 		_blank_lines = RegEx.new()
 		_blank_lines.compile("\n{2,}")
-	return _blank_lines.sub(bbcode, "\n[font_size=5] [/font_size]\n", true)
+	return lead + _blank_lines.sub(bbcode, "\n[font_size=%d]\n[/font_size]" % GAP_FONT_SIZE, true)
 
 
 static func to_bbcode(text: String) -> String:

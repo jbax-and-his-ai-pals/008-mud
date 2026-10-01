@@ -424,20 +424,34 @@ class TestFF4Slice(_Slice):
         opening = self.say("talk king")
         self.assertIn("CONVERSATION WITH KING ALDOUS", opening)
         self.assertIn("reply <number>", opening)
-        answered = self.say("reply 1")
+        answered = self.say("reply 3")
         lines = [line for line in answered.splitlines() if line.strip()]
-        self.assertEqual('You reply: "At once, my king."', lines[0], "what you said comes first, without its number")
-        self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn."', answered)
+        self.assertEqual('You reply: "Tell me again what the package is."', lines[0], "what you said comes first, without its number")
+        self.assertIn('King Aldous speaks: "It is a gift for the mayor. Nothing more."', answered)
         self.assertNotIn("CONVERSATION WITH", answered, "no header the second time round")
         self.assertNotIn("reply <number>", answered, "and no repeated instructions")
-        self.assertIn("1. Yes, my king.", answered, "the next replies are still numbered")
+        self.assertIn("1. I will go.", answered, "the next replies are still numbered")
 
     def test_ending_a_conversation_says_what_you_said(self):
         self.say("talk king")
-        self.say("reply 1")
+        self.say("reply 3")
         ending = self.say("reply 1")
-        self.assertIn('You reply: "Yes, my king."', ending)
+        self.assertIn('You reply: "I will go."', ending)
         self.assertNotIn("conversation ends", ending)
+
+    def test_the_king_has_the_last_word_when_you_obey(self):
+        self.say("talk king")
+        answered = self.say("reply 1")
+        self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn."', answered)
+        self.assertNotRegex(answered, r"(?m)^\s*1\. ", "there is nothing left to answer")
+        self.assertNotIn("(That seems to be all.)", answered)
+        self.assertIn("You have your orders", self.say("talk king"), "and the conversation really is over: talking again opens a new one")
+
+    def test_the_king_has_the_last_word_when_he_dismisses_you(self):
+        self.say("talk king")
+        answered = self.say("reply 2")
+        self.assertIn("you are no captain of mine", answered.lower().replace("then you", "you"))
+        self.assertNotRegex(answered, r"(?m)^\s*1\. ")
 
     def test_the_sealed_package_is_as_heavy_as_it_is_said_to_be(self):
         self.say("talk king")
@@ -458,7 +472,6 @@ class TestFF4Slice(_Slice):
         self.say("talk king")
         self.say("reply 1")
         self.assertIn("You have your orders", self.say("talk king"))
-        self.say("reply 2")   # "Yes, my king."
 
     def test_a_captain_who_questioned_the_king_is_greeted_differently(self):
         self._question_the_king()

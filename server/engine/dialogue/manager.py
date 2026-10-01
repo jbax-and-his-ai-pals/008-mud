@@ -162,6 +162,13 @@ def structural_issues(graph: DialogueGraph) -> List[str]:
                 % (graph.graph_id, node_id, kind, target)
             )
     for node in graph.nodes.values():
+        if "end" in node.raw and not isinstance(node.raw["end"], bool):
+            issues.append("graph '%s': node '%s'.end must be true or false" % (graph.graph_id, node.node_id))
+        if node.ends_conversation and node.choices:
+            issues.append(
+                "graph '%s': node '%s' ends the conversation, so its replies could never be chosen"
+                % (graph.graph_id, node.node_id)
+            )
         for choice in node.choices:
             has_destination = bool(choice.next_node) or choice.ends_conversation or bool(choice.check)
             if not has_destination and not choice.effects:
@@ -408,11 +415,14 @@ class DialogueManager:
             if session is not None:
                 origin = session.graph_id or "negotiation"
                 chunks.append("%s[node %s of %s]%s" % (FORMAT_CATEGORY, node.node_id, origin, FORMAT_RESET))
-        choices = self.format_choices(player, node)
-        if choices:
+        choices = "" if node.ends_conversation else self.format_choices(player, node)
+        if node.ends_conversation:
+            pass   # the NPC has the last word; there is nothing to answer
+        elif choices:
             chunks.append("")
             chunks.append(choices)
             if not reply:
+                chunks.append("")   # a little air between the replies and how to pick one
                 chunks.append("%s(Answer with: reply <number>)%s" % (FORMAT_CATEGORY, FORMAT_RESET))
         elif not show_internals:
             chunks.append("")
