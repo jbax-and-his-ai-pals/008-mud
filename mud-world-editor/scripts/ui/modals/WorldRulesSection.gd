@@ -32,7 +32,7 @@ const FIELDS := [
 	["player_defaults", "magic.known_spells", "Default known spells (ability ids, comma-separated)", "list", ""],
 ]
 const ENGINE_DEFAULTS := {
-	"calendar.start_time.hour": 0, "calendar.start_time.minute": 0,
+	"calendar.start_time.hour": 12, "calendar.start_time.minute": 0,
 	"elites.chance": 0.0, "elites.stat_multiplier": 1.5,
 	"elites.loot_guaranteed_chance": 1.0, "elites.loot_quantity_multiplier": 1.5,
 	"companions.max": 1,

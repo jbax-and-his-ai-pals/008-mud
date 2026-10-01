@@ -31,21 +31,27 @@ def _resolve_calendar_names(world, key: str, default: List[str]) -> List[str]:
 
 
 
+# A world with no clock of its own opens at noon: a new character wakes in daylight, not in the
+# dead of night. A content set that wants another hour says so in `calendar.start_time`.
+DEFAULT_START_HOUR = 12
+
+
 def _resolve_initial_game_time(world) -> float:
-    """Read an optional content-defined initial clock, falling back to midnight."""
+    """Read an optional content-defined initial clock, falling back to noon."""
+    fallback = float(DEFAULT_START_HOUR * 3600)
     if world is None or not hasattr(world, "ruleset_section"):
-        return 0.0
+        return fallback
     start_time = world.ruleset_section("calendar").get("start_time")
     if not isinstance(start_time, dict):
-        return 0.0
-    hour = start_time.get("hour", 0)
+        return fallback
+    hour = start_time.get("hour", DEFAULT_START_HOUR)
     minute = start_time.get("minute", 0)
     if isinstance(hour, bool) or isinstance(minute, bool):
-        return 0.0
+        return fallback
     if not isinstance(hour, int) or not isinstance(minute, int):
-        return 0.0
+        return fallback
     if not 0 <= hour < 24 or not 0 <= minute < 60:
-        return 0.0
+        return fallback
     return float((hour * 3600) + (minute * 60))
 
 class TimeManager:

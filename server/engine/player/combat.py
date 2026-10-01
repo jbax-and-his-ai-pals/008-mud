@@ -208,13 +208,14 @@ class PlayerCombatMixin:
             if use_party_routing and (final_xp_gained > 0 or gold_dropped > 0):
                 reward_text = str(server.grant_party_rewards(p, {"xp": final_xp_gained, "gold": gold_dropped}))
                 if reward_text:
-                    result_message += "\n" + reward_text
+                    result_message += "\n\n" + reward_text
             else:
                 if gold_dropped > 0 and p.runtime_state.gold is not None:
                     p.runtime_state.gold += gold_dropped
-                    result_message += f"\n{FORMAT_SUCCESS}You find {gold_dropped} {current_world.currency_name()}.{FORMAT_RESET}"
+                    # The rewards are their own block under the blow that earned them.
+                    result_message += f"\n\n{FORMAT_SUCCESS}You find {gold_dropped} {current_world.currency_name()}.{FORMAT_RESET}"
                 if final_xp_gained > 0 and p.runtime_state.progression is not None:
-                    result_message += f"\n{FORMAT_SUCCESS}You gain {final_xp_gained} experience!{FORMAT_RESET}"
+                    result_message += (f"\n" if gold_dropped > 0 and p.runtime_state.gold is not None else f"\n\n") + f"{FORMAT_SUCCESS}You gain {final_xp_gained} experience!{FORMAT_RESET}"
                     leveled_up, level_up_msg = p.gain_experience(final_xp_gained)
                     if leveled_up and level_up_msg: 
                         result_message += "\n" + level_up_msg
@@ -223,8 +224,8 @@ class PlayerCombatMixin:
             if current_world and hasattr(target, 'die'):
                  loot_str = format_loot_drop_message(p, target, target.die(current_world))
                  
-            if loot_str: result_message += "\n" + loot_str
-            if quest_update_message: result_message += "\n" + quest_update_message
+            if loot_str: result_message += "\n\n" + loot_str
+            if quest_update_message: result_message += "\n\n" + quest_update_message
             
             p._add_combat_message(result_message.replace(message, "").strip())
 

@@ -70,5 +70,33 @@ class TestLookListings(unittest.TestCase):
         self.assertTrue(look.startswith("\n\n"), repr(look[:12]))
 
 
+class TestWordingAndSpacing(unittest.TestCase):
+    def test_a_name_that_carries_its_article_does_not_get_another(self):
+        server, sid, _events = _boot("ff4_slice")
+        self.addCleanup(server.shutdown)
+        player = server.get_player_for_session(sid)
+        player.current_region_id, player.current_room_id = "varenholt", "stores"
+        said = "\n".join(_text(server.execute_command(sid, "look")))
+        self.assertIn("People here: the quartermaster", said)
+        self.assertNotIn("a the", said)
+
+    def test_something_that_happens_on_its_own_starts_a_line_below_the_last(self):
+        from engine.server.headless.lifecycle import _passive
+
+        self.assertEqual("\nThe sun rises.", _passive("The sun rises."))
+
+    def test_the_rewards_for_a_kill_are_a_block_under_the_blow(self):
+        server, sid, _events = _boot("ff4_slice")
+        self.addCleanup(server.shutdown)
+        player = server.get_player_for_session(sid)
+        player.current_region_id, player.current_room_id = "road", "castle_road"
+        goblin = next(n for n in server.world.npcs.values() if n.template_id == "goblin_scout")
+        goblin.health = 1
+        for _ in range(40):
+            server.tick(sid)
+        said = "\n".join(_text(server.execute_command(sid, "attack goblin")))
+        self.assertRegex(said, r"defeated!\n\nYou find \d+ gil\.\nYou gain \d+ experience!")
+
+
 if __name__ == "__main__":
     unittest.main()

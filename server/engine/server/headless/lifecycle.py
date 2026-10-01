@@ -56,6 +56,13 @@ if TYPE_CHECKING:
     from engine.server.headless.models import Session, Party
 
 
+def _passive(message: str) -> str:
+    """Something that happened on its own (dawn, a creature walking in, an effect wearing off), as
+    opposed to the answer to a command. One leading blank line, which a client shows as a small
+    gap, keeps it from running into whatever was said last."""
+    return "\n" + str(message)
+
+
 class LifecycleMixin:
     def broadcast_to_room(self, region_id: str, room_id: str, message: str, exclude_session_id: Optional[str] = None) -> None:
         if not hasattr(self, "pending_broadcasts"): self.pending_broadcasts = []
@@ -184,7 +191,7 @@ class LifecycleMixin:
             msg = self.time_manager.get_time_transition_message(old_period, new_period)
             if msg:
                 # Time-of-day transitions are background ambient — batch them.
-                self._background_event_batch.append(self._event("text", session_id, msg))
+                self._background_event_batch.append(self._event("text", session_id, _passive(msg)))
 
         for location, msg in self.world.update():
             if self._is_combat_adjacent_message(msg):
@@ -195,7 +202,7 @@ class LifecycleMixin:
             # to trigger the periodic world tick would receive combat/ambient
             # text for events happening anywhere else in the world.
             if location is None:
-                self._background_event_batch.append(self._event("text", session_id, msg))
+                self._background_event_batch.append(self._event("text", session_id, _passive(msg)))
                 continue
             region_id, room_id = location
             for other_session_id in self.sessions:
@@ -205,7 +212,7 @@ class LifecycleMixin:
                     and other_player.current_region_id == region_id
                     and other_player.current_room_id == room_id
                 ):
-                    self._background_event_batch.append(self._event("text", other_session_id, msg))
+                    self._background_event_batch.append(self._event("text", other_session_id, _passive(msg)))
 
         player = self.get_player_for_session(session_id)
         if player and player.is_alive:
@@ -213,7 +220,7 @@ class LifecycleMixin:
                 if self._is_combat_adjacent_message(msg):
                     continue
                 # Player regen/effect messages are player-facing — emit direct.
-                events.append(self._event("text", session_id, msg))
+                events.append(self._event("text", session_id, _passive(msg)))
 
         # World-effects tick (blight, fields): background — batch.
         for ev in self.world_effects_provider.tick(self, session_id):

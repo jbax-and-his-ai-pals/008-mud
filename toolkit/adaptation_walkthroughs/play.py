@@ -86,7 +86,7 @@ class Game:
             text = self.run("attack %s" % target)
             swings += 1
             if show:
-                print("   swing:", text.replace(chr(10), " ")[:100])
+                print("   swing (hp %d/%d):" % (self.player.health, self.player.max_health), text.replace(chr(10), " ")[:100])
             self.tick(21)
             if not self.player.is_alive:
                 return "player died after %d swings" % swings

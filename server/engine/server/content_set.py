@@ -1760,7 +1760,7 @@ def _validate_simple_ruleset_sections(
             for key, high in (("hour", 23), ("minute", 59)):
                 value = start.get(key, 0)
                 if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= high:
-                    error(f"calendar.start_time.{key} must be an integer from 0 to {high} (otherwise the clock starts at midnight)")
+                    error(f"calendar.start_time.{key} must be an integer from 0 to {high} (otherwise the clock starts at noon)")
 
     spawning = sections.get("spawning", {})
     if "no_spawn_keywords" in spawning and strings(spawning["no_spawn_keywords"], "spawning.no_spawn_keywords", allow_empty_list=True):

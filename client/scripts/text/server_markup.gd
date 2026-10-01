@@ -53,11 +53,15 @@ static func without_weather_line(text: String) -> String:
 ## Blank lines are as tall as a line of text, which reads as double spacing. A run of them
 ## becomes one short gap, so paragraphs stay apart without the page looking sparse.
 static func tighten(bbcode: String) -> String:
-	# Blank lines the server put at the very start are deliberate separation, so they are kept.
+	# Blank lines the server put at the very start are deliberate separation. One is a small gap,
+	# the same as between paragraphs (something that happened on its own); two or more are kept as
+	# written (a new section, such as the room under a character's introduction).
 	var lead := ""
 	while bbcode.begins_with("\n"):
 		lead += "\n"
 		bbcode = bbcode.substr(1)
+	if lead.length() == 1:
+		lead = "[font_size=%d]\n[/font_size]" % GAP_FONT_SIZE
 	if bbcode.find("\n\n") == -1:
 		return lead + bbcode
 	if _blank_lines == null:

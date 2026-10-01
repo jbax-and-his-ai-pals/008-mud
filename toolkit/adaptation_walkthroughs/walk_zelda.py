@@ -137,7 +137,7 @@ if "item_bomb_scroll" not in g.items():
     g.player.runtime_state.gold = 500
     out = say(g, "buy bomb primer", show=V)
 check("can buy the bomb primer", "item_bomb_scroll" in g.items(), "gold was %s | %s" % (gold_before, out[:100]))
-say(g, "buy red potion"); say(g, "buy red potion")
+for _ in range(8): say(g, "buy red potion")   # as many as the purse allows: the serpent and the tower are not small fights
 say(g, "stoptrade")
 out = say(g, "use bomb primer", show=V)
 check("primer teaches the bomb spell", "learn" in out.lower() or "bomb" in out.lower(), out[:100])
@@ -189,7 +189,7 @@ say(g, "go east")
 check("vault key opens the serpent lair", g.where() == "drowned_vault:serpent_lair", g.where())
 g.player.health = g.player.max_health  # stands in for the fairy-pool trip already proven above
 print("    hp before serpent: %s / %s" % (g.player.health, g.player.max_health))
-r = g.fight("tide serpent", max_rounds=250); check("beat the tide serpent", r.startswith("won"), r); print("   ", r)
+r = g.fight("tide serpent", max_rounds=250, heal_below=0.6); check("beat the tide serpent", r.startswith("won"), r); print("   ", r)
 say(g, "get shard of wisdom")
 check("got the shard of wisdom", "item_shard_wisdom" in g.items(), str(g.items()))
 print("    collection:", flat(say(g, "collection"), 240))

@@ -275,6 +275,12 @@ def format_name_for_display(
 
     # 3. Construct String
     is_generic = not base_name[0].isupper() if base_name else True
+    # "the chancellor" already carries its article; "a the chancellor" is not a thing to say.
+    display_name = base_name
+    if base_name.lower().startswith(("the ", "a ", "an ", "some ")):
+        is_generic = False
+        if start_of_sentence:
+            display_name = base_name[0].upper() + base_name[1:]
     
     # Prefix (Article)
     prefix = ""
@@ -293,7 +299,7 @@ def format_name_for_display(
     
     result = (
         f"{prefix}"
-        f"{click_wrapper_start}{inner_color}{base_name}{parent_color}{click_wrapper_end}"
+        f"{click_wrapper_start}{inner_color}{display_name}{parent_color}{click_wrapper_end}"
         f"{suffix_color}{detail_suffix}{FORMAT_RESET}"
     )
 

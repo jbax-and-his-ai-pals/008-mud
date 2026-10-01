@@ -151,8 +151,9 @@ class TestWorldTickMessageRoutingByRoom(unittest.TestCase):
             if ev.get("session_id") == self.session_b.session_id and ev.get("type") == "text"
         ]
         self.assertNotEqual(starting_room, goblin.current_room_id)
-        self.assertIn("The goblin flees north!", session_a_texts)
-        self.assertNotIn("The goblin flees north!", session_b_texts)
+        # Something that happens on its own starts a line below the last (lifecycle._passive).
+        self.assertIn("\nThe goblin flees north!", session_a_texts)
+        self.assertNotIn("\nThe goblin flees north!", session_b_texts)
 
 
 class TestCombatAdjacentMessageFilter(unittest.TestCase):

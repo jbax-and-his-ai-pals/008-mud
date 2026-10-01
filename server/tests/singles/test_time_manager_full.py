@@ -57,12 +57,12 @@ class TestApplyLoadedTimeState(unittest.TestCase):
     def test_none_state_reinitializes_to_default(self):
         self.tm.game_time = 99999.0
         self.tm.apply_loaded_time_state(None)
-        self.assertEqual(0.0, self.tm.game_time)
+        self.assertEqual(12 * 3600.0, self.tm.game_time, "a world with no clock of its own opens at noon")
 
     def test_non_dict_state_reinitializes_to_default(self):
         self.tm.game_time = 99999.0
         self.tm.apply_loaded_time_state("not a dict")
-        self.assertEqual(0.0, self.tm.game_time)
+        self.assertEqual(12 * 3600.0, self.tm.game_time)
 
     def test_valid_state_restores_game_time(self):
         self.tm.apply_loaded_time_state({"game_time": 5000.0})

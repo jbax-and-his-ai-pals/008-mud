@@ -63,6 +63,11 @@ class TestPanelPayloads(unittest.TestCase):
         self.assertTrue(world["weather"])
         self.assertTrue(world["period"])
 
+    def test_a_world_with_no_clock_of_its_own_starts_at_noon(self):
+        world = self.payload(self.created, "world")
+        self.assertTrue(world["time"].startswith("12:"), world["time"])
+        self.assertNotEqual("night", world["period"])
+
     def test_nothing_is_resent_when_nothing_changed(self):
         first = self.server._panel_events(self.sid)
         second = self.server._panel_events(self.sid)
