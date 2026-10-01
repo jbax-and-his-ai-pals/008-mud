@@ -13,20 +13,5 @@
             "effect_type": "heal"
         },
         "item_family": "consumable"
-    },
-    "item_ether": {
-        "type": "Consumable",
-        "name": "ether",
-        "description": "A pale tonic that restores magical energy.",
-        "weight": 0.5,
-        "value": 60,
-        "stackable": true,
-        "properties": {
-            "uses": 1,
-            "max_uses": 1,
-            "effect_value": 30,
-            "effect_type": "mana_restore"
-        },
-        "item_family": "consumable"
     }
 }

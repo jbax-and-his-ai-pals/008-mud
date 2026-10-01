@@ -143,7 +143,10 @@ def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]
         return attack(npc, target)
         
     if npc.mana < spell.mana_cost: return {"message": f"{npc.name} lacks mana."}
+    health_cost = spell.health_cost(npc.max_health)
+    if health_cost and npc.health <= health_cost: return {"message": f"{npc.name} cannot afford {spell.name}."}
     npc.mana -= spell.mana_cost
+    npc.health -= health_cost
     npc.spell_cooldowns[spell.spell_id] = current_time + spell.cooldown
     world = npc.world
     viewer = None

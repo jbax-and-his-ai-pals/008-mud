@@ -391,7 +391,7 @@ func sections() -> Array:
 	out.append({"title": "Generation profiles (%d)" % generation_profiles.size(), "entries": _simple_entries(
 		generation_profiles, ["item_family", "size_bias", "quality_bias", "property_prefix", "name_template"])})
 	out.append({"title": "Resources (%d)" % resources.size(), "entries": _simple_entries(
-		resources, ["kind", "label", "short", "max_stat", "regeneration_stat", "regenerates"])})
+		resources, ["kind", "label", "short", "max_stat", "regeneration_stat", "regenerates", "max", "ability_noun"])})
 	out.append({"title": "Attack profiles (%d)" % attack_profiles.size(), "entries": _simple_entries(
 		attack_profiles, ["damage_type", "weapon_damage_type", "damage", "cooldown"])})
 	out.append({"title": "Defense profiles (%d)" % defense_profiles.size(), "entries": _simple_entries(

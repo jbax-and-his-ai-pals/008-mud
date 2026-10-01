@@ -52,6 +52,7 @@ class Spell:
         remove_curse_item_message: str = "The curse on {target_name} is lifted.",
         remove_curse_equipment_message: str = "{value} cursed item(s) removed from {target_name}.",
         level_required: int = 1,
+        health_cost_fraction: float = 0.0,
     ):
         if not effects or not all(isinstance(effect, dict) and effect.get("type") for effect in effects):
             raise ValueError(f"Spell '{spell_id}' requires a non-empty effects array with typed effects.")
@@ -69,6 +70,15 @@ class Spell:
         self.remove_curse_item_message = remove_curse_item_message
         self.remove_curse_equipment_message = remove_curse_equipment_message
         self.level_required = level_required
+        # Part of the caster's own maximum health, paid on every cast on top of `mana_cost`
+        # (0 = none). 0.125 is an eighth.
+        self.health_cost_fraction = health_cost_fraction
+
+    def health_cost(self, max_health: float) -> int:
+        """The health this ability costs a caster whose maximum is `max_health`: at least 1 when it costs any."""
+        if not self.health_cost_fraction or self.health_cost_fraction <= 0:
+            return 0
+        return max(1, int(float(max_health) * float(self.health_cost_fraction) + 0.5))   # half rounds up
 
     @classmethod
     def from_dict(cls, spell_id: str, data: Dict[str, Any]) -> "Spell":
@@ -95,6 +105,7 @@ class Spell:
             "target_type": self.target_type,
             "effects": self.effects,
             "level_required": self.level_required,
+            "health_cost_fraction": self.health_cost_fraction,
             "cast_message": self.cast_message,
             "hit_message": self.hit_message,
         }

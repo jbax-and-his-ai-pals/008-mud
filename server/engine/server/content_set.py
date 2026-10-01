@@ -3454,6 +3454,8 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                     error(f"{key} must be a whole number of at least {minimum}")
             if "cooldown" in entry and (not number(entry["cooldown"]) or entry["cooldown"] < 0):
                 error("cooldown must be a number of seconds, 0 or more")
+            if "health_cost_fraction" in entry and (not number(entry["health_cost_fraction"]) or not 0 <= entry["health_cost_fraction"] < 1):
+                error("health_cost_fraction must be a number from 0 up to (not including) 1: the part of the caster's maximum health each cast costs")
             target_type = entry.get("target_type", "enemy")
             if target_type not in ABILITY_TARGET_TYPES:
                 error(f"target_type '{target_type}' is not one the cast command resolves (known: {', '.join(ABILITY_TARGET_TYPES)}), so it is cast on yourself")

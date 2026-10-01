@@ -18,6 +18,8 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
+from engine.contracts.resources import ability_noun
+
 # What a status panel shows when the content set declares no stat order (the classic six).
 FALLBACK_STATS = ("strength", "dexterity", "constitution", "agility", "intelligence", "wisdom")
 SLOT_LABELS = {
@@ -124,6 +126,7 @@ class PanelPayloadsMixin:
 
         spells: List[Dict[str, Any]] = []
         if state.magic is not None:
+            from engine.contracts.equipment import ability_cost_text
             from engine.magic.spell_registry import get_spell
 
             now = world.clock.now()
@@ -134,9 +137,11 @@ class PanelPayloadsMixin:
                 remaining = max(0.0, float(state.magic.cooldowns.get(spell_id, 0) or 0) - now)
                 spells.append({
                     "id": spell_id, "name": str(spell.name), "cost": int(getattr(spell, "mana_cost", 0) or 0),
+                    "cost_text": ability_cost_text(world, spell),
                     "cooldown": round(remaining, 1),
                 })
         payload["spells"] = sorted(spells, key=lambda entry: entry["name"])
+        payload["ability_noun"] = ability_noun(world)
 
         skills = []
         if state.progression is not None:

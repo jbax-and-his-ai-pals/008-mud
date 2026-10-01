@@ -1,6 +1,7 @@
 """Play ff4_slice from the throne room to the summoner child, recording what worked.
 
 Run from anywhere: .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/walk_ff4.py [--verbose]"""
+import os
 import re
 import sys
 from play import Game
@@ -96,9 +97,10 @@ say(g, "go east")
 check("at the crystal pool", g.where() == "fogreach:crystal_pool", g.where())
 out = say(g, "open iron chest", show=V)
 out = say(g, "look iron chest", show=V)
-out = say(g, "get ether from iron chest", show=V)
-say(g, "get potion from iron chest")
-check("the chest held two ethers and a potion", g.items().count("item_ether") >= 1, str(g.items()))
+for _ in range(3):
+    say(g, "get potion from iron chest")
+potions = sum(slot.quantity for slot in g.player.inventory.slots if slot.item and slot.item.obj_id == "item_potion")
+check("the chest held three potions (and Cecil has no use for an ether)", potions >= 5, str(potions))
 say(g, "go south")
 r = g.fight("imp", potion="potion"); check("beat the cave imp", r.startswith("won"), r); print("   ", r)
 say(g, "go south"); say(g, "go down")
@@ -118,26 +120,31 @@ out = say(g, "look", show=V, n=500)
 check("the drake is in the square with the hero", "Fog Drake" in out, out[:200])
 
 def fight_with_spell(target, spell, max_rounds=120):
+    """Cecil's Dark Wave costs an eighth of his health and no mana: cast while he can afford it,
+    drink a potion when he is low, and use the sword while the ability cools down."""
     swings = 0
+    casts = 0
     for _ in range(max_rounds):
         if not g._alive(target):
-            return "won in %d rounds (hp %d/%d, mana %d)" % (swings, g.player.health, g.player.max_health, g.player.runtime_state.magic.mana)
+            return "won in %d rounds, %d casts (hp %d/%d)" % (swings, casts, g.player.health, g.player.max_health)
         pl = g.player
-        if pl.health < 0.4 * pl.max_health and any("potion" in i for i in g.items()):
+        if pl.health < 0.45 * pl.max_health and any("potion" in i for i in g.items()):
             g.run("use potion")
-        if pl.runtime_state.magic.mana >= 12:
-            g.run("cast %s on %s" % (spell, target))
-        elif pl.runtime_state.magic.mana < 12 and any("ether" in i for i in g.items()) and pl.runtime_state.magic.mana < 6:
-            g.run("use ether")
+        said = g.run("cast %s on %s" % (spell, target)) if pl.health > 0.3 * pl.max_health else ""
+        if "looses a wave" in said or "wave of shadow" in said:
+            casts += 1
         else:
             g.run("attack %s" % target)
         swings += 1
+        if os.environ.get("WALK_DEBUG"):
+            print("      round %d: hp %d/%d, %s hp %s, casts %d" % (swings, g.player.health, g.player.max_health, target, [int(n.health) for n in g._alive(target)], casts))
         g.tick(21)
         if not g.player.is_alive:
             return "player died after %d rounds" % swings
     return "no result after %d rounds" % swings
 
-print("    hp before drake: %s / %s, mana %s" % (g.player.health, g.player.max_health, g.player.runtime_state.magic.mana))
+
+print("    hp before drake: %s / %s" % (g.player.health, g.player.max_health))
 g.player.health = g.player.max_health
 sword_only = None
 r = fight_with_spell("drake", "dark wave"); check("beat the Fog Drake", r.startswith("won"), r); print("   ", r)
@@ -152,7 +159,7 @@ out = say(g, "talk ryn", show=V, n=600)
 out = say(g, "reply 1", show=V, n=500)
 out = say(g, "reply 1", show=V, n=400)
 check("Ryn teaches the calling", "call_titan" in str(getattr(g.player.runtime_state.magic, "known_spells", "")), str(getattr(g.player.runtime_state.magic, "known_spells", "")))
-g.player.runtime_state.magic.mana = g.player.runtime_state.magic.max_mana
+g.player.health = g.player.max_health   # the calling costs a quarter of his life
 out = say(g, "cast call titan", show=V, n=300)
 titans = [n for n in g.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive]
 check("the Titan is summoned", bool(titans), out[:150])

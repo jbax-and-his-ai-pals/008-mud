@@ -97,7 +97,7 @@ class PlayerProgressionMixin:
         # Build Message
         message = f"{FORMAT_HIGHLIGHT}You have reached level {p.runtime_state.progression.level}!{FORMAT_RESET}\n"
         message += f"  - Max Health: {old_max_health} -> {p.max_health} (+{p.max_health - old_max_health})\n"
-        if p.runtime_state.magic is not None and old_max_mana is not None:
+        if p.runtime_state.magic is not None and old_max_mana is not None and p.runtime_state.magic.max_mana != old_max_mana:
             pool_label = ability_resource_label(p.world)
             message += f"  - Max {pool_label}: {old_max_mana} -> {p.runtime_state.magic.max_mana} (+{p.runtime_state.magic.max_mana - old_max_mana})\n"
         message += f"{FORMAT_CATEGORY}Stats Increased:{FORMAT_RESET}\n"

@@ -107,6 +107,8 @@ LEDGER: Dict[str, Dict[str, Tuple[str, str]]] = {
         "regenerates": (READ, "regeneration is gated on it"),
         "regeneration_stat": (READ, "which stat drives refill"),
         "max_stat": (READ, "which stat sets pool size"),
+        "max": (READ, "contracts/resources.fixed_pool: a declared pool size, 0 = no pool; pool_for and pool_on_level_up obey it"),
+        "ability_noun": (READ, "contracts/resources.ability_noun: the client's panel title, sent in the character payload"),
     },
     "attack_profiles": {
         "id": (READ, "profile lookup key"),

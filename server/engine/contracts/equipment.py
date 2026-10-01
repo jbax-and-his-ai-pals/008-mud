@@ -29,7 +29,7 @@ from engine.config.config_combat import (
     UNARMED_WEAPON_DAMAGE_TYPE,
 )
 from engine.contracts.registry import registry_for
-from engine.contracts.resources import ability_resource_id, is_ability_resource
+from engine.contracts.resources import ability_resource_id, ability_resource_short, is_ability_resource
 
 
 def _template_of(world: Any, item: Any) -> Dict[str, Any]:
@@ -163,6 +163,28 @@ def ability_for_spell(world: Any, spell_or_id: Any) -> Dict[str, Any]:
         return {}
     spell_id = getattr(spell_or_id, "spell_id", spell_or_id)
     return registry.ability(str(spell_id or "")) or {}
+
+
+def _fraction_text(fraction: float) -> str:
+    """0.125 -> "1/8", 0.3 -> "30%": a simple fraction when there is one, else a percentage."""
+    from fractions import Fraction
+
+    simple = Fraction(fraction).limit_denominator(16)
+    if abs(float(simple) - fraction) < 1e-9 and simple.numerator <= 3:
+        return f"{simple.numerator}/{simple.denominator}"
+    return f"{round(fraction * 100)}%"
+
+
+def ability_cost_text(world: Any, spell: Any) -> str:
+    """What casting costs, as a player reads it: "12 MP", "1/8 HP", "6 MP + 1/8 HP", or "free"."""
+    parts = []
+    numbers = ability_numbers(world, spell)
+    if numbers["mana_cost"] > 0:
+        parts.append(f"{numbers['mana_cost']} {ability_resource_short(world)}")
+    fraction = float(getattr(spell, "health_cost_fraction", 0.0) or 0.0)
+    if fraction > 0:
+        parts.append(f"{_fraction_text(fraction)} HP")
+    return " + ".join(parts) if parts else "free"
 
 
 def ability_numbers(world: Any, spell: Any) -> Dict[str, Any]:

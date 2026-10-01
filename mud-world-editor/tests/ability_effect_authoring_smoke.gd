@@ -96,6 +96,15 @@ func _run():
 	_assert(manager.save_all().get("ok", false), "the edited abilities save")
 	_assert(_engine_accepts(repo), "and the engine's validator accepts them")
 
+	print("\n[an ability that costs health]")
+	var strike := _inspect(manager, "magic_missile")
+	var cost: SpinBox = strike.find_child("health_cost_fraction", true, false)
+	_assert(cost != null and cost.value == 0.0 and not manager.magic["magic_missile"].has("health_cost_fraction"), "an ability with no health cost shows 0 and has no key")
+	_spin(cost, 0.125)
+	_assert(manager.magic["magic_missile"].get("health_cost_fraction") == 0.125, "an eighth is written as 0.125")
+	_spin(cost, 0.0)
+	_assert(not manager.magic["magic_missile"].has("health_cost_fraction"), "setting it back to 0 erases the key rather than writing a zero")
+
 	print("\n[what the engine refuses]")
 	var zap := _inspect(manager, "zap")
 	_pick(zap.find_child("Effect_0", true, false).find_child("EffectType", true, false), "apply_effect")

@@ -12,6 +12,7 @@ from engine.config import (
 from engine.config.config_display import FORMAT_YELLOW
 from engine.contracts import stats as stats_contract
 from engine.contracts.resources import ability_resource_label, ability_resource_short
+from engine.contracts.equipment import ability_cost_text
 from engine.items.item import Item
 from engine.magic.spell_registry import get_spell
 from engine.utils.utils import format_name_for_display
@@ -172,7 +173,7 @@ class PlayerDisplayMixin:
                             level_req_display = f" ({req_color}L{spell.level_required}{FORMAT_RESET})" if spell.level_required > 1 else ""
                        else:
                             level_req_display = ""
-                       spell_list.append(f"  - {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {spell.mana_cost} {pool_short}{cd_status}")
+                       spell_list.append(f"  - {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {ability_cost_text(p.world, spell)}{cd_status}")
              status += "\n".join(spell_list) + "\n"
 
         if has_combat and p.runtime_state.combat.in_combat: status += "\n" + self.get_combat_status()

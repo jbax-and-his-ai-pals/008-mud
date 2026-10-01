@@ -107,6 +107,8 @@ func _add_resource_row(source: Dictionary):
 	_option(grid, "Kind", RESOURCE_KINDS, str(entry.get("kind", "other")), "kind")
 	_field(grid, "Maximum stat", str(entry.get("max_stat", "")), "max_stat")
 	_field(grid, "Regeneration stat", str(entry.get("regeneration_stat", "")), "regeneration_stat")
+	_field(grid, "Fixed size (blank: by stat)", str(entry.get("max", "")), "max")
+	_field(grid, "Abilities are called", str(entry.get("ability_noun", "")), "ability_noun")
 	var regenerates := CheckBox.new(); regenerates.text = "Regenerates"; regenerates.button_pressed = bool(entry.get("regenerates", false))
 	regenerates.toggled.connect(func(value):
 		if value == bool(source.get("regenerates", false)): _restore_owned_value(entry, "regenerates", source)
@@ -394,6 +396,7 @@ func _wire_entry_text(field: Control, entry: Dictionary, key: String, initial: S
 		else:
 			var parsed := _parse_field(key, field.text, original)
 			if parsed.has("error"): field.set_meta("input_error", str(parsed["error"]))
+			elif parsed.has("erase"): entry.erase(key)
 			else: _put_path(entry, key, parsed["value"])
 		_mark_dirty()
 	if field is TextEdit: field.text_changed.connect(changed)
@@ -421,6 +424,11 @@ func _parse_field(key: String, text: String, source: Dictionary = {}) -> Diction
 		return {"value": parser.data}
 	if key in ["inputs", "outputs"]: return _parse_items(text, source.get(key, []))
 	if key in ["resistances", "short"]: return _parse_map(text, key == "resistances")
+	if key in ["max", "ability_noun"] and cleaned == "":
+		return {"erase": true}   # blank = not declared
+	if key == "max":
+		if not cleaned.is_valid_int() or int(cleaned) < 0: return {"error": "Fixed size must be a whole number, 0 or more."}
+		return {"value": int(cleaned)}
 	if key in ["level_required", "difficulty"]:
 		if not cleaned.is_valid_int(): return {"error": "%s must be a whole number." % key}
 		return {"value": int(cleaned)}

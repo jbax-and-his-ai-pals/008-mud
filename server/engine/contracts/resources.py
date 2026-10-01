@@ -128,8 +128,28 @@ def pool_for(world: Any, stats: Any) -> int:
     because `mana` declares `max_stat: "intelligence"`.
     """
     resource = ability_resource(world)
+    fixed = fixed_pool(world)
+    if fixed is not None:
+        return fixed
     stat = str(resource.get("max_stat", "") or "") or DEFAULT_POOL_STAT
     return max(1, ABILITY_POOL_BASE + (_stat_value(stats, stat) - 10) * ABILITY_POOL_PER_STAT_POINT)
+
+
+def fixed_pool(world: Any) -> Optional[int]:
+    """The pool's size when the set declares one (`max`), else None: it then follows the stat.
+
+    0 is a real answer: a set whose characters have no ability pool at all (their abilities
+    cost health, or nothing) declares `max: 0`.
+    """
+    declared = ability_resource(world).get("max")
+    if isinstance(declared, bool) or not isinstance(declared, (int, float)) or declared < 0:
+        return None
+    return int(declared)
+
+
+def ability_noun(world: Any) -> str:
+    """What the set calls its abilities, plural: "Abilities" unless the resource says "Spells"."""
+    return str(ability_resource(world).get("ability_noun", "") or "Abilities")
 
 
 def pool_stat(world: Any) -> str:
@@ -153,6 +173,8 @@ def regen_rate_for(world: Any, stats: Any, base_rate: Optional[float] = None) ->
 
 def pool_on_level_up(world: Any, current_max: int, stats: Any) -> int:
     """How much more the pool holds after a level, from the contract's stat."""
+    if fixed_pool(world) is not None:
+        return 0   # a pool of a declared size does not grow with levels
     stat = _stat_value(stats, pool_stat(world))
     return int(
         int(current_max) * (ABILITY_POOL_LEVEL_UP_MULTIPLIER - 1)

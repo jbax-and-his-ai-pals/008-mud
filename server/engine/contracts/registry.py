@@ -105,6 +105,11 @@ RESOURCE_FIELDS = {
     "regenerates": {"type": "bool"},
     "regeneration_stat": {"type": "string"},
     "max_stat": {"type": "string"},
+    # A pool of a fixed size, whatever the stats (and it does not grow with levels). 0 = no pool
+    # at all. Absent = the size follows `max_stat`.
+    "max": {"type": "int", "min": 0},
+    # What the set calls its abilities, plural ("Spells"); the client's panel and headings use it.
+    "ability_noun": {"type": "string"},
 }
 
 ATTACK_PROFILE_FIELDS = {

@@ -97,6 +97,21 @@ func _build_spell_details():
 	# `range` into the entry. The engine has no such fields on `Spell`, and an
 	# unknown keyword is not ignored -- it raises, and the ability is not loaded.
 	_add_target_field(grid)
+	_add_health_cost_field(grid)
+
+## Part of the caster's maximum health each cast costs. 0 means none, and then the key is left out.
+func _add_health_cost_field(grid: GridContainer):
+	var field := VBoxContainer.new(); field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	field.add_child(InspectorStyle.lbl("Health cost (fraction of max)", InspectorStyle.COLOR_TEXT_DIM))
+	var input := SpinBox.new(); input.name = "health_cost_fraction"; input.min_value = 0.0; input.max_value = 0.95; input.step = 0.025
+	input.value = float(cur_data.get("health_cost_fraction", 0.0)); InspectorStyle.apply_input_style(input)
+	input.value_changed.connect(func(value):
+		if value <= 0.0:
+			if cur_data.has("health_cost_fraction"):
+				cur_data.erase("health_cost_fraction"); database_modified.emit()
+		else:
+			_set_value("health_cost_fraction", value))
+	field.add_child(input); grid.add_child(field)
 
 func _add_number_field(grid: GridContainer, label: String, key: String, fallback: float, min_value: float, max_value: float, step: float):
 	var field := VBoxContainer.new(); field.size_flags_horizontal = Control.SIZE_EXPAND_FILL

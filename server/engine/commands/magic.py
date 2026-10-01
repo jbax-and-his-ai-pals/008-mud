@@ -8,6 +8,7 @@ from engine.config import (
 from engine.magic.spell import Spell
 from engine.magic.spell_registry import get_spell, get_spell_by_name
 from engine.contracts.resources import ability_resource_label, ability_resource_short
+from engine.contracts.equipment import ability_cost_text
 from engine.npcs.npc import NPC
 from engine.items.item import Item
 from engine.world.room import Room
@@ -175,9 +176,13 @@ def spells_handler(args, context):
             
             info = f"{FORMAT_TITLE}{spell.name.upper()}{FORMAT_RESET}\n\n"
             info += f"{FORMAT_CATEGORY}Description:{FORMAT_RESET} {spell.description}\n"
-            info += f"{FORMAT_CATEGORY}{pool_label} Cost:{FORMAT_RESET} {spell.mana_cost}\n"
+            health_cost = getattr(spell, "health_cost_fraction", 0.0) or 0.0
+            if spell.mana_cost > 0 or not health_cost:
+                info += f"{FORMAT_CATEGORY}{pool_label} Cost:{FORMAT_RESET} {spell.mana_cost}\n"
+            if health_cost:
+                info += f"{FORMAT_CATEGORY}Health Cost:{FORMAT_RESET} {ability_cost_text(world, spell).split(' + ')[-1]} of your maximum\n"
             info += f"{FORMAT_CATEGORY}Cooldown:{FORMAT_RESET} {spell.cooldown:.1f}s{cooldown_status}\n"
-            info += f"{FORMAT_CATEGORY}Target:{FORMAT_RESET} {spell.target_type.capitalize()}\n"
+            info += f"{FORMAT_CATEGORY}Target:{FORMAT_RESET} {spell.target_type.replace('_', ' ').capitalize()}\n"
             
             # Display Effects
             info += f"{FORMAT_CATEGORY}Effects:{FORMAT_RESET}\n"
@@ -212,13 +217,15 @@ def spells_handler(args, context):
                     level_req_display = f" ({req_color}L{spell.level_required}{FORMAT_RESET})" if spell.level_required > 1 else ""
                 else:
                     level_req_display = ""
-                spell_lines.append(f"- {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {spell.mana_cost} {pool_short}{cooldown_status}")
+                spell_lines.append(f"- {FORMAT_HIGHLIGHT}{spell.name}{FORMAT_RESET}{level_req_display}: {ability_cost_text(world, spell)}{cooldown_status}")
             else:
                 spell_lines.append(f"- {FORMAT_ERROR}Unknown ability id: {spell_id}{FORMAT_RESET}")
         response += "\n".join(spell_lines)
-        response += (
-            f"\n\n{FORMAT_CATEGORY}{pool_label}:{FORMAT_RESET} "
-            f"{player.runtime_state.magic.mana}/{player.runtime_state.magic.max_mana}"
-            f"\n\nType 'abilities <ability_name>' for more details."
-        )
+        # A set whose abilities cost health (or nothing) has no pool worth reporting.
+        if player.runtime_state.magic.max_mana > 0:
+            response += (
+                f"\n\n{FORMAT_CATEGORY}{pool_label}:{FORMAT_RESET} "
+                f"{player.runtime_state.magic.mana}/{player.runtime_state.magic.max_mana}"
+            )
+        response += f"\n\nType 'abilities <ability_name>' for more details."
         return response

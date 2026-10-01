@@ -36,12 +36,8 @@
             "capacity": 10,
             "contains": [
                 {
-                    "item_id": "item_ether",
-                    "quantity": 2
-                },
-                {
                     "item_id": "item_potion",
-                    "quantity": 1
+                    "quantity": 3
                 }
             ]
         },

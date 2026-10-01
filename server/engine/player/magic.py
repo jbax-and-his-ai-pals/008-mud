@@ -79,6 +79,11 @@ class PlayerMagicMixin:
                 f"have {int(p.runtime_state.magic.mana)})."
             )
         
+        health_cost = spell.health_cost(p.max_health)
+        if health_cost and p.health <= health_cost:
+            # Paying with your own life is allowed; paying all of it is not.
+            return False, f"{FORMAT_ERROR}{spell.name} would cost you {health_cost} health, and you have {int(p.health)}.{FORMAT_RESET}"
+
         cooldown_end_time = p.runtime_state.magic.cooldowns.get(spell.spell_id, 0)
         if current_time < cooldown_end_time: 
             return False, f"{spell.name} is on cooldown for {max(0, cooldown_end_time - current_time):.1f}s."
@@ -130,6 +135,7 @@ class PlayerMagicMixin:
 
         # Deduct Cost & Set Cooldown -- from the contract, not the definition.
         p.runtime_state.magic.mana -= numbers["mana_cost"]
+        p.health -= spell.health_cost(p.max_health)
         p.runtime_state.magic.cooldowns[spell.spell_id] = current_time + numbers["cooldown"]
         
         results = []

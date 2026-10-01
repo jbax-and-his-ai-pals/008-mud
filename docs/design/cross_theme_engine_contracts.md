@@ -328,6 +328,16 @@ ability spends was mana, by name, everywhere.
   initiative exists to remove. The *curve* stays in `engine/config`, renamed
   `ABILITY_POOL_*` (the `PLAYER_MANA_*` names are aliases now): how much a pool
   holds per point of its driving stat is a rule, not a name.
+- **A pool of a declared size, and abilities that cost health.** A resource can
+  declare `max` (a whole number, 0 or more): the pool then holds exactly that,
+  whatever the stats, and does not grow with levels. `max: 0` is a set whose
+  characters have no pool at all, and the client hides the bar. An ability can
+  declare `health_cost_fraction` (0 up to, not including, 1): that part of the
+  caster's maximum health is paid on every cast, on top of any `mana_cost`
+  (rounded half up, at least 1), and a cast that would take the last of it is
+  refused. The resource's `ability_noun` ("Spells") is what the client calls the
+  panel; "Abilities" otherwise. `ff4_slice` uses all three for Cecil's Dark Wave:
+  no mana, an eighth of his health, every enemy in the room.
 - **`abilities` is its own capability.** `magic` now means "this set's abilities
   are spells" — a flavour — and implies `abilities` for sets written before the
   split. The ability commands, the pool's state, the loading of ability

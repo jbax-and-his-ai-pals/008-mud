@@ -76,9 +76,6 @@
             "sells_items": [
                 {
                     "item_id": "item_potion"
-                },
-                {
-                    "item_id": "item_ether"
                 }
             ],
             "buys_item_types": [

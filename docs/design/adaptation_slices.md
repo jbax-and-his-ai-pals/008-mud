@@ -106,6 +106,18 @@ cd server && ../.venv/Scripts/python.exe -m unittest tests.singles.test_adaptati
 .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/probe_persist.py
 ```
 
+## Cecil's abilities cost life, not mana
+
+A Dark Knight pays for the dark with his own blood, and the engine had no way to say so:
+every ability spent the pool, and the pool could never be empty. `health_cost_fraction`
+on an ability and `max` on the ability resource (see `cross_theme_engine_contracts.md`)
+close that. In `ff4_slice` Cecil has no mana at all, Dark Wave costs an eighth of his
+health and strikes every enemy in the room, and Call Titan costs a quarter. Ethers are
+gone (nothing restores a pool he does not have); the cave chest holds potions instead.
+`walk_ff4.py` plays the Fog Drake with potions as the resource: Dark Wave 40 damage
+(about 26 after the drake's resistances), cast while his health is above 30%, a potion
+below 45%.
+
 ## What would make this wrong
 
 Two slices are not two games. Tuning here is mine: weapon and boss numbers were set
