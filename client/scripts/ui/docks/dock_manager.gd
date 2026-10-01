@@ -242,7 +242,7 @@ func apply_character(p: Dictionary) -> void:
 		var q: Dictionary = slot
 		var item := str(q.get("item", ""))
 		var text := "[color=#c0c0c0]%s[/color]  " % _esc(str(q.get("label", "")))
-		text += _esc(item) if item != "" else "[color=#808080](empty)[/color]"
+		text += _link("look %s" % item, item) if item != "" else "[color=#808080](empty)[/color]"
 		if str(q.get("durability", "")) != "":
 			text += " [color=#ffa540][%s][/color]" % str(q.get("durability", ""))
 		worn.append(text)
@@ -251,7 +251,7 @@ func apply_character(p: Dictionary) -> void:
 	var spell_lines: PackedStringArray = []
 	for spell in p.get("spells", []):
 		var sp: Dictionary = spell
-		var line := "%s [color=#6f9bff](%d)[/color]" % [_esc(str(sp.get("name", ""))), int(sp.get("cost", 0))]
+		var line := "%s [color=#6f9bff](%d)[/color]" % [_link("abilities %s" % str(sp.get("name", "")), str(sp.get("name", ""))), int(sp.get("cost", 0))]
 		if float(sp.get("cooldown", 0)) > 0.0:
 			line += " [color=#ffa540]cooldown %.0fs[/color]" % float(sp.get("cooldown", 0))
 		spell_lines.append(line)
@@ -260,7 +260,7 @@ func apply_character(p: Dictionary) -> void:
 	var skill_lines: PackedStringArray = []
 	for skill in p.get("skills", []):
 		var k: Dictionary = skill
-		skill_lines.append("%s  %d" % [_esc(str(k.get("name", ""))), int(k.get("level", 0))])
+		skill_lines.append("%s  %d" % [_link("skills %s" % str(k.get("name", "")), str(k.get("name", ""))), int(k.get("level", 0))])
 	_skills.text = "\n".join(skill_lines) if not skill_lines.is_empty() else "[i][color=#808080]No skills learned yet.[/color][/i]"
 
 
@@ -286,6 +286,11 @@ func _set_bar(bar: ProgressBar, current: int, maximum: int) -> void:
 
 func _duration(seconds: float) -> String:
 	return "%.1fm" % (seconds / 60.0) if seconds > 60.0 else "%ds" % int(seconds)
+
+
+## Text that sends a command when clicked: the answer lands in the game window, as if it had been typed.
+func _link(command: String, text: String) -> String:
+	return "[url=cmd:%s]%s[/url]" % [command.replace("]", ""), _esc(text)]
 
 
 func _esc(text: String) -> String:

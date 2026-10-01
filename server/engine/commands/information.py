@@ -1,7 +1,7 @@
 # engine/commands/information.py
 from engine.commands.command_system import command
 from engine.config import (
-    FORMAT_TITLE, FORMAT_RESET, TIME_MONTHS_PER_YEAR,
+    FORMAT_TITLE, FORMAT_RESET, FORMAT_ERROR, TIME_MONTHS_PER_YEAR,
     TIME_DAYS_PER_WEEK, TIME_DAYS_PER_MONTH
 )
 from engine.config.config_display import FORMAT_HIGHLIGHT
@@ -192,13 +192,30 @@ def weather_handler(args, context):
     
     return f"Current Weather: {effective_weather.capitalize()} ({weather_manager.current_intensity})\n\n{description}"
 
-@command("skills", [], "information", "List your current skill levels.", ruleset_system="progression")
+@command("skills", [], "information", "List your current skill levels.\nUsage: skills [skill_name]", ruleset_system="progression")
 def skills_handler(args, context):
     player = context.get("player")
     if not player: return "Error."
     
     if not player.runtime_state.progression.skills:
         return "You have no specialized skills yet."
+
+    if args:
+        wanted = " ".join(args).lower()
+        known = player.runtime_state.progression.skills
+        found = next((n for n in known if n.lower() == wanted), None) or next((n for n in known if wanted in n.lower()), None)
+        if found is None:
+            return f"{FORMAT_ERROR}You have no skill called '{' '.join(args)}'.{FORMAT_RESET}\nType 'skills' to see them all."
+        data = known[found]
+        lvl, xp = data.get("level", 0), data.get("xp", 0)
+        lines = [f"{FORMAT_TITLE}{found.upper()}{FORMAT_RESET}", f"Level {lvl} of {MAX_SKILL_LEVEL}"]
+        if lvl < MAX_SKILL_LEVEL:
+            lines.append(f"Experience: {xp}/{SkillSystem.get_xp_for_next_level(lvl)} to the next level")
+        world = context.get("world")
+        rule = world.ruleset_section("skills").get("stat_bonuses", {}).get(found) if world is not None else None
+        if isinstance(rule, dict) and rule.get("stat"):
+            lines.append(f"Helped by your {rule['stat']}.")
+        return "\n".join(lines)
         
     msg = [f"{FORMAT_TITLE}SKILLS{FORMAT_RESET}"]
     for name, data in player.runtime_state.progression.skills.items():
