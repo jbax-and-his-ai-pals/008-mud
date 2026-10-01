@@ -26,7 +26,7 @@ extends RefCounted
 
 # How fast a client reveals what an NPC says (engine/utils/pacing.py; schema_parity_smoke ties these
 # to the engine). Characters per second.
-const TEXT_PACES := {"brisk": 90, "measured": 55, "slow": 35, "solemn": 20}
+const TEXT_PACES := {"brisk": 180, "measured": 110, "slow": 70, "solemn": 40}
 const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
 
@@ -207,6 +207,20 @@ func _build_pace_row(vbox: Node, node: Dictionary) -> void:
 	vbox.add_child(row)
 
 
+## A scene must be answered: until the player replies they cannot walk away or act on the world.
+## Off is the default and writes nothing.
+func _build_scene_row(vbox: Node, node: Dictionary) -> void:
+	var box := CheckBox.new(); box.name = "MustAnswer"
+	box.text = "Must be answered (the player cannot walk away or act first)"
+	box.button_pressed = node.get("must_answer", false) == true
+	box.toggled.connect(func(on):
+		if on:
+			node["must_answer"] = true; database_modified.emit()
+		elif node.has("must_answer"):
+			node.erase("must_answer"); database_modified.emit())
+	vbox.add_child(box)
+
+
 func _refresh_nodes():
 	if root_picker != null:
 		_refresh_root_picker()
@@ -273,6 +287,7 @@ func _node_card(node_id: String, node: Dictionary) -> PanelContainer:
 		vbox.add_child(variant)
 
 	_build_pace_row(vbox, node)
+	_build_scene_row(vbox, node)
 	_build_effects_row(vbox, node, "Node effects (applied when the node is reached)")
 
 	var choices_header := HBoxContainer.new()

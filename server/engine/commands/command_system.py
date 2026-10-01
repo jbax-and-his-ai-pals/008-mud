@@ -221,6 +221,9 @@ class CommandProcessor:
         # --- NEW: Longest-Match Parsing Logic ---
         # Iterate from the longest possible command phrase down to a single word.
         cmd_data, args = self.resolve_command(text)
+        blocked = self._scene_block(cmd_data, context)
+        if blocked:
+            return blocked
         if cmd_data is not None:
             # Add context for the handler.
             if context and isinstance(context, dict):
@@ -250,6 +253,9 @@ class CommandProcessor:
             player = context.get("player")
             room = world.get_current_room(player) if world is not None and player is not None else None
             if room is not None and parts[0] in getattr(room, "exits", {}):
+                blocked = self._scene_block({"name": "go", "category": "movement"}, context)
+                if blocked:
+                    return blocked
                 if not getattr(player, "is_alive", True):
                     return f"{FORMAT_ERROR}You are dead. You cannot move.{FORMAT_RESET}"
                 if getattr(player, "trading_with", None):
@@ -261,6 +267,22 @@ class CommandProcessor:
 
         # No registered command matches this input.
         return f"{FORMAT_ERROR}Unknown command: {parts[0]}{FORMAT_RESET}"
+
+    @staticmethod
+    def _scene_block(cmd_data: Optional[Dict[str, Any]], context: Any) -> str:
+        """An open `must_answer` conversation refuses anything that acts on the world (dialogue/runner.py).
+
+        Only a registered command is judged here; an unknown word falls through to "Unknown command",
+        and a bare exit word (`south`) is judged where it is turned into a move.
+        """
+        if cmd_data is None or not isinstance(context, dict):
+            return ""
+        world = context.get("world")
+        player = context.get("player")
+        if world is None or player is None:
+            return ""
+        from engine.dialogue import runner as dialogue_runner
+        return dialogue_runner.scene_block(world, player, cmd_data)
 
     def get_help_text(self, world: Any = None) -> str:
         """Generate the top-level help text showing categories and commands."""

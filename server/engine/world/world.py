@@ -583,6 +583,8 @@ class World:
         came_from = (active_player.current_region_id, active_player.current_room_id)
         active_player.current_region_id = new_region_id
         active_player.current_room_id = new_room_id
+        from engine.dialogue import runner as dialogue_runner
+        dialogue_runner.release_on_departure(self, active_player)   # you cannot go on talking to someone you left
         from engine.npcs import companions
         companion_lines = companions.travel_with(self, active_player, *came_from)
 

@@ -162,7 +162,7 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     },
     "teleport": {
         "form": "object",
-        "fields": {"region": "text", "room": "text"},
+        "fields": {"region": "text", "room": "text", "message": "text"},
         "required": ("region", "room"),
     },
     "remove_npc": {
@@ -379,7 +379,8 @@ class EffectReport:
     unchanged: List[str] = field(default_factory=list)
 
     def message(self) -> str:
-        return "\n".join(m for m in self.messages if m)
+        # Each message is its own beat, so a blank line sits between them.
+        return "\n\n".join(m for m in self.messages if m)
 
     def summary(self) -> str:
         """A compact mechanical line for test mode."""
@@ -1100,7 +1101,10 @@ def _apply_teleport_effect(effects: Dict[str, Any], context, report: EffectRepor
     moved, text = world.teleport_player(context.get("player"), region_id, room_id)
     if moved:
         report.applied.append("teleported to %s:%s" % (region_id, room_id))
-        report.messages.append(text)
+        departure = raw.get("message")
+        if isinstance(departure, str) and departure.strip():
+            report.messages.append(departure.strip())   # how you are taken away, read just before where you arrive
+        report.messages.append("\n" + text)   # an extra line above: arriving is a new scene
     elif text == "no_room":
         report.failed.append("teleport (no room %s:%s)" % (region_id, room_id))
     elif text == "too_deep":

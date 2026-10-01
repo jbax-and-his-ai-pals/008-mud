@@ -1165,7 +1165,7 @@ def _is_gameplay_failure(message: str) -> bool:
     # Classifying the whole transcript as a failure would count *looking at the
     # dialogue tree* as a failed action, which is why the pattern's word
     # "unavailable" is not enough on its own here.
-    if plain.lstrip().startswith("CONVERSATION WITH"):
+    if plain.lstrip().startswith("CONVERSATION WITH") or re.match(r"\s*[^\n]{1,60} speaks:", plain):
         return False
     return bool(_GAMEPLAY_FAILURE_PATTERN.search(plain))
 

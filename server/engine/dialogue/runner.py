@@ -35,6 +35,64 @@ def manager_for(world) -> Optional[DialogueManager]:
     return getattr(server, "dialogue_manager", None) if server is not None else None
 
 
+def _within_reach(player, npc) -> bool:
+    """The NPC is alive and in the room the player is standing in."""
+    return (
+        npc is not None
+        and getattr(npc, "is_alive", True)
+        and getattr(npc, "current_region_id", None) == getattr(player, "current_region_id", None)
+        and getattr(npc, "current_room_id", None) == getattr(player, "current_room_id", None)
+    )
+
+
+def release_on_departure(world, player) -> None:
+    """Walking away from someone (or being taken away) ends the conversation with them."""
+    manager = manager_for(world)
+    session = manager.current(player) if manager is not None else None
+    if session is None:
+        return
+    if not _within_reach(player, _npc_from_session(world, player, session)):
+        manager.end(player)
+
+
+# Commands that do not act on the world, so an open scene lets them through: reading (look, examine,
+# the journal and the other information commands), the pack and status, help and saving, and the
+# conversation's own `reply` and `talk`.
+SCENE_ALLOWED_NAMES = frozenset({
+    "reply", "talk", "look", "examine", "inventory", "status", "help", "journal",
+})
+SCENE_ALLOWED_CATEGORIES = frozenset({"information", "system", "debug"})
+
+
+def scene_block(world, player, command_data: Optional[Dict[str, Any]]) -> str:
+    """Why `command_data` cannot run right now, or "" when it can.
+
+    A node marked `must_answer` insists on an answer: until the player gives one, anything that
+    changes the world (moving, fighting, using, casting, trading...) is refused and the question is
+    asked again.
+    """
+    manager = manager_for(world)
+    session = manager.current(player) if manager is not None else None
+    if session is None:
+        return ""
+    node = manager.node_for_session(session)
+    if node is None or not node.must_answer or node.ends_conversation or not node.choices:
+        return ""
+    npc = _npc_from_session(world, player, session)
+    if not _within_reach(player, npc):
+        manager.end(player)
+        return ""
+    if command_data is not None:
+        name = str(command_data.get("name", "") or "")
+        if name in SCENE_ALLOWED_NAMES or str(command_data.get("category", "") or "") in SCENE_ALLOWED_CATEGORIES:
+            return ""
+    listing = manager.format_choices(player, node)
+    return "%s%s awaits your answer.%s%s" % (
+        FORMAT_ERROR, getattr(npc, "name", "They"), FORMAT_RESET,
+        ("\n\n" + listing + "\n\n%s(Answer with: reply <number>)%s" % (FORMAT_CATEGORY, FORMAT_RESET)) if listing else "",
+    )
+
+
 def pending_negotiation(player, npc) -> Optional[Tuple[str, Dict[str, Any]]]:
     """The (quest_id, objective) this NPC is waiting to negotiate, if any.
 
@@ -309,9 +367,9 @@ def continue_or_report(world, player, npc, query: str) -> str:
         )
     if npc is None:
         npc = _npc_from_session(world, player, session)
-    if npc is None:
+    if npc is None or not _within_reach(player, npc):
         manager.end(player)
-        return "%sWhoever you were talking to has gone.%s" % (FORMAT_ERROR, FORMAT_RESET)
+        return "%sWhoever you were talking to is not here.%s" % (FORMAT_ERROR, FORMAT_RESET)
     response = respond(world, player, npc, query)
     if response is not None:
         return response

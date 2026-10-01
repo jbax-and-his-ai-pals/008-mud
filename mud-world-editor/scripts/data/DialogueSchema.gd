@@ -157,7 +157,7 @@ const EFFECTS := {
 	"forget_spell": {"label": "Forget an ability", "shape": "ability id, or a list of them", "kind": "string"},
 	"spawn_npc": {"label": "Bring in an NPC", "shape": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
 	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
-	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room}", "kind": "json"},
+	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}", "kind": "json"},
 	"remove_npc": {"label": "Take an NPC out (not a death)", "shape": "an NPC template or placed id, or {npc, region, room}", "kind": "npc_id"},
 	"recruit": {"label": "Recruit a companion", "shape": "an NPC template or placed id in the room, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": true},
 	"dismiss": {"label": "Dismiss a companion", "shape": "a companion template or placed id, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": true},

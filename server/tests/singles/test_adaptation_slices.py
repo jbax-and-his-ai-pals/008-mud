@@ -422,7 +422,8 @@ class TestFF4Slice(_Slice):
 
     def test_a_reply_reads_as_a_transcript_not_a_new_conversation(self):
         opening = self.say("talk king")
-        self.assertIn("CONVERSATION WITH KING ALDOUS", opening)
+        self.assertIn('King Aldous speaks: "The crystals are not yet ours', opening, "an opening reads like every other line")
+        self.assertNotIn("CONVERSATION WITH", opening)
         self.assertIn("reply <number>", opening)
         answered = self.say("reply 3")
         lines = [line for line in answered.splitlines() if line.strip()]
@@ -445,6 +446,7 @@ class TestFF4Slice(_Slice):
         self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn."', answered)
         self.assertNotRegex(answered, r"(?m)^\s*1\. ", "there is nothing left to answer")
         self.assertNotIn("(That seems to be all.)", answered)
+        self.at("varenholt", "throne_room")
         self.assertIn("You have your orders", self.say("talk king"), "and the conversation really is over: talking again opens a new one")
 
     def test_the_king_has_the_last_word_when_he_dismisses_you(self):
@@ -462,7 +464,8 @@ class TestFF4Slice(_Slice):
     def test_the_king_does_not_repeat_his_greeting_once_he_has_spoken(self):
         first = self.say("talk king")
         self.assertIn("The crystals are not yet ours", first)
-        self.say("reply 4")   # "I will go." ends it without choosing a side
+        self.say("reply 4")   # "I will go." agrees, and the guards walk you out
+        self.at("varenholt", "throne_room")   # (the door is shut to a player; this puts him back to ask again)
         again = self.say("talk king")
         self.assertNotIn("The crystals are not yet ours", again)
         self.assertIn("You have your orders", again)
@@ -471,6 +474,7 @@ class TestFF4Slice(_Slice):
     def test_the_king_remembers_that_you_obeyed_or_questioned_him(self):
         self.say("talk king")
         self.say("reply 1")
+        self.at("varenholt", "throne_room")
         self.assertIn("You have your orders", self.say("talk king"))
 
     def test_a_captain_who_questioned_the_king_is_greeted_differently(self):

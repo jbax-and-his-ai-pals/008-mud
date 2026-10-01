@@ -202,11 +202,20 @@ instead, with `properties.dialogue: "<graph id>"` and a file in `data/dialogue/`
 default. Give a node `"pace": "slow"` and a client that supports it types the NPC's words out a
 few characters at a time, so a story beat (the king's orders, a vision) is read rather than
 scanned; the player can skip ahead by clicking the log or sending a command, and can turn the
-effect off in the client. A pace is a name (`brisk` 90, `measured` 55, `slow` 35, `solemn` 20
+effect off in the client. A pace is a name (`brisk` 180, `measured` 110, `slow` 70, `solemn` 40
 characters a second) or a number from 5 to 200. Only the NPC's words are paced, never the replies
 or the instructions, and only for players (authoring views show everything). The server marks the
 passage (`[[PACE:25]]...[[/PACE]]`, like colours and links); a client that does not reveal
 gradually shows it at once. The validator refuses anything that is not a pace.
+
+**Leaving ends a conversation, and a node can be a scene.** Walking away from an NPC (or being
+taken away, or the NPC leaving or dying) ends the conversation with them; a later `reply` says you
+are not talking to anyone. A node marked `"must_answer": true` insists on an answer: while it is
+open the player cannot move or act on the world (fight, use, drop, cast, trade...), each attempt
+is refused with "<NPC> awaits your answer" and the replies are shown again. Looking, the pack,
+status, the journal, help and saving still work, so the player can read their options. Use it
+sparingly, for a moment that must be played through (the king's orders). It needs at least one
+choice and cannot be an `"end": true` node; the validator refuses both mistakes.
 
 Quest text is paced `slow` by default without any authoring: a player's client is asked to reveal
 every paragraph that starts `[Quest Accepted]`, `[Quest Update]`, `[Quest Complete]`,

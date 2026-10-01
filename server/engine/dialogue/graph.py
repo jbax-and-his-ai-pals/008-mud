@@ -105,6 +105,12 @@ class DialogueNode:
         return None
 
     @property
+    def must_answer(self) -> bool:
+        """`"must_answer": true` on a node: a scene. While it is open the player cannot walk away
+        or act on the world; they answer (or look around, check their pack, read their journal)."""
+        return self.raw.get("must_answer") is True
+
+    @property
     def pace(self) -> Any:
         """`"pace"` on a node: how fast a client reveals the NPC's words (see utils/pacing.py)."""
         return self.raw.get("pace")

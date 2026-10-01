@@ -76,6 +76,7 @@ class TestWordingAndSpacing(unittest.TestCase):
         self.addCleanup(server.shutdown)
         player = server.get_player_for_session(sid)
         player.current_region_id, player.current_room_id = "varenholt", "stores"
+        next(n for n in server.world.npcs.values() if n.template_id == "quartermaster").name = "the quartermaster"
         said = "\n".join(_text(server.execute_command(sid, "look")))
         self.assertIn("People here: the quartermaster", said)
         self.assertNotIn("a the", said)
@@ -83,6 +84,7 @@ class TestWordingAndSpacing(unittest.TestCase):
     def test_looking_at_a_thing_whose_name_has_an_article_does_not_double_it(self):
         server, sid, _events = _boot("ff4_slice")
         self.addCleanup(server.shutdown)
+        next(n for n in server.world.npcs.values() if n.template_id == "chancellor").name = "the chancellor"
         said = "\n".join(_text(server.execute_command(sid, "look the chancellor")))
         self.assertIn("The chancellor looks healthy", said)
         self.assertNotIn("The the", said)

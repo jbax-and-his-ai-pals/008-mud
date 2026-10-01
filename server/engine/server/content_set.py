@@ -4166,6 +4166,14 @@ def _validate_dialogue_content(
 
             _check_effect_block(node.effects, f"{where}.effects", path, ids, content_root, issues)
             _check_node_effects_do_not_raise(node.effects, where, path, issues)
+            if "must_answer" in node.raw:
+                if not isinstance(node.raw["must_answer"], bool):
+                    issues.append(ContentSetIssue("error", str(path), f"{where}.must_answer must be true or false"))
+                elif node.raw["must_answer"] and (node.ends_conversation or not node.choices):
+                    issues.append(ContentSetIssue(
+                        "error", str(path),
+                        f"{where} is a must_answer scene with nothing to answer, so the player could never get out of it",
+                    ))
             if node.pace not in (None, "instant") and pacing.resolve_pace(node.pace) is None:
                 issues.append(ContentSetIssue(
                     "error", str(path),

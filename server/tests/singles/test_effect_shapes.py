@@ -46,7 +46,7 @@ class TestTheTable(unittest.TestCase):
             "reveal_exit": ["direction", "room"],
             "seal_exit": ["direction", "region", "room"],
             "spawn_npc": ["instance_id", "npc", "region", "room"],
-            "teleport": ["region", "room"],
+            "teleport": ["message", "region", "room"],
         }, effect_fields())
 
     def test_each_object_effects_fields_are_the_ones_its_reader_reads(self):

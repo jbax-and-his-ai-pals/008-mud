@@ -396,9 +396,9 @@ class DialogueManager:
                     reply: bool = False) -> str:
         """The NPC's words and the replies on offer.
 
-        Opening a conversation shows a header and says how to answer. A node reached by a reply is
-        the next line of a conversation already under way, so it reads as one (`King Aldous
-        speaks: "..."`), with no header and no repeated instructions.
+        Every line reads the same way (`King Aldous speaks: "..."`). Opening a conversation also
+        says how to answer; a node reached by a reply is the next line of a conversation already
+        under way, so it does not repeat the instructions.
         """
         context = self.presentation_context(player)
         show_internals = presentation.show_internals(context)
@@ -407,10 +407,7 @@ class DialogueManager:
         body = '%s"%s"%s' % (FORMAT_HIGHLIGHT, text, FORMAT_RESET)
         if not show_internals:
             body = pacing.paced(body, node.pace)   # authoring views are read, not performed
-        if reply:
-            chunks = ["%s%s speaks:%s %s" % (FORMAT_TITLE, speaker, FORMAT_RESET, body)]
-        else:
-            chunks = ["%sCONVERSATION WITH %s%s" % (FORMAT_TITLE, str(speaker).upper(), FORMAT_RESET), "", body]
+        chunks = ["%s%s speaks:%s %s" % (FORMAT_TITLE, speaker, FORMAT_RESET, body)]
         if show_internals:
             node_effects = dialogue_effects.describe_effects(node.effects)
             if node_effects:
