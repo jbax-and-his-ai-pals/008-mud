@@ -72,16 +72,20 @@ func _let_mouse_through(node: Node) -> void:
 
 # --- a panel dropped onto this one goes above or below it ---------------------------------
 
-func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-	return data is Dictionary and (data as Dictionary).has("dock_panel") and get_parent() != null and get_parent().has_method("place")
+func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
+	var column := get_parent()
+	if not (data is Dictionary and (data as Dictionary).has("dock_panel") and column != null and column.has_method("show_preview_at")):
+		return false
+	column.show_preview_at(position.y + at_position.y, (data as Dictionary)["dock_panel"])
+	return true
 
 
 func _drop_data(at_position: Vector2, data: Variant) -> void:
 	var panel: Control = (data as Dictionary)["dock_panel"]
-	if panel == null or panel == self:
+	var column := get_parent()
+	if panel == null or column == null:
 		return
-	var below := at_position.y > size.y * 0.5
-	get_parent().place(panel, get_index() + (1 if below else 0))
+	column.place(panel, column.slot_at(position.y + at_position.y, panel))
 
 
 func set_collapsed(value: bool, announce: bool) -> void:
@@ -113,4 +117,7 @@ func _get_drag_data(at_position: Vector2) -> Variant:
 	preview.text = "  " + title_text
 	preview.add_theme_color_override("font_color", Color(1, 1, 1))
 	set_drag_preview(preview)
+	# Lift the card out of the layout while it is dragged; the column shows a box where it would land.
+	set_meta("drag_height", size.y)
+	set_deferred("visible", false)
 	return {"dock_panel": self}
