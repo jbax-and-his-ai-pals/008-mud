@@ -703,6 +703,7 @@ func _on_line_received(line: String) -> void:
 		game_state_payloads._handle_asset_payload(payload)
 	elif event_type == "character":
 		if docks != null and typeof(payload) == TYPE_DICTIONARY:
+			docks.use_layout_for("%s:%s" % [host_input.text, port_input.text], str((payload as Dictionary).get("name", "")))
 			docks.apply_character(payload as Dictionary)
 	elif event_type == "world":
 		if docks != null and typeof(payload) == TYPE_DICTIONARY:

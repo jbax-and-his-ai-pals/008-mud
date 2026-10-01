@@ -11,7 +11,10 @@ extends RefCounted
 
 const DOCK_PANEL = preload("res://scripts/ui/docks/dock_panel.gd")
 const DOCK_COLUMN = preload("res://scripts/ui/docks/dock_column.gd")
-const LAYOUT_PATH := "user://dock_layout.json"
+# One file holds every saved arrangement: "<server>|<character>" -> layout, plus "_last", the most
+# recent one, which a character with no arrangement of their own starts from.
+const LAYOUT_PATH := "user://dock_layouts.json"
+const LAST := "_last"
 const DOCK_WIDTH := 300
 
 # id -> [title, default dock, start collapsed]. The order here is the default order.
@@ -19,17 +22,17 @@ const PANELS := [
 	["character", "Character", "left", false],
 	["attributes", "Attributes", "left", false],
 	["equipment", "Equipment", "left", false],
-	["spells", "Spells", "left", true],
-	["skills", "Skills", "left", true],
+	["spells", "Spells", "left", false],
+	["skills", "Skills", "left", false],
 	["world", "World", "right", false],
 	["surroundings", "Surroundings", "right", false],
 	["pack", "Pack", "right", false],
 	["quests", "Quests", "right", false],
 	["combat", "Combat", "right", false],
-	["crafting", "Crafting", "right", true],
-	["collections", "Collections", "right", true],
-	["discoveries", "Discoveries", "right", true],
-	["relationships", "Relationships", "right", true],
+	["crafting", "Crafting", "right", false],
+	["collections", "Collections", "right", false],
+	["discoveries", "Discoveries", "right", false],
+	["relationships", "Relationships", "right", false],
 ]
 
 var left_column: VBoxContainer
@@ -52,6 +55,7 @@ var _spells: RichTextLabel
 var _skills: RichTextLabel
 var _world: RichTextLabel
 var _on_link: Callable
+var _layout_key: String = ""
 
 
 ## `existing` maps a panel id to the nodes that already display it (the main controller keeps
@@ -62,19 +66,18 @@ func _init(existing: Dictionary, on_link: Callable) -> void:
 	right_column = _make_column()
 	left_scroll = _make_scroll(left_column)
 	right_scroll = _make_scroll(right_column)
-	var saved := _load_layout()
+	var saved: Variant = _load_all().get(LAST, {})
 	for spec in PANELS:
 		var id: String = spec[0]
 		var content := _content_for(id, existing.get(id, []))
 		var card = DOCK_PANEL.new()
 		card.setup(id, spec[1], content, bool(spec[3]))
 		card.changed.connect(save_layout)
-		card.move_requested.connect(func(direction: String) -> void: _move(card, direction))
 		panels[id] = card
 	# default placement first, then whatever the player arranged
 	for spec in PANELS:
 		(left_column if spec[2] == "left" else right_column).add_child(panels[spec[0]])
-	_apply_saved(saved)
+	_apply_saved(saved if saved is Dictionary else {})
 
 
 func _make_column() -> VBoxContainer:
@@ -291,20 +294,18 @@ func _esc(text: String) -> String:
 
 # --- moving and remembering -------------------------------------------------------------
 
-func _move(card: Control, direction: String) -> void:
-	var column := card.get_parent() as VBoxContainer
-	if column == null:
+## The arrangement belongs to a character on a server: switching to one that has a saved layout
+## applies it; one that has none keeps what is on screen and saves it as theirs from now on.
+func use_layout_for(server: String, character: String) -> void:
+	var key := "%s|%s" % [server.strip_edges(), character.strip_edges().to_lower()]
+	if key == _layout_key or character.strip_edges() == "":
 		return
-	match direction:
-		"up":
-			column.move_child(card, maxi(0, card.get_index() - 1))
-		"down":
-			column.move_child(card, mini(column.get_child_count() - 1, card.get_index() + 1))
-		"side":
-			var other: VBoxContainer = right_column if column == left_column else left_column
-			column.remove_child(card)
-			other.add_child(card)
-	save_layout()
+	_layout_key = key
+	var saves := _load_all()
+	if saves.has(key) and saves[key] is Dictionary:
+		_apply_saved(saves[key])
+	else:
+		save_layout()
 
 
 func save_layout() -> void:
@@ -312,14 +313,19 @@ func save_layout() -> void:
 	for pair in [["left", left_column], ["right", right_column]]:
 		var column: VBoxContainer = pair[1]
 		for card in column.get_children():
+			if card.get("panel_id") == null:
+				continue   # the drop preview box
 			data[card.panel_id] = {"dock": pair[0], "index": card.get_index(), "collapsed": card.collapsed}
+	var saves := _load_all()
+	saves[LAST] = data
+	if _layout_key != "":
+		saves[_layout_key] = data
 	var file := FileAccess.open(LAYOUT_PATH, FileAccess.WRITE)
 	if file != null:
-		file.store_string(JSON.stringify(data))
+		file.store_string(JSON.stringify(saves))
 
 
 func reset_layout() -> void:
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(LAYOUT_PATH))
 	for spec in PANELS:
 		var card: Control = panels[spec[0]]
 		var column: VBoxContainer = left_column if spec[2] == "left" else right_column
@@ -334,9 +340,10 @@ func reset_layout() -> void:
 				order.append(spec[0])
 		for i in range(order.size()):
 			column.move_child(panels[order[i]], i)
+	save_layout()
 
 
-func _load_layout() -> Dictionary:
+func _load_all() -> Dictionary:
 	if not FileAccess.file_exists(LAYOUT_PATH):
 		return {}
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(LAYOUT_PATH))

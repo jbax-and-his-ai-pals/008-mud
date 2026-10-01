@@ -1,14 +1,12 @@
 # scripts/ui/docks/dock_panel.gd
 #
-# One info panel in a dock (Pack, Character, Equipment...): a titled card that can be collapsed,
-# nudged up or down, sent to the other side, or dragged by its title to any position in either
-# dock. The content is any Control; the card only owns the frame. Reached through `preload`.
+# One info panel in a dock (Pack, Character, Equipment...): a titled card that can be collapsed, or dragged
+# by its title to any position in either dock. The content is any Control; the card only owns the frame. Reached through `preload`.
 extends PanelContainer
 
 const PANEL_STYLE = preload("res://scripts/ui/docks/panel_style.gd")
 
-signal changed                       # collapsed, or asked to move: the owner saves the layout
-signal move_requested(direction: String)   # "up" | "down" | "side"
+signal changed                       # collapsed or expanded: the owner saves the layout
 
 var panel_id: String = ""
 var title_text: String = ""
@@ -46,12 +44,7 @@ func setup(id: String, title: String, content: Control, start_collapsed: bool = 
 	# data, so it hands the question to the card.
 	_title.set_drag_forwarding(_get_drag_data, Callable(), Callable())
 	header.add_child(_title)
-	for spec in [["▲", "Move up", "up"], ["▼", "Move down", "down"], ["⇄", "Send to the other side", "side"]]:
-		var button := _tool_button(spec[0], spec[1])
-		var direction: String = spec[2]
-		button.pressed.connect(func() -> void: move_requested.emit(direction))
-		header.add_child(button)
-	_collapse_button = _tool_button("–", "Collapse or expand")
+	_collapse_button = _tool_button("▼", "Collapse or expand")
 	_collapse_button.pressed.connect(func() -> void: set_collapsed(not collapsed, true))
 	header.add_child(_collapse_button)
 
@@ -91,7 +84,8 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 func set_collapsed(value: bool, announce: bool) -> void:
 	collapsed = value
 	body.visible = not collapsed
-	_collapse_button.text = "+" if collapsed else "–"
+	_collapse_button.text = "▶" if collapsed else "▼"
+	_collapse_button.tooltip_text = "Expand" if collapsed else "Collapse"
 	if announce:
 		changed.emit()
 
@@ -100,10 +94,9 @@ func _tool_button(text: String, tip: String) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.tooltip_text = tip
-	button.flat = true
 	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(22, 0)
-	button.add_theme_font_size_override("font_size", 12)
+	button.custom_minimum_size = Vector2(32, 26)
+	button.add_theme_font_size_override("font_size", 15)
 	return button
 
 
