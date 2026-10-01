@@ -29,6 +29,8 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 ## column it came from.
 func place(panel: Control, index: int) -> void:
 	var old_parent := panel.get_parent()
+	if old_parent == self and panel.get_index() < index:
+		index -= 1   # the panel's own slot closes up when it is lifted out
 	if old_parent != null:
 		old_parent.remove_child(panel)
 	add_child(panel)

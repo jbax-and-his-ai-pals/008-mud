@@ -39,9 +39,12 @@ func setup(id: String, title: String, content: Control, start_collapsed: bool = 
 	_title = Label.new()
 	_title.text = title
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_title.mouse_filter = Control.MOUSE_FILTER_PASS
+	_title.mouse_filter = Control.MOUSE_FILTER_STOP   # the title takes the press, so the drag starts here
 	_title.add_theme_color_override("font_color", Color(0.93, 0.8, 0.45))
 	_title.tooltip_text = "Drag to move this panel"
+	# The title is what the mouse is on when a drag starts, and a control only offers its own drag
+	# data, so it hands the question to the card.
+	_title.set_drag_forwarding(_get_drag_data, Callable(), Callable())
 	header.add_child(_title)
 	for spec in [["▲", "Move up", "up"], ["▼", "Move down", "down"], ["⇄", "Send to the other side", "side"]]:
 		var button := _tool_button(spec[0], spec[1])
@@ -54,7 +57,31 @@ func setup(id: String, title: String, content: Control, start_collapsed: bool = 
 
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_child(body)
+	_let_mouse_through(body)
 	set_collapsed(start_collapsed, false)
+
+
+## Text and bars in the body would otherwise swallow the mouse, so a panel dropped over them would
+## never reach the dock beneath. Links still work: a passed-through click is still delivered.
+func _let_mouse_through(node: Node) -> void:
+	if node is Label or node is RichTextLabel or node is ProgressBar or node is BoxContainer:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_PASS
+	for child in node.get_children():
+		_let_mouse_through(child)
+
+
+# --- a panel dropped onto this one goes above or below it ---------------------------------
+
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	return data is Dictionary and (data as Dictionary).has("dock_panel") and get_parent() != null and get_parent().has_method("place")
+
+
+func _drop_data(at_position: Vector2, data: Variant) -> void:
+	var panel: Control = (data as Dictionary)["dock_panel"]
+	if panel == null or panel == self:
+		return
+	var below := at_position.y > size.y * 0.5
+	get_parent().place(panel, get_index() + (1 if below else 0))
 
 
 func set_collapsed(value: bool, announce: bool) -> void:

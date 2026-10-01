@@ -42,7 +42,9 @@ var _hp_bar: ProgressBar
 var _mp_bar: ProgressBar
 var _xp_bar: ProgressBar
 var _identity: RichTextLabel
-var _vitals: Label
+var _hp_text: Label
+var _mp_text: Label
+var _xp_text: Label
 var _effects: RichTextLabel
 var _attributes: RichTextLabel
 var _equipment: RichTextLabel
@@ -88,6 +90,8 @@ func _make_scroll(column: VBoxContainer) -> ScrollContainer:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.custom_minimum_size = Vector2(DOCK_WIDTH, 0)
 	scroll.add_child(column)
+	# The column fills the dock's height, so a panel can be dropped into the empty space below the last one.
+	scroll.resized.connect(func() -> void: column.custom_minimum_size.y = scroll.size.y)
 	return scroll
 
 
@@ -114,6 +118,21 @@ func _bar(color: Color) -> ProgressBar:
 	return bar
 
 
+func _bar_caption() -> Label:
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+	return label
+
+
+const EMPTY_TEXT := {
+	"crafting": "No crafting recipes known.",
+	"collections": "No collections started.",
+	"discoveries": "No discoveries yet.",
+	"relationships": "No relationships yet.",
+}
+
+
 func _content_for(id: String, nodes: Array) -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 3)
@@ -124,12 +143,13 @@ func _content_for(id: String, nodes: Array) -> Control:
 			_hp_bar = _bar(Color(0.75, 0.25, 0.25))
 			_mp_bar = _bar(Color(0.3, 0.45, 0.85))
 			_xp_bar = _bar(Color(0.85, 0.7, 0.25))
-			for bar in [_hp_bar, _mp_bar, _xp_bar]:
-				box.add_child(bar)
-			_vitals = Label.new()
-			_vitals.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			_vitals.add_theme_font_size_override("font_size", 13)
-			box.add_child(_vitals)
+			_hp_text = _bar_caption()
+			_mp_text = _bar_caption()
+			_xp_text = _bar_caption()
+			# each reading sits above its own bar
+			for pair in [[_hp_text, _hp_bar], [_mp_text, _mp_bar], [_xp_text, _xp_bar]]:
+				box.add_child(pair[0])
+				box.add_child(pair[1])
 			_effects = _text_block()
 			box.add_child(_effects)
 			_identity.text = "[i]Waiting for the server...[/i]"
@@ -161,6 +181,8 @@ func _content_for(id: String, nodes: Array) -> Control:
 					node.fit_content = true
 					node.scroll_active = false
 					node.custom_minimum_size = Vector2.ZERO
+					if EMPTY_TEXT.has(id) and node.bbcode_enabled and node == nodes[nodes.size() - 1]:   # the list, until the server says otherwise
+						node.text = "[i][color=#808080]%s[/color][/i]" % EMPTY_TEXT[id]
 	return box
 
 
@@ -177,18 +199,19 @@ func apply_character(p: Dictionary) -> void:
 		lines += "\n[color=#ffe45c]%d %s[/color]" % [int(p.get("gold", 0)), _esc(str(p.get("currency", "gold")))]
 	_identity.text = lines
 	_set_bar(_hp_bar, int(health.get("current", 0)), int(health.get("max", 1)))
-	var vitals := "HP %d/%d" % [int(health.get("current", 0)), int(health.get("max", 0))]
+	_hp_text.text = "HP %d/%d" % [int(health.get("current", 0)), int(health.get("max", 0))]
 	var pool: Variant = p.get("ability_resource")
 	_mp_bar.visible = pool is Dictionary and int((pool as Dictionary).get("max", 0)) > 0
+	_mp_text.visible = _mp_bar.visible
 	if pool is Dictionary and _mp_bar.visible:
 		var pool_d: Dictionary = pool
 		_set_bar(_mp_bar, int(pool_d.get("current", 0)), int(pool_d.get("max", 1)))
-		vitals += "   %s %d/%d" % [str(pool_d.get("short", "MP")), int(pool_d.get("current", 0)), int(pool_d.get("max", 0))]
+		_mp_text.text = "%s %d/%d" % [str(pool_d.get("short", "MP")), int(pool_d.get("current", 0)), int(pool_d.get("max", 0))]
 	_xp_bar.visible = p.has("experience_to_level") and int(p.get("experience_to_level", 0)) > 0
+	_xp_text.visible = _xp_bar.visible
 	if _xp_bar.visible:
 		_set_bar(_xp_bar, int(p.get("experience", 0)), int(p.get("experience_to_level", 1)))
-		vitals += "   XP %d/%d" % [int(p.get("experience", 0)), int(p.get("experience_to_level", 0))]
-	_vitals.text = vitals
+		_xp_text.text = "XP %d/%d" % [int(p.get("experience", 0)), int(p.get("experience_to_level", 0))]
 
 	var effect_lines: PackedStringArray = []
 	for effect in p.get("effects", []):
@@ -200,11 +223,16 @@ func apply_character(p: Dictionary) -> void:
 		effect_lines.append("%s%s (%s)" % [_esc(str(e.get("name", "Effect"))), detail, _duration(float(e.get("remaining", 0)))])
 	_effects.text = ("[color=#c0c0c0]Effects:[/color] " + ", ".join(effect_lines)) if not effect_lines.is_empty() else "[color=#808080]No active effects[/color]"
 
-	var stat_cells: PackedStringArray = []
+	# two attributes to a row: label, value, label, value
+	var stat_cells := ""
+	var stat_count := 0
 	for stat in p.get("stats", []):
 		var s: Dictionary = stat
-		stat_cells.append("[color=#c0c0c0]%s[/color] %d" % [_esc(str(s.get("label", ""))), int(s.get("value", 0))])
-	_attributes.text = "  ".join(stat_cells) if not stat_cells.is_empty() else "[i]No attributes[/i]"
+		stat_cells += "[cell][color=#c0c0c0]%s[/color][/cell][cell][b]%d[/b]   [/cell]" % [_esc(str(s.get("label", ""))), int(s.get("value", 0))]
+		stat_count += 1
+	if stat_count % 2 == 1:
+		stat_cells += "[cell][/cell][cell][/cell]"
+	_attributes.text = ("[table=4]%s[/table]" % stat_cells) if stat_count > 0 else "[i]No attributes[/i]"
 
 	var worn: PackedStringArray = []
 	for slot in p.get("equipment", []):
@@ -224,13 +252,13 @@ func apply_character(p: Dictionary) -> void:
 		if float(sp.get("cooldown", 0)) > 0.0:
 			line += " [color=#ffa540]cooldown %.0fs[/color]" % float(sp.get("cooldown", 0))
 		spell_lines.append(line)
-	_spells.text = "\n".join(spell_lines) if not spell_lines.is_empty() else "[color=#808080](none known)[/color]"
+	_spells.text = "\n".join(spell_lines) if not spell_lines.is_empty() else "[i][color=#808080]No spells known.[/color][/i]"
 
 	var skill_lines: PackedStringArray = []
 	for skill in p.get("skills", []):
 		var k: Dictionary = skill
 		skill_lines.append("%s  %d" % [_esc(str(k.get("name", ""))), int(k.get("level", 0))])
-	_skills.text = "\n".join(skill_lines) if not skill_lines.is_empty() else "[color=#808080](none yet)[/color]"
+	_skills.text = "\n".join(skill_lines) if not skill_lines.is_empty() else "[i][color=#808080]No skills learned yet.[/color][/i]"
 
 
 func apply_world(p: Dictionary) -> void:
