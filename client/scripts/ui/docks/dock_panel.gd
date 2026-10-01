@@ -81,6 +81,11 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	column.place(panel, column.slot_at(position.y + at_position.y, panel))
 
 
+func set_title(text: String) -> void:
+	title_text = text
+	_title.text = text
+
+
 func set_collapsed(value: bool, announce: bool) -> void:
 	collapsed = value
 	body.visible = not collapsed

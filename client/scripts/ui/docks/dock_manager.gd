@@ -22,7 +22,7 @@ const PANELS := [
 	["character", "Character", "left", false],
 	["attributes", "Attributes", "left", false],
 	["equipment", "Equipment", "left", false],
-	["spells", "Spells", "left", false],
+	["spells", "Abilities", "left", false],
 	["skills", "Skills", "left", false],
 	["world", "World", "right", false],
 	["surroundings", "Surroundings", "right", false],
@@ -248,14 +248,17 @@ func apply_character(p: Dictionary) -> void:
 		worn.append(text)
 	_equipment.text = "\n".join(worn)
 
+	# what the set calls its abilities ("Abilities", or "Spells") names the panel
+	var noun := str(p.get("ability_noun", "Abilities"))
+	panels["spells"].set_title(noun)
 	var spell_lines: PackedStringArray = []
 	for spell in p.get("spells", []):
 		var sp: Dictionary = spell
-		var line := "%s [color=#6f9bff](%d)[/color]" % [_link("abilities %s" % str(sp.get("name", "")), str(sp.get("name", ""))), int(sp.get("cost", 0))]
+		var line := "%s [color=#6f9bff](%s)[/color]" % [_link("abilities %s" % str(sp.get("name", "")), str(sp.get("name", ""))), _esc(str(sp.get("cost_text", sp.get("cost", 0))))]
 		if float(sp.get("cooldown", 0)) > 0.0:
 			line += " [color=#ffa540]cooldown %.0fs[/color]" % float(sp.get("cooldown", 0))
 		spell_lines.append(line)
-	_spells.text = "\n".join(spell_lines) if not spell_lines.is_empty() else "[i][color=#808080]No spells known.[/color][/i]"
+	_spells.text = "\n".join(spell_lines) if not spell_lines.is_empty() else "[i][color=#808080]No %s known.[/color][/i]" % noun.to_lower()
 
 	var skill_lines: PackedStringArray = []
 	for skill in p.get("skills", []):
