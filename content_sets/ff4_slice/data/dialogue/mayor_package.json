@@ -4,6 +4,7 @@
     "nodes": {
         "greeting": {
             "text": "A messenger from the king? We have done nothing. Please, there must be some mistake.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "I only carry what I was given.",

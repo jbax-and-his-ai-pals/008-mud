@@ -105,6 +105,11 @@ class DialogueNode:
         return None
 
     @property
+    def pace(self) -> Any:
+        """`"pace"` on a node: how fast a client reveals the NPC's words (see utils/pacing.py)."""
+        return self.raw.get("pace")
+
+    @property
     def ends_conversation(self) -> bool:
         """`"end": true` on a node: the NPC says it and the conversation is over, with no reply
         to click through first."""

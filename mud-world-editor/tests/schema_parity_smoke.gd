@@ -79,6 +79,7 @@ func _init() -> void:
 	_check_holder_kinds(vocabulary, "district_property_kinds", DistrictInspector.DISTRICT_PROPERTY_KINDS)
 	_check_campaign_vocabulary(vocabulary)
 	_check_ability_vocabulary(vocabulary)
+	_check_pace_vocabulary(vocabulary)
 	_check_weather_vocabulary(vocabulary)
 	_check_feature_profile_vocabulary(vocabulary)
 
@@ -417,6 +418,16 @@ func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:
 		var engine := _as_set(campaigns.get(pair[0], []))
 		var editor := _as_set(pair[1])
 		_assert(engine == editor, "campaign %s match exactly (engine %s, editor %s)" % [pair[0], str(_sorted(engine)), str(_sorted(editor))])
+
+
+func _check_pace_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[text pace vocabulary: editor vs engine]")
+	var engine_paces: Dictionary = vocabulary.get("text_paces", {}).get("paces", {})
+	_assert(not engine_paces.is_empty(), "the engine's text paces were read")
+	var editor_paces: Dictionary = DialogueInspector.TEXT_PACES
+	_assert(_as_set(engine_paces.keys()) == _as_set(editor_paces.keys()), "pace names match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine_paces.keys()))), str(_sorted(_as_set(editor_paces.keys())))])
+	for pace_name in engine_paces:
+		_assert(editor_paces.has(pace_name) and int(editor_paces[pace_name]) == int(engine_paces[pace_name]), "pace %s is %s characters a second in both" % [pace_name, str(engine_paces[pace_name])])
 
 
 func _check_ability_vocabulary(vocabulary: Dictionary) -> void:

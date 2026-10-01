@@ -4,6 +4,7 @@
     "nodes": {
         "greeting": {
             "text": "The fog... the ring... my mother... Are you the one they sent?",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "The dragon is dead. You are safe now.",
@@ -25,6 +26,7 @@
         },
         "calm": {
             "text": "The fog came from the package. I saw it.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "I know.",
@@ -34,6 +36,7 @@
         },
         "thanks": {
             "text": "I can call the titans. Mother taught me before... before. Here, I will teach you the calling song.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "Teach me.",
@@ -78,6 +81,7 @@
         },
         "joins": {
             "text": "I... yes. I would rather not be alone with the fog.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "Stay close.",
@@ -87,6 +91,7 @@
         },
         "taught": {
             "text": "There. Sing it low and the ground will answer.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "Thank you, Ryn.",

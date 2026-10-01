@@ -4101,6 +4101,7 @@ def _validate_dialogue_content(
     A player should not be the one who discovers that a choice leads nowhere.
     """
     from engine.dialogue.manager import parse_graph
+    from engine.utils import pacing
 
     dialogue_dir = content_root / "dialogue"
     graphs: dict[str, Any] = {}
@@ -4165,6 +4166,13 @@ def _validate_dialogue_content(
 
             _check_effect_block(node.effects, f"{where}.effects", path, ids, content_root, issues)
             _check_node_effects_do_not_raise(node.effects, where, path, issues)
+            if node.pace not in (None, "instant") and pacing.resolve_pace(node.pace) is None:
+                issues.append(ContentSetIssue(
+                    "error", str(path),
+                    f"{where}.pace {node.pace!r} is not a pace, so the text is shown at once "
+                    f"(a name -- {', '.join(pacing.TEXT_PACES)} -- or characters per second from "
+                    f"{pacing.PACE_RANGE[0]} to {pacing.PACE_RANGE[1]})",
+                ))
             for choice in node.choices:
                 choice_where = f"{where}.choices[{choice.index}]"
                 _check_condition(choice.condition, f"{choice_where}.condition", path, ids, issues)

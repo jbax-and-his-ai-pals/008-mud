@@ -198,6 +198,21 @@ instead, with `properties.dialogue: "<graph id>"` and a file in `data/dialogue/`
 }
 ```
 
+**A dialogue node can ask for its words to be revealed slowly.** Text is shown at once by
+default. Give a node `"pace": "slow"` and a client that supports it types the NPC's words out a
+few characters at a time, so a story beat (the king's orders, a vision) is read rather than
+scanned; the player can skip ahead by clicking the log or sending a command, and can turn the
+effect off in the client. A pace is a name (`brisk` 90, `measured` 55, `slow` 35, `solemn` 20
+characters a second) or a number from 5 to 200. Only the NPC's words are paced, never the replies
+or the instructions, and only for players (authoring views show everything). The server marks the
+passage (`[[PACE:25]]...[[/PACE]]`, like colours and links); a client that does not reveal
+gradually shows it at once. The validator refuses anything that is not a pace.
+
+Quest text is paced `slow` by default without any authoring: a player's client is asked to reveal
+every paragraph that starts `[Quest Accepted]`, `[Quest Update]`, `[Quest Complete]`,
+`[Objective ...` or `New Objective:`. A server turns that off or changes it with
+`server.quest_text_pace` (a pace, or `None`); a player option for it is still to come.
+
 **`rules/ruleset.json`** — the set's own rules. `systems` mirrors the manifest
 (see §5), and everything else is optional: progression curve, skills, weather,
 hazards, social tiers, quest generation, crime. A set that declares nothing gets

@@ -33,6 +33,7 @@ from engine.config import (
 from engine.dialogue import effects as dialogue_effects
 from engine.dialogue.graph import DialogueChoice, DialogueGraph, DialogueNode
 from engine.naming import resolve_all, resolve_best
+from engine.utils import pacing
 from engine.utils.logger import Logger
 
 DIALOGUE_DIRECTORY = "dialogue"
@@ -404,6 +405,8 @@ class DialogueManager:
         speaker = getattr(npc, "name", "") or "Someone"
         text = presentation.variant(node.text, context)
         body = '%s"%s"%s' % (FORMAT_HIGHLIGHT, text, FORMAT_RESET)
+        if not show_internals:
+            body = pacing.paced(body, node.pace)   # authoring views are read, not performed
         if reply:
             chunks = ["%s%s speaks:%s %s" % (FORMAT_TITLE, speaker, FORMAT_RESET, body)]
         else:

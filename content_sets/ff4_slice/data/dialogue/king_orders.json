@@ -28,6 +28,7 @@
     "nodes": {
         "greeting": {
             "text": "The crystals are not yet ours, and Mistvale keeps a ring of red stones that we want. Carry this package to their mayor. It is a gift. Do not open it.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "At once, my king.",
@@ -84,6 +85,7 @@
         },
         "again": {
             "text": "You have your orders, captain. The fleet sails at dawn, and you are still standing in my hall.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "Tell me again what the package is.",
@@ -97,6 +99,7 @@
         },
         "again_questioned": {
             "text": "Deliver the package, courier. I will not say it twice, and I will not be questioned by a man without a seal.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "Tell me again what the package is.",
@@ -110,14 +113,17 @@
         },
         "obey": {
             "text": "Good. Be quick. The fleet sails at dawn.",
+            "pace": "slow",
             "end": true
         },
         "dismissed": {
             "text": "Then you are no captain of mine. Give me your seal. You will deliver the package as a courier, and consider that generous.",
+            "pace": "slow",
             "end": true
         },
         "package": {
             "text": "It is a gift for the mayor. Nothing more.",
+            "pace": "slow",
             "choices": [
                 {
                     "text": "I will go.",

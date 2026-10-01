@@ -21,6 +21,7 @@ from engine.core.knowledge_manager import KnowledgeManager
 from engine.core.titles import TitleManager
 from engine.core.plugin_manager import PluginManager
 from engine.contracts import ContractRegistry
+from engine.utils import pacing
 from engine.dialogue.manager import DialogueManager
 from engine.core.time_manager import TimeManager
 from engine.core.weather_manager import WeatherManager
@@ -114,6 +115,8 @@ class HeadlessServer(
         # is never resumed (Decision 7), whatever the path.
         self.tick_rate_hz = tick_rate_hz
         self.tick_dt = 1.0 / self.tick_rate_hz
+        # How a player's client is asked to reveal quest text: a pace name or number, None for all at once.
+        self.quest_text_pace: Any = pacing.DEFAULT_QUEST_TEXT_PACE
         self.deterministic_test_mode = deterministic_test_mode
         resolved_presentation_mode = str(default_presentation_mode or "test").strip().lower()
         self.default_presentation_mode = (
@@ -296,5 +299,18 @@ class HeadlessServer(
         return payload
 
     def _event(self, event_type: str, session_id: str, payload: Any) -> Dict[str, Any]:
+        if event_type == "text" and isinstance(payload, str):
+            payload = self._paced_text(session_id, payload)
         return build_server_event(event_type, session_id, payload, time.time())
+
+    def _paced_text(self, session_id: str, text: str) -> str:
+        """Quest text is story, so a player's client is asked to reveal it gradually (utils/pacing.py).
+
+        Authoring ("test") sessions read text rather than watch it, and `quest_text_pace = None`
+        turns the policy off; both are where a server or player option will plug in.
+        """
+        session = self.sessions.get(session_id)
+        if session is None or str(getattr(session, "presentation_mode", "test")) != "player":
+            return text
+        return pacing.pace_quest_text(text, self.quest_text_pace)
 

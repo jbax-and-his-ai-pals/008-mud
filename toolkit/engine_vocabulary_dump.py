@@ -156,6 +156,9 @@ def main() -> int:
         # What MagicInspector.gd offers for an ability's target and an effect's
         # type, and the keys each effect type reads (magic/spell.py).
         "abilities": _ability_vocabulary(),
+        # How fast text can be revealed (utils/pacing.py); DialogueInspector.gd offers these
+        # names on a node.
+        "text_paces": _pace_vocabulary(),
         # The calendar's seasons and the weather table a set without its own
         # `weather.chances` plays with; WeatherChancesSection.gd holds the copy.
         "weather": _weather_vocabulary(),
@@ -204,6 +207,12 @@ def _ability_vocabulary() -> dict:
         "effect_fields": {name: sorted(fields) for name, fields in sorted(ABILITY_EFFECT_FIELDS.items())},
         "message_placeholders": {name: sorted(names) for name, names in sorted(ABILITY_MESSAGE_PLACEHOLDERS.items())},
     }
+
+
+def _pace_vocabulary() -> dict:
+    from engine.utils.pacing import PACE_RANGE, TEXT_PACES
+
+    return {"paces": dict(sorted(TEXT_PACES.items())), "range": list(PACE_RANGE)}
 
 
 def _region_vocabulary() -> dict:

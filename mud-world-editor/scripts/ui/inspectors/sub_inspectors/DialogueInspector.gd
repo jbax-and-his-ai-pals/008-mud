@@ -24,6 +24,9 @@
 class_name DialogueInspector
 extends RefCounted
 
+# How fast a client reveals what an NPC says (engine/utils/pacing.py; schema_parity_smoke ties these
+# to the engine). Characters per second.
+const TEXT_PACES := {"brisk": 90, "measured": 55, "slow": 35, "solemn": 20}
 const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
 
@@ -173,6 +176,37 @@ func add_node() -> String:
 	return node_id
 
 
+## How fast the NPC's words appear. Instant is the default and writes nothing; a number the engine
+## accepts but the picker has no name for is shown as it is, not replaced.
+func _build_pace_row(vbox: Node, node: Dictionary) -> void:
+	var row := HBoxContainer.new()
+	row.add_child(InspectorStyle.lbl("Reveal speed:", InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new(); picker.name = "Pace"
+	InspectorStyle.apply_input_style(picker)
+	picker.tooltip_text = "How quickly a client types out what the NPC says. Instant is the default; slower reads as a story beat."
+	var current = node.get("pace", "")
+	picker.add_item("Instant"); picker.set_item_metadata(0, "")
+	for pace_name in TEXT_PACES:
+		picker.add_item("%s (%d chars/sec)" % [str(pace_name).capitalize(), TEXT_PACES[pace_name]])
+		picker.set_item_metadata(picker.item_count - 1, pace_name)
+	var selected := 0
+	for i in range(picker.item_count):
+		if str(picker.get_item_metadata(i)) == str(current): selected = i
+	if current != "" and selected == 0 and str(current) != "instant":
+		picker.add_item("Custom: %s" % str(current)); picker.set_item_metadata(picker.item_count - 1, current)
+		selected = picker.item_count - 1
+	picker.select(selected)
+	picker.item_selected.connect(func(index):
+		var value = picker.get_item_metadata(index)
+		if str(value) == "":
+			if node.has("pace"):
+				node.erase("pace"); database_modified.emit()
+		elif node.get("pace") != value:
+			node["pace"] = value; database_modified.emit())
+	row.add_child(picker)
+	vbox.add_child(row)
+
+
 func _refresh_nodes():
 	if root_picker != null:
 		_refresh_root_picker()
@@ -238,6 +272,7 @@ func _node_card(node_id: String, node: Dictionary) -> PanelContainer:
 		variant.modulate = Color(0.7, 0.72, 0.6)
 		vbox.add_child(variant)
 
+	_build_pace_row(vbox, node)
 	_build_effects_row(vbox, node, "Node effects (applied when the node is reached)")
 
 	var choices_header := HBoxContainer.new()
