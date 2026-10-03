@@ -261,7 +261,8 @@
             "spell_cast_chance": 0,
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "weapon_damage_type": "slashing"
+            "weapon_damage_type": "slashing",
+            "unique": true
         }
     }
 }

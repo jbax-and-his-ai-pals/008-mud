@@ -1500,6 +1500,8 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         value = properties["move_cooldown"]
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
             errors.append(f"{label}.move_cooldown must be a non-negative integer")
+    if "unique" in properties and not isinstance(properties["unique"], bool):
+        errors.append(f"{label}.unique must be true or false (true: referred to as \"the\" rather than \"a\"/\"an\")")
     if "essential" in properties and not isinstance(properties["essential"], bool):
         errors.append(f"{label}.essential must be true or false (true: cannot be killed unless recruited as a companion)")
     if "respawn_cooldown" in properties:

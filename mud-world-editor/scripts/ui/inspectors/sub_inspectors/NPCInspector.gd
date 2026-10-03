@@ -626,6 +626,13 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("essential")
 		database_modified.emit())
 	flags.add_child(essential)
+	var unique := CheckBox.new(); unique.text = "Unique (called \"the\", not \"a\")"
+	unique.button_pressed = bool(properties.get("unique", false))
+	unique.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["unique"] = true
+		else: _ensure_npc_properties().erase("unique")
+		database_modified.emit())
+	flags.add_child(unique)
 
 	var patrol_header := HBoxContainer.new(); patrol_header.add_child(InspectorStyle.create_sub_header("Patrol Points"))
 	patrol_header.tooltip_text = "Room ids in this NPC's own region, visited in order (behavior_type: patrol)."

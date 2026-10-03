@@ -1,7 +1,8 @@
 # engine/npcs/ai/combat_logic.py
 import random
 from typing import TYPE_CHECKING, Optional
-from engine.utils.utils import format_name_for_display
+from engine.utils.articles import the
+from engine.utils.utils import format_name_for_display, get_departure_phrase
 from .movement import execute_move
 from engine.npcs import combat as npc_combat
 from engine.world import factions
@@ -10,6 +11,23 @@ if TYPE_CHECKING:
     from engine.npcs.npc import NPC
     from engine.player import Player
     from engine.world.world import World
+
+_COMPASS = ("north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest")
+
+
+def _flight_phrase(world: 'World', npc: 'NPC', direction: str, destination: str) -> str:
+    """Where someone runs to, in words: "to the north", but for a way that is not a compass point (an
+    inn's "in") the place it leads to, "into the Mistvale Inn", rather than "to the in"."""
+    word = str(direction).lower()
+    if word not in _COMPASS and word not in ("up", "down"):
+        region_id, room_id = destination.split(":", 1) if ":" in destination else (npc.current_region_id, destination)
+        region = world.get_region(region_id)
+        room = region.get_room(room_id) if region else None
+        if room is not None and getattr(room, "name", ""):
+            place = the(room.name)   # "The Fogwatch Inn" keeps its own article
+            return "into " + place[0].lower() + place[1:]
+    return get_departure_phrase(direction)
+
 
 def try_flee(npc: 'NPC', world: 'World', player: 'Player') -> Optional[str]:
     """Attempts to move the NPC to an adjacent room during combat."""
@@ -39,12 +57,13 @@ def try_flee(npc: 'NPC', world: 'World', player: 'Player') -> Optional[str]:
         valid_exits = room_before_flee.exits
 
     direction = random.choice(list(valid_exits.keys()))
+    where = _flight_phrase(world, npc, direction, valid_exits[direction])
     
     npc_combat.exit_combat(npc)
     execute_move(npc, world, player, direction)
     
     if player_can_see_flee:
-        return f"{format_name_for_display(player, npc, True)} flees to the {direction}!"
+        return f"{format_name_for_display(player, npc, True)} flees {where}!"
 
     return None
 

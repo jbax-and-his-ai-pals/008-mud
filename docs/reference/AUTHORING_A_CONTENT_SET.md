@@ -348,6 +348,8 @@ miss one:
    `data/campaigns/`, `crafting` needs recipes and a station item, `combat` needs
    something to fight and a `loot_table` worth fighting it for.
 
+**Naming one-of-a-kind characters.** A lowercase NPC name takes an article in the text ("a goblin", "an innkeeper"). Set `properties.unique: true` on someone who is the only one of their kind and the text says "the mayor of Mistvale" instead. The Properties section of the NPC inspector has a "Unique" box for it.
+
 **Who earns experience (and money) for a kill.** Everyone who hurt the creature earns a share, however many players
 there are and whoever struck the last blow; an ally's blows (a summon, a companion) count for its owner,
 and an NPC ally that is not owned takes a share of the damage that is simply not paid out. Players who were

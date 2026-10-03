@@ -275,6 +275,8 @@ def format_name_for_display(
 
     # 3. Construct String
     is_generic = not base_name[0].isupper() if base_name else True
+    # Someone who is the only one of their kind ("unique": true) is "the mayor", never "a mayor".
+    definite = is_npc and isinstance(getattr(target, "properties", None), dict) and target.properties.get("unique") is True
     # "the chancellor" already carries its article; "a the chancellor" is not a thing to say.
     display_name = base_name
     if base_name.lower().startswith(("the ", "a ", "an ", "some ")):
@@ -285,7 +287,7 @@ def format_name_for_display(
     # Prefix (Article)
     prefix = ""
     if is_generic:
-        article = get_article(base_name)
+        article = "the" if definite else get_article(base_name)
         # Apply article_color (parent_color)
         prefix = f"{article_color}{article} "
         if start_of_sentence:

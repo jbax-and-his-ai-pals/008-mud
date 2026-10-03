@@ -86,7 +86,8 @@
             "buys_item_types": [
                 "Consumable"
             ],
-            "essential": true
+            "essential": true,
+            "unique": true
         }
     },
     "mayor_of_mistvale": {
@@ -105,7 +106,8 @@
             "wander_chance": 0,
             "move_cooldown": 9999,
             "dialogue": "mayor_package",
-            "essential": true
+            "essential": true,
+            "unique": true
         }
     },
     "ryn": {
@@ -142,7 +144,8 @@
             "wander_chance": 0,
             "move_cooldown": 9999,
             "dialogue": "inn_rest",
-            "essential": true
+            "essential": true,
+            "unique": true
         }
     },
     "chancellor": {
@@ -159,7 +162,8 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "chancellor_talk"
+            "dialogue": "chancellor_talk",
+            "unique": true
         }
     },
     "castle_guard": {

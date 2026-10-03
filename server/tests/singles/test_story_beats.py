@@ -339,6 +339,48 @@ class TestSeveralLevelsAreOneReport(unittest.TestCase):
         self.assertIn("You have reached level 2!", _plain(report))
 
 
+class TestNamesAndFlight(unittest.TestCase):
+    def test_a_unique_character_is_the_not_a(self):
+        from engine.utils.utils import format_name_for_display
+
+        game = _Game(self)
+        mayor = game.npc("mayor_of_mistvale")
+        guard = game.npc("castle_guard")
+        self.assertIn("The ", _plain(format_name_for_display(game.player, mayor, True)))
+        self.assertIn("the ", _plain(format_name_for_display(game.player, mayor, False)))
+        self.assertIn("A ", _plain(format_name_for_display(game.player, guard, True)))
+
+    def test_fleeing_through_in_names_the_place_not_the_in(self):
+        from engine.npcs.ai.combat_logic import try_flee
+
+        game = _Game(self)
+        mayor = game.npc("mayor_of_mistvale")
+        mayor.current_region_id, mayor.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        region = game.world.get_region("mistvale")
+        square = region.get_room("village_square")
+        original = dict(square.exits)
+        square.exits.clear()
+        square.exits["in"] = original["in"]
+        said = _plain(try_flee(mayor, game.world, game.player) or "")
+        self.assertIn("flees into the Fogwatch Inn!", said)
+        self.assertNotIn("the in!", said)
+        self.assertTrue(said.startswith("The mayor of Mistvale"), said)
+
+    def test_a_compass_flight_still_says_to_the_direction(self):
+        from engine.npcs.ai.combat_logic import try_flee
+
+        game = _Game(self)
+        goblin = game.npc("goblin_scout")
+        game.player.current_region_id, game.player.current_room_id = "road", "castle_road"
+        room = game.world.get_region("road").get_room("castle_road")
+        goblin.current_region_id, goblin.current_room_id = "road", "castle_road"
+        room.exits.clear()
+        room.exits["north"] = next(iter(game.world.get_region("road").rooms))
+        said = _plain(try_flee(goblin, game.world, game.player) or "")
+        self.assertIn("flees to the north!", said)
+
+
 class TestATransitionsPaceIsChecked(unittest.TestCase):
     def errors_with(self, pace):
         import json
