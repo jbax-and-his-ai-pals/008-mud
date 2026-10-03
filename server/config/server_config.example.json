@@ -16,6 +16,7 @@
     "default_entitlements": [],
     "require_character_creation": true,
     "authz_detail_level": "full",
+    "quest_text_pace": "slow",
     "gm_auth_token": "replace-with-strong-token"
   },
   "entitlements": {

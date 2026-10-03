@@ -20,6 +20,7 @@ from engine.contracts.equipment import (
     weapon_damage_type as weapon_damage_type_for,
 )
 from engine.items.attachments import attachment_modifier
+from engine.utils.messages import message as engine_message
 from engine.utils.utils import calculate_xp_gain, format_loot_drop_message
 
 if TYPE_CHECKING:
@@ -236,14 +237,14 @@ class PlayerCombatMixin:
                 # (and the level it may bring), then the money; what the enemy dropped comes last.
                 rewards_started = False
                 if final_xp_gained > 0 and p.runtime_state.progression is not None:
-                    result_message += f"\n\n{FORMAT_SUCCESS}You gain {final_xp_gained} experience!{FORMAT_RESET}"
+                    result_message += f"\n\n{FORMAT_SUCCESS}{engine_message(current_world, 'kill_experience', amount=final_xp_gained)}{FORMAT_RESET}"
                     rewards_started = True
                     leveled_up, level_up_msg = p.gain_experience(final_xp_gained)
                     if leveled_up and level_up_msg: 
                         result_message += "\n" + level_up_msg
                 if gold_dropped > 0 and p.runtime_state.gold is not None:
                     p.runtime_state.gold += gold_dropped
-                    result_message += ("\n" if rewards_started else "\n\n") + f"{FORMAT_SUCCESS}You find {gold_dropped} {current_world.currency_name()}.{FORMAT_RESET}"
+                    result_message += ("\n" if rewards_started else "\n\n") + f"{FORMAT_SUCCESS}{engine_message(current_world, 'kill_gold', amount=gold_dropped, currency=current_world.currency_name())}{FORMAT_RESET}"
 
             kill_credit.award_participants(current_world, target, shares, skip=p, formula=calculate_xp_gain, gold=rolled_gold)
 

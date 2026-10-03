@@ -161,6 +161,8 @@ def main() -> int:
         "text_paces": _pace_vocabulary(),
         # How a kill's experience can be shared (core/kill_credit.py); RulesetEditorDialog.gd offers these.
         "experience_sharing": _sharing_vocabulary(),
+        "level_up": _level_up_vocabulary(),
+        "messages": _messages_vocabulary(),
         # The calendar's seasons and the weather table a set without its own
         # `weather.chances` plays with; WeatherChancesSection.gd holds the copy.
         "weather": _weather_vocabulary(),
@@ -215,6 +217,18 @@ def _pace_vocabulary() -> dict:
     from engine.utils.pacing import PACE_RANGE, TEXT_PACES
 
     return {"paces": dict(sorted(TEXT_PACES.items())), "range": list(PACE_RANGE)}
+
+
+def _messages_vocabulary() -> dict:
+    from engine.utils.messages import MESSAGES
+
+    return {key: {"default": text, "fields": list(fields)} for key, (text, fields) in MESSAGES.items()}
+
+
+def _level_up_vocabulary() -> dict:
+    from engine.core.level_growth import DEFAULT_HEALTH_BASE, DEFAULT_STAT_GROWTH
+
+    return {"default_stat_growth": DEFAULT_STAT_GROWTH, "default_health_base": DEFAULT_HEALTH_BASE}
 
 
 def _sharing_vocabulary() -> dict:

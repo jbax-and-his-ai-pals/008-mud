@@ -170,7 +170,7 @@ def give_handler(args, context):
                 from engine.core.quests.closing import closing_text, completion_report
                 closing = closing_text(q_data, npc.dialog.get(f"complete_{q_id}", npc.dialog.get("quest_complete", "Thank you!")))
                 rewards_msg = world.quest_manager.complete_quest(player, q_id)
-                return completion_report(title, closing, rewards_msg)
+                return completion_report(title, closing, rewards_msg, world)
             remaining_names = [r.get("name", r.get("template_id")) for r in recipients if r.get("template_id") not in delivered]
             return (
                 f"{FORMAT_SUCCESS}{npc.name} accepts {the(item.name)}.{FORMAT_RESET}\n"
@@ -245,7 +245,7 @@ def give_handler(args, context):
         closing = closing_text(quest_data, npc.dialog.get(f"complete_{quest_id}", npc.dialog.get("quest_complete", "Thank you!")))
         rewards_msg = qm.complete_quest(player, quest_id)
 
-        return completion_report(quest_data.get('title'), closing, rewards_msg)
+        return completion_report(quest_data.get('title'), closing, rewards_msg, world)
         
     else:
         # Standard Gift

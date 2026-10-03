@@ -102,6 +102,7 @@ class HeadlessServer(
         tick_rate_hz: float = 10.0,
         deterministic_test_mode: bool = False,
         require_character_creation: bool = True,
+        quest_text_pace: Any = None,
         boot_warning_fail_codes: Optional[List[str]] = None,
         clock: Optional[Clock] = None,
         default_presentation_mode: str = "test",
@@ -116,7 +117,9 @@ class HeadlessServer(
         self.tick_rate_hz = tick_rate_hz
         self.tick_dt = 1.0 / self.tick_rate_hz
         # How a player's client is asked to reveal quest text: a pace name or number, None for all at once.
+        # An operator's setting wins, then the content set's own (`presentation.quest_text_pace`), then the engine's.
         self.quest_text_pace: Any = pacing.DEFAULT_QUEST_TEXT_PACE
+        self._operator_quest_text_pace: Any = quest_text_pace
         self.deterministic_test_mode = deterministic_test_mode
         resolved_presentation_mode = str(default_presentation_mode or "test").strip().lower()
         self.default_presentation_mode = (
@@ -133,6 +136,8 @@ class HeadlessServer(
             detail = "; ".join(errors) if errors else "unknown validation error"
             raise ValueError(f"Invalid content set '{content_set_path}': {detail}")
         self.content_set: ContentSetDefinition = definition
+        self.quest_text_pace = pacing.effective_quest_text_pace(
+            self._operator_quest_text_pace, (getattr(definition, "presentation", None) or {}).get("quest_text_pace"))
         self.content_set_path: str = str(definition.manifest_path)
         self.content_root = os.path.abspath(str(definition.content_root))
         if clock is None:

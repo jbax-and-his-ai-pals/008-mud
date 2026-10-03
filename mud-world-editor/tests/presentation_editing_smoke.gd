@@ -39,6 +39,25 @@ func _run():
 	_assert(after["display_name"] == before["display_name"] and after["accessibility"]["alt_text_required"] == true, "untouched fields survive")
 	_assert(not dialog.visible, "a successful save closes the dialog")
 
+	# the quest text speed: absent is the engine's default, a choice is written, going back erases it
+	dialog.open_active()
+	_assert(str(dialog.quest_pace.get_item_metadata(dialog.quest_pace.selected)) == "" and not JSON.parse_string(FileAccess.get_file_as_string(path)).has("quest_text_pace"), "a file with no quest text speed opens on the engine's default and writes nothing")
+	var solemn := -1
+	for i in range(dialog.quest_pace.item_count):
+		if str(dialog.quest_pace.get_item_metadata(i)) == "solemn": solemn = i
+	dialog.quest_pace.select(solemn); dialog.quest_pace.item_selected.emit(solemn)
+	dialog.confirmed.emit()
+	_assert(JSON.parse_string(FileAccess.get_file_as_string(path)).get("quest_text_pace") == "solemn", "a named speed is written by name")
+	dialog.open_active()
+	_assert(str(dialog.quest_pace.get_item_metadata(dialog.quest_pace.selected)) == "solemn", "reopening shows it")
+	dialog.quest_pace.select(1); dialog.quest_pace.item_selected.emit(1)
+	dialog.confirmed.emit()
+	_assert(JSON.parse_string(FileAccess.get_file_as_string(path)).get("quest_text_pace") == "instant", "instant is a choice of its own")
+	dialog.open_active()
+	dialog.quest_pace.select(0); dialog.quest_pace.item_selected.emit(0)
+	dialog.confirmed.emit()
+	_assert(not JSON.parse_string(FileAccess.get_file_as_string(path)).has("quest_text_pace"), "and the engine's default erases the key")
+
 	dialog.open_active()
 	_assert(not dialog._form_changed(), "reopen is clean")
 	_pick(dialog.theme_pack, "")

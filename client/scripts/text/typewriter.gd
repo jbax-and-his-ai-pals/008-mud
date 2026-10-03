@@ -15,6 +15,7 @@ extends Node
 
 var label: RichTextLabel
 var enabled: bool = true       # the player's own switch: off shows everything at once
+var speed_scale: float = 1.0   # the player's own speed: 2.0 types twice as fast as the server marked it
 
 var _queue: Array = []         # [end_character_count, characters_per_second (0 = at once)]
 var _shown: float = 0.0
@@ -64,7 +65,7 @@ func append(bbcode: String) -> void:
 		label.visible_characters = int(_shown)
 	for run in runs:
 		label.append_text(str(run[0]))
-		_queue.append([label.get_total_character_count(), float(run[1]) if enabled else 0.0])
+		_queue.append([label.get_total_character_count(), float(run[1]) * speed_scale if enabled else 0.0])
 
 
 func is_revealing() -> bool:

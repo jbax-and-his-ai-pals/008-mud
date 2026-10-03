@@ -23,6 +23,7 @@ class ServerSettings:
     abuse_command_burst: int
     world_bootstrap_starter_items: list[dict[str, Any] | str]
     session_require_character_creation: bool
+    session_quest_text_pace: Any   # None: the content set's (or the engine's) default; a pace name or number; "instant"
     boot_warning_fail_codes: list[str]
     config_path: str | None
 
@@ -143,6 +144,7 @@ def resolve_server_settings(
         abuse_command_burst=int(abuse_cfg.get("command_burst", 16)),
         world_bootstrap_starter_items=starter_items,
         session_require_character_creation=True,
+        session_quest_text_pace=session_cfg.get("quest_text_pace"),
         boot_warning_fail_codes=boot_warning_fail_codes,
         config_path=config_path,
     )

@@ -11,6 +11,7 @@ from engine.config import (
     PLAYER_HEALTH_REGEN_STRENGTH_DIVISOR, PLAYER_REGEN_TICK_INTERVAL, WORLD_UPDATE_INTERVAL
 )
 from engine.config.config_player import PLAYER_BASE_HEALTH_REGEN_RATE
+from engine.utils.messages import message
 from engine.contracts import stats as stats_contract
 from engine.contracts.resources import regen_stat as resource_regen_stat
 from engine.game_object import GameObject
@@ -332,7 +333,7 @@ class NPC(GameObject):
         if silent:
             return None
         # `properties.despawn_message`: how this summon leaves ("The Titan sinks back into the earth.")
-        return str(self.properties.get("despawn_message") or f"Your {self.name} crumbles to dust.")
+        return str(self.properties.get("despawn_message") or message(world, "summon_departs", name=self.name))
 
     def _handle_safe_zone_regen(self, current_time: float):
         if current_time - self.last_regen_time >= PLAYER_REGEN_TICK_INTERVAL:

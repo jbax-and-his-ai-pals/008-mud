@@ -556,7 +556,7 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
                  ))
             else:
                 closing = f"{FORMAT_HIGHLIGHT}\"{dialogue}\"{FORMAT_RESET}"
-            return completion_report(title, closing, rewards_msg)
+            return completion_report(title, closing, rewards_msg, world)
         else:
             new_idx = quest_data.get("current_stage_index", 0)
             new_stage_desc = quest_data["stages"][new_idx]["description"]

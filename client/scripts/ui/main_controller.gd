@@ -311,6 +311,8 @@ const DOCK_MANAGER = preload("res://scripts/ui/docks/dock_manager.gd")
 const PANEL_STYLE = preload("res://scripts/ui/docks/panel_style.gd")
 const TYPEWRITER = preload("res://scripts/text/typewriter.gd")
 const PREFS_PATH := "user://client_prefs.cfg"
+# What a player can set for how fast revealed text types (a multiple of what the story marks).
+const TEXT_SPEEDS := [["Slower", 0.6], ["As the story asks", 1.0], ["Faster", 2.0], ["Much faster", 4.0]]
 
 var _game_view: Control
 var _tools_view: Control
@@ -352,6 +354,7 @@ func _arrange_views() -> void:
 	typewriter = TYPEWRITER.new()
 	typewriter.label = log_view
 	typewriter.enabled = _pref("paced_text", true)
+	typewriter.speed_scale = float(_pref("paced_text_speed", 1.0))
 	add_child(typewriter)
 	log_view.gui_input.connect(func(event: InputEvent) -> void:
 		if event is InputEventMouseButton and event.pressed:
@@ -370,6 +373,23 @@ func _arrange_views() -> void:
 			typewriter.finish()
 		_set_pref("paced_text", on))
 	tools.add_child(paced_toggle)
+	var speed_row := HBoxContainer.new()
+	var speed_label := Label.new()
+	speed_label.text = "Typing speed"
+	speed_row.add_child(speed_label)
+	var speed_select := OptionButton.new()
+	speed_select.name = "TextSpeed"
+	speed_select.tooltip_text = "How fast gradually revealed text is typed, relative to what the story asks for."
+	for option in TEXT_SPEEDS:
+		speed_select.add_item(str(option[0]))
+		speed_select.set_item_metadata(speed_select.item_count - 1, option[1])
+		if is_equal_approx(float(option[1]), typewriter.speed_scale):
+			speed_select.select(speed_select.item_count - 1)
+	speed_select.item_selected.connect(func(index: int) -> void:
+		typewriter.speed_scale = float(speed_select.get_item_metadata(index))
+		_set_pref("paced_text_speed", typewriter.speed_scale))
+	speed_row.add_child(speed_select)
+	tools.add_child(speed_row)
 	var diagnostics_title := Label.new()
 	diagnostics_title.text = "Diagnostics"
 	tools.add_child(diagnostics_title)

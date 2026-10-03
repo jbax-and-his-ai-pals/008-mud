@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from typing import Any, List, Optional, Tuple
 
+from engine.utils.messages import message
+
 # How a kill's experience is shared (`ruleset.combat.experience_sharing.mode`):
 #   proportional  each participant earns their share of the damage (the default)
 #   equal         every participant earns the same share, whoever did more
@@ -172,12 +174,12 @@ def award_participants(world: Any, victim: Any, shares: List[Tuple[Any, float]],
         if xp > 0:
             leveled, level_msg = who.gain_experience(xp)
             name = format_name_for_display(who, victim, start_of_sentence=False)
-            lines.append(f"You gain {xp} experience for your part in defeating {name}.")
+            lines.append(message(world, "shared_experience", amount=xp, name=name))
             if leveled and level_msg:
                 lines.append(level_msg)
         if coins > 0:
             who.runtime_state.gold += coins
-            lines.append(f"You find {coins} {world.currency_name()}.")
+            lines.append(message(world, "kill_gold", amount=coins, currency=world.currency_name()))
         text = "\n".join(lines)
         if who is inline:
             told_inline = text

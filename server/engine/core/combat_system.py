@@ -15,6 +15,7 @@ from engine.config import (
 )
 from engine.contracts import stats as stats_contract
 from engine.utils.text_formatter import get_level_diff_category, format_target_name
+from engine.utils.messages import message
 from engine.utils.utils import format_name_for_display
 
 if TYPE_CHECKING:
@@ -28,13 +29,12 @@ class CombatSystem:
     @staticmethod
     def _respawn_hint(player) -> str:
         """What to do after falling: the command, and where it brings the player back."""
-        place = ""
         try:
             room = player.world.get_region(player.respawn_region_id).get_room(player.respawn_room_id)
-            place = f" at {room.name}"
+            text = message(player.world, "respawn_hint", place=room.name)
         except Exception:  # noqa: BLE001 - a hint must never break the blow that earned it
-            place = ""
-        return f"\n\n{FORMAT_CATEGORY}Type 'respawn' to rise again{place}.{FORMAT_RESET}"
+            text = "Type 'respawn' to rise again."
+        return f"\n\n{FORMAT_CATEGORY}{text}{FORMAT_RESET}"
 
     @staticmethod
     def calculate_hit_chance(attacker: Entity, defender: Entity) -> float:
@@ -153,7 +153,7 @@ class CombatSystem:
         if not defender.is_alive:
             result["target_defeated"] = True
             if def_name == "you":
-                msg += f" {FORMAT_ERROR}You have been defeated!{FORMAT_RESET}"
+                msg += f" {FORMAT_ERROR}{message(getattr(defender, 'world', None), 'defeated')}{FORMAT_RESET}"
                 msg += CombatSystem._respawn_hint(defender)
             else:
                 msg += f" {format_name_for_display(viewer, defender, start_of_sentence=True)} is defeated!"

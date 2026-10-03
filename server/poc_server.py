@@ -36,6 +36,7 @@ class JsonLineMudServer:
         command_burst: int = 16,
         starter_items: list[dict[str, Any] | str] | None = None,
         require_character_creation: bool = False,
+        quest_text_pace: Any = None,
         boot_warning_fail_codes: list[str] | None = None,
         presentation_mode: str = "player",
         db_path: str | None = None,
@@ -61,6 +62,7 @@ class JsonLineMudServer:
             feature_profile=feature_profile,
             starter_items=starter_items,
             require_character_creation=require_character_creation,
+            quest_text_pace=quest_text_pace,
             boot_warning_fail_codes=boot_warning_fail_codes,
             default_presentation_mode=self.presentation_mode,
         )
@@ -1711,6 +1713,7 @@ def main() -> None:
         command_burst=settings.abuse_command_burst,
         starter_items=settings.world_bootstrap_starter_items,
         require_character_creation=settings.session_require_character_creation,
+        quest_text_pace=settings.session_quest_text_pace,
         boot_warning_fail_codes=settings.boot_warning_fail_codes,
         presentation_mode=args.presentation_mode,
         db_path=args.db_path,

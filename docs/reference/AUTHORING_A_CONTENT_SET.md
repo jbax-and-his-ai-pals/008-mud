@@ -348,6 +348,38 @@ miss one:
    `data/campaigns/`, `crafting` needs recipes and a station item, `combat` needs
    something to fight and a `loot_table` worth fighting it for.
 
+### Telling a story
+
+Each of these is read by the engine, refused by the validator when it is wrong, and has a field in the editor.
+
+| What | Where | What it does |
+|---|---|---|
+| `ready_text` | a quest stage | What the quest update says to do once the objective is done, instead of "Report back to X." (for when the player has not met X). Used for every kind of objective. |
+| `completion_narration` | a quest stage | What is *told*, not said, when it is handed in: plain text, no quotation marks. (`completion_dialogue` is spoken, and quoted.) |
+| `spawn_on_start.intro` | a quest stage | Beats `{text, after, pace}` told a moment apart before the creature the stage brings in arrives; the creature appears with the last. How far it has got is kept, so a restart carries on instead of leaving a quest with nothing to fight. |
+| `entries` | a conversation | Alternate openings `{node, condition}`, tried in order: the first whose condition holds is what the NPC says, and the opening node is what is left. The first node's effects run when it opens. |
+| `end: true` | a conversation node | The NPC says it and the conversation is over, with no reply to click through first. |
+| `pace` | a conversation node, a campaign transition, an intro beat | How fast a client types the words out (`brisk`, `measured`, `slow`, `solemn`, or characters per second). |
+| `properties.despawn_message` | an NPC | How a summoned creature leaves ("The Titan sinks back into the earth."). |
+| `properties.essential: true` | an NPC | Cannot be killed unless recruited as a companion: left on the brink instead. |
+| `properties.unique: true` | an NPC | Called "the mayor", not "a mayor". |
+
+**Quest text speed.** Quest text is story, so a player's client types it out. The engine's default is `slow`;
+a set can ask for its own with `presentation.quest_text_pace` (a pace, or `"instant"`); a server's operator can
+override both with `session.quest_text_pace` in the server config; and a player can turn typing off or change its
+speed in the client. Lines a conversation or scene gives its own `pace` keep it.
+
+**What a level brings.** `ruleset.advancement.level_up` says what each level is worth:
+`"stat_growth": {"default": 1, "strength": 2, "agility": 0}` (what each stat gains; `default` is every stat not
+named, and 0 means it never grows) and `"health_base": 5` (the flat health a level brings, before what the health stat
+adds). Several levels gained at once are reported once, as the whole difference.
+
+**The engine's own words.** `ruleset.messages` replaces the sentences the engine says at the moments every game has:
+`kill_experience`, `kill_gold`, `shared_experience`, `level_reached`, `levels_gained`, `defeated`, `respawn_hint`,
+`summon_departs` and `quest_complete`. A line may use only the fields its message has, written `{like_this}`
+(the editor shows them); a line that cannot be used leaves the engine's words in place. Colour and layout stay with
+the engine.
+
 **Naming one-of-a-kind characters.** A lowercase NPC name takes an article in the text ("a goblin", "an innkeeper"). Set `properties.unique: true` on someone who is the only one of their kind and the text says "the mayor of Mistvale" instead. The Properties section of the NPC inspector has a "Unique" box for it.
 
 **Who earns experience (and money) for a kill.** Everyone who hurt the creature earns a share, however many players

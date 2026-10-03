@@ -57,6 +57,18 @@ DEFAULT_QUEST_TEXT_PACE = "slow"
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 
 
+def effective_quest_text_pace(operator: Any, content_set: Any) -> Any:
+    """The pace quest text is revealed at: what the server's operator set, else what the content set asks for
+    (`presentation.quest_text_pace`), else the engine's default. "instant" is a choice (nothing is paced by
+    default); `None`, or something that is not a pace, is "not said"."""
+    for value in (operator, content_set):
+        if isinstance(value, str) and value.strip().lower() == "instant":
+            return "instant"
+        if resolve_pace(value) is not None:
+            return value
+    return DEFAULT_QUEST_TEXT_PACE
+
+
 def pace_quest_text(text: str, pace: Any = DEFAULT_QUEST_TEXT_PACE) -> str:
     """Mark each paragraph of `text` that is quest text for gradual reveal at `pace`.
 

@@ -76,6 +76,12 @@ python server/launch_content_set.py --transport ws  --content-set content_sets/f
 python server/launch_content_set.py --dry-run        # print the resolved command, start nothing
 ```
 
+How quickly a player's client types out quest text is set in the server config, under `session`:
+`"quest_text_pace": "slow"` (a pace name, characters per second, or `"instant"` for none). It overrides the content
+set's own (`presentation.quest_text_pace`) and the engine's default (`slow`); it does not touch lines a conversation or
+scene gives their own speed, and a player can still turn typing off in the client. Leave it out to let the content
+set decide.
+
 The servers underneath take the same arguments directly:
 
 ```powershell

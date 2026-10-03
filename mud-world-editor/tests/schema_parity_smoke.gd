@@ -81,6 +81,8 @@ func _init() -> void:
 	_check_ability_vocabulary(vocabulary)
 	_check_pace_vocabulary(vocabulary)
 	_check_sharing_vocabulary(vocabulary)
+	_check_level_up_vocabulary(vocabulary)
+	_check_messages_vocabulary(vocabulary)
 	_check_weather_vocabulary(vocabulary)
 	_check_feature_profile_vocabulary(vocabulary)
 
@@ -428,6 +430,25 @@ func _check_sharing_vocabulary(vocabulary: Dictionary) -> void:
 	_assert(_as_set(engine.get("modes", [])) == _as_set(RulesetDraft.SHARING_MODES), "sharing modes match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("modes", [])))), str(_sorted(_as_set(RulesetDraft.SHARING_MODES)))])
 	_assert(is_equal_approx(float(engine.get("default_min_share", -1.0)), RulesetDraft.SHARING_DEFAULT_MIN_SHARE), "the default minimum share is the same in both")
 	_assert(is_equal_approx(float(engine.get("default_memory_seconds", -1.0)), float(RulesetDraft.SHARING_DEFAULT_MEMORY_SECONDS)), "the default memory is the same in both")
+
+
+func _check_level_up_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[level-up growth vocabulary: editor vs engine]")
+	var engine: Dictionary = vocabulary.get("level_up", {})
+	_assert(not engine.is_empty(), "the engine's level-up vocabulary was read")
+	_assert(is_equal_approx(float(engine.get("default_stat_growth", -1.0)), float(RulesetDraft.LEVEL_UP_DEFAULT_STAT_GROWTH)), "the default stat growth is the same in both")
+	_assert(int(engine.get("default_health_base", -1)) == RulesetDraft.LEVEL_UP_DEFAULT_HEALTH_BASE, "the default flat health per level is the same in both")
+
+
+func _check_messages_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[the engine's words: editor vs engine]")
+	var engine: Dictionary = vocabulary.get("messages", {})
+	_assert(not engine.is_empty(), "the engine's messages were read")
+	_assert(_as_set(engine.keys()) == _as_set(RulesetDraft.MESSAGES.keys()), "the same messages are named (engine %s, editor %s)" % [str(_sorted(_as_set(engine.keys()))), str(_sorted(_as_set(RulesetDraft.MESSAGES.keys())))])
+	for key in engine:
+		if not RulesetDraft.MESSAGES.has(key): continue
+		_assert(str(engine[key].get("default", "")) == str(RulesetDraft.MESSAGES[key][0]), "%s: the engine's words are the same in both" % key)
+		_assert(_as_set(engine[key].get("fields", [])) == _as_set(RulesetDraft.MESSAGES[key][1]), "%s: the fields it may use are the same in both" % key)
 
 
 func _check_pace_vocabulary(vocabulary: Dictionary) -> void:

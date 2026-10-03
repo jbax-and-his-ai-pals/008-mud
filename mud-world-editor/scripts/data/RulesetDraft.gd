@@ -13,6 +13,21 @@ const ConfigurationSave = preload("res://scripts/data/ConfigurationSave.gd")
 const SHARING_MODES := ["proportional", "equal", "killer"]
 const SHARING_DEFAULT_MIN_SHARE := 0.05
 const SHARING_DEFAULT_MEMORY_SECONDS := 300
+const LEVEL_UP_DEFAULT_STAT_GROWTH := 1
+const LEVEL_UP_DEFAULT_HEALTH_BASE := 5
+# The engine's own words (engine/utils/messages.py; schema_parity_smoke ties these to the engine):
+# key -> [the engine's words, the fields a replacement may use].
+const MESSAGES := {
+	"kill_experience": ["You gain {amount} experience!", ["amount"]],
+	"kill_gold": ["You find {amount} {currency}.", ["amount", "currency"]],
+	"shared_experience": ["You gain {amount} experience for your part in defeating {name}.", ["amount", "name"]],
+	"level_reached": ["You have reached level {level}!", ["level"]],
+	"levels_gained": ["You have gained {count} levels and are now level {level}!", ["count", "level"]],
+	"defeated": ["You have been defeated!", []],
+	"respawn_hint": ["Type 'respawn' to rise again at {place}.", ["place"]],
+	"summon_departs": ["Your {name} crumbles to dust.", ["name"]],
+	"quest_complete": ["[Quest Complete] {title}", ["title"]],
+}
 
 var path := ""
 var disk_hash := ""
@@ -25,7 +40,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "advancement.level_up", "advancement.level_up.stat_growth", "messages", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -69,6 +84,21 @@ func set_skill_stat_bonuses(bonuses: Dictionary):
 func set_npc_schedules(schedule_rules: Dictionary):
 	if schedule_rules.is_empty(): data.erase("npc_schedules")
 	else: data["npc_schedules"] = schedule_rules.duplicate(true)
+
+## Why `text` cannot stand in for the engine's words for `key` ("" when it can). The same rule the engine applies.
+static func message_problem(key: String, text) -> String:
+	if not (text is String) or str(text).strip_edges() == "": return "it must be text"
+	var allowed: Array = MESSAGES[key][1]
+	var regex := RegEx.new()
+	regex.compile("\\{([^{}]*)\\}")
+	var stripped := str(text)
+	for found in regex.search_all(str(text)):
+		var field := found.get_string(1)
+		if not (field in allowed): return "{%s} is not a field this message has (it may use: %s)" % [field, ", ".join(allowed.map(func(name): return "{%s}" % name)) if not allowed.is_empty() else "none"]
+		stripped = stripped.replace(found.get_string(), "")
+	if stripped.contains("{") or stripped.contains("}"): return "it has a stray brace"
+	return ""
+
 
 func set_advancement(advancement: Dictionary):
 	if advancement.is_empty(): data.erase("advancement")
@@ -162,6 +192,19 @@ func validate() -> Array:
 		errors.append("npc_schedules must be an object.")
 	if data.has("advancement") and not (data["advancement"] is Dictionary):
 		errors.append("advancement must be an object.")
+	var said = data.get("messages", {})
+	if said is Dictionary:
+		for key in said:
+			if not MESSAGES.has(str(key)): errors.append("messages.%s is not a message the engine says (known: %s)." % [str(key), ", ".join(MESSAGES.keys())]); continue
+			var problem := message_problem(str(key), said[key])
+			if problem != "": errors.append("messages.%s: %s." % [str(key), problem])
+	var level_up = data.get("advancement", {}).get("level_up", {}) if data.get("advancement", {}) is Dictionary else {}
+	if level_up is Dictionary and not level_up.is_empty():
+		var growth = level_up.get("stat_growth", {})
+		if growth is Dictionary:
+			for stat in growth:
+				if typeof(growth[stat]) not in [TYPE_INT, TYPE_FLOAT] or float(growth[stat]) < 0: errors.append("advancement.level_up.stat_growth.%s must be a number of 0 or more." % str(stat))
+		if level_up.has("health_base") and (typeof(level_up["health_base"]) not in [TYPE_INT, TYPE_FLOAT] or float(level_up["health_base"]) < 0): errors.append("advancement.level_up.health_base must be a number of 0 or more.")
 	var retreat = data.get("combat", {}).get("retreat", {}) if data.get("combat", {}) is Dictionary else {}
 	if retreat is Dictionary and not retreat.is_empty():
 		for key in ["base_difficulty", "difficulty_per_hostile_level"]:

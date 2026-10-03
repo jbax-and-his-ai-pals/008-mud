@@ -12,6 +12,8 @@ from engine.contracts.resources import (
     ability_resource_label,
     pool_on_level_up,
 )
+from engine.core.level_growth import growth_for, level_up_settings
+from engine.utils.messages import message as engine_message
 from engine.core.skill_system import SkillSystem
 
 if TYPE_CHECKING:
@@ -88,12 +90,13 @@ class PlayerProgressionMixin:
         # the list is whatever `Player.stats` actually holds, minus the
         # containers, so a set with its own vocabulary levels its own stats
         # rather than the six names this used to have written in.
+        growth, health_base = level_up_settings(p.world)
         for stat, value in list(p.stats.items()):
             if isinstance(value, (int, float)) and not isinstance(value, bool):
-                p.stats[stat] = value + PLAYER_LEVEL_UP_STAT_INCREASE
+                p.stats[stat] = value + growth_for(growth, stat)
 
         # Increase HP
-        health_increase = PLAYER_LEVEL_HEALTH_BASE_INCREASE + int(
+        health_increase = health_base + int(
             stats_contract.stat_for(p.world, p.stats, "health", PLAYER_DEFAULT_STATS)
             * PLAYER_LEVEL_CON_HEALTH_MULTIPLIER
         )
@@ -109,9 +112,9 @@ class PlayerProgressionMixin:
     def _level_message(self, levels: int, old_stats, old_max_health, old_max_mana) -> str:
         p = cast('Player', self)
         if levels == 1:
-            headline = f"You have reached level {p.runtime_state.progression.level}!"
+            headline = engine_message(p.world, "level_reached", level=p.runtime_state.progression.level)
         else:
-            headline = f"You have gained {levels} levels and are now level {p.runtime_state.progression.level}!"
+            headline = engine_message(p.world, "levels_gained", count=levels, level=p.runtime_state.progression.level)
         message = f"{FORMAT_HIGHLIGHT}{headline}{FORMAT_RESET}\n"
         message += f"  - Max Health: {old_max_health} -> {p.max_health} (+{p.max_health - old_max_health})\n"
         if p.runtime_state.magic is not None and old_max_mana is not None and p.runtime_state.magic.max_mana != old_max_mana:

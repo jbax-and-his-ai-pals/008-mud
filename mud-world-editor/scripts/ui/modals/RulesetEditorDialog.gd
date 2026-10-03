@@ -39,6 +39,12 @@ var npc_schedule_excluded: LineEdit
 var npc_schedule_baseline: Dictionary = {}
 var advancement_base: SpinBox
 var advancement_multiplier: SpinBox
+var level_up_growth: SpinBox
+var level_up_health: SpinBox
+var level_up_overrides: LineEdit
+var level_up_loaded: Dictionary = {}
+var message_fields: Dictionary = {}
+var messages_loaded: Dictionary = {}
 var advancement_grant_rows: VBoxContainer
 var advancement_baseline: Dictionary = {}
 var weather_description_rows: VBoxContainer
@@ -126,6 +132,27 @@ func setup():
 	advancement_base = SpinBox.new(); advancement_base.min_value = 1; advancement_base.max_value = 100000; advancement_base.step = 1; advancement_base.custom_minimum_size.x = 100; InspectorStyle.apply_input_style(advancement_base); advancement_base.value_changed.connect(func(_value): _mark_dirty()); curve_row.add_child(advancement_base)
 	curve_row.add_child(InspectorStyle.lbl("Growth multiplier", InspectorStyle.COLOR_TEXT_DIM))
 	advancement_multiplier = SpinBox.new(); advancement_multiplier.min_value = 1.01; advancement_multiplier.max_value = 10; advancement_multiplier.step = 0.01; advancement_multiplier.custom_minimum_size.x = 100; InspectorStyle.apply_input_style(advancement_multiplier); advancement_multiplier.value_changed.connect(func(_value): _mark_dirty()); curve_row.add_child(advancement_multiplier); box.add_child(curve_row)
+	var level_hint := InspectorStyle.lbl("What a level brings. Each stat grows by the default unless it is named below (a stat set to 0 never grows); health grows by the flat amount plus what the health stat adds.", InspectorStyle.COLOR_TEXT_DIM)
+	level_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(level_hint)
+	var level_row := HBoxContainer.new(); level_row.add_theme_constant_override("separation", 8); level_row.add_child(InspectorStyle.lbl("Stat growth per level", InspectorStyle.COLOR_TEXT_DIM))
+	level_up_growth = SpinBox.new(); level_up_growth.name = "LevelUpStatGrowth"; level_up_growth.min_value = 0; level_up_growth.max_value = 50; level_up_growth.step = 0.5; level_up_growth.custom_minimum_size.x = 80; InspectorStyle.apply_input_style(level_up_growth); level_up_growth.value_changed.connect(func(_value): _mark_dirty()); level_row.add_child(level_up_growth)
+	level_row.add_child(InspectorStyle.lbl("Health per level (flat)", InspectorStyle.COLOR_TEXT_DIM))
+	level_up_health = SpinBox.new(); level_up_health.name = "LevelUpHealthBase"; level_up_health.min_value = 0; level_up_health.max_value = 1000; level_up_health.step = 1; level_up_health.custom_minimum_size.x = 80; InspectorStyle.apply_input_style(level_up_health); level_up_health.value_changed.connect(func(_value): _mark_dirty()); level_row.add_child(level_up_health); box.add_child(level_row)
+	level_up_overrides = _field(box, "Stats that grow differently (name=amount, comma-separated)"); level_up_overrides.name = "LevelUpStatOverrides"
+	box.add_child(InspectorStyle.create_sub_header("The engine's words"))
+	var words_hint := InspectorStyle.lbl("Say a moment your own way: a kill's rewards, a level gained, falling in battle, a quest handed in. Leave a line empty to keep the engine's. A line may use only the fields shown on its hover, written {like_this}.", InspectorStyle.COLOR_TEXT_DIM)
+	words_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(words_hint)
+	for key in RulesetDraft.MESSAGES:
+		var spec: Array = RulesetDraft.MESSAGES[key]
+		var words_row := HBoxContainer.new()
+		var words_label := InspectorStyle.lbl(str(key).replace("_", " ").capitalize(), InspectorStyle.COLOR_TEXT_DIM); words_label.custom_minimum_size.x = 150
+		words_row.add_child(words_label)
+		var words_field := LineEdit.new(); words_field.name = "Message_%s" % key; words_field.placeholder_text = str(spec[0])
+		words_field.tooltip_text = "Fields: %s" % (", ".join((spec[1] as Array).map(func(name): return "{%s}" % name)) if not (spec[1] as Array).is_empty() else "none")
+		words_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(words_field); words_field.text_changed.connect(func(_text): _mark_dirty())
+		words_row.add_child(words_field); box.add_child(words_row)
+		message_fields[key] = words_field
 	var grants_header := HBoxContainer.new(); grants_header.add_child(InspectorStyle.lbl("Activity grants", InspectorStyle.COLOR_TEXT_DIM))
 	var grants_spacer := Control.new(); grants_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; grants_header.add_child(grants_spacer)
 	var add_grant := Button.new(); add_grant.text = "+ Activity Grant"; InspectorStyle.apply_button_style(add_grant, InspectorStyle.COLOR_SUCCESS)
@@ -225,6 +252,7 @@ func open_active():
 	_load_skill_bonuses()
 	_load_npc_schedules()
 	_load_advancement()
+	_load_messages()
 	_load_weather_section()
 	var quest_generation = draft.data.get("quest_generation", {})
 	quest_generation_section.load(quest_generation if quest_generation is Dictionary else {}, content_database)
@@ -252,6 +280,7 @@ func _save():
 	if _field_changed(sharing_mode): _put_path(draft.data, "combat.experience_sharing.mode", str(RulesetDraft.SHARING_MODES[sharing_mode.selected]))
 	if _field_changed(sharing_min_share): _put_path(draft.data, "combat.experience_sharing.min_share", float(sharing_min_share.value))
 	if _field_changed(sharing_memory): _put_path(draft.data, "combat.experience_sharing.memory_seconds", float(sharing_memory.value))
+	_apply_messages()
 	for pair in [[combat_blocked_commands, "additional_blocked_command_names"], [combat_message_tokens, "additional_combat_message_tokens"]]:
 		if not _field_changed(pair[0]): continue
 		var values: Array = Array((pair[0] as LineEdit).text.split(",", false)).map(func(value): return str(value).strip_edges()).filter(func(value): return value != "")
@@ -480,6 +509,15 @@ func _load_advancement():
 	var curve: Dictionary = advancement.get("curve", {}) if advancement.get("curve", {}) is Dictionary else {}
 	advancement_base.value = float(curve.get("base", 100))
 	advancement_multiplier.value = float(curve.get("multiplier", 1.25))
+	var level_up: Dictionary = advancement.get("level_up", {}) if advancement.get("level_up", {}) is Dictionary else {}
+	var growth: Dictionary = level_up.get("stat_growth", {}) if level_up.get("stat_growth", {}) is Dictionary else {}
+	level_up_growth.value = float(growth.get("default", RulesetDraft.LEVEL_UP_DEFAULT_STAT_GROWTH))
+	level_up_health.value = float(level_up.get("health_base", RulesetDraft.LEVEL_UP_DEFAULT_HEALTH_BASE))
+	var named: Array = []
+	for stat in growth:
+		if str(stat) != "default": named.append("%s=%s" % [str(stat), str(_whole_if_whole(float(growth[stat])))])
+	level_up_overrides.text = ", ".join(named)
+	level_up_loaded = {"growth": level_up_growth.value, "health": level_up_health.value, "overrides": level_up_overrides.text}
 	var grants: Array = advancement.get("grants", []) if advancement.get("grants", []) is Array else []
 	for source in grants:
 		if source is Dictionary: _add_advancement_grant(source.duplicate(true), str(source.get("id", "")))
@@ -523,6 +561,7 @@ func _advancement() -> Dictionary:
 	var curve_was_authored := out.get("curve", null) is Dictionary
 	if curve_was_authored or int(advancement_base.value) != 100 or not is_equal_approx(advancement_multiplier.value, 1.25):
 		curve["base"] = advancement_base.value; curve["multiplier"] = advancement_multiplier.value; out["curve"] = curve
+	_apply_level_up(out)
 	var grants: Array = []
 	for card in advancement_grant_rows.get_children():
 		# By tag, not by name: Godot renames every same-named sibling after the
@@ -551,6 +590,62 @@ func _advancement() -> Dictionary:
 	if grants.is_empty(): out.erase("grants")
 	else: out["grants"] = grants
 	return out
+
+
+## The level-up fields write only what the author changed: what is shown but untouched stays as the file had it
+## (or stays absent), so opening and saving writes nothing.
+func _apply_level_up(out: Dictionary) -> void:
+	var growth_changed := not is_equal_approx(level_up_growth.value, float(level_up_loaded.get("growth", 1.0)))
+	var health_changed := not is_equal_approx(level_up_health.value, float(level_up_loaded.get("health", 5.0)))
+	var overrides_changed := level_up_overrides.text != str(level_up_loaded.get("overrides", ""))
+	if not (growth_changed or health_changed or overrides_changed): return
+	var level_up: Dictionary = out.get("level_up", {}) if out.get("level_up", {}) is Dictionary else {}
+	var growth: Dictionary = level_up.get("stat_growth", {}) if level_up.get("stat_growth", {}) is Dictionary else {}
+	if growth_changed:
+		if is_equal_approx(level_up_growth.value, float(RulesetDraft.LEVEL_UP_DEFAULT_STAT_GROWTH)): growth.erase("default")
+		else: growth["default"] = _whole_if_whole(level_up_growth.value)
+	if overrides_changed:
+		for stat in growth.keys():
+			if str(stat) != "default": growth.erase(stat)
+		for pair in _split(level_up_overrides.text):
+			var parts := str(pair).split("=")
+			if parts.size() == 2 and str(parts[0]).strip_edges() != "" and str(parts[1]).strip_edges().is_valid_float():
+				growth[str(parts[0]).strip_edges()] = _whole_if_whole(float(str(parts[1]).strip_edges()))
+	if growth.is_empty(): level_up.erase("stat_growth")
+	else: level_up["stat_growth"] = growth
+	if health_changed:
+		if int(level_up_health.value) == RulesetDraft.LEVEL_UP_DEFAULT_HEALTH_BASE: level_up.erase("health_base")
+		else: level_up["health_base"] = int(level_up_health.value)
+	if level_up.is_empty(): out.erase("level_up")
+	else: out["level_up"] = level_up
+
+
+func _load_messages() -> void:
+	var said: Dictionary = draft.data.get("messages", {}) if draft.data.get("messages", {}) is Dictionary else {}
+	messages_loaded = {}
+	for key in message_fields:
+		var text := str(said.get(key, ""))
+		(message_fields[key] as LineEdit).text = text
+		messages_loaded[key] = text
+
+
+## Only a line the author changed is written; an emptied line erases its key, and an empty section goes with it.
+func _apply_messages() -> void:
+	var out: Dictionary = draft.data.get("messages", {}) if draft.data.get("messages", {}) is Dictionary else {}
+	var touched := false
+	for key in message_fields:
+		var text := (message_fields[key] as LineEdit).text
+		if text == str(messages_loaded.get(key, "")): continue
+		touched = true
+		if text.strip_edges() == "": out.erase(key)
+		else: out[key] = text
+	if not touched: return
+	if out.is_empty(): draft.data.erase("messages")
+	else: draft.data["messages"] = out
+
+
+func _whole_if_whole(value: float):
+	return int(value) if is_equal_approx(value, round(value)) else value
 
 
 func _advancement_changed() -> bool:

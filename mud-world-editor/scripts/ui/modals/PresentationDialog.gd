@@ -27,6 +27,7 @@ var status: Label
 var display_name: LineEdit
 var presentation_id: LineEdit
 var theme_pack: OptionButton
+var quest_pace: OptionButton
 var flag_checks: Dictionary = {}
 var loading := false
 
@@ -46,6 +47,13 @@ func setup():
 	pack_row.add_child(theme_pack)
 	var hint := InspectorStyle.lbl("Sent to the client when a player connects; a client without that pack keeps its current theme. A player's own 'theme use' choice is never overridden.", InspectorStyle.COLOR_TEXT_DIM)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(hint)
+	var pace_row := HBoxContainer.new(); box.add_child(pace_row)
+	pace_row.add_child(InspectorStyle.lbl("Quest text speed", InspectorStyle.COLOR_TEXT_DIM))
+	quest_pace = OptionButton.new(); quest_pace.name = "QuestTextPace"; quest_pace.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_button_style(quest_pace); quest_pace.item_selected.connect(func(index): quest_pace.select(index); _mark_dirty())
+	pace_row.add_child(quest_pace)
+	var pace_hint := InspectorStyle.lbl("How fast a player's client types out quest text ([Quest Accepted], updates, hand-ins). The server's operator can override it, and a player can turn typing off or change its speed. Dialogue lines and scenes name their own speed.", InspectorStyle.COLOR_TEXT_DIM)
+	pace_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(pace_hint)
 	display_name = _field(box, "Display name (not yet read by the client)")
 	presentation_id = _field(box, "Presentation id (not yet read)")
 	box.add_child(InspectorStyle.lbl("Accessibility declarations (not yet read)", InspectorStyle.COLOR_TEXT_DIM))
@@ -96,6 +104,7 @@ func open_active():
 	presentation_id.text = str(original.get("presentation_id", ""))
 	var accessibility: Dictionary = original.get("accessibility", {}) if original.get("accessibility") is Dictionary else {}
 	for key in flag_checks: flag_checks[key].button_pressed = accessibility.get(key) == true
+	_fill_quest_pace(original.get("quest_text_pace", ""))
 	_reset_form_baseline()
 	loading = false
 	get_ok_button().disabled = true
@@ -109,6 +118,10 @@ func compose() -> Dictionary:
 		var pack := QuestGenerationSection._picked(theme_pack)
 		if pack == "": out.erase("theme_pack")
 		else: out["theme_pack"] = pack
+	if _field_changed(quest_pace):
+		var chosen = quest_pace.get_item_metadata(quest_pace.selected)
+		if str(chosen) == "": out.erase("quest_text_pace")
+		else: out["quest_text_pace"] = chosen
 	for pair in [[display_name, "display_name"], [presentation_id, "presentation_id"]]:
 		if _field_changed(pair[0]):
 			var text: String = pair[0].text.strip_edges()
@@ -120,6 +133,24 @@ func compose() -> Dictionary:
 			accessibility[key] = flag_checks[key].button_pressed
 			out["accessibility"] = accessibility
 	return out
+
+
+## The engine's default is no entry (the key is absent); "instant" is a choice; a speed the engine accepts
+## but this list has no name for stays visible as it is.
+func _fill_quest_pace(current) -> void:
+	quest_pace.clear()
+	quest_pace.add_item("Engine default (slow)"); quest_pace.set_item_metadata(0, "")
+	quest_pace.add_item("Instant (no typing)"); quest_pace.set_item_metadata(1, "instant")
+	for pace_name in DialogueInspector.TEXT_PACES:
+		quest_pace.add_item("%s (%d chars/sec)" % [str(pace_name).capitalize(), DialogueInspector.TEXT_PACES[pace_name]])
+		quest_pace.set_item_metadata(quest_pace.item_count - 1, pace_name)
+	var selected := 0
+	for i in range(quest_pace.item_count):
+		if str(quest_pace.get_item_metadata(i)) == str(current) and str(current) != "": selected = i
+	if str(current) != "" and selected == 0:
+		quest_pace.add_item("Custom: %s" % str(current)); quest_pace.set_item_metadata(quest_pace.item_count - 1, current)
+		selected = quest_pace.item_count - 1
+	quest_pace.select(selected)
 
 
 func _save():

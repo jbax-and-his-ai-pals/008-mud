@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from engine.utils.messages import MESSAGES, template_problems
+
 
 CONTENT_SET_MANIFEST_NAME = "content_set.manifest.json"
 CONTENT_SET_SCHEMA_VERSION = "1"
@@ -36,7 +38,7 @@ OPTIONAL_MANIFEST_PATHS = ("feature_profile", "opening")
 REQUIRED_START_FIELDS = ("scenario_id", "region_id", "room_id")
 # The presentation file: which client theme pack a set asks for (sent to the
 # client in `hello`), plus descriptive fields no runtime reads yet.
-PRESENTATION_KEYS = ("presentation_id", "display_name", "theme_pack", "accessibility")
+PRESENTATION_KEYS = ("presentation_id", "display_name", "theme_pack", "accessibility", "quest_text_pace")
 PRESENTATION_ACCESSIBILITY_KEYS = ("alt_text_required", "high_contrast_supported", "reduced_motion_supported")
 _THEME_PACK_ID_PATTERN = re.compile(r"[a-z][a-z0-9_]*")
 _DISABLED_PROGRESSION_MODELS = {"", "none", "off", "disabled"}
@@ -202,6 +204,16 @@ def _validate_presentation(payload: dict[str, Any], path: Path, issues: list[Con
                 "error", source,
                 f"presentation.theme_pack must be a client theme pack id such as 'fantasy_classic' (got {pack!r}); "
                 "the client looks it up by id, not by path",
+            ))
+    if "quest_text_pace" in payload:
+        from engine.utils import pacing
+
+        pace = payload["quest_text_pace"]
+        if pace != "instant" and pacing.resolve_pace(pace) is None:
+            issues.append(ContentSetIssue(
+                "error", source,
+                f"presentation.quest_text_pace {pace!r} is not a pace (\"instant\", a name -- {', '.join(pacing.TEXT_PACES)} -- "
+                f"or characters per second from {pacing.PACE_RANGE[0]} to {pacing.PACE_RANGE[1]})",
             ))
     accessibility = payload.get("accessibility")
     if accessibility is not None:
@@ -1700,6 +1712,7 @@ _SIMPLE_RULESET_SECTION_KEYS = {
     "status": ("stats",),
     "combat": ("retreat", "experience_sharing", "additional_blocked_command_names", "additional_combat_message_tokens"),
     "companions": ("max",),
+    "messages": tuple(MESSAGES),
 }
 
 
@@ -1810,6 +1823,12 @@ def _validate_simple_ruleset_sections(
         for keyword in spawning["no_spawn_keywords"]:
             if room_text and not any(keyword.lower() in text for text in room_text):
                 warn(f"spawning.no_spawn_keywords '{keyword}' matches no room id or name, so it protects nothing")
+
+    for key, template in sections.get("messages", {}).items():
+        if str(key).startswith("_") or key not in MESSAGES:
+            continue
+        for problem in template_problems(template, key):
+            error(f"messages.{key}: {problem}")
 
     companions = sections.get("companions", {})
     if "max" in companions:
@@ -6016,6 +6035,26 @@ def _validate_advancement_section(section: Any, content_root: Path, issues: list
             multiplier = curve.get("multiplier")
             if multiplier is not None and (isinstance(multiplier, bool) or not isinstance(multiplier, (int, float)) or multiplier <= 1):
                 issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.curve.multiplier must be greater than 1"))
+
+    level_up = section.get("level_up")
+    if level_up is not None:
+        if not isinstance(level_up, dict):
+            issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.level_up must be an object"))
+        else:
+            for key in level_up:
+                if key not in ("stat_growth", "health_base"):
+                    issues.append(ContentSetIssue("error", str(ruleset_path), f"advancement.level_up.{key} is not read (known: stat_growth, health_base)"))
+            growth = level_up.get("stat_growth")
+            if growth is not None:
+                if not isinstance(growth, dict):
+                    issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.level_up.stat_growth must be an object of stat name to growth per level (\"default\" is every stat not named)"))
+                else:
+                    for stat, amount in growth.items():
+                        if isinstance(amount, bool) or not isinstance(amount, (int, float)) or amount < 0:
+                            issues.append(ContentSetIssue("error", str(ruleset_path), f"advancement.level_up.stat_growth.{stat} must be a number of 0 or more"))
+            health = level_up.get("health_base")
+            if health is not None and (isinstance(health, bool) or not isinstance(health, (int, float)) or health < 0):
+                issues.append(ContentSetIssue("error", str(ruleset_path), "advancement.level_up.health_base must be a number of 0 or more: the flat health a level brings"))
 
     grants = section.get("grants")
     if grants is None:
