@@ -596,6 +596,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_update_attack_bar()
+	if docks != null:
+		docks.tick()
 	_authoring_status_refresh_accum_s += _delta
 	if _authoring_status_refresh_accum_s >= 0.25:
 		_authoring_status_refresh_accum_s = 0.0
@@ -749,6 +751,8 @@ func _on_line_received(line: String) -> void:
 	elif event_type == "cooldown":
 		if typeof(payload) == TYPE_DICTIONARY:
 			_apply_cooldown((payload as Dictionary).get("attack", {}))
+			if docks != null:
+				docks.apply_cooldowns((payload as Dictionary).get("abilities", []))
 	elif event_type == "room":
 		if typeof(payload) == TYPE_DICTIONARY:
 			_show_room(str((payload as Dictionary).get("text", "")))

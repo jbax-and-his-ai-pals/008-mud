@@ -8,8 +8,9 @@ or the time and weather had to ask for text and read it back. Two events carry i
   equipment by slot (with durability), known spells (with cooldowns), skills and active effects.
 * `world`: the time, date, period of day, season, and the weather where the player stands.
 * `room`: the text `look` would give, for a pane that always shows the current room.
-* `cooldown`: the attack cooldown (`duration`, and `remaining` seconds when it was sent), sent when an
-  attack is made rather than every tick; the client counts the bar down itself.
+* `cooldown`: the attack cooldown and each known ability's (`duration`, and `remaining` seconds when it
+  was sent), sent when an attack or a cast is made rather than every tick; the client counts the bars
+  down itself.
 
 They are sent when they change, per session (`_panel_events`), on every tick and after a
 character is created or resumed, so a panel is never stale and a quiet server sends nothing. The
@@ -81,9 +82,27 @@ class PanelPayloadsMixin:
         duration = float(player.get_effective_attack_cooldown())
         last = float(getattr(player, "last_attack_time", 0.0) or 0.0)
         remaining = max(0.0, duration - (now - last)) if last > 0 else 0.0
+        abilities = []
+        magic = player.runtime_state.magic
+        if magic is not None:
+            from engine.contracts.equipment import ability_numbers
+            from engine.magic.spell_registry import get_spell
+
+            for spell_id in sorted(magic.known_spells):
+                spell = get_spell(spell_id)
+                if spell is None:
+                    continue
+                ends = float(magic.cooldowns.get(spell_id, 0) or 0)
+                abilities.append({
+                    "id": spell_id,
+                    "duration": round(float(ability_numbers(self.world, spell)["cooldown"]), 2),
+                    "remaining": round(max(0.0, ends - now), 2),
+                    "_ends": round(ends, 3),
+                })
         return {
             "attack": {"duration": round(duration, 2), "remaining": round(remaining, 2)},
-            "_signature": [round(last, 3), round(duration, 2)],
+            "abilities": [{k: v for k, v in a.items() if k != "_ends"} for a in abilities],
+            "_signature": [round(last, 3), round(duration, 2), [(a["id"], a["_ends"], a["duration"]) for a in abilities]],
         }
 
     # -- the room ----------------------------------------------------------------------------
@@ -170,11 +189,11 @@ class PanelPayloadsMixin:
                 spell = get_spell(spell_id)
                 if spell is None:
                     continue
-                remaining = max(0.0, float(state.magic.cooldowns.get(spell_id, 0) or 0) - now)
+                # (How long an ability has left to cool is the `cooldown` event's business: it changes
+                # every tick, and this sheet is only resent when something about the character does.)
                 spells.append({
                     "id": spell_id, "name": str(spell.name), "cost": int(getattr(spell, "mana_cost", 0) or 0),
                     "cost_text": ability_cost_text(world, spell),
-                    "cooldown": round(remaining, 1),
                 })
         payload["spells"] = sorted(spells, key=lambda entry: entry["name"])
         payload["ability_noun"] = ability_noun(world)

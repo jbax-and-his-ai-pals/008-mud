@@ -96,6 +96,26 @@ class TestPanelPayloads(unittest.TestCase):
             self.assertEqual([], [e for e in self.server._panel_events(self.sid) if e["type"] == "cooldown"],
                              "the client counts down; the server does not resend")
 
+    def test_an_ability_on_cooldown_is_sent_once_and_the_character_sheet_is_not_resent_each_tick(self):
+        from engine.npcs.npc_factory import NPCFactory
+
+        listed = {a["id"]: a for a in self.payload(self.created, "cooldown")["abilities"]}
+        self.assertEqual(0.0, listed["dark_wave"]["remaining"])
+        self.assertEqual(6.0, listed["dark_wave"]["duration"])
+        self.player.current_region_id, self.player.current_room_id = "road", "castle_road"
+        target = NPCFactory.create_npc_from_template("goblin_scout", self.server.world, instance_id="cd_ability_target")
+        target.current_region_id, target.current_room_id = "road", "castle_road"
+        target.health = target.max_health = 500
+        self.server.world.add_npc(target)
+        self.server._panel_events(self.sid)
+        events = self.server.execute_command(self.sid, "cast dark wave")
+        cooling = {a["id"]: a for a in self.payload(events, "cooldown")["abilities"]}["dark_wave"]
+        self.assertGreater(cooling["remaining"], 0)
+        later = self.server._panel_events(self.sid)
+        self.assertEqual([], [e for e in later if e["type"] == "cooldown"], "counted down by the client")
+        self.assertNotIn("cooldown", self.payload(self.server._panel_events(self.sid, force=True), "character")["spells"][0],
+                         "the sheet no longer carries a countdown that would resend it every tick")
+
     def test_the_room_is_not_resent_while_it_is_the_same(self):
         self.server._panel_events(self.sid)
         self.assertEqual([], [e for e in self.server._panel_events(self.sid) if e["type"] == "room"])

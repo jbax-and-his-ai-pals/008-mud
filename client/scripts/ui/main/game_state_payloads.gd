@@ -375,9 +375,9 @@ func _handle_quests_payload(payload: Variant) -> void:
 		var hint: String = str(objective.get("location_hint", "")).strip_edges()
 		if hint != "":
 			objective_text += " — %s" % hint
-		if bool(objective.get("ready_to_turn_in", false)):
-			objective_text = "[color=yellow]Ready to turn in:[/color] " + objective_text
-		lines.append("%s [url=cmd:journal]%s[/url] [%s]\n    %s" % [active_prefix, main._bbcode_escape(title), str(quest.get("state", "unknown")), main._bbcode_escape(objective_text)])
+		# the tag is ours, so it is added after the text beside it is escaped
+		var ready_prefix: String = "[color=yellow]Ready to turn in:[/color] " if bool(objective.get("ready_to_turn_in", false)) else ""
+		lines.append("%s [url=cmd:journal]%s[/url] [%s]\n    %s%s" % [active_prefix, main._bbcode_escape(title), str(quest.get("state", "unknown")), ready_prefix, main._bbcode_escape(objective_text)])
 	for quest_variant in completed:
 		if typeof(quest_variant) != TYPE_DICTIONARY:
 			continue

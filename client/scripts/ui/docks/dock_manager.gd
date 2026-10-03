@@ -52,7 +52,11 @@ var _xp_text: Label
 var _effects: RichTextLabel
 var _attributes: RichTextLabel
 var _equipment: RichTextLabel
-var _spells: RichTextLabel
+var _spells: RichTextLabel          # only the "none known" note; the abilities themselves are rows
+var _ability_box: VBoxContainer
+var _ability_rows: Dictionary = {}  # ability id -> {"bar": ProgressBar, "time": Label}
+var _ability_state: Dictionary = {} # ability id -> [ready at (msec), cooldown (seconds)]
+var _ability_signature: String = ""
 var _skills: RichTextLabel
 var _world: RichTextLabel
 var _on_link: Callable
@@ -166,6 +170,9 @@ func _content_for(id: String, nodes: Array) -> Control:
 		"spells":
 			_spells = _text_block()
 			box.add_child(_spells)
+			_ability_box = VBoxContainer.new()
+			_ability_box.add_theme_constant_override("separation", 5)
+			box.add_child(_ability_box)
 		"skills":
 			_skills = _text_block()
 			box.add_child(_skills)
@@ -252,20 +259,98 @@ func apply_character(p: Dictionary) -> void:
 	# what the set calls its abilities ("Abilities", or "Spells") names the panel
 	var noun := str(p.get("ability_noun", "Abilities"))
 	panels["spells"].set_title(noun)
-	var spell_lines: PackedStringArray = []
-	for spell in p.get("spells", []):
-		var sp: Dictionary = spell
-		var line := "%s [color=#6f9bff](%s)[/color]" % [_link("abilities %s" % str(sp.get("name", "")), str(sp.get("name", ""))), _esc(str(sp.get("cost_text", sp.get("cost", 0))))]
-		if float(sp.get("cooldown", 0)) > 0.0:
-			line += " [color=#ffa540]cooldown %.0fs[/color]" % float(sp.get("cooldown", 0))
-		spell_lines.append(line)
-	_spells.text = "\n".join(spell_lines) if not spell_lines.is_empty() else "[i][color=#808080]No %s known.[/color][/i]" % noun.to_lower()
+	var abilities: Array = p.get("spells", [])
+	_spells.visible = abilities.is_empty()
+	_spells.text = "[i][color=#808080]No %s known.[/color][/i]" % noun.to_lower() if abilities.is_empty() else ""
+	_rebuild_abilities(abilities)
 
 	var skill_lines: PackedStringArray = []
 	for skill in p.get("skills", []):
 		var k: Dictionary = skill
 		skill_lines.append("%s  %d" % [_link("skills %s" % str(k.get("name", "")), str(k.get("name", ""))), int(k.get("level", 0))])
 	_skills.text = "\n".join(skill_lines) if not skill_lines.is_empty() else "[i][color=#808080]No skills learned yet.[/color][/i]"
+
+
+## One row per ability: its name and cost (a link that describes it) and a bar under it that is full
+## when it has just been used and empties as it cools down.
+func _rebuild_abilities(abilities: Array) -> void:
+	var signature := JSON.stringify(abilities)
+	if signature == _ability_signature:
+		return
+	_ability_signature = signature
+	for child in _ability_box.get_children():
+		child.queue_free()
+	_ability_rows.clear()
+	for entry in abilities:
+		var sp: Dictionary = entry
+		var id := str(sp.get("id", ""))
+		var row := VBoxContainer.new()
+		row.add_theme_constant_override("separation", 2)
+		var caption := _text_block()
+		caption.text = "%s [color=#6f9bff](%s)[/color]" % [_link("abilities %s" % str(sp.get("name", "")), str(sp.get("name", ""))), _esc(str(sp.get("cost_text", sp.get("cost", 0))))]
+		row.add_child(caption)
+		var timing := HBoxContainer.new()
+		timing.add_theme_constant_override("separation", 6)
+		var bar := ProgressBar.new()
+		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		bar.custom_minimum_size = Vector2(0, 10)
+		bar.min_value = 0.0
+		bar.max_value = 1.0
+		bar.value = 0.0
+		bar.show_percentage = false
+		var fill := StyleBoxFlat.new()
+		fill.bg_color = Color(0.9, 0.62, 0.2)
+		fill.set_corner_radius_all(3)
+		bar.add_theme_stylebox_override("fill", fill)
+		var back := StyleBoxFlat.new()
+		back.bg_color = Color(0.13, 0.13, 0.14)
+		back.set_corner_radius_all(3)
+		bar.add_theme_stylebox_override("background", back)
+		timing.add_child(bar)
+		var time := Label.new()
+		time.custom_minimum_size = Vector2(44, 0)
+		time.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		time.add_theme_font_size_override("font_size", 12)
+		time.text = "Ready"
+		time.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5))
+		timing.add_child(time)
+		row.add_child(timing)
+		_ability_box.add_child(row)
+		_ability_rows[id] = {"bar": bar, "time": time, "cooling": false}
+
+
+## The server says when an ability was used (how long it cools, and how much is left); the bars count
+## down on their own from there.
+func apply_cooldowns(abilities: Array) -> void:
+	var now := Time.get_ticks_msec()
+	for entry in abilities:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var info: Dictionary = entry
+		_ability_state[str(info.get("id", ""))] = [now + int(float(info.get("remaining", 0.0)) * 1000.0), maxf(0.1, float(info.get("duration", 1.0)))]
+
+
+func tick() -> void:
+	var now := Time.get_ticks_msec()
+	for id in _ability_rows:
+		var row: Dictionary = _ability_rows[id]
+		var state: Array = _ability_state.get(id, [0, 0.0])
+		var left := float(int(state[0]) - now) / 1000.0
+		var bar: ProgressBar = row["bar"]
+		var time: Label = row["time"]
+		if left <= 0.0 or float(state[1]) <= 0.0:
+			if bool(row["cooling"]):
+				row["cooling"] = false
+				bar.value = 0.0
+				time.text = "Ready"
+				time.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5))
+			continue
+		if not bool(row["cooling"]):
+			row["cooling"] = true
+			time.add_theme_color_override("font_color", Color(0.9, 0.62, 0.2))
+		bar.value = clampf(left / float(state[1]), 0.0, 1.0)
+		time.text = "%.1fs" % left
 
 
 func apply_world(p: Dictionary) -> void:
