@@ -634,6 +634,21 @@ func _build_behavior_tuning():
 		database_modified.emit())
 	flags.add_child(unique)
 
+	# How a summoned creature leaves ("The Titan sinks back into the earth."); empty is the engine's own line.
+	var despawn_row := HBoxContainer.new()
+	despawn_row.add_child(InspectorStyle.lbl("Departure line (summons)", InspectorStyle.COLOR_TEXT_DIM))
+	var despawn_field := LineEdit.new(); despawn_field.name = "DespawnMessage"
+	despawn_field.text = str(properties.get("despawn_message", ""))
+	despawn_field.placeholder_text = "Your <name> crumbles to dust."
+	despawn_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	despawn_field.tooltip_text = "Said when this creature, summoned by a spell, expires or is dismissed (properties.despawn_message)."
+	InspectorStyle.apply_input_style(despawn_field)
+	despawn_field.text_changed.connect(func(new_text: String):
+		if new_text.strip_edges() == "": _ensure_npc_properties().erase("despawn_message")
+		else: _ensure_npc_properties()["despawn_message"] = new_text
+		database_modified.emit())
+	despawn_row.add_child(despawn_field); vbox.add_child(despawn_row)
+
 	var patrol_header := HBoxContainer.new(); patrol_header.add_child(InspectorStyle.create_sub_header("Patrol Points"))
 	patrol_header.tooltip_text = "Room ids in this NPC's own region, visited in order (behavior_type: patrol)."
 	var patrol_spacer := Control.new(); patrol_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; patrol_header.add_child(patrol_spacer)

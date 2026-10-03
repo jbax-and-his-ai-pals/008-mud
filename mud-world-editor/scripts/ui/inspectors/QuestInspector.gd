@@ -402,6 +402,7 @@ func _add_stage_tail_fields(vbox: VBoxContainer, stage: Dictionary):
 	# spawn_on_entry, using the field names manager.py reads.
 	_add_spawn_row(grid, stage, "spawn_on_entry")
 	_add_spawn_row(grid, stage, "spawn_on_start")
+	_add_intro_rows(grid, stage)
 
 
 func _add_spawn_row(grid: VBoxContainer, stage: Dictionary, key: String):
@@ -412,9 +413,10 @@ func _add_spawn_row(grid: VBoxContainer, stage: Dictionary, key: String):
 	row.add_child(label)
 	var line := LineEdit.new()
 	line.placeholder_text = "{template_id, region_id, room_id}"
-	line.text = JSON.stringify(stage.get(key)) if stage.has(key) else ""
+	line.text = JSON.stringify(_without_intro(stage.get(key))) if stage.has(key) else ""
 	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	InspectorStyle.apply_input_style(line)
+	line.name = key.to_pascal_case()
 	line.text_changed.connect(func(text):
 		var trimmed: String = str(text).strip_edges()
 		if trimmed == "":
@@ -423,7 +425,11 @@ func _add_spawn_row(grid: VBoxContainer, stage: Dictionary, key: String):
 		else:
 			var parsed = JSON.parse_string(trimmed)
 			if typeof(parsed) == TYPE_DICTIONARY:
+				# the arrival beats have their own rows below; editing this line does not lose them
+				var held = stage[key].get("intro") if stage.get(key) is Dictionary else null
 				stage[key] = parsed
+				if held != null and not parsed.has("intro"):
+					stage[key]["intro"] = held
 				line.modulate = Color.WHITE
 			else:
 				line.modulate = Color(1.0, 0.6, 0.6)
@@ -431,6 +437,123 @@ func _add_spawn_row(grid: VBoxContainer, stage: Dictionary, key: String):
 	)
 	row.add_child(line)
 	grid.add_child(row)
+
+
+static func _without_intro(spawn):
+	if not (spawn is Dictionary) or not spawn.has("intro"):
+		return spawn
+	var copy: Dictionary = (spawn as Dictionary).duplicate()
+	copy.erase("intro")
+	return copy
+
+
+## The told moments before a stage's creature arrives (`spawn_on_start.intro`): each is told `after` seconds
+## after the one before, and the creature appears with the last. Nothing is written until a beat is added.
+func _add_intro_rows(grid: VBoxContainer, stage: Dictionary) -> void:
+	var spawn = stage.get("spawn_on_start")
+	var box := VBoxContainer.new(); box.name = "IntroBeats"
+	box.add_theme_constant_override("separation", 4)
+	var header := HBoxContainer.new()
+	var label := InspectorStyle.lbl("Arrival beats", InspectorStyle.COLOR_TEXT_DIM)
+	label.custom_minimum_size.x = 210
+	label.tooltip_text = "Lines told, a moment apart, before the creature this stage brings in appears. The creature arrives with the last one."
+	header.add_child(label)
+	if not (spawn is Dictionary):
+		header.add_child(InspectorStyle.lbl("(fill in the spawn on start above first)", InspectorStyle.COLOR_TEXT_DIM))
+		box.add_child(header)
+		grid.add_child(box)
+		return
+	var add := Button.new(); add.name = "AddBeat"; add.text = "+ Beat"
+	InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var beats: Array = spawn.get("intro", []) if spawn.get("intro") is Array else []
+		beats.append({"text": "", "after": 2})
+		spawn["intro"] = beats
+		database_modified.emit()
+		_refresh_intro(box, stage))
+	header.add_child(add)
+	box.add_child(header)
+	var beats_box := VBoxContainer.new(); beats_box.name = "Beats"
+	box.add_child(beats_box)
+	grid.add_child(box)
+	_fill_intro(beats_box, spawn)
+
+
+func _refresh_intro(box: VBoxContainer, stage: Dictionary) -> void:
+	var beats_box: Node = box.get_node_or_null("Beats")
+	if beats_box == null:
+		return
+	_clear_children(beats_box)
+	_fill_intro(beats_box, stage.get("spawn_on_start"))
+
+
+func _fill_intro(beats_box: VBoxContainer, spawn: Dictionary) -> void:
+	var beats: Array = spawn.get("intro", []) if spawn.get("intro") is Array else []
+	for index in range(beats.size()):
+		if not (beats[index] is Dictionary):
+			continue
+		var beat: Dictionary = beats[index]
+		var row := HBoxContainer.new(); row.name = "Beat%d" % index
+		var text := LineEdit.new(); text.name = "Text"
+		text.placeholder_text = "what is told"
+		text.text = str(beat.get("text", ""))
+		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InspectorStyle.apply_input_style(text)
+		text.text_changed.connect(func(value): beat["text"] = value; database_modified.emit())
+		row.add_child(text)
+		row.add_child(InspectorStyle.lbl("after", InspectorStyle.COLOR_TEXT_DIM))
+		var after := SpinBox.new(); after.name = "After"
+		after.min_value = 0; after.max_value = 600; after.step = 0.5; after.custom_minimum_size.x = 80
+		after.value = float(beat.get("after", 2))
+		InspectorStyle.apply_input_style(after)
+		after.value_changed.connect(func(value):
+			beat["after"] = int(value) if is_equal_approx(value, round(value)) else snappedf(value, 0.5)
+			database_modified.emit())
+		row.add_child(after)
+		row.add_child(_beat_pace_picker(beat))
+		var remove := Button.new(); remove.text = "×"; remove.name = "RemoveBeat"
+		InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			beats.remove_at(index)
+			if beats.is_empty():
+				spawn.erase("intro")
+			database_modified.emit()
+			_clear_children(beats_box)
+			_fill_intro(beats_box, spawn))
+		row.add_child(remove)
+		beats_box.add_child(row)
+
+
+# Rows are named, so a replaced row must be gone at once (a queued free would leave its name taken).
+static func _clear_children(node: Node) -> void:
+	for child in node.get_children():
+		node.remove_child(child)
+		child.queue_free()
+
+
+## How fast a client types the beat out; Instant is the default and writes nothing.
+func _beat_pace_picker(beat: Dictionary) -> OptionButton:
+	var picker := OptionButton.new(); picker.name = "Pace"
+	var current = beat.get("pace", "")
+	picker.add_item("Instant"); picker.set_item_metadata(0, "")
+	for pace_name in DialogueInspector.TEXT_PACES:
+		picker.add_item(str(pace_name).capitalize()); picker.set_item_metadata(picker.item_count - 1, pace_name)
+	var selected := 0
+	for i in range(picker.item_count):
+		if str(picker.get_item_metadata(i)) == str(current): selected = i
+	if str(current) != "" and selected == 0 and str(current) != "instant":
+		picker.add_item("Custom: %s" % str(current)); picker.set_item_metadata(picker.item_count - 1, current)
+		selected = picker.item_count - 1
+	picker.select(selected)
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(index):
+		var value = picker.get_item_metadata(index)
+		if str(value) == "":
+			if beat.has("pace"):
+				beat.erase("pace"); database_modified.emit()
+		elif beat.get("pace") != value:
+			beat["pace"] = value; database_modified.emit())
+	return picker
 
 
 # Anything else this inspector does not model: named, and left exactly as it is.

@@ -264,8 +264,40 @@ func _transition_row(node: Dictionary, transitions: Array, index: int) -> VBoxCo
 	narrative.placeholder_text = "narrative shown when this transition is taken (optional)"
 	InspectorStyle.apply_input_style(narrative)
 	narrative.text_changed.connect(func(text): transition["narrative_text"] = text; database_modified.emit())
-	box.add_child(narrative)
+	narrative.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var narrative_row := HBoxContainer.new()
+	narrative_row.add_child(narrative)
+	narrative_row.add_child(_pace_picker(transition))
+	box.add_child(narrative_row)
 	return box
+
+
+## How fast a client reveals the narrative (engine/utils/pacing.py). Instant is the default and writes nothing; a
+## speed the engine accepts but this list has no name for is shown as it is, not replaced.
+func _pace_picker(transition: Dictionary) -> OptionButton:
+	var picker := OptionButton.new(); picker.name = "NarrativePace"
+	picker.tooltip_text = "How quickly a client types out the narrative. Instant is the default; slower gives a story beat weight."
+	var current = transition.get("pace", "")
+	picker.add_item("Instant"); picker.set_item_metadata(0, "")
+	for pace_name in DialogueInspector.TEXT_PACES:
+		picker.add_item("%s (%d chars/sec)" % [str(pace_name).capitalize(), DialogueInspector.TEXT_PACES[pace_name]])
+		picker.set_item_metadata(picker.item_count - 1, pace_name)
+	var selected := 0
+	for i in range(picker.item_count):
+		if str(picker.get_item_metadata(i)) == str(current): selected = i
+	if str(current) != "" and selected == 0 and str(current) != "instant":
+		picker.add_item("Custom: %s" % str(current)); picker.set_item_metadata(picker.item_count - 1, current)
+		selected = picker.item_count - 1
+	picker.select(selected)
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(index):
+		var value = picker.get_item_metadata(index)
+		if str(value) == "":
+			if transition.has("pace"):
+				transition.erase("pace"); database_modified.emit()
+		elif transition.get("pace") != value:
+			transition["pace"] = value; database_modified.emit())
+	return picker
 
 
 func _retype(node: Dictionary, kind: String) -> void:

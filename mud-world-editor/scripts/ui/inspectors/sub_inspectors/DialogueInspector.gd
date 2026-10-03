@@ -38,6 +38,7 @@ var database_mgr: DatabaseManager
 var nodes_box: VBoxContainer
 var root_picker: OptionButton
 var references_label: Label
+var entries_box: VBoxContainer
 
 
 func _init(c: VBoxContainer, db_mgr: DatabaseManager):
@@ -100,6 +101,23 @@ func _build_graph_header():
 	references_label.modulate = Color(0.68, 0.7, 0.78)
 	vbox.add_child(references_label)
 
+	# Other ways to open the conversation: the first whose condition holds is what the NPC says, and the
+	# opening node above is what is left. This is how "You have your orders" replaces the first audience.
+	var entries_header := HBoxContainer.new()
+	entries_header.add_child(InspectorStyle.lbl("Alternate openings (tried in order; the first whose condition holds wins)", InspectorStyle.COLOR_TEXT_DIM))
+	var entries_spacer := Control.new(); entries_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	entries_header.add_child(entries_spacer)
+	var add_entry := Button.new(); add_entry.name = "AddEntry"; add_entry.text = "+ Opening"
+	InspectorStyle.apply_button_style(add_entry, Color(0.2, 0.3, 0.4))
+	add_entry.pressed.connect(add_entry_opening)
+	entries_header.add_child(add_entry)
+	vbox.add_child(entries_header)
+	entries_box = VBoxContainer.new()
+	entries_box.name = "Entries"
+	entries_box.add_theme_constant_override("separation", 4)
+	vbox.add_child(entries_box)
+	_refresh_entries()
+
 
 func _node_ids() -> Array:
 	var ids: Array = []
@@ -133,6 +151,9 @@ func _refresh_root_picker():
 			for target in DialogueSchema.choice_targets(choice):
 				if not nodes.has(target):
 					dangling.append("%s → %s" % [node_id, target])
+	for entry in cur_data.get("entries", []) if cur_data.get("entries") is Array else []:
+		if entry is Dictionary and not nodes.has(str(entry.get("node", ""))):
+			dangling.append("opening → %s" % str(entry.get("node", "")))
 	var lines: Array = ["%d node(s)." % ids.size()]
 	if dangling.is_empty():
 		lines.append("Every choice leads somewhere that exists.")
@@ -156,6 +177,91 @@ func _build_nodes():
 	nodes_box.add_theme_constant_override("separation", 10)
 	container.add_child(nodes_box)
 	_refresh_nodes()
+
+
+# An alternate opening, pointed at the first node there is until the author picks one. Public because it is the
+# structural operation a caller (and a test) drives.
+func add_entry_opening() -> void:
+	var ids := _node_ids()
+	if ids.is_empty():
+		return
+	var entries: Array = cur_data.get("entries", []) if cur_data.get("entries") is Array else []
+	entries.append({"node": str(ids[0])})
+	cur_data["entries"] = entries
+	database_modified.emit()
+	_refresh_entries()
+
+
+func _refresh_entries() -> void:
+	if entries_box == null:
+		return
+	for child in entries_box.get_children():
+		child.queue_free()
+	var entries: Array = cur_data.get("entries", []) if cur_data.get("entries") is Array else []
+	if entries.is_empty():
+		entries_box.add_child(InspectorStyle.lbl("None: the opening node is always what is said first.", InspectorStyle.COLOR_TEXT_DIM))
+	for index in range(entries.size()):
+		if entries[index] is Dictionary:
+			entries_box.add_child(_entry_card(entries, index))
+
+
+func _entry_card(entries: Array, index: int) -> PanelContainer:
+	var entry: Dictionary = entries[index]
+	var pc := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.16, 0.16, 0.19)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 10; style.content_margin_right = 10
+	style.content_margin_top = 6; style.content_margin_bottom = 6
+	pc.add_theme_stylebox_override("panel", style)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	pc.add_child(vbox)
+
+	var row := HBoxContainer.new()
+	row.add_child(InspectorStyle.lbl("%d. Say" % (index + 1), InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new(); picker.name = "EntryNode"
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var ids := _node_ids()
+	for node_id in ids:
+		picker.add_item(str(node_id))
+	var current := str(entry.get("node", ""))
+	var selected := ids.find(current)
+	if current != "" and selected < 0:
+		picker.add_item(current)   # a node that is not in this graph stays visible, so it can be fixed
+		selected = picker.item_count - 1
+	picker.select(maxi(0, selected))
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(chosen):
+		entry["node"] = picker.get_item_text(chosen)
+		database_modified.emit())
+	row.add_child(picker)
+	var remove := Button.new(); remove.text = "×"; remove.name = "RemoveEntry"
+	InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+	remove.pressed.connect(func():
+		entries.remove_at(index)
+		if entries.is_empty():
+			cur_data.erase("entries")
+		database_modified.emit()
+		_refresh_entries())
+	row.add_child(remove)
+	vbox.add_child(row)
+
+	CONDITION_ROWS.build(
+		vbox, entry.get("condition"), database_mgr, "When", "(always)",
+		func(): database_modified.emit(),
+		func(kind: String):
+			if kind == "":
+				entry.erase("condition")
+			else:
+				entry["condition"] = {"kind": kind}
+			database_modified.emit()
+			_refresh_entries(),
+		func(replacement: Dictionary):
+			entry["condition"] = replacement
+			database_modified.emit()
+	)
+	return pc
 
 
 # Public because it is the structural operation a caller (and a test) drives;
@@ -218,6 +324,20 @@ func _build_scene_row(vbox: Node, node: Dictionary) -> void:
 			node["must_answer"] = true; database_modified.emit()
 		elif node.has("must_answer"):
 			node.erase("must_answer"); database_modified.emit())
+	vbox.add_child(box)
+
+
+## The NPC says it and the conversation is over: no replies to click through first. Off is the default and
+## writes nothing.
+func _build_end_row(vbox: Node, node: Dictionary) -> void:
+	var box := CheckBox.new(); box.name = "EndsConversation"
+	box.text = "Ends the conversation after it is said (no replies)"
+	box.button_pressed = node.get("end", false) == true
+	box.toggled.connect(func(on):
+		if on:
+			node["end"] = true; database_modified.emit()
+		elif node.has("end"):
+			node.erase("end"); database_modified.emit())
 	vbox.add_child(box)
 
 
@@ -288,6 +408,7 @@ func _node_card(node_id: String, node: Dictionary) -> PanelContainer:
 
 	_build_pace_row(vbox, node)
 	_build_scene_row(vbox, node)
+	_build_end_row(vbox, node)
 	_build_effects_row(vbox, node, "Node effects (applied when the node is reached)")
 
 	var choices_header := HBoxContainer.new()
@@ -451,7 +572,7 @@ func _build_effects_row(parent: VBoxContainer, owner: Dictionary, label_text: St
 
 
 func _build_extras():
-	var known := ["id", "root", "nodes", "_filename"]
+	var known := ["id", "root", "entries", "nodes", "_filename"]
 	var extras: Array = []
 	for key in cur_data:
 		if not known.has(str(key)):
@@ -493,8 +614,12 @@ func _rename_node(old_id: String, new_id: String):
 						check[key] = clean
 	if str(cur_data.get("root", "")) == old_id:
 		cur_data["root"] = clean
+	for entry in cur_data.get("entries", []) if cur_data.get("entries") is Array else []:
+		if entry is Dictionary and str(entry.get("node", "")) == old_id:
+			entry["node"] = clean
 	database_modified.emit()
 	_refresh_nodes()
+	_refresh_entries()
 
 
 func _remove_node(node_id: String):
@@ -504,6 +629,7 @@ func _remove_node(node_id: String):
 		cur_data["root"] = str(_node_ids()[0]) if not _node_ids().is_empty() else ""
 	database_modified.emit()
 	_refresh_nodes()
+	_refresh_entries()
 
 
 func _text_value(node: Dictionary) -> String:
