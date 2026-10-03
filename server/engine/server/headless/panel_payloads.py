@@ -8,6 +8,8 @@ or the time and weather had to ask for text and read it back. Two events carry i
   equipment by slot (with durability), known spells (with cooldowns), skills and active effects.
 * `world`: the time, date, period of day, season, and the weather where the player stands.
 * `room`: the text `look` would give, for a pane that always shows the current room.
+* `cooldown`: the attack cooldown (`duration`, and `remaining` seconds when it was sent), sent when an
+  attack is made rather than every tick; the client counts the bar down itself.
 
 They are sent when they change, per session (`_panel_events`), on every tick and after a
 character is created or resumed, so a panel is never stale and a quiet server sends nothing. The
@@ -44,7 +46,8 @@ class PanelPayloadsMixin:
         sent = self._panel_cache().setdefault(session_id, {})
         events: List[Dict[str, Any]] = []
         builders = [("character", self._build_character_payload), ("world", self._build_world_payload),
-                    ("room", self._build_room_payload), ("inventory", self._build_inventory_payload)]
+                    ("room", self._build_room_payload), ("inventory", self._build_inventory_payload),
+                    ("cooldown", self._build_cooldown_payload)]
         if self.world.has_capability("quests"):
             builders.append(("quests", self._build_quests_payload))
         for kind, build in builders:
@@ -54,11 +57,34 @@ class PanelPayloadsMixin:
                 continue
             if payload is None:
                 continue
-            signature = json.dumps(payload, sort_keys=True, default=str)
+            # A payload may name what "changed" means (`_signature`), when part of it is just time
+            # passing (a countdown) and must not be resent every tick.
+            marker = payload.pop("_signature", None) if isinstance(payload, dict) else None
+            signature = json.dumps(marker if marker is not None else payload, sort_keys=True, default=str)
             if force or sent.get(kind) != signature:
                 sent[kind] = signature
                 events.append(self._event(kind, session_id, payload))
         return events
+
+    # -- the attack cooldown ---------------------------------------------------------------
+
+    def _build_cooldown_payload(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """When the player's next attack is ready, so a client can draw a bar that counts down.
+
+        Sent when an attack is made or the weapon changes the cooldown, not on every tick: the
+        client counts the remaining seconds down itself.
+        """
+        player = self.get_player_for_session(session_id)
+        if player is None or not hasattr(player, "get_effective_attack_cooldown"):
+            return None
+        now = float(self.world.clock.now())
+        duration = float(player.get_effective_attack_cooldown())
+        last = float(getattr(player, "last_attack_time", 0.0) or 0.0)
+        remaining = max(0.0, duration - (now - last)) if last > 0 else 0.0
+        return {
+            "attack": {"duration": round(duration, 2), "remaining": round(remaining, 2)},
+            "_signature": [round(last, 3), round(duration, 2)],
+        }
 
     # -- the room ----------------------------------------------------------------------------
 

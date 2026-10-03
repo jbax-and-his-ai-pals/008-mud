@@ -320,6 +320,11 @@ var _debug_log: RichTextLabel
 var docks
 var typewriter
 var room_label: RichTextLabel      # the pane above the log that shows the current room
+var attack_bar: ProgressBar        # counts down to when the next attack is ready
+var _attack_status: Label
+var _attack_ready_msec: int = 0
+var _attack_duration: float = 0.0
+var _attack_was_ready: bool = true
 var _room_scroll: ScrollContainer
 
 
@@ -382,7 +387,7 @@ func _arrange_views() -> void:
 		"pack": [inventory_summary_label, inventory_list_label],
 		"surroundings": [nearby_location_label, nearby_exits_label, nearby_npcs_label, nearby_items_label, nearby_interactions_label],
 		"quests": [journal_summary_label, journal_list_label],
-		"combat": [combat_summary_label, combat_targets_label],
+		"combat": [_make_attack_row(), combat_summary_label, combat_targets_label],
 		"crafting": [crafting_summary_label, crafting_list_label],
 		"collections": [collections_summary_label, collections_list_label],
 		"discoveries": [discoveries_summary_label, discoveries_list_label],
@@ -590,6 +595,7 @@ func _ready() -> void:
 		onboarding.show_if_first_run()
 
 func _process(_delta: float) -> void:
+	_update_attack_bar()
 	_authoring_status_refresh_accum_s += _delta
 	if _authoring_status_refresh_accum_s >= 0.25:
 		_authoring_status_refresh_accum_s = 0.0
@@ -740,6 +746,9 @@ func _on_line_received(line: String) -> void:
 	elif event_type == "world":
 		if docks != null and typeof(payload) == TYPE_DICTIONARY:
 			docks.apply_world(payload as Dictionary)
+	elif event_type == "cooldown":
+		if typeof(payload) == TYPE_DICTIONARY:
+			_apply_cooldown((payload as Dictionary).get("attack", {}))
 	elif event_type == "room":
 		if typeof(payload) == TYPE_DICTIONARY:
 			_show_room(str((payload as Dictionary).get("text", "")))
@@ -809,6 +818,69 @@ func _append_game(text: String) -> void:
 ## The pane above the log that always shows the room the player is in. It tops out at a fixed height
 ## and scrolls inside itself, so a long description cannot push the story log off the screen.
 const ROOM_PANE_MAX_HEIGHT := 230
+
+
+## The attack cooldown, at the top of the Combat panel: full the moment an attack is made, emptying as
+## the cooldown runs out, and empty (with "Ready") when the next attack can go. The server says when
+## an attack was made; the bar counts down by itself.
+func _make_attack_row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.name = "AttackRow"
+	row.add_theme_constant_override("separation", 6)
+	var caption := Label.new()
+	caption.text = "Attack"
+	caption.add_theme_color_override("font_color", Color(0.93, 0.8, 0.45))
+	row.add_child(caption)
+	attack_bar = ProgressBar.new()
+	attack_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	attack_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	attack_bar.custom_minimum_size = Vector2(0, 16)
+	attack_bar.min_value = 0.0
+	attack_bar.max_value = 1.0
+	attack_bar.value = 0.0
+	attack_bar.show_percentage = false
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.9, 0.62, 0.2)
+	fill.set_corner_radius_all(4)
+	attack_bar.add_theme_stylebox_override("fill", fill)
+	var back := StyleBoxFlat.new()
+	back.bg_color = Color(0.13, 0.13, 0.14)
+	back.set_corner_radius_all(4)
+	attack_bar.add_theme_stylebox_override("background", back)
+	row.add_child(attack_bar)
+	_attack_status = Label.new()
+	_attack_status.custom_minimum_size = Vector2(48, 0)
+	_attack_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_attack_status.text = "Ready"
+	_attack_status.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5))
+	row.add_child(_attack_status)
+	return row
+
+
+func _apply_cooldown(attack: Variant) -> void:
+	if typeof(attack) != TYPE_DICTIONARY or attack_bar == null:
+		return
+	var info: Dictionary = attack
+	_attack_duration = maxf(0.1, float(info.get("duration", 1.0)))
+	_attack_ready_msec = Time.get_ticks_msec() + int(float(info.get("remaining", 0.0)) * 1000.0)
+
+
+func _update_attack_bar() -> void:
+	if attack_bar == null:
+		return
+	var left := float(_attack_ready_msec - Time.get_ticks_msec()) / 1000.0
+	if left <= 0.0 or _attack_duration <= 0.0:
+		if not _attack_was_ready:
+			_attack_was_ready = true
+			attack_bar.value = 0.0
+			_attack_status.text = "Ready"
+			_attack_status.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5))
+		return
+	if _attack_was_ready:
+		_attack_was_ready = false
+		_attack_status.add_theme_color_override("font_color", Color(0.9, 0.62, 0.2))
+	attack_bar.value = clampf(left / _attack_duration, 0.0, 1.0)
+	_attack_status.text = "%.1fs" % left
 
 
 func _make_room_pane() -> PanelContainer:

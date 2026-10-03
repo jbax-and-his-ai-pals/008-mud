@@ -76,6 +76,26 @@ class TestPanelPayloads(unittest.TestCase):
         moved = self.server._panel_events(self.sid)
         self.assertIn("COURTYARD", self.payload(moved, "room")["text"].upper())
 
+    def test_the_attack_cooldown_is_sent_when_you_attack_and_not_every_tick(self):
+        from engine.npcs.npc_factory import NPCFactory
+
+        ready = self.payload(self.created, "cooldown")["attack"]
+        self.assertEqual(0.0, ready["remaining"], "nothing has been swung yet")
+        self.assertGreater(ready["duration"], 0)
+        self.player.current_region_id, self.player.current_room_id = "road", "castle_road"
+        rat = NPCFactory.create_npc_from_template("goblin_scout", self.server.world, instance_id="cd_target")
+        rat.current_region_id, rat.current_room_id = "road", "castle_road"
+        rat.health = rat.max_health = 500
+        self.server.world.add_npc(rat)
+        self.server._panel_events(self.sid)
+        events = self.server.execute_command(self.sid, "attack goblin")
+        swung = self.payload(events, "cooldown")["attack"]
+        self.assertGreater(swung["remaining"], 0)
+        self.assertLessEqual(swung["remaining"], swung["duration"])
+        for _ in range(3):
+            self.assertEqual([], [e for e in self.server._panel_events(self.sid) if e["type"] == "cooldown"],
+                             "the client counts down; the server does not resend")
+
     def test_the_room_is_not_resent_while_it_is_the_same(self):
         self.server._panel_events(self.sid)
         self.assertEqual([], [e for e in self.server._panel_events(self.sid) if e["type"] == "room"])

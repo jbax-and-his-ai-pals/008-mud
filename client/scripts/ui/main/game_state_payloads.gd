@@ -195,7 +195,7 @@ func _handle_combat_payload(payload: Variant) -> void:
 		lines.append("[color=gray]Suggested: %s[/color]" % main._bbcode_escape(", ".join(actions)))
 	var recent: Array = body.get("recent_actions", []) as Array
 	if not recent.is_empty():
-		lines.append("[color=gray]Recent: %s[/color]" % main._bbcode_escape(str(recent[recent.size() - 1])))
+		lines.append("[color=gray]Recent: %s[/color]" % main.SERVER_MARKUP.to_bbcode(str(recent[recent.size() - 1])))   # server markup: colours and links, not literal brackets
 	main.combat_targets_label.text = "\n".join(lines) if not lines.is_empty() else "[i]No targets remain in sight.[/i]"
 
 func _handle_inventory_payload(payload: Variant) -> void:
