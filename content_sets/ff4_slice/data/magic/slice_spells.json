@@ -53,21 +53,27 @@
     },
     "call_titan": {
         "name": "Call Titan",
-        "description": "Reach across the gap and call a titan to your side. The calling takes a quarter of your life to make.",
+        "description": "Sing the calling and a titan rises for a moment to shake the whole room, then is gone. The calling takes a quarter of your life to make, and needs an enemy to answer to.",
         "mana_cost": 0,
         "health_cost_fraction": 0.25,
         "cooldown": 20,
-        "target_type": "self",
+        "target_type": "all_enemies",
         "cast_message": "{caster_name} sings the calling, and the ground answers...",
         "level_required": 1,
         "effects": [
             {
                 "type": "summon",
                 "summon_template_id": "titan_minion",
-                "summon_duration": 60,
+                "summon_duration": 5,
                 "max_summons": 1
+            },
+            {
+                "type": "damage",
+                "value": 60,
+                "damage_type": "earth"
             }
-        ]
+        ],
+        "hit_message": "The Titan's quake splits the ground under {target_name} for {value} damage!"
     },
     "bat_screech": {
         "name": "Screech",

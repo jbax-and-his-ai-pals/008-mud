@@ -329,7 +329,10 @@ class NPC(GameObject):
                         summon_ids.remove(self.obj_id)
                         if not summon_ids: del owner.runtime_state.magic.summons[spell_id]
                         break
-        return f"Your {self.name} crumbles to dust." if not silent else None
+        if silent:
+            return None
+        # `properties.despawn_message`: how this summon leaves ("The Titan sinks back into the earth.")
+        return str(self.properties.get("despawn_message") or f"Your {self.name} crumbles to dust.")
 
     def _handle_safe_zone_regen(self, current_time: float):
         if current_time - self.last_regen_time >= PLAYER_REGEN_TICK_INTERVAL:

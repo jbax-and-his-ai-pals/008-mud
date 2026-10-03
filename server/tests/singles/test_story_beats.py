@@ -381,6 +381,25 @@ class TestNamesAndFlight(unittest.TestCase):
         self.assertIn("flees to the north!", said)
 
 
+class TestACastSummonsOnce(unittest.TestCase):
+    def test_a_quake_across_three_enemies_still_calls_one_titan_and_says_how_it_leaves(self):
+        game = _Game(self)
+        game.player.runtime_state.magic.known_spells.add("call_titan")
+        game.player.current_region_id, game.player.current_room_id = "road", "castle_road"
+        for index in range(3):
+            foe = NPCFactory.create_npc_from_template("goblin_scout", game.world, instance_id="triple_%d" % index)
+            foe.current_region_id, foe.current_room_id = "road", "castle_road"
+            game.world.add_npc(foe)
+        game.say("cast call titan")
+        self.assertEqual(1, len([n for n in game.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive]))
+        told = ""
+        for _ in range(12):
+            game.world.clock.advance(1.0)
+            events = game.server.tick(game.sid) + game.server._flush_background_batch(game.sid)
+            told += NL.join(_plain(str(e["payload"])) for e in events if e["type"] == "text")
+        self.assertIn("The Titan sinks back into the earth.", told)
+
+
 class TestATransitionsPaceIsChecked(unittest.TestCase):
     def errors_with(self, pace):
         import json

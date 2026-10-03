@@ -160,15 +160,19 @@ out = say(g, "reply 1", show=V, n=500)
 out = say(g, "reply 1", show=V, n=400)
 check("Ryn teaches the calling", "call_titan" in str(getattr(g.player.runtime_state.magic, "known_spells", "")), str(getattr(g.player.runtime_state.magic, "known_spells", "")))
 g.player.health = g.player.max_health   # the calling costs a quarter of his life
+from engine.npcs.npc_factory import NPCFactory
+foe = NPCFactory.create_npc_from_template("goblin_scout", g.world, instance_id="titan_target")
+foe.current_region_id, foe.current_room_id = "mistvale", "shrine"
+foe.health = foe.max_health = 500
+g.world.add_npc(foe)
 out = say(g, "cast call titan", show=V, n=300)
 titans = [n for n in g.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive]
 check("the Titan is summoned", bool(titans), out[:150])
-if titans:
-    say(g, "go north")
-    g.tick(60)
-    t = [n for n in g.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive]
-    print("    titan at:", (t[0].current_region_id, t[0].current_room_id) if t else "gone", "| hero at:", g.where())
-    check("the Titan follows the hero", bool(t) and (t[0].current_region_id, t[0].current_room_id) == tuple(g.where().split(":")))
+check("its quake hits the enemy", foe.health < 500, foe.health)
+for _ in range(12):
+    g.world.clock.advance(1.0)
+    g.tick()
+check("the Titan is gone again soon after", not [n for n in g.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive])
 out = say(g, "titles", show=V, n=400)
 out = say(g, "title paladin", show=V, n=400)
 print("    title:", flat(out, 200))

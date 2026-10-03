@@ -141,7 +141,7 @@ class PlayerMagicMixin:
         results = []
         from engine.npcs.npc import NPC
         
-        for t in targets:
+        for target_index, t in enumerate(targets):
             # Auto-engage if offensive
             if target_type == "all_enemies" or (target_type == "enemy" and t != p): 
                 if hasattr(t, 'is_alive') and t.is_alive:
@@ -149,7 +149,7 @@ class PlayerMagicMixin:
                         p.enter_combat(t)
             
             # Apply Effects
-            value, effect_message = apply_spell_effect(p, t, spell, p)
+            value, effect_message = apply_spell_effect(p, t, spell, p, first_target=(target_index == 0))
             results.append(effect_message)
             
             # Handle Kill

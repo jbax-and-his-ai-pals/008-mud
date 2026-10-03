@@ -34,7 +34,8 @@
             "is_summoned": true,
             "owner_id": null,
             "summon_duration": 0,
-            "creation_time": 0
+            "creation_time": 0,
+            "despawn_message": "The Titan sinks back into the earth."
         },
         "dialog": {},
         "default_dialog": "The titan waits.",

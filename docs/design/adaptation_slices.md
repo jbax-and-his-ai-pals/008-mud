@@ -112,7 +112,7 @@ A Dark Knight pays for the dark with his own blood, and the engine had no way to
 every ability spent the pool, and the pool could never be empty. `health_cost_fraction`
 on an ability and `max` on the ability resource (see `cross_theme_engine_contracts.md`)
 close that. In `ff4_slice` Cecil has no mana at all, Dark Wave costs an eighth of his
-health and strikes every enemy in the room, and Call Titan costs a quarter. Ethers are
+health and strikes every enemy in the room, and Call Titan costs a quarter (a titan rises for five seconds, shakes every enemy in the room, and sinks away). Ethers are
 gone (nothing restores a pool he does not have); the cave chest holds potions instead.
 `walk_ff4.py` plays the Fog Drake with potions as the resource: Dark Wave 40 damage
 (about 26 after the drake's resistances), cast while his health is above 30%, a potion

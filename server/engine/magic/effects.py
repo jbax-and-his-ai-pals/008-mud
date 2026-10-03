@@ -31,7 +31,9 @@ ViewerType = Union['Player']
 # count twice.
 DEFAULT_ABILITY_POWER_BONUS = 0
 
-def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell, viewer: Optional[ViewerType]) -> Tuple[int, str]:
+def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell, viewer: Optional[ViewerType],
+                       first_target: bool = True) -> Tuple[int, str]:
+    """`first_target` is False for the second and later targets of one cast: a summon happens once per cast, not once per target."""
     from engine.npcs.npc_factory import NPCFactory
     from engine.player import Player
     
@@ -225,7 +227,7 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                     messages.append(f"{formatted_target} is affected by {eff_data.get('name', 'magic')}.")
 
         elif eff_type == "summon":
-             if isinstance(caster, Player):
+             if isinstance(caster, Player) and first_target:
                   tid = effect_def.get("summon_template_id")
                   dur = effect_def.get("summon_duration", 0)
                   if tid and caster.world:

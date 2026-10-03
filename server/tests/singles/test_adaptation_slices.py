@@ -771,10 +771,28 @@ class TestFF4Slice(_Slice):
 
         magic = self.player.runtime_state.magic
         magic.mana = magic.max_mana = 100
-        self.say("cast call titan")
+        self.assertIn("no enemies", self.say("cast call titan"), "a titan answers a fight, not an empty room")
+        self.assertEqual([], self.npcs("titan_minion"))
+        from engine.npcs.npc_factory import NPCFactory
+        foes = []
+        for index in range(2):
+            foe = NPCFactory.create_npc_from_template("goblin_scout", self.world, instance_id="quake_target_%d" % index)
+            foe.current_region_id, foe.current_room_id = "mistvale", "shrine"
+            foe.health = foe.max_health = 500
+            self.world.add_npc(foe)
+            foes.append(foe)
+        said = self.say("cast call titan")
+        self.assertIn("quake", said)
         titans = self.npcs("titan_minion")
-        self.assertEqual(1, len(titans))
+        self.assertEqual(1, len(titans), "one titan, however many enemies it shakes")
         self.assertEqual(("mistvale", "shrine"), (titans[0].current_region_id, titans[0].current_room_id))
+        self.assertTrue(all(foe.health < 500 for foe in foes), "the quake reaches every enemy in the room")
+        for _ in range(12):   # and it is gone again almost at once
+            self.world.clock.advance(1.0)
+            said_later = self.tick()
+            if not self.npcs("titan_minion"):
+                break
+        self.assertEqual([], self.npcs("titan_minion"))
 
         self.assertIn("Paladin", self.say("title paladin"), "the class-change stand-in can be claimed")
 
