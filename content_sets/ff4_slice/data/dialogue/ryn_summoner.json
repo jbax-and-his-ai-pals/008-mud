@@ -46,55 +46,15 @@
             "end": true
         },
         "relief": {
-            "text": "You ended it. The fog is only fog again... Mother's songs held it for years, and one ring undid them in a breath. I can sing them now, a little. Will you let me teach you?",
+            "text": "You ended it. The fog is only fog again... Mother's songs held it for years, and one ring undid them in a breath. Come and sit with me when you can. There is something she taught me that I would like to pass on.",
             "pace": "slow",
             "effects": {
                 "complete_quest": "quest_fog_drake"
             },
-            "choices": [
-                {
-                    "text": "Teach me.",
-                    "condition": {
-                        "not": {
-                            "kind": "flag",
-                            "flag": "ryn_taught"
-                        }
-                    },
-                    "next_node": "taught",
-                    "effects": {
-                        "teach_spell": "call_titan",
-                        "set_flag": "ryn_taught"
-                    }
-                },
-                {
-                    "text": "Come with me, Ryn. Titans answer better with you beside me.",
-                    "condition": {
-                        "all": [
-                            {
-                                "kind": "flag",
-                                "flag": "ryn_taught"
-                            },
-                            {
-                                "not": {
-                                    "kind": "companion_present",
-                                    "npc_id": "ryn"
-                                }
-                            }
-                        ]
-                    },
-                    "next_node": "joins",
-                    "effects": {
-                        "recruit": true
-                    }
-                },
-                {
-                    "text": "Not now.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "thanks": {
-            "text": "I can call the titans. Mother taught me before... before. Do you want the calling song?",
+            "text": "I can call the titans. Mother taught me before... before. Will you let me teach you the calling song?",
             "pace": "slow",
             "choices": [
                 {

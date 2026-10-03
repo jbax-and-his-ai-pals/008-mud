@@ -43,21 +43,33 @@ class PlayerProgressionMixin:
         if p.runtime_state.progression is None:
             return False, ""
         p.runtime_state.progression.experience += amount
-        leveled_up = False
-        level_up_messages = []
-        
+        # Several levels at once are one report: what changed between where you were and where you are.
+        before = self._level_snapshot()
+        levels = 0
         while p.runtime_state.progression.experience >= p.runtime_state.progression.experience_to_level:
-            level_up_message = p.level_up()
-            level_up_messages.append(level_up_message)
-            leveled_up = True
-            
-        return (leveled_up, "\n".join(level_up_messages))
+            self._advance_level()
+            levels += 1
+        return (levels > 0, self._level_message(levels, *before) if levels else "")
+
+    def _level_snapshot(self):
+        p = cast('Player', self)
+        return (
+            p.stats.copy(),
+            p.max_health,
+            p.runtime_state.magic.max_mana if p.runtime_state.magic is not None else None,
+        )
 
     def level_up(self) -> str:
+        """Gain one level and say what it brought."""
         p = cast('Player', self)
         if p.runtime_state.progression is None:
             return ""
-        old_stats = p.stats.copy()
+        before = self._level_snapshot()
+        self._advance_level()
+        return self._level_message(1, *before)
+
+    def _advance_level(self) -> None:
+        p = cast('Player', self)
         old_max_health = p.max_health
         old_max_mana = p.runtime_state.magic.max_mana if p.runtime_state.magic is not None else None
 
@@ -94,8 +106,13 @@ class PlayerProgressionMixin:
             p.runtime_state.magic.max_mana += pool_increase
             p.runtime_state.magic.mana += (p.runtime_state.magic.max_mana - old_max_mana)
         
-        # Build Message
-        message = f"{FORMAT_HIGHLIGHT}You have reached level {p.runtime_state.progression.level}!{FORMAT_RESET}\n"
+    def _level_message(self, levels: int, old_stats, old_max_health, old_max_mana) -> str:
+        p = cast('Player', self)
+        if levels == 1:
+            headline = f"You have reached level {p.runtime_state.progression.level}!"
+        else:
+            headline = f"You have gained {levels} levels and are now level {p.runtime_state.progression.level}!"
+        message = f"{FORMAT_HIGHLIGHT}{headline}{FORMAT_RESET}\n"
         message += f"  - Max Health: {old_max_health} -> {p.max_health} (+{p.max_health - old_max_health})\n"
         if p.runtime_state.magic is not None and old_max_mana is not None and p.runtime_state.magic.max_mana != old_max_mana:
             pool_label = ability_resource_label(p.world)

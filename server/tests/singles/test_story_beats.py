@@ -310,8 +310,33 @@ class TestRynsConversation(unittest.TestCase):
         said = game.say("talk ryn")
         self.assertIn("[Quest Complete] The Fog Drake", said)
         self.assertIn("The fog thins.", said)
-        self.assertIn("1. Teach me.", said)
+        self.assertNotIn("Teach me", said, "the teaching is for the next talk, not a wall of text on top of the hand-in")
+        again = game.say("talk ryn")
+        self.assertIn("1. Teach me.", again)
         self.assertTrue(any(k.startswith("quest_fog_drake") for k in game.player.runtime_state.quests.completed))
+
+
+class TestSeveralLevelsAreOneReport(unittest.TestCase):
+    def test_gaining_three_levels_says_so_once_with_the_whole_difference(self):
+        game = _Game(self)
+        player = game.player
+        start_level = player.runtime_state.progression.level
+        start_strength = player.stats["strength"]
+        start_health = player.max_health
+        leveled, report = player.gain_experience(5000)
+        gained = player.runtime_state.progression.level - start_level
+        self.assertGreaterEqual(gained, 2)
+        text = _plain(report)
+        self.assertTrue(leveled)
+        self.assertIn("You have gained %d levels and are now level %d!" % (gained, player.runtime_state.progression.level), text)
+        self.assertEqual(1, text.count("Stats Increased"))
+        self.assertIn("Strength: %s -> %s (+%s)" % (start_strength, player.stats["strength"], player.stats["strength"] - start_strength), text)
+        self.assertIn("Max Health: %s -> %s" % (start_health, player.max_health), text)
+
+    def test_one_level_reads_as_it_always_did(self):
+        game = _Game(self)
+        _leveled, report = game.player.gain_experience(game.player.runtime_state.progression.experience_to_level)
+        self.assertIn("You have reached level 2!", _plain(report))
 
 
 class TestATransitionsPaceIsChecked(unittest.TestCase):
