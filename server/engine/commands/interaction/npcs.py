@@ -550,10 +550,12 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
                  # the player: every single-stage quest ended on a generic
                  # "Thank you!". Prefer what the author wrote, then the NPC's
                  # own parting line, then the fallback.
-                 dialogue = _final_stage_dialogue(quest_data) or target_npc.dialog.get(
+                 from engine.core.quests.closing import closing_text
+                 completion_msg += closing_text(quest_data, target_npc.dialog.get(
                      "quest_complete", f"\"Thank you!\" says {target_npc.name}."
-                 )
-            completion_msg += f"{FORMAT_HIGHLIGHT}\"{dialogue}\"{FORMAT_RESET}"
+                 ))
+            else:
+                completion_msg += f"{FORMAT_HIGHLIGHT}\"{dialogue}\"{FORMAT_RESET}"
             if rewards_msg: completion_msg += f"\n{rewards_msg}"
             return completion_msg
         else:

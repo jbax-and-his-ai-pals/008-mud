@@ -190,9 +190,8 @@ class TestNoEmptyReplies(unittest.TestCase):
 
         for path in sorted(glob.glob(str(REPO_ROOT / "content_sets" / "*_slice" / "data" / "dialogue" / "*.json"))):
             graph = json.loads(Path(path).read_text(encoding="utf-8"))
-            entries = {e["node"] for e in graph.get("entries", [])}
             for node_id, node in graph["nodes"].items():
-                if node_id == graph["root"] or node_id in entries or node.get("end"):
+                if node.get("end"):
                     continue
                 choices = node.get("choices", [])
                 only_a_goodbye = (

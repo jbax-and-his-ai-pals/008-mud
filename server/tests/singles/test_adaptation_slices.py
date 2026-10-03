@@ -615,8 +615,30 @@ class TestFF4Slice(_Slice):
         self.assertEqual([], self.npcs("chancellor_fiend"), "a fiend that was killed is not brought back")
         self.assertEqual([], self.npcs("chancellor"), "and the chancellor never returns")
 
-    def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
+    def test_the_inn_is_a_room_you_go_in_to_not_a_direction_on_the_compass(self):
         self.at("mistvale", "village_square")
+        self.assertIn("in", self.world.get_current_room(self.player).exits)
+        self.say("go in")
+        self.assertEqual("mistvale:inn", self.where())
+        self.assertEqual(1, len(self.npcs("innkeeper")))
+        self.assertEqual(("mistvale", "inn"), (self.npcs("innkeeper")[0].current_region_id, self.npcs("innkeeper")[0].current_room_id))
+        self.say("go out")
+        self.assertEqual("mistvale:village_square", self.where())
+
+    def test_the_mayor_speaks_to_what_has_happened(self):
+        self.at("mistvale", "village_square")
+        self.assertIn("We have done nothing", self.say("talk mayor"))
+        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
+        said = self.say("talk mayor")
+        self.assertIn("Whatever you carried here is awake", said)
+        self.assertIn("find Ryn at the shrine", said, "so that Ryn is a name you know before you are told to report to her")
+        self.player.flags["drake_slain"] = True
+        said = self.say("talk mayor")
+        self.assertIn("It is dead", said)
+        self.assertIn("speak with Ryn", said)
+
+    def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
+        self.at("mistvale", "inn")
         magic = self.player.runtime_state.magic
         self.player.runtime_state.gold = 50
         self.player.health, magic.mana = 1, 0
@@ -638,7 +660,7 @@ class TestFF4Slice(_Slice):
         kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"   # where her ride-ahead would have put her
         self.at("mistvale", "village_square")
         said = self.say("talk kessa")
-        self.assertIn("The mayor is waiting in the square", said)
+        self.assertIn("give the mayor the package", said)
         self.assertNotIn("Ride with me", said)
         self.assertNotIn("Did you speak to the king", said, "she knows you have; you are here")
         self.assertEqual([], self._companions())
@@ -668,11 +690,11 @@ class TestFF4Slice(_Slice):
         self.say("reply 1")   # "The dragon is dead."
         self.say("reply 1")   # "Come with me, Ryn."
         self.assertEqual(["captain_kessa", "ryn"], sorted(self._companions()), "the party of three has room for both")
-        self.at("mistvale", "village_square")
+        self.at("mistvale", "inn")
         self.player.runtime_state.gold = 50
         for npc in self.world.npcs.values():
             if npc.template_id in ("captain_kessa", "ryn"):
-                npc.current_region_id, npc.current_room_id = "mistvale", "village_square"
+                npc.current_region_id, npc.current_room_id = "mistvale", "inn"
                 npc.health = 1
         self.player.health = 1
         self.say("talk innkeeper")
@@ -698,7 +720,7 @@ class TestFF4Slice(_Slice):
         self.assertEqual(3, companions.max_companions(self.world))
 
     def test_the_inn_does_not_offer_a_room_to_someone_who_cannot_pay(self):
-        self.at("mistvale", "village_square")
+        self.at("mistvale", "inn")
         self.player.runtime_state.gold = 5
         self.player.health = 1
         offered = self.say("talk innkeeper")

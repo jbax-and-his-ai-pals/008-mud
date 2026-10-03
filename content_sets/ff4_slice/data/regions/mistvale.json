@@ -20,16 +20,26 @@
             "exits": {
                 "north": "valley_path",
                 "east": "ruined_lane",
-                "south": "shrine"
+                "south": "shrine",
+                "in": "inn"
             },
             "initial_npcs": [
                 {
                     "template_id": "mayor_of_mistvale",
                     "instance_id": "mayor_of_mistvale_at_village_square"
-                },
+                }
+            ]
+        },
+        "inn": {
+            "name": "The Fogwatch Inn",
+            "description": "A low common room with a banked fire, a long table scarred by knives, and a window that looks out on nothing but fog.",
+            "exits": {
+                "out": "village_square"
+            },
+            "initial_npcs": [
                 {
                     "template_id": "innkeeper",
-                    "instance_id": "innkeeper_at_village_square"
+                    "instance_id": "innkeeper_at_inn"
                 }
             ]
         },

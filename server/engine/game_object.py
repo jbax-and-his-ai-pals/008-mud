@@ -101,6 +101,12 @@ class GameObject:
                 if tags.lower() == tag_lower: return True
         return False
 
+    def _is_essential(self) -> bool:
+        """`properties.essential: true` marks someone the story cannot do without. They cannot be killed
+        while they are their own person; once recruited as a companion they can fall like anyone."""
+        props = getattr(self, "properties", None)
+        return isinstance(props, dict) and props.get("essential") is True and not props.get("companion")
+
     def take_damage(self, amount: int, damage_type: str, weapon_damage_type: Optional[str] = None) -> int:
         if not self.is_alive or amount <= 0: return 0
 
@@ -150,6 +156,8 @@ class GameObject:
 
         old_health = getattr(self, 'health', 0)
         new_health = max(0, old_health - actual_damage_taken)
+        if new_health <= 0 and self._is_essential():
+            new_health = 1   # a story character is knocked to the brink, not killed
         setattr(self, 'health', new_health)
 
         if new_health <= 0: self.is_alive = False

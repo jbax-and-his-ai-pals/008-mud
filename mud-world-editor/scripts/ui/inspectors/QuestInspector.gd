@@ -368,6 +368,37 @@ func _add_stage_tail_fields(vbox: VBoxContainer, stage: Dictionary):
 	)
 	grid.add_child(dialogue)
 
+	# completion_narration: told, not said, so it is shown without quotation marks
+	var narration_label := InspectorStyle.lbl("Completion narration", InspectorStyle.COLOR_TEXT_DIM)
+	narration_label.add_theme_font_size_override("font_size", 11)
+	grid.add_child(narration_label)
+	var narration := TextEdit.new()
+	narration.custom_minimum_size.y = 48
+	narration.text = str(stage.get("completion_narration", ""))
+	InspectorStyle.apply_input_style(narration)
+	narration.text_changed.connect(func():
+		var told := narration.text
+		if told.strip_edges() == "": stage.erase("completion_narration")
+		else: stage["completion_narration"] = told
+		database_modified.emit()
+	)
+	grid.add_child(narration)
+
+	# ready_text: the instruction in the quest update once the objective is done
+	var ready_label := InspectorStyle.lbl("Ready text", InspectorStyle.COLOR_TEXT_DIM)
+	ready_label.add_theme_font_size_override("font_size", 11)
+	grid.add_child(ready_label)
+	var ready := LineEdit.new()
+	ready.placeholder_text = "Report back to <turn-in>."
+	ready.text = str(stage.get("ready_text", ""))
+	InspectorStyle.apply_input_style(ready)
+	ready.text_changed.connect(func(text: String):
+		if text.strip_edges() == "": stage.erase("ready_text")
+		else: stage["ready_text"] = text
+		database_modified.emit()
+	)
+	grid.add_child(ready)
+
 	# spawn_on_entry, using the field names manager.py reads.
 	_add_spawn_row(grid, stage, "spawn_on_entry")
 	_add_spawn_row(grid, stage, "spawn_on_start")
@@ -405,7 +436,7 @@ func _add_spawn_row(grid: VBoxContainer, stage: Dictionary, key: String):
 # Anything else this inspector does not model: named, and left exactly as it is.
 func _add_other_stage_keys(vbox: VBoxContainer, stage: Dictionary):
 	var modelled := ["stage_index", "description", "objective", "objectives_any",
-		"turn_in_id", "completion_dialogue", "spawn_on_entry", "spawn_on_start"]
+		"turn_in_id", "completion_dialogue", "completion_narration", "ready_text", "spawn_on_entry", "spawn_on_start"]
 	var extras: Array = []
 	for key in stage:
 		if not modelled.has(str(key)):

@@ -34,7 +34,7 @@
         },
         "once": "world",
         "effects": {
-            "message": "The Fog Drake unravels into grey ribbons and the whole cave exhales. Somewhere far off, a bell begins to ring.",
+            "message": "The Fog Drake unravels into grey ribbons and the whole square exhales. Somewhere far off, a bell begins to ring.",
             "set_flag": "drake_slain"
         }
     }

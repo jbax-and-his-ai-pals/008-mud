@@ -174,7 +174,7 @@
     "fog_drake": {
         "name": "Fog Drake",
         "description": "A long, pale dragon that seems to be made as much of fog as of scales. Blades pass through it as if through smoke.",
-        "max_health": 141,
+        "max_health": 120,
         "level": 5,
         "friendly": false,
         "faction": "hostile",
@@ -194,7 +194,7 @@
                 "shadow": 0
             }
         },
-        "attack_power": 8,
+        "attack_power": 6,
         "defense": 4,
         "loot_table": {
             "gold_value": {

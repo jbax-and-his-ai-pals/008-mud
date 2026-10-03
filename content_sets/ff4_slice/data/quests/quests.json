@@ -18,7 +18,7 @@
                 },
                 "turn_in_id": "mayor_of_mistvale",
                 "start_dialogue": "You are handed a heavy little package, bound in red wax.",
-                "completion_dialogue": "The mayor takes the package, and something in it begins to hum."
+                "completion_narration": "The mayor takes the package, and something in it begins to hum."
             }
         ],
         "rewards": {
@@ -48,6 +48,7 @@
                     "current_quantity": 0
                 },
                 "turn_in_id": "ryn",
+                "ready_text": "The mayor will know where to send you next.",
                 "completion_dialogue": "The fog thins. Somewhere in the village, a child begins to cry."
             }
         ],

@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET
 from engine.npcs.npc_factory import NPCFactory
 from engine.core.advancement import ledger_entries_of_kind
+from engine.core.quests.closing import ready_instruction
 
 def handle_npc_killed(manager, event_type: str, data: Dict[str, Any]) -> Optional[str]:
     player = data.get("player")
@@ -62,7 +63,8 @@ def _update_standard_kill(manager, quest_data, objective, messages):
         quest_data["state"] = "ready_to_complete"
         # Manager must have this method
         turn_in_name = manager.resolve_turn_in_name(quest_data)
-        messages.append(f"{FORMAT_HIGHLIGHT}[Quest Update]{FORMAT_RESET} {title}: Objective complete! Report back to {turn_in_name}.")
+        ready = ready_instruction(quest_data, "Report back to " + turn_in_name + ".")
+        messages.append(f"{FORMAT_HIGHLIGHT}[Quest Update]{FORMAT_RESET} {title}: Objective complete! {ready}")
     else:
         messages.append(f"{FORMAT_HIGHLIGHT}[Quest Update]{FORMAT_RESET} {title}: ({objective['current_quantity']}/{required} killed).")
 

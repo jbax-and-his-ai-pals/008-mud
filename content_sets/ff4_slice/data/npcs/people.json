@@ -13,7 +13,8 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "king_orders"
+            "dialogue": "king_orders",
+            "essential": true
         }
     },
     "captain_kessa": {
@@ -21,6 +22,7 @@
         "description": "A tall woman in a horned helm, your oldest friend in the fleet.",
         "health": 60,
         "level": 3,
+        "attack_power": 20,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
@@ -30,7 +32,8 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "kessa_talk"
+            "dialogue": "kessa_talk",
+            "essential": true
         }
     },
     "rosalind": {
@@ -52,7 +55,8 @@
             "required_spells": [
                 "cure"
             ],
-            "dialogue": "rosalind_heal"
+            "dialogue": "rosalind_heal",
+            "essential": true
         },
         "usable_spells": [
             "cure"
@@ -81,7 +85,8 @@
             ],
             "buys_item_types": [
                 "Consumable"
-            ]
+            ],
+            "essential": true
         }
     },
     "mayor_of_mistvale": {
@@ -89,6 +94,7 @@
         "description": "A soft-spoken man in a village chain of office.",
         "health": 60,
         "level": 3,
+        "attack_power": 10,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
@@ -98,7 +104,8 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "mayor_package"
+            "dialogue": "mayor_package",
+            "essential": true
         }
     },
     "ryn": {
@@ -115,7 +122,8 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "ryn_summoner"
+            "dialogue": "ryn_summoner",
+            "essential": true
         }
     },
     "innkeeper": {
@@ -123,6 +131,7 @@
         "description": "A stout woman with a ring of keys and a lantern she never seems to put down.",
         "health": 60,
         "level": 3,
+        "attack_power": 12,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
@@ -132,7 +141,8 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "inn_rest"
+            "dialogue": "inn_rest",
+            "essential": true
         }
     },
     "chancellor": {

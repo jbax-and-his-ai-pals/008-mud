@@ -106,7 +106,7 @@
             "end": true
         },
         "waiting": {
-            "text": "You made it. The mayor is waiting in the square: give him the package, and watch his face while you do. I will keep watch from here.",
+            "text": "Go on, give the mayor the package, and watch his face while you do. I will keep watch from here.",
             "pace": "slow",
             "end": true
         },

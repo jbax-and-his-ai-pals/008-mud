@@ -619,6 +619,13 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("sells_houses")
 		database_modified.emit())
 	flags.add_child(sells_houses)
+	var essential := CheckBox.new(); essential.text = "Essential (cannot be killed unless recruited)"
+	essential.button_pressed = bool(properties.get("essential", false))
+	essential.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["essential"] = true
+		else: _ensure_npc_properties().erase("essential")
+		database_modified.emit())
+	flags.add_child(essential)
 
 	var patrol_header := HBoxContainer.new(); patrol_header.add_child(InspectorStyle.create_sub_header("Patrol Points"))
 	patrol_header.tooltip_text = "Room ids in this NPC's own region, visited in order (behavior_type: patrol)."
