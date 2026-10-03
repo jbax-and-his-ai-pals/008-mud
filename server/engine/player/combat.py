@@ -91,6 +91,27 @@ class PlayerCombatMixin:
                     if summon and summon.is_alive and hasattr(summon, 'enter_combat'): 
                         summon.enter_combat(target)
 
+    def drop_distant_targets(self) -> None:
+        """Whoever was being fought but is not in this room any more is no longer being fought.
+
+        Only the player's side ends. The enemy keeps its own memory of the fight (so it can come
+        after the player), which is its business; what must not happen is the player staying
+        "in combat" in an empty room, where the next step is refused as a retreat from nothing.
+        """
+        p = cast('Player', self)
+        state = p.runtime_state.combat
+        if state is None or not state.in_combat:
+            return
+        here = (p.current_region_id, p.current_room_id)
+        for target in list(state.targets):
+            if (getattr(target, "current_region_id", None), getattr(target, "current_room_id", None)) != here:
+                state.targets.discard(target)
+        if not state.targets:
+            state.in_combat = False
+            state.target = None
+        elif state.target not in state.targets:
+            state.target = next(iter(state.targets))
+
     def exit_combat(self, target: Optional[Any] = None) -> None:
         p = cast('Player', self)
         if p.runtime_state.combat is None:
@@ -210,15 +231,18 @@ class PlayerCombatMixin:
                 if reward_text:
                     result_message += "\n\n" + reward_text
             else:
-                if gold_dropped > 0 and p.runtime_state.gold is not None:
-                    p.runtime_state.gold += gold_dropped
-                    # The rewards are their own block under the blow that earned them.
-                    result_message += f"\n\n{FORMAT_SUCCESS}You find {gold_dropped} {current_world.currency_name()}.{FORMAT_RESET}"
+                # The rewards are their own block under the blow that earned them: experience first
+                # (and the level it may bring), then the money; what the enemy dropped comes last.
+                rewards_started = False
                 if final_xp_gained > 0 and p.runtime_state.progression is not None:
-                    result_message += (f"\n" if gold_dropped > 0 and p.runtime_state.gold is not None else f"\n\n") + f"{FORMAT_SUCCESS}You gain {final_xp_gained} experience!{FORMAT_RESET}"
+                    result_message += f"\n\n{FORMAT_SUCCESS}You gain {final_xp_gained} experience!{FORMAT_RESET}"
+                    rewards_started = True
                     leveled_up, level_up_msg = p.gain_experience(final_xp_gained)
                     if leveled_up and level_up_msg: 
                         result_message += "\n" + level_up_msg
+                if gold_dropped > 0 and p.runtime_state.gold is not None:
+                    p.runtime_state.gold += gold_dropped
+                    result_message += ("\n" if rewards_started else "\n\n") + f"{FORMAT_SUCCESS}You find {gold_dropped} {current_world.currency_name()}.{FORMAT_RESET}"
 
             loot_str = ""
             if current_world and hasattr(target, 'die'):

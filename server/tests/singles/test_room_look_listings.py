@@ -104,7 +104,7 @@ class TestWordingAndSpacing(unittest.TestCase):
         for _ in range(40):
             server.tick(sid)
         said = "\n".join(_text(server.execute_command(sid, "attack goblin")))
-        self.assertRegex(said, r"defeated!\n\nYou find \d+ gil\.\nYou gain \d+ experience!")
+        self.assertRegex(said, r"defeated!\n\nYou gain \d+ experience!\nYou find \d+ gil\.")
 
 
 if __name__ == "__main__":

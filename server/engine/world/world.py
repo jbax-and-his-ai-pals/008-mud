@@ -380,9 +380,11 @@ class World:
         combat_state = getattr(player.runtime_state, "combat", None)
         if combat_state is None or not combat_state.in_combat:
             return True, None
+        here = (player.current_region_id, player.current_room_id)
         live_hostiles = [
             t for t in combat_state.targets
             if getattr(t, "is_alive", False) and factions.is_hostile(t, self)
+            and (getattr(t, "current_region_id", None), getattr(t, "current_room_id", None)) == here   # one left behind is not holding you
         ]
         if not live_hostiles:
             return True, None
@@ -583,6 +585,8 @@ class World:
         came_from = (active_player.current_region_id, active_player.current_room_id)
         active_player.current_region_id = new_region_id
         active_player.current_room_id = new_room_id
+        if hasattr(active_player, "drop_distant_targets"):
+            active_player.drop_distant_targets()   # a fight left behind is over for you
         from engine.dialogue import runner as dialogue_runner
         dialogue_runner.release_on_departure(self, active_player)   # you cannot go on talking to someone you left
         from engine.npcs import companions
