@@ -589,6 +589,10 @@ func _ready() -> void:
 	crash_recovery.restore_requested.connect(network_lifecycle._on_crash_recovery_restore)
 	crash_recovery.dismissed.connect(func() -> void: onboarding.show_if_first_run())
 	char_create.name_submitted.connect(network_lifecycle._on_char_name_submitted)
+	# the name form took the focus when it opened; when it closes, the command line has it back
+	char_create.visibility_changed.connect(func():
+		if not char_create.visible and _game_view != null and _game_view.visible:
+			command_input.call_deferred("grab_focus"))
 	_apply_launch_config()
 	crash_recovery.check_and_show()
 	if not crash_recovery.visible:

@@ -1,0 +1,50 @@
+name: Client checks
+
+# The Godot client has behaviour no Python test can see: story text typed out a few
+# characters at a time, panels dragged between docks, bars that drain, links that send
+# commands. `run_client_checks.py` boots the real client scene headlessly against a real
+# server (ff4_slice, in memory) and runs the checks under `client/tests/`.
+#
+# Godot is not vendored, so it is downloaded here, at the same pinned version as the editor.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  client:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: "4.7.2"
+      GODOT_DIR: ${{ github.workspace }}/.godot-bin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install server dependencies
+        run: pip install -r server/requirements-dev.txt
+
+      - name: Download Godot ${{ env.GODOT_VERSION }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$GODOT_DIR"
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl -sSL "$url" -o /tmp/godot.zip
+          unzip -q -o /tmp/godot.zip -d "$GODOT_DIR"
+          chmod +x "$GODOT_DIR"/Godot_v*
+          "$GODOT_DIR"/Godot_v${GODOT_VERSION}-stable_linux.x86_64 --version
+
+      - name: Import the client once
+        run: |
+          "$GODOT_DIR"/Godot_v${GODOT_VERSION}-stable_linux.x86_64 \
+            --headless --path client --editor --quit
+
+      - name: Run the client checks
+        run: |
+          python run_client_checks.py \
+            --godot "$GODOT_DIR/Godot_v${GODOT_VERSION}-stable_linux.x86_64"

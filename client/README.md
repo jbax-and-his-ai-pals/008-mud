@@ -74,3 +74,19 @@ Supported optional `icon_tokens` keys:
 
 - This shell currently uses TCP JSON-lines transport for immediate local testing.
 - WebSocket server endpoint now exists (`poc_ws_server.py`) using the same envelope contract.
+
+## Tests
+
+`run_client_checks.py` (repository root) boots this client headlessly against a real server and runs every
+`client/tests/*_smoke.gd`: the markup the server writes, the typed-out story text, panels and drag-and-drop,
+cooldown bars, clickable links, and the command line's focus. Each check starts its own in-memory
+`ff4_slice` server and points Godot's per-user folder at a temporary directory, so it never reads or
+writes a real player's settings.
+
+```powershell
+python run_client_checks.py            # all of them
+python run_client_checks.py dock       # only checks whose file name contains "dock"
+```
+
+A new check extends `res://tests/lib/live_test.gd`, overrides `run()` (which may `await`), calls
+`boot()` to open the game with a character, and uses `check(label, condition)`.
