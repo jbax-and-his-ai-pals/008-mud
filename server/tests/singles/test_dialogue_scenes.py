@@ -117,6 +117,55 @@ class TestADismissedCourierStaysOut(unittest.TestCase):
         self.assertIn("a castle guard, a castle guard", game.say("look"))
 
 
+class TestKessaRidesAheadInView(unittest.TestCase):
+    def setUp(self):
+        self.game = _Game(self)
+        self.game.player.current_region_id, self.game.player.current_room_id = "varenholt", "barracks"
+        self.game.player.flags["obeyed_king"] = True
+
+    def test_her_words_are_read_slowly_like_the_kings(self):
+        raw = " ".join(str(e["payload"]) for e in self.game.server.execute_command(self.game.sid, "talk kessa") if e["type"] == "text")
+        self.assertIn("[[PACE:70]]", raw)
+
+    def test_we_see_her_leave(self):
+        self.game.say("talk kessa")
+        said = self.game.say("reply 1")
+        self.assertIn("strides out the west door", said)
+        self.assertLess(said.index("I will ride ahead"), said.index("strides out"), "she says it, then goes")
+        self.assertNotIn("Kessa", self.game.say("look"), "and she is gone from the room")
+
+
+class TestRosalindHealsOnRequest(unittest.TestCase):
+    def setUp(self):
+        self.game = _Game(self)
+        self.player = self.game.player
+        self.player.current_region_id, self.player.current_room_id = "varenholt", "chapel"
+        self.player.health = 20
+        self.player.runtime_state.gold = 100
+
+    def test_fleet_members_are_tended_for_nothing(self):
+        said = self.game.say("talk rosalind")
+        self.assertIn("1. Tend my wounds.", said)
+        self.assertNotIn("30 gil", said)
+        self.game.say("reply 1")
+        self.assertEqual(self.player.max_health, self.player.health)
+        self.assertEqual(100, self.player.runtime_state.gold)
+
+    def test_one_without_a_seal_pays(self):
+        self.player.inventory.slots = [s for s in self.player.inventory.slots if not (s.item and s.item.obj_id == "item_commander_seal")]
+        said = self.game.say("talk rosalind")
+        self.assertIn("(30 gil)", said)
+        self.game.say("reply 1")
+        self.assertEqual(self.player.max_health, self.player.health)
+        self.assertEqual(70, self.player.runtime_state.gold)
+
+    def test_one_without_a_seal_or_the_coins_is_not_offered_it(self):
+        self.player.inventory.slots = [s for s in self.player.inventory.slots if not (s.item and s.item.obj_id == "item_commander_seal")]
+        self.player.runtime_state.gold = 5
+        said = self.game.say("talk rosalind")
+        self.assertNotIn("Tend my wounds", said)
+
+
 class TestAgreeingToGoStartsTheErrand(unittest.TestCase):
     def test_i_will_go_is_an_answer_the_king_acknowledges_and_it_sets_the_errand_going(self):
         game = _Game(self)

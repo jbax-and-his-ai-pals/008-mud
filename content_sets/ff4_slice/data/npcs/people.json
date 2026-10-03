@@ -51,7 +51,8 @@
             "spell_cast_chance": 1,
             "required_spells": [
                 "cure"
-            ]
+            ],
+            "dialogue": "rosalind_heal"
         },
         "usable_spells": [
             "cure"

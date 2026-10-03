@@ -129,7 +129,7 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "required": ("room", "direction"),
     },
     "move_npc": {
-        "form": "object", "fields": {"npc": "text", "region": "text", "room": "text"},
+        "form": "object", "fields": {"npc": "text", "region": "text", "room": "text", "message": "text"},
         "required": ("region", "room"),
     },
     "give_rewards": {
@@ -1001,9 +1001,21 @@ def _apply_move_npc_effect(effects: Dict[str, Any], context, report: EffectRepor
     if npc is None or not region_id or not room_id:
         report.failed.append("move_npc (needs npc, region and room)")
         return
+    player = context.get("player") if isinstance(context, dict) else None
+    was_here = player is not None and _in_room(npc, player)
     npc.current_region_id = region_id
     npc.current_room_id = room_id
     report.applied.append("moved %s to %s:%s" % (getattr(npc, "name", "?"), region_id, room_id))
+    # Someone walking out of the room (or in) is seen to do it: the authored `message`, else a plain note.
+    now_here = player is not None and _in_room(npc, player)
+    written = raw.get("message")
+    if isinstance(written, str) and written.strip():
+        if was_here != now_here:
+            report.messages.append(written.strip())
+    elif was_here and not now_here:
+        report.messages.append("%s leaves." % getattr(npc, "name", "Someone"))
+    elif now_here and not was_here:
+        report.messages.append("%s arrives." % getattr(npc, "name", "Someone"))
 
 
 def _apply_companion_effects(effects: Dict[str, Any], player, context, report: EffectReport) -> None:
