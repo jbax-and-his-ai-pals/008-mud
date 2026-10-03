@@ -443,7 +443,8 @@ class TestFF4Slice(_Slice):
     def test_the_king_has_the_last_word_when_you_obey(self):
         self.say("talk king")
         answered = self.say("reply 1")
-        self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn."', answered)
+        self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn', answered)
+        self.assertIn("find her in the barracks before you go", answered, "and he points you at Kessa")
         self.assertNotRegex(answered, r"(?m)^\s*1\. ", "there is nothing left to answer")
         self.assertNotIn("(That seems to be all.)", answered)
         self.at("varenholt", "throne_room")
@@ -541,13 +542,20 @@ class TestFF4Slice(_Slice):
         self.assertIn("unravels into grey ribbons", printed)
         self.assertIs(True, self.player.flags.get("drake_slain"))
 
-    def test_the_castle_gate_stays_shut_until_the_king_has_given_orders(self):
+    def test_the_castle_gate_stays_shut_until_the_king_has_given_orders_and_kessa_has_been_seen(self):
         self.at("varenholt", "castle_gate")
         refused = self.say("go south")
         self.assertEqual("varenholt:castle_gate", self.where())
-        self.assertIn("Orders from the king", refused)
+        self.assertIn("Captain Kessa has been looking for you", refused)
+        self.assertIn("Speak with her before you leave", refused)
         self.at("varenholt", "throne_room")
-        self._question_the_king()   # either answer: it is that he has spoken that opens the gate
+        self._question_the_king()   # either answer: it is that he has spoken that opens the way to Kessa
+        self.at("varenholt", "castle_gate")
+        self.assertIn("Captain Kessa has been looking for you", self.say("go south"), "the king alone is not enough")
+        self.assertEqual("varenholt:castle_gate", self.where())
+        self.at("varenholt", "barracks")
+        self.say("talk kessa")
+        self.say("reply 1")
         self.at("varenholt", "castle_gate")
         self.say("go south")
         self.assertEqual("road:castle_road", self.where())
@@ -555,6 +563,7 @@ class TestFF4Slice(_Slice):
     def test_the_way_out_of_the_castle_runs_the_same_way_both_ways(self):
         self.at("varenholt", "courtyard")
         self.player.flags["king_ordered"] = True
+        self.player.flags["kessa_ahead"] = True
         self.say("go south")
         self.assertEqual("varenholt:castle_gate", self.where(), "the courtyard leads south to the gate")
         self.say("go south")
@@ -564,8 +573,26 @@ class TestFF4Slice(_Slice):
         self.say("go north")
         self.assertEqual("varenholt:courtyard", self.where(), "and the gate back north to the courtyard")
 
+    def test_the_chancellor_cannot_be_unmasked_at_the_start(self):
+        """Early on the king is the only way into the story, and a fiend loose in his hall could end it."""
+        self.at("varenholt", "throne_room")
+        said = self.say("talk chancellor")
+        self.assertNotIn("Your smile does not reach your eyes", said)
+        self.say("reply 1")
+        self.assertEqual(1, len(self.npcs("chancellor")))
+        self.assertEqual([], self.npcs("chancellor_fiend"))
+
+    def test_after_the_drake_the_guards_let_you_back_into_the_throne_room(self):
+        self._question_the_king()
+        self.assertIn("guards", self.say("go north"))
+        self.assertEqual("varenholt:courtyard", self.where())
+        self.player.flags["drake_slain"] = True
+        self.say("go north")
+        self.assertEqual("varenholt:throne_room", self.where())
+
     def test_the_chancellor_unmasks_into_a_fiend(self):
         self.at("varenholt", "throne_room")
+        self.player.flags["drake_slain"] = True   # the story has reached the point where it can happen
         self.assertEqual(1, len(self.npcs("chancellor")))
         self.say("talk chancellor")
         said = self.say("reply 1")
@@ -579,6 +606,7 @@ class TestFF4Slice(_Slice):
 
     def test_the_unmasked_fiend_can_be_fought_and_stays_dead(self):
         self.at("varenholt", "throne_room")
+        self.player.flags["drake_slain"] = True
         self.say("talk chancellor")
         self.say("reply 1")
         self.kill("chancellor_fiend", "thing")
@@ -781,6 +809,7 @@ class TestPersistence(unittest.TestCase):
         sid, _ = self._join(first, "Caelan", "transport-1")
         hero = first.get_player_for_session(sid)
         hero.current_region_id, hero.current_room_id = "varenholt", "throne_room"
+        hero.flags["drake_slain"] = True
         self._say(first, sid, "talk chancellor")
         self._say(first, sid, "reply 1")
         first.shutdown()

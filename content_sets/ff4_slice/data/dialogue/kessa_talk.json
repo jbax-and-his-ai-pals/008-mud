@@ -74,7 +74,7 @@
                 },
                 {
                     "text": "Not yet.",
-                    "end": true
+                    "next_node": "not_yet"
                 }
             ]
         },
@@ -95,6 +95,11 @@
         },
         "ahead_obeyed": {
             "text": "A package for the mayor of Mistvale? Strange. I will ride ahead and meet you there.",
+            "pace": "slow",
+            "end": true
+        },
+        "not_yet": {
+            "text": "Then go, and quickly. The king does not like to be kept waiting, and neither do I.",
             "pace": "slow",
             "end": true
         }

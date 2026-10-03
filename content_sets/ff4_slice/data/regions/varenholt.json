@@ -47,10 +47,18 @@
                     "north": {
                         "type": "condition",
                         "condition": {
-                            "not": {
-                                "kind": "flag",
-                                "flag": "king_ordered"
-                            }
+                            "any": [
+                                {
+                                    "not": {
+                                        "kind": "flag",
+                                        "flag": "king_ordered"
+                                    }
+                                },
+                                {
+                                    "kind": "flag",
+                                    "flag": "drake_slain"
+                                }
+                            ]
                         },
                         "failure_message": "The guards at the doors do not so much as look at you. \"The king has given you your orders, captain. Carry them out.\""
                     }
@@ -109,10 +117,18 @@
                     "south": {
                         "type": "condition",
                         "condition": {
-                            "kind": "flag",
-                            "flag": "king_ordered"
+                            "all": [
+                                {
+                                    "kind": "flag",
+                                    "flag": "king_ordered"
+                                },
+                                {
+                                    "kind": "flag",
+                                    "flag": "kessa_ahead"
+                                }
+                            ]
                         },
-                        "failure_message": "The guards cross their pikes. \"Orders from the king first, captain. Then the road is yours.\""
+                        "failure_message": "The guards cross their pikes. \"Captain Kessa has been looking for you. Speak with her before you leave.\""
                     }
                 }
             }

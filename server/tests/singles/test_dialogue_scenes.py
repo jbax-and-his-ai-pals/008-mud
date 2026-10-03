@@ -127,6 +127,12 @@ class TestKessaRidesAheadInView(unittest.TestCase):
         raw = " ".join(str(e["payload"]) for e in self.game.server.execute_command(self.game.sid, "talk kessa") if e["type"] == "text")
         self.assertIn("[[PACE:70]]", raw)
 
+    def test_saying_not_yet_does_not_leave_a_reply_hanging(self):
+        self.game.say("talk kessa")
+        said = self.game.say("reply 2")
+        self.assertIn("Captain Kessa speaks", said)
+        self.assertIn("The king does not like to be kept waiting", said)
+
     def test_we_see_her_leave(self):
         self.game.say("talk kessa")
         said = self.game.say("reply 1")

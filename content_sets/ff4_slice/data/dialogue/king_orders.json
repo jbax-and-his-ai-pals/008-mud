@@ -109,12 +109,12 @@
             "end": true
         },
         "obey": {
-            "text": "Good. Be quick. The fleet sails at dawn.",
+            "text": "Good. Be quick. The fleet sails at dawn, and Captain Kessa has asked for you: find her in the barracks before you go.",
             "pace": "slow",
             "end": true
         },
         "dismissed": {
-            "text": "Then you are no captain of mine. Give me your seal. You will deliver the package as a courier, and consider that generous.",
+            "text": "Then you are no captain of mine. Give me your seal. You will deliver the package as a courier, and consider that generous. Captain Kessa is in the barracks; you may tell her yourself.",
             "pace": "slow",
             "end": true
         },

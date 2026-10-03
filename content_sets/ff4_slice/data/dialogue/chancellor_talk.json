@@ -8,10 +8,18 @@
                 {
                     "text": "Your smile does not reach your eyes, Chancellor.",
                     "condition": {
-                        "not": {
-                            "kind": "flag",
-                            "flag": "chancellor_unmasked"
-                        }
+                        "all": [
+                            {
+                                "not": {
+                                    "kind": "flag",
+                                    "flag": "chancellor_unmasked"
+                                }
+                            },
+                            {
+                                "kind": "flag",
+                                "flag": "drake_slain"
+                            }
+                        ]
                     },
                     "next_node": "unmasked",
                     "effects": {
