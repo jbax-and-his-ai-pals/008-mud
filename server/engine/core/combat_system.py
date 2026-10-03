@@ -11,7 +11,7 @@ from engine.config import (
     MAX_HIT_CHANCE, MIN_HIT_CHANCE, MINIMUM_DAMAGE_TAKEN,
     PLAYER_ATTACK_DAMAGE_VARIATION_RANGE, NPC_ATTACK_DAMAGE_VARIATION_RANGE,
     PLAYER_BASE_HIT_CHANCE, NPC_BASE_HIT_CHANCE,
-    FORMAT_ERROR, FORMAT_RESET
+    FORMAT_CATEGORY, FORMAT_ERROR, FORMAT_RESET
 )
 from engine.contracts import stats as stats_contract
 from engine.utils.text_formatter import get_level_diff_category, format_target_name
@@ -25,6 +25,17 @@ if TYPE_CHECKING:
 Entity = Union['Player', 'NPC']
 
 class CombatSystem:
+    @staticmethod
+    def _respawn_hint(player) -> str:
+        """What to do after falling: the command, and where it brings the player back."""
+        place = ""
+        try:
+            room = player.world.get_region(player.respawn_region_id).get_room(player.respawn_room_id)
+            place = f" at {room.name}"
+        except Exception:  # noqa: BLE001 - a hint must never break the blow that earned it
+            place = ""
+        return f"\n\n{FORMAT_CATEGORY}Type 'respawn' to rise again{place}.{FORMAT_RESET}"
+
     @staticmethod
     def calculate_hit_chance(attacker: Entity, defender: Entity) -> float:
         """Calculates the probability (0.0 - 1.0) of a physical attack hitting."""
@@ -118,7 +129,10 @@ class CombatSystem:
 
         # 2. Calculate & Apply Damage
         raw_damage = CombatSystem.calculate_physical_damage(attacker, defender, attack_power)
+        health_before = getattr(defender, "health", 0)
         actual_damage = defender.take_damage(raw_damage, damage_type="physical", weapon_damage_type=weapon_damage_type)
+        from engine.core import kill_credit
+        kill_credit.record_damage(defender, attacker, min(actual_damage, health_before))   # overkill is not extra credit
         result["damage"] = actual_damage
 
         # --- Vampirism Logic ---
@@ -140,6 +154,7 @@ class CombatSystem:
             result["target_defeated"] = True
             if def_name == "you":
                 msg += f" {FORMAT_ERROR}You have been defeated!{FORMAT_RESET}"
+                msg += CombatSystem._respawn_hint(defender)
             else:
                 msg += f" {format_name_for_display(viewer, defender, start_of_sentence=True)} is defeated!"
 

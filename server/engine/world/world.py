@@ -86,6 +86,9 @@ class World:
         # Not gated on a capability: a set with no quests can still have a door that
         # seals behind you. Loaded from `data/triggers/` once the definitions are.
         self.trigger_runner = TriggerRunner(self)
+        # Things to tell a particular player that are not the answer to their command (their share of a
+        # kill someone else finished); the server delivers them to whichever session the player is on.
+        self.pending_player_notices: List[Tuple[Any, str]] = []
         self.spawner = Spawner(self)
         self.save_manager = SaveManager(self)
         self.respawn_manager = RespawnManager(self)
@@ -668,8 +671,10 @@ class World:
                 )
 
             trigger_lines = self.trigger_runner.fire_npc_killed(player, npc) if npc is not None else []
-            parts = [m for m in (quest_msg, rep_msg, encounter_msg, *trigger_lines) if m]
-            return "\n".join(parts) if parts else None
+            # What happened comes first (a scene's own text), then what it means for the quest, then
+            # the side notices; each is a paragraph of its own.
+            parts = [m for m in (*trigger_lines, quest_msg, rep_msg, encounter_msg) if m]
+            return "\n\n".join(parts) if parts else None
         return None
 
     def _handle_reputation_on_kill(self, data: Dict[str, Any]) -> Optional[str]:
@@ -809,6 +814,9 @@ class World:
         return region.get_room(room_id)
 
     def add_region(self, region_id: str, region: Region) -> None: self.regions[region_id] = region
+
+    def notify_player(self, player: Any, text: str) -> None:
+        self.pending_player_notices.append((player, text))
 
     def get_player_by_id(self, player_id: Optional[str]) -> Optional['Player']:
         if not player_id:

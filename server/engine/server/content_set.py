@@ -1500,6 +1500,8 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         value = properties["move_cooldown"]
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
             errors.append(f"{label}.move_cooldown must be a non-negative integer")
+    if "essential" in properties and not isinstance(properties["essential"], bool):
+        errors.append(f"{label}.essential must be true or false (true: cannot be killed unless recruited as a companion)")
     if "respawn_cooldown" in properties:
         value = properties["respawn_cooldown"]
         # Summoned/minion definitions use -1 as their explicit no-respawn
@@ -1664,7 +1666,7 @@ _SIMPLE_RULESET_SECTION_KEYS = {
     "player_defaults": ("player_class", "magic", "starting_inventory"),
     "npc_naming": ("first_names", "random_name_pattern"),
     "status": ("stats",),
-    "combat": ("retreat", "additional_blocked_command_names", "additional_combat_message_tokens"),
+    "combat": ("retreat", "experience_sharing", "additional_blocked_command_names", "additional_combat_message_tokens"),
     "companions": ("max",),
 }
 
@@ -1844,6 +1846,22 @@ def _validate_simple_ruleset_sections(
             for key in ("base_difficulty", "difficulty_per_hostile_level"):
                 if key in retreat:
                     number(retreat[key], f"combat.retreat.{key}", low=0)
+    sharing = combat.get("experience_sharing")
+    if sharing is not None:
+        from engine.core.kill_credit import EXPERIENCE_SHARING_MODES
+
+        if not isinstance(sharing, dict):
+            error("combat.experience_sharing must be an object")
+        else:
+            for key in sharing:
+                if key not in ("mode", "min_share"):
+                    error(f"combat.experience_sharing.{key} is not read (known: mode, min_share)")
+            if "mode" in sharing and sharing["mode"] not in EXPERIENCE_SHARING_MODES:
+                error(f"combat.experience_sharing.mode {sharing['mode']!r} is not a way to share experience, so the default (proportional) applies (known: {', '.join(EXPERIENCE_SHARING_MODES)})")
+            if "min_share" in sharing:
+                value = sharing["min_share"]
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value < 1:
+                    error("combat.experience_sharing.min_share must be a number from 0 up to (not including) 1: the least share of the damage that makes a player a participant")
     for key in ("additional_blocked_command_names", "additional_combat_message_tokens"):
         if key in combat:
             strings(combat[key], f"combat.{key}", allow_empty_list=True)

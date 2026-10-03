@@ -214,6 +214,13 @@ class LifecycleMixin:
                 ):
                     self._background_event_batch.append(self._event("text", other_session_id, _passive(msg)))
 
+        # What the world has to tell particular players (their share of a kill, say), wherever they are.
+        notices, self.world.pending_player_notices = self.world.pending_player_notices, []
+        for notified, msg in notices:
+            for other_session_id in self.sessions:
+                if self.get_player_for_session(other_session_id) is notified:
+                    self._background_event_batch.append(self._event("text", other_session_id, _passive(msg)))
+
         player = self.get_player_for_session(session_id)
         if player and player.is_alive:
             for msg in player.update(self.world.clock.now(), dt):

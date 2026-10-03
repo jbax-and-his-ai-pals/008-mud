@@ -202,13 +202,38 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
         
         if action_result.get("target_defeated", False):
             exit_combat(npc, target)
-            
             xp_gainer = owner if owner is not None else npc
             kill_note = None   # what a trigger says about the death; was discarded
             # Only a creature is "killed": a minion that finishes off a *player* used to
             # raise an npc_killed for them too.
-            if owner is not None and getattr(target, "runtime_state", None) is None:
-                kill_note = world.dispatch_event("npc_killed", {"player": owner, "npc": target})
+            credited = owner
+            if (
+                credited is None
+                and getattr(target, "runtime_state", None) is None
+                and player is not None
+                and getattr(player, "is_alive", False)
+                and not is_hostile_to(npc, player)
+                and is_hostile_to(target, npc)
+            ):
+                # A friend of the player's finished an enemy in front of them (Kessa and the Fog Drake):
+                # it is the player's victory as far as the story is concerned, so the quest and any
+                # scene hear of it. The experience stays with whoever struck the blow.
+                credited = player
+            if credited is not None and getattr(target, "runtime_state", None) is None:
+                kill_note = world.dispatch_event("npc_killed", {"player": credited, "npc": target})
+
+            # Everyone who hurt the creature earns a share of the experience and the money, whoever struck
+            # the blow. The player watching is told in this very message, before what the death set off.
+            from engine.core import kill_credit
+            shares = kill_credit.player_shares(target) if credited is not None else []
+            earned = ""
+            if shares:
+                earned = kill_credit.award_participants(
+                    world, target, shares, gold=kill_credit.roll_gold(target), inline=player)
+                if owner is not None:
+                    xp_gainer = None   # the owner was paid as a participant; not a second time
+            if earned:
+                messages.append("\n" + earned)
 
             if xp_gainer:
                 # Both the killer and the victim need a resolved level. An NPC

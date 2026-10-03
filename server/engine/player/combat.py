@@ -211,12 +211,13 @@ class PlayerCombatMixin:
                         qty_range = gold_data.get("quantity", [1, 1])
                         gold_dropped = random.randint(qty_range[0], qty_range[1])
             
-            target_level = getattr(target, 'level', 1)
-            final_xp_gained = (
-                calculate_xp_gain(p.runtime_state.progression.level, target_level, getattr(target, 'max_health', 10))
-                if p.runtime_state.progression is not None
-                else 0
-            )
+            # Everyone who hurt it earns a share of the experience in proportion, and the blow that killed
+            # it is only one of the shares (core/kill_credit.py).
+            from engine.core import kill_credit
+            shares = kill_credit.player_shares(target)
+            my_share = kill_credit.share_of(p, shares, world or p.world)
+            final_xp_gained = kill_credit.experience_for(p, target, my_share, calculate_xp_gain)
+            rolled_gold, gold_dropped = gold_dropped, kill_credit.gold_for(gold_dropped, my_share)
             if p.runtime_state.gold is None:
                 gold_dropped = 0
             current_world = world or p.world
@@ -243,6 +244,8 @@ class PlayerCombatMixin:
                 if gold_dropped > 0 and p.runtime_state.gold is not None:
                     p.runtime_state.gold += gold_dropped
                     result_message += ("\n" if rewards_started else "\n\n") + f"{FORMAT_SUCCESS}You find {gold_dropped} {current_world.currency_name()}.{FORMAT_RESET}"
+
+            kill_credit.award_participants(current_world, target, shares, skip=p, formula=calculate_xp_gain, gold=rolled_gold)
 
             loot_str = ""
             if current_world and hasattr(target, 'die'):

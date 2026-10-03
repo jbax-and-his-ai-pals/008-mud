@@ -169,11 +169,12 @@ class PlayerMagicMixin:
                              qty_range = gold_data.get("quantity", [1, 1])
                              gold_dropped = random.randint(qty_range[0], qty_range[1])
 
-                 final_xp = (
-                     calculate_xp_gain(p.runtime_state.progression.level, getattr(t, 'level', 1), getattr(t, 'max_health', 10))
-                     if p.runtime_state.progression is not None
-                     else 0
-                 )
+                 # Everyone who hurt it earns a share of the experience in proportion (core/kill_credit.py).
+                 from engine.core import kill_credit
+                 shares = kill_credit.player_shares(t)
+                 my_share = kill_credit.share_of(p, shares, target_world)
+                 final_xp = kill_credit.experience_for(p, t, my_share, calculate_xp_gain)
+                 rolled_gold, gold_dropped = gold_dropped, kill_credit.gold_for(gold_dropped, my_share)
                  if p.runtime_state.gold is None:
                      gold_dropped = 0
                  server = getattr(target_world, "server", None)
@@ -182,25 +183,33 @@ class PlayerMagicMixin:
                      and hasattr(server, "party_reward_routing_active")
                      and server.party_reward_routing_active(p)
                  )
+                 reward_lines = []
                  if use_party_routing and (final_xp > 0 or gold_dropped > 0):
                      reward_text = str(server.grant_party_rewards(p, {"xp": final_xp, "gold": gold_dropped}))
                      if reward_text:
-                         results.append(reward_text)
+                         reward_lines.append(reward_text)
                  else:
+                     # experience (and the level it may bring) first, then the money
+                     if final_xp > 0 and p.runtime_state.progression is not None:
+                         leveled_up, level_up_msg = p.gain_experience(final_xp)
+                         reward_lines.append(f"You gain {final_xp} experience!")
+                         if leveled_up and level_up_msg:
+                             reward_lines.append(level_up_msg)
                      if gold_dropped > 0 and p.runtime_state.gold is not None:
                          p.runtime_state.gold += gold_dropped
                          currency = target_world.currency_name() if target_world else DEFAULT_CURRENCY_NAME
-                         results.append(f"You find {gold_dropped} {currency}.")
-                     if final_xp > 0 and p.runtime_state.progression is not None:
-                         p.gain_experience(final_xp)
-                         results.append(f"You gain {final_xp} experience!")
-
+                         reward_lines.append(f"You find {gold_dropped} {currency}.")
+                 kill_credit.award_participants(target_world, t, shares, skip=p, formula=calculate_xp_gain, gold=rolled_gold)
+                 # Each part of a kill is a paragraph: the rewards (one group), what dropped, then the story.
+                 paragraphs = ["\n".join(reward_lines)] if reward_lines else []
                  if target_world and hasattr(t, "die"):
                      loot_str = format_loot_drop_message(p, t, t.die(target_world))
                      if loot_str:
-                         results.append(loot_str)
+                         paragraphs.append(loot_str)
                  if kill_note:
-                     results.append(kill_note)
+                     paragraphs.append(kill_note)
+                 for paragraph in paragraphs:
+                     results.append("\n" + paragraph)
 
         # Formatting Output
         # (Single-target casts can still accumulate multiple result lines --

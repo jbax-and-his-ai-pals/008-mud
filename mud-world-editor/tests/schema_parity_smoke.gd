@@ -80,6 +80,7 @@ func _init() -> void:
 	_check_campaign_vocabulary(vocabulary)
 	_check_ability_vocabulary(vocabulary)
 	_check_pace_vocabulary(vocabulary)
+	_check_sharing_vocabulary(vocabulary)
 	_check_weather_vocabulary(vocabulary)
 	_check_feature_profile_vocabulary(vocabulary)
 
@@ -418,6 +419,14 @@ func _check_campaign_vocabulary(vocabulary: Dictionary) -> void:
 		var engine := _as_set(campaigns.get(pair[0], []))
 		var editor := _as_set(pair[1])
 		_assert(engine == editor, "campaign %s match exactly (engine %s, editor %s)" % [pair[0], str(_sorted(engine)), str(_sorted(editor))])
+
+
+func _check_sharing_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[experience sharing vocabulary: editor vs engine]")
+	var engine: Dictionary = vocabulary.get("experience_sharing", {})
+	_assert(not engine.is_empty(), "the engine's experience-sharing vocabulary was read")
+	_assert(_as_set(engine.get("modes", [])) == _as_set(RulesetDraft.SHARING_MODES), "sharing modes match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("modes", [])))), str(_sorted(_as_set(RulesetDraft.SHARING_MODES)))])
+	_assert(is_equal_approx(float(engine.get("default_min_share", -1.0)), RulesetDraft.SHARING_DEFAULT_MIN_SHARE), "the default minimum share is the same in both")
 
 
 func _check_pace_vocabulary(vocabulary: Dictionary) -> void:

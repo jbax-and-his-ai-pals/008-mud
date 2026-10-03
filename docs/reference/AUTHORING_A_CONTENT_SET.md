@@ -348,6 +348,17 @@ miss one:
    `data/campaigns/`, `crafting` needs recipes and a station item, `combat` needs
    something to fight and a `loot_table` worth fighting it for.
 
+**Who earns experience (and money) for a kill.** Everyone who hurt the creature earns a share, however many players
+there are and whoever struck the last blow; an ally's blows (a summon, a companion) count for its owner,
+and an NPC ally that is not owned takes a share of the damage that is simply not paid out. Players who were
+not in the room are told what they earned. `ruleset.combat.experience_sharing` changes the rule:
+`"mode"` is `"proportional"` (the default: each earns their share of the damage), `"equal"` (every
+participant earns the same) or `"killer"` (whoever lands the killing blow earns it all, as in older games),
+and `"min_share"` (default `0.05`, from 0 up to but not including 1) is the least a player must have done to
+count as a participant. The same shares split the money the creature drops (its `loot_table.gold_value`),
+and the player who is watching is told what they earned in the kill's own message, before the quest update.
+The ruleset editor has a section for it ("Experience from a kill").
+
 What each capability gives you, and what the gate says when the content is thin:
 
 | Capability | Turns on | The common first message |

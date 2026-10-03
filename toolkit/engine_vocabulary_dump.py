@@ -159,6 +159,8 @@ def main() -> int:
         # How fast text can be revealed (utils/pacing.py); DialogueInspector.gd offers these
         # names on a node.
         "text_paces": _pace_vocabulary(),
+        # How a kill's experience can be shared (core/kill_credit.py); RulesetEditorDialog.gd offers these.
+        "experience_sharing": _sharing_vocabulary(),
         # The calendar's seasons and the weather table a set without its own
         # `weather.chances` plays with; WeatherChancesSection.gd holds the copy.
         "weather": _weather_vocabulary(),
@@ -213,6 +215,12 @@ def _pace_vocabulary() -> dict:
     from engine.utils.pacing import PACE_RANGE, TEXT_PACES
 
     return {"paces": dict(sorted(TEXT_PACES.items())), "range": list(PACE_RANGE)}
+
+
+def _sharing_vocabulary() -> dict:
+    from engine.core.kill_credit import DEFAULT_SHARING_MODE, EXPERIENCE_SHARING_MODES, MIN_SHARE
+
+    return {"modes": list(EXPERIENCE_SHARING_MODES), "default_mode": DEFAULT_SHARING_MODE, "default_min_share": MIN_SHARE}
 
 
 def _region_vocabulary() -> dict:

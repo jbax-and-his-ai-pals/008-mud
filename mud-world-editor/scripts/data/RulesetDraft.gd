@@ -9,6 +9,9 @@ class_name RulesetDraft
 extends RefCounted
 
 const ConfigurationSave = preload("res://scripts/data/ConfigurationSave.gd")
+# How a kill's experience can be shared (engine/core/kill_credit.py; schema_parity_smoke ties this to the engine).
+const SHARING_MODES := ["proportional", "equal", "killer"]
+const SHARING_DEFAULT_MIN_SHARE := 0.05
 
 var path := ""
 var disk_hash := ""
@@ -21,7 +24,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -162,6 +165,10 @@ func validate() -> Array:
 	if retreat is Dictionary and not retreat.is_empty():
 		for key in ["base_difficulty", "difficulty_per_hostile_level"]:
 			if retreat.has(key) and (typeof(retreat[key]) not in [TYPE_INT, TYPE_FLOAT] or float(retreat[key]) < 0): errors.append("combat.retreat.%s must be a non-negative number." % key)
+	var sharing = data.get("combat", {}).get("experience_sharing", {}) if data.get("combat", {}) is Dictionary else {}
+	if sharing is Dictionary and not sharing.is_empty():
+		if sharing.has("mode") and not (str(sharing["mode"]) in SHARING_MODES): errors.append("combat.experience_sharing.mode must be one of %s." % ", ".join(SHARING_MODES))
+		if sharing.has("min_share") and (typeof(sharing["min_share"]) not in [TYPE_INT, TYPE_FLOAT] or float(sharing["min_share"]) < 0 or float(sharing["min_share"]) >= 1): errors.append("combat.experience_sharing.min_share must be a number from 0 up to (not including) 1.")
 	var weather = data.get("weather", {})
 	if weather is Dictionary:
 		if weather.has("descriptions"): _validate_string_map(weather["descriptions"], "weather.descriptions", errors)
