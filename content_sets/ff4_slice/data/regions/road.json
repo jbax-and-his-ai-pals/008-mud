@@ -18,7 +18,8 @@
                     "template_id": "goblin_scout",
                     "instance_id": "goblin_castle_road"
                 }
-            ]
+            ],
+            "properties": {}
         },
         "river_bridge": {
             "name": "River Bridge",

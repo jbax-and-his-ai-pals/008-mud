@@ -1,5 +1,12 @@
 {
-    "region": {},
+    "region": {
+        "_proxy_positions": {
+            "fogreach:entry": [
+                512,
+                -32
+            ]
+        }
+    },
     "rooms": {
         "castle_road": {
             "_editor_pos": [
