@@ -636,7 +636,7 @@ class TestFF4Slice(_Slice):
         self.assertIn("We have done nothing", self.say("talk mayor"))
         self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
         said = self.say("talk mayor")
-        self.assertIn("Whatever you carried here is awake", said)
+        self.assertIn("the moment that package opened it woke", said)
         self.assertIn("find Ryn at the shrine", said, "so that Ryn is a name you know before you are told to report to her")
         self.player.flags["drake_slain"] = True
         said = self.say("talk mayor")

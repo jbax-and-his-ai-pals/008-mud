@@ -532,11 +532,16 @@ def _apply_quest_effects(effects: Dict[str, Any], player, world, report: EffectR
                     if dialogue != "QUEST_COMPLETE":
                         report.messages.append('"%s"' % dialogue)
                 else:
+                    from engine.core.quests.closing import closing_text
+
+                    quest_data = player.runtime_state.quests.active.get(instance_id) or {}
+                    title = quest_data.get("title") or requested
+                    closing = closing_text(quest_data)   # what the stage says as it closes, if it says anything
                     rewards = quest_manager.complete_quest(player, instance_id)
                     report.applied.append("completed %s" % requested)
-                    report.messages.append("[Quest Complete] %s" % requested)
+                    report.messages.append("[Quest Complete] %s" % title + ("\n" + closing if closing else ""))
                     if rewards:
-                        report.messages.append(str(rewards))
+                        report.messages.append("\n" + str(rewards))
 
 
 def _active_instances(player, quest_id: str) -> List[str]:

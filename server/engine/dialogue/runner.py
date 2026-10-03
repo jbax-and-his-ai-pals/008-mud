@@ -155,9 +155,11 @@ def start(world, player, npc) -> Optional[str]:
         return None
     node = manager.open(player, npc, graph)
     shown = manager.render_node(player, npc, node, manager.current(player))
+    # The opening node's effects fire on arrival too, as any node's do ("You ended it" can hand in the quest).
+    opening = manager.apply(player, npc, node.effects, quest_id=manager.current(player).quest_id).message()
     if node.ends_conversation:
         manager.end(player)
-    return shown
+    return shown + ("\n\n" + opening if opening else "")
 
 
 def respond(world, player, npc, query: str) -> Optional[str]:

@@ -280,6 +280,40 @@ class TestHandingOverThePackage(unittest.TestCase):
         self.assertIn("A Fog Drake uncoils", beats[-1])
 
 
+class TestRynsConversation(unittest.TestCase):
+    def at_the_shrine(self):
+        game = _Game(self)
+        game.say("talk king")
+        game.say("reply 1")
+        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.say("give sealed package to mayor")
+        for _ in range(20):
+            game.world.clock.advance(1.0)
+            game.server.tick(game.sid)
+        game.player.current_region_id, game.player.current_room_id = "mistvale", "shrine"
+        return game
+
+    def test_before_the_drake_she_explains_the_fog_and_sends_you_to_end_it(self):
+        game = self.at_the_shrine()
+        game.say("talk ryn")
+        said = game.say("reply 1")
+        self.assertIn("the fog woke", said)
+        self.assertIn("end the thing in the square", said)
+
+    def test_once_it_is_dead_talking_to_her_hands_in_the_quest_and_offers_the_calling(self):
+        game = self.at_the_shrine()
+        game.npc("fog_drake").take_damage(10_000, "physical")
+        game.player.flags["drake_slain"] = True
+        for quest in game.player.runtime_state.quests.active.values():
+            if "fog_drake" in str(quest.get("template_id", "")):
+                quest["state"] = "ready_to_complete"
+        said = game.say("talk ryn")
+        self.assertIn("[Quest Complete] The Fog Drake", said)
+        self.assertIn("The fog thins.", said)
+        self.assertIn("1. Teach me.", said)
+        self.assertTrue(any(k.startswith("quest_fog_drake") for k in game.player.runtime_state.quests.completed))
+
+
 class TestATransitionsPaceIsChecked(unittest.TestCase):
     def errors_with(self, pace):
         import json

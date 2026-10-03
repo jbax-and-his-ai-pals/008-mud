@@ -29,7 +29,7 @@
     "quest_fog_drake": {
         "title": "The Fog Drake",
         "type": "quest",
-        "description": "The package was a trap. A dragon of fog has come out of it. End it.",
+        "description": "The king's package woke the fog that has hung over Mistvale, and it has taken the shape of a dragon. End it.",
         "stages": [
             {
                 "stage_index": 0,
@@ -47,7 +47,7 @@
                         },
                         {
                             "after": 2.5,
-                            "text": "Fog pours out of the broken wax and across the cobbles, colder than any fog should be.",
+                            "text": "The fog that has always hung over the village pulls toward the broken wax, thread by thread, and thickens as it comes.",
                             "pace": "slow"
                         },
                         {
