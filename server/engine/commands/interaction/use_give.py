@@ -171,8 +171,8 @@ def give_handler(args, context):
                 closing = closing_text(q_data, npc.dialog.get(f"complete_{q_id}", npc.dialog.get("quest_complete", "Thank you!")))
                 rewards_msg = world.quest_manager.complete_quest(player, q_id)
                 msg = f"{FORMAT_SUCCESS}[Quest Complete] {title}{FORMAT_RESET}\n"
-                msg += f"{closing}\n"
-                if rewards_msg: msg += rewards_msg
+                msg += closing
+                if rewards_msg: msg += "\n\n" + rewards_msg
                 return msg
             remaining_names = [r.get("name", r.get("template_id")) for r in recipients if r.get("template_id") not in delivered]
             return (
@@ -249,8 +249,9 @@ def give_handler(args, context):
         rewards_msg = qm.complete_quest(player, quest_id)
 
         msg = f"{FORMAT_SUCCESS}[Quest Complete] {quest_data.get('title')}{FORMAT_RESET}\n"
-        msg += f"{closing}\n"
-        if rewards_msg: msg += rewards_msg
+        msg += closing
+        # What it earned (and any level it brought) is its own paragraph, so it is shown at once.
+        if rewards_msg: msg += "\n\n" + rewards_msg
         
         return msg
         

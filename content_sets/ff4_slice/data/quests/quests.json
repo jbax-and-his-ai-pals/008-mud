@@ -38,7 +38,29 @@
                     "template_id": "fog_drake",
                     "region_id": "mistvale",
                     "room_id": "village_square",
-                    "name_override": "Fog Drake"
+                    "name_override": "Fog Drake",
+                    "intro": [
+                        {
+                            "after": 3,
+                            "text": "The hum climbs into a thin whine, and the mayor lets the package fall.",
+                            "pace": "slow"
+                        },
+                        {
+                            "after": 2.5,
+                            "text": "Fog pours out of the broken wax and across the cobbles, colder than any fog should be.",
+                            "pace": "slow"
+                        },
+                        {
+                            "after": 2.5,
+                            "text": "Something vast turns over inside it. The whole square holds its breath.",
+                            "pace": "slow"
+                        },
+                        {
+                            "after": 2.5,
+                            "text": "A Fog Drake uncoils from the mist, and looks at you.",
+                            "pace": "slow"
+                        }
+                    ]
                 },
                 "objective": {
                     "type": "kill",

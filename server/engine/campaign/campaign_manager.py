@@ -132,7 +132,8 @@ class CampaignManager:
                     continue 
                     
                 next_node_id = transition.target_node_id
-                transition_text = transition.narrative_text
+                from engine.utils import pacing
+                transition_text = pacing.paced(transition.narrative_text, transition.pace)
                 break
         
         if next_node_id:

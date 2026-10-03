@@ -166,6 +166,9 @@ class TestTheDrakeFight(unittest.TestCase):
         game.say("reply 1")
         game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
         game.say("give sealed package to mayor")
+        for _ in range(20):   # the drake's arrival is drawn out over a few seconds
+            game.world.clock.advance(1.0)
+            game.server.tick(game.sid)
         drake = game.npc("fog_drake")
         kessa = game.npc("captain_kessa")
         kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"
@@ -220,6 +223,86 @@ class TestAQuestCanCloseOnNarration(unittest.TestCase):
         said = game.say("give sealed package to mayor")
         self.assertIn("something in it begins to hum", said)
         self.assertNotIn('"The mayor takes the package', said)
+
+
+class TestHandingOverThePackage(unittest.TestCase):
+    def deliver(self):
+        game = _Game(self)
+        game.say("talk king")
+        game.say("reply 1")
+        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.server.execute_command(game.sid, "give sealed package to mayor")
+        return game
+
+    def raw(self, game, command):
+        events = game.server.execute_command(game.sid, command)
+        return NL.join(str(e["payload"]) for e in events if e["type"] == "text")
+
+    def test_the_level_it_brings_is_shown_with_its_stat_gains_and_not_typed_out(self):
+        game = _Game(self)
+        game.say("talk king")
+        game.say("reply 1")
+        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        text = self.raw(game, "give sealed package to mayor")
+        self.assertIn("You have reached level 2!", text)
+        self.assertIn("Stats Increased", text)
+        # the story is paced; the numbers are not (they are a paragraph of their own)
+        paced = re.findall(r"\[\[PACE:\d+\]\](.*?)\[\[/PACE\]\]", text, re.S)
+        self.assertTrue(paced)
+        self.assertFalse(any("Stats Increased" in block or "Rewards:" in block for block in paced))
+
+    def test_the_package_was_not_a_gift_arrives_slowly_as_its_own_paragraph(self):
+        game = _Game(self)
+        game.say("talk king")
+        game.say("reply 1")
+        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        text = self.raw(game, "give sealed package to mayor")
+        self.assertIn("[[PACE:40]]The package was not a gift.[[/PACE]]", text)
+        self.assertIn(NL + NL + "[[PACE:40]]", text)
+
+    def test_the_drake_comes_after_a_few_told_beats_a_moment_apart(self):
+        game = _Game(self)
+        game.say("talk king")
+        game.say("reply 1")
+        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.server.execute_command(game.sid, "give sealed package to mayor")
+        self.assertFalse([n for n in game.world.npcs.values() if n.template_id == "fog_drake"], "not yet")
+        told = []
+        for _ in range(12):
+            game.world.clock.advance(1.0)
+            events = game.server.tick(game.sid) + game.server._flush_background_batch(game.sid)   # as the transports do
+            told += [str(e["payload"]) for e in events if e["type"] == "text"]
+            if [n for n in game.world.npcs.values() if n.template_id == "fog_drake"]:
+                break
+        self.assertTrue([n for n in game.world.npcs.values() if n.template_id == "fog_drake"], "and then it comes")
+        beats = [_plain(t).strip() for t in told if "fog" in t.lower() or "package" in t.lower() or "drake" in t.lower()]
+        self.assertGreaterEqual(len(beats), 3, "a few told moments first")
+        self.assertIn("A Fog Drake uncoils", beats[-1])
+
+
+class TestATransitionsPaceIsChecked(unittest.TestCase):
+    def errors_with(self, pace):
+        import json
+        import shutil
+        import tempfile
+
+        from engine.server import content_set as validator
+
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        package = tmp / "ff4_slice"
+        shutil.copytree(REPO_ROOT / "content_sets" / "ff4_slice", package, ignore=shutil.ignore_patterns("saves", "editor"))
+        path = package / "data" / "campaigns" / "the_package.json"
+        campaign = json.loads(path.read_text(encoding="utf-8"))
+        campaign["nodes"]["deliver"]["transitions"][0]["pace"] = pace
+        path.write_text(json.dumps(campaign, indent=2), encoding="utf-8")
+        _definition, issues = validator.load_content_set(package)
+        return [i.message for i in issues if i.severity == "error"]
+
+    def test_a_name_or_a_speed_passes_and_nonsense_does_not(self):
+        self.assertEqual([], self.errors_with("solemn"))
+        self.assertEqual([], self.errors_with(30))
+        self.assertTrue(any("is not a pace" in m for m in self.errors_with("glacial")))
 
 
 class TestNoDanglingReplies(unittest.TestCase):

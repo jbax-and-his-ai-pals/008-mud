@@ -24,7 +24,8 @@
                 {
                     "trigger": "SUCCESS",
                     "target_node_id": "drake",
-                    "narrative_text": "The package was not a gift."
+                    "narrative_text": "The package was not a gift.",
+                    "pace": "solemn"
                 }
             ]
         },

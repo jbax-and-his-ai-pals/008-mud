@@ -109,6 +109,9 @@ check("Kessa is waiting in the square", "Kessa" in out, out[:200])
 
 # --- the package and the drake ---------------------------------------------------
 out = say(g, "give sealed package to mayor", show=V, n=600)
+for _ in range(20):   # the drake takes a few told moments to arrive
+    g.world.clock.advance(1.0)
+    g.tick()
 print("    quests:", quest_states())
 check("delivering the package finishes that quest and advances the campaign", "The Fog Drake" in quest_states(), quest_states())
 drake = [n for n in g.world.npcs.values() if n.template_id == "fog_drake" and n.is_alive]

@@ -411,6 +411,12 @@ class TestFF4Slice(_Slice):
         self.say("talk king")
         self.say("reply 2")
 
+    def _let_the_drake_arrive(self):
+        """Its arrival is drawn out over a few told moments; let them pass."""
+        for _ in range(20):
+            self.world.clock.advance(1.0)
+            self.server.tick(self.sid)
+
     def test_the_king_seals_the_package_in_a_scene_before_the_first_quest(self):
         self.say("talk king")
         printed = self.say("reply 1")   # "At once, my king."
@@ -744,6 +750,8 @@ class TestFF4Slice(_Slice):
         self.assertEqual([], self.npcs("fog_drake"), "the drake is not in the world until its stage begins")
         self.assertIn("Quest Complete", self.say("give sealed package to mayor"))
         self.assertIn("The Fog Drake", self.quest_states())
+        self.assertEqual([], self.npcs("fog_drake"), "it does not appear at once: the moment is given time")
+        self._let_the_drake_arrive()
         drake = self.npcs("fog_drake")
         self.assertEqual(1, len(drake))
         self.assertEqual(("mistvale", "village_square"), (drake[0].current_region_id, drake[0].current_room_id))
@@ -752,6 +760,7 @@ class TestFF4Slice(_Slice):
         self._question_the_king()
         self.at("mistvale", "village_square")
         self.say("give sealed package to mayor")
+        self._let_the_drake_arrive()
         self.kill("fog_drake", "drake")
         self.at("mistvale", "shrine")
         self.assertIn("Quest Complete", self.say("talk ryn complete"))

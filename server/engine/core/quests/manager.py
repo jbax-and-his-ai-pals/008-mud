@@ -422,7 +422,7 @@ class QuestManager:
         
         full_msg = reward_text
         if campaign_update_msg:
-            full_msg += "\n" + campaign_update_msg
+            full_msg += "\n\n" + campaign_update_msg
 
         # Completing a quest is a recognised activity; the ledger records it
         # once per quest *template* so a repeatable board task does not pay
@@ -448,9 +448,10 @@ class QuestManager:
             return server.grant_party_rewards(player, rewards)
 
         msgs = []
+        level_note = ""   # what the level this earned brings, told under the rewards
         xp = rewards.get("xp", 0); gold = rewards.get("gold", 0)
         if xp > 0 and player.runtime_state.progression is not None:
-            _, msg = player.gain_experience(xp); msgs.append(f"{xp} XP")
+            _, level_note = player.gain_experience(xp); msgs.append(f"{xp} XP")
         if gold > 0 and player.runtime_state.gold is not None:
             player.runtime_state.gold += gold; msgs.append(f"{gold} {self.world.currency_name().capitalize()}")
         if "items" in rewards:
@@ -486,7 +487,7 @@ class QuestManager:
                 if milestone_note:
                     msgs.append(milestone_note)
         if not msgs: return ""
-        return "Rewards: " + ", ".join(msgs)
+        return "Rewards: " + ", ".join(msgs) + ("\n" + level_note if level_note else "")
 
     def advance_quest_stage(self, player, quest_id: str, choice_id: Optional[str] = None) -> Optional[str]:
         if quest_id not in player.runtime_state.quests.active: return None
@@ -570,15 +571,45 @@ class QuestManager:
              rmid = spawn_on_start.get("room_id")
              
              if tid and rid and rmid:
-                  existing = [n for n in self.world.npcs.values() if n.template_id == tid and n.current_region_id == rid and n.is_alive]
-                  if not existing:
-                       boss = NPCFactory.create_npc_from_template(tid, self.world)
-                       if boss:
-                            boss.current_region_id = rid
-                            boss.current_room_id = rmid
-                            if "name_override" in spawn_on_start:
-                                 boss.name = spawn_on_start["name_override"]
-                            self.world.add_npc(boss)
+                  def spawn():
+                       existing = [n for n in self.world.npcs.values() if n.template_id == tid and n.current_region_id == rid and n.is_alive]
+                       if not existing:
+                            boss = NPCFactory.create_npc_from_template(tid, self.world)
+                            if boss:
+                                 boss.current_region_id = rid
+                                 boss.current_room_id = rmid
+                                 if "name_override" in spawn_on_start:
+                                      boss.name = spawn_on_start["name_override"]
+                                 self.world.add_npc(boss)
+
+                  # `intro` draws the arrival out: each beat is told `after` seconds after the one before
+                  # (default 2), and the creature appears with the last of them.
+                  intro = spawn_on_start.get("intro")
+                  beats = [b for b in intro if isinstance(b, dict)] if isinstance(intro, list) else []
+                  if beats and player is not None:
+                       elapsed = 0.0
+                       for index, beat in enumerate(beats):
+                            elapsed += self._beat_delay(beat)
+                            self.world.schedule(elapsed, self._beat(player, beat, spawn if index == len(beats) - 1 else None))
+                  else:
+                       spawn()
+
+    @staticmethod
+    def _beat_delay(beat) -> float:
+        after = beat.get("after", 2.0)
+        return float(after) if isinstance(after, (int, float)) and not isinstance(after, bool) and after >= 0 else 2.0
+
+    def _beat(self, player, beat, then=None):
+        """One told moment of a scene; `then` (what it all leads to) happens with it."""
+        from engine.utils import pacing
+
+        def tell():
+            if then is not None:
+                then()
+            text = str(beat.get("text", "") or "")
+            if text:
+                self.world.notify_player(player, pacing.paced(text, beat.get("pace")))
+        return tell
 
     def handle_room_entry(self, player) -> List[str]:
         """Checks for scout objectives AND spawn triggers, returning update messages."""

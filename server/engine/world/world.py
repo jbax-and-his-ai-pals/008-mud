@@ -34,6 +34,7 @@ from engine.world.instance_manager import InstanceManager
 from engine.world.housing_manager import HousingManager, HOUSE_ENTRY_SENTINEL
 from engine.core.crime_manager import CrimeManager
 from engine.utils.pathfinding import find_path
+from engine.utils.logger import Logger
 from engine.core.skill_system import SkillSystem
 from engine.config.config_combat import configure_combat_elements
 from engine.items.affix_data import configure_item_affixes
@@ -89,6 +90,8 @@ class World:
         # Things to tell a particular player that are not the answer to their command (their share of a
         # kill someone else finished); the server delivers them to whichever session the player is on.
         self.pending_player_notices: List[Tuple[Any, str]] = []
+        # Things to do a little later (the beats of a scene): (due time on the world clock, action).
+        self.scheduled_actions: List[Tuple[float, Any]] = []
         self.spawner = Spawner(self)
         self.save_manager = SaveManager(self)
         self.respawn_manager = RespawnManager(self)
@@ -817,6 +820,23 @@ class World:
 
     def notify_player(self, player: Any, text: str) -> None:
         self.pending_player_notices.append((player, text))
+
+    def schedule(self, delay: float, action: Any) -> None:
+        """Run `action()` about `delay` seconds from now (on the world clock), from the server's tick."""
+        self.scheduled_actions.append((float(self.clock.now()) + max(0.0, float(delay)), action))
+
+    def run_scheduled(self) -> None:
+        """Run what has come due, oldest first. One that fails is dropped, not retried."""
+        now = float(self.clock.now())
+        due = sorted((entry for entry in self.scheduled_actions if entry[0] <= now), key=lambda entry: entry[0])
+        if not due:
+            return
+        self.scheduled_actions = [entry for entry in self.scheduled_actions if entry[0] > now]
+        for _when, action in due:
+            try:
+                action()
+            except Exception as error:  # noqa: BLE001 - a broken beat must not stop the world tick
+                Logger.error("World", f"a scheduled action failed: {error}")
 
     def get_player_by_id(self, player_id: Optional[str]) -> Optional['Player']:
         if not player_id:

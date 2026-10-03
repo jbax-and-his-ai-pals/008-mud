@@ -304,6 +304,7 @@ class PartyMixin:
             recipients = [actor]
 
         msgs: List[str] = []
+        level_notes: List[str] = []   # what a level gained here brings, told under the rewards
         xp_total = int(rewards.get("xp", 0) or 0)
         gold_total = int(rewards.get("gold", 0) or 0)
 
@@ -311,8 +312,10 @@ class PartyMixin:
             for recipient, amount in zip(recipients, self._split_int_amount(xp_total, len(recipients))):
                 if amount <= 0 or recipient.runtime_state.progression is None:
                     continue
-                recipient.gain_experience(amount)
+                _leveled, level_note = recipient.gain_experience(amount)
                 msgs.append(f"{recipient.name} +{amount} XP")
+                if level_note:
+                    level_notes.append(level_note if recipient is actor else f"{recipient.name}: {level_note}")
 
         if gold_total > 0 and self.world.ruleset_system_enabled("economy"):
             currency = self.world.currency_name().capitalize()
@@ -376,7 +379,7 @@ class PartyMixin:
 
         if not msgs:
             return ""
-        return "Rewards: " + ", ".join(msgs)
+        return "Rewards: " + ", ".join(msgs) + "".join("\n" + note for note in level_notes)
 
     def grant_party_gold(self, actor: Any, amount: int) -> str:
         total = int(amount or 0)

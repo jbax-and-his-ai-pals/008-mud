@@ -169,7 +169,7 @@ def dialogue_quest_reward(content_set: str, giver: str, topic: str, recipe: str,
             "recipe_learned": learned, "completed": "Quest Complete" in completed,
             "xp_paid": int(paid_xp.group(1)) if paid_xp else 0, "gold_gained": (player.runtime_state.gold or 0) - gold_before,
             "relationships": dict(player.npc_relationships),
-            "output": completed[-500:],
+            "output": completed[-2000:],   # the closing line sits above any level-up it earned
         }
     finally:
         server.shutdown()

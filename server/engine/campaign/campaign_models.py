@@ -23,6 +23,7 @@ class CampaignTransition:
     trigger: str  # e.g., "VIOLENT_SUCCESS", "SUCCESS", "FAILURE"
     target_node_id: str
     narrative_text: str = ""
+    pace: Any = None   # how fast a client reveals `narrative_text` (a name or characters per second)
     conditions: Dict[str, Any] = field(default_factory=dict) # e.g. {"reputation_min": 50}
     chance: float = 1.0 # 1.0 = 100% chance (for RNG twists)
 
@@ -57,6 +58,7 @@ class CampaignDefinition:
                     trigger=t.get("trigger", "SUCCESS"),
                     target_node_id=t.get("target_node_id"),
                     narrative_text=t.get("narrative_text", ""),
+                    pace=t.get("pace"),
                     conditions=t.get("conditions", {}),
                     chance=t.get("chance", 1.0)
                 ))

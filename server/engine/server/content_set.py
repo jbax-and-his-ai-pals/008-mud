@@ -4643,7 +4643,7 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
 
 _CAMPAIGN_KEYS = ("campaign_id", "name", "description", "start_node_id", "nodes")
 _CAMPAIGN_NODE_KEYS = ("description", "quest_template_id", "type", "transitions", "outcome", "effects")
-_CAMPAIGN_TRANSITION_KEYS = ("trigger", "target_node_id", "narrative_text", "chance")
+_CAMPAIGN_TRANSITION_KEYS = ("trigger", "target_node_id", "narrative_text", "pace", "chance")
 
 
 def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue], ruleset_payload: Any = None) -> None:
@@ -4770,6 +4770,9 @@ def _validate_campaigns(content_root: Path, issues: list[ContentSetIssue], rules
                     error(f"{t_label}.target_node_id '{transition.get('target_node_id')}' is not one of this campaign's nodes")
                 if "narrative_text" in transition and not isinstance(transition["narrative_text"], str):
                     error(f"{t_label}.narrative_text must be a string")
+                from engine.utils import pacing
+                if transition.get("pace") not in (None, "instant") and pacing.resolve_pace(transition.get("pace")) is None:
+                    error(f"{t_label}.pace '{transition.get('pace')}' is not a pace (a name -- {', '.join(pacing.TEXT_PACES)} -- or characters per second from {pacing.PACE_RANGE[0]} to {pacing.PACE_RANGE[1]})")
 
         if isinstance(start, str) and start in nodes:
             reachable = {start}
