@@ -632,8 +632,30 @@ class TestFF4Slice(_Slice):
 
         return [n.template_id for n in companions.companions_of(self.world, self.player)]
 
+    def test_kessa_waits_for_the_package_to_be_delivered_before_she_will_ride_with_you(self):
+        self.player.flags["kessa_ahead"] = True
+        kessa = self.npcs("captain_kessa")[0]
+        kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"   # where her ride-ahead would have put her
+        self.at("mistvale", "village_square")
+        said = self.say("talk kessa")
+        self.assertIn("The mayor is waiting in the square", said)
+        self.assertNotIn("Ride with me", said)
+        self.assertNotIn("Did you speak to the king", said, "she knows you have; you are here")
+        self.assertEqual([], self._companions())
+
+    def test_once_the_package_is_delivered_kessa_will_ride_with_you(self):
+        self.player.flags["kessa_ahead"] = True
+        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
+        kessa = self.npcs("captain_kessa")[0]
+        kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"   # where her ride-ahead would have put her
+        self.at("mistvale", "village_square")
+        said = self.say("talk kessa")
+        self.assertIn("What do you need of me", said)
+        self.assertIn("Ride with me, Kessa", said)
+
     def test_kessa_and_ryn_can_join_and_the_inn_heals_the_whole_party(self):
         self.player.flags["kessa_ahead"] = True
+        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
         self.at("varenholt", "barracks")
         self.say("talk kessa")
         self.say("reply 1")   # "Ride with me, Kessa."
@@ -662,6 +684,7 @@ class TestFF4Slice(_Slice):
 
     def test_kessa_can_be_sent_back_to_hold_the_square(self):
         self.player.flags["kessa_ahead"] = True
+        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
         self.at("varenholt", "barracks")
         self.say("talk kessa")
         self.say("reply 1")

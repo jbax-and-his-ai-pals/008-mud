@@ -1,6 +1,40 @@
 {
     "id": "kessa_talk",
     "root": "greeting",
+    "entries": [
+        {
+            "node": "waiting",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "flag",
+                        "flag": "kessa_ahead"
+                    },
+                    {
+                        "not": {
+                            "kind": "quest_completed",
+                            "quest_id": "quest_deliver_package"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "node": "ready",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "flag",
+                        "flag": "kessa_ahead"
+                    },
+                    {
+                        "kind": "quest_completed",
+                        "quest_id": "quest_deliver_package"
+                    }
+                ]
+            }
+        }
+    ],
     "nodes": {
         "greeting": {
             "text": "There you are. Did you speak to the king?",
@@ -41,6 +75,46 @@
                     }
                 },
                 {
+                    "text": "Not yet.",
+                    "next_node": "not_yet"
+                }
+            ]
+        },
+        "joins": {
+            "text": "Good. Then we do this the way we were taught: side by side.",
+            "pace": "slow",
+            "end": true
+        },
+        "stays": {
+            "text": "The square is mine. Send word when you need a blade.",
+            "pace": "slow",
+            "end": true
+        },
+        "ahead_stripped": {
+            "text": "Then he has made a mistake, and I will not watch it happen twice. Go. I will ride ahead and meet you at Mistvale.",
+            "pace": "slow",
+            "end": true
+        },
+        "ahead_obeyed": {
+            "text": "A package for the mayor of Mistvale? Strange. I will ride ahead and meet you there.",
+            "pace": "slow",
+            "end": true
+        },
+        "not_yet": {
+            "text": "Then go, and quickly. The king does not like to be kept waiting, and neither do I.",
+            "pace": "slow",
+            "end": true
+        },
+        "waiting": {
+            "text": "You made it. The mayor is waiting in the square: give him the package, and watch his face while you do. I will keep watch from here.",
+            "pace": "slow",
+            "end": true
+        },
+        "ready": {
+            "text": "It is done, then. What do you need of me?",
+            "pace": "slow",
+            "choices": [
+                {
                     "text": "Ride with me, Kessa. I would rather not do this alone.",
                     "condition": {
                         "all": [
@@ -73,33 +147,13 @@
                     }
                 },
                 {
-                    "text": "Not yet.",
-                    "next_node": "not_yet"
+                    "text": "Nothing yet.",
+                    "next_node": "not_now"
                 }
             ]
         },
-        "joins": {
-            "text": "Good. Then we do this the way we were taught: side by side.",
-            "pace": "slow",
-            "end": true
-        },
-        "stays": {
-            "text": "The square is mine. Send word when you need a blade.",
-            "pace": "slow",
-            "end": true
-        },
-        "ahead_stripped": {
-            "text": "Then he has made a mistake, and I will not watch it happen twice. Go. I will ride ahead and meet you at Mistvale.",
-            "pace": "slow",
-            "end": true
-        },
-        "ahead_obeyed": {
-            "text": "A package for the mayor of Mistvale? Strange. I will ride ahead and meet you there.",
-            "pace": "slow",
-            "end": true
-        },
-        "not_yet": {
-            "text": "Then go, and quickly. The king does not like to be kept waiting, and neither do I.",
+        "not_now": {
+            "text": "Then I will be here when you do.",
             "pace": "slow",
             "end": true
         }
