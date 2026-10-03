@@ -427,6 +427,7 @@ func _check_sharing_vocabulary(vocabulary: Dictionary) -> void:
 	_assert(not engine.is_empty(), "the engine's experience-sharing vocabulary was read")
 	_assert(_as_set(engine.get("modes", [])) == _as_set(RulesetDraft.SHARING_MODES), "sharing modes match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("modes", [])))), str(_sorted(_as_set(RulesetDraft.SHARING_MODES)))])
 	_assert(is_equal_approx(float(engine.get("default_min_share", -1.0)), RulesetDraft.SHARING_DEFAULT_MIN_SHARE), "the default minimum share is the same in both")
+	_assert(is_equal_approx(float(engine.get("default_memory_seconds", -1.0)), float(RulesetDraft.SHARING_DEFAULT_MEMORY_SECONDS)), "the default memory is the same in both")
 
 
 func _check_pace_vocabulary(vocabulary: Dictionary) -> void:

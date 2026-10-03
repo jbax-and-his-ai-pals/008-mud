@@ -215,6 +215,13 @@ class LifecycleMixin:
                     self._background_event_batch.append(self._event("text", other_session_id, _passive(msg)))
 
         # What the world has to tell particular players (their share of a kill, say), wherever they are.
+        # A scene that was part-told when the server stopped carries on (quests/manager.py `resume_scenes`).
+        quest_manager = getattr(self.world, "quest_manager", None)
+        if quest_manager is not None:
+            for scene_session_id in list(self.sessions):
+                scene_player = self.get_player_for_session(scene_session_id)
+                if scene_player is not None:
+                    quest_manager.resume_scenes(scene_player)
         self.world.run_scheduled()
         notices, self.world.pending_player_notices = self.world.pending_player_notices, []
         for notified, msg in notices:

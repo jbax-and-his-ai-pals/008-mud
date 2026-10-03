@@ -12,6 +12,7 @@ const ConfigurationSave = preload("res://scripts/data/ConfigurationSave.gd")
 # How a kill's experience can be shared (engine/core/kill_credit.py; schema_parity_smoke ties this to the engine).
 const SHARING_MODES := ["proportional", "equal", "killer"]
 const SHARING_DEFAULT_MIN_SHARE := 0.05
+const SHARING_DEFAULT_MEMORY_SECONDS := 300
 
 var path := ""
 var disk_hash := ""
@@ -169,6 +170,7 @@ func validate() -> Array:
 	if sharing is Dictionary and not sharing.is_empty():
 		if sharing.has("mode") and not (str(sharing["mode"]) in SHARING_MODES): errors.append("combat.experience_sharing.mode must be one of %s." % ", ".join(SHARING_MODES))
 		if sharing.has("min_share") and (typeof(sharing["min_share"]) not in [TYPE_INT, TYPE_FLOAT] or float(sharing["min_share"]) < 0 or float(sharing["min_share"]) >= 1): errors.append("combat.experience_sharing.min_share must be a number from 0 up to (not including) 1.")
+		if sharing.has("memory_seconds") and (typeof(sharing["memory_seconds"]) not in [TYPE_INT, TYPE_FLOAT] or float(sharing["memory_seconds"]) < 0): errors.append("combat.experience_sharing.memory_seconds must be a number of seconds, 0 or more.")
 	var weather = data.get("weather", {})
 	if weather is Dictionary:
 		if weather.has("descriptions"): _validate_string_map(weather["descriptions"], "weather.descriptions", errors)

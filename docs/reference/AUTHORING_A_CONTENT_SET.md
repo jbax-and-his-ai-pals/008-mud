@@ -357,7 +357,9 @@ not in the room are told what they earned. `ruleset.combat.experience_sharing` c
 `"mode"` is `"proportional"` (the default: each earns their share of the damage), `"equal"` (every
 participant earns the same) or `"killer"` (whoever lands the killing blow earns it all, as in older games),
 and `"min_share"` (default `0.05`, from 0 up to but not including 1) is the least a player must have done to
-count as a participant. The same shares split the money the creature drops (its `loot_table.gold_value`),
+count as a participant, and `"memory_seconds"` (default `300`; `0` never forgets) is how long a blow counts: a
+creature that was left, healed and fought again does not pay the people who hurt it earlier (and one back at full
+health starts a new tally at once). The same shares split the money the creature drops (its `loot_table.gold_value`),
 and the player who is watching is told what they earned in the kill's own message, before the quest update.
 The ruleset editor has a section for it ("Experience from a kill").
 

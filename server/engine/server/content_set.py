@@ -1487,6 +1487,32 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
                                 error(f"{label} references missing item '{value}'")
 
 
+# The properties the engine reads from an NPC. `properties` is open-ended on purpose (a set may keep its own
+# notes there), so an unknown key is only reported when it is a near miss of one of these.
+_NPC_PROPERTY_KEYS = (
+    "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "respawn_cooldown",
+    "essential", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
+    "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
+    "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
+    "can_unlock_chests", "work_location", "tariff", "gift_preferences", "relationship_milestones",
+    "weapon_damage_type", "damage_reactions", "special_abilities", "is_escort_target", "escort_quest_id",
+    "ambient_wanderer", "buys_item_types", "dealer_game", "level_band", "weather_hazard_multipliers",
+)
+
+
+def _npc_property_near_misses(properties: dict, label: str) -> list[str]:
+    import difflib
+
+    messages = []
+    for key in properties:
+        if key in _NPC_PROPERTY_KEYS or str(key).startswith(("_", "minigame_", "house_")):
+            continue
+        near = difflib.get_close_matches(str(key), _NPC_PROPERTY_KEYS, n=1, cutoff=0.8)
+        if near:
+            messages.append(f"{label}.{key} is not a property the engine reads; did you mean '{near[0]}'?")
+    return messages
+
+
 def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> list[str]:
     """What `npc_factory.py` reads from an NPC's `properties`, whether the values
     come from the template or from a room placement's `properties_override`
@@ -1500,6 +1526,8 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         value = properties["move_cooldown"]
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
             errors.append(f"{label}.move_cooldown must be a non-negative integer")
+    if "despawn_message" in properties and not isinstance(properties["despawn_message"], str):
+        errors.append(f"{label}.despawn_message must be text (how a summoned creature leaves)")
     if "unique" in properties and not isinstance(properties["unique"], bool):
         errors.append(f"{label}.unique must be true or false (true: referred to as \"the\" rather than \"a\"/\"an\")")
     if "essential" in properties and not isinstance(properties["essential"], bool):
@@ -1597,6 +1625,8 @@ def _validate_npc_template_runtime_shapes(
             if isinstance(properties, dict):
                 for message in _npc_property_errors(properties, f"{label}.properties", room_refs):
                     issues.append(ContentSetIssue("error", str(path), message))
+                for message in _npc_property_near_misses(properties, f"{label}.properties"):
+                    issues.append(ContentSetIssue("warning", str(path), message))
 
             if "patrol_points" in template:
                 points = template["patrol_points"]
@@ -1856,14 +1886,18 @@ def _validate_simple_ruleset_sections(
             error("combat.experience_sharing must be an object")
         else:
             for key in sharing:
-                if key not in ("mode", "min_share"):
-                    error(f"combat.experience_sharing.{key} is not read (known: mode, min_share)")
+                if key not in ("mode", "min_share", "memory_seconds"):
+                    error(f"combat.experience_sharing.{key} is not read (known: mode, min_share, memory_seconds)")
             if "mode" in sharing and sharing["mode"] not in EXPERIENCE_SHARING_MODES:
                 error(f"combat.experience_sharing.mode {sharing['mode']!r} is not a way to share experience, so the default (proportional) applies (known: {', '.join(EXPERIENCE_SHARING_MODES)})")
             if "min_share" in sharing:
                 value = sharing["min_share"]
                 if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value < 1:
                     error("combat.experience_sharing.min_share must be a number from 0 up to (not including) 1: the least share of the damage that makes a player a participant")
+            if "memory_seconds" in sharing:
+                value = sharing["memory_seconds"]
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+                    error("combat.experience_sharing.memory_seconds must be a number of seconds, 0 or more (0: a blow is never forgotten): how long a blow counts toward a kill")
     for key in ("additional_blocked_command_names", "additional_combat_message_tokens"):
         if key in combat:
             strings(combat[key], f"combat.{key}", allow_empty_list=True)
@@ -4895,6 +4929,88 @@ def _validate_quest_rewards(content_root: Path, issues: list[ContentSetIssue]) -
                 error(f"{where}.amount must be a non-zero whole number")
 
 
+# What a quest stage may say (`core/quests/*`). Keys beginning with "_" are the engine's own progress marks.
+_STAGE_KEYS = (
+    "stage_index", "description", "objective", "objectives_any", "turn_in_id", "turn_in_config",
+    "completion_dialogue", "completion_narration", "ready_text", "start_dialogue",
+    "spawn_on_entry", "spawn_on_start",
+)
+_STAGE_TEXT_KEYS = ("completion_dialogue", "completion_narration", "ready_text", "start_dialogue")
+_INTRO_BEAT_KEYS = ("text", "after", "pace")
+
+
+def _validate_stage_fields(content_root: Path, quests_path: Path, quest_id: str, index: int, stage: dict,
+                           issues: list[ContentSetIssue], npc_ids: set, room_refs: set) -> None:
+    """The text fields, the creature a stage brings in, and the told moments before it arrives."""
+    from engine.utils import pacing
+    import difflib
+
+    label = f"quest '{quest_id}' stage {index}"
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", str(quests_path), f"{label}.{message}"))
+
+    for key in stage:
+        if str(key).startswith("_") or key in _STAGE_KEYS:
+            continue
+        near = difflib.get_close_matches(str(key), _STAGE_KEYS, n=1, cutoff=0.7)
+        issues.append(ContentSetIssue(
+            "warning", str(quests_path),
+            f"{label}.{key} is not a stage field the engine reads"
+            + (f" (did you mean '{near[0]}'?)" if near else "")
+            + f" (known: {', '.join(_STAGE_KEYS)})",
+        ))
+    for key in _STAGE_TEXT_KEYS:
+        if key in stage and not isinstance(stage[key], str):
+            error(f"{key} must be text")
+
+    spawn = stage.get("spawn_on_start")
+    if spawn is None:
+        return
+    if not isinstance(spawn, dict):
+        error("spawn_on_start must be an object ({template_id, region_id, room_id})")
+        return
+    for key in ("template_id", "region_id", "room_id"):
+        if not isinstance(spawn.get(key), str) or not spawn.get(key, "").strip():
+            error(f"spawn_on_start.{key} must name what to bring in and where")
+    if isinstance(spawn.get("template_id"), str) and npc_ids and spawn["template_id"] not in npc_ids:
+        error(f"spawn_on_start.template_id '{spawn['template_id']}' is not an NPC this set defines")
+    if (isinstance(spawn.get("region_id"), str) and isinstance(spawn.get("room_id"), str)
+            and room_refs and f"{spawn['region_id']}:{spawn['room_id']}" not in room_refs):
+        error(f"spawn_on_start names '{spawn['region_id']}:{spawn['room_id']}', which is not a room this set defines")
+    if "name_override" in spawn and not isinstance(spawn["name_override"], str):
+        error("spawn_on_start.name_override must be text")
+    for key in spawn:
+        if key not in ("template_id", "region_id", "room_id", "name_override", "intro"):
+            error(f"spawn_on_start.{key} is not read (known: template_id, region_id, room_id, name_override, intro)")
+
+    intro = spawn.get("intro")
+    if intro is None:
+        return
+    if not isinstance(intro, list):
+        error("spawn_on_start.intro must be a list of beats ({text, after, pace}), told in order before it arrives")
+        return
+    for beat_index, beat in enumerate(intro):
+        where = f"spawn_on_start.intro[{beat_index}]"
+        if not isinstance(beat, dict):
+            error(f"{where} must be an object ({{text, after, pace}})")
+            continue
+        for key in beat:
+            if key not in _INTRO_BEAT_KEYS:
+                error(f"{where}.{key} is not read (known: {', '.join(_INTRO_BEAT_KEYS)})")
+        if not isinstance(beat.get("text"), str) or not beat.get("text", "").strip():
+            error(f"{where}.text must be the words to tell")
+        if "after" in beat:
+            after = beat["after"]
+            if isinstance(after, bool) or not isinstance(after, (int, float)) or not 0 <= after <= 600:
+                error(f"{where}.after must be a number of seconds from 0 to 600 (the wait after the beat before)")
+        if beat.get("pace") not in (None, "instant") and pacing.resolve_pace(beat.get("pace")) is None:
+            error(
+                f"{where}.pace '{beat.get('pace')}' is not a pace (a name -- {', '.join(pacing.TEXT_PACES)} -- "
+                f"or characters per second from {pacing.PACE_RANGE[0]} to {pacing.PACE_RANGE[1]})"
+            )
+
+
 def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """Every stage must say what it is waiting for.
 
@@ -4913,6 +5029,14 @@ def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) ->
     if not isinstance(payload, dict):
         return
 
+    npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    room_refs: set[str] = set()
+    for region_path in sorted((content_root / "regions").glob("*.json")):
+        region = _load_json(region_path, issues, "region definitions")
+        if isinstance(region, dict) and isinstance(region.get("rooms"), dict):
+            region_id = str(region.get("region_id", region_path.stem)).strip()
+            room_refs.update(f"{region_id}:{room_id}" for room_id in region["rooms"])
+
     for quest_id, quest in payload.items():
         if str(quest_id).startswith("_") or not isinstance(quest, dict):
             continue
@@ -4926,6 +5050,7 @@ def _validate_quest_stages(content_root: Path, issues: list[ContentSetIssue]) ->
                     f"quest '{quest_id}' stage {index} must be an object",
                 ))
                 continue
+            _validate_stage_fields(content_root, quests_path, quest_id, index, stage, issues, npc_ids, room_refs)
             if _stage_objectives(stage):
                 continue
             unknown = sorted(

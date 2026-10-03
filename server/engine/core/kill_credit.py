@@ -13,7 +13,7 @@ player who landed the killing blow, who always gets at least that.
 
 from __future__ import annotations
 
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 # How a kill's experience is shared (`ruleset.combat.experience_sharing.mode`):
 #   proportional  each participant earns their share of the damage (the default)
@@ -22,6 +22,7 @@ from typing import Any, List, Tuple
 EXPERIENCE_SHARING_MODES = ("proportional", "equal", "killer")
 DEFAULT_SHARING_MODE = "proportional"
 MIN_SHARE = 0.05   # the default for `min_share`: the least a player must have done to be a participant
+DEFAULT_MEMORY_SECONDS = 300   # the default for `memory_seconds`: how long a blow counts toward the kill (0: for ever)
 
 
 def sharing_settings(world: Any):
@@ -39,6 +40,23 @@ def sharing_settings(world: Any):
             float(minimum) if valid_minimum else MIN_SHARE)
 
 
+def memory_seconds(world: Any) -> float:
+    """How long a blow stays on the tally (`ruleset.combat.experience_sharing.memory_seconds`); 0 is for ever."""
+    try:
+        section = world.ruleset_section("combat").get("experience_sharing", {}) if world is not None else {}
+    except Exception:  # noqa: BLE001 - a world without rules plays by the defaults
+        section = {}
+    value = section.get("memory_seconds") if isinstance(section, dict) else None
+    if isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
+        return float(value)
+    return float(DEFAULT_MEMORY_SECONDS)
+
+
+def _now(world: Any) -> float:
+    clock = getattr(world, "clock", None)
+    return float(clock.now()) if clock is not None else 0.0
+
+
 def _credited(attacker: Any, world: Any) -> Any:
     """Whom a blow is counted for: an owned creature's blows are its owner's."""
     props = getattr(attacker, "properties", None)
@@ -50,18 +68,26 @@ def _credited(attacker: Any, world: Any) -> Any:
     return attacker
 
 
-def record_damage(victim: Any, attacker: Any, amount: float) -> None:
-    """Note that `attacker` did `amount` damage to `victim`."""
+def record_damage(victim: Any, attacker: Any, amount: float, health_before: Optional[float] = None) -> None:
+    """Note that `attacker` did `amount` damage to `victim`, who had `health_before` health when it landed."""
     if attacker is None or attacker is victim or not amount or amount <= 0:
         return
-    who = _credited(attacker, getattr(victim, "world", None))
+    world = getattr(victim, "world", None)
+    who = _credited(attacker, world)
+    # A creature that was at full health before this blow is in a new fight: whatever was hurting it
+    # before (and has long since healed) does not share in this one.
+    max_health = getattr(victim, "max_health", 0) or 0
+    if health_before is not None and max_health and health_before >= max_health:
+        clear(victim)
     log = victim.__dict__.setdefault("_damage_log", {})
     key = str(getattr(who, "obj_id", id(who)))
     entry = log.get(key)
+    now = _now(world)
     if entry is None:
-        log[key] = [who, float(amount)]
+        log[key] = [who, float(amount), now]
     else:
         entry[1] += float(amount)
+        entry[2] = now
 
 
 def player_shares(victim: Any) -> List[Tuple[Any, float]]:
@@ -72,11 +98,16 @@ def player_shares(victim: Any) -> List[Tuple[Any, float]]:
     if mode == "killer":
         return []   # nobody is a participant: the killing blow takes it all (share_of answers 1.0)
     log = getattr(victim, "__dict__", {}).get("_damage_log") or {}
-    total = sum(entry[1] for entry in log.values())
+    world = getattr(victim, "world", None)
+    memory = memory_seconds(world)
+    now = _now(world)
+    # Blows from long ago (a fight that was left and has been picked up again) no longer count.
+    counted = [(who, damage) for who, damage, last in log.values() if memory <= 0 or now - last <= memory]
+    total = sum(damage for _who, damage in counted)
     if total <= 0:
         return []
     shares = [
-        (who, damage / total) for who, damage in log.values()
+        (who, damage / total) for who, damage in counted
         if isinstance(who, Player) and damage / total >= minimum
     ]
     if mode == "equal" and shares:

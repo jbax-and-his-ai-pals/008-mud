@@ -542,7 +542,7 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
             rewards_msg = qm.complete_quest(player, quest_turn_in_id, resolution=resolution)
             
             title = quest_data.get('title', 'Quest')
-            completion_msg = f"{FORMAT_SUCCESS}[Quest Complete] {title}{FORMAT_RESET}\n"
+            from engine.core.quests.closing import completion_report
             if not dialogue or dialogue == "QUEST_COMPLETE":
                  # `advance_quest_stage` reports the end of a quest with a
                  # sentinel instead of the last stage's closing line, so the
@@ -551,13 +551,12 @@ def _handle_quest_dialogue(player, target_npc, world) -> str:
                  # "Thank you!". Prefer what the author wrote, then the NPC's
                  # own parting line, then the fallback.
                  from engine.core.quests.closing import closing_text
-                 completion_msg += closing_text(quest_data, target_npc.dialog.get(
+                 closing = closing_text(quest_data, target_npc.dialog.get(
                      "quest_complete", f"\"Thank you!\" says {target_npc.name}."
                  ))
             else:
-                completion_msg += f"{FORMAT_HIGHLIGHT}\"{dialogue}\"{FORMAT_RESET}"
-            if rewards_msg: completion_msg += f"\n\n{rewards_msg}"
-            return completion_msg
+                closing = f"{FORMAT_HIGHLIGHT}\"{dialogue}\"{FORMAT_RESET}"
+            return completion_report(title, closing, rewards_msg)
         else:
             new_idx = quest_data.get("current_stage_index", 0)
             new_stage_desc = quest_data["stages"][new_idx]["description"]

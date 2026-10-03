@@ -132,7 +132,7 @@ class CombatSystem:
         health_before = getattr(defender, "health", 0)
         actual_damage = defender.take_damage(raw_damage, damage_type="physical", weapon_damage_type=weapon_damage_type)
         from engine.core import kill_credit
-        kill_credit.record_damage(defender, attacker, min(actual_damage, health_before))   # overkill is not extra credit
+        kill_credit.record_damage(defender, attacker, min(actual_damage, health_before), health_before)   # overkill is not extra credit
         result["damage"] = actual_damage
 
         # --- Vampirism Logic ---

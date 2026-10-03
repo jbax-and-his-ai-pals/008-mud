@@ -10,6 +10,7 @@ from engine.items.item_factory import ItemFactory
 from engine.npcs.npc_factory import NPCFactory
 from engine.social.relationships import apply_relationship_milestones, relationship_key
 from engine.utils.logger import Logger
+from .closing import ready_instruction
 from .loader import load_quest_templates
 from .tracker import check_quest_completion, handle_npc_killed, handle_item_crafted, handle_resource_gathered
 
@@ -565,51 +566,87 @@ class QuestManager:
 
         # Stage-authored boss spawns occur when the stage begins.
         spawn_on_start = stage_data.get("spawn_on_start")
-        if spawn_on_start:
-             tid = spawn_on_start.get("template_id")
-             rid = spawn_on_start.get("region_id")
-             rmid = spawn_on_start.get("room_id")
-             
-             if tid and rid and rmid:
-                  def spawn():
-                       existing = [n for n in self.world.npcs.values() if n.template_id == tid and n.current_region_id == rid and n.is_alive]
-                       if not existing:
-                            boss = NPCFactory.create_npc_from_template(tid, self.world)
-                            if boss:
-                                 boss.current_region_id = rid
-                                 boss.current_room_id = rmid
-                                 if "name_override" in spawn_on_start:
-                                      boss.name = spawn_on_start["name_override"]
-                                 self.world.add_npc(boss)
+        if isinstance(spawn_on_start, dict) and all(spawn_on_start.get(k) for k in ("template_id", "region_id", "room_id")):
+            # `intro` draws the arrival out: each beat is told `after` seconds after the one before
+            # (default 2), and the creature appears with the last of them. How far the scene has got is
+            # kept on the stage, so a restart picks it up where it was (`resume_scenes`) instead of
+            # leaving a quest with nothing to fight.
+            intro = spawn_on_start.get("intro")
+            beats = [b for b in intro if isinstance(b, dict)] if isinstance(intro, list) else []
+            if beats and player is not None:
+                stage_data["_intro"] = {"beat": 0}
+                self._arm_intro(player, quest_data, stage_data, 0)
+            else:
+                self._spawn_stage_creature(spawn_on_start)
 
-                  # `intro` draws the arrival out: each beat is told `after` seconds after the one before
-                  # (default 2), and the creature appears with the last of them.
-                  intro = spawn_on_start.get("intro")
-                  beats = [b for b in intro if isinstance(b, dict)] if isinstance(intro, list) else []
-                  if beats and player is not None:
-                       elapsed = 0.0
-                       for index, beat in enumerate(beats):
-                            elapsed += self._beat_delay(beat)
-                            self.world.schedule(elapsed, self._beat(player, beat, spawn if index == len(beats) - 1 else None))
-                  else:
-                       spawn()
+    def _spawn_stage_creature(self, spawn_on_start) -> None:
+        tid = spawn_on_start.get("template_id")
+        rid = spawn_on_start.get("region_id")
+        rmid = spawn_on_start.get("room_id")
+        existing = [n for n in self.world.npcs.values() if n.template_id == tid and n.current_region_id == rid and n.is_alive]
+        if existing:
+            return
+        boss = NPCFactory.create_npc_from_template(tid, self.world)
+        if boss:
+            boss.current_region_id = rid
+            boss.current_room_id = rmid
+            if "name_override" in spawn_on_start:
+                boss.name = spawn_on_start["name_override"]
+            self.world.add_npc(boss)
 
     @staticmethod
     def _beat_delay(beat) -> float:
         after = beat.get("after", 2.0)
         return float(after) if isinstance(after, (int, float)) and not isinstance(after, bool) and after >= 0 else 2.0
 
-    def _beat(self, player, beat, then=None):
-        """One told moment of a scene; `then` (what it all leads to) happens with it."""
+    @staticmethod
+    def _intro_key(quest_data) -> str:
+        return "intro:%s" % quest_data.get("instance_id", id(quest_data))
+
+    def _arm_intro(self, player, quest_data, stage_data, start: int) -> None:
+        """Schedule the beats of a stage's intro from beat `start` on; each records its progress as it is told."""
         from engine.utils import pacing
 
-        def tell():
-            if then is not None:
-                then()
-            text = str(beat.get("text", "") or "")
-            if text:
-                self.world.notify_player(player, pacing.paced(text, beat.get("pace")))
-        return tell
+        spawn_on_start = stage_data["spawn_on_start"]
+        beats = [b for b in spawn_on_start.get("intro", []) if isinstance(b, dict)]
+        progress = stage_data.setdefault("_intro", {"beat": start})
+        key = self._intro_key(quest_data)
+        elapsed = 0.0
+        for index in range(start, len(beats)):
+            beat = beats[index]
+            elapsed += self._beat_delay(beat)
+            last = index == len(beats) - 1
+
+            def tell(beat=beat, index=index, last=last):
+                if last:
+                    self._spawn_stage_creature(spawn_on_start)
+                    stage_data.pop("_intro", None)
+                else:
+                    progress["beat"] = index + 1
+                text = str(beat.get("text", "") or "")
+                if text:
+                    self.world.notify_player(player, pacing.paced(text, beat.get("pace")))
+            self.world.schedule(elapsed, tell, key=key)
+
+    def resume_scenes(self, player) -> None:
+        """Pick up a stage intro that is part-told but no longer scheduled (the server restarted, the
+        world was restored): tell what is left and bring the creature in."""
+        quests = getattr(getattr(player, "runtime_state", None), "quests", None)
+        if quests is None:
+            return
+        for quest_data in list(quests.active.values()):
+            stages = quest_data.get("stages", [])
+            index = quest_data.get("current_stage_index", 0)
+            if not (isinstance(index, int) and 0 <= index < len(stages)):
+                continue
+            stage = stages[index]
+            progress = stage.get("_intro") if isinstance(stage, dict) else None
+            if not isinstance(progress, dict) or not isinstance(stage.get("spawn_on_start"), dict):
+                continue
+            if self.world.is_scheduled(self._intro_key(quest_data)):
+                continue
+            start = progress.get("beat", 0)
+            self._arm_intro(player, quest_data, stage, start if isinstance(start, int) else 0)
 
     def handle_room_entry(self, player) -> List[str]:
         """Checks for scout objectives AND spawn triggers, returning update messages."""
@@ -687,7 +724,7 @@ class QuestManager:
                     quest_title = q_data.get("title", "Scouting Mission")
                     turn_in_name = self.resolve_turn_in_name(q_data)
                     msgs.append(f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_title}{FORMAT_RESET}\n"
-                                f"You have reached the target location. Report back to {turn_in_name}.")
+                                f"You have reached the target location. {ready_instruction(q_data, 'Report back to ' + turn_in_name + '.')}")
 
         return msgs
 

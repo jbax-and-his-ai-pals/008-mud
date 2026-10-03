@@ -218,9 +218,12 @@ def _pace_vocabulary() -> dict:
 
 
 def _sharing_vocabulary() -> dict:
-    from engine.core.kill_credit import DEFAULT_SHARING_MODE, EXPERIENCE_SHARING_MODES, MIN_SHARE
+    from engine.core.kill_credit import DEFAULT_MEMORY_SECONDS, DEFAULT_SHARING_MODE, EXPERIENCE_SHARING_MODES, MIN_SHARE
 
-    return {"modes": list(EXPERIENCE_SHARING_MODES), "default_mode": DEFAULT_SHARING_MODE, "default_min_share": MIN_SHARE}
+    return {
+        "modes": list(EXPERIENCE_SHARING_MODES), "default_mode": DEFAULT_SHARING_MODE,
+        "default_min_share": MIN_SHARE, "default_memory_seconds": DEFAULT_MEMORY_SECONDS,
+    }
 
 
 def _region_vocabulary() -> dict:

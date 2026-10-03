@@ -18,6 +18,7 @@ var retreat_base: SpinBox
 var retreat_per_level: SpinBox
 var sharing_mode: OptionButton
 var sharing_min_share: SpinBox
+var sharing_memory: SpinBox
 # combat.additional_* (command_execution.py / status_payloads.py): what else
 # counts as combat when a server runs with combat switched off.
 var combat_blocked_commands: LineEdit
@@ -86,7 +87,9 @@ func setup():
 	sharing_mode.item_selected.connect(func(index): sharing_mode.select(index); _mark_dirty())
 	sharing_row.add_child(sharing_mode)
 	sharing_row.add_child(InspectorStyle.lbl("Minimum share", InspectorStyle.COLOR_TEXT_DIM))
-	sharing_min_share = SpinBox.new(); sharing_min_share.name = "SharingMinShare"; sharing_min_share.min_value = 0.0; sharing_min_share.max_value = 0.5; sharing_min_share.step = 0.01; sharing_min_share.custom_minimum_size.x = 90; InspectorStyle.apply_input_style(sharing_min_share); sharing_min_share.value_changed.connect(func(_value): _mark_dirty()); sharing_row.add_child(sharing_min_share); box.add_child(sharing_row)
+	sharing_min_share = SpinBox.new(); sharing_min_share.name = "SharingMinShare"; sharing_min_share.min_value = 0.0; sharing_min_share.max_value = 0.5; sharing_min_share.step = 0.01; sharing_min_share.custom_minimum_size.x = 90; InspectorStyle.apply_input_style(sharing_min_share); sharing_min_share.value_changed.connect(func(_value): _mark_dirty()); sharing_row.add_child(sharing_min_share)
+	sharing_row.add_child(InspectorStyle.lbl("Blows count for (seconds, 0 = for ever)", InspectorStyle.COLOR_TEXT_DIM))
+	sharing_memory = SpinBox.new(); sharing_memory.name = "SharingMemory"; sharing_memory.min_value = 0; sharing_memory.max_value = 86400; sharing_memory.step = 1; sharing_memory.custom_minimum_size.x = 90; InspectorStyle.apply_input_style(sharing_memory); sharing_memory.value_changed.connect(func(_value): _mark_dirty()); sharing_row.add_child(sharing_memory); box.add_child(sharing_row)
 	var combat_off_hint := InspectorStyle.lbl("When a server runs with combat off, attack/kill/flee/cast are refused and combat lines hidden. Name any other commands and message words this set uses for fighting.", InspectorStyle.COLOR_TEXT_DIM); combat_off_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(combat_off_hint)
 	combat_blocked_commands = _field(box, "Also refuse these commands (comma-separated)"); combat_blocked_commands.name = "CombatBlockedCommands"
 	combat_message_tokens = _field(box, "Also hide messages containing (comma-separated)"); combat_message_tokens.name = "CombatMessageTokens"
@@ -207,6 +210,7 @@ func open_active():
 	var sharing_section: Dictionary = draft.data.get("combat", {}).get("experience_sharing", {}) if draft.data.get("combat", {}) is Dictionary and draft.data.get("combat", {}).get("experience_sharing", {}) is Dictionary else {}
 	sharing_mode.select(maxi(0, RulesetDraft.SHARING_MODES.find(str(sharing_section.get("mode", "proportional")))))
 	sharing_min_share.value = float(sharing_section.get("min_share", RulesetDraft.SHARING_DEFAULT_MIN_SHARE))
+	sharing_memory.value = float(sharing_section.get("memory_seconds", RulesetDraft.SHARING_DEFAULT_MEMORY_SECONDS))
 	retreat_skill.text = str(retreat.get("skill", "")); retreat_base.value = float(retreat.get("base_difficulty", 10)); retreat_per_level.value = float(retreat.get("difficulty_per_hostile_level", 2))
 	var combat_section: Dictionary = draft.data.get("combat", {}) if draft.data.get("combat", {}) is Dictionary else {}
 	combat_blocked_commands.text = ", ".join(combat_section.get("additional_blocked_command_names", [])) if combat_section.get("additional_blocked_command_names") is Array else ""
@@ -247,6 +251,7 @@ func _save():
 		_put_path(draft.data, "combat.retreat.difficulty_per_hostile_level", int(retreat_per_level.value))
 	if _field_changed(sharing_mode): _put_path(draft.data, "combat.experience_sharing.mode", str(RulesetDraft.SHARING_MODES[sharing_mode.selected]))
 	if _field_changed(sharing_min_share): _put_path(draft.data, "combat.experience_sharing.min_share", float(sharing_min_share.value))
+	if _field_changed(sharing_memory): _put_path(draft.data, "combat.experience_sharing.memory_seconds", float(sharing_memory.value))
 	for pair in [[combat_blocked_commands, "additional_blocked_command_names"], [combat_message_tokens, "additional_combat_message_tokens"]]:
 		if not _field_changed(pair[0]): continue
 		var values: Array = Array((pair[0] as LineEdit).text.split(",", false)).map(func(value): return str(value).strip_edges()).filter(func(value): return value != "")

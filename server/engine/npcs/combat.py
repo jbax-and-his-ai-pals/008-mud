@@ -206,21 +206,27 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
             kill_note = None   # what a trigger says about the death; was discarded
             # Only a creature is "killed": a minion that finishes off a *player* used to
             # raise an npc_killed for them too.
-            credited = owner
-            if (
-                credited is None
-                and getattr(target, "runtime_state", None) is None
-                and player is not None
-                and getattr(player, "is_alive", False)
-                and not is_hostile_to(npc, player)
-                and is_hostile_to(target, npc)
-            ):
-                # A friend of the player's finished an enemy in front of them (Kessa and the Fog Drake):
-                # it is the player's victory as far as the story is concerned, so the quest and any
-                # scene hear of it. The experience stays with whoever struck the blow.
-                credited = player
-            if credited is not None and getattr(target, "runtime_state", None) is None:
-                kill_note = world.dispatch_event("npc_killed", {"player": credited, "npc": target})
+            credited_players = [owner] if owner is not None else []
+            if owner is None and getattr(target, "runtime_state", None) is None and is_hostile_to(target, npc):
+                # A friend of the players finished an enemy in front of them (Kessa and the Fog Drake): it
+                # is the victory of every player standing there as far as the story is concerned, so each
+                # one's quest and any scene hear of it. The experience stays with whoever struck the blow.
+                credited_players = [
+                    candidate for candidate in world.get_players_for_npc(npc, alive_only=True)
+                    if not is_hostile_to(npc, candidate)
+                ]
+            if getattr(target, "runtime_state", None) is None:
+                notes = {}
+                for candidate in credited_players:
+                    note = world.dispatch_event("npc_killed", {"player": candidate, "npc": target})
+                    if note:
+                        notes[candidate.obj_id] = note
+                kill_note = notes.pop(player.obj_id, None) if player is not None else None
+                for other_id, note in notes.items():   # the others are told wherever they are
+                    other = world.get_player_by_id(other_id)
+                    if other is not None:
+                        world.notify_player(other, note)
+            credited = credited_players[0] if credited_players else None
 
             # Everyone who hurt the creature earns a share of the experience and the money, whoever struck
             # the blow. The player watching is told in this very message, before what the death set off.

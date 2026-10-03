@@ -167,13 +167,10 @@ def give_handler(args, context):
             title = q_data.get("title", "Task")
             required_ids = {r.get("template_id") for r in recipients}
             if required_ids <= set(delivered):
-                from engine.core.quests.closing import closing_text
+                from engine.core.quests.closing import closing_text, completion_report
                 closing = closing_text(q_data, npc.dialog.get(f"complete_{q_id}", npc.dialog.get("quest_complete", "Thank you!")))
                 rewards_msg = world.quest_manager.complete_quest(player, q_id)
-                msg = f"{FORMAT_SUCCESS}[Quest Complete] {title}{FORMAT_RESET}\n"
-                msg += closing
-                if rewards_msg: msg += "\n\n" + rewards_msg
-                return msg
+                return completion_report(title, closing, rewards_msg)
             remaining_names = [r.get("name", r.get("template_id")) for r in recipients if r.get("template_id") not in delivered]
             return (
                 f"{FORMAT_SUCCESS}{npc.name} accepts {the(item.name)}.{FORMAT_RESET}\n"
@@ -244,16 +241,11 @@ def give_handler(args, context):
         # Complete Quest
         qm = world.quest_manager
         authored = _closing_line(quest_data)
-        from engine.core.quests.closing import closing_text
+        from engine.core.quests.closing import closing_text, completion_report
         closing = closing_text(quest_data, npc.dialog.get(f"complete_{quest_id}", npc.dialog.get("quest_complete", "Thank you!")))
         rewards_msg = qm.complete_quest(player, quest_id)
 
-        msg = f"{FORMAT_SUCCESS}[Quest Complete] {quest_data.get('title')}{FORMAT_RESET}\n"
-        msg += closing
-        # What it earned (and any level it brought) is its own paragraph, so it is shown at once.
-        if rewards_msg: msg += "\n\n" + rewards_msg
-        
-        return msg
+        return completion_report(quest_data.get('title'), closing, rewards_msg)
         
     else:
         # Standard Gift

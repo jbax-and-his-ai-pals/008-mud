@@ -117,7 +117,7 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                 health_before = getattr(target, "health", 0)
                 dmg = getattr(target, 'take_damage')(final_val, damage_type=eff_dmg_type)
                 from engine.core import kill_credit
-                kill_credit.record_damage(target, caster, min(dmg, health_before))   # overkill is not extra credit
+                kill_credit.record_damage(target, caster, min(dmg, health_before), health_before)   # overkill is not extra credit
                 total_value += dmg
                 
                 flavor = ""

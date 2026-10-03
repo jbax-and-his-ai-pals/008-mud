@@ -42,7 +42,7 @@ def handle_npc_killed(manager, event_type: str, data: Dict[str, Any]) -> Optiona
                             quest_data["state"] = "ready_to_complete"
                             # Manager must have this method exposed
                             turn_in_name = manager.resolve_turn_in_name(quest_data)
-                            messages.append(f"{FORMAT_HIGHLIGHT}[Quest Update]{FORMAT_RESET} {quest_data.get('title')}: All targets eliminated! Report to {turn_in_name}.")
+                            messages.append(f"{FORMAT_HIGHLIGHT}[Quest Update]{FORMAT_RESET} {quest_data.get('title')}: All targets eliminated! {ready_instruction(quest_data, 'Report to ' + turn_in_name + '.')}")
                     else:
                             messages.append(f"{FORMAT_HIGHLIGHT}[Quest Update]{FORMAT_RESET} {quest_data.get('title')}: {target_name} ({target_data['current']}/{target_data['required']})")
 
@@ -92,7 +92,7 @@ def handle_item_crafted(manager, player, recipe, quality_tier: Optional[Dict[str
             turn_in_name = manager.resolve_turn_in_name(quest_data)
             messages.append(
                 f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: You've crafted it to the quality "
-                f"required. Report back to {turn_in_name}.{FORMAT_RESET}"
+                f"required. {ready_instruction(quest_data, 'Report back to ' + turn_in_name + '.')}{FORMAT_RESET}"
             )
     return "\n".join(messages) if messages else None
 
@@ -121,7 +121,7 @@ def handle_resource_gathered(manager, player, resource_item_id: str) -> Optional
                 turn_in_name = manager.resolve_turn_in_name(quest_data)
                 messages.append(
                     f"{FORMAT_HIGHLIGHT}[Quest Update] {title}: You have gathered everything needed. "
-                    f"Report back to {turn_in_name}.{FORMAT_RESET}"
+                    f"{ready_instruction(quest_data, 'Report back to ' + turn_in_name + '.')}{FORMAT_RESET}"
                 )
             else:
                 messages.append(
@@ -173,7 +173,7 @@ def check_quest_completion(manager, player=None):
                     if manager.world.game and manager.world.game.renderer:
                         npc_name = objective.get("npc_name", target_template_id)
                         manager.world.game.renderer.add_message(
-                            f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: {npc_name} trusts you enough now. Report back to {turn_in_name}.{FORMAT_RESET}"
+                            f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: {npc_name} trusts you enough now. {ready_instruction(quest_data, 'Report back to ' + turn_in_name + '.')}{FORMAT_RESET}"
                         )
                 continue
 
@@ -185,7 +185,7 @@ def check_quest_completion(manager, player=None):
                     turn_in_name = manager.resolve_turn_in_name(quest_data)
                     if manager.world.game and manager.world.game.renderer:
                         manager.world.game.renderer.add_message(
-                            f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: You have learned enough. Report back to {turn_in_name}.{FORMAT_RESET}"
+                            f"{FORMAT_HIGHLIGHT}[Quest Update] {quest_data.get('title')}: You have learned enough. {ready_instruction(quest_data, 'Report back to ' + turn_in_name + '.')}{FORMAT_RESET}"
                         )
                 continue
 
@@ -214,7 +214,7 @@ def check_quest_completion(manager, player=None):
                 instance_region = meta.get("instance_region", {})
                 instance_name = instance_region.get("region_name", "area")
 
-                message = f"{FORMAT_HIGHLIGHT}[Quest Update] You have cleared the {instance_name}! Report back to {completion_npc_name} outside.{FORMAT_RESET}"
+                message = f"{FORMAT_HIGHLIGHT}[Quest Update] You have cleared the {instance_name}! {ready_instruction(quest_data, 'Report back to ' + completion_npc_name + ' outside.')}{FORMAT_RESET}"
                 manager.world.game.renderer.add_message(message)
 
             quest_data["state"] = "ready_to_complete"

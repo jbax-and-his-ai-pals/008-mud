@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET
+from engine.config import FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS
 
 
 def final_stage_field(quest_data: Any, key: str) -> str:
@@ -43,3 +43,15 @@ def ready_instruction(quest_data: Any, default: str) -> str:
     ("Report back to Ryn.") for a stage that names none. A stage can say it for itself when the person to
     report to is nobody the player has met."""
     return final_stage_field(quest_data, "ready_text") or default
+
+
+def completion_report(title: Any, closing: str = "", rewards: Any = "") -> str:
+    """What handing a quest in reads like, wherever it is handed in (a conversation, `give`, `talk ... complete`):
+    the title, what the stage says as it closes, then what it earned (and any level it brought) as a paragraph
+    of its own, so a client can show the story slowly and the numbers at once."""
+    text = f"{FORMAT_SUCCESS}[Quest Complete] {title}{FORMAT_RESET}"
+    if closing:
+        text += "\n" + closing
+    if rewards:
+        text += "\n\n" + str(rewards)
+    return text
