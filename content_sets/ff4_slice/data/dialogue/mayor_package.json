@@ -3,6 +3,21 @@
     "root": "greeting",
     "entries": [
         {
+            "node": "grateful_with_ryn",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "flag",
+                        "flag": "drake_slain"
+                    },
+                    {
+                        "kind": "npc_here",
+                        "npc_id": "ryn"
+                    }
+                ]
+            }
+        },
+        {
             "node": "grateful",
             "condition": {
                 "kind": "flag",
@@ -25,6 +40,11 @@
         },
         "beware": {
             "text": "The fog has watched this square for years, and the moment that package opened it woke. It will not stop at me. Kill it! And if you live, find Ryn at the shrine; she knew what that fog was before any of us did.",
+            "pace": "slow",
+            "end": true
+        },
+        "grateful_with_ryn": {
+            "text": "It is dead. I never thought I would see this square without the fog watching us. And here is Ryn: she warned us, and she has been asking for whoever dealt with the thing. Speak with her.",
             "pace": "slow",
             "end": true
         },

@@ -51,6 +51,21 @@ class TestNpcPresent(unittest.TestCase):
         self.assertTrue(conditions.evaluate(wanted, _player()).satisfied)
 
 
+class TestNpcHere(unittest.TestCase):
+    def test_true_only_for_a_living_npc_in_the_players_room(self):
+        player = _player(_npc("ryn", "ryn_1", "hazevale", "shrine"), _npc("kessa", "kessa_1", "hazevale", "square"),
+                         _npc("mayor", "mayor_1", "hazevale", "shrine", alive=False))
+        player.current_region_id, player.current_room_id = "hazevale", "shrine"
+        here = lambda npc_id: conditions.evaluate({"kind": "npc_here", "npc_id": npc_id}, player).satisfied
+        self.assertTrue(here("ryn"))
+        self.assertTrue(here("ryn_1"), "or by placed id")
+        self.assertFalse(here("kessa"), "alive, but in another room")
+        self.assertFalse(here("mayor"), "in the room, but dead")
+        player.current_room_id = "square"
+        self.assertFalse(here("ryn"))
+        self.assertTrue(here("kessa"))
+
+
 class TestEnmities(unittest.TestCase):
     def view(self, **section):
         return factions.RulesetView({"factions": section})

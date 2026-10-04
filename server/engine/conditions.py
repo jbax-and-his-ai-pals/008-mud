@@ -111,6 +111,12 @@ CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
         "refs": {"npc_id": "npcs"},
         "note": "A living NPC of this template (or this placed id), anywhere, or only in the room named by region and room together. Not-ed, it is true once the last one is gone.",
     },
+    "npc_here": {
+        "label": "An NPC is in the player's room",
+        "fields": {"npc_id": "npc_id"},
+        "refs": {"npc_id": "npcs"},
+        "note": "A living NPC of this template (or this placed id) standing in the room the player is in now. Lets a line say \"go and see her\" only when she is not already beside the player.",
+    },
     "companion_recovering": {
         "label": "A companion is recovering",
         "fields": {"npc_id": "npc_id"},
@@ -437,6 +443,16 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
             if region_id and room_id and (npc.current_region_id, npc.current_room_id) != (region_id, room_id):
                 continue
             return True
+        reasons.append("%s is not here" % (wanted or "no one"))
+        return False
+
+    if kind == "npc_here":
+        wanted = str(node.get("npc_id", "")).strip()
+        where = (getattr(player, "current_region_id", None), getattr(player, "current_room_id", None))
+        for npc in getattr(getattr(player, "world", None), "npcs", {}).values():
+            if (getattr(npc, "is_alive", False) and wanted in (npc.template_id, npc.obj_id)
+                    and (npc.current_region_id, npc.current_room_id) == where):
+                return True
         reasons.append("%s is not here" % (wanted or "no one"))
         return False
 
