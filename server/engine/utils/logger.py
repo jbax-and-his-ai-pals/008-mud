@@ -8,9 +8,19 @@ class LogLevel:
     ERROR = 3
     CRITICAL = 4 # Only fatal errors
 
+def _level_from_environment() -> int:
+    """`MUD_LOG_LEVEL` (DEBUG, INFO, WARNING, ERROR, CRITICAL or NONE) sets the starting level, so a script that
+    drives the engine can silence its chatter without touching code. Unset or unrecognised: DEBUG, as before."""
+    import os
+
+    names = {"DEBUG": LogLevel.DEBUG, "INFO": LogLevel.INFO, "WARNING": LogLevel.WARNING, "WARN": LogLevel.WARNING,
+             "ERROR": LogLevel.ERROR, "CRITICAL": LogLevel.CRITICAL, "NONE": LogLevel.CRITICAL + 1}
+    return names.get(os.environ.get("MUD_LOG_LEVEL", "").strip().upper(), LogLevel.DEBUG)
+
+
 class Logger:
     _instance = None
-    _level = LogLevel.DEBUG  # Default level
+    _level = _level_from_environment()  # Default level
 
     def __new__(cls):
         if cls._instance is None:
