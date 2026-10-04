@@ -1,0 +1,17 @@
+{
+    "reach_the_inn": {
+        "on": {
+            "event": "on_enter",
+            "region": "dunhallow",
+            "room": "inn"
+        },
+        "when": {
+            "kind": "flag",
+            "flag": "ryn_carried"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "reach_the_inn"
+        }
+    }
+}

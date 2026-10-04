@@ -17,7 +17,7 @@ from engine.core.quests.closing import closing_text
 from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
 
-from tests.fixtures import STORY_FIXTURE, skip_the_ff4_opening
+from tests.fixtures import STORY_FIXTURE
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
@@ -29,12 +29,11 @@ def _plain(text):
 
 
 class _Game:
-    """A game of the FF4 slice. By default a frozen copy of it (the engine features this file checks do not depend on
-    the story); `story=True` plays the real set, for the classes that are about its story."""
+    """A game of the frozen copy of the FF4 slice: what this file checks is engine behaviour, not the shipped story."""
 
-    def __init__(self, case, story=False):
+    def __init__(self, case):
         self.server = HeadlessServer(
-            db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / "ff4_slice" if story else STORY_FIXTURE),
+            db_path=":memory:", content_set_path=str(STORY_FIXTURE),
             deterministic_test_mode=True, default_presentation_mode="player",
         )
         case.addCleanup(self.server.shutdown)
@@ -42,8 +41,6 @@ class _Game:
         self.server.execute_command(self.sid, "char create Aldric")
         self.player = self.server.get_player_for_session(self.sid)
         self.world = self.server.world
-        if story:
-            skip_the_ff4_opening(self.world, self.player)   # the real slice starts in Ilmara; these tests begin at the king
 
     def say(self, command):
         events = self.server.execute_command(self.sid, command)
@@ -129,7 +126,7 @@ class TestTheDrakeFight(unittest.TestCase):
     def test_falling_says_how_to_get_up(self):
         from engine.npcs.combat import try_attack
 
-        game = _Game(self, story=True)
+        game = _Game(self)
         game.player.current_region_id, game.player.current_room_id = "road", "castle_road"
         game.player.health = 1
         wolf = NPCFactory.create_npc_from_template("road_wolf", game.world, instance_id="finisher")
@@ -152,7 +149,7 @@ class TestTheDrakeFight(unittest.TestCase):
     def test_everyone_in_the_square_can_hurt_the_drake_but_not_end_it(self):
         from engine.npcs.combat import attack
 
-        game = _Game(self, story=True)
+        game = _Game(self)
         drake = NPCFactory.create_npc_from_template("fog_drake", game.world, instance_id="test_drake")
         drake.current_region_id, drake.current_room_id = "hazevale", "village_square"
         game.world.add_npc(drake)
@@ -169,7 +166,7 @@ class TestTheDrakeFight(unittest.TestCase):
     def test_if_kessa_kills_the_drake_it_counts_for_the_player(self):
         from engine.npcs.combat import try_attack
 
-        game = _Game(self, story=True)
+        game = _Game(self)
         game.say("talk king")
         game.say("reply 1")
         game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
@@ -206,7 +203,7 @@ class TestTheDrakeFight(unittest.TestCase):
         self.assertNotIn("cave", text, "the fight is in the square")
 
     def test_none_of_them_can_be_killed_by_it(self):
-        game = _Game(self, story=True)
+        game = _Game(self)
         for template in ("captain_kessa", "innkeeper", "mayor_of_hazevale"):
             npc = game.npc(template)
             npc.take_damage(10_000, "physical")
@@ -235,7 +232,7 @@ class TestAQuestCanCloseOnNarration(unittest.TestCase):
 
 class TestHandingOverThePackage(unittest.TestCase):
     def deliver(self):
-        game = _Game(self, story=True)
+        game = _Game(self)
         game.say("talk king")
         game.say("reply 1")
         game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
@@ -247,7 +244,7 @@ class TestHandingOverThePackage(unittest.TestCase):
         return NL.join(str(e["payload"]) for e in events if e["type"] == "text")
 
     def test_the_level_it_brings_is_shown_with_its_stat_gains_and_not_typed_out(self):
-        game = _Game(self, story=True)
+        game = _Game(self)
         game.say("talk king")
         game.say("reply 1")
         game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
@@ -260,7 +257,7 @@ class TestHandingOverThePackage(unittest.TestCase):
         self.assertFalse(any("Stats Increased" in block or "Rewards:" in block for block in paced))
 
     def test_the_package_was_not_a_gift_arrives_slowly_as_its_own_paragraph(self):
-        game = _Game(self, story=True)
+        game = _Game(self)
         game.say("talk king")
         game.say("reply 1")
         game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
@@ -269,7 +266,7 @@ class TestHandingOverThePackage(unittest.TestCase):
         self.assertIn(NL + NL + "[[PACE:40]]", text)
 
     def test_the_drake_comes_after_a_few_told_beats_a_moment_apart(self):
-        game = _Game(self, story=True)
+        game = _Game(self)
         game.say("talk king")
         game.say("reply 1")
         game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
@@ -290,7 +287,7 @@ class TestHandingOverThePackage(unittest.TestCase):
 
 class TestRynsConversation(unittest.TestCase):
     def at_the_shrine(self):
-        game = _Game(self, story=True)
+        game = _Game(self)
         game.say("talk king")
         game.say("reply 1")
         game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"

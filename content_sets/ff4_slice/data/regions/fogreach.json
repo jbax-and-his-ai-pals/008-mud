@@ -16,10 +16,11 @@
         },
         "bat_roost": {
             "name": "Bat Roost",
-            "description": "The ceiling is a mass of sleeping wings.",
+            "description": "The ceiling is a mass of sleeping wings. A crack in the south wall opens on a nook where the droppings are piled deep.",
             "exits": {
                 "west": "entry",
-                "east": "crystal_pool"
+                "east": "crystal_pool",
+                "south": "guano_nook"
             },
             "initial_npcs": [
                 {
@@ -32,12 +33,32 @@
                 }
             ]
         },
+        "guano_nook": {
+            "name": "Guano Nook",
+            "description": "A cramped pocket of the cave, reeking and warm. Somebody once hid something here, and never came back for it.",
+            "exits": {
+                "north": "bat_roost"
+            },
+            "items": [
+                {
+                    "item_id": "item_traveller_cache"
+                }
+            ]
+        },
         "crystal_pool": {
             "name": "Crystal Pool",
-            "description": "A quiet pool ringed by pale crystals. An iron chest lies half-buried near the water.",
+            "description": "A quiet pool ringed by pale crystals. The path leads on to the south, down toward a colder dark, and a passage opens to the north between two tall stones.",
             "exits": {
                 "west": "bat_roost",
+                "north": "crystal_alcove",
                 "south": "narrow_ledge"
+            }
+        },
+        "crystal_alcove": {
+            "name": "Crystal Alcove",
+            "description": "A small chamber with walls of faceted crystal, every face throwing back a little of your light. An iron chest lies half-buried near the water.",
+            "exits": {
+                "south": "crystal_pool"
             },
             "items": [
                 {
@@ -47,10 +68,11 @@
         },
         "narrow_ledge": {
             "name": "Narrow Ledge",
-            "description": "A ledge along a drop into darkness. An imp watches from the far end.",
+            "description": "A ledge along a drop into darkness. An imp watches from the far end. The air here is much colder, and a low opening on the west side leads away from the drop.",
             "exits": {
                 "north": "crystal_pool",
-                "south": "cave_exit"
+                "west": "echo_niche",
+                "south": "fog_gallery"
             },
             "initial_npcs": [
                 {
@@ -59,12 +81,37 @@
                 }
             ]
         },
-        "cave_exit": {
-            "name": "Far Exit",
-            "description": "Grey light and thin fog. The valley of Hazevale lies below.",
+        "echo_niche": {
+            "name": "Echo Niche",
+            "description": "A narrow niche where every drip of water comes back to you twice. A dead traveller's pack lies against the wall.",
+            "exits": {
+                "east": "narrow_ledge"
+            },
+            "items": [
+                {
+                    "item_id": "item_dead_scout_pack"
+                }
+            ]
+        },
+        "fog_gallery": {
+            "name": "Fog Gallery",
+            "description": "A long, high gallery. The fog here does not drift; it lies in the air and waits, thick as wool, and the sound of your own boots does not carry.",
             "exits": {
                 "north": "narrow_ledge",
-                "down": "hazevale:valley_path"
+                "south": "fog_hollow"
+            }
+        },
+        "fog_hollow": {
+            "name": "Fog Hollow",
+            "description": "The cave ends in a round hollow, open to a grey sky far above. Below the lip of the far wall the valley of Hazevale lies waiting, and the fog fills this place to the brim.",
+            "exits": {
+                "north": "fog_gallery"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "down": "hazevale:valley_path",
+                    "north": "fog_gallery"
+                }
             }
         }
     }

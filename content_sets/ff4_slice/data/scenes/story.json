@@ -321,7 +321,15 @@
                         "ilmara_aftermath",
                         "leave_ilmara",
                         "second_wave",
-                        "landing"
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -345,7 +353,14 @@
                         "leave_ilmara",
                         "second_wave",
                         "landing",
-                        "night_in_the_castle"
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
                     ],
                     "set_flag": [
                         "air_second_wave",

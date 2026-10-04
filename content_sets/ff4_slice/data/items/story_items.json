@@ -38,6 +38,10 @@
                 {
                     "item_id": "item_potion",
                     "quantity": 3
+                },
+                {
+                    "item_id": "item_wayfarer_charm",
+                    "quantity": 1
                 }
             ]
         },
@@ -54,5 +58,73 @@
             "quest_item": true
         },
         "item_family": "curio"
+    },
+    "item_traveller_cache": {
+        "type": "Container",
+        "name": "oilskin bundle",
+        "description": "A bundle wrapped in oilskin and wedged into a crack, dry in spite of everything.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 5,
+            "contains": [
+                {
+                    "item_id": "item_iron_helm",
+                    "quantity": 1
+                },
+                {
+                    "item_id": "item_potion",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "item_dead_scout_pack": {
+        "type": "Container",
+        "name": "scout's pack",
+        "description": "A canvas pack, its owner long gone. Whatever killed him did not care for what he carried.",
+        "weight": 4,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 5,
+            "contains": [
+                {
+                    "item_id": "item_scout_gloves",
+                    "quantity": 1
+                },
+                {
+                    "item_id": "item_potion",
+                    "quantity": 2
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "item_woodcutters_crate": {
+        "type": "Container",
+        "name": "woodcutter's crate",
+        "description": "A plain pine crate under the bed, nailed shut once and pried open since.",
+        "weight": 6,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 6,
+            "contains": [
+                {
+                    "item_id": "item_potion",
+                    "quantity": 2
+                }
+            ]
+        },
+        "item_family": "container"
     }
 }

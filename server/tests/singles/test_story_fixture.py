@@ -29,7 +29,6 @@ ABOUT_THE_SHIPPED_SET = {
     "test_content_playability_check.py": "sweeps every shipped set",
     "test_world_snapshot_round_trip.py": "sweeps every shipped set",
     "test_ff4_opening.py": "the first hour of the real slice: Ilmara, the airship, the landing, the night",
-    "test_story_beats.py": "its story classes play the real slice (the rest use the fixture)",
     "test_story_fixture.py": "this file",
 }
 NAMES_THE_SET = re.compile(r"""["']ff4_slice["']""")

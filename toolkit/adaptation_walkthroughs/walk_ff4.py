@@ -1,4 +1,4 @@
-"""Play ff4_slice from the throne room to the summoner child, recording what worked.
+"""Play ff4_slice from the Ilmaran crystal chamber to the desert village inn, recording what worked.
 
 Run from anywhere: .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/walk_ff4.py [--verbose]"""
 import os
@@ -138,34 +138,40 @@ check("entered the cave", g.where() == "fogreach:entry", g.where())
 say(g, "go east")
 for i in range(2):
     r = g.fight("bat", potion="potion"); check("beat bat %d" % (i + 1), r.startswith("won"), r)
-say(g, "go east")
-check("at the crystal pool", g.where() == "fogreach:crystal_pool", g.where())
-out = say(g, "open iron chest", show=V)
-out = say(g, "look iron chest", show=V)
+
+# --- the cave's treasure, off the road ----------------------------------------------------------------------------
+say(g, "go south")
+check("in the guano nook", g.where() == "fogreach:guano_nook", g.where())
+say(g, "open oilskin bundle")
+say(g, "get iron helm from oilskin bundle")
+check("the nook's bundle held an iron helm", "item_iron_helm" in g.items(), str(g.items()))
+say(g, "go north")
+out = say(g, "go east", show=V, n=500)
+check("at the crystal pool, and the first warning is told", g.where() == "fogreach:crystal_pool" and "turn back" in out, out[:300])
+say(g, "go north")
+check("in the crystal alcove", g.where() == "fogreach:crystal_alcove", g.where())
+say(g, "open iron chest")
 for _ in range(3):
     say(g, "get potion from iron chest")
-potions = sum(slot.quantity for slot in g.player.inventory.slots if slot.item and slot.item.obj_id == "item_potion")
-check("the chest held three potions (and Aldric has no use for an ether)", potions >= 5, str(potions))
+say(g, "get wayfarer's charm from iron chest")
+check("the chest held potions and a charm", "item_wayfarer_charm" in g.items(), str(g.items()))
 say(g, "go south")
+out = say(g, "go south", show=V, n=500)
+check("on the narrow ledge, warned again", g.where() == "fogreach:narrow_ledge" and "turn back" in out, out[:300])
 r = g.fight("imp", potion="potion"); check("beat the cave imp", r.startswith("won"), r); print("   ", r)
-say(g, "go south"); say(g, "go down")
-check("down in Hazevale", g.where() == "hazevale:valley_path", g.where())
-say(g, "go south")
-check("in the village square", g.where() == "hazevale:village_square", g.where())
-out = say(g, "look", show=V, n=700)
-check("Kessa is waiting in the square", "Kessa" in out, out[:200])
+g.player.health = g.player.max_health
 
-# --- the package and the drake ---------------------------------------------------
-out = say(g, "give sealed package to mayor", show=V, n=600)
-for _ in range(20):   # the drake takes a few told moments to arrive
-    g.world.clock.advance(1.0)
-    g.tick()
-print("    quests:", quest_states())
-check("delivering the package finishes that quest and advances the campaign", "The Fog Drake" in quest_states(), quest_states())
+# --- the hollow and the Fog Drake -------------------------------------------------------------------------------
+out = say(g, "go south", show=V, n=500)
+check("in the gallery, the last warning is told", g.where() == "fogreach:fog_gallery" and "last warning" in out, out[:300])
+say(g, "go south")
+check("in the hollow", g.where() == "fogreach:fog_hollow", g.where())
+wait(20)
 drake = [n for n in g.world.npcs.values() if n.template_id == "fog_drake" and n.is_alive]
-check("the Fog Drake appears when its stage begins", bool(drake), [(n.template_id, n.current_room_id) for n in g.world.npcs.values() if n.template_id == "fog_drake"])
-out = say(g, "look", show=V, n=500)
-check("the drake is in the square with the hero", "Fog Drake" in out, out[:200])
+check("the fog gathers into the Fog Drake", bool(drake), "")
+say(g, "go north")
+check("and there is no leaving", g.where() == "fogreach:fog_hollow", g.where())
+
 
 def fight_with_spell(target, spell, max_rounds=120):
     """Aldric's Gloom Wave costs an eighth of his health and no mana: cast while he can afford it,
@@ -193,39 +199,45 @@ def fight_with_spell(target, spell, max_rounds=120):
 
 
 print("    hp before drake: %s / %s" % (g.player.health, g.player.max_health))
-g.player.health = g.player.max_health
-sword_only = None
-r = fight_with_spell("drake", "gloom wave"); check("beat the Fog Drake", r.startswith("won"), r); print("   ", r)
-print("    quests:", quest_states())
-
-# --- Ryn, the summon and the title ------------------------------------------------
+r = fight_with_spell("drake", "gloom wave"); check("beat the Fog Drake with Kessa", r.startswith("won"), r); print("   ", r)
+wait(15)
+check("the way down opens", g.world.get_region("fogreach").get_room("fog_hollow").exits.get("down") == "hazevale:valley_path", "")
+say(g, "go down")
+check("down in Hazevale", g.where() == "hazevale:valley_path", g.where())
 say(g, "go south")
-check("at the shrine", g.where() == "hazevale:shrine", g.where())
-out = say(g, "talk ryn complete", show=V, n=500)
-print("    quests:", quest_states(), "| completed:", list(getattr(g.player.runtime_state.quests, "completed", {}) or []))
-out = say(g, "talk ryn", show=V, n=600)
-out = say(g, "reply 1", show=V, n=500)
+check("in the village square", g.where() == "hazevale:village_square", g.where())
+out = say(g, "talk mayor", show=V, n=500)
+check("the mayor asks for the package", "give sealed package to mayor" in out, out[:200])
+
+# --- the package, the fire, the girl ------------------------------------------------------------------------------
+out = say(g, "give sealed package to mayor", show=V, n=600)
+wait(60)
+check("the village is burned and you stand in what is left", g.where() == "hazevale_ruin:village_square" and g.player.flags.get("village_burned"), g.where())
+check("the mayor is gone", not [n for n in g.world.npcs.values() if n.template_id == "mayor_of_hazevale" and n.is_alive], "")
+say(g, "go south")
+check("at the shrine, with Ryn", g.where() == "hazevale_ruin:shrine", g.where())
+out = say(g, "talk ryn", show=V, n=500)
 out = say(g, "reply 1", show=V, n=400)
-check("Ryn teaches the calling", "call_colossus" in str(getattr(g.player.runtime_state.magic, "known_spells", "")), str(getattr(g.player.runtime_state.magic, "known_spells", "")))
-g.player.health = g.player.max_health   # the calling costs a quarter of his life
-from engine.npcs.npc_factory import NPCFactory
-foe = NPCFactory.create_npc_from_template("goblin_scout", g.world, instance_id="colossus_target")
-foe.current_region_id, foe.current_room_id = "hazevale", "shrine"
-foe.health = foe.max_health = 500
-g.world.add_npc(foe)
-out = say(g, "cast call colossus", show=V, n=300)
-colossus = [n for n in g.world.npcs.values() if n.template_id == "colossus_minion" and n.is_alive]
-check("the Colossus is summoned", bool(colossus), out[:150])
-check("its quake hits the enemy", foe.health < 500, foe.health)
-for _ in range(12):
-    g.world.clock.advance(1.0)
-    g.tick()
-check("the Colossus is gone again soon after", not [n for n in g.world.npcs.values() if n.template_id == "colossus_minion" and n.is_alive])
-out = say(g, "titles", show=V, n=400)
-out = say(g, "title lightsworn", show=V, n=400)
-print("    title:", flat(out, 200))
-check("a class-change stand-in: the Lightsworn title can be claimed", "lightsworn" in out.lower() and ("claim" in out.lower() or "now" in out.lower() or "are" in out.lower()), out[:150])
-print("    journal:", flat(say(g, "journal"), 300))
+wait(70)
+check("Kessa works out what the king meant, and gives way", g.player.flags.get("kessa_relented") is True, "")
+for _ in range(3):
+    out = say(g, "talk ryn", show=V, n=300)
+    out = say(g, "reply 1", show=V, n=300)
+wait(90)
+check("the Colossus's quake brings the mountain down: you wake in the wood", g.where() == "thornwood:clearing", g.where())
+kessa = [n for n in g.world.npcs.values() if n.template_id == "captain_kessa"][0]
+check("Kessa is nowhere to be found", kessa.current_region_id != "thornwood" and not kessa.properties.get("companion"), "")
+ryn = [n for n in g.world.npcs.values() if n.template_id == "ryn"][0]
+check("Ryn is carried, unconscious", bool(ryn.properties.get("companion")) and g.player.flags.get("ryn_carried"), "")
+
+# --- the wood, the desert, the inn ---------------------------------------------------------------------------------
+for step in ("go east", "go east", "go east", "go east", "go east", "go east", "go east", "go north"):
+    say(g, step)
+    for foe in [n for n in g.world.npcs.values() if n.template_id in ("thorn_wolf", "dune_jackal") and n.is_alive]:
+        g.world.remove_npcs(foe.obj_id)   # the route is what is walked here; the fights are tested elsewhere
+check("at the Blue Door Inn in Dunhallow", g.where() == "dunhallow:inn", g.where())
+wait(30)
+check("Ryn is put to bed, and the slice ends", g.player.flags.get("reached_the_inn") is True, "")
 
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])

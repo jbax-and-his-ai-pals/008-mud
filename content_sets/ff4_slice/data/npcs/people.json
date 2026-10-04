@@ -123,13 +123,14 @@
         "faction": "friendly",
         "behavior_type": "stationary",
         "dialog": {
-            "greeting": "Please... are you the one who...?"
+            "greeting": "Please... go away."
         },
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "ryn_summoner",
-            "essential": true
+            "dialogue": "ryn_girl",
+            "essential": true,
+            "pacifist": true
         }
     },
     "innkeeper": {
@@ -265,6 +266,26 @@
             "essential": true,
             "aggression": 0.2,
             "attack_cooldown": 6
+        }
+    },
+    "desert_innkeeper": {
+        "name": "innkeeper",
+        "description": "A stout woman with a ring of keys and a lantern she never seems to put down.",
+        "health": 60,
+        "level": 3,
+        "attack_power": 12,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Welcome out of the sun. There is always a bed."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "inn_rest",
+            "essential": true,
+            "unique": true
         }
     }
 }

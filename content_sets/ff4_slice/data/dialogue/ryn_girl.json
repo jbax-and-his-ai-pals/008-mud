@@ -1,0 +1,155 @@
+{
+    "id": "ryn_girl",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "asleep_at_the_inn",
+            "condition": {
+                "kind": "flag",
+                "flag": "reached_the_inn"
+            }
+        },
+        {
+            "node": "carried",
+            "condition": {
+                "kind": "flag",
+                "flag": "ryn_carried"
+            }
+        },
+        {
+            "node": "round_three",
+            "condition": {
+                "kind": "flag",
+                "flag": "ryn_resisted_twice"
+            }
+        },
+        {
+            "node": "round_two",
+            "condition": {
+                "kind": "flag",
+                "flag": "ryn_resisted_once"
+            }
+        },
+        {
+            "node": "round_one",
+            "condition": {
+                "kind": "flag",
+                "flag": "kessa_relented"
+            }
+        },
+        {
+            "node": "grief",
+            "condition": {
+                "kind": "flag",
+                "flag": "ryn_told"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "You were with the soldiers. You killed the drake in the cave, I felt it go. Mother was singing to it, and something cut the song off, and she just... fell down. She will not get up. Why would you do that?",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "I am sorry. I did not know it was hers.",
+                    "next_node": "sorry"
+                },
+                {
+                    "text": "It was in our way. It would have killed us.",
+                    "next_node": "in_the_way"
+                }
+            ]
+        },
+        "sorry": {
+            "text": "Sorry does not wake her. Mother said the fog was only sleeping, that it was hers and she was its. If you cut one, the other bleeds. She told me, and I did not believe her.",
+            "pace": "slow",
+            "effects": {
+                "set_flag": "ryn_told",
+                "play_scene": "kessa_deduces"
+            },
+            "end": true
+        },
+        "in_the_way": {
+            "text": "It was not in anyone's way. It lay in the cave and kept the fog quiet, that is all it ever did. Mother said if you cut one, the other bleeds. She told me, and I did not believe her.",
+            "pace": "slow",
+            "effects": {
+                "set_flag": "ryn_told",
+                "play_scene": "kessa_deduces"
+            },
+            "end": true
+        },
+        "grief": {
+            "text": "Leave me alone. Please.",
+            "pace": "slow",
+            "end": true
+        },
+        "round_one": {
+            "text": "What do you want?",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Come with us, Ryn. You cannot stay here alone.",
+                    "next_node": "first_no",
+                    "effects": {
+                        "set_flag": "ryn_resisted_once"
+                    }
+                }
+            ]
+        },
+        "first_no": {
+            "text": "I know what people like you are. Soldiers. You burned the village, and you killed my mother. I am not going anywhere with you.",
+            "pace": "slow",
+            "end": true
+        },
+        "round_two": {
+            "text": "Go away. Please. Go away.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "I will not hurt you. There will be more soldiers, and I want you far from here before they come.",
+                    "next_node": "second_no",
+                    "effects": {
+                        "set_flag": "ryn_resisted_twice"
+                    }
+                }
+            ]
+        },
+        "second_no": {
+            "text": "You say that. Everyone says that. Mother told me that if the people with the red ring ever came, I should not run. I should sing.",
+            "pace": "slow",
+            "end": true
+        },
+        "round_three": {
+            "text": "Mother said I should sing. I am going to sing.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Ryn, please. Do not do this.",
+                    "next_node": "the_calling",
+                    "effects": {
+                        "play_scene": "colossus_quake"
+                    }
+                }
+            ]
+        },
+        "the_calling": {
+            "text": "I call you. Come.",
+            "pace": "slow",
+            "end": true
+        },
+        "carried": {
+            "text": "Mm... Mother? ...don't go...",
+            "pace": "slow",
+            "end": true
+        },
+        "asleep_at_the_inn": {
+            "text": "Mm... Mother...",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

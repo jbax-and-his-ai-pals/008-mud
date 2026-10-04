@@ -124,8 +124,8 @@
                                     "flag": "king_ordered"
                                 },
                                 {
-                                    "kind": "flag",
-                                    "flag": "kessa_joined"
+                                    "kind": "companion_present",
+                                    "npc_id": "captain_kessa"
                                 }
                             ]
                         },

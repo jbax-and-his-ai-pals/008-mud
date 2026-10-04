@@ -3,33 +3,21 @@
     "root": "greeting",
     "entries": [
         {
-            "node": "grateful",
+            "node": "the_package",
             "condition": {
-                "kind": "flag",
-                "flag": "drake_slain"
-            }
-        },
-        {
-            "node": "beware",
-            "condition": {
-                "kind": "quest_completed",
+                "kind": "quest_active",
                 "quest_id": "quest_deliver_package"
             }
         }
     ],
     "nodes": {
         "greeting": {
-            "text": "A messenger from the king? We have done nothing. Please, there must be some mistake.",
+            "text": "Travellers are rare, these days. The fog keeps most of them away, and I confess we like it that way.",
             "pace": "slow",
             "end": true
         },
-        "beware": {
-            "text": "The fog has watched this square for years, and the moment that package opened it woke. It will not stop at me. Kill it! And if you live, find Ryn, the shrine-keeper; she knew what that fog was before any of us did.",
-            "pace": "slow",
-            "end": true
-        },
-        "grateful": {
-            "text": "It is dead. I never thought I would see this square without the fog watching us. Speak with Ryn, the shrine-keeper: she warned us, and she has been asking for whoever dealt with the thing.",
+        "the_package": {
+            "text": "A messenger from the king? We have done nothing. Please, there must be some mistake. Is that for me? Give it here, and let us have done with the worry. (give sealed package to mayor)",
             "pace": "slow",
             "end": true
         }

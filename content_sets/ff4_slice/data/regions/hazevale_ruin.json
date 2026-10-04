@@ -1,0 +1,38 @@
+{
+    "region_id": "hazevale_ruin",
+    "name": "Hazevale, Burned",
+    "description": "What the fire left of a mountain village: black timbers, drifting ash, and a silence where the fog used to be.",
+    "properties": {
+        "safe_zone": true
+    },
+    "rooms": {
+        "village_square": {
+            "name": "Burned Square",
+            "description": "The well still stands in a ring of scorched stone. Every house around the square is a shell, and ash drifts down over everything like grey snow. A path of cinders leads south, toward the sound of crying.",
+            "exits": {
+                "east": "buried_lane",
+                "south": "shrine"
+            }
+        },
+        "buried_lane": {
+            "name": "Lane of Cinders",
+            "description": "A lane of burned cottages, their doors fallen in. Nothing moves here.",
+            "exits": {
+                "west": "village_square"
+            }
+        },
+        "shrine": {
+            "name": "Village Shrine",
+            "description": "A stone shrine with a ring of small offerings around its base. The fire went around it. Everything else is ash, but here the stones are only dusty, and a candle still burns.",
+            "exits": {
+                "north": "village_square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ryn",
+                    "instance_id": "ryn_at_shrine"
+                }
+            ]
+        }
+    }
+}

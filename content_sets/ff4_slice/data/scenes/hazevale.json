@@ -1,0 +1,284 @@
+{
+    "package_opens": {
+        "note": "The mayor of Hazevale is handed the king's package and opens it; the fire in it burns the village. Played when the delivery quest completes (the campaign's cutscene node).",
+        "beats": [
+            {
+                "after": 3,
+                "text": "The mayor of Hazevale turns the package over in his hands, and breaks the red wax with his thumbnail, the way a host does with a gift.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "Inside, nested in straw, lies a ring of red stones. The stones are glowing.",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "[[YELLOW]]The mayor of Hazevale speaks:[[/]] [[GREEN]]\"It is warm. Why is it so warm...\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[RED]]Fire pours out of the box. It does not burn in one place. It swirls, and dances, and climbs the air like something let off its leash.[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "It runs around the rim of the square, over the well and down the lane, a bright wheel of flame, and wherever it passes the thatch goes up like paper.",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "[[RED]]The mayor of Hazevale cries out once, and then there is no mayor.[[/]]",
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "mayor_of_hazevale"
+                }
+            },
+            {
+                "after": 3,
+                "text": "[[YELLOW]]Captain Kessa shouts:[[/]] [[GREEN]]\"Out! Get out of the square!\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 3,
+                "text": "You run, and the fire runs with you: smoke, the roar of it, a roof falling in somewhere behind. Then it is simply over, as if a hand had closed on it.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "When you stop, there is nothing left of Hazevale but black timbers, and ash drifting down like snow.",
+                "pace": "slow",
+                "effects": {
+                    "set_flag": "village_burned",
+                    "teleport": {
+                        "region": "hazevale_ruin",
+                        "room": "village_square"
+                    }
+                }
+            },
+            {
+                "after": 5,
+                "text": "The wind drops. In the quiet, thin and far off to the south, someone is crying.",
+                "pace": "slow"
+            }
+        ]
+    },
+    "kessa_deduces": {
+        "note": "After Ryn has told what happened to her mother: Kessa works out what the king meant by the package, and the argument that follows. Ends with Kessa given way.",
+        "beats": [
+            {
+                "text": "Captain Kessa has gone very still beside you.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"A summoner's child, and the fog was her mother's. Do you see it now, Captain? It was never a gift, and it was never about the ring.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"The king needed Hazevale gone. Every roof and every soul in it. A village that keeps a dragon asleep is a village he could not leave standing.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "She looks at the girl, and her hand finds the haft of her spear.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"Every soul. That means her. If we go back to Varenholt with a witness still breathing, we are the ones who answer for it.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "You step between Kessa and the child. \"No.\" It comes out harder than you meant it to.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"She saw it, Captain. She will tell it to the first person who asks.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "\"She is a girl,\" you say. \"We have done enough for one king today. I will not do this too.\"",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "For a long moment the only sounds are the girl's crying and the ash settling. Kessa's jaw works. Then the spear point sinks to the ground.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"Then he can send his own blade for her. I am done with this. What do we do?\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "\"We take her, and we do not go back to Varenholt,\" you say.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"Deserters, then. Well. It is a better thing to be than what we were this morning.\"[[/]] She turns to the child, and her voice changes. \"Easy, little one. Easy.\"",
+                "pace": "slow",
+                "effects": {
+                    "set_flag": "kessa_relented"
+                }
+            }
+        ]
+    },
+    "colossus_quake": {
+        "note": "Ryn will not come, and calls the colossus; the quake brings the mountain down. Then the party wakes in a wood far from Hazevale, Kessa gone and Ryn unconscious in the player's arms.",
+        "beats": [
+            {
+                "text": "Ryn's crying stops. It stops all at once, and that is worse.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Ryn speaks:[[/]] [[GREEN]]\"Mother said, when the people with the red ring come, do not run. Sing.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "She sings: three notes, low, and the ground answers every one. The ash on the ground begins to dance.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[RED]]A Colossus rises out of the earth behind her, vast and grey, and the sky is a smaller thing than it was.[[/]]",
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "colossus_minion",
+                        "region": "hazevale_ruin",
+                        "room": "shrine",
+                        "instance_id": "colossus_of_the_shrine"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Captain Kessa shouts:[[/]] [[GREEN]]\"Ryn, no! Ryn, stop!\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "[[RED]]The Colossus lifts one hand and brings it down. A Quake rolls out from the shrine, across the ruins and the valley, and the whole world shudders.[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "High above, the mountainside lets go. The sight comes first, and then the sound, and the sound is the end of everything.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "You reach for the girl. You reach for Kessa. Then there is only stone, and dark.",
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "colossus_minion",
+                    "dismiss": "captain_kessa"
+                }
+            },
+            {
+                "after": 6,
+                "text": "[[CYAN]]A long time passes.[[/]]",
+                "pace": "slow",
+                "effects": {
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": "all",
+                    "set_flag": [
+                        "valley_buried",
+                        "kessa_lost"
+                    ],
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "hazevale_ruin",
+                        "room": "buried_lane",
+                        "silent": true
+                    },
+                    "play_scene": "wake_in_the_wood",
+                    "teleport": {
+                        "region": "thornwood",
+                        "room": "clearing"
+                    }
+                }
+            }
+        ]
+    },
+    "wake_in_the_wood": {
+        "note": "Played on waking in Thornwood after the quake: Kessa is gone, and the girl is unconscious in the player's arms.",
+        "beats": [
+            {
+                "text": "You wake on your back in dead leaves, with the taste of dust in your mouth. Pale morning light comes down through a roof of branches.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "Your arms ache. They are wrapped around something small and limp: the girl, Ryn, breathing slowly, deep in a sleep that is not sleep. You must have held on to her the whole way down.",
+                "pace": "slow",
+                "effects": {
+                    "move_npc": {
+                        "npc": "ryn",
+                        "region": "thornwood",
+                        "room": "clearing",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn",
+                    "set_flag": "ryn_carried"
+                }
+            },
+            {
+                "after": 5,
+                "text": "There is no sign of Kessa. You call her name until your voice is a rasp, and the wood gives nothing back.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "Through the trees to the east the ground rises into pale dunes, and a thin road runs toward a smudge of roofs hazy with heat. You settle the girl against your shoulder, and begin to walk. (go east)",
+                "pace": "slow"
+            }
+        ]
+    },
+    "reach_the_inn": {
+        "note": "The end of the slice: the player carries Ryn into the inn of the desert village.",
+        "lock": false,
+        "beats": [
+            {
+                "text": "The innkeeper looks up as you come in, takes one look at the child in your arms, and is already moving.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]The innkeeper speaks:[[/]] [[GREEN]]\"Gods. Here, there is a bed in the back room. Lay her down. I will send for the healer's wife.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "You lay Ryn on a clean pallet, and she turns her face to the wall without waking. Outside, a hot wind rattles the shutters.",
+                "pace": "slow",
+                "effects": {
+                    "dismiss": "ryn",
+                    "set_flag": "reached_the_inn"
+                }
+            },
+            {
+                "after": 5,
+                "text": "[[CYAN]]For the first time since Ilmara, there is nowhere you are being sent.[[/]]",
+                "pace": "slow"
+            }
+        ]
+    }
+}

@@ -412,11 +412,17 @@ class TestFF4Slice(_Slice):
         self.say("talk king")
         self.say("reply 2")
 
-    def _let_the_drake_arrive(self):
-        """Its arrival is drawn out over a few told moments; let them pass."""
-        for _ in range(20):
+    def _let_scenes_play(self, seconds=90):
+        """A scene is told over several moments; let them pass."""
+        for _ in range(seconds):
             self.world.clock.advance(1.0)
             self.server.tick(self.sid)
+
+    def _kessa_joins(self):
+        """Kessa, in the player's room, as a companion."""
+        kessa = self.npcs("captain_kessa")[0]
+        kessa.current_region_id, kessa.current_room_id = self.player.current_region_id, self.player.current_room_id
+        apply_effects({"recruit": "captain_kessa"}, {"player": self.player, "world": self.world})
 
     def test_the_king_seals_the_package_in_a_scene_before_the_first_quest(self):
         self.say("talk king")
@@ -543,11 +549,50 @@ class TestFF4Slice(_Slice):
         self.assertEqual(1, len([n for n in self.npcs("cave_imp") if n.obj_id == "imp_ambush"]), "no second imp")
 
     def test_the_fog_drake_unravelling_starts_a_scene(self):
-        # The drake is spawned by its quest stage; here it is put in the square directly.
-        self.world.spawn_npc("fog_drake", "hazevale", "village_square", instance_id="drake_probe")
+        self.world.spawn_npc("fog_drake", "fogreach", "fog_hollow", instance_id="drake_probe")
         printed = self.kill("fog_drake", "drake")
-        self.assertIn("unravels into grey ribbons", printed)
+        self.assertIn("comes apart into long grey ribbons", printed)
         self.assertIs(True, self.player.flags.get("drake_slain"))
+
+    def test_the_cave_warns_three_times_and_the_last_warning_is_a_last_one(self):
+        self.at("fogreach", "bat_roost")
+        self.assertIn("turn back", self.say("go east"), "the first: this is where to gather what you came for")
+        self.assertIn("You can still turn back", self.say("go south"))
+        self.assertIn("last warning", self.say("go south"))
+        self.assertNotIn("last warning", self.say("go north") + self.say("go south"), "each is told once")
+
+    def test_the_cave_has_treasure_worth_a_detour(self):
+        for room, item in (("guano_nook", "item_traveller_cache"), ("crystal_alcove", "item_iron_chest_fogreach"),
+                           ("echo_niche", "item_dead_scout_pack")):
+            found = self.world.get_region("fogreach").get_room(room)
+            self.assertTrue(any(i.obj_id == item for i in found.items), (room, item))
+
+    def test_the_hollow_closes_behind_you_and_the_fog_becomes_the_drake(self):
+        self.at("fogreach", "fog_gallery")
+        self.assertEqual([], self.npcs("fog_drake"))
+        self.say("go south")
+        self.assertEqual("fogreach:fog_hollow", self.where())
+        self._let_scenes_play(20)
+        drake = self.npcs("fog_drake")
+        self.assertEqual(1, len(drake))
+        self.assertEqual(("fogreach", "fog_hollow"), (drake[0].current_region_id, drake[0].current_room_id))
+        hollow = self.world.get_region("fogreach").get_room("fog_hollow")
+        self.assertNotIn("north", hollow.exits, "the way back is gone")
+        self.assertNotIn("down", hollow.exits, "and the way on is not open yet")
+        self.say("go north")
+        self.assertEqual("fogreach:fog_hollow", self.where(), "locked in with it")
+
+    def test_the_drake_dying_opens_the_way_down_to_the_village(self):
+        self.at("fogreach", "fog_gallery")
+        self.say("go south")
+        self._let_scenes_play(20)
+        self.kill("fog_drake", "drake")
+        self._let_scenes_play(20)
+        hollow = self.world.get_region("fogreach").get_room("fog_hollow")
+        self.assertEqual("hazevale:valley_path", hollow.exits.get("down"))
+        self.assertIn("north", hollow.exits)
+        self.say("go down")
+        self.assertEqual("hazevale:valley_path", self.where())
 
     def test_the_castle_gate_stays_shut_until_kessa_rides_with_you(self):
         self.at("varenholt", "castle_gate")
@@ -561,13 +606,15 @@ class TestFF4Slice(_Slice):
         self.assertIn("Not alone, captain", self.say("go south"), "the king alone is not enough")
         self.assertEqual("varenholt:castle_gate", self.where())
         self.player.flags["kessa_joined"] = True
+        self.assertIn("Not alone, captain", self.say("go south"), "having once agreed is not the same as being beside you")
+        self._kessa_joins()
         self.say("go south")
         self.assertEqual("road:castle_road", self.where())
 
     def test_the_way_out_of_the_castle_runs_the_same_way_both_ways(self):
         self.at("varenholt", "courtyard")
         self.player.flags["king_ordered"] = True
-        self.player.flags["kessa_joined"] = True
+        self._kessa_joins()
         self.say("go south")
         self.assertEqual("varenholt:castle_gate", self.where(), "the courtyard leads south to the gate")
         self.say("go south")
@@ -629,17 +676,16 @@ class TestFF4Slice(_Slice):
         self.say("go out")
         self.assertEqual("hazevale:village_square", self.where())
 
-    def test_the_mayor_speaks_to_what_has_happened(self):
+    def test_the_mayor_has_small_talk_for_someone_with_no_errand(self):
         self.at("hazevale", "village_square")
-        self.assertIn("We have done nothing", self.say("talk mayor"))
-        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
+        self.assertIn("Travellers are rare", self.say("talk mayor"))
+
+    def test_the_mayor_asks_for_the_package_of_someone_sent_with_it(self):
+        self._question_the_king()   # either answer: the king puts the package in your hands
+        self.at("hazevale", "village_square")
         said = self.say("talk mayor")
-        self.assertIn("the moment that package opened it woke", said)
-        self.assertIn("find Ryn, the shrine-keeper", said, "so that Ryn is a name you know before you are told to report to her")
-        self.player.flags["drake_slain"] = True
-        said = self.say("talk mayor")
-        self.assertIn("It is dead", said)
-        self.assertIn("Speak with Ryn", said)
+        self.assertIn("A messenger from the king?", said)
+        self.assertIn("give sealed package to mayor", said, "and says how to hand it over")
 
     def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
         self.at("hazevale", "inn")
@@ -707,13 +753,9 @@ class TestFF4Slice(_Slice):
         self.say("talk kessa")
         self.say("reply 1")   # "Let's go, Kessa."
         self.assertEqual(["captain_kessa"], self._companions())
-        self.player.runtime_state.quests.completed["quest_fog_drake"] = {"template_id": "quest_fog_drake"}
-        self.player.flags["ryn_taught"] = True
         ryn = self.npcs("ryn")[0]
-        self.at(ryn.current_region_id, ryn.current_room_id)
-        self.say("talk ryn")
-        self.say("reply 1")   # "The dragon is dead."
-        self.say("reply 1")   # "Come with me, Ryn."
+        ryn.current_region_id, ryn.current_room_id = self.player.current_region_id, self.player.current_room_id
+        apply_effects({"recruit": "ryn"}, {"player": self.player, "world": self.world})
         self.assertEqual(["captain_kessa", "ryn"], sorted(self._companions()), "the party of three has room for both")
         self.at("hazevale", "inn")
         self.player.runtime_state.gold = 50
@@ -754,40 +796,95 @@ class TestFF4Slice(_Slice):
         self.assertEqual(5, self.player.runtime_state.gold)
         self.assertLess(self.player.health, self.player.max_health // 2, "not rested (a tick of ordinary healing is not a night's sleep)")
 
-    def test_delivering_the_package_brings_the_boss(self):
+    def test_delivering_the_package_burns_the_village(self):
         self._question_the_king()
         self.at("hazevale", "village_square")
-        self.assertEqual([], self.npcs("fog_drake"), "the drake is not in the world until its stage begins")
+        self.assertEqual(1, len(self.npcs("mayor_of_hazevale")))
         self.assertIn("Quest Complete", self.say("give sealed package to mayor"))
-        self.assertIn("The Fog Drake", self.quest_states())
-        self.assertEqual([], self.npcs("fog_drake"), "it does not appear at once: the moment is given time")
-        self._let_the_drake_arrive()
-        drake = self.npcs("fog_drake")
-        self.assertEqual(1, len(drake))
-        self.assertEqual(("hazevale", "village_square"), (drake[0].current_region_id, drake[0].current_room_id))
+        self.assertEqual(1, len(self.npcs("mayor_of_hazevale")), "the fire takes a few told moments to start")
+        self._let_scenes_play(60)
+        self.assertEqual([], self.npcs("mayor_of_hazevale"), "and the mayor is not there when it is over")
+        self.assertEqual("hazevale_ruin:village_square", self.where(), "you run from the fire, and stop in what it left")
+        self.assertIs(True, self.player.flags.get("village_burned"))
 
-    def test_the_summoner_teaches_the_calling_and_the_colossus_arrives(self):
-        self._question_the_king()
-        self.at("hazevale", "village_square")
-        self.say("give sealed package to mayor")
-        self._let_the_drake_arrive()
-        self.kill("fog_drake", "drake")
-        self.at("hazevale", "shrine")
-        self.assertIn("Quest Complete", self.say("talk ryn complete"))
+    def _in_the_ashes(self):
+        self.player.flags["village_burned"] = True
+        self.at("hazevale_ruin", "shrine")
+        self._kessa_joins()
+
+    def test_ryn_tells_what_became_of_her_mother_and_kessa_works_out_the_king_s_purpose(self):
+        self._in_the_ashes()
+        self.assertIn("Why would you do that", self.say("talk ryn"))
+        self.say("reply 1")
+        told = self._let_scenes_play_told(70)
+        self.assertIn("The king needed Hazevale gone", told)
+        self.assertIn("That means her", told, "she would have the girl killed too")
+        self.assertIn("Deserters, then", told, "and is brought round")
+        self.assertIs(True, self.player.flags.get("kessa_relented"))
+
+    def _let_scenes_play_told(self, seconds):
+        heard = []
+        for _ in range(seconds):
+            self.world.clock.advance(1.0)
+            heard += [str(e["payload"]) for e in self.server.tick(self.sid) + self.server._flush_background_batch(self.sid)
+                      if e["type"] == "text"]
+        return _MARKUP.sub("", chr(10).join(heard))
+
+    def test_ryn_has_to_be_asked_three_times_and_then_she_calls_the_colossus(self):
+        self._in_the_ashes()
         self.say("talk ryn")
         self.say("reply 1")
-        self.say("reply 1")
-        self.assertIn("call_colossus", self.player.runtime_state.magic.known_spells)
+        self._let_scenes_play(70)
+        for expected in ("What do you want", "Go away", "I am going to sing"):
+            self.assertIn(expected, self.say("talk ryn"))
+            self.assertIsNone(self.player.flags.get("_scene.colossus_quake"))
+            self.say("reply 1")
+        self.assertIn("_scene.colossus_quake", self.player.flags)
+        told = self._let_scenes_play_told(90)
+        self.assertIn("A Quake rolls out from the shrine", told)
+        self.assertEqual("thornwood:clearing", self.where(), "the mountain comes down and you wake elsewhere")
+        self.assertEqual([], self.npcs("colossus_minion"), "the colossus does not stay")
 
+    def test_after_the_quake_kessa_is_gone_and_ryn_is_carried_asleep(self):
+        self._in_the_ashes()
+        self.player.flags.update({"ryn_told": True, "kessa_relented": True, "ryn_resisted_once": True, "ryn_resisted_twice": True})
+        self.say("talk ryn")
+        self.say("reply 1")
+        self._let_scenes_play(120)
+        self.assertEqual([], [c for c in self._companions() if c == "captain_kessa"], "Kessa is nowhere to be found")
+        kessa = self.npcs("captain_kessa")[0]
+        self.assertNotEqual("thornwood", kessa.current_region_id)
+        self.assertEqual(["ryn"], self._companions(), "a party of one and the girl in your arms")
+        self.assertIn("Mother", self.say("talk ryn"), "she is asleep, and says nothing but that")
+
+    def test_the_wood_leads_to_a_desert_village_and_its_inn_ends_the_slice(self):
+        self.player.flags["ryn_carried"] = True
+        self.at("thornwood", "clearing")
+        ryn = self.npcs("ryn")[0]
+        ryn.current_region_id, ryn.current_room_id = "thornwood", "clearing"
+        apply_effects({"recruit": "ryn"}, {"player": self.player, "world": self.world})
+        for monster in ("thorn_wolf", "dune_jackal"):
+            self.world.remove_npcs(monster)   # the walk is what is tested here, not the wolves
+        for step in ("east", "east", "east", "east", "east", "east", "east", "north"):
+            self.say("go " + step)
+        self.assertEqual("dunhallow:inn", self.where())
+        told = self._let_scenes_play_told(30)
+        self.assertIn("Lay her down", told)
+        self.assertIs(True, self.player.flags.get("reached_the_inn"))
+        self.assertEqual([], self._companions(), "Ryn is left to sleep at the inn")
+
+    def test_the_colossus_the_calling_summons_shakes_every_enemy_in_the_room(self):
+        self._question_the_king()
+        self.at("hazevale", "village_square")
         magic = self.player.runtime_state.magic
+        magic.known_spells.add("call_colossus")
         magic.mana = magic.max_mana = 100
         self.assertIn("no enemies", self.say("cast call colossus"), "a colossus answers a fight, not an empty room")
         self.assertEqual([], self.npcs("colossus_minion"))
-        from engine.npcs.npc_factory import NPCFactory
         foes = []
         for index in range(2):
             foe = NPCFactory.create_npc_from_template("goblin_scout", self.world, instance_id="quake_target_%d" % index)
-            foe.current_region_id, foe.current_room_id = "hazevale", "shrine"
+            foe.current_region_id, foe.current_room_id = "hazevale", "village_square"
             foe.health = foe.max_health = 500
             self.world.add_npc(foe)
             foes.append(foe)
@@ -795,11 +892,10 @@ class TestFF4Slice(_Slice):
         self.assertIn("quake", said)
         colossus = self.npcs("colossus_minion")
         self.assertEqual(1, len(colossus), "one colossus, however many enemies it shakes")
-        self.assertEqual(("hazevale", "shrine"), (colossus[0].current_region_id, colossus[0].current_room_id))
         self.assertTrue(all(foe.health < 500 for foe in foes), "the quake reaches every enemy in the room")
         for _ in range(12):   # and it is gone again almost at once
             self.world.clock.advance(1.0)
-            said_later = self.tick()
+            self.tick()
             if not self.npcs("colossus_minion"):
                 break
         self.assertEqual([], self.npcs("colossus_minion"))

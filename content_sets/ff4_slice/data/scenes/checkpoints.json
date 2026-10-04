@@ -1,0 +1,297 @@
+{
+    "checkpoint_cave": {
+        "note": "For testing: the king has sent you, you have slept in the castle and walked the road with Kessa; you stand at the mouth of the Fogreach cave.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined"
+                    ],
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": "all",
+                    "give_rewards": {
+                        "xp": 250
+                    },
+                    "start_campaign": "the_package",
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "road",
+                        "room": "fogreach_mouth",
+                        "silent": true
+                    },
+                    "teleport": {
+                        "region": "road",
+                        "room": "fogreach_mouth"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "captain_kessa"
+                }
+            }
+        ]
+    },
+    "checkpoint_hollow": {
+        "note": "For testing: you and Kessa stand in the last gallery of the cave; the hollow and the Fog Drake are one step south.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined"
+                    ],
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": "all",
+                    "give_rewards": {
+                        "xp": 250
+                    },
+                    "start_campaign": "the_package",
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "fogreach",
+                        "room": "fog_gallery",
+                        "silent": true
+                    },
+                    "teleport": {
+                        "region": "fogreach",
+                        "room": "fog_gallery"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "captain_kessa"
+                }
+            }
+        ]
+    },
+    "checkpoint_village": {
+        "note": "For testing: the Fog Drake is dead and you stand at the edge of Hazevale with the package and Kessa.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain"
+                    ],
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": "all",
+                    "give_rewards": {
+                        "xp": 250
+                    },
+                    "start_campaign": "the_package",
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "hazevale",
+                        "room": "valley_path",
+                        "silent": true
+                    },
+                    "teleport": {
+                        "region": "hazevale",
+                        "room": "valley_path"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "reveal_exit": {
+                        "room": "fogreach:fog_hollow",
+                        "direction": "down"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_ruin": {
+        "note": "For testing: Hazevale has burned; you and Kessa stand in the ashes of the square, and someone is crying to the south.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned"
+                    ],
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": "all",
+                    "give_rewards": {
+                        "xp": 250
+                    },
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "hazevale_ruin",
+                        "room": "village_square",
+                        "silent": true
+                    },
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "hazevale_ruin",
+                        "room": "village_square"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "captain_kessa"
+                }
+            }
+        ]
+    },
+    "checkpoint_wood": {
+        "note": "For testing: the mountain has come down; you wake in Thornwood with Ryn unconscious in your arms and Kessa gone.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "hazevale_ruin",
+                        "room": "buried_lane",
+                        "silent": true
+                    },
+                    "play_scene": "wake_in_the_wood",
+                    "teleport": {
+                        "region": "thornwood",
+                        "room": "clearing"
+                    },
+                    "give_rewards": {
+                        "xp": 250
+                    },
+                    "restore": "all"
+                }
+            }
+        ]
+    }
+}

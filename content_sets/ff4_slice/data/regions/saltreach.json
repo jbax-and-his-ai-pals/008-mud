@@ -1,0 +1,44 @@
+{
+    "region_id": "saltreach",
+    "name": "The Saltreach",
+    "description": "A pale desert of salt and sand, crossed by a single beaten road.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "dune_road": {
+            "name": "Dune Road",
+            "description": "The road runs between low dunes, its ruts filled with wind-blown sand. The heat comes up off the ground in waves.",
+            "exits": {
+                "west": "thornwood:wood_edge",
+                "east": "dry_wash"
+            }
+        },
+        "dry_wash": {
+            "name": "Dry Wash",
+            "description": "A broad gully where a river used to run, its bed cracked like old pottery. The road dips into it and out again on the far side.",
+            "exits": {
+                "west": "dune_road",
+                "east": "village_approach"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "dune_jackal",
+                    "instance_id": "jackal_wash_a"
+                },
+                {
+                    "template_id": "dune_jackal",
+                    "instance_id": "jackal_wash_b"
+                }
+            ]
+        },
+        "village_approach": {
+            "name": "Approach to Dunhallow",
+            "description": "Flat roofs and a green smear of date palms rise out of the heat haze ahead. The road widens here and runs up to a low mud-brick gate.",
+            "exits": {
+                "west": "dry_wash",
+                "east": "dunhallow:gate"
+            }
+        }
+    }
+}

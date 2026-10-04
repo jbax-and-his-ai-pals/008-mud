@@ -8,7 +8,7 @@ each played from its first line to its last boss:
 | Set | Shape | Size |
 |---|---|---|
 | `zelda_slice` | An overworld of screens, two dungeons with keys and bosses, two shards, a sealed tower | 5 regions, 35 rooms, 13 NPC templates, 13 items |
-| `ff4_slice` | A throne-room choice, a courier run, a boss that arrives with the plot, a summoner child, a title | 4 regions, 19 rooms, 12 NPC templates, 7 items |
+| `ff4_slice` | A raid on a temple, a throne-room choice, a courier run through a cave that locks behind you for its boss, a village burned by the package, a summoner child, a flight across a buried mountain | 10 regions, 40 rooms, 25 NPC templates, 15 items |
 
 Both are shipped sets (`toolkit/content_check_steps.py`), so the whole content gate
 runs over them, and both round-trip through the editor byte-for-byte
@@ -114,13 +114,13 @@ on an ability and `max` on the ability resource (see `cross_theme_engine_contrac
 close that. In `ff4_slice` Aldric has no mana at all, Gloom Wave costs an eighth of his
 health and strikes every enemy in the room, and Call Colossus costs a quarter (a colossus rises for five seconds, shakes every enemy in the room, and sinks away). Ethers are
 gone (nothing restores a pool he does not have); the cave chest holds potions instead.
-`walk_ff4.py` plays the Fog Drake with potions as the resource: Gloom Wave 40 damage
+`walk_ff4.py` plays the Fog Drake (a locked fight in the cave's last hollow, with Kessa beside the player) with potions as the resource: Gloom Wave 40 damage
 (about 26 after the drake's resistances), cast while his health is above 30%, a potion
 below 45%.
 
 ## Rewriting the FF4 story
 
-The slice is content only: sixty-one JSON files, no code. Nothing in `server/engine`, `client/` or `mud-world-editor/` names one of its
+The slice is content only: 43 JSON files, no code. Nothing in `server/engine`, `client/` or `mud-world-editor/` names one of its
 rooms, characters, quests or flags (checked by scanning every id the set owns), and every key the set uses is read by the engine. The
 story can be rewritten without touching the engine.
 
@@ -128,8 +128,7 @@ What a rewrite will touch, and what it will not:
 
 * **Pinned to the real set, meant to change with it.** `test_adaptation_slices.py` (journeys through both slices),
   `test_ff4_opening.py` (the first hour: Ilmara, the airship, the landing, the night),
-  `test_slice_geography.py`, `test_every_enemy_pays.py`, the story classes of `test_story_beats.py` (the drake fight, the package, Ryn), the
-  content gates and `walk_ff4.py`. Rewriting the story means updating these, deliberately.
+  `test_slice_geography.py`, `test_every_enemy_pays.py`, the content gates and `walk_ff4.py`. Rewriting the story means updating these, deliberately.
 * **Not pinned.** Every test of an engine feature (kill credit, level growth, messages, quest-text pace, scene resume, panels,
   conversations that must be answered, health-cost abilities, the client checks and the editor's story-field checks) runs on
   `server/tests/sets/story_fixture`, a frozen copy of the slice (`server/tests/sets/README.md`). `test_story_fixture.py` keeps it valid and

@@ -23,26 +23,28 @@
             "transitions": [
                 {
                     "trigger": "SUCCESS",
-                    "target_node_id": "drake",
+                    "target_node_id": "the_fire",
                     "narrative_text": "The package was not a gift.",
                     "pace": "solemn"
                 }
             ]
         },
-        "drake": {
-            "description": "Defeat the Fog Drake.",
-            "quest_template_id": "quest_fog_drake",
+        "the_fire": {
+            "description": "The package is opened.",
+            "type": "CUTSCENE",
+            "effects": {
+                "play_scene": "package_opens"
+            },
             "transitions": [
                 {
                     "trigger": "SUCCESS",
-                    "target_node_id": "end_survived",
-                    "narrative_text": "Hazevale is quiet again. Something in you has changed."
+                    "target_node_id": "end_burned"
                 }
             ]
         },
-        "end_survived": {
+        "end_burned": {
             "type": "END",
-            "outcome": "SURVIVED_HAZEVALE"
+            "outcome": "HAZEVALE_BURNED"
         }
     }
 }

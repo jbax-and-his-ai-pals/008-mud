@@ -1,0 +1,52 @@
+{
+    "region_id": "thornwood",
+    "name": "Thornwood",
+    "description": "A dry, wind-bent wood on the edge of the desert, far from any mountain you know.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "clearing": {
+            "name": "Leaf-strewn Clearing",
+            "description": "A small clearing in a wood of twisted, thorny trees. Dead leaves lie deep, and a bright, dry light slants down through the branches. A game trail leads east.",
+            "exits": {
+                "east": "game_trail"
+            }
+        },
+        "game_trail": {
+            "name": "Game Trail",
+            "description": "A narrow trail pressed into the leaf-litter by many small feet. East, the trees thin toward open light. A path runs south toward a low roof.",
+            "exits": {
+                "west": "clearing",
+                "east": "wood_edge",
+                "south": "woodcutters_hut"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "thorn_wolf",
+                    "instance_id": "wolf_game_trail"
+                }
+            ]
+        },
+        "woodcutters_hut": {
+            "name": "Woodcutter's Hut",
+            "description": "A one-room hut with the door off its hinges. Whoever lived here left in a hurry, and some time ago.",
+            "exits": {
+                "north": "game_trail"
+            },
+            "items": [
+                {
+                    "item_id": "item_woodcutters_crate"
+                }
+            ]
+        },
+        "wood_edge": {
+            "name": "Edge of the Wood",
+            "description": "The thorn trees give out here, and the sand begins. A road of beaten earth runs east into the dunes.",
+            "exits": {
+                "west": "game_trail",
+                "east": "saltreach:dune_road"
+            }
+        }
+    }
+}

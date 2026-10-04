@@ -1,0 +1,39 @@
+{
+    "region_id": "dunhallow",
+    "name": "Dunhallow",
+    "description": "A desert village of flat-roofed mud brick, built around a well that has never run dry.",
+    "properties": {
+        "safe_zone": true
+    },
+    "rooms": {
+        "gate": {
+            "name": "Village Gate",
+            "description": "A low arch in a mud-brick wall, shaded by a date palm. Children have scratched pictures into the plaster, and a dog sleeps in the shade.",
+            "exits": {
+                "west": "saltreach:village_approach",
+                "east": "square"
+            }
+        },
+        "square": {
+            "name": "Dunhallow Square",
+            "description": "A dusty square with the well at its heart. Flat roofs throw hard shadows, and nobody hurries. The inn stands on the north side, with a faded blue door.",
+            "exits": {
+                "west": "gate",
+                "north": "inn"
+            }
+        },
+        "inn": {
+            "name": "The Blue Door Inn",
+            "description": "A cool, dim common room, thick-walled against the sun. Shutters stripe the floor with light, and a beaded curtain hangs across the way to the back rooms.",
+            "exits": {
+                "south": "square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "desert_innkeeper",
+                    "instance_id": "innkeeper_at_blue_door"
+                }
+            ]
+        }
+    }
+}

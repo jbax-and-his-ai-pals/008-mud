@@ -1,0 +1,88 @@
+{
+    "fog_hollow_drake": {
+        "note": "The end of the cave: the way back closes and the fog gathers into the Fog Drake. Played on entering the hollow; the fight that follows is ordinary combat.",
+        "beats": [
+            {
+                "text": "The hollow is utterly still. The fog does not stir, and neither does anything else.",
+                "pace": "slow"
+            },
+            {
+                "after": 3,
+                "text": "Behind you, the fog in the gallery mouth thickens into a grey wall, and the way back is gone.",
+                "pace": "slow",
+                "effects": {
+                    "seal_exit": {
+                        "region": "fogreach",
+                        "room": "fog_hollow",
+                        "direction": "north"
+                    }
+                }
+            },
+            {
+                "after": 3,
+                "text": "Then, thread by thread, the fog begins to pull toward the middle of the hollow.",
+                "pace": "slow"
+            },
+            {
+                "after": 3,
+                "text": "It thickens as it comes, and coils, and something vast turns over inside it.",
+                "pace": "slow"
+            },
+            {
+                "after": 3,
+                "text": "[[RED]]A Fog Drake uncoils from the mist, and looks at you.[[/]]",
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "fog_drake",
+                        "region": "fogreach",
+                        "room": "fog_hollow",
+                        "instance_id": "drake_of_the_hollow"
+                    }
+                }
+            }
+        ]
+    },
+    "drake_unravels": {
+        "note": "The Fog Drake falls: the way out of the hollow opens, and something far away begins to toll.",
+        "lock": false,
+        "beats": [
+            {
+                "text": "The Fog Drake comes apart into long grey ribbons, and the whole hollow lets out its breath.",
+                "pace": "slow",
+                "effects": {
+                    "give_rewards": {
+                        "xp": 500,
+                        "gold": 150
+                    },
+                    "set_flag": "drake_slain"
+                }
+            },
+            {
+                "after": 4,
+                "text": "Far down in the valley, a single bell begins to toll.",
+                "pace": "slow"
+            },
+            {
+                "after": 3,
+                "text": "Where the fog has drawn back from the far wall, a way down the valley side shows itself.",
+                "pace": "slow",
+                "effects": {
+                    "reveal_exit": {
+                        "room": "fogreach:fog_hollow",
+                        "direction": "down"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "reveal_exit": {
+                        "room": "fogreach:fog_hollow",
+                        "direction": "north"
+                    }
+                }
+            }
+        ]
+    }
+}

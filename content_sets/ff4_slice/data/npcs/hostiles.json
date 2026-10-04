@@ -348,5 +348,89 @@
             "move_cooldown": 9999,
             "weapon_damage_type": "slashing"
         }
+    },
+    "thorn_wolf": {
+        "name": "thorn wolf",
+        "description": "A rangy, sand-coloured wolf with burrs in its coat and a hunger in its eyes.",
+        "max_health": 48,
+        "level": 3,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 6,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 6,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    12,
+                    22
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "dune_jackal": {
+        "name": "dune jackal",
+        "description": "A lean, rust-furred jackal, quick and thin and bold with thirst.",
+        "max_health": 36,
+        "level": 3,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 6,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    6,
+                    11
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.5,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
     }
 }

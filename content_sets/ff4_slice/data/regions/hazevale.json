@@ -11,7 +11,7 @@
             "description": "A path winds down into the village between wet stones.",
             "exits": {
                 "south": "village_square",
-                "up": "fogreach:cave_exit"
+                "up": "fogreach:fog_hollow"
             }
         },
         "village_square": {
@@ -52,16 +52,10 @@
         },
         "shrine": {
             "name": "Village Shrine",
-            "description": "A stone shrine with a ring of small offerings around its base.",
+            "description": "A stone shrine with a ring of small offerings around its base. A lamp burns low in front of it, and the stone is warm as if someone has only just left.",
             "exits": {
                 "north": "village_square"
-            },
-            "initial_npcs": [
-                {
-                    "template_id": "ryn",
-                    "instance_id": "ryn_at_shrine"
-                }
-            ]
+            }
         }
     }
 }

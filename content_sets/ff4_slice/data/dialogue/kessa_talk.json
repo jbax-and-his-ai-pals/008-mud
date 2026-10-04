@@ -166,6 +166,10 @@
                     "next_node": "stays",
                     "effects": {
                         "dismiss": true
+                    },
+                    "condition": {
+                        "kind": "in_region",
+                        "region_id": "varenholt"
                     }
                 },
                 {

@@ -3,7 +3,7 @@
     "root": "greeting",
     "nodes": {
         "greeting": {
-            "text": "The back room is dry and the sheets are clean. Thirty coins, and you sleep till the fog thins.",
+            "text": "The back room is cool and the sheets are clean. Thirty coins, and you sleep until you are done sleeping.",
             "choices": [
                 {
                     "text": "Thirty coins. I will take the room.",
@@ -18,7 +18,7 @@
                             "resource": "all",
                             "companions": true
                         },
-                        "message": "You sleep like the dead, and wake to grey light. Every hurt has eased, and so have your companions'."
+                        "message": "You sleep deeply, and wake rested. Every hurt has eased, and so have your companions'."
                     }
                 },
                 {

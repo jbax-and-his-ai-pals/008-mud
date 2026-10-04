@@ -103,5 +103,41 @@
             ]
         },
         "item_family": "armor"
+    },
+    "item_wayfarer_charm": {
+        "type": "Armor",
+        "name": "wayfarer's charm",
+        "description": "A little knot of braided cord and bone on a thong. Someone who walked this road before you thought it lucky.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "cloth",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "neck"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_scout_gloves": {
+        "type": "Armor",
+        "name": "scout's gloves",
+        "description": "Supple grey gloves, stiff with old damp but sound. They fit a hand that has held a blade.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "leather",
+            "durability": 50,
+            "max_durability": 50,
+            "equip_slot": [
+                "hands"
+            ]
+        },
+        "item_family": "armor"
     }
 }
