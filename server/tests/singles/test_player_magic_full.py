@@ -250,7 +250,7 @@ class TestCastSpellKillHandling(GameTestBase):
         self.assertFalse(first.is_alive or second.is_alive)
         paid = next(i for i, line in enumerate(lines) if "experience" in line)
         next_blow = next(i for i, line in enumerate(lines) if i > paid and "hits" in line)
-        self.assertIn("", [line.strip() for line in lines[paid:next_blow]], "a blank line between the rewards and the next blow")
+        self.assertEqual("", lines[next_blow - 1].strip(), "a blank line right above the next enemy's blow: %r" % lines[paid:next_blow + 1])
 
     def test_kill_with_no_target_world_skips_dispatch_and_loot_call(self):
         target = _hostile(self.world, "magic_kill_no_world")
