@@ -3,6 +3,7 @@ import shutil
 import uuid
 from pathlib import Path
 
+from engine.server.feature_profile import FeatureProfile
 from engine.server.headless_server import HeadlessServer
 from tests.fixtures import FANTASY_FRONTIER
 
@@ -43,12 +44,22 @@ class TestHeadlessEntitlementPolicyWiring(unittest.TestCase):
             server.shutdown()
 
     def test_boot_warning_policy_can_fail_server_start(self) -> None:
-        shutil.rmtree(self._tmp_content_root / "data" / "magic")
+        # A warning the engine can boot through: a profile naming a mode that does not exist falls back to the default.
+        # (A set with its abilities removed is no longer such a warning: the validator refuses it outright, before
+        # any warning policy is asked.)
+        profile = FeatureProfile.from_dict({"combat": {"mode": "sideways"}})
+        self.assertTrue(profile.warnings)
+        booted = HeadlessServer(db_path=":memory:", content_set_path=str(self._tmp_content_root), feature_profile=profile)
+        try:
+            self.assertIn("profile.mode.invalid", [entry.get("code") for entry in booted.boot_warning_records])
+        finally:
+            booted.shutdown()
         with self.assertRaises(RuntimeError):
             HeadlessServer(
                 db_path=":memory:",
                 content_set_path=str(self._tmp_content_root),
-                boot_warning_fail_codes=["content.spells.dir_missing"],
+                feature_profile=profile,
+                boot_warning_fail_codes=["profile.mode.invalid"],
             )
 
 

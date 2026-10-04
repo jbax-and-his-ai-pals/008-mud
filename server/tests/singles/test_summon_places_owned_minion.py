@@ -21,10 +21,12 @@ class TestSummonPlacesOwnedMinion(GameTestBase):
 
     def setUp(self):
         super().setUp()
+        # Long enough that the clock offsets these tests add (+100s and more) never reach the expiry: with 100 the minion expired
+        # whenever the clock ticked between the cast and the first call, which Windows's coarse clock made a coin toss.
         self.spell = Spell(
             spell_id="summon_skeleton_test", name="Summon Test", description="x",
             mana_cost=0, cooldown=0.0, target_type="self", level_required=1,
-            effects=[{"type": "summon", "summon_template_id": "skeleton_minion", "summon_duration": 100}],
+            effects=[{"type": "summon", "summon_template_id": "skeleton_minion", "summon_duration": 100000}],
         )
         register_spell(self.spell)
         self.player.learn_spell("summon_skeleton_test")
