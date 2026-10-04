@@ -13,27 +13,37 @@
             },
             {
                 "after": 3.5,
-                "text": "[[RED]]Steel rings. The song breaks, and begins again, thinner.[[/]]",
                 "pace": "slow",
+                "text": "[[RED]]The first soldier strikes.[[/]] An acolyte of Ilmara goes down with her hands still raised, and the song loses a voice.",
                 "effects": {
                     "remove_npc": "acolyte_1"
                 }
             },
             {
-                "after": 3,
-                "text": "Nobody runs. Nobody kneels. One by one, the voices stop.",
-                "pace": "slow",
+                "after": 2.5,
+                "pace": "measured",
+                "text": "The others do not run. One catches a soldier's blade in his bare hand and holds it, singing through his teeth, while a second soldier cuts him down.",
                 "effects": {
                     "remove_npc": "acolyte_2"
                 }
             },
             {
+                "after": 2.5,
+                "pace": "measured",
+                "text": "A soldier staggers back with a gash across his cheek: the acolytes are fighting, with their hands, with candlesticks, with the weight of their bodies against the steel."
+            },
+            {
                 "after": 3,
-                "text": "Your own hands are steady. That is the worst of it.",
                 "pace": "slow",
+                "text": "[[RED]]The last acolyte swings an iron candlestick, and misses.[[/]] Two blades answer. The song stops.",
                 "effects": {
                     "remove_npc": "acolyte_3"
                 }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Your own hands are steady. That is the worst of it."
             },
             {
                 "after": 4,
@@ -92,6 +102,10 @@
             },
             {
                 "after": 5,
+                "text": "[[YELLOW]]Red Fleet soldier shouts:[[/]] [[GREEN]]\"Captain! Something in the cloud, off the bow! Monsters!\"[[/]]"
+            },
+            {
+                "after": 2.5,
                 "text": "[[RED]]A horn sounds from the bow. Something dark is coming out of the cloud.[[/]]",
                 "effects": {
                     "spawn_npc": {
