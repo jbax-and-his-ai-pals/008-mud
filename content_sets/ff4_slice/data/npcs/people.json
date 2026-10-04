@@ -204,8 +204,8 @@
     "ilmaran_acolyte": {
         "name": "Ilmaran acolyte",
         "description": "A young mystic in pale robes, with nothing in their hands but a little light.",
-        "health": 20,
-        "max_health": 20,
+        "health": 30,
+        "max_health": 30,
         "level": 1,
         "friendly": true,
         "faction": "ilmaran",
@@ -217,7 +217,8 @@
             "wander_chance": 0,
             "move_cooldown": 9999,
             "aggression": 0,
-            "pacifist": true
+            "pacifist": true,
+            "respawn_cooldown": -1
         },
         "attack_power": 3
     },
@@ -257,7 +258,8 @@
             "wander_chance": 0,
             "move_cooldown": 9999,
             "essential": true,
-            "aggression": 1
+            "aggression": 0.2,
+            "attack_cooldown": 6
         }
     }
 }

@@ -26,8 +26,8 @@
                 }
             },
             {
-                "after": 1,
-                "text": "More boots on the stair.",
+                "after": 7,
+                "text": "A second soldier comes through the doors, and stops to look at the room.",
                 "effects": {
                     "spawn_npc": {
                         "npc": "red_fleet_raider",
@@ -38,7 +38,7 @@
                 }
             },
             {
-                "after": 1,
+                "after": 7,
                 "text": "[[RED]]The last of the soldiers fans out across the chamber.[[/]]",
                 "effects": {
                     "spawn_npc": {
