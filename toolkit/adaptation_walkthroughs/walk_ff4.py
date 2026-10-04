@@ -66,7 +66,7 @@ def beat_the_sky():
 # --- Ilmara: the crystal ------------------------------------------------------
 check("starts in the Ilmaran crystal chamber", g.where() == "ilmara:crystal_chamber", g.where())
 check("starting kit, blade and armour worn", "item_commander_seal" in g.items() and "item_dark_blade" in equipped_ids() and "item_dark_armor" in equipped_ids(), str(equipped_ids()))
-wait(30)
+wait(60)
 check("the acolytes are gone and the elder is left", not [n for n in g.world.npcs.values() if n.template_id == "ilmaran_acolyte"]
       and [n for n in g.world.npcs.values() if n.template_id == "elder_of_ilmara"], "")
 out = say(g, "talk elder", show=V, n=400)

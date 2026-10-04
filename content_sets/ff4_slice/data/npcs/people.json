@@ -207,7 +207,7 @@
         "health": 20,
         "max_health": 20,
         "level": 1,
-        "friendly": false,
+        "friendly": true,
         "faction": "ilmaran",
         "behavior_type": "stationary",
         "dialog": {
@@ -216,7 +216,8 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "aggression": 0
+            "aggression": 0,
+            "pacifist": true
         },
         "attack_power": 3
     },
@@ -247,7 +248,7 @@
         "level": 3,
         "attack_power": 8,
         "friendly": true,
-        "faction": "friendly",
+        "faction": "red_fleet",
         "behavior_type": "stationary",
         "dialog": {
             "greeting": "Orders are orders, captain. That is what we keep telling each other."

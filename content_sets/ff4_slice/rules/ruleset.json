@@ -67,7 +67,17 @@
     "extra": [
       {
         "id": "ilmaran",
-        "disposition": "hostile"
+        "disposition": "neutral"
+      },
+      {
+        "id": "red_fleet",
+        "disposition": "friendly"
+      }
+    ],
+    "enmities": [
+      {
+        "faction": "red_fleet",
+        "against": "ilmaran"
       }
     ]
   }

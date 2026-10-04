@@ -102,9 +102,14 @@
     },
     "ilmara_cleared": {
         "on": {
-            "event": "room_cleared",
-            "region": "ilmara",
-            "room": "crystal_chamber"
+            "event": "npc_killed",
+            "npc": "ilmaran_acolyte"
+        },
+        "when": {
+            "not": {
+                "kind": "npc_present",
+                "npc_id": "ilmaran_acolyte"
+            }
         },
         "once": "player",
         "effects": {

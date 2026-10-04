@@ -24,5 +24,6 @@
             "instruction": "Rest in your quarters, then leave for Hazevale with Kessa at dawn",
             "command": "south"
         }
-    ]
+    ],
+    "pace": "slow"
 }

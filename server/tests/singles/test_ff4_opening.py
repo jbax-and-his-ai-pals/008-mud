@@ -72,7 +72,7 @@ class _Journey:
         return next((n for n in self.world.npcs.values() if n.template_id == template_id and n.is_alive), None)
 
     def to_the_crystal_taken(self):
-        self.wait(30)
+        self.wait(60)
         self.say("take crystal")
         self.wait(40)
 
@@ -89,7 +89,9 @@ class TestIlmara(unittest.TestCase):
         game = _Journey(self)
         self.assertEqual("ilmara:crystal_chamber", game.where())
         self.assertIn("The Water Crystal", "".join(_plain(str(e["payload"])) for e in game.created if e["type"] == "text"))
-        told = game.wait(30)
+        told = game.wait(60)
+        self.assertIn("Why... why are you here?", told, "the elder notices the player first, afraid")
+        self.assertLess(told.index("Why... why are you here?"), told.index("The doors of the crystal chamber burst inward"), "and only then do the doors burst")
         self.assertIn("The doors of the crystal chamber burst inward", told)
         self.assertIn("Red Fleet soldier attacks Ilmaran acolyte", told, "the fight is ordinary combat, told as combat is")
         self.assertNotIn("The elder of Ilmara attacks", told, "the elder takes no part in it")
@@ -108,12 +110,12 @@ class TestIlmara(unittest.TestCase):
         game = _Journey(self)
         self.assertIn("not yours to interrupt", game.say("take crystal"))
         self.assertIsNone(game.player.inventory.get_item("item_ilmaran_crystal"))
-        game.wait(30)
+        game.wait(60)
         self.assertNotIn("not yours to interrupt", game.say("look"))
 
     def test_the_elder_speaks_before_and_after_the_crystal_is_taken(self):
         game = _Journey(self)
-        game.wait(30)
+        game.wait(60)
         self.assertIn("what is left of us", game.say("talk elder"))
         game.say("take crystal")
         game.wait(2)
@@ -123,7 +125,7 @@ class TestIlmara(unittest.TestCase):
 class TestTheSky(unittest.TestCase):
     def test_taking_the_crystal_carries_you_to_the_airship_where_the_soldiers_cannot_look_at_each_other(self):
         game = _Journey(self)
-        game.wait(30)
+        game.wait(60)
         game.say("take crystal")
         told = game.wait(40)
         self.assertEqual("airship:deck", game.where())

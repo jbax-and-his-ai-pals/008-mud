@@ -1,8 +1,19 @@
 {
     "ilmara_falls": {
-        "note": "The opening: the Red Fleet takes the crystal chamber. The fight itself is ordinary combat between the soldiers and the acolytes; ilmara_aftermath plays when the last acolyte falls.",
+        "note": "The opening: the elder notices the player, then the Red Fleet takes the crystal chamber. The fight itself is ordinary combat between the soldiers and the (pacifist) acolytes; ilmara_aftermath plays when the last acolyte falls.",
         "beats": [
             {
+                "after": 8,
+                "text": "The elder of Ilmara looks up from the altar and sees you. Every line of her goes still.",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "[[YELLOW]]The elder of Ilmara speaks, her voice unsteady:[[/]] [[GREEN]]\"You... you! Why... why are you here?\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 5.5,
                 "text": "The doors of the crystal chamber burst inward, and the Red Fleet pours in behind you, steel drawn, boots loud on pale stone.",
                 "pace": "measured",
                 "effects": {
