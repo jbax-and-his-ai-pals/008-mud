@@ -22,7 +22,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     adjust_relationship  {"npc": "template_id", "amount": 5}
     set_flag          "flag_name" | ["a", "b"] | {"name": "flag_name", "value": true}
     reveal_exit       {"room": "town:cellar", "direction": "down"}
-    move_npc          {"npc": "template_id", "region": "forest", "room": "clearing"}
+    move_npc          {"npc": "template_id", "region": "forest", "room": "clearing", "message": "...", "silent": true}
     give_rewards      {"xp": 10, "gold": 5, "items": [...]}   structured bundle
     take_gold         30                             a whole number, at least 1; all or nothing
     restore           "health" | "mana" | "all" | {"resource": "health", "amount": 10 | "full", "companions": true}
@@ -132,7 +132,7 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "required": ("room", "direction"),
     },
     "move_npc": {
-        "form": "object", "fields": {"npc": "text", "region": "text", "room": "text", "message": "text"},
+        "form": "object", "fields": {"npc": "text", "region": "text", "room": "text", "message": "text", "silent": "bool"},
         "required": ("region", "room"),
     },
     "give_rewards": {
@@ -197,7 +197,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "adjust_relationship": {"label": "Change trust", "hint": "{npc, amount} (or amount alone, for the NPC being talked to)", "kind": "json"},
     "set_flag": {"label": "Set a flag", "hint": "flag name, {name, value}, or a list of those", "kind": "string"},
     "reveal_exit": {"label": "Open a hidden exit", "hint": "{room: \"region:room\", direction}", "kind": "json"},
-    "move_npc": {"label": "Move an NPC", "hint": "{npc, region, room, message}", "kind": "json"},
+    "move_npc": {"label": "Move an NPC", "hint": "{npc, region, room, message, silent: true for no leaves/arrives line}", "kind": "json"},
     "give_rewards": {"label": "Give a reward bundle", "hint": "{xp, gold, items: [...]}", "kind": "json"},
     "message": {"label": "Show a message", "hint": "text shown to the player", "kind": "string"},
     "take_gold": {"label": "Take currency", "hint": "a whole number, 1 or more (all or nothing)", "kind": "int"},
@@ -1071,7 +1071,9 @@ def _apply_move_npc_effect(effects: Dict[str, Any], context, report: EffectRepor
     # Someone walking out of the room (or in) is seen to do it: the authored `message`, else a plain note.
     now_here = player is not None and _in_room(npc, player)
     written = raw.get("message")
-    if isinstance(written, str) and written.strip():
+    if raw.get("silent") is True:
+        pass   # the scene says it in its own words (a guide who leads the player along)
+    elif isinstance(written, str) and written.strip():
         if was_here != now_here:
             report.messages.append(written.strip())
     elif was_here and not now_here:

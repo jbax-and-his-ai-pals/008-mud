@@ -183,7 +183,7 @@ class TestTheLanding(unittest.TestCase):
         self.assertLess(told.index("CASTLE GATE"), told.index("CASTLE COURTYARD"))
         self.assertLess(told.index("CASTLE COURTYARD"), told.index("THRONE ROOM"))
         self.assertIn("His Majesty has been waiting", told)
-        self.assertIn("The chancellor goes in ahead of you", told)
+        self.assertEqual(2, told.count("The chancellor leads you north."), "once for each room of the walk, in those words")
         self.assertEqual(("varenholt", "throne_room"), (game.npc("chancellor").current_region_id, game.npc("chancellor").current_room_id))
 
     def test_the_king_takes_the_crystal_and_the_orders_follow(self):

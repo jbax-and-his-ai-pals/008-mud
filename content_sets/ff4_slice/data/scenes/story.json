@@ -213,14 +213,14 @@
                 "pace": "slow"
             },
             {
-                "after": 4.5,
-                "text": "He turns toward the castle, and you fall in beside him: through the gate and into the courtyard.",
-                "pace": "slow",
+                "after": 3,
+                "text": "The chancellor leads you north.",
                 "effects": {
                     "move_npc": {
                         "npc": "chancellor",
                         "region": "varenholt",
-                        "room": "courtyard"
+                        "room": "courtyard",
+                        "silent": true
                     },
                     "teleport": {
                         "region": "varenholt",
@@ -229,20 +229,14 @@
                 }
             },
             {
-                "after": 5,
-                "text": "He walks beside you across the courtyard, a half step too close, remarking on the weather. The guards on the stairs do not meet your eye.",
-                "pace": "slow"
-            },
-            {
-                "after": 5,
-                "text": "The chancellor opens the doors of the throne room himself, and smiles as if he had been waiting for you.",
-                "pace": "slow",
+                "after": 3,
+                "text": "The chancellor leads you north.",
                 "effects": {
                     "move_npc": {
                         "npc": "chancellor",
                         "region": "varenholt",
                         "room": "throne_room",
-                        "message": "The chancellor goes in ahead of you."
+                        "silent": true
                     },
                     "teleport": {
                         "region": "varenholt",

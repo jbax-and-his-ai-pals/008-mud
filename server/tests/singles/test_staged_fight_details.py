@@ -58,6 +58,25 @@ class TestAFinalDeath(GameTestBase):
         self.assertFalse([e for e in self.world.respawn_manager.respawn_queue if e["instance_id"] == "mourned"], "respawn_cooldown -1: it is not")
 
 
+class TestASilentMove(GameTestBase):
+    def test_a_silent_move_says_nothing_and_a_plain_one_says_it_left(self):
+        from engine.dialogue.effects import apply_effects
+
+        guide = NPCFactory.create_npc_from_template("village_elder", self.world, instance_id="the_guide")
+        self.world.add_npc(guide)
+        here = (self.player.current_region_id, self.player.current_room_id)
+        guide.current_region_id, guide.current_room_id = here
+        elsewhere = {"region": here[0], "room": next(room_id for room_id in self.world.get_region(here[0]).rooms if room_id != here[1])}
+
+        plain = apply_effects({"move_npc": dict(elsewhere, npc="the_guide")}, {"player": self.player, "world": self.world})
+        self.assertTrue([m for m in plain.messages if "leaves" in m], plain.messages)
+
+        guide.current_region_id, guide.current_room_id = here
+        quiet = apply_effects({"move_npc": dict(elsewhere, npc="the_guide", silent=True)}, {"player": self.player, "world": self.world})
+        self.assertEqual([], quiet.messages)
+        self.assertEqual(elsewhere["room"], guide.current_room_id, "and the move happened")
+
+
 class TestTheSpeakersName(GameTestBase):
     def speaker_line(self, name):
         manager = self.world.dialogue_manager

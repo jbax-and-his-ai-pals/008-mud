@@ -39,7 +39,7 @@ class TestTheTable(unittest.TestCase):
         self.assertEqual({
             "adjust_relationship": ["amount", "delta", "npc"],
             "give_rewards": ["generated_item_data", "gold", "items", "xp"],
-            "move_npc": ["message", "npc", "region", "room"],
+            "move_npc": ["message", "npc", "region", "room", "silent"],
             "raise": ["max_health", "max_mana", "stats"],
             "remove_npc": ["npc", "region", "room"],
             "restore": ["amount", "companions", "resource"],

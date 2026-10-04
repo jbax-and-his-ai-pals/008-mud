@@ -155,7 +155,7 @@ const EFFECTS := {
 	"adjust_relationship": {"label": "Change trust", "shape": "{npc, amount} (or amount alone, for the NPC being talked to)", "kind": "json"},
 	"set_flag": {"label": "Set a flag", "shape": "flag name, {name, value}, or a list of those", "kind": "string"},
 	"reveal_exit": {"label": "Open a hidden exit", "shape": "{room: \"region:room\", direction}", "kind": "json"},
-	"move_npc": {"label": "Move an NPC", "shape": "{npc, region, room, message}", "kind": "json"},
+	"move_npc": {"label": "Move an NPC", "shape": "{npc, region, room, message, silent: true for no leaves/arrives line}", "kind": "json"},
 	"give_rewards": {"label": "Give a reward bundle", "shape": "{xp, gold, items: [...]}", "kind": "json"},
 	"message": {"label": "Show a message", "shape": "text shown to the player", "kind": "string"},
 	"take_gold": {"label": "Take currency", "shape": "a whole number, 1 or more (all or nothing)", "kind": "int"},
