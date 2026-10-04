@@ -50,7 +50,6 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "can_heal": true,
             "spell_cast_chance": 1,
             "required_spells": [
                 "cure"
