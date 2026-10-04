@@ -1,0 +1,7 @@
+# Read by ripgrep (and fd): searches from the repository root skip what is never the answer. Name a path
+# explicitly to search it anyway.
+.claude/
+archive/
+dist/
+.godot/
+*.sqlite3
