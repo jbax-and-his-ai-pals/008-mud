@@ -60,6 +60,8 @@ NOT_INDEXED: Tuple[str, ...] = (
     "-- enforced inline in `validate_catalogs`, not in the sweep",
     "room exits (`region:room` strings) -- enforced inline in `validate_catalogs`",
     "an NPC's dialogue graph binding (`properties.dialogue`) -- enforced by `content_set.py`",
+    "scenes: a `play_scene` effect's scene id, and the effects inside a scene's beats (spawns, moves, "
+    "teleports) -- enforced by `content_set.py`",
     "a title's guild `place` and a quest's `spawn_on_entry.room_id` -- enforced by "
     "`content_set.py` and the quest validator",
     "contract references (family -> profile, ability -> effect packet) -- enforced by "

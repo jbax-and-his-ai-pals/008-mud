@@ -45,6 +45,7 @@ class TestTheTable(unittest.TestCase):
             "restore": ["amount", "companions", "resource"],
             "reveal_exit": ["direction", "room"],
             "seal_exit": ["direction", "region", "room"],
+            "advance_time": ["to_hour"],
             "spawn_npc": ["instance_id", "npc", "region", "room"],
             "teleport": ["message", "region", "room"],
         }, effect_fields())
@@ -63,6 +64,7 @@ class TestTheTable(unittest.TestCase):
             "remove_npc": "_apply_remove_npc_effect",
             "teleport": "_apply_teleport_effect",
             "seal_exit": "_apply_seal_exit_effect",
+            "advance_time": "_apply_time_effect",
         }
         self.assertEqual(set(readers), set(effect_fields()))
         for effect, reader in readers.items():
@@ -103,6 +105,7 @@ class TestShapeIssues(unittest.TestCase):
         {"remove_npc": {"npc": "chancellor", "region": "keep", "room": "hall"}},
         {"teleport": {"region": "keep", "room": "hall"}},
         {"seal_exit": {"region": "keep", "room": "hall", "direction": "east"}},
+        {"advance_time": {"to_hour": 6}}, {"play_scene": "the_crystal_falls"},
     ]
     BAD = [
         ({"set_flag": 5}, "set_flag"), ({"set_flag": []}, "set_flag"), ({"set_flag": [3]}, "set_flag"),
@@ -141,6 +144,8 @@ class TestShapeIssues(unittest.TestCase):
         ({"teleport": "hall"}, "teleport"), ({"teleport": {"region": "keep"}}, "room"),
         ({"seal_exit": "east"}, "seal_exit"), ({"seal_exit": {"region": "keep", "room": "hall"}}, "direction"),
         ({"seal_exit": {"region": "keep", "direction": "east"}}, "room"),
+        ({"advance_time": {"to_hour": 24}}, "to_hour"), ({"advance_time": {"to_hour": "dawn"}}, "to_hour"), ({"advance_time": {}}, "to_hour"),
+        ({"advance_time": 6}, "advance_time"), ({"play_scene": 5}, "play_scene"), ({"play_scene": ""}, "play_scene"),
         ({"teleport": {"room": "hall"}}, "region"), ({"teleport": {"region": "keep", "room": "hall", "how": 1}}, "how"),
     ]
 

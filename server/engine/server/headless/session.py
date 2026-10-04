@@ -259,6 +259,12 @@ class SessionMixin:
         # for their first level before they had done anything.
         self.advancement_manager.ingest_legacy_discoveries(new_player)
         self.advancement_manager.seed(new_player, "region", start_region)
+        # Arriving at the start is entering it: a trigger on the first room (an opening scene) runs for a new character.
+        runner = getattr(self.world, "trigger_runner", None)
+        if runner is not None:
+            opening_lines = runner.fire_on_enter(new_player, start_region, start_room)
+            if opening_lines:
+                self.world.notify_player(new_player, "\n\n".join(opening_lines))
         # A set that declares no backgrounds has no background name to show; the
         # character's own class label is what it starts as.
         role = background.name if background is not None else (

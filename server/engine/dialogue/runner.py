@@ -71,6 +71,11 @@ def scene_block(world, player, command_data: Optional[Dict[str, Any]]) -> str:
     changes the world (moving, fighting, using, casting, trading...) is refused and the question is
     asked again.
     """
+    scenes = getattr(world, "scene_runner", None)
+    if scenes is not None and scenes.blocking(player):
+        name = str((command_data or {}).get("name", "") or "")
+        if command_data is None or not (name in SCENE_ALLOWED_NAMES or str(command_data.get("category", "") or "") in SCENE_ALLOWED_CATEGORIES):
+            return "%sThis is not yours to interrupt: watch.%s" % (FORMAT_ERROR, FORMAT_RESET)
     manager = manager_for(world)
     session = manager.current(player) if manager is not None else None
     if session is None:

@@ -5,6 +5,7 @@ const SaveIO = preload("res://scripts/data/SaveIO.gd")
 const ReferenceIndexScript = preload("res://scripts/data/ReferenceIndex.gd")
 const SaveCheckpoint = preload("res://scripts/data/SaveCheckpoint.gd")
 const TRIGGER_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TriggerInspector.gd")
+const SCENE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/SceneInspector.gd")
 
 # Managers
 var region_mgr: RegionManager
@@ -374,6 +375,10 @@ func _connect_ui_signals():
 					"aliases": [],
 				})
 				database_mgr.add_recipe(id, d)
+			"scene":
+				# Valid from the moment it exists: one beat with a line to tell.
+				d = SCENE_INSPECTOR_SCRIPT.data_defaults()
+				database_mgr.add_scene(id, d)
 			"trigger":
 				# Valid from the moment it exists: a room to fire in and a line of
 				# narration, so it never fails validation merely by existing.

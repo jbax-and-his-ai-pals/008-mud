@@ -35,6 +35,8 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     remove_npc        "template_or_instance_id" | {"npc": "id", "region": "r", "room": "x"}
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
+    play_scene        "scene_id"                     the player watches a scene (data/scenes; world/scenes.py)
+    advance_time      {"to_hour": 6}                 the clock jumps forward to the next 6 o'clock
 
 Shorthands exist because most effects are one id and authors should not have to
 write an object for that. Anything the interpreter does not recognise is
@@ -86,6 +88,7 @@ KNOWN_EFFECTS = frozenset({
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
+    "play_scene", "advance_time",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -148,6 +151,8 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     },
     "forget_spell": {"form": "ids"},
     "message": {"form": "text"},
+    "play_scene": {"form": "text"},
+    "advance_time": {"form": "object", "fields": {"to_hour": "hour"}, "one_of": ("to_hour",)},
     "recruit": {"form": "ids_or_true"},
     "dismiss": {"form": "ids_or_true"},
     "spawn_npc": {
@@ -218,6 +223,9 @@ def _value_check(kind: str, value: Any) -> Optional[str]:
         return None if ok and not isinstance(value, bool) else 'a whole number of at least 1, or "full"'
     if kind == "bool":
         return None if isinstance(value, bool) else "true or false"
+    if kind == "hour":
+        ok = isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 23
+        return None if ok else "an hour, a whole number from 0 to 23"
     if kind == "stat_map":
         ok = isinstance(value, dict) and bool(value) and all(
             _is_text(stat) and _is_whole(gain, 1) for stat, gain in value.items()
@@ -991,6 +999,16 @@ def _apply_seal_exit_effect(effects: Dict[str, Any], context, report: EffectRepo
     report.messages.append("The way %s seals shut." % direction)
 
 
+def _name_in_a_sentence(player, npc) -> str:
+    """"The chancellor", "Captain Kessa", "A castle guard": how the room would name them to start a sentence."""
+    try:
+        from engine.utils.utils import format_name_for_display
+
+        return format_name_for_display(player, npc, start_of_sentence=True)
+    except Exception:  # noqa: BLE001 - a plain note must never break the effect
+        return str(getattr(npc, "name", "Someone"))
+
+
 def _apply_move_npc_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     if "move_npc" not in effects:
         return
@@ -1016,9 +1034,9 @@ def _apply_move_npc_effect(effects: Dict[str, Any], context, report: EffectRepor
         if was_here != now_here:
             report.messages.append(written.strip())
     elif was_here and not now_here:
-        report.messages.append("%s leaves." % getattr(npc, "name", "Someone"))
+        report.messages.append("%s leaves." % _name_in_a_sentence(player, npc))
     elif now_here and not was_here:
-        report.messages.append("%s arrives." % getattr(npc, "name", "Someone"))
+        report.messages.append("%s arrives." % _name_in_a_sentence(player, npc))
 
 
 def _apply_companion_effects(effects: Dict[str, Any], player, context, report: EffectReport) -> None:
@@ -1128,6 +1146,37 @@ def _apply_teleport_effect(effects: Dict[str, Any], context, report: EffectRepor
         report.failed.append("teleport (the player cannot move)")
 
 
+def _apply_time_effect(effects: Dict[str, Any], world, report: EffectReport) -> None:
+    """`advance_time`: the clock jumps to the next time it is `to_hour` o'clock (the night passes while you sleep)."""
+    raw = effects.get("advance_time")
+    if raw is None:
+        return
+    hour = raw.get("to_hour") if isinstance(raw, dict) else None
+    clock = getattr(getattr(world, "server", None), "time_manager", None) if world is not None else None
+    if clock is None or isinstance(hour, bool) or not isinstance(hour, int) or not 0 <= hour <= 23:
+        report.failed.append("advance_time (needs to_hour from 0 to 23 and a world with a clock)")
+        return
+    day_seconds = 86400
+    target = (int(clock.game_time) // day_seconds) * day_seconds + hour * 3600
+    if target <= clock.game_time:
+        target += day_seconds
+    clock.initialize_time(float(target))
+    report.applied.append("the time is now %02d:00" % hour)
+
+
+def _apply_scene_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
+    """`play_scene`: the player watches a scene (world/scenes.py). It begins at once and tells itself over the
+    coming seconds, so nothing is added to the message here."""
+    scene_id = effects.get("play_scene")
+    if scene_id is None:
+        return
+    runner = getattr(world, "scene_runner", None) if world is not None else None
+    if runner is None or not isinstance(scene_id, str) or not runner.play(player, scene_id.strip()):
+        report.failed.append("play_scene (no scene named %r)" % (scene_id,))
+        return
+    report.applied.append("scene %s" % scene_id)
+
+
 def _apply_reward_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
     rewards = effects.get("give_rewards")
     if not isinstance(rewards, dict):
@@ -1226,6 +1275,8 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("remove_npc", lambda: _apply_remove_npc_effect(effects, context, report)),
         ("companions", lambda: _apply_companion_effects(effects, player, context, report)),
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
+        ("time", lambda: _apply_time_effect(effects, world, report)),
+        ("scene", lambda: _apply_scene_effect(effects, player, world, report)),
         ("teleport", lambda: _apply_teleport_effect(effects, context, report)),
     )
     for label, step in steps:

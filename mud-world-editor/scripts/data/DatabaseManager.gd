@@ -51,6 +51,8 @@ static func recipe_dir() -> String: return DataRoot.content_dir("crafting")
 # Triggers: one directory, several files, each a library of triggers keyed by id
 # (`engine/world/triggers.py`).
 static func trigger_dir() -> String: return DataRoot.content_dir("triggers")
+# Scenes: one directory, several files, each a library of scenes keyed by id (`engine/world/scenes.py`).
+static func scene_dir() -> String: return DataRoot.content_dir("scenes")
 # Dialogue: one *graph* per file, not a library of entries -- `nodes` inside a
 # graph is the graph's own structure, and `_load_file`'s single-vs-library
 # heuristic would read it as a second entry. Loaded and saved by hand, like
@@ -91,6 +93,7 @@ var magic: Dictionary = {}
 var quests: Dictionary = {}
 var recipes: Dictionary = {}
 var triggers: Dictionary = {}
+var scenes: Dictionary = {}
 var dialogues: Dictionary = {}
 # Filename → graph id, so a deleted graph can take its file with it.
 var dialogue_files: Dictionary = {}
@@ -162,7 +165,7 @@ var backgrounds_file_known := false
 
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
-	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "trigger": {}, "dialogue": {}, "title": {},
+	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "trigger": {}, "scene": {}, "dialogue": {}, "title": {},
 	"collection": {}, "discovery": {}, "background": {}, "campaign": {}, "topic": {}, "theme": {},
 	"affix_prefix": {}, "affix_suffix": {}, "item_set": {}
 }
@@ -210,7 +213,7 @@ func carried_stats() -> Array:
 	return out
 
 func load_all():
-	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); triggers.clear(); dialogues.clear()
+	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); triggers.clear(); scenes.clear(); dialogues.clear()
 	campaigns.clear(); campaign_files.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	titles.clear(); guilds.clear(); titles_extras.clear(); titles_file_known = false
 	topics.clear(); common_topics.clear(); topics_extras.clear(); topics_file_known = false
@@ -233,6 +236,7 @@ func load_all():
 	_load_recursive(quest_dir(), "", quests)
 	_load_recursive(recipe_dir(), "", recipes)
 	_load_recursive(trigger_dir(), "", triggers)
+	_load_recursive(scene_dir(), "", scenes)
 	_load_dialogue_graphs()
 	# Quest stage graph positions live in `editor/quest_layout.json`, not in the
 	# quests the game reads; merge them so every call site still sees them.
@@ -687,6 +691,7 @@ func save_all() -> Dictionary:
 	_save_category(quests, quest_dir(), errors)
 	_save_category(recipes, recipe_dir(), errors)
 	_save_category(triggers, trigger_dir(), errors)
+	_save_category(scenes, scene_dir(), errors)
 	_save_dialogue_graphs(errors)
 	_save_campaigns(errors)
 	_save_category(templates, template_dir(), errors)
@@ -807,6 +812,7 @@ func _cache_for(type: String) -> Dictionary:
 		"template": return templates
 		"recipe": return recipes
 		"trigger": return triggers
+		"scene": return scenes
 		"dialogue": return dialogues
 		"title": return titles
 		"collection": return collections
@@ -1045,6 +1051,8 @@ func set_common_topics(ids: Array):
 func add_recipe(id: String, data: Dictionary): _add_entry(id, data, recipes); mark_dirty("recipe", id)
 func add_trigger(id: String, data: Dictionary): _add_entry(id, data, triggers); mark_dirty("trigger", id)
 func get_trigger_ids() -> Array: return get_ids("trigger")
+func add_scene(id: String, data: Dictionary): _add_entry(id, data, scenes); mark_dirty("scene", id)
+func get_scene_ids() -> Array: return get_ids("scene")
 func get_recipe_ids() -> Array: return get_ids("recipe")
 # Titles are one file, not one-entry-per-directory-file, so they carry no
 # `_filename` the way `_add_entry` assumes every other category needs.

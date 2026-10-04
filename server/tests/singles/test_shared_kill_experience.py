@@ -149,6 +149,7 @@ class TestWhoGetsWhat(unittest.TestCase):
         table.enemy.health = 1
         kessa.attack_power, kessa.attack_cooldown, kessa.combat_cooldown = 500, 0, 0
         kessa.combat_target, kessa.combat_targets = table.enemy, {table.enemy}
+        table.world.pending_player_notices.clear()  # the opening's own arrival beat
         before = player.runtime_state.progression.experience
         said = ""
         for step in range(40):

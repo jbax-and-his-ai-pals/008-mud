@@ -364,6 +364,29 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `properties.essential: true` | an NPC | Cannot be killed unless recruited as a companion: left on the brink instead. |
 | `properties.unique: true` | an NPC | Called "the mayor", not "a mayor". |
 
+**Scenes.** A scene is something the player watches: beats told a moment apart, with things happening between them.
+`data/scenes/*.json` holds them (each file an object of scenes keyed by id):
+
+```json
+"mysidia_falls": {
+  "beats": [
+    {"text": "The doors burst inward, and the soldiers pour in.", "pace": "measured"},
+    {"after": 3.5, "text": "Steel rings.", "pace": "slow", "effects": {"remove_npc": "acolyte_1"}},
+    {"after": 3, "text": "Take the crystal. (take crystal)"}
+  ]
+}
+```
+
+A beat is `{text, after, pace, effects}`: `after` is the wait in seconds after the beat before it (0 before the first, 2
+between the rest, up to 600), `pace` how fast a client types it out, and `effects` the same vocabulary a conversation
+uses (people leave, a fight is spawned, the player is carried somewhere, the clock jumps on). The `play_scene` effect
+begins one, so a trigger, a conversation, a quest or a campaign node can; a beat can begin another. While a scene runs its
+player is a spectator (commands that change the world are refused) unless the scene says `"lock": false`; how far it has got is
+kept, so a restart carries on instead of leaving the story half told. Three more things make an opening out of
+these: a trigger's `on_enter` fires for a new character's first room, `item_taken` is a trigger event (the crystal on its altar),
+`room_cleared` fires when the last enemy in a room dies (the second wave a short while after the first), and `advance_time`
+(`{"to_hour": 6}`) lets a night pass. A starting-inventory entry may say `"equip": true` to begin worn.
+
 **Quest text speed.** Quest text is story, so a player's client types it out. The engine's default is `slow`;
 a set can ask for its own with `presentation.quest_text_pace` (a pace, or `"instant"`); a server's operator can
 override both with `session.quest_text_pace` in the server config; and a player can turn typing off or change its

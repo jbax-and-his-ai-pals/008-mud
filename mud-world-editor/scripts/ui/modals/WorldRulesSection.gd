@@ -106,7 +106,7 @@ func load(ruleset: Dictionary, db: DatabaseManager) -> void:
 	inventory_baseline = entries.duplicate(true) if entries is Array else []
 	for entry in inventory_baseline:
 		if entry is String: _add_inventory_row(entry, 1, true)
-		elif entry is Dictionary: _add_inventory_row(str(entry.get("item_id", "")), int(entry.get("quantity", 1)), false)
+		elif entry is Dictionary: _add_inventory_row(str(entry.get("item_id", "")), int(entry.get("quantity", 1)), false, entry.get("equip") == true)
 
 
 ## The sections this form owns, as they should be written.
@@ -150,7 +150,7 @@ func changed() -> bool:
 	return false
 
 
-func _add_inventory_row(item_id: String, quantity: int, was_string := false) -> void:
+func _add_inventory_row(item_id: String, quantity: int, was_string := false, equipped := false) -> void:
 	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6); row.set_meta("was_string", was_string)
 	var picker := OptionButton.new(); picker.name = "Item"; picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var labels := {}
@@ -161,6 +161,8 @@ func _add_inventory_row(item_id: String, quantity: int, was_string := false) -> 
 	InspectorStyle.apply_button_style(picker); picker.item_selected.connect(func(index): picker.select(index); _changed()); row.add_child(picker)
 	var spin := SpinBox.new(); spin.name = "Quantity"; spin.min_value = 1; spin.max_value = 999; spin.step = 1; spin.value = quantity
 	spin.custom_minimum_size.x = 70; InspectorStyle.apply_input_style(spin); spin.value_changed.connect(func(_v): _changed()); row.add_child(spin)
+	var wear := CheckBox.new(); wear.name = "Equip"; wear.text = "Worn"; wear.button_pressed = equipped
+	wear.tooltip_text = "The character starts wearing or wielding it."; wear.toggled.connect(func(_on): _changed()); row.add_child(wear)
 	var remove := Button.new(); remove.text = "×"; InspectorStyle.apply_button_style(remove, DialogStyle.COLOR_DANGER)
 	remove.pressed.connect(func(): inventory_rows.remove_child(row); row.queue_free(); _changed()); row.add_child(remove)
 	inventory_rows.add_child(row)
@@ -174,8 +176,12 @@ func _inventory() -> Array:
 		var item_id := QuestGenerationSection._picked(row.get_node("Item"))
 		if item_id == "": continue
 		var quantity := int((row.get_node("Quantity") as SpinBox).value)
-		if bool(row.get_meta("was_string", false)) and quantity == 1: out.append(item_id)
-		else: out.append({"item_id": item_id, "quantity": quantity})
+		var worn := (row.get_node("Equip") as CheckBox).button_pressed
+		if bool(row.get_meta("was_string", false)) and quantity == 1 and not worn: out.append(item_id)
+		else:
+			var entry := {"item_id": item_id, "quantity": quantity}
+			if worn: entry["equip"] = true
+			out.append(entry)
 	return out
 
 

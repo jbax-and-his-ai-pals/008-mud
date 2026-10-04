@@ -35,6 +35,11 @@ def _record_acquisition(context: Dict[str, Any], player, item) -> List[str]:
     )
     if material_note:
         hints.append(material_note)
+    # What taking it sets off (the crystal on its altar): `item_taken` triggers.
+    world = getattr(player, "world", None)
+    runner = getattr(world, "trigger_runner", None)
+    if runner is not None:
+        hints.extend(runner.fire_item_taken(player, item))
     return hints
 
 

@@ -22,6 +22,8 @@ Three events fire a trigger:
     npc_killed    a creature dies: `npc` is a template id or a placed id, optionally
                   narrowed to the `region`/`room` it died in.
     room_cleared  the last living hostile in `region`/`room` is gone.
+    item_taken    the player picks up `item` (a template id), optionally only in `region`/`room`:
+                  the crystal on its altar, the key in the cell.
 
 The kill events are raised by `World.dispatch_event("npc_killed", ...)`, from the player's
 blows, a spell, a minion, and the world tick's reaper (a creature that died of something
@@ -50,16 +52,18 @@ TRIGGERS_DIRECTORY = "triggers"
 
 # The events a trigger can be `on`, the fields each event's `on` may carry, and the ones it
 # needs. `region` and `room` always come as a pair. `TriggerSchema.gd` is the editor's copy.
-TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared")
+TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared", "item_taken")
 EVENT_FIELDS = {
     "on_enter": ("region", "room"),
     "npc_killed": ("npc", "region", "room"),
     "room_cleared": ("region", "room"),
+    "item_taken": ("item", "region", "room"),
 }
 EVENT_REQUIRED = {
     "on_enter": ("region", "room"),
     "npc_killed": ("npc",),
     "room_cleared": ("region", "room"),
+    "item_taken": ("item",),
 }
 # What a trigger may carry, and what `once` may be (`False` is "every time").
 TRIGGER_KEYS = ("on", "when", "once", "effects", "note")
@@ -121,6 +125,23 @@ class TriggerRunner:
             if not isinstance(on, dict) or on.get("event") != "on_enter":
                 continue
             if (on.get("region"), on.get("room")) != (region_id, room_id):
+                continue
+            lines.extend(self._run(trigger_id, definition, player))
+        return lines
+
+    def fire_item_taken(self, player, item) -> List[str]:
+        """The lines for the player picking `item` up."""
+        lines: List[str] = []
+        if player is None or item is None or self._depth >= MAX_DEPTH:
+            return lines
+        region_id, room_id = getattr(player, "current_region_id", None), getattr(player, "current_room_id", None)
+        for trigger_id, definition in self.triggers.items():
+            on = definition.get("on")
+            if not isinstance(on, dict) or on.get("event") != "item_taken":
+                continue
+            if on.get("item") != getattr(item, "obj_id", None):
+                continue
+            if "region" in on and (on.get("region"), on.get("room")) != (region_id, room_id):
                 continue
             lines.extend(self._run(trigger_id, definition, player))
         return lines

@@ -360,6 +360,33 @@ def _item_placement_override_issues(overrides: dict, template: dict, item_ids: s
     return found
 
 
+def _teleport_destinations(content_root: Path) -> list[tuple[str, str]]:
+    """Every `(region, room)` a `teleport` effect anywhere in the set's authored effects names."""
+    found: list[tuple[str, str]] = []
+
+    def walk(value: Any) -> None:
+        if isinstance(value, dict):
+            target = value.get("teleport")
+            if isinstance(target, dict) and isinstance(target.get("region"), str) and isinstance(target.get("room"), str):
+                found.append((target["region"], target["room"]))
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    for folder in ("triggers", "scenes", "dialogue", "campaigns", "quests", "knowledge"):
+        directory = content_root / folder
+        if not directory.is_dir():
+            continue
+        for path in sorted(directory.glob("*.json")):
+            try:
+                walk(json.loads(path.read_text(encoding="utf-8")))
+            except (OSError, ValueError):
+                continue
+    return found
+
+
 def _load_definition_ids(directory: Path, label: str, issues: list[ContentSetIssue]) -> set[str]:
     """Read template ids from a content directory without constructing a world."""
     definition_ids: set[str] = set()
@@ -1197,6 +1224,9 @@ def _validate_authored_world(
 
     reachable: set[tuple[str, str]] = set()
     pending = [(start_region_id, start_room_id)]
+    # A story can carry the player somewhere (a `teleport` in a scene, a conversation or a trigger): where it
+    # sets them down is a way in, and what can be walked to from there is reachable.
+    pending.extend(_teleport_destinations(content_root))
     while pending:
         location = pending.pop()
         if location in reachable:
@@ -1875,6 +1905,11 @@ def _validate_simple_ruleset_sections(
                     quantity = entry.get("quantity", 1)
                     if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
                         error(f"{label}.quantity must be a positive integer (anything else stops character creation)")
+                    if "equip" in entry and not isinstance(entry["equip"], bool):
+                        error(f"{label}.equip must be true or false (true: the character starts wearing it)")
+                    for extra in entry:
+                        if extra not in ("item_id", "quantity", "equip"):
+                            error(f"{label}.{extra} is not read (known: item_id, quantity, equip)")
                 else:
                     error(f"{label} must be an item id or an object with item_id and quantity")
                     continue
@@ -3697,7 +3732,15 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
                             npc_instance_ids.add(placement["instance_id"])
 
     npc_ids = _load_definition_ids(content_root / "npcs", "NPC definitions", issues)
+    scene_ids: set[str] = set()
+    scenes_dir = content_root / "scenes"
+    if scenes_dir.is_dir():
+        for path in sorted(scenes_dir.glob("*.json")):
+            payload = _load_json(path, issues, "scenes")
+            if isinstance(payload, dict):
+                scene_ids |= {str(k) for k in payload if not str(k).startswith("_")}
     return {
+        "scenes": scene_ids,
         "items": item_ids,
         "recipes": recipe_ids,
         "quests": quest_ids,
@@ -3839,6 +3882,12 @@ def _check_effect_block(
                     f"{where} effect {key} names '{identifier}', "
                     f"which is not defined in this content set",
                 ))
+    scene = block.get("play_scene")
+    if isinstance(scene, str) and scene.strip() and scene.strip() not in ids["scenes"]:
+        issues.append(ContentSetIssue(
+            "error", str(path),
+            f"{where} effect play_scene names scene '{scene}', which is not in data/scenes of this content set",
+        ))
     rewards = block.get("give_rewards")
     if isinstance(rewards, dict):
         for identifier in _effect_identifiers(rewards.get("items")):
@@ -4161,6 +4210,88 @@ def _validate_triggers(
             _check_effect_block(effects, f"{label}.effects", path, ids, content_root, issues)
             if once is False:
                 _check_effect_guards(definition.get("when"), effects, label, path, issues)
+
+
+def _validate_scenes(
+    content_root: Path, issues: list[ContentSetIssue], ruleset_payload: Any = None
+) -> None:
+    """`data/scenes/*.json`: objects of scenes keyed by id (`engine/world/scenes.py`).
+
+    A scene is a list of beats, each `{text, after, pace, effects}`; its effects are checked exactly as a trigger's
+    or a conversation's are, so a beat cannot spawn a creature nobody authored or send the player to a room that is
+    not there. An id names one scene across the set, and a scene needs something to tell or do.
+    """
+    from engine.utils import pacing
+    from engine.world.scenes import BEAT_KEYS, MAX_WAIT, SCENE_KEYS
+
+    directory = content_root / "scenes"
+    if not directory.is_dir():
+        return
+    ids = _with_ruleset_stats(_content_identifier_sets(content_root, []), ruleset_payload)
+    seen: dict[str, str] = {}
+    for path in sorted(directory.glob("*.json")):
+        payload = _load_json(path, issues, "scenes")
+        if payload is None:
+            continue
+        if not isinstance(payload, dict):
+            issues.append(ContentSetIssue("error", str(path), "a scenes file must be an object of scenes keyed by id"))
+            continue
+        for scene_id, definition in payload.items():
+            if str(scene_id).startswith("_"):
+                continue
+            label = f"scene '{scene_id}'"
+            if scene_id in seen:
+                issues.append(ContentSetIssue(
+                    "error", str(path), f"{label} is defined twice (also in {seen[scene_id]}); an id names one scene"
+                ))
+                continue
+            seen[scene_id] = path.name
+            if not isinstance(definition, dict):
+                issues.append(ContentSetIssue("error", str(path), f"{label} must be an object"))
+                continue
+            for key in definition:
+                if key not in SCENE_KEYS:
+                    issues.append(ContentSetIssue(
+                        "error", str(path), f"{label} has unknown key '{key}' (known: {', '.join(SCENE_KEYS)})"
+                    ))
+            if "lock" in definition and not isinstance(definition["lock"], bool):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.lock must be true or false (false leaves the player free to act)"))
+            if "note" in definition and not isinstance(definition["note"], str):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.note must be text"))
+            beats = definition.get("beats")
+            if not isinstance(beats, list) or not beats:
+                issues.append(ContentSetIssue("error", str(path), f"{label}.beats must be a non-empty list of beats"))
+                continue
+            for index, beat in enumerate(beats):
+                where = f"{label}.beats[{index}]"
+                if not isinstance(beat, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{where} must be an object ({{text, after, pace, effects}})"))
+                    continue
+                for key in beat:
+                    if key not in BEAT_KEYS:
+                        issues.append(ContentSetIssue("error", str(path), f"{where} has unknown key '{key}' (known: {', '.join(BEAT_KEYS)})"))
+                text = beat.get("text")
+                if "text" in beat and (not isinstance(text, str) or not text.strip()):
+                    issues.append(ContentSetIssue("error", str(path), f"{where}.text must be the words to tell"))
+                if "text" not in beat and not beat.get("effects"):
+                    issues.append(ContentSetIssue("error", str(path), f"{where} tells nothing and does nothing: give it a text or effects"))
+                if "after" in beat:
+                    after = beat["after"]
+                    if isinstance(after, bool) or not isinstance(after, (int, float)) or not 0 <= after <= MAX_WAIT:
+                        issues.append(ContentSetIssue(
+                            "error", str(path), f"{where}.after must be a number of seconds from 0 to {MAX_WAIT} (the wait after the beat before)"
+                        ))
+                if beat.get("pace") not in (None, "instant") and pacing.resolve_pace(beat.get("pace")) is None:
+                    issues.append(ContentSetIssue(
+                        "error", str(path),
+                        f"{where}.pace '{beat.get('pace')}' is not a pace (a name -- {', '.join(pacing.TEXT_PACES)} -- "
+                        f"or characters per second from {pacing.PACE_RANGE[0]} to {pacing.PACE_RANGE[1]})",
+                    ))
+                if "effects" in beat:
+                    if not isinstance(beat["effects"], dict) or not beat["effects"]:
+                        issues.append(ContentSetIssue("error", str(path), f"{where}.effects must be a non-empty object of effects"))
+                    else:
+                        _check_effect_block(beat["effects"], f"{where}.effects", path, ids, content_root, issues)
 
 
 def _validate_dialogue_content(
@@ -6949,6 +7080,7 @@ def load_content_set(
         _validate_contract_content(content_root, issues)
         _validate_dialogue_content(content_root, issues, ruleset_payload)
         _validate_triggers(content_root, issues, ruleset_payload)
+        _validate_scenes(content_root, issues, ruleset_payload)
         _validate_knowledge_topics(content_root, issues)
         _validate_room_passage_properties(content_root, issues)
         _validate_campaigns(content_root, issues, ruleset_payload)

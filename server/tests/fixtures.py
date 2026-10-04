@@ -118,3 +118,20 @@ class GameTestBase(unittest.TestCase):
         mock = cast(MockRenderer, self.game.renderer)
         all_text = "\n".join(mock.message_buffer)
         self.assertIn(substring, all_text, f"Expected message '{substring}' not found in buffer.")
+
+
+def skip_the_ff4_opening(world, player, place=("varenholt", "throne_room")):
+    """Past the opening of the real FF4 slice (the Mysidia scene, the crystal, the airship, the landing), for the story
+    tests that begin at the king: the player stands in `place` with the crystal, and no scene is still being told."""
+    from engine.items.item_factory import ItemFactory
+
+    world.scheduled_actions.clear()
+    for key in [k for k in player.flags if isinstance(k, str) and k.startswith("_scene.")]:
+        player.flags.pop(key)
+    for scene in ("mysidia_falls", "leave_mysidia", "second_wave", "landing"):
+        player.flags["_scene_done." + scene] = True
+    player.flags["air_second_wave"] = True
+    crystal = ItemFactory.create_item_from_template("item_mysidian_crystal", world)
+    if crystal is not None and player.inventory.get_item("item_mysidian_crystal") is None:
+        player.inventory.add_item(crystal, 1)
+    player.current_region_id, player.current_room_id = place

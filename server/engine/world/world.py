@@ -29,6 +29,7 @@ from engine.world.spawner import Spawner
 from engine.world.save_manager import SaveManager
 from engine.world.definition_loader import load_all_definitions, initialize_new_world
 from engine.world.respawn_manager import RespawnManager
+from engine.world.scenes import SceneRunner
 from engine.world.triggers import TriggerRunner
 from engine.world.instance_manager import InstanceManager
 from engine.world.housing_manager import HousingManager, HOUSE_ENTRY_SENTINEL
@@ -87,6 +88,8 @@ class World:
         # Not gated on a capability: a set with no quests can still have a door that
         # seals behind you. Loaded from `data/triggers/` once the definitions are.
         self.trigger_runner = TriggerRunner(self)
+        # What the player watches (`data/scenes/`): beats told a moment apart, with things happening between them.
+        self.scene_runner = SceneRunner(self)
         # Things to tell a particular player that are not the answer to their command (their share of a
         # kill someone else finished); the server delivers them to whichever session the player is on.
         self.pending_player_notices: List[Tuple[Any, str]] = []
@@ -106,6 +109,7 @@ class World:
 
         load_all_definitions(self)
         self.trigger_runner.load(self.content_root)
+        self.scene_runner.load(self.content_root)
 
     def _resolve_save_directory(self, configured_directory: Optional[str]) -> str:
         """Return the writable, content-set-scoped location for save files."""

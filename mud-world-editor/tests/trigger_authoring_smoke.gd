@@ -85,7 +85,7 @@ func _run() -> void:
 	var events: Array = []
 	for index in range(event_picker.item_count):
 		events.append(str(event_picker.get_item_metadata(index)))
-	_assert(events == ["on_enter", "npc_killed", "room_cleared"], "the picker offers the engine's events: %s" % str(events))
+	_assert(events == ["on_enter", "npc_killed", "room_cleared", "item_taken"], "the picker offers the engine's events: %s" % str(events))
 	var kill_index := events.find("npc_killed")
 	event_picker.select(kill_index); event_picker.item_selected.emit(kill_index)
 	_assert(wyrm["on"]["event"] == "npc_killed" and wyrm["on"].has("npc") and wyrm["on"].has("region"),

@@ -47,6 +47,7 @@ const CONTENT_DIRS := {
 	"combat": "combat",
 	"crafting": "crafting",
 	"triggers": "triggers",
+	"scenes": "scenes",
 	"dialogue": "dialogue",
 }
 

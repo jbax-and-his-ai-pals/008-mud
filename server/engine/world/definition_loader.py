@@ -197,6 +197,11 @@ def grant_starting_inventory(world: 'World', player: Player, entries: object = N
         item = ItemFactory.create_item_from_template(item_id, world)
         if item:
             player.inventory.add_item(item, quantity)
+            # `"equip": true` starts the character wearing it (a captain begins with her sword drawn).
+            if isinstance(entry, dict) and entry.get("equip") is True:
+                equipped, why = player.equip_item(item)
+                if not equipped:
+                    Logger.warning("Loader", f"Starter item '{item_id}' could not be equipped: {why}")
 
 
 def initialize_new_world(world: 'World', start_region: str, start_room: str):

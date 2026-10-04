@@ -216,6 +216,10 @@ class LifecycleMixin:
 
         # What the world has to tell particular players (their share of a kill, say), wherever they are.
         # A scene that was part-told when the server stopped carries on (quests/manager.py `resume_scenes`).
+        for scene_session_id in list(self.sessions):
+            scene_player = self.get_player_for_session(scene_session_id)
+            if scene_player is not None and getattr(self.world, "scene_runner", None) is not None:
+                self.world.scene_runner.resume(scene_player)   # a scene part told when the server stopped
         quest_manager = getattr(self.world, "quest_manager", None)
         if quest_manager is not None:
             for scene_session_id in list(self.sessions):

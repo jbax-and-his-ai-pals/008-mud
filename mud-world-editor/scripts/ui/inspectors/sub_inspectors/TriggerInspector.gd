@@ -119,6 +119,10 @@ func _set_event(event: String) -> void:
 		if old.has(key):
 			on[key] = old[key]
 	var required: Array = SCHEMA.EVENT_REQUIRED.get(event, [])
+	if required.has("item") and not on.has("item"):
+		var item_ids: Array = database_mgr.get_item_ids() if database_mgr != null else []
+		if not item_ids.is_empty():
+			on["item"] = str(item_ids[0])
 	if required.has("npc") and not on.has("npc"):
 		var npc_ids: Array = database_mgr.get_npc_ids() if database_mgr != null else []
 		if not npc_ids.is_empty():
@@ -161,6 +165,8 @@ func _build_when_it_fires() -> void:
 	var fields: Array = SCHEMA.EVENT_FIELDS.get(current_event, ["region", "room"])
 	if fields.has("npc"):
 		vbox.add_child(_npc_row())
+	if fields.has("item"):
+		vbox.add_child(_item_row())
 
 	# A room is required for entering and clearing, and only narrows a kill.
 	var room_optional: bool = not SCHEMA.EVENT_REQUIRED.get(current_event, ["region", "room"]).has("room")
@@ -204,6 +210,33 @@ func _build_when_it_fires() -> void:
 	)
 	room_row.add_child(room_picker)
 	vbox.add_child(room_row)
+
+
+func _item_row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_child(InspectorStyle.lbl("Item:", InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new()
+	picker.name = "TriggerItem"
+	var ids: Array = database_mgr.get_item_ids() if database_mgr != null else []
+	var current := str(_on().get("item", ""))
+	var choices: Array = ids.duplicate()
+	if current != "" and not choices.has(current):
+		choices.append(current)   # an item the set does not define stays visible, so it can be fixed
+	picker.add_item("(choose an item)")
+	picker.set_item_metadata(0, "")
+	for id in choices:
+		picker.add_item(str(id) if ids.has(id) else "Missing: %s" % id)
+		picker.set_item_metadata(picker.item_count - 1, str(id))
+	picker.select(choices.find(current) + 1 if current != "" else 0)
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.tooltip_text = "The item's template id."
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(index):
+		var chosen := str(picker.get_item_metadata(index))
+		if chosen != "":
+			_set_on("item", chosen))
+	row.add_child(picker)
+	return row
 
 
 func _npc_row() -> HBoxContainer:

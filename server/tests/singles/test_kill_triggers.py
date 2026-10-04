@@ -71,7 +71,7 @@ class _Deaths(GameTestBase):
 
 class TestTheVocabulary(unittest.TestCase):
     def test_the_events(self):
-        self.assertEqual(("on_enter", "npc_killed", "room_cleared"), tuple(TRIGGER_EVENTS))
+        self.assertEqual(("on_enter", "npc_killed", "room_cleared", "item_taken"), tuple(TRIGGER_EVENTS))
 
 
 class TestNpcKilled(_Deaths):

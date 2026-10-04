@@ -158,6 +158,8 @@ const EFFECTS := {
 	"spawn_npc": {"label": "Bring in an NPC", "shape": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
 	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
 	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}", "kind": "json"},
+	"play_scene": {"label": "Play a scene (the player watches)", "shape": "scene id (data/scenes)", "kind": "string"},
+	"advance_time": {"label": "Let the night pass (the clock jumps on)", "shape": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},
 	"remove_npc": {"label": "Take an NPC out (not a death)", "shape": "an NPC template or placed id, or {npc, region, room}", "kind": "npc_id"},
 	"recruit": {"label": "Recruit a companion", "shape": "an NPC template or placed id in the room, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": true},
 	"dismiss": {"label": "Dismiss a companion", "shape": "a companion template or placed id, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": true},
