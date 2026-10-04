@@ -154,6 +154,57 @@ def _validate_combat_flavor(content_root: Path, issues: list[ContentSetIssue]) -
                     error(f"{label}.{key} uses {', '.join('{' + name + '}' for name in extra)}; only {{target_name}} is filled")
 
 
+def _attack_mode_problems(template: dict, resolved_class: str) -> list[str]:
+    """What is wrong with a weapon's `properties.attack_modes` (the ways a blow with it may be struck), if anything."""
+    from engine.config.config_combat import WEAPON_DAMAGE_TYPES
+    from engine.contracts.equipment import ATTACK_MODE_KEYS, ATTACK_MODE_TEXT_FIELDS
+
+    properties = template.get("properties")
+    if not isinstance(properties, dict) or "attack_modes" not in properties:
+        return []
+    modes = properties["attack_modes"]
+    if resolved_class != "Weapon":
+        return ["attack_modes belong on a Weapon; this item is a %s" % (resolved_class or "?")]
+    if not isinstance(modes, list) or not modes:
+        return ["attack_modes must be a non-empty list of objects"]
+    problems: list[str] = []
+    for index, mode in enumerate(modes):
+        label = "attack_modes[%d]" % index
+        if not isinstance(mode, dict):
+            problems.append("%s must be an object" % label)
+            continue
+        for key in mode:
+            if key not in ATTACK_MODE_KEYS:
+                problems.append("%s.%s is not read (known: %s)" % (label, key, ", ".join(ATTACK_MODE_KEYS)))
+        if "name" in mode and (not isinstance(mode["name"], str) or not mode["name"].strip()):
+            problems.append("%s.name must be text" % label)
+        if "verb" in mode and (not isinstance(mode["verb"], str) or re.fullmatch(r"[a-z]+( [a-z]+)*", mode["verb"]) is None):
+            problems.append("%s.verb must be lower-case words, the plain form of the verb (\"thrust\", \"slash\")" % label)
+        if "weapon_damage_type" in mode and mode["weapon_damage_type"] not in WEAPON_DAMAGE_TYPES:
+            problems.append("%s.weapon_damage_type must be one of %s" % (label, ", ".join(WEAPON_DAMAGE_TYPES)))
+        if "damage_bonus" in mode:
+            bonus = mode["damage_bonus"]
+            if isinstance(bonus, bool) or not isinstance(bonus, int) or not -5 <= bonus <= 50:
+                problems.append("%s.damage_bonus must be a whole number from -5 to 50" % label)
+        if "text" in mode:
+            text = mode["text"]
+            if not isinstance(text, str):
+                problems.append("%s.text must be a sentence" % label)
+                continue
+            try:
+                used = {name for _literal, name, _spec, _conv in string.Formatter().parse(text) if name is not None}
+            except ValueError as problem:
+                problems.append("%s.text is not a valid template (%s)" % (label, problem))
+                continue
+            unknown = sorted(used - set(ATTACK_MODE_TEXT_FIELDS))
+            if unknown:
+                problems.append("%s.text uses %s; only %s are filled" % (
+                    label, ", ".join("{" + name + "}" for name in unknown), ", ".join("{" + name + "}" for name in ATTACK_MODE_TEXT_FIELDS)))
+            elif not {"attacker", "defender"} <= used:
+                problems.append("%s.text must name the {attacker} and the {defender}" % label)
+    return problems
+
+
 def _validate_item_envelopes(content_root: Path, issues: list[ContentSetIssue]) -> None:
     """What `definition_loader.load_item_templates` keeps and `ItemFactory` builds.
 
@@ -212,6 +263,8 @@ def _validate_item_envelopes(content_root: Path, issues: list[ContentSetIssue]) 
                     error(f"{key} must be a number, 0 or more")
             if "stackable" in template and not isinstance(template["stackable"], bool):
                 error("stackable must be a boolean")
+            for problem in _attack_mode_problems(template, resolved):
+                error(problem)
 
 
 def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -> None:

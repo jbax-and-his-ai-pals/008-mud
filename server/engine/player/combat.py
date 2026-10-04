@@ -16,6 +16,7 @@ from engine.items.item import Item
 from engine.items.weapon import Weapon
 from engine.contracts import stats as stats_contract
 from engine.contracts.equipment import (
+    choose_attack_mode,
     weapon_damage,
     weapon_damage_type as weapon_damage_type_for,
 )
@@ -173,6 +174,11 @@ class PlayerCombatMixin:
         else:
             weapon_damage_type = UNARMED_WEAPON_DAMAGE_TYPE
         attack_power = p.get_attack_power()
+        # A weapon with several ways of being used uses one at random for each blow.
+        mode = choose_attack_mode(p.world, equipped_weapon) if isinstance(equipped_weapon, Item) else None
+        if mode:
+            weapon_damage_type = str(mode.get("weapon_damage_type") or weapon_damage_type)
+            attack_power += int(mode.get("damage_bonus", 0) or 0)
         
         p.enter_combat(target)
         # The player explicitly chose to attack this target, so it becomes
@@ -184,7 +190,7 @@ class PlayerCombatMixin:
         combat_result = CombatSystem.execute_attack(
             attacker=p, defender=target, attack_power=attack_power,
             weapon_name=weapon_name, always_hit=always_hits, viewer=p,
-            weapon_damage_type=weapon_damage_type
+            weapon_damage_type=weapon_damage_type, mode=mode
         )
         
         message = combat_result["message"]

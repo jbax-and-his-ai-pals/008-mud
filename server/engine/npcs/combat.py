@@ -10,6 +10,7 @@ from engine.config import (
 )
 from engine.config.config_display import FORMAT_ERROR
 from engine.core.combat_system import CombatSystem
+from engine.contracts.equipment import choose_attack_mode
 from engine.npcs import companion_gear
 from engine.magic.effects import apply_spell_effect
 from engine.magic.spell_registry import get_spell
@@ -130,13 +131,22 @@ def attack(npc: 'NPC', target) -> Dict[str, Any]:
             combat_result["message"] = f"{FORMAT_ERROR}{message}{FORMAT_RESET}\n{combat_result['message']}"
             return {"message": combat_result["message"], "target_defeated": combat_result["target_defeated"]}
 
+    # What it holds is named in the blow, and a weapon with several ways of being used uses one at random.
+    weapon = companion_gear.main_hand(npc)
+    mode = choose_attack_mode(world, weapon) if weapon is not None else None
+    attack_power = npc.attack_power
+    if mode:
+        weapon_damage_type = str(mode.get("weapon_damage_type") or weapon_damage_type)
+        attack_power += int(mode.get("damage_bonus", 0) or 0)
+
     combat_result = CombatSystem.execute_attack(
         attacker=npc,
         defender=target,
-        attack_power=npc.attack_power,
-        weapon_name="attack",
+        attack_power=attack_power,
+        weapon_name=weapon.name if weapon is not None else "attack",
         viewer=viewer,
-        weapon_damage_type=weapon_damage_type
+        weapon_damage_type=weapon_damage_type,
+        mode=mode,
     )
 
     return {"message": combat_result["message"], "target_defeated": combat_result["target_defeated"]}

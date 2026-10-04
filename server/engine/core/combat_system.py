@@ -62,6 +62,36 @@ class CombatSystem:
         return max(MIN_HIT_CHANCE, min(final_chance, MAX_HIT_CHANCE))
 
     @staticmethod
+    def _is_a_person(attacker: Entity) -> bool:
+        """A named someone ("Captain Kessa", "Red Fleet soldier") has a weapon of "their" own; a creature ("goblin") "its"."""
+        name = str(getattr(attacker, "name", "") or "")
+        return name[:1].isupper()
+
+    @staticmethod
+    def _verb_for(base: str, first_person: bool) -> str:
+        """"thrust" -> "thrust" (you) or "thrusts" (anyone else); "slash" -> "slashes"."""
+        if first_person:
+            return base
+        last_word = base.split(" ")[0]
+        rest = base[len(last_word):]
+        if last_word.endswith(("s", "x", "z", "ch", "sh")):
+            return last_word + "es" + rest
+        if last_word.endswith("y") and len(last_word) > 1 and last_word[-2] not in "aeiou":
+            return last_word[:-1] + "ies" + rest
+        return last_word + "s" + rest
+
+    @staticmethod
+    def _mode_sentence(mode: Dict[str, Any], attacker: str, verb: str, possessive: str, weapon: str, defender: str) -> str:
+        from engine.contracts.equipment import DEFAULT_ATTACK_MODE_TEXT
+
+        fields = dict(attacker=attacker, verb=verb, possessive=possessive, weapon=weapon, defender=defender)
+        template = str(mode.get("text") or DEFAULT_ATTACK_MODE_TEXT)
+        try:
+            return template.format(**fields)
+        except (KeyError, IndexError, ValueError):
+            return DEFAULT_ATTACK_MODE_TEXT.format(**fields)   # a template the validator would have refused
+
+    @staticmethod
     def calculate_physical_damage(attacker: Entity, defender: Entity, attack_power: int) -> int:
         """Calculates raw physical damage before reduction by armor."""
         is_player = getattr(attacker, 'faction', '') == 'player'
@@ -82,7 +112,7 @@ class CombatSystem:
     @staticmethod
     def execute_attack(attacker: Entity, defender: Entity, attack_power: int, weapon_name: str = "attack",
                        always_hit: bool = False, viewer: Optional[Entity] = None,
-                       weapon_damage_type: Optional[str] = None) -> Dict[str, Any]:
+                       weapon_damage_type: Optional[str] = None, mode: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Performs a full attack calculation and generates descriptive messages.
         """
@@ -96,7 +126,7 @@ class CombatSystem:
             att_possessive = "your"
         else:
             att_name = format_name_for_display(viewer, attacker, start_of_sentence=True)
-            att_possessive = "its" 
+            att_possessive = "their" if CombatSystem._is_a_person(attacker) else "its"
 
         if viewer and defender == viewer:
             def_name = "you"
@@ -119,9 +149,16 @@ class CombatSystem:
         attack_verb = "attack" if att_name == "You" else "attacks"
         miss_verb = "miss" if att_name == "You" else "misses"
 
+        # One way of using the weapon among several (a spear thrusts or slashes): its own verb and sentence.
+        if mode:
+            attack_verb = CombatSystem._verb_for(str((mode or {}).get("verb", "") or "attack"), att_name == "You")
+        sentence = CombatSystem._mode_sentence(mode, att_name, attack_verb, att_possessive, display_weapon, def_name) if mode else None
+
         # --- Miss Message ---
         if not is_hit:
-            if is_generic_attack:
+            if sentence:
+                result["message"] = f"{sentence}, but {miss_verb}!"
+            elif is_generic_attack:
                 result["message"] = f"{att_name} {attack_verb} {def_name}, but {miss_verb}!"
             else:
                 result["message"] = f"{att_name} {attack_verb} {def_name} with {att_possessive} {display_weapon}, but {miss_verb}!"
@@ -142,7 +179,9 @@ class CombatSystem:
             attacker.heal(vampiric_heal)
 
         # 3. Construct Hit Message
-        if is_generic_attack:
+        if sentence:
+            msg = f"{sentence} and {verb} {actual_damage} damage."
+        elif is_generic_attack:
             # "The goblin attacks you and deals 5 damage."
             msg = f"{att_name} {attack_verb} {def_name} and {verb} {actual_damage} damage."
         else:

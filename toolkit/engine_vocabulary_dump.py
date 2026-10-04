@@ -67,6 +67,8 @@ def main() -> int:
     try:
         from engine.conditions import KNOWN_KINDS
         from engine.config import EQUIPMENT_SLOTS
+        from engine.config.config_combat import WEAPON_DAMAGE_TYPES
+        from engine.contracts.equipment import ATTACK_MODE_KEYS, ATTACK_MODE_TEXT_FIELDS
         from engine.dialogue.effects import KNOWN_EFFECTS, RESTORE_RESOURCES
         from engine.items.consumable import CONSUMABLE_EFFECT_TYPES
         from engine.world.triggers import (
@@ -136,6 +138,9 @@ def main() -> int:
         "npc_behavior_types": sorted(NPC_BEHAVIOR_TYPES),
         # Where a creature (a companion, or an NPC that starts dressed) may wear things: `NPCInspector.gd`'s gear rows.
         "equipment_slots": list(EQUIPMENT_SLOTS),
+        # The ways a weapon may be struck (`properties.attack_modes`); `ItemInspector.gd`'s rows mirror these.
+        "attack_modes": {"keys": list(ATTACK_MODE_KEYS), "text_fields": list(ATTACK_MODE_TEXT_FIELDS),
+                         "damage_types": list(WEAPON_DAMAGE_TYPES)},
         # What an affix's `allowed_types` is compared with: the generated item's
         # class name. `AffixInspector.gd` offers these plus "All".
         "item_classes": _item_classes(),

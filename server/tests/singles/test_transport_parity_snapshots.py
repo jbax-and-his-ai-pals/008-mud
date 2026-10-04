@@ -36,11 +36,13 @@ class TestTransportParitySnapshots(unittest.IsolatedAsyncioTestCase):
     def _snapshot_path(self, name: str) -> str:
         return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "snapshots", name))
 
-    async def _read_available_events(self, reader: asyncio.StreamReader, max_events: int = 8) -> list[dict[str, Any]]:
+    async def _read_available_events(self, reader: asyncio.StreamReader, max_events: int = 8, first_wait: float = 0.1) -> list[dict[str, Any]]:
+        """What the server sent: it may wait `first_wait` for the first event (a slow reply on a loaded machine), then takes
+        only what is already there."""
         events: list[dict[str, Any]] = []
         for _ in range(max_events):
             try:
-                line = await asyncio.wait_for(reader.readline(), timeout=0.1)
+                line = await asyncio.wait_for(reader.readline(), timeout=0.1 if events else first_wait)
             except asyncio.TimeoutError:
                 break
             if not line:
@@ -602,7 +604,7 @@ class TestTransportParitySnapshots(unittest.IsolatedAsyncioTestCase):
             await reader.readline(); await reader.readline(); await reader.readline()
             writer.write(b"audit stale-refs\n")
             await writer.drain()
-            events = await self._read_available_events(reader)
+            events = await self._read_available_events(reader, first_wait=10.0)   # the audit walks every set: slow when the machine is busy
             root_value = str(app.server.world.content_root)
             for event in events:
                 payload = event.get("payload", {})

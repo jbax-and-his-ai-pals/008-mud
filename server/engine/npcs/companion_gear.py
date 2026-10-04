@@ -68,6 +68,14 @@ def refresh(npc: Any) -> None:
     npc._gear_attack, npc._gear_defense = attack, defense
 
 
+def main_hand(npc: Any) -> Optional[Any]:
+    """The usable weapon in the main hand, or None."""
+    weapon = (getattr(npc, "equipment", None) or {}).get("main_hand")
+    if weapon is None or weapon.get_property("durability", 1) <= 0:
+        return None
+    return weapon
+
+
 def weapon_type_of(npc: Any) -> Optional[str]:
     """The weapon-damage type of what is in the main hand, or None when nothing (usable) is."""
     weapon = (getattr(npc, "equipment", None) or {}).get("main_hand")

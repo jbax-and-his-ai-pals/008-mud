@@ -22,7 +22,8 @@ path. `toolkit/genre_coupling_audit.py` measures what is left.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+import random
+from typing import Any, Dict, List, Optional
 
 from engine.config.config_combat import (
     DEFAULT_WEAPON_DAMAGE_TYPE,
@@ -78,6 +79,27 @@ def profile_for(world: Any, item: Any, key: str) -> Dict[str, Any]:
 
 
 # -- weapons ------------------------------------------------------------------
+
+# A weapon may be used more than one way: `properties.attack_modes`, a list of `{verb, text, weapon_damage_type,
+# damage_bonus}`. Each blow uses one at random, so a spear thrusts or slashes and the message says which. All keys are
+# optional; `text` is a sentence with these fields (it must name the attacker and the defender), to which the engine adds
+# "and deals N damage." or ", but misses!".
+ATTACK_MODE_KEYS = ("name", "verb", "text", "weapon_damage_type", "damage_bonus")
+ATTACK_MODE_TEXT_FIELDS = ("attacker", "verb", "possessive", "weapon", "defender")
+DEFAULT_ATTACK_MODE_TEXT = "{attacker} {verb} {defender} with {possessive} {weapon}"
+
+
+def attack_modes(world: Any, item: Any) -> List[Dict[str, Any]]:
+    """The ways this weapon can be used (each an object), or none."""
+    raw = _item_property(item, "attack_modes", []) if item is not None else []
+    return [mode for mode in raw if isinstance(mode, dict)] if isinstance(raw, list) else []
+
+
+def choose_attack_mode(world: Any, item: Any) -> Optional[Dict[str, Any]]:
+    """One of the weapon's modes at random, or None when it has only the one way."""
+    modes = attack_modes(world, item)
+    return random.choice(modes) if modes else None
+
 
 def weapon_damage(world: Any, item: Any) -> int:
     """Damage this weapon adds, contract first."""

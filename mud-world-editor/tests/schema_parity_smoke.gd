@@ -83,6 +83,7 @@ func _init() -> void:
 	_check_sharing_vocabulary(vocabulary)
 	_check_level_up_vocabulary(vocabulary)
 	_check_scene_vocabulary(vocabulary)
+	_check_attack_mode_vocabulary(vocabulary)
 	_check_messages_vocabulary(vocabulary)
 	_check_weather_vocabulary(vocabulary)
 	_check_feature_profile_vocabulary(vocabulary)
@@ -435,6 +436,15 @@ func _check_sharing_vocabulary(vocabulary: Dictionary) -> void:
 	_assert(_as_set(engine.get("modes", [])) == _as_set(RulesetDraft.SHARING_MODES), "sharing modes match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("modes", [])))), str(_sorted(_as_set(RulesetDraft.SHARING_MODES)))])
 	_assert(is_equal_approx(float(engine.get("default_min_share", -1.0)), RulesetDraft.SHARING_DEFAULT_MIN_SHARE), "the default minimum share is the same in both")
 	_assert(is_equal_approx(float(engine.get("default_memory_seconds", -1.0)), float(RulesetDraft.SHARING_DEFAULT_MEMORY_SECONDS)), "the default memory is the same in both")
+
+
+func _check_attack_mode_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[attack modes: editor vs engine]")
+	var engine: Dictionary = vocabulary.get("attack_modes", {})
+	_assert(not engine.is_empty(), "the engine's attack-mode vocabulary was read")
+	_assert(engine.get("keys", []) == ItemInspector.ATTACK_MODE_KEYS, "mode keys match, in order (engine %s, editor %s)" % [str(engine.get("keys", [])), str(ItemInspector.ATTACK_MODE_KEYS)])
+	_assert(engine.get("text_fields", []) == ItemInspector.ATTACK_MODE_TEXT_FIELDS, "sentence fields match (engine %s, editor %s)" % [str(engine.get("text_fields", [])), str(ItemInspector.ATTACK_MODE_TEXT_FIELDS)])
+	_assert(engine.get("damage_types", []) == ItemInspector.WEAPON_DAMAGE_TYPES, "weapon damage types match (engine %s, editor %s)" % [str(engine.get("damage_types", [])), str(ItemInspector.WEAPON_DAMAGE_TYPES)])
 
 
 func _check_scene_vocabulary(vocabulary: Dictionary) -> void:

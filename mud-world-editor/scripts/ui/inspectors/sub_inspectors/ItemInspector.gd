@@ -43,8 +43,106 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	_build_resource_node()
 	_build_salvage()
 	_build_resistances()
+	_build_attack_modes()
 	_build_contract()
 	_build_properties()
+
+# `properties.attack_modes` (`contracts/equipment.py::attack_modes`): the ways a weapon may be struck, one chosen at random
+# for each blow (a spear thrusts or slashes). Each is a verb (the plain form: "thrust"), an optional sentence with
+# {attacker} {verb} {possessive} {weapon} {defender} (it must name the attacker and the defender), an optional damage type
+# for that way of striking, and an optional damage bonus. A weapon without modes is struck the one way it always was.
+const ATTACK_MODE_KEYS := ["name", "verb", "text", "weapon_damage_type", "damage_bonus"]
+const ATTACK_MODE_TEXT_FIELDS := ["attacker", "verb", "possessive", "weapon", "defender"]
+const WEAPON_DAMAGE_TYPES := ["slashing", "piercing", "crushing"]
+
+func _build_attack_modes():
+	if _engine_item_class() != "Weapon" and not _properties().has("attack_modes"):
+		return
+	container.add_child(HSeparator.new())
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Attack modes"))
+	header.tooltip_text = "Ways this weapon may be struck; one is chosen at random for each blow."
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.name = "AddAttackMode"; add.text = "+ Mode"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var modes := _ensure_attack_modes()
+		modes.append({"verb": "strike"})
+		database_modified.emit()
+		_refresh_attack_modes(container.find_child("AttackModes", true, false)))
+	header.add_child(add); container.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "AttackModes"; rows.add_theme_constant_override("separation", 6)
+	container.add_child(rows)
+	_refresh_attack_modes(rows)
+
+func _attack_modes() -> Array:
+	var modes = _properties().get("attack_modes", [])
+	return modes if modes is Array else []
+
+## Made on the first write and not before.
+func _ensure_attack_modes() -> Array:
+	var props := _properties()
+	if not (props.get("attack_modes") is Array): props["attack_modes"] = []
+	return props["attack_modes"]
+
+func _refresh_attack_modes(rows: VBoxContainer):
+	for child in rows.get_children():
+		rows.remove_child(child)
+		child.queue_free()
+	var modes := _attack_modes()
+	for index in range(modes.size()):
+		if not (modes[index] is Dictionary): continue
+		var mode: Dictionary = modes[index]
+		var card := InspectorStyle.create_card(); card.name = "AttackMode%d" % index
+		var box: VBoxContainer = card.get_child(0).get_child(0)
+		var top := HBoxContainer.new(); top.add_theme_constant_override("separation", 6)
+		top.add_child(InspectorStyle.lbl("Mode %d" % (index + 1), InspectorStyle.COLOR_TEXT_DIM))
+		var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; top.add_child(spacer)
+		var remove := Button.new(); remove.name = "RemoveAttackMode"; remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live := _ensure_attack_modes()
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): _properties().erase("attack_modes")
+			database_modified.emit()
+			_refresh_attack_modes(rows))
+		top.add_child(remove); box.add_child(top)
+		for spec in [["name", "Name", "e.g. thrust (only for your own reference)"], ["verb", "Verb", "plain form: thrust, slash, jab at"], ["text", "Sentence", "{attacker} {verb} {possessive} {weapon} at {defender}"]]:
+			var key: String = spec[0]
+			var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+			var label := InspectorStyle.lbl(str(spec[1]), InspectorStyle.COLOR_TEXT_DIM); label.custom_minimum_size.x = 70
+			row.add_child(label)
+			var field := LineEdit.new(); field.name = "Mode_%s_%d" % [key, index]; field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			field.text = str(mode.get(key, "")); field.placeholder_text = str(spec[2])
+			InspectorStyle.apply_input_style(field)
+			field.text_changed.connect(func(text):
+				if text.strip_edges() == "": mode.erase(key)
+				else: mode[key] = text
+				database_modified.emit())
+			row.add_child(field); box.add_child(row)
+		var extra := HBoxContainer.new(); extra.add_theme_constant_override("separation", 6)
+		var type_label := InspectorStyle.lbl("Damage type", InspectorStyle.COLOR_TEXT_DIM); type_label.custom_minimum_size.x = 70
+		extra.add_child(type_label)
+		var picker := OptionButton.new(); picker.name = "Mode_type_%d" % index
+		picker.add_item("(the weapon's own)"); picker.set_item_metadata(0, "")
+		for damage_type in WEAPON_DAMAGE_TYPES:
+			picker.add_item(str(damage_type)); picker.set_item_metadata(picker.item_count - 1, str(damage_type))
+			if str(mode.get("weapon_damage_type", "")) == str(damage_type): picker.select(picker.item_count - 1)
+		InspectorStyle.apply_button_style(picker)
+		picker.item_selected.connect(func(selected):
+			var chosen := str(picker.get_item_metadata(selected))
+			if chosen == "": mode.erase("weapon_damage_type")
+			else: mode["weapon_damage_type"] = chosen
+			database_modified.emit())
+		extra.add_child(picker)
+		extra.add_child(InspectorStyle.lbl("Bonus", InspectorStyle.COLOR_TEXT_DIM))
+		var bonus := SpinBox.new(); bonus.name = "Mode_bonus_%d" % index; bonus.min_value = -5; bonus.max_value = 50; bonus.step = 1
+		bonus.value = int(mode.get("damage_bonus", 0)); bonus.custom_minimum_size.x = 70
+		InspectorStyle.apply_input_style(bonus)
+		bonus.value_changed.connect(func(value):
+			if int(value) == 0: mode.erase("damage_bonus")
+			else: mode["damage_bonus"] = int(value)
+			database_modified.emit())
+		extra.add_child(bonus); box.add_child(extra)
+		rows.add_child(card)
+	if modes.is_empty(): rows.add_child(InspectorStyle.lbl("One way only: it attacks as it always did.", InspectorStyle.COLOR_TEXT_DIM))
 
 # `properties.resistances` (`contracts/equipment.py::armor_resistances`; schema
 # `contracts/registry.py:129`): per-damage-type resistance this item grants
@@ -815,7 +913,7 @@ func _refresh_props():
 	# These fields have a dedicated, lossless authoring surface above. Showing
 	# them again as generic rows invites two conflicting edits and makes the
 	# useful controls look like decoration.
-	var specialized := ["salvage_output", "resistances"]
+	var specialized := ["salvage_output", "resistances", "attack_modes"]
 	if _engine_item_class() == "Consumable":
 		# The "When used" section owns these two.
 		specialized.append_array(["effect_type", "effects"])
