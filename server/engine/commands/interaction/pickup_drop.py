@@ -160,7 +160,9 @@ def _handle_item_acquisition(args: List[str], context: Dict[str, Any], command_v
     consequences = ""
     if any_owned_source:
         consequences = taking_consequences(world, player, stolen_value)
-    return f"{FORMAT_SUCCESS}{' '.join(msgs)}{FORMAT_RESET}{err_msg}\n" + "\n".join(set(hints)) + consequences
+    # What taking it set off (a note, a scene's first line) follows on a line of its own; with nothing to add there
+    # is no stray newline, which would sit as a second blank line before whatever a trigger tells next.
+    return f"{FORMAT_SUCCESS}{' '.join(msgs)}{FORMAT_RESET}{err_msg}" + ("\n" + "\n".join(set(hints)) if hints else "") + consequences
 
 def _handle_item_disposal(args: List[str], context: Dict[str, Any], command_verb: str) -> str:
     world = context["world"]
@@ -288,7 +290,7 @@ def get_handler(args, context):
              consequences = taking_consequences(world, player, stolen_value) if taking_is_theft(container) else ""
              return (
                  f"{FORMAT_SUCCESS}You take {count} items from {the(container.name)}.{FORMAT_RESET}"
-                 f"{consequences}\n" + "\n".join(set(hints))
+                 f"{consequences}" + ("\n" + "\n".join(set(hints)) if hints else "")
              )
 
         target = container.find_item_by_name(item_name)
@@ -304,7 +306,7 @@ def get_handler(args, context):
                   hints = _record_acquisition(context, player, target)
                   return (
                       f"{FORMAT_SUCCESS}You get {the(target.name)} from {the(container.name)}.{FORMAT_RESET}"
-                      f"{consequences}\n" + "\n".join(set(hints))
+                      f"{consequences}" + ("\n" + "\n".join(set(hints)) if hints else "")
                   )
         return f"{FORMAT_ERROR}Cannot carry that.{FORMAT_RESET}"
 

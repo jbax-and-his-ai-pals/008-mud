@@ -84,6 +84,12 @@ class TestItemAcquisitionMatching(GameTestBase):
         result = self.game.process_command("take 0 Solo Item")
         self.assertIn("pick up", result)
 
+    def test_taking_something_that_sets_nothing_off_ends_without_a_stray_newline(self):
+        """A trailing newline sat as a second blank line before whatever a trigger told next (a scene's first line)."""
+        self._room_item("Plain Pebble")
+        result = self.game.process_command("take Plain Pebble")
+        self.assertFalse(result.endswith("\n"), repr(result))
+
     def test_no_matches_is_reported(self):
         self._room_item("Iron Sword")
         result = self.game.process_command("take totally bogus item xyz")
