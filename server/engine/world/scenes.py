@@ -114,6 +114,47 @@ class SceneRunner:
                 index = flags.get(key)
                 self._arm(player, scene_id, index if isinstance(index, int) and index >= 0 else 0)
 
+    def running(self, player) -> List[str]:
+        """The ids of the scenes being told to `player`, in the order they were begun."""
+        flags = getattr(player, "flags", None)
+        if not isinstance(flags, dict):
+            return []
+        return [key[len(RUNNING_PREFIX):] for key in flags if isinstance(key, str) and key.startswith(RUNNING_PREFIX)]
+
+    def end(self, player, scene_id: str) -> bool:
+        """Finish `scene_id` for `player` without telling it: nothing more is said or done, and it counts as seen
+        (`end_scene`, for a checkpoint that stands in for the story so far). True when there was such a scene."""
+        scene_id = str(scene_id)
+        if scene_id not in self.scenes:
+            return False
+        self.world.cancel_scheduled(self._key(player, scene_id))
+        self._finish(player, scene_id)
+        return True
+
+    def skip(self, player, scene_id: Optional[str] = None) -> int:
+        """Tell what is left of the running scenes (or one) at once: every remaining beat's words and effects, with no
+        waiting (a debugging aid). A scene a beat begins is told at once as well. Returns how many scenes were skipped."""
+        skipped = 0
+        only = scene_id
+        for _ in range(32):   # a scene may begin another; bounded in case two begin each other
+            running = self.running(player)
+            pending = [only] if only else running
+            pending = [pending_id for pending_id in pending if pending_id in running]
+            if not pending:
+                break
+            for pending_id in pending:
+                self.world.cancel_scheduled(self._key(player, pending_id))
+                flags = self._flags(player)
+                start = flags.get(RUNNING_PREFIX + pending_id)
+                for index in range(start if isinstance(start, int) and start >= 0 else 0, len(self._beats(pending_id))):
+                    if (RUNNING_PREFIX + pending_id) not in flags:
+                        break   # a beat ended it
+                    self._tell(player, pending_id, index)
+                self._finish(player, pending_id)
+                skipped += 1
+            only = None   # what a beat began is told at once as well
+        return skipped
+
     def blocking(self, player) -> bool:
         """Whether a scene that locks its player is running for them."""
         flags = getattr(player, "flags", None)

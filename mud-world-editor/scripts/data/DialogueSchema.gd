@@ -171,6 +171,7 @@ const EFFECTS := {
 	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
 	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}", "kind": "json"},
 	"play_scene": {"label": "Play a scene (the player watches)", "shape": "scene id (data/scenes)", "kind": "string"},
+	"end_scene": {"label": "End a scene without telling it (it counts as seen)", "shape": "scene id, or a list of them: what a checkpoint uses for the story so far", "kind": "string"},
 	"advance_time": {"label": "Let the night pass (the clock jumps on)", "shape": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},
 	"remove_npc": {"label": "Take an NPC out (not a death)", "shape": "an NPC template or placed id, or {npc, region, room}", "kind": "npc_id"},
 	"recruit": {"label": "Recruit a companion", "shape": "an NPC template or placed id in the room, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": true},

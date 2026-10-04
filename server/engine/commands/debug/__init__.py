@@ -5,6 +5,7 @@ Aggregates all debug command modules.
 """
 from .general import *
 from .quests import *
+from .scenes import *
 from .spawning import *
 from .state import *
 from .world import *

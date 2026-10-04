@@ -41,6 +41,7 @@ def main() -> int:
     parser.add_argument("steps", nargs="*")
     parser.add_argument("--file", help="read steps from a file, one per line (# starts a comment)")
     parser.add_argument("--name", default="Hero", help="the character's name")
+    parser.add_argument("--debug", action="store_true", help="a test session: the debug commands (checkpoint, scene, level, tp...) are available")
     args = parser.parse_args()
 
     steps = list(args.steps)
@@ -54,7 +55,7 @@ def main() -> int:
     if not path.exists():
         path = REPO_ROOT / "content_sets" / args.content_set
     server = HeadlessServer(db_path=":memory:", content_set_path=str(path), deterministic_test_mode=True,
-                            default_presentation_mode="player")
+                            default_presentation_mode="test" if args.debug else "player")
     sid = server.create_session(player_id="p").session_id
 
     def show(text: str) -> None:

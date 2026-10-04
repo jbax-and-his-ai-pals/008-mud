@@ -88,7 +88,7 @@ KNOWN_EFFECTS = frozenset({
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
-    "play_scene", "advance_time",
+    "play_scene", "end_scene", "advance_time",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -152,6 +152,7 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     "forget_spell": {"form": "ids"},
     "message": {"form": "text"},
     "play_scene": {"form": "text"},
+    "end_scene": {"form": "ids"},
     "advance_time": {"form": "object", "fields": {"to_hour": "hour"}, "one_of": ("to_hour",)},
     "recruit": {"form": "ids_or_true"},
     "dismiss": {"form": "ids_or_true"},
@@ -208,6 +209,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
     "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}", "kind": "json"},
     "play_scene": {"label": "Play a scene (the player watches)", "hint": "scene id (data/scenes)", "kind": "string"},
+    "end_scene": {"label": "End a scene without telling it (it counts as seen)", "hint": "scene id, or a list of them: what a checkpoint uses for the story so far", "kind": "string", "refs": "scenes"},
     "advance_time": {"label": "Let the night pass (the clock jumps on)", "hint": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},
     "remove_npc": {"label": "Take an NPC out (not a death)", "hint": "an NPC template or placed id, or {npc, region, room}", "kind": "npc_id"},
     "recruit": {"label": "Recruit a companion", "hint": "an NPC template or placed id in the room, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": True, "refs": "npcs"},
@@ -1210,10 +1212,16 @@ def _apply_time_effect(effects: Dict[str, Any], world, report: EffectReport) -> 
 def _apply_scene_effect(effects: Dict[str, Any], player, world, report: EffectReport) -> None:
     """`play_scene`: the player watches a scene (world/scenes.py). It begins at once and tells itself over the
     coming seconds, so nothing is added to the message here."""
+    runner = getattr(world, "scene_runner", None) if world is not None else None
+    if effects.get("end_scene") is not None:
+        for identifier, _quantity in entry_pairs(effects["end_scene"]):
+            if runner is None or not runner.end(player, identifier):
+                report.failed.append("end_scene (no scene named %r)" % (identifier,))
+            else:
+                report.applied.append("ended scene %s" % identifier)
     scene_id = effects.get("play_scene")
     if scene_id is None:
         return
-    runner = getattr(world, "scene_runner", None) if world is not None else None
     if runner is None or not isinstance(scene_id, str) or not runner.play(player, scene_id.strip()):
         report.failed.append("play_scene (no scene named %r)" % (scene_id,))
         return

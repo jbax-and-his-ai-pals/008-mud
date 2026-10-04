@@ -15,7 +15,7 @@ Use the project interpreter, not bare `python`: `.venv/Scripts/python.exe` (Wind
 | `python check.py --quick` | only what `git diff` can affect, plus the content gate; for iterating |
 | `python run_tests.py --modules tests.singles.test_x` | specific unit-test modules (sharded; `--shuffle` hunts order dependence) |
 | `python run_editor_checks.py --only trigger` | editor (Godot) checks whose file name contains the word |
-| `python toolkit/play_script.py <set> "wait 30" "take crystal" where` | play a content set and read what the player reads |
+| `python toolkit/play_script.py <set> "wait 30" "take crystal" where` | play a content set and read what the player reads (`--debug` for a test session: `checkpoint <name>`, `scene skip`, `level`, `tp`...) |
 | `python toolkit/content_edit.py get\|set\|append\|delete <set> <file> <path> [json]` | change content JSON in the editor's form |
 | `python toolkit/format_content.py --apply` | put hand-written content into the editor's form (the round-trip gate is byte-exact) |
 | `python toolkit/sync_editor_vocabulary.py` | regenerate the editor's dialogue tables after changing a condition kind or effect |

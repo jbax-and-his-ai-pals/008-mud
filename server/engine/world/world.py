@@ -835,6 +835,13 @@ class World:
         `key` names what it belongs to, so the owner can ask whether any of it is still pending."""
         self.scheduled_actions.append((float(self.clock.now()) + max(0.0, float(delay)), action, key))
 
+    def cancel_scheduled(self, key: str) -> int:
+        """Drop everything scheduled under `key` (a scene that is being skipped or ended). Returns how many."""
+        kept = [entry for entry in self.scheduled_actions if entry[2] != key]
+        dropped = len(self.scheduled_actions) - len(kept)
+        self.scheduled_actions = kept
+        return dropped
+
     def is_scheduled(self, key: str) -> bool:
         return any(entry[2] == key for entry in self.scheduled_actions)
 

@@ -398,6 +398,14 @@ these: a trigger's `on_enter` fires for a new character's first room, `item_take
 `room_cleared` fires when the last enemy in a room dies (the second wave a short while after the first), and `advance_time`
 (`{"to_hour": 6}`) lets a night pass. A starting-inventory entry may say `"equip": true` to begin worn.
 
+**Skipping ahead, for testing.** `end_scene` (a scene id or a list) finishes a scene without telling it, so it counts as seen;
+a scene whose id starts with `checkpoint_` and whose beats carry effects (`end_scene` for the story told so far, `set_flag`,
+`give_item`, `start_campaign`, `recruit`, `teleport`...) is a *checkpoint*: it stands in for playing up to a point. In a test
+session (not a player's) `checkpoint` lists them and `checkpoint <name>` jumps to one at once (what was running is ended); `scene`
+lists the scenes, `scene skip` tells what is left of the running one at once, and `scene play <id>` / `scene end <id>` begin or
+finish one. The story slice has `checkpoint king` (the crystal in your pack, in the throne room) and `checkpoint road` (the king's
+orders given, Kessa at your side on the castle road).
+
 A fight need not be narrated: give two factions an enmity (`ruleset.factions.enmities`), spawn the aggressors from a beat,
 and the engine's ordinary combat tells it. The victims can be `pacifist`. A death the player only watched fires
 `npc_killed` triggers (and nothing else: no XP, quest credit or reputation), so a trigger on the victims' template with

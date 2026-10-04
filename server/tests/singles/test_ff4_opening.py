@@ -226,5 +226,49 @@ class TestTheNightAndTheMorning(unittest.TestCase):
         self.assertIn("Captain Kessa follows you", NL.join(game.told[-1:]))
 
 
+class _Debug(_Journey):
+    """A test session: the debug commands are available."""
+
+    def __init__(self, case):
+        self.server = HeadlessServer(
+            db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / "ff4_slice"),
+            deterministic_test_mode=True, default_presentation_mode="test",
+        )
+        case.addCleanup(self.server.shutdown)
+        self.world = self.server.world
+        self.sid = self.server.create_session(player_id="opening").session_id
+        self.created = self.server.execute_command(self.sid, "char create Aldric")
+        self.player = self.server.get_player_for_session(self.sid)
+        self.told = []
+
+
+class TestCheckpoints(unittest.TestCase):
+    """`checkpoint king` and `checkpoint road` skip the opening for testing what comes after."""
+
+    def test_the_king_checkpoint_lands_in_the_throne_room_with_the_crystal(self):
+        game = _Debug(self)
+        self.assertIn("Jumped to 'king'", game.say("checkpoint king"))
+        self.assertEqual("varenholt:throne_room", game.where())
+        self.assertIsNotNone(game.player.inventory.get_item("item_ilmaran_crystal"))
+        self.assertEqual([], game.world.scene_runner.running(game.player), "no scene is left playing")
+        self.assertNotIn("A scene is playing", game.say("go south"), "and the player is free to act")
+        game.say("go north")
+        self.assertIn("Water Crystal", game.say("talk king"), "the king asks for it, as after the real opening")
+
+    def test_the_road_checkpoint_has_kessa_at_your_side_and_the_package(self):
+        game = _Debug(self)
+        self.assertIn("Jumped to 'road'", game.say("checkpoint road"))
+        self.assertEqual("road:castle_road", game.where())
+        kessa = [n for n in game.world.npcs.values() if n.template_id == "captain_kessa"][0]
+        self.assertTrue(kessa.properties.get("companion"), "Kessa is in the party")
+        self.assertEqual(game.where(), "%s:%s" % (kessa.current_region_id, kessa.current_room_id))
+        self.assertTrue(any("Package" in str(q.get("title")) for q in game.player.runtime_state.quests.active.values()), "the errand is under way")
+        self.assertIn("package", game.say("inventory").lower(), "and the package is in the pack")
+        self.assertEqual(6, game.server.time_manager.hour, "it is dawn")
+        for flag in ("kessa_joined", "rested_at_castle", "obeyed_king"):
+            self.assertTrue(game.player.flags.get(flag), flag)
+        self.assertEqual([], game.world.scene_runner.running(game.player))
+
+
 if __name__ == "__main__":
     unittest.main()
