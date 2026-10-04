@@ -179,6 +179,47 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
 }
 assert set(EFFECT_SHAPES) == KNOWN_EFFECTS, "EFFECT_SHAPES and KNOWN_EFFECTS must name the same effects"
 
+# What each effect is to an author, once: the editor's label, the hint beside its value, the kind of box its
+# value gets, and (`refs`) the identifier bucket its ids are checked against. `toolkit/sync_editor_vocabulary.py`
+# writes the editor's copy from this; the validator's reference table is derived from it.
+EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
+    "start_quest": {"label": "Start a quest", "hint": "quest id, or a list of them", "kind": "quest_id", "refs": "quests"},
+    "start_campaign": {"label": "Start a campaign", "hint": "campaign id", "kind": "string", "refs": "campaigns"},
+    "advance_campaign": {"label": "Move a campaign on (from a conversation node)", "hint": "campaign id", "kind": "string", "refs": "campaigns"},
+    "advance_quest": {"label": "Advance a quest stage", "hint": "quest id, a list of them, or true (every active quest)", "kind": "quest_id", "accepts_true": True, "refs": "quests"},
+    "complete_quest": {"label": "Complete a quest", "hint": "quest id, a list of them, or true (every active quest)", "kind": "quest_id", "accepts_true": True, "refs": "quests"},
+    "grant_recipe": {"label": "Teach a recipe", "hint": "recipe id, or a list of them", "kind": "recipe_id", "refs": "recipes"},
+    "grant_discovery": {"label": "Grant a discovery", "hint": "discovery id, or a list", "kind": "string", "refs": "discoveries"},
+    "teach_spell": {"label": "Teach an ability", "hint": "ability id, or a list of them", "kind": "string", "refs": "spells"},
+    "give_item": {"label": "Give an item", "hint": "item id, {item_id, quantity}, {item id: quantity}, or a list of those", "kind": "item_id", "refs": "items"},
+    "take_item": {"label": "Take an item", "hint": "item id, {item_id, quantity}, {item id: quantity}, or a list of those", "kind": "item_id", "refs": "items"},
+    "give_gold": {"label": "Give currency", "hint": "a whole number, 1 or more", "kind": "int"},
+    "adjust_relationship": {"label": "Change trust", "hint": "{npc, amount} (or amount alone, for the NPC being talked to)", "kind": "json"},
+    "set_flag": {"label": "Set a flag", "hint": "flag name, {name, value}, or a list of those", "kind": "string"},
+    "reveal_exit": {"label": "Open a hidden exit", "hint": "{room: \"region:room\", direction}", "kind": "json"},
+    "move_npc": {"label": "Move an NPC", "hint": "{npc, region, room, message}", "kind": "json"},
+    "give_rewards": {"label": "Give a reward bundle", "hint": "{xp, gold, items: [...]}", "kind": "json"},
+    "message": {"label": "Show a message", "hint": "text shown to the player", "kind": "string"},
+    "take_gold": {"label": "Take currency", "hint": "a whole number, 1 or more (all or nothing)", "kind": "int"},
+    "restore": {"label": "Restore health or mana", "hint": "health, mana, all, or {resource, amount: a number or \"full\", companions: true to heal the party too}", "kind": "string"},
+    "raise": {"label": "Raise max health, mana or a stat (permanent)", "hint": "{max_health, max_mana, stats: {stat: gain}}", "kind": "json"},
+    "forget_spell": {"label": "Forget an ability", "hint": "ability id, or a list of them", "kind": "string", "refs": "spells"},
+    "spawn_npc": {"label": "Bring in an NPC", "hint": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
+    "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
+    "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}", "kind": "json"},
+    "play_scene": {"label": "Play a scene (the player watches)", "hint": "scene id (data/scenes)", "kind": "string"},
+    "advance_time": {"label": "Let the night pass (the clock jumps on)", "hint": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},
+    "remove_npc": {"label": "Take an NPC out (not a death)", "hint": "an NPC template or placed id, or {npc, region, room}", "kind": "npc_id"},
+    "recruit": {"label": "Recruit a companion", "hint": "an NPC template or placed id in the room, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": True, "refs": "npcs"},
+    "dismiss": {"label": "Dismiss a companion", "hint": "a companion template or placed id, a list, or true (the one speaking)", "kind": "npc_id", "accepts_true": True, "refs": "npcs"},
+}
+assert set(EFFECT_EDITOR) == KNOWN_EFFECTS, "EFFECT_EDITOR and KNOWN_EFFECTS must name the same effects"
+
+
+def effect_references() -> tuple:
+    """`(effect, bucket)` for every effect whose ids must name something the set defines."""
+    return tuple((name, spec["refs"]) for name, spec in EFFECT_EDITOR.items() if "refs" in spec)
+
 _ENTRY_KEYS = ("item_id", "id", "recipe_id", "spell_id", "discovery_id", "quest_id")
 _QUANTITY_KEYS = ("quantity", "count")
 _FLAG_KEYS = ("name", "flag", "value")

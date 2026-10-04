@@ -41,12 +41,128 @@ from typing import Any, Dict, List, Optional, Sequence
 
 # Condition kinds this evaluator understands. Content referencing anything else
 # is reported rather than ignored.
-KNOWN_KINDS = frozenset({
-    "has_item", "skill_at_least", "spell_known", "relationship_at_least",
-    "quest_completed", "quest_active", "discovery", "visited_region",
-    "level_at_least", "title_earned", "background", "flag", "knows_recipe",
-    "gold_at_least", "in_region", "time_of_day", "season", "room_clear", "companion_present",
-})
+# What a condition kind is, once: the editor's label, fields and note, and the ids each field must name
+# (`refs`: field -> the identifier bucket it is checked against). `toolkit/sync_editor_vocabulary.py` writes
+# the editor's copy from this; the validator's reference table is derived from it. Evaluating the kind is the
+# branch in `_evaluate` below.
+CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
+    "has_item": {
+        "label": "Carrying an item",
+        "fields": {"item_id": "item_id", "quantity": "int"},
+        "refs": {"item_id": "items"},
+        "note": "Counts the item in the player's inventory.",
+    },
+    "knows_recipe": {
+        "label": "Knows a recipe",
+        "fields": {"recipe_id": "recipe_id"},
+        "refs": {"recipe_id": "recipes"},
+        "note": "In `Player.known_recipe_ids`.",
+    },
+    "skill_at_least": {
+        "label": "Skill at least",
+        "fields": {"skill": "string", "value": "int"},
+        "note": "Use-based skill level (see the ruleset's skills).",
+    },
+    "spell_known": {
+        "label": "Knows an ability",
+        "fields": {"spell_id": "string"},
+        "refs": {"spell_id": "spells"},
+        "note": "The ability id, from the set's ability definitions.",
+    },
+    "relationship_at_least": {
+        "label": "Trust at least",
+        "fields": {"npc_id": "npc_id", "value": "int"},
+        "refs": {"npc_id": "npcs"},
+        "note": "Accepts an NPC template id or a live instance id.",
+    },
+    "quest_completed": {
+        "label": "Quest completed",
+        "fields": {"quest_id": "quest_id"},
+        "refs": {"quest_id": "quests"},
+        "note": "Matches the template id, instance id prefix, or the title.",
+    },
+    "quest_active": {
+        "label": "Quest active",
+        "fields": {"quest_id": "quest_id"},
+        "refs": {"quest_id": "quests"},
+        "note": "Same matching rules as quest_completed.",
+    },
+    "discovery": {
+        "label": "Has discovered",
+        "fields": {"discovery_id": "string"},
+        "refs": {"discovery_id": "discoveries"},
+        "note": "An entry in the player's discovery ledger.",
+    },
+    "visited_region": {
+        "label": "Has been to a region",
+        "fields": {"region_id": "region_id"},
+        "refs": {"region_id": "regions"},
+        "note": "Seeded silently for the region a character starts in.",
+    },
+    "companion_present": {
+        "label": "A companion is travelling with the player",
+        "fields": {"npc_id": "npc_id"},
+        "refs": {"npc_id": "npcs"},
+        "note": "Name a companion (its template or placed id), or leave it blank for any companion.",
+    },
+    "room_clear": {
+        "label": "A room is clear of enemies",
+        "fields": {"region_id": "region_id", "room_id": "string"},
+        "note": "No living hostile is left in the room. Name a region and room together, or neither for the room the player is standing in.",
+    },
+    "in_region": {
+        "label": "Is in a region",
+        "fields": {"region_id": "region_id"},
+        "refs": {"region_id": "regions"},
+        "note": "True only while the player is standing there.",
+    },
+    "level_at_least": {
+        "label": "Level at least",
+        "fields": {"value": "int"},
+        "note": "Progression level.",
+    },
+    "gold_at_least": {
+        "label": "Currency at least",
+        "fields": {"value": "int"},
+        "note": "The set's own currency, whatever it is called.",
+    },
+    "title_earned": {
+        "label": "Title earned",
+        "fields": {"title_id": "string"},
+        "note": "Titles are conferred, never chosen.",
+    },
+    "background": {
+        "label": "Background",
+        "fields": {"background_id": "string"},
+        "note": "Where the character began.",
+    },
+    "flag": {
+        "label": "Flag set",
+        "fields": {"flag": "string"},
+        "note": "Written by `set_flag` effects elsewhere in content.",
+    },
+    "time_of_day": {
+        "label": "Time of day",
+        "fields": {"value": "string"},
+        "note": "The world clock's current period.",
+    },
+    "season": {
+        "label": "Season",
+        "fields": {"value": "string"},
+        "note": "The world clock's current season.",
+    },
+}
+
+KNOWN_KINDS = frozenset(CONDITION_SPECS)
+
+
+def condition_references() -> tuple:
+    """`(kind, field, bucket)` for every condition field that must name something the set defines."""
+    return tuple(
+        (kind, field, bucket)
+        for kind, spec in CONDITION_SPECS.items()
+        for field, bucket in spec.get("refs", {}).items()
+    )
 
 
 @dataclass

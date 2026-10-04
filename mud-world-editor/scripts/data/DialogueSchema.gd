@@ -26,6 +26,7 @@ extends RefCounted
 
 # Field kinds: string, int, bool, item_id, npc_id, quest_id, recipe_id, region_id,
 # list_of_string, json.
+# GENERATED from engine/conditions.py::CONDITION_SPECS by toolkit/sync_editor_vocabulary.py; do not edit by hand.
 const CONDITION_KINDS := {
 	"has_item": {
 		"label": "Carrying an item",
@@ -133,6 +134,7 @@ const COMPOSITES := {
 }
 
 # Effect payload shapes, as `engine/dialogue/effects.py` reads them.
+# GENERATED from engine/dialogue/effects.py::EFFECT_EDITOR by toolkit/sync_editor_vocabulary.py; do not edit by hand.
 const EFFECTS := {
 	"start_quest": {"label": "Start a quest", "shape": "quest id, or a list of them", "kind": "quest_id"},
 	"start_campaign": {"label": "Start a campaign", "shape": "campaign id", "kind": "string"},

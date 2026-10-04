@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from engine import conditions as _conditions
 from engine.utils.messages import MESSAGES, template_problems
 
 
@@ -3769,35 +3770,9 @@ def _with_ruleset_stats(ids: dict[str, set[str]], ruleset_payload: Any) -> dict[
 
 # The condition kinds whose value names something the set defines: (kind, the field
 # holding the id, the identifier bucket it must be found in).
-_CONDITION_REFERENCES = (
-    ("has_item", "item_id", "items"),
-    ("knows_recipe", "recipe_id", "recipes"),
-    ("spell_known", "spell_id", "spells"),
-    ("quest_completed", "quest_id", "quests"),
-    ("quest_active", "quest_id", "quests"),
-    ("discovery", "discovery_id", "discoveries"),
-    ("visited_region", "region_id", "regions"),
-    ("in_region", "region_id", "regions"),
-    ("relationship_at_least", "npc_id", "npcs"),
-    ("companion_present", "npc_id", "npcs"),
-)
+_CONDITION_REFERENCES = _conditions.condition_references()
 
 # The effects whose value names things the set defines: (effect, identifier bucket).
-_EFFECT_REFERENCES = (
-    ("grant_recipe", "recipes"),
-    ("teach_spell", "spells"),
-    ("grant_discovery", "discoveries"),
-    ("start_quest", "quests"),
-    ("advance_quest", "quests"),
-    ("complete_quest", "quests"),
-    ("start_campaign", "campaigns"),
-    ("advance_campaign", "campaigns"),
-    ("give_item", "items"),
-    ("take_item", "items"),
-    ("forget_spell", "spells"),
-    ("recruit", "npcs"),
-    ("dismiss", "npcs"),
-)
 
 # Effects that give the character something. Paired with a `take_*` they make a
 # service, and a service needs a guard (see `_check_effect_guards`).
@@ -3861,7 +3836,7 @@ def _check_effect_block(
     issues: list[ContentSetIssue],
 ) -> None:
     """An effects mapping: known effects, values of the right shape, ids that exist."""
-    from engine.dialogue.effects import KNOWN_EFFECTS, effect_shape_issues
+    from engine.dialogue.effects import KNOWN_EFFECTS, effect_references, effect_shape_issues
 
     if not isinstance(block, dict):
         return
@@ -3874,7 +3849,7 @@ def _check_effect_block(
             ))
     for problem in effect_shape_issues(block):
         issues.append(ContentSetIssue("error", str(path), f"{where}: {problem}"))
-    for key, bucket in _EFFECT_REFERENCES:
+    for key, bucket in effect_references():
         if key not in block:
             continue
         for identifier in _effect_identifiers(block[key]):
