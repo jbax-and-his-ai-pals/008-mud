@@ -215,7 +215,7 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
 # notes there), so an unknown key is only reported when it is a near miss of one of these.
 _NPC_PROPERTY_KEYS = (
     "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "attack_cooldown", "respawn_cooldown",
-    "essential", "pacifist", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
+    "essential", "pacifist", "rejoin_health", "recovering", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
     "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
     "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
     "can_unlock_chests", "work_location", "tariff", "gift_preferences", "relationship_milestones",
@@ -250,6 +250,10 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         value = properties["move_cooldown"]
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
             errors.append(f"{label}.move_cooldown must be a non-negative integer")
+    if "rejoin_health" in properties:
+        value = properties["rejoin_health"]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 < value <= 1:
+            errors.append(f"{label}.rejoin_health must be a number above 0 and up to 1 (the health fraction a hurt companion rejoins at)")
     if "attack_cooldown" in properties:
         value = properties["attack_cooldown"]
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0.5 <= value <= 120:

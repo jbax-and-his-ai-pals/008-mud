@@ -86,6 +86,13 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
             if flee_msg: return flee_msg
         return npc_combat.try_attack(npc, world, current_time)
 
+    # --- 4b. A companion that fell back hurt rests (and keeps out of fights) until it has recovered ---
+    if combat_enabled and npc.behavior_type == "minion":
+        from engine.npcs import companions
+
+        if companions.is_recovering(npc):
+            return companions.recovery_step(npc, world, current_time, player)
+
     # --- 5. Combat Initiation (if NOT in combat) ---
     if combat_enabled:
         initiate_msg = scan_for_targets(npc, world, player)

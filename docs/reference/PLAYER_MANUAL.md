@@ -634,6 +634,11 @@ wear. Dress them from your own pack with `equip <item> on <name>` (add `to
 swapped item comes back to you. `use <potion> on <name>` heals them. Both of
 you have to be in the same room.
 
+A companion who is badly hurt falls back out of the fight, and says so. They
+rest wherever they have gone (`companions` marks them as recovering), keep out
+of further fights, and come back to find you once they are well again and you
+are no longer fighting.
+
 ---
 
 ## 17. Games of Chance

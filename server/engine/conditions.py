@@ -111,6 +111,12 @@ CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
         "refs": {"npc_id": "npcs"},
         "note": "A living NPC of this template (or this placed id), anywhere, or only in the room named by region and room together. Not-ed, it is true once the last one is gone.",
     },
+    "companion_recovering": {
+        "label": "A companion is recovering",
+        "fields": {"npc_id": "npc_id"},
+        "refs": {"npc_id": "npcs"},
+        "note": "A companion that fell back hurt and has not yet rejoined the player (template or placed id, or blank for any).",
+    },
     "room_clear": {
         "label": "A room is clear of enemies",
         "fields": {"region_id": "region_id", "room_id": "string"},
@@ -444,6 +450,17 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
         standing = factions.hostiles_in(getattr(player, "world", None), region_id, room_id)
         if standing:
             reasons.append("something hostile still stands in the way (%d)" % len(standing))
+            return False
+        return True
+
+    if kind == "companion_recovering":
+        from engine.npcs import companions
+
+        wanted = str(node.get("npc_id", "")).strip()
+        world = getattr(player, "world", None)
+        mine = companions.companions_of(world, player)
+        if not any(companions.is_recovering(npc) and (not wanted or wanted in (npc.template_id, npc.obj_id)) for npc in mine):
+            reasons.append("%s is not recovering" % (wanted or "no companion"))
             return False
         return True
 

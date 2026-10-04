@@ -208,6 +208,8 @@ def sheet(world: Any, npc: Any) -> str:
              "Health: %d/%d" % (npc.health, npc.max_health)]
     if getattr(npc, "max_mana", 0):
         lines[-1] += "   Mana: %d/%d" % (npc.mana, npc.max_mana)
+    if companions.is_recovering(npc):
+        lines.append("Recovering: resting until health is back to %d%%, then rejoins you." % round(companions.rejoin_fraction(npc) * 100))
     lines.append("Attack: %d   Defense: %d" % (npc.attack_power, npc.stats.get("defense", npc.defense)))
     shown = [(name, value) for name, value in npc.stats.items() if isinstance(value, (int, float)) and name != "defense"]
     if shown:

@@ -61,8 +61,15 @@ def try_flee(npc: 'NPC', world: 'World', player: 'Player') -> Optional[str]:
     
     npc_combat.exit_combat(npc)
     execute_move(npc, world, player, direction)
+    from engine.npcs import companions
+
+    hurt_companion = companions.is_companion(npc)
+    if hurt_companion:
+        companions.begin_recovery(npc)
     
     if player_can_see_flee:
+        if hurt_companion:
+            return f"{format_name_for_display(player, npc, True)} falls back {where}, hurt, and will rejoin you once recovered."
         return f"{format_name_for_display(player, npc, True)} flees {where}!"
 
     return None

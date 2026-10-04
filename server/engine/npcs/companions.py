@@ -11,6 +11,11 @@ There is no separate ledger. A companion is an NPC that carries `properties.comp
 and its owner's id in `properties.owner_id`, both saved with the NPC, so a restart brings
 it back still bound to the character (whose id is stable). `companions_of` finds them.
 
+A companion that is badly hurt in a fight falls back like any creature, and is then *recovering*: it keeps out of
+fights, rests, and rejoins its owner (walking to find them if it must) once it has recovered to
+`properties.rejoin_health` of its health (default 60%) and its owner is not fighting. Talking to it meanwhile can say so
+(`companion_recovering`).
+
 The cap is the ruleset's `companions.max` (default 1); a set that wants a party of three
 says so. Recruiting past it is refused with a sentence, not an error.
 """
@@ -21,6 +26,9 @@ COMPANION_FACTION = "player_minion"
 COMPANION_BEHAVIOR = "minion"
 # Kept on the NPC so `dismiss` can put it back the way it was recruited from.
 PRIOR_KEY = "companion_prior"
+# A companion that has fallen back hurt (see the module note).
+RECOVERING_KEY = "recovering"
+DEFAULT_REJOIN_FRACTION = 0.6
 
 
 def max_companions(world: Any) -> int:
@@ -34,6 +42,44 @@ def max_companions(world: Any) -> int:
 def is_companion(npc: Any) -> bool:
     properties = getattr(npc, "properties", None)
     return isinstance(properties, dict) and bool(properties.get("companion"))
+
+
+def is_recovering(npc: Any) -> bool:
+    properties = getattr(npc, "properties", None)
+    return isinstance(properties, dict) and properties.get(RECOVERING_KEY) is True and is_companion(npc)
+
+
+def rejoin_fraction(npc: Any) -> float:
+    value = npc.properties.get("rejoin_health", DEFAULT_REJOIN_FRACTION)
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 < value <= 1:
+        return DEFAULT_REJOIN_FRACTION
+    return float(value)
+
+
+def begin_recovery(npc: Any) -> None:
+    npc.properties[RECOVERING_KEY] = True
+
+
+def recovery_step(npc: Any, world: Any, current_time: float, player: Any) -> Optional[str]:
+    """One turn of a recovering companion: rest, and rejoin when well enough and the owner is not fighting.
+
+    Returns what a player in the room is told (the companion rejoining), else None."""
+    owner = world.get_player_by_id(npc.properties.get("owner_id")) if world is not None else None
+    if owner is None:
+        return None
+    if not npc.in_combat:
+        npc._handle_safe_zone_regen(current_time)   # resting, wherever it is
+    owner_combat = owner.runtime_state.combat
+    if npc.in_combat or (owner_combat is not None and owner_combat.in_combat):
+        return None
+    if npc.health < npc.max_health * rejoin_fraction(npc):
+        return None
+    npc.properties.pop(RECOVERING_KEY, None)
+    if (npc.current_region_id, npc.current_room_id) == (owner.current_region_id, owner.current_room_id):
+        return "%s has recovered and rejoins you." % npc.name
+    if hasattr(world, "notify_player"):
+        world.notify_player(owner, "%s has recovered and is coming to find you." % npc.name)
+    return None
 
 
 def companions_of(world: Any, player: Any, *, alive_only: bool = True) -> List[Any]:
@@ -110,6 +156,8 @@ def travel_with(world: Any, player: Any, old_region_id: Optional[str], old_room_
     for npc in companions_of(world, player):
         if (npc.current_region_id, npc.current_room_id) != (old_region_id, old_room_id):
             continue
+        if is_recovering(npc):
+            continue   # resting where it is; it comes to find its owner once it has recovered
         if (npc.current_region_id, npc.current_room_id) == (player.current_region_id, player.current_room_id):
             continue
         npc.current_region_id = player.current_region_id
@@ -123,5 +171,8 @@ def party_lines(world: Any, player: Any) -> List[str]:
     lines = []
     for npc in companions_of(world, player):
         here = (npc.current_region_id, npc.current_room_id) == (player.current_region_id, player.current_room_id)
-        lines.append("%s (level %d, %d/%d health, %s)" % (npc.name, npc.level, npc.health, npc.max_health, "here" if here else "elsewhere"))
+        place = "here" if here else "elsewhere"
+        if is_recovering(npc):
+            place += ", recovering"
+        lines.append("%s (level %d, %d/%d health, %s)" % (npc.name, npc.level, npc.health, npc.max_health, place))
     return lines

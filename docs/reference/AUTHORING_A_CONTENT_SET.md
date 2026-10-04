@@ -365,6 +365,8 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `properties.essential: true` | an NPC | Cannot be killed unless recruited as a companion: left on the brink instead. |
 | `properties.unique: true` | an NPC | Called "the mayor", not "a mayor". |
 | `equipment` | an NPC template | `{"main_hand": "item_iron_sword", "body": "item_leather_tunic"}`: what it starts wearing (slots: main_hand, off_hand, head, body, hands, feet, neck; each item must fit its slot). A weapon in the main hand and armor add to its attack and defense; a companion can be re-dressed in play (`equip <item> on <name>`). |
+| `properties.rejoin_health` | a companion | 0 to 1 (default 0.6): a companion that fell back hurt rests, keeps out of fights, and rejoins (walking to find the player) once back to this fraction of its health and the player is not fighting. |
+| `{"kind": "companion_recovering", "npc_id": ...}` | a condition | A companion that fell back hurt and has not rejoined yet; a conversation uses it to say so ("Give me a moment"). |
 | `properties.attack_cooldown` | an NPC | Seconds between its blows, 0.5 to 120 (default 3): slower is easier to read in a staged fight. |
 | `properties.respawn_cooldown: -1` | an NPC | Never comes back once dead (a hostile or a friendly alike). |
 | `silent: true` | a `move_npc` effect | No "leaves" / "arrives" line: the scene says it in its own words ("The chancellor leads you north."). |

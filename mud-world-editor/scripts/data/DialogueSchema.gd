@@ -83,6 +83,11 @@ const CONDITION_KINDS := {
 		"fields": {"npc_id": "npc_id", "region_id": "region_id", "room_id": "string"},
 		"note": "A living NPC of this template (or this placed id), anywhere, or only in the room named by region and room together. Not-ed, it is true once the last one is gone.",
 	},
+	"companion_recovering": {
+		"label": "A companion is recovering",
+		"fields": {"npc_id": "npc_id"},
+		"note": "A companion that fell back hurt and has not yet rejoined the player (template or placed id, or blank for any).",
+	},
 	"room_clear": {
 		"label": "A room is clear of enemies",
 		"fields": {"region_id": "region_id", "room_id": "string"},

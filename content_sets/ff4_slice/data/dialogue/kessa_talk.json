@@ -3,6 +3,13 @@
     "root": "greeting",
     "entries": [
         {
+            "node": "catching_her_breath",
+            "condition": {
+                "kind": "companion_recovering",
+                "npc_id": "captain_kessa"
+            }
+        },
+        {
             "node": "with_you",
             "condition": {
                 "kind": "companion_present",
@@ -169,6 +176,11 @@
         },
         "stays": {
             "text": "Then I will hold here. Send word when you need a blade.",
+            "pace": "slow",
+            "end": true
+        },
+        "catching_her_breath": {
+            "text": "Give me a moment, Captain. That thing cut deeper than I let on. I will catch my breath and find you the moment I can stand beside you again.",
             "pace": "slow",
             "end": true
         }

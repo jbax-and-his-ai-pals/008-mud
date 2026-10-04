@@ -553,6 +553,7 @@ const _BEHAVIOR_FRACTIONS := [
 	["flee_threshold", "Flee below", 0.2, "health fraction at which this NPC tries to flee"],
 	["wander_chance", "Wander chance", 0.3, "chance per tick to wander to an adjacent room"],
 	["spell_cast_chance", "Spell cast chance", 0.0, "chance per combat tick to cast instead of attacking"],
+	["rejoin_health", "Companion rejoins at", 0.6, "a companion that fell back hurt rejoins the player once it has recovered to this fraction of its health"],
 ]
 
 func _build_behavior_tuning():
