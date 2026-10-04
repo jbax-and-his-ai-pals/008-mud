@@ -24,6 +24,7 @@ var sharing_memory: SpinBox
 var combat_blocked_commands: LineEdit
 var combat_message_tokens: LineEdit
 var faction_rows: VBoxContainer
+var enmity_rows: VBoxContainer
 var salvage_default: OptionButton
 var salvage_rows: VBoxContainer
 var salvage_baseline: Dictionary = {}
@@ -32,6 +33,7 @@ var content_database: DatabaseManager
 var form_dirty := false
 var loading := false
 var faction_baseline: Array = []
+var enmity_baseline: Array = []
 var skill_bonus_baseline: Dictionary = {}
 var npc_schedule_categories: VBoxContainer
 var npc_schedule_roles: VBoxContainer
@@ -111,6 +113,10 @@ func setup():
 	var faction_hint := InspectorStyle.lbl("Built-in factions remain engine-owned. Add only this set's custom factions.", InspectorStyle.COLOR_TEXT_DIM); box.add_child(faction_hint)
 	faction_rows = VBoxContainer.new(); faction_rows.add_theme_constant_override("separation", 5); box.add_child(faction_rows)
 	var add_faction := Button.new(); add_faction.text = "+ Add Custom Faction"; InspectorStyle.apply_button_style(add_faction, InspectorStyle.COLOR_SUCCESS); add_faction.pressed.connect(func(): _add_faction_row("", "neutral"); _mark_dirty()); box.add_child(add_faction)
+	box.add_child(InspectorStyle.create_sub_header("Who attacks whom"))
+	var enmity_hint := InspectorStyle.lbl("A faction attacks another on sight without either turning on the player (soldiers and the acolytes they came for). One way: the other faction does not return it unless it is listed too.", InspectorStyle.COLOR_TEXT_DIM); enmity_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(enmity_hint)
+	enmity_rows = VBoxContainer.new(); enmity_rows.name = "EnmityRows"; enmity_rows.add_theme_constant_override("separation", 5); box.add_child(enmity_rows)
+	var add_enmity := Button.new(); add_enmity.name = "AddEnmity"; add_enmity.text = "+ Add Enmity"; InspectorStyle.apply_button_style(add_enmity, InspectorStyle.COLOR_SUCCESS); add_enmity.pressed.connect(func(): _add_enmity_row("", "", {}); _mark_dirty()); box.add_child(add_enmity)
 	box.add_child(InspectorStyle.create_sub_header("NPC Schedules"))
 	var schedule_hint := InspectorStyle.lbl("Optional setting-wide routines. Roles match NPC template IDs; location slots resolve top-to-bottom, so fallback and exclude can only refer to an earlier slot.", InspectorStyle.COLOR_TEXT_DIM)
 	schedule_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(schedule_hint)
@@ -248,6 +254,11 @@ func open_active():
 	for entry in extras:
 		if entry is Dictionary: _add_faction_row(str(entry.get("id", "")), str(entry.get("disposition", "neutral")), entry)
 	faction_baseline = _faction_entries().duplicate(true)
+	for child in enmity_rows.get_children(): _remove_row(child)
+	var enmities: Array = factions.get("enmities", []) if factions.get("enmities", []) is Array else []
+	for entry in enmities:
+		if entry is Dictionary: _add_enmity_row(str(entry.get("faction", "")), str(entry.get("against", "")), entry)
+	enmity_baseline = _enmity_entries().duplicate(true)
 	_load_salvage_rules()
 	_load_skill_bonuses()
 	_load_npc_schedules()
@@ -289,6 +300,8 @@ func _save():
 		else: _put_path(draft.data, "combat." + str(pair[1]), values)
 	var factions := _faction_entries()
 	if factions != faction_baseline: draft.set_faction_extras(factions)
+	var enmities := _enmity_entries()
+	if enmities != enmity_baseline: draft.set_faction_enmities(enmities)
 	if _salvage_rules_changed(): draft.set_salvage_rules(_salvage_rules())
 	if _skill_bonuses_changed(): draft.set_skill_stat_bonuses(_skill_bonuses())
 	if _npc_schedules_changed(): draft.set_npc_schedules(_npc_schedules())
@@ -331,6 +344,22 @@ func _add_faction_row(faction_id: String, disposition: String, source: Dictionar
 	for option in options: kind.add_item(option)
 	kind.select(maxi(0, options.find(disposition))); InspectorStyle.apply_button_style(kind); kind.item_selected.connect(func(_index): _mark_dirty()); row.add_child(kind)
 	var remove := Button.new(); remove.text = "×"; remove.tooltip_text = "Remove custom faction"; remove.pressed.connect(func(): _remove_row(row); _mark_dirty()); row.add_child(remove)
+
+func _add_enmity_row(faction: String, against: String, source: Dictionary = {}):
+	var row := HBoxContainer.new(); row.set_meta("source", source.duplicate(true)); enmity_rows.add_child(row)
+	var who := LineEdit.new(); who.name = "EnmityFaction"; who.placeholder_text = "faction"; who.text = faction; who.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(who); who.text_changed.connect(func(_text): _mark_dirty()); row.add_child(who)
+	row.add_child(InspectorStyle.lbl("attacks", InspectorStyle.COLOR_TEXT_DIM))
+	var target := LineEdit.new(); target.name = "EnmityAgainst"; target.placeholder_text = "faction"; target.text = against; target.size_flags_horizontal = Control.SIZE_EXPAND_FILL; InspectorStyle.apply_input_style(target); target.text_changed.connect(func(_text): _mark_dirty()); row.add_child(target)
+	var remove := Button.new(); remove.text = "×"; remove.tooltip_text = "Remove this enmity"; remove.pressed.connect(func(): _remove_row(row); _mark_dirty()); row.add_child(remove)
+
+func _enmity_entries() -> Array:
+	var out: Array = []
+	for row in enmity_rows.get_children():
+		var entry: Dictionary = row.get_meta("source").duplicate(true)
+		entry["faction"] = (row.get_child(0) as LineEdit).text.strip_edges(); entry["against"] = (row.get_child(2) as LineEdit).text.strip_edges()
+		out.append(entry)
+	return out
+
 
 func _faction_entries() -> Array:
 	var out: Array = []

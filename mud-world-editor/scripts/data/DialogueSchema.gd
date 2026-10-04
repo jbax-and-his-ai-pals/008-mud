@@ -78,6 +78,11 @@ const CONDITION_KINDS := {
 		"fields": {"npc_id": "npc_id"},
 		"note": "Name a companion (its template or placed id), or leave it blank for any companion.",
 	},
+	"npc_present": {
+		"label": "An NPC is alive",
+		"fields": {"npc_id": "npc_id", "region_id": "region_id", "room_id": "string"},
+		"note": "A living NPC of this template (or this placed id), anywhere, or only in the room named by region and room together. Not-ed, it is true once the last one is gone.",
+	},
 	"room_clear": {
 		"label": "A room is clear of enemies",
 		"fields": {"region_id": "region_id", "room_id": "string"},

@@ -105,6 +105,12 @@ CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
         "refs": {"npc_id": "npcs"},
         "note": "Name a companion (its template or placed id), or leave it blank for any companion.",
     },
+    "npc_present": {
+        "label": "An NPC is alive",
+        "fields": {"npc_id": "npc_id", "region_id": "region_id", "room_id": "string"},
+        "refs": {"npc_id": "npcs"},
+        "note": "A living NPC of this template (or this placed id), anywhere, or only in the room named by region and room together. Not-ed, it is true once the last one is gone.",
+    },
     "room_clear": {
         "label": "A room is clear of enemies",
         "fields": {"region_id": "region_id", "room_id": "string"},
@@ -412,6 +418,21 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
             reasons.append("has not been to %s" % region_id)
             return False
         return True
+
+    if kind == "npc_present":
+        # A living NPC by template or placed id: anywhere, or in the room named.
+        wanted = str(node.get("npc_id", "")).strip()
+        region_id = str(node.get("region_id", "") or "").strip()
+        room_id = str(node.get("room_id", "") or "").strip()
+        world = getattr(player, "world", None)
+        for npc in getattr(world, "npcs", {}).values():
+            if not getattr(npc, "is_alive", False) or wanted not in (npc.template_id, npc.obj_id):
+                continue
+            if region_id and room_id and (npc.current_region_id, npc.current_room_id) != (region_id, room_id):
+                continue
+            return True
+        reasons.append("%s is not here" % (wanted or "no one"))
+        return False
 
     if kind == "room_clear":
         # No living hostile is left in a room: the region and room it names, or the

@@ -457,6 +457,16 @@ def _load_content_set_uncached(
 
     if opening_path is not None and opening_payload:
         opening_scenario_id = str(opening_payload.get("scenario_id", "")).strip()
+        if "pace" in opening_payload:
+            from engine.utils import pacing
+
+            opening_pace = opening_payload["pace"]
+            if opening_pace != "instant" and pacing.resolve_pace(opening_pace) is None:
+                issues.append(ContentSetIssue(
+                    "error", str(opening_path),
+                    f"opening pace {opening_pace!r} is not a pace (\"instant\", a name -- {', '.join(pacing.TEXT_PACES)} -- "
+                    f"or characters per second from {pacing.PACE_RANGE[0]} to {pacing.PACE_RANGE[1]})",
+                ))
         if opening_scenario_id == "":
             issues.append(ContentSetIssue("error", str(opening_path), "opening scenario requires a non-empty 'scenario_id'"))
         elif start and opening_scenario_id != str(start.get("scenario_id", "")).strip():

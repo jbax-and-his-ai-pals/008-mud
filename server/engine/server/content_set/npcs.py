@@ -215,7 +215,7 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
 # notes there), so an unknown key is only reported when it is a near miss of one of these.
 _NPC_PROPERTY_KEYS = (
     "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "respawn_cooldown",
-    "essential", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
+    "essential", "pacifist", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
     "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
     "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
     "can_unlock_chests", "work_location", "tariff", "gift_preferences", "relationship_milestones",
@@ -254,6 +254,8 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         errors.append(f"{label}.despawn_message must be text (how a summoned creature leaves)")
     if "unique" in properties and not isinstance(properties["unique"], bool):
         errors.append(f"{label}.unique must be true or false (true: referred to as \"the\" rather than \"a\"/\"an\")")
+    if "pacifist" in properties and not isinstance(properties["pacifist"], bool):
+        errors.append(f"{label}.pacifist must be true or false (true: never fights back, never starts a fight)")
     if "essential" in properties and not isinstance(properties["essential"], bool):
         errors.append(f"{label}.essential must be true or false (true: cannot be killed unless recruited as a companion)")
     if "respawn_cooldown" in properties:

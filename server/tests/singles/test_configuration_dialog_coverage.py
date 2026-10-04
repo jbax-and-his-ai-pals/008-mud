@@ -222,6 +222,7 @@ def ruleset_written_keys(dialog_source: str) -> set[str]:
 RULESET_SETTER_KEYS = {
     "set_system_enabled": "systems",
     "set_faction_extras": "factions",
+    "set_faction_enmities": "factions",
     "set_status_stats": "status",
     "set_salvage_rules": "crafting",
     "set_skill_stat_bonuses": "skills",

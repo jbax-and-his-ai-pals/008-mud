@@ -51,14 +51,14 @@ def _check_condition(
     issues.extend(_condition_issues(node, where, path))
     for leaf in _condition_leaves(node):
         kind = str(leaf.get("kind", ""))
-        if kind == "room_clear":
+        if kind in ("room_clear", "npc_present"):
             given = [key for key in ("region_id", "room_id") if str(leaf.get(key, "") or "").strip()]
             if len(given) == 1:
                 issues.append(ContentSetIssue(
-                    "error", str(path), f"{where} room_clear needs region_id and room_id together, or neither"
+                    "error", str(path), f"{where} {kind} needs region_id and room_id together, or neither"
                 ))
             else:
-                _check_room_reference(leaf.get("region_id"), leaf.get("room_id"), f"{where} room_clear", path, ids, issues)
+                _check_room_reference(leaf.get("region_id"), leaf.get("room_id"), f"{where} {kind}", path, ids, issues)
         for reference_kind, key, bucket in _CONDITION_REFERENCES:
             if kind != reference_kind:
                 continue

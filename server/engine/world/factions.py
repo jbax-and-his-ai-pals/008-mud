@@ -86,6 +86,22 @@ def declared_extras(world) -> List[Dict[str, Any]]:
     return entries
 
 
+def declared_enmities(world) -> List[Dict[str, str]]:
+    """`factions.enmities`: `{faction, against}` pairs, in authored order, ignoring unusable ones.
+
+    Dispositions say how a faction treats the player and what the engine's own five think of it; an enmity says one
+    faction attacks another on sight (soldiers and the acolytes they came for) without either one turning hostile
+    to the player. It is one-way: the faction named `against` does not return it unless it declares the same."""
+    raw = _ruleset_factions(world).get("enmities", [])
+    if not isinstance(raw, list):
+        return []
+    found: List[Dict[str, str]] = []
+    for entry in raw:
+        if isinstance(entry, dict) and str(entry.get("faction", "")).strip() and str(entry.get("against", "")).strip():
+            found.append({"faction": str(entry["faction"]).strip(), "against": str(entry["against"]).strip()})
+    return found
+
+
 def declared_overrides(world) -> Dict[str, str]:
     """`factions.overrides`: built-in id -> disposition, ignoring unusable ones."""
     raw = _ruleset_factions(world).get("overrides", {})
@@ -149,6 +165,10 @@ def matrix(world=None) -> Dict[str, Dict[str, int]]:
             row.setdefault(other_id, int(row.get(resolved[other_id], 0)))  # an unnamed faction is felt about as its disposition is
         row[faction_id] = int(row.get(disposition, 0))
         rows[faction_id] = row
+    for entry in declared_enmities(world):
+        viewer, target = entry["faction"], entry["against"]
+        if viewer in rows and target in rows and viewer != target:
+            rows[viewer][target] = -100
     return rows
 
 
@@ -273,6 +293,25 @@ def issues(world=None) -> List[str]:
     for faction_id, count in seen.items():
         if count > 1:
             found.append("factions.extra declares '%s' %d times" % (faction_id, count))
+
+    known = set(dispositions(world))
+    raw_enmities = _ruleset_factions(world).get("enmities", [])
+    if raw_enmities is not None and not isinstance(raw_enmities, list):
+        found.append("factions.enmities must be an array")
+    elif isinstance(raw_enmities, list):
+        for index, entry in enumerate(raw_enmities):
+            label = "factions.enmities[%d]" % index
+            if not isinstance(entry, dict):
+                found.append("%s must be an object {faction, against}" % label)
+                continue
+            for key in ("faction", "against"):
+                value = str(entry.get(key, "") or "").strip()
+                if not value:
+                    found.append("%s must name a %s" % (label, key))
+                elif value not in known:
+                    found.append("%s.%s names '%s', which is not a declared faction" % (label, key, value))
+            if str(entry.get("faction", "")).strip() and entry.get("faction") == entry.get("against"):
+                found.append("%s makes a faction an enemy of itself" % label)
 
     raw_extras = _ruleset_factions(world).get("extra", [])
     if raw_extras is not None and not isinstance(raw_extras, list):

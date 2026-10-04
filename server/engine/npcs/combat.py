@@ -61,8 +61,15 @@ def get_relation_to(viewer: Union['NPC', 'Player'], target: Union['NPC', 'Player
 def is_hostile_to(npc: 'NPC', other) -> bool:
     return get_relation_to(npc, other) < 0
 
+def is_pacifist(npc) -> bool:
+    """`properties.pacifist`: it never fights back, nor starts a fight (an acolyte at an altar)."""
+    properties = getattr(npc, "properties", None)
+    return isinstance(properties, dict) and properties.get("pacifist") is True
+
+
 def enter_combat(npc: 'NPC', target):
     if not npc.is_alive or not target or not getattr(target, 'is_alive', False): return
+    if is_pacifist(npc): return
     npc.in_combat = True
     npc.combat_targets.add(target)
     if hasattr(target, 'enter_combat') and npc not in _combat_targets(target):
@@ -159,6 +166,8 @@ def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]
     return {"message": full_message, "target_defeated": not getattr(target, 'is_alive', True)}
 
 def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
+    if is_pacifist(npc):
+        return None
     from . import ai as npc_ai 
     
     # Find any player in the same room for message routing / XP attribution
@@ -217,8 +226,12 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
                 ]
             if getattr(target, "runtime_state", None) is None:
                 notes = {}
-                for candidate in credited_players:
-                    note = world.dispatch_event("npc_killed", {"player": candidate, "npc": target})
+                # A death a player watched fires the story's `npc_killed` triggers whoever struck the blow, and
+                # whether or not the victim was an enemy (soldiers cutting down acolytes); only an enemy pays out.
+                witnesses = credited_players or world.get_players_for_npc(npc, alive_only=True)
+                for candidate in witnesses:
+                    note = world.dispatch_event(
+                        "npc_killed", {"player": candidate, "npc": target, "witness": not credited_players})
                     if note:
                         notes[candidate.obj_id] = note
                 kill_note = notes.pop(player.obj_id, None) if player is not None else None

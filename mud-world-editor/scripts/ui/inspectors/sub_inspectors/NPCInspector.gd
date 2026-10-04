@@ -626,6 +626,13 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("essential")
 		database_modified.emit())
 	flags.add_child(essential)
+	var pacifist := CheckBox.new(); pacifist.name = "Pacifist"; pacifist.text = "Pacifist (never fights back, never starts a fight)"
+	pacifist.button_pressed = bool(properties.get("pacifist", false))
+	pacifist.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["pacifist"] = true
+		else: _ensure_npc_properties().erase("pacifist")
+		database_modified.emit())
+	flags.add_child(pacifist)
 	var unique := CheckBox.new(); unique.text = "Unique (called \"the\", not \"a\")"
 	unique.button_pressed = bool(properties.get("unique", false))
 	unique.toggled.connect(func(pressed):

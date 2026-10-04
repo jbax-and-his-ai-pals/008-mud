@@ -9,6 +9,8 @@ var scenario_label: Label
 var heading: LineEdit
 var intro: TextEdit
 var objectives_heading: LineEdit
+var pace_picker: OptionButton
+const PACES := ["", "brisk", "measured", "slow", "solemn"]
 var objective_rows: VBoxContainer
 var loading := false
 
@@ -21,6 +23,10 @@ func setup():
 	heading = _line(box, "Heading")
 	intro = TextEdit.new(); intro.custom_minimum_size = Vector2(0, 110); intro.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY; InspectorStyle.apply_input_style(intro); intro.text_changed.connect(_mark_dirty); box.add_child(InspectorStyle.lbl("Intro", InspectorStyle.COLOR_TEXT_DIM)); box.add_child(intro)
 	objectives_heading = _line(box, "Objectives heading")
+	box.add_child(InspectorStyle.lbl("Text pace (how fast a client types the brief out)", InspectorStyle.COLOR_TEXT_DIM))
+	pace_picker = OptionButton.new(); pace_picker.name = "OpeningPace"
+	for pace_name in PACES: pace_picker.add_item("Instant" if pace_name == "" else str(pace_name).capitalize())
+	InspectorStyle.apply_button_style(pace_picker); pace_picker.item_selected.connect(func(_index): _mark_dirty()); box.add_child(pace_picker)
 	var row := HBoxContainer.new(); row.add_child(InspectorStyle.create_sub_header("Suggested first actions")); var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_child(spacer)
 	var add := Button.new(); add.text = "+ Objective"; InspectorStyle.apply_button_style(add, InspectorStyle.COLOR_SUCCESS); add.pressed.connect(func(): _add_objective({}, ""); _mark_dirty()); row.add_child(add); box.add_child(row)
 	objective_rows = VBoxContainer.new(); objective_rows.add_theme_constant_override("separation", 5); box.add_child(objective_rows)
@@ -36,7 +42,7 @@ func open_active():
 	if relative == "": status_label.text = "This content set does not declare an opening file."; status_label.modulate = DialogStyle.COLOR_DANGER; popup_centered(); return
 	draft = DraftScript.new(); var result: Dictionary = draft.open(DataRoot.root().path_join(relative), str(start.get("scenario_id", "")).strip_edges())
 	if not result.get("ok", false): status_label.text = str(result.get("error", "Could not load opening.")); status_label.modulate = DialogStyle.COLOR_DANGER; popup_centered(); return
-	loading = true; scenario_label.text = "Scenario id: %s (matches the manifest start)" % draft.expected_scenario_id; heading.text = str(draft.data.get("heading", "")); intro.text = str(draft.data.get("intro", "")); objectives_heading.text = str(draft.data.get("objectives_heading", ""))
+	loading = true; scenario_label.text = "Scenario id: %s (matches the manifest start)" % draft.expected_scenario_id; heading.text = str(draft.data.get("heading", "")); intro.text = str(draft.data.get("intro", "")); objectives_heading.text = str(draft.data.get("objectives_heading", "")); pace_picker.select(maxi(0, PACES.find(str(draft.data.get("pace", "")))))
 	for child in objective_rows.get_children(): _remove_row(child)
 	for entry in draft.data.get("objectives", []): if entry is Dictionary: _add_objective(entry, str(entry.get("id", "")))
 	_reset_form_baseline(); loading = false; get_ok_button().disabled = true; status_label.text = "Edit the first-session guidance. Untouched objective fields are preserved."; status_label.modulate = InspectorStyle.COLOR_TEXT_DIM; popup_centered()
@@ -66,6 +72,8 @@ func _save():
 	if draft == null: return
 	if not _form_changed(): _finish_save(); return
 	draft.data = draft.original.duplicate(true); draft.data["heading"] = heading.text.strip_edges(); draft.data["intro"] = intro.text.strip_edges(); draft.data["objectives_heading"] = objectives_heading.text.strip_edges(); draft.data["objectives"] = _objectives()
+	if PACES[pace_picker.selected] == "": draft.data.erase("pace")
+	else: draft.data["pace"] = PACES[pace_picker.selected]
 	var result: Dictionary = draft.save()
 	if not result.get("ok", false): status_label.text = str(result.get("error", "Could not save opening.")); status_label.modulate = DialogStyle.COLOR_DANGER; return
 	opening_saved.emit(); _finish_save()

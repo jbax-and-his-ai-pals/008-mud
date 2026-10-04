@@ -33,6 +33,7 @@ func _init() -> void:
 	_check_selecting_none_erases_the_key()
 	_check_selecting_a_behavior_writes_it()
 	_check_the_friendly_checkbox_writes_and_defaults_true()
+	_check_the_pacifist_checkbox_writes_and_erases()
 
 	if failure_count > 0:
 		push_error("npc faction/behavior failed (%d)" % failure_count)
@@ -141,6 +142,18 @@ func _check_the_friendly_checkbox_writes_and_defaults_true() -> void:
 	_assert(box.button_pressed, "an NPC with no friendly key defaults to checked (npc_factory.py's own default)")
 	box.toggled.emit(false)
 	_assert(manager.npcs["npc_probe"]["friendly"] == false, "unchecking it was written")
+
+
+func _check_the_pacifist_checkbox_writes_and_erases() -> void:
+	print("\n[the pacifist checkbox]")
+	var manager := _manager()
+	var holder := _build_inspector_from("npc_probe", manager)
+	var box := holder.find_child("Pacifist", true, false) as CheckBox
+	_assert(box != null and not box.button_pressed, "an NPC that never said so is not a pacifist")
+	box.toggled.emit(true)
+	_assert(manager.npcs["npc_probe"]["properties"].get("pacifist") == true, "ticking it writes properties.pacifist")
+	box.toggled.emit(false)
+	_assert(not manager.npcs["npc_probe"]["properties"].has("pacifist"), "and unticking it erases the key rather than writing false")
 
 
 func _checkbox_labeled(node: Node, text: String) -> CheckBox:

@@ -128,6 +128,7 @@ def scan_for_targets(npc: 'NPC', world: 'World', player: 'Player', force_aggress
     force_aggression: If True, treats the NPC as having at least 1.0 aggression.
     """
     if not npc.current_region_id or not npc.current_room_id: return None
+    if npc_combat.is_pacifist(npc): return None
 
     proactive_aggression = 1.0 if force_aggression else npc.aggression
     

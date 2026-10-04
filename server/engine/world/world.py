@@ -660,6 +660,11 @@ class World:
         return output
 
     def dispatch_event(self, event_type: str, data: Dict[str, Any]) -> Optional[str]:
+        if event_type == "npc_killed" and data.get("witness"):
+            # A player saw it happen and did nothing: the story's triggers hear of it, and nothing is credited or
+            # charged to them (no quest progress, no reputation, no encounter record).
+            lines = self.trigger_runner.fire_npc_killed(data.get("player"), data.get("npc")) if data.get("npc") is not None else []
+            return "\n\n".join(line for line in lines if line) or None
         if event_type == "npc_killed":
             quest_msg = self.quest_manager.handle_npc_killed(event_type, data) if self.quest_manager else None
             rep_msg = self._handle_reputation_on_kill(data)

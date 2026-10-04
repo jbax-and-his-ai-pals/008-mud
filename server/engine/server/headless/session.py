@@ -295,7 +295,10 @@ class SessionMixin:
                     steps.append(f"{instruction}{command_suffix}")
             if steps:
                 lines.append(objectives_heading + "\n" + "\n".join(f"{index}. {step}" for index, step in enumerate(steps, start=1)))
-        return "\n\n".join(lines)
+        # `pace`: how fast a client types the whole brief out (the same names a conversation's nodes use).
+        from engine.utils import pacing
+
+        return pacing.paced("\n\n".join(lines), opening.get("pace"))
 
     def _display_name_for_player_id(self, player_id: str) -> str:
         player = self.world.players.get(player_id)

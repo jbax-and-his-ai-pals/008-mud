@@ -244,7 +244,8 @@ name, prompt styling. `{}` is valid.
 
 **`opening/arrival.json`** — what a new character is told. `scenario_id` is
 required; `objectives` are numbered suggestions, each with the literal command to
-type, and `objectives_heading` lets you replace "First steps:".
+type, and `objectives_heading` lets you replace "First steps:". An optional `pace` (`brisk`, `measured`, `slow`,
+`solemn`, or characters per second) has a client type the whole brief out instead of showing it at once.
 
 ```json
 {
@@ -363,6 +364,9 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `properties.despawn_message` | an NPC | How a summoned creature leaves ("The Colossus sinks back into the earth."). |
 | `properties.essential: true` | an NPC | Cannot be killed unless recruited as a companion: left on the brink instead. |
 | `properties.unique: true` | an NPC | Called "the mayor", not "a mayor". |
+| `properties.pacifist: true` | an NPC | Never fights back and never starts a fight: it can be attacked and killed, and it does not retaliate. |
+| `ruleset.factions.enmities` | the ruleset | `[{"faction": "red_fleet", "against": "ilmaran"}]`: the first faction attacks the second on sight, without either turning on the player. One way; list the pair both ways for a mutual fight. Both must be declared (`factions.extra` or an engine faction). |
+| `{"kind": "npc_present", "npc_id": ..., "region_id", "room_id"}` | a condition | A living NPC of that template (or placed id), anywhere or in the room named (region and room together). `{"not": ...}` of it is "the last one is gone". |
 
 **Scenes.** A scene is something the player watches: beats told a moment apart, with things happening between them.
 `data/scenes/*.json` holds them (each file an object of scenes keyed by id):
@@ -386,6 +390,11 @@ kept, so a restart carries on instead of leaving the story half told. Three more
 these: a trigger's `on_enter` fires for a new character's first room, `item_taken` is a trigger event (the crystal on its altar),
 `room_cleared` fires when the last enemy in a room dies (the second wave a short while after the first), and `advance_time`
 (`{"to_hour": 6}`) lets a night pass. A starting-inventory entry may say `"equip": true` to begin worn.
+
+A fight need not be narrated: give two factions an enmity (`ruleset.factions.enmities`), spawn the aggressors from a beat,
+and the engine's ordinary combat tells it. The victims can be `pacifist`. A death the player only watched fires
+`npc_killed` triggers (and nothing else: no XP, quest credit or reputation), so a trigger on the victims' template with
+`when: {"not": {"kind": "npc_present", ...}}` plays the next scene when the last of them has fallen.
 
 **Quest text speed.** Quest text is story, so a player's client types it out. The engine's default is `slow`;
 a set can ask for its own with `presentation.quest_text_pace` (a pace, or `"instant"`); a server's operator can

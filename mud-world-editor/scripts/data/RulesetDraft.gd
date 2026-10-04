@@ -40,7 +40,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "advancement.level_up", "advancement.level_up.stat_growth", "messages", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "factions.enmities", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "advancement.level_up", "advancement.level_up.stat_growth", "messages", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -67,6 +67,9 @@ func set_system_enabled(system_id: String, enabled: bool):
 	if not (system is Dictionary): system = {}
 	system["enabled"] = enabled
 	systems[system_id] = system
+
+func set_faction_enmities(enmities: Array):
+	_section("factions")["enmities"] = enmities.duplicate(true)
 
 func set_faction_extras(extras: Array):
 	_section("factions")["extra"] = extras.duplicate(true)
@@ -177,6 +180,13 @@ func validate() -> Array:
 				faction_ids[faction_id] = true
 				if not disposition in ["hostile", "friendly", "neutral", "player"]:
 					errors.append("Faction '%s' has invalid disposition '%s'." % [faction_id, disposition])
+	if factions is Dictionary and factions.has("enmities"):
+		if not (factions["enmities"] is Array): errors.append("factions.enmities must be a list.")
+		else:
+			for entry in factions["enmities"]:
+				if not entry is Dictionary: errors.append("Each factions.enmities entry must be an object."); continue
+				if str(entry.get("faction", "")).strip_edges() == "" or str(entry.get("against", "")).strip_edges() == "": errors.append("An enmity needs both factions.")
+				elif str(entry.get("faction", "")).strip_edges() == str(entry.get("against", "")).strip_edges(): errors.append("A faction cannot be its own enemy.")
 	var skills = data.get("skills", {})
 	if skills is Dictionary and skills.has("stat_bonuses"):
 		var bonuses = skills["stat_bonuses"]
