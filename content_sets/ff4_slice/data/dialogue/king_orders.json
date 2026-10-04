@@ -102,7 +102,7 @@
             }
         },
         "again": {
-            "text": "You have your orders, captain. The fleet sails at dawn, and you are still standing in my hall.",
+            "text": "You have your orders, captain, and you are still standing in my hall. Now go.",
             "pace": "slow",
             "end": true
         },
@@ -112,7 +112,7 @@
             "end": true
         },
         "obey": {
-            "text": "Good. Be quick. The fleet sails at dawn, and Captain Kessa has asked for you: find her in the barracks, and rest. You will want it.",
+            "text": "Good. You will leave first thing tomorrow, and Captain Kessa will accompany you. Find her in the barracks to discuss.",
             "pace": "slow",
             "end": true
         },

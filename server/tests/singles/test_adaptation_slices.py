@@ -450,8 +450,8 @@ class TestFF4Slice(_Slice):
     def test_the_king_has_the_last_word_when_you_obey(self):
         self.say("talk king")
         answered = self.say("reply 1")
-        self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn', answered)
-        self.assertIn("find her in the barracks, and rest", answered, "and he points you at Kessa")
+        self.assertIn('King Aldous speaks: "Good. You will leave first thing tomorrow', answered)
+        self.assertIn("Find her in the barracks to discuss", answered, "and he points you at Kessa")
         self.assertNotRegex(answered, r"(?m)^\s*1\. ", "there is nothing left to answer")
         self.assertNotIn("(That seems to be all.)", answered)
         self.at("varenholt", "throne_room")
