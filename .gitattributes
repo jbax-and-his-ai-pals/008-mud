@@ -1,0 +1,6 @@
+# One line ending in the repository and on every checkout: LF. (Windows git defaults to converting to CRLF on
+# checkout, which left half the working tree CRLF and made byte-exact gates and scripted edits depend on which.)
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
