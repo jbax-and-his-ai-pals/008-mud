@@ -35,5 +35,73 @@
             ]
         },
         "item_family": "armor"
+    },
+    "item_iron_spear": {
+        "type": "Weapon",
+        "name": "iron spear",
+        "description": "A long ash shaft with a leaf-shaped iron head: it thrusts, or sweeps, as the moment asks.",
+        "weight": 4,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "damage": 9,
+            "weapon_damage_type": "piercing",
+            "durability": 70,
+            "max_durability": 70,
+            "equip_slot": [
+                "main_hand"
+            ],
+            "attack_modes": [
+                {
+                    "name": "thrust",
+                    "verb": "thrust",
+                    "text": "{attacker} {verb} {possessive} {weapon} at {defender}",
+                    "weapon_damage_type": "piercing"
+                },
+                {
+                    "name": "slash",
+                    "verb": "slash",
+                    "text": "{attacker} {verb} at {defender} with {possessive} {weapon}",
+                    "weapon_damage_type": "slashing"
+                }
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_iron_armor": {
+        "type": "Armor",
+        "name": "iron armor",
+        "description": "A plain cuirass of riveted iron plates over a quilted coat, dented where it has been useful.",
+        "weight": 9,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 4,
+            "armor_material": "chain",
+            "durability": 70,
+            "max_durability": 70,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_iron_helm": {
+        "type": "Armor",
+        "name": "iron helm",
+        "description": "A round iron cap with a short nose guard.",
+        "weight": 2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "chain",
+            "durability": 70,
+            "max_durability": 70,
+            "equip_slot": [
+                "head"
+            ]
+        },
+        "item_family": "armor"
     }
 }

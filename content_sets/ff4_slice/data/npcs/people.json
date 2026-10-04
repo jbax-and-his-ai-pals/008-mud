@@ -34,6 +34,11 @@
             "move_cooldown": 9999,
             "dialogue": "kessa_talk",
             "essential": true
+        },
+        "equipment": {
+            "main_hand": "item_iron_spear",
+            "body": "item_iron_armor",
+            "head": "item_iron_helm"
         }
     },
     "rosalind": {
