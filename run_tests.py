@@ -135,14 +135,25 @@ def balance(modules: list[str], jobs: int, timings: dict[str, float]) -> list[li
     return [shard for shard in shards if shard]
 
 
-def run_sharded(suites: tuple[str, ...], jobs: int, env: dict[str, str]) -> list[str]:
-    """All the suites at once, as `jobs` processes that each run a share of the modules. Returns what failed."""
-    modules = test_modules(suites)
+def run_sharded(suites: tuple[str, ...], jobs: int, env: dict[str, str], modules: list[str] | None = None,
+                shuffle: bool = False, shuffle_seed: int | None = None) -> list[str]:
+    """All the suites at once (or just `modules`), as `jobs` processes that each run a share of the modules.
+    Returns what failed."""
+    modules = modules if modules is not None else test_modules(suites)
     try:
         timings = json.loads(TIMINGS_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         timings = {}
-    shards = balance(modules, jobs, timings)
+    if shuffle or shuffle_seed:
+        import random
+
+        shuffle_seed = shuffle_seed or random.randrange(1, 10**9)
+        order = list(modules)
+        random.Random(shuffle_seed).shuffle(order)
+        shards = [order[index::jobs] for index in range(jobs)]
+        print("    shuffled with seed %d (--shuffle-seed %d repeats it)" % (shuffle_seed, shuffle_seed))
+    else:
+        shards = balance(modules, jobs, timings)
     print()
     print("==> %d test modules in %d shards%s" % (len(modules), len(shards), "" if timings else " (no timings yet: evenly spread)"))
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -159,7 +170,8 @@ def run_sharded(suites: tuple[str, ...], jobs: int, env: dict[str, str]) -> list
             report_path.unlink()
         log = open(log_path, "w", encoding="utf-8")
         process = subprocess.Popen(
-            [sys.executable, "-m", "tests.shard_worker", "--report", str(report_path), *shard],
+            [sys.executable, "-m", "tests.shard_worker", "--report", str(report_path),
+             *(["--shuffle-seed", str(shuffle_seed)] if shuffle else []), *shard],
             cwd=str(SERVER_ROOT), env=shard_env, stdout=log, stderr=subprocess.STDOUT,
         )
         running.append((index, process, log, log_path, report_path))
@@ -216,6 +228,23 @@ def main() -> int:
              "after another, as before)",
     )
     parser.add_argument(
+        "--modules",
+        default="",
+        metavar="A,B",
+        help="run just these test modules (dotted names, comma separated), sharded like a full run",
+    )
+    parser.add_argument(
+        "--shuffle",
+        action="store_true",
+        help="deal the modules to shards at random, not by timing: a test that depends on what ran before it fails here",
+    )
+    parser.add_argument(
+        "--shuffle-seed",
+        type=int,
+        default=0,
+        help="repeat a shuffled run (implies --shuffle)",
+    )
+    parser.add_argument(
         "--check-dependencies",
         action="store_true",
         help="report missing packages and exit without running anything",
@@ -243,9 +272,13 @@ def main() -> int:
             code = run(argv, label, RESULTS_DIR / ("selected-%d.log" % index), env)
             if code != 0:
                 failures.append(target)
+    elif args.modules.strip():
+        chosen = [name.strip() for name in args.modules.split(",") if name.strip()]
+        failures.extend(run_sharded(SUITES, max(1, min(args.jobs, len(chosen))), env, chosen))
     elif args.jobs > 1:
         wanted = SUITES if args.suite == "all" else (args.suite,)
-        failures.extend(run_sharded(wanted, args.jobs, env))
+        failures.extend(run_sharded(wanted, args.jobs, env, shuffle=args.shuffle or bool(args.shuffle_seed),
+                                      shuffle_seed=args.shuffle_seed or None))
     else:
         wanted = SUITES if args.suite == "all" else (args.suite,)
         for suite in wanted:

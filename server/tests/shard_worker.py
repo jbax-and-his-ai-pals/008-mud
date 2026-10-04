@@ -33,9 +33,19 @@ class TimedResult(unittest.TextTestResult):
         self.module_seconds[module] += time.perf_counter() - self._started
 
 
+def _flatten(suite):
+    for item in suite:
+        if isinstance(item, unittest.TestSuite):
+            yield from _flatten(item)
+        else:
+            yield item
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", required=True)
+    parser.add_argument("--shuffle-seed", type=int, default=0,
+                        help="run the tests in a random order (the same seed gives the same order)")
     parser.add_argument("modules", nargs="+")
     args = parser.parse_args()
 
@@ -43,6 +53,13 @@ def main() -> int:
     loader = unittest.TestLoader()
     for name in args.modules:
         suite.addTests(loader.loadTestsFromName(name))
+
+    if args.shuffle_seed:
+        import random
+
+        cases = list(_flatten(suite))
+        random.Random(args.shuffle_seed).shuffle(cases)
+        suite = unittest.TestSuite(cases)
 
     runner = unittest.TextTestRunner(verbosity=0, resultclass=TimedResult, stream=sys.stderr)
     result = runner.run(suite)
