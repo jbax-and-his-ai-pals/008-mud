@@ -122,7 +122,8 @@
                     }
                 }
             }
-        ]
+        ],
+        "lock": false
     },
     "second_wave": {
         "note": "A short while after the first fight is won, the sky is not finished with the Cinder.",
@@ -174,7 +175,8 @@
                     }
                 }
             }
-        ]
+        ],
+        "lock": false
     },
     "landing": {
         "note": "The sky is quiet again. Home, and the chancellor who walks you to the king.",

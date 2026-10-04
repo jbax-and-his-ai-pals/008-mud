@@ -123,6 +123,17 @@ class TestIlmara(unittest.TestCase):
 
 
 class TestTheSky(unittest.TestCase):
+    def test_the_captain_is_not_locked_out_of_a_fight_the_scene_started(self):
+        """The airship scenes spawn the monsters; a spectator's lock would refuse "attack" while they strike."""
+        game = _Journey(self)
+        game.wait(60)
+        game.say("take crystal")
+        game.wait(40)
+        game.clear_the_sky()
+        game.wait(9)   # the second wave's scene is mid-way: "Its mate is close behind"
+        self.assertIn("_scene.second_wave", game.player.flags, "the scene is still being told")
+        self.assertNotIn("not yours to interrupt", game.say("attack wyvern"))
+
     def test_taking_the_crystal_carries_you_to_the_airship_where_the_soldiers_cannot_look_at_each_other(self):
         game = _Journey(self)
         game.wait(60)
