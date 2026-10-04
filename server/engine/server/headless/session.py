@@ -273,8 +273,11 @@ class SessionMixin:
         )
         return True, f"Character created: {raw_name} ({role})", True
 
-    def build_opening_guidance(self) -> str:
-        """Format the selected content set's optional first-session brief."""
+    def build_opening_guidance(self, live: bool = False) -> str:
+        """Format the selected content set's optional first-session brief.
+
+        `live` is the moment a new character is told it: the set's `opening.pace` then has a client type it out.
+        Read back later (the journal's "Getting Started") it is shown at once."""
         opening = getattr(self.content_set, "opening", {}) if self.content_set else {}
         if not isinstance(opening, dict):
             return ""
@@ -298,7 +301,7 @@ class SessionMixin:
         # `pace`: how fast a client types the whole brief out (the same names a conversation's nodes use).
         from engine.utils import pacing
 
-        return pacing.paced("\n\n".join(lines), opening.get("pace"))
+        return pacing.paced("\n\n".join(lines), opening.get("pace") if live else None)
 
     def _display_name_for_player_id(self, player_id: str) -> str:
         player = self.world.players.get(player_id)

@@ -107,7 +107,7 @@ class CommandExecutionMixin:
             if created_handled:
                 events.append(self._event("text", session_id, created_message))
                 if created:
-                    opening_guidance = "" if session_obj.resumed else self.build_opening_guidance()
+                    opening_guidance = "" if session_obj.resumed else self.build_opening_guidance(live=True)
                     if opening_guidance:
                         events.append(self._event("text", session_id, opening_guidance))
                     self.persist_player_snapshot(session_id)

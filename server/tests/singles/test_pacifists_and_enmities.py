@@ -185,11 +185,19 @@ class TestOpeningPace(unittest.TestCase):
         server = HeadlessServer(db_path=":memory:", content_set_path=str(package), deterministic_test_mode=True,
                                 default_presentation_mode="player")
         self.addCleanup(server.shutdown)
-        guidance = server.build_opening_guidance()
+        guidance = server.build_opening_guidance(live=True)
         self.assertTrue(guidance.startswith("[[PACE:70]]") and guidance.endswith("[[/PACE]]"), guidance[:40])
 
     def test_no_pace_is_the_brief_as_it_was(self):
         server = HeadlessServer(db_path=":memory:", content_set_path=str(self.boot({})), deterministic_test_mode=True,
+                                default_presentation_mode="player")
+        self.addCleanup(server.shutdown)
+        self.assertNotIn("[[PACE", server.build_opening_guidance(live=True))
+
+    def test_read_back_later_the_brief_is_shown_at_once(self):
+        """The journal repeats it under "Getting Started": slow typing is for the moment a character is told it."""
+        package = self.boot({"pace": "slow"})
+        server = HeadlessServer(db_path=":memory:", content_set_path=str(package), deterministic_test_mode=True,
                                 default_presentation_mode="player")
         self.addCleanup(server.shutdown)
         self.assertNotIn("[[PACE", server.build_opening_guidance())
