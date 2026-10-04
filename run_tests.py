@@ -28,6 +28,8 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import os
+import json
+import time
 import subprocess
 import sys
 from pathlib import Path
@@ -106,6 +108,91 @@ def run(argv: list[str], label: str, log_path: Path, env: dict[str, str]) -> int
     return completed.returncode
 
 
+TIMINGS_PATH = REPO_ROOT / "tmp" / "test-timings.json"
+
+
+def test_modules(suites: tuple[str, ...]) -> list[str]:
+    """Every test module in the suites, as the dotted names `unittest` takes from the server root."""
+    names: list[str] = []
+    for suite in suites:
+        for path in sorted((SERVER_ROOT / "tests" / suite).rglob("test_*.py")):
+            names.append(".".join(path.relative_to(SERVER_ROOT).with_suffix("").parts))
+    return names
+
+
+def balance(modules: list[str], jobs: int, timings: dict[str, float]) -> list[list[str]]:
+    """Longest-first into the lightest shard, by how long each module took last time (an unseen module
+    counts as the median), so the shards finish together."""
+    known = sorted(timings.get(name, 0.0) for name in modules if name in timings)
+    median = known[len(known) // 2] if known else 1.0
+    weighted = sorted(((timings.get(name, median), name) for name in modules), reverse=True)
+    shards: list[list[str]] = [[] for _ in range(jobs)]
+    loads = [0.0] * jobs
+    for seconds, name in weighted:
+        lightest = loads.index(min(loads))
+        shards[lightest].append(name)
+        loads[lightest] += seconds
+    return [shard for shard in shards if shard]
+
+
+def run_sharded(suites: tuple[str, ...], jobs: int, env: dict[str, str]) -> list[str]:
+    """All the suites at once, as `jobs` processes that each run a share of the modules. Returns what failed."""
+    modules = test_modules(suites)
+    try:
+        timings = json.loads(TIMINGS_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        timings = {}
+    shards = balance(modules, jobs, timings)
+    print()
+    print("==> %d test modules in %d shards%s" % (len(modules), len(shards), "" if timings else " (no timings yet: evenly spread)"))
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    started = time.time()
+    running = []
+    for index, shard in enumerate(shards):
+        shard_env = dict(env)
+        temp = REPO_ROOT / "tmp" / "pytemp" / ("shard-%d" % index)
+        temp.mkdir(parents=True, exist_ok=True)
+        shard_env["TMP"] = shard_env["TEMP"] = shard_env["TMPDIR"] = str(temp)
+        log_path = RESULTS_DIR / ("shard-%d.log" % index)
+        report_path = RESULTS_DIR / ("shard-%d.json" % index)
+        if report_path.exists():
+            report_path.unlink()
+        log = open(log_path, "w", encoding="utf-8")
+        process = subprocess.Popen(
+            [sys.executable, "-m", "tests.shard_worker", "--report", str(report_path), *shard],
+            cwd=str(SERVER_ROOT), env=shard_env, stdout=log, stderr=subprocess.STDOUT,
+        )
+        running.append((index, process, log, log_path, report_path))
+
+    failures: list[str] = []
+    ran = 0
+    seconds: dict[str, float] = dict(timings)
+    for index, process, log, log_path, report_path in running:
+        code = process.wait()
+        log.close()
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            report = None
+        if report is None:
+            failures.append("shard %d did not finish (exit %s; see %s)" % (index, code, log_path.relative_to(REPO_ROOT)))
+            continue
+        ran += report["ran"]
+        seconds.update(report["seconds"])
+        failures.extend(report["failed"])
+        if code != 0:
+            noise = ("[DEBUG]", "[INFO]", "[WARNING]", "PluginManager", "Test mod setup")
+            tail = [line.rstrip() for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+                    if line.strip() and not any(marker in line for marker in noise)][-30:]
+            print("\n--- shard %d (%s)" % (index, log_path.relative_to(REPO_ROOT)))
+            print("\n".join(tail))
+    TIMINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    TIMINGS_PATH.write_text(json.dumps(seconds, indent=1, sort_keys=True), encoding="utf-8")
+    print()
+    print("==> %d tests in %.0f seconds" % (ran, time.time() - started))
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -120,6 +207,13 @@ def main() -> int:
         default=[],
         metavar="DOTTED.TEST",
         help="run specific tests instead of a suite (repeatable)",
+    )
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=min(16, max(1, (os.cpu_count() or 2) // 2)),
+        help="run the suites as this many parallel shards (default: half the cores, at most 16; 1 runs them one "
+             "after another, as before)",
     )
     parser.add_argument(
         "--check-dependencies",
@@ -149,6 +243,9 @@ def main() -> int:
             code = run(argv, label, RESULTS_DIR / ("selected-%d.log" % index), env)
             if code != 0:
                 failures.append(target)
+    elif args.jobs > 1:
+        wanted = SUITES if args.suite == "all" else (args.suite,)
+        failures.extend(run_sharded(wanted, args.jobs, env))
     else:
         wanted = SUITES if args.suite == "all" else (args.suite,)
         for suite in wanted:

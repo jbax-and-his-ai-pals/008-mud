@@ -139,10 +139,17 @@ class TestPluginAPI(unittest.TestCase):
         @self.api.register_command("plugin_test_command", aliases=["ptc"])
         def handler(context):
             return "handled"
-        from engine.commands.command_system import registered_commands
+        from engine.commands.command_system import command_groups, registered_commands
+
+        def forget_it():
+            # Out of both the flat map and the groups, or every test that runs after this one sees a dead alias.
+            added = registered_commands.pop("plugin_test_command", None)
+            registered_commands.pop("ptc", None)
+            for group in command_groups.values():
+                group[:] = [entry for entry in group if entry is not added]
+
+        self.addCleanup(forget_it)
         self.assertIn("plugin_test_command", registered_commands)
-        registered_commands.pop("plugin_test_command", None)
-        registered_commands.pop("ptc", None)
 
     def test_spawn_npc_without_capability_raises(self):
         api = PluginAPI(self.game, dict(VALID_MANIFEST, capabilities=[]))

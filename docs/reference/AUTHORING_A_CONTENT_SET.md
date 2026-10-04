@@ -280,7 +280,7 @@ Three gates, all from the repository root:
 
 | Gate | What it runs |
 |---|---|
-| `python run_tests.py --suite all` | 4,500+ unit/journey tests, including every content set's playability journeys |
+| `python run_tests.py --suite all` | 5,700+ unit/journey tests, including every content set's playability journeys, run as parallel shards (under a minute; `--jobs 1` for one process) |
 | `python run_content_checks.py` | the validators below, over every shipped set |
 | `python run_editor_checks.py --godot <path>` | 30 editor smoke checks, including a byte-compare round trip of every set's files |
 

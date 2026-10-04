@@ -22,12 +22,14 @@ content gate reinterprets against this checkout) is deliberately out of scope:
 `](C:/...` is the shape that breaks, and that is what this refuses.
 """
 
+import os
 import re
 import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SKIP_DIRECTORIES = {".git", ".venv", "tmp", "node_modules", ".claude"}
+# `_tmp` is the scratch directory the tests build sets in (created and removed while this scans).
+SKIP_DIRECTORIES = {".git", ".venv", "tmp", "_tmp", "node_modules", ".claude"}
 
 # `[label](target)` and `![alt](target)`.
 LINK = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)")
@@ -36,11 +38,17 @@ HTTPS_TARGET = re.compile(r"^https?://", re.IGNORECASE)
 ANCHOR = re.compile(r"^#")
 
 
+_MARKDOWN: list[Path] = []
+
+
 def markdown_files():
-    for path in sorted(REPO_ROOT.rglob("*.md")):
-        if any(part in SKIP_DIRECTORIES for part in path.parts):
-            continue
-        yield path
+    """Every document, found once: the walk skips the directories it would never use instead of listing
+    them (a virtual environment or an engine project is tens of thousands of files) and discarding the lot."""
+    if not _MARKDOWN:
+        for directory, names, files in os.walk(REPO_ROOT):
+            names[:] = sorted(name for name in names if name not in SKIP_DIRECTORIES and name != ".godot")
+            _MARKDOWN.extend(Path(directory) / name for name in sorted(files) if name.endswith(".md"))
+    return list(_MARKDOWN)
 
 
 def documentation_files():

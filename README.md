@@ -29,7 +29,8 @@ The runners are Python, so they behave the same on every platform; the
 versioned interpreter and hand over to them.
 
 ```bash
-python3 run_tests.py                       # all three suites
+python3 run_tests.py                       # all three suites, as parallel shards (about a minute)
+python3 run_tests.py --jobs 1              # one after another, as a single process
 python3 run_tests.py --suite singles       # just tests/singles
 python3 run_tests.py --target tests.singles.test_p4_progression
 python3 run_tests.py --check-dependencies  # what is missing, and for which Python

@@ -6,6 +6,8 @@ world data can be wrapped and validated before it is migrated into a package.
 
 from __future__ import annotations
 
+import copy
+import os
 import json
 import re
 import string
@@ -6842,12 +6844,51 @@ def _resolve_manifest_path(content_set_path: Path | str) -> Path:
     return path / CONTENT_SET_MANIFEST_NAME if path.is_dir() else path
 
 
+# Loading a set reads and validates every file in it, and a test suite does that once per test. A test run
+# turns this on (`tests/__init__.py`) and a set that has not changed on disk is then answered from memory; a
+# running server never does, so there is nothing to go stale.
+_LOAD_CACHE: dict[tuple, tuple] | None = None
+
+
+def enable_load_cache() -> None:
+    global _LOAD_CACHE
+    if _LOAD_CACHE is None:
+        _LOAD_CACHE = {}
+
+
+def _package_fingerprint(root: Path) -> tuple:
+    """Every file under a set with its size and modification time: any edit changes it."""
+    entries = []
+    for directory, _names, files in os.walk(root):
+        for name in files:
+            try:
+                info = os.stat(os.path.join(directory, name))
+            except OSError:
+                continue
+            entries.append((os.path.join(directory, name), info.st_mtime_ns, info.st_size))
+    entries.sort()
+    return tuple(entries)
+
+
 def load_content_set(
     content_set_path: Path | str,
     runtime_api: str = RUNTIME_API_VERSION,
 ) -> tuple[ContentSetDefinition | None, list[ContentSetIssue]]:
     """Load and validate one content set without starting a game runtime."""
 
+    if _LOAD_CACHE is None:
+        return _load_content_set_uncached(content_set_path, runtime_api)
+    manifest = _resolve_manifest_path(content_set_path).resolve()
+    key = (str(manifest), runtime_api, _package_fingerprint(manifest.parent))
+    if key not in _LOAD_CACHE:
+        _LOAD_CACHE[key] = copy.deepcopy(_load_content_set_uncached(content_set_path, runtime_api))
+    return copy.deepcopy(_LOAD_CACHE[key])
+
+
+def _load_content_set_uncached(
+    content_set_path: Path | str,
+    runtime_api: str = RUNTIME_API_VERSION,
+) -> tuple[ContentSetDefinition | None, list[ContentSetIssue]]:
     manifest_path = _resolve_manifest_path(content_set_path).resolve()
     issues: list[ContentSetIssue] = []
     payload = _load_json(manifest_path, issues, "content-set manifest")
