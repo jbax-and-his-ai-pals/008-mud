@@ -1,0 +1,185 @@
+{
+    "king_aldous": {
+        "name": "King Aldous",
+        "description": "An old king in a heavy red mantle, who has stopped looking at the people he speaks to.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Captain. You are late."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "king_orders",
+            "essential": true
+        }
+    },
+    "captain_kessa": {
+        "name": "Captain Kessa",
+        "description": "A tall woman in a horned helm, your oldest friend in the fleet.",
+        "health": 60,
+        "level": 3,
+        "attack_power": 20,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "There you are. I heard the king sent for you."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "kessa_talk",
+            "essential": true
+        }
+    },
+    "rosalind": {
+        "name": "Rosalind",
+        "description": "A healer in white, sleeves rolled, a basin of clean water at her elbow.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "healer",
+        "dialog": {
+            "greeting": "You look tired. Sit, and let me look at you."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "can_heal": true,
+            "spell_cast_chance": 1,
+            "required_spells": [
+                "cure"
+            ],
+            "dialogue": "rosalind_heal",
+            "essential": true
+        },
+        "usable_spells": [
+            "cure"
+        ],
+        "max_mana": 100
+    },
+    "quartermaster": {
+        "name": "quartermaster",
+        "description": "A gruff man behind a counter stacked with fleet stores.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Fleet stores. Nothing fancy."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_potion"
+                }
+            ],
+            "buys_item_types": [
+                "Consumable"
+            ],
+            "essential": true,
+            "unique": true
+        }
+    },
+    "mayor_of_mistvale": {
+        "name": "mayor of Mistvale",
+        "description": "A soft-spoken man in a village chain of office.",
+        "health": 60,
+        "level": 3,
+        "attack_power": 10,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Travellers are rare, these days."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "mayor_package",
+            "essential": true,
+            "unique": true
+        }
+    },
+    "ryn": {
+        "name": "Ryn",
+        "description": "A small girl in green, clutching a wooden flute, with eyes much older than the rest of her.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Please... are you the one who...?"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "ryn_summoner",
+            "essential": true
+        }
+    },
+    "innkeeper": {
+        "name": "innkeeper",
+        "description": "A stout woman with a ring of keys and a lantern she never seems to put down.",
+        "health": 60,
+        "level": 3,
+        "attack_power": 12,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Fog keeps the guests away. There is always a bed."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "inn_rest",
+            "essential": true,
+            "unique": true
+        }
+    },
+    "chancellor": {
+        "name": "chancellor",
+        "description": "A gaunt man in grey silks at the king's elbow, smiling as if he had been taught how.",
+        "health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "The king has many burdens. I carry the smaller ones."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "chancellor_talk",
+            "unique": true
+        }
+    },
+    "castle_guard": {
+        "name": "castle guard",
+        "description": "A guard of the Red Fleet in polished plate, halberd grounded, eyes fixed on nothing.",
+        "health": 80,
+        "level": 4,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Move along, captain. The king's business is not ours to discuss."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999
+        }
+    }
+}

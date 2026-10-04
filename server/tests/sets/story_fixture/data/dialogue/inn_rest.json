@@ -1,0 +1,35 @@
+{
+    "id": "inn_rest",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "The back room is dry and the sheets are clean. Thirty coins, and you sleep till the fog thins.",
+            "choices": [
+                {
+                    "text": "Thirty coins. I will take the room.",
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 30
+                    },
+                    "next_node": "slept",
+                    "effects": {
+                        "take_gold": 30,
+                        "restore": {
+                            "resource": "all",
+                            "companions": true
+                        },
+                        "message": "You sleep like the dead, and wake to grey light. Every hurt has eased, and so have your companions'."
+                    }
+                },
+                {
+                    "text": "Not tonight.",
+                    "end": true
+                }
+            ]
+        },
+        "slept": {
+            "text": "Come back whenever the road gets the better of you.",
+            "end": true
+        }
+    }
+}

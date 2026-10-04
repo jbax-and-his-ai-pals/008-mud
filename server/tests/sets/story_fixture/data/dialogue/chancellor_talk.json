@@ -1,0 +1,47 @@
+{
+    "id": "chancellor_talk",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "The king has many burdens, and I carry the smaller ones for him. Is there something you need?",
+            "choices": [
+                {
+                    "text": "Your smile does not reach your eyes, Chancellor.",
+                    "condition": {
+                        "all": [
+                            {
+                                "not": {
+                                    "kind": "flag",
+                                    "flag": "chancellor_unmasked"
+                                }
+                            },
+                            {
+                                "kind": "flag",
+                                "flag": "drake_slain"
+                            }
+                        ]
+                    },
+                    "next_node": "unmasked",
+                    "effects": {
+                        "spawn_npc": {
+                            "npc": "chancellor_fiend",
+                            "region": "varenholt",
+                            "room": "throne_room"
+                        },
+                        "remove_npc": "chancellor",
+                        "set_flag": "chancellor_unmasked",
+                        "message": "The chancellor's face slides like wet clay. Something with too many teeth uncurls where he stood."
+                    }
+                },
+                {
+                    "text": "Nothing, Chancellor.",
+                    "end": true
+                }
+            ]
+        },
+        "unmasked": {
+            "text": "You should not have looked so closely.",
+            "end": true
+        }
+    }
+}

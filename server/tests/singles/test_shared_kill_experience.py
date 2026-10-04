@@ -15,6 +15,8 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
 from engine.utils.utils import calculate_xp_gain
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 NL = chr(10)
@@ -26,7 +28,7 @@ class _Table:
     def __init__(self, case, count, health=100, content="fantasy_frontier", template="goblin"):
         # A shared world, because the story set lets only its first player play.
         self.server = HeadlessServer(
-            db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / content),
+            db_path=":memory:", content_set_path=str(STORY_FIXTURE if content == "story_fixture" else REPO_ROOT / "content_sets" / content),
             deterministic_test_mode=True, default_presentation_mode="player",
         )
         case.addCleanup(self.server.shutdown)
@@ -77,7 +79,7 @@ class TestTheTally(unittest.TestCase):
         self.assertAlmostEqual(0.2, shares["Hero2"])
 
     def test_an_allys_damage_takes_a_share_that_is_not_paid_out(self):
-        table = _Table(self, 1, content="ff4_slice", template="goblin_scout")
+        table = _Table(self, 1, content="story_fixture", template="goblin_scout")
         kessa = next(n for n in table.world.npcs.values() if n.template_id == "captain_kessa")
         table.hurt(table.players[0], 60)
         kill_credit.record_damage(table.enemy, kessa, 40)
@@ -136,7 +138,7 @@ class TestWhoGetsWhat(unittest.TestCase):
     def test_someone_who_only_helped_is_told_when_an_ally_makes_the_kill(self):
         from engine.npcs.combat import try_attack
 
-        table = _Table(self, 1, content="ff4_slice", template="goblin_scout")
+        table = _Table(self, 1, content="story_fixture", template="goblin_scout")
         player = table.players[0]
         kessa = next(n for n in table.world.npcs.values() if n.template_id == "captain_kessa")
         table.place = ("road", "castle_road")
@@ -226,8 +228,8 @@ class TestTheValidator(unittest.TestCase):
         self.json = json
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
-        self.package = self.tmp / "ff4_slice"
-        shutil.copytree(REPO_ROOT / "content_sets" / "ff4_slice", self.package, ignore=shutil.ignore_patterns("saves", "editor"))
+        self.package = self.tmp / "story_fixture"
+        shutil.copytree(STORY_FIXTURE, self.package, ignore=shutil.ignore_patterns("saves", "editor"))
 
     def errors_with(self, sharing):
         from engine.server import content_set as validator

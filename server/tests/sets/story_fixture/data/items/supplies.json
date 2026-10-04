@@ -1,0 +1,17 @@
+{
+    "item_potion": {
+        "type": "Consumable",
+        "name": "potion",
+        "description": "A stoppered flask that restores a little vitality.",
+        "weight": 0.5,
+        "value": 20,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 40,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
+    }
+}

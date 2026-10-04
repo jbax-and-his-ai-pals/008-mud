@@ -1,0 +1,71 @@
+{
+    "region_id": "fogreach",
+    "name": "Fogreach Cave",
+    "description": "A long cave that cuts through the mountain toward the valley of Mistvale.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "entry": {
+            "name": "Cave Entry",
+            "description": "Cold stone and damp air. The daylight fades behind you.",
+            "exits": {
+                "east": "bat_roost",
+                "out": "road:fogreach_mouth"
+            }
+        },
+        "bat_roost": {
+            "name": "Bat Roost",
+            "description": "The ceiling is a mass of sleeping wings.",
+            "exits": {
+                "west": "entry",
+                "east": "crystal_pool"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_roost_a"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_roost_b"
+                }
+            ]
+        },
+        "crystal_pool": {
+            "name": "Crystal Pool",
+            "description": "A quiet pool ringed by pale crystals. An iron chest lies half-buried near the water.",
+            "exits": {
+                "west": "bat_roost",
+                "south": "narrow_ledge"
+            },
+            "items": [
+                {
+                    "item_id": "item_iron_chest_fogreach"
+                }
+            ]
+        },
+        "narrow_ledge": {
+            "name": "Narrow Ledge",
+            "description": "A ledge along a drop into darkness. An imp watches from the far end.",
+            "exits": {
+                "north": "crystal_pool",
+                "south": "cave_exit"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_imp",
+                    "instance_id": "imp_ledge"
+                }
+            ]
+        },
+        "cave_exit": {
+            "name": "Far Exit",
+            "description": "Grey light and thin fog. The valley of Mistvale lies below.",
+            "exits": {
+                "north": "narrow_ledge",
+                "down": "mistvale:valley_path"
+            }
+        }
+    }
+}

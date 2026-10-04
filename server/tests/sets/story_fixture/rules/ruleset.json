@@ -1,0 +1,64 @@
+{
+  "progression_model": "level_based",
+  "systems": {
+    "combat": {
+      "enabled": true
+    },
+    "magic": {
+      "enabled": true
+    },
+    "quests": {
+      "enabled": true
+    },
+    "economy": {
+      "enabled": true
+    }
+  },
+  "combat": {
+    "retreat": {
+      "skill": "evasion",
+      "base_difficulty": 8,
+      "difficulty_per_hostile_level": 2
+    }
+  },
+  "companions": {
+    "max": 3
+  },
+  "player_defaults": {
+    "player_class": "Dark Knight",
+    "starting_inventory": [
+      {
+        "item_id": "item_dark_blade",
+        "quantity": 1
+      },
+      {
+        "item_id": "item_dark_armor",
+        "quantity": 1
+      },
+      {
+        "item_id": "item_commander_seal",
+        "quantity": 1
+      },
+      {
+        "item_id": "item_potion",
+        "quantity": 2
+      }
+    ],
+    "magic": {
+      "known_spells": [
+        "dark_wave"
+      ]
+    }
+  },
+  "skills": {
+    "stat_bonuses": {
+      "evasion": {
+        "stat": "agility",
+        "per_point": 2
+      }
+    }
+  },
+  "economy": {
+    "currency_name": "gil"
+  }
+}

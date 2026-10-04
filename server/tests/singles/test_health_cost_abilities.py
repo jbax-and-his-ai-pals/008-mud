@@ -17,6 +17,8 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.server import content_set as validator
 from engine.server.headless_server import HeadlessServer
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 
@@ -28,7 +30,7 @@ def _text(events):
 class TestDarkWave(unittest.TestCase):
     def setUp(self):
         self.server = HeadlessServer(
-            db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / "ff4_slice"),
+            db_path=":memory:", content_set_path=str(STORY_FIXTURE),
             deterministic_test_mode=True, default_presentation_mode="player",
         )
         self.addCleanup(self.server.shutdown)
@@ -97,8 +99,8 @@ class TestTheValidatorRefusesBadValues(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
-        self.package = self.tmp / "ff4_slice"
-        shutil.copytree(REPO_ROOT / "content_sets" / "ff4_slice", self.package, ignore=shutil.ignore_patterns("saves", "editor"))
+        self.package = self.tmp / "story_fixture"
+        shutil.copytree(STORY_FIXTURE, self.package, ignore=shutil.ignore_patterns("saves", "editor"))
 
     def errors(self):
         _definition, issues = validator.load_content_set(self.package)

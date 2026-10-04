@@ -1,0 +1,55 @@
+{
+    "region_id": "road",
+    "name": "The Mistvale Road",
+    "description": "A dirt road that climbs from the castle toward the mountains, and the fog.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "castle_road": {
+            "name": "Castle Road",
+            "description": "The road bends away from the castle gate between low hedges.",
+            "exits": {
+                "east": "river_bridge",
+                "north": "varenholt:castle_gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "goblin_scout",
+                    "instance_id": "goblin_castle_road"
+                }
+            ],
+            "properties": {}
+        },
+        "river_bridge": {
+            "name": "River Bridge",
+            "description": "A hump-backed bridge over a cold, fast river.",
+            "exits": {
+                "west": "castle_road",
+                "east": "signal_hill"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "road_wolf",
+                    "instance_id": "wolf_bridge"
+                }
+            ]
+        },
+        "signal_hill": {
+            "name": "Signal Hill",
+            "description": "A bare hill topped by a cold beacon. The mountains fill the north.",
+            "exits": {
+                "west": "river_bridge",
+                "north": "fogreach_mouth"
+            }
+        },
+        "fogreach_mouth": {
+            "name": "Mouth of Fogreach Cave",
+            "description": "A black cave mouth in the hillside, breathing cold air. Fog curls out along the ground.",
+            "exits": {
+                "south": "signal_hill",
+                "in": "fogreach:entry"
+            }
+        }
+    }
+}

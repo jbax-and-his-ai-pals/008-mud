@@ -1,0 +1,23 @@
+{
+  "scenario_id": "summoned_to_the_throne",
+  "heading": "Summoned to the Throne",
+  "intro": "You are a captain of the Red Fleet, and the fleet has just come home from a raid that you did not like. The king has sent for you. Whatever he says, the sword at your hip is dark steel and the seal on your chest is his.",
+  "objectives_heading": "Your orders:",
+  "objectives": [
+    {
+      "id": "hear_the_king",
+      "instruction": "Speak to King Aldous in the throne room",
+      "command": "talk king"
+    },
+    {
+      "id": "visit_the_captain",
+      "instruction": "Find your friend Captain Kessa in the barracks",
+      "command": "look"
+    },
+    {
+      "id": "take_the_road",
+      "instruction": "Carry out the order: the road to Mistvale runs south of the castle gate",
+      "command": "south"
+    }
+  ]
+}

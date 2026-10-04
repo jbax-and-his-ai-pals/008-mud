@@ -16,6 +16,8 @@ from engine.server import content_set as validator
 from engine.server.headless_server import HeadlessServer
 from engine.utils.pacing import PACE_RANGE, TEXT_PACES, pace_quest_text, paced, resolve_pace
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 NL = chr(10)
@@ -48,7 +50,7 @@ class TestResolvingAPace(unittest.TestCase):
 class TestTheKingSpeaksSlowly(unittest.TestCase):
     def setUp(self):
         self.server = HeadlessServer(
-            db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / "ff4_slice"),
+            db_path=":memory:", content_set_path=str(STORY_FIXTURE),
             deterministic_test_mode=True, default_presentation_mode="player",
         )
         self.addCleanup(self.server.shutdown)
@@ -101,7 +103,7 @@ class TestQuestTextIsPacedByDefault(unittest.TestCase):
     def test_a_players_text_is_paced_and_an_authoring_session_is_not(self):
         for mode, expect in (("player", True), ("test", False)):
             server = HeadlessServer(
-                db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / "ff4_slice"),
+                db_path=":memory:", content_set_path=str(STORY_FIXTURE),
                 deterministic_test_mode=True, default_presentation_mode=mode,
             )
             self.addCleanup(server.shutdown)
@@ -111,7 +113,7 @@ class TestQuestTextIsPacedByDefault(unittest.TestCase):
 
     def test_a_server_can_turn_it_off(self):
         server = HeadlessServer(
-            db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / "ff4_slice"),
+            db_path=":memory:", content_set_path=str(STORY_FIXTURE),
             deterministic_test_mode=True, default_presentation_mode="player",
         )
         self.addCleanup(server.shutdown)
@@ -124,8 +126,8 @@ class TestTheValidator(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
-        self.package = self.tmp / "ff4_slice"
-        shutil.copytree(REPO_ROOT / "content_sets" / "ff4_slice", self.package, ignore=shutil.ignore_patterns("saves", "editor"))
+        self.package = self.tmp / "story_fixture"
+        shutil.copytree(STORY_FIXTURE, self.package, ignore=shutil.ignore_patterns("saves", "editor"))
 
     def errors_with_pace(self, value):
         path = self.package / "data" / "dialogue" / "king_orders.json"

@@ -29,8 +29,8 @@ func _init(): _run.call_deferred()
 
 func _run():
 	var repo := ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir()
-	fixture = repo.path_join("tmp/story-fields-%s/ff4_slice" % Time.get_ticks_usec())
-	_copy(repo.path_join("content_sets/ff4_slice"), fixture)
+	fixture = repo.path_join("tmp/story-fields-%s/story_fixture" % Time.get_ticks_usec())
+	_copy(repo.path_join("server/tests/sets/story_fixture"), fixture)
 	DataRoot._resolved = fixture
 	DataRoot._source = "test fixture"
 

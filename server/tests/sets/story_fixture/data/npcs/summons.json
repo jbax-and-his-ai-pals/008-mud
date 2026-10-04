@@ -1,0 +1,44 @@
+{
+    "titan_minion": {
+        "name": "Titan",
+        "description": "A vast, grey-skinned giant, summoned from somewhere below the world.",
+        "max_health": 447,
+        "level": 50,
+        "friendly": false,
+        "faction": "player_minion",
+        "behavior_type": "minion",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 17,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 6,
+        "loot_table": {},
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 4,
+            "weapon_damage_type": "slashing",
+            "is_summoned": true,
+            "owner_id": null,
+            "summon_duration": 0,
+            "creation_time": 0,
+            "despawn_message": "The Titan sinks back into the earth."
+        },
+        "dialog": {},
+        "default_dialog": "The titan waits.",
+        "usable_spells": []
+    }
+}

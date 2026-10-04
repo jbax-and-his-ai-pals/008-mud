@@ -12,8 +12,10 @@ from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
 from engine.utils import messages
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
-FF4 = REPO_ROOT / "content_sets" / "ff4_slice"
+FF4 = STORY_FIXTURE   # a frozen copy: these are engine features, not the story
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 NL = chr(10)
 
@@ -169,7 +171,7 @@ class TestTheValidator(unittest.TestCase):
 
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
-        package = tmp / "ff4_slice"
+        package = tmp / "story_fixture"
         shutil.copytree(FF4, package, ignore=shutil.ignore_patterns("saves", "editor"))
         path = package / "rules" / "ruleset.json"
         rules = json.loads(path.read_text(encoding="utf-8"))

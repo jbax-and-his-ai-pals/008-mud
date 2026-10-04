@@ -8,6 +8,9 @@ from typing import cast, List, Any
 # Get the absolute path to the project root (one level up from tests/)
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 FANTASY_FRONTIER = os.path.abspath(os.path.join(PROJECT_ROOT, '..', 'content_sets', 'fantasy_frontier'))
+# A frozen copy of the FF4 slice for tests of engine features (see tests/sets/README.md): the real set is free to change.
+from pathlib import Path as _Path
+STORY_FIXTURE = _Path(PROJECT_ROOT) / 'tests' / 'sets' / 'story_fixture'
 
 # Insert root into sys.path so we can import 'engine'
 if PROJECT_ROOT not in sys.path:

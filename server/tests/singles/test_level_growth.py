@@ -11,8 +11,10 @@ from pathlib import Path
 from engine.core import level_growth
 from engine.server.headless_server import HeadlessServer
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
-FF4 = REPO_ROOT / "content_sets" / "ff4_slice"
+FF4 = STORY_FIXTURE   # a frozen copy: these are engine features, not the story
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 
 
@@ -86,7 +88,7 @@ class TestTheValidator(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
-        self.package = self.tmp / "ff4_slice"
+        self.package = self.tmp / "story_fixture"
         shutil.copytree(FF4, self.package, ignore=shutil.ignore_patterns("saves", "editor"))
 
     def errors_with(self, level_up):

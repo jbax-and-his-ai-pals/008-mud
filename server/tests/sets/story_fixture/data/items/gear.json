@@ -1,0 +1,39 @@
+{
+    "item_dark_blade": {
+        "type": "Weapon",
+        "name": "dark blade",
+        "description": "A black-steeled sword that drinks the light around it.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "damage": 14,
+            "weapon_damage_type": "slashing",
+            "durability": 80,
+            "max_durability": 80,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "attack_profile": "melee_blade",
+        "item_family": "weapon"
+    },
+    "item_dark_armor": {
+        "type": "Armor",
+        "name": "dark armor",
+        "description": "Plate the colour of a moonless night.",
+        "weight": 8,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 6,
+            "armor_material": "steel",
+            "durability": 80,
+            "max_durability": 80,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    }
+}

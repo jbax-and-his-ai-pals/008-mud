@@ -5,7 +5,7 @@ The Godot client has behaviour no Python test can see: text revealed a few chara
 at a time, panels dragged between docks, bars that drain, links that send commands. Those
 used to be checked by hand, or by throwaway scripts. Each `client/tests/*_smoke.gd` here
 boots the real client scene headlessly, connected to a real `poc_ws_server.py` playing
-`ff4_slice` in memory, and prints `ok`/`FAIL` lines; this runner starts a fresh server per
+the story fixture in memory, and prints `ok`/`FAIL` lines; this runner starts a fresh server per
 check (so no check inherits another's world), runs them, and reports.
 
     python3 run_client_checks.py
@@ -36,7 +36,8 @@ from run_editor_checks import find_godot
 REPO_ROOT = Path(__file__).resolve().parent
 CLIENT_ROOT = REPO_ROOT / "client"
 TESTS_DIR = CLIENT_ROOT / "tests"
-CONTENT_SET = REPO_ROOT / "content_sets" / "ff4_slice"
+# A frozen copy of the FF4 slice (server/tests/sets/README.md): the checks are of the client, not of the story, so the story is free to change.
+CONTENT_SET = REPO_ROOT / "server" / "tests" / "sets" / "story_fixture"
 TIMEOUT_SECONDS = 120
 
 

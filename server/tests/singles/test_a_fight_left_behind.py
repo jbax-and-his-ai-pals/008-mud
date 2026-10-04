@@ -14,13 +14,15 @@ from engine.core.skill_system import SkillSystem
 from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
 class TestAFightLeftBehind(unittest.TestCase):
     def setUp(self):
         self.server = HeadlessServer(
-            db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / "ff4_slice"),
+            db_path=":memory:", content_set_path=str(STORY_FIXTURE),
             deterministic_test_mode=True, default_presentation_mode="player",
         )
         self.addCleanup(self.server.shutdown)

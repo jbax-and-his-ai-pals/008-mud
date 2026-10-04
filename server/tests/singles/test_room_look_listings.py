@@ -14,13 +14,15 @@ from pathlib import Path
 
 from engine.server.headless_server import HeadlessServer
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 
 
 def _boot(set_id):
     server = HeadlessServer(
-        db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / set_id),
+        db_path=":memory:", content_set_path=str(STORY_FIXTURE if set_id == "story_fixture" else REPO_ROOT / "content_sets" / set_id),
         deterministic_test_mode=True, default_presentation_mode="player",
     )
     sid = server.create_session(player_id="look").session_id
@@ -42,7 +44,7 @@ class TestLookListings(unittest.TestCase):
             self.assertNotIn(empty, said, "the starting meadow has no one and nothing in it")
 
     def test_a_listing_with_someone_in_it_is_shown_once_and_alone(self):
-        server, sid, _events = _boot("ff4_slice")
+        server, sid, _events = _boot("story_fixture")
         self.addCleanup(server.shutdown)
         said = "\n".join(_text(server.execute_command(sid, "look")))
         self.assertIn("People here: King Aldous", said)
@@ -52,7 +54,7 @@ class TestLookListings(unittest.TestCase):
         self.assertRegex(said, r"Exits: [^\n]*\n\nPeople here", "set apart from the exits by a blank line")
 
     def test_later_listings_follow_on_the_next_line(self):
-        server, sid, _events = _boot("ff4_slice")
+        server, sid, _events = _boot("story_fixture")
         self.addCleanup(server.shutdown)
         player = server.get_player_for_session(sid)
         player.current_region_id, player.current_room_id = "road", "castle_road"
@@ -63,7 +65,7 @@ class TestLookListings(unittest.TestCase):
         self.assertRegex(said, r"Exits: [^\n]*\n\nHostiles", "the first listing, whichever it is, gets the blank line")
 
     def test_a_new_characters_room_is_set_apart_from_their_intro(self):
-        server, _sid, events = _boot("ff4_slice")
+        server, _sid, events = _boot("story_fixture")
         self.addCleanup(server.shutdown)
         raw = [str(e["payload"]) for e in events if e["type"] == "text"]
         look = next(t for t in raw if "[VARENHOLT - THRONE ROOM]" in _MARKUP.sub("", t).upper())
@@ -72,7 +74,7 @@ class TestLookListings(unittest.TestCase):
 
 class TestWordingAndSpacing(unittest.TestCase):
     def test_a_name_that_carries_its_article_does_not_get_another(self):
-        server, sid, _events = _boot("ff4_slice")
+        server, sid, _events = _boot("story_fixture")
         self.addCleanup(server.shutdown)
         player = server.get_player_for_session(sid)
         player.current_region_id, player.current_room_id = "varenholt", "stores"
@@ -82,7 +84,7 @@ class TestWordingAndSpacing(unittest.TestCase):
         self.assertNotIn("a the", said)
 
     def test_looking_at_a_thing_whose_name_has_an_article_does_not_double_it(self):
-        server, sid, _events = _boot("ff4_slice")
+        server, sid, _events = _boot("story_fixture")
         self.addCleanup(server.shutdown)
         next(n for n in server.world.npcs.values() if n.template_id == "chancellor").name = "the chancellor"
         said = "\n".join(_text(server.execute_command(sid, "look the chancellor")))
@@ -95,7 +97,7 @@ class TestWordingAndSpacing(unittest.TestCase):
         self.assertEqual("\nThe sun rises.", _passive("The sun rises."))
 
     def test_the_rewards_for_a_kill_are_a_block_under_the_blow(self):
-        server, sid, _events = _boot("ff4_slice")
+        server, sid, _events = _boot("story_fixture")
         self.addCleanup(server.shutdown)
         player = server.get_player_for_session(sid)
         player.current_region_id, player.current_room_id = "road", "castle_road"

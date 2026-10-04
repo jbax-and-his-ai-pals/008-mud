@@ -118,6 +118,25 @@ gone (nothing restores a pool he does not have); the cave chest holds potions in
 (about 26 after the drake's resistances), cast while his health is above 30%, a potion
 below 45%.
 
+## Rewriting the FF4 story
+
+The slice is content only: sixty-one JSON files, no code. Nothing in `server/engine`, `client/` or `mud-world-editor/` names one of its
+rooms, characters, quests or flags (checked by scanning every id the set owns), and every key the set uses is read by the engine. The
+story can be rewritten without touching the engine.
+
+What a rewrite will touch, and what it will not:
+
+* **Pinned to the real set, meant to change with it.** `test_adaptation_slices.py` (journeys through both slices),
+  `test_slice_geography.py`, `test_every_enemy_pays.py`, the story classes of `test_story_beats.py` (the drake fight, the package, Ryn), the
+  content gates and `walk_ff4.py`. Rewriting the story means updating these, deliberately.
+* **Not pinned.** Every test of an engine feature (kill credit, level growth, messages, quest-text pace, scene resume, panels,
+  conversations that must be answered, health-cost abilities, the client checks and the editor's story-field checks) runs on
+  `server/tests/sets/story_fixture`, a frozen copy of the slice (`server/tests/sets/README.md`). `test_story_fixture.py` keeps it valid and
+  fails any new test that boots `ff4_slice` to check an engine feature.
+* **Needing a new engine feature.** If a story beat cannot be said in the existing declarations (`ready_text`, `spawn_on_start.intro`,
+  conversation `entries`, `ruleset.messages`, `advancement.level_up`, ...), add the feature to the engine, with its validator, editor field,
+  docs and a test on the fixture. Do not special-case the set.
+
 ## What would make this wrong
 
 Two slices are not two games. Tuning here is mine: weapon and boss numbers were set

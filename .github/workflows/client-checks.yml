@@ -3,7 +3,7 @@ name: Client checks
 # The Godot client has behaviour no Python test can see: story text typed out a few
 # characters at a time, panels dragged between docks, bars that drain, links that send
 # commands. `run_client_checks.py` boots the real client scene headlessly against a real
-# server (ff4_slice, in memory) and runs the checks under `client/tests/`.
+# server (the frozen story fixture, in memory) and runs the checks under `client/tests/`.
 #
 # Godot is not vendored, so it is downloaded here, at the same pinned version as the editor.
 

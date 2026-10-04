@@ -1,0 +1,82 @@
+{
+    "quest_deliver_package": {
+        "title": "The King's Package",
+        "type": "quest",
+        "description": "Carry the king's sealed package over the mountain to the mayor of Mistvale.",
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Deliver the sealed package to the mayor of Mistvale.",
+                "objective": {
+                    "type": "deliver",
+                    "item_template_id": "item_sealed_package",
+                    "item_to_deliver_name": "Sealed Package",
+                    "item_instance_id": "package_of_the_king",
+                    "item_to_deliver_description": "A small package bound in red wax. It is heavier than it looks.",
+                    "recipient_template_id": "mayor_of_mistvale",
+                    "recipient_name": "mayor of Mistvale"
+                },
+                "turn_in_id": "mayor_of_mistvale",
+                "start_dialogue": "You are handed a heavy little package, bound in red wax.",
+                "completion_narration": "The mayor takes the package, and something in it begins to hum."
+            }
+        ],
+        "rewards": {
+            "xp": 120,
+            "gold": 50
+        }
+    },
+    "quest_fog_drake": {
+        "title": "The Fog Drake",
+        "type": "quest",
+        "description": "The king's package woke the fog that has hung over Mistvale, and it has taken the shape of a dragon. End it.",
+        "stages": [
+            {
+                "stage_index": 0,
+                "description": "Defeat the Fog Drake in Mistvale.",
+                "spawn_on_start": {
+                    "template_id": "fog_drake",
+                    "region_id": "mistvale",
+                    "room_id": "village_square",
+                    "name_override": "Fog Drake",
+                    "intro": [
+                        {
+                            "after": 3,
+                            "text": "The hum climbs into a thin whine, and the mayor lets the package fall.",
+                            "pace": "slow"
+                        },
+                        {
+                            "after": 2.5,
+                            "text": "The fog that has always hung over the village pulls toward the broken wax, thread by thread, and thickens as it comes.",
+                            "pace": "slow"
+                        },
+                        {
+                            "after": 2.5,
+                            "text": "Something vast turns over inside it. The whole square holds its breath.",
+                            "pace": "slow"
+                        },
+                        {
+                            "after": 2.5,
+                            "text": "A Fog Drake uncoils from the mist, and looks at you.",
+                            "pace": "slow"
+                        }
+                    ]
+                },
+                "objective": {
+                    "type": "kill",
+                    "target_template_id": "fog_drake",
+                    "target_name": "Fog Drake",
+                    "required_quantity": 1,
+                    "current_quantity": 0
+                },
+                "turn_in_id": "ryn",
+                "ready_text": "The mayor will know where to send you next.",
+                "completion_dialogue": "The fog thins. Somewhere in the village, a child begins to cry."
+            }
+        ],
+        "rewards": {
+            "xp": 500,
+            "gold": 150
+        }
+    }
+}

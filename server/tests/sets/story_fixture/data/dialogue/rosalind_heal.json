@@ -1,0 +1,60 @@
+{
+    "id": "rosalind_heal",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "You look tired. Sit, and let me look at you.",
+            "choices": [
+                {
+                    "text": "Tend my wounds.",
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "item_commander_seal"
+                    },
+                    "next_node": "tended",
+                    "effects": {
+                        "restore": {
+                            "resource": "all",
+                            "companions": true
+                        },
+                        "message": "Rosalind's hands are cool and quick. \"Fleet business is never charged,\" she says, and whatever hurt you carried eases."
+                    }
+                },
+                {
+                    "text": "Tend my wounds. (30 gil)",
+                    "condition": {
+                        "all": [
+                            {
+                                "not": {
+                                    "kind": "has_item",
+                                    "item_id": "item_commander_seal"
+                                }
+                            },
+                            {
+                                "kind": "gold_at_least",
+                                "value": 30
+                            }
+                        ]
+                    },
+                    "next_node": "tended",
+                    "effects": {
+                        "take_gold": 30,
+                        "restore": {
+                            "resource": "all",
+                            "companions": true
+                        },
+                        "message": "Rosalind takes the coins without comment. Her hands are cool and quick, and whatever hurt you carried eases."
+                    }
+                },
+                {
+                    "text": "Another time.",
+                    "end": true
+                }
+            ]
+        },
+        "tended": {
+            "text": "Go carefully. The road is not kind to anyone.",
+            "end": true
+        }
+    }
+}

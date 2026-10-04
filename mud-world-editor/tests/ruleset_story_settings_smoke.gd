@@ -7,7 +7,7 @@
 #   * what a level brings (`advancement.level_up`: stat_growth, health_base).
 #
 # Opening the dialog and saving writes nothing; a change lands in the ruleset as the engine reads it; and
-# the engine's own validator accepts what was saved. ff4_slice is the fixture.
+# the engine's own validator accepts what was saved. the story fixture (a frozen copy of the FF4 slice) is the fixture.
 #
 #   godot --headless --path mud-world-editor --script tests/ruleset_story_settings_smoke.gd
 
@@ -23,8 +23,8 @@ func _init(): _run.call_deferred()
 
 func _run():
 	var repo := ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir()
-	var fixture := repo.path_join("tmp/ruleset-story-%s/ff4_slice" % Time.get_ticks_usec())
-	_copy(repo.path_join("content_sets/ff4_slice"), fixture)
+	var fixture := repo.path_join("tmp/ruleset-story-%s/story_fixture" % Time.get_ticks_usec())
+	_copy(repo.path_join("server/tests/sets/story_fixture"), fixture)
 	DataRoot._resolved = fixture
 	var rules_path := fixture.path_join("rules/ruleset.json")
 	var original := FileAccess.get_file_as_string(rules_path)

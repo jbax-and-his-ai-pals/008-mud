@@ -14,13 +14,15 @@ from pathlib import Path
 from engine.items.item_factory import ItemFactory
 from engine.server.headless_server import HeadlessServer
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
 
 
-def _boot(set_id="ff4_slice"):
+def _boot(set_id="story_fixture"):
     return HeadlessServer(
-        db_path=":memory:", content_set_path=str(REPO_ROOT / "content_sets" / set_id),
+        db_path=":memory:", content_set_path=str(STORY_FIXTURE if set_id == "story_fixture" else REPO_ROOT / "content_sets" / set_id),
         deterministic_test_mode=True, default_presentation_mode="player",
     )
 

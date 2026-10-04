@@ -15,8 +15,10 @@ from engine.server.headless_server import HeadlessServer
 from engine.server.server_config import resolve_server_settings
 from engine.utils import pacing
 
+from tests.fixtures import STORY_FIXTURE
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
-FF4 = REPO_ROOT / "content_sets" / "ff4_slice"
+FF4 = STORY_FIXTURE   # a frozen copy: these are engine features, not the story
 
 
 class TestWhichPaceWins(unittest.TestCase):
@@ -41,7 +43,7 @@ class _Set:
     def __init__(self, case, presentation_pace=None):
         tmp = Path(tempfile.mkdtemp())
         case.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
-        self.package = tmp / "ff4_slice"
+        self.package = tmp / "story_fixture"
         shutil.copytree(FF4, self.package, ignore=shutil.ignore_patterns("saves", "editor"))
         if presentation_pace is not None:
             path = self.package / "presentation" / "default.json"

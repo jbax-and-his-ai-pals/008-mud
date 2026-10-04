@@ -80,7 +80,7 @@ Supported optional `icon_tokens` keys:
 `run_client_checks.py` (repository root) boots this client headlessly against a real server and runs every
 `client/tests/*_smoke.gd`: the markup the server writes, the typed-out story text, panels and drag-and-drop,
 cooldown bars, clickable links, and the command line's focus. Each check starts its own in-memory
-`ff4_slice` server and points Godot's per-user folder at a temporary directory, so it never reads or
+story-fixture server (a frozen copy of the FF4 slice, `server/tests/sets/`) and points Godot's per-user folder at a temporary directory, so it never reads or
 writes a real player's settings.
 
 ```powershell

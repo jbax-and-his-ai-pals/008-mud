@@ -1,0 +1,26 @@
+{
+    "_guilds": {
+        "order_of_dawn": {
+            "name": "The Order of the Dawn",
+            "place": "varenholt:chapel"
+        }
+    },
+    "paladin": {
+        "name": "Paladin",
+        "description": "You put down the dark blade's hunger and took up the light instead.",
+        "conferred_by": {
+            "name": "The Order of the Dawn",
+            "guild_id": "order_of_dawn"
+        },
+        "condition": {
+            "kind": "flag",
+            "flag": "questioned_king"
+        },
+        "requirements": [
+            {
+                "kind": "quest_completed",
+                "quest_id": "quest_fog_drake"
+            }
+        ]
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "throne_court": {
+        "on": {
+            "event": "on_enter",
+            "region": "varenholt",
+            "room": "throne_room"
+        },
+        "once": "player",
+        "effects": {
+            "message": "The banners hang motionless. Nobody near the king meets your eye, and the chancellor smiles as if he had been waiting for you."
+        }
+    },
+    "fog_ambush": {
+        "on": {
+            "event": "on_enter",
+            "region": "fogreach",
+            "room": "entry"
+        },
+        "once": "world",
+        "effects": {
+            "message": "Fog rolls out of the cave mouth in a slow wave, and something small and red grins in it.",
+            "spawn_npc": {
+                "npc": "cave_imp",
+                "region": "fogreach",
+                "room": "entry",
+                "instance_id": "imp_ambush"
+            }
+        }
+    },
+    "drake_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "fog_drake"
+        },
+        "once": "world",
+        "effects": {
+            "message": "The Fog Drake unravels into grey ribbons and the whole square exhales. Somewhere far off, a bell begins to ring.",
+            "set_flag": "drake_slain"
+        }
+    }
+}
