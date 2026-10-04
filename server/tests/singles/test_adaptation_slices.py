@@ -635,11 +635,11 @@ class TestFF4Slice(_Slice):
         self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
         said = self.say("talk mayor")
         self.assertIn("the moment that package opened it woke", said)
-        self.assertIn("find Ryn at the shrine", said, "so that Ryn is a name you know before you are told to report to her")
+        self.assertIn("find Ryn, the shrine-keeper", said, "so that Ryn is a name you know before you are told to report to her")
         self.player.flags["drake_slain"] = True
         said = self.say("talk mayor")
         self.assertIn("It is dead", said)
-        self.assertIn("speak with Ryn", said)
+        self.assertIn("Speak with Ryn", said)
 
     def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
         self.at("hazevale", "inn")

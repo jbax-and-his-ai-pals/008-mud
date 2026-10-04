@@ -374,7 +374,6 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `properties.pacifist: true` | an NPC | Never fights back and never starts a fight: it can be attacked and killed, and it does not retaliate. |
 | `ruleset.factions.enmities` | the ruleset | `[{"faction": "red_fleet", "against": "ilmaran"}]`: the first faction attacks the second on sight, without either turning on the player. One way; list the pair both ways for a mutual fight. Both must be declared (`factions.extra` or an engine faction). |
 | `{"kind": "npc_present", "npc_id": ..., "region_id", "room_id"}` | a condition | A living NPC of that template (or placed id), anywhere or in the room named (region and room together). `{"not": ...}` of it is "the last one is gone". |
-| `{"kind": "npc_here", "npc_id": ...}` | a condition | A living NPC of that template (or placed id) in the room the player is in now: a line can say "go and see her" only when she is not already beside the player. |
 
 **Scenes.** A scene is something the player watches: beats told a moment apart, with things happening between them.
 `data/scenes/*.json` holds them (each file an object of scenes keyed by id):
