@@ -6,6 +6,7 @@ bug report rather than a sign of progress.
 
 | Document | Serves | State |
 |---|---|---|
+| [`ENGINE_CHANGE_RECIPES.md`](ENGINE_CHANGE_RECIPES.md) | contributors | Current: the chain of files for each kind of engine change (an effect, a condition, a trigger event, a ruleset key, a new kind of content) and the tools for changing a shipped story |
 | [`PLAYER_MANUAL.md`](PLAYER_MANUAL.md) | players | **Needs an audit.** It tells players to type `titles`; the command is `title` (§429, §621). See Phase 4 of the integrated roadmap |
 | [`server-operator-guide.md`](server-operator-guide.md) | operators | Has 13 `C:/python/old/restart/` paths in backslash form and predates the operations doc that should replace it |
 | [`boot-warning-codes.md`](boot-warning-codes.md) | operators | **Wrong in four places.** Lists codes that do not exist; the engine emits different names. Operators paste these into `fail_on_warning_codes`, where a wrong code fails *silently* |
