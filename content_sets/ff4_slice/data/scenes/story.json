@@ -214,7 +214,23 @@
             },
             {
                 "after": 4.5,
-                "text": "He walks beside you through the gate and across the courtyard, a half step too close, remarking on the weather. The guards on the stairs do not meet your eye.",
+                "text": "He turns toward the castle, and you fall in beside him: through the gate and into the courtyard.",
+                "pace": "slow",
+                "effects": {
+                    "move_npc": {
+                        "npc": "chancellor",
+                        "region": "varenholt",
+                        "room": "courtyard"
+                    },
+                    "teleport": {
+                        "region": "varenholt",
+                        "room": "courtyard"
+                    }
+                }
+            },
+            {
+                "after": 5,
+                "text": "He walks beside you across the courtyard, a half step too close, remarking on the weather. The guards on the stairs do not meet your eye.",
                 "pace": "slow"
             },
             {
