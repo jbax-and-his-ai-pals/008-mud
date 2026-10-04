@@ -17,7 +17,7 @@ extends SceneTree
 const DIALOGUE := "ryn_summoner"
 const CAMPAIGN := "the_package"
 const QUEST := "quest_fog_drake"
-const NPC := "titan_minion"
+const NPC := "colossus_minion"
 
 var failures := 0
 var fixture := ""
@@ -201,7 +201,7 @@ func _arrival_beats() -> void:
 	_assert(not spawn["intro"][0].has("pace"), "Instant erases a beat's pace")
 
 	# editing the raw line must not lose the beats
-	var typed := JSON.stringify({"template_id": "fog_drake", "region_id": "mistvale", "room_id": "village_square", "name_override": "Mist Drake"})
+	var typed := JSON.stringify({"template_id": "fog_drake", "region_id": "hazevale", "room_id": "village_square", "name_override": "Mist Drake"})
 	line.text = typed; line.text_changed.emit(typed)
 	_assert(spawn != stage["spawn_on_start"] and stage["spawn_on_start"].get("name_override") == "Mist Drake" and stage["spawn_on_start"].get("intro") is Array,
 		"editing the spawn line keeps the beats")
@@ -239,11 +239,11 @@ func _departure_line() -> void:
 	var holder := _open_npc(manager)
 	var field: LineEdit = holder.find_child("DespawnMessage", true, false)
 	_assert(field != null and field.text == str(properties["despawn_message"]), "the field shows the line the file has")
-	field.text = "The Titan returns below."; field.text_changed.emit("The Titan returns below.")
-	_assert(properties["despawn_message"] == "The Titan returns below.", "editing it is written")
+	field.text = "The Colossus returns below."; field.text_changed.emit("The Colossus returns below.")
+	_assert(properties["despawn_message"] == "The Colossus returns below.", "editing it is written")
 	field.text = ""; field.text_changed.emit("")
 	_assert(not properties.has("despawn_message"), "clearing it erases the key (the engine's own line applies)")
-	field.text = "The Titan sinks back into the earth."; field.text_changed.emit(field.text)
+	field.text = "The Colossus sinks back into the earth."; field.text_changed.emit(field.text)
 	manager.mark_dirty("npc", NPC)
 	_assert(manager.save_all().get("ok", false), "the edited creature saves")
 

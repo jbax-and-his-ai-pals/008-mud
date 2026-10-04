@@ -14,7 +14,7 @@
     },
     "start": {
         "scenario_id": "the_water_crystal",
-        "region_id": "mysidia",
+        "region_id": "ilmara",
         "room_id": "crystal_chamber"
     },
     "capabilities": [

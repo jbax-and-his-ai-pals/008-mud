@@ -34,7 +34,7 @@ class _Game:
             original = self.world.ruleset_section
             self.world.ruleset_section = lambda name: dict(say) if name == "messages" else original(name)
         self.sid = self.server.create_session(player_id="hero").session_id
-        self.server.execute_command(self.sid, "char create Cecil")
+        self.server.execute_command(self.sid, "char create Aldric")
         self.player = self.server.get_player_for_session(self.sid)
 
     def run(self, command):
@@ -86,7 +86,7 @@ class TestASetSaysItsOwn(unittest.TestCase):
         goblin.health = 1
         for _ in range(40):
             game.server.tick(game.sid)
-        said = game.run("cast dark wave")
+        said = game.run("cast gloom wave")
         self.assertRegex(said, r"\d+ experience earned\.")
         self.assertRegex(said, r"\d+ gil found\.")
         self.assertNotIn("You gain", said)
@@ -137,12 +137,12 @@ class TestASetSaysItsOwn(unittest.TestCase):
         from engine.core.quests.closing import completion_report
 
         game = _Game(self, {"summon_departs": "{name} fades.", "quest_complete": "Done: {title}"})
-        titan = NPCFactory.create_npc_from_template("skeleton_minion", game.world, instance_id="leaver") if False else None
-        for template in ("titan_minion",):
-            titan = NPCFactory.create_npc_from_template(template, game.world, instance_id="leaver")
-        titan.properties["is_summoned"] = True
-        titan.properties.pop("despawn_message", None)
-        self.assertEqual("Titan fades.", titan.despawn(game.world, silent=False))
+        colossus = NPCFactory.create_npc_from_template("skeleton_minion", game.world, instance_id="leaver") if False else None
+        for template in ("colossus_minion",):
+            colossus = NPCFactory.create_npc_from_template(template, game.world, instance_id="leaver")
+        colossus.properties["is_summoned"] = True
+        colossus.properties.pop("despawn_message", None)
+        self.assertEqual("Colossus fades.", colossus.despawn(game.world, silent=False))
         self.assertIn("Done: The Fog Drake", _plain(completion_report("The Fog Drake", "", "", game.world)))
         self.assertIn("[Quest Complete] The Fog Drake", _plain(completion_report("The Fog Drake")), "and without a world, the engine's own words")
 

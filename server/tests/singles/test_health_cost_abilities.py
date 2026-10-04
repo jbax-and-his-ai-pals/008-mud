@@ -2,7 +2,7 @@
 """An ability can cost a part of the caster's health, a set can have no ability pool at all, and an
 ability can hit every enemy in the room.
 
-Cecil's Dark Wave in `ff4_slice` is all three: it costs an eighth of his maximum health, he starts
+Aldric's Gloom Wave in `ff4_slice` is all three: it costs an eighth of his maximum health, he starts
 with 0 mana (and levelling does not give him any), and it breaks over every hostile in the room.
 """
 
@@ -35,7 +35,7 @@ class TestDarkWave(unittest.TestCase):
         )
         self.addCleanup(self.server.shutdown)
         self.sid = self.server.create_session(player_id="dw").session_id
-        self.server.execute_command(self.sid, "char create Cecil")
+        self.server.execute_command(self.sid, "char create Aldric")
         self.player = self.server.get_player_for_session(self.sid)
         self.player.current_region_id, self.player.current_room_id = "road", "castle_road"
 
@@ -49,7 +49,7 @@ class TestDarkWave(unittest.TestCase):
             made.append(goblin)
         return made
 
-    def test_cecil_starts_with_no_mana_and_levelling_does_not_give_him_any(self):
+    def test_aldric_starts_with_no_mana_and_levelling_does_not_give_him_any(self):
         magic = self.player.runtime_state.magic
         self.assertEqual((0, 0), (magic.mana, magic.max_mana))
         self.player.gain_experience(10_000)
@@ -60,14 +60,14 @@ class TestDarkWave(unittest.TestCase):
     def test_the_cast_costs_an_eighth_of_his_health_and_no_mana(self):
         self.goblins(1)
         before = self.player.health
-        said = _text(self.server.execute_command(self.sid, "cast dark wave"))
+        said = _text(self.server.execute_command(self.sid, "cast gloom wave"))
         self.assertIn("looses a wave of shadow", said)
         self.assertEqual(before - 13, self.player.health, "an eighth of 100, rounded")
         self.assertEqual(0, self.player.runtime_state.magic.mana)
 
     def test_it_hits_every_enemy_in_the_room(self):
         crowd = self.goblins(3)
-        self.server.execute_command(self.sid, "cast dark wave")
+        self.server.execute_command(self.sid, "cast gloom wave")
         self.assertTrue(all(g.health < 200 for g in crowd), [g.health for g in crowd])
 
     def test_it_will_not_take_the_last_of_his_health(self):
@@ -76,14 +76,14 @@ class TestDarkWave(unittest.TestCase):
         self.goblins(1)
         self.player.health = 10
         # straight at the cast, so no round of combat can touch his health in between
-        result = self.player.cast_spell(get_spell("dark_wave"), None, self.server.world.clock.now(), self.server.world)
+        result = self.player.cast_spell(get_spell("gloom_wave"), None, self.server.world.clock.now(), self.server.world)
         self.assertFalse(result["success"])
         self.assertIn("would cost you 13 health", _MARKUP.sub("", result["message"]))
         self.assertEqual(10, self.player.health, "a refused cast costs nothing")
 
     def test_the_listing_and_details_say_what_it_costs(self):
-        self.assertIn("Dark Wave: 1/8 HP", _text(self.server.execute_command(self.sid, "abilities")))
-        details = _text(self.server.execute_command(self.sid, "abilities dark wave"))
+        self.assertIn("Gloom Wave: 1/8 HP", _text(self.server.execute_command(self.sid, "abilities")))
+        details = _text(self.server.execute_command(self.sid, "abilities gloom wave"))
         self.assertIn("Health Cost: 1/8 HP of your maximum", details)
         self.assertIn("All enemies", details)
 
@@ -109,7 +109,7 @@ class TestTheValidatorRefusesBadValues(unittest.TestCase):
     def edit_spell(self, **changes):
         path = self.package / "data" / "magic" / "slice_spells.json"
         spells = json.loads(path.read_text(encoding="utf-8"))
-        spells["dark_wave"].update(changes)
+        spells["gloom_wave"].update(changes)
         path.write_text(json.dumps(spells, indent=4), encoding="utf-8")
 
     def test_the_shipped_set_is_clean(self):

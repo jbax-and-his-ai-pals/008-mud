@@ -70,7 +70,7 @@ def _run(server, sid, seconds):
     return NL.join(told)
 
 
-def _hero(server, name="Cecil"):
+def _hero(server, name="Aldric"):
     sid = server.create_session(player_id="hero").session_id
     created = server.execute_command(sid, "char create %s" % name)
     return sid, server.get_player_for_session(sid), created
@@ -181,7 +181,7 @@ class TestASceneSurvivesARestart(unittest.TestCase):
         second = HeadlessServer(db_path=db, content_set_path=str(package.package), deterministic_test_mode=True, default_presentation_mode="player")
         self.addCleanup(second.shutdown)
         sid2 = second.create_session(player_id="hero").session_id
-        second.execute_command(sid2, "char create Cecil")
+        second.execute_command(sid2, "char create Aldric")
         player2 = second.get_player_for_session(sid2)
         told = _plain(_run(second, sid2, 8))
         self.assertIn("A third.", told)

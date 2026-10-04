@@ -1,12 +1,12 @@
 {
-    "id": "mysidia_elder",
+    "id": "ilmara_elder",
     "root": "greeting",
     "entries": [
         {
             "node": "after",
             "condition": {
                 "kind": "has_item",
-                "item_id": "item_mysidian_crystal"
+                "item_id": "item_ilmaran_crystal"
             }
         }
     ],

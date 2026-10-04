@@ -2,21 +2,21 @@
     "quest_deliver_package": {
         "title": "The King's Package",
         "type": "quest",
-        "description": "Carry the king's sealed package over the mountain to the mayor of Mistvale.",
+        "description": "Carry the king's sealed package over the mountain to the mayor of Hazevale.",
         "stages": [
             {
                 "stage_index": 0,
-                "description": "Deliver the sealed package to the mayor of Mistvale.",
+                "description": "Deliver the sealed package to the mayor of Hazevale.",
                 "objective": {
                     "type": "deliver",
                     "item_template_id": "item_sealed_package",
                     "item_to_deliver_name": "Sealed Package",
                     "item_instance_id": "package_of_the_king",
                     "item_to_deliver_description": "A small package bound in red wax. It is heavier than it looks.",
-                    "recipient_template_id": "mayor_of_mistvale",
-                    "recipient_name": "mayor of Mistvale"
+                    "recipient_template_id": "mayor_of_hazevale",
+                    "recipient_name": "mayor of Hazevale"
                 },
-                "turn_in_id": "mayor_of_mistvale",
+                "turn_in_id": "mayor_of_hazevale",
                 "start_dialogue": "You are handed a heavy little package, bound in red wax.",
                 "completion_narration": "The mayor takes the package, and something in it begins to hum."
             }
@@ -29,14 +29,14 @@
     "quest_fog_drake": {
         "title": "The Fog Drake",
         "type": "quest",
-        "description": "The king's package woke the fog that has hung over Mistvale, and it has taken the shape of a dragon. End it.",
+        "description": "The king's package woke the fog that has hung over Hazevale, and it has taken the shape of a dragon. End it.",
         "stages": [
             {
                 "stage_index": 0,
-                "description": "Defeat the Fog Drake in Mistvale.",
+                "description": "Defeat the Fog Drake in Hazevale.",
                 "spawn_on_start": {
                     "template_id": "fog_drake",
-                    "region_id": "mistvale",
+                    "region_id": "hazevale",
                     "room_id": "village_square",
                     "name_override": "Fog Drake",
                     "intro": [

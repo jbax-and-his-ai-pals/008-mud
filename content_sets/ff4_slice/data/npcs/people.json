@@ -89,8 +89,8 @@
             "unique": true
         }
     },
-    "mayor_of_mistvale": {
-        "name": "mayor of Mistvale",
+    "mayor_of_hazevale": {
+        "name": "mayor of Hazevale",
         "description": "A soft-spoken man in a village chain of office.",
         "health": 60,
         "level": 3,
@@ -181,8 +181,8 @@
             "move_cooldown": 9999
         }
     },
-    "elder_of_mysidia": {
-        "name": "elder of Mysidia",
+    "elder_of_ilmara": {
+        "name": "elder of Ilmara",
         "description": "An old man in pale robes, one hand flat on the altar as if he were steadying it, or himself.",
         "health": 40,
         "max_health": 40,
@@ -196,13 +196,13 @@
         "properties": {
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "dialogue": "mysidia_elder",
+            "dialogue": "ilmara_elder",
             "essential": true,
             "unique": true
         }
     },
-    "mysidian_acolyte": {
-        "name": "Mysidian acolyte",
+    "ilmaran_acolyte": {
+        "name": "Ilmaran acolyte",
         "description": "A young mystic in pale robes, with nothing in their hands but a little light.",
         "health": 20,
         "max_health": 20,

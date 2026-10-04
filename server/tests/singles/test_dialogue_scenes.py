@@ -31,7 +31,7 @@ class _Game:
         )
         case.addCleanup(self.server.shutdown)
         self.sid = self.server.create_session(player_id="scene").session_id
-        self.server.execute_command(self.sid, "char create Cecil")
+        self.server.execute_command(self.sid, "char create Aldric")
         self.player = self.server.get_player_for_session(self.sid)
 
     def say(self, command):
@@ -58,7 +58,7 @@ class TestTheKingInsistsOnAnAnswer(unittest.TestCase):
         self.assertEqual("varenholt:throne_room", self.game.where())
 
     def test_acting_on_the_world_is_refused(self):
-        for command in ("attack king", "cast dark wave", "drop dark blade", "use potion"):
+        for command in ("attack king", "cast gloom wave", "drop dark blade", "use potion"):
             self.assertIn("awaits your answer", self.game.say(command), command)
 
     def test_reading_is_allowed(self):

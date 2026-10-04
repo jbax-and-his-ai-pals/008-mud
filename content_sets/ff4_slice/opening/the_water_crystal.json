@@ -1,7 +1,7 @@
 {
     "scenario_id": "the_water_crystal",
     "heading": "The Water Crystal",
-    "intro": "You are a captain of the Red Fleet, and the Fleet has come to Mysidia for a crystal. The king wants it, and the king has never asked for anything twice. Whatever you think of the work, the sword at your hip is dark steel, and the seal on your chest is his.",
+    "intro": "You are a captain of the Red Fleet, and the Fleet has come to Ilmara for a crystal. The king wants it, and the king has never asked for anything twice. Whatever you think of the work, the sword at your hip is dark steel, and the seal on your chest is his.",
     "objectives_heading": "Your orders:",
     "objectives": [
         {
@@ -21,7 +21,7 @@
         },
         {
             "id": "ride_at_dawn",
-            "instruction": "Rest in your quarters, then leave for Mistvale with Kessa at dawn",
+            "instruction": "Rest in your quarters, then leave for Hazevale with Kessa at dawn",
             "command": "south"
         }
     ]

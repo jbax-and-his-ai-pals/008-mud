@@ -336,7 +336,7 @@ ability spends was mana, by name, everywhere.
   caster's maximum health is paid on every cast, on top of any `mana_cost`
   (rounded half up, at least 1), and a cast that would take the last of it is
   refused. The resource's `ability_noun` ("Spells") is what the client calls the
-  panel; "Abilities" otherwise. `ff4_slice` uses all three for Cecil's Dark Wave:
+  panel; "Abilities" otherwise. `ff4_slice` uses all three for Aldric's Gloom Wave:
   no mana, an eighth of his health, every enemy in the room.
 - **`abilities` is its own capability.** `magic` now means "this set's abilities
   are spells" — a flavour — and implies `abilities` for sets written before the

@@ -360,7 +360,7 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `entries` | a conversation | Alternate openings `{node, condition}`, tried in order: the first whose condition holds is what the NPC says, and the opening node is what is left. The first node's effects run when it opens. |
 | `end: true` | a conversation node | The NPC says it and the conversation is over, with no reply to click through first. |
 | `pace` | a conversation node, a campaign transition, an intro beat | How fast a client types the words out (`brisk`, `measured`, `slow`, `solemn`, or characters per second). |
-| `properties.despawn_message` | an NPC | How a summoned creature leaves ("The Titan sinks back into the earth."). |
+| `properties.despawn_message` | an NPC | How a summoned creature leaves ("The Colossus sinks back into the earth."). |
 | `properties.essential: true` | an NPC | Cannot be killed unless recruited as a companion: left on the brink instead. |
 | `properties.unique: true` | an NPC | Called "the mayor", not "a mayor". |
 
@@ -368,7 +368,7 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 `data/scenes/*.json` holds them (each file an object of scenes keyed by id):
 
 ```json
-"mysidia_falls": {
+"ilmara_falls": {
   "beats": [
     {"text": "The doors burst inward, and the soldiers pour in.", "pace": "measured"},
     {"after": 3.5, "text": "Steel rings.", "pace": "slow", "effects": {"remove_npc": "acolyte_1"}},
@@ -403,7 +403,7 @@ adds). Several levels gained at once are reported once, as the whole difference.
 (the editor shows them); a line that cannot be used leaves the engine's words in place. Colour and layout stay with
 the engine.
 
-**Naming one-of-a-kind characters.** A lowercase NPC name takes an article in the text ("a goblin", "an innkeeper"). Set `properties.unique: true` on someone who is the only one of their kind and the text says "the mayor of Mistvale" instead. The Properties section of the NPC inspector has a "Unique" box for it.
+**Naming one-of-a-kind characters.** A lowercase NPC name takes an article in the text ("a goblin", "an innkeeper"). Set `properties.unique: true` on someone who is the only one of their kind and the text says "the mayor of Hazevale" instead. The Properties section of the NPC inspector has a "Unique" box for it.
 
 **Who earns experience (and money) for a kill.** Everyone who hurt the creature earns a share, however many players
 there are and whoever struck the last blow; an ally's blows (a summon, a companion) count for its owner,

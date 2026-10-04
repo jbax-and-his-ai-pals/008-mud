@@ -332,7 +332,7 @@ class NPC(GameObject):
                         break
         if silent:
             return None
-        # `properties.despawn_message`: how this summon leaves ("The Titan sinks back into the earth.")
+        # `properties.despawn_message`: how this summon leaves ("The Colossus sinks back into the earth.")
         return str(self.properties.get("despawn_message") or message(world, "summon_departs", name=self.name))
 
     def _handle_safe_zone_regen(self, current_time: float):

@@ -77,10 +77,10 @@ func run() -> void:
 	check("and is empty and says Ready when it is done", scene.attack_bar.value == 0.0 and scene._attack_status.text == "Ready",
 		"value %.2f status %s" % [scene.attack_bar.value, scene._attack_status.text])
 
-	check("the abilities panel has a bar for Dark Wave", await until(func(): return docks._ability_rows.has("dark_wave"), 10.0))
-	docks.apply_cooldowns([{"id": "dark_wave", "duration": 2.0, "remaining": 2.0}])
+	check("the abilities panel has a bar for Gloom Wave", await until(func(): return docks._ability_rows.has("gloom_wave"), 10.0))
+	docks.apply_cooldowns([{"id": "gloom_wave", "duration": 2.0, "remaining": 2.0}])
 	await wait(0.8)
-	var row: Dictionary = docks._ability_rows["dark_wave"]
+	var row: Dictionary = docks._ability_rows["gloom_wave"]
 	check("an ability on cooldown shows a draining bar and its time", row["bar"].value > 0.0 and row["bar"].value < 1.0 and row["time"].text != "Ready",
 		"value %.2f time %s" % [row["bar"].value, row["time"].text])
 	await wait(1.6)

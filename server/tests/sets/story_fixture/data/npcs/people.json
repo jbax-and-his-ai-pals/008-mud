@@ -90,8 +90,8 @@
             "unique": true
         }
     },
-    "mayor_of_mistvale": {
-        "name": "mayor of Mistvale",
+    "mayor_of_hazevale": {
+        "name": "mayor of Hazevale",
         "description": "A soft-spoken man in a village chain of office.",
         "health": 60,
         "level": 3,

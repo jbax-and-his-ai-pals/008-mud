@@ -39,11 +39,11 @@ class _Game:
         )
         case.addCleanup(self.server.shutdown)
         self.sid = self.server.create_session(player_id="beats").session_id
-        self.server.execute_command(self.sid, "char create Cecil")
+        self.server.execute_command(self.sid, "char create Aldric")
         self.player = self.server.get_player_for_session(self.sid)
         self.world = self.server.world
         if story:
-            skip_the_ff4_opening(self.world, self.player)   # the real slice starts in Mysidia; these tests begin at the king
+            skip_the_ff4_opening(self.world, self.player)   # the real slice starts in Ilmara; these tests begin at the king
 
     def say(self, command):
         events = self.server.execute_command(self.sid, command)
@@ -78,7 +78,7 @@ class TestEssentialCharacters(unittest.TestCase):
 
     def test_the_mayor_and_the_king_are_essential_too(self):
         game = _Game(self)
-        for template in ("mayor_of_mistvale", "king_aldous"):
+        for template in ("mayor_of_hazevale", "king_aldous"):
             self.assertIs(True, game.npc(template).properties.get("essential"), template)
 
     def test_a_creature_felled_by_another_is_announced_once(self):
@@ -113,7 +113,7 @@ class TestWhatAKillSays(unittest.TestCase):
         goblin.health = 1
         for _ in range(40):
             game.server.tick(game.sid)
-        said = game.say("cast dark wave")
+        said = game.say("cast gloom wave")
         self.assertRegex(said, r"\n\nYou gain \d+ experience!\nYou find \d+ gil\.(\n\n|$)")
 
     def test_the_scene_speaks_before_the_quest_update_and_each_is_a_paragraph(self):
@@ -154,11 +154,11 @@ class TestTheDrakeFight(unittest.TestCase):
 
         game = _Game(self, story=True)
         drake = NPCFactory.create_npc_from_template("fog_drake", game.world, instance_id="test_drake")
-        drake.current_region_id, drake.current_room_id = "mistvale", "village_square"
+        drake.current_region_id, drake.current_room_id = "hazevale", "village_square"
         game.world.add_npc(drake)
-        allies = [game.npc("captain_kessa"), game.npc("innkeeper"), game.npc("mayor_of_mistvale")]
+        allies = [game.npc("captain_kessa"), game.npc("innkeeper"), game.npc("mayor_of_hazevale")]
         for ally in allies:
-            ally.current_region_id, ally.current_room_id = "mistvale", "village_square"
+            ally.current_region_id, ally.current_room_id = "hazevale", "village_square"
         start = drake.health
         for _round in range(12):
             for ally in allies:
@@ -172,14 +172,14 @@ class TestTheDrakeFight(unittest.TestCase):
         game = _Game(self, story=True)
         game.say("talk king")
         game.say("reply 1")
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         game.say("give sealed package to mayor")
         for _ in range(20):   # the drake's arrival is drawn out over a few seconds
             game.world.clock.advance(1.0)
             game.server.tick(game.sid)
         drake = game.npc("fog_drake")
         kessa = game.npc("captain_kessa")
-        kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"
+        kessa.current_region_id, kessa.current_room_id = "hazevale", "village_square"
         kessa.attack_power = 500
         kessa.attack_cooldown = 0
         kessa.combat_cooldown = 0
@@ -207,7 +207,7 @@ class TestTheDrakeFight(unittest.TestCase):
 
     def test_none_of_them_can_be_killed_by_it(self):
         game = _Game(self, story=True)
-        for template in ("captain_kessa", "innkeeper", "mayor_of_mistvale"):
+        for template in ("captain_kessa", "innkeeper", "mayor_of_hazevale"):
             npc = game.npc(template)
             npc.take_damage(10_000, "physical")
             self.assertTrue(npc.is_alive, template)
@@ -227,7 +227,7 @@ class TestAQuestCanCloseOnNarration(unittest.TestCase):
         game = _Game(self)
         game.say("talk king")
         game.say("reply 1")
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         said = game.say("give sealed package to mayor")
         self.assertIn("something in it begins to hum", said)
         self.assertNotIn('"The mayor takes the package', said)
@@ -238,7 +238,7 @@ class TestHandingOverThePackage(unittest.TestCase):
         game = _Game(self, story=True)
         game.say("talk king")
         game.say("reply 1")
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         game.server.execute_command(game.sid, "give sealed package to mayor")
         return game
 
@@ -250,7 +250,7 @@ class TestHandingOverThePackage(unittest.TestCase):
         game = _Game(self, story=True)
         game.say("talk king")
         game.say("reply 1")
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         text = self.raw(game, "give sealed package to mayor")
         self.assertIn("You have reached level 2!", text)
         self.assertIn("Stats Increased", text)
@@ -263,7 +263,7 @@ class TestHandingOverThePackage(unittest.TestCase):
         game = _Game(self, story=True)
         game.say("talk king")
         game.say("reply 1")
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         text = self.raw(game, "give sealed package to mayor")
         self.assertIn("[[PACE:40]]The package was not a gift.[[/PACE]]", text)
         self.assertIn(NL + NL + "[[PACE:40]]", text)
@@ -272,7 +272,7 @@ class TestHandingOverThePackage(unittest.TestCase):
         game = _Game(self, story=True)
         game.say("talk king")
         game.say("reply 1")
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         game.server.execute_command(game.sid, "give sealed package to mayor")
         self.assertFalse([n for n in game.world.npcs.values() if n.template_id == "fog_drake"], "not yet")
         told = []
@@ -293,12 +293,12 @@ class TestRynsConversation(unittest.TestCase):
         game = _Game(self, story=True)
         game.say("talk king")
         game.say("reply 1")
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         game.say("give sealed package to mayor")
         for _ in range(20):
             game.world.clock.advance(1.0)
             game.server.tick(game.sid)
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "shrine"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "shrine"
         return game
 
     def test_before_the_drake_she_explains_the_fog_and_sends_you_to_end_it(self):
@@ -352,7 +352,7 @@ class TestNamesAndFlight(unittest.TestCase):
         from engine.utils.utils import format_name_for_display
 
         game = _Game(self)
-        mayor = game.npc("mayor_of_mistvale")
+        mayor = game.npc("mayor_of_hazevale")
         guard = game.npc("castle_guard")
         self.assertIn("The ", _plain(format_name_for_display(game.player, mayor, True)))
         self.assertIn("the ", _plain(format_name_for_display(game.player, mayor, False)))
@@ -362,10 +362,10 @@ class TestNamesAndFlight(unittest.TestCase):
         from engine.npcs.ai.combat_logic import try_flee
 
         game = _Game(self)
-        mayor = game.npc("mayor_of_mistvale")
-        mayor.current_region_id, mayor.current_room_id = "mistvale", "village_square"
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
-        region = game.world.get_region("mistvale")
+        mayor = game.npc("mayor_of_hazevale")
+        mayor.current_region_id, mayor.current_room_id = "hazevale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
+        region = game.world.get_region("hazevale")
         square = region.get_room("village_square")
         original = dict(square.exits)
         square.exits.clear()
@@ -373,7 +373,7 @@ class TestNamesAndFlight(unittest.TestCase):
         said = _plain(try_flee(mayor, game.world, game.player) or "")
         self.assertIn("flees into the Fogwatch Inn!", said)
         self.assertNotIn("the in!", said)
-        self.assertTrue(said.startswith("The mayor of Mistvale"), said)
+        self.assertTrue(said.startswith("The mayor of Hazevale"), said)
 
     def test_a_compass_flight_still_says_to_the_direction(self):
         from engine.npcs.ai.combat_logic import try_flee
@@ -390,22 +390,22 @@ class TestNamesAndFlight(unittest.TestCase):
 
 
 class TestACastSummonsOnce(unittest.TestCase):
-    def test_a_quake_across_three_enemies_still_calls_one_titan_and_says_how_it_leaves(self):
+    def test_a_quake_across_three_enemies_still_calls_one_colossus_and_says_how_it_leaves(self):
         game = _Game(self)
-        game.player.runtime_state.magic.known_spells.add("call_titan")
+        game.player.runtime_state.magic.known_spells.add("call_colossus")
         game.player.current_region_id, game.player.current_room_id = "road", "castle_road"
         for index in range(3):
             foe = NPCFactory.create_npc_from_template("goblin_scout", game.world, instance_id="triple_%d" % index)
             foe.current_region_id, foe.current_room_id = "road", "castle_road"
             game.world.add_npc(foe)
-        game.say("cast call titan")
-        self.assertEqual(1, len([n for n in game.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive]))
+        game.say("cast call colossus")
+        self.assertEqual(1, len([n for n in game.world.npcs.values() if n.template_id == "colossus_minion" and n.is_alive]))
         told = ""
         for _ in range(12):
             game.world.clock.advance(1.0)
             events = game.server.tick(game.sid) + game.server._flush_background_batch(game.sid)
             told += NL.join(_plain(str(e["payload"])) for e in events if e["type"] == "text")
-        self.assertIn("The Titan sinks back into the earth.", told)
+        self.assertIn("The Colossus sinks back into the earth.", told)
 
 
 class TestATransitionsPaceIsChecked(unittest.TestCase):
@@ -436,9 +436,9 @@ class TestATransitionsPaceIsChecked(unittest.TestCase):
 class TestNoDanglingReplies(unittest.TestCase):
     def test_the_mayor_just_speaks(self):
         game = _Game(self)
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         said = game.say("talk mayor")
-        self.assertIn("mayor of Mistvale speaks", said)
+        self.assertIn("mayor of Hazevale speaks", said)
         self.assertNotRegex(said, r"(?m)^\s*1\. ")
         self.assertNotIn("reply <number>", said)
 
@@ -446,8 +446,8 @@ class TestNoDanglingReplies(unittest.TestCase):
         game = _Game(self)
         game.player.flags["kessa_ahead"] = True
         kessa = game.npc("captain_kessa")
-        kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"
-        game.player.current_region_id, game.player.current_room_id = "mistvale", "village_square"
+        kessa.current_region_id, kessa.current_room_id = "hazevale", "village_square"
+        game.player.current_region_id, game.player.current_room_id = "hazevale", "village_square"
         said = game.say("talk kessa")
         self.assertNotIn("waiting in the square", said)
         self.assertIn("give the mayor the package", said)

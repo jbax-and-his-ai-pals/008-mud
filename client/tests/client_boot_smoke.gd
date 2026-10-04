@@ -12,7 +12,7 @@ func run() -> void:
 	check("the world panel shows the time", await until(func(): return _all_text(scene.docks.panels["world"]).contains("Day"), 10.0))
 	check("the surroundings panel lists the exits", await until(func(): return _all_text(scene.docks.panels["surroundings"]).contains("Exits"), 10.0))
 	check("the pack panel lists what you carry", await until(func(): return _all_text(scene.docks.panels["pack"]).contains("Slots"), 10.0))
-	check("the abilities panel names the set's ability", await until(func(): return _all_text(scene.docks.panels["spells"]).contains("Dark Wave"), 10.0))
+	check("the abilities panel names the set's ability", await until(func(): return _all_text(scene.docks.panels["spells"]).contains("Gloom Wave"), 10.0))
 	check("the command box has the focus without a click", await until(func(): return scene.command_input.has_focus(), 5.0), "focus is on %s" % str(root.gui_get_focus_owner()))
 
 	var said := await say("look")

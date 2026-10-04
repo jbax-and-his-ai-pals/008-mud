@@ -1,6 +1,6 @@
 {
-    "region_id": "mistvale",
-    "name": "Mistvale",
+    "region_id": "hazevale",
+    "name": "Hazevale",
     "description": "A quiet mountain village that keeps to itself, wrapped in a fog that never quite lifts.",
     "properties": {
         "safe_zone": true
@@ -25,8 +25,8 @@
             },
             "initial_npcs": [
                 {
-                    "template_id": "mayor_of_mistvale",
-                    "instance_id": "mayor_of_mistvale_at_village_square"
+                    "template_id": "mayor_of_hazevale",
+                    "instance_id": "mayor_of_hazevale_at_village_square"
                 }
             ]
         },

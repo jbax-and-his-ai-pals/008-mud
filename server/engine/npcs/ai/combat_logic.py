@@ -17,7 +17,7 @@ _COMPASS = ("north", "south", "east", "west", "northeast", "northwest", "southea
 
 def _flight_phrase(world: 'World', npc: 'NPC', direction: str, destination: str) -> str:
     """Where someone runs to, in words: "to the north", but for a way that is not a compass point (an
-    inn's "in") the place it leads to, "into the Mistvale Inn", rather than "to the in"."""
+    inn's "in") the place it leads to, "into the Hazevale Inn", rather than "to the in"."""
     word = str(direction).lower()
     if word not in _COMPASS and word not in ("up", "down"):
         region_id, room_id = destination.split(":", 1) if ":" in destination else (npc.current_region_id, destination)

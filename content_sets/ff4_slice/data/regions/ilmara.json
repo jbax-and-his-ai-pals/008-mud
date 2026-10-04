@@ -1,6 +1,6 @@
 {
-    "region_id": "mysidia",
-    "name": "Mysidia",
+    "region_id": "ilmara",
+    "name": "Ilmara",
     "description": "A mountain town of white stone, whose people have kept a crystal for longer than anyone has kept records.",
     "rooms": {
         "crystal_chamber": {
@@ -9,19 +9,19 @@
             "exits": {},
             "initial_npcs": [
                 {
-                    "template_id": "elder_of_mysidia",
+                    "template_id": "elder_of_ilmara",
                     "instance_id": "elder_at_the_altar"
                 },
                 {
-                    "template_id": "mysidian_acolyte",
+                    "template_id": "ilmaran_acolyte",
                     "instance_id": "acolyte_1"
                 },
                 {
-                    "template_id": "mysidian_acolyte",
+                    "template_id": "ilmaran_acolyte",
                     "instance_id": "acolyte_2"
                 },
                 {
-                    "template_id": "mysidian_acolyte",
+                    "template_id": "ilmaran_acolyte",
                     "instance_id": "acolyte_3"
                 },
                 {
@@ -39,7 +39,7 @@
             ],
             "items": [
                 {
-                    "item_id": "item_mysidian_crystal"
+                    "item_id": "item_ilmaran_crystal"
                 }
             ]
         }

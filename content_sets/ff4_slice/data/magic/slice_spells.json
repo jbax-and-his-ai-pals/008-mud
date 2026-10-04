@@ -1,6 +1,6 @@
 {
-    "dark_wave": {
-        "name": "Dark Wave",
+    "gloom_wave": {
+        "name": "Gloom Wave",
         "description": "Give the blade to the dark and let it loose in a wave. It breaks over every enemy in the room, and the dark takes an eighth of your own life for it.",
         "mana_cost": 0,
         "health_cost_fraction": 0.125,
@@ -51,9 +51,9 @@
             }
         ]
     },
-    "call_titan": {
-        "name": "Call Titan",
-        "description": "Sing the calling and a titan rises for a moment to shake the whole room, then is gone. The calling takes a quarter of your life to make, and needs an enemy to answer to.",
+    "call_colossus": {
+        "name": "Call Colossus",
+        "description": "Sing the calling and a colossus rises for a moment to shake the whole room, then is gone. The calling takes a quarter of your life to make, and needs an enemy to answer to.",
         "mana_cost": 0,
         "health_cost_fraction": 0.25,
         "cooldown": 20,
@@ -63,7 +63,7 @@
         "effects": [
             {
                 "type": "summon",
-                "summon_template_id": "titan_minion",
+                "summon_template_id": "colossus_minion",
                 "summon_duration": 5,
                 "max_summons": 1
             },
@@ -73,7 +73,7 @@
                 "damage_type": "earth"
             }
         ],
-        "hit_message": "The Titan's quake splits the ground under {target_name} for {value} damage!"
+        "hit_message": "The Colossus's quake splits the ground under {target_name} for {value} damage!"
     },
     "bat_screech": {
         "name": "Screech",

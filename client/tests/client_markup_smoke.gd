@@ -37,6 +37,6 @@ func run() -> void:
 	check("two at the start are kept as written", MARKUP.tighten("\n\nThe room.") == "\n\nThe room.", JSON.stringify(MARKUP.tighten("\n\nThe room.")))
 
 	# the room pane drops the weather sentence (the world panel shows it)
-	var room := "[MISTVALE]\n\nA square.\n\nThe weather is cloudy.\n\nExits: north"
+	var room := "[HAZEVALE]\n\nA square.\n\nThe weather is cloudy.\n\nExits: north"
 	check("the weather sentence is dropped from a room description", not MARKUP.without_weather_line(room).contains("The weather"), MARKUP.without_weather_line(room))
 	check("but kept in the weather command's own answer", MARKUP.without_weather_line("The weather is cloudy.") == "The weather is cloudy.")

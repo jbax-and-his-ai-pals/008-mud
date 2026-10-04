@@ -544,7 +544,7 @@ class TestFF4Slice(_Slice):
 
     def test_the_fog_drake_unravelling_starts_a_scene(self):
         # The drake is spawned by its quest stage; here it is put in the square directly.
-        self.world.spawn_npc("fog_drake", "mistvale", "village_square", instance_id="drake_probe")
+        self.world.spawn_npc("fog_drake", "hazevale", "village_square", instance_id="drake_probe")
         printed = self.kill("fog_drake", "drake")
         self.assertIn("unravels into grey ribbons", printed)
         self.assertIs(True, self.player.flags.get("drake_slain"))
@@ -620,17 +620,17 @@ class TestFF4Slice(_Slice):
         self.assertEqual([], self.npcs("chancellor"), "and the chancellor never returns")
 
     def test_the_inn_is_a_room_you_go_in_to_not_a_direction_on_the_compass(self):
-        self.at("mistvale", "village_square")
+        self.at("hazevale", "village_square")
         self.assertIn("in", self.world.get_current_room(self.player).exits)
         self.say("go in")
-        self.assertEqual("mistvale:inn", self.where())
+        self.assertEqual("hazevale:inn", self.where())
         self.assertEqual(1, len(self.npcs("innkeeper")))
-        self.assertEqual(("mistvale", "inn"), (self.npcs("innkeeper")[0].current_region_id, self.npcs("innkeeper")[0].current_room_id))
+        self.assertEqual(("hazevale", "inn"), (self.npcs("innkeeper")[0].current_region_id, self.npcs("innkeeper")[0].current_room_id))
         self.say("go out")
-        self.assertEqual("mistvale:village_square", self.where())
+        self.assertEqual("hazevale:village_square", self.where())
 
     def test_the_mayor_speaks_to_what_has_happened(self):
-        self.at("mistvale", "village_square")
+        self.at("hazevale", "village_square")
         self.assertIn("We have done nothing", self.say("talk mayor"))
         self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
         said = self.say("talk mayor")
@@ -642,7 +642,7 @@ class TestFF4Slice(_Slice):
         self.assertIn("speak with Ryn", said)
 
     def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
-        self.at("mistvale", "inn")
+        self.at("hazevale", "inn")
         magic = self.player.runtime_state.magic
         self.player.runtime_state.gold = 50
         self.player.health, magic.mana = 1, 0
@@ -715,11 +715,11 @@ class TestFF4Slice(_Slice):
         self.say("reply 1")   # "The dragon is dead."
         self.say("reply 1")   # "Come with me, Ryn."
         self.assertEqual(["captain_kessa", "ryn"], sorted(self._companions()), "the party of three has room for both")
-        self.at("mistvale", "inn")
+        self.at("hazevale", "inn")
         self.player.runtime_state.gold = 50
         for npc in self.world.npcs.values():
             if npc.template_id in ("captain_kessa", "ryn"):
-                npc.current_region_id, npc.current_room_id = "mistvale", "inn"
+                npc.current_region_id, npc.current_room_id = "hazevale", "inn"
                 npc.health = 1
         self.player.health = 1
         self.say("talk innkeeper")
@@ -744,7 +744,7 @@ class TestFF4Slice(_Slice):
         self.assertEqual(3, companions.max_companions(self.world))
 
     def test_the_inn_does_not_offer_a_room_to_someone_who_cannot_pay(self):
-        self.at("mistvale", "inn")
+        self.at("hazevale", "inn")
         self.player.runtime_state.gold = 5
         self.player.health = 1
         offered = self.say("talk innkeeper")
@@ -756,7 +756,7 @@ class TestFF4Slice(_Slice):
 
     def test_delivering_the_package_brings_the_boss(self):
         self._question_the_king()
-        self.at("mistvale", "village_square")
+        self.at("hazevale", "village_square")
         self.assertEqual([], self.npcs("fog_drake"), "the drake is not in the world until its stage begins")
         self.assertIn("Quest Complete", self.say("give sealed package to mayor"))
         self.assertIn("The Fog Drake", self.quest_states())
@@ -764,47 +764,47 @@ class TestFF4Slice(_Slice):
         self._let_the_drake_arrive()
         drake = self.npcs("fog_drake")
         self.assertEqual(1, len(drake))
-        self.assertEqual(("mistvale", "village_square"), (drake[0].current_region_id, drake[0].current_room_id))
+        self.assertEqual(("hazevale", "village_square"), (drake[0].current_region_id, drake[0].current_room_id))
 
-    def test_the_summoner_teaches_the_calling_and_the_titan_arrives(self):
+    def test_the_summoner_teaches_the_calling_and_the_colossus_arrives(self):
         self._question_the_king()
-        self.at("mistvale", "village_square")
+        self.at("hazevale", "village_square")
         self.say("give sealed package to mayor")
         self._let_the_drake_arrive()
         self.kill("fog_drake", "drake")
-        self.at("mistvale", "shrine")
+        self.at("hazevale", "shrine")
         self.assertIn("Quest Complete", self.say("talk ryn complete"))
         self.say("talk ryn")
         self.say("reply 1")
         self.say("reply 1")
-        self.assertIn("call_titan", self.player.runtime_state.magic.known_spells)
+        self.assertIn("call_colossus", self.player.runtime_state.magic.known_spells)
 
         magic = self.player.runtime_state.magic
         magic.mana = magic.max_mana = 100
-        self.assertIn("no enemies", self.say("cast call titan"), "a titan answers a fight, not an empty room")
-        self.assertEqual([], self.npcs("titan_minion"))
+        self.assertIn("no enemies", self.say("cast call colossus"), "a colossus answers a fight, not an empty room")
+        self.assertEqual([], self.npcs("colossus_minion"))
         from engine.npcs.npc_factory import NPCFactory
         foes = []
         for index in range(2):
             foe = NPCFactory.create_npc_from_template("goblin_scout", self.world, instance_id="quake_target_%d" % index)
-            foe.current_region_id, foe.current_room_id = "mistvale", "shrine"
+            foe.current_region_id, foe.current_room_id = "hazevale", "shrine"
             foe.health = foe.max_health = 500
             self.world.add_npc(foe)
             foes.append(foe)
-        said = self.say("cast call titan")
+        said = self.say("cast call colossus")
         self.assertIn("quake", said)
-        titans = self.npcs("titan_minion")
-        self.assertEqual(1, len(titans), "one titan, however many enemies it shakes")
-        self.assertEqual(("mistvale", "shrine"), (titans[0].current_region_id, titans[0].current_room_id))
+        colossuss = self.npcs("colossus_minion")
+        self.assertEqual(1, len(colossuss), "one colossus, however many enemies it shakes")
+        self.assertEqual(("hazevale", "shrine"), (colossuss[0].current_region_id, colossuss[0].current_room_id))
         self.assertTrue(all(foe.health < 500 for foe in foes), "the quake reaches every enemy in the room")
         for _ in range(12):   # and it is gone again almost at once
             self.world.clock.advance(1.0)
             said_later = self.tick()
-            if not self.npcs("titan_minion"):
+            if not self.npcs("colossus_minion"):
                 break
-        self.assertEqual([], self.npcs("titan_minion"))
+        self.assertEqual([], self.npcs("colossus_minion"))
 
-        self.assertIn("Paladin", self.say("title paladin"), "the class-change stand-in can be claimed")
+        self.assertIn("Lightsworn", self.say("title lightsworn"), "the class-change stand-in can be claimed")
 
 
 class TestPersistence(unittest.TestCase):

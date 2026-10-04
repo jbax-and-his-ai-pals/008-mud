@@ -1,7 +1,7 @@
 # tests/editor_start_region_smoke.gd
 #
 # The editor opens on the region new players start in, as the manifest says, not on
-# whichever region file sorts first. `ff4_slice` starts in Mysidia (`mysidia`)
+# whichever region file sorts first. `ff4_slice` starts in Ilmara (`ilmara`)
 # and its alphabetically first region is a cave.
 #
 #   godot --headless --path mud-world-editor --script tests/editor_start_region_smoke.gd
@@ -14,7 +14,7 @@ var failures := 0
 func _initialize() -> void:
 	var repo_root := ProjectSettings.globalize_path("res://").trim_suffix("/").get_base_dir()
 	var expected := {
-		"ff4_slice": "mysidia.json",
+		"ff4_slice": "ilmara.json",
 		"zelda_slice": "aldermark.json",
 		"fantasy_frontier": "town.json",
 		"orbital_salvage": "station.json",

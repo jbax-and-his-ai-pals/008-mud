@@ -27,7 +27,7 @@
     ],
     "nodes": {
         "greeting": {
-            "text": "The crystals are not yet ours, and Mistvale keeps a ring of red stones that we want. Carry this package to their mayor. It is a gift. Do not open it.",
+            "text": "The crystals are not yet ours, and Hazevale keeps a ring of red stones that we want. Carry this package to their mayor. It is a gift. Do not open it.",
             "pace": "slow",
             "must_answer": true,
             "choices": [

@@ -26,7 +26,7 @@ def _hero(case, level_up=None):
         original = server.world.ruleset_section
         server.world.ruleset_section = lambda name: {"level_up": level_up} if name == "advancement" else original(name)
     sid = server.create_session(player_id="hero").session_id
-    server.execute_command(sid, "char create Cecil")
+    server.execute_command(sid, "char create Aldric")
     return server.get_player_for_session(sid)
 
 

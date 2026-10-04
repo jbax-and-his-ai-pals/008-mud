@@ -18,7 +18,7 @@
             ]
         },
         "deliver": {
-            "description": "Deliver the king's package to Mistvale.",
+            "description": "Deliver the king's package to Hazevale.",
             "quest_template_id": "quest_deliver_package",
             "transitions": [
                 {
@@ -36,13 +36,13 @@
                 {
                     "trigger": "SUCCESS",
                     "target_node_id": "end_survived",
-                    "narrative_text": "Mistvale is quiet again. Something in you has changed."
+                    "narrative_text": "Hazevale is quiet again. Something in you has changed."
                 }
             ]
         },
         "end_survived": {
             "type": "END",
-            "outcome": "SURVIVED_MISTVALE"
+            "outcome": "SURVIVED_HAZEVALE"
         }
     }
 }

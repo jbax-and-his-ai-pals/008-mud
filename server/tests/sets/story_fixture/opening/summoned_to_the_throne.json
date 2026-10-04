@@ -16,7 +16,7 @@
     },
     {
       "id": "take_the_road",
-      "instruction": "Carry out the order: the road to Mistvale runs south of the castle gate",
+      "instruction": "Carry out the order: the road to Hazevale runs south of the castle gate",
       "command": "south"
     }
   ]

@@ -1,6 +1,6 @@
 {
     "region_id": "road",
-    "name": "The Mistvale Road",
+    "name": "The Hazevale Road",
     "description": "A dirt road that climbs from the castle toward the mountains, and the fog.",
     "properties": {
         "safe_zone": false

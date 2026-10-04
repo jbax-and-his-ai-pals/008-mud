@@ -1,5 +1,5 @@
 # tests/singles/test_ff4_opening.py
-"""The FF4 slice opens in Mysidia: a journey through its first hour, pinned to the real set.
+"""The FF4 slice opens in Ilmara: a journey through its first hour, pinned to the real set.
 
 The player begins in the crystal chamber and watches the Red Fleet's soldiers do what they were sent to do, takes the
 crystal, is carried to the airship, fights two waves of sky creatures (the second a short while after the first is won),
@@ -34,7 +34,7 @@ class _Journey:
         case.addCleanup(self.server.shutdown)
         self.world = self.server.world
         self.sid = self.server.create_session(player_id="opening").session_id
-        self.created = self.server.execute_command(self.sid, "char create Cecil")
+        self.created = self.server.execute_command(self.sid, "char create Aldric")
         self.player = self.server.get_player_for_session(self.sid)
         self.told = []
 
@@ -84,18 +84,18 @@ class _Journey:
         self.wait(45)
 
 
-class TestMysidia(unittest.TestCase):
+class TestIlmara(unittest.TestCase):
     def test_the_game_opens_in_the_crystal_chamber_with_what_the_fleet_came_for(self):
         game = _Journey(self)
-        self.assertEqual("mysidia:crystal_chamber", game.where())
+        self.assertEqual("ilmara:crystal_chamber", game.where())
         self.assertIn("The Water Crystal", "".join(_plain(str(e["payload"])) for e in game.created if e["type"] == "text"))
         told = game.wait(30)
         self.assertIn("The doors of the crystal chamber burst inward", told)
         self.assertIn("They are singing", told)
         self.assertIn("take crystal", told, "the scene ends on what to do")
-        self.assertIsNone(game.npc("mysidian_acolyte"), "the acolytes are gone")
-        self.assertIsNotNone(game.npc("elder_of_mysidia"), "the elder is not")
-        self.assertEqual(3, len([n for n in game.world.npcs.values() if n.template_id == "red_fleet_soldier" and n.current_region_id == "mysidia"]))
+        self.assertIsNone(game.npc("ilmaran_acolyte"), "the acolytes are gone")
+        self.assertIsNotNone(game.npc("elder_of_ilmara"), "the elder is not")
+        self.assertEqual(3, len([n for n in game.world.npcs.values() if n.template_id == "red_fleet_soldier" and n.current_region_id == "ilmara"]))
 
     def test_the_captain_starts_with_his_sword_and_armour_on(self):
         game = _Journey(self)
@@ -106,7 +106,7 @@ class TestMysidia(unittest.TestCase):
     def test_the_player_watches_and_cannot_act_until_it_is_over(self):
         game = _Journey(self)
         self.assertIn("not yours to interrupt", game.say("take crystal"))
-        self.assertIsNone(game.player.inventory.get_item("item_mysidian_crystal"))
+        self.assertIsNone(game.player.inventory.get_item("item_ilmaran_crystal"))
         game.wait(30)
         self.assertNotIn("not yours to interrupt", game.say("look"))
 
@@ -116,7 +116,7 @@ class TestMysidia(unittest.TestCase):
         self.assertIn("what is left of us", game.say("talk elder"))
         game.say("take crystal")
         game.wait(2)
-        game.player.current_region_id, game.player.current_room_id = "mysidia", "crystal_chamber"
+        game.player.current_region_id, game.player.current_room_id = "ilmara", "crystal_chamber"
 
 
 class TestTheSky(unittest.TestCase):
@@ -172,10 +172,10 @@ class TestTheLanding(unittest.TestCase):
     def test_the_king_takes_the_crystal_and_the_orders_follow(self):
         game = _Journey(self)
         game.to_the_king()
-        self.assertIsNotNone(game.player.inventory.get_item("item_mysidian_crystal"))
+        self.assertIsNotNone(game.player.inventory.get_item("item_ilmaran_crystal"))
         asked = game.say("talk king")
         self.assertIn("The Water Crystal, at last", asked)
-        self.assertIsNone(game.player.inventory.get_item("item_mysidian_crystal"), "the king has it now")
+        self.assertIsNone(game.player.inventory.get_item("item_ilmaran_crystal"), "the king has it now")
         game.say("reply 1")
         self.assertEqual("varenholt:courtyard", game.where())
 

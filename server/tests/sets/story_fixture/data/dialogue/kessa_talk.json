@@ -50,15 +50,15 @@
                     "effects": {
                         "move_npc": {
                             "npc": "captain_kessa",
-                            "region": "mistvale",
+                            "region": "hazevale",
                             "room": "village_square",
-                            "message": "Captain Kessa turns on her heel and strides out the west door, bound for Mistvale."
+                            "message": "Captain Kessa turns on her heel and strides out the west door, bound for Hazevale."
                         },
                         "set_flag": "kessa_ahead"
                     }
                 },
                 {
-                    "text": "He sends me to Mistvale with a package.",
+                    "text": "He sends me to Hazevale with a package.",
                     "condition": {
                         "kind": "flag",
                         "flag": "obeyed_king"
@@ -67,9 +67,9 @@
                     "effects": {
                         "move_npc": {
                             "npc": "captain_kessa",
-                            "region": "mistvale",
+                            "region": "hazevale",
                             "room": "village_square",
-                            "message": "Captain Kessa salutes and strides out the west door to ride ahead to Mistvale."
+                            "message": "Captain Kessa salutes and strides out the west door to ride ahead to Hazevale."
                         },
                         "set_flag": "kessa_ahead"
                     }
@@ -91,12 +91,12 @@
             "end": true
         },
         "ahead_stripped": {
-            "text": "Then he has made a mistake, and I will not watch it happen twice. Go. I will ride ahead and meet you at Mistvale.",
+            "text": "Then he has made a mistake, and I will not watch it happen twice. Go. I will ride ahead and meet you at Hazevale.",
             "pace": "slow",
             "end": true
         },
         "ahead_obeyed": {
-            "text": "A package for the mayor of Mistvale? Strange. I will ride ahead and meet you there.",
+            "text": "A package for the mayor of Hazevale? Strange. I will ride ahead and meet you there.",
             "pace": "slow",
             "end": true
         },

@@ -39,7 +39,7 @@ def _deliver_the_package(server, sid):
     server.execute_command(sid, "talk king")
     server.execute_command(sid, "reply 1")
     player = server.get_player_for_session(sid)
-    player.current_region_id, player.current_room_id = "mistvale", "village_square"
+    player.current_region_id, player.current_room_id = "hazevale", "village_square"
     server.execute_command(sid, "give sealed package to mayor")
     return player
 
@@ -64,7 +64,7 @@ class TestASceneSurvivesARestart(unittest.TestCase):
         db = os.path.join(tmp, "story.sqlite3")
         first = self.boot(db)
         sid = first.create_session(player_id="hero").session_id
-        first.execute_command(sid, "char create Cecil")
+        first.execute_command(sid, "char create Aldric")
         _deliver_the_package(first, sid)
         _run(first, sid, 5)   # two of the four beats have been told
         self.assertEqual([], _drakes(first.world), "not yet")
@@ -74,7 +74,7 @@ class TestASceneSurvivesARestart(unittest.TestCase):
         second = self.boot(db)
         self.addCleanup(second.shutdown)
         sid = second.create_session(player_id="hero").session_id
-        second.execute_command(sid, "char create Cecil")
+        second.execute_command(sid, "char create Aldric")
         told = _run(second, sid, 20)
         self.assertEqual(1, len(_drakes(second.world)), "the quest has its creature again")
         self.assertIn("A Fog Drake uncoils from the mist", told)
@@ -84,7 +84,7 @@ class TestASceneSurvivesARestart(unittest.TestCase):
         server = self.boot(":memory:")
         self.addCleanup(server.shutdown)
         sid = server.create_session(player_id="hero").session_id
-        server.execute_command(sid, "char create Cecil")
+        server.execute_command(sid, "char create Aldric")
         _deliver_the_package(server, sid)
         server.world.scheduled_actions.clear()   # what a restart does to the in-memory schedule
         _run(server, sid, 20)
@@ -94,7 +94,7 @@ class TestASceneSurvivesARestart(unittest.TestCase):
         server = self.boot(":memory:")
         self.addCleanup(server.shutdown)
         sid = server.create_session(player_id="hero").session_id
-        server.execute_command(sid, "char create Cecil")
+        server.execute_command(sid, "char create Aldric")
         _deliver_the_package(server, sid)
         told = _run(server, sid, 40)
         self.assertEqual(1, len(_drakes(server.world)))
@@ -189,7 +189,7 @@ class TestOneReportAndOneInstruction(unittest.TestCase):
                                 default_presentation_mode="player")
         self.addCleanup(server.shutdown)
         sid = server.create_session(player_id="hero").session_id
-        server.execute_command(sid, "char create Cecil")
+        server.execute_command(sid, "char create Aldric")
         player = server.get_player_for_session(sid)
         manager = server.world.quest_manager
 

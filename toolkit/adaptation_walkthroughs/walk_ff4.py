@@ -63,12 +63,12 @@ def beat_the_sky():
     return False
 
 
-# --- Mysidia: the crystal ------------------------------------------------------
-check("starts in the Mysidian crystal chamber", g.where() == "mysidia:crystal_chamber", g.where())
+# --- Ilmara: the crystal ------------------------------------------------------
+check("starts in the Ilmaran crystal chamber", g.where() == "ilmara:crystal_chamber", g.where())
 check("starting kit, blade and armour worn", "item_commander_seal" in g.items() and "item_dark_blade" in equipped_ids() and "item_dark_armor" in equipped_ids(), str(equipped_ids()))
 wait(30)
-check("the acolytes are gone and the elder is left", not [n for n in g.world.npcs.values() if n.template_id == "mysidian_acolyte"]
-      and [n for n in g.world.npcs.values() if n.template_id == "elder_of_mysidia"], "")
+check("the acolytes are gone and the elder is left", not [n for n in g.world.npcs.values() if n.template_id == "ilmaran_acolyte"]
+      and [n for n in g.world.npcs.values() if n.template_id == "elder_of_ilmara"], "")
 out = say(g, "talk elder", show=V, n=400)
 out = say(g, "take crystal", show=V, n=400)
 wait(40)
@@ -83,7 +83,7 @@ check("landed, and walked to the king by the chancellor", g.where() == "varenhol
 
 # --- the throne room ---------------------------------------------------------
 out = say(g, "talk king", show=V, n=800)
-check("the king asks for the crystal and the crystal is his", "item_mysidian_crystal" not in g.items(), str(g.items()))
+check("the king asks for the crystal and the crystal is his", "item_ilmaran_crystal" not in g.items(), str(g.items()))
 out = say(g, "reply 2", show=V, n=600)
 check("questioning the king takes the seal", "item_commander_seal" not in g.items(), str(g.items()))
 check("the campaign starts", any("Package" in str(q.get("title")) for q in g.player.runtime_state.quests.active.values()), quest_states())
@@ -145,13 +145,13 @@ out = say(g, "look iron chest", show=V)
 for _ in range(3):
     say(g, "get potion from iron chest")
 potions = sum(slot.quantity for slot in g.player.inventory.slots if slot.item and slot.item.obj_id == "item_potion")
-check("the chest held three potions (and Cecil has no use for an ether)", potions >= 5, str(potions))
+check("the chest held three potions (and Aldric has no use for an ether)", potions >= 5, str(potions))
 say(g, "go south")
 r = g.fight("imp", potion="potion"); check("beat the cave imp", r.startswith("won"), r); print("   ", r)
 say(g, "go south"); say(g, "go down")
-check("down in Mistvale", g.where() == "mistvale:valley_path", g.where())
+check("down in Hazevale", g.where() == "hazevale:valley_path", g.where())
 say(g, "go south")
-check("in the village square", g.where() == "mistvale:village_square", g.where())
+check("in the village square", g.where() == "hazevale:village_square", g.where())
 out = say(g, "look", show=V, n=700)
 check("Kessa is waiting in the square", "Kessa" in out, out[:200])
 
@@ -168,7 +168,7 @@ out = say(g, "look", show=V, n=500)
 check("the drake is in the square with the hero", "Fog Drake" in out, out[:200])
 
 def fight_with_spell(target, spell, max_rounds=120):
-    """Cecil's Dark Wave costs an eighth of his health and no mana: cast while he can afford it,
+    """Aldric's Gloom Wave costs an eighth of his health and no mana: cast while he can afford it,
     drink a potion when he is low, and use the sword while the ability cools down."""
     swings = 0
     casts = 0
@@ -195,36 +195,36 @@ def fight_with_spell(target, spell, max_rounds=120):
 print("    hp before drake: %s / %s" % (g.player.health, g.player.max_health))
 g.player.health = g.player.max_health
 sword_only = None
-r = fight_with_spell("drake", "dark wave"); check("beat the Fog Drake", r.startswith("won"), r); print("   ", r)
+r = fight_with_spell("drake", "gloom wave"); check("beat the Fog Drake", r.startswith("won"), r); print("   ", r)
 print("    quests:", quest_states())
 
 # --- Ryn, the summon and the title ------------------------------------------------
 say(g, "go south")
-check("at the shrine", g.where() == "mistvale:shrine", g.where())
+check("at the shrine", g.where() == "hazevale:shrine", g.where())
 out = say(g, "talk ryn complete", show=V, n=500)
 print("    quests:", quest_states(), "| completed:", list(getattr(g.player.runtime_state.quests, "completed", {}) or []))
 out = say(g, "talk ryn", show=V, n=600)
 out = say(g, "reply 1", show=V, n=500)
 out = say(g, "reply 1", show=V, n=400)
-check("Ryn teaches the calling", "call_titan" in str(getattr(g.player.runtime_state.magic, "known_spells", "")), str(getattr(g.player.runtime_state.magic, "known_spells", "")))
+check("Ryn teaches the calling", "call_colossus" in str(getattr(g.player.runtime_state.magic, "known_spells", "")), str(getattr(g.player.runtime_state.magic, "known_spells", "")))
 g.player.health = g.player.max_health   # the calling costs a quarter of his life
 from engine.npcs.npc_factory import NPCFactory
-foe = NPCFactory.create_npc_from_template("goblin_scout", g.world, instance_id="titan_target")
-foe.current_region_id, foe.current_room_id = "mistvale", "shrine"
+foe = NPCFactory.create_npc_from_template("goblin_scout", g.world, instance_id="colossus_target")
+foe.current_region_id, foe.current_room_id = "hazevale", "shrine"
 foe.health = foe.max_health = 500
 g.world.add_npc(foe)
-out = say(g, "cast call titan", show=V, n=300)
-titans = [n for n in g.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive]
-check("the Titan is summoned", bool(titans), out[:150])
+out = say(g, "cast call colossus", show=V, n=300)
+colossuss = [n for n in g.world.npcs.values() if n.template_id == "colossus_minion" and n.is_alive]
+check("the Colossus is summoned", bool(colossuss), out[:150])
 check("its quake hits the enemy", foe.health < 500, foe.health)
 for _ in range(12):
     g.world.clock.advance(1.0)
     g.tick()
-check("the Titan is gone again soon after", not [n for n in g.world.npcs.values() if n.template_id == "titan_minion" and n.is_alive])
+check("the Colossus is gone again soon after", not [n for n in g.world.npcs.values() if n.template_id == "colossus_minion" and n.is_alive])
 out = say(g, "titles", show=V, n=400)
-out = say(g, "title paladin", show=V, n=400)
+out = say(g, "title lightsworn", show=V, n=400)
 print("    title:", flat(out, 200))
-check("a class-change stand-in: the Paladin title can be claimed", "paladin" in out.lower() and ("claim" in out.lower() or "now" in out.lower() or "are" in out.lower()), out[:150])
+check("a class-change stand-in: the Lightsworn title can be claimed", "lightsworn" in out.lower() and ("claim" in out.lower() or "now" in out.lower() or "are" in out.lower()), out[:150])
 print("    journal:", flat(say(g, "journal"), 300))
 
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))

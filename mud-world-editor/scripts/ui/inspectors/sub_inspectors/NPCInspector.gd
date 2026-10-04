@@ -634,7 +634,7 @@ func _build_behavior_tuning():
 		database_modified.emit())
 	flags.add_child(unique)
 
-	# How a summoned creature leaves ("The Titan sinks back into the earth."); empty is the engine's own line.
+	# How a summoned creature leaves ("The Colossus sinks back into the earth."); empty is the engine's own line.
 	var despawn_row := HBoxContainer.new()
 	despawn_row.add_child(InspectorStyle.lbl("Departure line (summons)", InspectorStyle.COLOR_TEXT_DIM))
 	var despawn_field := LineEdit.new(); despawn_field.name = "DespawnMessage"

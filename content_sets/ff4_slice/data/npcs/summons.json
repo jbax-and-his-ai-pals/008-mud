@@ -1,6 +1,6 @@
 {
-    "titan_minion": {
-        "name": "Titan",
+    "colossus_minion": {
+        "name": "Colossus",
         "description": "A vast, grey-skinned giant, summoned from somewhere below the world.",
         "max_health": 447,
         "level": 50,
@@ -35,10 +35,10 @@
             "owner_id": null,
             "summon_duration": 0,
             "creation_time": 0,
-            "despawn_message": "The Titan sinks back into the earth."
+            "despawn_message": "The Colossus sinks back into the earth."
         },
         "dialog": {},
-        "default_dialog": "The titan waits.",
+        "default_dialog": "The colossus waits.",
         "usable_spells": []
     }
 }

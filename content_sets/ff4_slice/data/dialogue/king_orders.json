@@ -27,7 +27,7 @@
     ],
     "nodes": {
         "greeting": {
-            "text": "The Water Crystal, at last. The fleet will be rewarded for it. Now, a smaller errand: Mistvale keeps a ring of red stones that we want, and a gift opens doors a fleet cannot. Carry this package to their mayor. Do not open it.",
+            "text": "The Water Crystal, at last. The fleet will be rewarded for it. Now, a smaller errand: Hazevale keeps a ring of red stones that we want, and a gift opens doors a fleet cannot. Carry this package to their mayor. Do not open it.",
             "pace": "slow",
             "must_answer": true,
             "choices": [
@@ -98,7 +98,7 @@
                 }
             ],
             "effects": {
-                "take_item": "item_mysidian_crystal"
+                "take_item": "item_ilmaran_crystal"
             }
         },
         "again": {

@@ -1,10 +1,10 @@
 {
     "region_id": "airship",
-    "name": "The Redwing",
+    "name": "The Cinder",
     "description": "The flagship of the Red Fleet, a long hull of dark timber under red-painted balloons.",
     "rooms": {
         "deck": {
-            "name": "The Deck of the Redwing",
+            "name": "The Deck of the Cinder",
             "description": "A wide plank deck, wet with cloud and creaking in the wind. Ropes sing overhead, and the sky goes by on every side.",
             "exits": {},
             "initial_npcs": [

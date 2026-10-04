@@ -4,11 +4,11 @@
 Scenes live in `data/scenes/*.json` (each file an object of scenes keyed by id) and are begun by the `play_scene`
 effect, so a trigger, a conversation, a quest or a campaign node can all start one:
 
-    "mysidia_falls": {
+    "ilmara_falls": {
         "beats": [
             {"text": "The doors give way, and the soldiers pour in."},
             {"after": 3, "text": "The acolytes do not run.", "pace": "slow"},
-            {"after": 3, "effects": {"remove_npc": "mysidian_acolyte"}, "text": "It is over very quickly."}
+            {"after": 3, "effects": {"remove_npc": "ilmaran_acolyte"}, "text": "It is over very quickly."}
         ]
     }
 

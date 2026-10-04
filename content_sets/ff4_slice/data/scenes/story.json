@@ -1,5 +1,5 @@
 {
-    "mysidia_falls": {
+    "ilmara_falls": {
         "note": "The opening: the Red Fleet takes the crystal chamber, and the player watches.",
         "beats": [
             {
@@ -8,7 +8,7 @@
             },
             {
                 "after": 3.5,
-                "text": "The people of Mysidia stand between the soldiers and the altar. They carry no weapons. They are singing.",
+                "text": "The people of Ilmara stand between the soldiers and the altar. They carry no weapons. They are singing.",
                 "pace": "slow"
             },
             {
@@ -37,7 +37,7 @@
             },
             {
                 "after": 4,
-                "text": "Only the elder of Mysidia is left standing, one hand flat against the altar, looking at you and not at the soldiers.",
+                "text": "Only the elder of Ilmara is left standing, one hand flat against the altar, looking at you and not at the soldiers.",
                 "pace": "slow"
             },
             {
@@ -47,8 +47,8 @@
             }
         ]
     },
-    "leave_mysidia": {
-        "note": "The crystal is taken; the Redwing climbs away, and the soldiers cannot look at one another. It ends on the first fight.",
+    "leave_ilmara": {
+        "note": "The crystal is taken; the Cinder climbs away, and the soldiers cannot look at one another. It ends on the first fight.",
         "beats": [
             {
                 "text": "The crystal is cold in your hands, and heavier than it has any right to be.",
@@ -56,7 +56,7 @@
             },
             {
                 "after": 3.5,
-                "text": "[[YELLOW]]The elder of Mysidia speaks:[[/]] [[GREEN]]\"Take it, then. You carry our grief out of the door with it. Tell your king that the Water does not forgive.\"[[/]]",
+                "text": "[[YELLOW]]The elder of Ilmara speaks:[[/]] [[GREEN]]\"Take it, then. You carry our grief out of the door with it. Tell your king that the Water does not forgive.\"[[/]]",
                 "pace": "slow"
             },
             {
@@ -72,7 +72,7 @@
             },
             {
                 "after": 4,
-                "text": "The Redwing climbs. Mysidia shrinks behind you to a smear of white stone, and then to nothing.",
+                "text": "The Cinder climbs. Ilmara shrinks behind you to a smear of white stone, and then to nothing.",
                 "pace": "slow"
             },
             {
@@ -117,7 +117,7 @@
         ]
     },
     "second_wave": {
-        "note": "A short while after the first fight is won, the sky is not finished with the Redwing.",
+        "note": "A short while after the first fight is won, the sky is not finished with the Cinder.",
         "beats": [
             {
                 "after": 3,
@@ -131,7 +131,7 @@
             },
             {
                 "after": 6,
-                "text": "[[RED]]The wind turns. The cloud ahead darkens, and something much larger than a wyvern swings toward the Redwing.[[/]]",
+                "text": "[[RED]]The wind turns. The cloud ahead darkens, and something much larger than a wyvern swings toward the Cinder.[[/]]",
                 "effects": {
                     "set_flag": "air_second_wave",
                     "spawn_npc": {
@@ -183,7 +183,7 @@
             },
             {
                 "after": 6,
-                "text": "The Redwing settles onto its mooring with a long groan of timber. You walk down the gangplank with the crystal under your arm.",
+                "text": "The Cinder settles onto its mooring with a long groan of timber. You walk down the gangplank with the crystal under your arm.",
                 "pace": "slow",
                 "effects": {
                     "move_npc": {

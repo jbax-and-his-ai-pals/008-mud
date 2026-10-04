@@ -57,7 +57,7 @@
             "pace": "slow",
             "choices": [
                 {
-                    "text": "He sends me to Mistvale with a package.",
+                    "text": "He sends me to Hazevale with a package.",
                     "condition": {
                         "kind": "flag",
                         "flag": "obeyed_king"
@@ -85,7 +85,7 @@
             ]
         },
         "briefed_obeyed": {
-            "text": "A package for the mayor of Mistvale? Strange work for a captain. Then we leave at dawn, together; I would rather not watch the fleet sail without us. Sleep, Cecil. Your quarters are through the north door, and I will meet you at the gate.",
+            "text": "A package for the mayor of Hazevale? Strange work for a captain. Then we leave at dawn, together; I would rather not watch the fleet sail without us. Sleep, Aldric. Your quarters are through the north door, and I will meet you at the gate.",
             "pace": "slow",
             "end": true
         },
@@ -105,7 +105,7 @@
             "end": true
         },
         "at_the_gate": {
-            "text": "Dawn, and I have been up for an hour already. The road to Mistvale is south of here. Are you ready?",
+            "text": "Dawn, and I have been up for an hour already. The road to Hazevale is south of here. Are you ready?",
             "pace": "slow",
             "choices": [
                 {
@@ -151,7 +151,7 @@
             ]
         },
         "with_you": {
-            "text": "Lead on, Cecil. I am right behind you.",
+            "text": "Lead on, Captain. I am right behind you.",
             "pace": "slow",
             "choices": [
                 {

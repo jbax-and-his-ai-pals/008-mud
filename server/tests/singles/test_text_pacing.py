@@ -55,7 +55,7 @@ class TestTheKingSpeaksSlowly(unittest.TestCase):
         )
         self.addCleanup(self.server.shutdown)
         self.sid = self.server.create_session(player_id="pace").session_id
-        self.server.execute_command(self.sid, "char create Cecil")
+        self.server.execute_command(self.sid, "char create Aldric")
 
     def test_his_orders_are_marked_for_gradual_reveal(self):
         said = _raw(self.server.execute_command(self.sid, "talk king"))

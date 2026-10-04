@@ -54,7 +54,7 @@
             "end": true
         },
         "thanks": {
-            "text": "I can call the titans. Mother taught me before... before. Will you let me teach you the calling song?",
+            "text": "I can call the colossuss. Mother taught me before... before. Will you let me teach you the calling song?",
             "pace": "slow",
             "choices": [
                 {
@@ -67,12 +67,12 @@
                     },
                     "next_node": "taught",
                     "effects": {
-                        "teach_spell": "call_titan",
+                        "teach_spell": "call_colossus",
                         "set_flag": "ryn_taught"
                     }
                 },
                 {
-                    "text": "Come with me, Ryn. Titans answer better with you beside me.",
+                    "text": "Come with me, Ryn. Colossuss answer better with you beside me.",
                     "condition": {
                         "all": [
                             {

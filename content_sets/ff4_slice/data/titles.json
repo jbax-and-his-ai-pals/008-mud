@@ -5,8 +5,8 @@
             "place": "varenholt:chapel"
         }
     },
-    "paladin": {
-        "name": "Paladin",
+    "lightsworn": {
+        "name": "Lightsworn",
         "description": "You put down the dark blade's hunger and took up the light instead.",
         "conferred_by": {
             "name": "The Order of the Dawn",

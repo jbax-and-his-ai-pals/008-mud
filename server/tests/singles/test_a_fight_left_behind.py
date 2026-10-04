@@ -27,7 +27,7 @@ class TestAFightLeftBehind(unittest.TestCase):
         )
         self.addCleanup(self.server.shutdown)
         self.sid = self.server.create_session(player_id="run").session_id
-        self.server.execute_command(self.sid, "char create Cecil")
+        self.server.execute_command(self.sid, "char create Aldric")
         self.player = self.server.get_player_for_session(self.sid)
         self.player.current_region_id, self.player.current_room_id = "road", "castle_road"
         self.wolf = NPCFactory.create_npc_from_template("road_wolf", self.server.world, instance_id="chaser")

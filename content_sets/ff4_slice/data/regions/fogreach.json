@@ -1,7 +1,7 @@
 {
     "region_id": "fogreach",
     "name": "Fogreach Cave",
-    "description": "A long cave that cuts through the mountain toward the valley of Mistvale.",
+    "description": "A long cave that cuts through the mountain toward the valley of Hazevale.",
     "properties": {
         "safe_zone": false
     },
@@ -61,10 +61,10 @@
         },
         "cave_exit": {
             "name": "Far Exit",
-            "description": "Grey light and thin fog. The valley of Mistvale lies below.",
+            "description": "Grey light and thin fog. The valley of Hazevale lies below.",
             "exits": {
                 "north": "narrow_ledge",
-                "down": "mistvale:valley_path"
+                "down": "hazevale:valley_path"
             }
         }
     }

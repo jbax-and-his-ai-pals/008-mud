@@ -102,16 +102,16 @@ class TestPanelPayloads(unittest.TestCase):
         from engine.npcs.npc_factory import NPCFactory
 
         listed = {a["id"]: a for a in self.payload(self.created, "cooldown")["abilities"]}
-        self.assertEqual(0.0, listed["dark_wave"]["remaining"])
-        self.assertEqual(6.0, listed["dark_wave"]["duration"])
+        self.assertEqual(0.0, listed["gloom_wave"]["remaining"])
+        self.assertEqual(6.0, listed["gloom_wave"]["duration"])
         self.player.current_region_id, self.player.current_room_id = "road", "castle_road"
         target = NPCFactory.create_npc_from_template("goblin_scout", self.server.world, instance_id="cd_ability_target")
         target.current_region_id, target.current_room_id = "road", "castle_road"
         target.health = target.max_health = 500
         self.server.world.add_npc(target)
         self.server._panel_events(self.sid)
-        events = self.server.execute_command(self.sid, "cast dark wave")
-        cooling = {a["id"]: a for a in self.payload(events, "cooldown")["abilities"]}["dark_wave"]
+        events = self.server.execute_command(self.sid, "cast gloom wave")
+        cooling = {a["id"]: a for a in self.payload(events, "cooldown")["abilities"]}["gloom_wave"]
         self.assertGreater(cooling["remaining"], 0)
         later = self.server._panel_events(self.sid)
         self.assertEqual([], [e for e in later if e["type"] == "cooldown"], "counted down by the client")

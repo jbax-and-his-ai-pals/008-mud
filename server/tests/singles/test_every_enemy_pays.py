@@ -44,7 +44,7 @@ class TestEveryEnemyPays(unittest.TestCase):
         )
         self.addCleanup(server.shutdown)
         sid = server.create_session(player_id="loot").session_id
-        server.execute_command(sid, "char create Cecil")
+        server.execute_command(sid, "char create Aldric")
         player = server.get_player_for_session(sid)
         skip_the_ff4_opening(server.world, player, place=("road", "castle_road"))
         goblin = next(n for n in server.world.npcs.values() if n.template_id == "goblin_scout")

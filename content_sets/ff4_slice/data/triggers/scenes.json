@@ -1,23 +1,23 @@
 {
-    "mysidia_falls": {
+    "ilmara_falls": {
         "on": {
             "event": "on_enter",
-            "region": "mysidia",
+            "region": "ilmara",
             "room": "crystal_chamber"
         },
         "once": "player",
         "effects": {
-            "play_scene": "mysidia_falls"
+            "play_scene": "ilmara_falls"
         }
     },
     "crystal_taken": {
         "on": {
             "event": "item_taken",
-            "item": "item_mysidian_crystal"
+            "item": "item_ilmaran_crystal"
         },
         "once": "player",
         "effects": {
-            "play_scene": "leave_mysidia"
+            "play_scene": "leave_ilmara"
         }
     },
     "air_first_wave_down": {

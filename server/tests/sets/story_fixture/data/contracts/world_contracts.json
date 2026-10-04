@@ -16,7 +16,7 @@
             "label": "Mana",
             "short": "MP",
             "kind": "ability",
-            "_comment": "The ability pool. `max` fixes how large it is (0 = none: Cecil's abilities cost his health, not mana), `max_stat` drives the size when `max` is absent and `regeneration_stat` how fast it refills -- all read by engine/contracts/resources.py, so a set whose abilities draw on something else declares its own resource and inherits nothing.",
+            "_comment": "The ability pool. `max` fixes how large it is (0 = none: Aldric's abilities cost his health, not mana), `max_stat` drives the size when `max` is absent and `regeneration_stat` how fast it refills -- all read by engine/contracts/resources.py, so a set whose abilities draw on something else declares its own resource and inherits nothing.",
             "regenerates": true,
             "regeneration_stat": "wisdom",
             "max_stat": "intelligence",

@@ -25,7 +25,7 @@
     "max": 3
   },
   "player_defaults": {
-    "player_class": "Dark Knight",
+    "player_class": "Umbral Knight",
     "starting_inventory": [
       {
         "item_id": "item_dark_blade",
@@ -46,7 +46,7 @@
     ],
     "magic": {
       "known_spells": [
-        "dark_wave"
+        "gloom_wave"
       ]
     }
   },

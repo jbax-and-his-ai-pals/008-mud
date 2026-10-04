@@ -106,15 +106,15 @@ cd server && ../.venv/Scripts/python.exe -m unittest tests.singles.test_adaptati
 .venv/Scripts/python.exe toolkit/adaptation_walkthroughs/probe_persist.py
 ```
 
-## Cecil's abilities cost life, not mana
+## Aldric's abilities cost life, not mana
 
-A Dark Knight pays for the dark with his own blood, and the engine had no way to say so:
+A Umbral Knight pays for the dark with his own blood, and the engine had no way to say so:
 every ability spent the pool, and the pool could never be empty. `health_cost_fraction`
 on an ability and `max` on the ability resource (see `cross_theme_engine_contracts.md`)
-close that. In `ff4_slice` Cecil has no mana at all, Dark Wave costs an eighth of his
-health and strikes every enemy in the room, and Call Titan costs a quarter (a titan rises for five seconds, shakes every enemy in the room, and sinks away). Ethers are
+close that. In `ff4_slice` Aldric has no mana at all, Gloom Wave costs an eighth of his
+health and strikes every enemy in the room, and Call Colossus costs a quarter (a colossus rises for five seconds, shakes every enemy in the room, and sinks away). Ethers are
 gone (nothing restores a pool he does not have); the cave chest holds potions instead.
-`walk_ff4.py` plays the Fog Drake with potions as the resource: Dark Wave 40 damage
+`walk_ff4.py` plays the Fog Drake with potions as the resource: Gloom Wave 40 damage
 (about 26 after the drake's resistances), cast while his health is above 30%, a potion
 below 45%.
 
@@ -127,7 +127,7 @@ story can be rewritten without touching the engine.
 What a rewrite will touch, and what it will not:
 
 * **Pinned to the real set, meant to change with it.** `test_adaptation_slices.py` (journeys through both slices),
-  `test_ff4_opening.py` (the first hour: Mysidia, the airship, the landing, the night),
+  `test_ff4_opening.py` (the first hour: Ilmara, the airship, the landing, the night),
   `test_slice_geography.py`, `test_every_enemy_pays.py`, the story classes of `test_story_beats.py` (the drake fight, the package, Ryn), the
   content gates and `walk_ff4.py`. Rewriting the story means updating these, deliberately.
 * **Not pinned.** Every test of an engine feature (kill credit, level growth, messages, quest-text pace, scene resume, panels,
