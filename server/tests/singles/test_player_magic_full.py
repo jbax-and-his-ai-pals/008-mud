@@ -218,6 +218,29 @@ class TestCastSpellKillHandling(GameTestBase):
         self.player.runtime_state.magic.known_spells.add(spell.spell_id)
         return spell
 
+    def test_a_spell_that_kills_says_who_was_defeated_on_the_blow_that_did_it(self):
+        target = _hostile(self.world, "magic_kill_announced")
+        result = self.player.cast_spell(self._lethal_spell(), target, time.time(), world=self.world)
+        lines = result["message"].splitlines()
+        blow = next((line for line in lines if line.endswith("is defeated!")), None)
+        self.assertIsNotNone(blow, result["message"])
+        import re
+        self.assertRegex(re.sub(r"\[\[[^\]]*\]\]", "", blow), r"A goblin.* is defeated!$")
+        rewards = [i for i, line in enumerate(lines) if "experience" in line]
+        self.assertTrue(not rewards or lines.index(blow) < min(rewards), "and it comes before the rewards")
+
+    def test_an_area_spell_names_each_enemy_it_kills_and_only_those(self):
+        weak = _hostile(self.world, "magic_area_weak")
+        strong = _hostile(self.world, "magic_area_strong")
+        strong.health = strong.max_health = 100000
+        spell = _make_spell(spell_id="area_probe", value=50, target_type="all_enemies")
+        self.player.runtime_state.magic.known_spells.add(spell.spell_id)
+        result = self.player.cast_spell(spell, weak, time.time(), world=self.world)
+        defeated = [line for line in result["message"].splitlines() if line.endswith("is defeated!")]
+        self.assertEqual(1, len(defeated), result["message"])
+        self.assertFalse(weak.is_alive)
+        self.assertTrue(strong.is_alive)
+
     def test_kill_with_no_target_world_skips_dispatch_and_loot_call(self):
         target = _hostile(self.world, "magic_kill_no_world")
         target.loot_table = {"gold_value": {"chance": 1.0, "quantity": [5, 5]}}

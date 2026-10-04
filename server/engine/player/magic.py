@@ -12,7 +12,7 @@ from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS, DEFAULT_CU
 from engine.contracts.equipment import ability_numbers
 from engine.contracts.resources import ability_resource_label
 from engine.utils.messages import message
-from engine.utils.utils import calculate_xp_gain, format_loot_drop_message
+from engine.utils.utils import calculate_xp_gain, format_loot_drop_message, format_name_for_display
 
 if TYPE_CHECKING:
     from engine.player.core import Player
@@ -155,6 +155,9 @@ class PlayerMagicMixin:
             
             # Handle Kill
             if isinstance(t, NPC) and not t.is_alive and spell.has_effect_type("damage"):
+                 # Say who fell, on the line that dealt the blow, as a weapon's blow does ("... is defeated!"):
+                 # a wave that breaks over three enemies must make plain which of them it killed.
+                 results[-1] = "%s %s is defeated!" % (effect_message, format_name_for_display(p, t, start_of_sentence=True))
                  if p.runtime_state.combat is not None:
                      p.exit_combat(t)
                  target_world = world or p.world
