@@ -76,6 +76,10 @@ python server/launch_content_set.py --transport ws  --content-set content_sets/f
 python server/launch_content_set.py --dry-run        # print the resolved command, start nothing
 ```
 
+`--allow-debug-commands` lets a *player-mode* session use the debug commands (`checkpoint`, `scene skip`, `level`, `tp`...)
+and makes the client show its test-tools row; it is for testing (the launcher's Quick play passes it) and a shipped server
+leaves it off, so a player never reaches them.
+
 How quickly a player's client types out quest text is set in the server config, under `session`:
 `"quest_text_pace": "slow"` (a pace name, characters per second, or `"instant"` for none). It overrides the content
 set's own (`presentation.quest_text_pace`) and the engine's default (`slow`); it does not touch lines a conversation or

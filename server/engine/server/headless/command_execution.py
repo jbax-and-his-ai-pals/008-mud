@@ -362,7 +362,7 @@ class CommandExecutionMixin:
         test suite, the journey lab, and operator tooling working unchanged.
         """
         mode = str(getattr(session_obj, "presentation_mode", "test") or "test").strip().lower()
-        if mode != "player":
+        if mode != "player" or getattr(self, "allow_debug_commands", False):
             return False
         return str(cmd_data.get("category", "")).strip().lower() == "debug"
 

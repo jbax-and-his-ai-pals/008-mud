@@ -78,7 +78,7 @@ editor in `mud-world-editor/` are the supported front ends.
 
 **Launcher GUI:** double-click `launcher.bat` (or run `python toolkit/launcher.py`) to pick a
 content set, see whether it validates, start and stop a server, play in a terminal, and open the
-Godot client or the world editor. Standard library only. "Quick play (Test)" starts a throwaway server for the selected set and opens the client already connected and playing as a character named Test.
+Godot client or the world editor. Standard library only. "Quick play (Test)" starts a throwaway server for the selected set and opens the client already connected and playing as a character named Test, with a row of test tools above the command line: **Skip scene** and a picker of the set's checkpoints (scenes named `checkpoint_<name>`) with **Go**, so the later parts of a story can be tried without sitting through the opening.
 
 *   **Arguments (all servers):**
     *   `--content-set <path>`: which game to serve (required).

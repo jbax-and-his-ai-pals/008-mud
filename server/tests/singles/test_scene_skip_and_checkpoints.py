@@ -150,5 +150,60 @@ class TestCheckpoints(_Game):
         self.assertIn("hall", said)
 
 
+class TestQuickPlayTools(unittest.TestCase):
+    """Quick play is a player's session that is also allowed the debug commands: `--allow-debug-commands`."""
+
+    def boot(self, allow):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        package = tmp / "story_fixture"
+        shutil.copytree(STORY_FIXTURE, package)
+        (package / "data" / "scenes").mkdir(exist_ok=True)
+        (package / "data" / "scenes" / "test.json").write_text(json.dumps(SCENES), encoding="utf-8")
+        (package / "data" / "triggers" / "extra.json").write_text(json.dumps(TRIGGERS), encoding="utf-8")
+        server = HeadlessServer(db_path=":memory:", content_set_path=str(package), deterministic_test_mode=True,
+                                default_presentation_mode="player", allow_debug_commands=allow)
+        self.addCleanup(server.shutdown)
+        sid = server.create_session(player_id="hero").session_id
+        server.execute_command(sid, "char create Aldric")
+        return server, sid
+
+    def said(self, server, sid, command):
+        return plain(NL.join(str(e["payload"]) for e in server.execute_command(sid, command) if e["type"] in ("text", "error")))
+
+    def test_a_player_session_may_use_them_when_the_operator_allows_it(self):
+        server, sid = self.boot(True)
+        self.assertEqual("player", str(server.sessions[sid].presentation_mode), "it is still a player's session")
+        self.assertIn("Jumped to 'hall'", self.said(server, sid, "checkpoint hall"))
+        self.assertIn("Playing 'the_watch'", self.said(server, sid, "scene play the_watch"))
+        self.assertIn("Skipped", self.said(server, sid, "scene skip"))
+
+    def test_and_not_otherwise(self):
+        server, sid = self.boot(False)
+        self.assertIn("permission", self.said(server, sid, "checkpoint hall"))
+        self.assertIn("permission", self.said(server, sid, "scene skip"))
+
+    def test_the_hello_tells_a_client_whether_and_what_to_offer(self):
+        allowed, _sid = self.boot(True)
+        payload = allowed.debug_tools_payload()
+        self.assertTrue(payload["enabled"])
+        self.assertEqual([{"id": "hall", "note": "For testing: in the hall, having heard it all."}], payload["checkpoints"])
+        refused, _sid = self.boot(False)
+        self.assertEqual({"enabled": False}, refused.debug_tools_payload())
+
+    def test_the_launcher_asks_for_them_only_for_quick_play(self):
+        import sys
+
+        repo_root = str(Path(__file__).resolve().parents[3])
+        if repo_root not in sys.path:
+            sys.path.insert(0, repo_root)
+        from toolkit.launcher import server_command
+
+        quick = server_command(Path("set"), transport="ws", port=1, mode="player", fresh=False, ephemeral=True, debug=True)
+        normal = server_command(Path("set"), transport="ws", port=1, mode="player", fresh=False, ephemeral=False)
+        self.assertIn("--allow-debug-commands", quick)
+        self.assertNotIn("--allow-debug-commands", normal)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -108,6 +108,7 @@ class HeadlessServer(
         default_presentation_mode: str = "test",
         ephemeral: bool = False,
         new_game: bool = False,
+        allow_debug_commands: bool = False,
     ) -> None:
         # `db_path`: None keeps a single-player game in its own file
         # (`persistence.paths.default_database_path`) and anything else in memory;
@@ -121,6 +122,9 @@ class HeadlessServer(
         self.quest_text_pace: Any = pacing.DEFAULT_QUEST_TEXT_PACE
         self._operator_quest_text_pace: Any = quest_text_pace
         self.deterministic_test_mode = deterministic_test_mode
+        # A player-mode session never reaches the `debug` commands (checkpoint, scene skip, level, tp...) unless the
+        # operator asks for them: quick play does, a shipped server never does. The session still reads as a player's.
+        self.allow_debug_commands = bool(allow_debug_commands)
         resolved_presentation_mode = str(default_presentation_mode or "test").strip().lower()
         self.default_presentation_mode = (
             resolved_presentation_mode if resolved_presentation_mode in {"player", "test"} else "test"

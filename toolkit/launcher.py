@@ -102,7 +102,7 @@ def port_open(port: int, host: str = "127.0.0.1") -> bool:
         return False
 
 
-def server_command(set_path: Path, *, transport: str, port: int, mode: str, fresh: bool, ephemeral: bool) -> list[str]:
+def server_command(set_path: Path, *, transport: str, port: int, mode: str, fresh: bool, ephemeral: bool, debug: bool = False) -> list[str]:
     script = "poc_server.py" if transport == "tcp" else "poc_ws_server.py"
     command = [
         sys.executable, "-u", str(REPO / "server" / script),
@@ -112,6 +112,8 @@ def server_command(set_path: Path, *, transport: str, port: int, mode: str, fres
         command.append("--new-game")
     if ephemeral:
         command.append("--ephemeral")
+    if debug:
+        command.append("--allow-debug-commands")   # quick play: skip scenes and jump to checkpoints, as a player
     return command
 
 
@@ -255,7 +257,7 @@ class Launcher:
             return self._say("Port %d is already in use." % port)
         transport = "ws" if quick else self.transport.get()
         command = server_command(entry["path"], transport=transport, port=port, mode=self.mode.get(),
-                                 fresh=self.fresh.get(), ephemeral=True if quick else self.ephemeral.get())
+                                 fresh=self.fresh.get(), ephemeral=True if quick else self.ephemeral.get(), debug=quick)
         self._quick_launch = quick
         env = dict(os.environ, PYTHONUNBUFFERED="1", PYGAME_HIDE_SUPPORT_PROMPT="1")
         self.process = subprocess.Popen(command, cwd=str(REPO), env=env, stdout=subprocess.PIPE,
@@ -425,8 +427,8 @@ def selftest() -> int:
         time.sleep(0.2)
     quick_ok = bool(opened) and port_open(free)
     command = " ".join(app.process.args) if app.process is not None else ""
-    quick_ok = quick_ok and "poc_ws_server.py" in command and "--ephemeral" in command
-    print("quick play started a ws, ephemeral server and opened the client:", quick_ok)
+    quick_ok = quick_ok and "poc_ws_server.py" in command and "--ephemeral" in command and "--allow-debug-commands" in command
+    print("quick play started a ws, ephemeral server with the test tools and opened the client:", quick_ok)
     app.stop_server()
     root.update()
     root.destroy()

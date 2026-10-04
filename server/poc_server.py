@@ -39,6 +39,7 @@ class JsonLineMudServer:
         quest_text_pace: Any = None,
         boot_warning_fail_codes: list[str] | None = None,
         presentation_mode: str = "player",
+        allow_debug_commands: bool = False,
         db_path: str | None = None,
         ephemeral: bool = False,
         new_game: bool = False,
@@ -57,6 +58,7 @@ class JsonLineMudServer:
             save_file=save_file,
             db_path=db_path,
             ephemeral=ephemeral,
+            allow_debug_commands=allow_debug_commands,
             new_game=new_game,
             content_set_path=content_set_path,
             feature_profile=feature_profile,
@@ -862,6 +864,7 @@ class JsonLineMudServer:
                     "session_capabilities": list(session.capabilities),
                     "has_character": self.server.get_player_for_session(session.session_id) is not None,
                     "presentation": self.server.presentation_payload(),
+                    "debug_tools": self.server.debug_tools_payload(),
                     "auth_state": self._build_auth_state_payload(session.session_id),
                     "party_state": self.server.build_party_state_payload(session.session_id),
                     "startup_diagnostics": self.build_startup_diagnostics_payload(),
@@ -1680,6 +1683,12 @@ def main() -> None:
         help="Keep nothing: play in memory and write no file.",
     )
     parser.add_argument(
+        "--allow-debug-commands",
+        action="store_true",
+        help="Let a player-mode session use the debug commands (checkpoint, scene skip, level, tp...). For testing; "
+        "a shipped server leaves it off.",
+    )
+    parser.add_argument(
         "--new-game",
         action="store_true",
         help="Throw away a saved single-player game and start over.",
@@ -1718,6 +1727,7 @@ def main() -> None:
         presentation_mode=args.presentation_mode,
         db_path=args.db_path,
         ephemeral=args.ephemeral,
+        allow_debug_commands=args.allow_debug_commands,
         new_game=args.new_game,
     )
     for warning in app.server.boot_warnings:

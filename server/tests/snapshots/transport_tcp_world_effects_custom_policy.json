@@ -9,6 +9,9 @@
         "gm_granted": false,
         "session_entitlements": []
       },
+      "debug_tools": {
+        "enabled": false
+      },
       "has_character": false,
       "message": "connected",
       "operator_catalog": {

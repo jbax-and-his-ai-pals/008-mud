@@ -33,6 +33,18 @@ SLOT_LABELS = {
 
 
 class PanelPayloadsMixin:
+    def debug_tools_payload(self) -> Dict[str, Any]:
+        """What a client may offer a tester: whether the debug commands are on, and the set's checkpoints
+        (scenes named `checkpoint_<name>`, with their notes) for a picker. Nothing but `enabled: false` otherwise."""
+        if not getattr(self, "allow_debug_commands", False):
+            return {"enabled": False}
+        scenes = getattr(getattr(self.world, "scene_runner", None), "scenes", {}) or {}
+        prefix = "checkpoint_"
+        return {"enabled": True, "checkpoints": [
+            {"id": scene_id[len(prefix):], "note": str(definition.get("note", "") or "")}
+            for scene_id, definition in sorted(scenes.items()) if scene_id.startswith(prefix)
+        ]}
+
     def _panel_cache(self) -> Dict[str, Dict[str, str]]:
         cache = getattr(self, "_panel_payload_cache", None)
         if cache is None:

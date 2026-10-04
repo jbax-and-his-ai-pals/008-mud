@@ -34,6 +34,7 @@ class JsonWebSocketMudServer:
         quest_text_pace: Any = None,
         boot_warning_fail_codes: list[str] | None = None,
         presentation_mode: str = "player",
+        allow_debug_commands: bool = False,
         db_path: str | None = None,
         ephemeral: bool = False,
         new_game: bool = False,
@@ -61,6 +62,7 @@ class JsonWebSocketMudServer:
             quest_text_pace=quest_text_pace,
             boot_warning_fail_codes=boot_warning_fail_codes,
             presentation_mode=presentation_mode,
+            allow_debug_commands=allow_debug_commands,
             db_path=db_path,
             ephemeral=ephemeral,
             new_game=new_game,
@@ -154,6 +156,7 @@ class JsonWebSocketMudServer:
                     "session_capabilities": list(session.capabilities),
                     "has_character": self.core.server.get_player_for_session(active_session_id) is not None,
                     "presentation": self.core.server.presentation_payload(),
+                    "debug_tools": self.core.server.debug_tools_payload(),
                     "auth_state": self.core._build_auth_state_payload(active_session_id),
                     "party_state": self.core.server.build_party_state_payload(active_session_id),
                     "server_protocol_version": PROTOCOL_VERSION,
@@ -765,6 +768,11 @@ def main() -> None:
         help="'player' (default) hides debug/GM commands; 'test' exposes them.",
     )
     parser.add_argument(
+        "--allow-debug-commands",
+        action="store_true",
+        help="Let a player-mode session use the debug commands (checkpoint, scene skip, level, tp...). For testing.",
+    )
+    parser.add_argument(
         "--db-path",
         default=None,
         help="SQLite file for a single-player game (default: one file per content set in the state directory). "
@@ -812,6 +820,7 @@ def main() -> None:
         quest_text_pace=settings.session_quest_text_pace,
         boot_warning_fail_codes=settings.boot_warning_fail_codes,
         presentation_mode=args.presentation_mode,
+        allow_debug_commands=args.allow_debug_commands,
         db_path=args.db_path,
         ephemeral=args.ephemeral,
         new_game=args.new_game,

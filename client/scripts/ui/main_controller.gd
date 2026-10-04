@@ -302,6 +302,8 @@ var finite_adventure_ui: FiniteAdventureUiController
 var theme_controller: ThemeController
 var accessibility: AccessibilityController
 var game_state_payloads: GameStatePayloadsController
+const DEBUG_TOOLS = preload("res://scripts/ui/main/debug_tools.gd")
+var debug_tools
 
 ## Two views. The game view is what a player sees: the log in the middle, a dock of movable
 ## info panels on each side (character, attributes, equipment, world, surroundings, pack, quests...)
@@ -524,6 +526,7 @@ func _ready() -> void:
 	theme_controller = ThemeController.new(self)
 	accessibility = AccessibilityController.new(self)
 	game_state_payloads = GameStatePayloadsController.new(self)
+	debug_tools = DEBUG_TOOLS.new(self)
 
 	log_view.install_effect(BLIGHT_TEXT_EFFECT.new())
 	log_view.install_effect(ATMOSPHERIC_TEXT_EFFECT.new())
@@ -706,6 +709,7 @@ func _on_line_received(line: String) -> void:
 		_append_log("[color=aqua]HELLO[/color] %s" % JSON.stringify(payload))
 		if typeof(payload) == TYPE_DICTIONARY:
 			var body: Dictionary = payload as Dictionary
+			debug_tools.apply_hello(body)
 			var operator_catalog_value: Variant = body.get("operator_catalog", {})
 			if typeof(operator_catalog_value) == TYPE_DICTIONARY:
 				operator_console._apply_operator_catalog_payload(operator_catalog_value as Dictionary)
