@@ -104,22 +104,50 @@ class TestAScenePlays(unittest.TestCase):
         server = _Set(self, OPENING, TRIGGERS).boot(self)
         sid, player, _created = _hero(server)
         refused = _plain(NL.join(str(e["payload"]) for e in server.execute_command(sid, "talk king") if e["type"] == "text"))
-        self.assertIn("not yours to interrupt", refused)
+        self.assertIn("A scene is playing", refused)
         _run(server, sid, 12)
         spoken = _plain(NL.join(str(e["payload"]) for e in server.execute_command(sid, "talk king") if e["type"] == "text"))
-        self.assertNotIn("not yours to interrupt", spoken, "and once the scene is over they can")
+        self.assertNotIn("A scene is playing", spoken, "and once the scene is over they can")
 
     def test_the_spectator_is_locked_until_it_ends_and_may_still_look(self):
         server = _Set(self, OPENING, TRIGGERS).boot(self)
         sid, player, _created = _hero(server)
         refused = _plain(NL.join(str(e["payload"]) for e in server.execute_command(sid, "go south") if e["type"] == "text"))
-        self.assertIn("not yours to interrupt", refused)
+        self.assertIn("A scene is playing", refused)
         self.assertEqual("throne_room", player.current_room_id)
         looked = NL.join(str(e["payload"]) for e in server.execute_command(sid, "look") if e["type"] == "text")
-        self.assertNotIn("not yours to interrupt", looked)
+        self.assertNotIn("A scene is playing", looked)
         _run(server, sid, 12)
         moved = _plain(NL.join(str(e["payload"]) for e in server.execute_command(sid, "go south") if e["type"] == "text"))
-        self.assertNotIn("not yours to interrupt", moved)
+        self.assertNotIn("A scene is playing", moved)
+
+    def test_the_refusal_is_a_plain_statement_in_a_muted_colour_not_an_error(self):
+        server = _Set(self, OPENING, TRIGGERS).boot(self)
+        sid, _player, _created = _hero(server)
+        raw = NL.join(str(e["payload"]) for e in server.execute_command(sid, "go south") if e["type"] == "text")
+        self.assertIn("A scene is playing. You can act again when it ends.", raw)
+        self.assertIn("[[GRAY]]", raw)
+        self.assertNotIn("[[RED]]", raw, "it is the situation, not a failure")
+
+    def test_a_set_can_reword_the_refusal(self):
+        from engine.utils.messages import MESSAGES
+
+        self.assertIn("scene_locked", MESSAGES)
+        self.assertEqual((), MESSAGES["scene_locked"][1], "it takes no fields")
+
+    def test_a_client_is_told_when_a_scene_begins_and_ends(self):
+        server = _Set(self, OPENING, TRIGGERS).boot(self)
+        sid, _player, _created = _hero(server)
+        seen = []
+        for _ in range(14):
+            server.world.clock.advance(1.0)
+            for event in server.tick(sid) + server._flush_background_batch(sid):
+                if event["type"] == "scene":
+                    seen.append(event["payload"])
+        self.assertTrue(seen, "a scene event was sent")
+        self.assertFalse(seen[-1]["active"], "and the last one says it is over")
+        self.assertEqual(1, len([p for p in seen if not p["active"]]), "sent when it changed, not every tick")
+        self.assertIn("A scene is playing", seen[-1]["hint"])
 
     def test_a_scene_that_does_not_lock_leaves_the_player_free(self):
         server = _Set(self, OPENING, TRIGGERS).boot(self)

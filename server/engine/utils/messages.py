@@ -31,6 +31,7 @@ MESSAGES: Dict[str, Tuple[str, Tuple[str, ...]]] = {
     "respawn_hint": ("Type 'respawn' to rise again at {place}.", ("place",)),
     "summon_departs": ("Your {name} crumbles to dust.", ("name",)),
     "quest_complete": ("[Quest Complete] {title}", ("title",)),
+    "scene_locked": ("A scene is playing. You can act again when it ends.", ()),
 }
 
 

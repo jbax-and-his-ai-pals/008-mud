@@ -65,6 +65,15 @@ SCENE_ALLOWED_NAMES = frozenset({
 SCENE_ALLOWED_CATEGORIES = frozenset({"information", "system", "debug"})
 
 
+def scene_locked_text(world) -> str:
+    """What a spectator is told when a command is not taken during a scene: a plain statement of the situation,
+    in the muted colour of a note rather than the red of an error (`messages.scene_locked` may reword it)."""
+    from engine.config import FORMAT_GRAY
+    from engine.utils.messages import message
+
+    return "%s%s%s" % (FORMAT_GRAY, message(world, "scene_locked"), FORMAT_RESET)
+
+
 def scene_block(world, player, command_data: Optional[Dict[str, Any]]) -> str:
     """Why `command_data` cannot run right now, or "" when it can.
 
@@ -76,7 +85,7 @@ def scene_block(world, player, command_data: Optional[Dict[str, Any]]) -> str:
     if scenes is not None and scenes.blocking(player):
         name = str((command_data or {}).get("name", "") or "")
         if command_data is None or not (name in SCENE_ALLOWED_NAMES or str(command_data.get("category", "") or "") in SCENE_ALLOWED_CATEGORIES):
-            return "%sThis is not yours to interrupt: watch.%s" % (FORMAT_ERROR, FORMAT_RESET)
+            return scene_locked_text(world)
     manager = manager_for(world)
     session = manager.current(player) if manager is not None else None
     if session is None:

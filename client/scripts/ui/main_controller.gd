@@ -91,6 +91,8 @@ var _session_id: String = "client_shell"
 var _command_history: PackedStringArray = []
 var _history_cursor: int = -1   # -1 = live input (not browsing history)
 var _history_draft: String = "" # text saved when the player first presses Up
+var _scene_active := false # a scene is playing: the player is a spectator (the server says so with a `scene` event)
+var _scene_saved_placeholder := ""
 var _resume_session_id: String = ""
 var _degraded_mode_active: bool = false
 var _manual_disconnect_requested: bool = false
@@ -777,6 +779,8 @@ func _on_line_received(line: String) -> void:
 			_apply_cooldown((payload as Dictionary).get("attack", {}))
 			if docks != null:
 				docks.apply_cooldowns((payload as Dictionary).get("abilities", []))
+	elif event_type == "scene":
+		_apply_scene_state(payload)
 	elif event_type == "room":
 		if typeof(payload) == TYPE_DICTIONARY:
 			_show_room(str((payload as Dictionary).get("text", "")))
@@ -883,6 +887,25 @@ func _make_attack_row() -> HBoxContainer:
 	_attack_status.add_theme_color_override("font_color", Color(0.45, 0.85, 0.5))
 	row.add_child(_attack_status)
 	return row
+
+
+## While a scene plays the command line is muted and says why in place of its usual hint, so the player can see that input
+## is not being taken without being scolded for typing. Reading commands still work, so it is not disabled.
+func _apply_scene_state(payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY or command_input == null:
+		return
+	var info: Dictionary = payload
+	var active := bool(info.get("active", false))
+	if active == _scene_active:
+		return
+	_scene_active = active
+	if active:
+		_scene_saved_placeholder = command_input.placeholder_text
+		command_input.placeholder_text = str(info.get("hint", "A scene is playing."))
+		command_input.modulate = Color(1, 1, 1, 0.55)
+	else:
+		command_input.placeholder_text = _scene_saved_placeholder
+		command_input.modulate = Color(1, 1, 1, 1)
 
 
 func _apply_cooldown(attack: Variant) -> void:

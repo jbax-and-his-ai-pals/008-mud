@@ -108,10 +108,10 @@ class TestIlmara(unittest.TestCase):
 
     def test_the_player_watches_and_cannot_act_until_it_is_over(self):
         game = _Journey(self)
-        self.assertIn("not yours to interrupt", game.say("take crystal"))
+        self.assertIn("A scene is playing", game.say("take crystal"))
         self.assertIsNone(game.player.inventory.get_item("item_ilmaran_crystal"))
         game.wait(60)
-        self.assertNotIn("not yours to interrupt", game.say("look"))
+        self.assertNotIn("A scene is playing", game.say("look"))
 
     def test_the_elder_speaks_before_and_after_the_crystal_is_taken(self):
         game = _Journey(self)
@@ -132,7 +132,7 @@ class TestTheSky(unittest.TestCase):
         game.clear_the_sky()
         game.wait(9)   # the second wave's scene is mid-way: "Its mate is close behind"
         self.assertIn("_scene.second_wave", game.player.flags, "the scene is still being told")
-        self.assertNotIn("not yours to interrupt", game.say("attack wyvern"))
+        self.assertNotIn("A scene is playing", game.say("attack wyvern"))
 
     def test_taking_the_crystal_carries_you_to_the_airship_where_the_soldiers_cannot_look_at_each_other(self):
         game = _Journey(self)

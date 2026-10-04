@@ -410,7 +410,9 @@ adds). Several levels gained at once are reported once, as the whole difference.
 
 **The engine's own words.** `ruleset.messages` replaces the sentences the engine says at the moments every game has:
 `kill_experience`, `kill_gold`, `shared_experience`, `level_reached`, `levels_gained`, `defeated`, `respawn_hint`,
-`summon_departs` and `quest_complete`. A line may use only the fields its message has, written `{like_this}`
+`summon_departs`, `quest_complete` and `scene_locked` (what a player is told when a command is not taken while
+a scene plays; the client also mutes its command line and shows that line as its hint for as long as the scene runs).
+A line may use only the fields its message has, written `{like_this}`
 (the editor shows them); a line that cannot be used leaves the engine's words in place. Colour and layout stay with
 the engine.
 

@@ -48,7 +48,7 @@ class PanelPayloadsMixin:
         events: List[Dict[str, Any]] = []
         builders = [("character", self._build_character_payload), ("world", self._build_world_payload),
                     ("room", self._build_room_payload), ("inventory", self._build_inventory_payload),
-                    ("cooldown", self._build_cooldown_payload)]
+                    ("cooldown", self._build_cooldown_payload), ("scene", self._build_scene_payload)]
         if self.world.has_capability("quests"):
             builders.append(("quests", self._build_quests_payload))
         for kind, build in builders:
@@ -66,6 +66,20 @@ class PanelPayloadsMixin:
                 sent[kind] = signature
                 events.append(self._event(kind, session_id, payload))
         return events
+
+    # -- a scene is playing ----------------------------------------------------------------
+
+    def _build_scene_payload(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Whether the player is a spectator in a scene, so a client can show it (a muted input line that says so).
+
+        `hint` is the engine's own sentence for it (`messages.scene_locked`, which a set may reword)."""
+        player = self.get_player_for_session(session_id)
+        scenes = getattr(self.world, "scene_runner", None)
+        if player is None or scenes is None:
+            return None
+        from engine.utils.messages import message
+
+        return {"active": bool(scenes.blocking(player)), "hint": message(self.world, "scene_locked")}
 
     # -- the attack cooldown ---------------------------------------------------------------
 
