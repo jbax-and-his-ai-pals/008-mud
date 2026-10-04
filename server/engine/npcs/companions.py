@@ -166,12 +166,23 @@ def travel_with(world: Any, player: Any, old_region_id: Optional[str], old_room_
     return moved
 
 
+def _where(world: Any, npc: Any) -> str:
+    """", in The Fogwatch Inn": where a companion who is not here is, by the room's name."""
+    try:
+        region = world.get_region(npc.current_region_id)
+        room = region.get_room(npc.current_room_id) if region else None
+        name = str(getattr(room, "name", "") or "")
+    except Exception:  # noqa: BLE001 - a line of text must never break the list
+        name = ""
+    return ", in %s" % name if name else ""
+
+
 def party_lines(world: Any, player: Any) -> List[str]:
     """One line per companion, for the `companions` command."""
     lines = []
     for npc in companions_of(world, player):
         here = (npc.current_region_id, npc.current_room_id) == (player.current_region_id, player.current_room_id)
-        place = "here" if here else "elsewhere"
+        place = "here" if here else "elsewhere%s" % _where(world, npc)
         if is_recovering(npc):
             place += ", recovering"
         lines.append("%s (level %d, %d/%d health, %s)" % (npc.name, npc.level, npc.health, npc.max_health, place))

@@ -117,6 +117,32 @@ class TestRecovering(_Hurt):
         self.assertGreater(self.companion.health, before)
 
 
+class TestComingBack(_Hurt):
+    def test_a_recovered_companion_walks_to_the_player_and_the_player_is_told_it_has_come(self):
+        self.fall_back()
+        gone_to = self.companion.current_room_id
+        self.assertNotEqual(self.player.current_room_id, gone_to)
+        self.companion.health = self.companion.max_health
+        self.assertIsNone(companions.recovery_step(self.companion, self.world, self.world.clock.now(), self.player))
+        self.world.pending_player_notices.clear()
+        now = self.world.clock.now()
+        for step in range(1, 40):
+            self.companion.last_moved = 0
+            told = npc_ai.handle_ai(self.companion, self.world, now + step * 10, None)
+            self.assertIsNone(told, "what it does on the way in is told to the owner, not filed under where it was")
+            if self.companion.current_room_id == self.player.current_room_id:
+                break
+        self.assertEqual(self.player.current_room_id, self.companion.current_room_id, "it came")
+        notes = [_MARKUP.sub("", text) for who, text in self.world.pending_player_notices if who is self.player]
+        self.assertTrue([n for n in notes if "Brannoc" in n and " in from " in n or "Brannoc" in n and " from the " in n], notes)
+
+    def test_the_list_says_where_one_who_is_not_here_has_gone(self):
+        self.fall_back()
+        line = _MARKUP.sub("", self.game.process_command("companions"))
+        room = self.world.get_region(self.companion.current_region_id).get_room(self.companion.current_room_id)
+        self.assertIn("elsewhere, in %s" % room.name, line)
+
+
 class TestWhatThePlayerCanSee(_Hurt):
     def test_a_conversation_can_tell_recovering_from_well(self):
         well = {"kind": "companion_recovering", "npc_id": "village_elder"}

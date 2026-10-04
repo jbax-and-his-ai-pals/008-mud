@@ -70,7 +70,14 @@ def perform_minion_logic(npc: 'NPC', world: 'World', current_time: float, player
 
     if my_loc != owner_loc:
         npc.follow_target = owner.obj_id 
-        return perform_follow(npc, world, owner, path_override=None)
+        told = perform_follow(npc, world, owner, path_override=None)
+        if told and (npc.current_region_id, npc.current_room_id) == owner_loc:
+            # It has just walked into the owner's room. The world files an NPC's line under where it *was*, so the owner
+            # would never see "arrives": tell them directly.
+            if hasattr(world, "notify_player"):
+                world.notify_player(owner, told)
+            return None
+        return told
 
     if my_loc == owner_loc:
         owner_combat = owner.runtime_state.combat
