@@ -99,6 +99,16 @@ class TestAScenePlays(unittest.TestCase):
         self.assertTrue(player.flags.get("heard_two"))
         self.assertFalse(player.flags.get("heard_three"))
 
+    def test_a_spectator_cannot_start_a_conversation_either(self):
+        """The people in a scene speak when the scene says: nobody can be talked to first."""
+        server = _Set(self, OPENING, TRIGGERS).boot(self)
+        sid, player, _created = _hero(server)
+        refused = _plain(NL.join(str(e["payload"]) for e in server.execute_command(sid, "talk king") if e["type"] == "text"))
+        self.assertIn("not yours to interrupt", refused)
+        _run(server, sid, 12)
+        spoken = _plain(NL.join(str(e["payload"]) for e in server.execute_command(sid, "talk king") if e["type"] == "text"))
+        self.assertNotIn("not yours to interrupt", spoken, "and once the scene is over they can")
+
     def test_the_spectator_is_locked_until_it_ends_and_may_still_look(self):
         server = _Set(self, OPENING, TRIGGERS).boot(self)
         sid, player, _created = _hero(server)

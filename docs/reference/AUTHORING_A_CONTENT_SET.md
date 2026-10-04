@@ -387,7 +387,7 @@ A beat is `{text, after, pace, effects}`: `after` is the wait in seconds after t
 between the rest, up to 600), `pace` how fast a client types it out, and `effects` the same vocabulary a conversation
 uses (people leave, a fight is spawned, the player is carried somewhere, the clock jumps on). The `play_scene` effect
 begins one, so a trigger, a conversation, a quest or a campaign node can; a beat can begin another. While a scene runs its
-player is a spectator (commands that change the world are refused) unless the scene says `"lock": false`; how far it has got is
+player is a spectator (commands that change the world are refused, and so is starting a conversation: nobody can be talked to first; `reply` to one already open, and reading, are allowed) unless the scene says `"lock": false`; how far it has got is
 kept, so a restart carries on instead of leaving the story half told. Three more things make an opening out of
 these: a trigger's `on_enter` fires for a new character's first room, `item_taken` is a trigger event (the crystal on its altar),
 `room_cleared` fires when the last enemy in a room dies (the second wave a short while after the first), and `advance_time`

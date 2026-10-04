@@ -57,9 +57,10 @@ def release_on_departure(world, player) -> None:
 
 # Commands that do not act on the world, so an open scene lets them through: reading (look, examine,
 # the journal and the other information commands), the pack and status, help and saving, and the
-# conversation's own `reply` and `talk`.
+# conversation's own `reply`. Not `talk`: starting a conversation is acting, and the people in a scene
+# have their own say in it (an elder who has not yet noticed you cannot be spoken to first).
 SCENE_ALLOWED_NAMES = frozenset({
-    "reply", "talk", "look", "examine", "inventory", "status", "help", "journal",
+    "reply", "look", "examine", "inventory", "status", "help", "journal",
 })
 SCENE_ALLOWED_CATEGORIES = frozenset({"information", "system", "debug"})
 

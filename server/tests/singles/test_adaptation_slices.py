@@ -890,7 +890,7 @@ class TestPersistence(unittest.TestCase):
         first = self._boot("ff4_slice", db)
         sid, _ = self._join(first, "Caelan", "transport-1")
         hero = first.get_player_for_session(sid)
-        hero.current_region_id, hero.current_room_id = "varenholt", "throne_room"
+        skip_the_ff4_opening(first.world, hero)   # past the scenes, where nobody can be talked to first
         hero.flags["drake_slain"] = True
         self._say(first, sid, "talk chancellor")
         self._say(first, sid, "reply 1")
