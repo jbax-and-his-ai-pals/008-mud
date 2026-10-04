@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Any, List, Optional, Tuple
 
+from engine.config import FORMAT_RESET, FORMAT_SUCCESS
 from engine.utils.messages import message
 
 # How a kill's experience is shared (`ruleset.combat.experience_sharing.mode`):
@@ -174,12 +175,12 @@ def award_participants(world: Any, victim: Any, shares: List[Tuple[Any, float]],
         if xp > 0:
             leveled, level_msg = who.gain_experience(xp)
             name = format_name_for_display(who, victim, start_of_sentence=False)
-            lines.append(message(world, "shared_experience", amount=xp, name=name))
+            lines.append(f"{FORMAT_SUCCESS}{message(world, 'shared_experience', amount=xp, name=name)}{FORMAT_RESET}")
             if leveled and level_msg:
                 lines.append(level_msg)
         if coins > 0:
             who.runtime_state.gold += coins
-            lines.append(message(world, "kill_gold", amount=coins, currency=world.currency_name()))
+            lines.append(f"{FORMAT_SUCCESS}{message(world, 'kill_gold', amount=coins, currency=world.currency_name())}{FORMAT_RESET}")
         text = "\n".join(lines)
         if who is inline:
             told_inline = text

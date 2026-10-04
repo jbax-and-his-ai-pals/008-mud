@@ -8,7 +8,7 @@ from engine.magic.spell import Spell
 from engine.magic.spell_registry import get_spell
 from engine.magic.effects import apply_spell_effect
 from engine.npcs.npc import NPC
-from engine.config import FORMAT_ERROR, FORMAT_RESET, DEFAULT_CURRENCY_NAME
+from engine.config import FORMAT_ERROR, FORMAT_RESET, FORMAT_SUCCESS, DEFAULT_CURRENCY_NAME
 from engine.contracts.equipment import ability_numbers
 from engine.contracts.resources import ability_resource_label
 from engine.utils.messages import message
@@ -193,13 +193,13 @@ class PlayerMagicMixin:
                      # experience (and the level it may bring) first, then the money
                      if final_xp > 0 and p.runtime_state.progression is not None:
                          leveled_up, level_up_msg = p.gain_experience(final_xp)
-                         reward_lines.append(message(target_world, "kill_experience", amount=final_xp))
+                         reward_lines.append(f"{FORMAT_SUCCESS}{message(target_world, 'kill_experience', amount=final_xp)}{FORMAT_RESET}")
                          if leveled_up and level_up_msg:
                              reward_lines.append(level_up_msg)
                      if gold_dropped > 0 and p.runtime_state.gold is not None:
                          p.runtime_state.gold += gold_dropped
                          currency = target_world.currency_name() if target_world else DEFAULT_CURRENCY_NAME
-                         reward_lines.append(message(target_world, "kill_gold", amount=gold_dropped, currency=currency))
+                         reward_lines.append(f"{FORMAT_SUCCESS}{message(target_world, 'kill_gold', amount=gold_dropped, currency=currency)}{FORMAT_RESET}")
                  kill_credit.award_participants(target_world, t, shares, skip=p, formula=calculate_xp_gain, gold=rolled_gold)
                  # Each part of a kill is a paragraph: the rewards (one group), what dropped, then the story.
                  paragraphs = ["\n".join(reward_lines)] if reward_lines else []
