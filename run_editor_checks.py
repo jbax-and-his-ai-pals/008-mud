@@ -7,6 +7,11 @@ and say clearly when the toolchain is missing rather than failing obscurely.
 
     python3 run_editor_checks.py
     python3 run_editor_checks.py --godot /path/to/godot
+    python3 run_editor_checks.py --only trigger --only scene     # checks whose file name contains a word
+    python3 run_editor_checks.py --jobs 1                        # one after another
+
+The checks run as parallel Godot processes (each is its own process and writes only under `tmp/`), so the whole
+set takes about as long as the slowest few. The output is printed in file order regardless.
 
 Exit codes: 0 everything passed, 1 a check failed, 2 Godot was not found.
 
@@ -21,6 +26,8 @@ from __future__ import annotations
 
 import argparse
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor
 import shutil
 import subprocess
 import sys
@@ -105,6 +112,10 @@ def run_check(godot: str, test: Path) -> tuple[bool, str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--godot", help="path to the Godot executable")
+    parser.add_argument("--only", action="append", default=[], metavar="WORD",
+                        help="run only checks whose file name contains WORD (repeatable)")
+    parser.add_argument("--jobs", type=int, default=min(12, max(1, (os.cpu_count() or 2) // 2)),
+                        help="how many Godot processes at once (default: half the cores, at most 12; 1 = one at a time)")
     args = parser.parse_args()
 
     godot = find_godot(args.godot)
@@ -117,13 +128,17 @@ def main() -> int:
 
     print("==> Godot: %s" % godot)
     tests = editor_tests()
+    if args.only:
+        tests = [test for test in tests if any(word in test.name for word in args.only)]
     if not tests:
         print("No tests found under %s." % TESTS_DIR)
         return 2
 
     failures: list[Path] = []
-    for test in tests:
-        ok, detail = run_check(godot, test)
+    started = time.time()
+    with ThreadPoolExecutor(max_workers=max(1, args.jobs)) as pool:
+        results = list(pool.map(lambda test: run_check(godot, test), tests))
+    for test, (ok, detail) in zip(tests, results):
         print("%s %s" % ("OK  " if ok else "FAIL", test.name))
         if detail:
             print(detail)
@@ -134,7 +149,7 @@ def main() -> int:
     if failures:
         print("%d of %d editor checks failed." % (len(failures), len(tests)))
         return 1
-    print("All %d editor checks passed." % len(tests))
+    print("All %d editor checks passed (%.0f seconds)." % (len(tests), time.time() - started))
     return 0
 
 
