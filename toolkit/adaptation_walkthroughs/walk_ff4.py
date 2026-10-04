@@ -113,7 +113,7 @@ check("at the castle gate", g.where() == "varenholt:castle_gate", g.where())
 out = say(g, "talk kessa", show=V, n=600)
 out = say(g, "reply 1", show=V, n=400)
 kessa = [n for n in g.world.npcs.values() if n.template_id == "captain_kessa"][0]
-check("Kessa rides with you", bool(kessa.properties.get("companion")), str(kessa.properties.get("companion")))
+check("Kessa goes with you", bool(kessa.properties.get("companion")), str(kessa.properties.get("companion")))
 say(g, "go north")
 
 # --- chapel, stores ----------------------------------------------------------
@@ -214,8 +214,8 @@ foe.current_region_id, foe.current_room_id = "hazevale", "shrine"
 foe.health = foe.max_health = 500
 g.world.add_npc(foe)
 out = say(g, "cast call colossus", show=V, n=300)
-colossuss = [n for n in g.world.npcs.values() if n.template_id == "colossus_minion" and n.is_alive]
-check("the Colossus is summoned", bool(colossuss), out[:150])
+colossus = [n for n in g.world.npcs.values() if n.template_id == "colossus_minion" and n.is_alive]
+check("the Colossus is summoned", bool(colossus), out[:150])
 check("its quake hits the enemy", foe.health < 500, foe.health)
 for _ in range(12):
     g.world.clock.advance(1.0)

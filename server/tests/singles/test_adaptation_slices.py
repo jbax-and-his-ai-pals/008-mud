@@ -554,7 +554,7 @@ class TestFF4Slice(_Slice):
         refused = self.say("go south")
         self.assertEqual("varenholt:castle_gate", self.where())
         self.assertIn("Not alone, captain", refused)
-        self.assertIn("Captain Kessa rides with you", refused)
+        self.assertIn("Captain Kessa goes with you", refused)
         self.at("varenholt", "throne_room")
         self._question_the_king()   # either answer: the king has given his orders
         self.at("varenholt", "castle_gate")
@@ -686,7 +686,7 @@ class TestFF4Slice(_Slice):
         self.at("varenholt", "castle_gate")
         said = self.say("talk kessa")
         self.assertIn("Are you ready", said)
-        self.assertIn("Ride with me, Kessa", said)
+        self.assertIn("Let's go, Kessa", said)
         self.say("reply 1")
         self.assertEqual(["captain_kessa"], self._companions())
         self.assertIs(True, self.player.flags.get("kessa_joined"))
@@ -705,7 +705,7 @@ class TestFF4Slice(_Slice):
         self.player.flags["rested_at_castle"] = True
         self.at("varenholt", "barracks")
         self.say("talk kessa")
-        self.say("reply 1")   # "Ride with me, Kessa."
+        self.say("reply 1")   # "Let's go, Kessa."
         self.assertEqual(["captain_kessa"], self._companions())
         self.player.runtime_state.quests.completed["quest_fog_drake"] = {"template_id": "quest_fog_drake"}
         self.player.flags["ryn_taught"] = True
@@ -793,9 +793,9 @@ class TestFF4Slice(_Slice):
             foes.append(foe)
         said = self.say("cast call colossus")
         self.assertIn("quake", said)
-        colossuss = self.npcs("colossus_minion")
-        self.assertEqual(1, len(colossuss), "one colossus, however many enemies it shakes")
-        self.assertEqual(("hazevale", "shrine"), (colossuss[0].current_region_id, colossuss[0].current_room_id))
+        colossus = self.npcs("colossus_minion")
+        self.assertEqual(1, len(colossus), "one colossus, however many enemies it shakes")
+        self.assertEqual(("hazevale", "shrine"), (colossus[0].current_region_id, colossus[0].current_room_id))
         self.assertTrue(all(foe.health < 500 for foe in foes), "the quake reaches every enemy in the room")
         for _ in range(12):   # and it is gone again almost at once
             self.world.clock.advance(1.0)

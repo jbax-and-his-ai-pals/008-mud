@@ -116,7 +116,7 @@
             "pace": "slow",
             "choices": [
                 {
-                    "text": "Ready. Ride with me, Kessa.",
+                    "text": "Ready. Let's go, Kessa.",
                     "next_node": "joins",
                     "effects": {
                         "recruit": true,
@@ -144,7 +144,7 @@
             "pace": "slow",
             "choices": [
                 {
-                    "text": "Ride with me again, Kessa.",
+                    "text": "Let's go, Kessa.",
                     "next_node": "joins",
                     "effects": {
                         "recruit": true,

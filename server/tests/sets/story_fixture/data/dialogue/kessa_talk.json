@@ -115,7 +115,7 @@
             "pace": "slow",
             "choices": [
                 {
-                    "text": "Ride with me, Kessa. I would rather not do this alone.",
+                    "text": "Join me, Kessa. I would rather not do this alone.",
                     "condition": {
                         "all": [
                             {

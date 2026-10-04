@@ -243,6 +243,10 @@
                         "room": "throne_room"
                     }
                 }
+            },
+            {
+                "after": 3,
+                "text": "[[YELLOW]]The chancellor speaks:[[/]] [[GREEN]]\"His Majesty is waiting, Captain. Tell him of your journey and of the crystal; he will want to hear all of it. Speak to the king.\"[[/]] (talk king)"
             }
         ]
     },
