@@ -54,7 +54,7 @@
             "end": true
         },
         "thanks": {
-            "text": "I can call the colossuss. Mother taught me before... before. Will you let me teach you the calling song?",
+            "text": "I can call the colossus. Mother taught me before... before. Will you let me teach you the calling song?",
             "pace": "slow",
             "choices": [
                 {
@@ -72,7 +72,7 @@
                     }
                 },
                 {
-                    "text": "Come with me, Ryn. Colossuss answer better with you beside me.",
+                    "text": "Come with me, Ryn. Colossi answer better with you beside me.",
                     "condition": {
                         "all": [
                             {
