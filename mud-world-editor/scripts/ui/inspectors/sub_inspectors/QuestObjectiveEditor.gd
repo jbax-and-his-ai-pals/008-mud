@@ -151,7 +151,7 @@ func _add_value_row(key: String, kind: String, value):
 
 
 # `choices` is the one shape where the editor can prevent a concrete validation
-# failure: every outcome must declare `next_stage` or `complete` (content_set.py),
+# failure: every outcome must declare `next_stage` or `complete` (content_set/),
 # and a hand-written map gets that wrong quietly.
 func _add_choices_editor(type_id: String):
 	var fields := QuestSchema.authored_fields(type_id)

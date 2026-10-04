@@ -1,6 +1,6 @@
 # tests/ruleset_skill_bonuses_smoke.gd
 #
-# `skills.stat_bonuses` (`skill_system.py:43-49`; `content_set.py::
+# `skills.stat_bonuses` (`skill_system.py:43-49`; `content_set/::
 # _validate_skills_rules`): which stat backs a skill check, and how much each
 # point above 10 adds. Had no editor control at all -- orbital_salvage already
 # declares two (evasion/agility, fabrication/intelligence), and until now the

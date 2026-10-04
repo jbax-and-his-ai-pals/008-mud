@@ -1,7 +1,7 @@
 # scripts/ui/modals/CrimeSection.gd
 #
 # The ruleset's `crime` section (`core/crime_manager.py`, `commands/jail.py`,
-# `world.py`), validated by `content_set.py::_validate_crime_and_debug_rules`.
+# `world.py`), validated by `content_set/ruleset.py::_validate_crime_and_debug_rules`.
 # Like WorldRulesSection, a field is written only when the author changed it,
 # so untouched numbers keep their authored form and unknown keys survive.
 # An unset number shows 0 because that is what the engine uses for it.

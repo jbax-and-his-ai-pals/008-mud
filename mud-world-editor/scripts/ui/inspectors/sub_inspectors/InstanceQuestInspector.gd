@@ -3,7 +3,7 @@
 # One template from `quests/instances.json`, the input to
 # `QuestGenerator.generate_instance_quest`: which creatures fill a generated
 # house, who asks for help, where its entrance may appear, and the house's
-# shape. Validated by `content_set.py::_validate_instance_quests`.
+# shape. Validated by `content_set/quests_campaigns.py::_validate_instance_quests`.
 #
 # The stage-based QuestInspector does not fit these: the generator builds the
 # quest's single stage itself, and opening an instance template there wrote an

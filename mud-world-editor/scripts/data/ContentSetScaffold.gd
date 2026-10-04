@@ -19,7 +19,7 @@
 #   no set.
 # * **Writes** the manifest from the engine's own field list, mirrored here as
 #   constants that `tests/schema_parity_smoke.gd` holds equal to
-#   `engine/server/content_set.py` through `toolkit/engine_vocabulary_dump.py`.
+#   `engine/server/content_set/` through `toolkit/engine_vocabulary_dump.py`.
 # * **Writes a starter region** with one room, classified the way the copied
 #   ruleset's own policy requires (`world.regions.require_classification`,
 #   `require_level_bands`). Nothing else: the first room is the author's, and a
@@ -47,7 +47,7 @@ extends RefCounted
 const SaveIO = preload("res://scripts/data/SaveIO.gd")
 
 # --- the engine's manifest shape ----------------------------------------------
-# Every one of these is mirrored from `engine/server/content_set.py`, which is what
+# Every one of these is mirrored from `engine/server/content_set/`, which is what
 # refuses a set. `schema_parity_smoke.gd` compares them in both directions through
 # `toolkit/engine_vocabulary_dump.py`, so a change on the engine side fails the
 # gate rather than producing manifests the engine rejects.
@@ -64,7 +64,7 @@ const OPTIONAL_PATHS := ["feature_profile", "opening"]
 const REQUIRED_START_FIELDS := ["scenario_id", "region_id", "room_id"]
 const REQUIRED_DATA_DIRECTORIES := ["regions", "items", "npcs"]
 # Two more the engine asks for when the `quests` capability is declared
-# (`content_set.py`: campaigns are a quest-progression implementation). Not in the
+# (`content_set/`: campaigns are a quest-progression implementation). Not in the
 # dump because it is a conditional rather than a list the manifest names, so this
 # mirror is held honest by the smoke check validating a set copied from
 # fantasy_frontier -- miss one and that set stops loading.
@@ -182,7 +182,7 @@ static func create(
 	for directory in REQUIRED_DATA_DIRECTORIES:
 		DirAccess.make_dir_recursive_absolute(target.path_join("data").path_join(directory))
 
-	# Mirroring `content_set.py`'s own rule: a set that declares the `quests`
+	# Mirroring `content_set/`'s own rule: a set that declares the `quests`
 	# capability must also carry the quest and campaign directories. Copying the
 	# capability without the directories it implies is how a scaffold produces a set
 	# the engine refuses for a reason the author cannot act on.

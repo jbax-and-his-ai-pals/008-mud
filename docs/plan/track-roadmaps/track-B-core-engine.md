@@ -131,7 +131,7 @@ section, and exactly two verbs in v1: `start(entity, work_id, actor) -> timer` a
 the whole mechanism, and a sweep is a UI convenience (Track E). No `condition` map, no `duration_multiplier`,
 no `requires_timer` in v1: those are the second and third consumers of the *same* four fields, and adding
 them before the first consumer exists is how a primitive becomes a feature. Validation: `duration` positive
-(mirroring the existing `base_duration` gate at `server/engine/server/content_set.py:2310-2315`), every
+(mirroring the existing `base_duration` gate at `server/engine/server/content_set/`), every
 `inputs`/`outputs` item id resolves, and an unknown `work` id is refused by name.
 **Why now.** It is the one the other tracks are waiting on, it has a precedent to generalise
 (`respawn_days`), and item timers already survive a save (`utils.py:104-120`).
@@ -156,7 +156,7 @@ property into the declaration). Then one mechanical consumer each: light gates w
 hazard is the existing per-tick damage. Drop `temperature` and `atmosphere` from v1 — they are arguments to
 this contract later, not separate primitives.
 **Why now.** The vocabulary is already authored in ten fantasy region files and never mechanically read;
-`hazard_type` is already validated against `combat/elements.json` (`content_set.py:441-455`), so half the
+`hazard_type` is already validated against `combat/elements.json` (`content_set/`), so half the
 work is done. It is the primitive that unblocks "how long can you stay", which is duration × environment,
 and doing it before duration means duration's first consumer is not a bespoke hazard.
 **Depends on.** Item 2 if a suppressed hazard must survive a save (`room.active_env_effects` currently does
@@ -232,7 +232,7 @@ about to exist: the editor will write these sections, and it must be able to *as
 rather than model them.
 
 1. **A validator per ruleset section, before the editor puts a form on it** (G).
-   `content_set.py` validates `social`, `factions`, `skills`, `advancement`,
+   `content_set/` validates `social`, `factions`, `skills`, `advancement`,
    `weather`, `world`, `quest_generation` and `systems`; it validates none of
    `combat`, `crafting`, `crime`, `locksmithing`, `loot`, `npc_schedules`, `elites`,
    `economy`, `status`, `calendar`, `player_defaults`. G item 8 writes all of them.

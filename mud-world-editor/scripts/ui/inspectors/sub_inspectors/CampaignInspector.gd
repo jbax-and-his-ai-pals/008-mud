@@ -10,7 +10,7 @@
 # node applies its effects and waits for an `advance_campaign` effect; an END node
 # records its outcome. NODE_TYPES and TRIGGERS copy the
 # engine's CAMPAIGN_NODE_TYPES and CAMPAIGN_TRIGGERS (schema_parity_smoke.gd
-# checks them); content_set.py::_validate_campaigns refuses the rest on save.
+# checks them); content_set/quests_campaigns.py::_validate_campaigns refuses the rest on save.
 # Nodes and transitions are edited in place, so keys this form does not show
 # survive; switching a node's type drops only the fields the new type ignores.
 

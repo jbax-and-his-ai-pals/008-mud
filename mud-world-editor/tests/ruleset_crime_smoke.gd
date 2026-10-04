@@ -1,7 +1,7 @@
 # tests/ruleset_crime_smoke.gd
 #
 # The ruleset's `crime` section had no editor control; it now has a validator
-# (content_set.py::_validate_crime_and_debug_rules) and the Ruleset editor's
+# (content_set/ruleset.py::_validate_crime_and_debug_rules) and the Ruleset editor's
 # Crime section. fantasy_frontier's real section is the fixture.
 #
 #   godot --headless --path mud-world-editor --script tests/ruleset_crime_smoke.gd

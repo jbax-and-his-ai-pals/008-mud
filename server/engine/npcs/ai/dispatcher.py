@@ -5,7 +5,7 @@
 `config_npc.NPC_BEHAVIOR_TYPES` for the authorable list and what each value does,
 and `NPC_RUNTIME_BEHAVIORS` for the one the engine assigns to itself. A value
 outside both means no routine runs at all, so an NPC whose author mistyped
-`wanderer` simply stands there; `content_set.py` warns about one at gate time and
+`wanderer` simply stands there; `content_set/` warns about one at gate time and
 `test_npc_behavior_vocabulary.py` proves every declared value is reachable here.
 
 Priority is deliberate and ordered: a stunned or trading NPC does nothing, a

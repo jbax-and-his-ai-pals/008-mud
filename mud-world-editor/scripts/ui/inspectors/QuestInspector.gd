@@ -89,7 +89,7 @@ func _add_quest_extras():
 
 # --- rewards ------------------------------------------------------------------
 # What QuestManager._grant_rewards pays on completion (checked by
-# content_set.py::_validate_quest_rewards): xp, gold, items (id + quantity, both
+# content_set/quests_campaigns.py::_validate_quest_rewards): xp, gold, items (id + quantity, both
 # read directly), relationships (template + non-zero amount). A zero xp/gold is
 # not written; `generated_item_data` is kept as authored.
 

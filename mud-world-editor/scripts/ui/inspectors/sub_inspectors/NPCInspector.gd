@@ -135,7 +135,7 @@ func _refresh_dialog_topics(rows: VBoxContainer):
 
 # `properties.dialogue` (`dialogue/manager.py::NPC_GRAPH_KEY`): which authored
 # conversation graph this NPC uses. A graph an NPC binds to that does not exist
-# is an orphan the gate catches (`content_set.py:1545-1549`), so the picker only
+# is an orphan the gate catches (`content_set/`), so the picker only
 # offers graphs the set actually has -- and still shows an already-authored id
 # that no longer resolves, rather than silently dropping it on the next save.
 func _build_dialogue_binding():
@@ -315,7 +315,7 @@ func _refresh_sells_items(rows: VBoxContainer):
 		row.add_child(remove); rows.add_child(row)
 	if list.is_empty(): rows.add_child(InspectorStyle.lbl("Nothing for sale.", InspectorStyle.COLOR_TEXT_DIM))
 
-# `properties.buy_orders` (`mercantile.py:153-155`; `content_set.py::
+# `properties.buy_orders` (`mercantile.py:153-155`; `content_set/::
 # _validate_vendor_orders`): delivery orders the player fulfills for a reward,
 # independent of what this vendor sells outright. An order wants an item the
 # same way a recipe ingredient does -- an exact template, a family, or a

@@ -1,7 +1,7 @@
 # scripts/ui/modals/SocialSection.gd
 #
 # The ruleset's `social` section (social/relationships.py, use_give.py
-# `_gift_affinity`), validated by content_set.py::_validate_social_rules:
+# `_gift_affinity`), validated by content_set/schedules_social.py::_validate_social_rules:
 # the relationship ladder (threshold, name, vendor discount) and what a gift
 # is worth. Like the other ruleset sections, only what the author changed is
 # written; unknown keys survive. A gift category that is not authored shows the

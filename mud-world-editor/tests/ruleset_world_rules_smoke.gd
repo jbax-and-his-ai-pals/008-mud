@@ -2,7 +2,7 @@
 #
 # economy, locksmithing, calendar, spawning, elites, npc_naming and
 # player_defaults had no editor control; each now has a validator
-# (content_set.py::_validate_simple_ruleset_sections) and a form in the Ruleset
+# (content_set/ruleset.py::_validate_simple_ruleset_sections) and a form in the Ruleset
 # editor's World Rules section. fantasy_frontier authors all seven.
 #
 #   godot --headless --path mud-world-editor --script tests/ruleset_world_rules_smoke.gd

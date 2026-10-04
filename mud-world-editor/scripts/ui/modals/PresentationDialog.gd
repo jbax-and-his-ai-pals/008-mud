@@ -5,7 +5,7 @@
 # the client applies the pack of that id if it ships one. The picker therefore
 # offers this repository's client packs (`client/themes/*.json` by theme_id).
 # `display_name`, `presentation_id` and the accessibility flags are validated
-# (`content_set.py::_validate_presentation`) but no runtime reads them yet.
+# (`content_set/core.py::_validate_presentation`) but no runtime reads them yet.
 # Saves go through ConfigurationSave, so the engine refuses a bad file first;
 # only changed fields are written.
 

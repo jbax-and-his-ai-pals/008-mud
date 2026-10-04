@@ -14,7 +14,7 @@ from engine.config import (TIME_DAWN_HOUR, DEFAULT_TIME_DAY_NAMES,
 from engine.config.config_game import TIME_AFTERNOON_HOUR, TIME_MORNING_HOUR
 
 # The calendar's seasons, in month order. `weather.chances` is keyed by these
-# (weather_manager.py), which is why content_set.py checks against them.
+# (weather_manager.py), which is why content_set/ checks against them.
 SEASONS = ("winter", "spring", "summer", "fall")
 
 

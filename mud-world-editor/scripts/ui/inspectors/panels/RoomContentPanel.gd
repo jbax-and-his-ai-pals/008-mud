@@ -244,7 +244,7 @@ func _build_item_placement_overrides(parent: VBoxContainer, placement: Dictionar
 
 # Keys the fields above do not cover: any other property the template has
 # (or an extension added). Each keeps the type of the value it replaces --
-# content_set.py::_item_placement_override_issues refuses anything else -- so
+# content_set/definitions.py::_item_placement_override_issues refuses anything else -- so
 # the control is chosen by that type; arrays and objects are shown, not edited.
 const _ITEM_FORM_OVERRIDES := ["name", "description", "is_open", "locked", "charges", "respawn_days"]
 
@@ -394,7 +394,7 @@ func _build_npc_placement_overrides(parent: VBoxContainer, placement: Dictionary
 # `overrides.properties_override` merges over the template's `properties`
 # (npc_factory.py), so a placement can tune how this one NPC behaves: the same
 # values NPCInspector's Behavior Tuning edits, and checked by the same rules
-# (content_set.py::_npc_property_errors). A value is written only while its
+# (content_set/npcs.py::_npc_property_errors). A value is written only while its
 # Override box is ticked; unticked, the template's value (or the engine
 # default) applies. Other keys are listed and can be removed, never rewritten.
 const _PLACEMENT_TUNING_INTEGERS := [

@@ -1,5 +1,5 @@
 ﻿# tests/singles/test_region_policy_validator.py
-"""Coverage for engine/server/content_set.py's validate_region_policy() --
+"""Coverage for engine/server/content_set/'s validate_region_policy() --
 the standalone, no-manifest-required region-authoring policy check added
 for the Godot world editor's fast "validate before it's wired into the
 world" feedback, and its toolkit/region_policy_validator.py CLI wrapper."""

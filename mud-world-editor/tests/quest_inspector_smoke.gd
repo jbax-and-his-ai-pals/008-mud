@@ -245,7 +245,7 @@ func _build_fixture() -> void:
 	DirAccess.make_dir_recursive_absolute(data_root.path_join("npcs"))
 	DirAccess.make_dir_recursive_absolute(data_root.path_join("regions"))
 	DirAccess.make_dir_recursive_absolute(data_root.path_join("quests"))
-	# A quests-capable set is required to have campaigns/ too (content_set.py).
+	# A quests-capable set is required to have campaigns/ too (content_set/).
 	DirAccess.make_dir_recursive_absolute(data_root.path_join("campaigns"))
 	DirAccess.make_dir_recursive_absolute(content_set_root.path_join("rules"))
 	DirAccess.make_dir_recursive_absolute(content_set_root.path_join("presentation"))

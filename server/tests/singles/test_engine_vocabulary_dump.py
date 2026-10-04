@@ -104,7 +104,10 @@ class TestTheManifestBlockReadsTheEngine(unittest.TestCase):
 
     def test_the_loader_uses_the_same_constants_it_publishes(self):
         """A constant the loader does not read is a copy waiting to drift."""
-        source = (REPO_ROOT / "server" / "engine" / "server" / "content_set.py").read_text(encoding="utf-8")
+        source = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((REPO_ROOT / "server" / "engine" / "server" / "content_set").glob("*.py"))
+        )
         for name in ("REQUIRED_MANIFEST_STRINGS", "REQUIRED_MANIFEST_PATHS",
                      "OPTIONAL_MANIFEST_PATHS", "REQUIRED_START_FIELDS"):
             self.assertGreaterEqual(

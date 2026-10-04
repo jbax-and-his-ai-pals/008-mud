@@ -5,7 +5,7 @@
 # one exit), `properties.hidden_exits` (links a lever or spell reveals) and
 # `properties.env_interactions` (Room.apply_elemental_interaction: what a spell's
 # damage type does to the room for a while). Validated by
-# `content_set.py::_validate_room_passage_properties`; both of the first and last
+# `content_set/effects_conditions.py::_validate_room_passage_properties`; both of the first and last
 # fail open, so the pickers offer only this room's real exits and requirements.
 # Entries are edited in place, so keys this panel does not show survive.
 

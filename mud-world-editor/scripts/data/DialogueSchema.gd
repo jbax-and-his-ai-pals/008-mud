@@ -17,7 +17,7 @@
 #     typo never happens.
 #   * effects -- `engine/dialogue/effects.py` (`KNOWN_EFFECTS`).
 #
-# `engine/server/content_set.py::_validate_dialogue_content` checks references,
+# `engine/server/content_set/triggers_dialogue.py::_validate_dialogue_content` checks references,
 # condition kinds and effect keys, so anything authored through this schema is
 # checked by the engine before a player can walk into it.
 

@@ -3,7 +3,7 @@
 # `weather.chances` (weather_manager.py `_update_weather`) had no editor
 # control and no engine check; the Ruleset dialog's Seasonal Weather section
 # now edits it, saved through the staged engine check
-# (content_set.py::_validate_weather_chances). fantasy_frontier, which plays
+# (content_set/weather_skills.py::_validate_weather_chances). fantasy_frontier, which plays
 # the engine's own table, is the fixture.
 #
 #   godot --headless --path mud-world-editor --script tests/ruleset_weather_chances_smoke.gd

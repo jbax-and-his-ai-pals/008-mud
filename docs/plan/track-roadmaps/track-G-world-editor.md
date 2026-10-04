@@ -211,7 +211,7 @@
 **Risk.** A copied ruleset carries the reference set's vocabulary into a world it does not fit. It must be an explicit copy of a known-good set, never a generated one.
 
 > **✅ The ownership call was made first (2026-09-19).** The **engine owns** the
-> manifest field list — `content_set.py` is what refuses a set. The editor holds a
+> manifest field list — `content_set/` is what refuses a set. The editor holds a
 > copy in a table a parity check keeps equal to the engine's, the arrangement
 > already in use for condition kinds, effect kinds and objective types
 > (`toolkit/engine_vocabulary_dump.py` + `schema_parity_smoke.gd`), and
@@ -247,7 +247,7 @@
 > **Five defects found on the way, all fixed:**
 >
 > 1. **The capability/directory mismatch.** The `quests` capability requires
->    `data/quests` and `data/campaigns` to exist (`content_set.py`, campaigns being a
+>    `data/quests` and `data/campaigns` to exist (`content_set/`, campaigns being a
 >    quest-progression implementation). Copying the capability without them produced
 >    two errors the author could do nothing about. The scaffold now mirrors that rule.
 > 2. **The starter region read the wrong ruleset.** It was classified from the
@@ -301,7 +301,7 @@ uses the social system, however good the NPC inspector is. Today the editor read
 exactly two keys of this file (`world.regions.biomes`/`region_types` in
 `Main.gd:128`, and `status.stats` through `ContractCatalog.gd:99`).
 **Depends on.** B: a validator per exposed section, or the section is shown
-read-only with the reason. `content_set.py` validates `social`, `factions`,
+read-only with the reason. `content_set/` validates `social`, `factions`,
 `skills`, `advancement`, `weather`, `world`, `quest_generation`, `systems` today and
 none of the rest.
 **Scope.** large.
@@ -431,7 +431,7 @@ editor to copy something arbitrary; emit only what the engine actually reads.
   9.** The original reason was that "the schema owns what may exist; a layout editor
   over `item_families` is a second schema". That reason still holds, and it is now
   the *constraint* rather than the refusal: the editor must ask
-  `ContractRegistry`/`content_set.py` what is valid instead of modelling families
+  `ContractRegistry`/`content_set/` what is valid instead of modelling families
   itself, which is the same arrangement `EngineValidator` already uses for content.
   The new reason to do it: every item template points at a family, so a set whose
   author cannot declare one cannot use the item contract at all.
@@ -450,7 +450,7 @@ editor to copy something arbitrary; emit only what the engine actually reads.
 - The schema copies cannot be removed (the editor needs field *types* to choose widgets), so parity can only ever be enforced, not eliminated; if that is not accepted, the drift returns and the tests rot.
 - Items 1-2 need Godot to run, so the proposals land as unverified files if the checks are never executed locally or in CI. *(2026-09-20: the checks do run locally — 30/30 — and `run_editor_checks.py` is one of the three gates, so this risk is about CI, not about the tooling existing.)*
 - Item 6's copied ruleset imports genre vocabulary into a new world, which is the failure mode this track exists to prevent, dressed as convenience.
-- **Items 8-11 are where "the editor shows fields and asks the engine" is most tempting to break.** A ruleset or contract form is the first surface that can hold a *rule* rather than a value, and the first that can disagree with `content_set.py` about legality. The mitigation is structural: no section ships before its validator does (Track B's handoff 1), and the section appears read-only with the reason until then.
+- **Items 8-11 are where "the editor shows fields and asks the engine" is most tempting to break.** A ruleset or contract form is the first surface that can hold a *rule* rather than a value, and the first that can disagree with `content_set/` about legality. The mitigation is structural: no section ships before its validator does (Track B's handoff 1), and the section appears read-only with the reason until then.
 - **Every new writer multiplies the round-trip risk, and only item 1's check catches it.** That check is done and green (2026-09-19), which is exactly why items 8-14 are affordable now; the risk is that a new writer lands without a fixture of its own, so the next silent rewrite ships inside a *new* file the four-set round trip never touches.
 - **Item 13's delete is the first irreversible action in the editor.** Every other control can be undone by not saving; a typed confirmation is the only thing between an author and a deleted world, so it must name the path and the file count.
 - **Item 11 may resolve as "stop loading campaigns".** That is a deletion of a loaded surface, and the `start_campaign` dialogue effect names campaigns today; the picker must be narrowed in the same change or the effect offers a campaign that cannot load.
@@ -463,7 +463,7 @@ editor to copy something arbitrary; emit only what the engine actually reads.
 - Whether the plugin/mod API can reach a content set at runtime (paths, permissions) is unread; item 7 is a spike partly because of that.
 - It is unread whether shipped NPC templates rely on `spell_power`/`magic_resist` values that only exist because the editor's form writes them.
 - Whether anyone relies on the one-way-link warning is a question for the author, not the code.
-- **Items 8-11.** Whether `content_set.py`'s section validators can be asked about one section at a time
+- **Items 8-11.** Whether `content_set/`'s section validators can be asked about one section at a time
   without loading a whole set — the form needs a verdict on a ruleset the author is halfway through
   editing, and today every entry point validates a whole set. Unread; if they cannot, item 8's first task
   is a per-section entry point (Track B's handoff 1).

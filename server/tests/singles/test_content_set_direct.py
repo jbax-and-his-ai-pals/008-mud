@@ -1,5 +1,5 @@
 # tests/singles/test_content_set_direct.py
-"""Coverage for engine/server/content_set.py's validation error paths that
+"""Coverage for engine/server/content_set/'s validation error paths that
 the existing content-set validator tests (which mostly exercise the happy
 path plus a handful of specific rejections) don't reach: malformed ruleset
 systems, _parse_version/_load_json edge cases, region/room/exit/npc/item

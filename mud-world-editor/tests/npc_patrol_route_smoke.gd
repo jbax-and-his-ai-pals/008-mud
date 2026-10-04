@@ -7,7 +7,7 @@
 # over the template's properties) is edited by the same card. Driven through the
 # real editor scene on a copy of
 # fantasy_frontier, so region saves go through the engine's verdict
-# (content_set.py::_validate_patrol_routes, _npc_property_errors).
+# (content_set/world.py::_validate_patrol_routes, _npc_property_errors).
 #
 #   godot --headless --path mud-world-editor --script tests/npc_patrol_route_smoke.gd
 

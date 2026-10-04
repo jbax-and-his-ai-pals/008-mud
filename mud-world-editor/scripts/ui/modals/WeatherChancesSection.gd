@@ -1,7 +1,7 @@
 # scripts/ui/modals/WeatherChancesSection.gd
 #
 # The ruleset's `weather.chances` (weather_manager.py `_update_weather`),
-# validated by content_set.py::_validate_weather_chances: per season, the
+# validated by content_set/weather_skills.py::_validate_weather_chances: per season, the
 # weather types a weather change can roll and their weights. A set without its
 # own table plays the engine's, shown here (read-only) so the author sees what
 # play uses; ticking "own table" starts from it. Only a change is written, and

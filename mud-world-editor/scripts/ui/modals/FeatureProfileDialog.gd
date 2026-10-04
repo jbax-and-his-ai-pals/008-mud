@@ -4,7 +4,7 @@
 # which systems a server runs (feature_profile.py's modes, and a plugin
 # provider for a "custom" one) and the party, shard and finite-adventure
 # policies (headless/party.py, shard.py, finite_adventure.py). Saved through
-# the staged engine check (content_set.py::_validate_feature_profile).
+# the staged engine check (content_set/feature_loot.py::_validate_feature_profile).
 #
 # "(default)" means the key is absent and the server's own default applies.
 # Only what the author changed is written; keys this dialog does not show are

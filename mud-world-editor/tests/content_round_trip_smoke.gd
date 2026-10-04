@@ -55,7 +55,7 @@ func _check_round_trip(set_id: String) -> void:
 		# A region-generation template ({"themes": {...}}) is not a static
 		# region and the editor now refuses to load one (RegionManager.gd) --
 		# matching the engine's own definition of what counts as a region
-		# (server/engine/server/content_set.py checks the same key).
+		# (server/engine/server/content_set/ checks the same key).
 		var raw = JSON.parse_string(FileAccess.get_file_as_string(region_dir.path_join(file_name)))
 		if raw is Dictionary and raw.get("themes") is Dictionary:
 			continue

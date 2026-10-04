@@ -2,7 +2,7 @@
 #
 # The ruleset's `loot` section (utils.py `_loot_take_hint`,
 # items/chest_loot_generator.py, npcs/npc.py ambient pools), validated by
-# content_set.py::_validate_loot_settings and _validate_ambient_loot_references.
+# content_set/feature_loot.py::_validate_loot_settings and _validate_ambient_loot_references.
 # Only what the author changed is written; unknown keys survive, including
 # unknown keys inside an ambient pool.
 

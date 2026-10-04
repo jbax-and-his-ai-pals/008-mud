@@ -122,7 +122,7 @@ HAND_BUILT_HAZARD_FIELDS = {
 }
 
 # Ruleset keys the dialog can write that no shipped set declares. `factions` is
-# read by the engine (`world/factions.py`) and validated (`content_set.py:854-880`)
+# read by the engine (`world/factions.py`) and validated (`content_set/`)
 # but declared by none of the four sets -- so the "Custom Factions" panel authors a
 # section with no shipped example to copy from. Recorded, not hidden.
 RULESET_KEYS_NO_SET_DECLARES = {"factions"}

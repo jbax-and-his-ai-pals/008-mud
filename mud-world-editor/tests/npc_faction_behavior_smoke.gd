@@ -1,7 +1,7 @@
 # tests/npc_faction_behavior_smoke.gd
 #
 # `faction` and `behavior_type` are the two engine-owned words an NPC template
-# names directly (`npc_factory.py`, `content_set.py::_validate_npc_faction_and_
+# names directly (`npc_factory.py`, `content_set/::_validate_npc_faction_and_
 # behavior`), and until now the editor had no control for either: an NPC created
 # here had no side and no AI routine, and the only way to give it one was to
 # hand-edit JSON. See docs/plan/editor-coverage-ledger.md family C.

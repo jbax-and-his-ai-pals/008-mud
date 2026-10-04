@@ -244,7 +244,7 @@ def issues(world=None) -> List[str]:
     """Authoring problems in the `factions` section, for the content gate.
 
     Kept here rather than in the validator so the shape and its refusals live
-    together; `content_set.py` turns these into content issues with a path.
+    together; `content_set/` turns these into content issues with a path.
     """
     found: List[str] = []
     from engine.config import FACTIONS

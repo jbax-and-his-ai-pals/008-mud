@@ -1,7 +1,7 @@
 # scripts/ui/modals/WorldRulesSection.gd
 #
 # Seven small ruleset sections, each validated by
-# `content_set.py::_validate_simple_ruleset_sections`: economy, locksmithing,
+# `content_set/ruleset.py::_validate_simple_ruleset_sections`: economy, locksmithing,
 # calendar, spawning, elites, npc_naming and player_defaults. A field is
 # written only when the author changed it, so untouched values (and keys this
 # form does not show) keep their exact authored form; a cleared text or list

@@ -250,7 +250,7 @@ func _check_direction_reciprocals(vocabulary: Dictionary) -> void:
 # --- the manifest -------------------------------------------------------------
 
 ## `ContentSetScaffold` writes the manifest a new content set starts with, and the
-## engine (`engine/server/content_set.py`) is what refuses one. Every name in the
+## engine (`engine/server/content_set/`) is what refuses one. Every name in the
 ## scaffold's table is therefore a copy, and this is what keeps it equal.
 ##
 ## The failure this prevents is specific: a manifest missing one required string,

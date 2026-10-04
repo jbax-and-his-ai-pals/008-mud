@@ -236,7 +236,7 @@ func validate() -> Array:
 		_validate_placeholders(data["npc_naming"]["random_name_pattern"], ["first_name", "title"], "npc_naming.random_name_pattern", errors)
 	return errors
 
-## The subset of `content_set.py::_validate_ruleset_references` a form edit can
+## The subset of `content_set/references.py::_validate_ruleset_references` a form edit can
 ## break on its own. Rooms, items, NPCs and quests are chosen from pickers, so
 ## only the text an author types freely is rechecked here.
 static func _validate_quest_generation(section, errors: Array):
@@ -308,7 +308,7 @@ static func _validate_unique_strings(value, label: String, errors: Array):
 		seen[text] = true
 
 ## `information.py`'s `weather` command and `WeatherManager` index these by key
-## and expect a string back -- mirrors `content_set.py::_validate_weather_shapes`.
+## and expect a string back -- mirrors `content_set/weather_skills.py::_validate_weather_shapes`.
 static func _validate_string_map(value, label: String, errors: Array):
 	if not (value is Dictionary):
 		errors.append("%s must be an object." % label)

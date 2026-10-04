@@ -5,7 +5,7 @@
 # one suppresses another. The file is optional -- its absence turns the field
 # system off -- so a missing file loads as an empty draft and saving creates it
 # (`ConfigurationSave` with an empty expected hash). The engine's check is
-# `content_set.py::_validate_field_interactions`; this mirrors the parts a form
+# `content_set/quests_campaigns.py::_validate_field_interactions`; this mirrors the parts a form
 # can get wrong so a refusal reads in the dialog's own terms.
 
 class_name FieldInteractionsDraft

@@ -121,7 +121,10 @@ class TestCanonicalContentStaysClean(unittest.TestCase):
             self.skipTest("no editor state written yet")
         loader = (REPOSITORY_ROOT / "server" / "engine" / "world" / "definition_loader.py").read_text(encoding="utf-8")
         self.assertNotIn('"editor"', loader)
-        validator = (REPOSITORY_ROOT / "server" / "engine" / "server" / "content_set.py").read_text(encoding="utf-8")
+        validator = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted((REPOSITORY_ROOT / "server" / "engine" / "server" / "content_set").glob("*.py"))
+        )
         for folder in ('"editor"', "'editor'"):
             self.assertNotIn(
                 "content_root / %s" % folder, validator,

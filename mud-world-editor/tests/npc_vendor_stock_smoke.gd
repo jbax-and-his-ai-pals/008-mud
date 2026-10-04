@@ -2,7 +2,7 @@
 #
 # `properties.sells_items`, `properties.sell_rate_multiplier` (`mercantile.py:
 # 68-70, 81-122`) and `properties.buy_orders` (`mercantile.py:153-155`;
-# `content_set.py::_validate_vendor_orders`) had no editor control at all -- an
+# `content_set/contracts_items.py::_validate_vendor_orders`) had no editor control at all -- an
 # NPC could not be turned into a vendor without hand-editing JSON. See
 # docs/plan/editor-coverage-ledger.md family C.
 #
@@ -104,7 +104,7 @@ func _check_adding_a_buy_order_defaults_to_valid_numbers() -> void:
 	_assert(written.size() == 1, "one order was created")
 	var order: Dictionary = written[0]
 	_assert(str(order.get("id", "")) != "", "it has a non-empty id")
-	_assert(int(order.get("quantity", -1)) >= 1, "quantity is a valid positive int (content_set.py requires this)")
+	_assert(int(order.get("quantity", -1)) >= 1, "quantity is a valid positive int (content_set/ requires this)")
 	_assert(int(order.get("reward_gold", -1)) >= 0, "reward_gold is a valid non-negative int")
 
 

@@ -430,7 +430,7 @@ This project is provided as-is for educational and development purposes.
 > this section describes as future phases is already done — a headless,
 > server-authoritative core with TCP/WS transports exists
 > (`engine/server/`), and the content-set pipeline/editor integration Phase 4
-> calls for is largely built (`engine/server/content_set.py`,
+> calls for is largely built (`engine/server/content_set/`,
 > `content_sets/fantasy_frontier/`, the synced `mud-world-editor/`). Kept
 > below as the original commercialization framing and for the docs it
 > still points at usefully (platform architecture, Steam packaging, theme

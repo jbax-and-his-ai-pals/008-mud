@@ -2,7 +2,7 @@
 #
 # The ruleset's `social` and `loot` sections had no editor control. They now
 # have the Ruleset editor's Relationships and Loot sections, saved through the
-# staged engine check (content_set.py::_validate_social_rules,
+# staged engine check (content_set/schedules_social.py::_validate_social_rules,
 # _validate_loot_settings, _validate_ambient_loot_references).
 # fantasy_frontier's real sections are the fixture.
 #

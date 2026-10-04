@@ -3,7 +3,7 @@
 # The feature profile a set's manifest selects had no editor control at all.
 # FeatureProfileDialog now edits its modes, provider ids and the party, shard
 # and finite-adventure policies, saved through the staged engine check
-# (content_set.py::_validate_feature_profile). fantasy_frontier (which selects
+# (content_set/feature_loot.py::_validate_feature_profile). fantasy_frontier (which selects
 # creative_world.profile.json) and modern_capsule (which selects none) are the
 # fixtures.
 #

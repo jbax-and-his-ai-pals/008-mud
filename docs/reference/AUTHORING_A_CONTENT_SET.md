@@ -10,7 +10,7 @@ gate. Every command in it has been run, and every JSON fragment is a truncation
 of a file that exists.
 
 **Verified 2026-09-20** against this checkout. If a fact here disagrees with
-`server/engine/server/content_set.py`, the code is right and this page is stale —
+`server/engine/server/content_set/`, the code is right and this page is stale —
 the shapes it describes live in that one file, so the fix is local.
 
 ---
@@ -329,7 +329,7 @@ above still work.
 | What a player can type | [PLAYER_MANUAL.md](PLAYER_MANUAL.md) |
 | The world's target shape, rings and towns | [../design/WORLD_DESIGN.md](../design/WORLD_DESIGN.md) |
 | What to work on next | [`/ROADMAP.md`](../../ROADMAP.md) and [`../plan/chunks-of-work.md`](../plan/chunks-of-work.md) |
-| How the engine reads a set | `server/engine/server/content_set.py` — the file this page describes |
+| How the engine reads a set | `server/engine/server/content_set/` — the file this page describes |
 
 ---
 
@@ -431,7 +431,7 @@ What each capability gives you, and what the gate says when the content is thin:
 | `collections` / `discoveries` | `turnin`, `collection`, `discoveries` | A collection whose members no item satisfies |
 
 The full list of what each one gates is `_CAPABILITY_SYSTEMS` in
-`server/engine/server/content_set.py` and the check list in
+`server/engine/server/content_set/` and the check list in
 `toolkit/content_check_steps.py`; `toolkit/engine_vocabulary_dump.py` prints the
 condition kinds, effect keys, objective types and manifest vocabulary as one JSON
 object, which is also what the editor's schema parity check compares against.

@@ -3,7 +3,7 @@
 # A campaign's node graph was read-only. CampaignInspector now edits nodes
 # (type, quest, outcome) and their ordered transitions. fantasy_frontier's
 # bandit_rebellion is the fixture; the edited set is finally run through the
-# engine's validator (content_set.py::_validate_campaigns).
+# engine's validator (content_set/quests_campaigns.py::_validate_campaigns).
 #
 #   godot --headless --path mud-world-editor --script tests/campaign_graph_authoring_smoke.gd
 

@@ -97,7 +97,7 @@ record shape (`room.py:25-63,111-141`); `hazards.mapping`/`flavor` from the set'
 `resistances` with its profile's); `magic/effects.py:51`; family capabilities; presentation mode.
 **Second theme.** `orbital_salvage` has already declared the seat empty —
 `data/combat/elements.json:15-18` `"hazards": {"mapping": {}, "flavor": {}}` — with four rooms authored
-`"outdoors": false`, four damage channels including `thermal`, and `content_set.py:480-484` erroring on a
+`"outdoors": false`, four damage channels including `thermal`, and `content_set/` erroring on a
 declared-but-unused hazard, so empty is currently the only legal way to say "not yet". Fantasy has seven hazard
 rooms and nothing that answers them (`regions/caves.json:229`, `mountains.json:185`, `sunscorch_road.json:51`,
 `swamp.json:180`, `obsidian_trial.json:74`, `ruins.json:120`, `coastal_path.json:45`).
@@ -235,7 +235,7 @@ state, no save-format change), folded into the title's own condition, with a ref
 **Composes.** `core/titles.py` (`_guilds` load `:96-121`, `Title.guild_id` `:131`, `full_condition` `:63-69`,
 `sync` `:156-181`); `engine.conditions.evaluate`, already the one evaluator for titles, dialogue and quests;
 the `title` condition kind reading `earned_titles` (`conditions.py:307`); `commands/advancement.py`;
-`content_set.py:2015-2027`, which already validates that a guild's `place` names a real room.
+`content_set/`, which already validates that a guild's `place` names a real room.
 **Second theme.** `orbital_salvage`'s `crew.json` is already a named group (a foreman and a drone) with no
 titles file; `night_shift`'s `staff.json` likewise. Either ships one `titles.json` with a guild whose condition
 is a skill or relationship threshold — same evaluator, no new concept.

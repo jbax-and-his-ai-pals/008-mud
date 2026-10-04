@@ -2,7 +2,7 @@
 #
 # `regions/dynamic_themes.json` (world/region_generator.py) had no editor
 # control and no validator; it now has both (ThemeInspector,
-# content_set.py::_validate_dynamic_themes). fantasy_frontier's three real
+# content_set/themes_affixes.py::_validate_dynamic_themes). fantasy_frontier's three real
 # themes and shared word lists are the fixture, and the edited set is run
 # through the engine's validator at the end.
 #

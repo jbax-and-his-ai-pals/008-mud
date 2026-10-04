@@ -2,7 +2,7 @@
 
 ## Assessment
 
-**State.** `content_set.py` is 2629 lines: one front door (`load_content_set`, `:2390-2624`) calling 24
+**State.** `content_set/` is 2629 lines: one front door (`load_content_set`, `:2390-2624`) calling 24
 `_validate_*` families over 38 `_load_json` sites, 17 `_load_definition_ids` sites (12 re-reading `items/`),
 four walks of `crafting/*.json` and five of `regions/*.json`. `world/` then builds from the same files
 (`definition_loader.py:51-176`, `region.py:50-70`, `room.py:196-218`), with `spawner.py`,
@@ -31,7 +31,7 @@ object, refuse malformed entries, name file and field" is shared — keying diff
 `quests/loader.py:9`), destination differs (`Logger`×2, `print`×3, `issues`×5, counters×3, one sink, nothing
 at `affix_data.py:28`), and refusal already lives in the constructors (`crafting_manager.py:56-60`). A
 `BaseLoader` would be a sixth shape, not a unification. (2) The `_` convention is in 14 loaders and ~30
-validator sites, missing in two loaders and at `content_set.py:1962`. (3)
+validator sites, missing in two loaders and at `content_set/`. (3)
 `crafting_manager.recipe_errors:24-27` says boot warnings read it; `headless_server.py:169-172` polls five
 managers and not that one. (4) `affix_data.py:32-33` mutates globals that `loot_generator.py:7` bound at
 import, so the last `World` built in a process sets every world's affixes — and the playability check boots
@@ -117,9 +117,9 @@ list fails validation naming file and field, and (if I takes it) a bogus `possib
 exits `reference_integrity_validator.py` non-zero.
 **Risk.** If I declines, only the shape half lands and dangling ids still reach the generator.
 
-### 7. Split `content_set.py` at the seams it already has
+### 7. Split `content_set/` at the seams it already has
 
-**What.** Keep `content_set.py` as front door and re-exporter; move validator bodies into
+**What.** Keep `content_set/` as front door and re-exporter; move validator bodies into
 `engine/server/content_validators/{manifest,world_content,ruleset,quests_dialogue,contracts_content}.py`
 along the boundaries the file already has: manifest `:27-200`, world/region policy `:201-660`,
 ruleset/starting `:660-940` and `:1795-2044`, id tables `:940-1043`, dialogue+quests `:1044-1503`,
@@ -164,10 +164,10 @@ and the twelve private names at `test_content_set_runtime.py:13`), gates green.
 ## Unknowns
 
 - Whether any shipped file has a duplicate JSON key today; I read the ROADMAP's near-miss, not the corpus.
-- What `mud-world-editor` writes for room item refs — `items` (what validation checks, `content_set.py:618`)
+- What `mud-world-editor` writes for room item refs — `items` (what validation checks, `content_set/`)
   or `initial_items` (what `Room.from_dict` prefers, `room.py:209-210`). If the editor writes the latter that
   divergence is live, not latent. I did not open `mud-world-editor/`.
 - Whether the save stack rebuilds rooms through `Room.from_dict` with `items` (Track C's lane) — same question.
-- Whether any tool outside the three runners validates `dynamic_themes.json`; I checked `content_set.py` and
+- Whether any tool outside the three runners validates `dynamic_themes.json`; I checked `content_set/` and
   `toolkit/*.py` and found only deliberate skips.
 - Whether a player has hit the quests-loader drop; no log evidence was surveyed.

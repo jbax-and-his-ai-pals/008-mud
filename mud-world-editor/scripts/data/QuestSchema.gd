@@ -5,7 +5,7 @@
 #
 # The old QuestInspector wrote `{id, description, type: "KILL", target, count,
 # next}` while the engine reads `stage.objective.type` and routes only the types
-# it knows (engine/server/content_set.py::_validate_quests,
+# it knows (engine/server/content_set/::_validate_quests,
 # engine/core/quests/tracker.py, engine/core/quests/manager.py,
 # engine/core/quest_generation/objectives.py). A stage authored that way passed
 # content validation with zero errors and could never be completed. This file is
@@ -69,7 +69,7 @@ const TYPES := {
 		"required": {"item_template_id": "item_id", "recipients": "json"},
 		"optional": {"item_to_deliver_name": "string", "required_quantity": "int"},
 		"runtime": [],
-		"note": "`recipients` is a list of at least two {template_id, name} entries (content_set.py).",
+		"note": "`recipients` is a list of at least two {template_id, name} entries (content_set/).",
 	},
 	"scout": {
 		"label": "Scout",
@@ -111,14 +111,14 @@ const TYPES := {
 		"required": {"kind": "string", "required_count": "int"},
 		"optional": {},
 		"runtime": [],
-		"note": "`kind` is an advancement-ledger entry kind; the count must be at least 1 (content_set.py).",
+		"note": "`kind` is an advancement-ledger entry kind; the count must be at least 1 (content_set/).",
 	},
 	"craft_quality": {
 		"label": "Craft at quality",
 		"required": {"recipe_id": "string", "required_quality_id": "string"},
 		"optional": {},
 		"runtime": [],
-		"note": "Both ids are validated against the recipe and its quality tiers (content_set.py).",
+		"note": "Both ids are validated against the recipe and its quality tiers (content_set/).",
 	},
 	"gather_types": {
 		"label": "Gather these",

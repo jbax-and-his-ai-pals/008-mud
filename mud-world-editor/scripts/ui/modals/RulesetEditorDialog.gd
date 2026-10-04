@@ -420,7 +420,7 @@ func _salvage_rules_changed() -> bool:
 	return JSON.stringify(_salvage_rules()) != JSON.stringify(salvage_baseline)
 
 
-# `skills.stat_bonuses` (`skill_system.py:43-49`; `content_set.py::
+# `skills.stat_bonuses` (`skill_system.py:43-49`; `content_set/::
 # _validate_skills_rules`): which stat backs a skill check, and how much each
 # point above 10 adds. Only the shape is engine-checked -- a stat name is
 # whatever this ruleset says it is, since the ruleset is where stats are

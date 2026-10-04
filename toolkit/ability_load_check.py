@@ -3,7 +3,7 @@
 `data/abilities/*.json` (or `magic/`) is loaded by `spell_registry`, which skips
 an ability the engine refuses with only a log line at boot. (It used to build a
 whole file inside one `try`, so one refusal dropped every later ability in the
-file.) `content_set.py::_validate_abilities` now checks these entries too, down
+file.) `content_set/abilities.py::_validate_abilities` now checks these entries too, down
 to what each effect type reads; this check stays as the direct proof that every
 entry builds a `Spell`.
 

@@ -8,7 +8,7 @@ from engine.items.item import Item
 
 # The room `properties` the engine reads, and the JSON type each takes. A
 # room's properties are an open bag, so a misspelt or invented key is kept and
-# silently does nothing; content_set.py warns about any key not listed here.
+# silently does nothing; content_set/ warns about any key not listed here.
 # test_room_property_vocabulary.py ties each to its reader.
 ROOM_PROPERTY_KINDS = {
     # Atmosphere, resolved room -> district -> region (World.get_env_property).

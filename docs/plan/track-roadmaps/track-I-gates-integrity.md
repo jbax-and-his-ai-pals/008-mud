@@ -6,13 +6,13 @@
 `*validator*/*check*/*audit*` modules; three are reachable from no runner
 (`template_placeholder_validator.py`, `region_policy_validator.py`, `genre_coupling_audit.py`), and the
 first of those only through `toolkit/editor_validate.py`. The engine's own reference validation
-(`server/engine/server/content_set.py`, twenty-odd `_validate_*` functions) is a *different* checker
+(`server/engine/server/content_set/`, twenty-odd `_validate_*` functions) is a *different* checker
 from `toolkit/reference_integrity_validator.py`: they overlap, and neither is a subset.
 
 **Strongest.** The sweep's data shape — `(id table, walker, file globs)` rows at
 `reference_integrity_validator.py:582-592`, written out rather than described by a DSL — plus one
 falsification test per family in `server/tests/singles/test_reference_coverage.py`. Paired with
-`content_set.py:2198-2204`, which constructs the real `Recipe` and reports what the real reader
+`content_set/`, which constructs the real `Recipe` and reports what the real reader
 refuses. That is the pattern to keep copying: the gate asks the reader, and a test proves it can fail.
 
 **Weakest.** The runner. `run_content_checks.py:92-94` runs JSON integrity for `fantasy_frontier` only,
@@ -26,7 +26,7 @@ runner: `test_content_playability_check.py:44-46` asserts a tool's *name appears
 **Surprises.** (1) `_reference_sweep_issues` builds `tables["campaigns"]` and `tables["discoveries"]`
 (`:605-609`) and `REFERENCE_FAMILIES` has no family that consumes either — two tables computed,
 discarded, and the walkers they were built for never written. (2) Dialogue conditions and effects
-resolve ids against a bucket only `if ids[bucket] and ...` (`content_set.py:1132`, `:1162`), so an empty
+resolve ids against a bucket only `if ids[bucket] and ...` (`content_set/`, `:1162`), so an empty
 bucket silently means "skip" — the failure the comment at `:985-991` calls the worst possible one.
 (3) `editor_validate._dedupe` keys on `(severity, message)` (`:177`), so two rooms with the same
 message text collapse to one entry keeping the first path. (4) A dialogue check with a `skill` and no
@@ -47,8 +47,8 @@ No gate looks at, specifically: **campaign ids named outside dialogue** —
 `npcs/villagers.json:908` `properties.tariff.campaign_id` (`commands/mercantile.py:51`) and
 `knowledge/topics.json:235,262` `campaign_state.campaign_id` / `campaign_outcome.campaign_id`
 (`core/knowledge_manager.py:129,143`). **Discovery ids in title conditions** — `titles.json:57`,
-evaluated by `conditions.py:266-270`, with `content_set.py:2037` checking the condition's *kind* only.
-**The `item_tags` half of a discovery** — `content_set.py:894-895` checks shape but nothing checks that
+evaluated by `conditions.py:266-270`, with `content_set/` checking the condition's *kind* only.
+**The `item_tags` half of a discovery** — `content_set/` checks shape but nothing checks that
 an item carries the tag, so `discoveries.json:5` `item_tags:["field_material"]` against
 `items/materials.json:15` is a match no gate verifies. **Two sets' ids against engine literals**
 (neutrality, above). **Placeholders outside the editor** (`template_placeholder_validator.py` has no
@@ -79,12 +79,12 @@ nesting will report working content.
 
 ### 2. Resolve condition identifiers where the engine already does
 
-**What.** Extract the bucket check at `content_set.py:1117-1136` into one helper and call it for
+**What.** Extract the bucket check at `content_set/` into one helper and call it for
 `titles.json` conditions and requirements (`:2037-2039`). Move the `(kind, field, bucket)` table next to
 `KNOWN_KINDS` in `engine/conditions.py` so evaluator and validator read one list.
 **Why now.** One predicate language, one evaluator, id-checked in dialogue and kind-checked only in
 titles; `titles.json:57` is a live reference nothing verifies.
-**Depends on.** Track D owns `content_set.py`; this is a gap report plus a shape.
+**Depends on.** Track D owns `content_set/`; this is a gap report plus a shape.
 **Scope.** Small.
 **Done when.** A bogus `discovery_id` in `titles.json` fails `content_set_validator.py` with file and
 field in the message; Track H writes the falsification.
@@ -93,7 +93,7 @@ silently skipped.
 
 ### 3. An empty id bucket must be reported, not silently skipped
 
-**What.** At `content_set.py:1132/:1162/:1172/:1181/:1191/:1197`, replace `if ids[bucket] and ...` with
+**What.** At `content_set//:1162/:1172/:1181/:1191/:1197`, replace `if ids[bucket] and ...` with
 a counted skip: one warning per set and family naming how many references of that kind went unchecked.
 **Why now.** `modern_capsule` and `night_shift` declare no quests and no abilities
 (`reference_integrity_validator.py:68-70`), so every `start_quest`/`spell_known` reference in them is
@@ -135,7 +135,7 @@ set.
 **What.** Route the drop-shaped content reads through `content_values`, beginning with
 `core/backgrounds.py:169` (`skills={... if isinstance(v,(int,float))}` drops a quoted starting level),
 then `player/persistence.py:279` (recipe count), `social/relationships.py:83` (reward quantity),
-`player/progression.py:37` (cost). Each conversion follows `content_set.py:2198`: the reader refuses,
+`player/progression.py:37` (cost). Each conversion follows `content_set/`: the reader refuses,
 the gate reports the refusal.
 **Why now.** `content_values` has three importers; the engine has 93 `isinstance` guards and 189
 `.get(key, 0)` defaults, and the drop-shaped ones are the bug class the module was written to end.
@@ -187,7 +187,7 @@ compares — or it reinvents the check it was told not to invent.
 
 - **A widened walker that silently finds nothing** is this track's own recurring defect (the `$sigil`
   DSL, the dotted `_at`, the colliding site key). Every new walker ships with a falsification test.
-- **Engine and toolkit validators drift.** `content_set.py` resolves dialogue conditions, effects,
+- **Engine and toolkit validators drift.** `content_set/` resolves dialogue conditions, effects,
   discoveries, salvage and vendor orders that the toolkit does not; adding families in one place widens
   the gap. Item 2's shared table is the pattern to generalise.
 - **Widened coverage reddens the build on real defects** in `modern_capsule`/`night_shift` (items 1, 3,

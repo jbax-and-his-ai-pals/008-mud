@@ -21,15 +21,16 @@ VALIDATOR_DECLARATIONS = {"entered_by_system"}
 
 
 def _sources(root: Path, pattern: str, skip: tuple = ()) -> str:
+    """Every matching file's text, except the named files and the content validator (the `content_set/` package)."""
     return "\n".join(
         path.read_text(encoding="utf-8", errors="replace")
-        for path in root.rglob(pattern) if path.name not in skip
+        for path in root.rglob(pattern) if path.name not in skip and "content_set" not in path.parts
     )
 
 
 class TestRoomPropertyVocabulary(unittest.TestCase):
     def test_every_engine_key_has_a_reader_outside_the_validator(self):
-        source = _sources(ENGINE, "*.py", skip=("content_set.py", "room.py"))
+        source = _sources(ENGINE, "*.py", skip=("room.py",))
         room_source = (ENGINE / "world" / "room.py").read_text(encoding="utf-8")
         room_body = room_source.split("class Room", 1)[1]
         for key in ROOM_PROPERTY_KINDS:
@@ -60,7 +61,7 @@ class TestRegionAndDistrictVocabulary(unittest.TestCase):
     def test_every_region_and_district_key_has_a_reader(self):
         from engine.world.region import DISTRICT_PROPERTY_KINDS, REGION_PROPERTY_KINDS
 
-        source = _sources(ENGINE, "*.py", skip=("content_set.py", "region.py"))
+        source = _sources(ENGINE, "*.py", skip=("region.py",))
         # region.py itself counts, past the constants that list the keys.
         source += (ENGINE / "world" / "region.py").read_text(encoding="utf-8").split("class Region", 1)[1]
         for key in {**REGION_PROPERTY_KINDS, **DISTRICT_PROPERTY_KINDS}:

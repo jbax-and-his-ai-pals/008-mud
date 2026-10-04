@@ -23,8 +23,8 @@ directories. This is the map; the per-track sections give the detail.
 |---|---|---|
 | **A** Brainstorm | *nothing.* Writes only to `ROADMAP.md` and `docs/design/` | — |
 | **B** Core Engine | `server/engine/contracts/`, `server/engine/config/`, `server/engine/utils/` | the primitives track E composes, wherever they live |
-| **C** Runtime & Transport | `server/engine/server/**` (minus `content_set.py`), `server/{poc_server,poc_ws_server,poc_client,launch_content_set}.py`, `server/config/**` | `server/engine/server/transport/**`, the save stack (`world/save_manager.py`, `world/save_format.py`, `player/persistence.py`), `.github/workflows/**` |
-| **D** Content Loading & Contracts | `server/engine/server/content_set.py`, `server/engine/world/**` | every cross-file reference between content files |
+| **C** Runtime & Transport | `server/engine/server/**` (minus `content_set/`), `server/{poc_server,poc_ws_server,poc_client,launch_content_set}.py`, `server/config/**` | `server/engine/server/transport/**`, the save stack (`world/save_manager.py`, `world/save_format.py`, `player/persistence.py`), `.github/workflows/**` |
+| **D** Content Loading & Contracts | `server/engine/server/content_set/`, `server/engine/world/**` | every cross-file reference between content files |
 | **E** Systems | `server/engine/{commands,core,crafting,dialogue,items,magic,npcs,player,social,ui,world}/**` | composition only — never a new primitive |
 | **F** Content | `content_sets/**`, `mods/**`, `client/themes/**` | the prose, and the rulesets |
 | **G** World Editor | `mud-world-editor/**` | — |
@@ -41,7 +41,7 @@ directories. This is the map; the per-track sections give the detail.
    `fixture_refresh.py`) are not — they are one-shot migrations and content
    utilities, and belong to whoever is doing the content work they serve.
    `toolkit/starter_packs/` is Track F (content).
-2. **`server/engine/server/content_set.py` is the engine's front door**, not its
+2. **`server/engine/server/content_set/` is the engine's front door**, not its
    mechanics. It parses, validates and caches content sets — which is Track D's
    job, and it is why the last month of scaffolding bugs lived there rather than
    in `engine/contracts/`.
@@ -125,7 +125,7 @@ configuration, entitlements, the headless server, and CI.
 
 **Lane:**
 ```
-server/engine/server/**            except content_set.py (Track D)
+server/engine/server/**            except content_set/ (Track D)
 server/engine/server/transport/**  the wire: TCP and WebSocket
 server/poc_server.py, server/poc_ws_server.py, server/poc_client.py
 server/launch_content_set.py, server/server_main.py, server/main.py
@@ -141,7 +141,7 @@ likewise the save half of a Track E module.
 transport message, a CI workflow.
 
 **May not:** decide what content *means*. The runtime boots a content set and
-carries its sessions; `content_set.py` is where meaning lives and that is Track
+carries its sessions; `content_set/` is where meaning lives and that is Track
 D's. It also may not let a transport concern leak into mechanics — a command
 handler that branches on `session_id` is the same failure as one that branches
 on `item_type`.
@@ -169,7 +169,7 @@ reference made between content files.
 
 **Lane:**
 ```
-server/engine/server/content_set.py     the front door: parse, validate, cache
+server/engine/server/content_set/     the front door: parse, validate, cache
 server/engine/world/**                  world, regions, rooms, loaders, housing
 ```
 
@@ -484,7 +484,7 @@ re-proposed. Each entry is a decision, not a backlog item.
 | An in-game authoring tool as a mod plugin (G7, parked 2026-09-19) | The editor is the authoring front-end and `toolkit/` is the validation surface, so a plugin-shaped tool has no named consumer. The spike would answer a question nobody is asking; the plugin API is not a missing primitive until in-game tooling is actually wanted. |
 | A gate step refusing a `stats.roles` entry whose stat the set does not carry | Tempting after `orbital_salvage` declared `ability_power`/`resistance` against two stats no orbital entity had. But `order` is a *display* list and a role may deliberately name an undisplayed stat, so the rule is wrong in general. **Confirmed right to refuse (2026-09-19):** orbital's `resistance` role now names `insulation`, a rating its crew carry in small numbers and its players do not carry at all — a gate would have forbidden exactly the declaration that fixed an energy-damage balance bug. |
 | Turning on the ambient wanderer spawner (`spawner.npc_types`) while placing the three unplaced NPCs (2026-09-20) | `Spawner._spawn_npcs_in_region` is implemented, unit-tested (`test_spawner_npcs.py`, 9 tests) and **no content set has ever declared `npc_types`**, so it has never spawned anything — and `forest_hermit`, `wandering_mage` and `wandering_priest` were authored for it and sat unreachable. The three are now placed in rooms instead, like every other NPC in the set. Switching the spawner on is a world-*density* decision (up to three ambient wanderers per active region, spawning over time, with randomized names), and it should be made with a density pass across all four sets rather than as a side effect of placing two NPCs. The dead-feature finding is the part worth keeping; it is Track B/F work, not chunk 4's. |
-| ~~Contract/family authoring in the editor~~ **Reversed 2026-09-20** | Refused on the grounds that "the schema owns what may exist; a layout editor over `item_families` is a second schema". The reversal keeps the reason and changes the conclusion: the editor must *ask* `ContractRegistry`/`content_set.py` what is valid rather than model families itself — the same arrangement `EngineValidator` already uses for content — and every item template names a family, so a set whose author cannot declare one cannot use the item contract at all. Recorded here so the old refusal is not cited against Track G item 9. |
+| ~~Contract/family authoring in the editor~~ **Reversed 2026-09-20** | Refused on the grounds that "the schema owns what may exist; a layout editor over `item_families` is a second schema". The reversal keeps the reason and changes the conclusion: the editor must *ask* `ContractRegistry`/`content_set/` what is valid rather than model families itself — the same arrangement `EngineValidator` already uses for content — and every item template names a family, so a set whose author cannot declare one cannot use the item contract at all. Recorded here so the old refusal is not cited against Track G item 9. |
 | Hot reload / live server sync (2026-09-20) | **Stays refused.** It needs a watch mode plus engine-side verification, and it would let the editor claim engine state it cannot see — the opposite of "the editor asks the engine". A dedicated server plus `--reload` already covers the workflow it would replace; the editor's job is to write the files the engine reads on its next load. |
 
 ### Adopted: a system is not finished until two themes use it

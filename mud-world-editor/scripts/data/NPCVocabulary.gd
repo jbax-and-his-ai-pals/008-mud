@@ -5,7 +5,7 @@
 # `engine/world/factions.py`) and `behavior_type` (`engine/config/config_npc.py`'s
 # `NPC_BEHAVIOR_TYPES`, dispatched by `ai/dispatcher.py`). Both fail *quietly* on
 # a bad value -- an unknown faction becomes a bystander, an unknown behaviour
-# stands still forever -- which is exactly why `content_set.py`'s
+# stands still forever -- which is exactly why `content_set/`'s
 # `_validate_npc_faction_and_behavior` only warns, and why offering the real
 # list here is worth doing.
 #

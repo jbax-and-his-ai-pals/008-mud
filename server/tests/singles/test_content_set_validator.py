@@ -1121,7 +1121,7 @@ def _instance_template(**overrides) -> dict:
 
 
 class TestInstanceQuests(unittest.TestCase):
-    """`quests/instances.json` had no validator: `content_set.py` read only
+    """`quests/instances.json` had no validator: `content_set/` read only
     `quests.json`. A template without targets or an existing entry region is
     never offered, an objective other than `clear_region` never completes, and
     a reversed range or empty room-name pool raises inside `random` while the

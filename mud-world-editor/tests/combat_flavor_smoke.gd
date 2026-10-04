@@ -3,7 +3,7 @@
 # `combat/elements.json`'s `flavor_text` (what a spell hit says about a
 # weakness or resistance) had no editor control; the Combat Vocabulary dialog
 # now edits it, saved through the staged engine check
-# (content_set.py::_validate_combat_flavor). fantasy_frontier is the fixture.
+# (content_set/contracts_items.py::_validate_combat_flavor). fantasy_frontier is the fixture.
 #
 #   godot --headless --path mud-world-editor --script tests/combat_flavor_smoke.gd
 

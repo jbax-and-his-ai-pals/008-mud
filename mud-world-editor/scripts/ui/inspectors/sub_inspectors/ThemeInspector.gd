@@ -3,7 +3,7 @@
 # One region-generation theme from `regions/dynamic_themes.json`
 # (`world/region_generator.py`): what a generated region is called, what its
 # rooms are called and look like, and what spawns there. Validated by
-# `content_set.py::_validate_dynamic_themes`. Region names and room
+# `content_set/themes_affixes.py::_validate_dynamic_themes`. Region names and room
 # descriptions may use `{Word}`/`{word}` for any shared word list below; room
 # names and the description are shown as written. A list emptied here is
 # removed rather than written as `[]`, because an empty list stops the region

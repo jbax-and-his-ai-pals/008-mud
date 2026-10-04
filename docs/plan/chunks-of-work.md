@@ -1017,7 +1017,7 @@ room changes, spawned NPCs, consumed keys and recruited companions are meaningle
 if a restart forgets them, so it comes first.
 
 **Depends on.** Nothing in chunk 6 blocks it and it blocks nothing there, but it
-touches files with different owners: `content_set.py` (D), `conditions.py` and
+touches files with different owners: `content_set/` (D), `conditions.py` and
 `effects.py` (B/E), the save stack (C), `npcs/` (E), the editor (G), tests (H),
 `content_sets/**` (F), docs (J), this plan (K). Owners are responsibilities, not a
 reason to split an item across agents.
@@ -1319,7 +1319,7 @@ by difficulty.
    the engine currently supports "time", via `practice_check`.
 
 **5. Who owns the content-set manifest — ✅ DECIDED 2026-09-19.** The engine does.
-`content_set.py` is what refuses a set, so the required strings, the eleven
+`content_set/` is what refuses a set, so the required strings, the eleven
 capability names and the three required data directories are its list; the editor
 holds a **copy** in a table a parity check keeps equal to the engine's, the same
 arrangement already accepted for condition kinds, effect kinds and objective types

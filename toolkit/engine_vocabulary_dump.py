@@ -30,24 +30,17 @@ for _path in (_REPO_ROOT, _SERVER_ROOT):
 
 
 def _content_set_module():
-    """`engine/server/content_set.py`, loaded without its package.
+    """`engine/server/content_set/` (the validator package), imported with its startup noise discarded.
 
-    `import engine.server.content_set` executes `engine/server/__init__.py`, which
-    pulls in the whole headless runtime -- and that imports the command modules,
-    whose startup logging lands on stdout ahead of this dump's JSON. The module
-    itself imports nothing but the standard library, so loading it by path reads
-    the same constants with none of the noise. Anything the editor consumes here is
-    a string or a tuple, so a package-level import would gain nothing.
+    Importing `engine.server.content_set` executes `engine/server/__init__.py`, which pulls in the whole headless
+    runtime -- and that imports the command modules, whose startup logging lands on stdout ahead of this dump's
+    JSON. The logging is thrown away here so the one JSON object is all that reaches stdout.
     """
-    import importlib.util
+    import contextlib
+    import io
 
-    path = _SERVER_ROOT / "engine" / "server" / "content_set.py"
-    spec = importlib.util.spec_from_file_location("_engine_content_set", path)
-    module = importlib.util.module_from_spec(spec)
-    # Registered before execution because `@dataclass` resolves its own module
-    # through `sys.modules` while the class body is being processed.
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
+    with contextlib.redirect_stdout(io.StringIO()):
+        import engine.server.content_set as module
     return module
 
 
@@ -127,12 +120,12 @@ def main() -> int:
             "once_modes": list(ONCE_MODES), "default_once": DEFAULT_ONCE,
         },
         # The keys a room's exit requirement and environmental reaction may carry,
-        # by type (`content_set.py`); `RoomPassagesPanel.gd` holds the editor's copy.
+        # by type (`content_set/`); `RoomPassagesPanel.gd` holds the editor's copy.
         "exit_requirement_keys": {kind: list(keys) for kind, keys in cs.EXIT_REQUIREMENT_KEYS.items()},
         "env_interaction_keys": {kind: list(keys) for kind, keys in cs.ENV_INTERACTION_KEYS.items()},
         "consumable_effect_types": list(CONSUMABLE_EFFECT_TYPES),
         # The two engine-owned words an NPC template names directly (see
-        # `content_set.py::_validate_npc_faction_and_behavior`). `NPCVocabulary.gd`
+        # `content_set/::_validate_npc_faction_and_behavior`). `NPCVocabulary.gd`
         # is the editor's copy; `schema_parity_smoke.gd` checks it against this.
         "factions": {
             "built_in": sorted(FACTIONS),
@@ -178,7 +171,7 @@ def main() -> int:
             "campaign_states": sorted(CAMPAIGN_STATES),
             "quest_states": sorted(QUEST_STATES),
         },
-        # The manifest's shape, for the editor's create-set flow. `content_set.py`
+        # The manifest's shape, for the editor's create-set flow. `content_set/`
         # is what refuses a set, so it owns these; the editor keeps a copy only
         # because writing a manifest needs field *names* to build a form with, and
         # this is what keeps the copy equal.

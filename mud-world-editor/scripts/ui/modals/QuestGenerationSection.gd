@@ -2,7 +2,7 @@
 #
 # The ruleset's `quest_generation` section (`quests/manager.py`,
 # `quest_generation/generator.py`, `objectives.py`, `text.py`,
-# `commands/interaction/npcs.py`; validated by `content_set.py::
+# `commands/interaction/npcs.py`; validated by `content_set/::
 # _validate_ruleset_references`). Every key is optional and the engine falls
 # back to `config_quests.py` defaults, so a field left empty is removed rather
 # than written -- except where the file already authored that empty value.
