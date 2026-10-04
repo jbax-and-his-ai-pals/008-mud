@@ -241,6 +241,17 @@ class TestCastSpellKillHandling(GameTestBase):
         self.assertFalse(weak.is_alive)
         self.assertTrue(strong.is_alive)
 
+    def test_the_next_enemy_s_blow_starts_a_new_paragraph_after_what_a_kill_paid(self):
+        first = _hostile(self.world, "magic_para_first")
+        second = _hostile(self.world, "magic_para_second")
+        spell = _make_spell(spell_id="para_probe", value=500, target_type="all_enemies")
+        self.player.runtime_state.magic.known_spells.add(spell.spell_id)
+        lines = self.player.cast_spell(spell, first, time.time(), world=self.world)["message"].splitlines()
+        self.assertFalse(first.is_alive or second.is_alive)
+        paid = next(i for i, line in enumerate(lines) if "experience" in line)
+        next_blow = next(i for i, line in enumerate(lines) if i > paid and "hits" in line)
+        self.assertIn("", [line.strip() for line in lines[paid:next_blow]], "a blank line between the rewards and the next blow")
+
     def test_kill_with_no_target_world_skips_dispatch_and_loot_call(self):
         target = _hostile(self.world, "magic_kill_no_world")
         target.loot_table = {"gold_value": {"chance": 1.0, "quantity": [5, 5]}}

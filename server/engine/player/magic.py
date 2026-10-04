@@ -151,13 +151,15 @@ class PlayerMagicMixin:
             
             # Apply Effects
             value, effect_message = apply_spell_effect(p, t, spell, p, first_target=(target_index == 0))
-            results.append(effect_message)
+            # What the last enemy's death paid out is a paragraph of its own; the next enemy's blow starts a new one.
+            lead = "\n" if results and results[-1].startswith("\n") else ""
+            results.append(lead + effect_message)
             
             # Handle Kill
             if isinstance(t, NPC) and not t.is_alive and spell.has_effect_type("damage"):
                  # Say who fell, on the line that dealt the blow, as a weapon's blow does ("... is defeated!"):
                  # a wave that breaks over three enemies must make plain which of them it killed.
-                 results[-1] = "%s %s is defeated!" % (effect_message, format_name_for_display(p, t, start_of_sentence=True))
+                 results[-1] = "%s%s %s is defeated!" % (lead, effect_message, format_name_for_display(p, t, start_of_sentence=True))
                  if p.runtime_state.combat is not None:
                      p.exit_combat(t)
                  target_world = world or p.world
