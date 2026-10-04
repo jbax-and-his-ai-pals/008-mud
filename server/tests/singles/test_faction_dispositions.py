@@ -260,6 +260,20 @@ class TestADeclaredFactionIsTreatedAsSuch(FactionSetBase):
         self.assertLess(factions.attitude(world, "raiders", "player"), 0)
         self.assertIn("beasts", factions.factions(world))
 
+    def test_the_engine_s_own_factions_feel_about_a_declared_one_as_its_disposition_says(self) -> None:
+        """A friendly soldier and an enemy of the realm called `rebels` are enemies, though nothing in the engine's
+        own rows names `rebels`: a faction nobody has a row for is felt about as its disposition is."""
+        package = self._build(
+            faction="rebels",
+            ruleset_extra={"factions": {"extra": [{"id": "rebels", "disposition": "hostile"}]}},
+        )
+        server, _, _ = self._start(package)
+        world = server.world
+
+        self.assertLess(factions.attitude(world, "friendly", "rebels"), 0, "the friendly side fights it")
+        self.assertEqual(0, factions.attitude(world, "neutral", "rebels"))
+        self.assertLess(factions.attitude(world, "player", "rebels"), 0)
+
 
 class TestTheDeclarationIsValidated(FactionSetBase):
     def _issues(self, section) -> list:

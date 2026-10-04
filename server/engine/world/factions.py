@@ -146,7 +146,7 @@ def matrix(world=None) -> Dict[str, Dict[str, int]]:
     for faction_id, disposition in resolved.items():
         row = _row_for(disposition)
         for other_id in resolved:
-            row.setdefault(other_id, 0)
+            row.setdefault(other_id, int(row.get(resolved[other_id], 0)))  # an unnamed faction is felt about as its disposition is
         row[faction_id] = int(row.get(disposition, 0))
         rows[faction_id] = row
     return rows

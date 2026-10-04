@@ -1,59 +1,42 @@
 {
     "ilmara_falls": {
-        "note": "The opening: the Red Fleet takes the crystal chamber, and the player watches.",
+        "note": "The opening: the Red Fleet takes the crystal chamber. The fight itself is ordinary combat between the soldiers and the acolytes; ilmara_aftermath plays when the last acolyte falls.",
         "beats": [
             {
                 "text": "The doors of the crystal chamber burst inward, and the Red Fleet pours in behind you, steel drawn, boots loud on pale stone.",
-                "pace": "measured"
-            },
-            {
-                "after": 3.5,
-                "text": "The people of Ilmara stand between the soldiers and the altar. They carry no weapons. They are singing.",
-                "pace": "slow"
-            },
-            {
-                "after": 3.5,
-                "pace": "slow",
-                "text": "[[RED]]The first soldier strikes.[[/]] An acolyte of Ilmara goes down with her hands still raised, and the song loses a voice.",
-                "effects": {
-                    "remove_npc": "acolyte_1"
-                }
-            },
-            {
-                "after": 2.5,
                 "pace": "measured",
-                "text": "The others do not run. One catches a soldier's blade in his bare hand and holds it, singing through his teeth, while a second soldier cuts him down.",
                 "effects": {
-                    "remove_npc": "acolyte_2"
+                    "spawn_npc": {
+                        "npc": "red_fleet_raider",
+                        "region": "ilmara",
+                        "room": "crystal_chamber",
+                        "instance_id": "chamber_soldier_1"
+                    }
                 }
             },
             {
-                "after": 2.5,
-                "pace": "measured",
-                "text": "A soldier staggers back with a gash across his cheek: the acolytes are fighting, with their hands, with candlesticks, with the weight of their bodies against the steel."
-            },
-            {
-                "after": 3,
-                "pace": "slow",
-                "text": "[[RED]]The last acolyte swings an iron candlestick, and misses.[[/]] Two blades answer. The song stops.",
+                "after": 1,
+                "text": "More boots on the stair.",
                 "effects": {
-                    "remove_npc": "acolyte_3"
+                    "spawn_npc": {
+                        "npc": "red_fleet_raider",
+                        "region": "ilmara",
+                        "room": "crystal_chamber",
+                        "instance_id": "chamber_soldier_2"
+                    }
                 }
             },
             {
-                "after": 3,
-                "pace": "slow",
-                "text": "Your own hands are steady. That is the worst of it."
-            },
-            {
-                "after": 4,
-                "text": "Only the elder of Ilmara is left standing, one hand flat against the altar, looking at you and not at the soldiers.",
-                "pace": "slow"
-            },
-            {
-                "after": 3.5,
-                "text": "The Water Crystal burns blue on its altar. The king's order was two words long: bring it. (take crystal)",
-                "pace": "slow"
+                "after": 1,
+                "text": "[[RED]]The last of the soldiers fans out across the chamber.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_raider",
+                        "region": "ilmara",
+                        "room": "crystal_chamber",
+                        "instance_id": "chamber_soldier_3"
+                    }
+                }
             }
         ]
     },
@@ -276,6 +259,26 @@
             {
                 "after": 4,
                 "text": "Grey light at the window. From somewhere below comes a familiar voice, shouting at a quartermaster: Kessa is already at the gate.",
+                "pace": "slow"
+            }
+        ]
+    },
+    "ilmara_aftermath": {
+        "note": "Plays when the last acolyte of Ilmara falls.",
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Your own hands are steady. That is the worst of it."
+            },
+            {
+                "after": 4,
+                "text": "Only the elder of Ilmara is left standing, one hand flat against the altar, looking at you and not at the soldiers.",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "The Water Crystal burns blue on its altar. The king's order was two words long: bring it. (take crystal)",
                 "pace": "slow"
             }
         ]

@@ -62,5 +62,13 @@
   },
   "economy": {
     "currency_name": "gil"
+  },
+  "factions": {
+    "extra": [
+      {
+        "id": "ilmaran",
+        "disposition": "hostile"
+      }
+    ]
   }
 }

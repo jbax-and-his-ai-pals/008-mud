@@ -99,5 +99,16 @@
             "message": "The Fog Drake unravels into grey ribbons and the whole square exhales. Somewhere far off, a bell begins to ring.",
             "set_flag": "drake_slain"
         }
+    },
+    "ilmara_cleared": {
+        "on": {
+            "event": "room_cleared",
+            "region": "ilmara",
+            "room": "crystal_chamber"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "ilmara_aftermath"
+        }
     }
 }

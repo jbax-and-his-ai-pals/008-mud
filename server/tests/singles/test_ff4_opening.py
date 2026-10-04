@@ -91,11 +91,12 @@ class TestIlmara(unittest.TestCase):
         self.assertIn("The Water Crystal", "".join(_plain(str(e["payload"])) for e in game.created if e["type"] == "text"))
         told = game.wait(30)
         self.assertIn("The doors of the crystal chamber burst inward", told)
-        self.assertIn("They are singing", told)
+        self.assertIn("Red Fleet soldier attacks Ilmaran acolyte", told, "the fight is ordinary combat, told as combat is")
+        self.assertNotIn("The elder of Ilmara attacks", told, "the elder takes no part in it")
         self.assertIn("take crystal", told, "the scene ends on what to do")
         self.assertIsNone(game.npc("ilmaran_acolyte"), "the acolytes are gone")
         self.assertIsNotNone(game.npc("elder_of_ilmara"), "the elder is not")
-        self.assertEqual(3, len([n for n in game.world.npcs.values() if n.template_id == "red_fleet_soldier" and n.current_region_id == "ilmara"]))
+        self.assertEqual(3, len([n for n in game.world.npcs.values() if n.template_id == "red_fleet_raider" and n.current_region_id == "ilmara"]))
 
     def test_the_captain_starts_with_his_sword_and_armour_on(self):
         game = _Journey(self)

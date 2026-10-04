@@ -23,18 +23,6 @@
                 {
                     "template_id": "ilmaran_acolyte",
                     "instance_id": "acolyte_3"
-                },
-                {
-                    "template_id": "red_fleet_soldier",
-                    "instance_id": "chamber_soldier_1"
-                },
-                {
-                    "template_id": "red_fleet_soldier",
-                    "instance_id": "chamber_soldier_2"
-                },
-                {
-                    "template_id": "red_fleet_soldier",
-                    "instance_id": "chamber_soldier_3"
                 }
             ],
             "items": [
