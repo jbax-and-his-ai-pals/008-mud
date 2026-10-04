@@ -214,7 +214,7 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
 # The properties the engine reads from an NPC. `properties` is open-ended on purpose (a set may keep its own
 # notes there), so an unknown key is only reported when it is a near miss of one of these.
 _NPC_PROPERTY_KEYS = (
-    "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "respawn_cooldown",
+    "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "attack_cooldown", "respawn_cooldown",
     "essential", "pacifist", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
     "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
     "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
@@ -250,6 +250,10 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         value = properties["move_cooldown"]
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
             errors.append(f"{label}.move_cooldown must be a non-negative integer")
+    if "attack_cooldown" in properties:
+        value = properties["attack_cooldown"]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0.5 <= value <= 120:
+            errors.append(f"{label}.attack_cooldown must be a number of seconds from 0.5 to 120 (the pause between its blows)")
     if "despawn_message" in properties and not isinstance(properties["despawn_message"], str):
         errors.append(f"{label}.despawn_message must be text (how a summoned creature leaves)")
     if "unique" in properties and not isinstance(properties["unique"], bool):

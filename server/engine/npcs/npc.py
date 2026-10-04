@@ -173,7 +173,8 @@ class NPC(GameObject):
             not factions.is_hostile(self, world) and not factions.is_player_side(self, world) and
             self.home_room_id is not None and
             self.template_id and
-            not self.properties.get("ambient_wanderer", False)
+            not self.properties.get("ambient_wanderer", False) and
+            self.properties.get("respawn_cooldown") != -1   # -1 is the author's "never comes back"
         )
         # A hostile the room itself placed comes back when its author gave it a cooldown
         # (`-1`, or none, means it stays dead). One the ambient spawner made does not: the

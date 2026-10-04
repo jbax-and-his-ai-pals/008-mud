@@ -580,6 +580,14 @@ func _build_behavior_tuning():
 	move_cd.value_changed.connect(func(value): _ensure_npc_properties()["move_cooldown"] = int(value); database_modified.emit())
 	cooldowns.add_child(move_cd)
 
+	cooldowns.add_child(InspectorStyle.lbl("Attack every (s)", InspectorStyle.COLOR_TEXT_DIM))
+	var attack_cd := SpinBox.new(); attack_cd.name = "AttackCooldown"; attack_cd.min_value = 0.5; attack_cd.max_value = 120; attack_cd.step = 0.5
+	attack_cd.value = float(properties.get("attack_cooldown", 3.0)); attack_cd.custom_minimum_size.x = 70
+	attack_cd.tooltip_text = "seconds between its blows; slower is easier to read (3 is the engine's own)"
+	InspectorStyle.apply_input_style(attack_cd)
+	attack_cd.value_changed.connect(func(value): _ensure_npc_properties()["attack_cooldown"] = float(value); database_modified.emit())
+	cooldowns.add_child(attack_cd)
+
 	cooldowns.add_child(InspectorStyle.lbl("Respawn cooldown (s)", InspectorStyle.COLOR_TEXT_DIM))
 	# -1 is the engine's explicit "never respawn" sentinel, used by summoned
 	# minions.  Offering it here avoids a form that cannot faithfully preserve a

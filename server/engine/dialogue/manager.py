@@ -403,6 +403,11 @@ class DialogueManager:
         context = self.presentation_context(player)
         show_internals = presentation.show_internals(context)
         speaker = getattr(npc, "name", "") or "Someone"
+        if speaker[:1].islower():
+            # A common-noun name ("elder of Ilmara") opens a sentence as "The elder of Ilmara".
+            from engine.utils.articles import the
+
+            speaker = the(speaker, capital=True)
         text = presentation.variant(node.text, context)
         body = '%s"%s"%s' % (FORMAT_HIGHLIGHT, text, FORMAT_RESET)
         if not show_internals:

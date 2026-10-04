@@ -216,6 +216,9 @@ class NPCFactory:
             npc.respawn_cooldown = npc.properties.get("respawn_cooldown", NPC_DEFAULT_RESPAWN_COOLDOWN)
             npc.wander_chance = npc.properties.get("wander_chance", NPC_DEFAULT_WANDER)
             npc.move_cooldown = npc.properties.get("move_cooldown", NPC_DEFAULT_MOVE_COOLDOWN)
+            if "attack_cooldown" in npc.properties:
+                # One number for how often it strikes: the pause between its blows (and its turns in a fight).
+                npc.attack_cooldown = npc.combat_cooldown = float(npc.properties["attack_cooldown"])
             npc.spell_cast_chance = npc.properties.get("spell_cast_chance", NPC_DEFAULT_SPELL_CAST_CHANCE)
             
             saved_inv_data = overrides.get("inventory")

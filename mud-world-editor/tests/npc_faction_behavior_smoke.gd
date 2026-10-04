@@ -34,6 +34,7 @@ func _init() -> void:
 	_check_selecting_a_behavior_writes_it()
 	_check_the_friendly_checkbox_writes_and_defaults_true()
 	_check_the_pacifist_checkbox_writes_and_erases()
+	_check_the_attack_cooldown_writes()
 
 	if failure_count > 0:
 		push_error("npc faction/behavior failed (%d)" % failure_count)
@@ -142,6 +143,18 @@ func _check_the_friendly_checkbox_writes_and_defaults_true() -> void:
 	_assert(box.button_pressed, "an NPC with no friendly key defaults to checked (npc_factory.py's own default)")
 	box.toggled.emit(false)
 	_assert(manager.npcs["npc_probe"]["friendly"] == false, "unchecking it was written")
+
+
+func _check_the_attack_cooldown_writes() -> void:
+	print("
+[attack every]")
+	var manager := _manager()
+	var holder := _build_inspector_from("npc_probe", manager)
+	var field := holder.find_child("AttackCooldown", true, false) as SpinBox
+	_assert(field != null and is_equal_approx(field.value, 3.0), "an NPC that never said so shows the engine's own 3 seconds")
+	_assert(not manager.npcs["npc_probe"].get("properties", {}).has("attack_cooldown"), "and opening wrote nothing")
+	field.value = 6.5; field.value_changed.emit(6.5)
+	_assert(is_equal_approx(float(manager.npcs["npc_probe"]["properties"]["attack_cooldown"]), 6.5), "choosing 6.5 writes properties.attack_cooldown")
 
 
 func _check_the_pacifist_checkbox_writes_and_erases() -> void:

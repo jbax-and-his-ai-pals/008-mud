@@ -364,6 +364,8 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `properties.despawn_message` | an NPC | How a summoned creature leaves ("The Colossus sinks back into the earth."). |
 | `properties.essential: true` | an NPC | Cannot be killed unless recruited as a companion: left on the brink instead. |
 | `properties.unique: true` | an NPC | Called "the mayor", not "a mayor". |
+| `properties.attack_cooldown` | an NPC | Seconds between its blows, 0.5 to 120 (default 3): slower is easier to read in a staged fight. |
+| `properties.respawn_cooldown: -1` | an NPC | Never comes back once dead (a hostile or a friendly alike). |
 | `properties.pacifist: true` | an NPC | Never fights back and never starts a fight: it can be attacked and killed, and it does not retaliate. |
 | `ruleset.factions.enmities` | the ruleset | `[{"faction": "red_fleet", "against": "ilmaran"}]`: the first faction attacks the second on sight, without either turning on the player. One way; list the pair both ways for a mutual fight. Both must be declared (`factions.extra` or an engine faction). |
 | `{"kind": "npc_present", "npc_id": ..., "region_id", "room_id"}` | a condition | A living NPC of that template (or placed id), anywhere or in the room named (region and room together). `{"not": ...}` of it is "the last one is gone". |
