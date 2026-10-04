@@ -13,6 +13,17 @@ CONSUMABLE_EFFECT_TYPES = (
 )
 
 
+def _companion_being_helped(user, target):
+    """The user's own companion, when `target` is one (`use <item> on <companion>`); else None."""
+    if target is None or target is user:
+        return None
+    from engine.npcs import companions
+
+    if companions.is_companion(target) and target.properties.get("owner_id") == getattr(user, "obj_id", None):
+        return target
+    return None
+
+
 class Consumable(Item):
     def __init__(self, obj_id: Optional[str] = None, name: str = "Unknown Consumable",
                  description: str = "No description", weight: float = 0.5,
@@ -47,7 +58,22 @@ class Consumable(Item):
         effect_type = self.get_property("effect_type")
         effect_value = self.get_property("effect_value")
 
-        if effect_type == "heal":
+        beneficiary = _companion_being_helped(user, kwargs.get("target"))
+        if beneficiary is not None and effect_type in ("heal", "mana_restore"):
+            # `use <item> on <companion>`: the draught goes to them.
+            if effect_type == "heal":
+                gained, word = beneficiary.heal(effect_value), "health"
+            else:
+                gained = min(effect_value, max(0, beneficiary.max_mana - beneficiary.mana))
+                beneficiary.mana += gained
+                word = "mana"
+            if gained > 0:
+                message = f"You give {the(self.name)} to {beneficiary.name}, who regains {gained} {word}."
+            else:
+                message = f"You give {the(self.name)} to {beneficiary.name}, but it makes no difference."
+                consumed = False
+
+        elif effect_type == "heal":
             if hasattr(user, "heal"):
                 healed_amount = user.heal(effect_value)
                 if healed_amount > 0:

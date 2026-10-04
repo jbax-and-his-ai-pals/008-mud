@@ -92,9 +92,14 @@ def run_check(godot: str, test: Path) -> tuple[bool, str]:
         "--script", "tests/%s" % test.name,
         "--", "--python", sys.executable,
     ]
+    # Each check gets its own per-user folder (where Godot's `user://` lives), so checks running side by side cannot
+    # read or overwrite one another's `editor_settings.json`, and none depends on a real user's settings.
+    user_home = REPO_ROOT / "tmp" / "godot-user" / test.stem
+    user_home.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ, APPDATA=str(user_home), XDG_DATA_HOME=str(user_home), XDG_CONFIG_HOME=str(user_home))
     try:
         completed = subprocess.run(
-            command, cwd=str(REPO_ROOT), capture_output=True, text=True, errors="replace", timeout=120,
+            command, cwd=str(REPO_ROOT), capture_output=True, text=True, errors="replace", timeout=120, env=env,
         )
     except subprocess.TimeoutExpired:
         return False, "    Timed out after 120 seconds (possible script error before quit)."

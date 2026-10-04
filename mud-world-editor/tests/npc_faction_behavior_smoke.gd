@@ -35,6 +35,7 @@ func _init() -> void:
 	_check_the_friendly_checkbox_writes_and_defaults_true()
 	_check_the_pacifist_checkbox_writes_and_erases()
 	_check_the_attack_cooldown_writes()
+	_check_the_gear_rows()
 
 	if failure_count > 0:
 		push_error("npc faction/behavior failed (%d)" % failure_count)
@@ -143,6 +144,24 @@ func _check_the_friendly_checkbox_writes_and_defaults_true() -> void:
 	_assert(box.button_pressed, "an NPC with no friendly key defaults to checked (npc_factory.py's own default)")
 	box.toggled.emit(false)
 	_assert(manager.npcs["npc_probe"]["friendly"] == false, "unchecking it was written")
+
+
+func _check_the_gear_rows() -> void:
+	print("
+[starts wearing]")
+	var manager := _manager()
+	manager.items["item_probe_blade"] = {"type": "Weapon", "name": "probe blade"}
+	var holder := _build_inspector_from("npc_probe", manager)
+	var picker := holder.find_child("Gear_main_hand", true, false) as OptionButton
+	_assert(picker != null and holder.find_child("Gear_neck", true, false) != null, "a row for each slot the engine knows")
+	_assert(not manager.npcs["npc_probe"].has("equipment"), "opening wrote nothing")
+	var index := -1
+	for i in range(picker.item_count):
+		if str(picker.get_item_metadata(i)) == "item_probe_blade": index = i
+	picker.select(index); picker.item_selected.emit(index)
+	_assert(manager.npcs["npc_probe"].get("equipment") == {"main_hand": "item_probe_blade"}, "choosing an item writes {slot: item id}: %s" % str(manager.npcs["npc_probe"].get("equipment")))
+	picker.select(0); picker.item_selected.emit(0)
+	_assert(not manager.npcs["npc_probe"].has("equipment"), "choosing nothing erases the key rather than writing an empty one")
 
 
 func _check_the_attack_cooldown_writes() -> void:

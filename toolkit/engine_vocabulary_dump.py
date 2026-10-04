@@ -66,6 +66,7 @@ def _weather_vocabulary() -> dict:
 def main() -> int:
     try:
         from engine.conditions import KNOWN_KINDS
+        from engine.config import EQUIPMENT_SLOTS
         from engine.dialogue.effects import KNOWN_EFFECTS, RESTORE_RESOURCES
         from engine.items.consumable import CONSUMABLE_EFFECT_TYPES
         from engine.world.triggers import (
@@ -133,6 +134,8 @@ def main() -> int:
             "default_dispositions": dict(sorted(FACTION_DEFAULT_DISPOSITIONS.items())),
         },
         "npc_behavior_types": sorted(NPC_BEHAVIOR_TYPES),
+        # Where a creature (a companion, or an NPC that starts dressed) may wear things: `NPCInspector.gd`'s gear rows.
+        "equipment_slots": list(EQUIPMENT_SLOTS),
         # What an affix's `allowed_types` is compared with: the generated item's
         # class name. `AffixInspector.gd` offers these plus "All".
         "item_classes": _item_classes(),

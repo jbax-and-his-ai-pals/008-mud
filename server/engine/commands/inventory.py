@@ -44,12 +44,22 @@ def status_handler(args, context):
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
     return player.get_status()
 
-@command("equip", ["wear", "wield"], "inventory", "Equip an item from your inventory.\nUsage: equip <item_name> [to <slot_name>]", content_capability="inventory")
+@command("equip", ["wear", "wield"], "inventory", "Equip an item from your inventory.\nUsage: equip <item_name> [to <slot_name>]\n       equip <item_name> on <companion> [to <slot_name>]", content_capability="inventory")
 def equip_handler(args, context):
     player = context.get('player')
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
     if not player.is_alive: return f"{FORMAT_ERROR}You are dead. You cannot equip items.{FORMAT_RESET}"
     if not args: return f"{FORMAT_ERROR}What do you want to equip?{FORMAT_RESET}"
+    # `equip <item> on <companion> [to <slot>]`: dress someone travelling with you.
+    from engine.npcs import companion_gear
+
+    for_companion = companion_gear.parse_for_companion(context.get("world"), player, args, ("on", "onto"))
+    if for_companion is not None:
+        item_text, companion, companion_slot = for_companion
+        pack_item = player.inventory.find_item_by_name(item_text)
+        if not pack_item: return f"{FORMAT_ERROR}You don't have '{item_text}' in your inventory.{FORMAT_RESET}"
+        done, text = companion_gear.equip(context.get("world"), player, companion, pack_item, companion_slot)
+        return f"{FORMAT_SUCCESS}{text}{FORMAT_RESET}" if done else f"{FORMAT_ERROR}{text}{FORMAT_RESET}"
     item_name = ""; slot_name = None
     if EQUIP_COMMAND_SLOT_PREPOSITION in [a.lower() for a in args]:
         try:
@@ -63,7 +73,7 @@ def equip_handler(args, context):
     success, message = player.equip_item(item_to_equip, slot_name)
     return f"{FORMAT_SUCCESS}{message}{FORMAT_RESET}" if success else f"{FORMAT_ERROR}{message}{FORMAT_RESET}"
 
-@command("unequip", ["remove"], "inventory", "Unequip an item by name or slot.\nUsage: unequip <item_name | slot_name>", content_capability="inventory")
+@command("unequip", ["remove"], "inventory", "Unequip an item by name or slot.\nUsage: unequip <item_name | slot_name>\n       unequip <item_name | slot_name> from <companion>", content_capability="inventory")
 def unequip_handler(args, context):
     player = context.get('player')
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
@@ -79,6 +89,15 @@ def unequip_handler(args, context):
         if not has_equipped: equipped_text += "  (Nothing equipped)\n"
         equipped_text += "\nUsage: unequip <item_name | slot_name>"
         return equipped_text
+
+    # `unequip <slot or item> from <companion>`: take back what someone travelling with you wears.
+    from engine.npcs import companion_gear
+
+    from_companion = companion_gear.parse_for_companion(context.get("world"), player, args, ("from", "on"))
+    if from_companion is not None:
+        thing, companion, _slot = from_companion
+        done, text = companion_gear.unequip(context.get("world"), player, companion, thing)
+        return f"{FORMAT_SUCCESS}{text}{FORMAT_RESET}" if done else f"{FORMAT_ERROR}{text}{FORMAT_RESET}"
 
     identifier = " ".join(args).lower()
     slot_name_from_identifier = identifier.replace(" ", "_")

@@ -14,6 +14,7 @@ from engine.config.config_npc import NPC_MANA_LEVEL_UP_INT_DIVISOR, NPC_MANA_LEV
 from engine.contracts import stats as stats_contract
 from engine.items.item_factory import ItemFactory
 from .npc import NPC
+from engine.npcs import companion_gear
 from engine.items.inventory import Inventory
 from engine.utils.logger import Logger, LogLevel # NEW IMPORT
 
@@ -253,6 +254,15 @@ class NPCFactory:
                     Logger.warning("NPCFactory", f"'initial_inventory' for '{template.get('name')}' is not a list.")
 
             npc.world = world
+            saved_gear = overrides.get("equipment")
+            if isinstance(saved_gear, dict):
+                for slot, ref in saved_gear.items():
+                    if slot in npc.equipment and isinstance(ref, dict) and ref.get("item_id"):
+                        npc.equipment[slot] = ItemFactory.create_item_from_template(
+                            ref["item_id"], world, **(ref.get("properties_override") or {}))
+                companion_gear.refresh(npc)
+            else:
+                companion_gear.starting_gear(world, npc, template)
 
             # --- NEW LOGGER USAGE ---
             Logger.debug("NPCFactory", f"Spawning {npc.name} - {npc.health}/{npc.max_health}hp in {npc.current_region_id}:{npc.current_room_id}")

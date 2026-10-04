@@ -364,6 +364,7 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `properties.despawn_message` | an NPC | How a summoned creature leaves ("The Colossus sinks back into the earth."). |
 | `properties.essential: true` | an NPC | Cannot be killed unless recruited as a companion: left on the brink instead. |
 | `properties.unique: true` | an NPC | Called "the mayor", not "a mayor". |
+| `equipment` | an NPC template | `{"main_hand": "item_iron_sword", "body": "item_leather_tunic"}`: what it starts wearing (slots: main_hand, off_hand, head, body, hands, feet, neck; each item must fit its slot). A weapon in the main hand and armor add to its attack and defense; a companion can be re-dressed in play (`equip <item> on <name>`). |
 | `properties.attack_cooldown` | an NPC | Seconds between its blows, 0.5 to 120 (default 3): slower is easier to read in a staged fight. |
 | `properties.respawn_cooldown: -1` | an NPC | Never comes back once dead (a hostile or a friendly alike). |
 | `silent: true` | a `move_npc` effect | No "leaves" / "arrives" line: the scene says it in its own words ("The chancellor leads you north."). |

@@ -626,6 +626,14 @@ faring); they follow you from room to room, across regions, and join
 your fights, and a later conversation can send them home. How many a
 world lets you bring is up to the world: often one, sometimes a party.
 
+A companion has a sheet and wears gear like you do. `companions <name>`
+shows their level, health, attack, defense, stats, abilities and what they
+wear. Dress them from your own pack with `equip <item> on <name>` (add `to
+<slot>` to choose where) and take it back with `unequip <slot or item> from
+<name>`: a weapon in the main hand and armor add to what they can do, and a
+swapped item comes back to you. `use <potion> on <name>` heals them. Both of
+you have to be in the same room.
+
 ---
 
 ## 17. Games of Chance

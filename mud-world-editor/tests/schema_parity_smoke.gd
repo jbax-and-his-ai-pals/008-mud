@@ -329,6 +329,10 @@ func _check_npc_vocabulary(vocabulary: Dictionary) -> void:
 	_assert(engine_behaviors == editor_behaviors,
 		"the behaviour vocabulary matches exactly (engine %s, editor %s)" % [str(_sorted(engine_behaviors)), str(_sorted(editor_behaviors))])
 
+	var engine_slots: Array = vocabulary.get("equipment_slots", [])
+	_assert(engine_slots == NPCVocabulary.EQUIPMENT_SLOTS,
+		"the equipment slots match, in order (engine %s, editor %s)" % [str(engine_slots), str(NPCVocabulary.EQUIPMENT_SLOTS)])
+
 
 ## `KnowledgeInspector.gd` copies a topic response's condition vocabulary for its
 ## kind and state pickers. The engine's constants sit beside the reader and are

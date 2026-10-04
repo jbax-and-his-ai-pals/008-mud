@@ -10,6 +10,7 @@ from engine.config import (
 )
 from engine.config.config_display import FORMAT_ERROR
 from engine.core.combat_system import CombatSystem
+from engine.npcs import companion_gear
 from engine.magic.effects import apply_spell_effect
 from engine.magic.spell_registry import get_spell
 from engine.utils.text_formatter import format_target_name, get_level_diff_category
@@ -101,7 +102,7 @@ def attack(npc: 'NPC', target) -> Dict[str, Any]:
             viewer = target if getattr(target, 'is_alive', False) else None
         viewer = world.get_viewer_for_npc(npc, preferred_player=viewer)
 
-    weapon_damage_type = npc.properties.get("weapon_damage_type", DEFAULT_WEAPON_DAMAGE_TYPE)
+    weapon_damage_type = companion_gear.weapon_type_of(npc) or npc.properties.get("weapon_damage_type", DEFAULT_WEAPON_DAMAGE_TYPE)
 
     # --- BOSS MECHANICS ---
     # Check for special abilities defined in properties

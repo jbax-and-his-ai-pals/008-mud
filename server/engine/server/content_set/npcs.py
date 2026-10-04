@@ -16,7 +16,7 @@ from typing import Any, Optional
 from engine import conditions as _conditions
 from engine.utils.messages import MESSAGES, template_problems
 from .abilities import (_ability_ids)
-from .core import (ContentSetIssue, _load_json)
+from .core import (ContentSetIssue, _load_definitions, _load_json)
 from .definitions import (_load_definition_ids)
 from .knowledge import (_knowledge_campaign_ids)
 
@@ -387,6 +387,28 @@ def _validate_npc_template_runtime_shapes(
                             quantity = entry["quantity"]
                             if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity < 1:
                                 issues.append(ContentSetIssue("error", str(path), f"{entry_label}.quantity must be a positive integer"))
+
+            if "equipment" in template:
+                from engine.config import EQUIPMENT_SLOTS, EQUIPMENT_VALID_SLOTS_BY_TYPE
+
+                gear = template["equipment"]
+                if not isinstance(gear, dict):
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.equipment must be an object of slot -> item id"))
+                else:
+                    item_definitions = _load_definitions(content_root / "items")
+                    for slot, gear_id in gear.items():
+                        gear_label = f"{label}.equipment[{slot!r}]"
+                        if slot not in EQUIPMENT_SLOTS:
+                            issues.append(ContentSetIssue("error", str(path), f"{gear_label} is not a slot (known: {', '.join(EQUIPMENT_SLOTS)})"))
+                        if not isinstance(gear_id, str) or gear_id not in item_ids:
+                            issues.append(ContentSetIssue("error", str(path), f"{gear_label} references a missing item template"))
+                            continue
+                        definition = item_definitions.get(gear_id, {})
+                        declared = (definition.get("properties") or {}).get("equip_slot") if isinstance(definition, dict) else None
+                        fits = [declared] if isinstance(declared, str) else declared if isinstance(declared, list) else \
+                            EQUIPMENT_VALID_SLOTS_BY_TYPE.get(str(definition.get("type", "")), [])
+                        if slot in EQUIPMENT_SLOTS and slot not in fits:
+                            issues.append(ContentSetIssue("error", str(path), f"{gear_label}: {gear_id} cannot be worn there (it fits: {', '.join(fits) or 'nowhere'})"))
 
             if "schedule" not in template:
                 continue

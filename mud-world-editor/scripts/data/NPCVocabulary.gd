@@ -30,6 +30,9 @@ const FACTION_DEFAULT_DISPOSITIONS := {
 	"hostile": "hostile",
 }
 
+# Where a creature may wear things (`engine/config/config_items.py::EQUIPMENT_SLOTS`; schema_parity_smoke.gd checks it).
+const EQUIPMENT_SLOTS := ["main_hand", "off_hand", "head", "body", "hands", "feet", "neck"]
+
 const BEHAVIOR_TYPES := [
 	"stationary", "wanderer", "aggressive", "patrol", "follower", "scheduled",
 	"healer", "minion",

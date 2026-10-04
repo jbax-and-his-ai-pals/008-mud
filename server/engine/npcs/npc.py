@@ -26,6 +26,7 @@ from engine.utils.utils import format_loot_drop_message, format_name_for_display
 from . import ai as npc_ai 
 from . import combat as npc_combat
 from engine.utils.articles import the
+from engine.npcs import companion_gear
 
 if TYPE_CHECKING:
     from engine.world.world import World
@@ -74,6 +75,10 @@ class NPC(GameObject):
         self.aggression = 0.0
         self.attack_power = 5
         self.defense = 2
+        # What it wears (see npcs/companion_gear.py) and what that adds to attack and defence.
+        self.equipment: Dict[str, Optional[Item]] = companion_gear.empty_equipment()
+        self._gear_attack = 0
+        self._gear_defense = 0
         # Set once `die()` (or a despawn) has handled this creature's death; the world
         # tick reaps a creature that is dead and not yet handled.
         self._death_processed = False
@@ -294,8 +299,8 @@ class NPC(GameObject):
         base_attack = getattr(self, "base_attack_power", None)
         if base_attack is not None and base_attack != template.get("attack_power", 3):
             found["attack_power"] = base_attack
-        if self.defense != template.get("defense", 2):
-            found["defense"] = self.defense
+        if self.defense - self._gear_defense != template.get("defense", 2):
+            found["defense"] = self.defense - self._gear_defense   # the base: what it wears is saved as gear
         loot = getattr(self, "loot_table", None)
         if isinstance(loot, dict) and loot != template.get("loot_table", {}):
             found["loot_table"] = copy.deepcopy(loot)
@@ -315,8 +320,20 @@ class NPC(GameObject):
             "faction": self.faction, "behavior_type": self.behavior_type,
             "properties_override": self._properties_differing_from_template(),
             "patrol_index": getattr(self, "patrol_index", 0),
-            "inventory": self.inventory.to_dict(self.world) if self.world else {}
+            "inventory": self.inventory.to_dict(self.world) if self.world else {},
+            **self._gear_to_dict(),
         }
+
+    def _gear_to_dict(self) -> Dict[str, Any]:
+        """What it wears, saved when it wears something or its template said it would (so taking it all off sticks)."""
+        from engine.utils.utils import _serialize_item_reference
+
+        worn = {slot: _serialize_item_reference(item, 1, self.world) for slot, item in self.equipment.items() if item is not None}
+        templates = getattr(self.world, "npc_templates", None) if self.world is not None else None
+        template = templates.get(self.template_id, {}) if isinstance(templates, dict) else {}
+        if worn or (isinstance(template, dict) and template.get("equipment")):
+            return {"equipment": worn}
+        return {}
 
     def despawn(self, world: 'World', silent: bool = False) -> Optional[str]:
         if not self.properties.get("is_summoned"): return None

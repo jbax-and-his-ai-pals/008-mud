@@ -41,6 +41,7 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null, i
 	_build_behavior_tuning()
 	_build_usable_spells()
 	_build_initial_inventory()
+	_build_worn_gear()
 	_build_gift_preferences()
 	_build_loot_table()
 	_build_loot_tags()
@@ -808,6 +809,30 @@ func _refresh_initial_inventory(rows: VBoxContainer):
 			_refresh_initial_inventory(rows))
 		row.add_child(remove); rows.add_child(row)
 	if list.is_empty(): rows.add_child(InspectorStyle.lbl("Nothing carried.", InspectorStyle.COLOR_TEXT_DIM))
+
+# `equipment` (`companion_gear.py::starting_gear`): what the NPC starts wearing, a slot each. A weapon in the main hand and
+# armour add to its attack and defence; a companion can have it changed in play (`equip <item> on <name>`).
+func _build_worn_gear():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Starts Wearing"))
+	var rows := VBoxContainer.new(); rows.name = "WornGear"; rows.add_theme_constant_override("separation", 4)
+	container.add_child(rows)
+	var gear = cur_data.get("equipment", {})
+	gear = gear if gear is Dictionary else {}
+	for slot in NPCVocabulary.EQUIPMENT_SLOTS:
+		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 6)
+		var label := InspectorStyle.lbl(str(slot).replace("_", " ").capitalize(), InspectorStyle.COLOR_TEXT_DIM); label.custom_minimum_size.x = 90
+		row.add_child(label)
+		var picker := _item_id_picker(str(gear.get(slot, ""))); picker.name = "Gear_%s" % slot
+		picker.item_selected.connect(func(selected):
+			var chosen := str(picker.get_item_metadata(selected))
+			var worn: Dictionary = cur_data.get("equipment", {}) if cur_data.get("equipment") is Dictionary else {}
+			if chosen == "": worn.erase(slot)
+			else: worn[slot] = chosen
+			if worn.is_empty(): cur_data.erase("equipment")
+			else: cur_data["equipment"] = worn
+			database_modified.emit())
+		row.add_child(picker); rows.add_child(row)
 
 # `properties.gift_preferences` (`use_give.py::_gift_affinity`): five lists
 # nothing authored before this -- an NPC could be given anything and never show
