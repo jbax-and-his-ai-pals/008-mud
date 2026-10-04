@@ -1,4 +1,66 @@
 {
+    "mysidia_falls": {
+        "on": {
+            "event": "on_enter",
+            "region": "mysidia",
+            "room": "crystal_chamber"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "mysidia_falls"
+        }
+    },
+    "crystal_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_mysidian_crystal"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "leave_mysidia"
+        }
+    },
+    "air_first_wave_down": {
+        "on": {
+            "event": "room_cleared",
+            "region": "airship",
+            "room": "deck"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "second_wave"
+        }
+    },
+    "air_second_wave_down": {
+        "on": {
+            "event": "room_cleared",
+            "region": "airship",
+            "room": "deck"
+        },
+        "when": {
+            "kind": "flag",
+            "flag": "air_second_wave"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "landing"
+        }
+    },
+    "night_at_the_castle": {
+        "on": {
+            "event": "on_enter",
+            "region": "varenholt",
+            "room": "quarters"
+        },
+        "when": {
+            "kind": "flag",
+            "flag": "kessa_briefed"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "night_in_the_castle"
+        }
+    },
     "throne_court": {
         "on": {
             "event": "on_enter",
@@ -7,7 +69,7 @@
         },
         "once": "player",
         "effects": {
-            "message": "The banners hang motionless. Nobody near the king meets your eye, and the chancellor smiles as if he had been waiting for you."
+            "message": "The banners hang motionless. Nobody near the king meets your eye."
         }
     },
     "fog_ambush": {

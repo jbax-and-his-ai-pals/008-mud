@@ -3,75 +3,79 @@
     "root": "greeting",
     "entries": [
         {
-            "node": "waiting",
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "captain_kessa"
+            }
+        },
+        {
+            "node": "at_the_gate",
             "condition": {
                 "all": [
                     {
                         "kind": "flag",
-                        "flag": "kessa_ahead"
+                        "flag": "rested_at_castle"
                     },
                     {
                         "not": {
-                            "kind": "quest_completed",
-                            "quest_id": "quest_deliver_package"
+                            "kind": "flag",
+                            "flag": "kessa_joined"
                         }
                     }
                 ]
             }
         },
         {
-            "node": "ready",
+            "node": "rejoin",
             "condition": {
                 "all": [
                     {
                         "kind": "flag",
-                        "flag": "kessa_ahead"
+                        "flag": "kessa_joined"
                     },
                     {
-                        "kind": "quest_completed",
-                        "quest_id": "quest_deliver_package"
+                        "not": {
+                            "kind": "companion_present",
+                            "npc_id": "captain_kessa"
+                        }
                     }
                 ]
+            }
+        },
+        {
+            "node": "rest_first",
+            "condition": {
+                "kind": "flag",
+                "flag": "kessa_briefed"
             }
         }
     ],
     "nodes": {
         "greeting": {
-            "text": "There you are. Did you speak to the king?",
+            "text": "There you are. I heard the bells, and then I heard the king sent for you. Did you speak to him?",
             "pace": "slow",
             "choices": [
-                {
-                    "text": "He stripped me of my seal. I am to run his errand.",
-                    "condition": {
-                        "kind": "flag",
-                        "flag": "questioned_king"
-                    },
-                    "next_node": "ahead_stripped",
-                    "effects": {
-                        "move_npc": {
-                            "npc": "captain_kessa",
-                            "region": "mistvale",
-                            "room": "village_square",
-                            "message": "Captain Kessa turns on her heel and strides out the west door, bound for Mistvale."
-                        },
-                        "set_flag": "kessa_ahead"
-                    }
-                },
                 {
                     "text": "He sends me to Mistvale with a package.",
                     "condition": {
                         "kind": "flag",
                         "flag": "obeyed_king"
                     },
-                    "next_node": "ahead_obeyed",
+                    "next_node": "briefed_obeyed",
                     "effects": {
-                        "move_npc": {
-                            "npc": "captain_kessa",
-                            "region": "mistvale",
-                            "room": "village_square",
-                            "message": "Captain Kessa salutes and strides out the west door to ride ahead to Mistvale."
-                        },
-                        "set_flag": "kessa_ahead"
+                        "set_flag": "kessa_briefed"
+                    }
+                },
+                {
+                    "text": "He stripped me of my seal. I am to run his errand.",
+                    "condition": {
+                        "kind": "flag",
+                        "flag": "questioned_king"
+                    },
+                    "next_node": "briefed_stripped",
+                    "effects": {
+                        "set_flag": "kessa_briefed"
                     }
                 },
                 {
@@ -80,23 +84,13 @@
                 }
             ]
         },
-        "joins": {
-            "text": "Good. Then we do this the way we were taught: side by side.",
+        "briefed_obeyed": {
+            "text": "A package for the mayor of Mistvale? Strange work for a captain. Then we leave at dawn, together; I would rather not watch the fleet sail without us. Sleep, Cecil. Your quarters are through the north door, and I will meet you at the gate.",
             "pace": "slow",
             "end": true
         },
-        "stays": {
-            "text": "The square is mine. Send word when you need a blade.",
-            "pace": "slow",
-            "end": true
-        },
-        "ahead_stripped": {
-            "text": "Then he has made a mistake, and I will not watch it happen twice. Go. I will ride ahead and meet you at Mistvale.",
-            "pace": "slow",
-            "end": true
-        },
-        "ahead_obeyed": {
-            "text": "A package for the mayor of Mistvale? Strange. I will ride ahead and meet you there.",
+        "briefed_stripped": {
+            "text": "Then he has made a mistake, and I will not watch it happen twice. We leave at dawn, together, and he can court-martial us both. Sleep. Your quarters are through the north door, and I will meet you at the gate.",
             "pace": "slow",
             "end": true
         },
@@ -105,55 +99,76 @@
             "pace": "slow",
             "end": true
         },
-        "waiting": {
-            "text": "Go on, give the mayor the package, and watch his face while you do. I will keep watch from here.",
+        "rest_first": {
+            "text": "Sleep first. Your quarters are through the north door. I will be at the gate at dawn.",
             "pace": "slow",
             "end": true
         },
-        "ready": {
-            "text": "It is done, then. What do you need of me?",
+        "at_the_gate": {
+            "text": "Dawn, and I have been up for an hour already. The road to Mistvale is south of here. Are you ready?",
             "pace": "slow",
             "choices": [
                 {
-                    "text": "Ride with me, Kessa. I would rather not do this alone.",
-                    "condition": {
-                        "all": [
-                            {
-                                "kind": "flag",
-                                "flag": "kessa_ahead"
-                            },
-                            {
-                                "not": {
-                                    "kind": "companion_present",
-                                    "npc_id": "captain_kessa"
-                                }
-                            }
-                        ]
-                    },
+                    "text": "Ready. Ride with me, Kessa.",
                     "next_node": "joins",
                     "effects": {
-                        "recruit": true
+                        "recruit": true,
+                        "set_flag": "kessa_joined"
                     }
                 },
                 {
-                    "text": "Hold the square, Kessa. I will send for you.",
-                    "condition": {
-                        "kind": "companion_present",
-                        "npc_id": "captain_kessa"
-                    },
+                    "text": "A moment more.",
+                    "next_node": "not_yet_dawn"
+                }
+            ]
+        },
+        "not_yet_dawn": {
+            "text": "Do not make me wait too long. I am not good at it.",
+            "pace": "slow",
+            "end": true
+        },
+        "joins": {
+            "text": "Good. Then we do this the way we were taught: side by side.",
+            "pace": "slow",
+            "end": true
+        },
+        "rejoin": {
+            "text": "Back on the road? I thought you would never ask.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Ride with me again, Kessa.",
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true,
+                        "set_flag": "kessa_joined"
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "end": true
+                }
+            ]
+        },
+        "with_you": {
+            "text": "Lead on, Cecil. I am right behind you.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Hold here, Kessa. I will send for you.",
                     "next_node": "stays",
                     "effects": {
                         "dismiss": true
                     }
                 },
                 {
-                    "text": "Nothing yet.",
-                    "next_node": "not_now"
+                    "text": "Nothing. Lead on.",
+                    "end": true
                 }
             ]
         },
-        "not_now": {
-            "text": "Then I will be here when you do.",
+        "stays": {
+            "text": "Then I will hold here. Send word when you need a blade.",
             "pace": "slow",
             "end": true
         }

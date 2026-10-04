@@ -17,7 +17,7 @@ from engine.core.quests.closing import closing_text
 from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
 
-from tests.fixtures import STORY_FIXTURE
+from tests.fixtures import STORY_FIXTURE, skip_the_ff4_opening
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _MARKUP = re.compile(r"\[\[[^\]]*\]\]")
@@ -42,6 +42,8 @@ class _Game:
         self.server.execute_command(self.sid, "char create Cecil")
         self.player = self.server.get_player_for_session(self.sid)
         self.world = self.server.world
+        if story:
+            skip_the_ff4_opening(self.world, self.player)   # the real slice starts in Mysidia; these tests begin at the king
 
     def say(self, command):
         events = self.server.execute_command(self.sid, command)
@@ -137,6 +139,7 @@ class TestTheDrakeFight(unittest.TestCase):
         wolf.combat_targets = {game.player}
         wolf.combat_cooldown = 0
         wolf.attack_cooldown = 0
+        wolf.attack_power = 60   # the captain starts in armour now; the point here is what the fall says
         said = ""
         for step in range(60):
             said = try_attack(wolf, game.world, 1000.0 + step * 10) or ""

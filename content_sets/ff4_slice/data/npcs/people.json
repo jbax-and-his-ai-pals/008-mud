@@ -180,5 +180,61 @@
             "wander_chance": 0,
             "move_cooldown": 9999
         }
+    },
+    "elder_of_mysidia": {
+        "name": "elder of Mysidia",
+        "description": "An old man in pale robes, one hand flat on the altar as if he were steadying it, or himself.",
+        "health": 40,
+        "max_health": 40,
+        "level": 5,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Take it, then."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "mysidia_elder",
+            "essential": true,
+            "unique": true
+        }
+    },
+    "mysidian_acolyte": {
+        "name": "Mysidian acolyte",
+        "description": "A young mystic in pale robes, with nothing in their hands but a little light.",
+        "health": 20,
+        "max_health": 20,
+        "level": 1,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Please. Please, do not."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999
+        }
+    },
+    "red_fleet_soldier": {
+        "name": "Red Fleet soldier",
+        "description": "A soldier of the Red Fleet in dark plate, helm under one arm, looking at something a long way off.",
+        "health": 70,
+        "max_health": 70,
+        "level": 3,
+        "attack_power": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Orders are orders, captain. That is what we keep telling each other."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true
+        }
     }
 }

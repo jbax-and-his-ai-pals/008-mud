@@ -27,6 +27,7 @@ from pathlib import Path
 from engine.dialogue.effects import apply_effects
 from engine.items.item_factory import ItemFactory
 from engine.npcs.npc_factory import NPCFactory
+from tests.fixtures import skip_the_ff4_opening
 from engine.server.headless_server import HeadlessServer
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -405,7 +406,7 @@ class TestFF4Slice(_Slice):
 
     def setUp(self):
         super().setUp()
-        self.say("equip dark blade")
+        skip_the_ff4_opening(self.world, self.player)   # these tests begin at the king; the opening has its own
 
     def _question_the_king(self):
         self.say("talk king")
@@ -428,7 +429,7 @@ class TestFF4Slice(_Slice):
 
     def test_a_reply_reads_as_a_transcript_not_a_new_conversation(self):
         opening = self.say("talk king")
-        self.assertIn('King Aldous speaks: "The crystals are not yet ours', opening, "an opening reads like every other line")
+        self.assertIn('King Aldous speaks: "The Water Crystal, at last', opening, "an opening reads like every other line")
         self.assertNotIn("CONVERSATION WITH", opening)
         self.assertIn("reply <number>", opening)
         answered = self.say("reply 3")
@@ -450,7 +451,7 @@ class TestFF4Slice(_Slice):
         self.say("talk king")
         answered = self.say("reply 1")
         self.assertIn('King Aldous speaks: "Good. Be quick. The fleet sails at dawn', answered)
-        self.assertIn("find her in the barracks before you go", answered, "and he points you at Kessa")
+        self.assertIn("find her in the barracks, and rest", answered, "and he points you at Kessa")
         self.assertNotRegex(answered, r"(?m)^\s*1\. ", "there is nothing left to answer")
         self.assertNotIn("(That seems to be all.)", answered)
         self.at("varenholt", "throne_room")
@@ -470,11 +471,11 @@ class TestFF4Slice(_Slice):
 
     def test_the_king_does_not_repeat_his_greeting_once_he_has_spoken(self):
         first = self.say("talk king")
-        self.assertIn("The crystals are not yet ours", first)
+        self.assertIn("The Water Crystal, at last", first)
         self.say("reply 4")   # "I will go." agrees, and the guards walk you out
         self.at("varenholt", "throne_room")   # (the door is shut to a player; this puts him back to ask again)
         again = self.say("talk king")
-        self.assertNotIn("The crystals are not yet ours", again)
+        self.assertNotIn("The Water Crystal, at last", again)
         self.assertIn("You have your orders", again)
         self.assertNotIn("slaughter", again, "the choices that settled things are not offered again")
 
@@ -489,7 +490,7 @@ class TestFF4Slice(_Slice):
         self.at("varenholt", "throne_room")
         again = self.say("talk king")
         self.assertIn("Deliver the package, courier", again)
-        self.assertNotIn("The crystals are not yet ours", again)
+        self.assertNotIn("The Water Crystal, at last", again)
 
     def test_questioning_the_king_costs_the_seal_and_is_remembered(self):
         self.assertTrue(self.holds("item_commander_seal"))
@@ -548,28 +549,25 @@ class TestFF4Slice(_Slice):
         self.assertIn("unravels into grey ribbons", printed)
         self.assertIs(True, self.player.flags.get("drake_slain"))
 
-    def test_the_castle_gate_stays_shut_until_the_king_has_given_orders_and_kessa_has_been_seen(self):
+    def test_the_castle_gate_stays_shut_until_kessa_rides_with_you(self):
         self.at("varenholt", "castle_gate")
         refused = self.say("go south")
         self.assertEqual("varenholt:castle_gate", self.where())
-        self.assertIn("Captain Kessa has been looking for you", refused)
-        self.assertIn("Speak with her before you leave", refused)
+        self.assertIn("Not alone, captain", refused)
+        self.assertIn("Captain Kessa rides with you", refused)
         self.at("varenholt", "throne_room")
-        self._question_the_king()   # either answer: it is that he has spoken that opens the way to Kessa
+        self._question_the_king()   # either answer: the king has given his orders
         self.at("varenholt", "castle_gate")
-        self.assertIn("Captain Kessa has been looking for you", self.say("go south"), "the king alone is not enough")
+        self.assertIn("Not alone, captain", self.say("go south"), "the king alone is not enough")
         self.assertEqual("varenholt:castle_gate", self.where())
-        self.at("varenholt", "barracks")
-        self.say("talk kessa")
-        self.say("reply 1")
-        self.at("varenholt", "castle_gate")
+        self.player.flags["kessa_joined"] = True
         self.say("go south")
         self.assertEqual("road:castle_road", self.where())
 
     def test_the_way_out_of_the_castle_runs_the_same_way_both_ways(self):
         self.at("varenholt", "courtyard")
         self.player.flags["king_ordered"] = True
-        self.player.flags["kessa_ahead"] = True
+        self.player.flags["kessa_joined"] = True
         self.say("go south")
         self.assertEqual("varenholt:castle_gate", self.where(), "the courtyard leads south to the gate")
         self.say("go south")
@@ -660,30 +658,51 @@ class TestFF4Slice(_Slice):
 
         return [n.template_id for n in companions.companions_of(self.world, self.player)]
 
-    def test_kessa_waits_for_the_package_to_be_delivered_before_she_will_ride_with_you(self):
-        self.player.flags["kessa_ahead"] = True
-        kessa = self.npcs("captain_kessa")[0]
-        kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"   # where her ride-ahead would have put her
-        self.at("mistvale", "village_square")
+    def test_kessa_sends_you_to_bed_and_waits_for_dawn(self):
+        self.say("talk king")
+        self.say("reply 1")
+        self.at("varenholt", "barracks")
         said = self.say("talk kessa")
-        self.assertIn("give the mayor the package", said)
-        self.assertNotIn("Ride with me", said)
-        self.assertNotIn("Did you speak to the king", said, "she knows you have; you are here")
+        self.assertIn("Did you speak to him", said)
+        self.assertIn("leave at dawn", self.say("reply 1"))
+        self.assertTrue(self.player.flags.get("kessa_briefed"))
+        again = self.say("talk kessa")
+        self.assertIn("Sleep first", again, "she does not ask you again, or say anything else yet")
         self.assertEqual([], self._companions())
 
-    def test_once_the_package_is_delivered_kessa_will_ride_with_you(self):
-        self.player.flags["kessa_ahead"] = True
-        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
+    def test_the_night_in_your_quarters_brings_dawn_and_kessa_to_the_gate(self):
+        self.player.flags["kessa_briefed"] = True
+        self.player.flags["king_ordered"] = True
+        self.at("varenholt", "barracks")
+        self.say("go north")
+        self.assertEqual("varenholt:quarters", self.where())
+        for _ in range(40):   # the night is told over a few seconds
+            self.world.clock.advance(1.0)
+            self.server.tick(self.sid)
+        self.assertTrue(self.player.flags.get("rested_at_castle"))
+        self.assertEqual(6, self.server.time_manager.hour, "the night has passed: it is six in the morning")
         kessa = self.npcs("captain_kessa")[0]
-        kessa.current_region_id, kessa.current_room_id = "mistvale", "village_square"   # where her ride-ahead would have put her
-        self.at("mistvale", "village_square")
+        self.assertEqual(("varenholt", "castle_gate"), (kessa.current_region_id, kessa.current_room_id), "and she is at the gate")
+        self.at("varenholt", "castle_gate")
         said = self.say("talk kessa")
-        self.assertIn("What do you need of me", said)
+        self.assertIn("Are you ready", said)
         self.assertIn("Ride with me, Kessa", said)
+        self.say("reply 1")
+        self.assertEqual(["captain_kessa"], self._companions())
+        self.assertIs(True, self.player.flags.get("kessa_joined"))
+        self.say("go south")
+        self.assertEqual("road:castle_road", self.where(), "and the gate opens to the two of them")
+
+    def test_the_night_is_only_for_someone_who_has_been_told_to_rest(self):
+        self.at("varenholt", "barracks")
+        self.say("go north")
+        for _ in range(10):
+            self.world.clock.advance(1.0)
+            self.server.tick(self.sid)
+        self.assertFalse(self.player.flags.get("rested_at_castle"), "the quarters are only a room until Kessa has spoken")
 
     def test_kessa_and_ryn_can_join_and_the_inn_heals_the_whole_party(self):
-        self.player.flags["kessa_ahead"] = True
-        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
+        self.player.flags["rested_at_castle"] = True
         self.at("varenholt", "barracks")
         self.say("talk kessa")
         self.say("reply 1")   # "Ride with me, Kessa."
@@ -711,13 +730,12 @@ class TestFF4Slice(_Slice):
         self.assertEqual(self.player.max_health, self.player.health)
 
     def test_kessa_can_be_sent_back_to_hold_the_square(self):
-        self.player.flags["kessa_ahead"] = True
-        self.player.runtime_state.quests.completed["quest_deliver_package"] = {"template_id": "quest_deliver_package"}
+        self.player.flags["rested_at_castle"] = True
         self.at("varenholt", "barracks")
         self.say("talk kessa")
         self.say("reply 1")
         self.say("talk kessa")
-        self.say("reply 1")   # "Hold the square, Kessa."
+        self.say("reply 1")   # "Hold here, Kessa."
         self.assertEqual([], self._companions())
 
     def test_a_party_of_three_stops_at_three(self):
@@ -734,15 +752,7 @@ class TestFF4Slice(_Slice):
         self.assertIn("Not tonight", offered)
         self.say("reply 1")   # all that is left to say is "Not tonight."
         self.assertEqual(5, self.player.runtime_state.gold)
-        self.assertEqual(1, self.player.health)
-
-    def test_a_dialogue_effect_sends_a_friend_ahead(self):
-        self._question_the_king()
-        self.at("varenholt", "barracks")
-        self.say("talk kessa")
-        self.say("reply 1")
-        kessa = self.npcs("captain_kessa")[0]
-        self.assertEqual(("mistvale", "village_square"), (kessa.current_region_id, kessa.current_room_id))
+        self.assertLess(self.player.health, self.player.max_health // 2, "not rested (a tick of ordinary healing is not a night's sleep)")
 
     def test_delivering_the_package_brings_the_boss(self):
         self._question_the_king()
@@ -922,7 +932,7 @@ class TestPersistence(unittest.TestCase):
         first = self._boot("ff4_slice", db)
         sid, _ = self._join(first, "Caelan", "transport-1")
         hero = first.get_player_for_session(sid)
-        hero.current_region_id, hero.current_room_id = "road", "fogreach_mouth"
+        skip_the_ff4_opening(first.world, hero, place=("road", "fogreach_mouth"))
         self.assertIn("grins", self._say(first, sid, "go in"))
         first.shutdown()
 
@@ -994,16 +1004,21 @@ class TestPersistence(unittest.TestCase):
         self.assertEqual(before + 10, again.max_health, "a heart container is permanent")
         self.assertFalse(self._holds(again, "item_heart_container"))
 
-    def test_ff4_keeps_the_choice_the_quest_and_a_friend_who_moved(self):
+    def test_ff4_keeps_the_choice_the_quest_and_a_friend_who_rides_with_you(self):
         db = self._db()
         first = self._boot("ff4_slice", db)
         sid, _ = self._join(first, "Caelan", "transport-1")
         hero = first.get_player_for_session(sid)
+        skip_the_ff4_opening(first.world, hero)
         self._say(first, sid, "talk king")
         self._say(first, sid, "reply 2")
         hero.current_region_id, hero.current_room_id = "varenholt", "barracks"
         self._say(first, sid, "talk kessa")
         self._say(first, sid, "reply 1")
+        hero.flags["rested_at_castle"] = True
+        hero.current_region_id, hero.current_room_id = "varenholt", "barracks"
+        self._say(first, sid, "talk kessa")
+        self._say(first, sid, "reply 1")   # she rides with you
         first.shutdown()
 
         second = self._boot("ff4_slice", db)
@@ -1015,8 +1030,10 @@ class TestPersistence(unittest.TestCase):
         self.assertIn("The King's Package", [q.get("title") for q in again.runtime_state.quests.active.values()])
         self.assertTrue(self._holds(again, "package_of_the_king"))
         self.assertFalse(self._holds(again, "item_commander_seal"))
-        kessa = next(n for n in second.world.npcs.values() if n.template_id == "captain_kessa")
-        self.assertEqual(("mistvale", "village_square"), (kessa.current_region_id, kessa.current_room_id))
+        self.assertIs(True, again.flags.get("kessa_joined"))
+        from engine.npcs import companions
+
+        self.assertEqual(["captain_kessa"], [n.template_id for n in companions.companions_of(second.world, again)], "and the friend who rode with him still does")
 
     def test_the_last_autosave_survives_a_crash_with_no_shutdown(self):
         db = self._db()

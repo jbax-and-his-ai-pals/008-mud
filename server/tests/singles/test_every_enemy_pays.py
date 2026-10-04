@@ -11,6 +11,7 @@ from pathlib import Path
 
 from engine.npcs.npc_factory import NPCFactory
 from engine.server.headless_server import HeadlessServer
+from tests.fixtures import skip_the_ff4_opening
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 HOSTILES = REPO_ROOT / "content_sets" / "ff4_slice" / "data" / "npcs" / "hostiles.json"
@@ -45,7 +46,7 @@ class TestEveryEnemyPays(unittest.TestCase):
         sid = server.create_session(player_id="loot").session_id
         server.execute_command(sid, "char create Cecil")
         player = server.get_player_for_session(sid)
-        player.current_region_id, player.current_room_id = "road", "castle_road"
+        skip_the_ff4_opening(server.world, player, place=("road", "castle_road"))
         goblin = next(n for n in server.world.npcs.values() if n.template_id == "goblin_scout")
         goblin.health = 1
         before = player.runtime_state.gold

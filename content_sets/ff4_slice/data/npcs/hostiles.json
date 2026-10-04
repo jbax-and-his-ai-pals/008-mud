@@ -264,5 +264,89 @@
             "weapon_damage_type": "slashing",
             "unique": true
         }
+    },
+    "storm_wyvern": {
+        "name": "storm wyvern",
+        "description": "A lean, hook-winged wyvern the colour of a thundercloud, trailing rags of vapour.",
+        "max_health": 35,
+        "level": 2,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 7,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    5,
+                    10
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "thunderhawk": {
+        "name": "thunderhawk",
+        "description": "A hawk the size of a cart horse, with static crawling along its wings.",
+        "max_health": 44,
+        "level": 3,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 9,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    8,
+                    14
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
     }
 }

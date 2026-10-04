@@ -127,6 +127,7 @@ story can be rewritten without touching the engine.
 What a rewrite will touch, and what it will not:
 
 * **Pinned to the real set, meant to change with it.** `test_adaptation_slices.py` (journeys through both slices),
+  `test_ff4_opening.py` (the first hour: Mysidia, the airship, the landing, the night),
   `test_slice_geography.py`, `test_every_enemy_pays.py`, the story classes of `test_story_beats.py` (the drake fight, the package, Ryn), the
   content gates and `walk_ff4.py`. Rewriting the story means updating these, deliberately.
 * **Not pinned.** Every test of an engine feature (kill credit, level growth, messages, quest-text pace, scene resume, panels,

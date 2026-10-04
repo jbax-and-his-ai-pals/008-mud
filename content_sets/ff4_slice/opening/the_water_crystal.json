@@ -1,0 +1,28 @@
+{
+    "scenario_id": "the_water_crystal",
+    "heading": "The Water Crystal",
+    "intro": "You are a captain of the Red Fleet, and the Fleet has come to Mysidia for a crystal. The king wants it, and the king has never asked for anything twice. Whatever you think of the work, the sword at your hip is dark steel, and the seal on your chest is his.",
+    "objectives_heading": "Your orders:",
+    "objectives": [
+        {
+            "id": "take_the_crystal",
+            "instruction": "Take the Water Crystal from its altar",
+            "command": "take crystal"
+        },
+        {
+            "id": "report_to_the_king",
+            "instruction": "Fly home and report to King Aldous in the throne room",
+            "command": "talk king"
+        },
+        {
+            "id": "visit_the_captain",
+            "instruction": "Find your friend Captain Kessa in the barracks",
+            "command": "look"
+        },
+        {
+            "id": "ride_at_dawn",
+            "instruction": "Rest in your quarters, then leave for Mistvale with Kessa at dawn",
+            "command": "south"
+        }
+    ]
+}

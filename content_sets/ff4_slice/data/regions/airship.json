@@ -1,0 +1,26 @@
+{
+    "region_id": "airship",
+    "name": "The Redwing",
+    "description": "The flagship of the Red Fleet, a long hull of dark timber under red-painted balloons.",
+    "rooms": {
+        "deck": {
+            "name": "The Deck of the Redwing",
+            "description": "A wide plank deck, wet with cloud and creaking in the wind. Ropes sing overhead, and the sky goes by on every side.",
+            "exits": {},
+            "initial_npcs": [
+                {
+                    "template_id": "red_fleet_soldier",
+                    "instance_id": "deck_soldier_1"
+                },
+                {
+                    "template_id": "red_fleet_soldier",
+                    "instance_id": "deck_soldier_2"
+                },
+                {
+                    "template_id": "red_fleet_soldier",
+                    "instance_id": "deck_soldier_3"
+                }
+            ]
+        }
+    }
+}

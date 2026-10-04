@@ -42,34 +42,82 @@ def equipped_ids():
     return [getattr(i, "obj_id", "") for i in g.player.equipment.values() if i]
 
 
+def wait(seconds):
+    """Scenes are told over time: let the clock run (the transports do this every tick)."""
+    for _ in range(seconds):
+        g.world.clock.advance(1.0)
+        g.tick()
+
+
+def sky_alive():
+    return [n for n in g.world.npcs.values() if n.template_id in ("storm_wyvern", "thunderhawk") and n.is_alive]
+
+
+def beat_the_sky():
+    for _ in range(80):
+        alive = sky_alive()
+        if not alive:
+            return True
+        say(g, "attack " + alive[0].name)
+        wait(3)
+    return False
+
+
+# --- Mysidia: the crystal ------------------------------------------------------
+check("starts in the Mysidian crystal chamber", g.where() == "mysidia:crystal_chamber", g.where())
+check("starting kit, blade and armour worn", "item_commander_seal" in g.items() and "item_dark_blade" in equipped_ids() and "item_dark_armor" in equipped_ids(), str(equipped_ids()))
+wait(30)
+check("the acolytes are gone and the elder is left", not [n for n in g.world.npcs.values() if n.template_id == "mysidian_acolyte"]
+      and [n for n in g.world.npcs.values() if n.template_id == "elder_of_mysidia"], "")
+out = say(g, "talk elder", show=V, n=400)
+out = say(g, "take crystal", show=V, n=400)
+wait(40)
+check("the crystal carries you to the airship", g.where() == "airship:deck", g.where())
+check("the first wave rises out of the cloud", len(sky_alive()) == 2, str(len(sky_alive())))
+check("beat the first wave", beat_the_sky(), "")
+wait(25)
+check("a short while later a second wave comes", len(sky_alive()) == 3, str(len(sky_alive())))
+check("beat the second wave", beat_the_sky(), "")
+wait(45)
+check("landed, and walked to the king by the chancellor", g.where() == "varenholt:throne_room", g.where())
+
 # --- the throne room ---------------------------------------------------------
-check("starts in the throne room", g.where() == "varenholt:throne_room", g.where())
-check("starting kit", "item_commander_seal" in g.items() and "item_dark_blade" in g.items(), str(g.items()))
-say(g, "equip dark blade"); say(g, "equip dark armor")
-check("dark blade and armor equip", "item_dark_blade" in equipped_ids() and "item_dark_armor" in equipped_ids(), str(equipped_ids()))
 out = say(g, "talk king", show=V, n=800)
+check("the king asks for the crystal and the crystal is his", "item_mysidian_crystal" not in g.items(), str(g.items()))
 out = say(g, "reply 2", show=V, n=600)
 check("questioning the king takes the seal", "item_commander_seal" not in g.items(), str(g.items()))
 check("the campaign starts", any("Package" in str(q.get("title")) for q in g.player.runtime_state.quests.active.values()), quest_states())
 check("a courier package is handed over", any("package" in i for i in g.items()), str(g.items()))
-print("    flags:", g.player.flags)
+print("    flags:", {k: v for k, v in g.player.flags.items() if not k.startswith("_")})
 check("the choice is remembered as a flag", g.player.flags.get("questioned_king") is True, g.player.flags)
 check("the guards march you out to the courtyard (a teleport)", g.where() == "varenholt:courtyard", g.where())
 out = say(g, "go north", show=V, n=300)
 check("the guards keep a dismissed courier out of the throne room", g.where() == "varenholt:courtyard" and "guards" in out, out[:200])
 
-# --- Kessa: an NPC that moves ahead ------------------------------------------
+# --- Kessa, the night, and dawn ------------------------------------------------
 say(g, "go east")
 check("at the barracks", g.where() == "varenholt:barracks", g.where())
 out = say(g, "talk kessa", show=V, n=600)
 out = say(g, "reply 1", show=V, n=600)
+check("Kessa tells you to rest and meets you at dawn", g.player.flags.get("kessa_briefed") is True, "")
+say(g, "go west"); say(g, "go south")
+out = say(g, "go south", show=V, n=300)
+check("the gate is shut to a captain without Kessa", g.where() == "varenholt:castle_gate" and "Not alone" in out, out[:200])
+say(g, "go north"); say(g, "go east"); say(g, "go north")
+check("in your quarters", g.where() == "varenholt:quarters", g.where())
+wait(30)
+check("the night passes: morning, rested, Kessa at the gate",
+      g.player.flags.get("rested_at_castle") is True and g.server.time_manager.hour == 6, "")
+say(g, "go south"); say(g, "go west"); say(g, "go south")
+check("at the castle gate", g.where() == "varenholt:castle_gate", g.where())
+out = say(g, "talk kessa", show=V, n=600)
+out = say(g, "reply 1", show=V, n=400)
 kessa = [n for n in g.world.npcs.values() if n.template_id == "captain_kessa"][0]
-print("    Kessa is now at:", kessa.current_region_id, kessa.current_room_id)
-check("move_npc sends Kessa ahead to Mistvale", (kessa.current_region_id, kessa.current_room_id) == ("mistvale", "village_square"),
-      (kessa.current_region_id, kessa.current_room_id))
+check("Kessa rides with you", bool(kessa.properties.get("companion")), str(kessa.properties.get("companion")))
+say(g, "go north")
 
 # --- chapel, stores ----------------------------------------------------------
-say(g, "go west"); say(g, "go west")
+say(g, "go west")
 check("at the chapel", g.where() == "varenholt:chapel", g.where())
 g.player.health = 30
 g.tick(80)

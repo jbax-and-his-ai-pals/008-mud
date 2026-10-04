@@ -1,0 +1,25 @@
+{
+    "id": "mysidia_elder",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "has_item",
+                "item_id": "item_mysidian_crystal"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Take it, then, if your king has no use for what is left of us. But understand what you are carrying out of this room.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "Go. Fly home to your king, captain, and see how he thanks you.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

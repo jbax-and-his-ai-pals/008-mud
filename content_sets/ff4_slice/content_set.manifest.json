@@ -1,28 +1,28 @@
 {
-  "id": "ff4_slice",
-  "title": "FF4 Slice",
-  "version": "0.1.0",
-  "manifest_schema_version": "1",
-  "engine_api_min": "1.0",
-  "engine_api_max": "1.0",
-  "paths": {
-    "content_root": "data",
-    "feature_profile": "data/profiles/story.profile.json",
-    "ruleset": "rules/ruleset.json",
-    "presentation": "presentation/default.json",
-    "opening": "opening/summoned_to_the_throne.json"
-  },
-  "start": {
-    "scenario_id": "summoned_to_the_throne",
-    "region_id": "varenholt",
-    "room_id": "throne_room"
-  },
-  "capabilities": [
-    "inventory",
-    "quests",
-    "combat",
-    "abilities",
-    "magic",
-    "dialogue"
-  ]
+    "id": "ff4_slice",
+    "title": "FF4 Slice",
+    "version": "0.1.0",
+    "manifest_schema_version": "1",
+    "engine_api_min": "1.0",
+    "engine_api_max": "1.0",
+    "paths": {
+        "content_root": "data",
+        "feature_profile": "data/profiles/story.profile.json",
+        "ruleset": "rules/ruleset.json",
+        "presentation": "presentation/default.json",
+        "opening": "opening/the_water_crystal.json"
+    },
+    "start": {
+        "scenario_id": "the_water_crystal",
+        "region_id": "mysidia",
+        "room_id": "crystal_chamber"
+    },
+    "capabilities": [
+        "inventory",
+        "quests",
+        "combat",
+        "abilities",
+        "magic",
+        "dialogue"
+    ]
 }

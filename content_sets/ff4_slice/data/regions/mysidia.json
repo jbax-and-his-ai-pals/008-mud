@@ -1,0 +1,47 @@
+{
+    "region_id": "mysidia",
+    "name": "Mysidia",
+    "description": "A mountain town of white stone, whose people have kept a crystal for longer than anyone has kept records.",
+    "rooms": {
+        "crystal_chamber": {
+            "name": "The Crystal Chamber",
+            "description": "A round chamber of pale stone under a high dome. The Water Crystal burns blue on its altar, and the light moves on the walls like a river seen from beneath.",
+            "exits": {},
+            "initial_npcs": [
+                {
+                    "template_id": "elder_of_mysidia",
+                    "instance_id": "elder_at_the_altar"
+                },
+                {
+                    "template_id": "mysidian_acolyte",
+                    "instance_id": "acolyte_1"
+                },
+                {
+                    "template_id": "mysidian_acolyte",
+                    "instance_id": "acolyte_2"
+                },
+                {
+                    "template_id": "mysidian_acolyte",
+                    "instance_id": "acolyte_3"
+                },
+                {
+                    "template_id": "red_fleet_soldier",
+                    "instance_id": "chamber_soldier_1"
+                },
+                {
+                    "template_id": "red_fleet_soldier",
+                    "instance_id": "chamber_soldier_2"
+                },
+                {
+                    "template_id": "red_fleet_soldier",
+                    "instance_id": "chamber_soldier_3"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_mysidian_crystal"
+                }
+            ]
+        }
+    }
+}

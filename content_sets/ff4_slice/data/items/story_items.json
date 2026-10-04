@@ -42,5 +42,17 @@
             ]
         },
         "item_family": "container"
+    },
+    "item_mysidian_crystal": {
+        "type": "Item",
+        "name": "Water Crystal",
+        "description": "The crystal of Mysidia: a blue light with a shape, cold to the touch and heavier than it should be.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "curio"
     }
 }

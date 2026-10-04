@@ -1,0 +1,269 @@
+{
+    "mysidia_falls": {
+        "note": "The opening: the Red Fleet takes the crystal chamber, and the player watches.",
+        "beats": [
+            {
+                "text": "The doors of the crystal chamber burst inward, and the Red Fleet pours in behind you, steel drawn, boots loud on pale stone.",
+                "pace": "measured"
+            },
+            {
+                "after": 3.5,
+                "text": "The people of Mysidia stand between the soldiers and the altar. They carry no weapons. They are singing.",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "[[RED]]Steel rings. The song breaks, and begins again, thinner.[[/]]",
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "acolyte_1"
+                }
+            },
+            {
+                "after": 3,
+                "text": "Nobody runs. Nobody kneels. One by one, the voices stop.",
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "acolyte_2"
+                }
+            },
+            {
+                "after": 3,
+                "text": "Your own hands are steady. That is the worst of it.",
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "acolyte_3"
+                }
+            },
+            {
+                "after": 4,
+                "text": "Only the elder of Mysidia is left standing, one hand flat against the altar, looking at you and not at the soldiers.",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "The Water Crystal burns blue on its altar. The king's order was two words long: bring it. (take crystal)",
+                "pace": "slow"
+            }
+        ]
+    },
+    "leave_mysidia": {
+        "note": "The crystal is taken; the Redwing climbs away, and the soldiers cannot look at one another. It ends on the first fight.",
+        "beats": [
+            {
+                "text": "The crystal is cold in your hands, and heavier than it has any right to be.",
+                "pace": "slow"
+            },
+            {
+                "after": 3.5,
+                "text": "[[YELLOW]]The elder of Mysidia speaks:[[/]] [[GREEN]]\"Take it, then. You carry our grief out of the door with it. Tell your king that the Water does not forgive.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4.5,
+                "text": "You do not answer. The soldiers fall in around you, and nobody speaks until the wind of the deck is on your face.",
+                "pace": "slow",
+                "effects": {
+                    "teleport": {
+                        "region": "airship",
+                        "room": "deck"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "text": "The Redwing climbs. Mysidia shrinks behind you to a smear of white stone, and then to nothing.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Red Fleet soldier speaks:[[/]] [[GREEN]]\"Captain... they did not even lift a hand.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]Red Fleet soldier speaks:[[/]] [[GREEN]]\"We were told they were a threat. Those were priests.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4.5,
+                "text": "You look at the blue light of the crystal on their faces. \"It had to be done,\" you say, and nobody believes it, least of all you.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "[[RED]]A horn sounds from the bow. Something dark is coming out of the cloud.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "storm_wyvern",
+                        "region": "airship",
+                        "room": "deck",
+                        "instance_id": "wave_one_a"
+                    }
+                }
+            },
+            {
+                "after": 1,
+                "text": "A second shape rises beside it.",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "storm_wyvern",
+                        "region": "airship",
+                        "room": "deck",
+                        "instance_id": "wave_one_b"
+                    }
+                }
+            }
+        ]
+    },
+    "second_wave": {
+        "note": "A short while after the first fight is won, the sky is not finished with the Redwing.",
+        "beats": [
+            {
+                "after": 3,
+                "text": "The last wyvern tumbles away into the cloud. The deck is quiet but for the wind and the soldiers' breathing.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "[[YELLOW]]Red Fleet soldier speaks:[[/]] [[GREEN]]\"Is that all of them?\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 6,
+                "text": "[[RED]]The wind turns. The cloud ahead darkens, and something much larger than a wyvern swings toward the Redwing.[[/]]",
+                "effects": {
+                    "set_flag": "air_second_wave",
+                    "spawn_npc": {
+                        "npc": "thunderhawk",
+                        "region": "airship",
+                        "room": "deck",
+                        "instance_id": "wave_two_a"
+                    }
+                }
+            },
+            {
+                "after": 1.5,
+                "text": "Its mate is close behind.",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "thunderhawk",
+                        "region": "airship",
+                        "room": "deck",
+                        "instance_id": "wave_two_b"
+                    }
+                }
+            },
+            {
+                "after": 1.5,
+                "text": "A wyvern circles low under the hull, waiting for you to look the other way.",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "storm_wyvern",
+                        "region": "airship",
+                        "room": "deck",
+                        "instance_id": "wave_two_c"
+                    }
+                }
+            }
+        ]
+    },
+    "landing": {
+        "note": "The sky is quiet again. Home, and the chancellor who walks you to the king.",
+        "beats": [
+            {
+                "after": 3,
+                "text": "The hawks fall, and the cloud closes over them. For a long moment nobody says a word.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "Ahead, through the haze, the red banners of Varenholt: the castle on its crag, the docks, the fleet at its moorings.",
+                "pace": "slow"
+            },
+            {
+                "after": 6,
+                "text": "The Redwing settles onto its mooring with a long groan of timber. You walk down the gangplank with the crystal under your arm.",
+                "pace": "slow",
+                "effects": {
+                    "move_npc": {
+                        "npc": "chancellor",
+                        "region": "varenholt",
+                        "room": "castle_gate"
+                    },
+                    "teleport": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "text": "[[YELLOW]]The chancellor speaks:[[/]] [[GREEN]]\"Captain. How good to see you in one piece. And the crystal: splendid. His Majesty has been waiting.\"[[/]]",
+                "pace": "slow"
+            },
+            {
+                "after": 4.5,
+                "text": "He walks beside you through the gate and across the courtyard, a half step too close, remarking on the weather. The guards on the stairs do not meet your eye.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "The chancellor opens the doors of the throne room himself, and smiles as if he had been waiting for you.",
+                "pace": "slow",
+                "effects": {
+                    "move_npc": {
+                        "npc": "chancellor",
+                        "region": "varenholt",
+                        "room": "throne_room",
+                        "message": "The chancellor goes in ahead of you."
+                    },
+                    "teleport": {
+                        "region": "varenholt",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "night_in_the_castle": {
+        "note": "After the king and Kessa: a night in your own quarters, and dawn with Kessa at the gate.",
+        "beats": [
+            {
+                "text": "Your quarters are exactly as you left them, and they feel like somebody else's.",
+                "pace": "slow"
+            },
+            {
+                "after": 4,
+                "text": "You lie down in your armour. The crystal's blue light is still behind your eyes, and under it, the song that stopped.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "Somewhere in the castle a door closes. The airships creak at their moorings. Sleep comes anyway, as it always does.",
+                "pace": "slow"
+            },
+            {
+                "after": 5,
+                "text": "[[CYAN]]The night passes.[[/]]",
+                "effects": {
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": "all",
+                    "set_flag": "rested_at_castle",
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "varenholt",
+                        "room": "castle_gate"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "text": "Grey light at the window. From somewhere below comes a familiar voice, shouting at a quartermaster: Kessa is already at the gate.",
+                "pace": "slow"
+            }
+        ]
+    }
+}

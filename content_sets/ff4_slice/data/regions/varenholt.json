@@ -69,7 +69,8 @@
             "name": "Barracks",
             "description": "Rows of bunks and the smell of oiled leather.",
             "exits": {
-                "west": "courtyard"
+                "west": "courtyard",
+                "north": "quarters"
             },
             "initial_npcs": [
                 {
@@ -124,13 +125,20 @@
                                 },
                                 {
                                     "kind": "flag",
-                                    "flag": "kessa_ahead"
+                                    "flag": "kessa_joined"
                                 }
                             ]
                         },
-                        "failure_message": "The guards cross their pikes. \"Captain Kessa has been looking for you. Speak with her before you leave.\""
+                        "failure_message": "The guards cross their pikes. \"Not alone, captain. Captain Kessa rides with you, and not before dawn.\""
                     }
                 }
+            }
+        },
+        "quarters": {
+            "name": "Your Quarters",
+            "description": "A narrow room off the barracks: a cot, a chest, a window onto the moorings. It is the nearest thing you have to a home, and tonight it feels borrowed.",
+            "exits": {
+                "south": "barracks"
             }
         }
     }

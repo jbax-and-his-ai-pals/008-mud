@@ -27,7 +27,7 @@
     ],
     "nodes": {
         "greeting": {
-            "text": "The crystals are not yet ours, and Mistvale keeps a ring of red stones that we want. Carry this package to their mayor. It is a gift. Do not open it.",
+            "text": "The Water Crystal, at last. The fleet will be rewarded for it. Now, a smaller errand: Mistvale keeps a ring of red stones that we want, and a gift opens doors a fleet cannot. Carry this package to their mayor. Do not open it.",
             "pace": "slow",
             "must_answer": true,
             "choices": [
@@ -96,7 +96,10 @@
                         }
                     }
                 }
-            ]
+            ],
+            "effects": {
+                "take_item": "item_mysidian_crystal"
+            }
         },
         "again": {
             "text": "You have your orders, captain. The fleet sails at dawn, and you are still standing in my hall.",
@@ -109,7 +112,7 @@
             "end": true
         },
         "obey": {
-            "text": "Good. Be quick. The fleet sails at dawn, and Captain Kessa has asked for you: find her in the barracks before you go.",
+            "text": "Good. Be quick. The fleet sails at dawn, and Captain Kessa has asked for you: find her in the barracks, and rest. You will want it.",
             "pace": "slow",
             "end": true
         },

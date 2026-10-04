@@ -29,11 +29,13 @@
     "starting_inventory": [
       {
         "item_id": "item_dark_blade",
-        "quantity": 1
+        "quantity": 1,
+        "equip": true
       },
       {
         "item_id": "item_dark_armor",
-        "quantity": 1
+        "quantity": 1,
+        "equip": true
       },
       {
         "item_id": "item_commander_seal",
