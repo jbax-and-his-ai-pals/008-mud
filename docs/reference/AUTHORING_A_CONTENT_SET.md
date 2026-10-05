@@ -403,7 +403,8 @@ a scene whose id starts with `checkpoint_` and whose beats carry effects (`end_s
 `give_item`, `start_campaign`, `recruit`, `teleport`...) is a *checkpoint*: it stands in for playing up to a point. In a test
 session (not a player's) `checkpoint` lists them and `checkpoint <name>` jumps to one at once (what was running is ended); `scene`
 lists the scenes, `scene skip` tells what is left of the running one at once, and `scene play <id>` / `scene end <id>` begin or
-finish one. The story slice has `checkpoint king` (the crystal in your pack, in the throne room) and `checkpoint road` (the king's
+finish one. Checkpoints are offered (by `checkpoint` and in the client's picker) in the order the set declares them, so declare them in the order
+of the story, in one file. The story slice has `checkpoint king` (the crystal in your pack, in the throne room) and `checkpoint road` (the king's
 orders given, Kessa at your side on the castle road).
 
 **An exit that warns.** A room's `properties.exit_requirements` gives one direction a rule; a `warning` is met once:

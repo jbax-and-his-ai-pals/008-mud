@@ -58,7 +58,8 @@ def checkpoint_handler(args, context):
     runner, player = _runner(context)
     if runner is None or player is None:
         return "Checkpoints are unavailable."
-    names = sorted(scene_id[len(CHECKPOINT_PREFIX):] for scene_id in runner.scenes if scene_id.startswith(CHECKPOINT_PREFIX))
+    # In the order the set declares them, which is the order of its story: not alphabetical.
+    names = [scene_id[len(CHECKPOINT_PREFIX):] for scene_id in runner.scenes if scene_id.startswith(CHECKPOINT_PREFIX)]
     if not args:
         if not names:
             return "This set has no checkpoints (scenes named checkpoint_<name>)."

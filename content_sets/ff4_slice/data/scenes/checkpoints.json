@@ -1,4 +1,89 @@
 {
+    "checkpoint_king": {
+        "note": "For testing: the opening is behind you. The crystal is in your pack and you stand in the throne room.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
+                    ],
+                    "set_flag": "air_second_wave",
+                    "give_item": "item_ilmaran_crystal",
+                    "teleport": {
+                        "region": "varenholt",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_road": {
+        "note": "For testing: the king has given his orders, you have slept in the castle, and Kessa is at your side on the road to Hazevale.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined"
+                    ],
+                    "start_campaign": "the_package",
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": "all",
+                    "move_npc": {
+                        "npc": "captain_kessa",
+                        "region": "road",
+                        "room": "castle_road",
+                        "silent": true
+                    },
+                    "teleport": {
+                        "region": "road",
+                        "room": "castle_road"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "captain_kessa"
+                }
+            }
+        ]
+    },
     "checkpoint_cave": {
         "note": "For testing: the king has sent you, you have slept in the castle and walked the road with Kessa; you stand at the mouth of the Fogreach cave.",
         "lock": false,

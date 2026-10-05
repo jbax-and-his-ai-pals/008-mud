@@ -42,7 +42,7 @@ class PanelPayloadsMixin:
         prefix = "checkpoint_"
         return {"enabled": True, "checkpoints": [
             {"id": scene_id[len(prefix):], "note": str(definition.get("note", "") or "")}
-            for scene_id, definition in sorted(scenes.items()) if scene_id.startswith(prefix)
+            for scene_id, definition in scenes.items() if scene_id.startswith(prefix)   # declared order: the story's
         ]}
 
     def _panel_cache(self) -> Dict[str, Dict[str, str]]:

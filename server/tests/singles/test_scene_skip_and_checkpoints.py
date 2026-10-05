@@ -144,6 +144,14 @@ class TestCheckpoints(_Game):
         self.assertTrue(self.player.flags.get("_scene_done.the_watch"))
         self.assertNotIn("A second bell.", self.tick(70))
 
+    def test_they_are_offered_in_the_order_the_set_declares_them_not_alphabetically(self):
+        scenes = self.runner.scenes
+        for name in ("checkpoint_zulu", "checkpoint_alpha"):
+            scenes[name] = {"note": name, "beats": []}   # declared after hall, sorting before it
+        listing = self.say("checkpoint")
+        self.assertLess(listing.index("hall"), listing.index("zulu"))
+        self.assertLess(listing.index("zulu"), listing.index("alpha"), "declared order, not alphabetical")
+
     def test_an_unknown_name_says_what_there_is(self):
         said = self.say("checkpoint nowhere")
         self.assertIn("No checkpoint named 'nowhere'", said)
@@ -188,6 +196,10 @@ class TestQuickPlayTools(unittest.TestCase):
         payload = allowed.debug_tools_payload()
         self.assertTrue(payload["enabled"])
         self.assertEqual([{"id": "hall", "note": "For testing: in the hall, having heard it all."}], payload["checkpoints"])
+        allowed.world.scene_runner.scenes["checkpoint_zulu"] = {"note": "", "beats": []}
+        allowed.world.scene_runner.scenes["checkpoint_alpha"] = {"note": "", "beats": []}
+        self.assertEqual(["hall", "zulu", "alpha"], [entry["id"] for entry in allowed.debug_tools_payload()["checkpoints"]],
+                         "the order the set declares them in (the story's), not alphabetical")
         refused, _sid = self.boot(False)
         self.assertEqual({"enabled": False}, refused.debug_tools_payload())
 
