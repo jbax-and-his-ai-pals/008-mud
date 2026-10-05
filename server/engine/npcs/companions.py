@@ -82,6 +82,41 @@ def recovery_step(npc: Any, world: Any, current_time: float, player: Any) -> Opt
     return None
 
 
+# A companion drinks a healing item from its own pack (`initial_inventory`) when its health falls below this fraction,
+# and not again for this many seconds, so a fight is not one long swallowing.
+POTION_THRESHOLD = 0.4
+POTION_COOLDOWN = 8.0
+LAST_POTION_KEY = "last_potion_at"
+
+
+def _healing_item(npc: Any) -> Optional[Any]:
+    inventory = getattr(npc, "inventory", None)
+    for slot in getattr(inventory, "slots", None) or []:
+        item = getattr(slot, "item", None)
+        if item is not None and item.get_property("effect_type") == "heal" and item.get_property("uses", 1) > 0:
+            return item
+    return None
+
+
+def drink_potion_if_hurt(npc: Any, world: Any, current_time: float) -> Optional[str]:
+    """A hurt companion with a healing item in its pack drinks it. The line to tell, or None."""
+    if not is_companion(npc) or is_recovering(npc) or not getattr(npc, "is_alive", False):
+        return None
+    if npc.health >= npc.max_health * POTION_THRESHOLD:
+        return None
+    if current_time - float(npc.properties.get(LAST_POTION_KEY, -1e9)) < POTION_COOLDOWN:
+        return None
+    item = _healing_item(npc)
+    if item is None:
+        return None
+    gained = npc.heal(int(item.get_property("effect_value", 0) or 0))
+    npc.properties[LAST_POTION_KEY] = current_time
+    npc.inventory.remove_item(item.obj_id, 1)
+    from engine.utils.articles import the
+
+    return "%s drinks %s%s." % (npc.name, the(item.name), (" and recovers %d health" % gained) if gained else "")
+
+
 def companions_of(world: Any, player: Any, *, alive_only: bool = True) -> List[Any]:
     """The NPCs bound to `player` as companions, in a stable order."""
     owner_id = getattr(player, "obj_id", None)

@@ -2,7 +2,7 @@
     "goblin_scout": {
         "name": "goblin scout",
         "description": "A wiry goblin with a crude spear.",
-        "max_health": 33,
+        "max_health": 55,
         "level": 1,
         "friendly": false,
         "faction": "hostile",
@@ -17,14 +17,14 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 4,
+        "attack_power": 12,
         "defense": 1,
         "loot_table": {
             "gold_value": {
                 "chance": 1,
                 "quantity": [
-                    3,
-                    8
+                    4,
+                    9
                 ]
             }
         },
@@ -44,7 +44,7 @@
     "road_wolf": {
         "name": "road wolf",
         "description": "A lean grey wolf, ribs showing.",
-        "max_health": 40,
+        "max_health": 68,
         "level": 2,
         "friendly": false,
         "faction": "hostile",
@@ -59,7 +59,7 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 5,
+        "attack_power": 13,
         "defense": 1,
         "loot_table": {
             "gold_value": {
@@ -86,7 +86,7 @@
     "cave_bat": {
         "name": "cave bat",
         "description": "A leathery bat with a wingspan wider than your arm.",
-        "max_health": 34,
+        "max_health": 58,
         "level": 2,
         "friendly": false,
         "faction": "hostile",
@@ -101,7 +101,7 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 4,
+        "attack_power": 12,
         "defense": 0,
         "loot_table": {
             "gold_value": {
@@ -132,7 +132,7 @@
     "cave_imp": {
         "name": "cave imp",
         "description": "A grinning, red-eyed imp that hops from stone to stone.",
-        "max_health": 45,
+        "max_health": 80,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -147,7 +147,7 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 6,
+        "attack_power": 14,
         "defense": 2,
         "loot_table": {
             "gold_value": {
@@ -225,7 +225,7 @@
     "chancellor_fiend": {
         "name": "thing in the chancellor's skin",
         "description": "Grey silks hang from something that is mostly teeth and joints, and it is still smiling.",
-        "max_health": 75,
+        "max_health": 110,
         "level": 4,
         "friendly": false,
         "faction": "hostile",
@@ -240,7 +240,7 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 7,
+        "attack_power": 15,
         "defense": 3,
         "loot_table": {
             "gold_value": {
@@ -268,7 +268,7 @@
     "storm_wyvern": {
         "name": "storm wyvern",
         "description": "A lean, hook-winged wyvern the colour of a thundercloud, trailing rags of vapour.",
-        "max_health": 35,
+        "max_health": 46,
         "level": 2,
         "friendly": false,
         "faction": "hostile",
@@ -283,14 +283,14 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 7,
+        "attack_power": 12,
         "defense": 1,
         "loot_table": {
             "gold_value": {
                 "chance": 1,
                 "quantity": [
-                    5,
-                    10
+                    3,
+                    8
                 ]
             }
         },
@@ -310,7 +310,7 @@
     "thunderhawk": {
         "name": "thunderhawk",
         "description": "A hawk the size of a cart horse, with static crawling along its wings.",
-        "max_health": 44,
+        "max_health": 50,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -325,14 +325,14 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 9,
+        "attack_power": 13,
         "defense": 2,
         "loot_table": {
             "gold_value": {
                 "chance": 1,
                 "quantity": [
-                    8,
-                    14
+                    3,
+                    9
                 ]
             }
         },
@@ -352,7 +352,7 @@
     "thorn_wolf": {
         "name": "thorn wolf",
         "description": "A rangy, sand-coloured wolf with burrs in its coat and a hunger in its eyes.",
-        "max_health": 48,
+        "max_health": 86,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -367,7 +367,7 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 6,
+        "attack_power": 14,
         "defense": 2,
         "loot_table": {
             "gold_value": {
@@ -394,7 +394,7 @@
     "dune_jackal": {
         "name": "dune jackal",
         "description": "A lean, rust-furred jackal, quick and thin and bold with thirst.",
-        "max_health": 36,
+        "max_health": 64,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -409,7 +409,7 @@
             "spell_power": 1,
             "magic_resist": 1
         },
-        "attack_power": 6,
+        "attack_power": 13,
         "defense": 1,
         "loot_table": {
             "gold_value": {

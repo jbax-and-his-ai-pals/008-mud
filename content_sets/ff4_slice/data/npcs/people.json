@@ -20,9 +20,8 @@
     "captain_kessa": {
         "name": "Captain Kessa",
         "description": "A tall woman in a horned helm, your oldest friend in the fleet.",
-        "health": 60,
         "level": 3,
-        "attack_power": 20,
+        "attack_power": 4,
         "friendly": true,
         "faction": "friendly",
         "behavior_type": "stationary",
@@ -39,7 +38,14 @@
             "main_hand": "item_iron_spear",
             "body": "item_iron_armor",
             "head": "item_iron_helm"
-        }
+        },
+        "max_health": 90,
+        "initial_inventory": [
+            {
+                "item_id": "item_potion",
+                "quantity": 3
+            }
+        ]
     },
     "rosalind": {
         "name": "Rosalind",

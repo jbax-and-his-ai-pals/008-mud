@@ -76,6 +76,12 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
         heal_msg = perform_healer_logic(npc, world, current_time, player)
         if heal_msg: return heal_msg
         
+    if npc.behavior_type == "minion":
+        from engine.npcs import companions
+
+        potion_msg = companions.drink_potion_if_hurt(npc, world, current_time)
+        if potion_msg: return potion_msg
+
     if npc.behavior_type == "retreating_for_mana":
         return perform_retreat(npc, world, current_time, player)
 

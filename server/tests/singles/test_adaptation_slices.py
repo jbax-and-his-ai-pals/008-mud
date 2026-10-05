@@ -698,6 +698,44 @@ class TestFF4Slice(_Slice):
         self.assertIn("A messenger from the king?", said)
         self.assertIn("give sealed package to mayor", said, "and says how to hand it over")
 
+    STARTER_MONSTERS = ("goblin_scout", "road_wolf", "cave_bat", "cave_imp", "thorn_wolf", "dune_jackal", "storm_wyvern", "thunderhawk")
+
+    def _hits(self, attacker, defender, power, count=150):
+        from engine.core.combat_system import CombatSystem
+
+        results = []
+        saved = defender.health
+        for _ in range(count):
+            defender.health = 10 ** 6
+            results.append(defender.take_damage(CombatSystem.calculate_physical_damage(attacker, defender, power), "physical"))
+        defender.health = saved
+        return results
+
+    def test_every_starter_enemy_hurts_the_hero_and_kessa_a_little_with_every_hit_that_lands(self):
+        kessa = self.npcs("captain_kessa")[0]
+        for template in self.STARTER_MONSTERS:
+            monster = NPCFactory.create_npc_from_template(template, self.world, instance_id="probe_" + template)
+            for victim, name in ((self.player, "the hero"), (kessa, "Kessa")):
+                taken = self._hits(monster, victim, monster.attack_power)
+                self.assertGreaterEqual(min(taken), 1, "%s never does nothing to %s" % (template, name))
+                self.assertLess(sum(taken) / len(taken), 12, "and only a little: %s to %s" % (template, name))
+
+    def test_nobody_one_shots_a_starter_enemy_not_the_hero_with_his_blade_or_gloom_wave_and_not_kessa(self):
+        kessa = self.npcs("captain_kessa")[0]
+        wave = self.world.spells["gloom_wave"] if hasattr(self.world, "spells") else None
+        wave_damage = 40
+        for template in self.STARTER_MONSTERS:
+            monster = NPCFactory.create_npc_from_template(template, self.world, instance_id="probe_" + template)
+            blade = max(self._hits(self.player, monster, self.player.get_attack_power()))
+            spear = max(self._hits(kessa, monster, kessa.attack_power))
+            for blow, who in ((blade, "the blade"), (spear, "Kessa's spear"), (wave_damage, "Gloom Wave")):
+                self.assertLess(blow, monster.max_health, "%s must not kill a %s in one go (%d of %d)" % (who, template, blow, monster.max_health))
+
+    def test_kessa_carries_potions_of_her_own(self):
+        kessa = self.npcs("captain_kessa")[0]
+        carried = sum(slot.quantity for slot in kessa.inventory.slots if slot.item and slot.item.obj_id == "item_potion")
+        self.assertGreaterEqual(carried, 2)
+
     def test_what_the_player_says_is_coloured_apart_from_what_everyone_else_says(self):
         self.say("talk king")
         raw = chr(10).join(str(e["payload"]) for e in self.server.execute_command(self.sid, "reply 3"))
