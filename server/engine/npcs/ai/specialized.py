@@ -48,6 +48,61 @@ def perform_healer_logic(npc: 'NPC', world: 'World', current_time: float, player
     
     return None
 
+COMPANION_HEAL_THRESHOLD = 0.6   # a companion with a healing spell tends anyone in the party below this fraction of health
+
+
+def _party_in_room(npc: 'NPC', world: 'World', owner) -> list:
+    """The owner and the owner's companions standing in `npc`'s room, the fallen included."""
+    from engine.npcs import companions
+
+    here = (npc.current_region_id, npc.current_room_id)
+    members = [owner] if owner is not None and owner.is_alive and (owner.current_region_id, owner.current_room_id) == here else []
+    members += [m for m in companions.companions_of(world, owner) if m is not npc and (m.current_region_id, m.current_room_id) == here]
+    return members
+
+
+def perform_companion_support(npc: 'NPC', world: 'World', current_time: float, player: 'Player') -> Optional[str]:
+    """A companion that knows a `revive` or a `heal` spell tends the party: stands up the fallen first, then mends the
+    most hurt. It acts on the same rhythm as a blow (`combat.pacing`), so it is not a free action on top of one."""
+    from engine.npcs import companions, pacing
+
+    if not npc.usable_spells or npc.has_effect_tag("silence"):
+        return None
+    if current_time - npc.last_combat_action < pacing.cooldown_of(world, npc.combat_cooldown):
+        return None
+    owner = world.get_player_by_id(npc.properties.get("owner_id"))
+    if owner is None:
+        return None
+    ready = [s for s_id in npc.usable_spells
+             if (s := get_spell(s_id)) and s.target_type == "friendly"
+             and current_time >= npc.spell_cooldowns.get(s_id, 0) and npc.mana >= s.mana_cost]
+    if not ready:
+        return None
+    party = _party_in_room(npc, world, owner) + [npc]
+    spell, target = None, None
+    for candidate in ready:
+        if candidate.has_effect_type("revive"):
+            down = [m for m in party if companions.is_fallen(m)]
+            if down:
+                spell, target = candidate, down[0]
+                break
+    if spell is None:
+        for candidate in ready:
+            if candidate.has_effect_type("heal"):
+                hurt = [m for m in party if m.is_alive and not companions.is_fallen(m) and m.max_health > 0
+                        and m.health / m.max_health < COMPANION_HEAL_THRESHOLD]
+                if hurt:
+                    spell, target = candidate, min(hurt, key=lambda m: m.health / m.max_health)
+                    break
+    if spell is None or not pacing.room_is_open(world, npc, current_time):
+        return None
+    npc.last_combat_action = current_time
+    pacing.note_action(world, npc, current_time)
+    result = npc_combat.cast_spell(npc, spell, target, current_time)
+    viewer = world.get_viewer_for_npc(npc, preferred_player=player)
+    return result.get("message") if viewer is not None else None
+
+
 def perform_minion_logic(npc: 'NPC', world: 'World', current_time: float, player: 'Player') -> Optional[str]:
     """Handles logic for minions when they are IDLE (not in combat)."""
     

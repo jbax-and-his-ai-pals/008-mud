@@ -9,7 +9,7 @@ from engine.utils.articles import the
 # list to the branches below so a new one cannot be added in one place only.
 CONSUMABLE_EFFECT_TYPES = (
     "heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
-    "cleanse", "target_damage", "effects",
+    "cleanse", "target_damage", "effects", "revive",
 )
 
 
@@ -59,7 +59,21 @@ class Consumable(Item):
         effect_value = self.get_property("effect_value")
 
         beneficiary = _companion_being_helped(user, kwargs.get("target"))
-        if beneficiary is not None and effect_type in ("heal", "mana_restore"):
+        if beneficiary is not None and effect_type == "revive":
+            from engine.npcs import companions
+
+            health = companions.revive(beneficiary, effect_value / 100.0)
+            if health > 0:
+                message = f"You use {the(self.name)} on {beneficiary.name}, who rises with {health} health."
+            else:
+                message = f"{beneficiary.name} is not down."
+                consumed = False
+
+        elif beneficiary is None and effect_type == "revive":
+            message = f"{the(self.name, capital=True)} is for a fallen companion: use it on them."
+            consumed = False
+
+        elif beneficiary is not None and effect_type in ("heal", "mana_restore"):
             # `use <item> on <companion>`: the draught goes to them.
             if effect_type == "heal":
                 gained, word = beneficiary.heal(effect_value), "health"

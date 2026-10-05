@@ -73,7 +73,8 @@ def is_untargetable(npc) -> bool:
     """`properties.untargetable`: nothing picks it as a target and nothing it is hit by hurts it (a child carried,
     asleep, through a fight). Pair it with `pacifist` for someone who takes no part at all."""
     properties = getattr(npc, "properties", None)
-    return isinstance(properties, dict) and (properties.get("untargetable") is True or properties.get("hidden") is True)
+    return isinstance(properties, dict) and (properties.get("untargetable") is True or properties.get("hidden") is True
+                                             or properties.get("fallen") is True)
 
 
 def enter_combat(npc: 'NPC', target):

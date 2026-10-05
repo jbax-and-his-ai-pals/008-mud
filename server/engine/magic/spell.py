@@ -13,6 +13,7 @@ ABILITY_TARGET_TYPES = ("self", "friendly", "enemy", "all_enemies", "item")
 ABILITY_EFFECT_FIELDS = {
     "damage": ("value",),
     "heal": ("value",),
+    "revive": ("value",),
     "life_tap": ("value",),
     "apply_dot": ("dot_name", "dot_duration", "dot_damage_per_tick", "dot_tick_interval", "dot_damage_type", "effect_data"),
     "apply_effect": ("effect_data", "dot_duration", "base_duration"),

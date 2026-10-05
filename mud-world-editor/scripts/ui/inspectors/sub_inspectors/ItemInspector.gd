@@ -20,7 +20,7 @@ const ITEM_CLASSES := [
 # and is used up doing it, so the picker offers no other.
 const CONSUMABLE_EFFECT_TYPES := [
 	"heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
-	"cleanse", "target_damage", "effects",
+	"cleanse", "target_damage", "effects", "revive",
 ]
 const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
 

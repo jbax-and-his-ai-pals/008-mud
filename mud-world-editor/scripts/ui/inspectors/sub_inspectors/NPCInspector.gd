@@ -658,6 +658,13 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("hides_when_hurt")
 		database_modified.emit())
 	flags.add_child(hides)
+	var falls := CheckBox.new(); falls.name = "FallsWhenDefeated"; falls.text = "Falls when defeated (as a companion: goes down and can be revived, instead of dying)"
+	falls.button_pressed = bool(properties.get("falls_when_defeated", false))
+	falls.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["falls_when_defeated"] = true
+		else: _ensure_npc_properties().erase("falls_when_defeated")
+		database_modified.emit())
+	flags.add_child(falls)
 	var unique := CheckBox.new(); unique.text = "Unique (called \"the\", not \"a\")"
 	unique.button_pressed = bool(properties.get("unique", false))
 	unique.toggled.connect(func(pressed):

@@ -160,6 +160,12 @@ class GameObject:
         new_health = max(0, old_health - actual_damage_taken)
         if new_health <= 0 and self._is_essential():
             new_health = 1   # a story character is knocked to the brink, not killed
+        from engine.npcs import companions as _companions   # a companion that falls is down, not dead
+
+        if new_health <= 0 and _companions.falls_when_defeated(self):
+            setattr(self, 'health', 0)
+            _companions.fall(self, getattr(self, 'world', None))
+            return int(actual_damage_taken)
         setattr(self, 'health', new_health)
 
         if new_health <= 0: self.is_alive = False

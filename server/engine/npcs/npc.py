@@ -137,7 +137,7 @@ class NPC(GameObject):
 
     def take_damage(self, amount: int, damage_type: str, weapon_damage_type: Optional[str] = None) -> int:
         if not self.is_alive: return 0
-        if self.properties.get("untargetable") is True or self.properties.get("hidden") is True: return 0   # whatever reached it (an area spell) does nothing
+        if self.properties.get("untargetable") is True or self.properties.get("hidden") is True or self.properties.get("fallen") is True: return 0   # whatever reached it (an area spell) does nothing
         damage_taken = super().take_damage(amount, damage_type, weapon_damage_type)
         return damage_taken
 
@@ -148,7 +148,7 @@ class NPC(GameObject):
         return self.properties.get("armor_material")
 
     def heal(self, amount: int) -> int:
-        if not self.is_alive: return 0
+        if not self.is_alive or self.properties.get("fallen") is True: return 0   # the fallen need reviving first
         old_health = self.health
         self.health = min(self.max_health, self.health + amount)
         return self.health - old_health

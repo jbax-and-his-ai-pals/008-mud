@@ -852,6 +852,9 @@ def _restore_companions(wanted: bool, resource: str, amount: Any, player, world,
     healed = []
     for npc in companions.companions_of(world, player):
         gained = 0
+        if companions.is_fallen(npc):   # an inn brings the fallen to their feet before it mends them
+            companions.revive(npc, 0.0)
+            gained += 1
         if resource in ("health", "all"):
             gained += npc.heal(int(npc.max_health) if amount == "full" else amount)
         if resource in ("mana", "all") and getattr(npc, "max_mana", 0) > 0:

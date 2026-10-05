@@ -61,6 +61,72 @@ def begin_recovery(npc: Any) -> None:
 
 
 HIDDEN_KEY = "hidden"
+FALLEN_KEY = "fallen"
+FALLEN_AT_KEY = "fallen_at"
+DEFAULT_REVIVE_FRACTION = 0.25
+FALLEN_RECOVERY_SECONDS = 45.0   # how long a fallen companion lies there once the fight is over, before it gets up by itself
+
+
+def is_fallen(npc: Any) -> bool:
+    """A companion knocked out of the fight (`properties.falls_when_defeated`): alive, at 0 health, out of the fight and
+    untouchable, until a `revive` (spell, item or an inn's `restore`) or, once nobody is fighting, a while on its own."""
+    properties = getattr(npc, "properties", None)
+    return isinstance(properties, dict) and properties.get(FALLEN_KEY) is True
+
+
+def falls_when_defeated(npc: Any) -> bool:
+    properties = getattr(npc, "properties", None)
+    return is_companion(npc) and isinstance(properties, dict) and properties.get("falls_when_defeated") is True
+
+
+def fall(npc: Any, world: Any = None) -> None:
+    """The companion goes down instead of dying: it stays, at 0 health, and the owner is told."""
+    from engine.npcs import combat as npc_combat
+
+    npc.health = 0
+    npc.properties[FALLEN_KEY] = True
+    npc.properties[FALLEN_AT_KEY] = float(world.clock.now()) if world is not None and hasattr(world, "clock") else 0.0
+    npc_combat.exit_combat(npc)
+    for other in getattr(world, "npcs", {}).values() if world is not None else []:   # nobody goes on swinging at someone on the ground
+        targets = getattr(other, "combat_targets", None)
+        if targets and npc in targets:
+            targets.discard(npc)
+            if getattr(other, "combat_target", None) is npc:
+                other.combat_target = None
+    owner = world.get_player_by_id(npc.properties.get("owner_id")) if world is not None else None
+    if owner is not None and hasattr(world, "notify_player"):
+        world.notify_player(owner, "%s falls, unable to go on." % npc.name)
+
+
+def revive(npc: Any, fraction: float = DEFAULT_REVIVE_FRACTION) -> int:
+    """Stand a fallen companion up with `fraction` of its health (at least 1). Returns the health it has; 0 if it was not down."""
+    if not is_fallen(npc):
+        return 0
+    npc.properties.pop(FALLEN_KEY, None)
+    npc.properties.pop(FALLEN_AT_KEY, None)
+    npc.health = max(1, min(int(npc.max_health), int(npc.max_health * max(0.0, float(fraction)))))
+    return int(npc.health)
+
+
+def fallen_step(npc: Any, world: Any, current_time: float, player: Any) -> Optional[str]:
+    """One turn of a fallen companion: lie there, and get up by itself some time after the fighting stops."""
+    owner = world.get_player_by_id(npc.properties.get("owner_id")) if world is not None else None
+    if owner is None:
+        return None
+    owner_combat = owner.runtime_state.combat
+    fighting = (owner_combat is not None and owner_combat.in_combat) or any(
+        other.is_alive and other is not npc and other.in_combat and other.combat_targets
+        for other in world.get_npcs_in_room(npc.current_region_id, npc.current_room_id)
+    )
+    if fighting:
+        npc.properties[FALLEN_AT_KEY] = float(current_time)   # the clock starts when it is quiet
+        return None
+    if current_time - float(npc.properties.get(FALLEN_AT_KEY, current_time)) < FALLEN_RECOVERY_SECONDS:
+        return None
+    revive(npc)
+    if (npc.current_region_id, npc.current_room_id) == (owner.current_region_id, owner.current_room_id):
+        return "%s stirs, and gets slowly to their feet." % npc.name
+    return None
 
 
 def is_hidden(npc: Any) -> bool:

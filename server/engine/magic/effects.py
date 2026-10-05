@@ -166,7 +166,23 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                     total_value += 1
                     messages.append(f"{target_name_raw} is afflicted by {dot_payload['name']}.")
 
+        elif eff_type == "revive":
+            from engine.npcs import companions as _companions
+
+            formatted_target = format_name_for_display(viewer, target, start_of_sentence=False) if viewer else target_name_raw
+            if _companions.is_fallen(target):
+                health = _companions.revive(target, (eff_value if eff_value else 25) / 100.0)
+                total_value += health
+                messages.append("%s brings %s back to their feet." % (formatted_caster_name, formatted_target))
+            else:
+                messages.append("%s has no need of reviving." % (formatted_target[:1].upper() + formatted_target[1:]))
+
         elif eff_type == "heal":
+            from engine.npcs import companions as _companions
+
+            if _companions.is_fallen(target):
+                messages.append("%s is down, and must be revived first." % (format_name_for_display(viewer, target, start_of_sentence=True) if viewer else target_name_raw))
+                continue
             if hasattr(target, 'heal'):
                 healed = getattr(target, 'heal')(final_val)
                 total_value += healed

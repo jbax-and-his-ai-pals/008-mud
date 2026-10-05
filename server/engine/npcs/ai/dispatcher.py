@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Optional
 from engine.npcs import combat as npc_combat
 from .movement import perform_wander, perform_patrol, perform_follow, perform_schedule
 from .combat_logic import try_flee, scan_for_targets, perform_retreat
-from .specialized import perform_healer_logic, perform_minion_logic
+from .specialized import perform_companion_support, perform_healer_logic, perform_minion_logic
 
 if TYPE_CHECKING:
     from engine.npcs.npc import NPC
@@ -75,6 +75,8 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
     if npc.behavior_type == "minion":
         from engine.npcs import companions as _companions
 
+        if _companions.is_fallen(npc):
+            return _companions.fallen_step(npc, world, current_time, player)
         if _companions.is_hidden(npc):
             return _companions.hiding_step(npc, world, current_time, player)
 
@@ -95,6 +97,8 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
 
         potion_msg = companions.drink_potion_if_hurt(npc, world, current_time)
         if potion_msg: return potion_msg
+        support_msg = perform_companion_support(npc, world, current_time, player)
+        if support_msg: return support_msg
 
     if npc.behavior_type == "retreating_for_mana":
         return perform_retreat(npc, world, current_time, player)

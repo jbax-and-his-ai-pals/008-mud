@@ -23,7 +23,7 @@ const TARGET_LABELS := {
 }
 # The keys each effect type reads besides `type` and `damage_type`.
 const EFFECT_FIELDS := {
-	"damage": ["value"], "heal": ["value"], "life_tap": ["value"],
+	"damage": ["value"], "heal": ["value"], "revive": ["value"], "life_tap": ["value"],
 	"apply_dot": ["dot_name", "dot_duration", "dot_damage_per_tick", "dot_tick_interval", "dot_damage_type", "effect_data"],
 	"apply_effect": ["effect_data", "dot_duration", "base_duration"],
 	"cleanse": ["effect_data"], "remove_curse": [],
@@ -197,6 +197,8 @@ func _effect_card(index: int, effect: Dictionary) -> PanelContainer:
 			grid.add_child(_labeled("Damage Type", _damage_type_picker(index, "damage_type")))
 		"heal":
 			grid.add_child(_labeled("Amount", _effect_number(index, "value", -9999, 9999, 1, 0.0)))
+		"revive":
+			grid.add_child(_labeled("Health restored (% of max; 0: a quarter)", _effect_number(index, "value", 0, 100, 1, 0.0)))
 		"apply_dot":
 			grid.add_child(_labeled("Name", _effect_text(index, "dot_name", "Burning")))
 			grid.add_child(_labeled("Damage / Tick", _effect_number(index, "dot_damage_per_tick", -9999, 9999, 1, 5.0)))
@@ -427,7 +429,7 @@ func _retype(index: int, effect_type: String):
 	effect["type"] = effect_type
 	if effect_type not in ["damage", "life_tap", "apply_dot"]: effect.erase("damage_type")
 	match effect_type:
-		"damage", "heal", "life_tap":
+		"damage", "heal", "life_tap", "revive":
 			if not effect.has("value"): effect["value"] = 0
 		"apply_dot":
 			for pair in [["dot_name", "Affliction"], ["dot_duration", 10], ["dot_damage_per_tick", 1]]:
