@@ -1854,6 +1854,11 @@
                         "region": "dunhallow",
                         "room": "sickroom",
                         "instance_id": "rosalind_in_bed"
+                    },
+                    "place_vehicle": {
+                        "vehicle": "skimmer",
+                        "region": "ashmere",
+                        "room": "boathouse"
                     }
                 }
             },
@@ -2036,6 +2041,11 @@
                         "region": "dunhallow",
                         "room": "sickroom",
                         "instance_id": "rosalind_in_bed"
+                    },
+                    "place_vehicle": {
+                        "vehicle": "skimmer",
+                        "region": "sandmaw_pit",
+                        "room": "rim"
                     }
                 }
             },

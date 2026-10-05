@@ -27,6 +27,7 @@ from pathlib import Path
 from engine.dialogue.effects import apply_effects
 from engine.items.item_factory import ItemFactory
 from engine.npcs.npc_factory import NPCFactory
+from engine.world import factions
 from tests.fixtures import skip_the_ff4_opening
 from engine.server.headless_server import HeadlessServer
 
@@ -1351,13 +1352,19 @@ class TestFF4Slice(_Slice):
         self.say("reply 1")
         self.assertIs(True, self.player.flags.get("skimmer_granted"))
         self.at("ashmere", "boathouse")
+        self.assertIn("royal skimmer waits here", self.say("look"), "the king has had it brought down")
+        self.assertIn("no place to walk", self.say("go north"), "it is not walked")
+        self.assertIn("climb aboard", self.say("embark"))
         self.say("go north")
         self.assertEqual("sandsea:drift_a", self.where())
         self.assertIn("pour across", self._let_scenes_play_told(20), "the first crossing is told")
+        self.assertIn("cannot set the royal skimmer down", self.say("disembark"), "and it is not set down in the middle of the sand sea")
 
     def test_the_skimmer_crosses_the_sand_sea_to_the_glass_dunes_and_down_to_the_pit(self):
         self.player.flags["skimmer_granted"] = True
+        self.world.vehicles.place("skimmer", "sandsea", "drift_a")
         self.at("sandsea", "drift_a")
+        self.say("embark")
         self.say("go west")
         self.say("go west")
         self.assertEqual("saltreach:glass_dunes", self.where(), "the shortcut home to Dunhallow's side of the desert")
@@ -1367,11 +1374,28 @@ class TestFF4Slice(_Slice):
         self.say("go north")
         self.say("go down")
         self.assertEqual("sandmaw_pit:rim", self.where())
+        self.assertIn("cannot follow you down", self.say("go east"), "the tunnels are on foot")
+        self.assertIn("step down", self.say("disembark"), "the rim is where it is left")
+        self.say("go east")
+        self.assertEqual("sandmaw_pit:slope", self.where())
+
+    def test_the_skimmer_can_be_left_at_the_glass_dunes_and_is_there_when_you_come_back(self):
+        self.world.vehicles.place("skimmer", "saltreach", "glass_dunes")
+        self.at("saltreach", "glass_dunes")
+        self.assertIn("skimmer waits here", self.say("look"))
+        self.say("embark")
+        self.assertIn("step down", self.say("disembark"), "the desert is where it may land")
 
     def test_the_glass_dunes_do_not_open_onto_the_sand_sea_on_foot(self):
         self.at("saltreach", "glass_dunes")
         self.assertIn("king's to lend", self.say("go east"))
         self.assertEqual("saltreach:glass_dunes", self.where())
+        self.world.vehicles.place("skimmer", "saltreach", "glass_dunes")
+        self.world.remove_npcs(*[n.obj_id for n in factions.hostiles_in(self.world, "saltreach", "glass_dunes")])
+        self.player.runtime_state.combat.in_combat = False
+        self.assertIn("climb aboard", self.say("embark"))
+        self.say("go east")
+        self.assertEqual("sandsea:drift_b", self.where(), "aboard, they do")
 
     def test_the_pit_has_a_chest_a_warning_and_the_sandmaw_at_the_bottom_with_the_pearl_unfound(self):
         self.assertGreaterEqual(len(self.world.get_region("sandmaw_pit").rooms), 6)

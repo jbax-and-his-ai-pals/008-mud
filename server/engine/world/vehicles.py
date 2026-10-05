@@ -146,7 +146,8 @@ class VehicleRegistry:
         docks = room.properties.get("docks") if room is not None and isinstance(room.properties, dict) else None
         if isinstance(docks, list) and vehicle_id in docks:
             return True
-        return getattr(region, "biome", None) in allowed
+        properties = getattr(region, "properties", None)
+        return isinstance(properties, dict) and properties.get("biome") in allowed
 
     def disembark(self, player: Any) -> str:
         vehicle_id = self.aboard(player)

@@ -12,6 +12,22 @@
             "exits": {
                 "up": "sandsea:basin_rim",
                 "east": "slope"
+            },
+            "properties": {
+                "docks": [
+                    "skimmer"
+                ],
+                "exit_requirements": {
+                    "east": {
+                        "type": "condition",
+                        "condition": {
+                            "not": {
+                                "kind": "aboard"
+                            }
+                        },
+                        "failure_message": "The skimmer cannot follow you down into the tunnels. Set it down here first (disembark)."
+                    }
+                }
             }
         },
         "slope": {

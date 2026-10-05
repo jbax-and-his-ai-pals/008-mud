@@ -100,6 +100,12 @@ class TestRiding(_Ride):
         self.assertIn("The skimmer waits here.", self.say("look"))
         self.assertIn("not aboard anything", self.say("disembark"))
 
+    def test_a_region_whose_biome_is_listed_takes_it_anywhere(self):
+        self.world.get_region("hazevale").properties["biome"] = "desert"
+        self.say("embark")
+        self.say("go east")
+        self.assertIn("climb down", self.say("disembark"))
+
     def test_the_story_can_move_it_and_board_the_player(self):
         context = {"player": self.player, "world": self.world}
         apply_effects({"place_vehicle": {"vehicle": "skimmer", "region": "hazevale", "room": "shrine"}}, context)

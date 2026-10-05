@@ -40,7 +40,12 @@
                         "set_flag": [
                             "skimmer_granted",
                             "pearl_location_known"
-                        ]
+                        ],
+                        "place_vehicle": {
+                            "vehicle": "skimmer",
+                            "region": "ashmere",
+                            "room": "boathouse"
+                        }
                     }
                 }
             ]

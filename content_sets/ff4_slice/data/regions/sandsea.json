@@ -19,7 +19,26 @@
                     "template_id": "salt_scorpion",
                     "instance_id": "scorpion_drift_a"
                 }
-            ]
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk."
+                    },
+                    "west": {
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk."
+                    },
+                    "north": {
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk."
+                    }
+                }
+            }
         },
         "drift_b": {
             "name": "The Wind-Scoured Drift",
@@ -33,7 +52,21 @@
                     "template_id": "salt_scorpion",
                     "instance_id": "scorpion_drift_b"
                 }
-            ]
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk."
+                    },
+                    "west": {
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk."
+                    }
+                }
+            }
         },
         "basin_rim": {
             "name": "The Rim of the Basin",
@@ -41,6 +74,20 @@
             "exits": {
                 "south": "drift_a",
                 "down": "sandmaw_pit:rim"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk."
+                    },
+                    "down": {
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk."
+                    }
+                }
             }
         }
     }

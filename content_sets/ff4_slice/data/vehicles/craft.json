@@ -1,0 +1,12 @@
+{
+    "skimmer": {
+        "name": "the royal skimmer",
+        "description": "A long flat-bottomed craft of pale wood and beaten brass that rides the sand as a boat rides water, on a hiss of loosened grains.",
+        "board_text": "You climb aboard the royal skimmer. Its deck shivers under your feet, eager.",
+        "disembark_text": "You step down from the skimmer onto firm ground.",
+        "lands_in_biomes": [
+            "desert"
+        ],
+        "note": "Lent by King Osric once Lucan is with the party. Crosses the sand sea; cannot follow the party into the Sandmaw's tunnels."
+    }
+}

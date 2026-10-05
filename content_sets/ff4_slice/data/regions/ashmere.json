@@ -138,14 +138,14 @@
             "properties": {
                 "exit_requirements": {
                     "north": {
-                        "type": "condition",
-                        "condition": {
-                            "kind": "flag",
-                            "flag": "skimmer_granted"
-                        },
-                        "failure_message": "The sand sea is no place to walk, and the royal skimmer is the king's to lend. Speak to him first."
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk: you need the royal skimmer, and it is the king's to lend."
                     }
-                }
+                },
+                "docks": [
+                    "skimmer"
+                ]
             }
         }
     }

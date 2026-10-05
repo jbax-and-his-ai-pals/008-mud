@@ -3,7 +3,8 @@
     "name": "The Saltreach",
     "description": "A pale desert of salt and sand, crossed by a single beaten road.",
     "properties": {
-        "safe_zone": false
+        "safe_zone": false,
+        "biome": "desert"
     },
     "rooms": {
         "dune_road": {
@@ -76,12 +77,9 @@
             "properties": {
                 "exit_requirements": {
                     "east": {
-                        "type": "condition",
-                        "condition": {
-                            "kind": "flag",
-                            "flag": "skimmer_granted"
-                        },
-                        "failure_message": "The sand sea is no place to walk, and the royal skimmer is the king's to lend. Speak to him first."
+                        "type": "vehicle",
+                        "vehicle": "skimmer",
+                        "failure_message": "The sand sea is no place to walk: you need the royal skimmer, and it is the king's to lend."
                     }
                 }
             }
