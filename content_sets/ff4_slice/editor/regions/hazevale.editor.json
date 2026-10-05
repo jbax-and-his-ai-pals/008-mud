@@ -11,13 +11,29 @@
             "_editor_pos": [
                 0,
                 192
-            ]
+            ],
+            "_editor_exit_layout": {
+                "in": {
+                    "target": "inn",
+                    "visual_direction": "southeast",
+                    "placement": "stacked",
+                    "inferred": true
+                }
+            }
         },
         "inn": {
             "_editor_pos": [
                 -256,
                 192
-            ]
+            ],
+            "_editor_exit_layout": {
+                "out": {
+                    "target": "village_square",
+                    "visual_direction": "northwest",
+                    "placement": "stacked",
+                    "inferred": true
+                }
+            }
         },
         "ruined_lane": {
             "_editor_pos": [

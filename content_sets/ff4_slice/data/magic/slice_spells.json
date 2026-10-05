@@ -159,5 +159,91 @@
                 "damage_type": "water"
             }
         ]
+    },
+    "lullaby": {
+        "name": "Lullaby",
+        "description": "A slow, sweet air that closes eyes.",
+        "mana_cost": 6,
+        "cooldown": 18,
+        "target_type": "all_enemies",
+        "cast_message": "{caster_name} plays a slow, sweet air, and the room grows heavy.",
+        "hit_message": "x",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 14,
+                "effect_data": {
+                    "name": "Sleep",
+                    "type": "status",
+                    "tags": [
+                        "sleep"
+                    ]
+                }
+            }
+        ]
+    },
+    "hush": {
+        "name": "Hush",
+        "description": "A song of held breath, that takes the voice out of a throat.",
+        "mana_cost": 6,
+        "cooldown": 18,
+        "target_type": "all_enemies",
+        "cast_message": "{caster_name} plucks a single hushed chord, and the air goes dead.",
+        "hit_message": "x",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 14,
+                "effect_data": {
+                    "name": "Silenced",
+                    "type": "status",
+                    "tags": [
+                        "silence"
+                    ]
+                }
+            }
+        ]
+    },
+    "discord": {
+        "name": "Discord",
+        "description": "A wrong, wrenching chord that makes friends of no one.",
+        "mana_cost": 6,
+        "cooldown": 18,
+        "target_type": "all_enemies",
+        "cast_message": "{caster_name} strikes a jarring, wrenching chord!",
+        "hit_message": "x",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 12,
+                "effect_data": {
+                    "name": "Confused",
+                    "type": "status",
+                    "tags": [
+                        "confuse"
+                    ]
+                }
+            }
+        ]
+    },
+    "sand_torrent": {
+        "name": "Sand Torrent",
+        "description": "A roaring wave of grit thrown across the pit.",
+        "mana_cost": 0,
+        "cooldown": 1,
+        "target_type": "all_enemies",
+        "cast_message": "[[RED]]{caster_name} throws a roaring torrent of sand across the pit![[/]]",
+        "hit_message": "The sand scours {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 8,
+                "damage_type": "earth"
+            }
+        ]
     }
 }

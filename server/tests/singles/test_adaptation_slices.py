@@ -1274,6 +1274,153 @@ class TestFF4Slice(_Slice):
         self.say("go up")
         self.assertEqual("brineway:far_shore", self.where())
 
+    # -- Ashmere ----------------------------------------------------------------------------------------------------------------
+    def test_ashmere_is_a_castle_still_under_attack_with_defenders_and_a_music_hall_and_a_boathouse(self):
+        region = self.world.get_region("ashmere")
+        self.assertTrue({"road", "gate", "courtyard", "great_hall", "infirmary", "music_hall", "throne_room", "boathouse"} <= set(region.rooms))
+        present = {n.template_id for n in self.world.npcs.values() if n.current_region_id == "ashmere"}
+        self.assertTrue({"red_fleet_besieger", "red_fleet_lancer", "ashmere_guard", "king_osric", "healer_ansa", "harp_seller", "lucan_prince", "mirelle"} <= present)
+        self.at("brineway", "far_shore")
+        self.say("go east")
+        self.assertEqual("ashmere:road", self.where(), "the caverns lead to the castle")
+
+    def test_the_throne_room_scene_belaric_strikes_the_prince_mirelle_dies_and_belaric_leaves_for_revenge(self):
+        self._join("belaric", "ashmere", "courtyard")
+        self.player.flags["belaric_joined"] = True
+        self.say("go up")
+        told = self._let_scenes_play_told(160)
+        for line in ("I am Lucan of Ashmere", "each weaker than the last", "Father... stop. Please. Stop.", "I am not angry now",
+                     "The Red Fleet. Its master is a man called Varkos", "I will find him", "Do not follow me, boy"):
+            self.assertIn(line, told)
+        self.assertIs(True, self.player.flags.get("mirelle_dead"))
+        self.assertEqual([], self.npcs("mirelle"))
+        self.assertEqual(1, len(self.npcs("mirelle_fallen")))
+        self.assertEqual([], self.npcs("belaric"), "he has gone after Varkos")
+        self.assertEqual([], [c for c in self._companions() if c == "belaric"])
+        self.assertIn("(talk mirelle)", told)
+
+    def test_the_scene_is_not_told_twice(self):
+        self.player.flags.update({"belaric_joined": True, "mirelle_dead": True})
+        self.at("ashmere", "courtyard")
+        self.say("go up")
+        self.assertNotIn("Father...", self._let_scenes_play_told(30))
+
+    def test_a_last_goodbye_to_mirelle_and_then_the_prince_joins_as_a_bard(self):
+        self.player.flags.update({"belaric_joined": True, "mirelle_dead": True})
+        self.world.remove_npcs("mirelle")
+        self.world.spawn_npc("mirelle_fallen", "ashmere", "throne_room", instance_id="mirelle_in_the_hall")
+        self.at("ashmere", "throne_room")
+        self.assertIn("say goodbye", self.say("talk lucan"), "he asks to say goodbye first")
+        self.say("talk mirelle")
+        said = self.say("reply 2")
+        self.assertNotIn("speaks", said, "what happens at her side is told, not said")
+        self.assertIs(True, self.player.flags.get("farewell_said"))
+        self.say("talk lucan")
+        self.say("reply 1")
+        self.assertEqual(["lucan_prince"], self._companions())
+        lucan = self.npcs("lucan_prince")[0]
+        self.assertEqual({"lullaby", "discord"}, set(lucan.usable_spells), "his harp carries two songs")
+        self.assertIs(True, lucan.properties.get("hides_when_hurt"))
+
+    def test_the_music_hall_sells_harps_with_songs_attached(self):
+        self.at("ashmere", "music_hall")
+        self.player.runtime_state.gold = 1000
+        self.say("trade ilvane")
+        wares = self.say("list")
+        for harp in ("oak harp", "silver harp", "war harp"):
+            self.assertIn(harp, wares)
+        self.say("buy silver harp")
+        self.assertTrue(self.holds("item_silver_harp"))
+        self.say("stoptrade")
+        self.at("ashmere", "throne_room")
+        lucan = self.npcs("lucan_prince")[0]
+        self.player.flags.update({"farewell_said": True, "mirelle_dead": True})
+        self.say("talk lucan")
+        self.say("reply 1")
+        self.say("equip silver harp on lucan")
+        self.assertIn("hush", lucan.usable_spells, "the silver harp gives him the song of silence")
+
+    def test_the_king_lends_the_skimmer_only_once_his_son_is_with_the_party_and_the_boathouse_is_shut_without_it(self):
+        self.at("ashmere", "boathouse")
+        self.assertIn("king's to lend", self.say("go north"))
+        self.assertEqual("ashmere:boathouse", self.where())
+        self.at("ashmere", "great_hall")
+        self.assertNotIn("skimmer", self.say("talk osric"), "he says nothing of it before")
+        self.player.flags["lucan_joined"] = True
+        self.say("talk osric")
+        self.say("reply 1")
+        self.assertIs(True, self.player.flags.get("skimmer_granted"))
+        self.at("ashmere", "boathouse")
+        self.say("go north")
+        self.assertEqual("sandsea:drift_a", self.where())
+        self.assertIn("pour across", self._let_scenes_play_told(20), "the first crossing is told")
+
+    def test_the_skimmer_crosses_the_sand_sea_to_the_glass_dunes_and_down_to_the_pit(self):
+        self.player.flags["skimmer_granted"] = True
+        self.at("sandsea", "drift_a")
+        self.say("go west")
+        self.say("go west")
+        self.assertEqual("saltreach:glass_dunes", self.where(), "the shortcut home to Dunhallow's side of the desert")
+        self.say("go east")
+        self.assertEqual("sandsea:drift_b", self.where())
+        self.at("sandsea", "drift_a")
+        self.say("go north")
+        self.say("go down")
+        self.assertEqual("sandmaw_pit:rim", self.where())
+
+    def test_the_glass_dunes_do_not_open_onto_the_sand_sea_on_foot(self):
+        self.at("saltreach", "glass_dunes")
+        self.assertIn("king's to lend", self.say("go east"))
+        self.assertEqual("saltreach:glass_dunes", self.where())
+
+    def test_the_pit_has_a_chest_a_warning_and_the_sandmaw_at_the_bottom_with_the_pearl_unfound(self):
+        self.assertGreaterEqual(len(self.world.get_region("sandmaw_pit").rooms), 6)
+        nest = self.world.get_region("sandmaw_pit").get_room("nest")
+        self.assertEqual("warning", nest.properties["exit_requirements"]["east"]["type"])
+        self.assertFalse(self.holds("item_mirage_pearl"))
+        self.assertEqual(0, len(self.npcs("sandmaw")), "it sleeps until the maw is entered")
+
+    def test_the_sandmaw_is_beaten_by_striking_only_when_it_emerges_and_gives_up_the_pearl(self):
+        from engine.npcs import phases
+
+        self._level_up_to_the_caverns()
+        self.at("sandmaw_pit", "maw")
+        self.world.remove_npcs("sand_grub")
+        self._join("lucan_prince", "sandmaw_pit", "nest")
+        ryn = self._join("ryn_young", "sandmaw_pit", "nest")
+        apply_effects({"teach_companion": {"npc": "ryn_young", "spell": "lightning"}}, {"player": self.player, "world": self.world})
+        self.player.flags["exit_warned:sandmaw_pit:nest:east"] = True
+        self.say("go east")
+        self._let_scenes_play(16)
+        boss = self.npcs("sandmaw")[0]
+        self.assertEqual({"emerged", "burrowed"}, {p["name"] for p in phases.phases_of(boss)})
+        self.assertNotIn("west", self.world.get_region("sandmaw_pit").get_room("maw").exits, "no way out until it is done")
+        for tick in range(300):
+            self._let_scenes_play(1)
+            if not boss.is_alive or not self.player.is_alive:
+                break
+            if self.player.health < 0.4 * self.player.max_health:
+                self.say("use potion")
+            if not phases.is_untouchable(boss):
+                if tick % 7 == 0 and self.player.health > 0.45 * self.player.max_health:
+                    self.say("cast gloom wave")
+                self.say("attack sandmaw")
+        self.assertTrue(self.player.is_alive)
+        self.assertFalse(boss.is_alive)
+        self._let_scenes_play(25)
+        self.assertTrue(self.holds("item_mirage_pearl"), "the pearl is found where it fell")
+        self.assertIs(True, self.player.flags.get("pearl_found"))
+        self.assertIn("west", self.world.get_region("sandmaw_pit").get_room("maw").exits, "and the way back opens")
+
+    def test_the_pearl_from_the_pit_cures_rosalind_in_dunhallow(self):
+        self.player.flags.update({"ryn_carried": True, "reached_the_inn": True, "guards_beaten": True, "rosalind_hint": True})
+        self.world.spawn_npc("rosalind_sick", "dunhallow", "sickroom", instance_id="rosalind_in_bed")
+        self.give("item_mirage_pearl")
+        self.at("dunhallow", "sickroom")
+        self.say("talk orrin")
+        self.say("reply 1")
+        self.assertIs(True, self.player.flags.get("rosalind_cured"))
+
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]
         self.assertIs(True, ryn.get("untargetable"))

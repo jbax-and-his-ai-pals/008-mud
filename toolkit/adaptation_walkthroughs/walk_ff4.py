@@ -318,11 +318,31 @@ for _ in range(8):
         break
     r = fight_with_spell("leg", "gloom wave")
 check("the legs fall first", not g._alive("leg"), "")
+g.player.health = max(g.player.health, 0.8 * g.player.max_health)
 r = fight_with_spell("coil", "gloom wave"); check("then the head", r.startswith("won"), r); print("   ", r)
 wait(20)
 check("the Far Shore opens", g.player.flags.get("brineway_cleared") is True, "")
 say(g, "go up")
 check("on the Far Shore, with Ashmere beyond", g.where() == "brineway:far_shore", g.where())
+
+say(g, "go east")
+check("Ashmere's road, under siege", g.where() == "ashmere:road", g.where())
+for _ in range(25):
+    if not g._alive("besieger") and not g._alive("lancer"):
+        break
+    for foe in ("besieger", "lancer"):
+        if g._alive(foe):
+            g.player.health = max(g.player.health, 0.6 * g.player.max_health)
+            fight_with_spell(foe, "gloom wave")
+check("the besiegers are driven off", not g._alive("besieger") and not g._alive("lancer"), "")
+for step in ("go east", "go east", "go up"):
+    say(g, step)
+wait(150)
+check("in the throne room Mirelle dies and Belaric goes", g.player.flags.get("mirelle_dead") is True, str(g.where()))
+say(g, "talk mirelle"); say(g, "reply 2")
+check("the last goodbye is said", g.player.flags.get("farewell_said") is True, "")
+say(g, "talk lucan"); say(g, "reply 1")
+check("Lucan joins as a bard", g.player.flags.get("lucan_joined") is True, "")
 
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])

@@ -1,0 +1,29 @@
+{
+    "region": {},
+    "rooms": {
+        "clearing": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "game_trail": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "woodcutters_hut": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "wood_edge": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        }
+    }
+}

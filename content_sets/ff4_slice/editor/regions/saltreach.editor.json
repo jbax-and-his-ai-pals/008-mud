@@ -1,0 +1,23 @@
+{
+    "region": {},
+    "rooms": {
+        "dune_road": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "dry_wash": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "village_approach": {
+            "_editor_pos": [
+                512,
+                0
+            ]
+        }
+    }
+}

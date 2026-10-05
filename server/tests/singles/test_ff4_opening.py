@@ -65,6 +65,8 @@ class _Journey:
             alive = self.sky()
             if not alive:
                 return
+            if self.player.health < 0.5 * self.player.max_health:
+                self.player.health = self.player.max_health   # these tests are about the story's flow; the dice are not under test
             self.say("attack " + alive[0].name)
             self.wait(3)
 

@@ -604,5 +604,279 @@
                 "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Thirty years. Thirty years I have been afraid of that, and it died in a quarter of an hour. Ha. Ha! ...Come. Ashmere is on the other side of those steps. And my daughter.\"[[/]]"
             }
         ]
+    },
+    "throne_room_tragedy": {
+        "note": "The party reaches the throne room of Ashmere: Belaric finds his daughter dying and the bard who is a prince. Belaric strikes Lucan, Mirelle begs him to stop and dies, Lucan names Varkos, and Belaric leaves for revenge.",
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The doors of the throne room hang off their hinges. Beyond them the hall is a ruin of fallen banners and dark stains, and at the foot of the throne a young man in a torn blue coat kneels over a woman who is lying very still.",
+                "effects": {
+                    "set_respawn": {
+                        "region": "ashmere",
+                        "room": "great_hall"
+                    }
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Mirelle!\"[[/]] He crosses the hall faster than he has moved since the Brineway."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Mirelle speaks:[[/]] [[GREEN]]\"Father...? You came. You came all that way.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "Belaric kneels, and takes her hand, and then he looks up, and sees the young man, and his face changes. [[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"You. The bard. Is this what you brought her to?\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]Lucan speaks:[[/]] [[GREEN]]\"My name is Lucan. And it is not only a bard's name. I am Lucan of Ashmere, and this is my father's hall. I should have told her. I should have told you.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"A prince. A prince with a lute, to turn a girl's head, and the Red Fleet at your gates, and now this!\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "The black staff comes down on the prince's shoulder. It is not a blow; it is a kind of grief. He strikes again, and again, each weaker than the last, and Lucan does not lift a hand."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Lucan speaks:[[/]] [[GREEN]]\"Strike me. I have earned it. I could not hold the gate, and I could not hold her.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Mirelle speaks:[[/]] [[GREEN]]\"Father... stop. Please. Stop.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "The staff stops. Belaric's arm drops. Mirelle's eyes move between the two of them, and she smiles, very faintly, as if they were both children."
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]Mirelle speaks:[[/]] [[GREEN]]\"It was never his fault. The ships came in the night. He pulled me out of the fire. I was so angry with you for so long, Father. I am not angry now.\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]Mirelle speaks:[[/]] [[GREEN]]\"Lucan... sing for me. Something stupid. And Father... don't let this make you someone I wouldn't know. Promise me.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "Belaric opens his mouth, and nothing comes out. [[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"...I promise.\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "She smiles at him once more. Then her hand goes slack in his, and the light goes out of her face, the way frost goes off a field.",
+                "effects": {
+                    "set_flag": "mirelle_dead",
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[RED]]A sound comes out of Belaric that is not a word. It goes on for a long time.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "ashmere",
+                        "room": "throne_room",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Who did this? Who sent them?\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]Lucan speaks:[[/]] [[GREEN]]\"The Red Fleet. Its master is a man called Varkos, who commands it in the king of Varenholt's name. They came for our crystal, and they took it, and they did not care what stood in the way.\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "You say it before you can stop yourself. [[BLUE]]\"I took a crystal for that king. At Ilmara. I did not know what it was for.\"[[/]] Nobody answers."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Varkos.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "Belaric rises. The staff in his hand is shaking, and the light at its head burns white. [[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"I will find him. I will find him, and I will take him apart a piece at a time.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[BLUE]]\"Belaric, wait. Not like this. You will not get through the Red Fleet alone!\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Do not follow me, boy. You have your road, and I have mine now.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "He does not look back. The sound of his staff on the stone fades down the burnt corridor, and does not come again.",
+                "effects": {
+                    "remove_npc": "belaric",
+                    "set_flag": "belaric_left"
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "The hall is very quiet. After a time, Lucan bows his head. [[YELLOW]]Lucan speaks:[[/]] [[GREEN]]\"Give me a moment... I would like to say goodbye to her. Speak to her, if you would, first.\"[[/]] (talk mirelle)"
+            }
+        ]
+    },
+    "skimmer_launch": {
+        "note": "The first time the party steps aboard the royal skimmer and pushes off across the sand sea.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "You step aboard, and the old man at the boathouse door throws the rope. The sail fills with a crack, and the whole craft shudders, and then it is moving."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "The sand sea opens in front of you, pale and rippling. The skimmer does not so much cross it as pour across it, hissing, the dunes sliding past on either side like the swell of a long grey ocean."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[CYAN]]For the first time in a long while, you feel the wind in your face and nothing at all behind you.[[/]]"
+            }
+        ]
+    },
+    "warn_sandmaw": {
+        "note": "The warning at the Nest; the next try east goes through, into the Maw.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[YELLOW]]Lucan speaks:[[/]] [[GREEN]]\"Wait. Do you feel that? The sand is moving. That is not a draught.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Lucan speaks:[[/]] [[GREEN]]\"The Sandmaw. My father's tutors made me learn the stories. It comes up, and it goes down, and while it is under, nothing you do will touch it. Strike only when it shows itself.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]There is no turning back once the pit closes behind you. Be sure.[[/]]"
+            }
+        ]
+    },
+    "sandmaw_rises": {
+        "note": "The Maw closes behind the party and the Sandmaw rises.",
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The sand in the pit is perfectly still. The passage behind you is a long way off."
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "With a grinding of stone, the way back closes.",
+                "effects": {
+                    "seal_exit": {
+                        "region": "sandmaw_pit",
+                        "room": "maw",
+                        "direction": "west"
+                    }
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The sand in the middle of the pit begins to sink, slowly, into a funnel of its own."
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[RED]]The Sandmaw rises out of the sand, jaws wide enough to take a horse, and the pit fills with its roar.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "sandmaw",
+                        "region": "sandmaw_pit",
+                        "room": "maw",
+                        "instance_id": "sandmaw_of_the_pit"
+                    }
+                }
+            }
+        ]
+    },
+    "sandmaw_falls": {
+        "note": "The Sandmaw is dead: the pearl, found in its lair, and the way back opens.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The Sandmaw's great jaws close one last time on nothing, and the whole vast body slumps and slides back into the sand, and the pit goes quiet.",
+                "effects": {
+                    "give_rewards": {
+                        "xp": 900,
+                        "gold": 260
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "Where it sank, the sand has settled into a smooth white bowl, and in the middle of the bowl something small and round is glowing."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "It is a pearl the size of a thumbnail, milky and cool, with a heat-shimmer trapped in it that moves when you do not look.",
+                "effects": {
+                    "give_item": "item_mirage_pearl",
+                    "set_flag": "pearl_found",
+                    "reveal_exit": {
+                        "room": "sandmaw_pit:maw",
+                        "direction": "west"
+                    }
+                }
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Lucan speaks:[[/]] [[GREEN]]\"A mirage pearl. My father's tutors never told me they were real. Your friend in the desert is lucky to have you, Captain.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[CYAN]]Somewhere in the back of your mind, a clock begins to tick. Dunhallow is a long way off, and the fever does not wait.[[/]]"
+            }
+        ]
     }
 }

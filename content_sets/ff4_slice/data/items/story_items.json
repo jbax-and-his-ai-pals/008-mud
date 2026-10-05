@@ -290,5 +290,29 @@
             ]
         },
         "item_family": "container"
+    },
+    "item_pit_chest": {
+        "type": "Container",
+        "name": "silted chest",
+        "description": "A chest half-eaten by the sand, its brass bands green with age.",
+        "weight": 40,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 8,
+            "contains": [
+                {
+                    "item_id": "item_salve",
+                    "quantity": 2
+                },
+                {
+                    "item_id": "item_potion",
+                    "quantity": 2
+                }
+            ]
+        },
+        "item_family": "container"
     }
 }

@@ -807,5 +807,205 @@
             "weapon_damage_type": "slashing",
             "attack_cooldown": 4.5
         }
+    },
+    "red_fleet_besieger": {
+        "name": "Red Fleet besieger",
+        "description": "A soldier in the king's red, soot-blackened, still carrying a torch he has not had the sense to put down.",
+        "max_health": 62,
+        "level": 5,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    6,
+                    12
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
+        }
+    },
+    "red_fleet_lancer": {
+        "name": "Red Fleet lancer",
+        "description": "A tall soldier with a long lance and a captain's red sash, standing over what is left of a gate.",
+        "max_health": 90,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 13,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    10,
+                    20
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
+        }
+    },
+    "sand_grub": {
+        "name": "sand grub",
+        "description": "A fat, pale, many-legged grub the length of a man's leg, with a pair of curved mandibles it does not need to use, and does.",
+        "max_health": 50,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    4,
+                    9
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "piercing"
+        }
+    },
+    "sandmaw": {
+        "name": "the Sandmaw",
+        "description": "A creature the size of a barn, all jaw and bristled grey carapace, that has been waiting at the bottom of its funnel since before there was a kingdom to lend it a name.",
+        "max_health": 240,
+        "level": 8,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 4,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    70,
+                    100
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "piercing",
+            "unique": true,
+            "attack_cooldown": 4.5,
+            "phases": [
+                {
+                    "name": "emerged",
+                    "seconds": 14,
+                    "message": "[[RED]]The Sandmaw heaves up out of the sand, jaws wide, and the whole pit shakes.[[/]]",
+                    "hint": {
+                        "npc": "lucan_prince",
+                        "text": "It is out! Strike while it is out!"
+                    }
+                },
+                {
+                    "name": "burrowed",
+                    "seconds": 8,
+                    "untouchable": true,
+                    "message": "[[RED]]The Sandmaw plunges into the sand and is gone, and the floor begins to slide.[[/]]",
+                    "miss_text": "The blow strikes only sliding sand.",
+                    "counter": "sand_torrent",
+                    "counter_cooldown": 4,
+                    "hint": {
+                        "npc": "lucan_prince",
+                        "text": "It has gone under! Hold your blows!"
+                    },
+                    "counter_hint": {
+                        "npc": "lucan_prince",
+                        "text": "Do not strike the sand! It is only angrier for it!"
+                    }
+                }
+            ]
+        }
     }
 }

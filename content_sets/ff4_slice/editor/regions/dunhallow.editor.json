@@ -1,0 +1,23 @@
+{
+    "region": {},
+    "rooms": {
+        "gate": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "square": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "inn": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        }
+    }
+}

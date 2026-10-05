@@ -124,5 +124,62 @@
         "effects": {
             "play_scene": "brinecoil_falls"
         }
+    },
+    "throne_room_tragedy": {
+        "on": {
+            "event": "on_enter",
+            "region": "ashmere",
+            "room": "throne_room"
+        },
+        "when": {
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "belaric_joined"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "mirelle_dead"
+                    }
+                }
+            ]
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "throne_room_tragedy"
+        }
+    },
+    "skimmer_launch": {
+        "on": {
+            "event": "on_enter",
+            "region": "sandsea",
+            "room": "drift_a"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "skimmer_launch"
+        }
+    },
+    "sandmaw_lair": {
+        "on": {
+            "event": "on_enter",
+            "region": "sandmaw_pit",
+            "room": "maw"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "sandmaw_rises"
+        }
+    },
+    "sandmaw_dies": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "sandmaw"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "sandmaw_falls"
+        }
     }
 }

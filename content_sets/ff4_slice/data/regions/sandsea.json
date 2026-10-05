@@ -1,0 +1,47 @@
+{
+    "region_id": "sandsea",
+    "name": "The Sand Sea",
+    "description": "A vast, shifting plain of fine pale sand that no one crosses on foot, and that the royal skimmer crosses like water.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "drift_a": {
+            "name": "The Open Drift",
+            "description": "The skimmer rides a long swell of pale sand under a white sky. Ashmere's boathouse is a smear to the south; a great round shadow in the sand lies to the north.",
+            "exits": {
+                "south": "ashmere:boathouse",
+                "west": "drift_b",
+                "north": "basin_rim"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "salt_scorpion",
+                    "instance_id": "scorpion_drift_a"
+                }
+            ]
+        },
+        "drift_b": {
+            "name": "The Wind-Scoured Drift",
+            "description": "The sand here has been combed into long, parallel ridges by a wind that never stops. The skimmer runs along them, singing. The Glass Dunes lie low to the west.",
+            "exits": {
+                "east": "drift_a",
+                "west": "saltreach:glass_dunes"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "salt_scorpion",
+                    "instance_id": "scorpion_drift_b"
+                }
+            ]
+        },
+        "basin_rim": {
+            "name": "The Rim of the Basin",
+            "description": "The sand slopes down into a vast round basin, a spiral of loose, sliding grains forty fathoms across, drawing everything toward a dark mouth at its heart. The skimmer rides the rim, and does not stop. A path of packed stone winds down into the funnel.",
+            "exits": {
+                "south": "drift_a",
+                "down": "sandmaw_pit:rim"
+            }
+        }
+    }
+}

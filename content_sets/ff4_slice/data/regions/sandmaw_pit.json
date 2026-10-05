@@ -1,0 +1,108 @@
+{
+    "region_id": "sandmaw_pit",
+    "name": "The Sandmaw's Pit",
+    "description": "A funnel of sliding sand and old stone, and under it a nest of burrows that has been used for longer than anyone has kept count.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "rim": {
+            "name": "The Funnel's Edge",
+            "description": "The path ends on a ledge of old stone halfway down the funnel. Sand trickles past you in a never-ending hush, and the way on leads east along the wall, where the stone turns to burrow.",
+            "exits": {
+                "up": "sandsea:basin_rim",
+                "east": "slope"
+            }
+        },
+        "slope": {
+            "name": "The Spiral Slope",
+            "description": "A ramp of packed grit winds down the inside of the funnel, scored with the long grooves of something dragged. Burrows open south and east.",
+            "exits": {
+                "west": "rim",
+                "south": "burrows_a",
+                "east": "burrows_b"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "sand_grub",
+                    "instance_id": "grub_slope"
+                }
+            ]
+        },
+        "burrows_a": {
+            "name": "The Lower Burrows",
+            "description": "A round, low-roofed chamber tunnelled out of hardpan, floored with sand as soft as flour. A half-buried chest sticks out of one wall. The only way out is back up the tunnel.",
+            "exits": {
+                "north": "slope"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "sand_grub",
+                    "instance_id": "grub_a"
+                },
+                {
+                    "template_id": "sand_grub",
+                    "instance_id": "grub_b"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_pit_chest"
+                }
+            ]
+        },
+        "burrows_b": {
+            "name": "The Winding Burrows",
+            "description": "A knot of tunnels, all alike, that slope steadily down. The air is dry and hot, and the walls are polished by a great many passings. One tunnel runs south, deeper.",
+            "exits": {
+                "west": "slope",
+                "south": "nest"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "salt_scorpion",
+                    "instance_id": "scorpion_burrows"
+                }
+            ]
+        },
+        "nest": {
+            "name": "The Nest",
+            "description": "A wide, domed chamber, its floor heaped with the dry husks of things that were once larger than you. Something has been laying here. At the far end of the dome, a passage slopes down into a darkness that moves.",
+            "exits": {
+                "north": "burrows_b",
+                "east": "maw"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "sand_grub",
+                    "instance_id": "grub_nest_a"
+                },
+                {
+                    "template_id": "sand_grub",
+                    "instance_id": "grub_nest_b"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "warning",
+                        "scene": "warn_sandmaw",
+                        "failure_message": "You step toward the passage, and the sand under your feet begins to slide."
+                    }
+                }
+            }
+        },
+        "maw": {
+            "name": "The Maw",
+            "description": "The bottom of the funnel: a round pit of loose white sand walled with old, black stone. In the middle of it, the sand rises and falls like breath.",
+            "exits": {
+                "west": "nest"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "west": "nest"
+                }
+            }
+        }
+    }
+}

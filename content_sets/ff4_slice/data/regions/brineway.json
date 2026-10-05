@@ -221,7 +221,8 @@
             "name": "The Far Shore",
             "description": "The steps end on a shelf of dry rock under an opening in the cavern roof. Hot desert wind blows in from outside, carrying the smell of dust and, very faintly, of smoke. Beyond the opening a road runs east across the sand.",
             "exits": {
-                "down": "brine_hollow"
+                "down": "brine_hollow",
+                "east": "ashmere:road"
             }
         },
         "nacre_grotto": {

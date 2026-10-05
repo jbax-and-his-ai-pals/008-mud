@@ -1,0 +1,46 @@
+{
+    "id": "mirelle_farewell",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "said",
+            "condition": {
+                "kind": "flag",
+                "flag": "farewell_said"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "(Mirelle lies still. Her eyes are closed, and one hand lies open on the stone.)",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Close her hand around the ring on its chain at her throat.",
+                    "next_node": "farewell"
+                },
+                {
+                    "text": "Say goodbye.",
+                    "next_node": "farewell"
+                }
+            ],
+            "narration": true
+        },
+        "farewell": {
+            "text": "(The hall is very quiet. After a while Lucan lays his torn coat over her, and does not look up. When you stand, you are not sure you have said anything at all.)",
+            "pace": "slow",
+            "effects": {
+                "set_flag": "farewell_said"
+            },
+            "end": true,
+            "narration": true
+        },
+        "said": {
+            "text": "(She is at peace. Lucan has not moved from her side.)",
+            "pace": "slow",
+            "end": true,
+            "narration": true
+        }
+    }
+}

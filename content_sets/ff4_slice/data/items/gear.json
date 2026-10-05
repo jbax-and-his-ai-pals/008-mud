@@ -355,5 +355,90 @@
             ]
         },
         "item_family": "armor"
+    },
+    "item_oak_harp": {
+        "type": "Weapon",
+        "name": "oak harp",
+        "description": "A small travelling harp of pale oak, its frame worn smooth by years of hands.",
+        "weight": 2,
+        "value": 40,
+        "stackable": false,
+        "properties": {
+            "damage": 3,
+            "weapon_damage_type": "crushing",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "main_hand"
+            ],
+            "grants_spells": [
+                "lullaby",
+                "discord"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_silver_harp": {
+        "type": "Weapon",
+        "name": "silver harp",
+        "description": "A harp strung with silver wire, its pillar carved into a heron with its head bent. It sounds like water over stones.",
+        "weight": 2,
+        "value": 90,
+        "stackable": false,
+        "properties": {
+            "damage": 3,
+            "weapon_damage_type": "crushing",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "main_hand"
+            ],
+            "grants_spells": [
+                "lullaby",
+                "hush",
+                "discord"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_war_harp": {
+        "type": "Weapon",
+        "name": "war harp",
+        "description": "A heavy, iron-framed harp built to be swung. The strings are braided steel.",
+        "weight": 2,
+        "value": 75,
+        "stackable": false,
+        "properties": {
+            "damage": 7,
+            "weapon_damage_type": "crushing",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "main_hand"
+            ],
+            "grants_spells": [
+                "hush",
+                "discord"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_embroidered_coat": {
+        "type": "Armor",
+        "name": "embroidered coat",
+        "description": "A fine coat of dark blue wool with silver thread at the cuffs, torn at one shoulder.",
+        "weight": 2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "cloth",
+            "durability": 50,
+            "max_durability": 50,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
     }
 }

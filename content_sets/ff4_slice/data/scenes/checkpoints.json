@@ -28,7 +28,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -73,7 +78,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -141,7 +151,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -212,7 +227,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -284,7 +304,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -365,7 +390,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -438,7 +468,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -507,7 +542,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -591,7 +631,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -713,7 +758,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -837,7 +887,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -961,7 +1016,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1092,7 +1152,12 @@
                         "brinecoil_rises",
                         "brinecoil_falls",
                         "sickroom_visit",
-                        "rosalind_cured"
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1200,6 +1265,861 @@
                     "teach_companion": {
                         "npc": "ryn_young",
                         "spell": "lightning"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_ashmere": {
+        "note": "For testing: you, Belaric and Ryn stand on the Burning Road outside Ashmere; the siege is not quite over.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "ashmere",
+                        "room": "road"
+                    },
+                    "give_rewards": {
+                        "xp": 2300
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "ashmere",
+                        "room": "road"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "ashmere",
+                        "room": "road",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "belaric"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "ashmere",
+                        "room": "road",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "belaric"
+                }
+            }
+        ]
+    },
+    "checkpoint_throne": {
+        "note": "For testing: you, Belaric and Ryn stand in the courtyard of Ashmere; go up to the throne room (its scene plays).",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "ashmere",
+                        "room": "courtyard"
+                    },
+                    "give_rewards": {
+                        "xp": 2300
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "ashmere",
+                        "room": "courtyard"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "ashmere",
+                        "room": "courtyard",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "belaric"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "ashmere",
+                        "room": "courtyard",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "belaric"
+                }
+            }
+        ]
+    },
+    "checkpoint_after_throne": {
+        "note": "For testing: Belaric has gone, Mirelle is dead and the prince waits in the throne room for you to say goodbye to her (talk mirelle).",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "ashmere",
+                        "room": "throne_room"
+                    },
+                    "give_rewards": {
+                        "xp": 2300
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "ashmere",
+                        "room": "throne_room"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "ashmere",
+                        "room": "throne_room",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "ashmere",
+                        "room": "throne_room",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_skimmer": {
+        "note": "For testing: Lucan is in the party and the king has lent the royal skimmer; you stand in the boathouse of Ashmere.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "ashmere",
+                        "room": "boathouse"
+                    },
+                    "give_rewards": {
+                        "xp": 2300
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "ashmere",
+                        "room": "boathouse"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "ashmere",
+                        "room": "boathouse",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "move_npc": {
+                        "npc": "lucan_prince",
+                        "region": "ashmere",
+                        "room": "boathouse",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "ashmere",
+                        "room": "throne_room",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_pit": {
+        "note": "For testing: you, Ryn and Lucan stand at the edge of the Sandmaw's pit, with the skimmer behind you.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "sandmaw_pit",
+                        "room": "rim"
+                    },
+                    "give_rewards": {
+                        "xp": 2300
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "sandmaw_pit",
+                        "room": "rim"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "sandmaw_pit",
+                        "room": "rim",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "move_npc": {
+                        "npc": "lucan_prince",
+                        "region": "sandmaw_pit",
+                        "room": "rim",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "ashmere",
+                        "room": "throne_room",
+                        "instance_id": "mirelle_in_the_hall"
                     }
                 }
             }

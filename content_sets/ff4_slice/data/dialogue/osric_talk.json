@@ -1,0 +1,54 @@
+{
+    "id": "osric_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "secret",
+            "condition": {
+                "kind": "flag",
+                "flag": "lucan_joined"
+            }
+        },
+        {
+            "node": "grief",
+            "condition": {
+                "kind": "flag",
+                "flag": "mirelle_dead"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "The fleet. They came out of the east with the sun behind them, and the walls... Sit. Sit, if you are one of ours.",
+            "pace": "slow",
+            "end": true
+        },
+        "grief": {
+            "text": "My son tells me there was a girl. A sage's daughter. I did not know. He will not tell me what he would not tell her. Go to him; he needs a friend more than a king.",
+            "pace": "slow",
+            "end": true
+        },
+        "secret": {
+            "text": "My son says you seek a mirage pearl, for a woman in the desert village. I have heard of nothing so foolish and so kind in thirty years. The pearls are the royal house's secret: they form in the pit of the Sandmaw, in the heart of the sand sea, where nothing but the royal skimmer may cross. Take it. It is in the boathouse. The craft knows the way, and so do the winds.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Thank you, Majesty.",
+                    "next_node": "gift",
+                    "effects": {
+                        "set_flag": [
+                            "skimmer_granted",
+                            "pearl_location_known"
+                        ]
+                    }
+                }
+            ]
+        },
+        "gift": {
+            "text": "The sand sea lies north of the boathouse. When you have the pearl, the skimmer will take you wherever the wind goes; it will carry you home faster than any road. And if you find the man Varkos before I do, do not be merciful.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

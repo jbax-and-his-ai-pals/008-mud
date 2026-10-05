@@ -8,7 +8,7 @@ each played from its first line to its last boss:
 | Set | Shape | Size |
 |---|---|---|
 | `zelda_slice` | An overworld of screens, two dungeons with keys and bosses, two shards, a sealed tower | 5 regions, 35 rooms, 13 NPC templates, 13 items |
-| `ff4_slice` | A raid on a temple, a throne-room choice, a courier run through a cave that locks for its boss, a village burned by the package, a flight across a buried mountain, a refugee guarded against the king's guards, a desert village with shops and a sick friend, and a drowned dungeon with a sage and a boss | 11 regions, 68 rooms, 45 NPC templates, 34 items
+| `ff4_slice` | A raid on a temple, a throne-room choice, a courier run through a cave that locks for its boss, a village burned by the package, a flight across a buried mountain, a refugee guarded against the king's guards, a desert village with shops and a sick friend, a drowned dungeon with a sage and a boss, a besieged castle where a throne-room tragedy brings a bard prince into the party, a skimmer across the sand sea and a pit with a phase-shifting guardian | 14 regions, ~90 rooms, 45 NPC templates, 34 items
 
 Both are shipped sets (`toolkit/content_check_steps.py`), so the whole content gate
 runs over them, and both round-trip through the editor byte-for-byte

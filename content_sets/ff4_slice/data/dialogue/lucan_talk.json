@@ -1,0 +1,73 @@
+{
+    "id": "lucan_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "lucan_prince"
+            }
+        },
+        {
+            "node": "after_farewell",
+            "condition": {
+                "kind": "flag",
+                "flag": "farewell_said"
+            }
+        },
+        {
+            "node": "before_farewell",
+            "condition": {
+                "kind": "flag",
+                "flag": "mirelle_dead"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "I... yes. What do you need?",
+            "pace": "slow",
+            "end": true
+        },
+        "before_farewell": {
+            "text": "Give me a moment. I would like to... say goodbye. Speak to her, if you would, first. She would have liked that.",
+            "pace": "slow",
+            "end": true
+        },
+        "after_farewell": {
+            "text": "He is gone, your friend. I do not blame him. I would go too, if I did not have a kingdom with its roof off. But my father is alive, and my people are alive, and there is a man named Varkos who is not.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Come with me, Lucan. We will find him together.",
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true,
+                        "set_flag": "lucan_joined"
+                    }
+                },
+                {
+                    "text": "Stay with your people. They need you.",
+                    "next_node": "stays"
+                }
+            ]
+        },
+        "joins": {
+            "text": "Then I am yours, for as long as it takes. I have my harp, and I have nothing left to lose but the habit of being afraid. Speak to my father first; he knows more of the pearl you are after than anyone alive.",
+            "pace": "slow",
+            "end": true
+        },
+        "stays": {
+            "text": "My people have a king, for now. They need a prince who can fight more than they need one who can stand. Ask me again when you are ready.",
+            "pace": "slow",
+            "end": true
+        },
+        "with_you": {
+            "text": "I am with you. Say the word, and I will sing the room to sleep.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

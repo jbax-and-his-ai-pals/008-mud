@@ -57,10 +57,11 @@
         },
         "glass_dunes": {
             "name": "The Glass Dunes",
-            "description": "Dunes of fused sand, glittering and sharp, as if lightning once struck the whole field at once. Wind sings in the ridges. A faint path winds south between them.",
+            "description": "Dunes of fused sand, glittering and sharp, as if lightning once struck the whole field at once. Wind sings in the ridges. A faint path winds south between them. To the east the dunes give way to a great pale sea of sand.",
             "exits": {
                 "west": "salt_flats",
-                "south": "bleached_ridge"
+                "south": "bleached_ridge",
+                "east": "sandsea:drift_b"
             },
             "initial_npcs": [
                 {
@@ -71,7 +72,19 @@
                     "template_id": "dune_jackal",
                     "instance_id": "jackal_dunes_b"
                 }
-            ]
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "skimmer_granted"
+                        },
+                        "failure_message": "The sand sea is no place to walk, and the royal skimmer is the king's to lend. Speak to him first."
+                    }
+                }
+            }
         },
         "bleached_ridge": {
             "name": "The Bleached Ridge",

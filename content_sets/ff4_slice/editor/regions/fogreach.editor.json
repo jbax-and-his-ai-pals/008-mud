@@ -1,5 +1,12 @@
 {
-    "region": {},
+    "region": {
+        "_editor_connection_label_sources": {
+            "bat_roost|guano_nook": {
+                "source": "bat_roost",
+                "direction": "north"
+            }
+        }
+    },
     "rooms": {
         "entry": {
             "_editor_pos": [
@@ -13,10 +20,22 @@
                 0
             ]
         },
+        "guano_nook": {
+            "_editor_pos": [
+                256,
+                -192
+            ]
+        },
         "crystal_pool": {
             "_editor_pos": [
                 512,
                 0
+            ]
+        },
+        "crystal_alcove": {
+            "_editor_pos": [
+                512,
+                -192
             ]
         },
         "narrow_ledge": {
@@ -25,10 +44,22 @@
                 192
             ]
         },
-        "cave_exit": {
+        "echo_niche": {
+            "_editor_pos": [
+                256,
+                192
+            ]
+        },
+        "fog_gallery": {
             "_editor_pos": [
                 512,
                 384
+            ]
+        },
+        "fog_hollow": {
+            "_editor_pos": [
+                512,
+                576
             ]
         }
     }

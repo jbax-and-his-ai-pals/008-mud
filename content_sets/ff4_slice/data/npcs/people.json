@@ -596,5 +596,198 @@
             "unique": true,
             "spell_cast_chance": 0.7
         }
+    },
+    "ashmere_guard": {
+        "name": "Ashmere guard",
+        "description": "A guard in blue, bandaged at the arm, still on his feet.",
+        "max_health": 80,
+        "level": 4,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Hold the gate. Hold the gate. They will come back."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": false
+        },
+        "attack_power": 12
+    },
+    "wounded_soldier": {
+        "name": "wounded soldier",
+        "description": "A soldier propped against a wall with a bloodied bandage round his middle.",
+        "max_health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Is it over? Tell me it is over."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": false,
+            "pacifist": true
+        }
+    },
+    "king_osric": {
+        "name": "King Osric",
+        "description": "An old man in a torn blue cloak, grey with pain, propped on a cot with a physician's bandages across his chest and a crown sitting forgotten on the blanket.",
+        "max_health": 90,
+        "level": 6,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "The fleet... did they... sit, sit."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "pacifist": true,
+            "dialogue": "osric_talk"
+        }
+    },
+    "healer_ansa": {
+        "name": "Mother Ansa",
+        "description": "A broad, sleeves-rolled woman with blood to the elbows and no time for anyone's feelings.",
+        "max_health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "If you are bleeding, sit. If you are not, buy something and go."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "pacifist": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_potion"
+                },
+                {
+                    "item_id": "item_salve"
+                }
+            ],
+            "buys_item_types": [
+                "Consumable"
+            ]
+        }
+    },
+    "harp_seller": {
+        "name": "Ilvane the lutemaker",
+        "description": "A slight woman with ink on her fingers and a harp slung across her back that she plainly refused to leave behind.",
+        "max_health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "The palace burns, and I carried my best work out of the fire. Look at them, if you like. Buy, if you can."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "pacifist": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_oak_harp"
+                },
+                {
+                    "item_id": "item_silver_harp"
+                },
+                {
+                    "item_id": "item_war_harp"
+                }
+            ],
+            "buys_item_types": [
+                "Weapon"
+            ]
+        }
+    },
+    "mirelle": {
+        "name": "Mirelle",
+        "description": "A young woman in a torn blue gown, her face white with pain, a dark stain spreading across her side. She has her father's chin.",
+        "max_health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "...father?"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "pacifist": true,
+            "untargetable": true
+        }
+    },
+    "mirelle_fallen": {
+        "name": "Mirelle",
+        "description": "Mirelle lies where she fell, her hair across her face and one hand open on the stone. Someone has folded her other hand over her heart.",
+        "max_health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "(She does not stir.)"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "pacifist": true,
+            "untargetable": true,
+            "dialogue": "mirelle_farewell"
+        }
+    },
+    "lucan_prince": {
+        "name": "Prince Lucan",
+        "description": "A slim young man in a dark blue coat torn at the shoulder, a harp slung across his back and a bruise coming up on his cheek, whose eyes are still red.",
+        "max_health": 90,
+        "level": 6,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 120,
+        "dialog": {
+            "greeting": "I... yes. What do you need?"
+        },
+        "equipment": {
+            "main_hand": "item_oak_harp",
+            "body": "item_embroidered_coat"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "lucan_talk",
+            "hides_when_hurt": true,
+            "flee_threshold": 0.4,
+            "rejoin_health": 0.75,
+            "spell_cast_chance": 0.7
+        }
     }
 }

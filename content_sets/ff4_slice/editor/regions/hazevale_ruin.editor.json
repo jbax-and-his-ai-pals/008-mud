@@ -1,0 +1,23 @@
+{
+    "region": {},
+    "rooms": {
+        "village_square": {
+            "_editor_pos": [
+                0,
+                0
+            ]
+        },
+        "buried_lane": {
+            "_editor_pos": [
+                256,
+                0
+            ]
+        },
+        "shrine": {
+            "_editor_pos": [
+                0,
+                192
+            ]
+        }
+    }
+}

@@ -1,0 +1,152 @@
+{
+    "region_id": "ashmere",
+    "name": "Ashmere",
+    "description": "A desert castle of sand-coloured stone, the pride of its small kingdom, and the morning after the Red Fleet came.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "road": {
+            "name": "The Burning Road",
+            "description": "The road to Ashmere runs between two rows of felled date palms, some still burning. Black smoke stands over the castle ahead, and the wind brings you the smell of it, and of something worse.",
+            "exits": {
+                "west": "brineway:far_shore",
+                "east": "gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "red_fleet_besieger",
+                    "instance_id": "besieger_road_a"
+                },
+                {
+                    "template_id": "red_fleet_besieger",
+                    "instance_id": "besieger_road_b"
+                }
+            ]
+        },
+        "gate": {
+            "name": "The Broken Gate",
+            "description": "The great gate of Ashmere hangs in splinters. Guards in blue hold what is left of the arch, and soldiers in red are still trying to take it.",
+            "exits": {
+                "west": "road",
+                "east": "courtyard"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ashmere_guard",
+                    "instance_id": "guard_gate_a"
+                },
+                {
+                    "template_id": "ashmere_guard",
+                    "instance_id": "guard_gate_b"
+                },
+                {
+                    "template_id": "red_fleet_besieger",
+                    "instance_id": "besieger_gate"
+                }
+            ]
+        },
+        "courtyard": {
+            "name": "The Courtyard",
+            "description": "The castle's courtyard is a field of the dead and the dying. A well-head stands untouched in the middle, and wounded men lie against every wall. Doors open north to a hall, east to a music hall, south to an infirmary, and a stair climbs to the throne room.",
+            "exits": {
+                "west": "gate",
+                "north": "great_hall",
+                "east": "music_hall",
+                "south": "infirmary",
+                "up": "throne_room"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "red_fleet_lancer",
+                    "instance_id": "lancer_courtyard"
+                },
+                {
+                    "template_id": "wounded_soldier",
+                    "instance_id": "soldier_courtyard"
+                }
+            ]
+        },
+        "great_hall": {
+            "name": "The Great Hall",
+            "description": "The hall of Ashmere has been turned into a hospital. Cots stand in rows between the pillars, and the old king lies on the nearest, grey in the face, with a crown on his blanket and nobody to put it on.",
+            "exits": {
+                "south": "courtyard",
+                "east": "boathouse"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "king_osric",
+                    "instance_id": "king_in_the_hall"
+                },
+                {
+                    "template_id": "wounded_soldier",
+                    "instance_id": "soldier_hall"
+                }
+            ]
+        },
+        "infirmary": {
+            "name": "The Infirmary",
+            "description": "A long, low room smelling of vinegar and blood, every bed full. Linen hangs from the rafters, and an enormous woman in a bloodied apron moves between the beds without ever seeming to hurry.",
+            "exits": {
+                "north": "courtyard"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "healer_ansa",
+                    "instance_id": "ansa_in_the_infirmary"
+                }
+            ]
+        },
+        "music_hall": {
+            "name": "The Music Hall",
+            "description": "A pretty, high room of pale stone, its windows shattered, its floor strewn with broken strings. In the corner a few instruments stand against the wall, plainly saved from the fire by someone who loved them.",
+            "exits": {
+                "west": "courtyard"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "harp_seller",
+                    "instance_id": "ilvane_in_the_music_hall"
+                }
+            ]
+        },
+        "throne_room": {
+            "name": "The Throne Room",
+            "description": "The doors of the throne room hang off their hinges. Inside, banners lie in heaps among the dark stains on the stone, and the throne is untouched at the far end of a hall that has no roof left over its western half.",
+            "exits": {
+                "down": "courtyard"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "mirelle",
+                    "instance_id": "mirelle_wounded"
+                },
+                {
+                    "template_id": "lucan_prince",
+                    "instance_id": "prince_lucan"
+                }
+            ]
+        },
+        "boathouse": {
+            "name": "The Royal Boathouse",
+            "description": "A long shed of whitewashed timber at the edge of the castle, open on its north side to the great sea of sand. A sled-shaped craft with a sail of stitched canvas sits on greased rails, as if it were a ship that had forgotten how to be wet.",
+            "exits": {
+                "west": "great_hall",
+                "north": "sandsea:drift_a"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "skimmer_granted"
+                        },
+                        "failure_message": "The sand sea is no place to walk, and the royal skimmer is the king's to lend. Speak to him first."
+                    }
+                }
+            }
+        }
+    }
+}
