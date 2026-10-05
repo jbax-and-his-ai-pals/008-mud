@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional, List, Union
 from engine.config import NPC_HEALER_HEAL_THRESHOLD
 from engine.magic.spell_registry import get_spell
 from engine.utils.utils import format_name_for_display
-from engine.npcs import combat as npc_combat
+from engine.npcs import combat as npc_combat, combat_detail
 from engine.world import factions
 from .movement import perform_follow
 
@@ -85,19 +85,19 @@ def perform_minion_logic(npc: 'NPC', world: 'World', current_time: float, player
             target = owner_combat.target
             if target and target.is_alive:
                 npc_combat.enter_combat(npc, target)
-                return f"{npc.name} moves to assist you against {format_name_for_display(owner, target, False)}!"
+                return combat_detail.routine_line(world, owner, f"{npc.name} moves to assist you against {format_name_for_display(owner, target, False)}!", world.clock.now())
 
         room_npcs = world.get_npcs_in_room(npc.current_region_id, npc.current_room_id)
         attacker = next((other for other in room_npcs if other.is_alive and owner in other.combat_targets), None)
         if attacker:
             npc_combat.enter_combat(npc, attacker)
-            return f"{npc.name} intercepts {format_name_for_display(owner, attacker, False)}!"
+            return combat_detail.routine_line(world, owner, f"{npc.name} intercepts {format_name_for_display(owner, attacker, False)}!", world.clock.now())
 
         hostile = next(
             (other for other in room_npcs if other.is_alive and factions.is_hostile(other, world)), None
         )
         if hostile:
             npc_combat.enter_combat(npc, hostile)
-            return f"{npc.name} moves to attack {format_name_for_display(owner, hostile, False)}!"
+            return combat_detail.routine_line(world, owner, f"{npc.name} moves to attack {format_name_for_display(owner, hostile, False)}!", world.clock.now())
             
     return None

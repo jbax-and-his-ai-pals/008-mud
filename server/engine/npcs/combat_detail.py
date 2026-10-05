@@ -116,6 +116,18 @@ def shape(world: Any, viewer: Any, npc: Any, target: Any, action_result: Dict[st
     return None
 
 
+def routine_line(world: Any, viewer: Any, text: str, now: float) -> Optional[str]:
+    """A line that only says who has turned on whom ("Lucan intercepts a grub!"): told at `full`, folded into the
+    next summary at `normal`, dropped at `brief`."""
+    level = level_of(viewer)
+    if level == "full" or viewer is None:
+        return text
+    if level == "normal":
+        slot = _pending(world).setdefault(viewer.obj_id, {"first": now, "entries": [], "viewer": viewer})
+        slot["entries"].append(text.rstrip("!. "))
+    return None
+
+
 def flush_due(world: Any, now: float, force: bool = False) -> None:
     """Tell the summaries whose window has passed (called every world tick)."""
     pending = getattr(world, "combat_digest", None)

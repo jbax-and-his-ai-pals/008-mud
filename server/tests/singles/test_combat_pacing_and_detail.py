@@ -193,6 +193,20 @@ class TestDetail(_Fight):
         combat_detail.flush_due(self.world, 99.0)
         self.assertEqual([], self.world.pending_player_notices, "and it is not told twice")
 
+    def test_who_turns_on_whom_is_folded_too(self):
+        self.world.pending_player_notices.clear()
+        line = "Ryn intercepts a goblin scout!"
+        self.assertEqual(line, combat_detail.routine_line(self.world, self.player, line, 10.0), "full tells it")
+        combat_detail.set_level(self.player, "normal")
+        self.assertIsNone(combat_detail.routine_line(self.world, self.player, line, 10.0))
+        combat_detail.flush_due(self.world, 14.0)
+        (_, text), = self.world.pending_player_notices
+        self.assertEqual("Ryn intercepts a goblin scout.", text)
+        combat_detail.set_level(self.player, "brief")
+        self.assertIsNone(combat_detail.routine_line(self.world, self.player, line, 20.0))
+        combat_detail.flush_due(self.world, 99.0)
+        self.assertEqual(1, len(self.world.pending_player_notices), "brief says nothing of it")
+
     def test_one_line_per_creature_affected_becomes_one_line(self):
         said = "The room grows heavy.\na grub (Level 6, 50/50 HP) is affected by Sleep.\na grub (Level 6, 40/50 HP) is affected by Sleep."
         self.assertEqual("The room grows heavy.\n2 enemies are affected by Sleep.", combat_detail.fold_effects(said))
