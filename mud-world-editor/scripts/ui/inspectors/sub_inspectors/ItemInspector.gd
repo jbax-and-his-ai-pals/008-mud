@@ -44,8 +44,69 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	_build_salvage()
 	_build_resistances()
 	_build_attack_modes()
+	_build_grants_spells()
 	_build_contract()
 	_build_properties()
+
+# `properties.grants_spells` (`npcs/companion_gear.py::granted_spells`): abilities a companion who holds this can cast (a harp that
+# carries a song); put down, the song goes with it. A picker per ability, from the set's own.
+func _build_grants_spells():
+	var klass := _engine_item_class()
+	if klass != "Weapon" and klass != "Armor" and not _properties().has("grants_spells"):
+		return
+	container.add_child(HSeparator.new())
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Grants abilities"))
+	header.tooltip_text = "Abilities a companion who holds this can cast: a harp that carries a song. They leave with it."
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.name = "AddGrantedSpell"; add.text = "+ Ability"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.pressed.connect(func():
+		var list := _granted_spells().duplicate(); list.append("")
+		_properties()["grants_spells"] = list
+		database_modified.emit()
+		_refresh_granted_spells(container.find_child("GrantedSpells", true, false)))
+	header.add_child(add); container.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "GrantedSpells"; rows.add_theme_constant_override("separation", 4)
+	container.add_child(rows)
+	_refresh_granted_spells(rows)
+
+func _granted_spells() -> Array:
+	var list = _properties().get("grants_spells", [])
+	return list if list is Array else []
+
+func _refresh_granted_spells(rows: VBoxContainer):
+	for child in rows.get_children():
+		rows.remove_child(child)
+		child.queue_free()
+	var list := _granted_spells()
+	var spell_ids: Array = database_mgr.get_ids("magic") if database_mgr != null else []
+	for index in range(list.size()):
+		var row := HBoxContainer.new(); row.name = "GrantedSpell_%d" % index; row.add_theme_constant_override("separation", 6)
+		var current := str(list[index])
+		var picker := OptionButton.new(); picker.name = "GrantedSpellPicker_%d" % index; picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		picker.add_item("choose ability"); picker.set_item_metadata(0, "")
+		var selected := 0
+		for spell_id in spell_ids:
+			picker.add_item(str(spell_id)); picker.set_item_metadata(picker.item_count - 1, str(spell_id))
+			if str(spell_id) == current: selected = picker.item_count - 1
+		if current != "" and selected == 0:
+			picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); selected = picker.item_count - 1
+		picker.select(selected)
+		InspectorStyle.apply_button_style(picker)
+		picker.item_selected.connect(func(chosen):
+			var live: Array = _properties().get("grants_spells", [])
+			if index < live.size(): live[index] = str(picker.get_item_metadata(chosen))
+			database_modified.emit())
+		row.add_child(picker)
+		var remove := Button.new(); remove.name = "RemoveGrantedSpell_%d" % index; remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live: Array = _properties().get("grants_spells", [])
+			if index < live.size(): live.remove_at(index)
+			if live.is_empty(): _properties().erase("grants_spells")
+			database_modified.emit()
+			_refresh_granted_spells(rows))
+		row.add_child(remove); rows.add_child(row)
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+
 
 # `properties.attack_modes` (`contracts/equipment.py::attack_modes`): the ways a weapon may be struck, one chosen at random
 # for each blow (a spear thrusts or slashes). Each is a verb (the plain form: "thrust"), an optional sentence with
@@ -913,7 +974,7 @@ func _refresh_props():
 	# These fields have a dedicated, lossless authoring surface above. Showing
 	# them again as generic rows invites two conflicting edits and makes the
 	# useful controls look like decoration.
-	var specialized := ["salvage_output", "resistances", "attack_modes"]
+	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells"]
 	if _engine_item_class() == "Consumable":
 		# The "When used" section owns these two.
 		specialized.append_array(["effect_type", "effects"])

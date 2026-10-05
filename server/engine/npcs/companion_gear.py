@@ -56,8 +56,29 @@ def bonuses(npc: Any) -> Tuple[int, int]:
     return attack, defense
 
 
+def granted_spells(npc: Any) -> List[str]:
+    """The abilities what the NPC wears grants (`properties.grants_spells` on an item: a harp that carries a song)."""
+    found: List[str] = []
+    for item in _worn_items(npc):
+        granted = item.get_property("grants_spells", [])
+        for spell_id in granted if isinstance(granted, list) else []:
+            if isinstance(spell_id, str) and spell_id not in found:
+                found.append(spell_id)
+    return found
+
+
+def _sync_granted_spells(npc: Any) -> None:
+    """What it can cast is what it knew plus what it holds: taking the harp off takes the song with it."""
+    previous = list(getattr(npc, "_granted_spells", []))
+    kept = [spell for spell in getattr(npc, "usable_spells", []) if spell not in previous]
+    new = [spell for spell in granted_spells(npc) if spell not in kept]
+    npc.usable_spells = kept + new
+    npc._granted_spells = new
+
+
 def refresh(npc: Any) -> None:
-    """Bring the NPC's attack and defence in line with what it wears."""
+    """Bring the NPC's attack and defence in line with what it wears, and its abilities with what the gear grants."""
+    _sync_granted_spells(npc)
     attack, defense = bonuses(npc)
     delta_attack = attack - getattr(npc, "_gear_attack", 0)
     delta_defense = defense - getattr(npc, "_gear_defense", 0)

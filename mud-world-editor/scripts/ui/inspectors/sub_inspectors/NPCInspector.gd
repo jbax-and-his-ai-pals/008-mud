@@ -651,6 +651,13 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("untargetable")
 		database_modified.emit())
 	flags.add_child(untargetable)
+	var hides := CheckBox.new(); hides.name = "HidesWhenHurt"; hides.text = "Hides when hurt (as a companion: ducks out of a fight in the room until it is over)"
+	hides.button_pressed = bool(properties.get("hides_when_hurt", false))
+	hides.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["hides_when_hurt"] = true
+		else: _ensure_npc_properties().erase("hides_when_hurt")
+		database_modified.emit())
+	flags.add_child(hides)
 	var unique := CheckBox.new(); unique.text = "Unique (called \"the\", not \"a\")"
 	unique.button_pressed = bool(properties.get("unique", false))
 	unique.toggled.connect(func(pressed):

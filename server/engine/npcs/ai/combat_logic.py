@@ -32,6 +32,14 @@ def _flight_phrase(world: 'World', npc: 'NPC', direction: str, destination: str)
 def try_flee(npc: 'NPC', world: 'World', player: 'Player') -> Optional[str]:
     """Attempts to move the NPC to an adjacent room during combat."""
     if not npc.current_region_id or not npc.current_room_id: return None
+    from engine.npcs import companions as _companions
+
+    if _companions.is_companion(npc) and npc.properties.get("hides_when_hurt") is True:
+        # A hiding companion does not leave the room: it ducks out of the fight and waits for it to end.
+        _companions.begin_hiding(npc)
+        seen = (player and player.is_alive and player.current_region_id == npc.current_region_id
+                and player.current_room_id == npc.current_room_id)
+        return "%s ducks out of the fight, hurt, and hides." % format_name_for_display(player, npc, True) if seen else None
     region = world.get_region(npc.current_region_id)
     if not region: return None
     room_before_flee = region.get_room(npc.current_room_id)

@@ -153,6 +153,8 @@ class GameObject:
 
         final_damage = int(damage_after_flat_reduction * resistance_multiplier * material_multiplier)
         actual_damage_taken = max(MINIMUM_DAMAGE_TAKEN, final_damage) if final_damage > 0 else 0
+        if actual_damage_taken > 0:
+            self.remove_effects_by_tag("sleep")   # a sleeper struck is a sleeper woken
 
         old_health = getattr(self, 'health', 0)
         new_health = max(0, old_health - actual_damage_taken)

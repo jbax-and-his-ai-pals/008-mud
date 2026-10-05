@@ -35,6 +35,7 @@ func _init() -> void:
 	_check_the_friendly_checkbox_writes_and_defaults_true()
 	_check_the_pacifist_checkbox_writes_and_erases()
 	_check_the_untargetable_checkbox_writes_and_erases()
+	_check_the_hides_when_hurt_checkbox_writes_and_erases()
 	_check_the_attack_cooldown_writes()
 	_check_the_gear_rows()
 	_check_the_phase_rows()
@@ -200,6 +201,18 @@ func _check_the_untargetable_checkbox_writes_and_erases() -> void:
 	_assert(manager.npcs["npc_probe"]["properties"].get("untargetable") == true, "ticking it writes properties.untargetable")
 	box.toggled.emit(false)
 	_assert(not manager.npcs["npc_probe"]["properties"].has("untargetable"), "and unticking it erases the key rather than writing false")
+
+
+func _check_the_hides_when_hurt_checkbox_writes_and_erases() -> void:
+	print("\n[the hides-when-hurt checkbox]")
+	var manager := _manager()
+	var holder := _build_inspector_from("npc_probe", manager)
+	var box := holder.find_child("HidesWhenHurt", true, false) as CheckBox
+	_assert(box != null and not box.button_pressed, "an NPC that never said so does not hide")
+	box.toggled.emit(true)
+	_assert(manager.npcs["npc_probe"]["properties"].get("hides_when_hurt") == true, "ticking it writes properties.hides_when_hurt")
+	box.toggled.emit(false)
+	_assert(not manager.npcs["npc_probe"]["properties"].has("hides_when_hurt"), "and unticking it erases the key rather than writing false")
 
 
 func _check_the_phase_rows() -> void:

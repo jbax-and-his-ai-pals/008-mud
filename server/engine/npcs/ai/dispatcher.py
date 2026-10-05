@@ -45,7 +45,7 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
     """Main AI handler that delegates to specific behaviors."""
     combat_enabled = world.has_capability("combat")
     
-    if npc.has_effect("Stun"):
+    if npc.has_effect("Stun") or npc.has_effect_tag("sleep"):
         return None 
 
     if npc.is_trading: return None 
@@ -70,6 +70,13 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
                      # Initiate combat scan with FORCED AGGRESSION
                      initiate_msg = scan_for_targets(npc, world, player, force_aggression=True)
                      if initiate_msg: return initiate_msg
+
+    # --- 2a. A companion in hiding keeps out of the fight until it is over, or until it has been tended ---
+    if npc.behavior_type == "minion":
+        from engine.npcs import companions as _companions
+
+        if _companions.is_hidden(npc):
+            return _companions.hiding_step(npc, world, current_time, player)
 
     # --- 2b. A creature with phases moves on to the next when this one is over ---
     if npc.properties.get("phases"):

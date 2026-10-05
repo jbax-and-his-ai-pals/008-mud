@@ -265,6 +265,17 @@ def _validate_item_envelopes(content_root: Path, issues: list[ContentSetIssue]) 
                 error("stackable must be a boolean")
             for problem in _attack_mode_problems(template, resolved):
                 error(problem)
+            granted = (template.get("properties") or {}).get("grants_spells") if isinstance(template.get("properties"), dict) else None
+            if granted is not None:
+                from .abilities import _ability_ids
+
+                known = _ability_ids(content_root, [])
+                if not isinstance(granted, list) or not granted or any(not isinstance(s, str) for s in granted):
+                    error("grants_spells must be a non-empty list of ability ids (what a companion who holds it can cast)")
+                else:
+                    for spell_id in granted:
+                        if known and spell_id not in known:
+                            error(f"grants_spells names ability '{spell_id}', which this content set does not define")
 
 
 def _validate_vendor_orders(content_root: Path, issues: list[ContentSetIssue]) -> None:

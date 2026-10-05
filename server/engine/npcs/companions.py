@@ -60,6 +60,43 @@ def begin_recovery(npc: Any) -> None:
     npc.properties[RECOVERING_KEY] = True
 
 
+HIDDEN_KEY = "hidden"
+
+
+def is_hidden(npc: Any) -> bool:
+    """`properties.hides_when_hurt` companions duck out of a fight when hurt: they stay in the room, take no part, and cannot be
+    hit, until the fight is over or they have been tended."""
+    properties = getattr(npc, "properties", None)
+    return isinstance(properties, dict) and properties.get(HIDDEN_KEY) is True and is_companion(npc)
+
+
+def begin_hiding(npc: Any) -> None:
+    from engine.npcs import combat as npc_combat
+
+    npc_combat.exit_combat(npc)
+    npc.properties[HIDDEN_KEY] = True
+
+
+def hiding_step(npc: Any, world: Any, current_time: float, player: Any) -> Optional[str]:
+    """One turn of a hidden companion: come out when the hostilities are over, or when well enough again."""
+    from engine.npcs import combat as npc_combat
+
+    owner = world.get_player_by_id(npc.properties.get("owner_id")) if world is not None else None
+    if owner is None:
+        return None
+    owner_combat = owner.runtime_state.combat
+    still_fighting = (owner_combat is not None and owner_combat.in_combat) or any(
+        other.is_alive and other is not npc and npc_combat.is_hostile_to(other, npc) and other.in_combat
+        for other in world.get_npcs_in_room(npc.current_region_id, npc.current_room_id)
+    )
+    if still_fighting and npc.health < npc.max_health * rejoin_fraction(npc):
+        return None
+    npc.properties.pop(HIDDEN_KEY, None)
+    if (npc.current_region_id, npc.current_room_id) == (owner.current_region_id, owner.current_room_id):
+        return "%s steps out from hiding." % npc.name
+    return None
+
+
 def recovery_step(npc: Any, world: Any, current_time: float, player: Any) -> Optional[str]:
     """One turn of a recovering companion: rest, and rejoin when well enough and the owner is not fighting.
 
@@ -220,5 +257,7 @@ def party_lines(world: Any, player: Any) -> List[str]:
         place = "here" if here else "elsewhere%s" % _where(world, npc)
         if is_recovering(npc):
             place += ", recovering"
+        elif is_hidden(npc):
+            place += ", hiding"
         lines.append("%s (level %d, %d/%d health, %s)" % (npc.name, npc.level, npc.health, npc.max_health, place))
     return lines

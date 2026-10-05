@@ -64,16 +64,16 @@ def is_hostile_to(npc: 'NPC', other) -> bool:
     return get_relation_to(npc, other) < 0
 
 def is_pacifist(npc) -> bool:
-    """`properties.pacifist`: it never fights back, nor starts a fight (an acolyte at an altar)."""
+    """`properties.pacifist`: it never fights back, nor starts a fight (an acolyte at an altar). A companion in hiding takes no part."""
     properties = getattr(npc, "properties", None)
-    return isinstance(properties, dict) and properties.get("pacifist") is True
+    return isinstance(properties, dict) and (properties.get("pacifist") is True or properties.get("hidden") is True)
 
 
 def is_untargetable(npc) -> bool:
     """`properties.untargetable`: nothing picks it as a target and nothing it is hit by hurts it (a child carried,
     asleep, through a fight). Pair it with `pacifist` for someone who takes no part at all."""
     properties = getattr(npc, "properties", None)
-    return isinstance(properties, dict) and properties.get("untargetable") is True
+    return isinstance(properties, dict) and (properties.get("untargetable") is True or properties.get("hidden") is True)
 
 
 def enter_combat(npc: 'NPC', target):
@@ -164,7 +164,7 @@ def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]
     if spell.target_type == 'friendly' and is_actively_hostile:
         return attack(npc, target)
 
-    if spell.target_type == 'enemy' and not is_actively_hostile:
+    if spell.target_type in ('enemy', 'all_enemies') and not is_actively_hostile:
         return attack(npc, target)
         
     if npc.mana < spell.mana_cost: return {"message": f"{npc.name} lacks mana."}
@@ -177,6 +177,18 @@ def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]
     viewer = None
     if world:
         viewer = world.get_viewer_for_npc(npc)
+    if spell.target_type == 'all_enemies' and world:
+        # An area ability reaches every enemy in the room at once (a song that puts them all to sleep).
+        enemies = [t for t in list(world.get_players_in_room(npc.current_region_id, npc.current_room_id, alive_only=True))
+                   + [o for o in world.get_npcs_in_room(npc.current_region_id, npc.current_room_id) if o.is_alive]
+                   if t is not npc and is_hostile_to(npc, t) and not is_untargetable(t)]
+        lines = [spell.format_cast_message(npc)]
+        for index, enemy in enumerate(enemies or [target]):
+            _, text = apply_spell_effect(npc, enemy, spell, viewer, first_target=index == 0)
+            if text:
+                lines.append(text)
+        return {"message": chr(10).join(lines), "target_defeated": False}
+
     _, effect_message = apply_spell_effect(npc, target, spell, viewer)
     
     full_message = f"{spell.format_cast_message(npc)}\n{effect_message}"
@@ -200,13 +212,21 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
         if not valid_targets: exit_combat(npc); return None
         target = random.choice(valid_targets); npc.combat_target = target
 
+    if npc.has_effect_tag("confuse"):
+        # A confused creature strikes at whoever is nearest, friend or foe.
+        crowd = list(world.get_players_in_room(npc.current_region_id, npc.current_room_id, alive_only=True))
+        crowd += [other for other in world.get_npcs_in_room(npc.current_region_id, npc.current_room_id) if other.is_alive]
+        crowd = [other for other in crowd if other is not npc and not is_untargetable(other)]
+        if crowd:
+            target = random.choice(crowd)
+
     from engine.npcs import phases as npc_phases
 
     if npc_phases.is_untouchable(target):
         return None   # nothing to be gained by striking at mist: it waits for the creature to harden
 
     chosen_spell = None
-    if npc.max_mana > 0 and npc.usable_spells and random.random() < npc.spell_cast_chance:
+    if npc.max_mana > 0 and npc.usable_spells and not npc.has_effect_tag("silence") and random.random() < npc.spell_cast_chance:
         if npc.mana / npc.max_mana < NPC_LOW_MANA_RETREAT_THRESHOLD:
             retreat_message = npc_ai.start_retreat(npc, world, current_time, player)
             if retreat_message:
@@ -216,7 +236,7 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
                             and current_time >= npc.spell_cooldowns.get(s_id, 0) 
                             and npc.mana >= s.mana_cost]
         
-        offensive_spells = [s for s in available_spells if s.target_type == 'enemy']
+        offensive_spells = [s for s in available_spells if s.target_type in ('enemy', 'all_enemies')]
 
         if offensive_spells:
             chosen_spell = random.choice(offensive_spells)

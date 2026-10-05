@@ -58,6 +58,9 @@ class FakeNPC:
     def has_effect(self, name):
         return False
 
+    def has_effect_tag(self, tag):
+        return False
+
 
 class TestTheVocabularyAndItsRoutinesAgree(unittest.TestCase):
     def test_every_declared_behaviour_has_a_routine_except_standing_still(self) -> None:
