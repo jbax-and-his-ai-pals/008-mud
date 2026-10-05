@@ -28,7 +28,7 @@
                     "next_node": "fever"
                 },
                 {
-                    "text": "Where does the mirage pearl come from?",
+                    "text": "Where can a mirage pearl be found?",
                     "next_node": "pearl"
                 },
                 {
@@ -56,7 +56,7 @@
             ]
         },
         "pearl": {
-            "text": "The mirage pearl. There is a story in these parts that the water under the desert makes them, deep in the Brineway Caverns, in the far corner of the Saltreach where the ground gives way. A fever breaks around one, they say. Nobody has brought one up in thirty years.",
+            "text": "The mirage pearl. The old stories say the kings of Ashmere kept the secret of them: where a pearl is found, and how a man might bring one up. Nobody in Dunhallow has seen one in thirty years. If anyone living knows, it is the royal house, and Ashmere is where I would go to ask.",
             "pace": "slow",
             "effects": {
                 "set_flag": "pearl_known"
@@ -73,7 +73,7 @@
             ]
         },
         "promise": {
-            "text": "Then go carefully, and take someone with you who knows the caves. The Brineway has taken better men than you or I. We will keep her cool, and we will keep her here.",
+            "text": "Then go carefully. Ashmere is a long road, and the way there has taken better men than you or I. We will keep her cool, and we will keep her here.",
             "pace": "slow",
             "end": true
         },

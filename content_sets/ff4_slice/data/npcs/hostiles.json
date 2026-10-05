@@ -717,8 +717,8 @@
     },
     "brinecoil": {
         "name": "the Brinecoil",
-        "description": "A vast coil of grey-green flesh and barnacled scale, rising out of the black water and sinking back into it, with a mouth at one end that is the only thing about it that is not slow.",
-        "max_health": 480,
+        "description": "The head of the Brinecoil: a vast grey-green wedge of barnacled flesh with a mouth at one end like the mouth of a well. It is slow to kill, and the legs that thrash around it are not.",
+        "max_health": 340,
         "level": 7,
         "friendly": false,
         "faction": "hostile",
@@ -731,10 +731,13 @@
             "intelligence": 4,
             "wisdom": 4,
             "spell_power": 1,
-            "magic_resist": 1
+            "magic_resist": 1,
+            "resistances": {
+                "air": -50
+            }
         },
-        "attack_power": 12,
-        "defense": 3,
+        "attack_power": 16,
+        "defense": 5,
         "loot_table": {
             "gold_value": {
                 "chance": 1,
@@ -756,34 +759,53 @@
             "move_cooldown": 9999,
             "weapon_damage_type": "slashing",
             "unique": true,
-            "phases": [
-                {
-                    "name": "surfaced",
-                    "seconds": 12,
-                    "message": "[[RED]]The Brinecoil heaves itself out of the water, scales streaming, and the whole cavern rings.[[/]]",
-                    "hint": {
-                        "npc": "belaric",
-                        "text": "It has surfaced! Hit it while it is out of the water!"
-                    }
-                },
-                {
-                    "name": "submerged",
-                    "seconds": 10,
-                    "untouchable": true,
-                    "message": "[[RED]]The Brinecoil slides under the surface and is gone, and the water goes black and still.[[/]]",
-                    "miss_text": "The blow strikes only black water.",
-                    "counter": "tidal_slam",
-                    "counter_cooldown": 4,
-                    "hint": {
-                        "npc": "belaric",
-                        "text": "It has gone under! Wait for it to come up!"
-                    },
-                    "counter_hint": {
-                        "npc": "belaric",
-                        "text": "Stop striking at the water! You are only waking it!"
-                    }
-                }
-            ]
+            "attack_cooldown": 4
+        }
+    },
+    "brinecoil_leg": {
+        "name": "barnacled leg",
+        "description": "One of the Brinecoil's eight legs: a rope of grey muscle as thick as a tree, crusted with barnacles, thrashing at anything in reach. Lightning runs along it like water on a wire.",
+        "max_health": 45,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "air": -50
+            }
+        },
+        "attack_power": 12,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    3,
+                    8
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
         }
     }
 }

@@ -1128,12 +1128,13 @@ class TestFF4Slice(_Slice):
         self.assertEqual(("dunhallow", "sickroom"), (sick[0].current_region_id, sick[0].current_room_id))
 
     def _level_up_to_the_caverns(self):
-        apply_effects({"give_rewards": {"xp": 1400}}, {"player": self.player, "world": self.world})
+        apply_effects({"give_rewards": {"xp": 2300}}, {"player": self.player, "world": self.world})   # about where the story has got the hero
         self.player.health = self.player.max_health
 
     def _join(self, template, region, room):
         npc = self.npcs(template)[0] if self.npcs(template) else self.world.spawn_npc(template, region, room)[0]
         npc.current_region_id, npc.current_room_id = region, room
+        self.at(region, room)   # a companion is recruited from the room the player stands in
         apply_effects({"recruit": template}, {"player": self.player, "world": self.world})
         return npc
 
@@ -1154,13 +1155,15 @@ class TestFF4Slice(_Slice):
         self.world.scene_runner.play(self.player, "meet_belaric")
         told = self._let_scenes_play_told(60)
         self.assertIn("Are you lost, or only stupid?", told)
-        self.assertIn("I was a sage at the court of Ashmere", told)
+        self.assertIn("I was a sage at its court", told)
         self.assertIn("Fair?", told)
         self.assertEqual(["belaric"], self._companions())
         self.assertIs(True, self.player.flags.get("belaric_joined"))
 
     def test_the_midpoint_is_a_dry_hall_where_the_party_camps_and_belaric_tells_his_story(self):
         self._join("belaric", "brineway", "dry_hall")
+        ryn = self._join("ryn_young", "brineway", "dry_hall")
+        self.assertNotIn("lightning", ryn.usable_spells)
         self.player.flags["belaric_joined"] = True
         self.at("brineway", "tidewalk")
         self.say("go east")
@@ -1180,13 +1183,20 @@ class TestFF4Slice(_Slice):
         self.say("reply 1")
         self.say("reply 5")
         self.assertIs(True, self.player.flags.get("camp_done"))
-        self._let_scenes_play(15)
+        self._let_scenes_play(40)
         self.assertEqual(6, self.server.time_manager.hour, "and the night passes")
+        self.assertIn("lightning", ryn.usable_spells, "and Belaric has taught Ryn the lightning he favours")
 
-    def test_the_pearl_lies_in_a_grotto_guarded_by_crabs(self):
-        grotto = self.world.get_region("brineway").get_room("pearl_grotto")
-        self.assertTrue(any(i.obj_id == "item_mirage_pearl" for i in grotto.items))
-        self.assertEqual(2, len([n for n in self.world.npcs.values() if n.current_room_id == "pearl_grotto" and n.template_id == "cavern_crab"]))
+    def test_the_caverns_do_not_hold_the_pearl_they_lead_to_the_castle_that_knows_how_to_get_one(self):
+        region = self.world.get_region("brineway")
+        for room_id, room in region.rooms.items():
+            self.assertFalse(any(i.obj_id == "item_mirage_pearl" for i in room.items), room_id)
+        grotto = region.get_room("nacre_grotto")
+        self.assertTrue(any(i.obj_id == "item_grotto_cache" for i in grotto.items), "the grotto is a treasure room, guarded by crabs")
+        self.assertEqual(2, len([n for n in self.world.npcs.values() if n.current_room_id == "nacre_grotto" and n.template_id == "cavern_crab"]))
+        told = self.say("talk orrin") if False else ""
+        self.assertNotIn("Brineway", json.dumps(json.loads((REPO_ROOT / "content_sets" / "ff4_slice" / "data" / "dialogue" / "orrin_talk.json").read_text(encoding="utf-8"))["nodes"]["pearl"]),
+                         "the village says the royal house of Ashmere knows, not that the pearl is here")
 
     def test_the_caverns_have_treasure_and_the_loop_and_side_rooms_a_dungeon_needs(self):
         region = self.world.get_region("brineway")
@@ -1208,33 +1218,55 @@ class TestFF4Slice(_Slice):
         self.assertEqual(1, len(self.npcs("brinecoil")))
         self.assertNotIn("west", self.world.get_region("brineway").get_room("brine_hollow").exits, "no way back")
 
-    def test_the_brinecoil_is_beaten_by_striking_only_when_it_surfaces_and_the_far_shore_opens(self):
-        from engine.npcs import phases
+    def test_the_brinecoil_is_eight_legs_and_a_head_all_weak_to_lightning(self):
+        for template in ("brinecoil", "brinecoil_leg"):
+            npc = NPCFactory.create_npc_from_template(template, self.world, instance_id="probe_" + template)
+            self.assertLess(npc.get_resistance("air"), 0, template + " is weak to lightning")
+        leg = NPCFactory.create_npc_from_template("brinecoil_leg", self.world, instance_id="probe_leg")
+        head = NPCFactory.create_npc_from_template("brinecoil", self.world, instance_id="probe_head")
+        self.assertLess(leg.max_health * 4, head.max_health * 2 + 1, "a leg is a fraction of the head")
+        self.assertLess(leg.attack_power, head.attack_power, "and hits for less")
+        self.assertNotIn("phases", head.properties, "the head no longer surfaces and sinks: the legs are the fight")
 
+    def test_the_brinecoil_rises_with_eight_legs_that_fight_on_their_own_and_a_head(self):
         self._level_up_to_the_caverns()
         self.at("brineway", "brine_gate")
-        self._join("belaric", "brineway", "brine_gate")
-        self._join("ryn_young", "brineway", "brine_gate")
         self.player.flags["exit_warned:brineway:brine_gate:east"] = True
         self.say("go east")
         self._let_scenes_play(25)
-        boss = self.npcs("brinecoil")[0]
-        self.assertEqual({"surfaced", "submerged"}, {p["name"] for p in phases.phases_of(boss)})
-        seen = set()
+        self.assertEqual(8, len(self.npcs("brinecoil_leg")))
+        self.assertEqual(1, len(self.npcs("brinecoil")))
+        legs_in_the_fight = [n for n in self.npcs("brinecoil_leg") if n.in_combat]
+        self.assertGreater(len(legs_in_the_fight), 4, "each leg attacks on its own")
+
+    def test_the_brinecoil_is_beaten_legs_first_and_the_far_shore_opens(self):
+        self._level_up_to_the_caverns()
+        self.at("brineway", "brine_gate")
+        self._join("belaric", "brineway", "brine_gate")
+        ryn = self._join("ryn_young", "brineway", "brine_gate")
+        apply_effects({"teach_companion": {"npc": "ryn_young", "spell": "lightning"}}, {"player": self.player, "world": self.world})
+        self.assertIn("lightning", ryn.usable_spells)
+        self.player.flags["exit_warned:brineway:brine_gate:east"] = True
+        self.say("go east")
+        self._let_scenes_play(17)   # the scene, and not a moment more: the legs do not wait for the hero
+        head = self.npcs("brinecoil")[0]
+        legs_dead_first = None
         for tick in range(300):
             self._let_scenes_play(1)
-            if not boss.is_alive or not self.player.is_alive:
+            if not head.is_alive or not self.player.is_alive:
                 break
-            seen.add(phases.is_untouchable(boss))
             if self.player.health < 0.4 * self.player.max_health:
                 self.say("use potion")
-            if not phases.is_untouchable(boss):
-                if tick % 7 == 0 and self.player.health > 0.45 * self.player.max_health:
-                    self.say("cast gloom wave")
-                self.say("attack coil")
-        self.assertTrue(self.player.is_alive)
-        self.assertFalse(boss.is_alive)
-        self.assertEqual({True, False}, seen, "it surfaced and sank while the fight went on")
+            legs = self.npcs("brinecoil_leg")
+            if legs_dead_first is None and not legs:
+                legs_dead_first = head.is_alive
+            if legs and tick % 7 == 0 and self.player.health > 0.45 * self.player.max_health:
+                self.say("cast gloom wave")
+            self.say("attack leg" if legs else "attack coil")
+        self.assertTrue(self.player.is_alive, "a hero who burns the legs first and has his friends' lightning survives")
+        self.assertFalse(head.is_alive)
+        self.assertTrue(legs_dead_first, "the legs fell while the head still lived")
+        self.assertEqual([], self.npcs("brinecoil_leg"), "and none is left standing when the head falls")
         self._let_scenes_play(15)
         self.assertIs(True, self.player.flags.get("brineway_cleared"))
         hollow = self.world.get_region("brineway").get_room("brine_hollow")

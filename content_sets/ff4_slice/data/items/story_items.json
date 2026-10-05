@@ -266,5 +266,29 @@
             ]
         },
         "item_family": "container"
+    },
+    "item_grotto_cache": {
+        "type": "Container",
+        "name": "shell-covered cache",
+        "description": "A small leather satchel, stiff with salt, buried under a heap of shells.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 6,
+            "contains": [
+                {
+                    "item_id": "item_salve",
+                    "quantity": 2
+                },
+                {
+                    "item_id": "item_potion",
+                    "quantity": 2
+                }
+            ]
+        },
+        "item_family": "container"
     }
 }

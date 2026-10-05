@@ -161,6 +161,12 @@ def _check_effect_block(
                 "error", str(path),
                 f"{where} effect seal_exit names direction '{direction}', which room '{region_id}:{room_id}' does not have",
             ))
+    pupil = block.get("teach_companion")
+    if isinstance(pupil, dict):
+        if ids["npcs"] and str(pupil.get("npc", "") or "").strip() not in ids["npcs"]:
+            issues.append(ContentSetIssue("error", str(path), f"{where} effect teach_companion names npc '{pupil.get('npc')}', which is not defined in this content set"))
+        if ids["spells"] and str(pupil.get("spell", "") or "").strip() not in ids["spells"]:
+            issues.append(ContentSetIssue("error", str(path), f"{where} effect teach_companion names ability '{pupil.get('spell')}', which is not defined in this content set"))
     rise = block.get("set_respawn")
     if isinstance(rise, dict):
         _check_room_reference(rise.get("region"), rise.get("room"), f"{where} effect set_respawn", path, ids, issues)

@@ -301,8 +301,8 @@ wait(20)
 check("the night passes", g.player.flags.get("camp_done") is True, "")
 say(g, "go east"); say(g, "go north")
 say(g, "open mirage pearl") if False else None
-out = say(g, "take mirage pearl")
-check("the mirage pearl is taken from the Pearl Grotto", "item_mirage_pearl" in g.items(), str(g.items()))
+say(g, "open cache"); say(g, "get all from cache")
+check("the Nacre Grotto holds a cache of salves, and no pearl", "item_salve" in str(g.items()) and "item_mirage_pearl" not in g.items(), str(g.items()))
 say(g, "go south"); say(g, "go east"); say(g, "go east")
 check("the first try at the Brine Gate is stopped", g.where() == "brineway:undercurrent" or g.where() == "brineway:brine_gate", g.where())
 if g.where() != "brineway:brine_gate":
@@ -310,10 +310,15 @@ if g.where() != "brineway:brine_gate":
 say(g, "go east")
 wait(15)
 say(g, "go east")
-wait(25)
-check("in the Drowned Gallery, the Brinecoil rises", g.where() == "brineway:brine_hollow" and bool(g._alive("coil")), g.where())
+wait(17)
+check("in the Drowned Gallery, the Brinecoil rises with its legs (Belaric and Ryn are already burning them)", g.where() == "brineway:brine_hollow" and len(g._alive("leg")) >= 3 and bool(g._alive("coil")), g.where())
 g.player.health = g.player.max_health
-r = fight_with_spell("coil", "gloom wave"); check("beat the Brinecoil, striking only when it surfaces", r.startswith("won"), r); print("   ", r)
+for _ in range(8):
+    if not g._alive("leg"):
+        break
+    r = fight_with_spell("leg", "gloom wave")
+check("the legs fall first", not g._alive("leg"), "")
+r = fight_with_spell("coil", "gloom wave"); check("then the head", r.startswith("won"), r); print("   ", r)
 wait(20)
 check("the Far Shore opens", g.player.flags.get("brineway_cleared") is True, "")
 say(g, "go up")

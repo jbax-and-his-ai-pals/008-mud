@@ -1193,6 +1193,15 @@
                 "effects": {
                     "recruit": "belaric"
                 }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
             }
         ]
     }

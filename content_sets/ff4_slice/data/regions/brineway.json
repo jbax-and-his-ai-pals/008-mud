@@ -133,10 +133,10 @@
         },
         "weeping_corridor": {
             "name": "The Weeping Corridor",
-            "description": "A narrow corridor whose walls run with water from floor to ceiling, so that you walk in a constant soft rain. A side passage opens to the north, glowing faintly pearl-white.",
+            "description": "A narrow corridor whose walls run with water from floor to ceiling, so that you walk in a constant soft rain. A side passage opens to the north, glowing faintly nacre-white.",
             "exits": {
                 "west": "dry_hall",
-                "north": "pearl_grotto",
+                "north": "nacre_grotto",
                 "east": "undercurrent"
             },
             "initial_npcs": [
@@ -147,28 +147,6 @@
                 {
                     "template_id": "pale_drowner",
                     "instance_id": "drowner_corridor_b"
-                }
-            ]
-        },
-        "pearl_grotto": {
-            "name": "The Pearl Grotto",
-            "description": "A small round chamber whose walls are crusted with pale nacre, glowing with some light that is not the lantern's. In a hollow in the middle of the floor, something small and round sits in a pool of its own glow.",
-            "exits": {
-                "south": "weeping_corridor"
-            },
-            "initial_npcs": [
-                {
-                    "template_id": "cavern_crab",
-                    "instance_id": "crab_grotto_a"
-                },
-                {
-                    "template_id": "cavern_crab",
-                    "instance_id": "crab_grotto_b"
-                }
-            ],
-            "items": [
-                {
-                    "item_id": "item_mirage_pearl"
                 }
             ]
         },
@@ -245,6 +223,28 @@
             "exits": {
                 "down": "brine_hollow"
             }
+        },
+        "nacre_grotto": {
+            "name": "The Nacre Grotto",
+            "description": "A small round chamber whose walls are crusted with pale nacre, glowing with some light that is not the lantern's. In a hollow in the middle of the floor lies a heap of empty shells, and a small cache that somebody left under them.",
+            "exits": {
+                "south": "weeping_corridor"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cavern_crab",
+                    "instance_id": "crab_grotto_a"
+                },
+                {
+                    "template_id": "cavern_crab",
+                    "instance_id": "crab_grotto_b"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_grotto_cache"
+                }
+            ]
         }
     }
 }

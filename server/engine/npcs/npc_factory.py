@@ -182,6 +182,12 @@ class NPCFactory:
 
             template_props = template.get("properties", {})
 
+            # What a companion has been taught in play (`teach_companion`) is kept with it, in its saved properties.
+            saved_properties = overrides.get("properties_override") if isinstance(overrides.get("properties_override"), dict) else {}
+            for spell_id in list(saved_properties.get("learned_spells") or []) + list(template_props.get("learned_spells") or []):
+                if spell_id not in npc.usable_spells:
+                    npc.usable_spells.append(spell_id)
+
             if "required_spells" in template_props:
                 for spell_id in template_props["required_spells"]:
                     if spell_id not in npc.usable_spells:

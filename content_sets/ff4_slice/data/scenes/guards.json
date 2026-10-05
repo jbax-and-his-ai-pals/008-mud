@@ -278,7 +278,7 @@
             {
                 "after": 5,
                 "pace": "slow",
-                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Ha! A better reason than mine, and a worse one. There are pearls in the deeps; I saw one, thirty years ago, and nearly drowned for it. I am Belaric. I was a sage at the court of Ashmere, before I was an old man in a hole.\"[[/]]"
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Ha! A better reason than mine, and a worse one. The royal house of Ashmere guards the secret of the pearls, or it did when I sat at its table: where they come from, and how one is got. If anyone can tell you, it is the royal house, and that is where I am going. I am Belaric. I was a sage at its court, before I was an old man in a hole.\"[[/]]"
             },
             {
                 "after": 5,
@@ -355,7 +355,7 @@
         ]
     },
     "camp_morning": {
-        "note": "After the camp conversation: the night passes.",
+        "note": "After the camp conversation: the night passes, and Belaric teaches Ryn lightning.",
         "beats": [
             {
                 "after": 3,
@@ -375,6 +375,22 @@
                 "after": 4,
                 "pace": "slow",
                 "text": "You wake to a grey light from nowhere: the pale fungus on the columns glows at dawn, as if the hall had a sky after all."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Ryn speaks:[[/]] [[GREEN]]\"Belaric... would you show me again? The white fire. I was watching your hands all night.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Hm. Hold the staff... no. Like this. Do not think about it; think about the sky going white. Mother taught you the calling, did she not? It is the same listening, only upward.\"[[/]]",
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
             },
             {
                 "after": 4,
@@ -405,7 +421,7 @@
         ]
     },
     "brinecoil_rises": {
-        "note": "The Drowned Gallery closes behind the party, and the Brinecoil comes up out of the water.",
+        "note": "The Drowned Gallery closes behind the party and the Brinecoil rises: eight legs first, each attacking on its own, then the head.",
         "beats": [
             {
                 "after": 2,
@@ -427,12 +443,102 @@
             {
                 "after": 3,
                 "pace": "slow",
-                "text": "The water on the left of the causeway begins to bulge."
+                "text": "The water on both sides of the causeway begins to bulge."
             },
             {
                 "after": 3,
                 "pace": "slow",
-                "text": "[[RED]]The Brinecoil rises out of the lake, coil on coil of barnacled flesh, and opens a mouth like the mouth of a well.[[/]]",
+                "text": "[[RED]]Something vast and grey-green hauls itself up out of the lake, and eight great limbs thrash up out of the water around it.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_1"
+                    }
+                }
+            },
+            {
+                "after": 0.3,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_2"
+                    }
+                }
+            },
+            {
+                "after": 0.3,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_3"
+                    }
+                }
+            },
+            {
+                "after": 0.3,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_4"
+                    }
+                }
+            },
+            {
+                "after": 0.3,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_5"
+                    }
+                }
+            },
+            {
+                "after": 0.3,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_6"
+                    }
+                }
+            },
+            {
+                "after": 0.3,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_7"
+                    }
+                }
+            },
+            {
+                "after": 0.3,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil_leg",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_leg_8"
+                    }
+                }
+            },
+            {
+                "after": 1.5,
+                "pace": "slow",
+                "text": "[[RED]]And the head comes up between them, and opens a mouth like the mouth of a well.[[/]]",
                 "effects": {
                     "spawn_npc": {
                         "npc": "brinecoil",
@@ -441,6 +547,11 @@
                         "instance_id": "brinecoil_of_the_lake"
                     }
                 }
+            },
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"The legs first! They are soft, and they are afraid of nothing but lightning. Burn them, and then the head will be a smaller problem!\"[[/]]"
             }
         ]
     },
@@ -451,7 +562,7 @@
             {
                 "after": 2,
                 "pace": "slow",
-                "text": "The Brinecoil's coils slacken, and the whole vast body slides back into the lake and does not rise again. The water goes still, and then, slowly, clear.",
+                "text": "The Brinecoil's head sags, and the whole vast body slides back into the lake and does not rise again. The water goes still, and then, slowly, clear.",
                 "effects": {
                     "give_rewards": {
                         "xp": 700,
@@ -461,7 +572,8 @@
                     "set_respawn": {
                         "region": "brineway",
                         "room": "far_shore"
-                    }
+                    },
+                    "remove_npc": "brinecoil_leg"
                 }
             },
             {

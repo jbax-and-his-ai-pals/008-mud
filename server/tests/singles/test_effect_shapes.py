@@ -49,6 +49,7 @@ class TestTheTable(unittest.TestCase):
             "spawn_npc": ["instance_id", "npc", "region", "room"],
             "teleport": ["message", "region", "room"],
             "set_respawn": ["region", "room"],
+            "teach_companion": ["npc", "spell"],
         }, effect_fields())
 
     def test_each_object_effects_fields_are_the_ones_its_reader_reads(self):
@@ -65,6 +66,7 @@ class TestTheTable(unittest.TestCase):
             "remove_npc": "_apply_remove_npc_effect",
             "teleport": "_apply_teleport_effect",
             "set_respawn": "_apply_set_respawn_effect",
+            "teach_companion": "_apply_teach_companion_effect",
             "seal_exit": "_apply_seal_exit_effect",
             "advance_time": "_apply_time_effect",
         }

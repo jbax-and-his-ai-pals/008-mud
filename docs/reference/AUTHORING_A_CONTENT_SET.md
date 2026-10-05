@@ -414,6 +414,10 @@ start. The `set_respawn` effect (`{"region": "varenholt", "room": "castle_gate"}
 story gets somewhere worth coming back to (the castle once the opening is over, the inn of a new village), so that dying in the
 desert does not put the player back in the first room.
 
+**A companion who learns.** `teach_companion` (`{"npc": "ryn_young", "spell": "lightning"}`) gives one of the player's companions an
+ability for good: it is added to what they cast and saved with them (`properties.learned_spells`). The slice has Belaric teach Ryn
+lightning at the camp, in a scene.
+
 **An exit that warns.** A room's `properties.exit_requirements` gives one direction a rule; a `warning` is met once:
 `{"south": {"type": "warning", "scene": "warn_pool", "failure_message": "You start south, and stop."}}`. The first attempt to go
 that way is refused (the `failure_message` is shown at once) and the scene told (give it `"lock": false` and slow beats, so the

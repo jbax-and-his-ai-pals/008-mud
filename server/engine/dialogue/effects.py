@@ -33,6 +33,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     dismiss           "npc_id" | true | [...]        a companion stays behind (true = the speaker)
     spawn_npc         {"npc": "template_id", "region": "r", "room": "x", "instance_id": "optional"}
     remove_npc        "template_or_instance_id" | {"npc": "id", "region": "r", "room": "x"}
+    teach_companion   {"npc": "template_or_instance_id", "spell": "ability_id"}   a companion learns an ability (and keeps it)
     set_respawn       {"region": "r", "room": "x"}   where the player rises again after dying (a place the story has reached)
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
@@ -89,7 +90,7 @@ KNOWN_EFFECTS = frozenset({
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
-    "play_scene", "end_scene", "advance_time", "set_respawn",
+    "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -177,6 +178,11 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"region": "text", "room": "text"},
         "required": ("region", "room"),
     },
+    "teach_companion": {
+        "form": "object",
+        "fields": {"npc": "text", "spell": "text"},
+        "required": ("npc", "spell"),
+    },
     "remove_npc": {
         "form": "object", "bare": "text",
         "fields": {"npc": "text", "region": "text", "room": "text"},
@@ -215,6 +221,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
     "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}", "kind": "json"},
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
+    "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
     "play_scene": {"label": "Play a scene (the player watches)", "hint": "scene id (data/scenes)", "kind": "string"},
     "end_scene": {"label": "End a scene without telling it (it counts as seen)", "hint": "scene id, or a list of them: what a checkpoint uses for the story so far", "kind": "string", "refs": "scenes"},
     "advance_time": {"label": "Let the night pass (the clock jumps on)", "hint": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},
@@ -1170,6 +1177,40 @@ def _apply_remove_npc_effect(effects: Dict[str, Any], context, report: EffectRep
         report.unchanged.append("remove_npc %s (not here)" % identifier)
 
 
+def _apply_teach_companion_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`teach_companion`: one of the player's companions learns an ability, and keeps it (it is saved with them)."""
+    if "teach_companion" not in effects:
+        return
+    raw = effects["teach_companion"]
+    if not isinstance(raw, dict):
+        report.failed.append("teach_companion (must be an object)")
+        return
+    from engine.magic.spell_registry import get_spell
+    from engine.npcs import companions
+
+    wanted = str(raw.get("npc", "") or "").strip()
+    spell_id = str(raw.get("spell", "") or "").strip()
+    world = _context_world(context)
+    player = context.get("player")
+    spell = get_spell(spell_id) if spell_id else None
+    if not wanted or spell is None:
+        report.failed.append("teach_companion (needs a companion and a known ability: %s)" % (spell_id or "none named"))
+        return
+    pupil = next((n for n in companions.companions_of(world, player) if wanted in (n.template_id, n.obj_id)), None)
+    if pupil is None:
+        report.failed.append("teach_companion (%s is not travelling with the player)" % wanted)
+        return
+    learned = pupil.properties.setdefault("learned_spells", [])
+    if spell_id in pupil.usable_spells:
+        report.unchanged.append("teach_companion %s already knows %s" % (pupil.name, spell_id))
+        return
+    pupil.usable_spells.append(spell_id)
+    if spell_id not in learned:
+        learned.append(spell_id)
+    report.applied.append("%s learned %s" % (pupil.name, spell_id))
+    report.messages.append("%s learns %s." % (pupil.name, spell.name))
+
+
 def _apply_set_respawn_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     """`set_respawn`: dying and respawning returns the player here, not to where the story began. A story moves it as it goes."""
     if "set_respawn" not in effects:
@@ -1355,6 +1396,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
         ("time", lambda: _apply_time_effect(effects, world, report)),
         ("scene", lambda: _apply_scene_effect(effects, player, world, report)),
+        ("teach", lambda: _apply_teach_companion_effect(effects, context, report)),
         ("respawn", lambda: _apply_set_respawn_effect(effects, context, report)),
         ("teleport", lambda: _apply_teleport_effect(effects, context, report)),
     )
