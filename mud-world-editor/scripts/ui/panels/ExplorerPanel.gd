@@ -27,6 +27,9 @@ var search_bar: LineEdit
 var explorer_tree: Tree
 var snap_checkbox: CheckBox
 var show_districts_checkbox: CheckBox
+## The size column is never narrower than this, and grows to fit the widest "N districts · M rooms" so it is not cut off.
+const SIZE_COLUMN_MIN := 140
+const SIZE_COLUMN_PADDING := 36   # the row's margins, plus room for the scrollbar
 var expanded_regions: Dictionary = {}
 var expanded_districts: Dictionary = {}
 var _is_programmatic_selection: bool = false
@@ -51,7 +54,7 @@ func setup():
 	explorer_tree.columns = 2
 	explorer_tree.set_column_expand(0, true)
 	explorer_tree.set_column_expand(1, false)
-	explorer_tree.set_column_custom_minimum_width(1, 132)
+	explorer_tree.set_column_custom_minimum_width(1, SIZE_COLUMN_MIN)
 	explorer_tree.allow_rmb_select = true
 	
 	explorer_tree.item_selected.connect(_on_tree_select)
@@ -281,6 +284,7 @@ func _rebuild_tree():
 	
 	var regions = _current_hierarchy.keys()
 	regions.sort()
+	explorer_tree.set_column_custom_minimum_width(1, _size_column_width())
 	
 	for rid in regions:
 		var r_data = _current_hierarchy[rid]
@@ -378,6 +382,15 @@ func _rebuild_tree():
 
 			r_item.set_tooltip_text(0, r_id)
 			r_item.set_metadata(0, {"type": "room", "file": r_data.filename, "id": r_id})
+
+## Wide enough for the longest size label of any region, in the tree's own font.
+func _size_column_width() -> int:
+	var font: Font = explorer_tree.get_theme_font("font")
+	var font_size: int = explorer_tree.get_theme_font_size("font_size")
+	var widest := 0.0
+	for rid in _current_hierarchy:
+		widest = maxf(widest, font.get_string_size(size_label(_current_hierarchy[rid]), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x)
+	return maxi(SIZE_COLUMN_MIN, int(ceil(widest)) + SIZE_COLUMN_PADDING)
 
 ## "2 districts · 12 rooms": a region's size, beside its label. Counts everything the region has, not what the filter shows.
 static func size_label(region: Dictionary) -> String:

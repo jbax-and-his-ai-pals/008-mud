@@ -61,6 +61,9 @@ func _init() -> void:
 		var kind = child.get_metadata(0)
 		if kind and kind.get("type", "") == "district": district_item = child
 	_assert(ExplorerPanel.size_label({"rooms": {"a": "A"}, "districts": {}}) == "0 districts · 1 room", "plurals read right")
+	var font: Font = panel.explorer_tree.get_theme_font("font")
+	var label_width: float = font.get_string_size(region_item.get_text(1), HORIZONTAL_ALIGNMENT_LEFT, -1, panel.explorer_tree.get_theme_font_size("font_size")).x
+	_assert(panel.explorer_tree.get_column_width(1) >= int(label_width), "the size column is wide enough for its text (%s vs %s)" % [panel.explorer_tree.get_column_width(1), label_width])
 
 	# Selecting a room nested under a district must un-collapse the region
 	# AND the district, and land the actual Tree selection on that room.
