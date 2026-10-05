@@ -19,6 +19,10 @@
       "skill": "evasion",
       "base_difficulty": 8,
       "difficulty_per_hostile_level": 2
+    },
+    "pacing": {
+      "npc_cooldown_scale": 1.3,
+      "action_gap": 1.5
     }
   },
   "companions": {

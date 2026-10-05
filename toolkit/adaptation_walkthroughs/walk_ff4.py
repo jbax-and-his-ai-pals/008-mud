@@ -66,7 +66,7 @@ def beat_the_sky():
 # --- Ilmara: the crystal ------------------------------------------------------
 check("starts in the Ilmaran crystal chamber", g.where() == "ilmara:crystal_chamber", g.where())
 check("starting kit, blade and armour worn", "item_commander_seal" in g.items() and "item_dark_blade" in equipped_ids() and "item_dark_armor" in equipped_ids(), str(equipped_ids()))
-wait(60)
+wait(80)
 check("the acolytes are gone and the elder is left", not [n for n in g.world.npcs.values() if n.template_id == "ilmaran_acolyte"]
       and [n for n in g.world.npcs.values() if n.template_id == "elder_of_ilmara"], "")
 out = say(g, "talk elder", show=V, n=400)
@@ -227,7 +227,7 @@ check("the mayor asks for the package", "give sealed package to mayor" in out, o
 
 # --- the package, the fire, the girl ------------------------------------------------------------------------------
 out = say(g, "give sealed package to mayor", show=V, n=600)
-wait(60)
+wait(80)
 check("the village is burned and you stand in what is left", g.where() == "hazevale_ruin:village_square" and g.player.flags.get("village_burned"), g.where())
 check("the mayor is gone", not [n for n in g.world.npcs.values() if n.template_id == "mayor_of_hazevale" and n.is_alive], "")
 say(g, "go south")
@@ -271,7 +271,7 @@ check("a woman asking for the hero is mentioned", g.player.flags.get("rosalind_h
 for step in ("go south", "go south", "go east", "go north"):
     say(g, step)
 check("in the back room of Orrin and Maren's house", g.where() == "dunhallow:sickroom", g.where())
-wait(60)
+wait(80)
 check("Rosalind lies sick and the cure is a mirage pearl", g.player.flags.get("pearl_quest") is True, "")
 out = say(g, "talk orrin", show=V, n=300)
 out = say(g, "reply 2", show=V, n=300)
@@ -287,11 +287,11 @@ for foe in [n for n in g.world.npcs.values() if n.is_alive and n.current_region_
 for step in ("go south", "go west", "go west", "go west", "go west", "go south", "go east", "go south", "go east", "go down"):
     say(g, step)
 check("at the foot of the sinkhole", g.where() == "brineway:mouth", g.where())
-wait(60)
+wait(80)
 check("Belaric, a sage of Ashmere, joins the party", g.player.flags.get("belaric_joined") is True, "")
 for step in ("go east", "go east", "go east"):
     say(g, step)
-wait(60)
+wait(80)
 check("the midpoint: the party camps in the Dry Hall", g.where() == "brineway:dry_hall" and g.player.flags.get("camp_night") is True, g.where())
 out = say(g, "talk belaric", show=V, n=300)
 out = say(g, "reply 2", show=V, n=400)
