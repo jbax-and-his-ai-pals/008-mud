@@ -379,7 +379,7 @@
     "thorn_wolf": {
         "name": "thorn wolf",
         "description": "A rangy, sand-coloured wolf with burrs in its coat and a hunger in its eyes.",
-        "max_health": 86,
+        "max_health": 52,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -400,8 +400,8 @@
             "gold_value": {
                 "chance": 1,
                 "quantity": [
-                    12,
-                    22
+                    4,
+                    9
                 ]
             }
         },
@@ -421,7 +421,7 @@
     "dune_jackal": {
         "name": "dune jackal",
         "description": "A lean, rust-furred jackal, quick and thin and bold with thirst.",
-        "max_health": 64,
+        "max_health": 44,
         "level": 3,
         "friendly": false,
         "faction": "hostile",
@@ -442,8 +442,8 @@
             "gold_value": {
                 "chance": 1,
                 "quantity": [
-                    6,
-                    11
+                    3,
+                    8
                 ]
             }
         },
