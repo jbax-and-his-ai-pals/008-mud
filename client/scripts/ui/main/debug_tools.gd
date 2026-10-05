@@ -74,5 +74,6 @@ func _build(checkpoints) -> void:
 		if picker.item_count > 0 and picker.selected >= 0:
 			main.network_lifecycle._send_command_to_server("checkpoint %s" % str(picker.get_item_metadata(picker.selected))))
 	row.add_child(go)
+	main.keep_focus_on_command_line(row)   # the command line keeps focus, so these must not take it or a click is cancelled
 	column.add_child(row)
 	column.move_child(row, command_row.get_index())

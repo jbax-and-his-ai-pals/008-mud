@@ -483,12 +483,25 @@ func _arrange_views() -> void:
 	# view (Send, a mobile pad key) hands it straight back.
 	command_input.keep_editing_on_text_submit = true
 	get_viewport().gui_focus_changed.connect(_on_gui_focus_changed)
+	# A button that takes focus on mouse-down has it handed away again before mouse-up, and Godot cancels a click
+	# whose button loses focus: the click never lands. The game view's buttons never take focus at all.
+	keep_focus_on_command_line(_game_view)
 	command_input.call_deferred("grab_focus")   # ready to type as soon as the game opens
 
 	for client in [tcp_client, ws_client]:
 		client.connected.connect(_refresh_connection_badge)
 		client.disconnected.connect(_refresh_connection_badge)
 	_refresh_connection_badge()
+
+
+## Make every button under `root` (a pad key, Send, a tester's button) clickable while the command line keeps focus.
+## A drop-down is left alone: it opens a popup and the focus handler already lets it be.
+static func keep_focus_on_command_line(root: Node) -> void:
+	if root == null:
+		return
+	for button in root.find_children("*", "BaseButton", true, false):
+		if not (button is OptionButton):
+			(button as BaseButton).focus_mode = Control.FOCUS_NONE
 
 
 func _on_gui_focus_changed(node: Control) -> void:
