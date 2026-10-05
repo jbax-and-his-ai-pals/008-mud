@@ -253,7 +253,7 @@
         ]
     },
     "reach_the_inn": {
-        "note": "The end of the slice: the player carries Ryn into the inn of the desert village.",
+        "note": "The player carries Ryn into the inn of the desert village; the king's guards arrive (guards_arrive).",
         "lock": false,
         "beats": [
             {
@@ -280,8 +280,16 @@
             },
             {
                 "after": 5,
-                "text": "[[CYAN]]For the first time since Ilmara, there is nowhere you are being sent.[[/]]",
-                "pace": "slow"
+                "pace": "slow",
+                "text": "[[CYAN]]For the first time since Ilmara, there is nowhere you are being sent.[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "You sit by the pallet, and the afternoon wears on. Somewhere in the street a dog begins to bark, and does not stop.",
+                "effects": {
+                    "play_scene": "guards_arrive"
+                }
             }
         ]
     }

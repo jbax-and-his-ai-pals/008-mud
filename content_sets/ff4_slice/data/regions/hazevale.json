@@ -41,14 +41,16 @@
                     "template_id": "innkeeper",
                     "instance_id": "innkeeper_at_inn"
                 }
-            ]
+            ],
+            "properties": {}
         },
         "ruined_lane": {
             "name": "Lane of Cottages",
             "description": "A lane of low cottages. The doors are shut.",
             "exits": {
                 "west": "village_square"
-            }
+            },
+            "properties": {}
         },
         "shrine": {
             "name": "Village Shrine",
@@ -57,5 +59,6 @@
                 "north": "village_square"
             }
         }
-    }
+    },
+    "spawner": {}
 }

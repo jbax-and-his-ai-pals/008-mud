@@ -18,7 +18,9 @@
                         "kessa_deduces",
                         "colossus_quake",
                         "wake_in_the_wood",
-                        "reach_the_inn"
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -53,7 +55,9 @@
                         "kessa_deduces",
                         "colossus_quake",
                         "wake_in_the_wood",
-                        "reach_the_inn"
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -111,7 +115,9 @@
                         "kessa_deduces",
                         "colossus_quake",
                         "wake_in_the_wood",
-                        "reach_the_inn"
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -172,7 +178,9 @@
                         "kessa_deduces",
                         "colossus_quake",
                         "wake_in_the_wood",
-                        "reach_the_inn"
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -234,7 +242,9 @@
                         "kessa_deduces",
                         "colossus_quake",
                         "wake_in_the_wood",
-                        "reach_the_inn"
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -305,7 +315,9 @@
                         "kessa_deduces",
                         "colossus_quake",
                         "wake_in_the_wood",
-                        "reach_the_inn"
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -368,7 +380,9 @@
                         "kessa_deduces",
                         "colossus_quake",
                         "wake_in_the_wood",
-                        "reach_the_inn"
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -398,6 +412,82 @@
                         "region": "thornwood",
                         "room": "clearing"
                     }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            }
+        ]
+    },
+    "checkpoint_inn": {
+        "note": "For testing: Ryn is asleep in the back room of the desert inn and the hero has just put her to bed; the guards have not come yet (scene play guards_arrive).",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "dunhallow",
+                        "room": "inn"
+                    },
+                    "give_rewards": {
+                        "xp": 900
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "dunhallow",
+                        "room": "inn"
+                    },
+                    "move_npc": {
+                        "npc": "ryn",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
                 }
             },
             {

@@ -253,7 +253,19 @@ for step in ("go east", "go east", "go east", "go east", "go east", "go east", "
         g.world.remove_npcs(foe.obj_id)   # the route is what is walked here; the fights are tested elsewhere
 check("at the Blue Door Inn in Dunhallow", g.where() == "dunhallow:inn", g.where())
 wait(30)
-check("Ryn is put to bed, and the slice ends", g.player.flags.get("reached_the_inn") is True, "")
+check("Ryn is put to bed", g.player.flags.get("reached_the_inn") is True, "")
+
+# --- the king's guards come for her ---------------------------------------------------------------------------------------
+wait(40)
+check("the guards of Varenholt arrive and the hero refuses", g.player.flags.get("guards_fight") is True, "")
+g.player.health = g.player.max_health
+for target in ("sergeant", "guard", "guard"):
+    if g._alive(target):
+        r = fight_with_spell(target, "gloom wave"); print("   ", target, r)
+check("the guards are beaten", not g._alive("sergeant") and not g._alive("guard"), "")
+wait(80)
+check("Ryn wakes, thanks the hero and joins him", [n.template_id for n in __import__("engine.npcs.companions", fromlist=["x"]).companions_of(g.world, g.player)] == ["ryn_young"], "")
+check("a woman asking for the hero is mentioned", g.player.flags.get("rosalind_hint") is True, "")
 
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])

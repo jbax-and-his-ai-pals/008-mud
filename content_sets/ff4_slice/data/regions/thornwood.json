@@ -48,5 +48,6 @@
                 "east": "saltreach:dune_road"
             }
         }
-    }
+    },
+    "spawner": {}
 }

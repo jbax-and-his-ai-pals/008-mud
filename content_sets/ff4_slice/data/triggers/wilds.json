@@ -6,8 +6,18 @@
             "room": "inn"
         },
         "when": {
-            "kind": "flag",
-            "flag": "ryn_carried"
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "ryn_carried"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "reached_the_inn"
+                    }
+                }
+            ]
         },
         "once": "player",
         "effects": {
@@ -26,6 +36,31 @@
                 "region": "dunhallow",
                 "room": "gate"
             }
+        }
+    },
+    "guards_beaten": {
+        "on": {
+            "event": "room_cleared",
+            "region": "dunhallow",
+            "room": "inn"
+        },
+        "when": {
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "guards_fight"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "guards_beaten"
+                    }
+                }
+            ]
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "after_the_guards"
         }
     }
 }

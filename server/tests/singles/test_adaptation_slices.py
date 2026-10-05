@@ -992,6 +992,56 @@ class TestFF4Slice(_Slice):
                          "dying out here does not send the hero back to the first room of the story")
         self.assertIn("Mother", self.say("talk ryn"), "she is asleep, and says nothing but that")
 
+    def _ryn_asleep_in_the_inn(self):
+        apply_effects({"give_rewards": {"xp": 900}}, {"player": self.player, "world": self.world})
+        self.player.health = self.player.max_health
+        ryn = self.npcs("ryn")[0]
+        ryn.current_region_id, ryn.current_room_id = "dunhallow", "inn"
+        self.player.flags.update({"ryn_carried": True, "reached_the_inn": True})
+        self.at("dunhallow", "inn")
+
+    def test_the_kings_guards_come_for_ryn_and_the_hero_will_not_give_her_up(self):
+        self._ryn_asleep_in_the_inn()
+        self.world.scene_runner.play(self.player, "guards_arrive")
+        told = self._let_scenes_play_told(50)
+        self.assertIn("The king wants the girl", told)
+        self.assertIn("She stays with me", told, "the hero refuses")
+        self.assertEqual(1, len(self.npcs("pursuit_sergeant")))
+        self.assertEqual(2, len(self.npcs("castle_pursuer")))
+        self.assertIs(True, self.player.flags.get("guards_fight"))
+        self.assertEqual([], self.npcs("ryn_young"), "and Ryn sleeps on in the back room")
+
+    def test_the_fight_with_the_guards_is_the_ordinary_kind_and_is_won_with_a_sensible_hero(self):
+        self._ryn_asleep_in_the_inn()
+        self.world.scene_runner.play(self.player, "guards_arrive")
+        self._let_scenes_play(40)
+        for _ in range(120):
+            alive = self.npcs("pursuit_sergeant") + self.npcs("castle_pursuer")
+            if not alive or not self.player.is_alive:
+                break
+            if self.player.health < 0.4 * self.player.max_health:
+                self.say("use potion")
+            self.say("cast gloom wave") if self.player.health > 0.5 * self.player.max_health else None
+            self.say("attack " + alive[0].name)
+            self._let_scenes_play(1)
+        self.assertTrue(self.player.is_alive, "a hero who uses what he has beats three guards")
+        self.assertEqual([], self.npcs("pursuit_sergeant") + self.npcs("castle_pursuer"))
+
+    def test_after_the_guards_ryn_wakes_thanks_the_hero_and_joins_and_the_innkeeper_mentions_a_woman(self):
+        self._ryn_asleep_in_the_inn()
+        self.world.scene_runner.play(self.player, "guards_arrive")
+        self._let_scenes_play(40)
+        for template, name in (("pursuit_sergeant", "havel"), ("castle_pursuer", "guard"), ("castle_pursuer", "guard")):
+            if self.npcs(template):
+                self.kill(template, name)
+        told = self._let_scenes_play_told(80)
+        self.assertIn("You stood in front of them", told)
+        self.assertIn("nowhere left to go", told, "she joins partly because there is nowhere else")
+        self.assertEqual(["ryn_young"], self._companions())
+        self.assertEqual([], self.npcs("ryn"), "the sleeper is replaced by Ryn awake")
+        self.assertIn("blue shutters", told, "and a woman asking for the hero is mentioned")
+        self.assertIs(True, self.player.flags.get("rosalind_hint"))
+
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]
         self.assertIs(True, ryn.get("untargetable"))

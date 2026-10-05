@@ -1,0 +1,42 @@
+{
+    "id": "ryn_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "ryn_young"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "I am not very good at waiting, either.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Come with me, Ryn.",
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "end": true
+                }
+            ]
+        },
+        "joins": {
+            "text": "Good. Then I will be right behind you.",
+            "pace": "slow",
+            "end": true
+        },
+        "with_you": {
+            "text": "I am right behind you. Mother's songs are all I have left, so I will sing them when it matters.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

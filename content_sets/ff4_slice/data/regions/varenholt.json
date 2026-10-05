@@ -141,5 +141,6 @@
                 "south": "barracks"
             }
         }
-    }
+    },
+    "spawner": {}
 }

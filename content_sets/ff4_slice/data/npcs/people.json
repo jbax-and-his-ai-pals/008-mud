@@ -292,7 +292,33 @@
             "move_cooldown": 9999,
             "dialogue": "inn_rest",
             "essential": true,
-            "unique": true
+            "unique": true,
+            "pacifist": true,
+            "untargetable": true
+        }
+    },
+    "ryn_young": {
+        "name": "Ryn",
+        "description": "A small girl in green, a wooden flute at her belt, with eyes much older than the rest of her.",
+        "max_health": 70,
+        "level": 4,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 60,
+        "usable_spells": [
+            "ember"
+        ],
+        "dialog": {
+            "greeting": "Where do we go now?"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "ryn_talk",
+            "essential": true,
+            "spell_cast_chance": 0.6
         }
     }
 }

@@ -40,5 +40,6 @@
                 "east": "dunhallow:gate"
             }
         }
-    }
+    },
+    "spawner": {}
 }

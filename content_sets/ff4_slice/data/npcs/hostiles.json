@@ -459,5 +459,92 @@
             "move_cooldown": 9999,
             "weapon_damage_type": "slashing"
         }
+    },
+    "castle_pursuer": {
+        "name": "Varenholt guard",
+        "description": "A guard in the king's red, sunburnt and short of breath from a long ride.",
+        "max_health": 60,
+        "level": 4,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    6,
+                    12
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
+        }
+    },
+    "pursuit_sergeant": {
+        "name": "Sergeant Havel",
+        "description": "A broad, grey-whiskered sergeant who has been told to bring someone back, and has not liked it.",
+        "max_health": 90,
+        "level": 5,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 11,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    10,
+                    20
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "unique": true,
+            "attack_cooldown": 4
+        }
     }
 }

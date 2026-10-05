@@ -1,0 +1,160 @@
+{
+    "guards_arrive": {
+        "note": "Guards of Varenholt come looking for the girl. The hero refuses to give her up; the fight is ordinary combat, begun on the last beat.",
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The barking stops all at once. In the silence there are boots, a great many of them, and the creak of leather."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "A fist hammers on the door of the inn. The innkeeper looks at you, and does not move."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "The door is thrown open. Red cloaks fill the doorway: a sergeant, and two guards of Varenholt with their hands on their swords."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Sergeant Havel speaks:[[/]] [[GREEN]]\"Captain. Or whatever you are now. Varenholt has been looking for you.\"[[/]]"
+            },
+            {
+                "after": 4.5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Sergeant Havel speaks:[[/]] [[GREEN]]\"The king wants the girl. The summoner's brat. Give her up, and you can walk out of here. Nobody needs to say you ran.\"[[/]]"
+            },
+            {
+                "after": 4.5,
+                "pace": "slow",
+                "text": "You stand. Your hand finds the hilt of the dark blade, and stays there. [[BLUE]]\"She is a child. She stays with me.\"[[/]]"
+            },
+            {
+                "after": 4.5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Sergeant Havel speaks:[[/]] [[GREEN]]\"Then it is desertion, and treason, and I am sorry for it, Captain. I mean that. Take him alive, if you can.\"[[/]]"
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[RED]]Three blades come out of three scabbards at once.[[/]]",
+                "effects": {
+                    "set_flag": "guards_fight",
+                    "spawn_npc": {
+                        "npc": "pursuit_sergeant",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "instance_id": "havel"
+                    }
+                }
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "castle_pursuer",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "instance_id": "pursuer_a"
+                    }
+                }
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "castle_pursuer",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "instance_id": "pursuer_b"
+                    }
+                }
+            }
+        ]
+    },
+    "after_the_guards": {
+        "note": "The guards are beaten: the innkeeper, Ryn waking and choosing to come along, and a word about a woman asking for the hero.",
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The last guard goes down, and the inn is quiet but for your breathing and the shutters rattling in the wind."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "The innkeeper comes out from behind the counter, grey in the face, a heavy pan still in one hand. She looks at the floor, and then at you."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]The innkeeper speaks:[[/]] [[GREEN]]\"Twenty years I have kept this room, and nobody has ever drawn steel in it. Go on. See to the girl. I will see to the floor.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "A small sound from the back room. Ryn is sitting up on the pallet, her face the colour of ash, staring through the curtain at what is on the floor.",
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Ryn speaks:[[/]] [[GREEN]]\"You stood in front of them. I heard all of it, through the wall.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Ryn speaks:[[/]] [[GREEN]]\"They were going to take me back to him. Weren't they.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[BLUE]]\"Not while I am standing.\"[[/]] You wipe the blade, and mean it."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Ryn speaks:[[/]] [[GREEN]]\"Mother is gone. The village is gone. I have nowhere left to go.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Ryn speaks:[[/]] [[GREEN]]\"If you will have me, I would rather go where you go. And I can help. Mother taught me more than the calling.\"[[/]]"
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]The innkeeper speaks:[[/]] [[GREEN]]\"If you are the dark-bladed captain from the king's city, there is something you should know. A woman came in off the Saltreach road three nights ago, half out of her mind with fever. She keeps asking for a man with a black sword. Old Orrin and Maren took her in. Their house has blue shutters.\"[[/]]",
+                "effects": {
+                    "set_flag": [
+                        "guards_beaten",
+                        "rosalind_hint"
+                    ]
+                }
+            }
+        ]
+    }
+}

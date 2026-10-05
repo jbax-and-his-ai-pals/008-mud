@@ -12,7 +12,8 @@
             "exits": {
                 "east": "buried_lane",
                 "south": "shrine"
-            }
+            },
+            "properties": {}
         },
         "buried_lane": {
             "name": "Lane of Cinders",
@@ -34,5 +35,6 @@
                 }
             ]
         }
-    }
+    },
+    "spawner": {}
 }

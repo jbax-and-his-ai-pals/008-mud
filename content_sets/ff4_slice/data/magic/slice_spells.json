@@ -108,5 +108,22 @@
                 "damage_type": "air"
             }
         ]
+    },
+    "ember": {
+        "name": "Ember",
+        "description": "A small, hungry flame, thrown.",
+        "mana_cost": 4,
+        "cooldown": 4,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} cups her hands and breathes on a spark.",
+        "hit_message": "The flame leaps at {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 14,
+                "damage_type": "fire"
+            }
+        ]
     }
 }
