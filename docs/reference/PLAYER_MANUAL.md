@@ -235,6 +235,9 @@ plus `up`/`u` and `down`/`d` for stairs and slopes, and `in`/`out` for
 doorways, gates, and other thresholds that aren't really a "direction"
 so much as a way through.
 
+Some ways cannot be walked: a sea of sand, say. If something waits for you (the room says so), `embark` to climb aboard it; it carries you
+wherever its ways go, and `disembark` leaves it parked where you stand, if it can be set down there.
+
 Some passages are locked, warded, or otherwise require something of
 you before they'll let you by — a key, a lockpick, or a skill you've
 practiced. The game will tell you what's missing when you try.
@@ -657,7 +660,7 @@ you're up against.
 
 | Category | Commands |
 |---|---|
-| **Movement** | `north` `south` `east` `west` `northeast` `northwest` `southeast` `southwest` `up` `down` `in` `out` `go <dir>` |
+| **Movement** | `north` `south` `east` `west` `northeast` `northwest` `southeast` `southwest` `up` `down` `in` `out` `go <dir>` `embark` `disembark` |
 | **Information** | `look` `status` `skills` `title` `advancement` `background` `backgrounds` `journal` `discoveries` `collection` `relationship(s)` `companions` `survey` `appraise` `calendar` `time` `weather` |
 | **Interaction** | `talk` `reply/respond/choose` `ask` `say` `yell` `give` `take/get` `drop` `use` `read` `examine` `open` `close` `unlock` `pick` `pull` `search` `follow` `guide` `wait` `plant` |
 | **Combat** | `attack` `flee`/`retreat` `combat` |

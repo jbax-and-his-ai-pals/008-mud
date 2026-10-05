@@ -73,6 +73,11 @@ const CONDITION_KINDS := {
 		"fields": {"region_id": "region_id"},
 		"note": "Seeded silently for the region a character starts in.",
 	},
+	"aboard": {
+		"label": "The player is aboard a vehicle",
+		"fields": {"vehicle_id": "string"},
+		"note": "A vehicle (data/vehicles) the player is riding; leave it blank for any.",
+	},
 	"companion_present": {
 		"label": "A companion is travelling with the player",
 		"fields": {"npc_id": "npc_id"},
@@ -172,6 +177,8 @@ const EFFECTS := {
 	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}", "kind": "json"},
 	"set_respawn": {"label": "Set where the player respawns", "shape": "{region, room}: where they rise again after dying", "kind": "json"},
 	"teach_companion": {"label": "A companion learns an ability", "shape": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
+	"place_vehicle": {"label": "Set a vehicle down somewhere", "shape": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
+	"board_vehicle": {"label": "Put the player aboard a vehicle", "shape": "vehicle id (data/vehicles); it comes to wherever they stand", "kind": "string"},
 	"play_scene": {"label": "Play a scene (the player watches)", "shape": "scene id (data/scenes)", "kind": "string"},
 	"end_scene": {"label": "End a scene without telling it (it counts as seen)", "shape": "scene id, or a list of them: what a checkpoint uses for the story so far", "kind": "string"},
 	"advance_time": {"label": "Let the night pass (the clock jumps on)", "shape": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},

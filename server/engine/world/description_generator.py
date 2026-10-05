@@ -71,6 +71,9 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
                     room_desc += f"\n\n{FORMAT_HIGHLIGHT}{extra_desc}{FORMAT_RESET}"
 
     full_description = title + room_desc
+    parked = world.vehicles.parked_line(current_region_id, current_room_id)
+    if parked:
+        full_description += f"\n\n{parked}"
 
     # 5. Entity Listings
     all_npcs_in_room = world.get_npcs_for_player(player)

@@ -35,6 +35,8 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     remove_npc        "template_or_instance_id" | {"npc": "id", "region": "r", "room": "x"}
     teach_companion   {"npc": "template_or_instance_id", "spell": "ability_id"}   a companion learns an ability (and keeps it)
     set_respawn       {"region": "r", "room": "x"}   where the player rises again after dying (a place the story has reached)
+    place_vehicle     {"vehicle": "skimmer", "region": "r", "room": "x"}   set a vehicle down somewhere (whoever rode it is put ashore)
+    board_vehicle     "skimmer"                      the player is put aboard it, wherever they stand (it comes to them)
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
     play_scene        "scene_id"                     the player watches a scene (data/scenes; world/scenes.py)
@@ -91,6 +93,7 @@ KNOWN_EFFECTS = frozenset({
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
     "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
+    "place_vehicle", "board_vehicle",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -183,6 +186,12 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"npc": "text", "spell": "text"},
         "required": ("npc", "spell"),
     },
+    "place_vehicle": {
+        "form": "object",
+        "fields": {"vehicle": "text", "region": "text", "room": "text"},
+        "required": ("vehicle", "region", "room"),
+    },
+    "board_vehicle": {"form": "text"},
     "remove_npc": {
         "form": "object", "bare": "text",
         "fields": {"npc": "text", "region": "text", "room": "text"},
@@ -222,6 +231,8 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}", "kind": "json"},
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
+    "place_vehicle": {"label": "Set a vehicle down somewhere", "hint": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
+    "board_vehicle": {"label": "Put the player aboard a vehicle", "hint": "vehicle id (data/vehicles); it comes to wherever they stand", "kind": "string", "refs": "vehicles"},
     "play_scene": {"label": "Play a scene (the player watches)", "hint": "scene id (data/scenes)", "kind": "string"},
     "end_scene": {"label": "End a scene without telling it (it counts as seen)", "hint": "scene id, or a list of them: what a checkpoint uses for the story so far", "kind": "string", "refs": "scenes"},
     "advance_time": {"label": "Let the night pass (the clock jumps on)", "hint": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},
@@ -1234,6 +1245,36 @@ def _apply_set_respawn_effect(effects: Dict[str, Any], context, report: EffectRe
     report.applied.append("respawn at %s:%s" % (region_id, room_id))
 
 
+def _apply_vehicle_effects(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`place_vehicle` then `board_vehicle`: a story moving a vehicle, and putting the player in it."""
+    world = _context_world(context)
+    registry = getattr(world, "vehicles", None)
+    player = context.get("player")
+    if "place_vehicle" in effects:
+        raw = effects["place_vehicle"]
+        if not isinstance(raw, dict):
+            report.failed.append("place_vehicle (must be an object)")
+        else:
+            vehicle_id = str(raw.get("vehicle", "") or "").strip()
+            region_id = str(raw.get("region", "") or "").strip()
+            room_id = str(raw.get("room", "") or "").strip()
+            region = world.get_region(region_id) if world is not None and region_id else None
+            if registry is None or vehicle_id not in registry.vehicles or region is None or region.get_room(room_id) is None:
+                report.failed.append("place_vehicle (no vehicle %s, or no room %s:%s)" % (vehicle_id, region_id, room_id))
+            else:
+                registry.place(vehicle_id, region_id, room_id)
+                report.applied.append("placed %s at %s:%s" % (vehicle_id, region_id, room_id))
+    if "board_vehicle" in effects:
+        vehicle_id = str(effects["board_vehicle"] or "").strip()
+        if registry is None or player is None or vehicle_id not in registry.vehicles:
+            report.failed.append("board_vehicle (no vehicle %s)" % vehicle_id)
+        else:
+            registry.abandon(player)   # whatever they were riding stays where it is
+            registry.place(vehicle_id, player.current_region_id, player.current_room_id)
+            registry.board(player, vehicle_id)
+            report.applied.append("boarded %s" % vehicle_id)
+
+
 def _apply_teleport_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     if "teleport" not in effects:
         return
@@ -1401,6 +1442,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("scene", lambda: _apply_scene_effect(effects, player, world, report)),
         ("teach", lambda: _apply_teach_companion_effect(effects, context, report)),
         ("respawn", lambda: _apply_set_respawn_effect(effects, context, report)),
+        ("vehicles", lambda: _apply_vehicle_effects(effects, context, report)),
         ("teleport", lambda: _apply_teleport_effect(effects, context, report)),
     )
     for label, step in steps:

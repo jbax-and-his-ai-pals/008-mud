@@ -30,6 +30,7 @@ from engine.world.save_manager import SaveManager
 from engine.world.definition_loader import load_all_definitions, initialize_new_world
 from engine.world.respawn_manager import RespawnManager
 from engine.world.scenes import SceneRunner
+from engine.world.vehicles import VehicleRegistry
 from engine.world.triggers import TriggerRunner
 from engine.world.instance_manager import InstanceManager
 from engine.world.housing_manager import HousingManager, HOUSE_ENTRY_SENTINEL
@@ -90,6 +91,8 @@ class World:
         self.trigger_runner = TriggerRunner(self)
         # What the player watches (`data/scenes/`): beats told a moment apart, with things happening between them.
         self.scene_runner = SceneRunner(self)
+        # What a player boards to go where they cannot go on foot (`data/vehicles/`); where each is lives in `world_state`.
+        self.vehicles = VehicleRegistry(self)
         # Things to tell a particular player that are not the answer to their command (their share of a
         # kill someone else finished); the server delivers them to whichever session the player is on.
         self.pending_player_notices: List[Tuple[Any, str]] = []
@@ -110,6 +113,7 @@ class World:
         load_all_definitions(self)
         self.trigger_runner.load(self.content_root)
         self.scene_runner.load(self.content_root)
+        self.vehicles.load(self.content_root)
 
     def _resolve_save_directory(self, configured_directory: Optional[str]) -> str:
         """Return the writable, content-set-scoped location for save files."""
@@ -580,6 +584,13 @@ class World:
                 fail_msg = dir_req.get("failure_message") or f"The way {direction} is closed to you: {reason}."
                 return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
 
+        elif req_type == "vehicle":
+            if not self.vehicles.requirement_met(player, dir_req):
+                wanted = dir_req.get("vehicle")
+                wanted = wanted if isinstance(wanted, str) else (wanted[0] if isinstance(wanted, list) and wanted else "")
+                fail_msg = dir_req.get("failure_message") or f"You would need {self.vehicles.name_of(wanted) if wanted else 'a vehicle'} to go that way."
+                return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
+
         elif req_type == "warning":
             # A warning is met once: the first attempt to go that way is refused and the warning told (a scene, so
             # it can be slow), the second goes through. Remembered on the player, like an opened door.
@@ -617,6 +628,7 @@ class World:
         dialogue_runner.release_on_departure(self, active_player)   # you cannot go on talking to someone you left
         from engine.npcs import companions
         companion_lines = companions.travel_with(self, active_player, *came_from)
+        self.vehicles.follow(active_player)   # what they ride goes where they go
 
         # NEW: Get quest updates (returns list of strings instead of printing)
         quest_updates = []

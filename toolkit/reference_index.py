@@ -62,6 +62,8 @@ NOT_INDEXED: Tuple[str, ...] = (
     "an NPC's dialogue graph binding (`properties.dialogue`) -- enforced by `content_set/`",
     "scenes: a `play_scene` effect's scene id, and the effects inside a scene's beats (spawns, moves, "
     "teleports) -- enforced by `content_set/`",
+    "vehicles: an exit requirement's `vehicle`, a `place_vehicle` / `board_vehicle` effect's vehicle id and an `aboard` "
+    "condition's `vehicle_id` -- enforced by `content_set/`",
     "a title's guild `place` and a quest's `spawn_on_entry.room_id` -- enforced by "
     "`content_set/` and the quest validator",
     "contract references (family -> profile, ability -> effect packet) -- enforced by "

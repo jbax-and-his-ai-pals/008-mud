@@ -83,6 +83,7 @@ func _init() -> void:
 	_check_sharing_vocabulary(vocabulary)
 	_check_level_up_vocabulary(vocabulary)
 	_check_scene_vocabulary(vocabulary)
+	_check_vehicle_vocabulary(vocabulary)
 	_check_attack_mode_vocabulary(vocabulary)
 	_check_messages_vocabulary(vocabulary)
 	_check_weather_vocabulary(vocabulary)
@@ -456,6 +457,14 @@ func _check_scene_vocabulary(vocabulary: Dictionary) -> void:
 	_assert(_as_set(engine.get("beat_keys", [])) == _as_set(schema.BEAT_KEYS), "beat keys match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("beat_keys", [])))), str(_sorted(_as_set(schema.BEAT_KEYS)))])
 	_assert(is_equal_approx(float(engine.get("default_first_wait", -1.0)), schema.DEFAULT_FIRST_WAIT) and is_equal_approx(float(engine.get("default_wait", -1.0)), schema.DEFAULT_WAIT), "the default waits are the same in both")
 	_assert(int(engine.get("max_wait", -1)) == schema.MAX_WAIT, "the longest wait is the same in both")
+
+
+func _check_vehicle_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[vehicles: editor vs engine]")
+	var schema = load("res://scripts/data/VehicleSchema.gd")
+	var engine: Dictionary = vocabulary.get("vehicles", {})
+	_assert(not engine.is_empty(), "the engine's vehicle vocabulary was read")
+	_assert(_as_set(engine.get("keys", [])) == _as_set(schema.KEYS), "vehicle keys match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("keys", [])))), str(_sorted(_as_set(schema.KEYS)))])
 
 
 func _check_level_up_vocabulary(vocabulary: Dictionary) -> void:

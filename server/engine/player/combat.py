@@ -324,5 +324,8 @@ class PlayerCombatMixin:
             p.runtime_state.combat.in_combat = False
             p.runtime_state.combat.targets.clear()
         p.active_effects = []
+        vehicles = getattr(getattr(p, "world", None), "vehicles", None)
+        if vehicles is not None:
+            vehicles.abandon(p)   # they walk away from whatever they were riding
         p.current_region_id = p.respawn_region_id
         p.current_room_id = p.respawn_room_id

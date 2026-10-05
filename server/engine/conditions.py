@@ -99,6 +99,12 @@ CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
         "refs": {"region_id": "regions"},
         "note": "Seeded silently for the region a character starts in.",
     },
+    "aboard": {
+        "label": "The player is aboard a vehicle",
+        "fields": {"vehicle_id": "string"},
+        "refs": {"vehicle_id": "vehicles"},
+        "note": "A vehicle (data/vehicles) the player is riding; leave it blank for any.",
+    },
     "companion_present": {
         "label": "A companion is travelling with the player",
         "fields": {"npc_id": "npc_id"},
@@ -461,6 +467,15 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
         mine = companions.companions_of(world, player)
         if not any(companions.is_recovering(npc) and (not wanted or wanted in (npc.template_id, npc.obj_id)) for npc in mine):
             reasons.append("%s is not recovering" % (wanted or "no companion"))
+            return False
+        return True
+
+    if kind == "aboard":
+        registry = getattr(getattr(player, "world", None), "vehicles", None)
+        wanted = str(node.get("vehicle_id", "")).strip()
+        riding = registry.aboard(player) if registry is not None else None
+        if riding is None or (wanted and riding != wanted):
+            reasons.append("needs to be aboard %s" % (registry.name_of(wanted) if registry is not None and wanted else "a vehicle"))
             return False
         return True
 

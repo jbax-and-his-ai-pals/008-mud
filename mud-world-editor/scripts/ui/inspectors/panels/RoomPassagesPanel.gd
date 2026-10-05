@@ -17,12 +17,13 @@ signal data_modified
 # Checked against the engine's `EXIT_REQUIREMENT_KEYS` / `ENV_INTERACTION_KEYS`
 # by `schema_parity_smoke.gd`.
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
-const REQUIREMENT_TYPES := ["locked", "skill", "condition", "warning"]
+const REQUIREMENT_TYPES := ["locked", "skill", "condition", "warning", "vehicle"]
 const REQUIREMENT_KEYS := {
 	"locked": ["type", "key_id", "pick_difficulty", "consume", "failure_message"],
 	"skill": ["type", "skill_name", "difficulty", "failure_message"],
 	"condition": ["type", "condition", "consume", "failure_message"],
 	"warning": ["type", "scene", "failure_message"],
+	"vehicle": ["type", "vehicle", "failure_message"],
 }
 const REACTION_TYPES := ["clear_exit_req", "suppress_hazard"]
 const REACTION_KEYS := {
@@ -92,6 +93,9 @@ func _requirement_row(direction: String, requirement: Dictionary) -> Control:
 	elif kind == "warning":
 		# Met once: the first attempt to go this way is refused and the scene (slow text) is told; the second goes through.
 		head.add_child(_text(requirement, "scene", "scene id"))
+	elif kind == "vehicle":
+		# Open only to someone aboard that vehicle (data/vehicles). A list of ids in the file is kept as it is.
+		head.add_child(_text(requirement, "vehicle", "vehicle id"))
 	else:
 		var key := OptionButton.new(); key.name = "KeyId"; key.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var ids: Array = database_mgr.get_item_ids() if database_mgr != null else []

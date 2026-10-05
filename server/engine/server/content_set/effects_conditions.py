@@ -167,6 +167,11 @@ def _check_effect_block(
             issues.append(ContentSetIssue("error", str(path), f"{where} effect teach_companion names npc '{pupil.get('npc')}', which is not defined in this content set"))
         if ids["spells"] and str(pupil.get("spell", "") or "").strip() not in ids["spells"]:
             issues.append(ContentSetIssue("error", str(path), f"{where} effect teach_companion names ability '{pupil.get('spell')}', which is not defined in this content set"))
+    parked = block.get("place_vehicle")
+    if isinstance(parked, dict):
+        if str(parked.get("vehicle", "") or "").strip() not in ids["vehicles"]:
+            issues.append(ContentSetIssue("error", str(path), f"{where} effect place_vehicle names vehicle '{parked.get('vehicle')}', which is not in data/vehicles of this content set"))
+        _check_room_reference(parked.get("region"), parked.get("room"), f"{where} effect place_vehicle", path, ids, issues)
     rise = block.get("set_respawn")
     if isinstance(rise, dict):
         _check_room_reference(rise.get("region"), rise.get("room"), f"{where} effect set_respawn", path, ids, issues)
@@ -397,6 +402,7 @@ EXIT_REQUIREMENT_KEYS = {
     "locked": ("type", "key_id", "pick_difficulty", "consume", "failure_message"),
     "condition": ("type", "condition", "consume", "failure_message"),
     "warning": ("type", "scene", "failure_message"),
+    "vehicle": ("type", "vehicle", "failure_message"),
 }
 ENV_INTERACTION_KEYS = {
     "clear_exit_req": ("type", "direction", "duration", "permanent", "message"),
@@ -513,7 +519,7 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                         continue
                     kind = requirement.get("type")
                     if kind not in EXIT_REQUIREMENT_KEYS:
-                        error(f"{label}.type must be 'skill', 'locked', 'condition' or 'warning' (anything else leaves the way open)")
+                        error(f"{label}.type must be 'skill', 'locked', 'condition', 'warning' or 'vehicle' (anything else leaves the way open)")
                         continue
                     for key in requirement:
                         if key not in EXIT_REQUIREMENT_KEYS[kind]:
@@ -533,6 +539,16 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                             error(f"{label}.condition is required, and may not be empty (an empty condition is open to everyone)")
                         else:
                             _check_condition(condition, f"{where} {label}.condition", path, condition_ids_for(), issues)
+                    elif kind == "vehicle":
+                        wanted = requirement.get("vehicle")
+                        listed = [wanted] if isinstance(wanted, str) else wanted
+                        if not isinstance(listed, list) or not listed or not all(isinstance(v, str) and v.strip() for v in listed):
+                            error(f"{label}.vehicle is required: a vehicle id, or a list of them")
+                        else:
+                            vehicle_ids = condition_ids_for()["vehicles"]
+                            for vehicle_id in listed:
+                                if vehicle_id not in vehicle_ids:
+                                    error(f"{label}.vehicle names vehicle '{vehicle_id}', which is not in data/vehicles of this content set")
                     elif kind == "warning":
                         scene = requirement.get("scene")
                         message = requirement.get("failure_message")
