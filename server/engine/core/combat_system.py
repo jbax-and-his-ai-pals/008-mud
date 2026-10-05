@@ -117,8 +117,11 @@ class CombatSystem:
         Performs a full attack calculation and generates descriptive messages.
         """
         # 1. Check Hit
+        from engine.npcs import phases as npc_phases
+
+        blocked = npc_phases.is_untouchable(defender)   # a creature in a phase nothing can touch (mist)
         hit_chance = 1.0 if always_hit else CombatSystem.calculate_hit_chance(attacker, defender)
-        is_hit = random.random() <= hit_chance
+        is_hit = (not blocked) and random.random() <= hit_chance
         
         # --- Name Resolution ---
         if viewer and attacker == viewer:
@@ -155,6 +158,10 @@ class CombatSystem:
         sentence = CombatSystem._mode_sentence(mode, att_name, attack_verb, att_possessive, display_weapon, def_name) if mode else None
 
         # --- Miss Message ---
+        if blocked:
+            counter = npc_phases.on_blocked_attack(defender, viewer)
+            result["message"] = npc_phases.miss_text(defender, att_name, def_name) + (("\n" + counter) if counter else "")
+            return result
         if not is_hit:
             if sentence:
                 result["message"] = f"{sentence}, but {miss_verb}!"

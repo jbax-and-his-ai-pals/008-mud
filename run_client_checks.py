@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -84,6 +85,19 @@ def isolated_environment(port: int, user_dir: Path) -> dict[str, str]:
 
 
 def run_check(godot: str, test: Path) -> tuple[bool, str]:
+    """One check. Godot (headless, under load) sometimes exits non-zero *after* every check inside has passed: a crash while
+    shutting down, not a failed check. That alone is run once more (and said so); a check that failed, or an exit that is
+    bad twice, is a failure."""
+    ok, output = _run_check_once(godot, test)
+    if not ok and re.search(r"\d+ checks, 0 failed", output) and not re.search(r"^\s*FAIL|SCRIPT ERROR", output, re.MULTILINE):
+        again_ok, again_output = _run_check_once(godot, test)
+        if again_ok:
+            return True, again_output + chr(10) + "(the first run passed every check but Godot exited badly; the second was clean)"
+        return False, output + chr(10) + "--- and again:" + chr(10) + again_output
+    return ok, output
+
+
+def _run_check_once(godot: str, test: Path) -> tuple[bool, str]:
     port = free_port()
     user_dir = Path(tempfile.mkdtemp(prefix="client_check_"))
     server = None
@@ -99,6 +113,8 @@ def run_check(godot: str, test: Path) -> tuple[bool, str]:
             return False, "timed out after %d seconds" % TIMEOUT_SECONDS
         output = (completed.stdout or "") + (completed.stderr or "")
         failed = completed.returncode != 0 or "FAIL" in output or "SCRIPT ERROR" in output
+        if completed.returncode != 0:
+            output += chr(10) + "(Godot exited with code %s)" % completed.returncode
         return (not failed), output
     except RuntimeError as problem:
         return False, str(problem)

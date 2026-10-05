@@ -40,6 +40,7 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null, i
 	_build_stats()
 	_build_behavior_tuning()
 	_build_usable_spells()
+	_build_phases()
 	_build_initial_inventory()
 	_build_worn_gear()
 	_build_gift_preferences()
@@ -768,6 +769,155 @@ func _refresh_usable_spells(rows: VBoxContainer):
 			_refresh_usable_spells(rows))
 		row.add_child(remove); rows.add_child(row)
 	if list.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+
+# `properties.phases` (`npcs/phases.py`): states a creature cycles through in a fight. A phase may be `untouchable`
+# (blows and abilities miss it) and then answer with a `counter` ability; an NPC in the room can speak a `hint` at each
+# change. Keys this panel does not show on a phase survive; a value left empty is erased rather than written.
+const PHASE_DEFAULT_COOLDOWN := 3.0
+
+func _build_phases():
+	container.add_child(HSeparator.new())
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.create_sub_header("Fight Phases"))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.name = "AddPhase"; add.text = "+ Phase"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	add.tooltip_text = "The creature cycles through its phases while it fights, each for the seconds given."
+	add.pressed.connect(func():
+		var list := _phases().duplicate(true); list.append({"seconds": 10})
+		_ensure_npc_properties()["phases"] = list
+		database_modified.emit()
+		_refresh_phases(container.find_child("Phases", true, false)))
+	header.add_child(add); container.add_child(header)
+	var rows := VBoxContainer.new(); rows.name = "Phases"; rows.add_theme_constant_override("separation", 6)
+	container.add_child(rows)
+	_refresh_phases(rows)
+
+func _phases() -> Array:
+	var list = _npc_properties().get("phases", [])
+	return list if list is Array else []
+
+func _refresh_phases(rows: VBoxContainer):
+	for child in rows.get_children(): rows.remove_child(child); child.queue_free()
+	var list := _phases()
+	for index in range(list.size()):
+		if list[index] is Dictionary: rows.add_child(_phase_card(index, list[index], rows))
+	if list.is_empty(): rows.add_child(InspectorStyle.lbl("None: it fights the same way throughout.", InspectorStyle.COLOR_TEXT_DIM))
+
+func _phase_card(index: int, phase: Dictionary, rows: VBoxContainer) -> Control:
+	var card := VBoxContainer.new(); card.name = "Phase_%d" % index; card.add_theme_constant_override("separation", 3)
+	var head := HBoxContainer.new(); head.add_theme_constant_override("separation", 6); card.add_child(head)
+	head.add_child(_phase_text(phase, "name", "name (e.g. solid, mist)", "PhaseName"))
+	head.add_child(InspectorStyle.lbl("for", InspectorStyle.COLOR_TEXT_DIM))
+	var seconds := SpinBox.new(); seconds.name = "PhaseSeconds"; seconds.min_value = 1; seconds.max_value = 600; seconds.step = 1
+	seconds.value = float(phase.get("seconds", 10)); seconds.suffix = "s"
+	seconds.value_changed.connect(func(value):
+		phase["seconds"] = int(value) if is_equal_approx(value, round(value)) else float(value)
+		database_modified.emit())
+	head.add_child(seconds)
+	var untouchable := CheckBox.new(); untouchable.name = "PhaseUntouchable"; untouchable.text = "Untouchable"
+	untouchable.tooltip_text = "Blows and abilities aimed at it miss, and its friends do not strike at it."
+	untouchable.button_pressed = bool(phase.get("untouchable", false))
+	untouchable.toggled.connect(func(pressed):
+		if pressed: phase["untouchable"] = true
+		else: phase.erase("untouchable")
+		database_modified.emit()
+		_refresh_phases(rows))
+	head.add_child(untouchable)
+	var remove := Button.new(); remove.name = "RemovePhase"; remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+	remove.pressed.connect(func():
+		var live: Array = _ensure_npc_properties().get("phases", [])
+		if index < live.size(): live.remove_at(index)
+		if live.is_empty(): _ensure_npc_properties().erase("phases")
+		database_modified.emit()
+		_refresh_phases(rows))
+	head.add_child(remove)
+	card.add_child(_phase_text(phase, "message", "told to the room when this phase begins", "PhaseMessage"))
+	card.add_child(_phase_hint(phase, "hint", "says, when this phase begins", "PhaseHint"))
+	if bool(phase.get("untouchable", false)):
+		card.add_child(_phase_text(phase, "miss_text", "told when a blow misses (optional)", "PhaseMissText"))
+		var counter_row := HBoxContainer.new(); counter_row.add_theme_constant_override("separation", 6); card.add_child(counter_row)
+		counter_row.add_child(InspectorStyle.lbl("Answers a blow with", InspectorStyle.COLOR_TEXT_DIM))
+		counter_row.add_child(_phase_spell_picker(phase))
+		counter_row.add_child(InspectorStyle.lbl("at most every", InspectorStyle.COLOR_TEXT_DIM))
+		var cooldown := SpinBox.new(); cooldown.name = "PhaseCounterCooldown"; cooldown.min_value = 0; cooldown.max_value = 120; cooldown.step = 0.5
+		cooldown.value = float(phase.get("counter_cooldown", PHASE_DEFAULT_COOLDOWN)); cooldown.suffix = "s"
+		cooldown.value_changed.connect(func(value):
+			if is_equal_approx(value, PHASE_DEFAULT_COOLDOWN): phase.erase("counter_cooldown")
+			else: phase["counter_cooldown"] = value
+			database_modified.emit())
+		counter_row.add_child(cooldown)
+		if str(phase.get("counter", "")) != "":
+			card.add_child(_phase_hint(phase, "counter_hint", "says, when it answers a blow", "PhaseCounterHint"))
+	card.add_child(HSeparator.new())
+	return card
+
+func _phase_text(phase: Dictionary, key: String, placeholder: String, node_name: String) -> LineEdit:
+	var field := LineEdit.new(); field.name = node_name; field.placeholder_text = placeholder
+	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	field.text = str(phase.get(key, ""))
+	field.text_changed.connect(func(text):
+		if text.strip_edges() == "": phase.erase(key)
+		else: phase[key] = text
+		database_modified.emit())
+	return field
+
+func _phase_spell_picker(phase: Dictionary) -> OptionButton:
+	var picker := OptionButton.new(); picker.name = "PhaseCounter"; picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	picker.add_item("(no counter)"); picker.set_item_metadata(0, "")
+	var current := str(phase.get("counter", ""))
+	var selected := 0
+	for spell_id in (db_manager.get_ids("magic") if db_manager != null else []):
+		var label := str(spell_id)
+		if db_manager != null and db_manager.magic.get(spell_id) is Dictionary:
+			label = "%s — %s" % [str(db_manager.magic[spell_id].get("name", spell_id)), spell_id]
+		picker.add_item(label); picker.set_item_metadata(picker.item_count - 1, str(spell_id))
+		if str(spell_id) == current: selected = picker.item_count - 1
+	if current != "" and selected == 0:
+		picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); selected = picker.item_count - 1
+	picker.select(selected)
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(chosen):
+		var value := str(picker.get_item_metadata(chosen))
+		if value == "": phase.erase("counter"); phase.erase("counter_hint")
+		else: phase["counter"] = value
+		database_modified.emit()
+		_refresh_phases(container.find_child("Phases", true, false)))
+	return picker
+
+## A spoken line: who (an NPC of this set, in the room), and what. Both empty erases it.
+func _phase_hint(phase: Dictionary, key: String, label: String, node_name: String) -> Control:
+	var hint = phase.get(key, {})
+	if not (hint is Dictionary): hint = {}
+	var row := HBoxContainer.new(); row.name = node_name; row.add_theme_constant_override("separation", 6)
+	var who := OptionButton.new(); who.name = node_name + "Npc"
+	who.add_item("(nobody)"); who.set_item_metadata(0, "")
+	var current := str(hint.get("npc", ""))
+	var selected := 0
+	for npc_id in (db_manager.get_ids("npc") if db_manager != null else []):
+		who.add_item(str(npc_id)); who.set_item_metadata(who.item_count - 1, str(npc_id))
+		if str(npc_id) == current: selected = who.item_count - 1
+	if current != "" and selected == 0:
+		who.add_item("Missing: " + current); who.set_item_metadata(who.item_count - 1, current); selected = who.item_count - 1
+	who.select(selected)
+	InspectorStyle.apply_button_style(who)
+	row.add_child(who)
+	row.add_child(InspectorStyle.lbl(label, InspectorStyle.COLOR_TEXT_DIM))
+	var text := LineEdit.new(); text.name = node_name + "Text"; text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.placeholder_text = "what they say"; text.text = str(hint.get("text", ""))
+	row.add_child(text)
+	var write := func():
+		var npc_id := str(who.get_item_metadata(who.selected))
+		var said := text.text.strip_edges()
+		if npc_id == "" and said == "":
+			phase.erase(key)
+		else:
+			var live: Dictionary = phase[key] if phase.get(key) is Dictionary else {}
+			live["npc"] = npc_id
+			live["text"] = text.text
+			phase[key] = live
+		database_modified.emit()
+	who.item_selected.connect(func(_i): write.call())
+	text.text_changed.connect(func(_t): write.call())
+	return row
 
 # `initial_inventory` (`npc_factory.py:216-235`): starting items, distinct from
 # `loot_table` -- these go into the NPC's carried inventory (stealable, tradeable

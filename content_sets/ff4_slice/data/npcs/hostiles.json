@@ -173,8 +173,8 @@
     },
     "fog_drake": {
         "name": "Fog Drake",
-        "description": "A long, pale dragon that seems to be made as much of fog as of scales. Blades pass through it as if through smoke.",
-        "max_health": 120,
+        "description": "A long, pale dragon that seems to be made as much of fog as of scales. Now and then it thins to nothing, and then no blade can find it.",
+        "max_health": 230,
         "level": 5,
         "friendly": false,
         "faction": "hostile",
@@ -189,13 +189,12 @@
             "spell_power": 1,
             "magic_resist": 1,
             "resistances": {
-                "physical": 60,
                 "holy": -50,
                 "shadow": 0
             }
         },
-        "attack_power": 6,
-        "defense": 4,
+        "attack_power": 10,
+        "defense": 2,
         "loot_table": {
             "gold_value": {
                 "chance": 1,
@@ -215,7 +214,35 @@
             "spell_cast_chance": 0.3,
             "wander_chance": 0,
             "move_cooldown": 9999,
-            "weapon_damage_type": "slashing"
+            "weapon_damage_type": "slashing",
+            "phases": [
+                {
+                    "name": "solid",
+                    "seconds": 12,
+                    "message": "[[RED]]The mist drains out of the Fog Drake, and its scales harden, grey and wet.[[/]]",
+                    "hint": {
+                        "npc": "captain_kessa",
+                        "text": "It has hardened! Hit it now!"
+                    }
+                },
+                {
+                    "name": "mist",
+                    "seconds": 10,
+                    "untouchable": true,
+                    "message": "[[RED]]The Fog Drake loses its edges and thins into mist.[[/]]",
+                    "miss_text": "The blow passes through the mist, and finds nothing.",
+                    "counter": "mist_breath",
+                    "counter_cooldown": 4,
+                    "hint": {
+                        "npc": "captain_kessa",
+                        "text": "It has turned to mist! Hold your blows until it hardens!"
+                    },
+                    "counter_hint": {
+                        "npc": "captain_kessa",
+                        "text": "Stop! You cannot hurt it like this. Wait for it to harden!"
+                    }
+                }
+            ]
         },
         "usable_spells": [
             "fog_breath"

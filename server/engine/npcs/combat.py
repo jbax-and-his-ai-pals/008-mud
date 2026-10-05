@@ -200,6 +200,11 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
         if not valid_targets: exit_combat(npc); return None
         target = random.choice(valid_targets); npc.combat_target = target
 
+    from engine.npcs import phases as npc_phases
+
+    if npc_phases.is_untouchable(target):
+        return None   # nothing to be gained by striking at mist: it waits for the creature to harden
+
     chosen_spell = None
     if npc.max_mana > 0 and npc.usable_spells and random.random() < npc.spell_cast_chance:
         if npc.mana / npc.max_mana < NPC_LOW_MANA_RETREAT_THRESHOLD:

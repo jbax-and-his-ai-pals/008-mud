@@ -37,6 +37,7 @@ func _init() -> void:
 	_check_the_untargetable_checkbox_writes_and_erases()
 	_check_the_attack_cooldown_writes()
 	_check_the_gear_rows()
+	_check_the_phase_rows()
 
 	if failure_count > 0:
 		push_error("npc faction/behavior failed (%d)" % failure_count)
@@ -201,6 +202,59 @@ func _check_the_untargetable_checkbox_writes_and_erases() -> void:
 	_assert(not manager.npcs["npc_probe"]["properties"].has("untargetable"), "and unticking it erases the key rather than writing false")
 
 
+func _check_the_phase_rows() -> void:
+	print("
+[the phase rows]")
+	var manager := _manager()
+	var holder := _build_inspector_from("npc_probe", manager)
+	var props: Dictionary = manager.npcs["npc_probe"]["properties"]
+	_assert(not props.has("phases"), "an NPC with no phases has none written by opening it")
+	var add := holder.find_child("AddPhase", true, false) as Button
+	_assert(add != null, "the section has a '+ Phase' button")
+	add.pressed.emit()
+	_assert(props.get("phases") is Array and props["phases"].size() == 1 and int(props["phases"][0].get("seconds", 0)) == 10, "adding writes one phase of ten seconds")
+	var phase: Dictionary = props["phases"][0]
+	var name_field := holder.find_child("PhaseName", true, false) as LineEdit
+	name_field.text = "mist"; name_field.text_changed.emit("mist")
+	_assert(phase.get("name") == "mist", "typing a name writes it")
+	name_field.text = ""; name_field.text_changed.emit("")
+	_assert(not phase.has("name"), "and clearing it erases the key rather than writing an empty string")
+	var seconds := holder.find_child("PhaseSeconds", true, false) as SpinBox
+	seconds.value = 12
+	seconds.value_changed.emit(12.0)   # a SpinBox set in code does not announce it; the user's edit does
+	_assert(int(phase.get("seconds", 0)) == 12 and typeof(phase["seconds"]) == TYPE_INT, "the length is written as a whole number (got %s, type %d)" % [str(phase.get("seconds")), typeof(phase.get("seconds"))])
+	_assert(holder.find_child("PhaseCounter", true, false) == null, "a counter is offered only to an untouchable phase")
+	var untouchable := holder.find_child("PhaseUntouchable", true, false) as CheckBox
+	untouchable.toggled.emit(true)
+	_assert(phase.get("untouchable") == true, "ticking Untouchable writes it")
+	var counter := holder.find_child("PhaseCounter", true, false) as OptionButton
+	_assert(counter != null, "and then the counter picker appears")
+	var offered: Array = []
+	for index in counter.item_count: offered.append(str(counter.get_item_metadata(index)))
+	_assert(offered.has("probe_breath"), "it offers the set's abilities (offered %s)" % str(offered))
+	counter.item_selected.emit(offered.find("probe_breath"))
+	_assert(phase.get("counter") == "probe_breath", "choosing one writes it")
+	_assert(holder.find_child("PhaseCounterHint", true, false) != null, "and a hint for when it answers is offered")
+	var hint_who := holder.find_child("PhaseHintNpc", true, false) as OptionButton
+	var hint_text := holder.find_child("PhaseHintText", true, false) as LineEdit
+	var npc_ids: Array = []
+	for index in hint_who.item_count: npc_ids.append(str(hint_who.get_item_metadata(index)))
+	hint_who.select(npc_ids.find("npc_declared"))
+	hint_who.item_selected.emit(hint_who.selected)
+	hint_text.text = "Wait for it!"; hint_text.text_changed.emit("Wait for it!")
+	_assert(phase.get("hint") is Dictionary and phase["hint"].get("npc") == "npc_declared" and phase["hint"].get("text") == "Wait for it!", "a hint writes who and what")
+	hint_who.select(0)
+	hint_who.item_selected.emit(0)
+	hint_text.text = ""; hint_text.text_changed.emit("")
+	_assert(not phase.has("hint"), "and clearing both erases the hint")
+	phase["somebody_elses_key"] = 1
+	untouchable.toggled.emit(false)
+	_assert(not phase.has("untouchable") and phase.get("somebody_elses_key") == 1, "unticking erases the flag and leaves other keys alone")
+	var remove := holder.find_child("RemovePhase", true, false) as Button
+	remove.pressed.emit()
+	_assert(not props.has("phases"), "removing the last phase erases the list")
+
+
 func _checkbox_labeled(node: Node, text: String) -> CheckBox:
 	if node is CheckBox and str(node.text) == text:
 		return node
@@ -220,6 +274,10 @@ func _rebuild_fixture() -> void:
 			"extra": [{"id": "raiders", "disposition": "hostile"}],
 			"overrides": {"neutral": "friendly"},
 		},
+	})
+	_write("data/magic/probe_spells.json", {
+		"probe_breath": {"name": "Probe Breath", "description": "", "mana_cost": 0, "cooldown": 1, "target_type": "all_enemies",
+			"cast_message": "x", "hit_message": "x", "level_required": 1, "effects": [{"type": "damage", "value": 5, "damage_type": "air"}]},
 	})
 	_write("data/npcs/probe.json", {
 		"npc_probe": {"name": "Probe", "description": "", "level": 1, "health": 10, "friendly": true, "properties": {}},

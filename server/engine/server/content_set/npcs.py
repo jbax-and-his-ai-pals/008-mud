@@ -215,7 +215,7 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
 # notes there), so an unknown key is only reported when it is a near miss of one of these.
 _NPC_PROPERTY_KEYS = (
     "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "attack_cooldown", "respawn_cooldown",
-    "essential", "pacifist", "untargetable", "rejoin_health", "recovering", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
+    "essential", "pacifist", "untargetable", "phases", "rejoin_health", "recovering", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
     "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
     "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
     "can_unlock_chests", "work_location", "tariff", "gift_preferences", "relationship_milestones",
@@ -235,6 +235,58 @@ def _npc_property_near_misses(properties: dict, label: str) -> list[str]:
         if near:
             messages.append(f"{label}.{key} is not a property the engine reads; did you mean '{near[0]}'?")
     return messages
+
+
+def _phase_errors(phases: Any, label: str, spell_ids: set[str], npc_ids: set[str]) -> list[str]:
+    """`properties.phases` (`npcs/phases.py`): a list of phases the creature cycles through in a fight."""
+    from engine.npcs.phases import HINT_KEYS, PHASE_KEYS
+
+    if not isinstance(phases, list) or not phases:
+        return [f"{label}.phases must be a non-empty list of phases"]
+    errors: list[str] = []
+    for index, phase in enumerate(phases):
+        where = f"{label}.phases[{index}]"
+        if not isinstance(phase, dict):
+            errors.append(f"{where} must be an object")
+            continue
+        for key in phase:
+            if key not in PHASE_KEYS:
+                errors.append(f"{where}.{key} is not read (known: {', '.join(PHASE_KEYS)})")
+        seconds = phase.get("seconds")
+        if isinstance(seconds, bool) or not isinstance(seconds, (int, float)) or seconds < 1:
+            errors.append(f"{where}.seconds is required: how long the phase lasts, a number of at least 1")
+        for key in ("name", "message", "counter", "miss_text"):
+            if key in phase and not isinstance(phase[key], str):
+                errors.append(f"{where}.{key} must be text")
+        if "untouchable" in phase and not isinstance(phase["untouchable"], bool):
+            errors.append(f"{where}.untouchable must be true or false")
+        if "counter_cooldown" in phase:
+            value = phase["counter_cooldown"]
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+                errors.append(f"{where}.counter_cooldown must be a number of seconds, 0 or more")
+        if isinstance(phase.get("counter"), str) and spell_ids and phase["counter"] not in spell_ids:
+            errors.append(f"{where}.counter names ability '{phase['counter']}', which this content set does not define")
+        if "counter" in phase and phase.get("untouchable") is not True:
+            errors.append(f"{where}.counter only answers a blow struck at an untouchable phase: set untouchable, or drop the counter")
+        if "counter_hint" in phase and not phase.get("counter"):
+            errors.append(f"{where}.counter_hint is told when the counter is: there is no counter")
+        for key in ("hint", "counter_hint"):
+            if key not in phase:
+                continue
+            hint = phase[key]
+            if not isinstance(hint, dict):
+                errors.append(f"{where}.{key} must be an object {{npc, text}}")
+                continue
+            for hint_key in hint:
+                if hint_key not in HINT_KEYS:
+                    errors.append(f"{where}.{key}.{hint_key} is not read (known: {', '.join(HINT_KEYS)})")
+            if not isinstance(hint.get("text"), str) or not hint["text"].strip():
+                errors.append(f"{where}.{key}.text is required")
+            if not isinstance(hint.get("npc"), str) or not hint["npc"].strip():
+                errors.append(f"{where}.{key}.npc is required: who says it")
+            elif npc_ids and hint["npc"] not in npc_ids:
+                errors.append(f"{where}.{key}.npc names '{hint['npc']}', which is not an NPC of this content set")
+    return errors
 
 
 def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> list[str]:
@@ -322,6 +374,12 @@ def _validate_npc_template_runtime_shapes(
             if isinstance(room_id, str) and room_id.strip():
                 room_refs.add(f"{region_id}:{room_id}")
 
+    all_npc_ids: set[str] = set()
+    for path in sorted((content_root / "npcs").glob("*.json")):
+        known = _load_json(path, [], "NPC definitions")
+        if isinstance(known, dict):
+            all_npc_ids |= {str(key) for key in known if not str(key).startswith("_")}
+
     for path in sorted((content_root / "npcs").glob("*.json")):
         payload = _load_json(path, issues, "NPC definitions")
         if not isinstance(payload, dict):
@@ -363,6 +421,9 @@ def _validate_npc_template_runtime_shapes(
                     issues.append(ContentSetIssue("error", str(path), message))
                 for message in _npc_property_near_misses(properties, f"{label}.properties"):
                     issues.append(ContentSetIssue("warning", str(path), message))
+                if "phases" in properties:
+                    for message in _phase_errors(properties["phases"], f"{label}.properties", spell_ids, all_npc_ids):
+                        issues.append(ContentSetIssue("error", str(path), message))
 
             if "patrol_points" in template:
                 points = template["patrol_points"]

@@ -46,7 +46,7 @@
         "effects": [
             {
                 "type": "damage",
-                "value": 12,
+                "value": 5,
                 "damage_type": "air"
             }
         ]
@@ -88,6 +88,23 @@
             {
                 "type": "damage",
                 "value": 5,
+                "damage_type": "air"
+            }
+        ]
+    },
+    "mist_breath": {
+        "name": "Mist Breath",
+        "description": "A freezing wave of mist that breaks over everyone in reach.",
+        "mana_cost": 0,
+        "cooldown": 1,
+        "target_type": "all_enemies",
+        "cast_message": "[[RED]]{caster_name} breathes out a roiling wave of freezing mist![[/]]",
+        "hit_message": "The mist batters {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 10,
                 "damage_type": "air"
             }
         ]

@@ -113,6 +113,14 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
             final_val = max(MINIMUM_SPELL_EFFECT_VALUE, int(stat_based_value * damage_heal_mod))
 
         if eff_type == "damage":
+            from engine.npcs import phases as npc_phases
+
+            if npc_phases.is_untouchable(target):
+                # A creature in a phase nothing can touch (mist): the ability passes through it, and it answers.
+                shown = format_name_for_display(viewer, target, start_of_sentence=False) if viewer else target_name_raw
+                counter = npc_phases.on_blocked_attack(target, viewer)
+                messages.append("%s passes straight through %s!" % (spell.name, shown) + (("\n" + counter) if counter else ""))
+                continue
             if hasattr(target, 'take_damage'):
                 health_before = getattr(target, "health", 0)
                 dmg = getattr(target, 'take_damage')(final_val, damage_type=eff_dmg_type)

@@ -554,6 +554,64 @@ class TestFF4Slice(_Slice):
         self.assertIn("comes apart into long grey ribbons", printed)
         self.assertIs(True, self.player.flags.get("drake_slain"))
 
+    def _into_the_hollow(self):
+        apply_effects({"give_rewards": {"xp": 250}}, {"player": self.player, "world": self.world})
+        self.player.health = self.player.max_health
+        self.at("fogreach", "fog_gallery")
+        self.player.flags["exit_warned:fogreach:fog_gallery:south"] = True
+        self._kessa_joins()
+        self.say("go south")
+        self._let_scenes_play(16)
+        return self.npcs("fog_drake")[0]
+
+    def test_the_fog_drake_alternates_between_solid_and_mist_and_kessa_says_so(self):
+        from engine.npcs import phases
+
+        drake = self._into_the_hollow()
+        self.assertEqual(["solid", "mist"], [p["name"] for p in phases.phases_of(drake)])
+        told = []
+        seen = set()
+        for _ in range(60):
+            self.world.clock.advance(1.0)
+            told += [str(e["payload"]) for e in self.server.tick(self.sid) + self.server._flush_background_batch(self.sid) if e["type"] == "text"]
+            seen.add(phases.is_untouchable(drake))
+        text = _MARKUP.sub("", chr(10).join(told))
+        self.assertEqual({True, False}, seen, "it is sometimes touchable and sometimes not")
+        self.assertIn("thins into mist", text)
+        self.assertIn("scales harden", text)
+        self.assertIn("Captain Kessa shouts", text, "and Kessa reads the fight aloud")
+
+    def test_swinging_at_the_mist_costs_health_and_waiting_for_it_to_harden_does_not(self):
+        from engine.npcs import phases
+
+        drake = self._into_the_hollow()
+        for _ in range(40):   # to its mist
+            if phases.is_untouchable(drake):
+                break
+            self._let_scenes_play(1)
+        self.assertTrue(phases.is_untouchable(drake))
+        health, drake_health = self.player.health, drake.health
+        said = self.say("attack drake")
+        self.assertIn("passes through the mist", said)
+        self.assertLess(self.player.health, health, "the drake's breath answers the blow")
+        self.assertEqual(drake_health, drake.health, "and the blow did nothing")
+
+    def test_the_fog_drake_is_beaten_by_striking_only_while_it_is_solid(self):
+        from engine.npcs import phases
+
+        drake = self._into_the_hollow()
+        for _ in range(240):
+            self._let_scenes_play(1)
+            if not drake.is_alive or not self.player.is_alive:
+                break
+            if self.player.health < 0.4 * self.player.max_health:
+                self.say("use potion")
+            if not phases.is_untouchable(drake):
+                self.say("attack drake")
+        self.assertTrue(self.player.is_alive, "the hero survives a fight fought sensibly")
+        self.assertFalse(drake.is_alive, "and the drake falls")
+        self.assertIs(True, self.player.flags.get("drake_slain"))
+
     def test_the_cave_warns_three_times_and_each_warning_stops_the_first_try_south(self):
         for room, after, spoken in (("crystal_pool", "narrow_ledge", "turn back"), ("narrow_ledge", "fog_gallery", "Go back"),
                                     ("fog_gallery", "fog_hollow", "last chance to turn back")):

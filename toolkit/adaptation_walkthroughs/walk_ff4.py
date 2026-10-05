@@ -182,7 +182,10 @@ say(g, "go north")
 check("and there is no leaving", g.where() == "fogreach:fog_hollow", g.where())
 
 
-def fight_with_spell(target, spell, max_rounds=120):
+from engine.npcs import phases
+
+
+def fight_with_spell(target, spell, max_rounds=300):
     """Aldric's Gloom Wave costs an eighth of his health and no mana: cast while he can afford it,
     drink a potion when he is low, and use the sword while the ability cools down."""
     swings = 0
@@ -191,6 +194,10 @@ def fight_with_spell(target, spell, max_rounds=120):
         if not g._alive(target):
             return "won in %d rounds, %d casts (hp %d/%d)" % (swings, casts, g.player.health, g.player.max_health)
         pl = g.player
+        if any(phases.is_untouchable(n) for n in g._alive(target)):
+            g.tick(2)   # it is mist: nothing can touch it, and a blow is answered. Kessa says to wait; so do we
+            swings += 1
+            continue
         if pl.health < 0.45 * pl.max_health and any("potion" in i for i in g.items()):
             g.run("use potion")
         said = g.run("cast %s on %s" % (spell, target)) if pl.health > 0.3 * pl.max_health else ""
@@ -201,7 +208,7 @@ def fight_with_spell(target, spell, max_rounds=120):
         swings += 1
         if os.environ.get("WALK_DEBUG"):
             print("      round %d: hp %d/%d, %s hp %s, casts %d" % (swings, g.player.health, g.player.max_health, target, [int(n.health) for n in g._alive(target)], casts))
-        g.tick(21)
+        g.tick(3)
         if not g.player.is_alive:
             return "player died after %d rounds" % swings
     return "no result after %d rounds" % swings

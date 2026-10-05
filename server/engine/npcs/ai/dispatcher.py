@@ -71,6 +71,13 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
                      initiate_msg = scan_for_targets(npc, world, player, force_aggression=True)
                      if initiate_msg: return initiate_msg
 
+    # --- 2b. A creature with phases moves on to the next when this one is over ---
+    if npc.properties.get("phases"):
+        from engine.npcs import phases as npc_phases
+
+        phase_lines = npc_phases.update(npc, world, current_time)
+        if phase_lines: return "\n\n".join(phase_lines)
+
     # --- 3. High-priority specialized actions ---
     if npc.behavior_type == "healer":
         heal_msg = perform_healer_logic(npc, world, current_time, player)
