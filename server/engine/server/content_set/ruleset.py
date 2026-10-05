@@ -208,6 +208,20 @@ def _validate_simple_ruleset_sections(
             for key in ("base_difficulty", "difficulty_per_hostile_level"):
                 if key in retreat:
                     number(retreat[key], f"combat.retreat.{key}", low=0)
+    pacing_section = combat.get("pacing")
+    if pacing_section is not None:
+        from engine.npcs.pacing import GAP_RANGE, PACING_KEYS, SCALE_RANGE
+
+        if not isinstance(pacing_section, dict):
+            error("combat.pacing must be an object")
+        else:
+            for key in pacing_section:
+                if key not in PACING_KEYS:
+                    error(f"combat.pacing.{key} is not read (known: {', '.join(PACING_KEYS)})")
+            if "npc_cooldown_scale" in pacing_section:
+                number(pacing_section["npc_cooldown_scale"], "combat.pacing.npc_cooldown_scale", low=SCALE_RANGE[0], high=SCALE_RANGE[1])
+            if "action_gap" in pacing_section:
+                number(pacing_section["action_gap"], "combat.pacing.action_gap", low=GAP_RANGE[0], high=GAP_RANGE[1])
     sharing = combat.get("experience_sharing")
     if sharing is not None:
         from engine.core.kill_credit import EXPERIENCE_SHARING_MODES

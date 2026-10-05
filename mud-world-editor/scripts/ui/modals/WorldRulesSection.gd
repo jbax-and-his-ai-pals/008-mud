@@ -1,6 +1,6 @@
 # scripts/ui/modals/WorldRulesSection.gd
 #
-# Seven small ruleset sections, each validated by
+# Eight small ruleset sections, each validated by
 # `content_set/ruleset.py::_validate_simple_ruleset_sections`: economy, locksmithing,
 # calendar, spawning, elites, npc_naming and player_defaults. A field is
 # written only when the author changed it, so untouched values (and keys this
@@ -28,6 +28,8 @@ const FIELDS := [
 	["npc_naming", "random_name_pattern", "Random NPC name pattern ({first_name} {title})", "text", "{first_name}"],
 	["npc_naming", "first_names", "First names (comma-separated)", "list", ""],
 	["companions", "max", "Companions a character may bring along (0: none)", "int", [0, 12]],
+	["combat", "pacing.npc_cooldown_scale", "Everyone but the player strikes this many times slower (1: as authored)", "number", [1.0, 10.0, 0.05]],
+	["combat", "pacing.action_gap", "Seconds between any two creatures' actions in a room (0: no gap)", "number", [0.0, 10.0, 0.1]],
 	["player_defaults", "player_class", "Default player class", "text", "Adventurer"],
 	["player_defaults", "magic.known_spells", "Default known spells (ability ids, comma-separated)", "list", ""],
 ]
@@ -36,6 +38,7 @@ const ENGINE_DEFAULTS := {
 	"elites.chance": 0.0, "elites.stat_multiplier": 1.5,
 	"elites.loot_guaranteed_chance": 1.0, "elites.loot_quantity_multiplier": 1.5,
 	"companions.max": 1,
+	"combat.pacing.npc_cooldown_scale": 1.0, "combat.pacing.action_gap": 0.0,
 }
 
 var on_change: Callable

@@ -473,6 +473,10 @@ health starts a new tally at once). The same shares split the money the creature
 and the player who is watching is told what they earned in the kill's own message, before the quest update.
 The ruleset editor has a section for it ("Experience from a kill").
 
+**The rhythm of a fight.** Every creature but the player acts on its own cooldown (`properties.attack_cooldown`). `ruleset.combat.pacing` slows and staggers all of them at once, so a party and a crowd do not fire in the same instant: `"npc_cooldown_scale"` (1 to 10, default 1) stretches every creature's pause between actions, monsters, allies, companions and summons alike, and `"action_gap"` (0 to 10 seconds, default 0) is the least time between any two creatures' actions in the same room, so their blows arrive one after another. The player's own cooldown is untouched: they are the quick one. A world with no `pacing` is as it always was. `python toolkit/combat_noise.py <set> <checkpoint> "go east"...` plays a fight and reports lines a second, to tune it by.
+
+**How much of a fight a player reads.** The player chooses with `combat full` (every line, and where everyone starts), `combat normal` (what matters in full, the rest folded into a short summary every few seconds) or `combat brief` (only what matters). What matters, always told in full: a blow at the player, a death, a spell, song or special attack, a friend knocked low. The numbers stay in the text at every level. The choice is kept with the character.
+
 What each capability gives you, and what the gate says when the content is thin:
 
 | Capability | Turns on | The common first message |

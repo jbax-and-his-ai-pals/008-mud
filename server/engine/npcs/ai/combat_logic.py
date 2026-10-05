@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 from engine.utils.articles import the
 from engine.utils.utils import format_name_for_display, get_departure_phrase
 from .movement import execute_move
-from engine.npcs import combat as npc_combat
+from engine.npcs import combat as npc_combat, combat_detail
 from engine.world import factions
 
 if TYPE_CHECKING:
@@ -227,6 +227,8 @@ def _execute_immediate_attack_msg(npc: 'NPC', world: 'World', target, player: 'P
         att_name = format_name_for_display(player, npc, start_of_sentence=True)
         def_name = format_name_for_display(player, target, start_of_sentence=False)
         engage_message = f"{att_name} moves to attack {def_name}!"
+        if target is not player and combat_detail.level_of(player) != "full":
+            engage_message = ""   # who turns on whom is routine unless it is the player they turn on
 
     if immediate_msg:
         return (engage_message + "\n" + immediate_msg).strip()

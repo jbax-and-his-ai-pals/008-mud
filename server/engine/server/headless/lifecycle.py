@@ -18,6 +18,7 @@ import re
 import engine.commands  # noqa: F401 - force command module registration
 from engine.commands.command_system import CommandProcessor
 from engine.core.clock import Clock, SimulatedClock, WallClock
+from engine.npcs import combat_detail
 from engine.core.advancement import AdvancementManager
 from engine.core.backgrounds import BackgroundManager
 from engine.core.collection_manager import CollectionManager
@@ -227,6 +228,7 @@ class LifecycleMixin:
                 if scene_player is not None:
                     quest_manager.resume_scenes(scene_player)
         self.world.run_scheduled()
+        combat_detail.flush_due(self.world, float(self.world.clock.now()))
         notices, self.world.pending_player_notices = self.world.pending_player_notices, []
         for notified, msg in notices:
             for other_session_id in self.sessions:

@@ -131,6 +131,15 @@ func set_world_rules(sections: Dictionary):
 	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "companions"]:
 		if sections.has(name): data[name] = sections[name].duplicate(true)
 		else: data.erase(name)
+	# `combat` is shared with the sharing and retreat editors, so only the pacing this form owns is taken from it.
+	var combat_form = sections.get("combat", {})
+	var pacing = combat_form.get("pacing", {}) if combat_form is Dictionary else {}
+	if pacing is Dictionary and not pacing.is_empty():
+		if not (data.get("combat") is Dictionary): data["combat"] = {}
+		data["combat"]["pacing"] = pacing.duplicate(true)
+	elif data.get("combat") is Dictionary and data["combat"].has("pacing"):
+		data["combat"].erase("pacing")
+		if data["combat"].is_empty(): data.erase("combat")
 
 func set_crime(section: Dictionary):
 	if section.is_empty(): data.erase("crime")

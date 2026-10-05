@@ -39,6 +39,8 @@ func _run():
 	_assert(not rules.get_ok_button().disabled, "an edit enables Save")
 	(section.controls["elites.chance"] as SpinBox).value = 0.1
 	(section.controls["calendar.start_time.hour"] as SpinBox).value = 7
+	(section.controls["combat.pacing.npc_cooldown_scale"] as SpinBox).value = 1.5
+	(section.controls["combat.pacing.action_gap"] as SpinBox).value = 1.2
 	_edit(section.controls["elites.prefixes"], "Alpha, Elder, Ancient, Dread, Savage, Greater, Feral, Grizzled, Hoary")
 	var knife_row: Node = section.inventory_rows.get_child(1)
 	(knife_row.get_node("Quantity") as SpinBox).value = 2
@@ -56,6 +58,8 @@ func _run():
 	_assert(is_equal_approx(float(after["elites"]["chance"]), 0.1), "the elite chance was saved")
 	_assert(int(after["calendar"]["start_time"]["hour"]) == 7 and int(after["calendar"]["start_time"]["minute"]) == 0, "the start hour was saved, minute untouched")
 	_assert(after["elites"]["prefixes"].back() == "Hoary", "the prefix list was saved")
+	_assert(is_equal_approx(float(after["combat"]["pacing"]["npc_cooldown_scale"]), 1.5) and is_equal_approx(float(after["combat"]["pacing"]["action_gap"]), 1.2), "the combat pacing was saved")
+	_assert(_same(after["combat"].get("retreat"), before.get("combat", {}).get("retreat")), "and the rest of the combat section was left as it was")
 	_assert(_same(after["player_defaults"]["starting_inventory"][1], {"item_id": "item_foraging_knife", "quantity": 2}), "the quantity was saved")
 	_assert(after["npc_naming"] == before["npc_naming"], "the corrected pattern left npc_naming as it was")
 	_assert(after["calendar"]["day_names"] == before["calendar"]["day_names"], "untouched day names survive")

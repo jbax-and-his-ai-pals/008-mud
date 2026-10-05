@@ -4,6 +4,7 @@ Contains all commands related to player combat actions.
 """
 from engine.commands.command_system import command
 from engine.config import FORMAT_ERROR, FORMAT_RESET
+from engine.npcs import combat_detail
 
 # "hit" is intentionally not an alias here -- gambling.py's blackjack "hit"
 # command already owns that word, and registered_commands is a flat
@@ -52,8 +53,26 @@ def attack_handler(args, context):
     attack_result = player.attack(target_npc, world)
     return attack_result["message"]
 
-@command("combat", ["cstat", "fightstatus"], "combat", "Show combat status.", content_capability="combat")
+@command("combat", ["cstat", "fightstatus"], "combat",
+         "Show combat status, or choose how much of a fight you read.\nUsage: combat | combat full | combat normal | combat brief",
+         content_capability="combat")
 def combat_status_handler(args, context):
     player = context.get("player")
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+    if args:
+        choice = str(args[0]).strip().lower()
+        if choice == "detail" and len(args) > 1:
+            choice = str(args[1]).strip().lower()
+        if choice not in combat_detail.LEVELS:
+            return (f"{FORMAT_ERROR}Combat detail is one of: {', '.join(combat_detail.LEVELS)}.{FORMAT_RESET}"
+                    f" Now: {combat_detail.level_of(player)}.")
+        combat_detail.set_level(player, choice)
+        return COMBAT_DETAIL_TEXT[choice]
     return player.get_combat_status()
+
+
+COMBAT_DETAIL_TEXT = {
+    "full": "You will read every blow of every fight.",
+    "normal": "You will read what matters in full (blows at you, spells and songs, deaths, a friend in trouble) and the rest in short summaries.",
+    "brief": "You will read only what matters: blows at you, spells and songs, deaths, a friend in trouble.",
+}

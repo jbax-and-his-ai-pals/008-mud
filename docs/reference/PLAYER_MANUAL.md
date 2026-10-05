@@ -365,6 +365,8 @@ something you learn by noticing what works, same as sizing up a fight.
 Check `combat` (or `cstat`/`fightstatus`) at any time for a status
 readout of your current fight.
 
+A big fight can be a lot to read. `combat normal` folds what your companions and the enemies do to each other into a short summary every few seconds and keeps what matters in full (blows at you, spells and songs, deaths, a friend in trouble); `combat brief` keeps only what matters; `combat full` (where you start) shows every line.
+
 **If you fall**, you are not out of the game — you can `respawn` and carry on.
 Dying costs you the fight, not your progress.
 

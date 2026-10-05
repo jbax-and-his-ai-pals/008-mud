@@ -11,7 +11,7 @@ from engine.config import (
 from engine.config.config_display import FORMAT_ERROR
 from engine.core.combat_system import CombatSystem
 from engine.contracts.equipment import choose_attack_mode
-from engine.npcs import companion_gear
+from engine.npcs import companion_gear, combat_detail, pacing
 from engine.magic.effects import apply_spell_effect
 from engine.magic.spell_registry import get_spell
 from engine.utils.text_formatter import format_target_name, get_level_diff_category
@@ -156,7 +156,8 @@ def attack(npc: 'NPC', target) -> Dict[str, Any]:
         mode=mode,
     )
 
-    return {"message": combat_result["message"], "target_defeated": combat_result["target_defeated"]}
+    return {"message": combat_result["message"], "target_defeated": combat_result["target_defeated"],
+            "routine": True, "damage": combat_result.get("damage", 0)}
 
 def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]:
     is_actively_hostile = target in npc.combat_targets or is_hostile_to(npc, target)
@@ -204,7 +205,8 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
     player = world.get_viewer_for_npc(npc)
     owner = world.get_player_by_id(npc.properties.get("owner_id")) if getattr(npc, "properties", None) else None
     
-    if current_time - npc.last_combat_action < npc.combat_cooldown: return None
+    if current_time - npc.last_combat_action < pacing.cooldown_of(world, npc.combat_cooldown): return None
+    if not pacing.room_is_open(world, npc, current_time): return None   # someone else has the beat
     
     target = npc.combat_target
     if not (target and target.is_alive and target.current_room_id == npc.current_room_id):
@@ -245,11 +247,12 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
     if chosen_spell:
         action_result = cast_spell(npc, chosen_spell, target, current_time)
         npc.last_combat_action = current_time
-    elif current_time - npc.last_attack_time >= npc.attack_cooldown:
+    elif current_time - npc.last_attack_time >= pacing.cooldown_of(world, npc.attack_cooldown):
         action_result = attack(npc, target)
         npc.last_attack_time = npc.last_combat_action = current_time
     
     if action_result:
+        pacing.note_action(world, npc, current_time)
         messages = [action_result.get("message")]
         
         if action_result.get("target_defeated", False):
@@ -343,6 +346,8 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
             and player.current_region_id == npc.current_region_id
             and player.current_room_id == npc.current_room_id
         )
-        if player_was_killed or player_is_watching:
+        if player_was_killed:
             return final_message
+        if player_is_watching:
+            return combat_detail.shape(world, player, npc, target, action_result, final_message, current_time)
     return None

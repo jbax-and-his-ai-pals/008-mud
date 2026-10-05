@@ -519,7 +519,7 @@ _SIMPLE_RULESET_SECTION_KEYS = {
     "player_defaults": ("player_class", "magic", "starting_inventory"),
     "npc_naming": ("first_names", "random_name_pattern"),
     "status": ("stats",),
-    "combat": ("retreat", "experience_sharing", "additional_blocked_command_names", "additional_combat_message_tokens"),
+    "combat": ("retreat", "experience_sharing", "pacing", "additional_blocked_command_names", "additional_combat_message_tokens"),
     "companions": ("max",),
     "messages": tuple(MESSAGES),
 }
