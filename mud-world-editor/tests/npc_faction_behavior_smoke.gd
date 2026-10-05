@@ -36,6 +36,7 @@ func _init() -> void:
 	_check_the_pacifist_checkbox_writes_and_erases()
 	_check_the_untargetable_checkbox_writes_and_erases()
 	_check_the_hides_when_hurt_checkbox_writes_and_erases()
+	_check_the_fight_trait_rows()
 	_check_the_attack_cooldown_writes()
 	_check_the_gear_rows()
 	_check_the_phase_rows()
@@ -213,6 +214,25 @@ func _check_the_hides_when_hurt_checkbox_writes_and_erases() -> void:
 	_assert(manager.npcs["npc_probe"]["properties"].get("hides_when_hurt") == true, "ticking it writes properties.hides_when_hurt")
 	box.toggled.emit(false)
 	_assert(not manager.npcs["npc_probe"]["properties"].has("hides_when_hurt"), "and unticking it erases the key rather than writing false")
+
+
+func _check_the_fight_trait_rows() -> void:
+	print("\n[falls when defeated, percent-immune and what can be stolen]")
+	var manager := _manager()
+	var holder := _build_inspector_from("npc_probe", manager)
+	var props: Dictionary = manager.npcs["npc_probe"]["properties"]
+	for pair in [["FallsWhenDefeated", "falls_when_defeated"], ["PercentImmune", "percent_immune"]]:
+		var box := holder.find_child(pair[0], true, false) as CheckBox
+		_assert(box != null and not box.button_pressed, "%s starts unticked" % pair[0])
+		box.toggled.emit(true)
+		_assert(props.get(pair[1]) == true, "ticking it writes properties.%s" % pair[1])
+		box.toggled.emit(false)
+		_assert(not props.has(pair[1]), "and unticking it erases the key rather than writing false")
+	var steal := holder.find_child("StealItems", true, false) as LineEdit
+	steal.text = "item_ruby: 0.5, item_potion"; steal.text_changed.emit(steal.text)
+	_assert(props.get("steal_items") == [{"item_id": "item_ruby", "chance": 0.5}, {"item_id": "item_potion"}], "what can be stolen is a list, the chance optional: %s" % str(props.get("steal_items")))
+	steal.text = ""; steal.text_changed.emit("")
+	_assert(not props.has("steal_items"), "and none erases the key")
 
 
 func _check_the_phase_rows() -> void:

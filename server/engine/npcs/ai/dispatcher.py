@@ -45,7 +45,7 @@ def handle_ai(npc: 'NPC', world: 'World', current_time: float, player: 'Player')
     """Main AI handler that delegates to specific behaviors."""
     combat_enabled = world.has_capability("combat")
     
-    if npc.has_effect("Stun") or npc.has_effect_tag("sleep"):
+    if npc.has_effect("Stun") or npc.has_effect_tag("sleep") or npc.has_effect_tag("airborne") or npc.has_effect_tag("petrify"):
         return None 
 
     if npc.is_trading: return None 

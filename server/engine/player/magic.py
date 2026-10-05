@@ -66,6 +66,8 @@ class PlayerMagicMixin:
             return False, f"{FORMAT_ERROR}You are silenced and cannot speak the incantations!{FORMAT_RESET}"
 
         if spell.spell_id not in p.runtime_state.magic.known_spells: return False, "You don't know that spell."
+        missing_ally = spell.ally_requirement(p)
+        if missing_ally: return False, missing_ally
         # Cost, cooldown and level come from the declared ability when content
         # declares one; the spell's own fields are the fallback.
         numbers = ability_numbers(world or p.world, spell)

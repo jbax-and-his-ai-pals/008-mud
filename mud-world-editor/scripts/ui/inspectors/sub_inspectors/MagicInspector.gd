@@ -23,7 +23,7 @@ const TARGET_LABELS := {
 }
 # The keys each effect type reads besides `type` and `damage_type`.
 const EFFECT_FIELDS := {
-	"damage": ["value"], "heal": ["value"], "revive": ["value"], "life_tap": ["value"],
+	"damage": ["value"], "heal": ["value"], "revive": ["value"], "life_tap": ["value"], "percent_damage": ["value"], "steal": [],
 	"apply_dot": ["dot_name", "dot_duration", "dot_damage_per_tick", "dot_tick_interval", "dot_damage_type", "effect_data"],
 	"apply_effect": ["effect_data", "dot_duration", "base_duration"],
 	"cleanse": ["effect_data"], "remove_curse": [],
@@ -42,6 +42,7 @@ const EFFECT_NOTES := {
 	"remove_curse": "Lifts the curse from a targeted item, or from every cursed item the target wears.",
 	"unlock": "Opens a locked container (and sets off an undisarmed trap). Needs the Item target.",
 	"lock": "Locks a container. Needs the Item target.",
+	"steal": "Takes an item from the target's `steal_items` (set on the creature), by chance, once each.",
 }
 const CLEANSE_DEFAULT_TAGS := ["poison", "disease", "curse"]
 
@@ -98,6 +99,8 @@ func _build_spell_details():
 	# unknown keyword is not ignored -- it raises, and the ability is not loaded.
 	_add_target_field(grid)
 	_add_health_cost_field(grid)
+	_add_requires_ally_field(box)
+	_add_windup_fields(box)
 
 ## Part of the caster's maximum health each cast costs. 0 means none, and then the key is left out.
 func _add_health_cost_field(grid: GridContainer):
@@ -112,6 +115,48 @@ func _add_health_cost_field(grid: GridContainer):
 		else:
 			_set_value("health_cost_fraction", value))
 	field.add_child(input); grid.add_child(field)
+
+## NPC template ids that must be standing beside the caster for it to be cast (a twin spell). Empty erases the key.
+func _add_requires_ally_field(box: VBoxContainer):
+	box.add_child(InspectorStyle.lbl("Needs these allies beside the caster (NPC ids, comma-separated)", InspectorStyle.COLOR_TEXT_DIM))
+	var field := LineEdit.new(); field.name = "requires_ally"; field.placeholder_text = "none"
+	var current = cur_data.get("requires_ally", [])
+	field.text = ", ".join(PackedStringArray(current)) if current is Array else ""
+	InspectorStyle.apply_input_style(field)
+	field.text_changed.connect(func(text):
+		var values: Array = []
+		for part: String in text.split(","):
+			if part.strip_edges() != "": values.append(part.strip_edges())
+		if values.is_empty():
+			if cur_data.has("requires_ally"): cur_data.erase("requires_ally"); database_modified.emit()
+		else:
+			_set_value("requires_ally", values))
+	box.add_child(field)
+
+## A wind-up: the caster is gone for some seconds, then comes down on the target. 0 seconds means none and erases the whole block.
+func _add_windup_fields(box: VBoxContainer):
+	var windup: Dictionary = cur_data.get("windup", {}) if cur_data.get("windup") is Dictionary else {}
+	box.add_child(InspectorStyle.lbl("Wind-up: seconds the caster is away before the effects fall (0: none; target must be an enemy)", InspectorStyle.COLOR_TEXT_DIM))
+	var seconds := SpinBox.new(); seconds.name = "windup_seconds"; seconds.min_value = 0; seconds.max_value = 30; seconds.step = 0.5
+	seconds.value = float(windup.get("seconds", 0)); InspectorStyle.apply_input_style(seconds)
+	box.add_child(seconds)
+	var leave := LineEdit.new(); leave.name = "windup_leave_message"; leave.placeholder_text = "told as the caster leaves ({caster_name})"
+	leave.text = str(windup.get("leave_message", "")); InspectorStyle.apply_input_style(leave)
+	box.add_child(leave)
+	var land := LineEdit.new(); land.name = "windup_land_message"; land.placeholder_text = "told as it comes down ({caster_name}, {target_name})"
+	land.text = str(windup.get("land_message", "")); InspectorStyle.apply_input_style(land)
+	box.add_child(land)
+	var write := func():
+		if seconds.value <= 0:
+			if cur_data.has("windup"): cur_data.erase("windup"); database_modified.emit()
+			return
+		var block := {"seconds": int(seconds.value) if is_equal_approx(seconds.value, round(seconds.value)) else float(seconds.value)}
+		if leave.text.strip_edges() != "": block["leave_message"] = leave.text
+		if land.text.strip_edges() != "": block["land_message"] = land.text
+		_set_value("windup", block)
+	seconds.value_changed.connect(func(_v): write.call())
+	leave.text_changed.connect(func(_t): write.call())
+	land.text_changed.connect(func(_t): write.call())
 
 func _add_number_field(grid: GridContainer, label: String, key: String, fallback: float, min_value: float, max_value: float, step: float):
 	var field := VBoxContainer.new(); field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -199,6 +244,8 @@ func _effect_card(index: int, effect: Dictionary) -> PanelContainer:
 			grid.add_child(_labeled("Amount", _effect_number(index, "value", -9999, 9999, 1, 0.0)))
 		"revive":
 			grid.add_child(_labeled("Health restored (% of max; 0: a quarter)", _effect_number(index, "value", 0, 100, 1, 0.0)))
+		"percent_damage":
+			grid.add_child(_labeled("Share of current health taken (%; 0: a quarter)", _effect_number(index, "value", 0, 100, 1, 0.0)))
 		"apply_dot":
 			grid.add_child(_labeled("Name", _effect_text(index, "dot_name", "Burning")))
 			grid.add_child(_labeled("Damage / Tick", _effect_number(index, "dot_damage_per_tick", -9999, 9999, 1, 5.0)))
@@ -429,7 +476,7 @@ func _retype(index: int, effect_type: String):
 	effect["type"] = effect_type
 	if effect_type not in ["damage", "life_tap", "apply_dot"]: effect.erase("damage_type")
 	match effect_type:
-		"damage", "heal", "life_tap", "revive":
+		"damage", "heal", "life_tap", "revive", "percent_damage":
 			if not effect.has("value"): effect["value"] = 0
 		"apply_dot":
 			for pair in [["dot_name", "Affliction"], ["dot_duration", 10], ["dot_damage_per_tick", 1]]:

@@ -73,8 +73,19 @@ def is_untargetable(npc) -> bool:
     """`properties.untargetable`: nothing picks it as a target and nothing it is hit by hurts it (a child carried,
     asleep, through a fight). Pair it with `pacifist` for someone who takes no part at all."""
     properties = getattr(npc, "properties", None)
+    if hasattr(npc, "has_effect_tag") and (npc.has_effect_tag("airborne") or npc.has_effect_tag("petrify")):
+        return True   # in the air on a wind-up, or turned to stone
     return isinstance(properties, dict) and (properties.get("untargetable") is True or properties.get("hidden") is True
                                              or properties.get("fallen") is True)
+
+
+def _worth_casting(spell, target) -> bool:
+    """A creature does not spend its turn on an ability that cannot do anything here: stealing from one with nothing left."""
+    if spell.effects and all(effect.get("type") == "steal" for effect in spell.effects):
+        from engine.magic import stealing
+
+        return stealing.worth_trying(target)
+    return True
 
 
 def enter_combat(npc: 'NPC', target):
@@ -237,7 +248,9 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
         
         available_spells = [s for s_id in npc.usable_spells if (s := get_spell(s_id)) 
                             and current_time >= npc.spell_cooldowns.get(s_id, 0) 
-                            and npc.mana >= s.mana_cost]
+                            and npc.mana >= s.mana_cost
+                            and not s.ally_requirement(npc)
+                            and _worth_casting(s, target)]
         
         offensive_spells = [s for s in available_spells if s.target_type in ('enemy', 'all_enemies')]
 

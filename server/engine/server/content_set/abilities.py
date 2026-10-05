@@ -171,6 +171,41 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                 error("cooldown must be a number of seconds, 0 or more")
             if "health_cost_fraction" in entry and (not number(entry["health_cost_fraction"]) or not 0 <= entry["health_cost_fraction"] < 1):
                 error("health_cost_fraction must be a number from 0 up to (not including) 1: the part of the caster's maximum health each cast costs")
+            if "windup" in entry:
+                from engine.magic.windup import MESSAGE_PLACEHOLDERS as WINDUP_PLACEHOLDERS, SECONDS_RANGE, WINDUP_KEYS
+
+                windup = entry["windup"]
+                if not isinstance(windup, dict):
+                    error("windup must be an object {seconds, leave_message, land_message}")
+                else:
+                    for key in windup:
+                        if key not in WINDUP_KEYS:
+                            error(f"windup.{key} is not read (known: {', '.join(WINDUP_KEYS)})")
+                    seconds = windup.get("seconds")
+                    if not number(seconds) or not SECONDS_RANGE[0] <= seconds <= SECONDS_RANGE[1]:
+                        error(f"windup.seconds is required: how long the caster is away, from {SECONDS_RANGE[0]:g} to {SECONDS_RANGE[1]:g} seconds")
+                    for key in ("leave_message", "land_message"):
+                        if key in windup:
+                            if not isinstance(windup[key], str):
+                                error(f"windup.{key} must be text")
+                                continue
+                            try:
+                                unknown = sorted(_format_placeholders(windup[key]) - set(WINDUP_PLACEHOLDERS))
+                            except ValueError as problem:
+                                error(f"windup.{key} is not a valid message template ({problem})")
+                                continue
+                            if unknown:
+                                error(f"windup.{key} uses {', '.join('{' + name + '}' for name in unknown)}, which the engine does not fill (it offers {', '.join('{' + name + '}' for name in WINDUP_PLACEHOLDERS)})")
+                    if entry.get("target_type", "enemy") != "enemy":
+                        error("windup needs target_type 'enemy': the caster comes down on one target")
+            if "requires_ally" in entry:
+                allies = entry["requires_ally"]
+                if not isinstance(allies, list) or not allies or not all(isinstance(a, str) and a.strip() for a in allies):
+                    error("requires_ally must be a non-empty list of NPC template ids that must be standing beside the caster")
+                else:
+                    for ally in allies:
+                        if npc_behaviors and ally not in npc_behaviors:
+                            error(f"requires_ally names '{ally}', which is not an NPC template of this content set")
             target_type = entry.get("target_type", "enemy")
             if target_type not in ABILITY_TARGET_TYPES:
                 error(f"target_type '{target_type}' is not one the cast command resolves (known: {', '.join(ABILITY_TARGET_TYPES)}), so it is cast on yourself")

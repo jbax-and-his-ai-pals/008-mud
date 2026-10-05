@@ -87,6 +87,14 @@ def perform_companion_support(npc: 'NPC', world: 'World', current_time: float, p
                 spell, target = candidate, down[0]
                 break
     if spell is None:
+        stone = [m for m in party if m.is_alive and m.has_effect_tag("petrify")]
+        for candidate in ready:
+            frees = any(effect.get("type") == "cleanse" and "petrify" in [t.lower() for t in (effect.get("effect_data") or {}).get("tags", [])]
+                        for effect in candidate.effects)
+            if frees and stone:
+                spell, target = candidate, stone[0]
+                break
+    if spell is None:
         for candidate in ready:
             if candidate.has_effect_type("heal"):
                 hurt = [m for m in party if m.is_alive and not companions.is_fallen(m) and m.max_health > 0

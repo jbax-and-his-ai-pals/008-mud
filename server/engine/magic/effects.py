@@ -32,10 +32,15 @@ ViewerType = Union['Player']
 DEFAULT_ABILITY_POWER_BONUS = 0
 
 def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell, viewer: Optional[ViewerType],
-                       first_target: bool = True) -> Tuple[int, str]:
-    """`first_target` is False for the second and later targets of one cast: a summon happens once per cast, not once per target."""
+                       first_target: bool = True, landing: bool = False) -> Tuple[int, str]:
+    """`first_target` is False for the second and later targets of one cast: a summon happens once per cast, not once per target.
+    `landing` is the second half of an ability with a wind-up (magic/windup.py): the effects fall now."""
     from engine.npcs.npc_factory import NPCFactory
     from engine.player import Player
+    from engine.magic import windup as _windup
+
+    if _windup.windup_of(spell) and not landing and first_target and not isinstance(target, Room):
+        return _windup.begin(caster, target, spell, viewer)
     
     total_value = 0
     messages = []
@@ -168,6 +173,32 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                 if success:
                     total_value += 1
                     messages.append(f"{target_name_raw} is afflicted by {dot_payload['name']}.")
+
+        elif eff_type == "percent_damage":
+            from engine.npcs import phases as npc_phases
+
+            if npc_phases.is_untouchable(target):
+                continue
+            immune = getattr(target, "properties", {}).get("percent_immune") is True if isinstance(getattr(target, "properties", None), dict) else False
+            shown = format_name_for_display(viewer, target, start_of_sentence=True) if viewer else target_name_raw
+            if immune or not hasattr(target, "take_damage"):
+                messages.append("%s is untouched." % shown)
+                continue
+            health_before = getattr(target, "health", 0)
+            share = max(1, int(health_before * max(0, min(100, eff_value if eff_value else 25)) / 100.0))
+            dmg = target.take_damage(share, damage_type=eff_dmg_type)
+            from engine.core import kill_credit
+            kill_credit.record_damage(target, caster, min(dmg, health_before), health_before)
+            total_value += dmg
+            messages.append("%s takes %d %s damage!" % (shown, dmg, eff_dmg_type))
+
+        elif eff_type == "steal":
+            from engine.magic import stealing
+
+            line = stealing.attempt(caster, target)
+            if line:
+                total_value += 1
+                messages.append(line)
 
         elif eff_type == "revive":
             from engine.npcs import companions as _companions

@@ -143,6 +143,7 @@ class NPC(GameObject):
     def take_damage(self, amount: int, damage_type: str, weapon_damage_type: Optional[str] = None) -> int:
         if not self.is_alive: return 0
         if self.properties.get("untargetable") is True or self.properties.get("hidden") is True or self.properties.get("fallen") is True: return 0   # whatever reached it (an area spell) does nothing
+        if self.has_effect_tag("airborne") or self.has_effect_tag("petrify"): return 0
         damage_taken = super().take_damage(amount, damage_type, weapon_damage_type)
         return damage_taken
 

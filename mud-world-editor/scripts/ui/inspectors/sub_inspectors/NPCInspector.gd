@@ -665,6 +665,34 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("falls_when_defeated")
 		database_modified.emit())
 	flags.add_child(falls)
+	var immune := CheckBox.new(); immune.name = "PercentImmune"; immune.text = "Percent-immune (abilities that take a share of its health do nothing)"
+	immune.button_pressed = bool(properties.get("percent_immune", false))
+	immune.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["percent_immune"] = true
+		else: _ensure_npc_properties().erase("percent_immune")
+		database_modified.emit())
+	flags.add_child(immune)
+	flags.add_child(InspectorStyle.lbl("Can be stolen from (item id: chance 0-1, comma-separated)", InspectorStyle.COLOR_TEXT_DIM))
+	var steal := LineEdit.new(); steal.name = "StealItems"; steal.placeholder_text = "item_ruby: 0.5, item_potion"
+	var stealable = properties.get("steal_items", [])
+	var steal_parts: Array = []
+	if stealable is Array:
+		for entry in stealable:
+			if entry is Dictionary: steal_parts.append("%s: %s" % [entry.get("item_id", ""), str(entry.get("chance", 0.6))] if entry.has("chance") else str(entry.get("item_id", "")))
+	steal.text = ", ".join(PackedStringArray(steal_parts))
+	steal.text_changed.connect(func(text):
+		var parsed: Array = []
+		for part: String in text.split(","):
+			var pair: PackedStringArray = part.split(":")
+			var item_id := pair[0].strip_edges()
+			if item_id == "": continue
+			var entry := {"item_id": item_id}
+			if pair.size() > 1 and pair[1].strip_edges().is_valid_float(): entry["chance"] = float(pair[1].strip_edges())
+			parsed.append(entry)
+		if parsed.is_empty(): _ensure_npc_properties().erase("steal_items")
+		else: _ensure_npc_properties()["steal_items"] = parsed
+		database_modified.emit())
+	flags.add_child(steal)
 	var unique := CheckBox.new(); unique.text = "Unique (called \"the\", not \"a\")"
 	unique.button_pressed = bool(properties.get("unique", false))
 	unique.toggled.connect(func(pressed):
