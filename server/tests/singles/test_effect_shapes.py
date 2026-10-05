@@ -51,6 +51,7 @@ class TestTheTable(unittest.TestCase):
             "set_respawn": ["region", "room"],
             "teach_companion": ["npc", "spell"],
             "place_vehicle": ["region", "room", "vehicle"],
+            "end_fight": ["region", "room"],
         }, effect_fields())
 
     def test_each_object_effects_fields_are_the_ones_its_reader_reads(self):
@@ -69,6 +70,7 @@ class TestTheTable(unittest.TestCase):
             "set_respawn": "_apply_set_respawn_effect",
             "teach_companion": "_apply_teach_companion_effect",
             "place_vehicle": "_apply_vehicle_effects",
+            "end_fight": "_apply_end_fight_effect",
             "seal_exit": "_apply_seal_exit_effect",
             "advance_time": "_apply_time_effect",
         }

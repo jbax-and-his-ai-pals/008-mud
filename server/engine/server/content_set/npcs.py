@@ -260,6 +260,16 @@ def _phase_errors(phases: Any, label: str, spell_ids: set[str], npc_ids: set[str
                 errors.append(f"{where}.{key} must be text")
         if "untouchable" in phase and not isinstance(phase["untouchable"], bool):
             errors.append(f"{where}.untouchable must be true or false")
+        if "resistances" in phase:
+            from engine.npcs.phases import RESISTANCE_RANGE
+
+            table = phase["resistances"]
+            if not isinstance(table, dict) or not table:
+                errors.append(f"{where}.resistances must be an object of damage type -> percent")
+            else:
+                for damage_type, percent in table.items():
+                    if isinstance(percent, bool) or not isinstance(percent, (int, float)) or not RESISTANCE_RANGE[0] <= percent <= RESISTANCE_RANGE[1]:
+                        errors.append(f"{where}.resistances.{damage_type} must be a percent from {RESISTANCE_RANGE[0]} to {RESISTANCE_RANGE[1]} (100 takes nothing; over 100 absorbs the blow as healing)")
         if "counter_cooldown" in phase:
             value = phase["counter_cooldown"]
             if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:

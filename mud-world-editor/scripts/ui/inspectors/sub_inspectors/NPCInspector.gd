@@ -846,6 +846,7 @@ func _phase_card(index: int, phase: Dictionary, rows: VBoxContainer) -> Control:
 	head.add_child(remove)
 	card.add_child(_phase_text(phase, "message", "told to the room when this phase begins", "PhaseMessage"))
 	card.add_child(_phase_hint(phase, "hint", "says, when this phase begins", "PhaseHint"))
+	card.add_child(_phase_resistances(phase))
 	if bool(phase.get("untouchable", false)):
 		card.add_child(_phase_text(phase, "miss_text", "told when a blow misses (optional)", "PhaseMissText"))
 		var counter_row := HBoxContainer.new(); counter_row.add_theme_constant_override("separation", 6); card.add_child(counter_row)
@@ -871,6 +872,28 @@ func _phase_text(phase: Dictionary, key: String, placeholder: String, node_name:
 	field.text_changed.connect(func(text):
 		if text.strip_edges() == "": phase.erase(key)
 		else: phase[key] = text
+		database_modified.emit())
+	return field
+
+## What this phase adds to its resistance per damage type, as "fire: 100, ice: -50" (a percent from -100 to 200: 100 takes
+## nothing, over 100 turns the blow into healing). Empty erases the key.
+func _phase_resistances(phase: Dictionary) -> LineEdit:
+	var field := LineEdit.new(); field.name = "PhaseResistances"
+	field.placeholder_text = "resistances in this phase, e.g. fire: 100, ice: -50 (over 100 absorbs)"
+	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var table = phase.get("resistances", {})
+	var parts: Array = []
+	if table is Dictionary:
+		for damage_type in table: parts.append("%s: %s" % [damage_type, str(table[damage_type])])
+	field.text = ", ".join(PackedStringArray(parts))
+	field.text_changed.connect(func(text):
+		var parsed := {}
+		for part: String in text.split(","):
+			var pair: PackedStringArray = part.split(":")
+			if pair.size() != 2 or pair[0].strip_edges() == "" or not pair[1].strip_edges().is_valid_int(): continue
+			parsed[pair[0].strip_edges()] = int(pair[1].strip_edges())
+		if parsed.is_empty(): phase.erase("resistances")
+		else: phase["resistances"] = parsed
 		database_modified.emit())
 	return field
 

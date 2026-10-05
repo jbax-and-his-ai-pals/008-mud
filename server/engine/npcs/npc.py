@@ -135,6 +135,11 @@ class NPC(GameObject):
         if not topic: return self.dialog.get("greeting", self.default_dialog.format(name=self.name))
         return self.dialog.get(topic.lower(), self.default_dialog.format(name=self.name))
 
+    def get_resistance(self, damage_type: str) -> int:
+        from engine.npcs import phases
+
+        return super().get_resistance(damage_type) + phases.resistance(self, damage_type)
+
     def take_damage(self, amount: int, damage_type: str, weapon_damage_type: Optional[str] = None) -> int:
         if not self.is_alive: return 0
         if self.properties.get("untargetable") is True or self.properties.get("hidden") is True or self.properties.get("fallen") is True: return 0   # whatever reached it (an area spell) does nothing

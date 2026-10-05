@@ -122,6 +122,7 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                 messages.append("%s passes straight through %s!" % (spell.name, shown) + (("\n" + counter) if counter else ""))
                 continue
             if hasattr(target, 'take_damage'):
+                target.last_absorbed = 0
                 health_before = getattr(target, "health", 0)
                 dmg = getattr(target, 'take_damage')(final_val, damage_type=eff_dmg_type)
                 from engine.core import kill_credit
@@ -143,6 +144,8 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                          value=dmg, damage_type=eff_dmg_type,
                      )
                 except: msg = f"{spell.name} hits {formatted_target} for {dmg} {eff_dmg_type} damage."
+                if dmg == 0 and getattr(target, "last_absorbed", 0) > 0:
+                    msg = f"{formatted_target[:1].upper() + formatted_target[1:]} drinks in the {eff_dmg_type} and is healed for {target.last_absorbed}!"
                 messages.append(flavor + msg)
 
         elif eff_type == "apply_dot":

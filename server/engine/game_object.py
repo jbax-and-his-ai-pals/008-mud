@@ -142,7 +142,14 @@ class GameObject:
         if damage_after_flat_reduction == 0: return 0
 
         resistance_percent = self.get_resistance(damage_type)
-        resistance_percent = max(-100, min(100, resistance_percent))
+        resistance_percent = max(-100, min(200, resistance_percent))
+        self.last_absorbed = 0
+        if resistance_percent > 100:
+            # Past 100 a channel is absorbed: what would have hurt mends instead.
+            absorbed = int(damage_after_flat_reduction * (resistance_percent - 100) / 100.0)
+            if absorbed > 0 and hasattr(self, "heal"):
+                self.last_absorbed = self.heal(absorbed)
+            return 0
         resistance_multiplier = 1.0 - (resistance_percent / 100.0)
 
         material_multiplier = 1.0
@@ -165,8 +172,10 @@ class GameObject:
         if new_health <= 0 and _companions.falls_when_defeated(self):
             setattr(self, 'health', 0)
             _companions.fall(self, getattr(self, 'world', None))
+            self._tell_health_crossed(old_health, 0)
             return int(actual_damage_taken)
         setattr(self, 'health', new_health)
+        self._tell_health_crossed(old_health, new_health)
 
         if new_health <= 0: self.is_alive = False
 
@@ -194,6 +203,20 @@ class GameObject:
                 game_ref.renderer.add_floating_text(f"-{actual_damage_taken}", x, y, color)
 
         return int(actual_damage_taken)
+
+    def _tell_health_crossed(self, before: float, after: float) -> None:
+        """A `health_below` trigger may be waiting for this blow to cross its line; what it says reaches whoever is there."""
+        world = getattr(self, 'world', None)
+        runner = getattr(world, 'trigger_runner', None)
+        if runner is None or not runner.triggers:
+            return
+        lines = runner.fire_health_below(self, before, after)
+        if getattr(self, "runtime_state", None) is not None:
+            player = self
+        else:
+            player = world.get_viewer_for_npc(self) if hasattr(world, "get_viewer_for_npc") else None
+        if lines and player is not None:
+            world.notify_player(player, "\n\n".join(line for line in lines if line))
 
     def heal(self, amount: int) -> int:
         return 0

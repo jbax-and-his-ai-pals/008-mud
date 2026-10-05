@@ -37,6 +37,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     set_respawn       {"region": "r", "room": "x"}   where the player rises again after dying (a place the story has reached)
     place_vehicle     {"vehicle": "skimmer", "region": "r", "room": "x"}   set a vehicle down somewhere (whoever rode it is put ashore)
     board_vehicle     "skimmer"                      the player is put aboard it, wherever they stand (it comes to them)
+    end_fight         {"region": "r", "room": "x"} | {}   everyone in that room (the player's, if none is named) stops fighting
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
     play_scene        "scene_id"                     the player watches a scene (data/scenes; world/scenes.py)
@@ -93,7 +94,7 @@ KNOWN_EFFECTS = frozenset({
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
     "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
-    "place_vehicle", "board_vehicle",
+    "place_vehicle", "board_vehicle", "end_fight",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -192,6 +193,11 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "required": ("vehicle", "region", "room"),
     },
     "board_vehicle": {"form": "text"},
+    "end_fight": {
+        "form": "object",
+        "fields": {"region": "text", "room": "text"},
+        "together": (("region", "room"),),
+    },
     "remove_npc": {
         "form": "object", "bare": "text",
         "fields": {"npc": "text", "region": "text", "room": "text"},
@@ -232,6 +238,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
     "place_vehicle": {"label": "Set a vehicle down somewhere", "hint": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
+    "end_fight": {"label": "End the fight in a room", "hint": "{region, room}, or {} for the player's room: everyone there stops fighting", "kind": "json"},
     "board_vehicle": {"label": "Put the player aboard a vehicle", "hint": "vehicle id (data/vehicles); it comes to wherever they stand", "kind": "string", "refs": "vehicles"},
     "play_scene": {"label": "Play a scene (the player watches)", "hint": "scene id (data/scenes)", "kind": "string"},
     "end_scene": {"label": "End a scene without telling it (it counts as seen)", "hint": "scene id, or a list of them: what a checkpoint uses for the story so far", "kind": "string", "refs": "scenes"},
@@ -1275,6 +1282,34 @@ def _apply_vehicle_effects(effects: Dict[str, Any], context, report: EffectRepor
             report.applied.append("boarded %s" % vehicle_id)
 
 
+def _apply_end_fight_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`end_fight`: a fight the story has decided (a duel lost, a foe that yields) is over for everyone in the room."""
+    if "end_fight" not in effects:
+        return
+    raw = effects["end_fight"]
+    if not isinstance(raw, dict):
+        report.failed.append("end_fight (must be an object)")
+        return
+    from engine.npcs import combat as npc_combat
+
+    world = _context_world(context)
+    player = context.get("player")
+    region_id = str(raw.get("region", "") or "").strip() or getattr(player, "current_region_id", None)
+    room_id = str(raw.get("room", "") or "").strip() or getattr(player, "current_room_id", None)
+    if world is None or region_id is None or room_id is None:
+        report.failed.append("end_fight (no room)")
+        return
+    ended = 0
+    for npc in list(world.get_npcs_in_room(region_id, room_id)):
+        if getattr(npc, "in_combat", False):
+            npc_combat.exit_combat(npc)
+            ended += 1
+    for there in world.get_players_in_room(region_id, room_id, alive_only=False):
+        if hasattr(there, "exit_combat"):
+            there.exit_combat()
+    report.applied.append("ended the fight at %s:%s (%d)" % (region_id, room_id, ended))
+
+
 def _apply_teleport_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     if "teleport" not in effects:
         return
@@ -1437,6 +1472,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("spawn_npc", lambda: _apply_spawn_npc_effect(effects, context, report)),
         ("remove_npc", lambda: _apply_remove_npc_effect(effects, context, report)),
         ("companions", lambda: _apply_companion_effects(effects, player, context, report)),
+        ("end_fight", lambda: _apply_end_fight_effect(effects, context, report)),
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
         ("time", lambda: _apply_time_effect(effects, world, report)),
         ("scene", lambda: _apply_scene_effect(effects, player, world, report)),

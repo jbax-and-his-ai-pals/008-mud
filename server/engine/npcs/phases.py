@@ -28,7 +28,8 @@ from typing import Any, Dict, List, Optional
 
 from engine.config import FORMAT_GREEN, FORMAT_RESET, FORMAT_YELLOW
 
-PHASE_KEYS = ("name", "seconds", "message", "hint", "untouchable", "counter", "counter_cooldown", "counter_hint", "miss_text")
+PHASE_KEYS = ("name", "seconds", "message", "hint", "untouchable", "counter", "counter_cooldown", "counter_hint", "miss_text", "resistances")
+RESISTANCE_RANGE = (-100, 200)   # a percent: -100 takes double, 100 takes nothing, 200 turns the blow into healing
 HINT_KEYS = ("npc", "text")
 DEFAULT_COUNTER_COOLDOWN = 3.0
 DEFAULT_MISS_TEXT = "The blow passes straight through {defender}!"
@@ -46,6 +47,15 @@ def current(npc: Any) -> Optional[Dict[str, Any]]:
     if not phases or not getattr(npc, "in_combat", False) or getattr(npc, "phase_until", None) is None:
         return None
     return phases[getattr(npc, "phase_index", 0) % len(phases)]
+
+
+def resistance(npc: Any, damage_type: str) -> int:
+    """What the current phase adds to its resistance to `damage_type` (a `resistances` map on the phase): a cloaked
+    fire-master shrugs off fire for a time, a creature of ice takes double from flame until it thaws. 0 outside a fight."""
+    phase = current(npc)
+    table = phase.get("resistances") if phase else None
+    value = table.get(damage_type, 0) if isinstance(table, dict) else 0
+    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else 0
 
 
 def is_untouchable(npc: Any) -> bool:

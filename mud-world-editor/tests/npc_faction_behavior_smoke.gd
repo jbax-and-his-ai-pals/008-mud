@@ -260,6 +260,11 @@ func _check_the_phase_rows() -> void:
 	hint_who.item_selected.emit(0)
 	hint_text.text = ""; hint_text.text_changed.emit("")
 	_assert(not phase.has("hint"), "and clearing both erases the hint")
+	var resist := holder.find_child("PhaseResistances", true, false) as LineEdit
+	resist.text = "fire: 200, ice: -50, nonsense"; resist.text_changed.emit(resist.text)
+	_assert(phase.get("resistances") == {"fire": 200, "ice": -50}, "resistances are written as percents by damage type, and a part that is not one is skipped: %s" % str(phase.get("resistances")))
+	resist.text = ""; resist.text_changed.emit("")
+	_assert(not phase.has("resistances"), "and clearing them erases the key")
 	phase["somebody_elses_key"] = 1
 	untouchable.toggled.emit(false)
 	_assert(not phase.has("untouchable") and phase.get("somebody_elses_key") == 1, "unticking erases the flag and leaves other keys alone")

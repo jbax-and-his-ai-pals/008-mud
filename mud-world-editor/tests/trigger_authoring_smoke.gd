@@ -85,7 +85,7 @@ func _run() -> void:
 	var events: Array = []
 	for index in range(event_picker.item_count):
 		events.append(str(event_picker.get_item_metadata(index)))
-	_assert(events == ["on_enter", "npc_killed", "room_cleared", "item_taken"], "the picker offers the engine's events: %s" % str(events))
+	_assert(events == ["on_enter", "npc_killed", "room_cleared", "item_taken", "health_below"], "the picker offers the engine's events: %s" % str(events))
 	var kill_index := events.find("npc_killed")
 	event_picker.select(kill_index); event_picker.item_selected.emit(kill_index)
 	_assert(wyrm["on"]["event"] == "npc_killed" and wyrm["on"].has("npc") and wyrm["on"].has("region"),
@@ -112,6 +112,26 @@ func _run() -> void:
 	event_picker = holder.find_child("TriggerEvent", true, false) as OptionButton
 	event_picker.select(0); event_picker.item_selected.emit(0)
 	_assert(wyrm["on"]["event"] == "on_enter", "and back to entering")
+	holder = _open("wyrm_hall", wyrm)
+	event_picker = holder.find_child("TriggerEvent", true, false) as OptionButton
+	var hurt_index := events.find("health_below")
+	event_picker.select(hurt_index); event_picker.item_selected.emit(hurt_index)
+	_assert(wyrm["on"]["event"] == "health_below" and wyrm["on"].get("who") == "player" and is_equal_approx(float(wyrm["on"].get("fraction", 0)), 0.25),
+		"a health trigger starts as the player below a quarter: %s" % str(wyrm["on"]))
+	holder = _open("wyrm_hall", wyrm)
+	var fraction := holder.find_child("TriggerFraction", true, false) as SpinBox
+	fraction.value = 0.5; fraction.value_changed.emit(0.5)
+	_assert(is_equal_approx(float(wyrm["on"]["fraction"]), 0.5), "the line is a share of health, written as a number")
+	var who := holder.find_child("TriggerWho", true, false) as OptionButton
+	var wyrm_who := -1
+	for index in range(who.item_count):
+		if who.get_item_text(index) == "horned_wyrm": wyrm_who = index
+	who.select(wyrm_who); who.item_selected.emit(wyrm_who)
+	_assert(wyrm["on"]["who"] == "horned_wyrm", "and who is struck down can be a creature")
+	holder = _open("wyrm_hall", wyrm)
+	event_picker = holder.find_child("TriggerEvent", true, false) as OptionButton
+	event_picker.select(0); event_picker.item_selected.emit(0)
+	_assert(wyrm["on"]["event"] == "on_enter" and not wyrm["on"].has("who") and not wyrm["on"].has("fraction"), "and back to entering drops both")
 
 	print("\n[a condition, through the shared rows]")
 	holder = _open("wyrm_hall", wyrm)

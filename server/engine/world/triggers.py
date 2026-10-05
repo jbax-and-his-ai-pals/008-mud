@@ -24,6 +24,9 @@ Three events fire a trigger:
     room_cleared  the last living hostile in `region`/`room` is gone.
     item_taken    the player picks up `item` (a template id), optionally only in `region`/`room`:
                   the crystal on its altar, the key in the cell.
+    health_below  `who` ("player", or an NPC's template or placed id) is struck down past `fraction` of
+                  its health (0 to 1), optionally only in `region`/`room`: the duel the hero cannot win,
+                  the boss that yields at half. It fires as the line is crossed, once per crossing.
 
 The kill events are raised by `World.dispatch_event("npc_killed", ...)`, from the player's
 blows, a spell, a minion, and the world tick's reaper (a creature that died of something
@@ -52,18 +55,20 @@ TRIGGERS_DIRECTORY = "triggers"
 
 # The events a trigger can be `on`, the fields each event's `on` may carry, and the ones it
 # needs. `region` and `room` always come as a pair. `TriggerSchema.gd` is the editor's copy.
-TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared", "item_taken")
+TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared", "item_taken", "health_below")
 EVENT_FIELDS = {
     "on_enter": ("region", "room"),
     "npc_killed": ("npc", "region", "room"),
     "room_cleared": ("region", "room"),
     "item_taken": ("item", "region", "room"),
+    "health_below": ("who", "fraction", "region", "room"),
 }
 EVENT_REQUIRED = {
     "on_enter": ("region", "room"),
     "npc_killed": ("npc",),
     "room_cleared": ("region", "room"),
     "item_taken": ("item",),
+    "health_below": ("who", "fraction"),
 }
 # What a trigger may carry, and what `once` may be (`False` is "every time").
 TRIGGER_KEYS = ("on", "when", "once", "effects", "note")
@@ -142,6 +147,40 @@ class TriggerRunner:
             if on.get("item") != getattr(item, "obj_id", None):
                 continue
             if "region" in on and (on.get("region"), on.get("room")) != (region_id, room_id):
+                continue
+            lines.extend(self._run(trigger_id, definition, player))
+        return lines
+
+    def fire_health_below(self, entity, before: float, after: float) -> List[str]:
+        """The lines for `entity` having just been struck from `before` health to `after`: `health_below` triggers whose
+        line it crossed. They are told to whoever is in the room, a moment later (the blow's own line comes first)."""
+        if entity is None or self._depth >= MAX_DEPTH:
+            return []
+        max_health = float(getattr(entity, "max_health", 0) or 0)
+        if max_health <= 0 or after >= before:
+            return []
+        is_player = getattr(entity, "runtime_state", None) is not None
+        region_id, room_id = getattr(entity, "current_region_id", None), getattr(entity, "current_room_id", None)
+        player = entity if is_player else self._player_for(region_id, room_id)
+        if player is None:
+            return []
+        lines: List[str] = []
+        for trigger_id, definition in self.triggers.items():
+            on = definition.get("on")
+            if not isinstance(on, dict) or on.get("event") != "health_below":
+                continue
+            fraction = on.get("fraction")
+            if isinstance(fraction, bool) or not isinstance(fraction, (int, float)):
+                continue
+            who = on.get("who")
+            if who == "player":
+                if not is_player:
+                    continue
+            elif is_player or who not in (getattr(entity, "template_id", None), getattr(entity, "obj_id", None)):
+                continue
+            if "region" in on and (on.get("region"), on.get("room")) != (region_id, room_id):
+                continue
+            if not (before / max_health > fraction >= after / max_health):
                 continue
             lines.extend(self._run(trigger_id, definition, player))
         return lines

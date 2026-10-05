@@ -84,8 +84,19 @@ def _validate_triggers(
                                 f"{label}.on.{key} is not read by a {event} trigger (it reads: {', '.join(EVENT_FIELDS[event])})",
                             ))
                     for key in EVENT_REQUIRED[event]:
-                        if not has(key):
+                        if not has(key) and key != "fraction":   # a number, checked on its own below
                             issues.append(ContentSetIssue("error", str(path), f"{label}.on needs a {key} for a {event} trigger"))
+                    if event == "health_below":
+                        fraction = on.get("fraction")
+                        if isinstance(fraction, bool) or not isinstance(fraction, (int, float)) or not 0 < fraction < 1:
+                            issues.append(ContentSetIssue("error", str(path), f"{label}.on.fraction must be a number above 0 and below 1: the share of its health a blow takes it past"))
+                        who = on.get("who")
+                        known = ids["npcs"] | ids["npc_instances"]
+                        if has("who") and who != "player" and known and who not in known:
+                            issues.append(ContentSetIssue(
+                                "error", str(path),
+                                f"{label}.on.who '{who}' is neither 'player' nor an NPC template or placed NPC in this content set",
+                            ))
                     if has("region") != has("room") and "region" in EVENT_FIELDS[event]:
                         issues.append(ContentSetIssue("error", str(path), f"{label}.on needs region and room together, or neither"))
                     if has("region") and has("room"):

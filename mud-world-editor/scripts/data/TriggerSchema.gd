@@ -7,7 +7,7 @@
 # a headless check must not depend on the editor having scanned a new class.
 extends RefCounted
 
-const EVENTS := ["on_enter", "npc_killed", "room_cleared", "item_taken"]
+const EVENTS := ["on_enter", "npc_killed", "room_cleared", "item_taken", "health_below"]
 # The fields each event's `on` may carry, and the ones it needs (`region` and `room`
 # always come as a pair). Mirrors `engine/world/triggers.py`.
 const EVENT_FIELDS := {
@@ -15,18 +15,21 @@ const EVENT_FIELDS := {
 	"npc_killed": ["npc", "region", "room"],
 	"room_cleared": ["region", "room"],
 	"item_taken": ["item", "region", "room"],
+	"health_below": ["who", "fraction", "region", "room"],
 }
 const EVENT_REQUIRED := {
 	"on_enter": ["region", "room"],
 	"npc_killed": ["npc"],
 	"room_cleared": ["region", "room"],
 	"item_taken": ["item"],
+	"health_below": ["who", "fraction"],
 }
 const EVENT_LABELS := {
 	"on_enter": "the player enters a room",
 	"npc_killed": "a creature is killed",
 	"room_cleared": "the last enemy in a room dies",
 	"item_taken": "the player picks up an item",
+	"health_below": "someone is struck down past a share of their health",
 }
 const KEYS := ["on", "when", "once", "effects", "note"]
 const ONCE_MODES := ["player", "world"]

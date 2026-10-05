@@ -127,6 +127,10 @@ func _set_event(event: String) -> void:
 		var npc_ids: Array = database_mgr.get_npc_ids() if database_mgr != null else []
 		if not npc_ids.is_empty():
 			on["npc"] = str(npc_ids[0])
+	if required.has("who") and not on.has("who"):
+		on["who"] = "player"
+	if required.has("fraction") and not on.has("fraction"):
+		on["fraction"] = 0.25
 	if required.has("region") and not (on.has("region") and on.has("room")):
 		var refs := room_refs()
 		if not refs.is_empty():
@@ -167,6 +171,10 @@ func _build_when_it_fires() -> void:
 		vbox.add_child(_npc_row())
 	if fields.has("item"):
 		vbox.add_child(_item_row())
+	if fields.has("who"):
+		vbox.add_child(_who_row())
+	if fields.has("fraction"):
+		vbox.add_child(_fraction_row())
 
 	# A room is required for entering and clearing, and only narrows a kill.
 	var room_optional: bool = not SCHEMA.EVENT_REQUIRED.get(current_event, ["region", "room"]).has("room")
@@ -263,6 +271,44 @@ func _npc_row() -> HBoxContainer:
 		if chosen != "":
 			_set_on("npc", chosen))
 	row.add_child(picker)
+	return row
+
+
+## Who is struck down: the player, or a creature (a template id, or one placed creature's id).
+func _who_row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_child(InspectorStyle.lbl("Who:", InspectorStyle.COLOR_TEXT_DIM))
+	var picker := OptionButton.new()
+	picker.name = "TriggerWho"
+	var ids: Array = database_mgr.get_npc_ids() if database_mgr != null else []
+	var current := str(_on().get("who", "player"))
+	var choices: Array = ids.duplicate()
+	if current != "player" and not choices.has(current):
+		choices.append(current)
+	picker.add_item("The player")
+	picker.set_item_metadata(0, "player")
+	for id in choices:
+		picker.add_item(str(id) if ids.has(id) else "Other: %s" % id)
+		picker.set_item_metadata(picker.item_count - 1, str(id))
+	picker.select(choices.find(current) + 1 if current != "player" else 0)
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_button_style(picker)
+	picker.item_selected.connect(func(index): _set_on("who", str(picker.get_item_metadata(index))))
+	row.add_child(picker)
+	return row
+
+
+## The line a blow must take them past, as a share of their health.
+func _fraction_row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_child(InspectorStyle.lbl("Below this share of health:", InspectorStyle.COLOR_TEXT_DIM))
+	var spin := SpinBox.new()
+	spin.name = "TriggerFraction"
+	spin.min_value = 0.05; spin.max_value = 0.95; spin.step = 0.05
+	spin.value = float(_on().get("fraction", 0.25))
+	InspectorStyle.apply_input_style(spin)
+	spin.value_changed.connect(func(value): _set_on("fraction", snappedf(value, 0.01)))
+	row.add_child(spin)
 	return row
 
 
