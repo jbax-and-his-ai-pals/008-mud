@@ -25,6 +25,10 @@
                     "teleport": {
                         "region": "varenholt",
                         "room": "throne_room"
+                    },
+                    "set_respawn": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
                     }
                 }
             }
@@ -73,6 +77,10 @@
                     "teleport": {
                         "region": "road",
                         "room": "castle_road"
+                    },
+                    "set_respawn": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
                     }
                 }
             },
@@ -130,6 +138,10 @@
                     "teleport": {
                         "region": "road",
                         "room": "fogreach_mouth"
+                    },
+                    "set_respawn": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
                     }
                 }
             },
@@ -188,6 +200,10 @@
                     "teleport": {
                         "region": "fogreach",
                         "room": "fog_gallery"
+                    },
+                    "set_respawn": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
                     }
                 }
             },
@@ -246,6 +262,10 @@
                     "teleport": {
                         "region": "hazevale",
                         "room": "valley_path"
+                    },
+                    "set_respawn": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
                     }
                 }
             },
@@ -314,6 +334,10 @@
                     "teleport": {
                         "region": "hazevale_ruin",
                         "room": "village_square"
+                    },
+                    "set_respawn": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
                     }
                 }
             },
@@ -369,7 +393,11 @@
                     "give_rewards": {
                         "xp": 250
                     },
-                    "restore": "all"
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "thornwood",
+                        "room": "clearing"
+                    }
                 }
             },
             {

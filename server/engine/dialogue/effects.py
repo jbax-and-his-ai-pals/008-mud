@@ -33,6 +33,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     dismiss           "npc_id" | true | [...]        a companion stays behind (true = the speaker)
     spawn_npc         {"npc": "template_id", "region": "r", "room": "x", "instance_id": "optional"}
     remove_npc        "template_or_instance_id" | {"npc": "id", "region": "r", "room": "x"}
+    set_respawn       {"region": "r", "room": "x"}   where the player rises again after dying (a place the story has reached)
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
     play_scene        "scene_id"                     the player watches a scene (data/scenes; world/scenes.py)
@@ -88,7 +89,7 @@ KNOWN_EFFECTS = frozenset({
     "set_flag", "reveal_exit", "move_npc", "give_rewards",
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
-    "play_scene", "end_scene", "advance_time",
+    "play_scene", "end_scene", "advance_time", "set_respawn",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -171,6 +172,11 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"region": "text", "room": "text", "message": "text"},
         "required": ("region", "room"),
     },
+    "set_respawn": {
+        "form": "object",
+        "fields": {"region": "text", "room": "text"},
+        "required": ("region", "room"),
+    },
     "remove_npc": {
         "form": "object", "bare": "text",
         "fields": {"npc": "text", "region": "text", "room": "text"},
@@ -208,6 +214,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "spawn_npc": {"label": "Bring in an NPC", "hint": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
     "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
     "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}", "kind": "json"},
+    "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "play_scene": {"label": "Play a scene (the player watches)", "hint": "scene id (data/scenes)", "kind": "string"},
     "end_scene": {"label": "End a scene without telling it (it counts as seen)", "hint": "scene id, or a list of them: what a checkpoint uses for the story so far", "kind": "string", "refs": "scenes"},
     "advance_time": {"label": "Let the night pass (the clock jumps on)", "hint": "{to_hour: 0 to 23}: the next time it is that hour", "kind": "json"},
@@ -1163,6 +1170,26 @@ def _apply_remove_npc_effect(effects: Dict[str, Any], context, report: EffectRep
         report.unchanged.append("remove_npc %s (not here)" % identifier)
 
 
+def _apply_set_respawn_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`set_respawn`: dying and respawning returns the player here, not to where the story began. A story moves it as it goes."""
+    if "set_respawn" not in effects:
+        return
+    raw = effects["set_respawn"]
+    if not isinstance(raw, dict):
+        report.failed.append("set_respawn (must be an object)")
+        return
+    region_id = str(raw.get("region", "") or "").strip()
+    room_id = str(raw.get("room", "") or "").strip()
+    world = _context_world(context)
+    player = context.get("player")
+    region = world.get_region(region_id) if world is not None and region_id else None
+    if player is None or region is None or not room_id or region.get_room(room_id) is None:
+        report.failed.append("set_respawn (no room %s:%s)" % (region_id, room_id))
+        return
+    player.respawn_region_id, player.respawn_room_id = region_id, room_id
+    report.applied.append("respawn at %s:%s" % (region_id, room_id))
+
+
 def _apply_teleport_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     if "teleport" not in effects:
         return
@@ -1328,6 +1355,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
         ("time", lambda: _apply_time_effect(effects, world, report)),
         ("scene", lambda: _apply_scene_effect(effects, player, world, report)),
+        ("respawn", lambda: _apply_set_respawn_effect(effects, context, report)),
         ("teleport", lambda: _apply_teleport_effect(effects, context, report)),
     )
     for label, step in steps:

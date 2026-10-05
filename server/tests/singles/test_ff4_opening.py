@@ -100,6 +100,14 @@ class TestIlmara(unittest.TestCase):
         self.assertIsNotNone(game.npc("elder_of_ilmara"), "the elder is not")
         self.assertEqual(3, len([n for n in game.world.npcs.values() if n.template_id == "red_fleet_raider" and n.current_region_id == "ilmara"]))
 
+    def test_dying_after_the_opening_does_not_start_it_over(self):
+        game = _Journey(self)
+        game.to_the_king()
+        self.assertEqual(("varenholt", "castle_gate"), (game.player.respawn_region_id, game.player.respawn_room_id))
+        game.player.take_damage(10 ** 6, "physical")
+        game.say("respawn")
+        self.assertEqual("varenholt:castle_gate", game.where())
+
     def test_the_captain_starts_with_his_sword_and_armour_on(self):
         game = _Journey(self)
         worn = [item.name for item in game.player.equipment.values() if item is not None]

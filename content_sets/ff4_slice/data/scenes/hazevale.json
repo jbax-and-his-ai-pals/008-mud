@@ -212,7 +212,13 @@
         "beats": [
             {
                 "text": "You wake on your back in dead leaves, with the taste of dust in your mouth. Pale morning light comes down through a roof of branches.",
-                "pace": "slow"
+                "pace": "slow",
+                "effects": {
+                    "set_respawn": {
+                        "region": "thornwood",
+                        "room": "clearing"
+                    }
+                }
             },
             {
                 "after": 5,
@@ -265,7 +271,11 @@
                 "pace": "slow",
                 "effects": {
                     "dismiss": "ryn",
-                    "set_flag": "reached_the_inn"
+                    "set_flag": "reached_the_inn",
+                    "set_respawn": {
+                        "region": "dunhallow",
+                        "room": "inn"
+                    }
                 }
             },
             {

@@ -161,6 +161,9 @@ def _check_effect_block(
                 "error", str(path),
                 f"{where} effect seal_exit names direction '{direction}', which room '{region_id}:{room_id}' does not have",
             ))
+    rise = block.get("set_respawn")
+    if isinstance(rise, dict):
+        _check_room_reference(rise.get("region"), rise.get("room"), f"{where} effect set_respawn", path, ids, issues)
     warp = block.get("teleport")
     if isinstance(warp, dict):
         _check_room_reference(warp.get("region"), warp.get("room"), f"{where} effect teleport", path, ids, issues)

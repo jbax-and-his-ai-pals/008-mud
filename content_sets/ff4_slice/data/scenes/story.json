@@ -71,6 +71,10 @@
                     "teleport": {
                         "region": "airship",
                         "room": "deck"
+                    },
+                    "set_respawn": {
+                        "region": "airship",
+                        "room": "deck"
                     }
                 }
             },
@@ -202,6 +206,10 @@
                         "room": "castle_gate"
                     },
                     "teleport": {
+                        "region": "varenholt",
+                        "room": "castle_gate"
+                    },
+                    "set_respawn": {
                         "region": "varenholt",
                         "room": "castle_gate"
                     }

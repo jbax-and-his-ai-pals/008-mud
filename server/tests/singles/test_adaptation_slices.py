@@ -988,6 +988,8 @@ class TestFF4Slice(_Slice):
         self.assertEqual([], [c for c in self._companions() if c == "captain_kessa"], "Kessa is nowhere to be found")
         self.assertEqual([], self.npcs("captain_kessa"), "she is not in the world at all, and nothing said that she stayed behind")
         self.assertEqual(["ryn"], self._companions(), "a party of one and the girl in your arms")
+        self.assertEqual(("thornwood", "clearing"), (self.player.respawn_region_id, self.player.respawn_room_id),
+                         "dying out here does not send the hero back to the first room of the story")
         self.assertIn("Mother", self.say("talk ryn"), "she is asleep, and says nothing but that")
 
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):

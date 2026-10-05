@@ -13,5 +13,19 @@
         "effects": {
             "play_scene": "reach_the_inn"
         }
+    },
+    "reach_dunhallow": {
+        "on": {
+            "event": "on_enter",
+            "region": "dunhallow",
+            "room": "gate"
+        },
+        "once": "player",
+        "effects": {
+            "set_respawn": {
+                "region": "dunhallow",
+                "room": "gate"
+            }
+        }
     }
 }

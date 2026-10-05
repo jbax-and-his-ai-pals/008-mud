@@ -409,6 +409,11 @@ finish one. Checkpoints are offered (by `checkpoint` and in the client's picker)
 of the story, in one file. The story slice has `checkpoint king` (the crystal in your pack, in the throne room) and `checkpoint road` (the king's
 orders given, Kessa at your side on the castle road).
 
+**Where the player rises after dying.** A player respawns at a point the character carries, which starts as the story's
+start. The `set_respawn` effect (`{"region": "varenholt", "room": "castle_gate"}`) moves it: use it in scenes and triggers as the
+story gets somewhere worth coming back to (the castle once the opening is over, the inn of a new village), so that dying in the
+desert does not put the player back in the first room.
+
 **An exit that warns.** A room's `properties.exit_requirements` gives one direction a rule; a `warning` is met once:
 `{"south": {"type": "warning", "scene": "warn_pool", "failure_message": "You start south, and stop."}}`. The first attempt to go
 that way is refused (the `failure_message` is shown at once) and the scene told (give it `"lock": false` and slow beats, so the

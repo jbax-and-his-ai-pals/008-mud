@@ -66,9 +66,10 @@ def _teleport_destinations(content_root: Path) -> list[tuple[str, str]]:
 
     def walk(value: Any) -> None:
         if isinstance(value, dict):
-            target = value.get("teleport")
-            if isinstance(target, dict) and isinstance(target.get("region"), str) and isinstance(target.get("room"), str):
-                found.append((target["region"], target["room"]))
+            for key in ("teleport", "set_respawn"):   # a place the player can rise again is a place they can be
+                target = value.get(key)
+                if isinstance(target, dict) and isinstance(target.get("region"), str) and isinstance(target.get("room"), str):
+                    found.append((target["region"], target["room"]))
             for child in value.values():
                 walk(child)
         elif isinstance(value, list):
