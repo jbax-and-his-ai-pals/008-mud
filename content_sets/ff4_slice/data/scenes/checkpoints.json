@@ -497,5 +497,119 @@
                 }
             }
         ]
+    },
+    "checkpoint_dunhallow": {
+        "note": "For testing: the guards are beaten, Ryn travels with you, and Rosalind lies sick in the back room of Orrin and Maren's house (blue shutters, south lane).",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "dunhallow",
+                        "room": "inn"
+                    },
+                    "give_rewards": {
+                        "xp": 900
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "dunhallow",
+                        "room": "inn"
+                    },
+                    "move_npc": {
+                        "npc": "ryn",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            }
+        ]
     }
 }

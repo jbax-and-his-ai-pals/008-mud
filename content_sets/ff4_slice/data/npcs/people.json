@@ -320,5 +320,250 @@
             "essential": true,
             "spell_cast_chance": 0.6
         }
+    },
+    "water_carrier": {
+        "name": "water carrier",
+        "description": "A lean man with two jars on a yoke, a path worn smooth between his bare feet.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Fresh from the well, and cold as a rumour. A copper for a cup, or a kind word for nothing."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true
+        }
+    },
+    "spice_seller": {
+        "name": "spice seller",
+        "description": "A round woman behind a table of little heaps, every colour of the desert.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Cumin, saffron, dried limes. Take a sniff, take a sniff; the sniff is free."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true,
+            "unique": true
+        }
+    },
+    "date_picker": {
+        "name": "old date picker",
+        "description": "A wiry old man with a sling of rope round his waist and a face like a dried date.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Mind the palms, traveller. They drop things, and they never apologise."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true,
+            "unique": true
+        }
+    },
+    "lizard_child": {
+        "name": "village child",
+        "description": "A barefoot child with a jar in one hand and sand to the elbows.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Have you seen a lizard? A blue tail? Very fast? He is mine, and he is lost."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true
+        }
+    },
+    "potter_ilse": {
+        "name": "Ilse the potter",
+        "description": "A broad woman with clay-grey forearms and a smear on her cheek.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Clay from the dry wash. It fires hot and it breaks easy, like most things worth having."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true,
+            "unique": true
+        }
+    },
+    "widow_tamsin": {
+        "name": "Widow Tamsin",
+        "description": "A small, upright old woman in black, a bowl of dates in her lap.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "I do not get many visitors. Sit, sit. Take a date. Everyone talks about the fever these days, and nobody about the dates."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true,
+            "unique": true
+        }
+    },
+    "pell_trader": {
+        "name": "Pell the trader",
+        "description": "A thin man in a spotless apron, with an abacus he does not need.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Potions, salves, the odd thing a traveller forgot. Buy what you like; I can always find more."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_potion"
+                },
+                {
+                    "item_id": "item_salve"
+                }
+            ],
+            "buys_item_types": [
+                "Consumable"
+            ]
+        }
+    },
+    "brannoch_smith": {
+        "name": "Brannoch the smith",
+        "description": "A man built like his own anvil, with a leather apron scorched in a dozen places.",
+        "max_health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Armour for the road, and a staff or two. Try the cap on; it fits most heads."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_brass_cap"
+                },
+                {
+                    "item_id": "item_dune_boots"
+                },
+                {
+                    "item_id": "item_sun_amulet"
+                },
+                {
+                    "item_id": "item_buckler"
+                },
+                {
+                    "item_id": "item_ash_staff"
+                },
+                {
+                    "item_id": "item_iron_helm"
+                }
+            ],
+            "buys_item_types": [
+                "Armor",
+                "Weapon"
+            ]
+        }
+    },
+    "orrin": {
+        "name": "Orrin",
+        "description": "An old man with a stoop and a lantern jaw, his sleeves rolled to the elbow and a wet cloth in his hand.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "She sleeps. The fever breaks in the mornings and comes back by noon. Sit if you like; there is not much else to do."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true,
+            "unique": true,
+            "dialogue": "orrin_talk"
+        }
+    },
+    "maren": {
+        "name": "Maren",
+        "description": "An old woman with iron-grey hair under a scarf, a bowl of water at her knee.",
+        "max_health": 40,
+        "level": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Hush, now. She has only just gone off. Orrin will tell you what there is to tell."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true,
+            "unique": true
+        }
+    },
+    "rosalind_sick": {
+        "name": "Rosalind",
+        "description": "A woman in a borrowed nightdress, her face grey and shining with fever, her hair stuck to her temples. You would know the line of her anywhere.",
+        "max_health": 60,
+        "level": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "...is that you?"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "pacifist": true,
+            "untargetable": true,
+            "unique": true,
+            "dialogue": "rosalind_sick_talk"
+        }
     }
 }

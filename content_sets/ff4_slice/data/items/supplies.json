@@ -13,5 +13,20 @@
             "effect_type": "heal"
         },
         "item_family": "consumable"
+    },
+    "item_salve": {
+        "type": "Consumable",
+        "name": "salve",
+        "description": "A jar of green, resinous salve that closes a wound the way a fist closes.",
+        "weight": 0.5,
+        "value": 35,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_value": 90,
+            "effect_type": "heal"
+        },
+        "item_family": "consumable"
     }
 }

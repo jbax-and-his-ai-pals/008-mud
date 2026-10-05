@@ -1,0 +1,112 @@
+{
+    "id": "orrin_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "the_cure",
+            "condition": {
+                "kind": "has_item",
+                "item_id": "item_mirage_pearl",
+                "quantity": 1
+            }
+        },
+        {
+            "node": "thanks",
+            "condition": {
+                "kind": "flag",
+                "flag": "rosalind_cured"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "She sleeps. The fever breaks in the mornings and comes back by noon. Sit if you like; there is not much else to do.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Tell me about this fever.",
+                    "next_node": "fever"
+                },
+                {
+                    "text": "Where does the mirage pearl come from?",
+                    "next_node": "pearl"
+                },
+                {
+                    "text": "How long has she got?",
+                    "next_node": "time"
+                },
+                {
+                    "text": "I will let her rest.",
+                    "end": true
+                }
+            ]
+        },
+        "fever": {
+            "text": "Salt fever. It comes up out of the wash in the hot months, with the dust. The young and the strong catch it first, and it does not let go. We have buried six since the spring.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "And the cure?",
+                    "next_node": "pearl"
+                },
+                {
+                    "text": "Go on.",
+                    "next_node": "greeting"
+                }
+            ]
+        },
+        "pearl": {
+            "text": "The mirage pearl. There is a story in these parts that the water under the desert makes them, deep in the Brineway Caverns, in the far corner of the Saltreach where the ground gives way. A fever breaks around one, they say. Nobody has brought one up in thirty years.",
+            "pace": "slow",
+            "effects": {
+                "set_flag": "pearl_known"
+            },
+            "choices": [
+                {
+                    "text": "I will find one.",
+                    "next_node": "promise"
+                },
+                {
+                    "text": "Go on.",
+                    "next_node": "greeting"
+                }
+            ]
+        },
+        "promise": {
+            "text": "Then go carefully, and take someone with you who knows the caves. The Brineway has taken better men than you or I. We will keep her cool, and we will keep her here.",
+            "pace": "slow",
+            "end": true
+        },
+        "time": {
+            "text": "Maren says a month. I say less, and I do not say it where she can hear. Do not take too long.",
+            "pace": "slow",
+            "next_node": "greeting"
+        },
+        "the_cure": {
+            "text": "By the stones... is that what I think it is? Give it here, quick. Maren, the cup!",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Give Orrin the mirage pearl.",
+                    "next_node": "cured",
+                    "effects": {
+                        "take_item": "item_mirage_pearl",
+                        "set_flag": "rosalind_cured",
+                        "play_scene": "rosalind_cured"
+                    }
+                }
+            ]
+        },
+        "cured": {
+            "text": "Stand back. Let her breathe.",
+            "pace": "slow",
+            "end": true
+        },
+        "thanks": {
+            "text": "The fever broke in the night. She is asking for broth and arguing with Maren. I have not seen the like in thirty years. Whatever you owe the Brineway, it owes you more.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

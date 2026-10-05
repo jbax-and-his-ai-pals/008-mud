@@ -62,5 +62,20 @@
         "effects": {
             "play_scene": "after_the_guards"
         }
+    },
+    "sickroom_visit": {
+        "on": {
+            "event": "on_enter",
+            "region": "dunhallow",
+            "room": "sickroom"
+        },
+        "when": {
+            "kind": "flag",
+            "flag": "rosalind_hint"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "sickroom_visit"
+        }
     }
 }

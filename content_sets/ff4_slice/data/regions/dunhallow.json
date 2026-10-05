@@ -16,11 +16,19 @@
         },
         "square": {
             "name": "Dunhallow Square",
-            "description": "A dusty square with the well at its heart. Flat roofs throw hard shadows, and nobody hurries. The inn stands on the north side, with a faded blue door.",
+            "description": "A dusty square with the well at its heart. Flat roofs throw hard shadows, and nobody hurries. The inn stands on the north side, with a faded blue door; a market street runs east, and a lane south.",
             "exits": {
                 "west": "gate",
-                "north": "inn"
-            }
+                "north": "inn",
+                "east": "market_street",
+                "south": "south_lane"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "water_carrier",
+                    "instance_id": "carrier_at_square"
+                }
+            ]
         },
         "inn": {
             "name": "The Blue Door Inn",
@@ -32,6 +40,143 @@
                 {
                     "template_id": "desert_innkeeper",
                     "instance_id": "innkeeper_at_blue_door"
+                }
+            ]
+        },
+        "market_street": {
+            "name": "Market Street",
+            "description": "A narrow street under striped awnings. Spices heap in little cones, and the shade smells of cumin and hot dust. A trader's shop stands on the north side, and a forge glows on the south. The street ends in a grove to the east.",
+            "exits": {
+                "west": "square",
+                "north": "general_store",
+                "south": "armorer",
+                "east": "date_grove"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "spice_seller",
+                    "instance_id": "spice_seller_at_market"
+                }
+            ]
+        },
+        "general_store": {
+            "name": "Pell's Trading Post",
+            "description": "A cool, cluttered shop of shelves and hooks. Flasks, jars and coiled rope crowd the walls, and everything has a small, neat label.",
+            "exits": {
+                "south": "market_street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "pell_trader",
+                    "instance_id": "pell_at_store"
+                }
+            ]
+        },
+        "armorer": {
+            "name": "Brannoch's Forge",
+            "description": "Heat rolls out of the doorway before you reach it. Armour hangs from every beam, and a staff or two leans in the corner beside the anvil.",
+            "exits": {
+                "north": "market_street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "brannoch_smith",
+                    "instance_id": "brannoch_at_forge"
+                }
+            ]
+        },
+        "date_grove": {
+            "name": "The Date Grove",
+            "description": "A ring of old palms round a stone basin, heavy with fruit and loud with bees. Children's toys lie in the shade, and something small and green rustles away from your feet.",
+            "exits": {
+                "west": "market_street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "date_picker",
+                    "instance_id": "picker_in_grove"
+                },
+                {
+                    "template_id": "lizard_child",
+                    "instance_id": "child_in_grove"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_old_amulet"
+                }
+            ]
+        },
+        "south_lane": {
+            "name": "South Lane",
+            "description": "A quiet lane of low houses, the plaster flaking off in the sun. Blue shutters stand closed on the house to the east; a potter's wheel sits outside the house to the west, and a cedar-shaded cottage lies to the south.",
+            "exits": {
+                "north": "square",
+                "east": "orrins_house",
+                "west": "potters_house",
+                "south": "widows_cottage"
+            }
+        },
+        "orrins_house": {
+            "name": "Orrin and Maren's House",
+            "description": "A neat, close room smelling of vinegar and crushed herbs. A pot simmers on a little hearth, and the shutters are drawn to keep out the heat. A curtained doorway leads to the back room.",
+            "exits": {
+                "west": "south_lane",
+                "north": "sickroom"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "maren",
+                    "instance_id": "maren_at_home"
+                }
+            ]
+        },
+        "sickroom": {
+            "name": "The Back Room",
+            "description": "A small, dim room with one narrow bed. Wet cloths hang over a line, and a basin of cool water stands by the pillow.",
+            "exits": {
+                "south": "orrins_house"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "orrin",
+                    "instance_id": "orrin_at_bedside"
+                }
+            ]
+        },
+        "potters_house": {
+            "name": "The Potter's House",
+            "description": "Pots of every size crowd the floor, shelves, even the bed. The wheel by the window is still warm, and the room smells of wet clay.",
+            "exits": {
+                "east": "south_lane"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "potter_ilse",
+                    "instance_id": "ilse_at_wheel"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_potters_trunk"
+                }
+            ]
+        },
+        "widows_cottage": {
+            "name": "Widow Tamsin's Cottage",
+            "description": "A tidy room with a cedar chest at the foot of the bed and bundles of dried herbs hanging from the rafters. A bowl of dates sits on every flat surface.",
+            "exits": {
+                "north": "south_lane"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "widow_tamsin",
+                    "instance_id": "tamsin_at_home"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_widows_chest"
                 }
             ]
         }

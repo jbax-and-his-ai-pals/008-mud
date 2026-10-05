@@ -152,8 +152,103 @@
                     "set_flag": [
                         "guards_beaten",
                         "rosalind_hint"
-                    ]
+                    ],
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    },
+                    "remove_npc": "rosalind"
                 }
+            }
+        ]
+    },
+    "sickroom_visit": {
+        "note": "The first time the hero goes into the back room of Orrin and Maren's house: Rosalind, sick with salt fever, and what it will take to cure her.",
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The back room is dim, and smells of vinegar and crushed herbs. An old man stands beside a narrow bed, and does not look round as you come in."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "Someone is lying in it. Even in the half-dark, grey and shining with fever, you know the line of her face."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "Rosalind."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"Is that... you? You came. No... I came. I came to find you.\"[[/]]"
+            },
+            {
+                "after": 4.5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"They said the ships had gone south. I took the road. And then the whole mountain came down.\"[[/]]"
+            },
+            {
+                "after": 4.5,
+                "pace": "slow",
+                "text": "[[BLUE]]\"Rest. I am here.\"[[/]] Her hand finds yours, hot as a stone left in the sun, and holds on."
+            },
+            {
+                "after": 4.5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Orrin speaks:[[/]] [[GREEN]]\"We found her at the edge of the wash three nights back, half buried, talking about a man with a black sword. Maren has not left her side since.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Orrin speaks:[[/]] [[GREEN]]\"It is the salt fever. It comes up out of the wash in the hot months and it does not let go. She will not see the month out. Not unless you can fetch a mirage pearl.\"[[/]]"
+            },
+            {
+                "after": 4.5,
+                "pace": "slow",
+                "text": "[[BLUE]]\"Where?\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Orrin speaks:[[/]] [[GREEN]]\"Ask me. There is more to tell, and she should sleep.\"[[/]] (talk orrin)",
+                "effects": {
+                    "set_flag": "pearl_quest"
+                }
+            }
+        ]
+    },
+    "rosalind_cured": {
+        "note": "The mirage pearl is given to Orrin; the fever breaks.",
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Orrin crushes the pearl into the cup, and Maren holds it to Rosalind's lips. Nobody breathes."
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "For a long time nothing happens. Then, slowly, the shine goes out of her face, the way frost goes off a field."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"...You look terrible.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[BLUE]]\"You look better.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"Stay out of trouble until I can stand. That is an order.\"[[/]]"
             }
         ]
     }

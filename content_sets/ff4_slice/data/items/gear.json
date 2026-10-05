@@ -91,7 +91,7 @@
         "name": "iron helm",
         "description": "A round iron cap with a short nose guard.",
         "weight": 2,
-        "value": 0,
+        "value": 25,
         "stackable": false,
         "properties": {
             "defense": 2,
@@ -139,5 +139,167 @@
             ]
         },
         "item_family": "armor"
+    },
+    "item_brass_cap": {
+        "type": "Armor",
+        "name": "brass cap",
+        "description": "A close brass cap, dented once and hammered true.",
+        "weight": 1.5,
+        "value": 30,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "chain",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "head"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_dune_boots": {
+        "type": "Armor",
+        "name": "dune boots",
+        "description": "Soft, high boots, stitched for sand.",
+        "weight": 1,
+        "value": 20,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "leather",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "feet"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_sun_amulet": {
+        "type": "Armor",
+        "name": "sun amulet",
+        "description": "A disc of beaten gold on a cord, warm as skin.",
+        "weight": 0.2,
+        "value": 40,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "cloth",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "neck"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_buckler": {
+        "type": "Armor",
+        "name": "buckler",
+        "description": "A small round shield of bound reed and brass.",
+        "weight": 2,
+        "value": 30,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "chain",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "off_hand"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_old_buckler": {
+        "type": "Armor",
+        "name": "old buckler",
+        "description": "A dented buckler, older than its owner and tougher than it looks.",
+        "weight": 2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 4,
+            "armor_material": "chain",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "off_hand"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_sun_circlet": {
+        "type": "Armor",
+        "name": "sun circlet",
+        "description": "A thin circlet of old gold, a little bent. It sits well.",
+        "weight": 0.6,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 4,
+            "armor_material": "chain",
+            "durability": 50,
+            "max_durability": 50,
+            "equip_slot": [
+                "head"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_traveller_boots": {
+        "type": "Armor",
+        "name": "traveller's boots",
+        "description": "Boots that have walked the whole of the Saltreach and look ready to do it again.",
+        "weight": 1.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "leather",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "feet"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_old_amulet": {
+        "type": "Armor",
+        "name": "tarnished amulet",
+        "description": "A green-black amulet on a frayed thread. Polished, it might shine.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "cloth",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "neck"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_ash_staff": {
+        "type": "Weapon",
+        "name": "ash staff",
+        "description": "A straight staff of pale ash, smooth with handling.",
+        "weight": 2,
+        "value": 40,
+        "stackable": false,
+        "properties": {
+            "damage": 6,
+            "weapon_damage_type": "crushing",
+            "durability": 60,
+            "max_durability": 60,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
     }
 }

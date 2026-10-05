@@ -1,0 +1,25 @@
+{
+    "id": "rosalind_sick_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "recovering",
+            "condition": {
+                "kind": "flag",
+                "flag": "rosalind_cured"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "...cold. Why is it so cold... and so hot. Is that... Don't go.",
+            "pace": "slow",
+            "end": true
+        },
+        "recovering": {
+            "text": "Do not hover. Go and do whatever it is that you do. I will be sitting up by the time you are back, and I will be unbearable about it.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

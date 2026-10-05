@@ -126,5 +126,69 @@
             ]
         },
         "item_family": "container"
+    },
+    "item_mirage_pearl": {
+        "type": "Item",
+        "name": "mirage pearl",
+        "description": "A pearl the size of a thumbnail, milky and cool, with a heat-shimmer trapped in it that moves when you do not look.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "curio"
+    },
+    "item_potters_trunk": {
+        "type": "Container",
+        "name": "potter's trunk",
+        "description": "A trunk at the foot of the potter's bed, lined with straw and old cloth.",
+        "weight": 20,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 8,
+            "contains": [
+                {
+                    "item_id": "item_old_buckler",
+                    "quantity": 1
+                },
+                {
+                    "item_id": "item_potion",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "item_widows_chest": {
+        "type": "Container",
+        "name": "widow's chest",
+        "description": "A cedar chest with a faded blue lid, smelling of dry herbs.",
+        "weight": 20,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 8,
+            "contains": [
+                {
+                    "item_id": "item_sun_circlet",
+                    "quantity": 1
+                },
+                {
+                    "item_id": "item_traveller_boots",
+                    "quantity": 1
+                },
+                {
+                    "item_id": "item_salve",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
     }
 }

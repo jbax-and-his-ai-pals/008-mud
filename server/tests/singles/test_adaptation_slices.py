@@ -1042,6 +1042,91 @@ class TestFF4Slice(_Slice):
         self.assertIn("blue shutters", told, "and a woman asking for the hero is mentioned")
         self.assertIs(True, self.player.flags.get("rosalind_hint"))
 
+    def _in_dunhallow_after_the_guards(self):
+        self.player.flags.update({"ryn_carried": True, "reached_the_inn": True, "guards_beaten": True, "rosalind_hint": True})
+        self.world.spawn_npc("rosalind_sick", "dunhallow", "sickroom", instance_id="rosalind_in_bed")
+
+    def test_the_village_is_a_real_one_with_houses_shops_and_folk(self):
+        region = self.world.get_region("dunhallow")
+        rooms = set(region.rooms)
+        self.assertTrue({"square", "inn", "market_street", "general_store", "armorer", "date_grove", "south_lane", "orrins_house",
+                         "sickroom", "potters_house", "widows_cottage"} <= rooms)
+        folk = {n.template_id for n in self.world.npcs.values() if n.current_region_id == "dunhallow"}
+        self.assertTrue({"water_carrier", "spice_seller", "date_picker", "lizard_child", "potter_ilse", "widow_tamsin", "pell_trader",
+                         "brannoch_smith", "maren", "desert_innkeeper"} <= folk)
+
+    def test_the_shops_sell_useful_things_and_the_prices_are_real(self):
+        self.at("dunhallow", "general_store")
+        self.player.runtime_state.gold = 500
+        self.say("trade pell")
+        self.assertIn("salve", self.say("list"))
+        self.say("buy salve")
+        self.assertTrue(self.holds("item_salve"))
+        self.assertLess(self.player.runtime_state.gold, 500)
+        self.say("stoptrade")
+        self.at("dunhallow", "armorer")
+        self.say("trade brannoch")
+        wares = self.say("list")
+        for ware in ("brass cap", "dune boots", "sun amulet", "buckler", "ash staff"):
+            self.assertIn(ware, wares)
+        self.assertNotIn("1 gil", wares, "nothing is given away")
+
+    def test_old_gear_is_lying_about_for_those_who_look(self):
+        self.at("dunhallow", "potters_house")
+        self.say("open potter's trunk")
+        self.say("get all from potter's trunk")
+        self.assertTrue(self.holds("item_old_buckler"))
+        self.at("dunhallow", "widows_cottage")
+        self.say("open widow's chest")
+        self.say("get all from widow's chest")
+        self.assertTrue(self.holds("item_sun_circlet"))
+        self.assertTrue(self.holds("item_traveller_boots"))
+
+    def test_the_back_room_shows_rosalind_sick_and_says_what_will_cure_her(self):
+        self._in_dunhallow_after_the_guards()
+        self.at("dunhallow", "orrins_house")
+        self.say("go north")
+        told = self._let_scenes_play_told(60)
+        self.assertIn("Rosalind.", told)
+        self.assertIn("salt fever", told)
+        self.assertIn("mirage pearl", told)
+        self.assertIs(True, self.player.flags.get("pearl_quest"))
+        self.assertIn("pearl", self.say("talk orrin") + self.say("reply 2"), "Orrin tells where it comes from")
+        self.assertIs(True, self.player.flags.get("pearl_known"))
+
+    def test_the_cutscene_is_told_only_the_first_time(self):
+        self._in_dunhallow_after_the_guards()
+        self.at("dunhallow", "orrins_house")
+        self.say("go north")
+        self._let_scenes_play(60)
+        self.say("go south")
+        self.say("go north")
+        self.assertNotIn("Rosalind.", self._let_scenes_play_told(10))
+
+    def test_bringing_the_pearl_cures_her(self):
+        self._in_dunhallow_after_the_guards()
+        self.at("dunhallow", "sickroom")
+        self.give("item_mirage_pearl")
+        self.say("talk orrin")
+        said = self.say("reply 1")   # "Give Orrin the mirage pearl."
+        self.assertFalse(self.holds("item_mirage_pearl"), "the pearl is used")
+        self.assertIs(True, self.player.flags.get("rosalind_cured"))
+        self.assertIn("You look terrible", self._let_scenes_play_told(40))
+        self.assertIn("sitting up", self.say("talk rosalind"))
+
+    def test_the_guards_scene_sends_rosalind_to_the_village_and_off_the_castle_chapel(self):
+        self._ryn_asleep_in_the_inn()
+        self.world.scene_runner.play(self.player, "guards_arrive")
+        self._let_scenes_play(40)
+        for template, name in (("pursuit_sergeant", "havel"), ("castle_pursuer", "guard"), ("castle_pursuer", "guard")):
+            if self.npcs(template):
+                self.kill(template, name)
+        self._let_scenes_play(80)
+        self.assertEqual([], self.npcs("rosalind"), "she has left the castle")
+        sick = self.npcs("rosalind_sick")
+        self.assertEqual(1, len(sick))
+        self.assertEqual(("dunhallow", "sickroom"), (sick[0].current_region_id, sick[0].current_room_id))
+
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]
         self.assertIs(True, ryn.get("untargetable"))

@@ -267,6 +267,20 @@ wait(80)
 check("Ryn wakes, thanks the hero and joins him", [n.template_id for n in __import__("engine.npcs.companions", fromlist=["x"]).companions_of(g.world, g.player)] == ["ryn_young"], "")
 check("a woman asking for the hero is mentioned", g.player.flags.get("rosalind_hint") is True, "")
 
+# --- the village, and the house with the blue shutters --------------------------------------------------------------------
+for step in ("go south", "go south", "go east", "go north"):
+    say(g, step)
+check("in the back room of Orrin and Maren's house", g.where() == "dunhallow:sickroom", g.where())
+wait(60)
+check("Rosalind lies sick and the cure is a mirage pearl", g.player.flags.get("pearl_quest") is True, "")
+out = say(g, "talk orrin", show=V, n=300)
+out = say(g, "reply 2", show=V, n=300)
+check("Orrin says where the pearl is found", g.player.flags.get("pearl_known") is True, "")
+say(g, "go south"); say(g, "go west"); say(g, "go north"); say(g, "go east"); say(g, "go north")
+say(g, "trade pell")
+check("the trading post sells salves", "salve" in say(g, "list"), "")
+say(g, "stoptrade")
+
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])
 g.close()
