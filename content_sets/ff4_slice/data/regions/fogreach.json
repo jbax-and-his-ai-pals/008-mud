@@ -16,11 +16,11 @@
         },
         "bat_roost": {
             "name": "Bat Roost",
-            "description": "The ceiling is a mass of sleeping wings. A crack in the south wall opens on a nook where the droppings are piled deep.",
+            "description": "The ceiling is a mass of sleeping wings. A crack in the north wall opens on a nook where the droppings are piled deep.",
             "exits": {
                 "west": "entry",
                 "east": "crystal_pool",
-                "south": "guano_nook"
+                "north": "guano_nook"
             },
             "initial_npcs": [
                 {
@@ -31,19 +31,21 @@
                     "template_id": "cave_bat",
                     "instance_id": "bat_roost_b"
                 }
-            ]
+            ],
+            "properties": {}
         },
         "guano_nook": {
             "name": "Guano Nook",
             "description": "A cramped pocket of the cave, reeking and warm. Somebody once hid something here, and never came back for it.",
             "exits": {
-                "north": "bat_roost"
+                "south": "bat_roost"
             },
             "items": [
                 {
                     "item_id": "item_traveller_cache"
                 }
-            ]
+            ],
+            "properties": {}
         },
         "crystal_pool": {
             "name": "Crystal Pool",
@@ -141,5 +143,6 @@
                 }
             }
         }
-    }
+    },
+    "spawner": {}
 }
