@@ -28,7 +28,7 @@ from engine import presentation
 from engine.conditions import Evaluation, evaluate, explain
 from engine.config import (
     FORMAT_CATEGORY, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS,
-    FORMAT_TITLE,
+    FORMAT_PLAYER_SPEECH, FORMAT_TITLE,
 )
 from engine.dialogue import effects as dialogue_effects
 from engine.dialogue.graph import DialogueChoice, DialogueGraph, DialogueNode
@@ -390,7 +390,7 @@ class DialogueManager:
 
     def spoken_line(self, choice: DialogueChoice) -> str:
         """What the player said, as the transcript shows it: `You reply: "At once, my king."`"""
-        return '%sYou reply:%s "%s"' % (FORMAT_CATEGORY, FORMAT_RESET, choice.label)
+        return '%sYou reply:%s %s"%s"%s' % (FORMAT_CATEGORY, FORMAT_RESET, FORMAT_PLAYER_SPEECH, choice.label, FORMAT_RESET)
 
     def render_node(self, player, npc, node: DialogueNode, session: Optional[DialogueSession] = None,
                     reply: bool = False) -> str:

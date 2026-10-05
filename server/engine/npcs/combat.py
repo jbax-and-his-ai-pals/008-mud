@@ -69,9 +69,16 @@ def is_pacifist(npc) -> bool:
     return isinstance(properties, dict) and properties.get("pacifist") is True
 
 
+def is_untargetable(npc) -> bool:
+    """`properties.untargetable`: nothing picks it as a target and nothing it is hit by hurts it (a child carried,
+    asleep, through a fight). Pair it with `pacifist` for someone who takes no part at all."""
+    properties = getattr(npc, "properties", None)
+    return isinstance(properties, dict) and properties.get("untargetable") is True
+
+
 def enter_combat(npc: 'NPC', target):
     if not npc.is_alive or not target or not getattr(target, 'is_alive', False): return
-    if is_pacifist(npc): return
+    if is_pacifist(npc) or is_untargetable(target): return
     npc.in_combat = True
     npc.combat_targets.add(target)
     if hasattr(target, 'enter_combat') and npc not in _combat_targets(target):
@@ -189,7 +196,7 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
     
     target = npc.combat_target
     if not (target and target.is_alive and target.current_room_id == npc.current_room_id):
-        valid_targets = [t for t in npc.combat_targets if t and t.is_alive and t.current_room_id == npc.current_room_id]
+        valid_targets = [t for t in npc.combat_targets if t and t.is_alive and t.current_room_id == npc.current_room_id and not is_untargetable(t)]
         if not valid_targets: exit_combat(npc); return None
         target = random.choice(valid_targets); npc.combat_target = target
 

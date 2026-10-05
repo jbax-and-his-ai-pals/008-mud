@@ -140,12 +140,12 @@ for i in range(2):
     r = g.fight("bat", potion="potion"); check("beat bat %d" % (i + 1), r.startswith("won"), r)
 
 # --- the cave's treasure, off the road ----------------------------------------------------------------------------
-say(g, "go south")
+say(g, "go north")
 check("in the guano nook", g.where() == "fogreach:guano_nook", g.where())
 say(g, "open oilskin bundle")
 say(g, "get iron helm from oilskin bundle")
 check("the nook's bundle held an iron helm", "item_iron_helm" in g.items(), str(g.items()))
-say(g, "go north")
+say(g, "go south")
 say(g, "go east")
 check("at the crystal pool", g.where() == "fogreach:crystal_pool", g.where())
 say(g, "go north")
@@ -234,10 +234,10 @@ for _ in range(3):
     out = say(g, "reply 1", show=V, n=300)
 wait(90)
 check("the Colossus's quake brings the mountain down: you wake in the wood", g.where() == "thornwood:clearing", g.where())
-kessa = [n for n in g.world.npcs.values() if n.template_id == "captain_kessa"][0]
-check("Kessa is nowhere to be found", kessa.current_region_id != "thornwood" and not kessa.properties.get("companion"), "")
+check("Kessa is nowhere to be found", not [n for n in g.world.npcs.values() if n.template_id == "captain_kessa" and n.is_alive], "")
 ryn = [n for n in g.world.npcs.values() if n.template_id == "ryn"][0]
 check("Ryn is carried, unconscious", bool(ryn.properties.get("companion")) and g.player.flags.get("ryn_carried"), "")
+check("and she is a passenger: no enemy can touch her", ryn.properties.get("untargetable") is True and ryn.properties.get("pacifist") is True, "")
 
 # --- the wood, the desert, the inn ---------------------------------------------------------------------------------
 for step in ("go east", "go east", "go east", "go east", "go east", "go east", "go east", "go north"):

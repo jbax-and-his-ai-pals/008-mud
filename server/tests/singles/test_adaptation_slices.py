@@ -698,6 +698,19 @@ class TestFF4Slice(_Slice):
         self.assertIn("A messenger from the king?", said)
         self.assertIn("give sealed package to mayor", said, "and says how to hand it over")
 
+    def test_what_the_player_says_is_coloured_apart_from_what_everyone_else_says(self):
+        self.say("talk king")
+        raw = chr(10).join(str(e["payload"]) for e in self.server.execute_command(self.sid, "reply 3"))
+        self.assertIn('[[BLUE]]"Tell me again what the package is."[[/]]', raw, "the player's words are blue (the NPCs' are green)")
+
+    def test_every_quoted_line_in_the_shrine_scenes_is_coloured_by_who_speaks(self):
+        scenes = json.loads((REPO_ROOT / "content_sets" / "ff4_slice" / "data" / "scenes" / "hazevale.json").read_text(encoding="utf-8"))
+        for scene_id in ("kessa_deduces", "colossus_quake", "wake_in_the_wood", "reach_the_inn"):
+            for beat in scenes[scene_id]["beats"]:
+                text = beat.get("text", "")
+                uncoloured = re.sub(r"\[\[(GREEN|BLUE)\]\].*?\[\[/\]\]", "", text)   # speech that has its colour is taken out
+                self.assertNotIn('"', uncoloured, "a quotation with no colour: " + text[:80])
+
     def test_the_inn_charges_for_a_room_and_restores_the_traveller(self):
         self.at("hazevale", "inn")
         magic = self.player.runtime_state.magic
@@ -861,12 +874,17 @@ class TestFF4Slice(_Slice):
         self.player.flags.update({"ryn_told": True, "kessa_relented": True, "ryn_resisted_once": True, "ryn_resisted_twice": True})
         self.say("talk ryn")
         self.say("reply 1")
-        self._let_scenes_play(120)
+        told = self._let_scenes_play_told(120)
+        self.assertNotIn("stays behind", told, "the quake scene does not announce Kessa's going")
         self.assertEqual([], [c for c in self._companions() if c == "captain_kessa"], "Kessa is nowhere to be found")
-        kessa = self.npcs("captain_kessa")[0]
-        self.assertNotEqual("thornwood", kessa.current_region_id)
+        self.assertEqual([], self.npcs("captain_kessa"), "she is not in the world at all, and nothing said that she stayed behind")
         self.assertEqual(["ryn"], self._companions(), "a party of one and the girl in your arms")
         self.assertIn("Mother", self.say("talk ryn"), "she is asleep, and says nothing but that")
+
+    def test_ryn_is_a_passenger_no_enemy_can_touch(self):
+        ryn = self.world.npc_templates["ryn"]["properties"]
+        self.assertIs(True, ryn.get("untargetable"))
+        self.assertIs(True, ryn.get("pacifist"), "she is carried, not fighting: she cannot attack or be attacked")
 
     def test_the_wood_leads_to_a_desert_village_and_its_inn_ends_the_slice(self):
         self.player.flags["ryn_carried"] = True

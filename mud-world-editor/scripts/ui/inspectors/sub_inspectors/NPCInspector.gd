@@ -643,6 +643,13 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("pacifist")
 		database_modified.emit())
 	flags.add_child(pacifist)
+	var untargetable := CheckBox.new(); untargetable.name = "Untargetable"; untargetable.text = "Untargetable (no enemy picks it, nothing hurts it)"
+	untargetable.button_pressed = bool(properties.get("untargetable", false))
+	untargetable.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["untargetable"] = true
+		else: _ensure_npc_properties().erase("untargetable")
+		database_modified.emit())
+	flags.add_child(untargetable)
 	var unique := CheckBox.new(); unique.text = "Unique (called \"the\", not \"a\")"
 	unique.button_pressed = bool(properties.get("unique", false))
 	unique.toggled.connect(func(pressed):

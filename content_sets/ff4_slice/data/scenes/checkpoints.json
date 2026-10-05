@@ -361,12 +361,6 @@
                         "ryn_resisted_twice"
                     ],
                     "remove_npc": "mayor_of_hazevale",
-                    "move_npc": {
-                        "npc": "captain_kessa",
-                        "region": "hazevale_ruin",
-                        "room": "buried_lane",
-                        "silent": true
-                    },
                     "play_scene": "wake_in_the_wood",
                     "teleport": {
                         "region": "thornwood",
@@ -376,6 +370,12 @@
                         "xp": 250
                     },
                     "restore": "all"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
                 }
             }
         ]

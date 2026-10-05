@@ -34,6 +34,7 @@ func _init() -> void:
 	_check_selecting_a_behavior_writes_it()
 	_check_the_friendly_checkbox_writes_and_defaults_true()
 	_check_the_pacifist_checkbox_writes_and_erases()
+	_check_the_untargetable_checkbox_writes_and_erases()
 	_check_the_attack_cooldown_writes()
 	_check_the_gear_rows()
 
@@ -186,6 +187,18 @@ func _check_the_pacifist_checkbox_writes_and_erases() -> void:
 	_assert(manager.npcs["npc_probe"]["properties"].get("pacifist") == true, "ticking it writes properties.pacifist")
 	box.toggled.emit(false)
 	_assert(not manager.npcs["npc_probe"]["properties"].has("pacifist"), "and unticking it erases the key rather than writing false")
+
+
+func _check_the_untargetable_checkbox_writes_and_erases() -> void:
+	print("\n[the untargetable checkbox]")
+	var manager := _manager()
+	var holder := _build_inspector_from("npc_probe", manager)
+	var box := holder.find_child("Untargetable", true, false) as CheckBox
+	_assert(box != null and not box.button_pressed, "an NPC that never said so can be targeted")
+	box.toggled.emit(true)
+	_assert(manager.npcs["npc_probe"]["properties"].get("untargetable") == true, "ticking it writes properties.untargetable")
+	box.toggled.emit(false)
+	_assert(not manager.npcs["npc_probe"]["properties"].has("untargetable"), "and unticking it erases the key rather than writing false")
 
 
 func _checkbox_labeled(node: Node, text: String) -> CheckBox:

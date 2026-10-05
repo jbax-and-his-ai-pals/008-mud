@@ -91,7 +91,7 @@
             },
             {
                 "after": 4.5,
-                "text": "You look at the blue light of the crystal on their faces. \"It had to be done,\" you say, and nobody believes it, least of all you.",
+                "text": "You look at the blue light of the crystal on their faces. [[BLUE]]\"It had to be done,\"[[/]] you say, and nobody believes it, least of all you.",
                 "pace": "slow"
             },
             {

@@ -130,7 +130,8 @@
             "move_cooldown": 9999,
             "dialogue": "ryn_girl",
             "essential": true,
-            "pacifist": true
+            "pacifist": true,
+            "untargetable": true
         }
     },
     "innkeeper": {

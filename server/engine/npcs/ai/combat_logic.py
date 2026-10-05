@@ -158,7 +158,7 @@ def scan_for_targets(npc: 'NPC', world: 'World', player: 'Player', force_aggress
         # Check other NPCs
         room_npcs = world.get_npcs_in_room(npc.current_region_id, npc.current_room_id)
         for other_npc in room_npcs:
-            if other_npc != npc and other_npc.is_alive:
+            if other_npc != npc and other_npc.is_alive and not npc_combat.is_untargetable(other_npc):
                 if npc_combat.is_hostile_to(npc, other_npc):
                     proactive_targets.append(other_npc)
 

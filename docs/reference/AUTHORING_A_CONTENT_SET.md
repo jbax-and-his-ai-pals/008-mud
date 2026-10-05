@@ -371,6 +371,7 @@ Each of these is read by the engine, refused by the validator when it is wrong, 
 | `properties.attack_cooldown` | an NPC | Seconds between its blows, 0.5 to 120 (default 3): slower is easier to read in a staged fight. |
 | `properties.respawn_cooldown: -1` | an NPC | Never comes back once dead (a hostile or a friendly alike). |
 | `silent: true` | a `move_npc` effect | No "leaves" / "arrives" line: the scene says it in its own words ("The chancellor leads you north."). |
+| `properties.untargetable: true` | an NPC | Nothing picks it as a target and nothing that reaches it hurts it. With `pacifist` it takes no part in a fight at all: a child carried through one, a passenger. |
 | `properties.pacifist: true` | an NPC | Never fights back and never starts a fight: it can be attacked and killed, and it does not retaliate. |
 | `ruleset.factions.enmities` | the ruleset | `[{"faction": "red_fleet", "against": "ilmaran"}]`: the first faction attacks the second on sight, without either turning on the player. One way; list the pair both ways for a mutual fight. Both must be declared (`factions.extra` or an engine faction). |
 | `{"kind": "npc_present", "npc_id": ..., "region_id", "room_id"}` | a condition | A living NPC of that template (or placed id), anywhere or in the room named (region and room together). `{"not": ...}` of it is "the last one is gone". |

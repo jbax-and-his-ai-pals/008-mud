@@ -93,7 +93,7 @@
             },
             {
                 "after": 5,
-                "text": "You step between Kessa and the child. \"No.\" It comes out harder than you meant it to.",
+                "text": "You step between Kessa and the child. [[BLUE]]\"No.\"[[/]] It comes out harder than you meant it to.",
                 "pace": "slow"
             },
             {
@@ -103,7 +103,7 @@
             },
             {
                 "after": 5,
-                "text": "\"She is a girl,\" you say. \"We have done enough for one king today. I will not do this too.\"",
+                "text": "[[BLUE]]\"She is a girl,\"[[/]] you say. [[BLUE]]\"We have done enough for one king today. I will not do this too.\"[[/]]",
                 "pace": "slow"
             },
             {
@@ -118,12 +118,12 @@
             },
             {
                 "after": 4,
-                "text": "\"We take her, and we do not go back to Varenholt,\" you say.",
+                "text": "[[BLUE]]\"We take her, and we do not go back to Varenholt,\"[[/]] you say.",
                 "pace": "slow"
             },
             {
                 "after": 4,
-                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"Deserters, then. Well. It is a better thing to be than what we were this morning.\"[[/]] She turns to the child, and her voice changes. \"Easy, little one. Easy.\"",
+                "text": "[[YELLOW]]Captain Kessa speaks:[[/]] [[GREEN]]\"Deserters, then. Well. It is a better thing to be than what we were this morning.\"[[/]] She turns to the child, and her voice changes. [[GREEN]]\"Easy, little one. Easy.\"[[/]]",
                 "pace": "slow",
                 "effects": {
                     "set_flag": "kessa_relented"
@@ -132,7 +132,7 @@
         ]
     },
     "colossus_quake": {
-        "note": "Ryn will not come, and calls the colossus; the quake brings the mountain down. Then the party wakes in a wood far from Hazevale, Kessa gone and Ryn unconscious in the player's arms.",
+        "note": "Ryn will not come, and calls the colossus; the quake brings the mountain down. Then the party wakes in a wood far from Hazevale, Kessa gone (taken out of the world; the next scene says so) and Ryn unconscious in the player's arms.",
         "beats": [
             {
                 "text": "Ryn's crying stops. It stops all at once, and that is worse.",
@@ -181,8 +181,7 @@
                 "text": "You reach for the girl. You reach for Kessa. Then there is only stone, and dark.",
                 "pace": "slow",
                 "effects": {
-                    "remove_npc": "colossus_minion",
-                    "dismiss": "captain_kessa"
+                    "remove_npc": "colossus_minion"
                 }
             },
             {
@@ -198,17 +197,12 @@
                         "valley_buried",
                         "kessa_lost"
                     ],
-                    "move_npc": {
-                        "npc": "captain_kessa",
-                        "region": "hazevale_ruin",
-                        "room": "buried_lane",
-                        "silent": true
-                    },
                     "play_scene": "wake_in_the_wood",
                     "teleport": {
                         "region": "thornwood",
                         "room": "clearing"
-                    }
+                    },
+                    "remove_npc": "captain_kessa"
                 }
             }
         ]
