@@ -89,7 +89,7 @@ def run_check(godot: str, test: Path) -> tuple[bool, str]:
     shutting down, not a failed check. That alone is run once more (and said so); a check that failed, or an exit that is
     bad twice, is a failure."""
     ok, output = _run_check_once(godot, test)
-    if not ok and re.search(r"\d+ checks, 0 failed", output) and not re.search(r"^\s*FAIL|SCRIPT ERROR", output, re.MULTILINE):
+    if not ok and re.search(r"\d+ checks, 0 failed", output) and not re.search(r"^\s*FAIL|SCRIPT ERROR", output, re.MULTILINE):
         again_ok, again_output = _run_check_once(godot, test)
         if again_ok:
             return True, again_output + chr(10) + "(the first run passed every check but Godot exited badly; the second was clean)"

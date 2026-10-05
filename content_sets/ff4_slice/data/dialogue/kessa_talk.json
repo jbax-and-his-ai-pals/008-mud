@@ -10,6 +10,21 @@
             }
         },
         {
+            "node": "with_you_castle",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "companion_present",
+                        "npc_id": "captain_kessa"
+                    },
+                    {
+                        "kind": "in_region",
+                        "region_id": "varenholt"
+                    }
+                ]
+            }
+        },
+        {
             "node": "with_you",
             "condition": {
                 "kind": "companion_present",
@@ -160,23 +175,7 @@
         "with_you": {
             "text": "Lead on, Captain. I am right behind you.",
             "pace": "slow",
-            "choices": [
-                {
-                    "text": "Hold here, Kessa. I will send for you.",
-                    "next_node": "stays",
-                    "effects": {
-                        "dismiss": true
-                    },
-                    "condition": {
-                        "kind": "in_region",
-                        "region_id": "varenholt"
-                    }
-                },
-                {
-                    "text": "Nothing. Lead on.",
-                    "end": true
-                }
-            ]
+            "end": true
         },
         "stays": {
             "text": "Then I will hold here. Send word when you need a blade.",
@@ -187,6 +186,23 @@
             "text": "Give me a moment, Captain. That thing cut deeper than I let on. I will catch my breath and find you the moment I can stand beside you again.",
             "pace": "slow",
             "end": true
+        },
+        "with_you_castle": {
+            "text": "Lead on, Captain. I am right behind you.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Hold here, Kessa. I will send for you.",
+                    "next_node": "stays",
+                    "effects": {
+                        "dismiss": true
+                    }
+                },
+                {
+                    "text": "Nothing. Lead on.",
+                    "end": true
+                }
+            ]
         }
     }
 }

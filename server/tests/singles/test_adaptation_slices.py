@@ -900,6 +900,19 @@ class TestFF4Slice(_Slice):
         self.say("reply 1")   # "Hold here, Kessa."
         self.assertEqual([], self._companions())
 
+    def test_away_from_the_castle_kessa_just_answers_and_offers_no_reply(self):
+        self.player.flags["rested_at_castle"] = True
+        self.at("varenholt", "barracks")
+        self.say("talk kessa")
+        self.say("reply 1")
+        self.at("road", "castle_road")
+        kessa = self.npcs("captain_kessa")[0]
+        kessa.current_region_id, kessa.current_room_id = "road", "castle_road"
+        said = self.say("talk kessa")
+        self.assertIn("I am right behind you", said)
+        self.assertNotIn("reply <number>", said, "nothing to answer: no lone 'Nothing. Lead on.'")
+        self.assertEqual(["captain_kessa"], self._companions(), "and she is still with you")
+
     def test_a_party_of_three_stops_at_three(self):
         from engine.npcs import companions
 
