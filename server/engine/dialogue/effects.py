@@ -38,6 +38,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     place_vehicle     {"vehicle": "skimmer", "region": "r", "room": "x"}   set a vehicle down somewhere (whoever rode it is put ashore)
     board_vehicle     "skimmer"                      the player is put aboard it, wherever they stand (it comes to them)
     end_fight         {"region": "r", "room": "x"} | {}   everyone in that room (the player's, if none is named) stops fighting
+    set_faction       {"npc": "id", "faction": "hostile", "behavior": "aggressive"}   an NPC changes sides (a companion is dismissed first)
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
     play_scene        "scene_id"                     the player watches a scene (data/scenes; world/scenes.py)
@@ -94,7 +95,7 @@ KNOWN_EFFECTS = frozenset({
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
     "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
-    "place_vehicle", "board_vehicle", "end_fight",
+    "place_vehicle", "board_vehicle", "end_fight", "set_faction",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -198,6 +199,11 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"region": "text", "room": "text"},
         "together": (("region", "room"),),
     },
+    "set_faction": {
+        "form": "object",
+        "fields": {"npc": "text", "faction": "text", "behavior": "text"},
+        "required": ("npc", "faction"),
+    },
     "remove_npc": {
         "form": "object", "bare": "text",
         "fields": {"npc": "text", "region": "text", "room": "text"},
@@ -238,6 +244,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
     "place_vehicle": {"label": "Set a vehicle down somewhere", "hint": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
+    "set_faction": {"label": "An NPC changes sides", "hint": "{npc: template or placed id, faction, behavior (optional)}: a companion is dismissed first", "kind": "json"},
     "end_fight": {"label": "End the fight in a room", "hint": "{region, room}, or {} for the player's room: everyone there stops fighting", "kind": "json"},
     "board_vehicle": {"label": "Put the player aboard a vehicle", "hint": "vehicle id (data/vehicles); it comes to wherever they stand", "kind": "string", "refs": "vehicles"},
     "play_scene": {"label": "Play a scene (the player watches)", "hint": "scene id (data/scenes)", "kind": "string"},
@@ -1166,6 +1173,8 @@ def _apply_spawn_npc_effect(effects: Dict[str, Any], context, report: EffectRepo
         return
     npc, status = world.spawn_npc(template_id, region_id, room_id, instance_id)
     if status == "spawned":
+        if isinstance(npc.properties, dict) and npc.properties.get("mirrors_player") is True and context.get("player") is not None:
+            _mirror_player(npc, context["player"])
         report.applied.append("spawned %s in %s:%s" % (template_id, region_id, room_id))
     elif status == "present":
         report.unchanged.append("spawn_npc %s (already here)" % npc.obj_id)
@@ -1173,6 +1182,17 @@ def _apply_spawn_npc_effect(effects: Dict[str, Any], context, report: EffectRepo
         report.failed.append("spawn_npc (no NPC template %s)" % template_id)
     else:
         report.failed.append("spawn_npc (no room %s:%s)" % (region_id, room_id))
+
+
+def _mirror_player(npc, player) -> None:
+    """`properties.mirrors_player`: the creature is made the player's equal (health, blow, defence, level): their own shadow."""
+    npc.max_health = int(player.max_health)
+    npc.health = npc.max_health
+    npc.attack_power = npc.base_attack_power = int(player.get_attack_power())
+    npc.defense = int(player.get_defense())
+    progression = getattr(getattr(player, "runtime_state", None), "progression", None)
+    if progression is not None:
+        npc.level = int(progression.level)
 
 
 def _apply_remove_npc_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
@@ -1280,6 +1300,37 @@ def _apply_vehicle_effects(effects: Dict[str, Any], context, report: EffectRepor
             registry.place(vehicle_id, player.current_region_id, player.current_room_id)
             registry.board(player, vehicle_id)
             report.applied.append("boarded %s" % vehicle_id)
+
+
+def _apply_set_faction_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`set_faction`: a friend turns on the party (a brainwashed knight) or a foe is won over. A companion is let go first."""
+    if "set_faction" not in effects:
+        return
+    raw = effects["set_faction"]
+    if not isinstance(raw, dict):
+        report.failed.append("set_faction (must be an object)")
+        return
+    from engine.npcs import companions
+
+    world = _context_world(context)
+    player = context.get("player")
+    wanted = str(raw.get("npc", "") or "").strip()
+    faction = str(raw.get("faction", "") or "").strip()
+    behavior = str(raw.get("behavior", "") or "").strip()
+    if world is None or not wanted or not faction:
+        report.failed.append("set_faction (needs npc and faction)")
+        return
+    found = [n for n in world.npcs.values() if n.is_alive and wanted in (n.template_id, n.obj_id)]
+    if not found:
+        report.failed.append("set_faction (no NPC %s)" % wanted)
+        return
+    for npc in found:
+        if companions.is_companion(npc) and player is not None:
+            companions.dismiss(world, player, npc)
+        npc.faction = faction
+        if behavior:
+            npc.behavior_type = behavior
+        report.applied.append("%s is now %s" % (npc.obj_id, faction))
 
 
 def _apply_end_fight_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
@@ -1473,6 +1524,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("remove_npc", lambda: _apply_remove_npc_effect(effects, context, report)),
         ("companions", lambda: _apply_companion_effects(effects, player, context, report)),
         ("end_fight", lambda: _apply_end_fight_effect(effects, context, report)),
+        ("faction", lambda: _apply_set_faction_effect(effects, context, report)),
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),
         ("time", lambda: _apply_time_effect(effects, world, report)),
         ("scene", lambda: _apply_scene_effect(effects, player, world, report)),

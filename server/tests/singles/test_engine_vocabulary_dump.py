@@ -119,9 +119,9 @@ class TestTheManifestBlockReadsTheEngine(unittest.TestCase):
         """The vocabulary the parity check was built for must not regress."""
         payload = json.loads(_run_dump().stdout)
         self.assertEqual(22, len(payload["condition_kinds"]))
-        self.assertEqual(35, len(payload["effect_keys"]))
+        self.assertEqual(36, len(payload["effect_keys"]))
         self.assertTrue(payload["objective_types"])
-        self.assertEqual(15, len(payload["effect_fields"]))
+        self.assertEqual(16, len(payload["effect_fields"]))
         self.assertIn("effects", payload["consumable_effect_types"])
         self.assertEqual(10, len(payload["consumable_effect_types"]))
 

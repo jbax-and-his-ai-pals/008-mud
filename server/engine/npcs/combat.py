@@ -200,13 +200,22 @@ def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]
             _, text = apply_spell_effect(npc, enemy, spell, viewer, first_target=index == 0)
             if text:
                 lines.append(text)
-        return {"message": chr(10).join(lines), "target_defeated": False}
+        return {"message": chr(10).join(lines) + _sacrifice(npc, spell), "target_defeated": False}
 
     _, effect_message = apply_spell_effect(npc, target, spell, viewer)
     
-    full_message = f"{spell.format_cast_message(npc)}\n{effect_message}"
+    full_message = f"{spell.format_cast_message(npc)}\n{effect_message}" + _sacrifice(npc, spell)
     
     return {"message": full_message, "target_defeated": not getattr(target, 'is_alive', True)}
+
+def _sacrifice(npc, spell) -> str:
+    """An ability marked `sacrifice` costs the caster its life: the effects have fallen, and now it is gone."""
+    if not getattr(spell, "sacrifice", False) or not npc.is_alive:
+        return ""
+    npc.health = 0
+    npc.is_alive = False
+    return "\n%s gives everything to it, and falls." % npc.name
+
 
 def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
     if is_pacifist(npc):
@@ -262,7 +271,9 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
         action_result = cast_spell(npc, chosen_spell, target, current_time)
         npc.last_combat_action = current_time
     elif current_time - npc.last_attack_time >= pacing.cooldown_of(world, npc.attack_cooldown):
-        action_result = attack(npc, target)
+        from engine.npcs import throwing
+
+        action_result = throwing.try_throw(npc, target) or attack(npc, target)
         npc.last_attack_time = npc.last_combat_action = current_time
     
     if action_result:

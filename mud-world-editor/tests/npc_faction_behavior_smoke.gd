@@ -221,13 +221,19 @@ func _check_the_fight_trait_rows() -> void:
 	var manager := _manager()
 	var holder := _build_inspector_from("npc_probe", manager)
 	var props: Dictionary = manager.npcs["npc_probe"]["properties"]
-	for pair in [["FallsWhenDefeated", "falls_when_defeated"], ["PercentImmune", "percent_immune"]]:
+	for pair in [["FallsWhenDefeated", "falls_when_defeated"], ["PercentImmune", "percent_immune"], ["MirrorsPlayer", "mirrors_player"]]:
 		var box := holder.find_child(pair[0], true, false) as CheckBox
 		_assert(box != null and not box.button_pressed, "%s starts unticked" % pair[0])
 		box.toggled.emit(true)
 		_assert(props.get(pair[1]) == true, "ticking it writes properties.%s" % pair[1])
 		box.toggled.emit(false)
 		_assert(not props.has(pair[1]), "and unticking it erases the key rather than writing false")
+	var throw := holder.find_child("ThrowChance", true, false) as SpinBox
+	_assert(throw != null and is_equal_approx(throw.value, 0.5) and not props.has("throw_chance"), "an NPC that never said shows the default throw chance and writes nothing")
+	throw.value = 0.2; throw.value_changed.emit(0.2)
+	_assert(is_equal_approx(float(props.get("throw_chance", -1)), 0.2), "a chosen chance is written")
+	throw.value = 0.5; throw.value_changed.emit(0.5)
+	_assert(not props.has("throw_chance"), "and the default erases the key")
 	var steal := holder.find_child("StealItems", true, false) as LineEdit
 	steal.text = "item_ruby: 0.5, item_potion"; steal.text_changed.emit(steal.text)
 	_assert(props.get("steal_items") == [{"item_id": "item_ruby", "chance": 0.5}, {"item_id": "item_potion"}], "what can be stolen is a list, the chance optional: %s" % str(props.get("steal_items")))

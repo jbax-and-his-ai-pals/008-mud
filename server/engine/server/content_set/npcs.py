@@ -215,7 +215,7 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
 # notes there), so an unknown key is only reported when it is a near miss of one of these.
 _NPC_PROPERTY_KEYS = (
     "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "attack_cooldown", "respawn_cooldown",
-    "essential", "pacifist", "untargetable", "phases", "hides_when_hurt", "falls_when_defeated", "steal_items", "stolen", "percent_immune", "rejoin_health", "recovering", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
+    "essential", "pacifist", "untargetable", "phases", "hides_when_hurt", "falls_when_defeated", "steal_items", "stolen", "percent_immune", "mirrors_player", "throw_chance", "rejoin_health", "recovering", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
     "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
     "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
     "can_unlock_chests", "work_location", "tariff", "gift_preferences", "relationship_milestones",
@@ -326,6 +326,12 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         errors.append(f"{label}.unique must be true or false (true: referred to as \"the\" rather than \"a\"/\"an\")")
     if "hides_when_hurt" in properties and not isinstance(properties["hides_when_hurt"], bool):
         errors.append(f"{label}.hides_when_hurt must be true or false (true: a hurt companion hides in the room until the fight is over)")
+    if "mirrors_player" in properties and not isinstance(properties["mirrors_player"], bool):
+        errors.append(f"{label}.mirrors_player must be true or false (true: when spawned by a story it takes the player's health, blow, defence and level)")
+    if "throw_chance" in properties:
+        chance = properties["throw_chance"]
+        if isinstance(chance, bool) or not isinstance(chance, (int, float)) or not 0 <= chance <= 1:
+            errors.append(f"{label}.throw_chance must be a number from 0 to 1 (how often it hurls what it carries instead of striking)")
     if "percent_immune" in properties and not isinstance(properties["percent_immune"], bool):
         errors.append(f"{label}.percent_immune must be true or false (true: abilities that take a share of its health do nothing to it)")
     if "steal_items" in properties:

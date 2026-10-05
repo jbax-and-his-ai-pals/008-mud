@@ -100,6 +100,7 @@ func _build_spell_details():
 	_add_target_field(grid)
 	_add_health_cost_field(grid)
 	_add_requires_ally_field(box)
+	_add_sacrifice_field(box)
 	_add_windup_fields(box)
 
 ## Part of the caster's maximum health each cast costs. 0 means none, and then the key is left out.
@@ -132,6 +133,15 @@ func _add_requires_ally_field(box: VBoxContainer):
 		else:
 			_set_value("requires_ally", values))
 	box.add_child(field)
+
+## The caster gives everything to it and does not survive the cast (a creature or companion). Unticked erases the key.
+func _add_sacrifice_field(box: VBoxContainer):
+	var check := CheckBox.new(); check.name = "sacrifice"; check.text = "Sacrifice: the caster does not survive the cast"
+	check.button_pressed = cur_data.get("sacrifice", false) == true
+	check.toggled.connect(func(on):
+		if on: _set_value("sacrifice", true)
+		elif cur_data.has("sacrifice"): cur_data.erase("sacrifice"); database_modified.emit())
+	box.add_child(check)
 
 ## A wind-up: the caster is gone for some seconds, then comes down on the target. 0 seconds means none and erases the whole block.
 func _add_windup_fields(box: VBoxContainer):

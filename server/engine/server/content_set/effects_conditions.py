@@ -167,6 +167,11 @@ def _check_effect_block(
             issues.append(ContentSetIssue("error", str(path), f"{where} effect teach_companion names npc '{pupil.get('npc')}', which is not defined in this content set"))
         if ids["spells"] and str(pupil.get("spell", "") or "").strip() not in ids["spells"]:
             issues.append(ContentSetIssue("error", str(path), f"{where} effect teach_companion names ability '{pupil.get('spell')}', which is not defined in this content set"))
+    turncoat = block.get("set_faction")
+    if isinstance(turncoat, dict):
+        known = ids["npcs"] | ids["npc_instances"]
+        if known and str(turncoat.get("npc", "") or "").strip() not in known:
+            issues.append(ContentSetIssue("error", str(path), f"{where} effect set_faction names npc '{turncoat.get('npc')}', which is not defined in this content set"))
     parked = block.get("place_vehicle")
     if isinstance(parked, dict):
         if str(parked.get("vehicle", "") or "").strip() not in ids["vehicles"]:

@@ -178,6 +178,7 @@ const EFFECTS := {
 	"set_respawn": {"label": "Set where the player respawns", "shape": "{region, room}: where they rise again after dying", "kind": "json"},
 	"teach_companion": {"label": "A companion learns an ability", "shape": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
 	"place_vehicle": {"label": "Set a vehicle down somewhere", "shape": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
+	"set_faction": {"label": "An NPC changes sides", "shape": "{npc: template or placed id, faction, behavior (optional)}: a companion is dismissed first", "kind": "json"},
 	"end_fight": {"label": "End the fight in a room", "shape": "{region, room}, or {} for the player's room: everyone there stops fighting", "kind": "json"},
 	"board_vehicle": {"label": "Put the player aboard a vehicle", "shape": "vehicle id (data/vehicles); it comes to wherever they stand", "kind": "string"},
 	"play_scene": {"label": "Play a scene (the player watches)", "shape": "scene id (data/scenes)", "kind": "string"},

@@ -672,6 +672,21 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("percent_immune")
 		database_modified.emit())
 	flags.add_child(immune)
+	var mirror := CheckBox.new(); mirror.name = "MirrorsPlayer"; mirror.text = "Mirrors the player (spawned by a story, it takes their health, blow, defence and level)"
+	mirror.button_pressed = bool(properties.get("mirrors_player", false))
+	mirror.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["mirrors_player"] = true
+		else: _ensure_npc_properties().erase("mirrors_player")
+		database_modified.emit())
+	flags.add_child(mirror)
+	flags.add_child(InspectorStyle.lbl("Throw chance (how often it hurls a throwing item it carries instead of striking; empty: half)", InspectorStyle.COLOR_TEXT_DIM))
+	var throw := SpinBox.new(); throw.name = "ThrowChance"; throw.min_value = 0.0; throw.max_value = 1.0; throw.step = 0.05
+	throw.value = float(properties.get("throw_chance", 0.5)); InspectorStyle.apply_input_style(throw)
+	throw.value_changed.connect(func(value):
+		if is_equal_approx(value, 0.5): _ensure_npc_properties().erase("throw_chance")
+		else: _ensure_npc_properties()["throw_chance"] = snappedf(value, 0.01)
+		database_modified.emit())
+	flags.add_child(throw)
 	flags.add_child(InspectorStyle.lbl("Can be stolen from (item id: chance 0-1, comma-separated)", InspectorStyle.COLOR_TEXT_DIM))
 	var steal := LineEdit.new(); steal.name = "StealItems"; steal.placeholder_text = "item_ruby: 0.5, item_potion"
 	var stealable = properties.get("steal_items", [])

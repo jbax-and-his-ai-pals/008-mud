@@ -171,6 +171,8 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                 error("cooldown must be a number of seconds, 0 or more")
             if "health_cost_fraction" in entry and (not number(entry["health_cost_fraction"]) or not 0 <= entry["health_cost_fraction"] < 1):
                 error("health_cost_fraction must be a number from 0 up to (not including) 1: the part of the caster's maximum health each cast costs")
+            if "sacrifice" in entry and not isinstance(entry["sacrifice"], bool):
+                error("sacrifice must be true or false (true: the caster does not survive the cast)")
             if "windup" in entry:
                 from engine.magic.windup import MESSAGE_PLACEHOLDERS as WINDUP_PLACEHOLDERS, SECONDS_RANGE, WINDUP_KEYS
 

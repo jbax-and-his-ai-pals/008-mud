@@ -58,6 +58,7 @@ class Spell:
         health_cost_fraction: float = 0.0,
         windup: Dict[str, Any] | None = None,
         requires_ally: List[str] | None = None,
+        sacrifice: bool = False,
     ):
         if not effects or not all(isinstance(effect, dict) and effect.get("type") for effect in effects):
             raise ValueError(f"Spell '{spell_id}' requires a non-empty effects array with typed effects.")
@@ -82,6 +83,8 @@ class Spell:
         self.windup = windup
         # NPC template ids that must be standing in the room, alive, for this to be cast (a twin spell needs the other twin).
         self.requires_ally = requires_ally
+        # The caster gives everything to it and does not survive the cast (a creature or a companion; the effects fall first).
+        self.sacrifice = sacrifice
 
     def health_cost(self, max_health: float) -> int:
         """The health this ability costs a caster whose maximum is `max_health`: at least 1 when it costs any."""
@@ -143,6 +146,7 @@ class Spell:
             "health_cost_fraction": self.health_cost_fraction,
             "windup": self.windup,
             "requires_ally": self.requires_ally,
+            "sacrifice": self.sacrifice,
             "cast_message": self.cast_message,
             "hit_message": self.hit_message,
         }
