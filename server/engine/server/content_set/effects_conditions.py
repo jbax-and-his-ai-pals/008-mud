@@ -387,6 +387,7 @@ EXIT_REQUIREMENT_KEYS = {
     "skill": ("type", "skill_name", "difficulty", "failure_message"),
     "locked": ("type", "key_id", "pick_difficulty", "consume", "failure_message"),
     "condition": ("type", "condition", "consume", "failure_message"),
+    "warning": ("type", "scene", "failure_message"),
 }
 ENV_INTERACTION_KEYS = {
     "clear_exit_req": ("type", "direction", "duration", "permanent", "message"),
@@ -503,7 +504,7 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                         continue
                     kind = requirement.get("type")
                     if kind not in EXIT_REQUIREMENT_KEYS:
-                        error(f"{label}.type must be 'skill', 'locked' or 'condition' (anything else leaves the way open)")
+                        error(f"{label}.type must be 'skill', 'locked', 'condition' or 'warning' (anything else leaves the way open)")
                         continue
                     for key in requirement:
                         if key not in EXIT_REQUIREMENT_KEYS[kind]:
@@ -523,6 +524,17 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                             error(f"{label}.condition is required, and may not be empty (an empty condition is open to everyone)")
                         else:
                             _check_condition(condition, f"{where} {label}.condition", path, condition_ids_for(), issues)
+                    elif kind == "warning":
+                        scene = requirement.get("scene")
+                        message = requirement.get("failure_message")
+                        if scene is None and not (isinstance(message, str) and message.strip()):
+                            error(f"{label} needs a scene or a failure_message: it is the warning the first attempt is met with")
+                        if scene is not None:
+                            scene_ids = condition_ids_for()["scenes"]
+                            if not isinstance(scene, str) or not scene.strip():
+                                error(f"{label}.scene must be a scene id")
+                            elif scene_ids and scene not in scene_ids:
+                                error(f"{label}.scene names scene '{scene}', which is not in data/scenes of this content set")
                     else:
                         key_id = requirement.get("key_id")
                         if key_id is not None and key_id not in item_ids:

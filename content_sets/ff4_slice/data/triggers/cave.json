@@ -1,37 +1,4 @@
 {
-    "cave_warning_pool": {
-        "on": {
-            "event": "on_enter",
-            "region": "fogreach",
-            "room": "crystal_pool"
-        },
-        "once": "player",
-        "effects": {
-            "message": "A draught rises from the south passage, cold as a held breath. Past this pool the cave only goes deeper. If you have anything left to do, or to gather, this is the place to turn back."
-        }
-    },
-    "cave_warning_ledge": {
-        "on": {
-            "event": "on_enter",
-            "region": "fogreach",
-            "room": "narrow_ledge"
-        },
-        "once": "player",
-        "effects": {
-            "message": "[[YELLOW]]The fog below the ledge is not drifting any more. It is listening. You can still turn back.[[/]]"
-        }
-    },
-    "cave_warning_final": {
-        "on": {
-            "event": "on_enter",
-            "region": "fogreach",
-            "room": "fog_gallery"
-        },
-        "once": "player",
-        "effects": {
-            "message": "[[RED]]This is your last warning. The fog ahead is not weather, and whatever waits in the hollow beyond will not let you leave until one of you is finished. Turn back now, or go on and do not stop.[[/]]"
-        }
-    },
     "hollow_drake": {
         "on": {
             "event": "on_enter",

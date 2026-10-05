@@ -17,11 +17,12 @@ signal data_modified
 # Checked against the engine's `EXIT_REQUIREMENT_KEYS` / `ENV_INTERACTION_KEYS`
 # by `schema_parity_smoke.gd`.
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
-const REQUIREMENT_TYPES := ["locked", "skill", "condition"]
+const REQUIREMENT_TYPES := ["locked", "skill", "condition", "warning"]
 const REQUIREMENT_KEYS := {
 	"locked": ["type", "key_id", "pick_difficulty", "consume", "failure_message"],
 	"skill": ["type", "skill_name", "difficulty", "failure_message"],
 	"condition": ["type", "condition", "consume", "failure_message"],
+	"warning": ["type", "scene", "failure_message"],
 }
 const REACTION_TYPES := ["clear_exit_req", "suppress_hazard"]
 const REACTION_KEYS := {
@@ -88,6 +89,9 @@ func _requirement_row(direction: String, requirement: Dictionary) -> Control:
 		# Any condition the dialogue and title editors know: a flag, a quest, a held
 		# item, `room_clear` for a kill-all room. Composites are one JSON box.
 		var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; head.add_child(spacer)
+	elif kind == "warning":
+		# Met once: the first attempt to go this way is refused and the scene (slow text) is told; the second goes through.
+		head.add_child(_text(requirement, "scene", "scene id"))
 	else:
 		var key := OptionButton.new(); key.name = "KeyId"; key.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var ids: Array = database_mgr.get_item_ids() if database_mgr != null else []

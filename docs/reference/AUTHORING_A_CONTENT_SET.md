@@ -406,6 +406,13 @@ lists the scenes, `scene skip` tells what is left of the running one at once, an
 finish one. The story slice has `checkpoint king` (the crystal in your pack, in the throne room) and `checkpoint road` (the king's
 orders given, Kessa at your side on the castle road).
 
+**An exit that warns.** A room's `properties.exit_requirements` gives one direction a rule; a `warning` is met once:
+`{"south": {"type": "warning", "scene": "warn_pool", "failure_message": "You start south, and stop."}}`. The first attempt to go
+that way is refused (the `failure_message` is shown at once) and the scene told (give it `"lock": false` and slow beats, so the
+player may simply try again); the second attempt, and every one after, goes through. It is remembered on the player
+(`exit_warned:<region>:<room>:<direction>`). A `warning` needs a `scene`, a `failure_message`, or both. The story slice's cave
+warns three times this way before its last hollow.
+
 A fight need not be narrated: give two factions an enmity (`ruleset.factions.enmities`), spawn the aggressors from a beat,
 and the engine's ordinary combat tells it. The victims can be `pacifist`. A death the player only watched fires
 `npc_killed` triggers (and nothing else: no XP, quest credit or reputation), so a trigger on the victims' template with

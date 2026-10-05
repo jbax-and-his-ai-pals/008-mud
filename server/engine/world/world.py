@@ -579,6 +579,22 @@ class World:
                 reason = evaluation.reasons[0] if evaluation.reasons else "the requirements are not met yet"
                 fail_msg = dir_req.get("failure_message") or f"The way {direction} is closed to you: {reason}."
                 return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"
+
+        elif req_type == "warning":
+            # A warning is met once: the first attempt to go that way is refused and the warning told (a scene, so
+            # it can be slow), the second goes through. Remembered on the player, like an opened door.
+            flags = getattr(player, "flags", None)
+            if not isinstance(flags, dict):
+                flags = player.flags = {}
+            key = "exit_warned:%s:%s:%s" % (player.current_region_id, player.current_room_id, direction)
+            if flags.get(key):
+                return None
+            flags[key] = True
+            scene_id = dir_req.get("scene")
+            if scene_id and getattr(self, "scene_runner", None) is not None:
+                self.scene_runner.play(player, str(scene_id))
+            fail_msg = dir_req.get("failure_message") or ""
+            return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}" if fail_msg else FORMAT_RESET
         return None
 
     def _arrive(self, active_player: 'Player', new_region_id: str, new_room_id: str, old_region_id: Optional[str]) -> str:

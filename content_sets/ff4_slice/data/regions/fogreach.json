@@ -52,6 +52,15 @@
                 "west": "bat_roost",
                 "north": "crystal_alcove",
                 "south": "narrow_ledge"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "warning",
+                        "scene": "warn_pool",
+                        "failure_message": "You start south, and the cold stops you in your tracks."
+                    }
+                }
             }
         },
         "crystal_alcove": {
@@ -79,7 +88,16 @@
                     "template_id": "cave_imp",
                     "instance_id": "imp_ledge"
                 }
-            ]
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "warning",
+                        "scene": "warn_ledge",
+                        "failure_message": "You start along the ledge, and the fog rises to meet you."
+                    }
+                }
+            }
         },
         "echo_niche": {
             "name": "Echo Niche",
@@ -99,6 +117,15 @@
             "exits": {
                 "north": "narrow_ledge",
                 "south": "fog_hollow"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "warning",
+                        "scene": "warn_final",
+                        "failure_message": "You step toward the hollow, and the fog closes in around you."
+                    }
+                }
             }
         },
         "fog_hollow": {

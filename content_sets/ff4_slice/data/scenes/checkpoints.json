@@ -83,7 +83,8 @@
                         "obeyed_king",
                         "kessa_briefed",
                         "rested_at_castle",
-                        "kessa_joined"
+                        "kessa_joined",
+                        "exit_warned:fogreach:fog_gallery:south"
                     ],
                     "advance_time": {
                         "to_hour": 6

@@ -554,12 +554,21 @@ class TestFF4Slice(_Slice):
         self.assertIn("comes apart into long grey ribbons", printed)
         self.assertIs(True, self.player.flags.get("drake_slain"))
 
-    def test_the_cave_warns_three_times_and_the_last_warning_is_a_last_one(self):
-        self.at("fogreach", "bat_roost")
-        self.assertIn("turn back", self.say("go east"), "the first: this is where to gather what you came for")
-        self.assertIn("You can still turn back", self.say("go south"))
-        self.assertIn("last warning", self.say("go south"))
-        self.assertNotIn("last warning", self.say("go north") + self.say("go south"), "each is told once")
+    def test_the_cave_warns_three_times_and_each_warning_stops_the_first_try_south(self):
+        for room, after, spoken in (("crystal_pool", "narrow_ledge", "turn back"), ("narrow_ledge", "fog_gallery", "Go back"),
+                                    ("fog_gallery", "fog_hollow", "last chance to turn back")):
+            self.at("fogreach", room)
+            first = self.say("go south")
+            self.assertEqual("fogreach:" + room, self.where(), "the first try is stopped: " + room)
+            self.assertNotIn(spoken, first, "and the warning is told slowly, not at once")
+            self.assertIn(spoken, self._let_scenes_play_told(20))
+            self.say("go south")
+            self.assertEqual("fogreach:" + after, self.where(), "the second goes through: " + room)
+            if after == "fog_hollow":
+                continue   # the hollow's own scene holds the player; there is no second visit
+            self.at("fogreach", room)
+            self.say("go south")
+            self.assertEqual("fogreach:" + after, self.where(), "and is never warned again: " + room)
 
     def test_the_cave_has_treasure_worth_a_detour(self):
         for room, item in (("guano_nook", "item_traveller_cache"), ("crystal_alcove", "item_iron_chest_fogreach"),
@@ -569,6 +578,7 @@ class TestFF4Slice(_Slice):
 
     def test_the_hollow_closes_behind_you_and_the_fog_becomes_the_drake(self):
         self.at("fogreach", "fog_gallery")
+        self.player.flags["exit_warned:fogreach:fog_gallery:south"] = True   # the warning has its own test
         self.assertEqual([], self.npcs("fog_drake"))
         self.say("go south")
         self.assertEqual("fogreach:fog_hollow", self.where())
@@ -584,6 +594,7 @@ class TestFF4Slice(_Slice):
 
     def test_the_drake_dying_opens_the_way_down_to_the_village(self):
         self.at("fogreach", "fog_gallery")
+        self.player.flags["exit_warned:fogreach:fog_gallery:south"] = True
         self.say("go south")
         self._let_scenes_play(20)
         self.kill("fog_drake", "drake")

@@ -84,5 +84,73 @@
                 }
             }
         ]
+    },
+    "warn_pool": {
+        "note": "The first warning, told when the player first tries to go south from the Crystal Pool; the next try goes through.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "A draught climbs the passage, cold as a held breath. In it, so faint you could take it for your own breathing: [[YELLOW]]turn back[[/]]."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]There is nothing down there that you want. Leave this place.[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "The passage waits. If you have anything left to do, or to gather, do it now. If you mean to go on, go on."
+            }
+        ]
+    },
+    "warn_ledge": {
+        "note": "The second warning, on the Narrow Ledge; the next try south goes through.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The fog below the ledge is not drifting any more. It is listening."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Go back. Go back to the light, and the road, and whatever you left there.[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Nobody who goes on comes back the way they came.[[/]]"
+            }
+        ]
+    },
+    "warn_final": {
+        "note": "The last warning, in the Fog Gallery; the next try south goes through, into the hollow.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The fog presses close, and your own footsteps are gone from the air."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]Go. Back.[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]The hollow will not let you leave. One of you will be finished there, and it will not be the fog.[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "This is your last chance to turn back."
+            }
+        ]
     }
 }
