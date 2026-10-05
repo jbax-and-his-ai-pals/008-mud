@@ -48,6 +48,20 @@ func _init() -> void:
 		member_ids.sort()
 		_assert(member_ids == ["town_square", "west_lane"], "the district item's children are exactly its member rooms, got %s" % [member_ids])
 
+	# Beside the region's label: how many districts and rooms it has, whatever the filter shows.
+	_assert(region_item.get_text(1) == "1 district · 3 rooms", "the region row carries its size, got '%s'" % region_item.get_text(1))
+	panel.search_bar.text = "lane"
+	panel.refresh_tree()
+	_assert(panel.explorer_tree.get_root().get_children()[0].get_text(1) == "1 district · 3 rooms", "the size ignores the filter")
+	panel.search_bar.text = ""
+	panel.refresh_tree()
+	region_item = panel.explorer_tree.get_root().get_children()[0]
+	district_item = null
+	for child in region_item.get_children():
+		var kind = child.get_metadata(0)
+		if kind and kind.get("type", "") == "district": district_item = child
+	_assert(ExplorerPanel.size_label({"rooms": {"a": "A"}, "districts": {}}) == "0 districts · 1 room", "plurals read right")
+
 	# Selecting a room nested under a district must un-collapse the region
 	# AND the district, and land the actual Tree selection on that room.
 	region_item.collapsed = true

@@ -47,6 +47,11 @@ func setup():
 	explorer_tree.size_flags_vertical = SIZE_EXPAND_FILL
 	explorer_tree.hide_root = true
 	explorer_tree.select_mode = Tree.SELECT_ROW
+	# Two columns: the label, and beside a region's label how big it is (districts and rooms).
+	explorer_tree.columns = 2
+	explorer_tree.set_column_expand(0, true)
+	explorer_tree.set_column_expand(1, false)
+	explorer_tree.set_column_custom_minimum_width(1, 132)
 	explorer_tree.allow_rmb_select = true
 	
 	explorer_tree.item_selected.connect(_on_tree_select)
@@ -318,6 +323,10 @@ func _rebuild_tree():
 			item.select(0)
 			
 		item.set_metadata(0, {"type": "region", "file": r_data.filename, "id": rid})
+		item.set_text(1, size_label(r_data))
+		item.set_text_alignment(1, HORIZONTAL_ALIGNMENT_RIGHT)
+		item.set_custom_color(1, Color(0.55, 0.6, 0.7))
+		item.set_tooltip_text(1, "Districts and rooms in this region (all of them, whatever the filter shows)")
 		item.collapsed = not (expanded_regions.get(rid, false) or filter != "")
 
 		# Group matched rooms by district, same as the graph's own territory
@@ -369,6 +378,12 @@ func _rebuild_tree():
 
 			r_item.set_tooltip_text(0, r_id)
 			r_item.set_metadata(0, {"type": "room", "file": r_data.filename, "id": r_id})
+
+## "2 districts · 12 rooms": a region's size, beside its label. Counts everything the region has, not what the filter shows.
+static func size_label(region: Dictionary) -> String:
+	var districts: int = (region.get("districts", {}) as Dictionary).size()
+	var rooms: int = (region.get("rooms", {}) as Dictionary).size()
+	return "%d %s · %d %s" % [districts, "district" if districts == 1 else "districts", rooms, "room" if rooms == 1 else "rooms"]
 
 func _on_tree_select():
 	if _is_programmatic_selection: return
