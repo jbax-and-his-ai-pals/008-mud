@@ -133,6 +133,13 @@ func _dialogue_openings_and_ends() -> void:
 	_assert(graph["nodes"]["greeting"].get("end") == true, "ticking it writes end: true on the node")
 	greeting_box.button_pressed = false; greeting_box.toggled.emit(false)
 	_assert(not graph["nodes"]["greeting"].has("end"), "and clearing it erases the key")
+	var narration_boxes: Array = holder.find_children("Narration", "CheckBox", true, false)
+	_assert(narration_boxes.size() == graph["nodes"].size() and not (narration_boxes[0] as CheckBox).button_pressed, "each node has a Narration box, off by default")
+	var narration_box: CheckBox = narration_boxes[sorted_ids.find("greeting")]
+	narration_box.button_pressed = true; narration_box.toggled.emit(true)
+	_assert(graph["nodes"]["greeting"].get("narration") == true, "ticking Narration writes narration: true")
+	narration_box.button_pressed = false; narration_box.toggled.emit(false)
+	_assert(not graph["nodes"]["greeting"].has("narration"), "and clearing it erases the key")
 	manager.mark_dirty("dialogue", DIALOGUE)
 	_assert(manager.save_all().get("ok", false), "the dialogue saves")
 

@@ -409,10 +409,10 @@ class DialogueManager:
 
             speaker = the(speaker, capital=True)
         text = presentation.variant(node.text, context)
-        body = '%s"%s"%s' % (FORMAT_HIGHLIGHT, text, FORMAT_RESET)
+        body = text if node.narration else '%s"%s"%s' % (FORMAT_HIGHLIGHT, text, FORMAT_RESET)
         if not show_internals:
             body = pacing.paced(body, node.pace)   # authoring views are read, not performed
-        chunks = ["%s%s speaks:%s %s" % (FORMAT_TITLE, speaker, FORMAT_RESET, body)]
+        chunks = [body] if node.narration else ["%s%s speaks:%s %s" % (FORMAT_TITLE, speaker, FORMAT_RESET, body)]
         if show_internals:
             node_effects = dialogue_effects.describe_effects(node.effects)
             if node_effects:

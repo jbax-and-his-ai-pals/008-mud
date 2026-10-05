@@ -313,6 +313,20 @@ func _build_pace_row(vbox: Node, node: Dictionary) -> void:
 	vbox.add_child(row)
 
 
+## A narration node is told plainly, not said by the NPC ("(She does not stir.)" rather than `Ryn speaks: "(She does not stir.)"`).
+## Off is the default and writes nothing.
+func _build_narration_row(vbox: Node, node: Dictionary) -> void:
+	var box := CheckBox.new(); box.name = "Narration"
+	box.text = "Narration (told plainly, not as the NPC's speech)"
+	box.button_pressed = node.get("narration", false) == true
+	box.toggled.connect(func(on):
+		if on:
+			node["narration"] = true; database_modified.emit()
+		elif node.has("narration"):
+			node.erase("narration"); database_modified.emit())
+	vbox.add_child(box)
+
+
 ## A scene must be answered: until the player replies they cannot walk away or act on the world.
 ## Off is the default and writes nothing.
 func _build_scene_row(vbox: Node, node: Dictionary) -> void:
@@ -407,6 +421,7 @@ func _node_card(node_id: String, node: Dictionary) -> PanelContainer:
 		vbox.add_child(variant)
 
 	_build_pace_row(vbox, node)
+	_build_narration_row(vbox, node)
 	_build_scene_row(vbox, node)
 	_build_end_row(vbox, node)
 	_build_effects_row(vbox, node, "Node effects (applied when the node is reached)")

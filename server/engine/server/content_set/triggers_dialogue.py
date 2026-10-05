@@ -271,6 +271,8 @@ def _validate_dialogue_content(
 
             _check_effect_block(node.effects, f"{where}.effects", path, ids, content_root, issues)
             _check_node_effects_do_not_raise(node.effects, where, path, issues)
+            if "narration" in node.raw and not isinstance(node.raw["narration"], bool):
+                issues.append(ContentSetIssue("error", str(path), f"{where}.narration must be true or false"))
             if "must_answer" in node.raw:
                 if not isinstance(node.raw["must_answer"], bool):
                     issues.append(ContentSetIssue("error", str(path), f"{where}.must_answer must be true or false"))

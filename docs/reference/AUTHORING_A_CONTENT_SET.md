@@ -217,6 +217,10 @@ status, the journal, help and saving still work, so the player can read their op
 sparingly, for a moment that must be played through (the king's orders). It needs at least one
 choice and cannot be an `"end": true` node; the validator refuses both mistakes.
 
+A node marked `"narration": true` is told plainly instead of said: no `<NPC> speaks:` line and no quotation
+marks, so a still figure or a deathbed can be written as what the player sees (`(She does not stir.)`).
+The validator refuses a value that is not true or false.
+
 Quest text is paced `slow` by default without any authoring: a player's client is asked to reveal
 every paragraph that starts `[Quest Accepted]`, `[Quest Update]`, `[Quest Complete]`,
 `[Objective ...` or `New Objective:`. A server turns that off or changes it with
