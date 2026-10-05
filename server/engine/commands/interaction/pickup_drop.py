@@ -258,6 +258,38 @@ def _handle_item_disposal(args: List[str], context: Dict[str, Any], command_verb
 
     return f"{FORMAT_SUCCESS}You {command_verb} {', '.join(success_parts)}.{FORMAT_RESET}"
 
+def _take_several(context: Dict[str, Any], player, container, item_name: str, wanted) -> str:
+    """`get all <item> from <container>` (every one of them) or `get <n> <item> from <container>`: the things in an open
+    container that answer to the name, as one act (one line, one theft roll when the container is somebody's)."""
+    world = context["world"]
+    contents = list(container.properties.get("contains", []))
+    matches = [i for i in contents if i.name.lower() == item_name] or [i for i in contents if item_name in i.name.lower()]
+    if not matches:
+        return f"{FORMAT_ERROR}'{item_name}' not found in container.{FORMAT_RESET}"
+    chosen = matches if wanted == "all" else matches[:wanted]
+    taken: List[Any] = []
+    stolen_value = 0
+    hints: List[str] = []
+    for item in chosen:
+        if not player.inventory.can_add_item(item)[0]:
+            break
+        if container.remove_item(item):
+            player.inventory.add_item(item)
+            stolen_value += max(0, int(getattr(item, "value", 0) or 0))
+            taken.append(item)
+            hints.extend(_record_acquisition(context, player, item))
+    if not taken:
+        return f"{FORMAT_ERROR}Cannot carry that.{FORMAT_RESET}"
+    name = taken[0].name
+    got = f"{get_article(name)} {name}" if len(taken) == 1 else f"{len(taken)} {simple_plural(name)}"
+    short = "" if len(taken) == len(chosen) else " (You cannot carry any more.)"
+    consequences = taking_consequences(world, player, stolen_value) if taking_is_theft(container) else ""
+    return (
+        f"{FORMAT_SUCCESS}You get {got} from {the(container.name)}.{short}{FORMAT_RESET}"
+        f"{consequences}" + ("\n" + "\n".join(set(hints)) if hints else "")
+    )
+
+
 @command("get", ["take", "pickup", "grab"], "interaction", "Pick up items.")
 def get_handler(args, context):
     if GET_COMMAND_PREPOSITION in [a.lower() for a in args]:
@@ -292,6 +324,16 @@ def get_handler(args, context):
                  f"{FORMAT_SUCCESS}You take {count} items from {the(container.name)}.{FORMAT_RESET}"
                  f"{consequences}" + ("\n" + "\n".join(set(hints)) if hints else "")
              )
+
+        # `get all potion from chest` / `get 2 potion from chest`: several of one thing at once.
+        words = item_name.split()
+        wanted = None
+        if len(words) > 1 and words[0] == "all":
+            wanted, item_name = "all", " ".join(words[1:])
+        elif len(words) > 1 and words[0].isdigit() and int(words[0]) > 0:
+            wanted, item_name = int(words[0]), " ".join(words[1:])
+        if wanted is not None:
+            return _take_several(context, player, container, item_name, wanted)
 
         target = container.find_item_by_name(item_name)
         if not target: return f"{FORMAT_ERROR}'{item_name}' not found in container.{FORMAT_RESET}"

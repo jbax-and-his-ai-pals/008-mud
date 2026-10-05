@@ -671,6 +671,9 @@ you're up against.
 | **Inventory** | `inventory` `equip` `unequip` `invmode` |
 | **System** | `help` `save` `load` `quit` `minimap` `view` `stop` |
 
+**Taking several at once.** `get all potion`, `get 3 potion`, and (from an open chest) `get all potion from chest` or `get 2 potion from chest`
+take that many of one thing in a single go; `get all from chest` empties it.
+
 Type `help <command>` any time for the full details on any of these.
 
 ---
