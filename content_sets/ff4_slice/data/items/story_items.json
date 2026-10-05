@@ -190,5 +190,81 @@
             ]
         },
         "item_family": "container"
+    },
+    "item_ridge_chest": {
+        "type": "Container",
+        "name": "sand-buried chest",
+        "description": "A chest with one corner out of the sand, the iron gone to lace.",
+        "weight": 40,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 8,
+            "contains": [
+                {
+                    "item_id": "item_potion",
+                    "quantity": 2
+                },
+                {
+                    "item_id": "item_salve",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "item_eel_chest": {
+        "type": "Container",
+        "name": "barnacled chest",
+        "description": "A chest crusted with barnacles, wedged between two rocks at the water's edge.",
+        "weight": 40,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 8,
+            "contains": [
+                {
+                    "item_id": "item_potion",
+                    "quantity": 3
+                },
+                {
+                    "item_id": "item_scale_vest",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "item_vault_chest": {
+        "type": "Container",
+        "name": "drowned chest",
+        "description": "A heavy chest on a shelf of rock, streaming with water, its lock long since rusted away.",
+        "weight": 40,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 8,
+            "contains": [
+                {
+                    "item_id": "item_salve",
+                    "quantity": 2
+                },
+                {
+                    "item_id": "item_diver_gloves",
+                    "quantity": 1
+                },
+                {
+                    "item_id": "item_old_signet",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
     }
 }

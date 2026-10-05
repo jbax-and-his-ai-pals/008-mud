@@ -301,5 +301,59 @@
             ]
         },
         "item_family": "weapon"
+    },
+    "item_scale_vest": {
+        "type": "Armor",
+        "name": "scale vest",
+        "description": "A vest of overlapping grey scales, light as a shirt and cold as a river. Whatever grew them is long gone.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 8,
+            "armor_material": "chain",
+            "durability": 70,
+            "max_durability": 70,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_diver_gloves": {
+        "type": "Armor",
+        "name": "diver's gloves",
+        "description": "Waxed leather gloves, cuffed to the elbow, made by someone who meant to get wet.",
+        "weight": 0.6,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "leather",
+            "durability": 50,
+            "max_durability": 50,
+            "equip_slot": [
+                "hands"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_old_signet": {
+        "type": "Armor",
+        "name": "old signet",
+        "description": "A heavy signet ring on a chain, the crest worn to a smear. It still weighs like it matters.",
+        "weight": 0.3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "cloth",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "neck"
+            ]
+        },
+        "item_family": "armor"
     }
 }

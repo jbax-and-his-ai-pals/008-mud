@@ -19,7 +19,8 @@
             "description": "A broad gully where a river used to run, its bed cracked like old pottery. The road dips into it and out again on the far side.",
             "exits": {
                 "west": "dune_road",
-                "east": "village_approach"
+                "east": "village_approach",
+                "south": "salt_flats"
             },
             "initial_npcs": [
                 {
@@ -38,6 +39,65 @@
             "exits": {
                 "west": "dry_wash",
                 "east": "dunhallow:gate"
+            }
+        },
+        "salt_flats": {
+            "name": "The Salt Flats",
+            "description": "A white plain, flat to the horizon, crusted and creaking underfoot. The sky is too bright to look at, and the heat comes up through your boots.",
+            "exits": {
+                "north": "dry_wash",
+                "east": "glass_dunes"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "salt_scorpion",
+                    "instance_id": "scorpion_flats"
+                }
+            ]
+        },
+        "glass_dunes": {
+            "name": "The Glass Dunes",
+            "description": "Dunes of fused sand, glittering and sharp, as if lightning once struck the whole field at once. Wind sings in the ridges. A faint path winds south between them.",
+            "exits": {
+                "west": "salt_flats",
+                "south": "bleached_ridge"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "dune_jackal",
+                    "instance_id": "jackal_dunes_a"
+                },
+                {
+                    "template_id": "dune_jackal",
+                    "instance_id": "jackal_dunes_b"
+                }
+            ]
+        },
+        "bleached_ridge": {
+            "name": "The Bleached Ridge",
+            "description": "A ridge of sun-bleached bone-white stone, the ribs of some great dead thing. A chest sticks out of the sand in its shadow. Past the ridge, the ground falls away.",
+            "exits": {
+                "north": "glass_dunes",
+                "east": "sinkhole_rim"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "salt_scorpion",
+                    "instance_id": "scorpion_ridge"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_ridge_chest"
+                }
+            ]
+        },
+        "sinkhole_rim": {
+            "name": "The Sinkhole",
+            "description": "The desert ends in a hole. A great ragged mouth in the ground, a hundred paces across, with a path of tumbled stone winding down its wall to a darkness that breathes out cool, wet air. After days of sand, the smell of water is almost unbearable.",
+            "exits": {
+                "west": "bleached_ridge",
+                "down": "brineway:mouth"
             }
         }
     },

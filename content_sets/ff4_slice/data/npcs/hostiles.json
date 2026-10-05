@@ -546,5 +546,244 @@
             "unique": true,
             "attack_cooldown": 4
         }
+    },
+    "salt_scorpion": {
+        "name": "salt scorpion",
+        "description": "A pale scorpion the length of a forearm, its tail curled over its back like a question.",
+        "max_health": 50,
+        "level": 5,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    3,
+                    9
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": 180,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "brine_eel": {
+        "name": "brine eel",
+        "description": "A grey, blind eel as thick as a man's arm, loose in the shallows and entirely at home.",
+        "max_health": 52,
+        "level": 5,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    4,
+                    9
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "cavern_crab": {
+        "name": "cavern crab",
+        "description": "A crab the colour of wet slate, with a shell you could use as a shield and claws you would rather not.",
+        "max_health": 66,
+        "level": 5,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 5,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    6,
+                    12
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "pale_drowner": {
+        "name": "pale drowner",
+        "description": "Something that was a person once, bleached and bloated by the water, still walking toward whatever it was walking toward.",
+        "max_health": 62,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 13,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    6,
+                    12
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing"
+        }
+    },
+    "brinecoil": {
+        "name": "the Brinecoil",
+        "description": "A vast coil of grey-green flesh and barnacled scale, rising out of the black water and sinking back into it, with a mouth at one end that is the only thing about it that is not slow.",
+        "max_health": 480,
+        "level": 7,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    80,
+                    120
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.6,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "unique": true,
+            "phases": [
+                {
+                    "name": "surfaced",
+                    "seconds": 12,
+                    "message": "[[RED]]The Brinecoil heaves itself out of the water, scales streaming, and the whole cavern rings.[[/]]",
+                    "hint": {
+                        "npc": "belaric",
+                        "text": "It has surfaced! Hit it while it is out of the water!"
+                    }
+                },
+                {
+                    "name": "submerged",
+                    "seconds": 10,
+                    "untouchable": true,
+                    "message": "[[RED]]The Brinecoil slides under the surface and is gone, and the water goes black and still.[[/]]",
+                    "miss_text": "The blow strikes only black water.",
+                    "counter": "tidal_slam",
+                    "counter_cooldown": 4,
+                    "hint": {
+                        "npc": "belaric",
+                        "text": "It has gone under! Wait for it to come up!"
+                    },
+                    "counter_hint": {
+                        "npc": "belaric",
+                        "text": "Stop striking at the water! You are only waking it!"
+                    }
+                }
+            ]
+        }
     }
 }

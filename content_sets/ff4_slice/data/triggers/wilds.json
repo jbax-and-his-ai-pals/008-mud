@@ -77,5 +77,52 @@
         "effects": {
             "play_scene": "sickroom_visit"
         }
+    },
+    "meet_belaric": {
+        "on": {
+            "event": "on_enter",
+            "region": "brineway",
+            "room": "mouth"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "meet_belaric"
+        }
+    },
+    "camp_in_the_dry_hall": {
+        "on": {
+            "event": "on_enter",
+            "region": "brineway",
+            "room": "dry_hall"
+        },
+        "when": {
+            "kind": "flag",
+            "flag": "belaric_joined"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "camp_in_the_dry_hall"
+        }
+    },
+    "brinecoil_lair": {
+        "on": {
+            "event": "on_enter",
+            "region": "brineway",
+            "room": "brine_hollow"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "brinecoil_rises"
+        }
+    },
+    "brinecoil_dies": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "brinecoil"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "brinecoil_falls"
+        }
     }
 }

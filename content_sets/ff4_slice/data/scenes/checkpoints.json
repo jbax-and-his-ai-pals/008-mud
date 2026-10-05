@@ -20,7 +20,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -57,7 +65,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -117,7 +133,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -180,7 +204,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -244,7 +276,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -317,7 +357,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -382,7 +430,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -443,7 +499,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -519,7 +583,15 @@
                         "wake_in_the_wood",
                         "reach_the_inn",
                         "guards_arrive",
-                        "after_the_guards"
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -608,6 +680,518 @@
                 "after": 0,
                 "effects": {
                     "recruit": "ryn_young"
+                }
+            }
+        ]
+    },
+    "checkpoint_desert": {
+        "note": "For testing: Rosalind lies sick in Dunhallow, you know the cure is a mirage pearl, and you stand at the village gate with Ryn.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "dunhallow",
+                        "room": "gate"
+                    },
+                    "give_rewards": {
+                        "xp": 1400
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "dunhallow",
+                        "room": "gate"
+                    },
+                    "move_npc": {
+                        "npc": "ryn",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "dunhallow",
+                        "room": "gate",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            }
+        ]
+    },
+    "checkpoint_brineway": {
+        "note": "For testing: the sinkhole at the far corner of the Saltreach, with Ryn; Belaric waits at the foot of it (his scene plays on arrival).",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "brineway",
+                        "room": "mouth"
+                    },
+                    "give_rewards": {
+                        "xp": 1400
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "brineway",
+                        "room": "mouth"
+                    },
+                    "move_npc": {
+                        "npc": "ryn",
+                        "region": "dunhallow",
+                        "room": "inn",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "brineway",
+                        "room": "mouth",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            }
+        ]
+    },
+    "checkpoint_camp": {
+        "note": "For testing: you, Ryn and Belaric stand at the edge of the Dry Hall (the camp scene plays on arrival).",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "brineway",
+                        "room": "dry_hall"
+                    },
+                    "give_rewards": {
+                        "xp": 1400
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "brineway",
+                        "room": "dry_hall"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "dry_hall",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "brineway",
+                        "room": "dry_hall",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "belaric"
+                }
+            }
+        ]
+    },
+    "checkpoint_brine_gate": {
+        "note": "For testing: the night in the Dry Hall is behind you; you, Ryn and Belaric stand before the Brine Gate.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done"
+                    ],
+                    "remove_npc": "mayor_of_hazevale",
+                    "teleport": {
+                        "region": "brineway",
+                        "room": "brine_gate"
+                    },
+                    "give_rewards": {
+                        "xp": 1400
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "brineway",
+                        "room": "brine_gate"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    },
+                    "spawn_npc": {
+                        "npc": "rosalind_sick",
+                        "region": "dunhallow",
+                        "room": "sickroom",
+                        "instance_id": "rosalind_in_bed"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "belaric"
                 }
             }
         ]

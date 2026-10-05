@@ -8,7 +8,7 @@ each played from its first line to its last boss:
 | Set | Shape | Size |
 |---|---|---|
 | `zelda_slice` | An overworld of screens, two dungeons with keys and bosses, two shards, a sealed tower | 5 regions, 35 rooms, 13 NPC templates, 13 items |
-| `ff4_slice` | A raid on a temple, a throne-room choice, a courier run through a cave that locks behind you for its boss, a village burned by the package, a summoner child, a flight across a buried mountain | 10 regions, 40 rooms, 25 NPC templates, 15 items |
+| `ff4_slice` | A raid on a temple, a throne-room choice, a courier run through a cave that locks for its boss, a village burned by the package, a flight across a buried mountain, a refugee guarded against the king's guards, a desert village with shops and a sick friend, and a drowned dungeon with a sage and a boss | 11 regions, 68 rooms, 45 NPC templates, 34 items
 
 Both are shipped sets (`toolkit/content_check_steps.py`), so the whole content gate
 runs over them, and both round-trip through the editor byte-for-byte
@@ -120,7 +120,7 @@ below 45%.
 
 ## Rewriting the FF4 story
 
-The slice is content only: 43 JSON files, no code. Nothing in `server/engine`, `client/` or `mud-world-editor/` names one of its
+The slice is content only: 49 JSON files, no code. Nothing in `server/engine`, `client/` or `mud-world-editor/` names one of its
 rooms, characters, quests or flags (checked by scanning every id the set owns), and every key the set uses is read by the engine. The
 story can be rewritten without touching the engine.
 

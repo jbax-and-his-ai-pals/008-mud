@@ -1,0 +1,250 @@
+{
+    "region_id": "brineway",
+    "name": "The Brineway Caverns",
+    "description": "A drowned maze of caverns under the desert, where the water that the Saltreach lacks has been hiding all along.",
+    "properties": {
+        "safe_zone": false
+    },
+    "rooms": {
+        "mouth": {
+            "name": "The Sinkhole Foot",
+            "description": "The path ends on a ledge of wet stone at the bottom of the sinkhole. A grey light falls from far above, and ahead the cave runs on into the dark, loud with dripping.",
+            "exits": {
+                "up": "saltreach:sinkhole_rim",
+                "east": "hall_of_drips"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "belaric",
+                    "instance_id": "belaric"
+                }
+            ]
+        },
+        "hall_of_drips": {
+            "name": "The Hall of Drips",
+            "description": "A high hall hung with stalactites, every one of them weeping. Water collects in shallow pools that never quite fill. Passages lead off in four directions.",
+            "exits": {
+                "west": "mouth",
+                "north": "west_gallery",
+                "east": "tidewalk",
+                "south": "cistern"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cavern_crab",
+                    "instance_id": "crab_hall"
+                }
+            ]
+        },
+        "west_gallery": {
+            "name": "The West Gallery",
+            "description": "A long gallery floored with a hand's depth of clear water. Your reflections walk upside down beneath you, and something grey slides beneath them.",
+            "exits": {
+                "south": "hall_of_drips",
+                "east": "eel_pool"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "brine_eel",
+                    "instance_id": "eel_gallery"
+                },
+                {
+                    "template_id": "pale_drowner",
+                    "instance_id": "drowner_gallery"
+                }
+            ]
+        },
+        "eel_pool": {
+            "name": "The Eel Pool",
+            "description": "A round black pool fills the cave to its walls, with a narrow shelf of rock round the edge. A barnacled chest sits wedged on the shelf, and the water moves.",
+            "exits": {
+                "west": "west_gallery"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "brine_eel",
+                    "instance_id": "eel_pool_a"
+                },
+                {
+                    "template_id": "brine_eel",
+                    "instance_id": "eel_pool_b"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_eel_chest"
+                }
+            ]
+        },
+        "cistern": {
+            "name": "The Old Cistern",
+            "description": "Someone cut this room to hold water, long ago, with stairs down into it and a lip of stone all round. The stairs vanish into black water, and the lip is slick.",
+            "exits": {
+                "north": "hall_of_drips",
+                "east": "sump_chamber"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "pale_drowner",
+                    "instance_id": "drowner_cistern"
+                },
+                {
+                    "template_id": "cavern_crab",
+                    "instance_id": "crab_cistern"
+                }
+            ]
+        },
+        "sump_chamber": {
+            "name": "The Sump",
+            "description": "A low chamber where the cave floor tilts into a pool and the ceiling comes down to meet it. You wade, bent double, with the water to your knees.",
+            "exits": {
+                "west": "cistern",
+                "north": "tidewalk"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "brine_eel",
+                    "instance_id": "eel_sump"
+                }
+            ]
+        },
+        "tidewalk": {
+            "name": "The Tidewalk",
+            "description": "A raised walk of fitted stone running above a channel of moving water. The stonework is older than anything in the desert above, and someone has scratched tally marks into every pillar.",
+            "exits": {
+                "west": "hall_of_drips",
+                "south": "sump_chamber",
+                "east": "dry_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cavern_crab",
+                    "instance_id": "crab_walk"
+                }
+            ]
+        },
+        "dry_hall": {
+            "name": "The Dry Hall",
+            "description": "A hall so large the lantern does not find its far wall, and so dry that after the caverns it feels like a held breath. Fine pale sand covers the floor. Columns stand in rows, some fallen, and the air does not move at all.",
+            "exits": {
+                "west": "tidewalk",
+                "east": "weeping_corridor"
+            }
+        },
+        "weeping_corridor": {
+            "name": "The Weeping Corridor",
+            "description": "A narrow corridor whose walls run with water from floor to ceiling, so that you walk in a constant soft rain. A side passage opens to the north, glowing faintly pearl-white.",
+            "exits": {
+                "west": "dry_hall",
+                "north": "pearl_grotto",
+                "east": "undercurrent"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "pale_drowner",
+                    "instance_id": "drowner_corridor_a"
+                },
+                {
+                    "template_id": "pale_drowner",
+                    "instance_id": "drowner_corridor_b"
+                }
+            ]
+        },
+        "pearl_grotto": {
+            "name": "The Pearl Grotto",
+            "description": "A small round chamber whose walls are crusted with pale nacre, glowing with some light that is not the lantern's. In a hollow in the middle of the floor, something small and round sits in a pool of its own glow.",
+            "exits": {
+                "south": "weeping_corridor"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cavern_crab",
+                    "instance_id": "crab_grotto_a"
+                },
+                {
+                    "template_id": "cavern_crab",
+                    "instance_id": "crab_grotto_b"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_mirage_pearl"
+                }
+            ]
+        },
+        "undercurrent": {
+            "name": "The Undercurrent",
+            "description": "The corridor ends at a dark channel of fast water, crossed by a spine of fallen stone. A shelf of rock runs off to the south, and the roar of something deeper rolls up from the east.",
+            "exits": {
+                "west": "weeping_corridor",
+                "south": "sunken_vault",
+                "east": "brine_gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "brine_eel",
+                    "instance_id": "eel_current_a"
+                },
+                {
+                    "template_id": "brine_eel",
+                    "instance_id": "eel_current_b"
+                }
+            ]
+        },
+        "sunken_vault": {
+            "name": "The Sunken Vault",
+            "description": "A small square chamber with a shelf of rock above the waterline, where somebody once kept something they meant to come back for. A heavy chest streams water on the shelf.",
+            "exits": {
+                "north": "undercurrent"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "pale_drowner",
+                    "instance_id": "drowner_vault"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_vault_chest"
+                }
+            ]
+        },
+        "brine_gate": {
+            "name": "The Brine Gate",
+            "description": "A great arch of black stone, carved with waves, stands in the cave wall. Beyond it, the roar of water has the shape of breathing.",
+            "exits": {
+                "west": "undercurrent",
+                "east": "brine_hollow"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "warning",
+                        "scene": "warn_brine",
+                        "failure_message": "You step toward the arch, and the cold coming through it stops you."
+                    }
+                }
+            }
+        },
+        "brine_hollow": {
+            "name": "The Drowned Gallery",
+            "description": "A vast flooded gallery, its far end lost in darkness, a causeway of broken stone crossing a lake of black water. Barnacled columns rise out of it, and a flight of worn steps climbs out of the water on the far side into a thin grey light.",
+            "exits": {
+                "west": "brine_gate"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "up": "far_shore",
+                    "west": "brine_gate"
+                }
+            }
+        },
+        "far_shore": {
+            "name": "The Far Shore",
+            "description": "The steps end on a shelf of dry rock under an opening in the cavern roof. Hot desert wind blows in from outside, carrying the smell of dust and, very faintly, of smoke. Beyond the opening a road runs east across the sand.",
+            "exits": {
+                "down": "brine_hollow"
+            }
+        }
+    }
+}

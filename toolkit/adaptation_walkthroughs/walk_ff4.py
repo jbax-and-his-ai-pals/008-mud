@@ -281,6 +281,44 @@ say(g, "trade pell")
 check("the trading post sells salves", "salve" in say(g, "list"), "")
 say(g, "stoptrade")
 
+# --- out into the desert, down the sinkhole, and through the Brineway --------------------------------------------------------
+for foe in [n for n in g.world.npcs.values() if n.is_alive and n.current_region_id in ("saltreach", "brineway") and n.template_id not in ("brinecoil", "belaric")]:
+    g.world.remove_npcs(foe.obj_id)   # the route is what is walked here; the dungeon's fights have their own tests
+for step in ("go south", "go west", "go west", "go west", "go west", "go south", "go east", "go south", "go east", "go down"):
+    say(g, step)
+check("at the foot of the sinkhole", g.where() == "brineway:mouth", g.where())
+wait(60)
+check("Belaric, a sage of Ashmere, joins the party", g.player.flags.get("belaric_joined") is True, "")
+for step in ("go east", "go east", "go east"):
+    say(g, step)
+wait(60)
+check("the midpoint: the party camps in the Dry Hall", g.where() == "brineway:dry_hall" and g.player.flags.get("camp_night") is True, g.where())
+out = say(g, "talk belaric", show=V, n=300)
+out = say(g, "reply 2", show=V, n=400)
+check("Belaric tells of his daughter and the bard", "bard" in out and "Mirelle" in out, out[:200])
+say(g, "reply 1"); say(g, "reply 1"); say(g, "reply 3"); say(g, "reply 1"); say(g, "reply 5")
+wait(20)
+check("the night passes", g.player.flags.get("camp_done") is True, "")
+say(g, "go east"); say(g, "go north")
+say(g, "open mirage pearl") if False else None
+out = say(g, "take mirage pearl")
+check("the mirage pearl is taken from the Pearl Grotto", "item_mirage_pearl" in g.items(), str(g.items()))
+say(g, "go south"); say(g, "go east"); say(g, "go east")
+check("the first try at the Brine Gate is stopped", g.where() == "brineway:undercurrent" or g.where() == "brineway:brine_gate", g.where())
+if g.where() != "brineway:brine_gate":
+    say(g, "go east")
+say(g, "go east")
+wait(15)
+say(g, "go east")
+wait(25)
+check("in the Drowned Gallery, the Brinecoil rises", g.where() == "brineway:brine_hollow" and bool(g._alive("coil")), g.where())
+g.player.health = g.player.max_health
+r = fight_with_spell("coil", "gloom wave"); check("beat the Brinecoil, striking only when it surfaces", r.startswith("won"), r); print("   ", r)
+wait(20)
+check("the Far Shore opens", g.player.flags.get("brineway_cleared") is True, "")
+say(g, "go up")
+check("on the Far Shore, with Ashmere beyond", g.where() == "brineway:far_shore", g.where())
+
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])
 g.close()

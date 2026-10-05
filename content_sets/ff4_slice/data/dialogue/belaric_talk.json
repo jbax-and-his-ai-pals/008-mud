@@ -1,0 +1,150 @@
+{
+    "id": "belaric_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "camp",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "flag",
+                        "flag": "camp_night"
+                    },
+                    {
+                        "not": {
+                            "kind": "flag",
+                            "flag": "camp_done"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "belaric"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Well? Do not stand there dripping. Walk with me, or do not, but do it quickly.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Walk with me through the Brineway.",
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "end": true
+                }
+            ]
+        },
+        "joins": {
+            "text": "Good. Mind the third step; it is not a step.",
+            "pace": "slow",
+            "end": true
+        },
+        "with_you": {
+            "text": "I am watching your back, and you are welcome. Keep walking.",
+            "pace": "slow",
+            "end": true
+        },
+        "camp": {
+            "text": "Sit. You have been looking at me like a man with questions, and I am too tired to be coy.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Who are you, really?",
+                    "next_node": "who"
+                },
+                {
+                    "text": "Why Ashmere?",
+                    "next_node": "why"
+                },
+                {
+                    "text": "What waits at the end of the Brineway?",
+                    "next_node": "boss"
+                },
+                {
+                    "text": "What will you do when you get there?",
+                    "next_node": "plan"
+                },
+                {
+                    "text": "Get some sleep, old man.",
+                    "next_node": "sleep",
+                    "effects": {
+                        "set_flag": "camp_done",
+                        "play_scene": "camp_morning"
+                    }
+                }
+            ]
+        },
+        "who": {
+            "text": "Belaric. Sage of Ashmere, once, which is a way of saying that I taught three kings' children their letters and one of them to burn things, which was not my best idea. I had a library. I had a daughter. I kept only one of them.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Go on.",
+                    "next_node": "camp"
+                }
+            ]
+        },
+        "why": {
+            "text": "Because that is where she went. Mirelle. Seventeen, clever, too clever for her own good, which she got from me. She left in the night with a bard. Lucan. A boy with a lute and a sweet voice and no money at all. I said things at the door I have not been able to take back for six years.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "And now?",
+                    "next_node": "why_two"
+                }
+            ]
+        },
+        "why_two": {
+            "text": "Now I hear the bard has a place at Ashmere's court, and that she sings with him. I should like to see it for myself. I should like, once, to say the right thing at the right door.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Go on.",
+                    "next_node": "camp"
+                }
+            ]
+        },
+        "boss": {
+            "text": "The Brinecoil. Something old and wet that has slept at the far end of the Brineway since before the first king of Ashmere. It is the only road that is not a month round, and the only road I have not yet got down. It comes up out of the water, and goes down again. While it is down, nothing touches it.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Go on.",
+                    "next_node": "camp"
+                }
+            ]
+        },
+        "plan": {
+            "text": "Bring her home, or stand at her wedding and be civil. I have not decided. I have had a great many tunnels to decide in, and I have not got any better at it.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Go on.",
+                    "next_node": "camp"
+                }
+            ]
+        },
+        "sleep": {
+            "text": "Hm. Good advice, from a young man. I may take it. Goodnight.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

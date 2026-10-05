@@ -251,5 +251,246 @@
                 "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"Stay out of trouble until I can stand. That is an order.\"[[/]]"
             }
         ]
+    },
+    "meet_belaric": {
+        "note": "At the foot of the sinkhole the hero meets Belaric, a sage of Ashmere trying to get through the Brineway; he joins the party.",
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The sinkhole's throat opens into a cave full of the sound of dripping, and of someone swearing quietly in two languages."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "An old man in a soaked grey robe crouches over a map spread on a rock, a black staff across his knees and a lantern at his feet. He looks up, and does not seem at all surprised."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Another one. They told me nobody came down here any more. Are you lost, or only stupid?\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[BLUE]]\"I am looking for a mirage pearl.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Ha! A better reason than mine, and a worse one. There are pearls in the deeps; I saw one, thirty years ago, and nearly drowned for it. I am Belaric. I was a sage at the court of Ashmere, before I was an old man in a hole.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"I am going through to Ashmere. There is something at the far end of the Brineway that does not want company, and I cannot go round it a third time. I have the spells. I have not the knees. You have the knees.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Walk with me through the Brineway, and I will see you to your pearl. Fair?\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[BLUE]]\"Fair.\"[[/]] He folds the map with a snap, and the staff comes up like something that has been waiting.",
+                "effects": {
+                    "recruit": "belaric",
+                    "set_flag": "belaric_joined",
+                    "set_respawn": {
+                        "region": "brineway",
+                        "room": "mouth"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Then do not stand about. The water rises on the hour, and I have no wish to be rescued by someone who is still working out where the exit is.\"[[/]]"
+            }
+        ]
+    },
+    "camp_in_the_dry_hall": {
+        "note": "The midpoint: a vast empty dry hall where the party makes camp for the night; ends on a prompt to talk to Belaric.",
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The tunnel opens, and keeps opening. You stop at the threshold of a room so large the lantern does not find the far wall."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "The floor is dry. After half a day of wet stone, dry sand underfoot is a shock. Pale columns stand in rows, some fallen, and the air does not move at all."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"The Dry Hall. It has never flooded, and nobody knows why. It is the only place down here where you may sleep without waking up wet.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[CYAN]]You make camp against the largest of the fallen columns. Ryn finds dry reeds, Belaric strikes a flame from the head of his staff, and the dark draws back to the edge of the light.[[/]]",
+                "effects": {
+                    "advance_time": {
+                        "to_hour": 21
+                    },
+                    "restore": {
+                        "resource": "all",
+                        "companions": true
+                    },
+                    "set_flag": "camp_night",
+                    "set_respawn": {
+                        "region": "brineway",
+                        "room": "dry_hall"
+                    }
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "The old man sits with his back against a column and his eyes on the fire, and for a long time he does not speak. (talk belaric)"
+            }
+        ]
+    },
+    "camp_morning": {
+        "note": "After the camp conversation: the night passes.",
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[CYAN]]The night passes.[[/]]",
+                "effects": {
+                    "advance_time": {
+                        "to_hour": 6
+                    },
+                    "restore": {
+                        "resource": "all",
+                        "companions": true
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "You wake to a grey light from nowhere: the pale fungus on the columns glows at dawn, as if the hall had a sky after all."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"On your feet. I have talked enough for a month. The water will be rising again, and I would like to have drowned something before breakfast.\"[[/]]"
+            }
+        ]
+    },
+    "warn_brine": {
+        "note": "The warning at the Brine Gate; the next try east goes through, into the Drowned Gallery.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"That is the door. Beyond it is the Brinecoil. I have been standing in front of this arch twice in my life, and twice I have turned round.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"It comes up out of the water, and goes down again, and while it is down nothing you do will touch it, and it answers any who try. Strike when it rises. Wait when it sinks. Do you understand?\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]There is no turning back once the gallery closes behind you. If there is anything left to do, do it now.[[/]]"
+            }
+        ]
+    },
+    "brinecoil_rises": {
+        "note": "The Drowned Gallery closes behind the party, and the Brinecoil comes up out of the water.",
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The causeway is narrow, and the black water on either side does not move. Ahead, the steps up the far wall are plain to see, and a long way off."
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Behind you, with a groan of old stone, the arch swings shut.",
+                "effects": {
+                    "seal_exit": {
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "direction": "west"
+                    }
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The water on the left of the causeway begins to bulge."
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[RED]]The Brinecoil rises out of the lake, coil on coil of barnacled flesh, and opens a mouth like the mouth of a well.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "brinecoil",
+                        "region": "brineway",
+                        "room": "brine_hollow",
+                        "instance_id": "brinecoil_of_the_lake"
+                    }
+                }
+            }
+        ]
+    },
+    "brinecoil_falls": {
+        "note": "The Brinecoil is dead: the way east opens, and Belaric says what is beyond it.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The Brinecoil's coils slacken, and the whole vast body slides back into the lake and does not rise again. The water goes still, and then, slowly, clear.",
+                "effects": {
+                    "give_rewards": {
+                        "xp": 700,
+                        "gold": 220
+                    },
+                    "set_flag": "brineway_cleared",
+                    "set_respawn": {
+                        "region": "brineway",
+                        "room": "far_shore"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "At the far end of the gallery, where the steps climb out of the dark, a thin grey light has begun to move on the water.",
+                "effects": {
+                    "reveal_exit": {
+                        "room": "brineway:brine_hollow",
+                        "direction": "up"
+                    }
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The arch behind you grinds open.",
+                "effects": {
+                    "reveal_exit": {
+                        "room": "brineway:brine_hollow",
+                        "direction": "west"
+                    }
+                }
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Belaric speaks:[[/]] [[GREEN]]\"Thirty years. Thirty years I have been afraid of that, and it died in a quarter of an hour. Ha. Ha! ...Come. Ashmere is on the other side of those steps. And my daughter.\"[[/]]"
+            }
+        ]
     }
 }

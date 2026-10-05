@@ -125,5 +125,39 @@
                 "damage_type": "fire"
             }
         ]
+    },
+    "lightning": {
+        "name": "Lightning",
+        "description": "A hooked line of white fire from the head of a staff.",
+        "mana_cost": 6,
+        "cooldown": 5,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} raises the staff, and the cavern goes white.",
+        "hit_message": "Lightning hooks into {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 22,
+                "damage_type": "air"
+            }
+        ]
+    },
+    "tidal_slam": {
+        "name": "Tidal Slam",
+        "description": "A wall of black water thrown across the cavern.",
+        "mana_cost": 0,
+        "cooldown": 1,
+        "target_type": "all_enemies",
+        "cast_message": "[[RED]]{caster_name} throws a wall of black water across the cavern![[/]]",
+        "hit_message": "The water slams into {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 11,
+                "damage_type": "water"
+            }
+        ]
     }
 }

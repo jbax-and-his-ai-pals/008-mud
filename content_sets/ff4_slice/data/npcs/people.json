@@ -565,5 +565,36 @@
             "unique": true,
             "dialogue": "rosalind_sick_talk"
         }
+    },
+    "belaric": {
+        "name": "Belaric",
+        "description": "A tall, stooped old man in a soaked grey robe, his white beard knotted with cave-damp, a long staff of black wood in one hand and a patient fury in his eyes.",
+        "max_health": 110,
+        "level": 8,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 120,
+        "usable_spells": [
+            "lightning"
+        ],
+        "dialog": {
+            "greeting": "Well? Do not stand there dripping."
+        },
+        "initial_inventory": [
+            {
+                "item_id": "item_potion",
+                "quantity": 2
+            }
+        ],
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "dialogue": "belaric_talk",
+            "essential": true,
+            "unique": true,
+            "spell_cast_chance": 0.7
+        }
     }
 }
