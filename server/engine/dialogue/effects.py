@@ -39,6 +39,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     board_vehicle     "skimmer"                      the player is put aboard it, wherever they stand (it comes to them)
     end_fight         {"region": "r", "room": "x"} | {}   everyone in that room (the player's, if none is named) stops fighting
     set_faction       {"npc": "id", "faction": "hostile", "behavior": "aggressive"}   an NPC changes sides (a companion is dismissed first)
+    npc_cast          {"npc": "id", "spell": "ability_id"}   an NPC uses an ability now, on the player's side (a bomb going off); no cost, no cooldown
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
     play_scene        "scene_id"                     the player watches a scene (data/scenes; world/scenes.py)
@@ -95,7 +96,7 @@ KNOWN_EFFECTS = frozenset({
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
     "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
-    "place_vehicle", "board_vehicle", "end_fight", "set_faction",
+    "place_vehicle", "board_vehicle", "end_fight", "set_faction", "npc_cast",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -204,6 +205,11 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"npc": "text", "faction": "text", "behavior": "text"},
         "required": ("npc", "faction"),
     },
+    "npc_cast": {
+        "form": "object",
+        "fields": {"npc": "text", "spell": "text"},
+        "required": ("npc", "spell"),
+    },
     "remove_npc": {
         "form": "object", "bare": "text",
         "fields": {"npc": "text", "region": "text", "room": "text"},
@@ -244,6 +250,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
     "place_vehicle": {"label": "Set a vehicle down somewhere", "hint": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
+    "npc_cast": {"label": "An NPC uses an ability now", "hint": "{npc: template or placed id, spell: ability id}: it is aimed at the player and the player's side", "kind": "json"},
     "set_faction": {"label": "An NPC changes sides", "hint": "{npc: template or placed id, faction, behavior (optional)}: a companion is dismissed first", "kind": "json"},
     "end_fight": {"label": "End the fight in a room", "hint": "{region, room}, or {} for the player's room: everyone there stops fighting", "kind": "json"},
     "board_vehicle": {"label": "Put the player aboard a vehicle", "hint": "vehicle id (data/vehicles); it comes to wherever they stand", "kind": "string", "refs": "vehicles"},
@@ -1333,6 +1340,34 @@ def _apply_set_faction_effect(effects: Dict[str, Any], context, report: EffectRe
         report.applied.append("%s is now %s" % (npc.obj_id, faction))
 
 
+def _apply_npc_cast_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`npc_cast`: the story has a creature use an ability at the player's side right now: a bomb going off, a roar. It costs
+    the creature nothing and ignores its cooldown; a `sacrifice` ability still takes its life."""
+    if "npc_cast" not in effects:
+        return
+    raw = effects["npc_cast"]
+    if not isinstance(raw, dict):
+        report.failed.append("npc_cast (must be an object)")
+        return
+    from engine.magic.spell_registry import get_spell
+    from engine.npcs import combat as npc_combat
+
+    world = _context_world(context)
+    player = context.get("player")
+    wanted = str(raw.get("npc", "") or "").strip()
+    spell = get_spell(str(raw.get("spell", "") or "").strip())
+    npc = next((n for n in world.npcs.values() if n.is_alive and wanted in (n.template_id, n.obj_id)), None) if world is not None else None
+    if npc is None or spell is None or player is None:
+        report.failed.append("npc_cast (no living NPC %s, or no ability %s)" % (wanted, raw.get("spell")))
+        return
+    npc.combat_targets.add(player)
+    npc.mana, npc.spell_cooldowns = max(npc.mana, spell.mana_cost), {}
+    result = npc_combat.cast_spell(npc, spell, player, float(world.clock.now()))
+    if result.get("message"):
+        report.messages.append(str(result["message"]))
+    report.applied.append("%s cast %s" % (npc.obj_id, spell.spell_id))
+
+
 def _apply_end_fight_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     """`end_fight`: a fight the story has decided (a duel lost, a foe that yields) is over for everyone in the room."""
     if "end_fight" not in effects:
@@ -1523,6 +1558,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("spawn_npc", lambda: _apply_spawn_npc_effect(effects, context, report)),
         ("remove_npc", lambda: _apply_remove_npc_effect(effects, context, report)),
         ("companions", lambda: _apply_companion_effects(effects, player, context, report)),
+        ("npc_cast", lambda: _apply_npc_cast_effect(effects, context, report)),
         ("end_fight", lambda: _apply_end_fight_effect(effects, context, report)),
         ("faction", lambda: _apply_set_faction_effect(effects, context, report)),
         ("rewards", lambda: _apply_reward_effect(effects, player, world, report)),

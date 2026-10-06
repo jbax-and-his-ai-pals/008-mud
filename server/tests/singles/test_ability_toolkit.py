@@ -236,6 +236,46 @@ class TestStoneCure(_Abilities):
         self.assertFalse(friend.has_effect_tag("petrify"))
 
 
+class TestStatusImmune(_Abilities):
+    def test_a_status_immune_creature_shrugs_off_songs_and_stone(self):
+        npc = self.npc("steady")
+        npc.properties["status_immune"] = True
+        for tag in ("sleep", "silence", "confuse", "petrify"):
+            ok, said = npc.apply_effect({"type": "status", "name": "X", "tags": [tag], "base_duration": 10}, 0.0)
+            self.assertFalse(ok, tag)
+            self.assertIn("shrugs it off", said)
+        self.assertFalse(npc.has_effect_tag("sleep"))
+
+    def test_without_it_the_same_effect_lands(self):
+        npc = self.npc("plain")
+        ok, _ = npc.apply_effect({"type": "status", "name": "X", "tags": ["sleep"], "base_duration": 10}, 0.0)
+        self.assertTrue(ok)
+
+    def test_other_effects_are_not_turned_aside(self):
+        npc = self.npc("steady2")
+        npc.properties["status_immune"] = True
+        ok, _ = npc.apply_effect({"type": "stat_mod", "name": "Brace", "modifiers": {"defense": 1}, "base_duration": 5}, 0.0)
+        self.assertTrue(ok)
+
+
+class TestFocusPlayer(_Abilities):
+    def test_a_duellist_strikes_at_the_player_not_whoever_is_nearest(self):
+        from engine.npcs.combat import enter_combat, try_attack
+
+        duellist = self.npc("duellist")
+        bystander = self.npc("bystander", template="ryn")
+        duellist.properties["focus_player"] = True
+        enter_combat(duellist, bystander)
+        enter_combat(duellist, self.player)
+        picked = set()
+        for _ in range(30):
+            duellist.last_combat_action = duellist.last_attack_time = 0
+            duellist.combat_target = None
+            try_attack(duellist, self.world, float(self.world.clock.now()) + 100)
+            picked.add(duellist.combat_target)
+        self.assertEqual({self.player}, picked)
+
+
 class TestTheValidator(unittest.TestCase):
     def errors(self, **fields):
         tmp = Path(tempfile.mkdtemp())

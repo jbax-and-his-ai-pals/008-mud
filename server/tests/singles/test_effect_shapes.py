@@ -53,6 +53,7 @@ class TestTheTable(unittest.TestCase):
             "place_vehicle": ["region", "room", "vehicle"],
             "end_fight": ["region", "room"],
             "set_faction": ["behavior", "faction", "npc"],
+            "npc_cast": ["npc", "spell"],
         }, effect_fields())
 
     def test_each_object_effects_fields_are_the_ones_its_reader_reads(self):
@@ -73,6 +74,7 @@ class TestTheTable(unittest.TestCase):
             "place_vehicle": "_apply_vehicle_effects",
             "end_fight": "_apply_end_fight_effect",
             "set_faction": "_apply_set_faction_effect",
+            "npc_cast": "_apply_npc_cast_effect",
             "seal_exit": "_apply_seal_exit_effect",
             "advance_time": "_apply_time_effect",
         }

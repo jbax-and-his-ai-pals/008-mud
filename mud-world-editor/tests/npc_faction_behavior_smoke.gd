@@ -221,7 +221,7 @@ func _check_the_fight_trait_rows() -> void:
 	var manager := _manager()
 	var holder := _build_inspector_from("npc_probe", manager)
 	var props: Dictionary = manager.npcs["npc_probe"]["properties"]
-	for pair in [["FallsWhenDefeated", "falls_when_defeated"], ["PercentImmune", "percent_immune"], ["MirrorsPlayer", "mirrors_player"]]:
+	for pair in [["FallsWhenDefeated", "falls_when_defeated"], ["PercentImmune", "percent_immune"], ["MirrorsPlayer", "mirrors_player"], ["StatusImmune", "status_immune"], ["FocusPlayer", "focus_player"]]:
 		var box := holder.find_child(pair[0], true, false) as CheckBox
 		_assert(box != null and not box.button_pressed, "%s starts unticked" % pair[0])
 		box.toggled.emit(true)

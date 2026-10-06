@@ -672,6 +672,20 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("percent_immune")
 		database_modified.emit())
 	flags.add_child(immune)
+	var steady := CheckBox.new(); steady.name = "StatusImmune"; steady.text = "Status-immune (sleep, silence, confusion, stone and stun do nothing)"
+	steady.button_pressed = bool(properties.get("status_immune", false))
+	steady.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["status_immune"] = true
+		else: _ensure_npc_properties().erase("status_immune")
+		database_modified.emit())
+	flags.add_child(steady)
+	var focus := CheckBox.new(); focus.name = "FocusPlayer"; focus.text = "Focuses the player (a duellist: strikes at them rather than whoever is nearest)"
+	focus.button_pressed = bool(properties.get("focus_player", false))
+	focus.toggled.connect(func(pressed):
+		if pressed: _ensure_npc_properties()["focus_player"] = true
+		else: _ensure_npc_properties().erase("focus_player")
+		database_modified.emit())
+	flags.add_child(focus)
 	var mirror := CheckBox.new(); mirror.name = "MirrorsPlayer"; mirror.text = "Mirrors the player (spawned by a story, it takes their health, blow, defence and level)"
 	mirror.button_pressed = bool(properties.get("mirrors_player", false))
 	mirror.toggled.connect(func(pressed):

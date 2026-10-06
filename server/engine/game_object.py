@@ -6,6 +6,9 @@ import time
 from engine.config import EFFECT_DEFAULT_TICK_INTERVAL, FORMAT_ERROR, FORMAT_HIGHLIGHT, FORMAT_RESET, FORMAT_SUCCESS, NPC_DOT_FLAVOR_MESSAGES, MINIMUM_DAMAGE_TAKEN, WEAPON_VS_ARMOR_MULTIPLIERS
 from engine.config.config_display import SCREEN_HEIGHT, SCREEN_WIDTH
 
+STATUS_IMMUNE_TAGS = ("sleep", "silence", "confuse", "petrify", "stun")
+
+
 class GameObject:
     def __init__(self, obj_id: Optional[str] = None, name: str = "Unknown",
         description: str = "No description"):
@@ -223,6 +226,12 @@ class GameObject:
 
     def apply_effect(self, effect_data: Dict[str, Any], current_time: float) -> Tuple[bool, str]:
         if not self.is_alive: return False, f"{self.name} cannot be affected."
+        props = getattr(self, "properties", None)
+        if isinstance(props, dict) and props.get("status_immune") is True:
+            tags = effect_data.get("tags", [])
+            tags = [tags] if isinstance(tags, str) else (tags if isinstance(tags, list) else [])
+            if effect_data.get("name") == "Stun" or any(str(t).lower() in STATUS_IMMUNE_TAGS for t in tags):
+                return False, f"{self.name} shrugs it off."   # a will no song or spell can bend (a brainwashed knight)
         effect_name = effect_data.get("name", "Unknown Effect")
         
         # Before adding, remove any existing effect with the same name to refresh it

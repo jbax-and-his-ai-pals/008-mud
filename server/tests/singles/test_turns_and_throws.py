@@ -170,6 +170,27 @@ class TestSetFaction(_World):
         self.assertTrue(report.failed)
 
 
+class TestNpcCast(_World):
+    def setUp(self):
+        super().setUp()
+        self.addCleanup(SPELL_REGISTRY.pop, "t_blast", None)
+        SPELL_REGISTRY["t_blast"] = Spell("t_blast", "Blast", "Boom.", effects=[{"type": "damage", "value": 40, "damage_type": "fire"}],
+                                          mana_cost=99, cooldown=999, target_type="all_enemies", sacrifice=True)
+
+    def test_the_story_has_a_creature_use_an_ability_on_the_players_side_and_it_costs_nothing(self):
+        bomb = self.npc("bomb")
+        bomb.mana = 0
+        before = self.player.health
+        report = apply_effects({"npc_cast": {"npc": "bomb", "spell": "t_blast"}}, {"player": self.player, "world": self.world})
+        self.assertIn("bomb cast t_blast", " ".join(report.applied))
+        self.assertLess(self.player.health, before)
+        self.assertFalse(bomb.is_alive, "a sacrifice ability still takes its life")
+
+    def test_a_missing_npc_or_ability_is_reported(self):
+        report = apply_effects({"npc_cast": {"npc": "nobody", "spell": "t_blast"}}, {"player": self.player, "world": self.world})
+        self.assertTrue(report.failed)
+
+
 class TestTheValidator(unittest.TestCase):
     def errors(self, mutate):
         tmp = Path(tempfile.mkdtemp())

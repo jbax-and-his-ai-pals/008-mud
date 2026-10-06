@@ -233,7 +233,17 @@ def try_attack(npc: 'NPC', world, current_time: float) -> Optional[str]:
     if not (target and target.is_alive and target.current_room_id == npc.current_room_id):
         valid_targets = [t for t in npc.combat_targets if t and t.is_alive and t.current_room_id == npc.current_room_id and not is_untargetable(t)]
         if not valid_targets: exit_combat(npc); return None
-        target = random.choice(valid_targets); npc.combat_target = target
+        target = random.choice(valid_targets)
+        npc.combat_target = target
+    if npc.properties.get("focus_player") is True:
+        # A duellist: its quarrel is with the player, so it strikes at them whenever they are in reach.
+        for there in world.get_players_in_room(npc.current_region_id, npc.current_room_id, alive_only=True):
+            if is_hostile_to(npc, there) and there not in npc.combat_targets:
+                enter_combat(npc, there)
+        player_target = next((t for t in npc.combat_targets if getattr(t, "runtime_state", None) is not None and t.is_alive
+                              and t.current_room_id == npc.current_room_id and not is_untargetable(t)), None)
+        if player_target is not None:
+            target = npc.combat_target = player_target
 
     if npc.has_effect_tag("confuse"):
         # A confused creature strikes at whoever is nearest, friend or foe.
