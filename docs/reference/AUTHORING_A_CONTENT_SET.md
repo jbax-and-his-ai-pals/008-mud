@@ -443,6 +443,8 @@ lightning at the camp, in a scene.
 
 **Duellists and bombs.** `properties.status_immune: true`: sleep, silence, confusion, stone and stun do nothing to the creature (a brainwashed knight no song can bend). `properties.focus_player: true`: it strikes at the player whenever they are in reach rather than at whoever is nearest (a duellist; it will also open the fight with them). The effect `npc_cast` (`{"npc": "mother_cinder", "spell": "cinder_burst"}`) has a living creature use an ability at the player's side right now, free of cost and cooldown; with a `sacrifice` ability it is a bomb going off, and with the `health_below` trigger (`who` the creature, `fraction` 0.3) a boss that detonates at a third of its strength.
 
+**A change of arms.** The effect `equip_item` (an item id, or a list) puts on what the player carries, after `give_item` has given it; what it replaces goes into the pack, and a later `take_item` can lay it down for good. With `forget_spell`, `teach_spell` and `raise` (`max_mana` gives a hero who had none a pool) it is a class change told as a scene: the slice's Paladin conversion on Mount Vigil.
+
 **An exit that warns.** A room's `properties.exit_requirements` gives one direction a rule; a `warning` is met once:
 `{"south": {"type": "warning", "scene": "warn_pool", "failure_message": "You start south, and stop."}}`. The first attempt to go
 that way is refused (the `failure_message` is shown at once) and the scene told (give it `"lock": false` and slow beats, so the

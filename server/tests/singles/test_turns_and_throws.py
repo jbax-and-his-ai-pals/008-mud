@@ -191,6 +191,19 @@ class TestNpcCast(_World):
         self.assertTrue(report.failed)
 
 
+class TestEquip(_World):
+    def test_a_story_puts_a_carried_item_on_and_the_old_one_goes_to_the_pack(self):
+        before = self.player.equipment.get("main_hand")
+        apply_effects({"give_item": "item_dark_blade", "equip_item": "item_dark_blade"}, {"player": self.player, "world": self.world})
+        self.assertEqual("dark blade", self.player.equipment["main_hand"].name)
+        if before is not None:
+            self.assertIsNotNone(self.player.inventory.get_item(before.obj_id), "what it replaced is carried")
+
+    def test_an_item_not_carried_is_reported(self):
+        report = apply_effects({"equip_item": "item_never_carried"}, {"player": self.player, "world": self.world})
+        self.assertTrue(report.failed)
+
+
 class TestTheValidator(unittest.TestCase):
     def errors(self, mutate):
         tmp = Path(tempfile.mkdtemp())

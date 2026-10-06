@@ -39,6 +39,7 @@ Effect vocabulary (every key is optional; a mapping may carry several):
     board_vehicle     "skimmer"                      the player is put aboard it, wherever they stand (it comes to them)
     end_fight         {"region": "r", "room": "x"} | {}   everyone in that room (the player's, if none is named) stops fighting
     set_faction       {"npc": "id", "faction": "hostile", "behavior": "aggressive"}   an NPC changes sides (a companion is dismissed first)
+    equip_item        "item_id" | ["a", "b"]         the player puts on what they carry (what it replaces goes into the pack)
     npc_cast          {"npc": "id", "spell": "ability_id"}   an NPC uses an ability now, on the player's side (a bomb going off); no cost, no cooldown
     teleport          {"region": "r", "room": "x"}   move the player; runs last
     seal_exit         {"region": "r", "room": "x", "direction": "east"}   close an exit (a lever or reveal_exit can reopen it)
@@ -96,7 +97,7 @@ KNOWN_EFFECTS = frozenset({
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
     "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
-    "place_vehicle", "board_vehicle", "end_fight", "set_faction", "npc_cast",
+    "place_vehicle", "board_vehicle", "end_fight", "set_faction", "npc_cast", "equip_item",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -210,6 +211,7 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"npc": "text", "spell": "text"},
         "required": ("npc", "spell"),
     },
+    "equip_item": {"form": "ids"},
     "remove_npc": {
         "form": "object", "bare": "text",
         "fields": {"npc": "text", "region": "text", "room": "text"},
@@ -250,6 +252,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
     "place_vehicle": {"label": "Set a vehicle down somewhere", "hint": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
+    "equip_item": {"label": "The player puts on an item they carry", "hint": "item id, or a list of them; what it replaces goes into the pack", "kind": "item_id", "refs": "items"},
     "npc_cast": {"label": "An NPC uses an ability now", "hint": "{npc: template or placed id, spell: ability id}: it is aimed at the player and the player's side", "kind": "json"},
     "set_faction": {"label": "An NPC changes sides", "hint": "{npc: template or placed id, faction, behavior (optional)}: a companion is dismissed first", "kind": "json"},
     "end_fight": {"label": "End the fight in a room", "hint": "{region, room}, or {} for the player's room: everyone there stops fighting", "kind": "json"},
@@ -1340,6 +1343,23 @@ def _apply_set_faction_effect(effects: Dict[str, Any], context, report: EffectRe
         report.applied.append("%s is now %s" % (npc.obj_id, faction))
 
 
+def _apply_equip_effect(effects: Dict[str, Any], player, report: EffectReport) -> None:
+    """`equip_item`: a change of arms in a story (the dark blade laid down, the dawn blade taken up). Runs after the items are given."""
+    if "equip_item" not in effects:
+        return
+    raw = effects["equip_item"]
+    wanted = [raw] if isinstance(raw, str) else [x for x in raw if isinstance(x, str)] if isinstance(raw, list) else []
+    for item_id in wanted:
+        item = player.inventory.get_item(item_id) if getattr(player, "inventory", None) is not None else None
+        if item is None:
+            report.failed.append("equip_item %s (not carried)" % item_id)
+            continue
+        done, said = player.equip_item(item)
+        (report.applied if done else report.failed).append("equip_item %s%s" % (item_id, "" if done else " (%s)" % said))
+        if done:
+            report.messages.append(said)
+
+
 def _apply_npc_cast_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     """`npc_cast`: the story has a creature use an ability at the player's side right now: a bomb going off, a roar. It costs
     the creature nothing and ignores its cooldown; a `sacrifice` ability still takes its life."""
@@ -1547,6 +1567,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("forgetting", lambda: _apply_forget_effect(effects, player, report)),
         ("learning", lambda: _apply_learning_effects(effects, player, report)),
         ("items", lambda: _apply_item_effects(effects, player, world, report)),
+        ("equip", lambda: _apply_equip_effect(effects, player, report)),
         ("gold", lambda: _apply_gold_effect(effects, player, world, report)),
         ("raise", lambda: _apply_raise_effect(effects, player, world, report)),
         ("restore", lambda: _apply_restore_effect(effects, player, world, report)),
