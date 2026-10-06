@@ -43,22 +43,11 @@
             "play_scene": "morvane_rises"
         }
     },
-    "morvane_retreats": {
-        "on": {
-            "event": "health_below",
-            "who": "morvane",
-            "fraction": 0.35
-        },
-        "once": "world",
-        "effects": {
-            "play_scene": "morvane_retreats"
-        }
-    },
     "bridge_ambush": {
         "on": {
             "event": "on_enter",
             "region": "vigil",
-            "room": "bridge"
+            "room": "bridge_end"
         },
         "once": "world",
         "effects": {
@@ -87,6 +76,16 @@
         },
         "effects": {
             "play_scene": "party_stops"
+        }
+    },
+    "morvane_breaks": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "morvane"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "morvane_breaks"
         }
     }
 }

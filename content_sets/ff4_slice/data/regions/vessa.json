@@ -19,7 +19,8 @@
             "description": "A narrow lane of wet slate, every doorway hung with charms against the sea, and every other one with something that has plainly gone wrong.",
             "exits": {
                 "down": "shore",
-                "north": "square"
+                "north": "square",
+                "east": "smithy"
             },
             "initial_npcs": [
                 {
@@ -67,6 +68,19 @@
                 {
                     "template_id": "twin_tamsin",
                     "instance_id": "tamsin_hall"
+                }
+            ]
+        },
+        "smithy": {
+            "name": "The Dawn Forge",
+            "description": "A clean, cold forge with a rack of white armour along one wall, polished and waiting. The smith has not lit the fire in a month, and does not need to.",
+            "exits": {
+                "west": "lane"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "vessa_smith",
+                    "instance_id": "aud_at_forge"
                 }
             ]
         }

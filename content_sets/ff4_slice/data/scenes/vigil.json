@@ -70,22 +70,22 @@
             {
                 "after": 6,
                 "pace": "slow",
-                "text": "You lay the dark blade on the white stone. It is lighter than it was. The armour comes off in your hands in pieces, and each piece, as it touches the stone, runs like water.",
+                "text": "You lay the dark blade on the white stone. It is lighter than it was. The armour comes off in your hands in pieces, and each piece, as it touches the stone, runs like water, and when the last of it is gone you are standing in a plain cloth tunic with nothing between you and the sky.",
                 "effects": {
                     "give_item": [
                         "item_dawn_blade",
-                        "item_dawn_mail"
+                        "item_pilgrim_robe"
                     ]
                 }
             },
             {
                 "after": 6,
                 "pace": "slow",
-                "text": "Where the dark blade lay, a white one is. Where the black plate fell, white plate stands. When you lift them there is no weight in them at all, and then, all at once, there is, and it is exactly your own.",
+                "text": "Where the dark blade lay, a white one is. When you lift it there is no weight in it at all, and then, all at once, there is, and it is exactly your own. You will want proper armour. The village below will have heard of this day before you do.",
                 "effects": {
                     "equip_item": [
                         "item_dawn_blade",
-                        "item_dawn_mail"
+                        "item_pilgrim_robe"
                     ]
                 }
             },
@@ -176,28 +176,6 @@
             }
         ]
     },
-    "morvane_retreats": {
-        "note": "Morvane is hurt, and goes.",
-        "lock": false,
-        "beats": [
-            {
-                "after": 3,
-                "pace": "slow",
-                "text": "Morvane staggers, and the green fire in his eyes gutters. [[YELLOW]]\"Not yet. You are not yet worth the whole of me.\"[[/]] He sinks into the floor as into water, and the skullnants fall to the stone like dropped dice.",
-                "effects": {
-                    "end_fight": {},
-                    "remove_npc": "morvane"
-                }
-            },
-            {
-                "after": 0,
-                "pace": "slow",
-                "effects": {
-                    "remove_npc": "skullnant"
-                }
-            }
-        ]
-    },
     "bridge_ambush": {
         "note": "Morvane takes you from behind on the bridge.",
         "lock": false,
@@ -205,12 +183,12 @@
             {
                 "after": 3,
                 "pace": "slow",
-                "text": "Halfway over the slab, something behind you laughs, and the bridge shivers, and you turn."
+                "text": "You reach the far end of the bridge, and the stair is right there, and the daylight, and for a moment you think it is over. Behind you, something laughs."
             },
             {
                 "after": 4,
                 "pace": "slow",
-                "text": "[[RED]]It is the lord of earth again, and he has not troubled to be whole. He comes up out of the stone with his arm still re-forming, and he has brought the cold with him.[[/]]",
+                "text": "[[RED]]It is the lord of earth again, and he has not troubled to be whole. He comes up out of the stone behind you with his arm still re-forming, and he has brought the cold with him.[[/]]",
                 "effects": {
                     "spawn_npc": {
                         "npc": "morvane_risen",
@@ -272,6 +250,28 @@
                 "effects": {
                     "set_flag": "twins_waiting"
                 }
+            }
+        ]
+    },
+    "morvane_breaks": {
+        "note": "The first form of Morvane is beaten; it is not over.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Morvane comes down like a wall coming down: in one piece, and then in a great many. The green fire in his eyes goes out. The skullnants drop from the air one by one, clicking, and are quiet.",
+                "effects": {
+                    "give_rewards": {
+                        "xp": 1500,
+                        "gold": 90
+                    }
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "You stand a long time in the dark among the guttered candles, and nothing at all moves. It is the kind of silence that is only waiting."
             }
         ]
     }

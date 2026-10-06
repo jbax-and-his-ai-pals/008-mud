@@ -1482,8 +1482,7 @@
             "move_cooldown": 9999,
             "weapon_damage_type": "slashing",
             "attack_cooldown": 4.5,
-            "unique": true,
-            "essential": true
+            "unique": true
         },
         "usable_spells": [
             "bone_drain"

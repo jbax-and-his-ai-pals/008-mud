@@ -1015,5 +1015,35 @@
             "unique": false,
             "dialogue": "scholar_talk"
         }
+    },
+    "vessa_smith": {
+        "name": "Aud the smith",
+        "description": "A broad grey woman with a burn-scarred forearm and a very clean forge, who looks at your armour and then at you and says nothing.",
+        "max_health": 70,
+        "level": 5,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Dawn steel. The elder had me forge it for the first one who came down that mountain a different man. Do not bring me any other kind of man."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_dawn_mail"
+                },
+                {
+                    "item_id": "item_dawn_helm"
+                },
+                {
+                    "item_id": "item_potion"
+                }
+            ]
+        }
     }
 }

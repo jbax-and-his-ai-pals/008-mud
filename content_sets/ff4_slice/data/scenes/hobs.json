@@ -170,24 +170,34 @@
                 "text": "You cannot. You try. She sets the spear against your breastplate and pushes, and you go over on your back in the dust, and the sky is full of airships."
             },
             {
-                "after": 6,
+                "after": 5,
                 "pace": "slow",
-                "text": "A shout. Rosalind has stepped between you and the spear, her hands white with the mending she was not allowed to finish, and Kessa turns, without hurry, and takes her by the wrist."
+                "text": "The light goes out of the square. Someone is standing on the roof of the great hall where the wyvern was, a tall man in black plate with a horned helm, and he has been there for some time."
             },
             {
                 "after": 4,
                 "pace": "slow",
-                "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"Kessa. Kessa, it's me.\"[[/]]"
+                "text": "[[YELLOW]]Varkos speaks:[[/]] [[GREEN]]\"Enough, Kessa. He is not the one I came for.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "Behind you, in the crystal room, the pale light goes out all at once. Something small and bright lifts off the stone stand and drifts across the courtyard to his hand."
             },
             {
                 "after": 6,
                 "pace": "slow",
-                "text": "Nothing moves behind the helm. She lifts Rosalind as she lifted the spear, one-handed, and carries her to the wyvern. Bram throws himself at it; the wyvern's tail takes him off the steps."
+                "text": "A shout. Rosalind has stepped between you and the spear, her hands white with the mending she was not allowed to finish. Varkos lifts one gauntlet, and she rises off her feet as a leaf rises off water."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"Aldric.\"[[/]] Bram throws himself at the roof; a wyvern's tail takes him off the steps."
             },
             {
                 "after": 6,
                 "pace": "slow",
-                "text": "[[RED]]They go up, over the wall, into the smoke. One of the airships turns to follow, and then the whole fleet, and the sound of them shrinks to a hum, and to nothing.[[/]]",
+                "text": "[[RED]]They go up, Varkos and the crystal and Rosalind and the woman you used to know, over the wall, into the smoke. The whole fleet turns after them, and the sound shrinks to a hum, and to nothing.[[/]]",
                 "effects": {
                     "remove_npc": "kessa_returned",
                     "set_flag": [

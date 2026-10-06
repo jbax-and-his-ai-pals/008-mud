@@ -1627,7 +1627,7 @@ class TestFF4Slice(_Slice):
 
     def test_vessa_is_a_village_with_an_elder_two_children_and_a_road_to_the_mountain(self):
         region = self.world.get_region("vessa")
-        self.assertEqual({"shore", "lane", "square", "elder_hall"}, set(region.rooms))
+        self.assertEqual({"shore", "lane", "square", "elder_hall", "smithy"}, set(region.rooms))
         self.assertEqual(1, len(self.npcs("elder_hesper")))
         self.assertEqual(1, len(self.npcs("twin_tobin")))
         self.assertEqual(1, len(self.npcs("twin_tamsin")))
@@ -1673,7 +1673,7 @@ class TestFF4Slice(_Slice):
     # -- Mount Vigil: the trial and the paladin ---------------------------------------------------------------------------------
     def test_mount_vigil_is_a_climb_of_undead_with_a_warning_at_the_crypt_gate(self):
         region = self.world.get_region("vigil")
-        self.assertEqual({"foot", "stair", "cairns", "gate", "hall", "bridge", "mirror_stair", "summit"}, set(region.rooms))
+        self.assertEqual({"foot", "stair", "cairns", "gate", "hall", "bridge", "bridge_end", "mirror_stair", "summit"}, set(region.rooms))
         self.assertEqual("warning", region.get_room("gate").properties["exit_requirements"]["north"]["type"])
         for template in ("bone_pilgrim", "grave_hound", "candle_wight", "morvane"):
             self.assertTrue(self.npcs(template), template)
@@ -1691,17 +1691,25 @@ class TestFF4Slice(_Slice):
         self.assertIn("belaric", self._companions())
         self.assertIs(True, self.player.flags.get("meteor_remembered"))
 
-    def test_morvane_is_driven_off_at_a_third_then_takes_the_party_from_behind_on_the_bridge(self):
+    def test_morvane_is_beaten_whole_in_the_hall_then_comes_again_at_the_far_end_of_the_bridge(self):
         self.at("vigil", "hall")
         morvane = self.npcs("morvane")[0]
         morvane.health = int(morvane.max_health * 0.37)
         morvane.take_damage(30, "physical")
-        self._let_scenes_play(20)
-        self.assertEqual([], self.npcs("morvane"))
-        self.assertEqual([], self.npcs("skullnant"))
+        self._let_scenes_play(10)
+        self.assertEqual(1, len(self.npcs("morvane")), "he is not driven off at a third: the fight goes on")
+        morvane.take_damage(10 ** 6, "physical")
+        self._let_scenes_play(10)
+        self.assertEqual([], self.npcs("morvane"), "he is beaten, entirely")
+        self.player.runtime_state.combat.in_combat = False
         self.say("go north")
         self._let_scenes_play(20)
-        self.assertEqual(1, len(self.npcs("morvane_risen")), "he is back, and between you and the stair")
+        self.assertEqual("vigil:bridge", self.where())
+        self.assertEqual([], self.npcs("morvane_risen"), "the crossing itself is quiet")
+        self.say("go north")
+        self._let_scenes_play(20)
+        self.assertEqual("vigil:bridge_end", self.where())
+        self.assertEqual(1, len(self.npcs("morvane_risen")), "and at the very end he is behind you")
         self.player.runtime_state.combat.in_combat = False
         self.assertIn("shut by the thing", self.say("go north"))
         self.npcs("morvane_risen")[0].take_damage(10 ** 6, "physical")
@@ -1713,8 +1721,8 @@ class TestFF4Slice(_Slice):
     def test_the_twins_and_belaric_cannot_climb_the_mirror_stair_and_wait_below(self):
         self.player.flags["morvane_down"] = True
         for who in ("twin_tobin", "twin_tamsin", "belaric"):
-            self._join(who, "vigil", "bridge")
-        self.at("vigil", "bridge")
+            self._join(who, "vigil", "bridge_end")
+        self.at("vigil", "bridge_end")
         self.say("go north")
         self._let_scenes_play(30)
         self.assertEqual("vigil:mirror_stair", self.where())
@@ -1764,7 +1772,7 @@ class TestFF4Slice(_Slice):
         self.assertFalse({"gloom_wave", "call_colossus"} & known, "the dark's abilities are put down")
         self.assertGreaterEqual(self.player.runtime_state.magic.max_mana, 70, "the light pays in mana, not blood")
         self.assertEqual("dawn blade", self.player.equipment["main_hand"].name)
-        self.assertEqual("dawn mail", self.player.equipment["body"].name)
+        self.assertEqual("pilgrim's tunic", self.player.equipment["body"].name, "a sword and plain cloth only: the armour is for the village to sell")
         self.assertFalse(self.holds("item_dark_blade") or self.holds("item_dark_armor"))
         self.assertTrue(TitleManager(self.world).has_earned("paladin", self.player))
 
@@ -1794,6 +1802,26 @@ class TestFF4Slice(_Slice):
         self.assertEqual("vigil:summit", self.where())
         self.assertIn("smite", self.player.runtime_state.magic.known_spells)
         self.assertEqual("dawn blade", self.player.equipment["main_hand"].name)
+
+    def test_the_village_smith_sells_the_paladin_armour(self):
+        self.at("vessa", "smithy")
+        stock = [e["item_id"] for e in self.npcs("vessa_smith")[0].properties["sells_items"]]
+        self.assertIn("item_dawn_mail", stock)
+        self.assertIn("item_dawn_helm", stock)
+
+    def test_belaric_knows_meteor_but_cannot_afford_it(self):
+        from engine.magic.spell_registry import get_spell
+
+        self.world.remove_npcs("belaric")
+        self.at("vigil", "stair")
+        self.say("go north")
+        self._let_scenes_play(10)
+        self.say("talk belaric")
+        self.say("reply 1")
+        belaric = self.npcs("belaric")[0]
+        self.assertIn("meteor", belaric.usable_spells)
+        self.assertGreater(get_spell("meteor").mana_cost, belaric.max_mana, "it costs more than he has to spend")
+        self.assertTrue(get_spell("meteor").sacrifice)
 
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]

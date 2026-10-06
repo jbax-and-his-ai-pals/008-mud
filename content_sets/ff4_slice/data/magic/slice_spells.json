@@ -543,5 +543,23 @@
                 "damage_type": "shadow"
             }
         ]
+    },
+    "meteor": {
+        "name": "Meteor",
+        "description": "The forbidden spell: a star brought down on everything. It costs more than any one life holds.",
+        "mana_cost": 250,
+        "cooldown": 60,
+        "target_type": "all_enemies",
+        "sacrifice": true,
+        "cast_message": "[[RED]]{caster_name} calls down the sky itself![[/]]",
+        "hit_message": "A star falls on {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 220,
+                "damage_type": "fire"
+            }
+        ]
     }
 }

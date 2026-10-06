@@ -114,7 +114,7 @@
             "name": "The Mirror Stair",
             "description": "A last short stair, the walls polished black as glass, so that you climb it between two of yourself. At the top the stair ends in a plain archway, and beyond it, daylight.",
             "exits": {
-                "south": "bridge",
+                "south": "bridge_end",
                 "up": "summit"
             }
         },
@@ -127,9 +127,17 @@
         },
         "bridge": {
             "name": "The Narrow Bridge",
-            "description": "A bridge of one slab of black stone, no wider than your shoulders, across a drop that has no bottom. On the far side, a short stair of polished glass, and on this side, a great many names scratched into the parapet by people who did not come back.",
+            "description": "A bridge of one slab of black stone, no wider than your shoulders, across a drop that has no bottom. A great many names are scratched into the parapet by people who did not come back. The far end is a long way off.",
             "exits": {
                 "south": "hall",
+                "north": "bridge_end"
+            }
+        },
+        "bridge_end": {
+            "name": "The Far End of the Bridge",
+            "description": "The slab broadens into a landing at the foot of a short stair of polished black glass. Behind you the bridge is a thread across nothing. Ahead, the daylight.",
+            "exits": {
+                "south": "bridge",
                 "north": "mirror_stair"
             },
             "properties": {
@@ -140,7 +148,7 @@
                             "kind": "flag",
                             "flag": "morvane_down"
                         },
-                        "failure_message": "The way across is shut by the thing that follows you."
+                        "failure_message": "The way up is shut by the thing that follows you."
                     }
                 }
             }

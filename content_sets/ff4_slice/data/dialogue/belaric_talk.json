@@ -185,7 +185,7 @@
             "end": true
         },
         "vigil": {
-            "text": "Do not look at me like that. I have been up this mountain two days and a night, and I am not a ghost, only an old fool who has remembered something. Every spell I ever knew came back, all at once, in the dark, while the mountain talked. All of them. Including the one I should not. You are going up. So am I.",
+            "text": "Do not look at me like that. I have been up this mountain two days and a night, and I am not a ghost, only an old fool who has remembered something. Every spell I ever knew came back, all at once, in the dark, while the mountain talked. All of them. Including the one I should not, which costs more than I have to spend, and may yet cost me the rest. You are going up. So am I.",
             "pace": "slow",
             "must_answer": true,
             "choices": [
@@ -194,7 +194,11 @@
                     "next_node": "vigil_joins",
                     "effects": {
                         "recruit": true,
-                        "set_flag": "meteor_remembered"
+                        "set_flag": "meteor_remembered",
+                        "teach_companion": {
+                            "npc": "belaric",
+                            "spell": "meteor"
+                        }
                     }
                 },
                 {

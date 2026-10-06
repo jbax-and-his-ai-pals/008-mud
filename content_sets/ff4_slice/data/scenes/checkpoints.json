@@ -47,10 +47,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -114,10 +114,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -204,10 +204,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -297,10 +297,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -391,10 +391,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -494,10 +494,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -589,10 +589,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -680,10 +680,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -786,10 +786,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -930,10 +930,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1076,10 +1076,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1222,10 +1222,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1375,10 +1375,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1539,10 +1539,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1721,10 +1721,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1903,10 +1903,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2081,10 +2081,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2285,10 +2285,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2489,10 +2489,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2702,10 +2702,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2934,10 +2934,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3171,10 +3171,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3359,10 +3359,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3595,10 +3595,10 @@
                         "the_light",
                         "belaric_returns",
                         "morvane_rises",
-                        "morvane_retreats",
                         "bridge_ambush",
                         "morvane_falls",
-                        "party_stops"
+                        "party_stops",
+                        "morvane_breaks"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3763,7 +3763,7 @@
                 "effects": {
                     "give_item": [
                         "item_dawn_blade",
-                        "item_dawn_mail"
+                        "item_pilgrim_robe"
                     ]
                 }
             },
@@ -3772,7 +3772,7 @@
                 "effects": {
                     "equip_item": [
                         "item_dawn_blade",
-                        "item_dawn_mail"
+                        "item_pilgrim_robe"
                     ]
                 }
             },

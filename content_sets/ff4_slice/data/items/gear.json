@@ -465,7 +465,7 @@
         "name": "dawn mail",
         "description": "Plate the colour of the hour before sunrise.",
         "weight": 8,
-        "value": 0,
+        "value": 320,
         "stackable": false,
         "properties": {
             "defense": 9,
@@ -474,6 +474,42 @@
             "max_durability": 90,
             "equip_slot": [
                 "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_pilgrim_robe": {
+        "type": "Armor",
+        "name": "pilgrim's tunic",
+        "description": "Plain undyed cloth, soft as a nightshirt, the sort of thing a man wears who has nothing left to prove.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 1,
+            "armor_material": "cloth",
+            "durability": 40,
+            "max_durability": 40,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_dawn_helm": {
+        "type": "Armor",
+        "name": "dawn helm",
+        "description": "A plain white helm with a narrow crest, bright as a bell.",
+        "weight": 2,
+        "value": 160,
+        "stackable": false,
+        "properties": {
+            "defense": 3,
+            "armor_material": "steel",
+            "durability": 80,
+            "max_durability": 80,
+            "equip_slot": [
+                "head"
             ]
         },
         "item_family": "armor"
