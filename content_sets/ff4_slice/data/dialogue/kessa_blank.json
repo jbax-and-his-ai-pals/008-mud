@@ -1,0 +1,11 @@
+{
+    "id": "kessa_blank",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "...",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

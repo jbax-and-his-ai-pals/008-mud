@@ -1,0 +1,116 @@
+{
+    "region_id": "corrin",
+    "name": "Mount Corrin",
+    "description": "A bare grey mountain with a single path up it, where the bridges are older than the villages that use them.",
+    "properties": {
+        "safe_zone": false,
+        "biome": "mountain"
+    },
+    "rooms": {
+        "foot": {
+            "name": "The Foot of the Path",
+            "description": "Scree and thin grass, and a signpost with the names scratched off. The path climbs north between two shoulders of grey rock. To the south the date palms of Dunhallow nod over the wall.",
+            "exits": {
+                "south": "dunhallow:date_grove",
+                "north": "switchback"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "crag_imp",
+                    "instance_id": "imp_foot"
+                }
+            ]
+        },
+        "switchback": {
+            "name": "The Switchbacks",
+            "description": "The path turns back on itself again and again, each turn a little steeper, the drop on the open side a little further. Something small has been scratching at the rock.",
+            "exits": {
+                "south": "foot",
+                "north": "bridge"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "crag_imp",
+                    "instance_id": "imp_switch"
+                },
+                {
+                    "template_id": "ember_wisp",
+                    "instance_id": "wisp_switch"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_potion"
+                }
+            ]
+        },
+        "bridge": {
+            "name": "The Rope Bridge",
+            "description": "A narrow bridge of grey planks and old rope spans a gorge so deep the bottom is only a sound. It sways. Past it the path runs on to a shelf of rock.",
+            "exits": {
+                "south": "switchback",
+                "north": "ledge"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ember_wisp",
+                    "instance_id": "wisp_bridge"
+                }
+            ]
+        },
+        "ledge": {
+            "name": "The Wind Ledge",
+            "description": "A shelf of rock under the summit, scoured by a wind that smells faintly of struck flint. Above, east, the path ends in a ring of black stone, and from it comes a slow, patient ticking.",
+            "exits": {
+                "south": "bridge",
+                "east": "summit"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "crag_imp",
+                    "instance_id": "imp_ledge"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_potion"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "warning",
+                        "scene": "warn_cinder",
+                        "failure_message": "You step toward the black ring, and the ticking stops, listening."
+                    }
+                }
+            }
+        },
+        "summit": {
+            "name": "The Black Ring",
+            "description": "A ring of fused black stone at the top of the mountain, its floor crazed with burn marks. A road drops away north toward the walls of a city, and the air above it is full of smoke.",
+            "exits": {
+                "west": "ledge",
+                "north": "tolmere:gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "mother_cinder",
+                    "instance_id": "cinder_mother"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "cinder_down"
+                        },
+                        "failure_message": "The way down to Tolmere is past the thing that ticks. It will not let you by."
+                    }
+                }
+            }
+        }
+    }
+}

@@ -10,6 +10,8 @@ system; the set is data only (`docs/design/adaptation_slices.md`).
 Done in content, in play order: the raid on Ilmara and the crystal, the flight and the king, the courier run and the Fog Drake, the burned
 village and the Colossus, the guards at the inn, Ryn joins, Dunhallow and Rosalind's fever, Belaric and the camp, the Brineway and the Brinecoil,
 Ashmere under siege and Mirelle's death, Lucan joins as a bard, the royal skimmer across the sand sea, the Sandmaw and the pearl.
+Rosalind, cured, joins as the healer. Mount Corrin and the Cinder Mother (a bomb that goes off at a third of its strength), Bram the monk joins,
+Tolmere under attack, Kessa returns brainwashed, the duel the hero cannot win, and Rosalind taken with the crystal.
 
 ## What the engine now has for the rest
 

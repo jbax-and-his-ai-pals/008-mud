@@ -260,5 +260,95 @@
                 "value": 40
             }
         ]
+    },
+    "cinder_burst": {
+        "name": "Cinder Burst",
+        "description": "A bomb's last, bright, stupid idea.",
+        "mana_cost": 0,
+        "cooldown": 1,
+        "target_type": "all_enemies",
+        "sacrifice": true,
+        "cast_message": "{caster_name} bursts in a ball of white fire!",
+        "hit_message": "The blast rolls over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 24,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "kick": {
+        "name": "Kick",
+        "description": "A heel driven straight through whatever stands there.",
+        "mana_cost": 0,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} sets his feet and drives a heel forward!",
+        "hit_message": "The kick lands on {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 22,
+                "damage_type": "physical"
+            }
+        ]
+    },
+    "focus": {
+        "name": "Focus",
+        "description": "A held breath that closes a wound.",
+        "mana_cost": 0,
+        "cooldown": 20,
+        "target_type": "self",
+        "cast_message": "{caster_name} breathes out slowly, and stands straighter.",
+        "self_heal_message": "{caster_name} draws himself together, recovering {value} health.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 40
+            }
+        ]
+    },
+    "dragoon_leap": {
+        "name": "Leap",
+        "description": "Up, out of sight, and down again with the spear first.",
+        "mana_cost": 0,
+        "cooldown": 10,
+        "target_type": "enemy",
+        "windup": {
+            "seconds": 3,
+            "leave_message": "{caster_name} bends, and is gone into the sky!",
+            "land_message": "{caster_name} comes down out of the sun on {target_name}!"
+        },
+        "hit_message": "The spear drives into {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 40,
+                "damage_type": "physical"
+            }
+        ],
+        "cast_message": "{caster_name} sets the spear and crouches."
+    },
+    "cinder_spit": {
+        "name": "Cinder Spit",
+        "description": "A gobbet of burning slag.",
+        "mana_cost": 4,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} lobs a gobbet of burning slag!",
+        "hit_message": "The slag splashes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 12,
+                "damage_type": "fire"
+            }
+        ]
     }
 }

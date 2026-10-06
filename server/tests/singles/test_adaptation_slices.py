@@ -914,10 +914,10 @@ class TestFF4Slice(_Slice):
         self.assertNotIn("reply <number>", said, "nothing to answer: no lone 'Nothing. Lead on.'")
         self.assertEqual(["captain_kessa"], self._companions(), "and she is still with you")
 
-    def test_a_party_of_three_stops_at_three(self):
+    def test_a_party_of_four_stops_at_four(self):
         from engine.npcs import companions
 
-        self.assertEqual(3, companions.max_companions(self.world))
+        self.assertEqual(4, companions.max_companions(self.world))
 
     def test_the_inn_does_not_offer_a_room_to_someone_who_cannot_pay(self):
         self.at("hazevale", "inn")
@@ -1471,6 +1471,112 @@ class TestFF4Slice(_Slice):
         rosalind.last_combat_action = 0
         specialized.perform_companion_support(rosalind, self.world, now + 100, self.player)
         self.assertFalse(companions.is_fallen(friend), "and raises her fallen")
+
+    # -- Mount Corrin, Bram, Tolmere and the duel ---------------------------------------------------------------------------------
+    def test_the_way_north_from_the_date_grove_opens_once_rosalind_is_with_the_party(self):
+        self.at("dunhallow", "date_grove")
+        self.assertIn("pearl, the fever and Rosalind", self.say("go north"))
+        self.assertEqual("dunhallow:date_grove", self.where())
+        self.player.flags["rosalind_joined"] = True
+        self.say("go north")
+        self.assertEqual("corrin:foot", self.where())
+
+    def test_mount_corrin_is_a_climb_with_a_warning_before_the_summit(self):
+        region = self.world.get_region("corrin")
+        self.assertEqual({"foot", "switchback", "bridge", "ledge", "summit"}, set(region.rooms))
+        ledge = region.get_room("ledge")
+        self.assertEqual("warning", ledge.properties["exit_requirements"]["east"]["type"])
+        self.assertEqual(1, len(self.npcs("mother_cinder")))
+        self.assertIn("percent_immune", self.npcs("mother_cinder")[0].properties)
+
+    def test_the_cinder_mother_swells_and_goes_off_taking_itself_and_hurting_the_party_but_not_killing_it(self):
+        from engine.npcs import companions
+
+        self.at("corrin", "summit")
+        ryn = self._join("ryn_young", "corrin", "summit")
+        lucan = self._join("lucan_prince", "corrin", "summit")
+        mother = self.npcs("mother_cinder")[0]
+        mother.health = int(mother.max_health * 0.32)
+        mother.take_damage(20, "physical")
+        self._let_scenes_play(20)
+        self.assertFalse(mother.is_alive, "the burst takes the creature that cast it")
+        self.assertTrue(ryn.health < ryn.max_health or lucan.health < lucan.max_health or companions.is_fallen(ryn) or companions.is_fallen(lucan),
+                        "the blast reaches the party")
+        self.assertTrue(self.player.is_alive)
+        for friend in (ryn, lucan):
+            self.assertTrue(friend.is_alive or companions.is_fallen(friend), "a companion falls rather than dies")
+        self.assertIs(True, self.player.flags.get("cinder_down"))
+        self.assertEqual(1, len(self.npcs("bram")), "and a monk stands up out of the wreck")
+
+    def test_the_way_down_to_tolmere_is_shut_until_the_mother_is_gone(self):
+        self.at("corrin", "summit")
+        self.world.remove_npcs("mother_cinder")
+        self.assertIn("past the thing that ticks", self.say("go north"))
+        self.player.flags["cinder_down"] = True
+        self.say("go north")
+        self.assertEqual("tolmere:gate", self.where())
+
+    def test_bram_joins_as_a_monk_with_a_kick_and_a_focus(self):
+        self.at("corrin", "summit")
+        self.world.spawn_npc("bram", "corrin", "summit", instance_id="bram_on_the_summit")
+        self.say("talk bram")
+        self.say("reply 1")
+        self.assertIs(True, self.player.flags.get("bram_joined"))
+        self.assertIn("bram", self._companions())
+        bram = self.npcs("bram")[0]
+        self.assertEqual({"kick", "focus"}, set(bram.usable_spells))
+        self.assertIs(True, bram.properties.get("falls_when_defeated"))
+
+    def test_kessa_arrives_when_the_courtyard_is_cleared_and_cannot_be_put_to_sleep_or_beaten(self):
+        self.at("tolmere", "courtyard")
+        for foe in factions.hostiles_in(self.world, "tolmere", "courtyard"):
+            foe.take_damage(10 ** 6, "physical")
+        self.world.trigger_runner.fire_npc_killed(self.player, self.npcs("red_fleet_lancer")[0] if self.npcs("red_fleet_lancer") else None)
+        self.player.flags.pop("_trigger.tolmere_breach", None)
+        self.world.trigger_runner._run("tolmere_breach", self.world.trigger_runner.triggers["tolmere_breach"], self.player)
+        self._let_scenes_play(60)
+        self.assertEqual([], self.npcs("tolmere_monk"), "the monks stand aside as she comes")
+        kessa = self.npcs("kessa_returned")[0]
+        self.assertTrue(factions.is_hostile(kessa, self.world))
+        ok, _ = kessa.apply_effect({"type": "status", "name": "Lullaby", "tags": ["sleep"], "base_duration": 20}, 0.0)
+        self.assertFalse(ok, "no song puts her down")
+        self.assertIs(True, kessa.properties.get("focus_player"))
+
+    def test_the_duel_ends_when_the_hero_is_struck_down_to_a_third_and_rosalind_is_taken(self):
+        from engine.npcs import companions
+
+        self.at("tolmere", "courtyard")
+        self.world.remove_npcs("red_fleet_besieger", "red_fleet_lancer", "tolmere_monk")
+        rosalind = self._join("rosalind_companion", "tolmere", "courtyard")
+        kessa = self.world.spawn_npc("kessa_returned", "tolmere", "courtyard", instance_id="kessa_dragoon")[0]
+        apply_effects({"set_faction": {"npc": "kessa_returned", "faction": "hostile", "behavior": "aggressive"}, "set_flag": "kessa_hostile"},
+                      {"player": self.player, "world": self.world})
+        self.player.health = self.player.max_health = 200
+        self.player.take_damage(150, "physical")
+        self._let_scenes_play(60)
+        for flag in ("duel_lost", "rosalind_kidnapped", "crystal_stolen"):
+            self.assertIs(True, self.player.flags.get(flag), flag)
+        self.assertEqual([], self.npcs("kessa_returned"), "she has gone with the crystal")
+        self.assertEqual([], self.npcs("rosalind_companion"), "and with Rosalind")
+        self.assertNotIn("rosalind_companion", self._companions())
+        self.assertTrue(self.player.is_alive, "the hero is beaten, not killed")
+
+    def test_the_duel_scene_does_not_play_before_the_duel(self):
+        self.at("tolmere", "courtyard")
+        self.player.health = self.player.max_health = 200
+        self.player.take_damage(150, "physical")
+        self._let_scenes_play(30)
+        self.assertIsNone(self.player.flags.get("duel_lost"), "no one is dueling the hero yet")
+
+    def test_the_checkpoints_stand_the_party_where_the_story_is(self):
+        for name, where in (("corrin", "corrin:foot"), ("tolmere", "tolmere:gate")):
+            runner = self.world.scene_runner
+            runner.play(self.player, "checkpoint_" + name)
+            runner.skip(self.player, "checkpoint_" + name)
+            self._let_scenes_play(10)
+            self.assertEqual(where, self.where(), name)
+            self.assertIn("rosalind_companion", self._companions(), name)
+        self.assertIn("bram", self._companions())
 
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]

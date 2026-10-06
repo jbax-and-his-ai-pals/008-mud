@@ -1,0 +1,213 @@
+{
+    "warn_cinder": {
+        "note": "The first try at the black ring is stopped.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 1,
+                "pace": "slow",
+                "text": "The ticking is slower now. Louder. Something up there is awake, and very patient, and has already decided about you."
+            }
+        ]
+    },
+    "cinder_rises": {
+        "note": "The Cinder Mother lifts off the summit.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "The black ring is not stone, or not only. Part of it lifts, and rolls, and turns to face you, a great glowing sphere ticking like a cooling forge."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]The seams of the thing brighten from orange to yellow, and the air around it begins to shimmer.[[/]]"
+            }
+        ]
+    },
+    "cinder_swells": {
+        "note": "At a third of its strength the Cinder Mother swells and goes off.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "pace": "slow",
+                "text": "[[RED]]The Cinder Mother stops moving. Its seams go white. It swells, slowly, the way a held breath swells, and the ticking runs together into a single note.[[/]]"
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[RED]]There is no time for anything but to brace.[[/]]",
+                "effects": {
+                    "npc_cast": {
+                        "npc": "mother_cinder",
+                        "spell": "cinder_burst"
+                    }
+                }
+            }
+        ]
+    },
+    "cinder_falls": {
+        "note": "The Cinder Mother is gone, and a monk stands up out of the wreck of a beam.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The white fire drains from the sky and the ticking is gone. Afterwards the mountain is very quiet, and smells of hot iron.",
+                "effects": {
+                    "set_flag": "cinder_down",
+                    "give_rewards": {
+                        "xp": 1500,
+                        "gold": 90
+                    }
+                }
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "Something moves under a fallen beam at the edge of the ring, and heaves, and a broad man in a burned grey robe stands up out of the dust, and looks at you, and at the sky, and says nothing at all for a moment.",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "bram",
+                        "region": "corrin",
+                        "room": "summit",
+                        "instance_id": "bram_on_the_summit"
+                    }
+                }
+            },
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "(talk bram)"
+            }
+        ]
+    },
+    "tolmere_breach": {
+        "note": "The courtyard is held, and the real attack arrives.",
+        "lock": true,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The last of the Red Fleet soldiers in the courtyard goes down. For a moment there is only the sound of monks catching their breath.",
+                "effects": {
+                    "set_flag": "tolmere_cleared"
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "Then the light changes. A shadow crosses the square, and another, and a wyvern lands on the great hall's roof with a sound like a dropped bell."
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "Someone gets down from it. A tall figure in dragon-scale, a helm hiding the face, a long spear. She walks across the courtyard as if the monks were not there, and the monks, one by one, step out of her way.",
+                "effects": {
+                    "remove_npc": "tolmere_monk"
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]King Haldane speaks:[[/]] [[GREEN]]\"No. No, I know that walk.\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "She stops. Her head turns, and the helm points at you, and you know the shape of the shoulders under the scale, and the tilt of the head, as well as you know your own hands.",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "kessa_returned",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "kessa_dragoon"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Kessa speaks:[[/]] [[GREEN]]\"The crystal, Aldric. Stand aside.\"[[/]] There is nothing in the voice at all."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "You say her name. You say it twice. She raises the spear.",
+                "effects": {
+                    "set_faction": {
+                        "npc": "kessa_returned",
+                        "faction": "hostile",
+                        "behavior": "aggressive"
+                    },
+                    "set_flag": "kessa_hostile"
+                }
+            }
+        ]
+    },
+    "duel_lost": {
+        "note": "The duel the hero cannot win. Kessa takes the crystal and Rosalind, and goes.",
+        "lock": true,
+        "beats": [
+            {
+                "after": 0,
+                "pace": "slow",
+                "text": "You are on one knee. You do not remember falling. The spear is a hand's width from your throat, and it has not moved, and it does not shake.",
+                "effects": {
+                    "end_fight": {}
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Kessa speaks:[[/]] [[GREEN]]\"Yield.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "You cannot. You try. She sets the spear against your breastplate and pushes, and you go over on your back in the dust, and the sky is full of airships."
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "A shout. Rosalind has stepped between you and the spear, her hands white with the mending she was not allowed to finish, and Kessa turns, without hurry, and takes her by the wrist."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Rosalind speaks:[[/]] [[GREEN]]\"Kessa. Kessa, it's me.\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "Nothing moves behind the helm. She lifts Rosalind as she lifted the spear, one-handed, and carries her to the wyvern. Bram throws himself at it; the wyvern's tail takes him off the steps."
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[RED]]They go up, over the wall, into the smoke. One of the airships turns to follow, and then the whole fleet, and the sound of them shrinks to a hum, and to nothing.[[/]]",
+                "effects": {
+                    "remove_npc": "kessa_returned",
+                    "set_flag": [
+                        "duel_lost",
+                        "rosalind_kidnapped",
+                        "crystal_stolen"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind_companion"
+                }
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "In the crystal room the stand is empty. In the courtyard, someone is laughing, quite quietly, the way a man laughs who has lost everything and has not yet noticed."
+            }
+        ]
+    }
+}

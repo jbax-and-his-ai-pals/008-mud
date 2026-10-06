@@ -1,0 +1,68 @@
+{
+    "cinder_lair": {
+        "on": {
+            "event": "on_enter",
+            "region": "corrin",
+            "room": "summit"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "cinder_rises"
+        }
+    },
+    "cinder_swells": {
+        "on": {
+            "event": "health_below",
+            "who": "mother_cinder",
+            "fraction": 0.3
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "cinder_swells"
+        }
+    },
+    "cinder_dies": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "mother_cinder"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "cinder_falls"
+        }
+    },
+    "tolmere_breach": {
+        "on": {
+            "event": "room_cleared",
+            "region": "tolmere",
+            "room": "courtyard"
+        },
+        "once": "player",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "duel_lost"
+            }
+        },
+        "effects": {
+            "play_scene": "tolmere_breach"
+        }
+    },
+    "duel_lost": {
+        "on": {
+            "event": "health_below",
+            "who": "player",
+            "fraction": 0.3,
+            "region": "tolmere",
+            "room": "courtyard"
+        },
+        "when": {
+            "kind": "flag",
+            "flag": "kessa_hostile"
+        },
+        "once": "player",
+        "effects": {
+            "play_scene": "duel_lost"
+        }
+    }
+}

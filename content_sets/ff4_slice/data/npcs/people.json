@@ -318,7 +318,8 @@
             "move_cooldown": 9999,
             "dialogue": "ryn_talk",
             "essential": true,
-            "spell_cast_chance": 0.6
+            "spell_cast_chance": 0.6,
+            "falls_when_defeated": true
         }
     },
     "water_carrier": {
@@ -787,7 +788,8 @@
             "hides_when_hurt": true,
             "flee_threshold": 0.4,
             "rejoin_health": 0.75,
-            "spell_cast_chance": 0.7
+            "spell_cast_chance": 0.7,
+            "falls_when_defeated": true
         }
     },
     "rosalind_companion": {
@@ -816,6 +818,104 @@
             "falls_when_defeated": true,
             "flee_threshold": 0.3,
             "spell_cast_chance": 0.2
+        }
+    },
+    "bram": {
+        "name": "Bram",
+        "description": "A broad monk with a shaven head and wrapped hands, grey with dust, one sleeve burned away, who does not seem to have noticed he is hurt.",
+        "max_health": 130,
+        "level": 8,
+        "attack_power": 20,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 80,
+        "dialog": {
+            "greeting": "Hm. You are not a Red Fleet man."
+        },
+        "usable_spells": [
+            "kick",
+            "focus"
+        ],
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "bram_talk",
+            "falls_when_defeated": true,
+            "flee_threshold": 0.25,
+            "spell_cast_chance": 0.35
+        }
+    },
+    "king_haldane": {
+        "name": "King Haldane",
+        "description": "A thick-necked old man in the plain grey of Tolmere's monks, one arm in a sling, who has plainly been fighting.",
+        "max_health": 120,
+        "level": 6,
+        "attack_power": 16,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "Not now. Not now."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "haldane_talk"
+        }
+    },
+    "tolmere_monk": {
+        "name": "Tolmere monk",
+        "description": "A shaven monk in grey, knuckles split, holding the line.",
+        "max_health": 90,
+        "level": 6,
+        "attack_power": 15,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "dialog": {
+            "greeting": "The crystal! They are after the crystal!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": false
+        }
+    },
+    "kessa_returned": {
+        "name": "Kessa",
+        "description": "A tall woman in blue-grey dragon-scale, a long spear in her hands and a helm that hides all of her face but her mouth, which does not move.",
+        "max_health": 900,
+        "level": 9,
+        "attack_power": 38,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 200,
+        "dialog": {
+            "greeting": "..."
+        },
+        "usable_spells": [
+            "dragoon_leap"
+        ],
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "percent_immune": true,
+            "spell_cast_chance": 0.3,
+            "flee_threshold": 0,
+            "dialogue": "kessa_blank",
+            "aggression": 1,
+            "attack_cooldown": 2,
+            "status_immune": true,
+            "focus_player": true
         }
     }
 }

@@ -1,0 +1,37 @@
+{
+    "id": "haldane_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "duel_lost"
+            }
+        },
+        {
+            "node": "before",
+            "condition": {
+                "kind": "flag",
+                "flag": "tolmere_cleared"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Not now. Not now. Hold the gate.",
+            "pace": "slow",
+            "end": true
+        },
+        "before": {
+            "text": "They came for the crystal, and we are still here, and that is all anyone will remember. Thank you. Stand by the hall; I do not believe it is over.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "She took it. A woman I have known since she was a girl, and she took it as if I were furniture. Go after her, Aldric. Go after both of them. I will be here, with a broken city and a very long list of things I should have done.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

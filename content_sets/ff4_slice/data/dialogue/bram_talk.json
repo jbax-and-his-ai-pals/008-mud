@@ -1,0 +1,49 @@
+{
+    "id": "bram_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "bram"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "You killed the thing on the summit. I was sent up here to do that, and it was winning. My name is Bram. I serve the king in Tolmere, and the Red Fleet has been over my city since dawn, so I would like to go home now, if you are going that way.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "We are. Come with us.",
+                    "next_node": "joins",
+                    "effects": {
+                        "recruit": true,
+                        "set_flag": "bram_joined"
+                    }
+                },
+                {
+                    "text": "Rest a moment first.",
+                    "next_node": "rest"
+                }
+            ]
+        },
+        "joins": {
+            "text": "Good. Then we go quickly, and I will explain on the way why a man in your armour is walking with a woman in white.",
+            "pace": "slow",
+            "end": true
+        },
+        "rest": {
+            "text": "I have rested for six hours under a beam. Ask me again.",
+            "pace": "slow",
+            "end": true
+        },
+        "with_you": {
+            "text": "Whatever is in front of us, I will be in front of it first. That is what I am for.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

@@ -89,7 +89,8 @@
             "name": "The Date Grove",
             "description": "A ring of old palms round a stone basin, heavy with fruit and loud with bees. Children's toys lie in the shade, and something small and green rustles away from your feet.",
             "exits": {
-                "west": "market_street"
+                "west": "market_street",
+                "north": "corrin:foot"
             },
             "initial_npcs": [
                 {
@@ -105,7 +106,19 @@
                 {
                     "item_id": "item_old_amulet"
                 }
-            ]
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "rosalind_joined"
+                        },
+                        "failure_message": "A goat path leads north into the mountains, but the pearl, the fever and Rosalind come first."
+                    }
+                }
+            }
         },
         "south_lane": {
             "name": "South Lane",

@@ -1,0 +1,84 @@
+{
+    "region_id": "tolmere",
+    "name": "Tolmere",
+    "description": "A mountain city of grey stone and shaven-headed monks, which the Red Fleet has chosen this morning to take.",
+    "properties": {
+        "safe_zone": false,
+        "biome": "mountain"
+    },
+    "rooms": {
+        "gate": {
+            "name": "The Gate of Tolmere",
+            "description": "Two grey towers and a gate that has been broken inward. Smoke lies in the streets beyond, and under it the sound of fists, and of men who are not enjoying it.",
+            "exits": {
+                "south": "corrin:summit",
+                "north": "courtyard"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "tolmere_monk",
+                    "instance_id": "monk_gate"
+                }
+            ]
+        },
+        "courtyard": {
+            "name": "The Courtyard",
+            "description": "A wide square of dressed stone before the great hall. Monks and soldiers in red are all through it, locked together, and the hall doors stand open.",
+            "exits": {
+                "south": "gate",
+                "north": "hall",
+                "up": "rampart"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "red_fleet_besieger",
+                    "instance_id": "besieger_yard_a"
+                },
+                {
+                    "template_id": "red_fleet_besieger",
+                    "instance_id": "besieger_yard_b"
+                },
+                {
+                    "template_id": "red_fleet_lancer",
+                    "instance_id": "lancer_yard"
+                },
+                {
+                    "template_id": "tolmere_monk",
+                    "instance_id": "monk_yard_a"
+                },
+                {
+                    "template_id": "tolmere_monk",
+                    "instance_id": "monk_yard_b"
+                }
+            ]
+        },
+        "hall": {
+            "name": "The Great Hall",
+            "description": "A bare hall of grey pillars, hung with nothing, built for men who needed nothing. At the far end a plain stone chair, and a door behind it.",
+            "exits": {
+                "south": "courtyard",
+                "north": "crystal_room"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "king_haldane",
+                    "instance_id": "king_haldane_hall"
+                }
+            ]
+        },
+        "crystal_room": {
+            "name": "The Crystal Room",
+            "description": "A small round chamber where a pale crystal on a stone stand fills the room with a light like early morning. Fresh scorch marks cover the floor.",
+            "exits": {
+                "south": "hall"
+            }
+        },
+        "rampart": {
+            "name": "The Rampart",
+            "description": "A wall-walk above the courtyard with a view of the whole mountain and the dark shapes of Red Fleet airships wheeling over it.",
+            "exits": {
+                "down": "courtyard"
+            }
+        }
+    }
+}

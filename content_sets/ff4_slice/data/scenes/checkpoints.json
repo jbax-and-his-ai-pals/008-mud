@@ -33,7 +33,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -83,7 +89,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -156,7 +168,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -232,7 +250,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -309,7 +333,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -395,7 +425,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -473,7 +509,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -547,7 +589,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -636,7 +684,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -763,7 +817,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -892,7 +952,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1021,7 +1087,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1157,7 +1229,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1304,7 +1382,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1469,7 +1553,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1634,7 +1724,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1795,7 +1891,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1982,7 +2084,13 @@
                         "skimmer_launch",
                         "warn_sandmaw",
                         "sandmaw_rises",
-                        "sandmaw_falls"
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2131,6 +2239,429 @@
                         "room": "throne_room",
                         "instance_id": "mirelle_in_the_hall"
                     }
+                }
+            }
+        ]
+    },
+    "checkpoint_corrin": {
+        "note": "For testing: you, Ryn, Lucan and a cured Rosalind stand at the foot of Mount Corrin.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known",
+                        "pearl_found",
+                        "rosalind_cured",
+                        "rosalind_joined"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "corrin",
+                        "room": "foot"
+                    },
+                    "give_rewards": {
+                        "xp": 2900
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "corrin",
+                        "room": "foot"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "corrin",
+                        "room": "foot",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "move_npc": {
+                        "npc": "lucan_prince",
+                        "region": "corrin",
+                        "room": "foot",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "ashmere",
+                        "room": "throne_room",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "rosalind_companion",
+                        "region": "corrin",
+                        "room": "foot",
+                        "instance_id": "rosalind_joins"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "rosalind_companion"
+                }
+            }
+        ]
+    },
+    "checkpoint_tolmere": {
+        "note": "For testing: the Cinder Mother is dead; you, Ryn, Lucan, Rosalind and Bram stand at the gate of Tolmere.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known",
+                        "pearl_found",
+                        "rosalind_cured",
+                        "rosalind_joined",
+                        "cinder_down",
+                        "bram_joined"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "tolmere",
+                        "room": "gate"
+                    },
+                    "give_rewards": {
+                        "xp": 2900
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "tolmere",
+                        "room": "gate"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "tolmere",
+                        "room": "gate",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "move_npc": {
+                        "npc": "lucan_prince",
+                        "region": "tolmere",
+                        "room": "gate",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "ashmere",
+                        "room": "throne_room",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "rosalind_companion",
+                        "region": "tolmere",
+                        "room": "gate",
+                        "instance_id": "rosalind_joins"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "rosalind_companion"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "bram",
+                        "region": "tolmere",
+                        "room": "gate",
+                        "instance_id": "bram_with_us"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "bram"
                 }
             }
         ]
