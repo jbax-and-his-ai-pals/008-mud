@@ -22,5 +22,13 @@
                 "quest_id": "quest_fog_drake"
             }
         ]
+    },
+    "paladin": {
+        "name": "Paladin",
+        "description": "You went up the mountain a knight of the dark and came down a knight of the light.",
+        "condition": {
+            "kind": "flag",
+            "flag": "paladin_made"
+        }
     }
 }

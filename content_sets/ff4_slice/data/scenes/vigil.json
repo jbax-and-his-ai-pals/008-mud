@@ -1,0 +1,168 @@
+{
+    "warn_vigil": {
+        "note": "The first try at the crypt gate is stopped.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 1,
+                "pace": "slow",
+                "text": "The candles lean toward you, every one of them, as if you had said something, and the cold at the gate is the cold of a held breath."
+            }
+        ]
+    },
+    "twins_stop": {
+        "note": "The twins cannot climb the mirror stair.",
+        "lock": true,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[YELLOW]]Tamsin speaks:[[/]] [[GREEN]]\"Wait. I... can't. The stair. I can't put my foot on it.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Tobin speaks:[[/]] [[GREEN]]\"Me neither. It is like trying to walk into a wall made of looking.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "Neither can follow you onto the mirror stair. They sit down on the bottom step, shoulder to shoulder, as though they had been told to expect this.",
+                "effects": {
+                    "dismiss": [
+                        "twin_tobin",
+                        "twin_tamsin"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "set_flag": "twins_waiting"
+                }
+            }
+        ]
+    },
+    "the_voice": {
+        "note": "A voice at the top of the mountain, and then your shadow.",
+        "lock": true,
+        "beats": [
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "There is nobody on the summit. There is only a voice, from everywhere, level and unhurried, and strangely familiar, like the voice of a man you have been told about and never met."
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"You have come up carrying a sword that is hungry. I know it. I carried one.\"[[/]]"
+            },
+            {
+                "after": 8,
+                "pace": "slow",
+                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"The dark in you is not a flaw, my son. It is a choice you made each time you struck, each time you took the power it offered and paid for it in your own blood. To put it down, you must first meet it.\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "The air in front of you thickens, and darkens, and takes the shape of someone in your armour with your blade in their hand, and when it lifts its head you see that it has your face.",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "shadow_of_aldric",
+                        "region": "vigil",
+                        "room": "summit",
+                        "instance_id": "aldric_shadow"
+                    }
+                }
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Your shadow speaks:[[/]] [[GREEN]]\"I am everything you did not want to be, and everything that kept you alive. Say it, if you can, that you do not need me.\"[[/]]"
+            }
+        ]
+    },
+    "the_light": {
+        "note": "The shadow falls. The hero is made a paladin.",
+        "lock": true,
+        "beats": [
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "It does not fall the way a thing falls. It comes apart in strips of grey that blow off the mountain, and for a moment, before it goes, you see it smile."
+            },
+            {
+                "after": 7,
+                "pace": "slow",
+                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"That is the hardest thing there is. You did not destroy it. You looked at it, and you did not turn away. Now put the sword down.\"[[/]]"
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "You lay the dark blade on the white stone. It is lighter than it was. The armour comes off in your hands in pieces, and each piece, as it touches the stone, runs like water.",
+                "effects": {
+                    "give_item": [
+                        "item_dawn_blade",
+                        "item_dawn_mail"
+                    ]
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "Where the dark blade lay, a white one is. Where the black plate fell, white plate stands. When you lift them there is no weight in them at all, and then, all at once, there is, and it is exactly your own.",
+                "effects": {
+                    "equip_item": [
+                        "item_dawn_blade",
+                        "item_dawn_mail"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "take_item": [
+                        "item_dark_blade",
+                        "item_dark_armor"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "forget_spell": [
+                        "gloom_wave",
+                        "call_colossus"
+                    ],
+                    "teach_spell": [
+                        "smite",
+                        "radiance",
+                        "mercy"
+                    ],
+                    "raise": {
+                        "max_health": 40,
+                        "max_mana": 70
+                    },
+                    "restore": "all",
+                    "set_flag": "paladin_made",
+                    "give_rewards": {
+                        "xp": 2400
+                    }
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"There. Go down. Your friends are waiting, and there is a great deal for a paladin to do.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "The voice does not say goodbye. It is simply, gently, not there any more, and the whole sky is blue."
+            }
+        ]
+    }
+}

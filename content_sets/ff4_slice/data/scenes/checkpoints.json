@@ -41,7 +41,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -99,7 +103,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -180,7 +188,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -264,7 +276,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -349,7 +365,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -443,7 +463,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -529,7 +553,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -611,7 +639,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -708,7 +740,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -843,7 +879,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -980,7 +1020,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1117,7 +1161,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1261,7 +1309,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1416,7 +1468,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1589,7 +1645,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1762,7 +1822,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1931,7 +1995,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2126,7 +2194,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2321,7 +2393,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2525,7 +2601,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2748,7 +2828,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2976,7 +3060,11 @@
                         "tolmere_breach",
                         "duel_lost",
                         "storm_rises",
-                        "shipwreck"
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3109,6 +3197,491 @@
                 "after": 0,
                 "effects": {
                     "remove_npc": "rosalind_companion"
+                }
+            }
+        ]
+    },
+    "checkpoint_vigil": {
+        "note": "For testing: you, Tobin and Tamsin stand at the foot of Mount Vigil, the elder having spoken.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known",
+                        "pearl_found",
+                        "rosalind_cured",
+                        "rosalind_joined",
+                        "cinder_down",
+                        "bram_joined",
+                        "duel_lost",
+                        "rosalind_kidnapped",
+                        "crystal_stolen",
+                        "tolmere_cleared",
+                        "kessa_hostile",
+                        "ship_lent",
+                        "ship_wrecked",
+                        "ryn_lost",
+                        "voyage_done",
+                        "twins_joined",
+                        "elder_spoken"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "vigil",
+                        "room": "foot"
+                    },
+                    "give_rewards": {
+                        "xp": 4200
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "vigil",
+                        "room": "foot"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "vessa",
+                        "room": "shore",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "bram"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind_companion"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "twin_tobin"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "twin_tamsin"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "twin_tobin",
+                        "region": "vigil",
+                        "room": "foot",
+                        "instance_id": "tobin_with_us"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "twin_tobin"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "twin_tamsin",
+                        "region": "vigil",
+                        "room": "foot",
+                        "instance_id": "tamsin_with_us"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "twin_tamsin"
+                }
+            }
+        ]
+    },
+    "checkpoint_paladin": {
+        "note": "For testing: the trial is won; you are a paladin at the Still Summit, and the twins wait below.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck",
+                        "warn_vigil",
+                        "twins_stop",
+                        "the_voice",
+                        "the_light"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known",
+                        "pearl_found",
+                        "rosalind_cured",
+                        "rosalind_joined",
+                        "cinder_down",
+                        "bram_joined",
+                        "duel_lost",
+                        "rosalind_kidnapped",
+                        "crystal_stolen",
+                        "tolmere_cleared",
+                        "kessa_hostile",
+                        "ship_lent",
+                        "ship_wrecked",
+                        "ryn_lost",
+                        "voyage_done",
+                        "twins_joined",
+                        "elder_spoken",
+                        "paladin_made",
+                        "twins_waiting"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "vigil",
+                        "room": "summit"
+                    },
+                    "give_rewards": {
+                        "xp": 4200
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "vigil",
+                        "room": "summit"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "vessa",
+                        "room": "shore",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "bram"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind_companion"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "forget_spell": [
+                        "gloom_wave",
+                        "call_colossus"
+                    ],
+                    "teach_spell": [
+                        "smite",
+                        "radiance",
+                        "mercy"
+                    ],
+                    "raise": {
+                        "max_health": 40,
+                        "max_mana": 70
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        "item_dawn_blade",
+                        "item_dawn_mail"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_dawn_blade",
+                        "item_dawn_mail"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "take_item": [
+                        "item_dark_blade",
+                        "item_dark_armor"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "twin_tobin",
+                        "region": "vigil",
+                        "room": "mirror_stair",
+                        "instance_id": "tobin_waits"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "twin_tamsin",
+                        "region": "vigil",
+                        "room": "mirror_stair",
+                        "instance_id": "tamsin_waits"
+                    }
                 }
             }
         ]

@@ -440,5 +440,73 @@
                 "value": 110
             }
         ]
+    },
+    "smite": {
+        "name": "Smite",
+        "description": "A blow of the light, aimed.",
+        "mana_cost": 12,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} raises the blade, and it is full of morning.",
+        "hit_message": "The light falls on {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 42,
+                "damage_type": "holy"
+            }
+        ]
+    },
+    "radiance": {
+        "name": "Radiance",
+        "description": "The light, everywhere at once.",
+        "mana_cost": 18,
+        "cooldown": 10,
+        "target_type": "all_enemies",
+        "cast_message": "[[YELLOW]]{caster_name} lifts a hand, and the dark flinches![[/]]",
+        "hit_message": "The radiance burns {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 26,
+                "damage_type": "holy"
+            }
+        ]
+    },
+    "mercy": {
+        "name": "Mercy",
+        "description": "What the light does for friends.",
+        "mana_cost": 10,
+        "cooldown": 3,
+        "target_type": "friendly",
+        "cast_message": "{caster_name} lays a hand on the wound.",
+        "heal_message": "{caster_name} mends {target_name} for {value} health!",
+        "self_heal_message": "A gentle light closes your wounds, restoring {value} health!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 70
+            }
+        ]
+    },
+    "grave_chill": {
+        "name": "Grave Chill",
+        "description": "A cold that does not come from weather.",
+        "mana_cost": 4,
+        "cooldown": 7,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} breathes out a cold that stops the candles.",
+        "hit_message": "The chill gnaws {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 12,
+                "damage_type": "shadow"
+            }
+        ]
     }
 }

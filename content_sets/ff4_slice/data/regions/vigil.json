@@ -9,9 +9,102 @@
     "rooms": {
         "foot": {
             "name": "The Foot of the Mountain",
-            "description": "A bare shelf of rock at the bottom of a very long climb. The path starts here and does not look back. South, the village; above, the trial.",
+            "description": "A bare shelf of rock at the bottom of a very long climb. The path starts here and does not look back. South, the village; north, a stair cut into the mountain by people who wanted you to feel every step of it.",
             "exits": {
-                "south": "vessa:square"
+                "south": "vessa:square",
+                "north": "stair"
+            }
+        },
+        "stair": {
+            "name": "The Pilgrim Stair",
+            "description": "Stone steps worn into dishes by feet nobody remembers. Every hundred steps there is a cairn, and on every cairn someone has left a candle, and every candle has burned down to a nub.",
+            "exits": {
+                "south": "foot",
+                "north": "cairns"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "grave_hound",
+                    "instance_id": "hound_stair"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_potion"
+                }
+            ]
+        },
+        "cairns": {
+            "name": "The Field of Cairns",
+            "description": "A tilted meadow of grey stones, each marked with a name scratched so shallowly the rain has half taken it. Something pale moves between them, unhurried.",
+            "exits": {
+                "south": "stair",
+                "north": "gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_pilgrim",
+                    "instance_id": "pilgrim_cairns"
+                },
+                {
+                    "template_id": "grave_hound",
+                    "instance_id": "hound_cairns"
+                }
+            ]
+        },
+        "gate": {
+            "name": "The Crypt Gate",
+            "description": "A low black gate in the mountain's flank, standing open. From it comes a smell of old wax and a light that does not flicker, however much the wind does.",
+            "exits": {
+                "south": "cairns",
+                "north": "hall"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "warning",
+                        "scene": "warn_vigil",
+                        "failure_message": "You stop at the gate. The candles inside, all together, lean toward you."
+                    }
+                }
+            }
+        },
+        "hall": {
+            "name": "The Hall of Candles",
+            "description": "A long vaulted hall lined with niches, each holding a candle that has burned for longer than the hall has had a roof. The air is cold and the floor is dry as bone.",
+            "exits": {
+                "south": "gate",
+                "north": "mirror_stair"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "candle_wight",
+                    "instance_id": "wight_hall"
+                },
+                {
+                    "template_id": "bone_pilgrim",
+                    "instance_id": "pilgrim_hall"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_potion"
+                }
+            ]
+        },
+        "mirror_stair": {
+            "name": "The Mirror Stair",
+            "description": "A last short stair, the walls polished black as glass, so that you climb it between two of yourself. At the top the stair ends in a plain archway, and beyond it, daylight.",
+            "exits": {
+                "south": "hall",
+                "up": "summit"
+            }
+        },
+        "summit": {
+            "name": "The Still Summit",
+            "description": "A flat disc of white stone at the very top of the mountain, with no wind. The sky is enormous and perfectly clear. In the middle of the stone, someone is waiting.",
+            "exits": {
+                "down": "mirror_stair"
             }
         }
     }

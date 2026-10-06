@@ -1196,5 +1196,184 @@
             "maelrake_surge"
         ],
         "max_mana": 100
+    },
+    "bone_pilgrim": {
+        "name": "bone pilgrim",
+        "description": "A skeleton in the rags of a travelling cloak, still climbing, still carrying a staff, quite unable to stop.",
+        "max_health": 100,
+        "level": 8,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 20,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    12,
+                    25
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
+        }
+    },
+    "grave_hound": {
+        "name": "grave hound",
+        "description": "A lean, hairless dog the colour of old candle-wax, with its ribs on the outside.",
+        "max_health": 76,
+        "level": 7,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    8,
+                    16
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
+        }
+    },
+    "candle_wight": {
+        "name": "candle wight",
+        "description": "A tall robed thing with a stub of black candle burning where its face should be, that gestures slowly and breathes cold.",
+        "max_health": 105,
+        "level": 8,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 15,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    20,
+                    35
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.4,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
+        },
+        "usable_spells": [
+            "grave_chill"
+        ],
+        "max_mana": 80
+    },
+    "shadow_of_aldric": {
+        "name": "your shadow",
+        "description": "It is you. The armour is yours and the blade is yours, and the face under the helm is a little tireder than you would like.",
+        "max_health": 240,
+        "level": 9,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 20,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    70,
+                    100
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3.5,
+            "mirrors_player": true,
+            "unique": true,
+            "essential": false
+        }
     }
 }

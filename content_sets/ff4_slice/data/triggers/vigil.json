@@ -1,0 +1,37 @@
+{
+    "twins_stop": {
+        "on": {
+            "event": "on_enter",
+            "region": "vigil",
+            "room": "mirror_stair"
+        },
+        "once": "player",
+        "when": {
+            "kind": "companion_present"
+        },
+        "effects": {
+            "play_scene": "twins_stop"
+        }
+    },
+    "the_voice": {
+        "on": {
+            "event": "on_enter",
+            "region": "vigil",
+            "room": "summit"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "the_voice"
+        }
+    },
+    "the_light": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "shadow_of_aldric"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "the_light"
+        }
+    }
+}

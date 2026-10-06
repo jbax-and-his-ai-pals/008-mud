@@ -1670,6 +1670,77 @@ class TestFF4Slice(_Slice):
             self.assertEqual([] if expect_alone else ["bram", "lucan_prince", "ryn_young"], sorted(self._companions()), name)
         self.assertNotIn("rosalind_companion", self._companions())
 
+    # -- Mount Vigil: the trial and the paladin ---------------------------------------------------------------------------------
+    def test_mount_vigil_is_a_climb_of_undead_with_a_warning_at_the_crypt_gate(self):
+        region = self.world.get_region("vigil")
+        self.assertEqual({"foot", "stair", "cairns", "gate", "hall", "mirror_stair", "summit"}, set(region.rooms))
+        self.assertEqual("warning", region.get_room("gate").properties["exit_requirements"]["north"]["type"])
+        for template in ("bone_pilgrim", "grave_hound", "candle_wight"):
+            self.assertTrue(self.npcs(template), template)
+
+    def test_the_twins_cannot_climb_the_mirror_stair_and_wait_below(self):
+        self.at("vigil", "hall")
+        for who in ("twin_tobin", "twin_tamsin"):
+            self._join(who, "vigil", "hall")
+        self.at("vigil", "hall")
+        self.say("go north")
+        self._let_scenes_play(30)
+        self.assertEqual("vigil:mirror_stair", self.where())
+        self.assertEqual([], self._companions(), "they stay behind")
+        self.assertIs(True, self.player.flags.get("twins_waiting"))
+
+    def test_the_voice_calls_up_the_shadow_who_is_made_the_players_equal(self):
+        self.player.max_health = self.player.health = 250
+        self.at("vigil", "mirror_stair")
+        self.say("go up")
+        self._let_scenes_play(60)
+        shadow = self.npcs("shadow_of_aldric")[0]
+        self.assertEqual(250, shadow.max_health)
+        self.assertEqual(self.player.get_attack_power(), shadow.attack_power)
+
+    def test_beating_the_shadow_makes_the_hero_a_paladin_with_new_arms_and_the_light_for_the_dark(self):
+        from engine.core.titles import TitleManager
+
+        self.at("vigil", "mirror_stair")
+        self.say("go up")
+        self._let_scenes_play(60)
+        self.npcs("shadow_of_aldric")[0].take_damage(10 ** 6, "physical")
+        self._let_scenes_play(90)
+        self.assertIs(True, self.player.flags.get("paladin_made"))
+        known = set(self.player.runtime_state.magic.known_spells)
+        self.assertTrue({"smite", "radiance", "mercy"} <= known)
+        self.assertFalse({"gloom_wave", "call_colossus"} & known, "the dark's abilities are put down")
+        self.assertGreaterEqual(self.player.runtime_state.magic.max_mana, 70, "the light pays in mana, not blood")
+        self.assertEqual("dawn blade", self.player.equipment["main_hand"].name)
+        self.assertEqual("dawn mail", self.player.equipment["body"].name)
+        self.assertFalse(self.holds("item_dark_blade") or self.holds("item_dark_armor"))
+        self.assertTrue(TitleManager(self.world).has_earned("paladin", self.player))
+
+    def test_the_twins_rejoin_below_once_the_trial_is_won(self):
+        self.player.flags.update({"twins_waiting": True, "paladin_made": True})
+        self.at("vigil", "mirror_stair")
+        for who in ("twin_tobin", "twin_tamsin"):
+            self.world.spawn_npc(who, "vigil", "mirror_stair")
+        self.say("talk tobin")
+        self.say("reply 1")
+        self.say("talk tamsin")
+        self.say("reply 1")
+        self.assertEqual({"twin_tobin", "twin_tamsin"}, set(self._companions()))
+
+    def test_the_vigil_checkpoints(self):
+        runner = self.world.scene_runner
+        runner.play(self.player, "checkpoint_vigil")
+        runner.skip(self.player, "checkpoint_vigil")
+        self._let_scenes_play(10)
+        self.assertEqual("vigil:foot", self.where())
+        self.assertEqual(["twin_tamsin", "twin_tobin"], sorted(self._companions()))
+        runner.play(self.player, "checkpoint_paladin")
+        runner.skip(self.player, "checkpoint_paladin")
+        self._let_scenes_play(10)
+        self.assertEqual("vigil:summit", self.where())
+        self.assertIn("smite", self.player.runtime_state.magic.known_spells)
+        self.assertEqual("dawn blade", self.player.equipment["main_hand"].name)
+
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]
         self.assertIs(True, ryn.get("untargetable"))

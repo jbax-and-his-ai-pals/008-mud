@@ -440,5 +440,42 @@
             ]
         },
         "item_family": "armor"
+    },
+    "item_dawn_blade": {
+        "type": "Weapon",
+        "name": "dawn blade",
+        "description": "A white-steeled sword that holds the light as a cup holds water.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "damage": 18,
+            "weapon_damage_type": "slashing",
+            "durability": 90,
+            "max_durability": 90,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "attack_profile": "melee_blade",
+        "item_family": "weapon"
+    },
+    "item_dawn_mail": {
+        "type": "Armor",
+        "name": "dawn mail",
+        "description": "Plate the colour of the hour before sunrise.",
+        "weight": 8,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 9,
+            "armor_material": "steel",
+            "durability": 90,
+            "max_durability": 90,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
     }
 }
