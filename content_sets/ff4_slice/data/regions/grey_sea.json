@@ -1,0 +1,55 @@
+{
+    "region_id": "grey_sea",
+    "name": "The Grey Sea",
+    "description": "A cold grey sea under a low sky, with no coast in sight.",
+    "properties": {
+        "safe_zone": false,
+        "biome": "sea"
+    },
+    "rooms": {
+        "swell_a": {
+            "name": "Open Water",
+            "description": "Long, slow swells under a lid of cloud, and the Gull ploughing over them. Behind, the mountain of Tolmere sinks into its own smoke.",
+            "exits": {
+                "west": "tolmere:harbor",
+                "east": "swell_b"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "vehicle",
+                        "vehicle": "gull",
+                        "failure_message": "The sea is no place to walk. You will need a ship."
+                    },
+                    "east": {
+                        "type": "vehicle",
+                        "vehicle": "gull",
+                        "failure_message": "The sea is no place to walk. You will need a ship."
+                    }
+                }
+            }
+        },
+        "swell_b": {
+            "name": "The Dark Water",
+            "description": "The swells have gone black and steep and are running the wrong way. The sky overhead is yellow at its edges, and the air smells of struck iron.",
+            "exits": {
+                "west": "swell_a"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "maelrake",
+                    "instance_id": "maelrake_sea"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "vehicle",
+                        "vehicle": "gull",
+                        "failure_message": "The sea is no place to walk. You will need a ship."
+                    }
+                }
+            }
+        }
+    }
+}

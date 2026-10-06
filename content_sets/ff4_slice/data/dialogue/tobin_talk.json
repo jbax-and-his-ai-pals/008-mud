@@ -1,0 +1,25 @@
+{
+    "id": "tobin_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "twin_tobin"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Are you the dark knight? You are smaller than I thought.",
+            "pace": "slow",
+            "end": true
+        },
+        "with_you": {
+            "text": "I am going to be a great mage, you know. Tamsin says the first step is not falling over.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

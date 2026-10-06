@@ -1,0 +1,74 @@
+{
+    "region_id": "vessa",
+    "name": "Vessa",
+    "description": "A village of crooked slate roofs and crooked mages, huddled against a rainy coast.",
+    "properties": {
+        "safe_zone": true,
+        "biome": "coast"
+    },
+    "rooms": {
+        "shore": {
+            "name": "The Wrack Line",
+            "description": "A cold beach of black pebbles strewn with splintered pine and a length of grey sail. Overhead the clouds are breaking. Inland, a path of slate steps climbs between crooked houses.",
+            "exits": {
+                "up": "lane"
+            }
+        },
+        "lane": {
+            "name": "The Slate Lane",
+            "description": "A narrow lane of wet slate, every doorway hung with charms against the sea, and every other one with something that has plainly gone wrong.",
+            "exits": {
+                "down": "shore",
+                "north": "square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "vessa_scholar",
+                    "instance_id": "scholar_lane"
+                }
+            ]
+        },
+        "square": {
+            "name": "The Crooked Square",
+            "description": "A small square around a leaning well. Every house faces a different way. The tallest, to the west, has a door that has been repainted too many times, and a plaque: ELDER. Beyond the north houses the road lifts toward a mountain wrapped in cloud.",
+            "exits": {
+                "south": "lane",
+                "west": "elder_hall",
+                "north": "vigil:foot"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "twins_joined"
+                        },
+                        "failure_message": "The road north is Mount Vigil's, and the elder has not yet said you may take it."
+                    }
+                }
+            }
+        },
+        "elder_hall": {
+            "name": "The Elder's Hall",
+            "description": "A warm, cluttered room that smells of tea and old books. Two children sit on a rug in front of the stove, being not quite quiet.",
+            "exits": {
+                "east": "square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "elder_hesper",
+                    "instance_id": "elder_hesper_hall"
+                },
+                {
+                    "template_id": "twin_tobin",
+                    "instance_id": "tobin_hall"
+                },
+                {
+                    "template_id": "twin_tamsin",
+                    "instance_id": "tamsin_hall"
+                }
+            ]
+        }
+    }
+}

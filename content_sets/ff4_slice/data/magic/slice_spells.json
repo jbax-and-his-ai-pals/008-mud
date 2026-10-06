@@ -350,5 +350,95 @@
                 "damage_type": "fire"
             }
         ]
+    },
+    "maelrake_surge": {
+        "name": "Surge",
+        "description": "A wall of sea.",
+        "mana_cost": 0,
+        "cooldown": 1,
+        "target_type": "all_enemies",
+        "cast_message": "[[RED]]{caster_name} heaves a wall of grey sea over the deck![[/]]",
+        "hit_message": "The sea slams into {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 14,
+                "damage_type": "water"
+            }
+        ]
+    },
+    "apprentice_bolt": {
+        "name": "Bolt",
+        "description": "A small, hot, bright idea.",
+        "mana_cost": 4,
+        "cooldown": 5,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} flicks his fingers, and the air cracks.",
+        "hit_message": "The bolt strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 14,
+                "damage_type": "lightning"
+            }
+        ]
+    },
+    "apprentice_mend": {
+        "name": "Mend",
+        "description": "A child's first white magic, and quite enough.",
+        "mana_cost": 4,
+        "cooldown": 2,
+        "target_type": "friendly",
+        "cast_message": "{caster_name} presses her palms together.",
+        "heal_message": "{caster_name} mends {target_name} for {value} health!",
+        "self_heal_message": "{caster_name} mends herself, recovering {value} health.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 45
+            }
+        ]
+    },
+    "twin_storm": {
+        "name": "Twin Storm",
+        "description": "Two apprentices, one spell, and a storm.",
+        "mana_cost": 24,
+        "cooldown": 24,
+        "target_type": "all_enemies",
+        "requires_ally": [
+            "twin_tamsin"
+        ],
+        "cast_message": "[[CYAN]]Tobin and Tamsin clasp hands, and the sky answers them![[/]]",
+        "hit_message": "The storm tears into {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 30,
+                "damage_type": "lightning"
+            }
+        ]
+    },
+    "twin_ward": {
+        "name": "Twin Ward",
+        "description": "Two apprentices, one spell, and a wall.",
+        "mana_cost": 24,
+        "cooldown": 30,
+        "target_type": "friendly",
+        "requires_ally": [
+            "twin_tobin"
+        ],
+        "cast_message": "[[CYAN]]Tamsin and Tobin clasp hands, and a hush falls over everyone near them.[[/]]",
+        "heal_message": "{caster_name} and her brother mend {target_name} for {value} health!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 110
+            }
+        ]
     }
 }

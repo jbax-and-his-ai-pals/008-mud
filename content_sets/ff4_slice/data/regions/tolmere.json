@@ -4,7 +4,7 @@
     "description": "A mountain city of grey stone and shaven-headed monks, which the Red Fleet has chosen this morning to take.",
     "properties": {
         "safe_zone": false,
-        "biome": "mountain"
+        "biome": "harbour"
     },
     "rooms": {
         "gate": {
@@ -27,7 +27,8 @@
             "exits": {
                 "south": "gate",
                 "north": "hall",
-                "up": "rampart"
+                "up": "rampart",
+                "east": "harbor"
             },
             "initial_npcs": [
                 {
@@ -78,6 +79,26 @@
             "description": "A wall-walk above the courtyard with a view of the whole mountain and the dark shapes of Red Fleet airships wheeling over it.",
             "exits": {
                 "down": "courtyard"
+            }
+        },
+        "harbor": {
+            "name": "The Quay",
+            "description": "A stone quay below the city, where Tolmere's fishing boats lie smashed against their moorings and one grey sloop, miraculously whole, rides at the end.",
+            "exits": {
+                "west": "courtyard",
+                "east": "grey_sea:swell_a"
+            },
+            "properties": {
+                "docks": [
+                    "gull"
+                ],
+                "exit_requirements": {
+                    "east": {
+                        "type": "vehicle",
+                        "vehicle": "gull",
+                        "failure_message": "The open sea is no place to walk. You will need a ship."
+                    }
+                }
             }
         }
     }

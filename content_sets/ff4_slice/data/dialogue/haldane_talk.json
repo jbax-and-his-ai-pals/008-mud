@@ -3,6 +3,13 @@
     "root": "greeting",
     "entries": [
         {
+            "node": "ship_lent",
+            "condition": {
+                "kind": "flag",
+                "flag": "ship_lent"
+            }
+        },
+        {
             "node": "after",
             "condition": {
                 "kind": "flag",
@@ -29,7 +36,40 @@
             "end": true
         },
         "after": {
-            "text": "She took it. A woman I have known since she was a girl, and she took it as if I were furniture. Go after her, Aldric. Go after both of them. I will be here, with a broken city and a very long list of things I should have done.",
+            "text": "She took it. A woman I have known since she was a girl, and she took it as if I were furniture. Go after her, Aldric. Go after both of them. I cannot give you an army. I can give you a ship, which is more than anyone gave me this morning.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "I will take the Gull, and thank you.",
+                    "next_node": "ship",
+                    "effects": {
+                        "place_vehicle": {
+                            "vehicle": "gull",
+                            "region": "tolmere",
+                            "room": "harbor"
+                        },
+                        "set_flag": "ship_lent"
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "next_node": "later"
+                }
+            ]
+        },
+        "ship": {
+            "text": "She is at the quay, east of the courtyard. Mysidia's coast is a week by road and two days by the Gull; their elder will know where the crystals are going. Sail with the wind and tell no sailor where you are bound.",
+            "pace": "slow",
+            "end": true
+        },
+        "later": {
+            "text": "I will be here, with a broken city and a very long list of things I should have done.",
+            "pace": "slow",
+            "end": true
+        },
+        "ship_lent": {
+            "text": "Go, Aldric. The Gull is at the quay.",
             "pace": "slow",
             "end": true
         }

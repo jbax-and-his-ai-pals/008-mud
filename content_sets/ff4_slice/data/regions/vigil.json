@@ -1,0 +1,18 @@
+{
+    "region_id": "vigil",
+    "name": "Mount Vigil",
+    "description": "A mountain with a long shadow, where the dark is made to explain itself.",
+    "properties": {
+        "safe_zone": false,
+        "biome": "mountain"
+    },
+    "rooms": {
+        "foot": {
+            "name": "The Foot of the Mountain",
+            "description": "A bare shelf of rock at the bottom of a very long climb. The path starts here and does not look back. South, the village; above, the trial.",
+            "exits": {
+                "south": "vessa:square"
+            }
+        }
+    }
+}

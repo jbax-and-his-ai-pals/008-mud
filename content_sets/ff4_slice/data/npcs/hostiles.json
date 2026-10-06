@@ -1146,5 +1146,55 @@
             "cinder_spit"
         ],
         "max_mana": 100
+    },
+    "maelrake": {
+        "name": "the Maelrake",
+        "description": "Something very large under the swell that is all at once a mouth, a wall of grey water and the sound of the ship breaking.",
+        "max_health": 420,
+        "level": 9,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 20,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    90,
+                    140
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.3,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5,
+            "percent_immune": true,
+            "unique": true,
+            "essential": true
+        },
+        "usable_spells": [
+            "maelrake_surge"
+        ],
+        "max_mana": 100
     }
 }

@@ -1,0 +1,12 @@
+{
+    "gull": {
+        "name": "the Gull",
+        "description": "A lean grey sloop of Tolmere pine with a single patched sail, built to be rowed out of a harbour by monks and sailed home by whoever is left.",
+        "board_text": "You step aboard the Gull. The deck lifts and settles under your boots as if it were breathing.",
+        "disembark_text": "You step down onto the quay.",
+        "lands_in_biomes": [
+            "harbour"
+        ],
+        "note": "Lent by King Haldane after the duel. Crosses the grey sea; lost to the Maelrake."
+    }
+}

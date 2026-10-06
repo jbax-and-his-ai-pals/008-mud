@@ -12,6 +12,8 @@ village and the Colossus, the guards at the inn, Ryn joins, Dunhallow and Rosali
 Ashmere under siege and Mirelle's death, Lucan joins as a bard, the royal skimmer across the sand sea, the Sandmaw and the pearl.
 Rosalind, cured, joins as the healer. Mount Corrin and the Cinder Mother (a bomb that goes off at a third of its strength), Bram the monk joins,
 Tolmere under attack, Kessa returns brainwashed, the duel the hero cannot win, and Rosalind taken with the crystal.
+The Gull and the grey sea, the Maelrake that wrecks it (Ryn lost to the water), the hero alone on the shore at Vessa, the elder, and the twins who join
+for Mount Vigil (the foot of the mountain only so far).
 
 ## What the engine now has for the rest
 

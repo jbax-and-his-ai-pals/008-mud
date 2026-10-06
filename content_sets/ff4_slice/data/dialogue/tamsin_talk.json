@@ -1,0 +1,25 @@
+{
+    "id": "tamsin_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "twin_tamsin"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Do not mind him. He has been like this all week.",
+            "pace": "slow",
+            "end": true
+        },
+        "with_you": {
+            "text": "Stay behind me if it gets bad. I mean it. Both of you.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

@@ -1578,6 +1578,98 @@ class TestFF4Slice(_Slice):
             self.assertIn("rosalind_companion", self._companions(), name)
         self.assertIn("bram", self._companions())
 
+    # -- The Gull, the Maelrake, Vessa and the twins ---------------------------------------------------------------------------------
+    def test_king_haldane_lends_the_gull_after_the_duel_and_it_waits_at_the_quay(self):
+        self.at("tolmere", "hall")
+        self.player.flags["duel_lost"] = True
+        self.say("talk haldane")
+        self.say("reply 1")
+        self.assertIs(True, self.player.flags.get("ship_lent"))
+        self.at("tolmere", "harbor")
+        self.assertIn("The Gull waits here", self.say("look"))
+
+    def test_the_open_sea_is_not_walked_and_the_gull_crosses_it(self):
+        self.world.vehicles.place("gull", "tolmere", "harbor")
+        self.at("tolmere", "harbor")
+        self.assertIn("no place to walk", self.say("go east"))
+        self.say("embark")
+        self.say("go east")
+        self.assertEqual("grey_sea:swell_a", self.where())
+        self.say("go east")
+        self.assertEqual("grey_sea:swell_b", self.where())
+        self.assertIn("cannot set the Gull down", self.say("disembark"), "not in the middle of the sea")
+
+    def test_the_maelrake_wrecks_the_gull_and_the_hero_washes_up_alone_at_vessa(self):
+        self.world.vehicles.place("gull", "grey_sea", "swell_b")
+        ryn = self._join("ryn_young", "grey_sea", "swell_b")
+        self._join("lucan_prince", "grey_sea", "swell_b")
+        self._join("bram", "grey_sea", "swell_b")
+        self.at("grey_sea", "swell_b")
+        self.say("embark")
+        sea = self.npcs("maelrake")[0]
+        sea.health = int(sea.max_health * 0.52)
+        sea.take_damage(30, "physical")
+        self._let_scenes_play(60)
+        self.assertEqual("vessa:shore", self.where())
+        for flag in ("ship_wrecked", "ryn_lost", "voyage_done"):
+            self.assertIs(True, self.player.flags.get(flag), flag)
+        self.assertEqual([], self._companions(), "alone")
+        self.assertEqual([], self.npcs("maelrake"))
+        self.assertIsNone(self.world.vehicles.aboard(self.player), "the ship is gone from under them")
+        self.assertEqual(("vessa", "square"), (self.player.respawn_region_id, self.player.respawn_room_id))
+
+    def test_the_hero_struck_down_on_the_ship_ends_the_voyage_the_same_way(self):
+        self.at("grey_sea", "swell_b")
+        self.player.health = self.player.max_health = 200
+        self.player.take_damage(140, "physical")
+        self._let_scenes_play(60)
+        self.assertEqual("vessa:shore", self.where())
+
+    def test_vessa_is_a_village_with_an_elder_two_children_and_a_road_to_the_mountain(self):
+        region = self.world.get_region("vessa")
+        self.assertEqual({"shore", "lane", "square", "elder_hall"}, set(region.rooms))
+        self.assertEqual(1, len(self.npcs("elder_hesper")))
+        self.assertEqual(1, len(self.npcs("twin_tobin")))
+        self.assertEqual(1, len(self.npcs("twin_tamsin")))
+        self.at("vessa", "square")
+        self.assertIn("has not yet said", self.say("go north"))
+        self.assertEqual("vessa:square", self.where())
+
+    def test_the_elder_sends_the_twins_and_the_road_to_mount_vigil_opens(self):
+        self.player.flags["ship_wrecked"] = True
+        self.at("vessa", "elder_hall")
+        self.assertIn("The sea gave you back", self.say("talk hesper"))
+        self.say("reply 2")
+        self.assertIs(True, self.player.flags.get("twins_joined"))
+        self.assertEqual({"twin_tobin", "twin_tamsin"}, set(self._companions()))
+        self.say("go east")
+        self.say("go north")
+        self.assertEqual("vigil:foot", self.where())
+
+    def test_the_twins_cast_their_joint_spells_only_together(self):
+        from engine.magic.spell_registry import get_spell
+
+        self.at("vessa", "elder_hall")
+        tobin = self.npcs("twin_tobin")[0]
+        tamsin = self.npcs("twin_tamsin")[0]
+        self.assertEqual("", get_spell("twin_storm").ally_requirement(tobin))
+        self.assertEqual("", get_spell("twin_ward").ally_requirement(tamsin))
+        tamsin.current_room_id = "square"
+        self.assertIn("needs", get_spell("twin_storm").ally_requirement(tobin))
+        tamsin.properties["fallen"] = True
+        tamsin.current_room_id = "elder_hall"
+        self.assertIn("needs", get_spell("twin_storm").ally_requirement(tobin), "a fallen twin does not count")
+
+    def test_the_voyage_checkpoints(self):
+        for name, where, expect_alone in (("quay", "tolmere:harbor", False), ("vessa", "vessa:shore", True)):
+            runner = self.world.scene_runner
+            runner.play(self.player, "checkpoint_" + name)
+            runner.skip(self.player, "checkpoint_" + name)
+            self._let_scenes_play(10)
+            self.assertEqual(where, self.where(), name)
+            self.assertEqual([] if expect_alone else ["bram", "lucan_prince", "ryn_young"], sorted(self._companions()), name)
+        self.assertNotIn("rosalind_companion", self._companions())
+
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]
         self.assertIs(True, ryn.get("untargetable"))

@@ -1,0 +1,96 @@
+{
+    "storm_rises": {
+        "note": "The Gull enters the dark water; the Maelrake is awake.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The wind drops, all at once, and the sea goes flat and black, and for a long moment the Gull sits perfectly still in a silence like held breath."
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[RED]]Then the water ahead stands up.[[/]]"
+            }
+        ]
+    },
+    "shipwreck": {
+        "note": "The Maelrake takes the Gull; the hero washes up alone at Vessa.",
+        "lock": true,
+        "beats": [
+            {
+                "after": 0,
+                "pace": "slow",
+                "text": "[[RED]]The deck stands up on end. You are in the water without knowing how, with a mouthful of salt and the sound of the ship breaking like a dry branch.[[/]]",
+                "effects": {
+                    "end_fight": {}
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "Something enormous goes past beneath you, slowly, and the whole sea leans after it. You see a girl on the broken mast with her hair blown white, her arms out, shouting at it in a language that is not language, and then the water closes over her."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "You reach for Ryn. You reach for the harp, the Gull, anyone. There is nothing but the cold, and then not even that.",
+                "effects": {
+                    "remove_npc": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "bram"
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "maelrake"
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "You wake on black pebbles with the tide sucking at your boots, and a gull screaming nearby as though it owed you money. Nobody else is on the beach. Nobody else comes up out of the surf. After a long time you stop looking.",
+                "effects": {
+                    "teleport": {
+                        "region": "vessa",
+                        "room": "shore"
+                    },
+                    "set_flag": [
+                        "ship_wrecked",
+                        "ryn_lost",
+                        "voyage_done"
+                    ],
+                    "set_respawn": {
+                        "region": "vessa",
+                        "room": "square"
+                    },
+                    "place_vehicle": {
+                        "vehicle": "gull",
+                        "region": "grey_sea",
+                        "room": "swell_b"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "A path of wet slate steps climbs the cliff above the beach. There is a roof at the top of it, and smoke."
+            }
+        ]
+    }
+}

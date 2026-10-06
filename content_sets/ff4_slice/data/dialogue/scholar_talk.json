@@ -1,0 +1,11 @@
+{
+    "id": "scholar_talk",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Forty-one ships in a month, and the harbour master calls it weather. Weather! Ask the elder; she will tell you it is not weather.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

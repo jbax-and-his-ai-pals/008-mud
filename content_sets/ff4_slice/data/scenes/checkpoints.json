@@ -39,7 +39,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -95,7 +97,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -174,7 +178,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -256,7 +262,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -339,7 +347,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -431,7 +441,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -515,7 +527,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -595,7 +609,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -690,7 +706,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -823,7 +841,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -958,7 +978,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1093,7 +1115,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1235,7 +1259,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1388,7 +1414,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1559,7 +1587,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1730,7 +1760,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1897,7 +1929,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2090,7 +2124,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2283,7 +2319,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2485,7 +2523,9 @@
                         "cinder_swells",
                         "cinder_falls",
                         "tolmere_breach",
-                        "duel_lost"
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2662,6 +2702,413 @@
                 "after": 0,
                 "effects": {
                     "recruit": "bram"
+                }
+            }
+        ]
+    },
+    "checkpoint_quay": {
+        "note": "For testing: Tolmere's quay after the duel, with Ryn, Lucan and Bram and the Gull waiting.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known",
+                        "pearl_found",
+                        "rosalind_cured",
+                        "rosalind_joined",
+                        "cinder_down",
+                        "bram_joined",
+                        "duel_lost",
+                        "rosalind_kidnapped",
+                        "crystal_stolen",
+                        "tolmere_cleared",
+                        "kessa_hostile",
+                        "ship_lent"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "tolmere",
+                        "room": "harbor"
+                    },
+                    "give_rewards": {
+                        "xp": 3600
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "tolmere",
+                        "room": "harbor"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "ryn_young",
+                        "region": "tolmere",
+                        "room": "harbor",
+                        "instance_id": "ryn_awake"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "lightning"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "move_npc": {
+                        "npc": "lucan_prince",
+                        "region": "tolmere",
+                        "room": "harbor",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "tolmere",
+                        "room": "harbor",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "bram",
+                        "region": "tolmere",
+                        "room": "harbor",
+                        "instance_id": "bram_with_us"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "recruit": "bram"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "place_vehicle": {
+                        "vehicle": "gull",
+                        "region": "tolmere",
+                        "room": "harbor"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind_companion"
+                }
+            }
+        ]
+    },
+    "checkpoint_vessa": {
+        "note": "For testing: alone on the beach at Vessa, the Gull lost and Ryn taken by the sea.",
+        "lock": false,
+        "beats": [
+            {
+                "effects": {
+                    "end_scene": [
+                        "ilmara_falls",
+                        "ilmara_aftermath",
+                        "leave_ilmara",
+                        "second_wave",
+                        "landing",
+                        "night_in_the_castle",
+                        "fog_hollow_drake",
+                        "drake_unravels",
+                        "package_opens",
+                        "kessa_deduces",
+                        "colossus_quake",
+                        "wake_in_the_wood",
+                        "reach_the_inn",
+                        "guards_arrive",
+                        "after_the_guards",
+                        "meet_belaric",
+                        "camp_in_the_dry_hall",
+                        "camp_morning",
+                        "warn_brine",
+                        "brinecoil_rises",
+                        "brinecoil_falls",
+                        "sickroom_visit",
+                        "rosalind_cured",
+                        "throne_room_tragedy",
+                        "skimmer_launch",
+                        "warn_sandmaw",
+                        "sandmaw_rises",
+                        "sandmaw_falls",
+                        "warn_cinder",
+                        "cinder_rises",
+                        "cinder_swells",
+                        "cinder_falls",
+                        "tolmere_breach",
+                        "duel_lost",
+                        "storm_rises",
+                        "shipwreck"
+                    ],
+                    "set_flag": [
+                        "air_second_wave",
+                        "king_ordered",
+                        "obeyed_king",
+                        "kessa_briefed",
+                        "rested_at_castle",
+                        "kessa_joined",
+                        "drake_slain",
+                        "village_burned",
+                        "ryn_told",
+                        "kessa_relented",
+                        "ryn_resisted_once",
+                        "ryn_resisted_twice",
+                        "ryn_carried",
+                        "reached_the_inn",
+                        "valley_buried",
+                        "kessa_lost",
+                        "guards_fight",
+                        "guards_beaten",
+                        "rosalind_hint",
+                        "pearl_quest",
+                        "pearl_known",
+                        "belaric_joined",
+                        "camp_night",
+                        "camp_done",
+                        "brineway_cleared",
+                        "mirelle_dead",
+                        "belaric_left",
+                        "farewell_said",
+                        "lucan_joined",
+                        "skimmer_granted",
+                        "pearl_location_known",
+                        "pearl_found",
+                        "rosalind_cured",
+                        "rosalind_joined",
+                        "cinder_down",
+                        "bram_joined",
+                        "duel_lost",
+                        "rosalind_kidnapped",
+                        "crystal_stolen",
+                        "tolmere_cleared",
+                        "kessa_hostile",
+                        "ship_lent",
+                        "ship_wrecked",
+                        "ryn_lost",
+                        "voyage_done"
+                    ],
+                    "remove_npc": "belaric",
+                    "teleport": {
+                        "region": "vessa",
+                        "room": "shore"
+                    },
+                    "give_rewards": {
+                        "xp": 3600
+                    },
+                    "restore": "all",
+                    "set_respawn": {
+                        "region": "vessa",
+                        "room": "shore"
+                    },
+                    "move_npc": {
+                        "npc": "belaric",
+                        "region": "brineway",
+                        "room": "brine_gate",
+                        "silent": true
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "captain_kessa"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "mirelle"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "mirelle_fallen",
+                        "region": "vessa",
+                        "room": "shore",
+                        "instance_id": "mirelle_in_the_hall"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "ryn_young"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "lucan_prince"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "bram"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "rosalind_companion"
                 }
             }
         ]

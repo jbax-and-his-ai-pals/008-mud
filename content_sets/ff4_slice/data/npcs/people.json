@@ -917,5 +917,103 @@
             "status_immune": true,
             "focus_player": true
         }
+    },
+    "elder_hesper": {
+        "name": "Elder Hesper",
+        "description": "A small, ancient woman in robes the colour of wet slate, with a face like a walnut and eyes that do not miss anything.",
+        "max_health": 80,
+        "level": 12,
+        "attack_power": 4,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 200,
+        "dialog": {
+            "greeting": "Sit down before you fall down."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "hesper_talk"
+        }
+    },
+    "twin_tobin": {
+        "name": "Tobin",
+        "description": "A boy of twelve in a robe too big for him, with ink on his fingers and an expression of enormous, carefully contained importance.",
+        "max_health": 60,
+        "level": 7,
+        "attack_power": 4,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 140,
+        "dialog": {
+            "greeting": "Are you the dark knight? You are smaller than I thought."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "tobin_talk",
+            "falls_when_defeated": true,
+            "spell_cast_chance": 0.55,
+            "flee_threshold": 0.3
+        },
+        "usable_spells": [
+            "apprentice_bolt",
+            "twin_storm"
+        ]
+    },
+    "twin_tamsin": {
+        "name": "Tamsin",
+        "description": "A girl of twelve in a robe too big for her, who has plainly been told to stay close to her brother and is plainly in charge of him.",
+        "max_health": 60,
+        "level": 7,
+        "attack_power": 4,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 140,
+        "dialog": {
+            "greeting": "Do not mind him. He has been like this all week."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "tamsin_talk",
+            "falls_when_defeated": true,
+            "spell_cast_chance": 0.2,
+            "flee_threshold": 0.3
+        },
+        "usable_spells": [
+            "apprentice_mend",
+            "twin_ward"
+        ]
+    },
+    "vessa_scholar": {
+        "name": "village scholar",
+        "description": "A thin man in a sea-stained robe, filling a notebook as fast as he can.",
+        "max_health": 40,
+        "level": 3,
+        "attack_power": 2,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Do you know how many ships have been lost off this coast in a month? Nobody does. I am counting."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": false,
+            "dialogue": "scholar_talk"
+        }
     }
 }

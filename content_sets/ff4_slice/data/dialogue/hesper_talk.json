@@ -1,0 +1,73 @@
+{
+    "id": "hesper_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "off_you_go",
+            "condition": {
+                "kind": "flag",
+                "flag": "twins_joined"
+            }
+        },
+        {
+            "node": "arrival",
+            "condition": {
+                "kind": "flag",
+                "flag": "ship_wrecked"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Sit down before you fall down.",
+            "pace": "slow",
+            "end": true
+        },
+        "arrival": {
+            "text": "The sea gave you back, which it does not often do. You are Aldric, the dark blade of Varenholt; I know the armour. The Red Fleet was here before you, an hour past, and what they wanted they did not find: our crystal is not in this village, and it will not be, whatever they burn. Now sit, and listen. They are collecting crystals, one kingdom at a time. You cannot fight what took Tolmere's with the blade you carry. You have to become something that blade is not.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "What would I have to become?",
+                    "next_node": "trial"
+                },
+                {
+                    "text": "Then tell me where to go. I will go.",
+                    "next_node": "send"
+                }
+            ]
+        },
+        "trial": {
+            "text": "North of this village is a mountain called Vigil. It holds a trial. A man of the dark who survives it comes down a man of the light, and what he can do changes with it: the dark takes from you what it pays with, and the light does not. The way is not easy and the mountain is not kind. I will not send you alone. I have two apprentices who have been underfoot for a month and are, regrettably, the best I have.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Then I will take them. And the mountain.",
+                    "next_node": "send"
+                }
+            ]
+        },
+        "send": {
+            "text": "Tobin! Tamsin! Stand up. You are going with the captain. You will do exactly as you are told, and, Tobin, you will do it the first time. Go. And the two of you, remember: whatever you cast, you cast together.",
+            "pace": "slow",
+            "end": true,
+            "effects": {
+                "recruit": [
+                    "twin_tobin",
+                    "twin_tamsin"
+                ],
+                "set_flag": [
+                    "twins_joined",
+                    "elder_spoken"
+                ]
+            }
+        },
+        "off_you_go": {
+            "text": "Mount Vigil is north of the square. Do not let the boy go first, and do not let the girl have the last word, and you will be fine.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

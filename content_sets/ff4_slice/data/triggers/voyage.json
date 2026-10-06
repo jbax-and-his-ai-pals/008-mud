@@ -1,0 +1,49 @@
+{
+    "storm_rises": {
+        "on": {
+            "event": "on_enter",
+            "region": "grey_sea",
+            "room": "swell_b"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "storm_rises"
+        }
+    },
+    "maelrake_breaks": {
+        "on": {
+            "event": "health_below",
+            "who": "maelrake",
+            "fraction": 0.5
+        },
+        "once": "world",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "ship_wrecked"
+            }
+        },
+        "effects": {
+            "play_scene": "shipwreck"
+        }
+    },
+    "ship_lost": {
+        "on": {
+            "event": "health_below",
+            "who": "player",
+            "fraction": 0.35,
+            "region": "grey_sea",
+            "room": "swell_b"
+        },
+        "once": "world",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "ship_wrecked"
+            }
+        },
+        "effects": {
+            "play_scene": "shipwreck"
+        }
+    }
+}
