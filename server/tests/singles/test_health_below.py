@@ -104,6 +104,22 @@ class TestTheEvent(_Duel):
         self.assertEqual("", self.told(), "the player is in the square")
 
 
+class TestPayingInBlood(_Duel):
+    def test_a_creature_that_pays_for_an_ability_in_health_can_cross_the_line(self):
+        from engine.magic.spell import Spell
+        from engine.magic.spell_registry import SPELL_REGISTRY
+        from engine.npcs.combat import cast_spell
+
+        self.addCleanup(SPELL_REGISTRY.pop, "t_blood", None)
+        SPELL_REGISTRY["t_blood"] = Spell("t_blood", "Blood Tide", "x", effects=[{"type": "damage", "value": 5, "damage_type": "shadow"}],
+                                          mana_cost=0, target_type="enemy", health_cost_fraction=0.2)
+        shadow = self.foe("shadow")
+        shadow.combat_targets.add(self.player)
+        self.trigger("t", who="shadow", fraction=0.9)
+        cast_spell(shadow, SPELL_REGISTRY["t_blood"], self.player, 1000.0)
+        self.assertIn("(t)", self.told())
+
+
 class TestEndFight(_Duel):
     def test_everyone_in_the_room_stops_fighting(self):
         goblin = self.foe()

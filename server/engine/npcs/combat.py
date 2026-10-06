@@ -184,7 +184,10 @@ def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]
     health_cost = spell.health_cost(npc.max_health)
     if health_cost and npc.health <= health_cost: return {"message": f"{npc.name} cannot afford {spell.name}."}
     npc.mana -= spell.mana_cost
+    health_before_cost = npc.health
     npc.health -= health_cost
+    if health_cost:
+        npc._tell_health_crossed(health_before_cost, npc.health)   # paying in blood can cross a line a story is watching
     npc.spell_cooldowns[spell.spell_id] = current_time + spell.cooldown
     world = npc.world
     viewer = None
