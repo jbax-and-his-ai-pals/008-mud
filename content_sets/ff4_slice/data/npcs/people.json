@@ -789,5 +789,33 @@
             "rejoin_health": 0.75,
             "spell_cast_chance": 0.7
         }
+    },
+    "rosalind_companion": {
+        "name": "Rosalind",
+        "description": "A healer in white with a hunting bow across her back, still thin from the fever, and quite sure she is fine.",
+        "max_health": 80,
+        "level": 6,
+        "attack_power": 6,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 160,
+        "dialog": {
+            "greeting": "I am not made of glass. What is it?"
+        },
+        "usable_spells": [
+            "cure",
+            "raise"
+        ],
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "rosalind_join",
+            "falls_when_defeated": true,
+            "flee_threshold": 0.3,
+            "spell_cast_chance": 0.2
+        }
     }
 }

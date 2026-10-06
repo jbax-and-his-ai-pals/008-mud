@@ -17,7 +17,38 @@
             "end": true
         },
         "recovering": {
-            "text": "Do not hover. Go and do whatever it is that you do. I will be sitting up by the time you are back, and I will be unbearable about it.",
+            "text": "Do not hover. I am sitting up, I am cross, and I am coming with you. Someone has to keep you from getting killed, and I have the best seat for it. Do not argue.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Then come. We could use you.",
+                    "next_node": "joins",
+                    "effects": {
+                        "remove_npc": "rosalind_sick",
+                        "spawn_npc": {
+                            "npc": "rosalind_companion",
+                            "region": "dunhallow",
+                            "room": "sickroom",
+                            "instance_id": "rosalind_joins"
+                        },
+                        "recruit": "rosalind_companion",
+                        "set_flag": "rosalind_joined"
+                    }
+                },
+                {
+                    "text": "Rest a little longer first.",
+                    "next_node": "rest"
+                }
+            ]
+        },
+        "joins": {
+            "text": "Good. Now help me find my boots.",
+            "pace": "slow",
+            "end": true
+        },
+        "rest": {
+            "text": "Resting is for people with nothing to do. Ask me again when you have thought better of it.",
             "pace": "slow",
             "end": true
         }

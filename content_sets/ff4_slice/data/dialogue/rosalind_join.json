@@ -1,0 +1,25 @@
+{
+    "id": "rosalind_join",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "with_you",
+            "condition": {
+                "kind": "companion_present",
+                "npc_id": "rosalind_companion"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "I am not made of glass. What is it?",
+            "pace": "slow",
+            "end": true
+        },
+        "with_you": {
+            "text": "Stand still and let me look at that. No, the other arm.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

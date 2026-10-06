@@ -1445,6 +1445,33 @@ class TestFF4Slice(_Slice):
         self.say("reply 1")
         self.assertIs(True, self.player.flags.get("rosalind_cured"))
 
+    def test_once_cured_rosalind_joins_as_a_healer_who_mends_and_raises_the_party(self):
+        from engine.npcs import companions
+        from engine.npcs.ai import specialized
+
+        self.player.flags.update({"rosalind_cured": True})
+        self.world.spawn_npc("rosalind_sick", "dunhallow", "sickroom", instance_id="rosalind_in_bed")
+        self.at("dunhallow", "sickroom")
+        self.say("talk rosalind")
+        self.say("reply 1")
+        self.assertIs(True, self.player.flags.get("rosalind_joined"))
+        self.assertEqual([], self.npcs("rosalind_sick"), "the sickbed is empty")
+        rosalind = self.npcs("rosalind_companion")[0]
+        self.assertIn("rosalind_companion", self._companions())
+        self.assertEqual({"cure", "raise"}, set(rosalind.usable_spells))
+        friend = self._join("ryn_young", "dunhallow", "sickroom")
+        friend.properties["falls_when_defeated"] = True
+        friend.health = int(friend.max_health * 0.2)
+        rosalind.last_combat_action = 0
+        now = float(self.world.clock.now()) + 100
+        self.assertIsNotNone(specialized.perform_companion_support(rosalind, self.world, now, self.player))
+        self.assertGreater(friend.health, int(friend.max_health * 0.2), "she mends the most hurt")
+        friend.take_damage(10 ** 6, "physical")
+        self.assertTrue(companions.is_fallen(friend))
+        rosalind.last_combat_action = 0
+        specialized.perform_companion_support(rosalind, self.world, now + 100, self.player)
+        self.assertFalse(companions.is_fallen(friend), "and raises her fallen")
+
     def test_ryn_is_a_passenger_no_enemy_can_touch(self):
         ryn = self.world.npc_templates["ryn"]["properties"]
         self.assertIs(True, ryn.get("untargetable"))

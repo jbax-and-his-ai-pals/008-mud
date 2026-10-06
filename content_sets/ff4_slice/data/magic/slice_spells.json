@@ -245,5 +245,20 @@
                 "damage_type": "earth"
             }
         ]
+    },
+    "raise": {
+        "name": "Raise",
+        "description": "A white-magic breath that brings a fallen friend back to their feet.",
+        "mana_cost": 20,
+        "cooldown": 15,
+        "target_type": "friendly",
+        "cast_message": "{caster_name} kneels, hands pressed to a friend's chest.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "revive",
+                "value": 40
+            }
+        ]
     }
 }
