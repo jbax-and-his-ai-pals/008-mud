@@ -42,7 +42,19 @@
                 {
                     "item_id": "item_potion"
                 }
-            ]
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "ice_melted"
+                        },
+                        "failure_message": "A wall of blue ice fills the path from rock to rock, thick as a house. It does not look like weather."
+                    }
+                }
+            }
         },
         "bridge": {
             "name": "The Rope Bridge",

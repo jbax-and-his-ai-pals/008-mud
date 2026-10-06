@@ -1541,8 +1541,61 @@ class TestFF4Slice(_Slice):
         self.assertEqual({"kick", "focus"}, set(bram.usable_spells))
         self.assertIs(True, bram.properties.get("falls_when_defeated"))
 
+    def _clear(self, room):
+        """Fell everything hostile in a Tolmere room and let the trigger runner hear it."""
+        self.at("tolmere", room)
+        foes = factions.hostiles_in(self.world, "tolmere", room)
+        for foe in foes:
+            foe.take_damage(10 ** 6, "physical")
+        if foes:
+            self.world.trigger_runner.fire_npc_killed(self.player, foes[-1])
+        self._let_scenes_play(40)
+
+    def _soldiers(self, room):
+        return [n for n in factions.hostiles_in(self.world, "tolmere", room)]
+
+    def test_the_siege_is_six_waves_with_two_retreats_and_only_then_does_kessa_come(self):
+        self.world.remove_npcs("tolmere_monk")
+        self.player.health = self.player.max_health = 10 ** 5
+        self._clear("courtyard")                                       # wave one falls; two comes through the gate
+        self.assertIs(True, self.player.flags.get("siege_2"))
+        self.assertTrue(self._soldiers("courtyard"), "the second wave")
+        self.assertEqual([], self.npcs("kessa_returned"))
+        self._clear("courtyard")                                       # the yard falls back to the hall
+        self.assertIs(True, self.player.flags.get("siege_3"))
+        self.assertEqual(3, len(self._soldiers("hall")), "wave three is in the great hall")
+        self._clear("hall")
+        self.assertEqual(3, len(self._soldiers("hall")), "wave four behind it")
+        self.assertIs(True, self.player.flags.get("siege_4"))
+        self._clear("hall")                                            # and out again
+        self.assertIs(True, self.player.flags.get("siege_5"))
+        self.assertEqual(3, len(self._soldiers("courtyard")), "wave five in the yard")
+        self._clear("courtyard")
+        self.assertIs(True, self.player.flags.get("siege_6"))
+        self.assertEqual(4, len(self._soldiers("courtyard")), "the last wave, with two officers")
+        self.assertEqual([], self.npcs("kessa_returned"), "not yet")
+        self._clear("courtyard")
+        self.assertEqual(1, len(self.npcs("kessa_returned")), "after the sixth, she walks in")
+
+    def test_a_wall_of_ice_shuts_the_switchbacks_until_ryn_learns_a_real_fire(self):
+        self.at("corrin", "switchback")
+        self.player.health = self.player.max_health = 10 ** 5
+        ryn = self._join("ryn_young", "corrin", "switchback")
+        self.assertNotIn("blaze", ryn.usable_spells)
+        self.assertIn("wall of blue ice", self.say("go north"))
+        self.assertEqual("corrin:switchback", self.where())
+        self.world.trigger_runner.fire_on_enter(self.player, "corrin", "switchback")
+        self._let_scenes_play(40)
+        self.assertIn("blaze", ryn.usable_spells)
+        self.assertIs(True, self.player.flags.get("ice_melted"))
+        for foe in factions.hostiles_in(self.world, "corrin", "switchback"):
+            foe.take_damage(10 ** 6, "physical")
+        said = self.say("go north")
+        self.assertEqual("corrin:bridge", self.where(), said)
+
     def test_kessa_arrives_when_the_courtyard_is_cleared_and_cannot_be_put_to_sleep_or_beaten(self):
         self.at("tolmere", "courtyard")
+        self.player.flags.update({"siege_2": True, "siege_3": True, "siege_4": True, "siege_5": True, "siege_6": True})
         for foe in factions.hostiles_in(self.world, "tolmere", "courtyard"):
             foe.take_damage(10 ** 6, "physical")
         self.world.trigger_runner.fire_npc_killed(self.player, self.npcs("red_fleet_lancer")[0] if self.npcs("red_fleet_lancer") else None)

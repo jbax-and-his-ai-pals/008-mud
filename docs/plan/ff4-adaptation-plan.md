@@ -10,8 +10,8 @@ system; the set is data only (`docs/design/adaptation_slices.md`).
 Done in content, in play order: the raid on Ilmara and the crystal, the flight and the king, the courier run and the Fog Drake, the burned
 village and the Colossus, the guards at the inn, Ryn joins, Dunhallow and Rosalind's fever, Belaric and the camp, the Brineway and the Brinecoil,
 Ashmere under siege and Mirelle's death, Lucan joins as a bard, the royal skimmer across the sand sea, the Sandmaw and the pearl.
-Rosalind, cured, joins as the healer. Mount Corrin: Bram the monk joins on the ledge and fights the Cinder Mother beside you (it sheds six small bombs at two thirds and goes off at a third),
-Tolmere under attack, Kessa returns brainwashed, the duel the hero cannot win, and Rosalind taken with the crystal.
+Rosalind, cured, joins as the healer. Mount Corrin: a wall of ice on the switchbacks that Ryn melts by learning Blaze, Bram the monk joins on the ledge and fights the Cinder Mother beside you (it sheds six small bombs at two thirds and goes off at a third),
+Tolmere under attack in six waves (two in the courtyard, two in the great hall after a retreat, two back in the courtyard), Kessa returns brainwashed, the duel the hero cannot win, and Rosalind taken with the crystal.
 The Gull and the grey sea, the Maelrake that wrecks it (Ryn lost to the water), the hero alone on the shore at Vessa, the elder, and the twins who join
 for Mount Vigil. Mount Vigil: Belaric steps out of the mountain and rejoins, the lord of earth (Morvane: driven off in the hall, risen again on the bridge, weak to fire), the voice, the shadow that
 can only be outlasted (it spends its own blood on the dark, and the hero must not strike), and the Paladin conversion (new arms, the light for the dark, a title).

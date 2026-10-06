@@ -50,10 +50,18 @@
         },
         "once": "player",
         "when": {
-            "not": {
-                "kind": "flag",
-                "flag": "duel_lost"
-            }
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "siege_6"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "duel_lost"
+                    }
+                }
+            ]
         },
         "effects": {
             "play_scene": "tolmere_breach"
@@ -74,6 +82,172 @@
         "once": "player",
         "effects": {
             "play_scene": "duel_lost"
+        }
+    },
+    "ice_wall": {
+        "on": {
+            "event": "on_enter",
+            "region": "corrin",
+            "room": "switchback"
+        },
+        "once": "player",
+        "when": {
+            "kind": "companion_present",
+            "npc_id": "ryn_young"
+        },
+        "effects": {
+            "play_scene": "ice_wall"
+        }
+    },
+    "siege_two": {
+        "on": {
+            "event": "room_cleared",
+            "region": "tolmere",
+            "room": "courtyard"
+        },
+        "when": {
+            "all": [
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "siege_2"
+                    }
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "duel_lost"
+                    }
+                }
+            ]
+        },
+        "once": false,
+        "effects": {
+            "play_scene": "siege_two"
+        }
+    },
+    "siege_fall_back": {
+        "on": {
+            "event": "room_cleared",
+            "region": "tolmere",
+            "room": "courtyard"
+        },
+        "when": {
+            "all": [
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "siege_3"
+                    }
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "duel_lost"
+                    }
+                },
+                {
+                    "kind": "flag",
+                    "flag": "siege_2"
+                }
+            ]
+        },
+        "once": false,
+        "effects": {
+            "play_scene": "siege_fall_back"
+        }
+    },
+    "siege_four": {
+        "on": {
+            "event": "room_cleared",
+            "region": "tolmere",
+            "room": "hall"
+        },
+        "when": {
+            "all": [
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "siege_4"
+                    }
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "duel_lost"
+                    }
+                },
+                {
+                    "kind": "flag",
+                    "flag": "siege_3"
+                }
+            ]
+        },
+        "once": false,
+        "effects": {
+            "play_scene": "siege_four"
+        }
+    },
+    "siege_push_out": {
+        "on": {
+            "event": "room_cleared",
+            "region": "tolmere",
+            "room": "hall"
+        },
+        "when": {
+            "all": [
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "siege_5"
+                    }
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "duel_lost"
+                    }
+                },
+                {
+                    "kind": "flag",
+                    "flag": "siege_4"
+                }
+            ]
+        },
+        "once": false,
+        "effects": {
+            "play_scene": "siege_push_out"
+        }
+    },
+    "siege_six": {
+        "on": {
+            "event": "room_cleared",
+            "region": "tolmere",
+            "room": "courtyard"
+        },
+        "when": {
+            "all": [
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "siege_6"
+                    }
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "duel_lost"
+                    }
+                },
+                {
+                    "kind": "flag",
+                    "flag": "siege_5"
+                }
+            ]
+        },
+        "once": false,
+        "effects": {
+            "play_scene": "siege_six"
         }
     }
 }

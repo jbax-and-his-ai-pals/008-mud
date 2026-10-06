@@ -288,5 +288,312 @@
                 "text": "Six of them, rolling toward you across the black stone, each ticking a little faster than its mother."
             }
         ]
+    },
+    "ice_wall": {
+        "note": "A wall of ice on the switchbacks; Ryn learns Blaze and melts it.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "The path round the last turn is gone. A wall of blue ice, thick as a house, fills the gap between the rock faces, and in its heart something has been caught and looks back at you without any interest at all. It is not a wall made by weather."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[YELLOW]]Ryn speaks:[[/]] [[GREEN]]\"It is only cold. Cold is only the absence of something. Wait. I think I know what goes in the gap.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "She stands with her small hands out and her eyes shut, and nothing happens, and nothing, and then the air above her knuckles goes the colour of a struck match. She laughs once, astonished. The ember she has always carried is, quite suddenly, a fire.",
+                "effects": {
+                    "teach_companion": {
+                        "npc": "ryn_young",
+                        "spell": "blaze"
+                    }
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "The ice goes the way a held breath goes. It weeps, and runs, and cracks from the middle outward with a sound like a river starting, and then it is a hundred small waterfalls down the rock and the path is open.",
+                "effects": {
+                    "set_flag": "ice_melted"
+                }
+            }
+        ]
+    },
+    "siege_two": {
+        "note": "The second wave comes through the gate.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]Before the first is cold the gate fills again. A second line, fresh, in good order, with ladders.[[/]]",
+                "effects": {
+                    "set_flag": "siege_2"
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w2_b1"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w2_b2"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_lancer",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w2_l1"
+                    }
+                }
+            }
+        ]
+    },
+    "siege_fall_back": {
+        "note": "The courtyard is lost; the third wave takes the great hall's doors from within.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]A monk's voice, high over the noise:[[/]] [[GREEN]]\"Fall back! Fall back to the hall! They are over the walls!\"[[/]]",
+                "effects": {
+                    "set_flag": "siege_3"
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The inner doors boom. In the great hall, between the grey pillars, the Red Fleet has come in a way no one was watching."
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "hall",
+                        "instance_id": "w3_b1"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "hall",
+                        "instance_id": "w3_b2"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_lancer",
+                        "region": "tolmere",
+                        "room": "hall",
+                        "instance_id": "w3_l1"
+                    }
+                }
+            }
+        ]
+    },
+    "siege_four": {
+        "note": "The fourth wave is behind the third.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]There is no pause. Behind the dead the doors to the courtyard burst, and the next line pours in over them.[[/]]",
+                "effects": {
+                    "set_flag": "siege_4"
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "hall",
+                        "instance_id": "w4_b1"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "hall",
+                        "instance_id": "w4_b2"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_lancer",
+                        "region": "tolmere",
+                        "room": "hall",
+                        "instance_id": "w4_l1"
+                    }
+                }
+            }
+        ]
+    },
+    "siege_push_out": {
+        "note": "The hall is held; the party drives out into the yard, and the fifth wave meets it there.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]King Haldane speaks:[[/]] [[GREEN]]\"They are thinning. Out! Take the yard back before the ladders go up again!\"[[/]]",
+                "effects": {
+                    "set_flag": "siege_5"
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The monks go out through the doors in a body, and you with them, into a courtyard that is red again from wall to wall."
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w5_b1"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w5_b2"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_lancer",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w5_l1"
+                    }
+                }
+            }
+        ]
+    },
+    "siege_six": {
+        "note": "The last wave, the best of them.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]The last of them come at a run, the ones who did not come before: heavier, quieter, with the officers at the front.[[/]]",
+                "effects": {
+                    "set_flag": "siege_6"
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w6_b1"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_besieger",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w6_b2"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_lancer",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w6_l1"
+                    }
+                }
+            },
+            {
+                "after": 0.4,
+                "pace": "slow",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "red_fleet_lancer",
+                        "region": "tolmere",
+                        "room": "courtyard",
+                        "instance_id": "w6_l2"
+                    }
+                }
+            }
+        ]
     }
 }

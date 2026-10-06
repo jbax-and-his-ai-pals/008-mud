@@ -561,5 +561,22 @@
                 "damage_type": "fire"
             }
         ]
+    },
+    "blaze": {
+        "name": "Blaze",
+        "description": "A real fire, no longer a spark: a lance of flame that will take the ice off a mountain.",
+        "mana_cost": 10,
+        "cooldown": 5,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} opens her hands and a fire comes out of them.",
+        "hit_message": "The fire takes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 26,
+                "damage_type": "fire"
+            }
+        ]
     }
 }

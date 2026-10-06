@@ -51,7 +51,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -119,7 +125,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -210,7 +222,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -304,7 +322,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -399,7 +423,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -503,7 +533,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -599,7 +635,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -691,7 +733,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -798,7 +846,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -943,7 +997,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1090,7 +1150,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1237,7 +1303,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1391,7 +1463,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1556,7 +1634,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1739,7 +1823,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1922,7 +2012,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2101,7 +2197,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2306,7 +2408,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2511,7 +2619,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2725,7 +2839,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2763,7 +2883,8 @@
                         "rosalind_cured",
                         "rosalind_joined",
                         "cinder_down",
-                        "bram_joined"
+                        "bram_joined",
+                        "ice_melted"
                     ],
                     "remove_npc": "belaric",
                     "teleport": {
@@ -2958,7 +3079,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3002,7 +3129,9 @@
                         "crystal_stolen",
                         "tolmere_cleared",
                         "kessa_hostile",
-                        "ship_lent"
+                        "ship_lent",
+                        "ice_melted",
+                        "siege_6"
                     ],
                     "remove_npc": "belaric",
                     "teleport": {
@@ -3196,7 +3325,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3243,7 +3378,9 @@
                         "ship_lent",
                         "ship_wrecked",
                         "ryn_lost",
-                        "voyage_done"
+                        "voyage_done",
+                        "ice_melted",
+                        "siege_6"
                     ],
                     "remove_npc": "belaric",
                     "teleport": {
@@ -3385,7 +3522,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3434,7 +3577,9 @@
                         "ryn_lost",
                         "voyage_done",
                         "twins_joined",
-                        "elder_spoken"
+                        "elder_spoken",
+                        "ice_melted",
+                        "siege_6"
                     ],
                     "remove_npc": "belaric",
                     "teleport": {
@@ -3622,7 +3767,13 @@
                         "morvane_falls",
                         "party_stops",
                         "morvane_breaks",
-                        "cinder_brood"
+                        "cinder_brood",
+                        "ice_wall",
+                        "siege_two",
+                        "siege_fall_back",
+                        "siege_four",
+                        "siege_push_out",
+                        "siege_six"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3676,7 +3827,9 @@
                         "twins_waiting",
                         "belaric_at_vigil",
                         "morvane_down",
-                        "meteor_remembered"
+                        "meteor_remembered",
+                        "ice_melted",
+                        "siege_6"
                     ],
                     "remove_npc": "belaric",
                     "teleport": {
