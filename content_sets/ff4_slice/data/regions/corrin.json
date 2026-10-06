@@ -69,6 +69,10 @@
                 {
                     "template_id": "crag_imp",
                     "instance_id": "imp_ledge"
+                },
+                {
+                    "template_id": "bram",
+                    "instance_id": "bram_on_the_ledge"
                 }
             ],
             "items": [

@@ -65,22 +65,9 @@
                 }
             },
             {
-                "after": 5,
+                "after": 4,
                 "pace": "slow",
-                "text": "Something moves under a fallen beam at the edge of the ring, and heaves, and a broad man in a burned grey robe stands up out of the dust, and looks at you, and at the sky, and says nothing at all for a moment.",
-                "effects": {
-                    "spawn_npc": {
-                        "npc": "bram",
-                        "region": "corrin",
-                        "room": "summit",
-                        "instance_id": "bram_on_the_summit"
-                    }
-                }
-            },
-            {
-                "after": 2,
-                "pace": "slow",
-                "text": "(talk bram)"
+                "text": "Bram sits down heavily on a fallen beam, and looks at his wrapped hands, and at the sky, and says nothing at all for a moment. Then he gets up again."
             }
         ]
     },
@@ -217,6 +204,88 @@
                 "after": 5,
                 "pace": "slow",
                 "text": "In the crystal room the stand is empty. In the courtyard, someone is laughing, quite quietly, the way a man laughs who has lost everything and has not yet noticed."
+            }
+        ]
+    },
+    "cinder_brood": {
+        "note": "At two thirds the Cinder Mother sheds six small bombs.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "pace": "slow",
+                "text": "[[RED]]The Cinder Mother shudders, and a seam opens down her side, and something small and glowing and ticking drops out, and then another.[[/]]"
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "cinder_mote",
+                        "region": "corrin",
+                        "room": "summit",
+                        "instance_id": "mote_1"
+                    }
+                }
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "cinder_mote",
+                        "region": "corrin",
+                        "room": "summit",
+                        "instance_id": "mote_2"
+                    }
+                }
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "cinder_mote",
+                        "region": "corrin",
+                        "room": "summit",
+                        "instance_id": "mote_3"
+                    }
+                }
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "cinder_mote",
+                        "region": "corrin",
+                        "room": "summit",
+                        "instance_id": "mote_4"
+                    }
+                }
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "cinder_mote",
+                        "region": "corrin",
+                        "room": "summit",
+                        "instance_id": "mote_5"
+                    }
+                }
+            },
+            {
+                "after": 0.5,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "cinder_mote",
+                        "region": "corrin",
+                        "room": "summit",
+                        "instance_id": "mote_6"
+                    }
+                }
+            },
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "Six of them, rolling toward you across the black stone, each ticking a little faster than its mother."
             }
         ]
     }

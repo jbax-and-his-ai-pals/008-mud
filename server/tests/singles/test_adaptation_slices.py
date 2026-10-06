@@ -1506,7 +1506,7 @@ class TestFF4Slice(_Slice):
         for friend in (ryn, lucan):
             self.assertTrue(friend.is_alive or companions.is_fallen(friend), "a companion falls rather than dies")
         self.assertIs(True, self.player.flags.get("cinder_down"))
-        self.assertEqual(1, len(self.npcs("bram")), "and a monk stands up out of the wreck")
+        self.assertEqual(1, len(self.npcs("bram")), "and the monk who fought beside you is still standing")
 
     def test_the_way_down_to_tolmere_is_shut_until_the_mother_is_gone(self):
         self.at("corrin", "summit")
@@ -1516,9 +1516,23 @@ class TestFF4Slice(_Slice):
         self.say("go north")
         self.assertEqual("tolmere:gate", self.where())
 
-    def test_bram_joins_as_a_monk_with_a_kick_and_a_focus(self):
+    def test_the_cinder_mother_sheds_six_small_bombs_at_two_thirds(self):
         self.at("corrin", "summit")
-        self.world.spawn_npc("bram", "corrin", "summit", instance_id="bram_on_the_summit")
+        mother = self.npcs("mother_cinder")[0]
+        mother.health = int(mother.max_health * 0.66)
+        mother.take_damage(20, "physical")
+        self._let_scenes_play(30)
+        self.assertEqual(6, len(self.npcs("cinder_mote")))
+
+    def test_bram_waits_on_the_ledge_below_the_summit_and_joins_before_the_fight(self):
+        self.at("corrin", "ledge")
+        self.assertEqual("ledge", self.npcs("bram")[0].current_room_id)
+        self.say("talk bram")
+        self.say("reply 1")
+        self.assertIn("bram", self._companions())
+
+    def test_bram_joins_as_a_monk_with_a_kick_and_a_focus(self):
+        self.at("corrin", "ledge")
         self.say("talk bram")
         self.say("reply 1")
         self.assertIs(True, self.player.flags.get("bram_joined"))

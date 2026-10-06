@@ -1539,5 +1539,50 @@
             "bone_drain"
         ],
         "max_mana": 100
+    },
+    "cinder_mote": {
+        "name": "cinder mote",
+        "description": "A fist-sized lump of black crust with a glowing seam, ticking, that has fallen off the Cinder Mother and would very much like to be near you.",
+        "max_health": 18,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 9,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    1,
+                    3
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5,
+            "flee_threshold": 0
+        },
+        "usable_spells": [],
+        "max_mana": 0
     }
 }

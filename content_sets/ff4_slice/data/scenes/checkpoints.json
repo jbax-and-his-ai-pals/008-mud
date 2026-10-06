@@ -50,7 +50,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -117,7 +118,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -207,7 +209,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -300,7 +303,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -394,7 +398,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -497,7 +502,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -592,7 +598,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -683,7 +690,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -789,7 +797,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -933,7 +942,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1079,7 +1089,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1225,7 +1236,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1378,7 +1390,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1542,7 +1555,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1724,7 +1738,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1906,7 +1921,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2084,7 +2100,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2288,7 +2305,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2492,7 +2510,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2705,7 +2724,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2937,7 +2957,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3174,7 +3195,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3362,7 +3384,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3598,7 +3621,8 @@
                         "bridge_ambush",
                         "morvane_falls",
                         "party_stops",
-                        "morvane_breaks"
+                        "morvane_breaks",
+                        "cinder_brood"
                     ],
                     "set_flag": [
                         "air_second_wave",

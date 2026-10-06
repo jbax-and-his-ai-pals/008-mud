@@ -10,6 +10,17 @@
             "play_scene": "cinder_rises"
         }
     },
+    "cinder_brood": {
+        "on": {
+            "event": "health_below",
+            "who": "mother_cinder",
+            "fraction": 0.65
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "cinder_brood"
+        }
+    },
     "cinder_swells": {
         "on": {
             "event": "health_below",

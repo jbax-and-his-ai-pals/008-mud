@@ -12,26 +12,22 @@
     ],
     "nodes": {
         "greeting": {
-            "text": "You killed the thing on the summit. I was sent up here to do that, and it was winning. My name is Bram. I serve the king in Tolmere, and the Red Fleet has been over my city since dawn, so I would like to go home now, if you are going that way.",
+            "text": "You are going up there. Good. I was sent up this mountain to stop that thing and it has had me pinned on this ledge since dawn. My name is Bram. I serve the king in Tolmere, and the Red Fleet has been over my city since dawn, so I will fight beside you and then I would like to go home, if you are going that way.",
             "pace": "slow",
             "must_answer": true,
             "choices": [
                 {
-                    "text": "We are. Come with us.",
+                    "text": "Then fight beside us.",
                     "next_node": "joins",
                     "effects": {
                         "recruit": true,
                         "set_flag": "bram_joined"
                     }
-                },
-                {
-                    "text": "Rest a moment first.",
-                    "next_node": "rest"
                 }
             ]
         },
         "joins": {
-            "text": "Good. Then we go quickly, and I will explain on the way why a man in your armour is walking with a woman in white.",
+            "text": "Good. I will take the left. Do not let it get above you; it is worse when it is above you.",
             "pace": "slow",
             "end": true
         },
