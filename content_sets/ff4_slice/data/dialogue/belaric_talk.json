@@ -3,6 +3,44 @@
     "root": "greeting",
     "entries": [
         {
+            "node": "rejoin",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "flag",
+                        "flag": "twins_waiting"
+                    },
+                    {
+                        "kind": "flag",
+                        "flag": "paladin_made"
+                    },
+                    {
+                        "not": {
+                            "kind": "companion_present",
+                            "npc_id": "belaric"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "node": "vigil",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "flag",
+                        "flag": "belaric_at_vigil"
+                    },
+                    {
+                        "not": {
+                            "kind": "companion_present",
+                            "npc_id": "belaric"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "node": "camp",
             "condition": {
                 "all": [
@@ -145,6 +183,48 @@
             "text": "Hm. Good advice, from a young man. I may take it. Goodnight.",
             "pace": "slow",
             "end": true
+        },
+        "vigil": {
+            "text": "Do not look at me like that. I have been up this mountain two days and a night, and I am not a ghost, only an old fool who has remembered something. Every spell I ever knew came back, all at once, in the dark, while the mountain talked. All of them. Including the one I should not. You are going up. So am I.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Then walk with me, old man.",
+                    "next_node": "vigil_joins",
+                    "effects": {
+                        "recruit": true,
+                        "set_flag": "meteor_remembered"
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "end": true
+                }
+            ]
+        },
+        "vigil_joins": {
+            "text": "I will walk behind you and say nothing clever. Do not hold your breath.",
+            "pace": "slow",
+            "end": true
+        },
+        "rejoin": {
+            "text": "Well. You are... lighter. I have seen it happen to men who stood too long in front of their own faces, and it is never gentle. Come. The mountain has said its piece.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Come on, then.",
+                    "next_node": "vigil_joins",
+                    "effects": {
+                        "recruit": true
+                    }
+                },
+                {
+                    "text": "A moment.",
+                    "end": true
+                }
+            ]
         }
     }
 }

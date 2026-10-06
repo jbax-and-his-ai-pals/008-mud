@@ -1673,16 +1673,48 @@ class TestFF4Slice(_Slice):
     # -- Mount Vigil: the trial and the paladin ---------------------------------------------------------------------------------
     def test_mount_vigil_is_a_climb_of_undead_with_a_warning_at_the_crypt_gate(self):
         region = self.world.get_region("vigil")
-        self.assertEqual({"foot", "stair", "cairns", "gate", "hall", "mirror_stair", "summit"}, set(region.rooms))
+        self.assertEqual({"foot", "stair", "cairns", "gate", "hall", "bridge", "mirror_stair", "summit"}, set(region.rooms))
         self.assertEqual("warning", region.get_room("gate").properties["exit_requirements"]["north"]["type"])
-        for template in ("bone_pilgrim", "grave_hound", "candle_wight"):
+        for template in ("bone_pilgrim", "grave_hound", "candle_wight", "morvane"):
             self.assertTrue(self.npcs(template), template)
+        self.assertEqual(4, len(self.npcs("skullnant")))
+        self.assertLess(self.npcs("morvane")[0].get_resistance("fire"), 0, "fire is what the dead dislike")
 
-    def test_the_twins_cannot_climb_the_mirror_stair_and_wait_below(self):
+    def test_belaric_steps_out_of_the_mountain_and_walks_with_the_party_again(self):
+        self.world.remove_npcs("belaric")   # he left the story at Ashmere
+        self.at("vigil", "stair")
+        self.say("go north")
+        self._let_scenes_play(10)
+        self.assertEqual(1, len(self.npcs("belaric")))
+        self.say("talk belaric")
+        self.say("reply 1")
+        self.assertIn("belaric", self._companions())
+        self.assertIs(True, self.player.flags.get("meteor_remembered"))
+
+    def test_morvane_is_driven_off_at_a_third_then_takes_the_party_from_behind_on_the_bridge(self):
         self.at("vigil", "hall")
-        for who in ("twin_tobin", "twin_tamsin"):
-            self._join(who, "vigil", "hall")
-        self.at("vigil", "hall")
+        morvane = self.npcs("morvane")[0]
+        morvane.health = int(morvane.max_health * 0.37)
+        morvane.take_damage(30, "physical")
+        self._let_scenes_play(20)
+        self.assertEqual([], self.npcs("morvane"))
+        self.assertEqual([], self.npcs("skullnant"))
+        self.say("go north")
+        self._let_scenes_play(20)
+        self.assertEqual(1, len(self.npcs("morvane_risen")), "he is back, and between you and the stair")
+        self.player.runtime_state.combat.in_combat = False
+        self.assertIn("shut by the thing", self.say("go north"))
+        self.npcs("morvane_risen")[0].take_damage(10 ** 6, "physical")
+        self._let_scenes_play(20)
+        self.assertIs(True, self.player.flags.get("morvane_down"))
+        self.say("go north")
+        self.assertEqual("vigil:mirror_stair", self.where())
+
+    def test_the_twins_and_belaric_cannot_climb_the_mirror_stair_and_wait_below(self):
+        self.player.flags["morvane_down"] = True
+        for who in ("twin_tobin", "twin_tamsin", "belaric"):
+            self._join(who, "vigil", "bridge")
+        self.at("vigil", "bridge")
         self.say("go north")
         self._let_scenes_play(30)
         self.assertEqual("vigil:mirror_stair", self.where())
@@ -1698,14 +1730,34 @@ class TestFF4Slice(_Slice):
         self.assertEqual(250, shadow.max_health)
         self.assertEqual(self.player.get_attack_power(), shadow.attack_power)
 
-    def test_beating_the_shadow_makes_the_hero_a_paladin_with_new_arms_and_the_light_for_the_dark(self):
-        from engine.core.titles import TitleManager
+    def test_the_shadow_cannot_be_struck_and_spends_its_own_blood_on_the_dark(self):
+        from engine.npcs.combat import cast_spell
+        from engine.magic.spell_registry import get_spell
 
+        self.player.max_health = self.player.health = 2000
         self.at("vigil", "mirror_stair")
         self.say("go up")
         self._let_scenes_play(60)
-        self.npcs("shadow_of_aldric")[0].take_damage(10 ** 6, "physical")
+        shadow = self.npcs("shadow_of_aldric")[0]
+        before = shadow.health
+        self.assertIn("passes through", self.say("attack shadow"))
+        self.assertEqual(before, shadow.health, "a blow does nothing")
+        shadow.combat_targets.add(self.player)
+        cast_spell(shadow, get_spell("shadow_tide"), self.player, float(self.world.clock.now()) + 100)
+        self.assertLess(shadow.health, before, "the dark is paid for in its blood")
+
+    def test_beating_the_shadow_makes_the_hero_a_paladin_with_new_arms_and_the_light_for_the_dark(self):
+        from engine.core.titles import TitleManager
+
+        self.player.max_health = self.player.health = 2000
+        self.at("vigil", "mirror_stair")
+        self.say("go up")
+        self._let_scenes_play(60)
+        shadow = self.npcs("shadow_of_aldric")[0]
+        shadow.health = int(shadow.max_health * 0.25)
+        shadow.take_damage(15, "physical")   # it has spent itself to a fifth: the light comes
         self._let_scenes_play(90)
+        self.assertEqual([], self.npcs("shadow_of_aldric"), "and the shadow is gone")
         self.assertIs(True, self.player.flags.get("paladin_made"))
         known = set(self.player.runtime_state.magic.known_spells)
         self.assertTrue({"smite", "radiance", "mercy"} <= known)
@@ -1719,13 +1771,15 @@ class TestFF4Slice(_Slice):
     def test_the_twins_rejoin_below_once_the_trial_is_won(self):
         self.player.flags.update({"twins_waiting": True, "paladin_made": True})
         self.at("vigil", "mirror_stair")
-        for who in ("twin_tobin", "twin_tamsin"):
+        for who in ("twin_tobin", "twin_tamsin", "belaric"):
             self.world.spawn_npc(who, "vigil", "mirror_stair")
         self.say("talk tobin")
         self.say("reply 1")
         self.say("talk tamsin")
         self.say("reply 1")
-        self.assertEqual({"twin_tobin", "twin_tamsin"}, set(self._companions()))
+        self.say("talk belaric")
+        self.say("reply 1")
+        self.assertEqual({"twin_tobin", "twin_tamsin", "belaric"}, set(self._companions()))
 
     def test_the_vigil_checkpoints(self):
         runner = self.world.scene_runner

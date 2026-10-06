@@ -13,7 +13,8 @@ Ashmere under siege and Mirelle's death, Lucan joins as a bard, the royal skimme
 Rosalind, cured, joins as the healer. Mount Corrin and the Cinder Mother (a bomb that goes off at a third of its strength), Bram the monk joins,
 Tolmere under attack, Kessa returns brainwashed, the duel the hero cannot win, and Rosalind taken with the crystal.
 The Gull and the grey sea, the Maelrake that wrecks it (Ryn lost to the water), the hero alone on the shore at Vessa, the elder, and the twins who join
-for Mount Vigil. Mount Vigil's trial: the climb, the voice, the shadow, and the Paladin conversion (new arms, the light for the dark, a title).
+for Mount Vigil. Mount Vigil: Belaric steps out of the mountain and rejoins, the lord of earth (Morvane: driven off in the hall, risen again on the bridge, weak to fire), the voice, the shadow that
+can only be outlasted (it spends its own blood on the dark, and the hero must not strike), and the Paladin conversion (new arms, the light for the dark, a title).
 
 ## What the engine now has for the rest
 
@@ -39,3 +40,12 @@ for Mount Vigil. Mount Vigil's trial: the climb, the voice, the shadow, and the 
 * Party swapping beyond the story scenes, and a party size above the ruleset's `companions.max` (ff4_slice sets 3; five fighters need 4).
 
 Each is small once the story reaches it; none blocks the order above.
+
+## The order after Mount Vigil (checked against a walkthrough)
+
+The original goes on, in this order, and so will the set: the party returns to Vessa and takes the teleport road to **Baron**, where the king is an
+impostor (one of Varkos's four lieutenants, water) and the airship's engineer arrives with his ship; **the twins sacrifice themselves** (turned to stone)
+to save the party from a trap; the **Tower of Zot**, where Kessa demands the last crystal for Rosalind, **Belaric casts Meteor on Varkos and dies**, which
+breaks Kessa's thrall, and Rosalind is freed; then the **Underworld** (the dwarves; Bram sacrifices himself at the Tower of Babil; the engineer seals the
+passage), the eighth crystal, the **Lunar Whale** from Vessa, and the **moon**, with the lunar sage, the giant, and Varkos revealed as the hero's brother.
+Edge, the ninja prince, joins after Zot, around the fall of his city, not before it.

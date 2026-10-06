@@ -67,23 +67,41 @@
                         "failure_message": "You stop at the gate. The candles inside, all together, lean toward you."
                     }
                 }
-            }
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "candle_wight",
+                    "instance_id": "wight_gate"
+                }
+            ]
         },
         "hall": {
             "name": "The Hall of Candles",
             "description": "A long vaulted hall lined with niches, each holding a candle that has burned for longer than the hall has had a roof. The air is cold and the floor is dry as bone.",
             "exits": {
                 "south": "gate",
-                "north": "mirror_stair"
+                "north": "bridge"
             },
             "initial_npcs": [
                 {
-                    "template_id": "candle_wight",
-                    "instance_id": "wight_hall"
+                    "template_id": "morvane",
+                    "instance_id": "morvane_hall"
                 },
                 {
-                    "template_id": "bone_pilgrim",
-                    "instance_id": "pilgrim_hall"
+                    "template_id": "skullnant",
+                    "instance_id": "skullnant_1"
+                },
+                {
+                    "template_id": "skullnant",
+                    "instance_id": "skullnant_2"
+                },
+                {
+                    "template_id": "skullnant",
+                    "instance_id": "skullnant_3"
+                },
+                {
+                    "template_id": "skullnant",
+                    "instance_id": "skullnant_4"
                 }
             ],
             "items": [
@@ -96,7 +114,7 @@
             "name": "The Mirror Stair",
             "description": "A last short stair, the walls polished black as glass, so that you climb it between two of yourself. At the top the stair ends in a plain archway, and beyond it, daylight.",
             "exits": {
-                "south": "hall",
+                "south": "bridge",
                 "up": "summit"
             }
         },
@@ -105,6 +123,26 @@
             "description": "A flat disc of white stone at the very top of the mountain, with no wind. The sky is enormous and perfectly clear. In the middle of the stone, someone is waiting.",
             "exits": {
                 "down": "mirror_stair"
+            }
+        },
+        "bridge": {
+            "name": "The Narrow Bridge",
+            "description": "A bridge of one slab of black stone, no wider than your shoulders, across a drop that has no bottom. On the far side, a short stair of polished glass, and on this side, a great many names scratched into the parapet by people who did not come back.",
+            "exits": {
+                "south": "hall",
+                "north": "mirror_stair"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "flag",
+                            "flag": "morvane_down"
+                        },
+                        "failure_message": "The way across is shut by the thing that follows you."
+                    }
+                }
             }
         }
     }

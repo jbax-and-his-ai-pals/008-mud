@@ -1,18 +1,4 @@
 {
-    "twins_stop": {
-        "on": {
-            "event": "on_enter",
-            "region": "vigil",
-            "room": "mirror_stair"
-        },
-        "once": "player",
-        "when": {
-            "kind": "companion_present"
-        },
-        "effects": {
-            "play_scene": "twins_stop"
-        }
-    },
     "the_voice": {
         "on": {
             "event": "on_enter",
@@ -26,12 +12,81 @@
     },
     "the_light": {
         "on": {
-            "event": "npc_killed",
-            "npc": "shadow_of_aldric"
+            "event": "health_below",
+            "who": "shadow_of_aldric",
+            "fraction": 0.2
         },
         "once": "world",
         "effects": {
             "play_scene": "the_light"
+        }
+    },
+    "belaric_returns": {
+        "on": {
+            "event": "on_enter",
+            "region": "vigil",
+            "room": "cairns"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "belaric_returns"
+        }
+    },
+    "morvane_rises": {
+        "on": {
+            "event": "on_enter",
+            "region": "vigil",
+            "room": "hall"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "morvane_rises"
+        }
+    },
+    "morvane_retreats": {
+        "on": {
+            "event": "health_below",
+            "who": "morvane",
+            "fraction": 0.35
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "morvane_retreats"
+        }
+    },
+    "bridge_ambush": {
+        "on": {
+            "event": "on_enter",
+            "region": "vigil",
+            "room": "bridge"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "bridge_ambush"
+        }
+    },
+    "morvane_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "morvane_risen"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "morvane_falls"
+        }
+    },
+    "party_stops": {
+        "on": {
+            "event": "on_enter",
+            "region": "vigil",
+            "room": "mirror_stair"
+        },
+        "once": "player",
+        "when": {
+            "kind": "companion_present"
+        },
+        "effects": {
+            "play_scene": "party_stops"
         }
     }
 }

@@ -1366,14 +1366,179 @@
             "aggression": 1,
             "flee_threshold": 0,
             "respawn_cooldown": -1,
-            "spell_cast_chance": 0,
+            "spell_cast_chance": 1,
             "wander_chance": 0,
             "move_cooldown": 9999,
             "weapon_damage_type": "slashing",
             "attack_cooldown": 3.5,
             "mirrors_player": true,
             "unique": true,
-            "essential": false
-        }
+            "essential": false,
+            "phases": [
+                {
+                    "name": "unreachable",
+                    "seconds": 9999,
+                    "untouchable": true,
+                    "miss_text": "Your blade passes through your own shadow as through smoke."
+                }
+            ]
+        },
+        "usable_spells": [
+            "shadow_tide"
+        ],
+        "max_mana": 100
+    },
+    "skullnant": {
+        "name": "skullnant",
+        "description": "A skull and a hand and not much else, floating at head height, that clicks its teeth when it wants something.",
+        "max_health": 60,
+        "level": 7,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "fire": -50
+            }
+        },
+        "attack_power": 12,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    6,
+                    12
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.35,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5
+        },
+        "usable_spells": [
+            "bone_drain"
+        ],
+        "max_mana": 60
+    },
+    "morvane": {
+        "name": "Morvane",
+        "description": "A hulking lord of earth in armour of packed grave-soil, wearing a crown of root, who regards you out of two points of green fire.",
+        "max_health": 330,
+        "level": 9,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "fire": -75
+            }
+        },
+        "attack_power": 22,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    78,
+                    115
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5,
+            "unique": true,
+            "essential": true
+        },
+        "usable_spells": [
+            "bone_drain"
+        ],
+        "max_mana": 100
+    },
+    "morvane_risen": {
+        "name": "Morvane, risen",
+        "description": "The lord of earth, come apart and put back together wrong, bone showing through the soil, much angrier for it.",
+        "max_health": 330,
+        "level": 9,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 8,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "fire": -75
+            }
+        },
+        "attack_power": 24,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    78,
+                    115
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 0.8,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.3,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 4.5,
+            "unique": true
+        },
+        "usable_spells": [
+            "bone_drain"
+        ],
+        "max_mana": 100
     }
 }

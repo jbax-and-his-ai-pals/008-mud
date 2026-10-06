@@ -43,9 +43,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": "air_second_wave",
                     "give_item": "item_ilmaran_crystal",
@@ -105,9 +110,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -190,9 +200,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -278,9 +293,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -367,9 +387,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -465,9 +490,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -555,9 +585,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -641,9 +676,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -742,9 +782,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -881,9 +926,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1022,9 +1072,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1163,9 +1218,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1311,9 +1371,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1470,9 +1535,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1647,9 +1717,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1824,9 +1899,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -1997,9 +2077,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2196,9 +2281,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2395,9 +2485,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2603,9 +2698,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -2830,9 +2930,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3062,9 +3167,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3245,9 +3355,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3433,7 +3548,7 @@
         ]
     },
     "checkpoint_paladin": {
-        "note": "For testing: the trial is won; you are a paladin at the Still Summit, and the twins wait below.",
+        "note": "For testing: the trial is won; you are a paladin at the Still Summit, and the twins and Belaric wait below.",
         "lock": false,
         "beats": [
             {
@@ -3476,9 +3591,14 @@
                         "storm_rises",
                         "shipwreck",
                         "warn_vigil",
-                        "twins_stop",
                         "the_voice",
-                        "the_light"
+                        "the_light",
+                        "belaric_returns",
+                        "morvane_rises",
+                        "morvane_retreats",
+                        "bridge_ambush",
+                        "morvane_falls",
+                        "party_stops"
                     ],
                     "set_flag": [
                         "air_second_wave",
@@ -3529,7 +3649,10 @@
                         "twins_joined",
                         "elder_spoken",
                         "paladin_made",
-                        "twins_waiting"
+                        "twins_waiting",
+                        "belaric_at_vigil",
+                        "morvane_down",
+                        "meteor_remembered"
                     ],
                     "remove_npc": "belaric",
                     "teleport": {
@@ -3681,6 +3804,17 @@
                         "region": "vigil",
                         "room": "mirror_stair",
                         "instance_id": "tamsin_waits"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "belaric",
+                        "region": "vigil",
+                        "room": "mirror_stair",
+                        "instance_id": "belaric_waits"
                     }
                 }
             }

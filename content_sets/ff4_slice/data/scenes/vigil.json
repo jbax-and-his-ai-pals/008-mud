@@ -10,40 +10,6 @@
             }
         ]
     },
-    "twins_stop": {
-        "note": "The twins cannot climb the mirror stair.",
-        "lock": true,
-        "beats": [
-            {
-                "after": 3,
-                "pace": "slow",
-                "text": "[[YELLOW]]Tamsin speaks:[[/]] [[GREEN]]\"Wait. I... can't. The stair. I can't put my foot on it.\"[[/]]"
-            },
-            {
-                "after": 4,
-                "pace": "slow",
-                "text": "[[YELLOW]]Tobin speaks:[[/]] [[GREEN]]\"Me neither. It is like trying to walk into a wall made of looking.\"[[/]]"
-            },
-            {
-                "after": 4,
-                "pace": "slow",
-                "text": "Neither can follow you onto the mirror stair. They sit down on the bottom step, shoulder to shoulder, as though they had been told to expect this.",
-                "effects": {
-                    "dismiss": [
-                        "twin_tobin",
-                        "twin_tamsin"
-                    ]
-                }
-            },
-            {
-                "after": 0,
-                "pace": "slow",
-                "effects": {
-                    "set_flag": "twins_waiting"
-                }
-            }
-        ]
-    },
     "the_voice": {
         "note": "A voice at the top of the mountain, and then your shadow.",
         "lock": true,
@@ -61,7 +27,7 @@
             {
                 "after": 8,
                 "pace": "slow",
-                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"The dark in you is not a flaw, my son. It is a choice you made each time you struck, each time you took the power it offered and paid for it in your own blood. To put it down, you must first meet it.\"[[/]]"
+                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"The dark in you is not a flaw, my son. It is a choice you made each time you struck, each time you took the power it offered and paid for it in your own blood. You cannot cut it down. It must spend itself on you, and you must stand, and not strike back.\"[[/]]"
             },
             {
                 "after": 6,
@@ -79,7 +45,7 @@
             {
                 "after": 5,
                 "pace": "slow",
-                "text": "[[YELLOW]]Your shadow speaks:[[/]] [[GREEN]]\"I am everything you did not want to be, and everything that kept you alive. Say it, if you can, that you do not need me.\"[[/]]"
+                "text": "[[YELLOW]]Your shadow speaks:[[/]] [[GREEN]]\"I am everything you did not want to be, and everything that kept you alive. Hold up your blade. Strike me, if you can.\"[[/]]"
             }
         ]
     },
@@ -90,12 +56,16 @@
             {
                 "after": 5,
                 "pace": "slow",
-                "text": "It does not fall the way a thing falls. It comes apart in strips of grey that blow off the mountain, and for a moment, before it goes, you see it smile."
+                "text": "It does not fall the way a thing falls. It has spent itself on you, blow by blow, until there is not enough left to hold the shape, and it comes apart in strips of grey that blow off the mountain. For a moment, before it goes, you see it smile.",
+                "effects": {
+                    "remove_npc": "shadow_of_aldric",
+                    "end_fight": {}
+                }
             },
             {
                 "after": 7,
                 "pace": "slow",
-                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"That is the hardest thing there is. You did not destroy it. You looked at it, and you did not turn away. Now put the sword down.\"[[/]]"
+                "text": "[[YELLOW]]A voice speaks:[[/]] [[GREEN]]\"That is the hardest thing there is. You did not destroy it. You stood in front of it, and you did not turn away. Now put the sword down.\"[[/]]"
             },
             {
                 "after": 6,
@@ -162,6 +132,146 @@
                 "after": 5,
                 "pace": "slow",
                 "text": "The voice does not say goodbye. It is simply, gently, not there any more, and the whole sky is blue."
+            }
+        ]
+    },
+    "belaric_returns": {
+        "note": "Belaric steps out of a door in the mountain.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "A door you had taken for rock swings inward at the side of the path, and a tall, stooped old man in a soaked grey robe steps out of it, squinting at the daylight as if it had insulted him.",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "belaric",
+                        "region": "vigil",
+                        "room": "cairns",
+                        "instance_id": "belaric_at_vigil"
+                    },
+                    "set_flag": "belaric_at_vigil"
+                }
+            },
+            {
+                "after": 1,
+                "pace": "slow",
+                "text": "(talk belaric)"
+            }
+        ]
+    },
+    "morvane_rises": {
+        "note": "The lord of earth in the Hall of Candles.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "The candles go out, all together, and in the dark something says your name in a voice like a shovel going into wet ground."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]The floor of the hall heaves up into the shape of a man, and green fire opens where its eyes should be, and four small bone things come clicking up out of the dark behind it.[[/]]"
+            }
+        ]
+    },
+    "morvane_retreats": {
+        "note": "Morvane is hurt, and goes.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Morvane staggers, and the green fire in his eyes gutters. [[YELLOW]]\"Not yet. You are not yet worth the whole of me.\"[[/]] He sinks into the floor as into water, and the skullnants fall to the stone like dropped dice.",
+                "effects": {
+                    "end_fight": {},
+                    "remove_npc": "morvane"
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "skullnant"
+                }
+            }
+        ]
+    },
+    "bridge_ambush": {
+        "note": "Morvane takes you from behind on the bridge.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Halfway over the slab, something behind you laughs, and the bridge shivers, and you turn."
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]It is the lord of earth again, and he has not troubled to be whole. He comes up out of the stone with his arm still re-forming, and he has brought the cold with him.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "morvane_risen",
+                        "region": "vigil",
+                        "room": "bridge",
+                        "instance_id": "morvane_on_the_bridge"
+                    }
+                }
+            }
+        ]
+    },
+    "morvane_falls": {
+        "note": "Morvane, risen, is done.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "Morvane comes apart at last, bone and soil and a crown of root, and lies still across the black slab. The cold goes out of the air.",
+                "effects": {
+                    "set_flag": "morvane_down",
+                    "give_rewards": {
+                        "xp": 1800,
+                        "gold": 100
+                    }
+                }
+            }
+        ]
+    },
+    "party_stops": {
+        "note": "Nobody can follow onto the mirror stair.",
+        "lock": true,
+        "beats": [
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "[[YELLOW]]Tamsin speaks:[[/]] [[GREEN]]\"Wait. I can't. The stair. I can't put my foot on it.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]Tobin speaks:[[/]] [[GREEN]]\"Me neither. It is like trying to walk into a wall made of looking.\"[[/]]"
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "Neither can follow you onto the mirror stair, nor the old man behind them, whose jaw sets. They sit down on the bottom step together, as though they had been told to expect this.",
+                "effects": {
+                    "dismiss": [
+                        "twin_tobin",
+                        "twin_tamsin",
+                        "belaric"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "set_flag": "twins_waiting"
+                }
             }
         ]
     }

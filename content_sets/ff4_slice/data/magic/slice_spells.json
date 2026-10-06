@@ -508,5 +508,40 @@
                 "damage_type": "shadow"
             }
         ]
+    },
+    "bone_drain": {
+        "name": "Bone Drain",
+        "description": "A cold hand closing round the life in you.",
+        "mana_cost": 3,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} clutches at the air, and something in you tugs.",
+        "hit_message": "The cold takes {value} health from {target_name}!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "life_tap",
+                "value": 10,
+                "damage_type": "shadow"
+            }
+        ]
+    },
+    "shadow_tide": {
+        "name": "Dark Tide",
+        "description": "The dark, paid for in the caster's own blood.",
+        "mana_cost": 0,
+        "cooldown": 8,
+        "target_type": "enemy",
+        "health_cost_fraction": 0.12,
+        "cast_message": "[[RED]]{caster_name} draws the dark up out of its own veins and throws it![[/]]",
+        "hit_message": "The black wave breaks over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 24,
+                "damage_type": "shadow"
+            }
+        ]
     }
 }
