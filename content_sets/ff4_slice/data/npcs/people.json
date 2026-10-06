@@ -308,7 +308,8 @@
         "behavior_type": "stationary",
         "max_mana": 60,
         "usable_spells": [
-            "ember"
+            "ember",
+            "apprentice_mend"
         ],
         "dialog": {
             "greeting": "Where do we go now?"

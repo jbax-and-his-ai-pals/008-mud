@@ -1577,6 +1577,21 @@ class TestFF4Slice(_Slice):
         self._clear("courtyard")
         self.assertEqual(1, len(self.npcs("kessa_returned")), "after the sixth, she walks in")
 
+    def test_ryn_has_a_basic_mend_and_tends_the_hero_when_he_is_hurt(self):
+        from engine.npcs.ai import specialized
+
+        self.at("dunhallow", "inn")
+        ryn = self._join("ryn_young", "dunhallow", "inn")
+        self.assertEqual({"ember", "apprentice_mend"}, set(ryn.usable_spells))
+        self.player.health = self.player.max_health
+        ryn.last_combat_action = 0
+        now = float(self.world.clock.now()) + 100
+        self.assertIsNone(specialized.perform_companion_support(ryn, self.world, now, self.player), "nothing to mend")
+        self.player.health = int(self.player.max_health * 0.4)
+        before = self.player.health
+        self.assertIsNotNone(specialized.perform_companion_support(ryn, self.world, now, self.player))
+        self.assertGreater(self.player.health, before, "she mends the hero")
+
     def test_a_wall_of_ice_shuts_the_switchbacks_until_ryn_learns_a_real_fire(self):
         self.at("corrin", "switchback")
         self.player.health = self.player.max_health = 10 ** 5

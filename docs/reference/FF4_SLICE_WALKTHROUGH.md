@@ -53,7 +53,7 @@ Commands are what you type. `reply N` picks the Nth choice in a conversation. "W
 
 1. East, east, east... the walk script goes east seven times and then north to the inn. Wolves and jackals are on the way. You are carrying Ryn; `companions` should show her.
 2. At the **Blue Door Inn** wait: she is put to bed. Wait again: the king's guards arrive and you refuse to hand her over. Beat the sergeant and the guards.
-3. Wait: Ryn wakes, thanks you and **joins** (she has a spell: Ember). The innkeeper mentions a woman asking after you.
+3. Wait: Ryn wakes, thanks you and **joins** (she has Ember and a basic Mend). The innkeeper mentions a woman asking after you.
 4. **Orrin's house.** From the inn go south (square), south (lane), east. North is the back room. On entering (wait): **Rosalind**, sick with the salt fever. `talk orrin`: `reply 2` asks where a mirage pearl is found. The cure is a mirage pearl; the old stories say the kings of Ashmere kept some.
 5. Pell's Trading Post (east of the square, north) sells salves; `trade pell`, `list`, `stoptrade`.
 
