@@ -74,6 +74,25 @@ class TestLevelTable(unittest.TestCase):
         self.assertEqual(5 + (22 - 15), player.health)
 
 
+class TestSpellsByLevel(unittest.TestCase):
+    def test_a_row_teaches_its_spells_on_reaching_the_level(self):
+        table = [dict(row) for row in TABLE]
+        table[1] = {**table[1], "spells": ["cure"]}
+        player, _server = _hero(self, table)
+        self.assertNotIn("cure", player.runtime_state.magic.known_spells)
+        said = player.gain_experience(7)[1]
+        self.assertIn("cure", player.runtime_state.magic.known_spells)
+        self.assertIn("Cure", said, "and the level-up says so")
+
+    def test_a_spell_that_is_not_an_ability_is_refused(self):
+        from engine.server.content_set.advancement import _validate_level_table
+        from pathlib import Path
+
+        issues = []
+        _validate_level_table([{"xp": 5, "spells": ["no_such_spell"]}, {"max_health": 6}], {}, issues, Path("r.json"), {"ember"})
+        self.assertTrue([i for i in issues if i.severity == "error" and "no_such_spell" in i.message])
+
+
 class TestLevelTableValidation(unittest.TestCase):
     def _issues(self, table):
         from engine.server.content_set.advancement import _validate_level_table

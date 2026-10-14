@@ -490,8 +490,8 @@ engine's `too_dark` message (a set may say its own in `ruleset.messages`). A lig
 **A level table.** A game that says what a level *is*, not what it adds, writes `ruleset.advancement.level_table`: a list of rows, the first
 level 1, each `{"xp": 7, "stats": {"strength": 4, "agility": 4}, "max_health": 15, "max_mana": 0}`. `xp` is what reaching the next level
 costs; the last row has none and is the cap. The values are absolute: a new character is row 1, and each level reached becomes its row
-(health and the pool rise by the difference). With a table the growth rule and the curve are not used. The ruleset editor writes it as one
-line per level.
+(health and the pool rise by the difference); a row's `spells` (ability ids) are learned on reaching it. With a table the growth rule and
+the curve are not used. The ruleset editor writes it as one line per level.
 
 **The engine's own words.** `ruleset.messages` replaces the sentences the engine says at the moments every game has:
 `kill_experience`, `kill_gold`, `shared_experience`, `level_reached`, `levels_gained`, `defeated`, `respawn_hint`,

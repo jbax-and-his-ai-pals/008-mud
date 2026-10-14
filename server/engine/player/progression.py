@@ -92,7 +92,9 @@ class PlayerProgressionMixin:
         # rather than the six names this used to have written in.
         from engine.core import level_table
         if level_table.apply_row(p, p.runtime_state.progression.level):
-            return   # the set says what this level is: the rule below is not used
+            # the set says what this level is: the rule below is not used
+            self._level_notes = list(getattr(self, "_level_notes", [])) + level_table.learn_row_spells(p, p.runtime_state.progression.level)
+            return
         growth, health_base = level_up_settings(p.world)
         for stat, value in list(p.stats.items()):
             if isinstance(value, (int, float)) and not isinstance(value, bool):
@@ -131,6 +133,10 @@ class PlayerProgressionMixin:
             if new_value > old_value: 
                 message += f"  - {stat_name.capitalize()}: {old_value} -> {new_value} (+{new_value - old_value})\n"
                 
+        notes = getattr(self, "_level_notes", [])
+        if notes:
+            message += "\n" + "\n".join(notes)
+            self._level_notes = []
         return message.strip()
 
     def total_experience(self) -> int:

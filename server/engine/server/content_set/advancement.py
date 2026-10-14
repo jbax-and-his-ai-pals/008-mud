@@ -32,7 +32,9 @@ def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], i
     if section is not None:
         _validate_advancement_section(section, content_root, issues, ruleset_path)
         if isinstance(section, dict):
-            _validate_level_table(section.get("level_table"), ruleset, issues, ruleset_path)
+            from .abilities import _ability_ids
+
+            _validate_level_table(section.get("level_table"), ruleset, issues, ruleset_path, _ability_ids(content_root, issues))
 
     # `AdvancementManager._config` also reads `<content_root>/advancement.json`
     # and lays the ruleset section over it one top-level key at a time, so a
@@ -53,7 +55,8 @@ def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], i
             ))
 
 
-def _validate_level_table(table: Any, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+def _validate_level_table(table: Any, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path,
+                          ability_ids: set[str] | None = None) -> None:
     """`advancement.level_table`: one row per level; every row says what a character of that level is."""
     from engine.core.level_table import ROW_KEYS
 
@@ -96,6 +99,14 @@ def _validate_level_table(table: Any, ruleset: dict[str, Any], issues: list[Cont
                         error(f"{label}.stats.{stat} must be a number")
                     elif known_stats and str(stat) not in known_stats:
                         issues.append(ContentSetIssue("warning", str(ruleset_path), f"advancement.level_table{label}.stats.{stat} is not a stat this set declares"))
+        spells = row.get("spells")
+        if spells is not None:
+            if not isinstance(spells, list) or not all(isinstance(spell, str) and spell.strip() for spell in spells):
+                error(f"{label}.spells must be a list of ability ids")
+            else:
+                for spell in spells:
+                    if ability_ids and spell not in ability_ids:
+                        error(f"{label}.spells names '{spell}', which is not an ability of this content set")
         for key in ("max_health", "max_mana"):
             value = row.get(key)
             if value is not None and (not number(value) or value < (1 if key == "max_health" else 0)):

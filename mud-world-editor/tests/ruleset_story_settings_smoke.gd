@@ -91,7 +91,7 @@ func _run():
 	rules.open_active()
 	_assert(rules.level_table_text.text == "", "no table is shown for a set without one")
 	rules.level_table_text.text = "7 | 15 | 0 | strength=4, agility=4
-16 | 22 | 0 | strength=5, agility=4
+16 | 22 | 0 | strength=5, agility=4 | cure, gloom_wave
  | 24 | 5 | strength=7, agility=6"
 	rules.level_table_text.text_changed.emit()
 	rules.confirmed.emit()
@@ -99,6 +99,7 @@ func _run():
 	var table: Array = saved["advancement"]["level_table"]
 	_assert(table.size() == 3 and int(table[0]["xp"]) == 7 and int(table[0]["max_health"]) == 15 and int(table[0]["stats"]["strength"]) == 4, "the rows are written: %s" % JSON.stringify(table))
 	_assert(not table[2].has("xp") and int(table[2]["max_mana"]) == 5, "the last row has no xp")
+	_assert(table[1].get("spells") == ["cure", "gloom_wave"] and not table[0].has("spells"), "a row names the spells it teaches")
 	raw = FileAccess.get_file_as_string(rules_path)
 	_assert(raw.contains("\"xp\": 7,") and not raw.contains("\"xp\": 7.0"), "numbers are written as whole numbers")
 	rules.open_active()

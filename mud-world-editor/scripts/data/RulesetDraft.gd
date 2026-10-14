@@ -92,8 +92,8 @@ func set_npc_schedules(schedule_rules: Dictionary):
 	else: data["npc_schedules"] = schedule_rules.duplicate(true)
 
 ## Why `text` cannot stand in for the engine's words for `key` ("" when it can). The same rule the engine applies.
-## `advancement.level_table` written one level per line: "xp | max health | max mana | stat=value, stat=value". An empty first field is
-## the last level, the cap. Fields may be left empty (the key is then not written).
+## `advancement.level_table` written one level per line: "xp | max health | max mana | stat=value, stat=value | spell, spell". An empty first
+## field is the last level, the cap. Fields may be left empty (the key is then not written); the spells field may be left off.
 static func level_table_text(rows) -> String:
 	if not (rows is Array): return ""
 	var lines: Array = []
@@ -102,7 +102,10 @@ static func level_table_text(rows) -> String:
 		var stats: Array = []
 		var named: Dictionary = row.get("stats", {}) if row.get("stats", {}) is Dictionary else {}
 		for stat in named: stats.append("%s=%s" % [str(stat), _plain(named[stat])])
-		lines.append("%s | %s | %s | %s" % [_plain(row.get("xp", "")), _plain(row.get("max_health", "")), _plain(row.get("max_mana", "")), ", ".join(stats)])
+		var spells: Array = row.get("spells", []) if row.get("spells", []) is Array else []
+		var line := "%s | %s | %s | %s" % [_plain(row.get("xp", "")), _plain(row.get("max_health", "")), _plain(row.get("max_mana", "")), ", ".join(stats)]
+		if not spells.is_empty(): line += " | " + ", ".join(spells.map(func(spell): return str(spell)))
+		lines.append(line)
 	return "\n".join(lines)
 
 
@@ -120,7 +123,7 @@ static func level_table_from_text(text: String) -> Dictionary:
 		if line == "": continue
 		number += 1
 		var parts: Array = Array(line.split("|")).map(func(part): return str(part).strip_edges())
-		if parts.size() != 4: return {"error": "level %d: expected 'xp | max health | max mana | stat=value, ...'" % number}
+		if parts.size() != 4 and parts.size() != 5: return {"error": "level %d: expected 'xp | max health | max mana | stat=value, ... | spell, ...'" % number}
 		var row := {}
 		for index in range(3):
 			var text_part := str(parts[index])
@@ -136,6 +139,11 @@ static func level_table_from_text(text: String) -> Dictionary:
 			var value := float(str(bits[1]).strip_edges())
 			stats[str(bits[0]).strip_edges()] = int(value) if is_equal_approx(value, round(value)) else value
 		if not stats.is_empty(): row["stats"] = stats
+		if parts.size() == 5 and str(parts[4]) != "":
+			var learned: Array = []
+			for spell in str(parts[4]).split(",", false):
+				if str(spell).strip_edges() != "": learned.append(str(spell).strip_edges())
+			if not learned.is_empty(): row["spells"] = learned
 		rows.append(row)
 	return {"rows": rows}
 

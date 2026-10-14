@@ -14,14 +14,15 @@ magic pool at level 5 are these numbers, and the experience to the next level is
 
 Row 0 is level 1. `xp` is what it costs to reach the next level; the last row has none and is the level cap. A row's `stats`
 are absolute values for the stats it names (the rest are left as they are); `max_health` and `max_mana` are absolute too.
-With a table the growth rule is not used, and the table is applied to a new character (level 1) and at every level reached.
+A row's `spells` (ability ids) are learned on reaching that level. With a table the growth rule is not used, and the table is applied
+to a new character (level 1) and at every level reached.
 """
 
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-ROW_KEYS = ("xp", "stats", "max_health", "max_mana")
+ROW_KEYS = ("xp", "stats", "max_health", "max_mana", "spells")
 CAP_COST = 10 ** 9   # the cost of the level after the last: out of reach, so the character stays at the cap
 
 
@@ -58,6 +59,17 @@ def cost_to_next(world: Any, level: int) -> Optional[int]:
         return CAP_COST
     cost = table[int(level) - 1].get("xp")
     return int(cost) if _number(cost) and cost > 0 else CAP_COST
+
+
+def learn_row_spells(player: Any, level: int) -> list:
+    """Teach what the row for `level` names; the lines the player reads about it."""
+    row = row_for(getattr(player, "world", None), level)
+    lines: list = []
+    for spell_id in (row.get("spells") if isinstance(row, dict) and isinstance(row.get("spells"), list) else []):
+        learned, text = player.learn_spell(str(spell_id), award=False)
+        if learned:
+            lines.append(text)
+    return lines
 
 
 def apply_row(player: Any, level: int, world: Any = None) -> bool:

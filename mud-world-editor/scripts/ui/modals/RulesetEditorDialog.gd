@@ -147,7 +147,7 @@ func setup():
 	level_row.add_child(InspectorStyle.lbl("Health per level (flat)", InspectorStyle.COLOR_TEXT_DIM))
 	level_up_health = SpinBox.new(); level_up_health.name = "LevelUpHealthBase"; level_up_health.min_value = 0; level_up_health.max_value = 1000; level_up_health.step = 1; level_up_health.custom_minimum_size.x = 80; InspectorStyle.apply_input_style(level_up_health); level_up_health.value_changed.connect(func(_value): _mark_dirty()); level_row.add_child(level_up_health); box.add_child(level_row)
 	level_up_overrides = _field(box, "Stats that grow differently (name=amount, comma-separated)"); level_up_overrides.name = "LevelUpStatOverrides"
-	var table_hint := InspectorStyle.lbl("Or write every level out (this replaces the growth rule and the curve): one level per line, 'xp to the next level | max health | max mana | stat=value, stat=value'. The first line is level 1; the last line leaves xp empty and is the level cap. Empty to use the rule.", InspectorStyle.COLOR_TEXT_DIM)
+	var table_hint := InspectorStyle.lbl("Or write every level out (this replaces the growth rule and the curve): one level per line, 'xp to the next level | max health | max mana | stat=value, stat=value | spell, spell' (spells learned on reaching it; may be left off). The first line is level 1; the last line leaves xp empty and is the level cap. Empty to use the rule.", InspectorStyle.COLOR_TEXT_DIM)
 	table_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(table_hint)
 	level_table_text = TextEdit.new(); level_table_text.name = "LevelTableText"; level_table_text.custom_minimum_size.y = 120
 	level_table_text.placeholder_text = "7 | 15 | 0 | strength=4, agility=4"
