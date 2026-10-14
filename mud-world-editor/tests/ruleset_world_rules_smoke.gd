@@ -10,7 +10,7 @@
 extends SceneTree
 
 const Rules = preload("res://scripts/ui/modals/RulesetEditorDialog.gd")
-const SECTIONS := ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults"]
+const SECTIONS := ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "death"]
 
 var failures := 0
 
@@ -42,6 +42,7 @@ func _run():
 	(section.controls["combat.pacing.npc_cooldown_scale"] as SpinBox).value = 1.5
 	(section.controls["combat.pacing.action_gap"] as SpinBox).value = 1.2
 	(section.controls["world.dark_requires_light"] as CheckBox).button_pressed = true
+	(section.controls["death.gold_loss_fraction"] as SpinBox).value = 0.5
 	_edit(section.controls["elites.prefixes"], "Alpha, Elder, Ancient, Dread, Savage, Greater, Feral, Grizzled, Hoary")
 	var knife_row: Node = section.inventory_rows.get_child(1)
 	(knife_row.get_node("Quantity") as SpinBox).value = 2
@@ -62,6 +63,7 @@ func _run():
 	_assert(is_equal_approx(float(after["combat"]["pacing"]["npc_cooldown_scale"]), 1.5) and is_equal_approx(float(after["combat"]["pacing"]["action_gap"]), 1.2), "the combat pacing was saved")
 	_assert(_same(after["combat"].get("retreat"), before.get("combat", {}).get("retreat")), "and the rest of the combat section was left as it was")
 	_assert(after.get("world", {}).get("dark_requires_light") == true, "the darkness rule was saved")
+	_assert(is_equal_approx(float(after.get("death", {}).get("gold_loss_fraction", -1)), 0.5), "the death penalty was saved")
 	_assert(_same(after["world"].get("regions"), before.get("world", {}).get("regions")), "beside the region policy it shares a section with")
 	_assert(_same(after["player_defaults"]["starting_inventory"][1], {"item_id": "item_foraging_knife", "quantity": 2}), "the quantity was saved")
 	_assert(after["npc_naming"] == before["npc_naming"], "the corrected pattern left npc_naming as it was")

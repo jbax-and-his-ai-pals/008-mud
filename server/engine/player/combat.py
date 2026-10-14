@@ -290,6 +290,7 @@ class PlayerCombatMixin:
         if p.runtime_state.combat is not None:
             p.runtime_state.combat.targets.clear()
         p.active_effects.clear()
+        self._pay_the_price_of_falling()
         
         local_world = p.world
         if local_world and p.runtime_state.magic is not None:
@@ -311,6 +312,25 @@ class PlayerCombatMixin:
                 
         if p.runtime_state.magic is not None:
             p.runtime_state.magic.summons = {}
+
+    def _pay_the_price_of_falling(self) -> None:
+        """`ruleset.death.gold_loss_fraction`: part of what the player carries is lost when they fall."""
+        p = cast('Player', self)
+        world = getattr(p, "world", None)
+        try:
+            section = world.ruleset_section("death") if world is not None else {}
+        except Exception:  # noqa: BLE001 - a world without rules loses nothing
+            return
+        fraction = section.get("gold_loss_fraction") if isinstance(section, dict) else None
+        if isinstance(fraction, bool) or not isinstance(fraction, (int, float)) or not 0 < fraction <= 1:
+            return
+        gold = int(getattr(p.runtime_state, "gold", 0) or 0)
+        lost = int(gold * fraction)
+        if lost <= 0:
+            return
+        p.runtime_state.gold = gold - lost
+        from engine.utils.messages import message
+        p._add_combat_message(f"{FORMAT_ERROR}{message(world, 'gold_lost', amount=lost, currency=world.currency_name())}{FORMAT_RESET}")
 
     def respawn(self) -> None:
         p = cast('Player', self)

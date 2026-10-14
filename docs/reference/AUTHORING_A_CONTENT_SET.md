@@ -474,6 +474,9 @@ An ability effect of type `effects` runs a block of the conversation effects for
 `teleport: {"to": "entrance"}` takes the player to the region's own `properties.entrance` (a room id, or `region:room`): one spell can be
 "out of the cave" in every cave.
 
+**What falling costs.** `ruleset.death.gold_loss_fraction` (0 to 1) takes that part of the money carried when the character falls, once, and says
+so (`gold_lost`). Where they rise is the respawn point (`set_respawn`); nothing else is taken.
+
 **Darkness and light.** A room (or district, or region) marked `"dark": true` is only atmosphere by default ("It is very dark here"). With
 `ruleset.world.dark_requires_light: true` it hides the room, its exits and everything in it from a player who has no light: they read the
 engine's `too_dark` message (a set may say its own in `ruleset.messages`). A light is a status effect with the tag `light`: a spell's

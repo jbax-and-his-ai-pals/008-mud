@@ -246,6 +246,16 @@ def _validate_simple_ruleset_sections(
         if key in combat:
             strings(combat[key], f"combat.{key}", allow_empty_list=True)
 
+    death_rules = sections.get("death", {})
+    if isinstance(death_rules, dict):
+        for key in death_rules:
+            if key != "gold_loss_fraction":
+                error(f"death.{key} is not read (known: gold_loss_fraction)")
+        if "gold_loss_fraction" in death_rules:
+            number(death_rules["gold_loss_fraction"], "death.gold_loss_fraction", low=0, high=1)
+    elif death_rules is not None:
+        error("death must be an object")
+
     world_rules = sections.get("world", {})
     if isinstance(world_rules, dict) and "dark_requires_light" in world_rules and not isinstance(world_rules["dark_requires_light"], bool):
         error("world.dark_requires_light must be true or false: whether a room marked dark shows nothing to a player without a light")

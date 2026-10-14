@@ -28,6 +28,7 @@ const MESSAGES := {
 	"summon_departs": ["Your {name} crumbles to dust.", ["name"]],
 	"quest_complete": ["[Quest Complete] {title}", ["title"]],
 	"scene_locked": ["A scene is playing. You can act again when it ends.", []],
+	"gold_lost": ["You lose {amount} {currency}.", ["amount", "currency"]],
 	"too_dark": ["It is pitch dark. You can see nothing here, and you could only feel your way.", []],
 }
 
@@ -42,7 +43,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "factions.enmities", "advancement.grants", "advancement.level_table", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "advancement.level_up", "advancement.level_up.stat_growth", "messages", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "factions.enmities", "advancement.grants", "advancement.level_table", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "advancement.level_up", "advancement.level_up.stat_growth", "messages", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "death", "crime", "crime.witness", "crime.consequences", "crime.custody"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -177,7 +178,7 @@ func set_quest_generation(section: Dictionary):
 ## Replaces each WorldRulesSection-owned section with its composed value; a
 ## section the form emptied and the file never had is not created.
 func set_world_rules(sections: Dictionary):
-	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "companions"]:
+	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "companions", "death"]:
 		if sections.has(name): data[name] = sections[name].duplicate(true)
 		else: data.erase(name)
 	# `world` is shared with the region policy, so only the darkness rule this form owns is taken from it.
