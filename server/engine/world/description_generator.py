@@ -10,6 +10,19 @@ from engine.world import factions
 if TYPE_CHECKING:
     from engine.world.world import World
 
+# A status effect with this tag is a light: `apply_effect` from a spell or a consumable (a torch, a lantern, a spell of light).
+LIGHT_TAG = "light"
+
+
+def darkness_hides_room(world: 'World') -> bool:
+    """`ruleset.world.dark_requires_light`: in a set that says so, a room marked `dark` shows nothing to a player without a light."""
+    try:
+        section = world.ruleset_section("world")
+    except Exception:  # noqa: BLE001 - a world without rules keeps darkness as atmosphere
+        return False
+    return isinstance(section, dict) and section.get("dark_requires_light") is True
+
+
 def generate_room_description(world: 'World', minimal: bool = False, player=None) -> str:
     """
     Generates the formatted text description of the player's current location.
@@ -53,6 +66,9 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
     is_noisy = world.get_env_property(current_region_id, current_room_id, "noisy", False)
     smell = world.get_env_property(current_region_id, current_room_id, "smell", "")
     temperature = world.get_env_property(current_region_id, current_room_id, "temperature", "normal")
+    if is_dark and darkness_hides_room(world) and not player.has_effect_tag(LIGHT_TAG):
+        from engine.utils.messages import message
+        return title + message(world, "too_dark")
     room_desc = current_room.get_full_description(
         time_period, weather, is_outdoors=is_outdoors,
         is_dark=is_dark, is_noisy=is_noisy, smell=smell, temperature=temperature,

@@ -28,6 +28,7 @@ const FIELDS := [
 	["npc_naming", "random_name_pattern", "Random NPC name pattern ({first_name} {title})", "text", "{first_name}"],
 	["npc_naming", "first_names", "First names (comma-separated)", "list", ""],
 	["companions", "max", "Companions a character may bring along (0: none)", "int", [0, 12]],
+	["world", "dark_requires_light", "A dark room shows nothing without a light (a torch or a spell of light)", "bool", false],
 	["combat", "pacing.npc_cooldown_scale", "Everyone but the player strikes this many times slower (1: as authored)", "number", [1.0, 10.0, 0.05]],
 	["combat", "pacing.action_gap", "Seconds between any two creatures' actions in a room (0: no gap)", "number", [0.0, 10.0, 0.1]],
 	["player_defaults", "player_class", "Default player class", "text", "Adventurer"],
@@ -68,6 +69,10 @@ func build(box: VBoxContainer, changed: Callable) -> void:
 				var field := LineEdit.new(); field.name = key.replace(".", "_"); field.placeholder_text = str(spec[4])
 				InspectorStyle.apply_input_style(field); field.text_changed.connect(func(_t): _changed()); row.add_child(field)
 				controls[key] = field
+			"bool":
+				var check := CheckBox.new(); check.name = key.replace(".", "_"); check.text = spec[2]
+				check.toggled.connect(func(_on): _changed()); box.add_child(check)
+				controls[key] = check
 			"int", "number":
 				var parent: HBoxContainer
 				if spec[1].begins_with("start_time.") and time_row != null:
@@ -101,6 +106,7 @@ func load(ruleset: Dictionary, db: DatabaseManager) -> void:
 		match str(spec[3]):
 			"text": control.text = str(value) if value is String else ""
 			"list": control.text = ", ".join(value) if value is Array else ""
+			"bool": control.button_pressed = value == true
 			_: control.value = float(value) if typeof(value) in [TYPE_INT, TYPE_FLOAT] else float(ENGINE_DEFAULTS.get(key, 0))
 		control.set_meta("loaded", _control_value(control))
 	for child in inventory_rows.get_children(): inventory_rows.remove_child(child); child.queue_free()
@@ -132,6 +138,9 @@ func compose() -> Dictionary:
 				var values := _split((control as LineEdit).text)
 				if values.is_empty(): _erase_path(section, spec[1])
 				else: _write_path(section, spec[1], values)
+			"bool":
+				if (control as CheckBox).button_pressed: _write_path(section, spec[1], true)
+				else: _erase_path(section, spec[1])
 			"int": _write_path(section, spec[1], int((control as SpinBox).value))
 			_: _write_path(section, spec[1], snappedf((control as SpinBox).value, 0.01))
 	var inventory := _inventory()
@@ -216,6 +225,7 @@ static func _erase_path(section: Dictionary, path: String) -> void:
 
 static func _control_value(control):
 	if control is LineEdit: return control.text
+	if control is CheckBox: return control.button_pressed
 	return control.value
 
 

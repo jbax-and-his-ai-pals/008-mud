@@ -467,6 +467,11 @@ speed in the client. Lines a conversation or scene gives its own `pace` keep it.
 named, and 0 means it never grows) and `"health_base": 5` (the flat health a level brings, before what the health stat
 adds). Several levels gained at once are reported once, as the whole difference.
 
+**Darkness and light.** A room (or district, or region) marked `"dark": true` is only atmosphere by default ("It is very dark here"). With
+`ruleset.world.dark_requires_light: true` it hides the room, its exits and everything in it from a player who has no light: they read the
+engine's `too_dark` message (a set may say its own in `ruleset.messages`). A light is a status effect with the tag `light`: a spell's
+`apply_effect`, or a consumable's (`effect_type: apply_effect`), with a duration. A torch and a spell of light are content.
+
 **A level table.** A game that says what a level *is*, not what it adds, writes `ruleset.advancement.level_table`: a list of rows, the first
 level 1, each `{"xp": 7, "stats": {"strength": 4, "agility": 4}, "max_health": 15, "max_mana": 0}`. `xp` is what reaching the next level
 costs; the last row has none and is the cap. The values are absolute: a new character is row 1, and each level reached becomes its row
@@ -475,7 +480,7 @@ line per level.
 
 **The engine's own words.** `ruleset.messages` replaces the sentences the engine says at the moments every game has:
 `kill_experience`, `kill_gold`, `shared_experience`, `level_reached`, `levels_gained`, `defeated`, `respawn_hint`,
-`summon_departs`, `quest_complete` and `scene_locked` (what a player is told when a command is not taken while
+`summon_departs`, `quest_complete`, `too_dark` and `scene_locked` (what a player is told when a command is not taken while
 a scene plays; the client also mutes its command line and shows that line as its hint for as long as the scene runs).
 A line may use only the fields its message has, written `{like_this}`
 (the editor shows them); a line that cannot be used leaves the engine's words in place. Colour and layout stay with

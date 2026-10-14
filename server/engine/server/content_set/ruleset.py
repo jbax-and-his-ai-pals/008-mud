@@ -246,6 +246,10 @@ def _validate_simple_ruleset_sections(
         if key in combat:
             strings(combat[key], f"combat.{key}", allow_empty_list=True)
 
+    world_rules = sections.get("world", {})
+    if isinstance(world_rules, dict) and "dark_requires_light" in world_rules and not isinstance(world_rules["dark_requires_light"], bool):
+        error("world.dark_requires_light must be true or false: whether a room marked dark shows nothing to a player without a light")
+
     status = sections.get("status", {})
     if "stats" in status and strings(status["stats"], "status.stats", allow_empty_list=True):
         repeated = sorted({stat for stat in status["stats"] if status["stats"].count(stat) > 1})

@@ -32,6 +32,7 @@ MESSAGES: Dict[str, Tuple[str, Tuple[str, ...]]] = {
     "summon_departs": ("Your {name} crumbles to dust.", ("name",)),
     "quest_complete": ("[Quest Complete] {title}", ("title",)),
     "scene_locked": ("A scene is playing. You can act again when it ends.", ()),
+    "too_dark": ("It is pitch dark. You can see nothing here, and you could only feel your way.", ()),
 }
 
 

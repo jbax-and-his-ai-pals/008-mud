@@ -28,6 +28,7 @@ const MESSAGES := {
 	"summon_departs": ["Your {name} crumbles to dust.", ["name"]],
 	"quest_complete": ["[Quest Complete] {title}", ["title"]],
 	"scene_locked": ["A scene is playing. You can act again when it ends.", []],
+	"too_dark": ["It is pitch dark. You can see nothing here, and you could only feel your way.", []],
 }
 
 var path := ""
@@ -179,6 +180,15 @@ func set_world_rules(sections: Dictionary):
 	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "companions"]:
 		if sections.has(name): data[name] = sections[name].duplicate(true)
 		else: data.erase(name)
+	# `world` is shared with the region policy, so only the darkness rule this form owns is taken from it.
+	var world_form = sections.get("world", {})
+	var dark_rule = world_form.get("dark_requires_light", null) if world_form is Dictionary else null
+	if dark_rule != null:
+		if not (data.get("world") is Dictionary): data["world"] = {}
+		data["world"]["dark_requires_light"] = dark_rule
+	elif data.get("world") is Dictionary and data["world"].has("dark_requires_light"):
+		data["world"].erase("dark_requires_light")
+		if data["world"].is_empty(): data.erase("world")
 	# `combat` is shared with the sharing and retreat editors, so only the pacing this form owns is taken from it.
 	var combat_form = sections.get("combat", {})
 	var pacing = combat_form.get("pacing", {}) if combat_form is Dictionary else {}
