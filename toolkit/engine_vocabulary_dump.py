@@ -165,6 +165,7 @@ def main() -> int:
         "level_up": _level_up_vocabulary(),
         "scenes": _scenes_vocabulary(),
         "vehicles": _vehicles_vocabulary(),
+        "encounters": _encounters_vocabulary(),
         "messages": _messages_vocabulary(),
         # The calendar's seasons and the weather table a set without its own
         # `weather.chances` plays with; WeatherChancesSection.gd holds the copy.
@@ -235,6 +236,12 @@ def _vehicles_vocabulary() -> dict:
     from engine.world.vehicles import VEHICLE_KEYS
 
     return {"keys": list(VEHICLE_KEYS)}
+
+
+def _encounters_vocabulary() -> dict:
+    from engine.world.encounters import ENCOUNTER_KEYS, REPEL_TAG
+
+    return {"keys": list(ENCOUNTER_KEYS), "repel_tag": REPEL_TAG}
 
 
 def _messages_vocabulary() -> dict:

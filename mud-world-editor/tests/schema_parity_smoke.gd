@@ -84,6 +84,7 @@ func _init() -> void:
 	_check_level_up_vocabulary(vocabulary)
 	_check_scene_vocabulary(vocabulary)
 	_check_vehicle_vocabulary(vocabulary)
+	_check_encounter_vocabulary(vocabulary)
 	_check_attack_mode_vocabulary(vocabulary)
 	_check_messages_vocabulary(vocabulary)
 	_check_weather_vocabulary(vocabulary)
@@ -465,6 +466,15 @@ func _check_vehicle_vocabulary(vocabulary: Dictionary) -> void:
 	var engine: Dictionary = vocabulary.get("vehicles", {})
 	_assert(not engine.is_empty(), "the engine's vehicle vocabulary was read")
 	_assert(_as_set(engine.get("keys", [])) == _as_set(schema.KEYS), "vehicle keys match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("keys", [])))), str(_sorted(_as_set(schema.KEYS)))])
+
+
+func _check_encounter_vocabulary(vocabulary: Dictionary) -> void:
+	print("\n[encounter zones: editor vs engine]")
+	var schema = load("res://scripts/data/EncounterSchema.gd")
+	var engine: Dictionary = vocabulary.get("encounters", {})
+	_assert(not engine.is_empty(), "the engine's encounter vocabulary was read")
+	_assert(_as_set(engine.get("keys", [])) == _as_set(schema.KEYS), "encounter keys match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine.get("keys", [])))), str(_sorted(_as_set(schema.KEYS)))])
+	_assert(str(engine.get("repel_tag", "")) == schema.REPEL_TAG, "the status tag that keeps weaker creatures away is the same in both")
 
 
 func _check_level_up_vocabulary(vocabulary: Dictionary) -> void:

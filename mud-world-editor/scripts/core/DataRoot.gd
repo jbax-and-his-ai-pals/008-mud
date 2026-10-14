@@ -49,6 +49,7 @@ const CONTENT_DIRS := {
 	"triggers": "triggers",
 	"scenes": "scenes",
 	"vehicles": "vehicles",
+	"encounters": "encounters",
 	"dialogue": "dialogue",
 }
 

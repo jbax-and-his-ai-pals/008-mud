@@ -31,6 +31,7 @@ from engine.world.definition_loader import load_all_definitions, initialize_new_
 from engine.world.respawn_manager import RespawnManager
 from engine.world.scenes import SceneRunner
 from engine.world.vehicles import VehicleRegistry
+from engine.world.encounters import EncounterZones
 from engine.world.triggers import TriggerRunner
 from engine.world.instance_manager import InstanceManager
 from engine.world.housing_manager import HousingManager, HOUSE_ENTRY_SENTINEL
@@ -93,6 +94,8 @@ class World:
         self.scene_runner = SceneRunner(self)
         # What a player boards to go where they cannot go on foot (`data/vehicles/`); where each is lives in `world_state`.
         self.vehicles = VehicleRegistry(self)
+        # Somewhere walking is dangerous (`data/encounters/`): what finds a player who arrives there.
+        self.encounters = EncounterZones(self)
         # Things to tell a particular player that are not the answer to their command (their share of a
         # kill someone else finished); the server delivers them to whichever session the player is on.
         self.pending_player_notices: List[Tuple[Any, str]] = []
@@ -114,6 +117,7 @@ class World:
         self.trigger_runner.load(self.content_root)
         self.scene_runner.load(self.content_root)
         self.vehicles.load(self.content_root)
+        self.encounters.load(self.content_root)
 
     def _resolve_save_directory(self, configured_directory: Optional[str]) -> str:
         """Return the writable, content-set-scoped location for save files."""
@@ -644,6 +648,11 @@ class World:
         # Triggers run here, after the location is set and before the room is described,
         # so an exit a trigger reveals or seals is what `look` then lists.
         trigger_lines = self.trigger_runner.fire_on_enter(active_player, new_region_id, new_room_id)
+        if came_from != (new_region_id, new_room_id):
+            self.encounters.leave(*came_from)   # what was passing through is gone when you move on
+        encounter_line = self.encounters.roll(active_player, new_region_id, new_room_id)
+        if encounter_line:
+            trigger_lines = list(trigger_lines) + [encounter_line]
 
         region_change_msg = f"{FORMAT_HIGHLIGHT}You have entered {target_region.name}.{FORMAT_RESET}\n\n" if new_region_id != old_region_id else ""
         

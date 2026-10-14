@@ -65,6 +65,7 @@ const RECIPE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspect
 const TRIGGER_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TriggerInspector.gd")
 const SCENE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/SceneInspector.gd")
 const VEHICLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/VehicleInspector.gd")
+const ENCOUNTER_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/EncounterInspector.gd")
 const DIALOGUE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DialogueInspector.gd")
 const TITLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TitleInspector.gd")
 const DISCOVERY_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/DiscoveryInspector.gd")
@@ -93,6 +94,7 @@ const CATEGORIES := [
 	{"key": "trigger", "label": "Triggers", "color": Color(0.95, 0.72, 0.4)},
 	{"key": "scene", "label": "Scenes", "color": Color(0.85, 0.65, 0.95)},
 	{"key": "vehicle", "label": "Vehicles", "color": Color(0.6, 0.85, 0.9)},
+	{"key": "encounter", "label": "Encounter zones", "color": Color(0.95, 0.6, 0.45)},
 	{"key": "title", "label": "Titles", "color": Color(0.95, 0.8, 0.4)},
 	{"key": "collection", "label": "Collections", "color": Color(0.6, 0.75, 0.95)},
 	{"key": "discovery", "label": "Discoveries", "color": Color(0.55, 0.85, 0.75)},
@@ -379,6 +381,7 @@ func _get_current_entries() -> Dictionary:
 		"trigger": return cached_triggers
 		"scene": return database_mgr.scenes if database_mgr != null else {}
 		"vehicle": return database_mgr.vehicles if database_mgr != null else {}
+		"encounter": return database_mgr.encounters if database_mgr != null else {}
 		"dialogue": return cached_dialogues
 		"title": return cached_titles
 		"collection": return cached_collections
@@ -482,6 +485,12 @@ func _build_editor():
 			current_editor = vehicle_inspector
 			vehicle_inspector.database_modified.connect(_mark_current_dirty)
 			vehicle_inspector.build(selected_id, entry)
+			return
+		if storage_type == "encounter":
+			var encounter_inspector = ENCOUNTER_INSPECTOR_SCRIPT.new(editor_box, database_mgr)
+			current_editor = encounter_inspector
+			encounter_inspector.database_modified.connect(_mark_current_dirty)
+			encounter_inspector.build(selected_id, entry)
 			return
 		if storage_type == "trigger":
 			var trigger_inspector = TRIGGER_INSPECTOR_SCRIPT.new(editor_box, database_mgr)

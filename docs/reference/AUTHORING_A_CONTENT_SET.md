@@ -467,6 +467,14 @@ speed in the client. Lines a conversation or scene gives its own `pace` keep it.
 named, and 0 means it never grows) and `"health_base": 5` (the flat health a level brings, before what the health stat
 adds). Several levels gained at once are reported once, as the whole difference.
 
+**Encounter zones.** `data/encounters/*.json` (each file an object of zones keyed by id) says where walking is dangerous:
+`{"region": "plain", "rooms": ["a", "b"], "monsters": ["slime", {"npc": "drakee", "weight": 3}], "chance": 0.2, "count": [1, 2],
+"cooldown": 20, "message": "{name} appears!"}`. When a player arrives in one of its rooms (all of the region's, if `rooms` is left off) that is
+not a safe place and has no hostile in it, the zone rolls `chance`; what comes is an ordinary creature of one of the named templates, placed
+in the room, hostile and aggressive. It is not one of the room's own: it does not return after it dies, and it is gone if the player moves on
+without it. Under a status with the tag `repel` (an `apply_effect`: a spell, a consumable) creatures whose attack is below the player's
+defence do not come. Overlapping zones are tried in order.
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms

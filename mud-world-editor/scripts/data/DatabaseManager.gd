@@ -55,6 +55,8 @@ static func trigger_dir() -> String: return DataRoot.content_dir("triggers")
 static func scene_dir() -> String: return DataRoot.content_dir("scenes")
 # Vehicles: one directory, several files, each a library of vehicles keyed by id (`engine/world/vehicles.py`).
 static func vehicle_dir() -> String: return DataRoot.content_dir("vehicles")
+# Encounter zones: one directory, several files, each a library of zones keyed by id (`engine/world/encounters.py`).
+static func encounter_dir() -> String: return DataRoot.content_dir("encounters")
 # Dialogue: one *graph* per file, not a library of entries -- `nodes` inside a
 # graph is the graph's own structure, and `_load_file`'s single-vs-library
 # heuristic would read it as a second entry. Loaded and saved by hand, like
@@ -97,6 +99,7 @@ var recipes: Dictionary = {}
 var triggers: Dictionary = {}
 var scenes: Dictionary = {}
 var vehicles: Dictionary = {}
+var encounters: Dictionary = {}
 var dialogues: Dictionary = {}
 # Filename → graph id, so a deleted graph can take its file with it.
 var dialogue_files: Dictionary = {}
@@ -168,7 +171,7 @@ var backgrounds_file_known := false
 
 # Dirty State Tracking { "type": { "id": true } }
 var dirty_flags: Dictionary = {
-	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "trigger": {}, "scene": {}, "vehicle": {}, "dialogue": {}, "title": {},
+	"npc": {}, "item": {}, "magic": {}, "quest": {}, "template": {}, "recipe": {}, "trigger": {}, "scene": {}, "vehicle": {}, "encounter": {}, "dialogue": {}, "title": {},
 	"collection": {}, "discovery": {}, "background": {}, "campaign": {}, "topic": {}, "theme": {},
 	"affix_prefix": {}, "affix_suffix": {}, "item_set": {}
 }
@@ -216,7 +219,7 @@ func carried_stats() -> Array:
 	return out
 
 func load_all():
-	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); triggers.clear(); scenes.clear(); vehicles.clear(); dialogues.clear()
+	npcs.clear(); items.clear(); magic.clear(); quests.clear(); templates.clear(); recipes.clear(); triggers.clear(); scenes.clear(); vehicles.clear(); encounters.clear(); dialogues.clear()
 	campaigns.clear(); campaign_files.clear(); collections.clear(); discoveries.clear(); magic_groups.clear(); magic_groups_dirty = false
 	titles.clear(); guilds.clear(); titles_extras.clear(); titles_file_known = false
 	topics.clear(); common_topics.clear(); topics_extras.clear(); topics_file_known = false
@@ -241,6 +244,7 @@ func load_all():
 	_load_recursive(trigger_dir(), "", triggers)
 	_load_recursive(scene_dir(), "", scenes)
 	_load_recursive(vehicle_dir(), "", vehicles)
+	_load_recursive(encounter_dir(), "", encounters)
 	_load_dialogue_graphs()
 	# Quest stage graph positions live in `editor/quest_layout.json`, not in the
 	# quests the game reads; merge them so every call site still sees them.
@@ -697,6 +701,7 @@ func save_all() -> Dictionary:
 	_save_category(triggers, trigger_dir(), errors)
 	_save_category(scenes, scene_dir(), errors)
 	_save_category(vehicles, vehicle_dir(), errors)
+	_save_category(encounters, encounter_dir(), errors)
 	_save_dialogue_graphs(errors)
 	_save_campaigns(errors)
 	_save_category(templates, template_dir(), errors)
@@ -819,6 +824,7 @@ func _cache_for(type: String) -> Dictionary:
 		"trigger": return triggers
 		"scene": return scenes
 		"vehicle": return vehicles
+		"encounter": return encounters
 		"dialogue": return dialogues
 		"title": return titles
 		"collection": return collections
@@ -1061,6 +1067,8 @@ func add_scene(id: String, data: Dictionary): _add_entry(id, data, scenes); mark
 func get_scene_ids() -> Array: return get_ids("scene")
 func add_vehicle(id: String, data: Dictionary): _add_entry(id, data, vehicles); mark_dirty("vehicle", id)
 func get_vehicle_ids() -> Array: return get_ids("vehicle")
+func add_encounter(id: String, data: Dictionary): _add_entry(id, data, encounters); mark_dirty("encounter", id)
+func get_encounter_ids() -> Array: return get_ids("encounter")
 func get_recipe_ids() -> Array: return get_ids("recipe")
 # Titles are one file, not one-entry-per-directory-file, so they carry no
 # `_filename` the way `_add_entry` assumes every other category needs.

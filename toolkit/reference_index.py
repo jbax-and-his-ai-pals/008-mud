@@ -64,6 +64,7 @@ NOT_INDEXED: Tuple[str, ...] = (
     "teleports) -- enforced by `content_set/`",
     "vehicles: an exit requirement's `vehicle`, a `place_vehicle` / `board_vehicle` effect's vehicle id and an `aboard` "
     "condition's `vehicle_id` -- enforced by `content_set/`",
+    "encounter zones: a zone's region, rooms and monster templates -- enforced by `content_set/`",
     "a title's guild `place` and a quest's `spawn_on_entry.room_id` -- enforced by "
     "`content_set/` and the quest validator",
     "contract references (family -> profile, ability -> effect packet) -- enforced by "

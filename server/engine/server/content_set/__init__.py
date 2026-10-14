@@ -32,6 +32,7 @@ from .schedules_social import (_validate_npc_schedule_rules, _validate_social_ru
 from .themes_affixes import (_validate_affixes, _validate_dynamic_themes, _validate_item_resistances_and_sets)
 from .triggers_dialogue import (_validate_dialogue_content, _validate_scenes, _validate_triggers)
 from .vehicles import _validate_vehicles
+from .encounters import _validate_encounters
 from .weather_skills import (_validate_skills_rules, _validate_weather_profiles)
 from .world import (_validate_authored_world)
 
@@ -535,6 +536,7 @@ def _load_content_set_uncached(
         _validate_triggers(content_root, issues, ruleset_payload)
         _validate_scenes(content_root, issues, ruleset_payload)
         _validate_vehicles(content_root, issues)
+        _validate_encounters(content_root, issues)
         _validate_knowledge_topics(content_root, issues)
         _validate_room_passage_properties(content_root, issues)
         _validate_campaigns(content_root, issues, ruleset_payload)

@@ -7,6 +7,7 @@ const SaveCheckpoint = preload("res://scripts/data/SaveCheckpoint.gd")
 const TRIGGER_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/TriggerInspector.gd")
 const SCENE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/SceneInspector.gd")
 const VEHICLE_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/VehicleInspector.gd")
+const ENCOUNTER_INSPECTOR_SCRIPT = preload("res://scripts/ui/inspectors/sub_inspectors/EncounterInspector.gd")
 
 # Managers
 var region_mgr: RegionManager
@@ -384,6 +385,14 @@ func _connect_ui_signals():
 				# Valid from the moment it exists: a name.
 				d = VEHICLE_INSPECTOR_SCRIPT.data_defaults()
 				database_mgr.add_vehicle(id, d)
+			"encounter":
+				var region_ref := str(TRIGGER_INSPECTOR_SCRIPT.room_refs().front()).split(":")[0] if not TRIGGER_INSPECTOR_SCRIPT.room_refs().is_empty() else ""
+				var monster_id := ""
+				for npc_id in database_mgr.npcs:
+					if monster_id == "": monster_id = str(npc_id)
+					if str(database_mgr.npcs[npc_id].get("faction", "")) == "hostile": monster_id = str(npc_id); break
+				d = ENCOUNTER_INSPECTOR_SCRIPT.data_defaults(region_ref, monster_id)
+				database_mgr.add_encounter(id, d)
 			"trigger":
 				# Valid from the moment it exists: a room to fire in and a line of
 				# narration, so it never fails validation merely by existing.
