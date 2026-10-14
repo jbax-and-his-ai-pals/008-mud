@@ -187,6 +187,9 @@ def _check_effect_block(
     rise = block.get("set_respawn")
     if isinstance(rise, dict):
         _check_room_reference(rise.get("region"), rise.get("room"), f"{where} effect set_respawn", path, ids, issues)
+    locator = block.get("tell_distance")
+    if isinstance(locator, dict):
+        _check_room_reference(locator.get("region"), locator.get("room"), f"{where} effect tell_distance", path, ids, issues)
     warp = block.get("teleport")
     if isinstance(warp, dict):
         if "to" in warp:

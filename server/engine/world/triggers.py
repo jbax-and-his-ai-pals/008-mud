@@ -55,13 +55,14 @@ TRIGGERS_DIRECTORY = "triggers"
 
 # The events a trigger can be `on`, the fields each event's `on` may carry, and the ones it
 # needs. `region` and `room` always come as a pair. `TriggerSchema.gd` is the editor's copy.
-TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared", "item_taken", "health_below")
+TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared", "item_taken", "health_below", "searched")
 EVENT_FIELDS = {
     "on_enter": ("region", "room"),
     "npc_killed": ("npc", "region", "room"),
     "room_cleared": ("region", "room"),
     "item_taken": ("item", "region", "room"),
     "health_below": ("who", "fraction", "region", "room"),
+    "searched": ("region", "room"),
 }
 EVENT_REQUIRED = {
     "on_enter": ("region", "room"),
@@ -69,6 +70,7 @@ EVENT_REQUIRED = {
     "room_cleared": ("region", "room"),
     "item_taken": ("item",),
     "health_below": ("who", "fraction"),
+    "searched": ("region", "room"),
 }
 # What a trigger may carry, and what `once` may be (`False` is "every time").
 TRIGGER_KEYS = ("on", "when", "once", "effects", "note")
@@ -130,6 +132,21 @@ class TriggerRunner:
             if not isinstance(on, dict) or on.get("event") != "on_enter":
                 continue
             if (on.get("region"), on.get("room")) != (region_id, room_id):
+                continue
+            lines.extend(self._run(trigger_id, definition, player))
+        return lines
+
+    def fire_searched(self, player) -> List[str]:
+        """The lines for the player searching the room they stand in (`search`): a hidden thing found at one place."""
+        lines: List[str] = []
+        if player is None or self._depth >= MAX_DEPTH:
+            return lines
+        here = (getattr(player, "current_region_id", None), getattr(player, "current_room_id", None))
+        for trigger_id, definition in self.triggers.items():
+            on = definition.get("on")
+            if not isinstance(on, dict) or on.get("event") != "searched":
+                continue
+            if (on.get("region"), on.get("room")) != here:
                 continue
             lines.extend(self._run(trigger_id, definition, player))
         return lines

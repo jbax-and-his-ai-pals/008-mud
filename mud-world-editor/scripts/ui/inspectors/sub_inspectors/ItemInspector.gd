@@ -395,6 +395,13 @@ func _refill_consumable():
 	row.add_child(picker)
 	vbox.add_child(row)
 
+	var reusable := CheckBox.new(); reusable.name = "ConsumableReusable"; reusable.text = "Reusable: using it does not use it up (a locator, a key item)"
+	reusable.button_pressed = properties.get("reusable", false) == true
+	reusable.toggled.connect(func(on):
+		if on: properties["reusable"] = true
+		else: properties.erase("reusable")
+		database_modified.emit())
+	vbox.add_child(reusable)
 	var requires_holder := VBoxContainer.new(); requires_holder.name = "ConsumableRequires"; vbox.add_child(requires_holder)
 	_build_requires(requires_holder, properties)
 
@@ -1011,7 +1018,7 @@ func _refresh_props():
 	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells"]
 	if _engine_item_class() == "Consumable":
 		# The "When used" section owns these two.
-		specialized.append_array(["effect_type", "effects", "requires", "requires_message"])
+		specialized.append_array(["effect_type", "effects", "requires", "requires_message", "reusable"])
 	if _engine_item_class() == "Container":
 		specialized.append_array(["capacity", "locked", "key_id", "is_open", "contains"])
 	if _engine_item_class() == "ResourceNode":

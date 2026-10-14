@@ -185,6 +185,7 @@ const EFFECTS := {
 	"spawn_npc": {"label": "Bring in an NPC", "shape": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
 	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
 	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}, or {to: \"entrance\"} for the way out of the region you stand in", "kind": "json"},
+	"tell_distance": {"label": "Tell how far a place is", "shape": "{region, room, message: may use {steps}}: the walking distance in rooms from where the player stands", "kind": "json"},
 	"set_respawn": {"label": "Set where the player respawns", "shape": "{region, room}: where they rise again after dying", "kind": "json"},
 	"teach_companion": {"label": "A companion learns an ability", "shape": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
 	"place_vehicle": {"label": "Set a vehicle down somewhere", "shape": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},

@@ -269,6 +269,8 @@ class Consumable(Item):
                 else:
                     message = f"You hurl {the(self.name)} at {target_name}, but it does no damage."
         
+        if self.get_property("reusable") is True:
+            consumed = False   # a key item, a locator: using it does not use it up
         if consumed:
             self.update_property("uses", current_uses - 1)
 

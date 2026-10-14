@@ -268,6 +268,15 @@ func _check_a_consumable_can_be_given_effects() -> void:
 		_assert(item["properties"].get("effects") is Dictionary and item["properties"]["effects"].has("set_flag"),
 			"adding one writes it under properties.effects: %s" % str(item["properties"]))
 
+	var reusable := holder.find_child("ConsumableReusable", true, false) as CheckBox
+	_assert(reusable != null and not reusable.button_pressed and not item["properties"].has("reusable"), "a consumable is used up unless it says otherwise")
+	reusable.button_pressed = true; reusable.toggled.emit(true)
+	_assert(item["properties"].get("reusable") == true, "ticking reusable writes it")
+	reusable.button_pressed = false; reusable.toggled.emit(false)
+	_assert(not item["properties"].has("reusable"), "and unticking erases it")
+	var gate := holder.find_child("ConsumableRequires", true, false)
+	_assert(gate != null and gate.find_child("ConditionPicker", true, false) != null, "a consumable can be given a place it works")
+
 	# A consumable whose type the engine does not run is shown, not hidden.
 	var odd := {"type": "Consumable", "name": "Fungus", "description": "d",
 		"properties": {"uses": 1, "effect_type": "poison"}}

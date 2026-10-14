@@ -467,6 +467,11 @@ speed in the client. Lines a conversation or scene gives its own `pace` keep it.
 named, and 0 means it never grows) and `"health_base": 5` (the flat health a level brings, before what the health stat
 adds). Several levels gained at once are reported once, as the whole difference.
 
+**Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
+`search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
+(a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms
+the way is from where the player stands to a place.
+
 **Where an ability or an item works.** An ability (and a consumable's `properties`) may carry `requires`, a condition, and `requires_message`, the
 line said when it fails: a spell that works only outdoors (`{"not": {"kind": "room_is", "property": "dark"}}`) or an item that works at
 one place only (`{"kind": "in_room", "region_id": "shore", "room_id": "edge"}`). A failed spell costs nothing and a failed item is kept.

@@ -25,13 +25,18 @@ def wait_handler(args, context):
 
 
 @command("search", [], "interaction",
-         "Search your surroundings. In a jail cell, this can rarely turn "
+         "Search your surroundings. Some places hold something to find; in a jail cell, this can rarely turn "
          "up something useful.\nUsage: search")
 def search_handler(args, context):
     world = context["world"]
     player = context.get('player')
     if not player:
         return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
+
+    runner = getattr(world, "trigger_runner", None)
+    found = runner.fire_searched(player) if runner is not None else []
+    if found:
+        return "\n".join(found)
 
     custody = world.ruleset_section("crime").get("custody", {})
     room_property = str(custody.get("room_property", "")).strip() if isinstance(custody, dict) else ""

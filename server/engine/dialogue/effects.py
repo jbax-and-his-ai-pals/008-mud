@@ -97,7 +97,7 @@ KNOWN_EFFECTS = frozenset({
     "take_gold", "restore", "raise", "forget_spell", "message",
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
     "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
-    "place_vehicle", "board_vehicle", "end_fight", "set_faction", "npc_cast", "equip_item",
+    "place_vehicle", "board_vehicle", "end_fight", "set_faction", "npc_cast", "equip_item", "tell_distance",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -186,6 +186,11 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"region": "text", "room": "text"},
         "required": ("region", "room"),
     },
+    "tell_distance": {
+        "form": "object",
+        "fields": {"region": "text", "room": "text", "message": "text"},
+        "required": ("region", "room"),
+    },
     "teach_companion": {
         "form": "object",
         "fields": {"npc": "text", "spell": "text"},
@@ -250,6 +255,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "spawn_npc": {"label": "Bring in an NPC", "hint": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
     "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
     "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}, or {to: \"entrance\"} for the way out of the region you stand in", "kind": "json"},
+    "tell_distance": {"label": "Tell how far a place is", "hint": "{region, room, message: may use {steps}}: the walking distance in rooms from where the player stands", "kind": "json"},
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
     "place_vehicle": {"label": "Set a vehicle down somewhere", "hint": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
@@ -1283,6 +1289,35 @@ def _apply_set_respawn_effect(effects: Dict[str, Any], context, report: EffectRe
     report.applied.append("respawn at %s:%s" % (region_id, room_id))
 
 
+def _apply_tell_distance_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`tell_distance`: how many rooms the way is from where the player stands to a place (a locator: "you are 12 steps from the castle")."""
+    if "tell_distance" not in effects:
+        return
+    raw = effects["tell_distance"]
+    if not isinstance(raw, dict):
+        report.failed.append("tell_distance (must be an object)")
+        return
+    region_id = str(raw.get("region", "") or "").strip()
+    room_id = str(raw.get("room", "") or "").strip()
+    world = _context_world(context)
+    player = context.get("player")
+    if world is None or player is None or not region_id or not room_id or world.get_region(region_id) is None:
+        report.failed.append("tell_distance (no room %s:%s)" % (region_id, room_id))
+        return
+    path = world.find_path(player.current_region_id, player.current_room_id, region_id, room_id)
+    template = raw.get("message") if isinstance(raw.get("message"), str) and raw["message"].strip() else "It is {steps} steps away."
+    if path is None:
+        report.messages.append("You cannot tell the way from here.")
+        report.applied.append("tell_distance (no way)")
+        return
+    try:
+        text = template.format(steps=len(path))
+    except (KeyError, IndexError, ValueError):
+        text = "It is %d steps away." % len(path)
+    report.messages.append(text)
+    report.applied.append("told the distance to %s:%s" % (region_id, room_id))
+
+
 def _apply_vehicle_effects(effects: Dict[str, Any], context, report: EffectReport) -> None:
     """`place_vehicle` then `board_vehicle`: a story moving a vehicle, and putting the player in it."""
     world = _context_world(context)
@@ -1597,6 +1632,7 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("scene", lambda: _apply_scene_effect(effects, player, world, report)),
         ("teach", lambda: _apply_teach_companion_effect(effects, context, report)),
         ("respawn", lambda: _apply_set_respawn_effect(effects, context, report)),
+        ("distance", lambda: _apply_tell_distance_effect(effects, context, report)),
         ("vehicles", lambda: _apply_vehicle_effects(effects, context, report)),
         ("teleport", lambda: _apply_teleport_effect(effects, context, report)),
     )
