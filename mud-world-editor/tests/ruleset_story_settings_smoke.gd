@@ -86,6 +86,36 @@ func _run():
 	saved = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
 	_assert(not saved.get("advancement", {}).has("level_up"), "putting everything back to the defaults removes the section")
 
+	print("
+[a level table]")
+	rules.open_active()
+	_assert(rules.level_table_text.text == "", "no table is shown for a set without one")
+	rules.level_table_text.text = "7 | 15 | 0 | strength=4, agility=4
+16 | 22 | 0 | strength=5, agility=4
+ | 24 | 5 | strength=7, agility=6"
+	rules.level_table_text.text_changed.emit()
+	rules.confirmed.emit()
+	saved = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
+	var table: Array = saved["advancement"]["level_table"]
+	_assert(table.size() == 3 and int(table[0]["xp"]) == 7 and int(table[0]["max_health"]) == 15 and int(table[0]["stats"]["strength"]) == 4, "the rows are written: %s" % JSON.stringify(table))
+	_assert(not table[2].has("xp") and int(table[2]["max_mana"]) == 5, "the last row has no xp")
+	raw = FileAccess.get_file_as_string(rules_path)
+	_assert(raw.contains("\"xp\": 7,") and not raw.contains("\"xp\": 7.0"), "numbers are written as whole numbers")
+	rules.open_active()
+	_assert(rules.level_table_text.text.split("
+").size() == 3 and rules.level_table_text.text.begins_with("7 | 15 | 0 | strength=4"), "reopening shows the table")
+	var table_bytes := FileAccess.get_file_as_string(rules_path)
+	rules.confirmed.emit()
+	_assert(FileAccess.get_file_as_string(rules_path) == table_bytes, "opening and saving a table writes nothing")
+	rules.open_active()
+	rules.level_table_text.text = "7 | 15 | x | strength=4"; rules.level_table_text.text_changed.emit()
+	rules.confirmed.emit()
+	_assert(FileAccess.get_file_as_string(rules_path) == table_bytes and "level 1" in rules.status_label.text, "a row that cannot be read is refused with its line: %s" % rules.status_label.text.left(120))
+	rules.level_table_text.text = ""; rules.level_table_text.text_changed.emit()
+	rules.confirmed.emit()
+	saved = JSON.parse_string(FileAccess.get_file_as_string(rules_path))
+	_assert(not saved.get("advancement", {}).has("level_table"), "emptying the box removes the table")
+
 	print("\n[the engine's words]")
 	rules.open_active()
 	_assert(rules.message_fields.size() == RulesetDraft.MESSAGES.size(), "every message the engine says has a line (%d)" % rules.message_fields.size())

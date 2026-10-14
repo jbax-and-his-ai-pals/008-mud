@@ -382,6 +382,10 @@ class AdvancementManager:
     def xp_for_next_level(self, level: int) -> int:
         """XP required to advance from `level` to `level + 1`."""
         level = max(1, int(level))
+        from engine.core import level_table
+        cost = level_table.cost_to_next(self.world, level)
+        if cost is not None:
+            return cost
         return int(self.curve_base * (self.curve_multiplier ** (level - 1)))
 
     # -- ledger ----------------------------------------------------------

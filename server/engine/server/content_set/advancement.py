@@ -31,6 +31,8 @@ def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], i
     section = ruleset.get("advancement", {})
     if section is not None:
         _validate_advancement_section(section, content_root, issues, ruleset_path)
+        if isinstance(section, dict):
+            _validate_level_table(section.get("level_table"), ruleset, issues, ruleset_path)
 
     # `AdvancementManager._config` also reads `<content_root>/advancement.json`
     # and lays the ruleset section over it one top-level key at a time, so a
@@ -49,6 +51,55 @@ def _validate_advancement_content(content_root: Path, ruleset: dict[str, Any], i
                 "warning", str(path),
                 f"'{key}' here is ignored: the ruleset's advancement.{key} replaces it entirely",
             ))
+
+
+def _validate_level_table(table: Any, ruleset: dict[str, Any], issues: list[ContentSetIssue], ruleset_path: Path) -> None:
+    """`advancement.level_table`: one row per level; every row says what a character of that level is."""
+    from engine.core.level_table import ROW_KEYS
+
+    if table is None:
+        return
+
+    def error(message: str) -> None:
+        issues.append(ContentSetIssue("error", str(ruleset_path), f"advancement.level_table{message}"))
+
+    def number(value: Any) -> bool:
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+    if not isinstance(table, list) or not table:
+        error(" must be a non-empty array of rows, one per level (the first is level 1)")
+        return
+    known_stats = _player_stat_names() | _ruleset_stat_names(ruleset)
+    for index, row in enumerate(table):
+        label = f"[{index}] (level {index + 1})"
+        if not isinstance(row, dict):
+            error(f"{label} must be an object")
+            continue
+        for key in row:
+            if key not in ROW_KEYS:
+                error(f"{label}.{key} is not read (known: {', '.join(ROW_KEYS)})")
+        last = index == len(table) - 1
+        xp = row.get("xp")
+        if xp is None and not last:
+            error(f"{label}.xp is required: what it costs to reach level {index + 2} (only the last row, the cap, has none)")
+        elif xp is not None and (not number(xp) or xp <= 0):
+            error(f"{label}.xp must be a positive number")
+        elif xp is not None and last:
+            issues.append(ContentSetIssue("warning", str(ruleset_path), f"advancement.level_table{label}.xp is never reached: the last row is the cap"))
+        stats = row.get("stats")
+        if stats is not None:
+            if not isinstance(stats, dict):
+                error(f"{label}.stats must be an object of stat name to value")
+            else:
+                for stat, value in stats.items():
+                    if not number(value):
+                        error(f"{label}.stats.{stat} must be a number")
+                    elif known_stats and str(stat) not in known_stats:
+                        issues.append(ContentSetIssue("warning", str(ruleset_path), f"advancement.level_table{label}.stats.{stat} is not a stat this set declares"))
+        for key in ("max_health", "max_mana"):
+            value = row.get(key)
+            if value is not None and (not number(value) or value < (1 if key == "max_health" else 0)):
+                error(f"{label}.{key} must be a number ({'1' if key == 'max_health' else '0'} or more)")
 
 
 def _validate_advancement_section(section: Any, content_root: Path, issues: list[ContentSetIssue], ruleset_path: Path) -> None:

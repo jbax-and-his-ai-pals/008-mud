@@ -90,6 +90,9 @@ class PlayerProgressionMixin:
         # the list is whatever `Player.stats` actually holds, minus the
         # containers, so a set with its own vocabulary levels its own stats
         # rather than the six names this used to have written in.
+        from engine.core import level_table
+        if level_table.apply_row(p, p.runtime_state.progression.level):
+            return   # the set says what this level is: the rule below is not used
         growth, health_base = level_up_settings(p.world)
         for stat, value in list(p.stats.items()):
             if isinstance(value, (int, float)) and not isinstance(value, bool):

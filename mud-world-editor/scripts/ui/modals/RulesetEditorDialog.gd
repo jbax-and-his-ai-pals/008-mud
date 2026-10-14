@@ -45,6 +45,8 @@ var level_up_growth: SpinBox
 var level_up_health: SpinBox
 var level_up_overrides: LineEdit
 var level_up_loaded: Dictionary = {}
+var level_table_text: TextEdit
+var level_table_loaded: String = ""
 var message_fields: Dictionary = {}
 var messages_loaded: Dictionary = {}
 var advancement_grant_rows: VBoxContainer
@@ -145,6 +147,11 @@ func setup():
 	level_row.add_child(InspectorStyle.lbl("Health per level (flat)", InspectorStyle.COLOR_TEXT_DIM))
 	level_up_health = SpinBox.new(); level_up_health.name = "LevelUpHealthBase"; level_up_health.min_value = 0; level_up_health.max_value = 1000; level_up_health.step = 1; level_up_health.custom_minimum_size.x = 80; InspectorStyle.apply_input_style(level_up_health); level_up_health.value_changed.connect(func(_value): _mark_dirty()); level_row.add_child(level_up_health); box.add_child(level_row)
 	level_up_overrides = _field(box, "Stats that grow differently (name=amount, comma-separated)"); level_up_overrides.name = "LevelUpStatOverrides"
+	var table_hint := InspectorStyle.lbl("Or write every level out (this replaces the growth rule and the curve): one level per line, 'xp to the next level | max health | max mana | stat=value, stat=value'. The first line is level 1; the last line leaves xp empty and is the level cap. Empty to use the rule.", InspectorStyle.COLOR_TEXT_DIM)
+	table_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(table_hint)
+	level_table_text = TextEdit.new(); level_table_text.name = "LevelTableText"; level_table_text.custom_minimum_size.y = 120
+	level_table_text.placeholder_text = "7 | 15 | 0 | strength=4, agility=4"
+	level_table_text.text_changed.connect(func(): _mark_dirty()); box.add_child(level_table_text)
 	box.add_child(InspectorStyle.create_sub_header("The engine's words"))
 	var words_hint := InspectorStyle.lbl("Say a moment your own way: a kill's rewards, a level gained, falling in battle, a quest handed in. Leave a line empty to keep the engine's. A line may use only the fields shown on its hover, written {like_this}.", InspectorStyle.COLOR_TEXT_DIM)
 	words_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(words_hint)
@@ -547,6 +554,8 @@ func _load_advancement():
 		if str(stat) != "default": named.append("%s=%s" % [str(stat), str(_whole_if_whole(float(growth[stat])))])
 	level_up_overrides.text = ", ".join(named)
 	level_up_loaded = {"growth": level_up_growth.value, "health": level_up_health.value, "overrides": level_up_overrides.text}
+	level_table_text.text = RulesetDraft.level_table_text(advancement.get("level_table", []))
+	level_table_loaded = level_table_text.text
 	var grants: Array = advancement.get("grants", []) if advancement.get("grants", []) is Array else []
 	for source in grants:
 		if source is Dictionary: _add_advancement_grant(source.duplicate(true), str(source.get("id", "")))
@@ -591,6 +600,7 @@ func _advancement() -> Dictionary:
 	if curve_was_authored or int(advancement_base.value) != 100 or not is_equal_approx(advancement_multiplier.value, 1.25):
 		curve["base"] = advancement_base.value; curve["multiplier"] = advancement_multiplier.value; out["curve"] = curve
 	_apply_level_up(out)
+	_apply_level_table(out)
 	var grants: Array = []
 	for card in advancement_grant_rows.get_children():
 		# By tag, not by name: Godot renames every same-named sibling after the
@@ -647,6 +657,16 @@ func _apply_level_up(out: Dictionary) -> void:
 		else: level_up["health_base"] = int(level_up_health.value)
 	if level_up.is_empty(): out.erase("level_up")
 	else: out["level_up"] = level_up
+
+
+## Only a table the author changed is written; an emptied box removes it. A table that cannot be read is written as its error, which
+## the draft's validation refuses with the line named.
+func _apply_level_table(out: Dictionary) -> void:
+	if level_table_text.text == level_table_loaded: return
+	if level_table_text.text.strip_edges() == "":
+		out.erase("level_table"); return
+	var parsed := RulesetDraft.level_table_from_text(level_table_text.text)
+	out["level_table"] = parsed["error"] if parsed.has("error") else parsed["rows"]
 
 
 func _load_messages() -> void:

@@ -75,6 +75,12 @@ class Player(
         )
         self.runtime_state.progression.experience = 0
         self.runtime_state.progression.experience_to_level = PLAYER_BASE_XP_TO_LEVEL
+        from engine.core import level_table
+        if level_table.apply_row(self, 1, world):   # a set with a level table says what level 1 is
+            self.runtime_state.progression.experience_to_level = level_table.cost_to_next(world, 1)
+            self.health = self.max_health
+            if self.runtime_state.magic is not None:
+                self.runtime_state.magic.mana = self.runtime_state.magic.max_mana
         
         self.runtime_state.progression.skills = {}
         
@@ -196,6 +202,11 @@ class Player(
         self.max_health = PLAYER_BASE_HEALTH + stats_contract.stat_value(
             self.stats, stat, PLAYER_DEFAULT_STATS
         ) * PLAYER_CON_HEALTH_MULTIPLIER
+        from engine.core import level_table
+        progression = getattr(getattr(self, "runtime_state", None), "progression", None)
+        row = level_table.row_for(world, progression.level if progression is not None else 1)
+        if row is not None and isinstance(row.get("max_health"), (int, float)) and row["max_health"] > 0:
+            self.max_health = int(row["max_health"])   # a level table is the answer, not the formula
     def get_effective_stat(self, stat_name: str) -> int:
         """Calculates stat including base, buffs, equipment, AND set bonuses."""
         val = super().get_effective_stat(stat_name)

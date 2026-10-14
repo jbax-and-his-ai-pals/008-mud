@@ -41,7 +41,7 @@ static func load(ruleset_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(FileAccess.get_file_as_string(ruleset_path))
 	if not (parsed is Dictionary):
 		return {"ok": false, "error": "Ruleset at %s is not a JSON object." % ruleset_path}
-	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "factions.enmities", "advancement.grants", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "advancement.level_up", "advancement.level_up.stat_growth", "messages", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
+	var shape := ConfigurationSave.shape_error(parsed, ["factions.extra", "factions.enmities", "advancement.grants", "advancement.level_table", "crime.custody.concealed_tool_requirements"], ["world", "world.regions", "status", "systems", "combat", "combat.retreat", "combat.experience_sharing", "factions", "skills", "skills.stat_bonuses", "npc_schedules", "advancement", "advancement.curve", "advancement.level_up", "advancement.level_up.stat_growth", "messages", "quest_generation", "economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "crime", "crime.witness", "crime.consequences", "crime.custody"])
 	if shape != "": return {"ok": false, "error": shape}
 	var draft := RulesetDraft.new()
 	draft.disk_hash = FileAccess.get_sha256(ruleset_path)
@@ -90,6 +90,54 @@ func set_npc_schedules(schedule_rules: Dictionary):
 	else: data["npc_schedules"] = schedule_rules.duplicate(true)
 
 ## Why `text` cannot stand in for the engine's words for `key` ("" when it can). The same rule the engine applies.
+## `advancement.level_table` written one level per line: "xp | max health | max mana | stat=value, stat=value". An empty first field is
+## the last level, the cap. Fields may be left empty (the key is then not written).
+static func level_table_text(rows) -> String:
+	if not (rows is Array): return ""
+	var lines: Array = []
+	for row in rows:
+		if not (row is Dictionary): continue
+		var stats: Array = []
+		var named: Dictionary = row.get("stats", {}) if row.get("stats", {}) is Dictionary else {}
+		for stat in named: stats.append("%s=%s" % [str(stat), _plain(named[stat])])
+		lines.append("%s | %s | %s | %s" % [_plain(row.get("xp", "")), _plain(row.get("max_health", "")), _plain(row.get("max_mana", "")), ", ".join(stats)])
+	return "\n".join(lines)
+
+
+static func _plain(value) -> String:
+	if typeof(value) == TYPE_FLOAT and is_equal_approx(value, round(value)): return str(int(value))
+	return "" if value == null else str(value)
+
+
+## The rows for `text`, or {"error": "..."} naming the line that could not be read.
+static func level_table_from_text(text: String) -> Dictionary:
+	var rows: Array = []
+	var number := 0
+	for raw_line in text.split("\n"):
+		var line := str(raw_line).strip_edges()
+		if line == "": continue
+		number += 1
+		var parts: Array = Array(line.split("|")).map(func(part): return str(part).strip_edges())
+		if parts.size() != 4: return {"error": "level %d: expected 'xp | max health | max mana | stat=value, ...'" % number}
+		var row := {}
+		for index in range(3):
+			var text_part := str(parts[index])
+			if text_part == "": continue
+			if not text_part.is_valid_float(): return {"error": "level %d: '%s' is not a number" % [number, text_part]}
+			var key: String = ["xp", "max_health", "max_mana"][index]
+			row[key] = int(float(text_part)) if is_equal_approx(float(text_part), round(float(text_part))) else float(text_part)
+		var stats := {}
+		for pair in str(parts[3]).split(",", false):
+			var bits := str(pair).split("=")
+			if bits.size() != 2 or str(bits[0]).strip_edges() == "" or not str(bits[1]).strip_edges().is_valid_float():
+				return {"error": "level %d: '%s' is not stat=number" % [number, str(pair).strip_edges()]}
+			var value := float(str(bits[1]).strip_edges())
+			stats[str(bits[0]).strip_edges()] = int(value) if is_equal_approx(value, round(value)) else value
+		if not stats.is_empty(): row["stats"] = stats
+		rows.append(row)
+	return {"rows": rows}
+
+
 static func message_problem(key: String, text) -> String:
 	if not (text is String) or str(text).strip_edges() == "": return "it must be text"
 	var allowed: Array = MESSAGES[key][1]
@@ -218,6 +266,19 @@ func validate() -> Array:
 			if not MESSAGES.has(str(key)): errors.append("messages.%s is not a message the engine says (known: %s)." % [str(key), ", ".join(MESSAGES.keys())]); continue
 			var problem := message_problem(str(key), said[key])
 			if problem != "": errors.append("messages.%s: %s." % [str(key), problem])
+	var table = data.get("advancement", {}).get("level_table", null) if data.get("advancement", {}) is Dictionary else null
+	if table != null:
+		if not (table is Array) or (table as Array).is_empty():
+			errors.append("advancement.level_table must be a non-empty list of rows, one per level (%s)." % (str(table) if table is String else "the first is level 1"))
+		else:
+			for index in range((table as Array).size()):
+				var row = table[index]
+				if not (row is Dictionary): errors.append("advancement.level_table level %d must be an object." % (index + 1)); continue
+				var last: bool = index == (table as Array).size() - 1
+				if not last and not row.has("xp"): errors.append("advancement.level_table level %d needs xp (what reaching level %d costs); only the last level, the cap, has none." % [index + 1, index + 2])
+				if row.has("xp") and (typeof(row["xp"]) not in [TYPE_INT, TYPE_FLOAT] or float(row["xp"]) <= 0): errors.append("advancement.level_table level %d xp must be a positive number." % (index + 1))
+				for key in ["max_health", "max_mana"]:
+					if row.has(key) and (typeof(row[key]) not in [TYPE_INT, TYPE_FLOAT] or float(row[key]) < 0): errors.append("advancement.level_table level %d %s must be a number of 0 or more." % [index + 1, key])
 	var level_up = data.get("advancement", {}).get("level_up", {}) if data.get("advancement", {}) is Dictionary else {}
 	if level_up is Dictionary and not level_up.is_empty():
 		var growth = level_up.get("stat_growth", {})

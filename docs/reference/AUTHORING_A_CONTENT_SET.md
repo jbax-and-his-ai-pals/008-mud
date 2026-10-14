@@ -467,6 +467,12 @@ speed in the client. Lines a conversation or scene gives its own `pace` keep it.
 named, and 0 means it never grows) and `"health_base": 5` (the flat health a level brings, before what the health stat
 adds). Several levels gained at once are reported once, as the whole difference.
 
+**A level table.** A game that says what a level *is*, not what it adds, writes `ruleset.advancement.level_table`: a list of rows, the first
+level 1, each `{"xp": 7, "stats": {"strength": 4, "agility": 4}, "max_health": 15, "max_mana": 0}`. `xp` is what reaching the next level
+costs; the last row has none and is the cap. The values are absolute: a new character is row 1, and each level reached becomes its row
+(health and the pool rise by the difference). With a table the growth rule and the curve are not used. The ruleset editor writes it as one
+line per level.
+
 **The engine's own words.** `ruleset.messages` replaces the sentences the engine says at the moments every game has:
 `kill_experience`, `kill_gold`, `shared_experience`, `level_reached`, `levels_gained`, `defeated`, `respawn_hint`,
 `summon_departs`, `quest_complete` and `scene_locked` (what a player is told when a command is not taken while
