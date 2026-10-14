@@ -18,6 +18,7 @@ REGION_PROPERTY_KINDS = {
     "level_band": "object",        # Region.get_level_band
     "districts": "object",         # World.get_district
     "biome": "string", "region_type": "string",
+    "entrance": "string",          # the `teleport: {to: "entrance"}` effect: a room id, or "region:room"
 }
 # A district (region.properties.districts.<id>) the engine reads: its members
 # (or the older `rooms`) and the atmosphere it overrides.

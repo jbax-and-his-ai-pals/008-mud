@@ -103,6 +103,16 @@ const CONDITION_KINDS := {
 		"fields": {"region_id": "region_id"},
 		"note": "True only while the player is standing there.",
 	},
+	"in_room": {
+		"label": "Is in a room",
+		"fields": {"region_id": "region_id", "room_id": "string"},
+		"note": "True only while the player is standing in that room (a place-bound item or spell).",
+	},
+	"room_is": {
+		"label": "The room has a property",
+		"fields": {"property": "string"},
+		"note": "True while the player's room (or its district or region) has this atmosphere property set: dark, outdoors, noisy, safe_zone... Use `not` for the other way.",
+	},
 	"level_at_least": {
 		"label": "Level at least",
 		"fields": {"value": "int"},
@@ -174,7 +184,7 @@ const EFFECTS := {
 	"forget_spell": {"label": "Forget an ability", "shape": "ability id, or a list of them", "kind": "string"},
 	"spawn_npc": {"label": "Bring in an NPC", "shape": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
 	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
-	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}", "kind": "json"},
+	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}, or {to: \"entrance\"} for the way out of the region you stand in", "kind": "json"},
 	"set_respawn": {"label": "Set where the player respawns", "shape": "{region, room}: where they rise again after dying", "kind": "json"},
 	"teach_companion": {"label": "A companion learns an ability", "shape": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
 	"place_vehicle": {"label": "Set a vehicle down somewhere", "shape": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},

@@ -29,7 +29,10 @@ const EFFECT_FIELDS := {
 	"cleanse": ["effect_data"], "remove_curse": [],
 	"summon": ["summon_template_id", "summon_duration", "max_summons"],
 	"unlock": [], "lock": [],
+	"effects": ["effects"],
 }
+const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
+const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
 const MESSAGE_PLACEHOLDERS := {
 	"cast_message": ["caster_name", "spell_name"],
 	"hit_message": ["caster_name", "target_name", "spell_name", "value", "damage_type"],
@@ -43,6 +46,7 @@ const EFFECT_NOTES := {
 	"unlock": "Opens a locked container (and sets off an undisarmed trap). Needs the Item target.",
 	"lock": "Locks a container. Needs the Item target.",
 	"steal": "Takes an item from the target's `steal_items` (set on the creature), by chance, once each.",
+	"effects": "Runs the same effects a conversation can (a warp, a flag, a gift, an opened way) for the caster.",
 }
 const CLEANSE_DEFAULT_TAGS := ["poison", "disease", "curse"]
 
@@ -100,6 +104,7 @@ func _build_spell_details():
 	_add_target_field(grid)
 	_add_health_cost_field(grid)
 	_add_requires_ally_field(box)
+	_add_requires_condition(box)
 	_add_sacrifice_field(box)
 	_add_windup_fields(box)
 
@@ -116,6 +121,43 @@ func _add_health_cost_field(grid: GridContainer):
 		else:
 			_set_value("health_cost_fraction", value))
 	field.add_child(input); grid.add_child(field)
+
+## A condition the caster must meet for it to work (where it may be cast, what must be so), and the line said when it does not.
+func _add_requires_condition(box: VBoxContainer):
+	var holder := VBoxContainer.new(); holder.name = "RequiresCondition"; box.add_child(holder)
+	_add_requires_condition_into(holder)
+
+
+func _add_requires_condition_into(holder: VBoxContainer):
+	CONDITION_ROWS.build(
+		holder, cur_data.get("requires"), db_manager, "Only works if", "(anywhere, any time)",
+		func(): database_modified.emit(),
+		func(kind: String):
+			if kind == "":
+				cur_data.erase("requires"); cur_data.erase("requires_message")
+			else:
+				cur_data["requires"] = {"kind": kind}
+			database_modified.emit()
+			for child in holder.get_children(): holder.remove_child(child); child.queue_free()
+			_add_requires_condition_into(holder),
+		func(replacement: Dictionary):
+			cur_data["requires"] = replacement
+			database_modified.emit()
+	)
+	_add_requires_message(holder)
+
+
+func _add_requires_message(holder: VBoxContainer):
+	if not (cur_data.get("requires") is Dictionary): return
+	var field := LineEdit.new(); field.name = "requires_message"; field.placeholder_text = "what the player is told when it will not work here"
+	field.text = str(cur_data.get("requires_message", "")); InspectorStyle.apply_input_style(field)
+	field.text_changed.connect(func(text):
+		if text.strip_edges() == "":
+			if cur_data.has("requires_message"): cur_data.erase("requires_message"); database_modified.emit()
+		else:
+			cur_data["requires_message"] = text; database_modified.emit())
+	holder.add_child(field)
+
 
 ## NPC template ids that must be standing beside the caster for it to be cast (a twin spell). Empty erases the key.
 func _add_requires_ally_field(box: VBoxContainer):
@@ -272,6 +314,10 @@ func _effect_card(index: int, effect: Dictionary) -> PanelContainer:
 			tags.text_changed.connect(func(text): _set_effect_data(index, "tags", _split_tags(text)))
 			tags.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			box.add_child(_labeled("Removes effects tagged", tags))
+		"effects":
+			box.add_child(_note(EFFECT_NOTES["effects"]))
+			var effects_holder := VBoxContainer.new(); effects_holder.name = "SpellEffects"; box.add_child(effects_holder)
+			EFFECT_ROWS.build(effects_holder, effect, "Effects:", db_manager, func(): database_modified.emit())
 		"summon":
 			grid.add_child(_labeled("Creature", _summon_picker(index, str(effect.get("summon_template_id", "")))))
 			grid.add_child(_labeled("Lasts (sec, 0 = until dismissed)", _effect_number(index, "summon_duration", 0, 99999, 1, 0.0)))
@@ -498,6 +544,8 @@ func _retype(index: int, effect_type: String):
 			effect["effect_data"] = {"tags": CLEANSE_DEFAULT_TAGS.duplicate()}
 		"summon":
 			if not effect.has("summon_template_id"): effect["summon_template_id"] = ""
+		"effects":
+			if not (effect.get("effects") is Dictionary): effect["effects"] = {"message": "Something happens."}
 	database_modified.emit(); _refresh_effects()
 
 func _add_effect():

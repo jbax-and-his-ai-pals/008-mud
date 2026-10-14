@@ -200,6 +200,30 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                                 error(f"windup.{key} uses {', '.join('{' + name + '}' for name in unknown)}, which the engine does not fill (it offers {', '.join('{' + name + '}' for name in WINDUP_PLACEHOLDERS)})")
                     if entry.get("target_type", "enemy") != "enemy":
                         error("windup needs target_type 'enemy': the caster comes down on one target")
+            if "requires" in entry:
+                from engine import conditions
+
+                if not isinstance(entry["requires"], dict) or not entry["requires"]:
+                    error("requires must be a condition object (where it may be cast, what must be so): see the condition kinds")
+                else:
+                    def _walk(node, where="requires"):
+                        if isinstance(node, list):
+                            for child in node:
+                                _walk(child, where)
+                        elif not isinstance(node, dict):
+                            error(f"{where} must be a condition object")
+                        elif "kind" in node:
+                            if node["kind"] not in conditions.CONDITION_SPECS:
+                                error(f"{where}.kind {node['kind']!r} is not a condition kind (known: {', '.join(conditions.CONDITION_SPECS)})")
+                        else:
+                            composite = [key for key in ("all", "any", "not") if key in node]
+                            if not composite:
+                                error(f"{where} needs a kind, or all / any / not")
+                            for key in composite:
+                                _walk(node[key], f"{where}.{key}")
+                    _walk(entry["requires"])
+            if "requires_message" in entry and not isinstance(entry["requires_message"], str):
+                error("requires_message must be text: what a player is told when the ability will not work here")
             if "requires_ally" in entry:
                 allies = entry["requires_ally"]
                 if not isinstance(allies, list) or not allies or not all(isinstance(a, str) and a.strip() for a in allies):
@@ -250,6 +274,15 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                 for key in ("dot_duration", "base_duration", "dot_tick_interval"):
                     if key in effect and (not number(effect[key]) or effect[key] <= 0):
                         error(f"{e_label}.{key} must be a number of seconds above 0")
+                if effect_type == "effects":
+                    from engine.dialogue.effects import effect_shape_issues
+
+                    block = effect.get("effects")
+                    if not isinstance(block, dict) or not block:
+                        error(f"{e_label}.effects must be an object of dialogue effects (a warp, a flag, a gift...)")
+                    else:
+                        for problem in effect_shape_issues(block):
+                            error(f"{e_label}.effects: {problem}")
                 if "dot_damage_per_tick" in effect and not number(effect["dot_damage_per_tick"]):
                     error(f"{e_label}.dot_damage_per_tick must be a number")
                 if "dot_name" in effect and (not isinstance(effect["dot_name"], str) or not effect["dot_name"].strip()):

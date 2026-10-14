@@ -467,6 +467,13 @@ speed in the client. Lines a conversation or scene gives its own `pace` keep it.
 named, and 0 means it never grows) and `"health_base": 5` (the flat health a level brings, before what the health stat
 adds). Several levels gained at once are reported once, as the whole difference.
 
+**Where an ability or an item works.** An ability (and a consumable's `properties`) may carry `requires`, a condition, and `requires_message`, the
+line said when it fails: a spell that works only outdoors (`{"not": {"kind": "room_is", "property": "dark"}}`) or an item that works at
+one place only (`{"kind": "in_room", "region_id": "shore", "room_id": "edge"}`). A failed spell costs nothing and a failed item is kept.
+An ability effect of type `effects` runs a block of the conversation effects for the caster (a warp, a flag, a gift, an opened way);
+`teleport: {"to": "entrance"}` takes the player to the region's own `properties.entrance` (a room id, or `region:room`): one spell can be
+"out of the cave" in every cave.
+
 **Darkness and light.** A room (or district, or region) marked `"dark": true` is only atmosphere by default ("It is very dark here"). With
 `ruleset.world.dark_requires_light: true` it hides the room, its exits and everything in it from a player who has no light: they read the
 engine's `too_dark` message (a set may say its own in `ruleset.messages`). A light is a status effect with the tag `light`: a spell's

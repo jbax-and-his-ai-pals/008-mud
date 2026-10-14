@@ -134,6 +134,17 @@ CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
         "refs": {"region_id": "regions"},
         "note": "True only while the player is standing there.",
     },
+    "in_room": {
+        "label": "Is in a room",
+        "fields": {"region_id": "region_id", "room_id": "string"},
+        "refs": {"region_id": "regions"},
+        "note": "True only while the player is standing in that room (a place-bound item or spell).",
+    },
+    "room_is": {
+        "label": "The room has a property",
+        "fields": {"property": "string"},
+        "note": "True while the player's room (or its district or region) has this atmosphere property set: dark, outdoors, noisy, safe_zone... Use `not` for the other way.",
+    },
     "level_at_least": {
         "label": "Level at least",
         "fields": {"value": "int"},
@@ -495,6 +506,23 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
         region_id = str(node.get("region_id", "")).strip()
         if getattr(player, "current_region_id", None) != region_id:
             reasons.append("is not in %s" % region_id)
+            return False
+        return True
+
+    if kind == "in_room":
+        region_id = str(node.get("region_id", "")).strip()
+        room_id = str(node.get("room_id", "")).strip()
+        if (getattr(player, "current_region_id", None), getattr(player, "current_room_id", None)) != (region_id, room_id):
+            reasons.append("is not in %s:%s" % (region_id, room_id))
+            return False
+        return True
+
+    if kind == "room_is":
+        name = str(node.get("property", "")).strip()
+        world = getattr(player, "world", None)
+        value = world.get_env_property(getattr(player, "current_region_id", None), getattr(player, "current_room_id", None), name, False) if world is not None else False
+        if not value:
+            reasons.append("is not somewhere that is %s" % name)
             return False
         return True
 

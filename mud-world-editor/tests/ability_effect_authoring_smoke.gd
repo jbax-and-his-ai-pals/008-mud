@@ -127,6 +127,23 @@ func _run():
 	allies.text = ""; allies.text_changed.emit("")
 	_assert(not manager.magic["magic_missile"].has("requires_ally"), "and none erases the key")
 
+	print("
+[a place it works, and an effect that runs a conversation's effects]")
+	var gate: Node = strike.find_child("RequiresCondition", true, false)
+	_assert(gate != null and not manager.magic["magic_missile"].has("requires"), "an ability with no requirement shows none and has no key")
+	_pick_text(gate.find_child("ConditionPicker", true, false), "room_is")
+	_assert(manager.magic["magic_missile"].get("requires") == {"kind": "room_is"}, "a requirement is written as a condition: %s" % str(manager.magic["magic_missile"].get("requires")))
+	var said: LineEdit = strike.find_child("requires_message", true, false)
+	_assert(said != null, "and the line said when it will not work appears")
+	said.text = "The air here is too still."; said.text_changed.emit(said.text)
+	_assert(manager.magic["magic_missile"].get("requires_message") == "The air here is too still.", "it is written")
+	_pick_text(strike.find_child("RequiresCondition", true, false).find_child("ConditionPicker", true, false), "(anywhere, any time)")
+	_assert(not manager.magic["magic_missile"].has("requires") and not manager.magic["magic_missile"].has("requires_message"), "clearing the condition removes both keys")
+	var warp := _inspect(manager, "zap")
+	_pick(warp.find_child("Effect_0", true, false).find_child("EffectType", true, false), "effects")
+	_assert(manager.magic["zap"]["effects"][0].get("type") == "effects" and manager.magic["zap"]["effects"][0].get("effects") is Dictionary, "the effects type keeps a block of conversation effects")
+	_assert(warp.find_child("SpellEffects", true, false) != null, "and shows the same rows a conversation uses")
+
 	print("\n[what the engine refuses]")
 	var zap := _inspect(manager, "zap")
 	_pick(zap.find_child("Effect_0", true, false).find_child("EffectType", true, false), "apply_effect")
@@ -168,6 +185,13 @@ func _pick(picker: OptionButton, value: String):
 		if str(picker.get_item_metadata(index)) == value:
 			picker.select(index); picker.item_selected.emit(index); return
 	_assert(false, "picker offers '%s'" % value)
+
+
+func _pick_text(picker: OptionButton, text: String):
+	for index in range(picker.item_count):
+		if picker.get_item_text(index) == text:
+			picker.select(index); picker.item_selected.emit(index); return
+	_assert(false, "picker offers '%s'" % text)
 
 
 func _spin(field: SpinBox, value: float):

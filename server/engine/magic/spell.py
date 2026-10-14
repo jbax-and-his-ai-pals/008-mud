@@ -24,6 +24,7 @@ ABILITY_EFFECT_FIELDS = {
     "summon": ("summon_template_id", "summon_duration", "max_summons"),
     "unlock": (),
     "lock": (),
+    "effects": ("effects",),
 }
 
 # The names each message is formatted with. The cast and remove-curse messages
@@ -59,6 +60,8 @@ class Spell:
         windup: Dict[str, Any] | None = None,
         requires_ally: List[str] | None = None,
         sacrifice: bool = False,
+        requires: Dict[str, Any] | None = None,
+        requires_message: str = "",
     ):
         if not effects or not all(isinstance(effect, dict) and effect.get("type") for effect in effects):
             raise ValueError(f"Spell '{spell_id}' requires a non-empty effects array with typed effects.")
@@ -83,6 +86,8 @@ class Spell:
         self.windup = windup
         # NPC template ids that must be standing in the room, alive, for this to be cast (a twin spell needs the other twin).
         self.requires_ally = requires_ally
+        self.requires = requires
+        self.requires_message = requires_message
         # The caster gives everything to it and does not survive the cast (a creature or a companion; the effects fall first).
         self.sacrifice = sacrifice
 
@@ -103,6 +108,16 @@ class Spell:
 
     def format_cast_message(self, caster: Any) -> str:
         return self.cast_message.format(caster_name=getattr(caster, "name", "Someone"), spell_name=self.name)
+
+    def requirement_problem(self, caster: Any) -> str:
+        """"" when `requires` (a condition: where it may be cast, what must be so) holds for the caster, else why it does not."""
+        if not self.requires:
+            return ""
+        from engine import conditions
+
+        if conditions.evaluate(self.requires, caster).satisfied:
+            return ""
+        return self.requires_message or "%s will not work here." % self.name
 
     def ally_requirement(self, caster: Any) -> str:
         """"" when `requires_ally` is met (or there is none), else what is missing: every named ally must be standing in the
@@ -146,6 +161,8 @@ class Spell:
             "health_cost_fraction": self.health_cost_fraction,
             "windup": self.windup,
             "requires_ally": self.requires_ally,
+            "requires": self.requires,
+            "requires_message": self.requires_message,
             "sacrifice": self.sacrifice,
             "cast_message": self.cast_message,
             "hit_message": self.hit_message,

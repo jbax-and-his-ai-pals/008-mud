@@ -52,6 +52,13 @@ class Consumable(Item):
         if current_uses <= 0:
             return f"{the(self.name, capital=True)} has already been used up."
 
+        requires = self.get_property("requires")
+        if isinstance(requires, dict) and requires:
+            from engine import conditions
+
+            if not conditions.evaluate(requires, user).satisfied:
+                return str(self.get_property("requires_message") or f"{the(self.name, capital=True)} does nothing here.")
+
         consumed = True
         message = f"You use {the(self.name)}."
 

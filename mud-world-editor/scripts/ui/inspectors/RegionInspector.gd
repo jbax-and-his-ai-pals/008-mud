@@ -37,7 +37,7 @@ const REGION_PROPERTY_KINDS := {
 	"dark": "boolean", "noisy": "boolean", "smell": "string", "temperature": "string",
 	"outdoors": "boolean", "safe_zone": "boolean",
 	"weather_profile": "string", "level_band": "object", "districts": "object",
-	"biome": "string", "region_type": "string",
+	"biome": "string", "region_type": "string", "entrance": "string",
 }
 
 func _init(c: VBoxContainer, handler: ActionHandler = null, db_mgr: DatabaseManager = null):

@@ -200,6 +200,20 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                 total_value += 1
                 messages.append(line)
 
+        elif eff_type == "effects":
+            # The dialogue effects vocabulary, run for the caster: a warp (`teleport`), a flag, a gift, an opened way.
+            from engine.dialogue.effects import apply_effects
+
+            block = effect_def.get("effects")
+            if isinstance(block, dict) and block and getattr(caster, "world", None) is not None:
+                report = apply_effects(block, {"player": caster, "world": caster.world})
+                if report.applied:
+                    total_value += 1
+                    if report.message():
+                        messages.append(report.message())
+                else:
+                    messages.append("Nothing happens.")
+
         elif eff_type == "revive":
             from engine.npcs import companions as _companions
 

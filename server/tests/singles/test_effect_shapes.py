@@ -47,7 +47,7 @@ class TestTheTable(unittest.TestCase):
             "seal_exit": ["direction", "region", "room"],
             "advance_time": ["to_hour"],
             "spawn_npc": ["instance_id", "npc", "region", "room"],
-            "teleport": ["message", "region", "room"],
+            "teleport": ["message", "region", "room", "to"],
             "set_respawn": ["region", "room"],
             "teach_companion": ["npc", "spell"],
             "place_vehicle": ["region", "room", "vehicle"],

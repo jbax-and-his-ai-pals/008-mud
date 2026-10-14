@@ -177,8 +177,9 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     },
     "teleport": {
         "form": "object",
-        "fields": {"region": "text", "room": "text", "message": "text"},
-        "required": ("region", "room"),
+        "fields": {"region": "text", "room": "text", "message": "text", "to": "text"},
+        "one_of": ("room", "to"),
+        "together": (("region", "room"),),
     },
     "set_respawn": {
         "form": "object",
@@ -248,7 +249,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "forget_spell": {"label": "Forget an ability", "hint": "ability id, or a list of them", "kind": "string", "refs": "spells"},
     "spawn_npc": {"label": "Bring in an NPC", "hint": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
     "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
-    "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}", "kind": "json"},
+    "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}, or {to: \"entrance\"} for the way out of the region you stand in", "kind": "json"},
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
     "place_vehicle": {"label": "Set a vehicle down somewhere", "hint": "{vehicle: id (data/vehicles), region, room}: whoever rode it is put ashore", "kind": "json"},
@@ -1426,6 +1427,15 @@ def _apply_teleport_effect(effects: Dict[str, Any], context, report: EffectRepor
     region_id = str(raw.get("region", "") or "").strip()
     room_id = str(raw.get("room", "") or "").strip()
     world = _context_world(context)
+    if str(raw.get("to", "") or "").strip() == "entrance" and world is not None and context.get("player") is not None:
+        # The way out of the place the player stands in: the region's own `entrance` property ("room", or "region:room").
+        here = world.get_region(getattr(context["player"], "current_region_id", None))
+        value = str((getattr(here, "properties", {}) or {}).get("entrance", "") or "").strip() if here is not None else ""
+        if not value:
+            report.failed.append("teleport (nowhere to go from here)")
+            return
+        region_id, _, room_id = value.rpartition(":") if ":" in value else ("", "", value)
+        region_id = region_id or str(getattr(context["player"], "current_region_id", "") or "")
     if world is None or not region_id or not room_id:
         report.failed.append("teleport (needs region and room)")
         return

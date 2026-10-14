@@ -23,6 +23,7 @@ const CONSUMABLE_EFFECT_TYPES := [
 	"cleanse", "target_damage", "effects", "revive",
 ]
 const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
+const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
 
 var container: VBoxContainer
 var consumable_box: VBoxContainer
@@ -394,12 +395,45 @@ func _refill_consumable():
 	row.add_child(picker)
 	vbox.add_child(row)
 
+	var requires_holder := VBoxContainer.new(); requires_holder.name = "ConsumableRequires"; vbox.add_child(requires_holder)
+	_build_requires(requires_holder, properties)
+
 	if current == "effects":
 		var effects_box := VBoxContainer.new()
 		effects_box.name = "ConsumableEffects"
 		effects_box.add_theme_constant_override("separation", 4)
 		vbox.add_child(effects_box)
 		EFFECT_ROWS.build(effects_box, properties, "Effects when used:", database_mgr, func(): database_modified.emit())
+
+
+## A condition the user must meet for the item to work (a place-bound item: the rainbow drop at one shore), and the line said when not.
+func _build_requires(holder: VBoxContainer, properties: Dictionary):
+	for child in holder.get_children():
+		holder.remove_child(child)
+		child.queue_free()
+	CONDITION_ROWS.build(
+		holder, properties.get("requires"), database_mgr, "Only works if", "(anywhere, any time)",
+		func(): database_modified.emit(),
+		func(kind: String):
+			if kind == "":
+				properties.erase("requires"); properties.erase("requires_message")
+			else:
+				properties["requires"] = {"kind": kind}
+			database_modified.emit()
+			_build_requires(holder, properties),
+		func(replacement: Dictionary):
+			properties["requires"] = replacement
+			database_modified.emit()
+	)
+	if properties.get("requires") is Dictionary:
+		var field := LineEdit.new(); field.name = "requires_message"; field.placeholder_text = "what the player is told when it will not work here"
+		field.text = str(properties.get("requires_message", "")); InspectorStyle.apply_input_style(field)
+		field.text_changed.connect(func(text):
+			if text.strip_edges() == "":
+				if properties.has("requires_message"): properties.erase("requires_message"); database_modified.emit()
+			else:
+				properties["requires_message"] = text; database_modified.emit())
+		holder.add_child(field)
 
 
 # Containers and resource nodes are both ordinary item templates at load time,
@@ -977,7 +1011,7 @@ func _refresh_props():
 	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells"]
 	if _engine_item_class() == "Consumable":
 		# The "When used" section owns these two.
-		specialized.append_array(["effect_type", "effects"])
+		specialized.append_array(["effect_type", "effects", "requires", "requires_message"])
 	if _engine_item_class() == "Container":
 		specialized.append_array(["capacity", "locked", "key_id", "is_open", "contains"])
 	if _engine_item_class() == "ResourceNode":
