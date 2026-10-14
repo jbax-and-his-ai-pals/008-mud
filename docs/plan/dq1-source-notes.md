@@ -5,6 +5,14 @@ Research record for `docs/plan/dq1-adaptation-plan.md`. Taken from the Gamer Cor
 Gaps (levels 21 to 30, 20 of 40 monsters, some chests) are marked and are filled from the same site when the content is written.
 Original names are used here only; the set renames everything.
 
+## Version
+
+The target is the **NES release, Dragon Warrior** (1989, North America). The later remakes (Game Boy Color, mobile, Switch) and the
+Japanese Famicom Dragon Quest differ in numbers, names and a few quests; where a source disagrees, prefer the NES figure. The tables below come from a
+guide for that release (it uses its spellings, including "Tantagel" in places), but two details disagree between the guides read and need a check
+against the NES game itself: who trades the staff (the sage in the Northern Cave, for the silver harp, is what is recorded here) and who
+combines the rainbow drop (the sage in the Southern Cave, for the stones, the staff and the token).
+
 ## Fidelity rule
 
 Locations, caves, floors, items, quests and the numbers in these tables are kept **1:1**. The overworld map is not tile-exact: it is a set of
