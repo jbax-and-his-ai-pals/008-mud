@@ -58,6 +58,31 @@ Sources: StrategyWiki and Gamer Corner walkthroughs, Wikipedia. Original names i
 | The Dragonlord's two forms and the offer | a branching dialogue then a two-phase boss | dialogue and phases exist |
 | Gold-poor economy, weapon and armour tiers, selling at half | shops | vendors exist; check sell price (half) |
 
+## Engine status (what has been built for this set)
+
+Built, with their editor authoring, tests and docs (`docs/plan/editor-coverage-ledger.md` has the rows):
+
+| Need | What it became |
+|---|---|
+| The level table: stats, health, magic, cost to the next level, the cap, spells learned | `ruleset.advancement.level_table` |
+| Dark places, a torch, a spell of light | `ruleset.world.dark_requires_light`; a status tag `light`; message `too_dark` |
+| Where walking is dangerous | encounter zones, `data/encounters/*.json` |
+| Repel and fairy water | a status tag `repel`, honoured by the zones against the hero's defence |
+| Return, Outside, Wings | a spell effect (and consumable) running `teleport`; `teleport: {to: "entrance"}` and a region's `entrance` property |
+| A spell or item that works only somewhere (not in a cave; at the shore) | `requires` / `requires_message` on abilities and consumables; conditions `in_room`, `room_is` |
+| Falling costs gold | `ruleset.death.gold_loss_fraction` |
+| The token under a tile | trigger event `searched` (the `search` command) |
+| The princess's love, the distance to the castle | effect `tell_distance`; consumable property `reusable` |
+| Weapon, armour and shop prices; selling at half | already content (`sells_items`, `sell_rate_multiplier`) |
+
+Still open, to be settled when the set is built:
+
+* **Damage arithmetic.** The original's attack is strength plus the weapon and its defence is half agility plus armour; the engine divides
+  the attack stat by a constant (`PLAYER_ATTACK_POWER_STR_DIVISOR`) and mixes dexterity into defence. The numbers will be close, not exact, until
+  the divisors are the set's to say.
+* **Spell resistance** (the original's "sleep resisted 7 times in 16") and **monster flight/run chance** are not exact mechanics here.
+* **The map**: regions, rooms and the way the 20 encounter groups divide them.
+
 ## Decisions to make before building
 
 * **Scale and fidelity (decided).** Locations, caves and their floors, items, quests and every number (the level table, spells, arms,
