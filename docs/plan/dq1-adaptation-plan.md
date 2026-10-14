@@ -60,9 +60,11 @@ Sources: StrategyWiki and Gamer Corner walkthroughs, Wikipedia. Original names i
 
 ## Decisions to make before building
 
-* **Scale.** The original's map is 120 by 120 tiles. This set compresses travel into regions of a few rooms each (an overworld per area) plus the
-  towns and caves. Proposed: about eight regions, around a hundred rooms in all; a playthrough of under two hours.
-* **Encounters.** Open ground needs something for "walking is dangerous". Proposed: a ruleset-level **encounter zone** on a region/room
+* **Scale and fidelity (decided).** Locations, caves and their floors, items, quests and every number (the level table, spells, arms,
+  prices, monsters, encounter groups, treasure) are **1:1** with the original, under new names. The overworld is **not** tile-exact: it is a
+  set of regions of a few rooms each, keeping the shape of the original (what lies north, east and south of the castle, and roughly how far).
+  The figures are in `docs/plan/dq1-source-notes.md`. This is a test of the engine, not a release.
+* **Encounters.** Open ground needs something for "walking is dangerous". The original has 20 encounter groups tied to areas and cave floors, so this is required, not optional. Proposed: a ruleset-level **encounter zone** on a region/room
   (a list of monsters, a chance per move that is higher the farther from the castle) that spawns one monster on entry. Generic, authorable, off by default.
 * **Dark rooms.** The castle of the demon lord and several caves need them. Proposed: a room property `dark: true`; unlit, you cannot see
   exits or things; a lit torch (an item with a duration) or Radiant (a spell with a duration) lights it. Generic.
