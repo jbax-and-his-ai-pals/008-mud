@@ -14,6 +14,10 @@ def look_handler(args: List[str], context: Any):
     if not player: return f"{FORMAT_ERROR}You must start or load a game first.{FORMAT_RESET}"
     if not args: return world.look(minimal=True, player=player)
 
+    from engine.world.description_generator import is_blind
+    if is_blind(world, player):
+        return world.look(minimal=True, player=player)   # in the dark there is nothing to look at but the dark
+
     args_lower = [a.lower() for a in args]
     target_name = ""
     look_inside = False

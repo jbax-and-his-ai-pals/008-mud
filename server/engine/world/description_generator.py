@@ -23,6 +23,17 @@ def darkness_hides_room(world: 'World') -> bool:
     return isinstance(section, dict) and section.get("dark_requires_light") is True
 
 
+def is_blind(world: 'World', player, region_id=None, room_id=None) -> bool:
+    """True when `player` stands (or, given a place, would stand) somewhere dark with no light, in a set where that hides the room."""
+    if player is None or not darkness_hides_room(world):
+        return False
+    region_id = region_id or getattr(player, "current_region_id", None)
+    room_id = room_id or getattr(player, "current_room_id", None)
+    if not region_id or not room_id or not world.get_env_property(region_id, room_id, "dark", False):
+        return False
+    return not player.has_effect_tag(LIGHT_TAG)
+
+
 def generate_room_description(world: 'World', minimal: bool = False, player=None) -> str:
     """
     Generates the formatted text description of the player's current location.
@@ -66,7 +77,7 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
     is_noisy = world.get_env_property(current_region_id, current_room_id, "noisy", False)
     smell = world.get_env_property(current_region_id, current_room_id, "smell", "")
     temperature = world.get_env_property(current_region_id, current_room_id, "temperature", "normal")
-    if is_dark and darkness_hides_room(world) and not player.has_effect_tag(LIGHT_TAG):
+    if is_dark and is_blind(world, player):
         from engine.utils.messages import message
         return message(world, "too_dark")   # not even the room's name: the dark hides it too
     room_desc = current_room.get_full_description(

@@ -75,13 +75,13 @@ Built, with their editor authoring, tests and docs (`docs/plan/editor-coverage-l
 | The princess's love, the distance to the castle | effect `tell_distance`; consumable property `reusable` |
 | Weapon, armour and shop prices; selling at half | already content (`sells_items`, `sell_rate_multiplier`) |
 
-Still open, to be settled when the set is built:
+Settled (by the author):
 
-* **Damage arithmetic.** The original's attack is strength plus the weapon and its defence is half agility plus armour; the engine divides
-  the attack stat by a constant (`PLAYER_ATTACK_POWER_STR_DIVISOR`) and mixes dexterity into defence. The numbers will be close, not exact, until
-  the divisors are the set's to say.
-* **Spell resistance** (the original's "sleep resisted 7 times in 16") and **monster flight/run chance** are not exact mechanics here.
-* **The map**: regions, rooms and the way the 20 encounter groups divide them.
+* Combat stays the engine's own real-time combat, with its own monster spawning; close damage numbers are fine and so is the existing spell resistance.
+* The map is loose: a large fantasy world whose regions roughly follow the original's, monster groups kept apart by districts or by separate
+  regions; large regions are fine and teleport spells are fine.
+* In the dark a player sees no description of the room (not even its name): they get a pass message for a step and a fail message for a wall.
+* Every name is legally distinct; the story and content otherwise match the original as closely as the engine allows.
 
 ## Decisions to make before building
 

@@ -491,8 +491,9 @@ An ability effect of type `effects` runs a block of the conversation effects for
 so (`gold_lost`). Where they rise is the respawn point (`set_respawn`); nothing else is taken.
 
 **Darkness and light.** A room (or district, or region) marked `"dark": true` is only atmosphere by default ("It is very dark here"). With
-`ruleset.world.dark_requires_light: true` it hides the room, its exits and everything in it from a player who has no light: they read the
-engine's `too_dark` message (a set may say its own in `ruleset.messages`). A light is a status effect with the tag `light`: a spell's
+`ruleset.world.dark_requires_light: true` it hides the room, its name, its exits and everything in it from a player who has no light: they read
+the engine's `too_dark` message, a step into the dark says `dark_step`, a wall says `dark_blocked` (it may use `{direction}`), `look` at
+anything says the dark, and the client's nearby panel shows only "Darkness" (a set may say its own words in `ruleset.messages`). A light is a status effect with the tag `light`: a spell's
 `apply_effect`, or a consumable's (`effect_type: apply_effect`), with a duration. A torch and a spell of light are content.
 
 **A level table.** A game that says what a level *is*, not what it adds, writes `ruleset.advancement.level_table`: a list of rows, the first
@@ -503,7 +504,7 @@ the curve are not used. The ruleset editor writes it as one line per level.
 
 **The engine's own words.** `ruleset.messages` replaces the sentences the engine says at the moments every game has:
 `kill_experience`, `kill_gold`, `shared_experience`, `level_reached`, `levels_gained`, `defeated`, `respawn_hint`,
-`summon_departs`, `quest_complete`, `too_dark` and `scene_locked` (what a player is told when a command is not taken while
+`summon_departs`, `quest_complete`, `gold_lost`, `too_dark`, `dark_step`, `dark_blocked` and `scene_locked` (what a player is told when a command is not taken while
 a scene plays; the client also mutes its command line and shows that line as its hint for as long as the scene runs).
 A line may use only the fields its message has, written `{like_this}`
 (the editor shows them); a line that cannot be used leaves the engine's words in place. Colour and layout stay with

@@ -447,7 +447,12 @@ class World:
             return gate_refusal
 
         destination_id = current_room.get_exit(direction)
-        if not destination_id: return f"{FORMAT_ERROR}You cannot go {direction}.{FORMAT_RESET}"
+        if not destination_id:
+            from engine.world.description_generator import is_blind
+            if is_blind(self, active_player):
+                from engine.utils.messages import message as engine_message
+                return f"{FORMAT_ERROR}{engine_message(self, 'dark_blocked', direction=direction)}{FORMAT_RESET}"
+            return f"{FORMAT_ERROR}You cannot go {direction}.{FORMAT_RESET}"
 
         if destination_id == HOUSE_ENTRY_SENTINEL:
             resolved_destination, failure_msg = self.housing_manager.resolve_personal_door(active_player)
@@ -654,13 +659,19 @@ class World:
         if encounter_line:
             trigger_lines = list(trigger_lines) + [encounter_line]
 
-        region_change_msg = f"{FORMAT_HIGHLIGHT}You have entered {target_region.name}.{FORMAT_RESET}\n\n" if new_region_id != old_region_id else ""
+        from engine.world.description_generator import is_blind
+        blind = is_blind(self, active_player)   # a step into the dark shows nothing of where it landed
+        region_change_msg = f"{FORMAT_HIGHLIGHT}You have entered {target_region.name}.{FORMAT_RESET}\n\n" if new_region_id != old_region_id and not blind else ""
         
         # Assemble Final Output
-        output = region_change_msg + self.look(minimal=True, player=active_player)
+        if blind:
+            from engine.utils.messages import message as engine_message
+            output = engine_message(self, "dark_step")
+        else:
+            output = region_change_msg + self.look(minimal=True, player=active_player)
 
         weather_manager = getattr(getattr(self, "game", None), "weather_manager", None)
-        travel_note = weather_manager.travel_note(target_region, target_room) if weather_manager else ""
+        travel_note = weather_manager.travel_note(target_region, target_room) if weather_manager and not blind else ""
         if travel_note:
             output += "\n\n" + travel_note
 
@@ -687,7 +698,7 @@ class World:
         )
         if landmark_note:
             arrival_notes.append(landmark_note)
-        if arrival_notes:
+        if arrival_notes and not blind:
             output += "\n\n" + "\n".join(arrival_notes)
 
         # Append quest updates at the bottom so they are seen last

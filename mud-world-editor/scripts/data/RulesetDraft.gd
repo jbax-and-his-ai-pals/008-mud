@@ -29,6 +29,8 @@ const MESSAGES := {
 	"quest_complete": ["[Quest Complete] {title}", ["title"]],
 	"scene_locked": ["A scene is playing. You can act again when it ends.", []],
 	"gold_lost": ["You lose {amount} {currency}.", ["amount", "currency"]],
+	"dark_step": ["You feel your way forward in the dark. You cannot tell where you are.", []],
+	"dark_blocked": ["You feel along the wall in the dark and find no way {direction}.", ["direction"]],
 	"too_dark": ["It is pitch dark. You can see nothing here, and you could only feel your way.", []],
 }
 

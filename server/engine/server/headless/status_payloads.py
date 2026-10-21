@@ -441,6 +441,16 @@ class StatusPayloadsMixin:
 
         region = self.world.get_region(region_id) if region_id else None
         room = region.get_room(room_id) if region and room_id else None
+        from engine.world.description_generator import is_blind
+        if room and player is not None and is_blind(self.world, player):
+            # In the dark the panel knows no more than the text: no name, no way out, no one, nothing to take.
+            return {
+                "location": {"region_id": "", "region_name": "Darkness", "room_id": "", "room_name": "Darkness"},
+                "exits": [],
+                "npcs": [],
+                "items": [],
+                "interactions": [],
+            }
         if not room:
             return {
                 "location": {"region_id": "", "region_name": "Unknown", "room_id": "", "room_name": "Unknown"},
