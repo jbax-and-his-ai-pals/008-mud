@@ -41,6 +41,7 @@ class TestDarkRooms(unittest.TestCase):
         text = _look(server, sid)
         self.assertIn("pitch dark", text)
         self.assertNotIn("Exits", text)
+        self.assertNotIn("[", text, "not even the room's name")
 
     def test_a_light_shows_the_room_and_wears_off(self):
         server, sid, player = _game(self, True)

@@ -68,7 +68,7 @@ def generate_room_description(world: 'World', minimal: bool = False, player=None
     temperature = world.get_env_property(current_region_id, current_room_id, "temperature", "normal")
     if is_dark and darkness_hides_room(world) and not player.has_effect_tag(LIGHT_TAG):
         from engine.utils.messages import message
-        return title + message(world, "too_dark")
+        return message(world, "too_dark")   # not even the room's name: the dark hides it too
     room_desc = current_room.get_full_description(
         time_period, weather, is_outdoors=is_outdoors,
         is_dark=is_dark, is_noisy=is_noisy, smell=smell, temperature=temperature,
