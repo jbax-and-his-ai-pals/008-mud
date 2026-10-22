@@ -258,9 +258,14 @@ def _validate_simple_ruleset_sections(
     elif death_rules is not None:
         error("death must be an object")
 
-    world_rules = sections.get("world", {})
+    world_rules = ruleset.get("world", {})  # not one of the simple sections: it is shared with the region policy
     if isinstance(world_rules, dict) and "dark_requires_light" in world_rules and not isinstance(world_rules["dark_requires_light"], bool):
         error("world.dark_requires_light must be true or false: whether a room marked dark shows nothing to a player without a light")
+
+    if isinstance(world_rules, dict) and "health_per_heart" in world_rules:
+        unit = world_rules["health_per_heart"]
+        if isinstance(unit, bool) or not isinstance(unit, int) or not 1 <= unit <= 100:
+            error("world.health_per_heart must be a whole number from 1 to 100: how many points of health make one heart (2 for half hearts, 4 for quarters); leave it out to show plain numbers")
 
     status = sections.get("status", {})
     if "stats" in status and strings(status["stats"], "status.stats", allow_empty_list=True):

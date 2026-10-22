@@ -133,10 +133,7 @@ class StatusPayloadsMixin:
 
         payload = {
             "name": str(getattr(player, "name", "Player")),
-            "health": {
-                "current": int(getattr(player, "health", 0)),
-                "max": int(getattr(player, "max_health", 0)),
-            },
+            "health": self._health_payload(player),
             "alive": bool(getattr(player, "is_alive", False)),
             "effects": effect_names,
         }
@@ -145,6 +142,18 @@ class StatusPayloadsMixin:
             payload["experience"] = int(player.runtime_state.progression.experience)
         if self.world.uses_abilities() and player.runtime_state.magic is not None:
             payload["ability_resource"] = self._ability_resource_payload(player)
+        return payload
+
+    def _health_payload(self, player: Any) -> Dict[str, Any]:
+        """The numbers, and (in a set that counts hearts) the text a client shows in their place."""
+        from engine.utils.health_display import format_health, health_per_heart
+
+        payload: Dict[str, Any] = {
+            "current": int(getattr(player, "health", 0)),
+            "max": int(getattr(player, "max_health", 0)),
+        }
+        if health_per_heart(self.world):
+            payload["text"] = format_health(self.world, payload["current"], payload["max"])
         return payload
 
     def _ability_resource_payload(self, player: Optional[Any]) -> Dict[str, Any]:

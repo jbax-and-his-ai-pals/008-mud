@@ -176,7 +176,7 @@ class PanelPayloadsMixin:
         state = player.runtime_state
         payload: Dict[str, Any] = {
             "name": str(player.name),
-            "health": {"current": int(player.health), "max": int(player.max_health)},
+            "health": self._health_payload(player),
             "alive": bool(player.is_alive),
         }
         if state.progression is not None:

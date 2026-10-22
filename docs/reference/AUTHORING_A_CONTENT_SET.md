@@ -505,6 +505,8 @@ An ability effect of type `effects` runs a block of the conversation effects for
 **What falling costs.** `ruleset.death.gold_loss_fraction` (0 to 1) takes that part of the money carried when the character falls, once, and says
 so (`gold_lost`). Where they rise is the respawn point (`set_respawn`); nothing else is taken.
 
+**Hearts.** `ruleset.world.health_per_heart` (a whole number, 1 to 100) makes the player's health read in hearts: at 2, eleven points is "5½/6 hearts" in `status` and in the client's health bar (the payload's `health.text`). Health itself stays whole points, so a half heart is one point; damage and healing are authored in points. Leave it out for plain numbers. At 4 a point is a quarter heart.
+
 **Darkness and light.** A room (or district, or region) marked `"dark": true` is only atmosphere by default ("It is very dark here"). With
 `ruleset.world.dark_requires_light: true` it hides the room, its name, its exits and everything in it from a player who has no light: they read
 the engine's `too_dark` message, a step into the dark says `dark_step`, a wall says `dark_blocked` (it may use `{direction}`), `look` at

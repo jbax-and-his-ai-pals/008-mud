@@ -31,6 +31,7 @@ const FIELDS := [
 	["death", "gold_loss_fraction", "Part of the money carried that is lost when the character falls (0: none, 0.5: half)", "number", [0.0, 1.0, 0.05]],
 	["combat", "player_level_counts", "The player's own level counts in the level-difference modifiers on a blow (otherwise they fight as level 1)", "bool", false],
 	["world", "dark_requires_light", "A dark room shows nothing without a light (a torch or a spell of light)", "bool", false],
+	["world", "health_per_heart", "Points of health in one heart (2: half hearts, 4: quarters; 0: show plain numbers)", "int0", [0, 100]],
 	["combat", "pacing.npc_cooldown_scale", "Everyone but the player strikes this many times slower (1: as authored)", "number", [1.0, 10.0, 0.05]],
 	["combat", "pacing.action_gap", "Seconds between any two creatures' actions in a room (0: no gap)", "number", [0.0, 10.0, 0.1]],
 	["player_defaults", "player_class", "Default player class", "text", "Adventurer"],
@@ -75,7 +76,7 @@ func build(box: VBoxContainer, changed: Callable) -> void:
 				var check := CheckBox.new(); check.name = key.replace(".", "_"); check.text = spec[2]
 				check.toggled.connect(func(_on): _changed()); box.add_child(check)
 				controls[key] = check
-			"int", "number":
+			"int", "int0", "number":
 				var parent: HBoxContainer
 				if spec[1].begins_with("start_time.") and time_row != null:
 					parent = time_row
@@ -143,6 +144,9 @@ func compose() -> Dictionary:
 			"bool":
 				if (control as CheckBox).button_pressed: _write_path(section, spec[1], true)
 				else: _erase_path(section, spec[1])
+			"int0":
+				if int((control as SpinBox).value) <= 0: _erase_path(section, spec[1])
+				else: _write_path(section, spec[1], int((control as SpinBox).value))
 			"int": _write_path(section, spec[1], int((control as SpinBox).value))
 			_: _write_path(section, spec[1], snappedf((control as SpinBox).value, 0.01))
 	var inventory := _inventory()

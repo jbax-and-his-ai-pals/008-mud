@@ -210,7 +210,7 @@ func apply_character(p: Dictionary) -> void:
 		lines += "\n[color=#ffe45c]%d %s[/color]" % [int(p.get("gold", 0)), _esc(str(p.get("currency", "gold")))]
 	_identity.text = lines
 	_set_bar(_hp_bar, int(health.get("current", 0)), int(health.get("max", 1)))
-	_hp_text.text = "HP %d/%d" % [int(health.get("current", 0)), int(health.get("max", 0))]
+	_hp_text.text = str(health["text"]) if health.has("text") else "HP %d/%d" % [int(health.get("current", 0)), int(health.get("max", 0))]
 	var pool: Variant = p.get("ability_resource")
 	_mp_bar.visible = pool is Dictionary and int((pool as Dictionary).get("max", 0)) > 0
 	_mp_text.visible = _mp_bar.visible

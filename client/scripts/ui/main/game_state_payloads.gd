@@ -138,7 +138,7 @@ func _handle_status_payload(payload: Variant) -> void:
 	# These text markers communicate urgency without relying on color alone,
 	# supporting high-contrast and screen-reader modes.
 	var hp_prefix: String = ""
-	var vital_parts: PackedStringArray = PackedStringArray(["%sHP %d/%d" % [hp_prefix, hp_cur, hp_max]])
+	var vital_parts: PackedStringArray = PackedStringArray(["%s%s" % [hp_prefix, str(health["text"]) if health.has("text") else "HP %d/%d" % [hp_cur, hp_max]]])
 	if hp_max > 0:
 		if hp_cur <= 0:
 			hp_prefix = "[DEAD] "

@@ -16,6 +16,7 @@ from engine.contracts.equipment import ability_cost_text
 from engine.items.item import Item
 from engine.magic.spell_registry import get_spell
 from engine.utils.utils import format_name_for_display
+from engine.utils.health_display import format_health
 
 if TYPE_CHECKING:
     from engine.player.core import Player
@@ -64,7 +65,7 @@ class PlayerDisplayMixin:
         p = cast('Player', self)
         
         health_percent = (p.health / p.max_health) * 100 if p.max_health > 0 else 0
-        health_text = f"{int(p.health)}/{int(p.max_health)}"
+        health_text = format_health(p.world, p.health, p.max_health)
         if health_percent <= PLAYER_STATUS_HEALTH_CRITICAL_THRESHOLD: health_display = f"{FORMAT_ERROR}{health_text}{FORMAT_RESET}"
         elif health_percent <= PLAYER_STATUS_HEALTH_LOW_THRESHOLD: health_display = f"{FORMAT_HIGHLIGHT}{health_text}{FORMAT_RESET}"
         else: health_display = f"{FORMAT_SUCCESS}{health_text}{FORMAT_RESET}"

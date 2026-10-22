@@ -191,15 +191,16 @@ func set_world_rules(sections: Dictionary):
 	for name in ["economy", "locksmithing", "calendar", "spawning", "elites", "npc_naming", "player_defaults", "companions", "death"]:
 		if sections.has(name): data[name] = sections[name].duplicate(true)
 		else: data.erase(name)
-	# `world` is shared with the region policy, so only the darkness rule this form owns is taken from it.
+	# `world` is shared with the region policy, so only the rules this form owns are taken from it.
 	var world_form = sections.get("world", {})
-	var dark_rule = world_form.get("dark_requires_light", null) if world_form is Dictionary else null
-	if dark_rule != null:
-		if not (data.get("world") is Dictionary): data["world"] = {}
-		data["world"]["dark_requires_light"] = dark_rule
-	elif data.get("world") is Dictionary and data["world"].has("dark_requires_light"):
-		data["world"].erase("dark_requires_light")
-		if data["world"].is_empty(): data.erase("world")
+	for world_key in ["dark_requires_light", "health_per_heart"]:
+		var world_rule = world_form.get(world_key, null) if world_form is Dictionary else null
+		if world_rule != null:
+			if not (data.get("world") is Dictionary): data["world"] = {}
+			data["world"][world_key] = world_rule
+		elif data.get("world") is Dictionary and data["world"].has(world_key):
+			data["world"].erase(world_key)
+			if data["world"].is_empty(): data.erase("world")
 	# `combat` is shared with the sharing and retreat editors, so only the pacing this form owns is taken from it.
 	var combat_form = sections.get("combat", {})
 	var level_counts = combat_form.get("player_level_counts", null) if combat_form is Dictionary else null

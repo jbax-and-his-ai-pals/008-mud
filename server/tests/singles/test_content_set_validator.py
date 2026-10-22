@@ -1326,6 +1326,13 @@ class TestSimpleRulesetSections(unittest.TestCase):
         self.assertTrue(any("elites.name_pattern" in m and "rank" in m for m in errors), errors)
         self.assertTrue(any("npc_naming.random_name_pattern" in m and "surname" in m for m in errors), errors)
 
+    def test_a_heart_size_the_engine_would_ignore_is_an_error(self):
+        self.assertEqual([], self._errors(world={"health_per_heart": 2}))
+        self.assertTrue(any("dark_requires_light" in m for m in self._errors(world={"dark_requires_light": "yes"})))
+        for bad in (0, -2, 2.5, "2", True, 101):
+            errors = self._errors(world={"health_per_heart": bad})
+            self.assertTrue(any("world.health_per_heart" in m for m in errors), (bad, errors))
+
     def test_a_calendar_the_engine_would_replace_is_an_error(self):
         errors = self._errors(calendar={"day_names": ["One", ""], "start_time": {"hour": 24}})
         self.assertTrue(any("calendar.day_names" in m for m in errors), errors)
