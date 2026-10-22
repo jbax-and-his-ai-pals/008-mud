@@ -1,0 +1,116 @@
+{
+    "region_id": "greyhorn_cavern",
+    "name": "Greyhorn Cavern",
+    "description": "A two-floor cave in the south-western hills, good for a few chests and a great deal of practice.",
+    "properties": {
+        "dark": true,
+        "outdoors": false,
+        "entrance": "heartland:hl_3_0"
+    },
+    "rooms": {
+        "g1_entry": {
+            "name": "The Greyhorn Mouth",
+            "description": "A wide slanting opening in the hillside, with the daylight behind you.",
+            "exits": {
+                "north": "g1_a",
+                "up": "heartland:hl_3_0"
+            }
+        },
+        "g1_a": {
+            "name": "The Weeping Passage",
+            "description": "A passage where water runs down the walls and drips from the roof.",
+            "exits": {
+                "south": "g1_entry",
+                "east": "g1_chest",
+                "north": "g1_stair"
+            }
+        },
+        "g1_chest": {
+            "name": "A Side Chamber",
+            "description": "A dry little chamber off the passage, with a chest against its far wall.",
+            "exits": {
+                "west": "g1_a"
+            },
+            "items": [
+                {
+                    "item_id": "chest_grey_moss"
+                }
+            ]
+        },
+        "g1_stair": {
+            "name": "The Stair Down",
+            "description": "A stair of broken steps leads down into a deeper dark.",
+            "exits": {
+                "south": "g1_a",
+                "down": "g2_landing"
+            }
+        },
+        "g2_landing": {
+            "name": "The Lower Landing",
+            "description": "A rough landing, with four ways leading off it.",
+            "exits": {
+                "up": "g1_stair",
+                "north": "g2_a"
+            }
+        },
+        "g2_a": {
+            "name": "The Long Gallery",
+            "description": "A long gallery of dripping flowstone.",
+            "exits": {
+                "south": "g2_landing",
+                "west": "g2_torch",
+                "east": "g2_band",
+                "north": "g2_gold"
+            }
+        },
+        "g2_torch": {
+            "name": "The Dry Alcove",
+            "description": "A dry alcove with a chest.",
+            "exits": {
+                "east": "g2_a"
+            },
+            "items": [
+                {
+                    "item_id": "chest_grey_torch"
+                }
+            ]
+        },
+        "g2_band": {
+            "name": "The Narrow Room",
+            "description": "A narrow room with a chest and a smell of old smoke.",
+            "exits": {
+                "west": "g2_a"
+            },
+            "items": [
+                {
+                    "item_id": "chest_grey_band"
+                }
+            ]
+        },
+        "g2_gold": {
+            "name": "The Low Chamber",
+            "description": "A low chamber, with a chest tucked under the roof.",
+            "exits": {
+                "south": "g2_a",
+                "east": "g2_trove"
+            },
+            "items": [
+                {
+                    "item_id": "chest_grey_gold"
+                }
+            ]
+        },
+        "g2_trove": {
+            "name": "The Hidden Hollow",
+            "description": "A last, hidden hollow at the end of a crawl-way. A heavy chest sits in the middle of it.",
+            "exits": {
+                "west": "g2_gold"
+            },
+            "items": [
+                {
+                    "item_id": "chest_grey_trove"
+                }
+            ]
+        }
+    }
+}

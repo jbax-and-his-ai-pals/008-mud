@@ -1848,5 +1848,54 @@
             "mon_inferno"
         ],
         "max_mana": 100
+    },
+    "verdant_drake_warden": {
+        "name": "verdant drake",
+        "description": "A thick-bodied green drake coiled across the cell door, with a throat that glows each time it breathes in. It has been guarding the princess a long time, and has the look of an animal that has enjoyed it.",
+        "max_health": 57,
+        "level": 21,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 88,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 74,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 49,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    120,
+                    159
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 45,
+            "unique": true
+        },
+        "usable_spells": [
+            "mon_flame"
+        ],
+        "max_mana": 100
     }
 }

@@ -1,0 +1,50 @@
+{
+    "id": "elowen_court",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "locket_given"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Father says it was you. He says you went down into the tunnel for me with nothing but a stranger's name. I am not used to being rescued. I think I should like it, as long as it is by someone I like. Do you care for me?",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "I do.",
+                    "next_node": "gift",
+                    "effects": {
+                        "give_item": "item_elowens_locket",
+                        "set_flag": "locket_given",
+                        "message": "She takes a locket from her neck and presses it into your hand."
+                    }
+                },
+                {
+                    "text": "Not yet.",
+                    "next_node": "again"
+                }
+            ]
+        },
+        "gift": {
+            "text": "Then take this. Open it and it will tell you how far you have come, and a little thread of light will always point you home. Come back to me, whatever else happens.",
+            "pace": "slow",
+            "end": true
+        },
+        "again": {
+            "text": "Then think about it. I will ask again.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "Whatever else happens, come back.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

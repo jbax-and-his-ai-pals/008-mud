@@ -1,0 +1,57 @@
+{
+    "id": "hermit_staff",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "staff_won"
+            }
+        },
+        {
+            "node": "trade",
+            "condition": {
+                "kind": "has_item",
+                "item_id": "item_moon_harp"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Visitors, in this cold. I am a hermit, and I keep a staff that was left with me for the heir of the Lightbearer. I do not hand it to anyone who asks nicely. There is a thing I want, a harp of silver, and it is not in my cave.",
+            "pace": "slow",
+            "end": true
+        },
+        "trade": {
+            "text": "A harp of silver, with a voice like the moon. I have not heard that sound in sixty years. Take the staff, heir of the Lightbearer, and use it well.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Take the staff in trade.",
+                    "next_node": "done",
+                    "effects": {
+                        "take_item": "item_moon_harp",
+                        "give_item": "item_cloudcallers_staff",
+                        "set_flag": "staff_won",
+                        "message": "The hermit lays the harp on his knee and plucks one string. Then he reaches up and gives you the grey staff."
+                    },
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "item_moon_harp"
+                    }
+                }
+            ]
+        },
+        "done": {
+            "text": "Go well. The rain has been a long time coming.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "The staff is yours. Do not lose the second thing you were given.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

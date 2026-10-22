@@ -1,0 +1,69 @@
+{
+    "greyhorn_first": {
+        "region": "greyhorn_cavern",
+        "rooms": [
+            "g1_a",
+            "g1_chest",
+            "g1_stair"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "pale_shade",
+                "weight": 1
+            },
+            {
+                "npc": "hedge_mage",
+                "weight": 1
+            },
+            {
+                "npc": "dune_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "bog_imp",
+                "weight": 2
+            }
+        ],
+        "message": "A {name} drops out of the dark!",
+        "note": "The sixth group."
+    },
+    "greyhorn_second": {
+        "region": "greyhorn_cavern",
+        "rooms": [
+            "g2_landing",
+            "g2_a",
+            "g2_torch",
+            "g2_band",
+            "g2_gold",
+            "g2_trove"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "rattling_spirit",
+                "weight": 1
+            },
+            {
+                "npc": "fen_brute",
+                "weight": 1
+            },
+            {
+                "npc": "fellwing",
+                "weight": 1
+            },
+            {
+                "npc": "bone_walker",
+                "weight": 1
+            },
+            {
+                "npc": "hexer",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} steps out of the dark!",
+        "note": "The ninth group."
+    }
+}

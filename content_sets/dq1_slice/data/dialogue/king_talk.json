@@ -3,6 +3,13 @@
     "root": "greeting",
     "entries": [
         {
+            "node": "home",
+            "condition": {
+                "kind": "flag",
+                "flag": "princess_home"
+            }
+        },
+        {
             "node": "hunting",
             "condition": {
                 "kind": "flag",
@@ -63,6 +70,25 @@
         },
         "where": {
             "text": "There is a vault in the north that holds a tablet from the old days. Begin there. The rest, I think, the tablet will tell you.",
+            "pace": "slow",
+            "end": true
+        },
+        "home": {
+            "text": "My daughter is home, and I owe you more than a kingdom has to give. She will want to speak with you. The rest of the work is still before you; I wish I could do it for you.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Where do I go now?",
+                    "next_node": "where_now"
+                },
+                {
+                    "text": "I will go to her.",
+                    "end": true
+                }
+            ]
+        },
+        "where_now": {
+            "text": "The tablet says what is needed: the sunstones, the staff, the signet, and the sage who will make them one. The sunstones, I am told, lie under this very castle, behind a door that wants a key. After that, the rest is road.",
             "pace": "slow",
             "end": true
         }

@@ -1,0 +1,102 @@
+{
+    "chest_grey_moss": {
+        "type": "Container",
+        "name": "cavern chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_healing_moss",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_grey_torch": {
+        "type": "Container",
+        "name": "stone chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_pitch_torch",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_grey_band": {
+        "type": "Container",
+        "name": "iron-bound chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_brawlers_band",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_grey_gold": {
+        "type": "Container",
+        "name": "lidded chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_medium",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_grey_trove": {
+        "type": "Container",
+        "name": "heavy chest",
+        "description": "A heavy chest of dark wood, at the very back of the cavern, and very well hidden.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_cave",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    }
+}

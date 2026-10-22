@@ -1,0 +1,84 @@
+{
+    "eastreach_west": {
+        "region": "eastreach",
+        "rooms": [
+            "er_0_0",
+            "er_0_1",
+            "er_0_2",
+            "er_1_0",
+            "er_1_1",
+            "er_1_2",
+            "er_2_0",
+            "er_2_1",
+            "er_2_2",
+            "er_3_0",
+            "er_3_1",
+            "er_3_2"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "pale_shade",
+                "weight": 1
+            },
+            {
+                "npc": "hedge_mage",
+                "weight": 1
+            },
+            {
+                "npc": "hexwing",
+                "weight": 2
+            },
+            {
+                "npc": "dune_stinger",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes out of the reeds at you!",
+        "note": "The original's fifth group."
+    },
+    "eastreach_east": {
+        "region": "eastreach",
+        "rooms": [
+            "er_0_3",
+            "er_0_4",
+            "er_0_5",
+            "er_1_3",
+            "er_1_4",
+            "er_1_5",
+            "er_2_3",
+            "er_2_4",
+            "er_2_5",
+            "er_3_3",
+            "er_3_4",
+            "er_3_5"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "pale_shade",
+                "weight": 1
+            },
+            {
+                "npc": "hedge_mage",
+                "weight": 1
+            },
+            {
+                "npc": "hexwing",
+                "weight": 1
+            },
+            {
+                "npc": "dune_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "bone_walker",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes out of the heath at you!",
+        "note": "The seventh group."
+    }
+}

@@ -1,0 +1,51 @@
+{
+    "princess_home": {
+        "note": "The princess is brought home.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "The king rises from the throne before you have crossed the room. He does not say anything; he does not seem to have a thing to say. The princess takes three quick steps and he holds her as if he thought she would blow away.",
+                "effects": {
+                    "dismiss": [
+                        "princess_elowen"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "pace": "slow",
+                "effects": {
+                    "remove_npc": "princess_elowen",
+                    "spawn_npc": {
+                        "npc": "princess_elowen_court",
+                        "region": "telgard",
+                        "room": "throne_room",
+                        "instance_id": "elowen_at_court"
+                    },
+                    "set_flag": "princess_home"
+                }
+            },
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[YELLOW]]King Tavor speaks:[[/]] [[GREEN]]\"The Lightbearer's line has not failed me. Go to my daughter, when you can; she has been waiting to thank you in her own way.\"[[/]]"
+            }
+        ]
+    },
+    "drake_down": {
+        "note": "The warden drake is dead.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "The great green drake coils once and does not uncoil. The glow goes out of its throat. Behind it, an iron door stands in the wall, with someone moving behind it.",
+                "effects": {
+                    "set_flag": "drake_slain"
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "mirewater": {
+        "region": "mirewater_tunnel",
+        "rooms": [
+            "t_pass1",
+            "t_fork",
+            "t_pass2",
+            "t_pass3"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "pale_shade",
+                "weight": 1
+            },
+            {
+                "npc": "hedge_mage",
+                "weight": 1
+            },
+            {
+                "npc": "dune_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "bog_imp",
+                "weight": 2
+            }
+        ],
+        "message": "A {name} slides out of the mud!",
+        "note": "The sixth group, again, in the tunnel."
+    }
+}

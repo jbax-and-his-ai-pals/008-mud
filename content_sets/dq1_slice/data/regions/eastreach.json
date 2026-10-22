@@ -1,0 +1,235 @@
+{
+    "region_id": "eastreach",
+    "name": "The Eastreach",
+    "description": "The wet, wide country east of Bracken Ford, running up to the fells in the north and down into marsh in the south.",
+    "properties": {
+        "outdoors": true,
+        "biome": "plain"
+    },
+    "rooms": {
+        "er_0_0": {
+            "name": "Brenn Lowland",
+            "description": "Level pasture cut by slow brown streams. Telgard is a long way west.",
+            "exits": {
+                "east": "er_0_1",
+                "south": "er_1_0"
+            }
+        },
+        "er_0_1": {
+            "name": "Sedge Flats",
+            "description": "Wet meadow and rushes under a low sky. Telgard is a long way west.",
+            "exits": {
+                "west": "er_0_0",
+                "east": "er_0_2",
+                "south": "er_1_1"
+            }
+        },
+        "er_0_2": {
+            "name": "Frostfell Approach",
+            "description": "Rolling heath with the wind combing it flat. Telgard is a long way west.",
+            "exits": {
+                "west": "er_0_1",
+                "east": "er_0_3",
+                "south": "er_1_2"
+            }
+        },
+        "er_0_3": {
+            "name": "The Frost Door",
+            "description": "A frost-white outcrop at the foot of the fell, with a low arch cut into it. Cold air flows out of the arch, and with it the smell of snow. Bring a light.",
+            "exits": {
+                "west": "er_0_2",
+                "east": "er_0_4",
+                "south": "er_1_3",
+                "down": "frostfell_hollow:f_entry"
+            }
+        },
+        "er_0_4": {
+            "name": "Cold Fell",
+            "description": "Level pasture cut by slow brown streams. Telgard is a long way west.",
+            "exits": {
+                "west": "er_0_3",
+                "east": "er_0_5",
+                "south": "er_1_4"
+            }
+        },
+        "er_0_5": {
+            "name": "Kalder Road",
+            "description": "The road ends at the walls of Kalder, grey stone with a small gate open in it, on the edge of the northern fells.",
+            "exits": {
+                "west": "er_0_4",
+                "south": "er_1_5",
+                "east": "kalder:gate"
+            }
+        },
+        "er_1_0": {
+            "name": "Ford Meadows",
+            "description": "Wet meadow and rushes under a low sky. Telgard is a long way west.",
+            "exits": {
+                "north": "er_0_0",
+                "east": "er_1_1",
+                "south": "er_2_0",
+                "west": "bracken_ford:east_gate"
+            }
+        },
+        "er_1_1": {
+            "name": "Mill Race",
+            "description": "Rolling heath with the wind combing it flat. Telgard is a long way west.",
+            "exits": {
+                "north": "er_0_1",
+                "west": "er_1_0",
+                "east": "er_1_2",
+                "south": "er_2_1"
+            }
+        },
+        "er_1_2": {
+            "name": "The Long Reach",
+            "description": "Reed beds and shallow pools, loud with frogs. Telgard is a long way west.",
+            "exits": {
+                "north": "er_0_2",
+                "west": "er_1_1",
+                "east": "er_1_3",
+                "south": "er_2_2"
+            }
+        },
+        "er_1_3": {
+            "name": "Hawk Rise",
+            "description": "Level pasture cut by slow brown streams. Telgard is a long way west.",
+            "exits": {
+                "north": "er_0_3",
+                "west": "er_1_2",
+                "east": "er_1_4",
+                "south": "er_2_3"
+            }
+        },
+        "er_1_4": {
+            "name": "Gorse Edge",
+            "description": "Wet meadow and rushes under a low sky. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_0_4",
+                "west": "er_1_3",
+                "east": "er_1_5",
+                "south": "er_2_4"
+            }
+        },
+        "er_1_5": {
+            "name": "Kalder Heath",
+            "description": "Rolling heath with the wind combing it flat. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_0_5",
+                "west": "er_1_4",
+                "south": "er_2_5"
+            }
+        },
+        "er_2_0": {
+            "name": "Eastgate Fields",
+            "description": "Rolling heath with the wind combing it flat. Telgard is a long way west.",
+            "exits": {
+                "north": "er_1_0",
+                "east": "er_2_1",
+                "south": "er_3_0"
+            }
+        },
+        "er_2_1": {
+            "name": "Tinker's Mile",
+            "description": "Reed beds and shallow pools, loud with frogs. Telgard is a long way west.",
+            "exits": {
+                "north": "er_1_1",
+                "west": "er_2_0",
+                "east": "er_2_2",
+                "south": "er_3_1"
+            }
+        },
+        "er_2_2": {
+            "name": "Reed Verge",
+            "description": "Level pasture cut by slow brown streams. Telgard is a long way west.",
+            "exits": {
+                "north": "er_1_2",
+                "west": "er_2_1",
+                "east": "er_2_3",
+                "south": "er_3_2"
+            }
+        },
+        "er_2_3": {
+            "name": "Wide Water",
+            "description": "Wet meadow and rushes under a low sky. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_1_3",
+                "west": "er_2_2",
+                "east": "er_2_4",
+                "south": "er_3_3"
+            }
+        },
+        "er_2_4": {
+            "name": "Sallow Bank",
+            "description": "Rolling heath with the wind combing it flat. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_1_4",
+                "west": "er_2_3",
+                "east": "er_2_5",
+                "south": "er_3_4"
+            }
+        },
+        "er_2_5": {
+            "name": "Mire Edge Road",
+            "description": "Reed beds and shallow pools, loud with frogs. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_1_5",
+                "west": "er_2_4",
+                "south": "er_3_5"
+            }
+        },
+        "er_3_0": {
+            "name": "Marsh Lane",
+            "description": "Reed beds and shallow pools, loud with frogs. Telgard is a long way west.",
+            "exits": {
+                "north": "er_2_0",
+                "east": "er_3_1"
+            }
+        },
+        "er_3_1": {
+            "name": "Black Pool",
+            "description": "Level pasture cut by slow brown streams. Telgard is a long way west.",
+            "exits": {
+                "north": "er_2_1",
+                "west": "er_3_0",
+                "east": "er_3_2"
+            }
+        },
+        "er_3_2": {
+            "name": "Heron Slough",
+            "description": "Wet meadow and rushes under a low sky. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_2_2",
+                "west": "er_3_1",
+                "east": "er_3_3"
+            }
+        },
+        "er_3_3": {
+            "name": "Peat Cut",
+            "description": "Rolling heath with the wind combing it flat. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_2_3",
+                "west": "er_3_2",
+                "east": "er_3_4"
+            }
+        },
+        "er_3_4": {
+            "name": "Willow Fen",
+            "description": "Reed beds and shallow pools, loud with frogs. The sea of reeds spreads wider to the south-east.",
+            "exits": {
+                "north": "er_2_4",
+                "west": "er_3_3",
+                "east": "er_3_5"
+            }
+        },
+        "er_3_5": {
+            "name": "The Mire's Mouth",
+            "description": "A stretch of black, reedy water where the land goes soft. A cut in the bank, hung with roots, leads down into the ground: the mouth of the Mirewater Tunnel.",
+            "exits": {
+                "north": "er_2_5",
+                "west": "er_3_4",
+                "down": "mirewater_tunnel:t_mouth"
+            }
+        }
+    }
+}

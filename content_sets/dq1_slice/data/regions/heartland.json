@@ -176,10 +176,11 @@
         },
         "hl_3_0": {
             "name": "Thistle Heath",
-            "description": "Rough pasture with scattered stones and the occasional thorn. Telgard is a smudge on the horizon.",
+            "description": "A spur of the hills comes down to meet the heath here, with a dark opening in its flank: the Greyhorn Cavern. Bring a light.",
             "exits": {
                 "north": "hl_2_0",
-                "east": "hl_3_1"
+                "east": "hl_3_1",
+                "down": "greyhorn_cavern:g1_entry"
             }
         },
         "hl_3_1": {

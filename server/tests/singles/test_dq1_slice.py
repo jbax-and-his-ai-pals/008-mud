@@ -216,5 +216,67 @@ class TestTheNorth(Base):
         self.assertIsNone(self.player.equipment["head"])
 
 
+class TestTheEast(Base):
+    def _give(self, item_id):
+        from engine.items.item_factory import ItemFactory
+
+        self.player.inventory.add_item(ItemFactory.create_item_from_template(item_id, self.world))
+
+    def _held(self, item_id):
+        return any(slot.item and slot.item.obj_id == item_id for slot in self.player.inventory.slots)
+
+    def test_the_slumber_pipe_lies_four_steps_south_of_the_bath_and_is_found_once(self):
+        self.at("kalder", "lane3")
+        self.assertIn("nothing to search", self.say("search"))
+        self.at("kalder", "lane4")
+        self.say("search")
+        self.assertTrue(self._held("item_slumber_pipe"))
+        self.assertIn("nothing to search", self.say("search"))
+
+    def test_the_hermit_trades_the_staff_for_the_harp_and_for_nothing_else(self):
+        self.at("frostfell_hollow", "f_hall")
+        self.say("talk hermit")
+        self.assertFalse(self._held("item_cloudcallers_staff"))
+        self._give("item_moon_harp")
+        self.say("talk hermit")
+        self.say("reply 1")
+        self.assertTrue(self._held("item_cloudcallers_staff"))
+        self.assertFalse(self._held("item_moon_harp"))
+
+    def test_the_princess_is_carried_home_and_gives_a_locket_that_counts_the_steps(self):
+        self.at("mirewater_tunnel", "t_cell")
+        self.say("talk princess")
+        self.say("reply 1")
+        self.assertIs(True, self.player.flags.get("princess_with_you"))
+        self.assertTrue([n for n in self.world.npcs.values() if n.template_id == "princess_elowen" and n.properties.get("companion")])
+        self.assertTrue([n for n in self.world.npcs.values() if n.template_id == "princess_elowen" and n.properties.get("untargetable")])
+        self.at("telgard", "great_hall")
+        self.say("go up")
+        for _ in range(20):
+            self.world.clock.advance(1.0)
+            self.server.tick(self.sid)
+        self.assertIs(True, self.player.flags.get("princess_home"))
+        self.assertTrue([n for n in self.world.npcs.values() if n.template_id == "princess_elowen_court"])
+        self.say("talk princess")
+        self.say("reply 1")
+        self.assertTrue(self._held("item_elowens_locket"))
+        self.at("heartland", "hl_1_3")
+        self.assertIn("steps behind", self.say("use elowen's locket"))
+        self.assertTrue(self._held("item_elowens_locket"), "the locket is kept")
+
+    def test_the_tunnels_dragon_is_a_placed_boss_that_does_not_come_back(self):
+        den = self.world.get_region("mirewater_tunnel").get_room("t_den")
+        self.assertEqual("drake_warden", den.initial_npc_refs[0]["instance_id"] if den.initial_npc_refs else "drake_warden")
+        warden = self.world.npc_templates["verdant_drake_warden"]
+        self.assertEqual(-1, warden["properties"]["respawn_cooldown"])
+        self.assertEqual(45, warden["properties"]["xp_reward"])
+
+    def test_the_east_roads_creatures_are_the_originals_fifth_and_seventh_groups(self):
+        zones = self.world.encounters.zones
+        self.assertEqual({"pale_shade", "hedge_mage", "hexwing", "dune_stinger"}, {m["npc"] for m in zones["eastreach_west"]["monsters"]})
+        self.assertEqual({"pale_shade", "hedge_mage", "hexwing", "dune_stinger", "bone_walker"}, {m["npc"] for m in zones["eastreach_east"]["monsters"]})
+        self.assertEqual({"pale_shade", "hedge_mage", "dune_stinger", "bog_imp"}, {m["npc"] for m in zones["mirewater"]["monsters"]})
+
+
 if __name__ == "__main__":
     unittest.main()

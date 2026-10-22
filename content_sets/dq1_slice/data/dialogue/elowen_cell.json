@@ -1,0 +1,37 @@
+{
+    "id": "elowen_cell",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "You are not Maldrath's, I think; you do not look pleased with yourself. You must be the heir the old stories promised. I am Elowen. I have counted every day, so I can tell you it has been a long time. Take me out of here.",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Come with me. I will take you home.",
+                    "next_node": "joins",
+                    "effects": {
+                        "remove_npc": "princess_elowen_cell",
+                        "spawn_npc": {
+                            "npc": "princess_elowen",
+                            "region": "mirewater_tunnel",
+                            "room": "t_cell",
+                            "instance_id": "elowen_companion"
+                        },
+                        "recruit": "princess_elowen",
+                        "set_flag": "princess_with_you"
+                    }
+                },
+                {
+                    "text": "Wait here a little longer.",
+                    "end": true
+                }
+            ]
+        },
+        "joins": {
+            "text": "Then lead on. I will stay close behind you, and not complain.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

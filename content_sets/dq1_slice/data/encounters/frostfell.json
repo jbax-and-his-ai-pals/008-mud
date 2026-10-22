@@ -1,0 +1,34 @@
+{
+    "frostfell": {
+        "region": "frostfell_hollow",
+        "rooms": [
+            "f_passage"
+        ],
+        "chance": 0.25,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "pale_shade",
+                "weight": 1
+            },
+            {
+                "npc": "hedge_mage",
+                "weight": 1
+            },
+            {
+                "npc": "hexwing",
+                "weight": 1
+            },
+            {
+                "npc": "dune_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "bone_walker",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} stirs in the ice!",
+        "note": "The northern cave, like the seventh group."
+    }
+}

@@ -1,0 +1,97 @@
+{
+    "region_id": "mirewater_tunnel",
+    "name": "Mirewater Tunnel",
+    "description": "A long, wet tunnel under the marsh, with one door in it that matters.",
+    "properties": {
+        "outdoors": false,
+        "entrance": "eastreach:er_3_5"
+    },
+    "rooms": {
+        "t_mouth": {
+            "name": "The Tunnel Mouth",
+            "description": "A damp cut in the bank, floored with black mud. The tunnel runs south into the earth.",
+            "exits": {
+                "south": "t_pass1",
+                "up": "eastreach:er_3_5"
+            }
+        },
+        "t_pass1": {
+            "name": "The Wet Passage",
+            "description": "A passage running with brown water, ankle deep in places, with rotted timbers at the sides.",
+            "exits": {
+                "north": "t_mouth",
+                "south": "t_fork"
+            }
+        },
+        "t_fork": {
+            "name": "The Fork",
+            "description": "The tunnel splits here: one way bends east toward a heavy door, the other goes on south.",
+            "exits": {
+                "north": "t_pass1",
+                "east": "t_den",
+                "south": "t_pass2"
+            }
+        },
+        "t_den": {
+            "name": "The Drake's Den",
+            "description": "A wide, hot chamber full of gnawed bones and a smell like a forge. Beyond it a narrow iron door is set in the wall.",
+            "exits": {
+                "west": "t_fork",
+                "north": "t_cell"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "verdant_drake_warden",
+                    "instance_id": "drake_warden"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The iron door is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "t_cell": {
+            "name": "The Cell",
+            "description": "A small stone cell with a straw pallet, a water jug and one small window cut high in the wall.",
+            "exits": {
+                "south": "t_den"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "princess_elowen_cell",
+                    "instance_id": "elowen_in_the_cell"
+                }
+            ]
+        },
+        "t_pass2": {
+            "name": "The Deep Passage",
+            "description": "The passage runs on south, drier now, and straighter.",
+            "exits": {
+                "north": "t_fork",
+                "south": "t_pass3"
+            }
+        },
+        "t_pass3": {
+            "name": "The Southern Passage",
+            "description": "A last stretch of tunnel, smelling of open air.",
+            "exits": {
+                "north": "t_pass2",
+                "south": "t_exit"
+            }
+        },
+        "t_exit": {
+            "name": "The Southern Mouth",
+            "description": "A ragged hole in the hillside, with daylight beyond it and a very different country.",
+            "exits": {
+                "north": "t_pass3"
+            }
+        }
+    }
+}

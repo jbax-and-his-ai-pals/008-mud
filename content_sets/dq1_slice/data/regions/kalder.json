@@ -1,0 +1,151 @@
+{
+    "region_id": "kalder",
+    "name": "Kalder",
+    "description": "A hardy town of grey stone on the lip of the northern fells, with hot springs underneath and a long memory.",
+    "properties": {
+        "safe_zone": true,
+        "outdoors": true
+    },
+    "rooms": {
+        "gate": {
+            "name": "The Fell Gate",
+            "description": "A small gate in a grey wall, with the fells rising behind the town and the road falling away east to the marsh.",
+            "exits": {
+                "east": "eastreach:er_0_5",
+                "west": "street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kalder_guard",
+                    "instance_id": "guard_kalder"
+                }
+            ]
+        },
+        "street": {
+            "name": "The High Street",
+            "description": "A steep street of grey stone houses, with smoke from every chimney and a bathhouse on the north side.",
+            "exits": {
+                "east": "gate",
+                "north": "bath",
+                "west": "arms",
+                "south": "tools"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kalder_gossip",
+                    "instance_id": "gossip_kalder"
+                }
+            ]
+        },
+        "arms": {
+            "name": "The Armoury",
+            "description": "A cold room of racked blades and hanging plate, kept by a woman who clearly does not like it when they are touched.",
+            "exits": {
+                "east": "street",
+                "west": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kalder_armourer",
+                    "instance_id": "armourer_kalder"
+                }
+            ]
+        },
+        "tools": {
+            "name": "The Pedlar's Stall",
+            "description": "A covered stall of jars, bundles, rope and bright feathers on strings.",
+            "exits": {
+                "north": "street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kalder_pedlar",
+                    "instance_id": "pedlar_kalder"
+                }
+            ]
+        },
+        "inn": {
+            "name": "The Fell Lantern",
+            "description": "A warm, low inn whose windows are always lit.",
+            "exits": {
+                "east": "arms",
+                "north": "west_house"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kalder_innkeeper",
+                    "instance_id": "innkeeper_kalder"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The old house's door is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "bath": {
+            "name": "The Bathhouse",
+            "description": "A steaming stone bathhouse fed from a hot spring, thick with the smell of sulphur. A back door in the west wall leads out to the lane behind it.",
+            "exits": {
+                "south": "street",
+                "west": "lane1"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kalder_bather",
+                    "instance_id": "bather_kalder"
+                }
+            ]
+        },
+        "lane1": {
+            "name": "The Back Lane",
+            "description": "A narrow lane of wet cobbles behind the bathhouse, running south between blank walls, with the bathhouse door to the east.",
+            "exits": {
+                "east": "bath",
+                "south": "lane2"
+            }
+        },
+        "lane2": {
+            "name": "The Back Lane, Further Down",
+            "description": "The lane runs on south between blank walls.",
+            "exits": {
+                "north": "lane1",
+                "south": "lane3"
+            }
+        },
+        "lane3": {
+            "name": "The Back Lane, Narrowing",
+            "description": "The lane squeezes between a woodpile and a wall. Somewhere, steam hisses.",
+            "exits": {
+                "north": "lane2",
+                "south": "lane4"
+            }
+        },
+        "lane4": {
+            "name": "A Corner of the Lane",
+            "description": "A little dead-end corner with a cracked flagstone, a drain, and the feeling that someone once hid something here.",
+            "exits": {
+                "north": "lane3"
+            }
+        },
+        "west_house": {
+            "name": "The Locked House",
+            "description": "A house at the west end of the street. The door is barred, and an old man sits inside by a cold hearth.",
+            "exits": {
+                "south": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "kalder_hermit_friend",
+                    "instance_id": "oldman_kalder"
+                }
+            ]
+        }
+    }
+}

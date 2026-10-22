@@ -550,5 +550,267 @@
             "essential": true,
             "unique": true
         }
+    },
+    "kalder_guard": {
+        "name": "a gate guard",
+        "description": "A guard in a thick wool cloak who looks as if he has been cold since birth.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "East of here the land goes to marsh. If you want the swamp tunnel, go down and south, and carry a key."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "kalder_gossip": {
+        "name": "a townsman",
+        "description": "A man in a heavy coat, carrying firewood.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "A flute? There was one. My grandfather swore he heard it played four paces south of the bathhouse, in the corner of the back lane, on the night the dark came."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "kalder_armourer": {
+        "name": "the armourer",
+        "description": "A tall woman with a limp and a pair of tongs.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The best plate this side of the sea, and the highest prices. Look, but do not lean on anything."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_bronze_blade"
+                },
+                {
+                    "item_id": "item_woodsmans_axe"
+                },
+                {
+                    "item_id": "item_buckler"
+                },
+                {
+                    "item_id": "item_half_harness"
+                },
+                {
+                    "item_id": "item_plate_harness"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "kalder_pedlar": {
+        "name": "the pedlar",
+        "description": "A man hung all over with bundles.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Moss, torches, scales, and a feather that will carry you home if you tell it to."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_healing_moss"
+                },
+                {
+                    "item_id": "item_pitch_torch"
+                },
+                {
+                    "item_id": "item_wyrm_scale"
+                },
+                {
+                    "item_id": "item_homing_feather"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "kalder_innkeeper": {
+        "name": "the innkeeper",
+        "description": "A tall, patient man with a clay pipe.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "inn_kalder"
+        }
+    },
+    "kalder_bather": {
+        "name": "a bather",
+        "description": "A pink, steaming man in a towel, sitting on the stone edge of the spring.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The spring is hot enough to cook an egg, and I have, but that is not why you are here. I can tell. The back lane, when you are done."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "kalder_hermit_friend": {
+        "name": "an old man",
+        "description": "A very old man wrapped in a blanket, who talks to himself.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The hermit in the frost-hollow keeps a staff that makes rain, they say, and wants a harp for it. A harp of silver, from a dead lord's barrow. That's all I know. That's all I ever knew."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "frost_hermit": {
+        "name": "the hermit",
+        "description": "An old man in a heavy cloak, with a white beard frozen into a point.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "hermit_staff"
+        }
+    },
+    "princess_elowen_cell": {
+        "name": "Princess Elowen",
+        "description": "A young woman in a torn blue dress, thin and pale, sitting very straight on the pallet. She has the look of someone who has refused to be afraid on principle.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "elowen_cell"
+        }
+    },
+    "princess_elowen": {
+        "name": "Princess Elowen",
+        "description": "A young woman in a torn blue dress who has not stopped holding her head up.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 2,
+            "essential": true,
+            "unique": true,
+            "dialogue": "elowen_with_you",
+            "untargetable": true,
+            "pacifist": true
+        }
+    },
+    "princess_elowen_court": {
+        "name": "Princess Elowen",
+        "description": "The king's daughter, washed and changed into a plain gown, looking at you as if she has a good deal to say.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "elowen_court"
+        }
     }
 }

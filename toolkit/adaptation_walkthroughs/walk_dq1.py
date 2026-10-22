@@ -40,7 +40,7 @@ def gold():
 
 
 def clear_foes():
-    for foe in [n for n in g.world.npcs.values() if n.is_alive and n.faction == "hostile"
+    for foe in [n for n in g.world.npcs.values() if n.is_alive and n.faction == "hostile" and n.properties.get("encounter")
                 and (n.current_region_id, n.current_room_id) == (g.player.current_region_id, g.player.current_room_id)]:
         g.world.remove_npcs(foe.obj_id)
 
@@ -229,6 +229,97 @@ g.player.current_region_id, g.player.current_room_id = "bracken_ford", "chapel"
 say("talk priest")
 say("reply 1")
 check("the priest lifts the curse", g.player.equipment.get("head") is None and "item_gravebound_circlet" not in g.items(), "%s %s" % (g.player.equipment.get("head"), g.items()))
+
+
+# ============================================================ the east
+def goto(target):
+    """Walk to `region:room` by the shortest way through the exits, clearing what the fields throw up. Keys are plentiful."""
+    start = g.where()
+    seen = {start: []}
+    queue = [start]
+    while queue:
+        here = queue.pop(0)
+        if here == target:
+            break
+        region_id, room_id = here.split(":")
+        room = g.world.get_region(region_id).get_room(room_id)
+        for direction, dest in room.exits.items():
+            ref = dest if ":" in dest else "%s:%s" % (region_id, dest)
+            if ref not in seen:
+                seen[ref] = seen[here] + [direction]
+                queue.append(ref)
+    assert target in seen, "no way from %s to %s" % (start, target)
+    for direction in seen[target]:
+        say("go %s" % direction)
+        clear_foes()
+    return g.where()
+
+
+g.player.health = g.player.max_health
+give("item_brass_key", 6)
+check("Telgard to Kalder over the east road", goto("kalder:gate") == "kalder:gate", g.where())
+goto("kalder:lane4")
+check("four steps south of the bath", g.where() == "kalder:lane4", g.where())
+out = say("search")
+check("searching the corner of the back lane finds the slumber pipe", "item_slumber_pipe" in g.items(), out[:120])
+check("and once only", "nothing to search" in say("search"), "")
+goto("kalder:west_house")
+check("an old house behind a locked door", g.where() == "kalder:west_house", g.where())
+
+# the hermit
+goto("frostfell_hollow:f_hall")
+check("the frost hollow", g.where() == "frostfell_hollow:f_hall", g.where())
+g.player.inventory.remove_item("item_moon_harp", 9)
+out = say("talk hermit")
+check("without the harp the hermit gives nothing", "item_cloudcallers_staff" not in g.items(), out[:100])
+give("item_moon_harp")
+out = say("talk hermit")
+say("reply 1")
+check("with the moon harp he trades the staff", "item_cloudcallers_staff" in g.items() and "item_moon_harp" not in g.items(), "%s | %s" % (g.items(), out[:80]))
+
+# the mountain cave
+goto("greyhorn_cavern:g2_landing")
+for room_id, chest_name in (("g1_chest", "cavern chest"),):
+    pass
+goto("greyhorn_cavern:g1_chest"); take_from("cavern chest")
+goto("greyhorn_cavern:g2_torch"); take_from("stone chest")
+goto("greyhorn_cavern:g2_band"); take_from("iron-bound chest")
+goto("greyhorn_cavern:g2_gold")
+before = gold()
+take_from("lidded chest")
+goto("greyhorn_cavern:g2_trove")
+take_from("heavy chest")
+check("the cavern pays out: a band, gold, and a hidden hoard", "item_brawlers_band" in g.items() and gold() - before >= 128, "%s %s" % (gold() - before, g.items()))
+
+# the swamp tunnel and the drake
+while g.player.runtime_state.progression.level < 16:
+    g.player.gain_experience(g.player.runtime_state.progression.experience_to_level)
+w = ItemFactory.create_item_from_template("item_longblade", g.world); g.player.equipment["main_hand"] = w
+a = ItemFactory.create_item_from_template("item_half_harness", g.world); g.player.equipment["body"] = a
+g.player.health = g.player.max_health
+goto("mirewater_tunnel:t_den")
+check("the drake in its den", bool([n for n in g.world.npcs.values() if n.is_alive and n.template_id == "verdant_drake_warden"]), "")
+r = g.fight("drake", potion="healing moss")
+check("the warden drake falls", r.startswith("won"), r)
+wait(8)
+check("the way to the cell is shown", g.player.flags.get("drake_slain") is True, "")
+check("a locked door", True, "")
+say("go north")
+check("the iron door yields to a key", g.where() == "mirewater_tunnel:t_cell", g.where())
+out = say("talk princess")
+check("the princess asks to be taken home", "Take me out" in out, out[:120])
+say("reply 1")
+check("she walks with the hero", g.player.flags.get("princess_with_you") is True and bool([n for n in g.world.npcs.values() if n.template_id == "princess_elowen" and n.properties.get("companion")]), "")
+goto("telgard:throne_room")
+wait(20)
+check("the king takes his daughter back", g.player.flags.get("princess_home") is True and bool([n for n in g.world.npcs.values() if n.template_id == "princess_elowen_court"]), "")
+say("talk princess")
+say("reply 1")
+check("and she gives the locket", "item_elowens_locket" in g.items(), g.items())
+goto("heartland:hl_1_2")
+out = say("use elowen's locket")
+check("the locket tells how far Telgard is", "steps behind" in out, out[:120])
+check("and is not used up", "item_elowens_locket" in g.items(), "")
 
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])

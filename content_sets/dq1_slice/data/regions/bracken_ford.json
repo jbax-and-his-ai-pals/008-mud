@@ -73,7 +73,8 @@
             "description": "A clean, low-beamed inn with a hearth and a smell of bread. The innkeeper keeps a ledger of the beds on a slate.",
             "exits": {
                 "west": "square",
-                "north": "dew_shop"
+                "north": "dew_shop",
+                "east": "east_gate"
             },
             "initial_npcs": [
                 {
@@ -118,6 +119,14 @@
                     "instance_id": "priest_ford"
                 }
             ]
+        },
+        "east_gate": {
+            "name": "The East Gate",
+            "description": "A second gate in the palisade, on the road east. The river sounds loud here.",
+            "exits": {
+                "west": "inn",
+                "east": "eastreach:er_1_0"
+            }
         }
     }
 }

@@ -1,0 +1,11 @@
+{
+    "id": "elowen_with_you",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "I am all right. Keep walking. I would like to see my father.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

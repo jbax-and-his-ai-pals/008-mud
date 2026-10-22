@@ -1,0 +1,49 @@
+{
+    "princess_home": {
+        "on": {
+            "event": "on_enter",
+            "region": "telgard",
+            "room": "throne_room"
+        },
+        "once": "player",
+        "when": {
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "princess_with_you"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "princess_home"
+                    }
+                }
+            ]
+        },
+        "effects": {
+            "play_scene": "princess_home"
+        }
+    },
+    "drake_down": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "drake_warden"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "drake_down"
+        }
+    },
+    "slumber_pipe_found": {
+        "on": {
+            "event": "searched",
+            "region": "kalder",
+            "room": "lane4"
+        },
+        "once": "player",
+        "effects": {
+            "give_item": "item_slumber_pipe",
+            "message": "You turn the cracked flagstone with your toe, and a hollow is under it: a reed pipe wrapped in oilcloth, light as a bird's bone. It smells of dust and of something much older."
+        }
+    }
+}

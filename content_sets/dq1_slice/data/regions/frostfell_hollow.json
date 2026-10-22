@@ -1,0 +1,41 @@
+{
+    "region_id": "frostfell_hollow",
+    "name": "Frostfell Hollow",
+    "description": "A small cave under the northern fell, white with frost, home to one old man.",
+    "properties": {
+        "dark": true,
+        "outdoors": false,
+        "entrance": "eastreach:er_0_3"
+    },
+    "rooms": {
+        "f_entry": {
+            "name": "The Frost Arch",
+            "description": "A low arch gives onto a short stair, furred with frost. Beyond it a passage runs into the dark.",
+            "exits": {
+                "north": "f_passage",
+                "up": "eastreach:er_0_3"
+            }
+        },
+        "f_passage": {
+            "name": "The Rimed Passage",
+            "description": "A narrow passage whose walls glitter with ice where a torch touches them. The air burns in the nose.",
+            "exits": {
+                "south": "f_entry",
+                "north": "f_hall"
+            }
+        },
+        "f_hall": {
+            "name": "The Hermit's Hall",
+            "description": "A small, cold hall, swept bare, with a stone bench and a staff of grey wood laid across two pegs. An old man in a heavy cloak sits near it.",
+            "exits": {
+                "south": "f_passage"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "frost_hermit",
+                    "instance_id": "hermit_frostfell"
+                }
+            ]
+        }
+    }
+}
