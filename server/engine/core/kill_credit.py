@@ -135,7 +135,11 @@ def experience_for(player: Any, victim: Any, share: float, formula: Any = None) 
     progression = player.runtime_state.progression
     if progression is None:
         return 0
-    base = calculate_xp_gain(progression.level, getattr(victim, "level", 1), getattr(victim, "max_health", 10))
+    fixed = (getattr(victim, "properties", None) or {}).get("xp_reward")
+    if isinstance(fixed, (int, float)) and not isinstance(fixed, bool) and fixed >= 0:
+        base = int(fixed)   # a creature that is worth exactly this, whoever kills it, at whatever level
+    else:
+        base = calculate_xp_gain(progression.level, getattr(victim, "level", 1), getattr(victim, "max_health", 10))
     return max(1, int(round(base * share))) if base > 0 else 0
 
 

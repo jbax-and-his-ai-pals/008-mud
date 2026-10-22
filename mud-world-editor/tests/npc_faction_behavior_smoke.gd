@@ -234,6 +234,12 @@ func _check_the_fight_trait_rows() -> void:
 	_assert(is_equal_approx(float(props.get("throw_chance", -1)), 0.2), "a chosen chance is written")
 	throw.value = 0.5; throw.value_changed.emit(0.5)
 	_assert(not props.has("throw_chance"), "and the default erases the key")
+	var worth := holder.find_child("XpReward", true, false) as SpinBox
+	_assert(worth != null and worth.value == 0 and not props.has("xp_reward"), "an NPC with no fixed worth shows 0 and writes nothing")
+	worth.value = 45; worth.value_changed.emit(45)
+	_assert(props.get("xp_reward") == 45, "a chosen worth is written as a whole number")
+	worth.value = 0; worth.value_changed.emit(0)
+	_assert(not props.has("xp_reward"), "and 0 erases the key")
 	var steal := holder.find_child("StealItems", true, false) as LineEdit
 	steal.text = "item_ruby: 0.5, item_potion"; steal.text_changed.emit(steal.text)
 	_assert(props.get("steal_items") == [{"item_id": "item_ruby", "chance": 0.5}, {"item_id": "item_potion"}], "what can be stolen is a list, the chance optional: %s" % str(props.get("steal_items")))

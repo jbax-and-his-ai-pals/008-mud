@@ -701,6 +701,14 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties()["throw_chance"] = snappedf(value, 0.01)
 		database_modified.emit())
 	flags.add_child(throw)
+	flags.add_child(InspectorStyle.lbl("Experience it is worth (a fixed amount, whoever kills it; empty: the engine's formula)", InspectorStyle.COLOR_TEXT_DIM))
+	var reward := SpinBox.new(); reward.name = "XpReward"; reward.min_value = 0; reward.max_value = 100000; reward.step = 1; reward.allow_greater = true
+	reward.value = float(properties.get("xp_reward", 0)); InspectorStyle.apply_input_style(reward)
+	reward.value_changed.connect(func(value):
+		if value <= 0: _ensure_npc_properties().erase("xp_reward")
+		else: _ensure_npc_properties()["xp_reward"] = int(value)
+		database_modified.emit())
+	flags.add_child(reward)
 	flags.add_child(InspectorStyle.lbl("Can be stolen from (item id: chance 0-1, comma-separated)", InspectorStyle.COLOR_TEXT_DIM))
 	var steal := LineEdit.new(); steal.name = "StealItems"; steal.placeholder_text = "item_ruby: 0.5, item_potion"
 	var stealable = properties.get("steal_items", [])

@@ -475,6 +475,9 @@ in the room, hostile and aggressive. It is not one of the room's own: it does no
 without it. Under a status with the tag `repel` (an `apply_effect`: a spell, a consumable) creatures whose attack is below the player's
 defence do not come. Overlapping zones are tried in order.
 
+**A creature worth a fixed amount.** `properties.xp_reward` (a whole number) is the experience a creature is worth, whoever kills it, at whatever level;
+without it the engine's formula (its health and level, scaled by how they compare with the killer's) is used.
+
 **Ending, calling and casting.** An encounter zone may carry a `when` condition (live only while it holds: a world that goes quiet once a
 flag is set). The effect `call_encounter: "zone_id"` brings something of that zone to the room now, whatever its chance (a tune that
 draws a creature). The effect `game_over: "last words"` ends the character's story: they fall and `respawn` refuses them. The condition `equipped`

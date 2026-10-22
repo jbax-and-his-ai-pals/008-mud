@@ -215,7 +215,7 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
 # notes there), so an unknown key is only reported when it is a near miss of one of these.
 _NPC_PROPERTY_KEYS = (
     "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "attack_cooldown", "respawn_cooldown",
-    "essential", "pacifist", "untargetable", "phases", "hides_when_hurt", "falls_when_defeated", "steal_items", "stolen", "percent_immune", "mirrors_player", "throw_chance", "status_immune", "focus_player", "rejoin_health", "recovering", "unique", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
+    "essential", "pacifist", "untargetable", "phases", "hides_when_hurt", "falls_when_defeated", "steal_items", "stolen", "percent_immune", "mirrors_player", "throw_chance", "status_immune", "focus_player", "rejoin_health", "recovering", "unique", "xp_reward", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
     "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
     "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
     "can_unlock_chests", "work_location", "tariff", "gift_preferences", "relationship_milestones",
@@ -336,6 +336,10 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         chance = properties["throw_chance"]
         if isinstance(chance, bool) or not isinstance(chance, (int, float)) or not 0 <= chance <= 1:
             errors.append(f"{label}.throw_chance must be a number from 0 to 1 (how often it hurls what it carries instead of striking)")
+    if "xp_reward" in properties:
+        reward = properties["xp_reward"]
+        if isinstance(reward, bool) or not isinstance(reward, int) or reward < 0:
+            errors.append(f"{label}.xp_reward must be a whole number of 0 or more (the experience it is worth, whoever kills it; empty: the engine's formula)")
     if "percent_immune" in properties and not isinstance(properties["percent_immune"], bool):
         errors.append(f"{label}.percent_immune must be true or false (true: abilities that take a share of its health do nothing to it)")
     if "steal_items" in properties:
