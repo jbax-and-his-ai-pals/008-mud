@@ -134,6 +134,12 @@ CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
         "refs": {"region_id": "regions"},
         "note": "True only while the player is standing there.",
     },
+    "equipped": {
+        "label": "Is wearing or wielding",
+        "fields": {"item_id": "item_id"},
+        "refs": {"item_id": "items"},
+        "note": "The item is on the player (worn or wielded), not merely carried.",
+    },
     "in_room": {
         "label": "Is in a room",
         "fields": {"region_id": "region_id", "room_id": "string"},
@@ -506,6 +512,14 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
         region_id = str(node.get("region_id", "")).strip()
         if getattr(player, "current_region_id", None) != region_id:
             reasons.append("is not in %s" % region_id)
+            return False
+        return True
+
+    if kind == "equipped":
+        item_id = str(node.get("item_id", "")).strip()
+        worn = getattr(player, "equipment", None)
+        if not isinstance(worn, dict) or not any(item is not None and getattr(item, "obj_id", None) == item_id for item in worn.values()):
+            reasons.append("is not wearing %s" % item_id)
             return False
         return True
 

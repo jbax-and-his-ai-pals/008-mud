@@ -348,6 +348,15 @@ def _validate_item_extension_data(
                     or any(not isinstance(tag, str) or not tag.strip() for tag in effect_tags)
                 ):
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.effect_tags must be a non-empty array of tags"))
+            elif effect_type == "cast":
+                spell_id = properties.get("spell")
+                from .abilities import _ability_ids as _known_abilities
+
+                known = _known_abilities(content_root, [])
+                if not isinstance(spell_id, str) or not spell_id.strip():
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.spell must name the ability this item casts"))
+                elif known and spell_id not in known:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.spell names '{spell_id}', which is not an ability of this content set"))
             elif effect_type == "target_damage":
                 damage_amount = properties.get("damage_amount")
                 damage_type = properties.get("damage_type")

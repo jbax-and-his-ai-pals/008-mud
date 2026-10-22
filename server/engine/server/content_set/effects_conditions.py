@@ -187,6 +187,9 @@ def _check_effect_block(
     rise = block.get("set_respawn")
     if isinstance(rise, dict):
         _check_room_reference(rise.get("region"), rise.get("room"), f"{where} effect set_respawn", path, ids, issues)
+    summoned = block.get("call_encounter")
+    if isinstance(summoned, str) and summoned.strip() and ids.get("encounters") is not None and summoned.strip() not in ids["encounters"]:
+        issues.append(ContentSetIssue("error", str(path), f"{where} effect call_encounter names zone '{summoned.strip()}', which is not in data/encounters of this content set"))
     locator = block.get("tell_distance")
     if isinstance(locator, dict):
         _check_room_reference(locator.get("region"), locator.get("room"), f"{where} effect tell_distance", path, ids, issues)

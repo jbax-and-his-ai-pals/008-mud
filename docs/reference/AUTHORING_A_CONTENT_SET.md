@@ -475,6 +475,14 @@ in the room, hostile and aggressive. It is not one of the room's own: it does no
 without it. Under a status with the tag `repel` (an `apply_effect`: a spell, a consumable) creatures whose attack is below the player's
 defence do not come. Overlapping zones are tried in order.
 
+**Ending, calling and casting.** An encounter zone may carry a `when` condition (live only while it holds: a world that goes quiet once a
+flag is set). The effect `call_encounter: "zone_id"` brings something of that zone to the room now, whatever its chance (a tune that
+draws a creature). The effect `game_over: "last words"` ends the character's story: they fall and `respawn` refuses them. The condition `equipped`
+(`{"kind": "equipped", "item_id": ...}`) is true only for what is worn or wielded, not merely carried (a cursed belt that bars a gate). An
+item's `properties.heal_per_step` (health) mends its wearer each time they move to another room. A consumable with `effect_type: "cast"` and
+`properties.spell` casts that ability as its user, on the target of `use <item> on <target>`, with no cost or need to know it (a flute that
+puts a creature to sleep).
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms

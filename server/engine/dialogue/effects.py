@@ -98,6 +98,7 @@ KNOWN_EFFECTS = frozenset({
     "spawn_npc", "remove_npc", "teleport", "seal_exit", "recruit", "dismiss",
     "play_scene", "end_scene", "advance_time", "set_respawn", "teach_companion",
     "place_vehicle", "board_vehicle", "end_fight", "set_faction", "npc_cast", "equip_item", "tell_distance",
+    "call_encounter", "game_over",
 })
 
 # What `restore` can refill. `mana` is the ability pool, whatever the set calls it.
@@ -186,6 +187,8 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
         "fields": {"region": "text", "room": "text"},
         "required": ("region", "room"),
     },
+    "call_encounter": {"form": "text"},
+    "game_over": {"form": "text"},
     "tell_distance": {
         "form": "object",
         "fields": {"region": "text", "room": "text", "message": "text"},
@@ -255,6 +258,8 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "spawn_npc": {"label": "Bring in an NPC", "hint": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
     "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
     "teleport": {"label": "Send the player somewhere (runs last)", "hint": "{region, room, message}, or {to: \"entrance\"} for the way out of the region you stand in", "kind": "json"},
+    "call_encounter": {"label": "Call a creature from an encounter zone", "hint": "encounter zone id: something of that zone comes here now", "kind": "string", "refs": "encounters"},
+    "game_over": {"label": "End the game for this character", "hint": "the last words: the character falls and cannot rise again", "kind": "string"},
     "tell_distance": {"label": "Tell how far a place is", "hint": "{region, room, message: may use {steps}}: the walking distance in rooms from where the player stands", "kind": "json"},
     "set_respawn": {"label": "Set where the player respawns", "hint": "{region, room}: where they rise again after dying", "kind": "json"},
     "teach_companion": {"label": "A companion learns an ability", "hint": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},
@@ -1289,6 +1294,42 @@ def _apply_set_respawn_effect(effects: Dict[str, Any], context, report: EffectRe
     report.applied.append("respawn at %s:%s" % (region_id, room_id))
 
 
+def _apply_call_encounter_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`call_encounter`: something of the named zone comes to the room the player stands in, whatever the zone's chance."""
+    if "call_encounter" not in effects:
+        return
+    zone_id = str(effects["call_encounter"] or "").strip()
+    world = _context_world(context)
+    player = context.get("player")
+    if world is None or player is None or not zone_id or zone_id not in world.encounters.zones:
+        report.failed.append("call_encounter (no encounter zone %s)" % (zone_id or "named"))
+        return
+    line = world.encounters.force(player, zone_id)
+    if line:
+        report.messages.append(line)
+        report.applied.append("called a creature from %s" % zone_id)
+    else:
+        report.unchanged.append("call_encounter %s (nothing came)" % zone_id)
+
+
+def _apply_game_over_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
+    """`game_over`: the character's story ends. They fall, and `respawn` refuses them (`flags._game_over`)."""
+    if "game_over" not in effects:
+        return
+    player = context.get("player")
+    if player is None:
+        report.failed.append("game_over (no player)")
+        return
+    if not isinstance(getattr(player, "flags", None), dict):
+        player.flags = {}
+    player.flags["_game_over"] = True
+    text = str(effects["game_over"] or "").strip()
+    if text:
+        report.messages.append(text)
+    player.die(_context_world(context))
+    report.applied.append("the game is over")
+
+
 def _apply_tell_distance_effect(effects: Dict[str, Any], context, report: EffectReport) -> None:
     """`tell_distance`: how many rooms the way is from where the player stands to a place (a locator: "you are 12 steps from the castle")."""
     if "tell_distance" not in effects:
@@ -1633,8 +1674,10 @@ def apply_effects(effects: Any, context: Dict[str, Any]) -> EffectReport:
         ("teach", lambda: _apply_teach_companion_effect(effects, context, report)),
         ("respawn", lambda: _apply_set_respawn_effect(effects, context, report)),
         ("distance", lambda: _apply_tell_distance_effect(effects, context, report)),
+        ("encounter", lambda: _apply_call_encounter_effect(effects, context, report)),
         ("vehicles", lambda: _apply_vehicle_effects(effects, context, report)),
         ("teleport", lambda: _apply_teleport_effect(effects, context, report)),
+        ("game_over", lambda: _apply_game_over_effect(effects, context, report)),
     )
     for label, step in steps:
         try:

@@ -10,6 +10,7 @@ extends RefCounted
 signal database_modified
 
 const SCHEMA = preload("res://scripts/data/EncounterSchema.gd")
+const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
 
 var container: VBoxContainer
 var cur_data: Dictionary
@@ -85,6 +86,8 @@ func build(id: String, data: Dictionary):
 	_count_rows()
 	_number_row("Seconds before another may find the same player (0: none)", "cooldown", "EncounterCooldown", 0.0, 3600.0, 1.0, false)
 	_text_row("Said when something comes ({name} is what came)", "message", "EncounterMessage", "{name} appears!", false)
+	var gate := VBoxContainer.new(); gate.name = "EncounterWhen"; container.add_child(gate)
+	_build_when(gate)
 	_text_row("Note (for authors; the game never shows it)", "note", "EncounterNote", "what this zone is for", false)
 	_build_extras()
 
@@ -137,6 +140,25 @@ func _write_count(least: SpinBox, most: SpinBox) -> void:
 	elif low == high: cur_data["count"] = low
 	else: cur_data["count"] = [low, high]
 	database_modified.emit()
+
+
+# A condition the player must meet for the zone to be live (a world that goes quiet once a flag is set).
+func _build_when(holder: VBoxContainer) -> void:
+	for child in holder.get_children():
+		holder.remove_child(child)
+		child.queue_free()
+	CONDITION_ROWS.build(
+		holder, cur_data.get("when"), database_mgr, "Only while", "(always)",
+		func(): database_modified.emit(),
+		func(kind: String):
+			if kind == "": cur_data.erase("when")
+			else: cur_data["when"] = {"kind": kind}
+			database_modified.emit()
+			_build_when(holder),
+		func(replacement: Dictionary):
+			cur_data["when"] = replacement
+			database_modified.emit()
+	)
 
 
 # Anything this inspector does not model: named, and left exactly as it is.

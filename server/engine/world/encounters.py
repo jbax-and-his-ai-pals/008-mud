@@ -11,6 +11,7 @@ A zone is content (`data/encounters/*.json`, each file an object of zones keyed 
         "count": [1, 2],                               # optional: how many (a number, or [least, most]; default 1)
         "cooldown": 20,                                # optional: seconds after one before another may (default 0)
         "message": "{name} appears!",                  # optional: said when it does; {name} is what came
+        "when": {"not": {"kind": "flag", "flag": "won"}},   # optional: a condition the player must meet for the zone to be live
         "note": "for the author"
     }
 
@@ -29,7 +30,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from engine.utils.logger import Logger
 
 ENCOUNTERS_DIRECTORY = "encounters"
-ENCOUNTER_KEYS = ("region", "rooms", "monsters", "chance", "count", "cooldown", "message", "note")
+ENCOUNTER_KEYS = ("region", "rooms", "monsters", "chance", "count", "cooldown", "message", "when", "note")
 REPEL_TAG = "repel"
 INSTANCE_MARK = "encounter"          # NPC property: this creature came from a zone
 DEFAULT_MESSAGE = "{name} appears!"
@@ -131,8 +132,12 @@ class EncounterZones:
         if factions.hostiles_in(self.world, region_id, room_id):
             return ""
         now = float(self.world.clock.now())
+        from engine import conditions
+
         for zone_id in zone_ids:
             definition = self.zones[zone_id]
+            if definition.get("when") and not conditions.evaluate(definition["when"], player).satisfied:
+                continue
             cooldown = definition.get("cooldown", 0)
             last = self._last_roll.get(getattr(player, "obj_id", ""))
             if isinstance(cooldown, (int, float)) and cooldown > 0 and last is not None and now - last < cooldown:
@@ -145,6 +150,14 @@ class EncounterZones:
                 self._last_roll[getattr(player, "obj_id", "")] = now
                 return line
         return ""
+
+    def force(self, player: Any, zone_id: str) -> str:
+        """Call something out of a zone now (a tune that draws a creature): chance, cooldown and the zone's `when` do not apply.
+        The line the player reads, or "" when the zone does not exist or nothing could come."""
+        definition = self.zones.get(zone_id)
+        if definition is None or not getattr(player, "is_alive", False):
+            return ""
+        return self._spawn(player, zone_id, definition, player.current_region_id, player.current_room_id)
 
     def _candidates(self, player: Any, definition: Dict[str, Any]) -> List[Tuple[str, float]]:
         entries = monster_entries(definition)

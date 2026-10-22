@@ -5,5 +5,5 @@
 # through `preload`, not a `class_name`: a headless check must not depend on the editor having scanned a new class.
 extends RefCounted
 
-const KEYS := ["region", "rooms", "monsters", "chance", "count", "cooldown", "message", "note"]
+const KEYS := ["region", "rooms", "monsters", "chance", "count", "cooldown", "message", "when", "note"]
 const REPEL_TAG := "repel"

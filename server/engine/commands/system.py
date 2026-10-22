@@ -97,6 +97,8 @@ def respawn_handler(args, context):
         return f"{FORMAT_ERROR}Player context not found.{FORMAT_RESET}"
     if player.is_alive:
         return "You are already alive."
+    if isinstance(getattr(player, "flags", None), dict) and player.flags.get("_game_over"):
+        return f"{FORMAT_ERROR}The adventure is over. This character does not rise again.{FORMAT_RESET}"
 
     player.respawn()
     return (

@@ -78,6 +78,13 @@ func _run():
 	_assert(not zone.has("cooldown"), "and 0 erased")
 	_edit(holder, "EncounterMessage", "{name} springs out!")
 	_assert(zone["message"] == "{name} springs out!", "the words said are written")
+	var gate := holder.find_child("EncounterWhen", true, false)
+	_assert(gate != null and not zone.has("when"), "a zone with no condition is always live")
+	var picker := gate.find_child("ConditionPicker", true, false) as OptionButton
+	for index in range(picker.item_count):
+		if picker.get_item_text(index) == "flag": picker.select(index); picker.item_selected.emit(index)
+	_assert(zone.get("when") == {"kind": "flag"}, "a condition can be set: %s" % str(zone.get("when")))
+	zone["when"] = {"not": {"kind": "flag", "flag": "won"}}
 	manager.mark_dirty("encounter", ZONE)
 	_assert(manager.save_all().get("ok", false), "the edited zone saves")
 

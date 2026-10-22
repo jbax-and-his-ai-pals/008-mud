@@ -103,6 +103,11 @@ const CONDITION_KINDS := {
 		"fields": {"region_id": "region_id"},
 		"note": "True only while the player is standing there.",
 	},
+	"equipped": {
+		"label": "Is wearing or wielding",
+		"fields": {"item_id": "item_id"},
+		"note": "The item is on the player (worn or wielded), not merely carried.",
+	},
 	"in_room": {
 		"label": "Is in a room",
 		"fields": {"region_id": "region_id", "room_id": "string"},
@@ -185,6 +190,8 @@ const EFFECTS := {
 	"spawn_npc": {"label": "Bring in an NPC", "shape": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
 	"seal_exit": {"label": "Close an exit (a lever can reopen it)", "shape": "{region, room, direction}", "kind": "json"},
 	"teleport": {"label": "Send the player somewhere (runs last)", "shape": "{region, room, message}, or {to: \"entrance\"} for the way out of the region you stand in", "kind": "json"},
+	"call_encounter": {"label": "Call a creature from an encounter zone", "shape": "encounter zone id: something of that zone comes here now", "kind": "string"},
+	"game_over": {"label": "End the game for this character", "shape": "the last words: the character falls and cannot rise again", "kind": "string"},
 	"tell_distance": {"label": "Tell how far a place is", "shape": "{region, room, message: may use {steps}}: the walking distance in rooms from where the player stands", "kind": "json"},
 	"set_respawn": {"label": "Set where the player respawns", "shape": "{region, room}: where they rise again after dying", "kind": "json"},
 	"teach_companion": {"label": "A companion learns an ability", "shape": "{npc: a companion's template or placed id, spell: ability id}", "kind": "json"},

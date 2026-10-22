@@ -115,9 +115,17 @@ def _content_identifier_sets(content_root: Path, issues: list[ContentSetIssue]) 
             payload = _load_json(path, issues, "vehicles")
             if isinstance(payload, dict):
                 vehicle_ids |= {str(k) for k in payload if not str(k).startswith("_")}
+    encounter_ids: set[str] = set()
+    encounters_dir = content_root / "encounters"
+    if encounters_dir.is_dir():
+        for path in sorted(encounters_dir.glob("*.json")):
+            payload = _load_json(path, issues, "encounters")
+            if isinstance(payload, dict):
+                encounter_ids |= {str(k) for k in payload if not str(k).startswith("_")}
     return {
         "scenes": scene_ids,
         "vehicles": vehicle_ids,
+        "encounters": encounter_ids,
         "items": item_ids,
         "recipes": recipe_ids,
         "quests": quest_ids,

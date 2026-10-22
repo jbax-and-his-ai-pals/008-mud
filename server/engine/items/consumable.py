@@ -9,7 +9,7 @@ from engine.utils.articles import the
 # list to the branches below so a new one cannot be added in one place only.
 CONSUMABLE_EFFECT_TYPES = (
     "heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
-    "cleanse", "target_damage", "effects", "revive",
+    "cleanse", "target_damage", "effects", "revive", "cast",
 )
 
 
@@ -238,6 +238,31 @@ class Consumable(Item):
                     # Healing at full health is not a use: the item is kept.
                     consumed = False
                     message = f"You use {the(self.name)}, but nothing happens."
+
+        elif effect_type == "cast":
+            # An ability worked through an item (a flute that puts a creature to sleep, a harp that calls one): cast as the user,
+            # on the target of `use <item> on <target>` or on the user, with no cost, cooldown or need to know it.
+            from engine.magic.effects import apply_spell_effect
+            from engine.magic.spell_registry import get_spell
+
+            spell = get_spell(str(self.get_property("spell") or ""))
+            if spell is None:
+                consumed = False
+                message = f"{the(self.name, capital=True)} seems improperly configured."
+            else:
+                target = kwargs.get("target")
+                if spell.target_type in ("enemy", "friendly") and target is None:
+                    consumed = False
+                    message = f"{the(self.name, capital=True)} needs a target: use it on someone."
+                else:
+                    target = target if target is not None else user
+                    total, said = apply_spell_effect(user, target, spell, user)
+                    lines = [spell.format_cast_message(user)] if spell.cast_message else []
+                    if said:
+                        lines.append(said)
+                    message = "\n".join(lines) or f"You use {the(self.name)}."
+                    if not total:
+                        consumed = False
 
         elif effect_type == "target_damage":
             # A consumable can be used on an NPC in the room, which gives

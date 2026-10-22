@@ -638,6 +638,9 @@ class World:
         from engine.npcs import companions
         companion_lines = companions.travel_with(self, active_player, *came_from)
         self.vehicles.follow(active_player)   # what they ride goes where they go
+        if came_from != (new_region_id, new_room_id):
+            from engine.items.step_healing import heal_for_step
+            heal_for_step(active_player)
 
         # NEW: Get quest updates (returns list of strings instead of printing)
         quest_updates = []

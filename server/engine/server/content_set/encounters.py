@@ -99,6 +99,25 @@ def _validate_encounters(content_root: Path, issues: list[ContentSetIssue]) -> N
             cooldown = definition.get("cooldown")
             if cooldown is not None and (not number(cooldown) or cooldown < 0):
                 error(".cooldown must be a number of seconds, 0 or more")
+            if "when" in definition:
+                from engine import conditions
+
+                def walk(node, where=".when"):
+                    if isinstance(node, list):
+                        for child in node:
+                            walk(child, where)
+                    elif not isinstance(node, dict):
+                        error(f"{where} must be a condition object")
+                    elif "kind" in node:
+                        if node["kind"] not in conditions.CONDITION_SPECS:
+                            error(f"{where}.kind {node['kind']!r} is not a condition kind (known: {', '.join(conditions.CONDITION_SPECS)})")
+                    else:
+                        composite = [key for key in ("all", "any", "not") if key in node]
+                        if not composite:
+                            error(f"{where} needs a kind, or all / any / not")
+                        for key in composite:
+                            walk(node[key], f"{where}.{key}")
+                walk(definition["when"])
             for key in ("message", "note"):
                 if key in definition and not isinstance(definition[key], str):
                     error(f".{key} must be text")

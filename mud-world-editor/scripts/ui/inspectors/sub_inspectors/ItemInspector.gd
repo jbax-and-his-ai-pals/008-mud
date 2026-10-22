@@ -20,7 +20,7 @@ const ITEM_CLASSES := [
 # and is used up doing it, so the picker offers no other.
 const CONSUMABLE_EFFECT_TYPES := [
 	"heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
-	"cleanse", "target_damage", "effects", "revive",
+	"cleanse", "target_damage", "effects", "revive", "cast",
 ]
 const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
@@ -404,6 +404,17 @@ func _refill_consumable():
 	vbox.add_child(reusable)
 	var requires_holder := VBoxContainer.new(); requires_holder.name = "ConsumableRequires"; vbox.add_child(requires_holder)
 	_build_requires(requires_holder, properties)
+
+	if current == "cast":
+		vbox.add_child(InspectorStyle.lbl("Ability it casts (an ability id; `use <item> on <target>` aims it)", InspectorStyle.COLOR_TEXT_DIM))
+		var spell := LineEdit.new(); spell.name = "ConsumableSpell"; spell.text = str(properties.get("spell", ""))
+		spell.placeholder_text = "lullaby_of_stone"
+		InspectorStyle.apply_input_style(spell)
+		spell.text_changed.connect(func(text):
+			if text.strip_edges() == "": properties.erase("spell")
+			else: properties["spell"] = text.strip_edges()
+			database_modified.emit())
+		vbox.add_child(spell)
 
 	if current == "effects":
 		var effects_box := VBoxContainer.new()
@@ -1018,7 +1029,7 @@ func _refresh_props():
 	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells"]
 	if _engine_item_class() == "Consumable":
 		# The "When used" section owns these two.
-		specialized.append_array(["effect_type", "effects", "requires", "requires_message", "reusable"])
+		specialized.append_array(["effect_type", "effects", "requires", "requires_message", "reusable", "spell"])
 	if _engine_item_class() == "Container":
 		specialized.append_array(["capacity", "locked", "key_id", "is_open", "contains"])
 	if _engine_item_class() == "ResourceNode":
