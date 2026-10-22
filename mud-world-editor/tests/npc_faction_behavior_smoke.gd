@@ -234,6 +234,26 @@ func _check_the_fight_trait_rows() -> void:
 	_assert(is_equal_approx(float(props.get("throw_chance", -1)), 0.2), "a chosen chance is written")
 	throw.value = 0.5; throw.value_changed.emit(0.5)
 	_assert(not props.has("throw_chance"), "and the default erases the key")
+	var guarded := holder.find_child("ShieldedBy", true, false) as LineEdit
+	_assert(guarded != null and guarded.text == "" and not props.has("shielded_by"), "a creature with no guards shows none and writes nothing")
+	guarded.text = "mouth, eye, mouth"; guarded.text_changed.emit("mouth, eye, mouth")
+	_assert(props.get("shielded_by") == ["mouth", "eye"], "guards are written as a list, once each")
+	guarded.text = ""; guarded.text_changed.emit("")
+	_assert(not props.has("shielded_by"), "and emptied, the key is erased")
+	var shield_line := holder.find_child("ShieldText", true, false) as LineEdit
+	shield_line.text = "It is guarded."; shield_line.text_changed.emit("It is guarded.")
+	_assert(props.get("shield_text") == "It is guarded.", "the text said when it is struck while guarded is written")
+	shield_line.text = ""; shield_line.text_changed.emit("")
+	_assert(not props.has("shield_text"), "and erased when emptied")
+	var split_npc := holder.find_child("SplitNpc", true, false) as LineEdit
+	var split_count := holder.find_child("SplitCount", true, false) as SpinBox
+	_assert(split_npc != null and not props.has("on_death_spawn"), "a creature that never splits shows no creature and writes nothing")
+	split_npc.text = "slime"; split_npc.text_changed.emit("slime")
+	_assert(props.get("on_death_spawn", {}).get("npc") == "slime" and int(props.get("on_death_spawn", {}).get("count", 0)) == 2, "naming a creature writes the split with the default of two")
+	split_count.value = 3; split_count.value_changed.emit(3)
+	_assert(int(props["on_death_spawn"]["count"]) == 3 and typeof(props["on_death_spawn"]["count"]) == TYPE_INT, "the count is a whole number")
+	split_npc.text = ""; split_npc.text_changed.emit("")
+	_assert(not props.has("on_death_spawn"), "and clearing the creature erases the whole block")
 	var worth := holder.find_child("XpReward", true, false) as SpinBox
 	_assert(worth != null and worth.value == 0 and not props.has("xp_reward"), "an NPC with no fixed worth shows 0 and writes nothing")
 	worth.value = 45; worth.value_changed.emit(45)

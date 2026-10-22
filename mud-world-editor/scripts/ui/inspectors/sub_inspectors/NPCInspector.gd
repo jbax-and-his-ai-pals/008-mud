@@ -693,6 +693,51 @@ func _build_behavior_tuning():
 		else: _ensure_npc_properties().erase("mirrors_player")
 		database_modified.emit())
 	flags.add_child(mirror)
+	flags.add_child(InspectorStyle.lbl("Shielded by (creature ids, comma-separated): cannot be hurt while any stands in its room", InspectorStyle.COLOR_TEXT_DIM))
+	var shielded := LineEdit.new(); shielded.name = "ShieldedBy"; shielded.placeholder_text = "manhandla_mouth"; InspectorStyle.apply_input_style(shielded)
+	var guards = properties.get("shielded_by", [])
+	shielded.text = ", ".join(PackedStringArray(guards)) if guards is Array else ""
+	shielded.text_changed.connect(func(text):
+		var list: Array = []
+		for part in text.split(","):
+			var guard: String = part.strip_edges()
+			if guard != "" and not list.has(guard): list.append(guard)
+		if list.is_empty(): _ensure_npc_properties().erase("shielded_by")
+		else: _ensure_npc_properties()["shielded_by"] = list
+		database_modified.emit())
+	flags.add_child(shielded)
+	flags.add_child(InspectorStyle.lbl("Text when struck while shielded ({attacker}, {defender}; empty: the engine's)", InspectorStyle.COLOR_TEXT_DIM))
+	var shield_text := LineEdit.new(); shield_text.name = "ShieldText"; InspectorStyle.apply_input_style(shield_text)
+	shield_text.text = str(properties.get("shield_text", ""))
+	shield_text.text_changed.connect(func(text):
+		if text.strip_edges() == "": _ensure_npc_properties().erase("shield_text")
+		else: _ensure_npc_properties()["shield_text"] = text
+		database_modified.emit())
+	flags.add_child(shield_text)
+	flags.add_child(InspectorStyle.lbl("Comes apart when it dies into (creature id, how many, what is said; empty id: nothing)", InspectorStyle.COLOR_TEXT_DIM))
+	var split_row := HBoxContainer.new(); split_row.add_theme_constant_override("separation", 6)
+	var split = properties.get("on_death_spawn", {})
+	split = split if split is Dictionary else {}
+	var split_npc := LineEdit.new(); split_npc.name = "SplitNpc"; split_npc.placeholder_text = "slime"; split_npc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_input_style(split_npc); split_npc.text = str(split.get("npc", ""))
+	var split_count := SpinBox.new(); split_count.name = "SplitCount"; split_count.min_value = 1; split_count.max_value = 8; split_count.step = 1
+	InspectorStyle.apply_input_style(split_count); split_count.value = float(split.get("count", 2))
+	var split_message := LineEdit.new(); split_message.name = "SplitMessage"; split_message.placeholder_text = "The {name} comes apart."; split_message.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	InspectorStyle.apply_input_style(split_message); split_message.text = str(split.get("message", ""))
+	var write_split := func():
+		var id: String = split_npc.text.strip_edges()
+		if id == "":
+			_ensure_npc_properties().erase("on_death_spawn")
+		else:
+			var spec := {"npc": id, "count": int(split_count.value)}
+			if split_message.text.strip_edges() != "": spec["message"] = split_message.text
+			_ensure_npc_properties()["on_death_spawn"] = spec
+		database_modified.emit()
+	split_npc.text_changed.connect(func(_t): write_split.call())
+	split_count.value_changed.connect(func(_v): write_split.call())
+	split_message.text_changed.connect(func(_t): write_split.call())
+	split_row.add_child(split_npc); split_row.add_child(split_count); split_row.add_child(split_message)
+	flags.add_child(split_row)
 	flags.add_child(InspectorStyle.lbl("Throw chance (how often it hurls a throwing item it carries instead of striking; empty: half)", InspectorStyle.COLOR_TEXT_DIM))
 	var throw := SpinBox.new(); throw.name = "ThrowChance"; throw.min_value = 0.0; throw.max_value = 1.0; throw.step = 0.05
 	throw.value = float(properties.get("throw_chance", 0.5)); InspectorStyle.apply_input_style(throw)

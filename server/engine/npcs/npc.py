@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Any, Tuple
 import copy
 import time
 import random
+import uuid
 from engine.config import (
     NPC_BASE_HEALTH, NPC_BASE_MANA_REGEN_RATE, NPC_BASE_XP_TO_LEVEL, NPC_CON_HEALTH_MULTIPLIER, NPC_DEFAULT_BEHAVIOR,
     NPC_DEFAULT_MOVE_COOLDOWN, NPC_DEFAULT_RESPAWN_COOLDOWN, NPC_DEFAULT_STATS, NPC_DEFAULT_WANDER_CHANCE, NPC_HEALTH_DESC_THRESHOLDS,
@@ -198,6 +199,7 @@ class NPC(GameObject):
             world.add_to_respawn_queue(self)
 
         self.is_alive = False
+        self._split_on_death(world)
         dropped_items: List[Item] = []
         if self.loot_table and self.current_region_id and self.current_room_id:
             for item_id, loot_data in self.loot_table.items():
@@ -245,6 +247,28 @@ class NPC(GameObject):
                 world.add_item_to_room(self.current_region_id, self.current_room_id, item)
                 dropped_items.append(item)
         return dropped_items
+
+    def _split_on_death(self, world: 'World') -> None:
+        """`properties.on_death_spawn` ({npc, count, message}): what it leaves behind when it dies, in the room it died in
+        (a great slime comes apart into slimes). They are not placed there, so they do not come back."""
+        spec = self.properties.get("on_death_spawn")
+        if not isinstance(spec, dict) or not self.current_region_id or not self.current_room_id:
+            return
+        template_id = str(spec.get("npc", "") or "")
+        count = spec.get("count", 1)
+        if not template_id or isinstance(count, bool) or not isinstance(count, int):
+            return
+        made = 0
+        for _ in range(max(0, min(count, 8))):
+            child, status = world.spawn_npc(template_id, self.current_region_id, self.current_room_id,
+                                            "%s_%s" % (template_id, uuid.uuid4().hex[:8]))
+            if child is not None and status == "spawned":
+                child.properties["respawn_cooldown"] = -1
+                made += 1
+        text = str(spec.get("message", "") or "")
+        if made and text:
+            for player in world.get_players_in_room(self.current_region_id, self.current_room_id, alive_only=True):
+                world.notify_player(player, text.format(name=self.name))
 
     def _matches_ambient_loot_pool(self, pool: Dict[str, Any]) -> bool:
         """Apply optional, content-defined selectors for an ambient loot pool."""

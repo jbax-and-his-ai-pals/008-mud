@@ -215,7 +215,7 @@ def _validate_npc_trade_and_loot(content_root: Path, issues: list[ContentSetIssu
 # notes there), so an unknown key is only reported when it is a near miss of one of these.
 _NPC_PROPERTY_KEYS = (
     "aggression", "flee_threshold", "wander_chance", "spell_cast_chance", "move_cooldown", "attack_cooldown", "respawn_cooldown",
-    "essential", "pacifist", "untargetable", "phases", "hides_when_hurt", "falls_when_defeated", "steal_items", "stolen", "percent_immune", "mirrors_player", "throw_chance", "status_immune", "focus_player", "rejoin_health", "recovering", "unique", "xp_reward", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
+    "essential", "pacifist", "untargetable", "phases", "hides_when_hurt", "falls_when_defeated", "steal_items", "stolen", "percent_immune", "mirrors_player", "throw_chance", "status_immune", "on_death_spawn", "shielded_by", "shield_text", "focus_player", "rejoin_health", "recovering", "unique", "xp_reward", "companion", "owner_id", "summon_duration", "creation_time", "is_summoned",
     "despawn_message", "dialogue", "custom_dialog", "loot_tags", "sells_items", "is_vendor", "is_dealer",
     "is_collector", "can_repair", "can_give_generic_quests", "can_expand_houses", "sells_houses",
     "can_unlock_chests", "work_location", "tariff", "gift_preferences", "relationship_milestones",
@@ -330,6 +330,25 @@ def _npc_property_errors(properties: dict, label: str, room_refs: set[str]) -> l
         errors.append(f"{label}.focus_player must be true or false (true: it strikes at the player whenever the player is in reach, not at whoever is nearest)")
     if "status_immune" in properties and not isinstance(properties["status_immune"], bool):
         errors.append(f"{label}.status_immune must be true or false (true: sleep, silence, confusion, stone and stun do nothing to it)")
+    if "on_death_spawn" in properties:
+        spec = properties["on_death_spawn"]
+        if not isinstance(spec, dict) or not isinstance(spec.get("npc"), str) or not spec["npc"].strip():
+            errors.append(f"{label}.on_death_spawn must be an object with the creature it leaves behind: {{npc, count, message}}")
+        else:
+            for key in spec:
+                if key not in ("npc", "count", "message"):
+                    errors.append(f"{label}.on_death_spawn.{key} is not read (known: npc, count, message)")
+            count = spec.get("count", 1)
+            if isinstance(count, bool) or not isinstance(count, int) or not 1 <= count <= 8:
+                errors.append(f"{label}.on_death_spawn.count must be a whole number from 1 to 8")
+            if "message" in spec and not isinstance(spec["message"], str):
+                errors.append(f"{label}.on_death_spawn.message must be text ({{name}} is the creature that died)")
+    if "shielded_by" in properties:
+        guards = properties["shielded_by"]
+        if not isinstance(guards, list) or not guards or any(not isinstance(g, str) or not g.strip() for g in guards):
+            errors.append(f"{label}.shielded_by must be a non-empty list of creature ids: it cannot be hurt while any of them stands in its room")
+    if "shield_text" in properties and not isinstance(properties["shield_text"], str):
+        errors.append(f"{label}.shield_text must be text ({{attacker}} and {{defender}} are filled in)")
     if "mirrors_player" in properties and not isinstance(properties["mirrors_player"], bool):
         errors.append(f"{label}.mirrors_player must be true or false (true: when spawned by a story it takes the player's health, blow, defence and level)")
     if "throw_chance" in properties:
@@ -474,6 +493,14 @@ def _validate_npc_template_runtime_shapes(
                 if "phases" in properties:
                     for message in _phase_errors(properties["phases"], f"{label}.properties", spell_ids, all_npc_ids):
                         issues.append(ContentSetIssue("error", str(path), message))
+                split = properties.get("on_death_spawn")
+                if isinstance(split, dict) and isinstance(split.get("npc"), str) and split["npc"] not in all_npc_ids:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.on_death_spawn.npc references missing creature '{split['npc']}'"))
+                guards = properties.get("shielded_by")
+                if isinstance(guards, list):
+                    for guard in guards:
+                        if isinstance(guard, str) and guard not in all_npc_ids:
+                            issues.append(ContentSetIssue("error", str(path), f"{label}.properties.shielded_by references missing creature '{guard}'"))
 
             if "patrol_points" in template:
                 points = template["patrol_points"]

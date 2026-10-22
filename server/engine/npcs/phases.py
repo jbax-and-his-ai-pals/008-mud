@@ -58,9 +58,26 @@ def resistance(npc: Any, damage_type: str) -> int:
     return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else 0
 
 
+DEFAULT_SHIELD_TEXT = "{attacker} cannot reach {defender}: the parts that guard it stand in the way."
+
+
+def guards_standing(npc: Any) -> bool:
+    """`properties.shielded_by`: the creature cannot be hurt while any creature of those templates still stands in its room
+    (a body whose heads must fall first, a core ringed by its eyes)."""
+    props = getattr(npc, "properties", None)
+    guards = props.get("shielded_by") if isinstance(props, dict) else None
+    world = getattr(npc, "world", None)
+    if not guards or world is None or not getattr(npc, "current_room_id", None):
+        return False
+    for other in world.get_npcs_in_room(npc.current_region_id, npc.current_room_id):
+        if other is not npc and other.is_alive and other.template_id in guards:
+            return True
+    return False
+
+
 def is_untouchable(npc: Any) -> bool:
     phase = current(npc)
-    return bool(phase and phase.get("untouchable") is True)
+    return bool((phase and phase.get("untouchable") is True) or guards_standing(npc))
 
 
 def _seconds(phase: Dict[str, Any]) -> float:
@@ -113,6 +130,12 @@ def update(npc: Any, world: Any, now: float) -> List[str]:
 
 def miss_text(npc: Any, attacker_name: str, defender_name: str) -> str:
     phase = current(npc) or {}
+    if phase.get("untouchable") is not True and guards_standing(npc):
+        template = str((npc.properties or {}).get("shield_text") or DEFAULT_SHIELD_TEXT)
+        try:
+            return template.format(attacker=attacker_name, defender=defender_name)
+        except (KeyError, IndexError, ValueError):
+            return DEFAULT_SHIELD_TEXT.format(attacker=attacker_name, defender=defender_name)
     template = str(phase.get("miss_text") or DEFAULT_MISS_TEXT)
     try:
         return template.format(attacker=attacker_name, defender=defender_name)

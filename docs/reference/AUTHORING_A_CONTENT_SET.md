@@ -512,6 +512,12 @@ amount said when the player has less (an arrow costs a rupee); it shows in the c
 `"for_target": true` runs its block for the one the ability lands on instead of the caster: a creature's grasping hand with `{"teleport": ...}` carries the
 player to the dungeon's entrance (on a target that is not a player it does nothing).
 
+**Parts and splitting.** A creature's `properties.on_death_spawn` (`{"npc": "slime", "count": 2, "message": "The {name} comes apart."}`) leaves that many of
+another creature in the room it dies in (not placed there, so they do not come back; at most eight). `properties.shielded_by` (a list of creature ids) makes a
+creature untouchable while any creature of those templates stands in its room, and `properties.shield_text` (`{attacker}`, `{defender}`) says why a blow or an
+ability passes through it: a plant whose mouths must be silenced before its stem can be struck, a hydra's heads, a core ringed by its eyes. The parts are
+ordinary creatures with their own health and blows.
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms
