@@ -84,6 +84,11 @@ class PlayerMagicMixin:
                 f"have {int(p.runtime_state.magic.mana)})."
             )
         
+        gold_cost = int(getattr(spell, "gold_cost", 0) or 0)
+        if gold_cost and (p.runtime_state.gold or 0) < gold_cost:
+            currency = (world or p.world).currency_name() if (world or p.world) else DEFAULT_CURRENCY_NAME
+            return False, f"Not enough {currency} (need {gold_cost}, have {int(p.runtime_state.gold or 0)})."
+
         health_cost = spell.health_cost(p.max_health)
         if health_cost and p.health <= health_cost:
             # Paying with your own life is allowed; paying all of it is not.
@@ -153,6 +158,8 @@ class PlayerMagicMixin:
             p.runtime_state.magic.mana -= numbers["mana_cost"]
             p.health -= spell.health_cost(p.max_health)
             p.runtime_state.magic.cooldowns[spell.spell_id] = current_time + numbers["cooldown"]
+            if getattr(spell, "gold_cost", 0):
+                p.runtime_state.gold -= int(spell.gold_cost)
         
         results = []
         from engine.npcs.npc import NPC

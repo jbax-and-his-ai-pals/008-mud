@@ -30,7 +30,7 @@ ABILITY_EFFECT_FIELDS = {
     "summon": ("summon_template_id", "summon_duration", "max_summons"),
     "unlock": (),
     "lock": (),
-    "effects": ("effects",),
+    "effects": ("effects", "for_target"),
 }
 
 # The names each message is formatted with. The cast and remove-curse messages
@@ -68,6 +68,7 @@ class Spell:
         sacrifice: bool = False,
         requires: Dict[str, Any] | None = None,
         requires_message: str = "",
+        gold_cost: int = 0,
     ):
         if not effects or not all(isinstance(effect, dict) and effect.get("type") for effect in effects):
             raise ValueError(f"Spell '{spell_id}' requires a non-empty effects array with typed effects.")
@@ -94,6 +95,8 @@ class Spell:
         self.requires_ally = requires_ally
         self.requires = requires
         self.requires_message = requires_message
+        # Money paid on every cast (the set's own currency), on top of `mana_cost`: an arrow costs a rupee.
+        self.gold_cost = gold_cost
         # The caster gives everything to it and does not survive the cast (a creature or a companion; the effects fall first).
         self.sacrifice = sacrifice
 
@@ -169,6 +172,7 @@ class Spell:
             "requires_ally": self.requires_ally,
             "requires": self.requires,
             "requires_message": self.requires_message,
+            "gold_cost": self.gold_cost,
             "sacrifice": self.sacrifice,
             "cast_message": self.cast_message,
             "hit_message": self.hit_message,

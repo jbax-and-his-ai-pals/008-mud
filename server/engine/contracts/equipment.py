@@ -206,6 +206,10 @@ def ability_cost_text(world: Any, spell: Any) -> str:
     fraction = float(getattr(spell, "health_cost_fraction", 0.0) or 0.0)
     if fraction > 0:
         parts.append(f"{_fraction_text(fraction)} HP")
+    gold = int(getattr(spell, "gold_cost", 0) or 0)
+    if gold > 0:
+        currency = world.currency_name() if world is not None and hasattr(world, "currency_name") else "gold"
+        parts.append(f"{gold} {currency}")
     return " + ".join(parts) if parts else "free"
 
 

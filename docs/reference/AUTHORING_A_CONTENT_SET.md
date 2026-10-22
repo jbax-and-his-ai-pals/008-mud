@@ -507,6 +507,11 @@ the light stays in the room it lit. A candle that works once in each room is the
 second use; the one that works without limit simply has no `requires`. The condition `max_health_at_least` (`value`) reads the most health a player can
 have, for a sword that wants five hearts.
 
+**Arrows and a hand that carries you off.** An ability's `gold_cost` (a whole number) is money in the set's own currency taken on every cast, refused with the
+amount said when the player has less (an arrow costs a rupee); it shows in the cost text beside the pool and health costs. An `effects` ability effect with
+`"for_target": true` runs its block for the one the ability lands on instead of the caster: a creature's grasping hand with `{"teleport": ...}` carries the
+player to the dungeon's entrance (on a target that is not a player it does nothing).
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms

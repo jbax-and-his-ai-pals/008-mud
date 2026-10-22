@@ -167,6 +167,8 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
             for key, minimum in (("mana_cost", 0), ("level_required", 1)):
                 if key in entry and (not integer(entry[key]) or entry[key] < minimum):
                     error(f"{key} must be a whole number of at least {minimum}")
+            if "gold_cost" in entry and (not integer(entry["gold_cost"]) or entry["gold_cost"] < 0):
+                error("gold_cost must be a whole number of 0 or more: the money (the set's currency) each cast costs")
             if "cooldown" in entry and (not number(entry["cooldown"]) or entry["cooldown"] < 0):
                 error("cooldown must be a number of seconds, 0 or more")
             if "health_cost_fraction" in entry and (not number(entry["health_cost_fraction"]) or not 0 <= entry["health_cost_fraction"] < 1):
@@ -279,6 +281,8 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                 if effect_type == "effects":
                     from engine.dialogue.effects import effect_shape_issues
 
+                    if "for_target" in effect and not isinstance(effect["for_target"], bool):
+                        error(f"{e_label}.for_target must be true or false: whether the block runs for the one the ability lands on instead of the caster")
                     block = effect.get("effects")
                     if not isinstance(block, dict) or not block:
                         error(f"{e_label}.effects must be an object of dialogue effects (a warp, a flag, a gift...)")

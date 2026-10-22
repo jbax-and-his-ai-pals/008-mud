@@ -2280,6 +2280,17 @@ class TestAbilities(unittest.TestCase):
         self.assertTrue(any("locked: effects[0] is a lock effect" in m and "must be 'item'" in m for m in errors), errors)
         self.assertTrue(any("noop: effects[0] is an apply_effect with no effect_data" in m for m in errors), errors)
 
+    def test_a_money_cost_and_a_target_block_are_checked(self):
+        errors = self._errors(
+            cost=_ability(gold_cost=-1),
+            fraction=_ability(gold_cost=1.5),
+            block=_ability(effects=[{"type": "effects", "for_target": "yes", "effects": {"message": "x"}}]),
+        )
+        self.assertTrue(any("cost: gold_cost must be a whole number of 0 or more" in m for m in errors), errors)
+        self.assertTrue(any("fraction: gold_cost must be a whole number of 0 or more" in m for m in errors), errors)
+        self.assertTrue(any("block: effects[0].for_target must be true or false" in m for m in errors), errors)
+        self.assertEqual([], self._errors(ok=_ability(gold_cost=3, effects=[{"type": "effects", "for_target": True, "effects": {"message": "x"}}])))
+
     def test_a_caster_effect_and_a_move_ending_status_are_checked(self):
         errors = self._errors(
             wrong=_ability(effects=[{"type": "heal", "value": 1, "on": "target"}]),

@@ -207,8 +207,12 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
             from engine.dialogue.effects import apply_effects
 
             block = effect_def.get("effects")
-            if isinstance(block, dict) and block and getattr(caster, "world", None) is not None:
-                report = apply_effects(block, {"player": caster, "world": caster.world})
+            # `for_target`: run for the one the ability lands on, not the caster (a hand that carries the player off).
+            recipient = target if effect_def.get("for_target") is True and hasattr(target, "runtime_state") else caster
+            if effect_def.get("for_target") is True and recipient is caster and caster is not target:
+                continue   # a block aimed at a target that is not a player (it needs one) does nothing
+            if isinstance(block, dict) and block and getattr(recipient, "world", None) is not None:
+                report = apply_effects(block, {"player": recipient, "world": recipient.world})
                 if report.applied:
                     total_value += 1
                     if report.message():

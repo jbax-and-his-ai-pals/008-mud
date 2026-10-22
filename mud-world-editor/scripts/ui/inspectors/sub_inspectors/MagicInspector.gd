@@ -31,7 +31,7 @@ const EFFECT_FIELDS := {
 	"cleanse": ["effect_data"], "remove_curse": [],
 	"summon": ["summon_template_id", "summon_duration", "max_summons"],
 	"unlock": [], "lock": [],
-	"effects": ["effects"],
+	"effects": ["effects", "for_target"],
 }
 const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
@@ -105,6 +105,7 @@ func _build_spell_details():
 	# unknown keyword is not ignored -- it raises, and the ability is not loaded.
 	_add_target_field(grid)
 	_add_health_cost_field(grid)
+	_add_gold_cost_field(grid)
 	_add_requires_ally_field(box)
 	_add_requires_condition(box)
 	_add_sacrifice_field(box)
@@ -122,6 +123,21 @@ func _add_health_cost_field(grid: GridContainer):
 				cur_data.erase("health_cost_fraction"); database_modified.emit()
 		else:
 			_set_value("health_cost_fraction", value))
+	field.add_child(input); grid.add_child(field)
+
+## Money (the set's own currency) each cast costs: an arrow costs a rupee. 0 means none, and then the key is left out.
+func _add_gold_cost_field(grid: GridContainer):
+	var field := VBoxContainer.new(); field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	field.add_child(InspectorStyle.lbl("Money cost (the set's currency)", InspectorStyle.COLOR_TEXT_DIM))
+	var input := SpinBox.new(); input.name = "gold_cost"; input.min_value = 0; input.max_value = 9999; input.step = 1
+	input.value = int(cur_data.get("gold_cost", 0)) if typeof(cur_data.get("gold_cost", 0)) in [TYPE_INT, TYPE_FLOAT] else 0
+	InspectorStyle.apply_input_style(input)
+	input.value_changed.connect(func(value):
+		if int(value) <= 0:
+			if cur_data.has("gold_cost"):
+				cur_data.erase("gold_cost"); database_modified.emit()
+		else:
+			_set_value("gold_cost", int(value)))
 	field.add_child(input); grid.add_child(field)
 
 ## A condition the caster must meet for it to work (where it may be cast, what must be so), and the line said when it does not.
@@ -325,6 +341,12 @@ func _effect_card(index: int, effect: Dictionary) -> PanelContainer:
 			box.add_child(_labeled("Removes effects tagged", tags))
 		"effects":
 			box.add_child(_note(EFFECT_NOTES["effects"]))
+			var for_target := CheckBox.new(); for_target.name = "ForTarget"; for_target.text = "Runs for the one it lands on, not the caster (a hand that carries the player off)"
+			for_target.button_pressed = effect.get("for_target", false) == true
+			for_target.toggled.connect(func(on):
+				if on: _set_effect_value(index, "for_target", true)
+				else: _erase_effect_value(index, "for_target"))
+			box.add_child(for_target)
 			var effects_holder := VBoxContainer.new(); effects_holder.name = "SpellEffects"; box.add_child(effects_holder)
 			EFFECT_ROWS.build(effects_holder, effect, "Effects:", db_manager, func(): database_modified.emit())
 		"summon":
