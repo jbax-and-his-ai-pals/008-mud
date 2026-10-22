@@ -202,6 +202,12 @@ func set_world_rules(sections: Dictionary):
 		if data["world"].is_empty(): data.erase("world")
 	# `combat` is shared with the sharing and retreat editors, so only the pacing this form owns is taken from it.
 	var combat_form = sections.get("combat", {})
+	var level_counts = combat_form.get("player_level_counts", null) if combat_form is Dictionary else null
+	if level_counts != null:
+		if not (data.get("combat") is Dictionary): data["combat"] = {}
+		data["combat"]["player_level_counts"] = level_counts
+	elif data.get("combat") is Dictionary and data["combat"].has("player_level_counts"):
+		data["combat"].erase("player_level_counts")
 	var pacing = combat_form.get("pacing", {}) if combat_form is Dictionary else {}
 	if pacing is Dictionary and not pacing.is_empty():
 		if not (data.get("combat") is Dictionary): data["combat"] = {}

@@ -43,6 +43,7 @@ func _run():
 	(section.controls["combat.pacing.action_gap"] as SpinBox).value = 1.2
 	(section.controls["world.dark_requires_light"] as CheckBox).button_pressed = true
 	(section.controls["death.gold_loss_fraction"] as SpinBox).value = 0.5
+	(section.controls["combat.player_level_counts"] as CheckBox).button_pressed = true
 	_edit(section.controls["elites.prefixes"], "Alpha, Elder, Ancient, Dread, Savage, Greater, Feral, Grizzled, Hoary")
 	var knife_row: Node = section.inventory_rows.get_child(1)
 	(knife_row.get_node("Quantity") as SpinBox).value = 2
@@ -64,6 +65,7 @@ func _run():
 	_assert(_same(after["combat"].get("retreat"), before.get("combat", {}).get("retreat")), "and the rest of the combat section was left as it was")
 	_assert(after.get("world", {}).get("dark_requires_light") == true, "the darkness rule was saved")
 	_assert(is_equal_approx(float(after.get("death", {}).get("gold_loss_fraction", -1)), 0.5), "the death penalty was saved")
+	_assert(after["combat"].get("player_level_counts") == true, "and the player's level counting in a blow")
 	_assert(_same(after["world"].get("regions"), before.get("world", {}).get("regions")), "beside the region policy it shares a section with")
 	_assert(_same(after["player_defaults"]["starting_inventory"][1], {"item_id": "item_foraging_knife", "quantity": 2}), "the quantity was saved")
 	_assert(after["npc_naming"] == before["npc_naming"], "the corrected pattern left npc_naming as it was")

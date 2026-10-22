@@ -480,7 +480,7 @@ without it the engine's formula (its health and level, scaled by how they compar
 
 **Ending, calling and casting.** An encounter zone may carry a `when` condition (live only while it holds: a world that goes quiet once a
 flag is set). The effect `call_encounter: "zone_id"` brings something of that zone to the room now, whatever its chance (a tune that
-draws a creature). The effect `game_over: "last words"` ends the character's story: they fall and `respawn` refuses them. The condition `equipped`
+draws a creature; `"here"` names whichever zone covers the room the player stands in). The effect `game_over: "last words"` ends the character's story: they fall and `respawn` refuses them. The condition `equipped`
 (`{"kind": "equipped", "item_id": ...}`) is true only for what is worn or wielded, not merely carried (a cursed belt that bars a gate). An
 item's `properties.heal_per_step` (health) mends its wearer each time they move to another room. A consumable with `effect_type: "cast"` and
 `properties.spell` casts that ability as its user, on the target of `use <item> on <target>`, with no cost or need to know it (a flute that
@@ -497,6 +497,8 @@ one place only (`{"kind": "in_room", "region_id": "shore", "room_id": "edge"}`).
 An ability effect of type `effects` runs a block of the conversation effects for the caster (a warp, a flag, a gift, an opened way);
 `teleport: {"to": "entrance"}` takes the player to the region's own `properties.entrance` (a room id, or `region:room`): one spell can be
 "out of the cave" in every cave.
+
+**Whose level counts in a blow.** The engine scales a blow, and the chance to land it, by how far apart the two fighters' levels are. A player has never had a `level` of their own there: every creature has met them as level 1. A set that says `ruleset.combat.player_level_counts: true` plays at the player's real level; one that says nothing plays as it always has (and stays as balanced as it was).
 
 **What falling costs.** `ruleset.death.gold_loss_fraction` (0 to 1) takes that part of the money carried when the character falls, once, and says
 so (`gold_lost`). Where they rise is the respawn point (`set_respawn`); nothing else is taken.

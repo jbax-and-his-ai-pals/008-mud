@@ -242,6 +242,8 @@ def _validate_simple_ruleset_sections(
                 value = sharing["memory_seconds"]
                 if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
                     error("combat.experience_sharing.memory_seconds must be a number of seconds, 0 or more (0: a blow is never forgotten): how long a blow counts toward a kill")
+    if "player_level_counts" in combat and not isinstance(combat["player_level_counts"], bool):
+        error("combat.player_level_counts must be true or false: whether the player's own level counts in the level-difference modifiers on a blow (it does not unless this is true)")
     for key in ("additional_blocked_command_names", "additional_combat_message_tokens"):
         if key in combat:
             strings(combat[key], f"combat.{key}", allow_empty_list=True)

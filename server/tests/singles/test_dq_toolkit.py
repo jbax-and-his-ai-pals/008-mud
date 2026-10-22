@@ -62,6 +62,16 @@ class TestCallingACreature(unittest.TestCase):
         self.assertTrue(report.applied, report.failed)
         self.assertTrue([n for n in server.world.npcs.values() if n.properties.get("encounter") == "tune"])
 
+    def test_here_means_the_zone_of_the_room(self):
+        from engine.dialogue.effects import apply_effects
+
+        server, player = _game(self)
+        region_id, here, _other = _rooms(server, player)
+        server.world.encounters.add("local", {"region": region_id, "rooms": [here], "monsters": [_hostile_template(server)], "chance": 0})
+        report = apply_effects({"call_encounter": "here"}, {"player": player, "world": server.world})
+        self.assertTrue(report.applied, report.failed)
+        self.assertTrue([n for n in server.world.npcs.values() if n.properties.get("encounter") == "local"])
+
     def test_an_unknown_zone_is_a_failure_not_a_crash(self):
         from engine.dialogue.effects import apply_effects
 
@@ -98,6 +108,24 @@ class TestGearThatMends(unittest.TestCase):
         self.assertEqual(player.max_health - 7, player.health)
         server.world._arrive(player, region_id, other, region_id)
         self.assertEqual(player.max_health - 7, player.health, "standing still mends nothing")
+
+
+class TestAPermanentGainInDefense(unittest.TestCase):
+    def test_raise_defense_adds_to_the_defense_that_is_kept(self):
+        from engine.dialogue.effects import apply_effects
+
+        server, player = _game(self)
+        before = player.get_defense()
+        report = apply_effects({"raise": {"defense": 2}}, {"player": player, "world": server.world})
+        self.assertTrue(report.applied, report.failed)
+        self.assertEqual(before + 2, player.get_defense())
+        self.assertEqual(player.runtime_state.combat.defense, player.to_dict(server.world)["gameplay"]["combat"]["defense"], "and it is what the save keeps")
+
+    def test_a_nonsense_gain_is_refused(self):
+        from engine.dialogue.effects import apply_effects
+
+        server, player = _game(self)
+        self.assertTrue(apply_effects({"raise": {"defense": 0}}, {"player": player, "world": server.world}).failed)
 
 
 class TestTheGameCanEnd(unittest.TestCase):

@@ -184,6 +184,21 @@ class Player(
         # concealed-pick bottleneck is crossed, not re-shown on every arrest.
         self.discovered_concealed_pick_trick: bool = False
 
+    @property
+    def level(self) -> int:
+        """The character's level, for every place that asks a creature its `level` (the level-difference modifiers on a blow, a creature's
+        colour, a spell's reach). A set that says `ruleset.combat.player_level_counts` is played at the player's real level; otherwise a
+        player has no `level` and every such place reads them as level 1, as it always has (so a game balanced that way stays as balanced)."""
+        world = getattr(self, "world", None)
+        try:
+            counts = world is not None and world.ruleset_section("combat").get("player_level_counts") is True
+        except Exception:  # noqa: BLE001 - a world without rules plays as it always did
+            counts = False
+        progression = getattr(getattr(self, "runtime_state", None), "progression", None)
+        if not counts or progression is None:
+            raise AttributeError("level")
+        return int(progression.level) if progression.level else 1
+
     def recalculate_max_health(self) -> None:
         """Set the health ceiling from whichever stat the content set says.
 

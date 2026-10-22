@@ -156,8 +156,8 @@ EFFECT_SHAPES: Dict[str, Dict[str, Any]] = {
     },
     "raise": {
         "form": "object",
-        "fields": {"max_health": "positive", "max_mana": "positive", "stats": "stat_map"},
-        "one_of": ("max_health", "max_mana", "stats"),
+        "fields": {"max_health": "positive", "max_mana": "positive", "stats": "stat_map", "defense": "positive"},
+        "one_of": ("max_health", "max_mana", "stats", "defense"),
     },
     "forget_spell": {"form": "ids"},
     "message": {"form": "text"},
@@ -253,7 +253,7 @@ EFFECT_EDITOR: Dict[str, Dict[str, Any]] = {
     "message": {"label": "Show a message", "hint": "text shown to the player", "kind": "string"},
     "take_gold": {"label": "Take currency", "hint": "a whole number, 1 or more (all or nothing)", "kind": "int"},
     "restore": {"label": "Restore health or mana", "hint": "health, mana, all, or {resource, amount: a number or \"full\", companions: true to heal the party too}", "kind": "string"},
-    "raise": {"label": "Raise max health, mana or a stat (permanent)", "hint": "{max_health, max_mana, stats: {stat: gain}}", "kind": "json"},
+    "raise": {"label": "Raise max health, mana or a stat (permanent)", "hint": "{max_health, max_mana, defense, stats: {stat: gain}}", "kind": "json"},
     "forget_spell": {"label": "Forget an ability", "hint": "ability id, or a list of them", "kind": "string", "refs": "spells"},
     "spawn_npc": {"label": "Bring in an NPC", "hint": "{npc: template id, region, room, instance_id (optional)}", "kind": "json"},
     "seal_exit": {"label": "Close an exit (a lever can reopen it)", "hint": "{region, room, direction}", "kind": "json"},
@@ -936,6 +936,18 @@ def _apply_raise_effect(effects: Dict[str, Any], player, world, report: EffectRe
             report.applied.append("raised max health +%d" % health)
             report.messages.append("Your maximum health rises by %d (now %d)." % (health, player.max_health))
 
+    armour = raw.get("defense")
+    if armour is not None:
+        combat = getattr(getattr(player, "runtime_state", None), "combat", None)
+        if not _is_whole(armour, 1):
+            report.failed.append("raise defense %s (must be a whole number of at least 1)" % _describe(armour))
+        elif combat is None:
+            report.failed.append("raise defense (this game has no combat)")
+        else:
+            combat.defense += armour   # the character's own toughness, kept in the save beside the blow they strike
+            report.applied.append("raised defense +%d" % armour)
+            report.messages.append("Your defense rises by %d." % armour)
+
     pool = raw.get("max_mana")
     if pool is not None:
         magic = getattr(getattr(player, "runtime_state", None), "magic", None)
@@ -1301,7 +1313,7 @@ def _apply_call_encounter_effect(effects: Dict[str, Any], context, report: Effec
     zone_id = str(effects["call_encounter"] or "").strip()
     world = _context_world(context)
     player = context.get("player")
-    if world is None or player is None or not zone_id or zone_id not in world.encounters.zones:
+    if world is None or player is None or not zone_id or (zone_id != "here" and zone_id not in world.encounters.zones):
         report.failed.append("call_encounter (no encounter zone %s)" % (zone_id or "named"))
         return
     line = world.encounters.force(player, zone_id)

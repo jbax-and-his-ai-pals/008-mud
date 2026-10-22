@@ -34,6 +34,7 @@ ENCOUNTER_KEYS = ("region", "rooms", "monsters", "chance", "count", "cooldown", 
 REPEL_TAG = "repel"
 INSTANCE_MARK = "encounter"          # NPC property: this creature came from a zone
 DEFAULT_MESSAGE = "{name} appears!"
+HERE = "here"                       # `call_encounter: "here"`: the zone of the room the player stands in
 
 
 def monster_entries(definition: Dict[str, Any]) -> List[Tuple[str, float]]:
@@ -154,6 +155,14 @@ class EncounterZones:
     def force(self, player: Any, zone_id: str) -> str:
         """Call something out of a zone now (a tune that draws a creature): chance, cooldown and the zone's `when` do not apply.
         The line the player reads, or "" when the zone does not exist or nothing could come."""
+        if zone_id == HERE:   # whichever zone covers the room the player stands in
+            from engine import conditions
+
+            live = [z for z in self.zones_for(player.current_region_id, player.current_room_id)
+                    if not self.zones[z].get("when") or conditions.evaluate(self.zones[z]["when"], player).satisfied]
+            if not live:
+                return ""
+            zone_id = live[0]
         definition = self.zones.get(zone_id)
         if definition is None or not getattr(player, "is_alive", False):
             return ""

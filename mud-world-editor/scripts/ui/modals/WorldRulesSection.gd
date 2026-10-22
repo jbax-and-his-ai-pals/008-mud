@@ -29,6 +29,7 @@ const FIELDS := [
 	["npc_naming", "first_names", "First names (comma-separated)", "list", ""],
 	["companions", "max", "Companions a character may bring along (0: none)", "int", [0, 12]],
 	["death", "gold_loss_fraction", "Part of the money carried that is lost when the character falls (0: none, 0.5: half)", "number", [0.0, 1.0, 0.05]],
+	["combat", "player_level_counts", "The player's own level counts in the level-difference modifiers on a blow (otherwise they fight as level 1)", "bool", false],
 	["world", "dark_requires_light", "A dark room shows nothing without a light (a torch or a spell of light)", "bool", false],
 	["combat", "pacing.npc_cooldown_scale", "Everyone but the player strikes this many times slower (1: as authored)", "number", [1.0, 10.0, 0.05]],
 	["combat", "pacing.action_gap", "Seconds between any two creatures' actions in a room (0: no gap)", "number", [0.0, 10.0, 0.1]],
