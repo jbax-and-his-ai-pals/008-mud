@@ -383,5 +383,69 @@
         "value": 0,
         "stackable": false,
         "properties": {}
+    },
+    "item_bait": {
+        "type": "Item",
+        "name": "bait",
+        "description": "A joint of meat, high and well hung. It is for something that is hungrier than you.",
+        "weight": 0.5,
+        "value": 30,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_red_candle": {
+        "type": "Consumable",
+        "name": "red candle",
+        "description": "A tall red candle that never gutters. Lit, it makes a room of light that stays while you stay, and it burns anything that burns. You may light it as often as you like.",
+        "weight": 0.3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "ability",
+            "ability": "candle_flame",
+            "reusable": true
+        },
+        "item_family": "consumable"
+    },
+    "item_magic_key": {
+        "type": "Key",
+        "name": "open key",
+        "description": "A key of black iron with no teeth at all, which opens every lock in Ardenmoor and is never used up.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "master_key": true,
+            "quest_item": true
+        },
+        "item_family": "key"
+    },
+    "item_tome": {
+        "type": "Item",
+        "name": "tome of cinders",
+        "description": "A thick book bound in scorched leather. Read with the wyrmrod in your other hand, it changes the cold fire to hot.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_bomb_bag_16": {
+        "type": "Item",
+        "name": "large bomb bag",
+        "description": "A big leather bag with a brass clasp and room for sixteen bombs. While you carry it, sixteen is your limit.",
+        "weight": 0.5,
+        "value": 50,
+        "stackable": false,
+        "properties": {
+            "carry_limits": {
+                "item_bomb": 16
+            }
+        }
     }
 }

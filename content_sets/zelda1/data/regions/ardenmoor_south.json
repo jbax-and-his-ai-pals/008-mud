@@ -81,6 +81,18 @@
             "exits": {
                 "north": "as_1_0",
                 "east": "as_2_1"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "repair_cave"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "in",
+                        "message": "The bank blows in, and there is a hollow behind it with somebody sitting in it."
+                    }
+                }
             }
         },
         "as_2_1": {
@@ -123,6 +135,19 @@
             "items": [
                 {
                     "item_id": "item_purse_30"
+                }
+            ]
+        },
+        "repair_cave": {
+            "name": "A Ruined Hollow",
+            "description": "A hollow in a bank that was a home until a minute ago. There is rubble where the front wall used to be.",
+            "exits": {
+                "out": "as_2_0"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_repair",
+                    "instance_id": "old_man_repair"
                 }
             ]
         }

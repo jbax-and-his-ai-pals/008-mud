@@ -387,6 +387,8 @@ def _validate_item_extension_data(
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment_slots must be a non-empty array of slot names"))
                 elif len(set(slots)) != len(slots):
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment_slots must not contain duplicates"))
+            if "master_key" in properties and not isinstance(properties["master_key"], bool):
+                issues.append(ContentSetIssue("error", str(path), f"{label}.properties.master_key must be true or false: whether it opens every locked exit and is never spent"))
             if "carry_limit" in properties:
                 limit = properties["carry_limit"]
                 if isinstance(limit, bool) or not isinstance(limit, int) or limit < 1:

@@ -771,6 +771,189 @@ wait(3)
 check("the arrows cost rupees", g.player.runtime_state.gold < 40, g.player.runtime_state.gold)
 check("the sixth shard and a heart more", "item_shard_6" in g.items() and g.player.max_health == hearts_before + HEART, "%s %s" % (g.items(), g.player.max_health))
 
+
+# ============================================================ slice 4: the hungry guard, the Fiend's Hold, the Mane
+def clear_room_through(*pairs, region_room=None, candle=None):
+    """Fight what the room holds, going back to `region_room` when a hand has carried us off, lighting `candle` there."""
+    for name, template in pairs:
+        guard = 0
+        while guard < 16:
+            guard += 1
+            if region_room and g.where() != region_room:
+                goto(region_room)
+                if candle:
+                    say("use %s" % candle)
+            if not hostile_here(template):
+                break
+            heal()
+            g.fight(name, potion="recovery heart")
+            if not g.player.is_alive:
+                return False
+    return True
+
+
+g.player.runtime_state.gold = 500
+give("item_recovery_heart", 8)
+
+# ---- the door-repair toll
+goto("ardenmoor_south:as_2_0")
+out = say("go in")
+check("a bank that is only a bank", g.where() == "ardenmoor_south:as_2_0", out[:80])
+give("item_bomb", 2 - g.player.inventory.count_item("item_bomb")) if g.player.inventory.count_item("item_bomb") < 2 else None
+out = say("use bomb")
+check("a bomb blows a hollow open", "blows in" in out, out[:120])
+walk("in")
+gold = rupees()
+say("talk old man")
+say("reply 1")
+check("the old man charges twenty rupees for his wall", gold - rupees() == 20, gold - rupees())
+say("talk old man")
+check("and is satisfied", rupees() == gold - 20, rupees())
+walk("out")
+
+# ---- bait, the hungry brute, the quiet bay
+goto("ardenmoor_east:ae_0_2")
+walk("in")
+say("trade old man")
+gold = rupees()
+say("buy bait")
+say("stoptrade")
+check("bait for sixty rupees", "item_bait" in g.items() and gold - rupees() == 60, gold - rupees())
+walk("out")
+goto("ardenmoor_east:ae_0_0")
+walk("north")
+check("the narrow pass and a hungry brute", g.where() == "ardenmoor_east:ae_pass" and len(hostile_here()) == 0 and any(n.template_id == "hungry_brute" for n in g.world.npcs.values() if n.is_alive), g.where())
+out = say("go north")
+check("it will not let you by", g.where() == "ardenmoor_east:ae_pass" and "eat" in out.lower(), out[:140])
+say("talk brute")
+say("reply 1")
+check("fed, it goes off and the bait is spent", "item_bait" not in g.items() and not any(n.template_id == "hungry_brute" and n.is_alive for n in g.world.npcs.values()), "")
+walk("north")
+check("the quiet bay", g.where() == "ardenmoor_east:ae_bay", g.where())
+out = say("go in")
+check("the cliff is blank", g.where() == "ardenmoor_east:ae_bay", out[:80])
+out = say("use reed pipe")
+check("the pipe opens a seam in the cliff", "seam opens" in out, out[:160])
+walk("in")
+check("the Fiend's Hold", g.where() == "fiends_hold:f_entrance", g.where())
+
+# ---- the Fiend's Hold
+hearts_before = g.player.max_health
+walk("north")
+check("the hall of faces: a centaur and a hexer fall", clear_room_through(("centaur", "horned_centaur"), ("hexer", "strong_hexer"), region_room="fiends_hold:f_hall"), "")
+walk("west")
+say("use blue candle")
+check("the iron gallery: two ironclads", len(hostile_here("ironclad")) == 2, [n.template_id for n in hostile_here()])
+check("they fall", clear_room_through(("ironclad", "ironclad"), region_room="fiends_hold:f_west", candle="blue candle"), "")
+walk("north")
+say("use blue candle")
+check("the red vault: two strong hexers and a red candle", len(hostile_here("strong_hexer")) == 2 and g.where() == "fiends_hold:f_candle", g.where())
+check("they fall", clear_room_through(("hexer", "strong_hexer"), region_room="fiends_hold:f_candle", candle="blue candle"), "")
+say("take red candle")
+check("the red candle", "item_red_candle" in g.items(), g.items())
+say("use red candle")
+out = say("use red candle")
+check("a red candle burns again in the same room", "already burns" not in out, out[:80])
+goto("fiends_hold:f_east")
+say("use red candle")
+check("the eaters' hall: two shield-eaters and a bat", len(hostile_here("shield_eater")) == 2, [n.template_id for n in hostile_here()])
+check("they fall", clear_room_through(("eater", "shield_eater"), ("bat", "cave_bat"), region_room="fiends_hold:f_east", candle="red candle"), "")
+say("take small key")
+walk("north")
+say("trade old man")
+gold = rupees()
+say("buy large bomb bag")
+say("stoptrade")
+check("a large bomb bag for a hundred rupees", "item_bomb_bag_16" in g.items() and gold - rupees() == 100, gold - rupees())
+give("item_bomb", 16 - g.player.inventory.count_item("item_bomb"))
+check("sixteen bombs is the limit now", g.player.inventory.count_item("item_bomb") == 16, g.player.inventory.count_item("item_bomb"))
+goto("fiends_hold:f_upper")
+say("use red candle")
+check("the upper gallery falls", clear_room_through(("hexer", "strong_hexer"), ("ironclad", "ironclad"), ("hand", "grasping_hand"), region_room="fiends_hold:f_upper", candle="red candle"), "")
+say("use bomb")
+walk("west")
+check("a pantry behind the west wall", g.where() == "fiends_hold:f_cache", g.where())
+goto("fiends_hold:f_upper")
+out = say("go north")
+check("the iron door yields to the key", g.where() == "fiends_hold:f_ante" and "item_small_key" not in g.items(), "%s %s" % (g.where(), out[:80]))
+say("use red candle")
+check("the hall of heat falls", clear_room_through(("ironclad", "ironclad"), ("centaur", "horned_centaur"), region_room="fiends_hold:f_ante", candle="red candle"), "")
+heal()
+walk("north")
+check("the elder's roost", g.where() == "fiends_hold:f_boss" and len(hostile_here("aquilor_elder")) == 1, g.where())
+elder = hostile_here("aquilor_elder")[0]
+guard = 0
+while elder.is_alive and guard < 30 and g.player.is_alive:
+    guard += 1
+    heal()
+    g.fight("Aquilor", max_rounds=4, potion="recovery heart")
+wait(3)
+check("the elder falls", not elder.is_alive and g.player.is_alive, elder.health)
+check("the seventh shard and a heart more", "item_shard_7" in g.items() and g.player.max_health == hearts_before + HEART, "%s %s" % (g.items(), g.player.max_health))
+
+# ---- the Mane
+goto("ardenmoor_east:ae_burnt_rise")
+out = say("go in")
+check("a bush stands over the door", g.where() == "ardenmoor_east:ae_burnt_rise", out[:80])
+out = say("use red candle")
+check("the red candle burns it away", "bush goes up" in out, out[:160])
+hearts_before = g.player.max_health
+walk("in")
+check("the Mane", g.where() == "the_mane:m_entrance", g.where())
+walk("north")
+check("the hall of locks falls", clear_room_through(("centaur", "horned_centaur"), ("hexer", "strong_hexer"), region_room="the_mane:m_hall"), "")
+goto("the_mane:m_west")
+say("use red candle")
+check("the iron passage falls", clear_room_through(("ironclad", "ironclad"), ("hexer", "strong_hexer"), region_room="the_mane:m_west", candle="red candle"), "")
+walk("north")
+say("use red candle")
+check("the scorched library: a blue ironclad and a book", len(hostile_here("blue_ironclad")) == 1 and g.where() == "the_mane:m_tome", g.where())
+check("the guard falls", clear_room_through(("blue", "blue_ironclad"), region_room="the_mane:m_tome", candle="red candle"), "")
+say("take tome")
+check("the tome of cinders", "item_tome" in g.items() and "rod_flame" in g.player.runtime_state.magic.known_spells, g.items())
+goto("the_mane:m_east")
+say("use red candle")
+check("the eaters' gallery falls", clear_room_through(("eater", "shield_eater"), ("bat", "cave_bat"), region_room="the_mane:m_east", candle="red candle"), "")
+say("take small key")
+walk("north")
+say("use red candle")
+check("the key chamber: two blue ironclads and a black key", len(hostile_here("blue_ironclad")) == 2 and g.where() == "the_mane:m_key", g.where())
+check("they fall", clear_room_through(("blue", "blue_ironclad"), region_room="the_mane:m_key", candle="red candle"), "")
+say("take open key")
+check("the open key", "item_magic_key" in g.items(), g.items())
+goto("the_mane:m_upper")
+say("use red candle")
+check("the upper passage falls", clear_room_through(("blue", "blue_ironclad"), ("hexer", "strong_hexer"), ("hand", "grasping_hand"), region_room="the_mane:m_upper", candle="red candle"), "")
+say("use bomb")
+walk("east")
+check("a closet behind the east wall", g.where() == "the_mane:m_cache", g.where())
+walk("west")
+keys = g.player.inventory.count_item("item_small_key")
+out = say("go north")
+check("the open key turns the lock and the small key is kept", g.where() == "the_mane:m_ante" and g.player.inventory.count_item("item_small_key") == keys and "item_magic_key" in g.items(), "%s %s" % (g.where(), out[:100]))
+say("use red candle")
+check("the hall of the heads falls", clear_room_through(("blue", "blue_ironclad"), ("hexer", "strong_hexer"), ("centaur", "horned_centaur"), region_room="the_mane:m_ante", candle="red candle"), "")
+heal()
+walk("north")
+check("the great hydra's lair: a body and four heads", len(hostile_here("hydra_head")) == 4 and len(hostile_here("great_hydra")) == 1, [n.template_id for n in hostile_here()])
+body = hostile_here("great_hydra")[0]
+out = say("attack the great hydra")
+check("the body waits behind four heads", body.health == body.max_health and "neck" in out.lower(), out[:140])
+guard = 0
+while hostile_here("hydra_head") and guard < 30 and g.player.is_alive:
+    guard += 1
+    heal()
+    g.fight("head", max_rounds=4, potion="recovery heart")
+check("all four heads fall", not hostile_here("hydra_head") and g.player.is_alive, [n.template_id for n in hostile_here()])
+heal()
+g.fight("great hydra", potion="recovery heart")
+wait(3)
+check("and the body", not body.is_alive, body.health)
+check("the eighth shard and a heart more", "item_shard_8" in g.items() and g.player.max_health == hearts_before + HEART, "%s %s" % (g.items(), g.player.max_health))
+check("all eight shards of the Starcrown", all("item_shard_%d" % n in g.items() for n in range(1, 9)), [i for i in g.items() if "shard" in i])
+out = say("status")
+check("the hero stands at fifteen hearts", "%d/%d hearts" % (g.player.max_health // HEART, g.player.max_health // HEART) in out, out[:200])
+
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])
 g.close()

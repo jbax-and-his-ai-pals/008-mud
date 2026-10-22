@@ -591,7 +591,7 @@ _SIMPLE_RULESET_SECTION_KEYS = {
     "calendar": ("day_names", "month_names", "start_time"),
     "spawning": ("no_spawn_keywords",),
     "elites": ("chance", "stat_multiplier", "loot_guaranteed_chance", "loot_quantity_multiplier", "name_pattern", "prefixes"),
-    "player_defaults": ("player_class", "magic", "starting_inventory"),
+    "player_defaults": ("player_class", "magic", "starting_inventory", "inventory_slots"),
     "npc_naming": ("first_names", "random_name_pattern"),
     "status": ("stats",),
     "combat": ("retreat", "experience_sharing", "pacing", "player_level_counts", "additional_blocked_command_names", "additional_combat_message_tokens"),

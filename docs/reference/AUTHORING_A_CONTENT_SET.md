@@ -522,6 +522,12 @@ ordinary creatures with their own health and blows.
 place is optional) fires after the player uses the item, and what it says is added to what the item said. A reed pipe that does nothing of its own, with three
 triggers, opens a hidden way at one hill, shrinks a creature in one room (`remove_npc` + `spawn_npc`) and calls a fairy at one pool.
 
+**A master key.** An item with `properties.master_key: true` opens every `locked` exit and is never spent; with one in the pack a locked door that would have
+spent an ordinary key spends nothing ("Your master key turns in the lock"), and the ordinary keys are kept.
+
+**What a character can carry.** `ruleset.player_defaults.inventory_slots` (1 to 500; the engine's default is 20) is how many different things a new character
+can hold at once: a game of many key items and a shard for each of eight dungeons needs more than twenty. A stack of one item takes one slot.
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms

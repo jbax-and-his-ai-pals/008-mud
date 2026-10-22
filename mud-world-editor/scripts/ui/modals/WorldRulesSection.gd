@@ -35,6 +35,7 @@ const FIELDS := [
 	["combat", "pacing.npc_cooldown_scale", "Everyone but the player strikes this many times slower (1: as authored)", "number", [1.0, 10.0, 0.05]],
 	["combat", "pacing.action_gap", "Seconds between any two creatures' actions in a room (0: no gap)", "number", [0.0, 10.0, 0.1]],
 	["player_defaults", "player_class", "Default player class", "text", "Adventurer"],
+	["player_defaults", "inventory_slots", "Things a character can carry at once (0: the engine's default)", "int0", [0, 500]],
 	["player_defaults", "magic.known_spells", "Default known spells (ability ids, comma-separated)", "list", ""],
 ]
 const ENGINE_DEFAULTS := {

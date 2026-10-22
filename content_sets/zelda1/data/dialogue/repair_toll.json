@@ -1,0 +1,53 @@
+{
+    "id": "repair_toll",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "settled",
+            "condition": {
+                "kind": "flag",
+                "flag": "wall_paid"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "You blew a hole in my wall, and a hole in the wall costs twenty rupees to mend. Pay up.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Pay the twenty rupees.",
+                    "next_node": "paid",
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 20
+                    },
+                    "effects": {
+                        "take_gold": 20,
+                        "set_flag": "wall_paid",
+                        "message": "You count out twenty rupees. The old man weighs them in his hand and nods."
+                    }
+                },
+                {
+                    "text": "I haven't got it.",
+                    "next_node": "broke"
+                }
+            ]
+        },
+        "paid": {
+            "text": "Good. I'll have a new wall by spring.",
+            "pace": "slow",
+            "end": true
+        },
+        "broke": {
+            "text": "Then you are a bad neighbour. Go on.",
+            "pace": "slow",
+            "end": true
+        },
+        "settled": {
+            "text": "We are square. Go and break somebody else's wall.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

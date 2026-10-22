@@ -1285,5 +1285,183 @@
             "claw_flame"
         ],
         "max_mana": 100
+    },
+    "ironclad": {
+        "name": "ironclad",
+        "description": "A soldier in iron from crown to boot, shield up, that comes on at a walk and does not stop for anything.",
+        "max_health": 28,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    3,
+                    12
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.15
+            },
+            "item_bomb": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        }
+    },
+    "blue_ironclad": {
+        "name": "blue ironclad",
+        "description": "A soldier in blue-black iron, heavier than the others and half again as hard to stop.",
+        "max_health": 35,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 26,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.8,
+                "quantity": [
+                    5,
+                    18
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.2
+            },
+            "item_bomb": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        }
+    },
+    "aquilor_elder": {
+        "name": "Aquilor the Elder, the horned drake",
+        "description": "The first drake's elder: grey going black, twice the length of a cart, a crest like a rack of antlers, and three balls of fire where the other threw one.",
+        "max_health": 62,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.6,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.8,
+            "unique": true,
+            "status_immune": true
+        },
+        "usable_spells": [
+            "aquilor_flame"
+        ],
+        "max_mana": 100
+    },
+    "great_hydra": {
+        "name": "the great hydra",
+        "description": "A great coiled body with four long necks, the heads of which do all the fighting. The body can be struck only when the heads are down.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "unique": true,
+            "status_immune": true,
+            "shielded_by": [
+                "hydra_head"
+            ],
+            "shield_text": "{attacker} swings at {defender}, but a long neck whips across the blow and a head snaps at the sword."
+        }
     }
 }

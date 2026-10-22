@@ -495,6 +495,11 @@ class World:
         flags = getattr(player, "flags", None)
         return isinstance(flags, dict) and bool(flags.get(self._exit_open_key(player, direction)))
 
+    @staticmethod
+    def _holds_master_key(player: 'Player') -> bool:
+        """An item with `properties.master_key: true` opens every `locked` exit and is never spent."""
+        return any(slot.item and slot.item.get_property("master_key") is True for slot in player.inventory.slots)
+
     def _commit_exit_gate(self, player: 'Player', room: Room, direction: str) -> str:
         """Spend what a `consume` requirement takes, and remember the door is open.
 
@@ -509,7 +514,9 @@ class World:
         from engine.dialogue.effects import entry_pairs
 
         req_type = dir_req.get("type")
-        if req_type == "locked":
+        if req_type == "locked" and self._holds_master_key(player):
+            spent = []   # a master key turns in the lock and is not spent; the ordinary key, if one is carried, is kept
+        elif req_type == "locked":
             spent = [(dir_req.get("key_id"), 1)] if dir_req.get("key_id") else []
         elif req_type == "condition":
             spent = entry_pairs(dir_req.get("consume"))
@@ -525,6 +532,8 @@ class World:
             flags = player.flags = {}
         flags[self._exit_open_key(player, direction)] = True
         what = ", ".join(names) if names else "what it asked"
+        if req_type == "locked" and not names:
+            return f"Your master key turns in the lock; the way {direction} is open to you."
         return f"You spend the {what}; the way {direction} is open to you from now on."
 
     # How many arrivals may chain, each sending the player on to the next, before the
@@ -577,7 +586,7 @@ class World:
 
         elif req_type == "locked":
             key_id = dir_req.get("key_id")
-            has_key = any(slot.item and slot.item.obj_id == key_id for slot in player.inventory.slots)
+            has_key = any(slot.item and slot.item.obj_id == key_id for slot in player.inventory.slots) or self._holds_master_key(player)
             if not has_key:
                 fail_msg = dir_req.get("failure_message") or self._locked_message(f"The way {direction} is locked.", key_id)
                 return f"{FORMAT_ERROR}{fail_msg}{FORMAT_RESET}"

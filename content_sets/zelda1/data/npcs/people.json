@@ -86,6 +86,9 @@
                 },
                 {
                     "item_id": "item_recovery_heart"
+                },
+                {
+                    "item_id": "item_bait"
                 }
             ],
             "sell_rate_multiplier": 1.0
@@ -291,6 +294,75 @@
             "move_cooldown": 9999,
             "essential": true,
             "unique": true
+        }
+    },
+    "hungry_brute": {
+        "name": "a hungry brute",
+        "description": "A huge, hump-shouldered brute with a club the size of a post, sitting across the pass with its stomach audibly complaining.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "(The brute looks at you, and then at your pack, and then at you.)"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": false,
+            "unique": true,
+            "dialogue": "feed_brute"
+        }
+    },
+    "old_man_big_bags": {
+        "name": "an old man",
+        "description": "A very old man in a pile of old bags, among which he has found one he is proud of.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Buy something, will you!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_bomb_bag_16"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "old_man_repair": {
+        "name": "an old man",
+        "description": "A very old man sitting in a heap of rubble that used to be his front wall.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Boom. Hm. Boom."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": false,
+            "unique": true,
+            "dialogue": "repair_toll"
         }
     }
 }

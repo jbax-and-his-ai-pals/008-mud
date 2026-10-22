@@ -331,5 +331,35 @@
                 }
             }
         ]
+    },
+    "rod_flame": {
+        "name": "Wyrmflame",
+        "description": "Point the wyrmrod with the tome open: a ball of true fire flies from it.",
+        "mana_cost": 0,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "You point the wyrmrod, and the tome's page flares, and the bolt that leaves it is orange.",
+        "hit_message": "The fire engulfs {target_name} for {value} damage!",
+        "level_required": 1,
+        "requires": {
+            "all": [
+                {
+                    "kind": "has_item",
+                    "item_id": "item_wyrmrod"
+                },
+                {
+                    "kind": "has_item",
+                    "item_id": "item_tome"
+                }
+            ]
+        },
+        "requires_message": "You need the wyrmrod and the tome together.",
+        "effects": [
+            {
+                "type": "damage",
+                "value": 24,
+                "damage_type": "fire"
+            }
+        ]
     }
 }

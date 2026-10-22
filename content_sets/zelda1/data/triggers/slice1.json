@@ -329,5 +329,68 @@
             },
             "message": "The great claw folds up, eye shut at last, and goes still. A sixth sliver of the Starcrown lies in the dust under it, and a warmth runs through you."
         }
+    },
+    "pipe_bay": {
+        "on": {
+            "event": "item_used",
+            "item": "item_reed_pipe",
+            "region": "ardenmoor_east",
+            "room": "ae_bay"
+        },
+        "once": "world",
+        "effects": {
+            "reveal_exit": {
+                "room": "ardenmoor_east:ae_bay",
+                "direction": "in"
+            },
+            "message": "The tune goes out over the still water and strikes the cliff. A seam opens in the blank rock, wide as a door, and a fiend's face looks out of it."
+        }
+    },
+    "tome_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_tome"
+        },
+        "once": "player",
+        "effects": {
+            "teach_spell": "rod_flame",
+            "message": "You turn the scorched pages. Type 'cast wyrmflame' (or 'cast wyrmflame on <creature>') to point the wyrmrod with the tome open."
+        }
+    },
+    "elder_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "aquilor_elder"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_7",
+            "set_flag": "shard_7",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The elder drake falls across the floor of its roost and does not move again. A seventh sliver of the Starcrown glows in the ash, and a warmth runs through you."
+        }
+    },
+    "great_hydra_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "great_hydra"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_8",
+            "set_flag": "shard_8",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The great hydra's body falls into the pit and the necks fall after it. The eighth and last sliver of the Starcrown lies in the bones. All eight are yours, and a warmth runs through you."
+        }
     }
 }

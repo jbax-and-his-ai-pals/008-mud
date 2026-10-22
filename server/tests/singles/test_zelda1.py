@@ -432,5 +432,123 @@ class TestTheThreeMoreBosses(Base):
         self.assertEqual(1, self.player.inventory.count_item("item_ladder"))
 
 
+class TestTheHungryPassAndTheBay(Base):
+    def test_a_hungry_brute_bars_the_pass_until_it_is_fed(self):
+        self.at("ardenmoor_east", "ae_pass")
+        self.assertIn("eat", self.say("go north").lower())
+        self.assertEqual("ardenmoor_east:ae_pass", self.where())
+        self.give("item_bait")
+        self.say("talk brute")
+        self.say("reply 1")
+        self.assertEqual(0, self.player.inventory.count_item("item_bait"))
+        self.say("go north")
+        self.assertEqual("ardenmoor_east:ae_bay", self.where())
+
+    def test_without_bait_the_brute_only_grumbles(self):
+        self.at("ardenmoor_east", "ae_pass")
+        self.say("talk brute")
+        self.assertTrue(self.foes("hungry_brute") or any(n.template_id == "hungry_brute" and n.is_alive for n in self.world.npcs.values()))
+
+    def test_the_pipe_opens_the_cliff_at_the_bay_and_nowhere_near_it(self):
+        self.give("item_reed_pipe")
+        self.at("ardenmoor_east", "ae_pass")
+        self.say("use reed pipe")
+        self.assertNotIn("in", self.world.get_region("ardenmoor_east").get_room("ae_bay").exits)
+        self.at("ardenmoor_east", "ae_bay")
+        self.assertIn("seam opens", self.say("use reed pipe"))
+        self.say("go in")
+        self.assertEqual("fiends_hold:f_entrance", self.where())
+
+    def test_bait_is_sold_where_bombs_are(self):
+        self.player.runtime_state.gold = 100
+        self.at("ardenmoor_east", "shop_cave")
+        self.say("trade old man")
+        self.say("buy bait")
+        self.assertEqual(40, self.player.runtime_state.gold)
+
+    def test_a_bombed_wall_costs_twenty_rupees_to_mend_and_only_once(self):
+        self.give("item_bomb")
+        self.at("ardenmoor_south", "as_2_0")
+        self.say("use bomb")
+        self.say("go in")
+        self.player.runtime_state.gold = 50
+        self.say("talk old man")
+        self.say("reply 1")
+        self.assertEqual(30, self.player.runtime_state.gold)
+        self.say("talk old man")
+        self.assertEqual(30, self.player.runtime_state.gold)
+
+
+class TestTheFiendsHoldAndTheMane(Base):
+    def test_a_red_candle_works_as_often_as_it_is_lit_and_a_blue_one_does_not(self):
+        self.give("item_red_candle")
+        self.give("item_blue_candle")
+        self.at("fiends_hold", "f_hall")
+        self.say("use red candle")
+        self.assertNotIn("already burns", self.say("use red candle"))
+        self.at("fiends_hold", "f_entrance")
+        self.say("use blue candle")
+        self.assertIn("already burns", self.say("use blue candle"))
+
+    def test_the_large_bag_lifts_the_limit_to_sixteen(self):
+        self.give("item_bomb_bag_16")
+        self.give("item_bomb", 16)
+        self.assertEqual(16, self.player.inventory.count_item("item_bomb"))
+        ok, _said = self.player.inventory.add_item(ItemFactory.create_item_from_template("item_bomb", self.world))
+        self.assertFalse(ok)
+
+    def test_the_burnt_rise_gives_up_its_door_to_fire_only(self):
+        self.give("item_red_candle")
+        self.at("ardenmoor_east", "ae_burnt_rise")
+        self.say("go in")
+        self.assertEqual("ardenmoor_east:ae_burnt_rise", self.where())
+        self.say("use red candle")
+        self.say("go in")
+        self.assertEqual("the_mane:m_entrance", self.where())
+
+    def test_the_open_key_turns_any_lock_and_the_small_key_is_kept(self):
+        self.give("item_magic_key")
+        self.give("item_small_key", 2)
+        self.at("the_mane", "m_upper")
+        self.say("go north")
+        self.assertEqual("the_mane:m_ante", self.where())
+        self.assertEqual(2, self.player.inventory.count_item("item_small_key"))
+        self.assertEqual(1, self.player.inventory.count_item("item_magic_key"))
+
+    def test_the_wyrmrod_and_the_tome_together_throw_true_fire(self):
+        self.at("the_mane", "m_boss")
+        foe = self.foes("blue_ironclad")
+        from engine.magic.spell_registry import get_spell
+
+        spell = get_spell("rod_flame")
+        self.assertIsNotNone(spell)
+        self.assertIn("item_wyrmrod", str(spell.requires))
+        self.assertIn("item_tome", str(spell.requires))
+        self.assertEqual(3 * 8, spell.effects[0]["value"])
+
+    def test_the_great_hydra_waits_for_four_heads(self):
+        from engine.core.combat_system import CombatSystem
+
+        self.at("the_mane", "m_boss")
+        here = lambda: [n for n in self.foes("hydra_head") if n.current_room_id == "m_boss"]
+        self.assertEqual(4, len(here()))
+        body = self.foes("great_hydra")[0]
+        self.assertIn("neck", CombatSystem.execute_attack(self.player, body, 50, always_hit=True)["message"])
+        heads = here()
+        for head in heads[:3]:
+            head.take_damage(10 ** 5, "physical")
+        self.assertIn("neck", CombatSystem.execute_attack(self.player, body, 50, always_hit=True)["message"], "three of four is not enough")
+        heads[3].take_damage(10 ** 5, "physical")
+        self.assertGreater(CombatSystem.execute_attack(self.player, body, 50, always_hit=True)["damage"], 0)
+
+    def test_the_last_two_shards(self):
+        self.at("fiends_hold", "f_boss")
+        self.world.dispatch_event("npc_killed", {"player": self.player, "npc": self.foes("aquilor_elder")[0]})
+        self.at("the_mane", "m_boss")
+        self.world.dispatch_event("npc_killed", {"player": self.player, "npc": self.foes("great_hydra")[0]})
+        self.assertEqual((1, 1), (self.player.inventory.count_item("item_shard_7"), self.player.inventory.count_item("item_shard_8")))
+        self.assertEqual(5 * HEART, self.player.max_health)
+
+
 if __name__ == "__main__":
     unittest.main()

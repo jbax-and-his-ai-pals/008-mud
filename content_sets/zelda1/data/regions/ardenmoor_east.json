@@ -9,8 +9,10 @@
             "exits": {
                 "east": "ae_0_1",
                 "south": "ae_1_0",
-                "west": "ardenmoor_south:as_0_2"
-            }
+                "west": "ardenmoor_south:as_0_2",
+                "north": "ae_pass"
+            },
+            "properties": {}
         },
         "ae_0_1": {
             "name": "The Waterfall Ledge",
@@ -27,7 +29,8 @@
             "description": "A bare shelf of hill where the wind never stops. A cave mouth has been cut into the bank, and someone has hung a lantern at its entrance.",
             "exits": {
                 "west": "ae_0_1",
-                "in": "shop_cave"
+                "in": "shop_cave",
+                "east": "ae_burnt_rise"
             }
         },
         "ae_1_0": {
@@ -214,6 +217,67 @@
                     "item_id": "item_dock_heart"
                 }
             ]
+        },
+        "ae_pass": {
+            "name": "The Narrow Pass",
+            "description": "A narrow pass between two walls of grey rock, going north. The ground is trampled flat, and the bones of things that did not pay the toll lie in the corners.",
+            "exits": {
+                "south": "ae_0_0",
+                "north": "ae_bay"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hungry_brute",
+                    "instance_id": "hungry_brute"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "not": {
+                                "kind": "npc_present",
+                                "npc_id": "hungry_brute",
+                                "region_id": "ardenmoor_east",
+                                "room_id": "ae_pass"
+                            }
+                        },
+                        "failure_message": "The brute does not move, and it is too big to get round. Its stomach rumbles at you. It would like something to eat."
+                    }
+                }
+            }
+        },
+        "ae_bay": {
+            "name": "The Quiet Bay",
+            "description": "A small, windless bay of dark water behind the pass. The cliff above it is blank and sheer, and the silence is the kind that is waiting for something.",
+            "exits": {
+                "south": "ae_pass"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "fiends_hold:f_entrance"
+                }
+            }
+        },
+        "ae_burnt_rise": {
+            "name": "The Burnt Rise",
+            "description": "A round, bald hill with one thick bush on its crown, so big that it could have grown over a door. The ground round it is black, as if it had been burnt before.",
+            "exits": {
+                "west": "ae_0_2"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "the_mane:m_entrance"
+                },
+                "env_interactions": {
+                    "fire": {
+                        "type": "reveal_exit",
+                        "direction": "in",
+                        "message": "The bush goes up with a roar and a stink of resin, and where it stood is a doorway under a stone mane."
+                    }
+                }
+            }
         }
     }
 }

@@ -155,6 +155,10 @@ def _validate_simple_ruleset_sections(
         strings(elites["prefixes"], "elites.prefixes")
 
     defaults = sections.get("player_defaults", {})
+    if "inventory_slots" in defaults:
+        slots = defaults["inventory_slots"]
+        if isinstance(slots, bool) or not isinstance(slots, int) or not 1 <= slots <= 500:
+            error("player_defaults.inventory_slots must be a whole number from 1 to 500: how many different things a character can carry (leave it out for the engine's default)")
     if "player_class" in defaults and (not isinstance(defaults["player_class"], str) or not defaults["player_class"].strip()):
         error("player_defaults.player_class must be a non-empty string")
     if "magic" in defaults:

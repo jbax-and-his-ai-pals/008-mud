@@ -57,6 +57,13 @@ func _build_carry_limits():
 	container.add_child(InspectorStyle.create_sub_header("Carry limits"))
 	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
 	container.add_child(card)
+	var master := CheckBox.new(); master.name = "MasterKey"; master.text = "Master key: opens every locked exit and is never spent"
+	master.button_pressed = _properties().get("master_key", false) == true
+	master.toggled.connect(func(on):
+		if on: _properties()["master_key"] = true
+		else: _properties().erase("master_key")
+		database_modified.emit())
+	vbox.add_child(master)
 	vbox.add_child(InspectorStyle.lbl("Most of this a pack can hold (0: no limit)", InspectorStyle.COLOR_TEXT_DIM))
 	var limit := SpinBox.new(); limit.name = "CarryLimit"; limit.min_value = 0; limit.max_value = 9999; limit.step = 1
 	limit.value = int(_properties().get("carry_limit", 0)) if typeof(_properties().get("carry_limit", 0)) in [TYPE_INT, TYPE_FLOAT] else 0
@@ -1122,7 +1129,7 @@ func _refresh_props():
 	# These fields have a dedicated, lossless authoring surface above. Showing
 	# them again as generic rows invites two conflicting edits and makes the
 	# useful controls look like decoration.
-	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells", "carry_limit", "carry_limits"]
+	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells", "carry_limit", "carry_limits", "master_key"]
 	if _engine_item_class() == "Consumable":
 		# The "When used" section owns these two.
 		specialized.append_array(["effect_type", "effects", "requires", "requires_message", "reusable", "spell", "ability"])

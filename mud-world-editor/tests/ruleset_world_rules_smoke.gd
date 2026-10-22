@@ -44,6 +44,7 @@ func _run():
 	(section.controls["world.dark_requires_light"] as CheckBox).button_pressed = true
 	(section.controls["death.gold_loss_fraction"] as SpinBox).value = 0.5
 	(section.controls["world.health_per_heart"] as SpinBox).value = 2
+	(section.controls["player_defaults.inventory_slots"] as SpinBox).value = 40
 	(section.controls["combat.player_level_counts"] as CheckBox).button_pressed = true
 	_edit(section.controls["elites.prefixes"], "Alpha, Elder, Ancient, Dread, Savage, Greater, Feral, Grizzled, Hoary")
 	var knife_row: Node = section.inventory_rows.get_child(1)
@@ -66,6 +67,7 @@ func _run():
 	_assert(_same(after["combat"].get("retreat"), before.get("combat", {}).get("retreat")), "and the rest of the combat section was left as it was")
 	_assert(after.get("world", {}).get("dark_requires_light") == true, "the darkness rule was saved")
 	_assert(int(after.get("world", {}).get("health_per_heart", 0)) == 2, "and the heart size")
+	_assert(int(after.get("player_defaults", {}).get("inventory_slots", 0)) == 40, "and the carrying slots")
 	_assert(is_equal_approx(float(after.get("death", {}).get("gold_loss_fraction", -1)), 0.5), "the death penalty was saved")
 	_assert(after["combat"].get("player_level_counts") == true, "and the player's level counting in a blow")
 	_assert(_same(after["world"].get("regions"), before.get("world", {}).get("regions")), "beside the region policy it shares a section with")

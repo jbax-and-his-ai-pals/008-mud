@@ -1,0 +1,288 @@
+{
+    "region_id": "the_mane",
+    "name": "The Mane",
+    "description": "A keep under a stone mane, hidden behind a bush that has stood a thousand years. The eighth and last piece of the Starcrown lies in the lair of a hydra with four heads.",
+    "properties": {
+        "entrance": "m_entrance"
+    },
+    "rooms": {
+        "m_entrance": {
+            "name": "The Mane Door",
+            "description": "A doorway cut in the face of a hill under a great stone mane, each lock of it as long as a man. The burnt ground is behind you.",
+            "exits": {
+                "out": "ardenmoor_east:ae_burnt_rise",
+                "north": "m_hall"
+            }
+        },
+        "m_hall": {
+            "name": "The Hall of Locks",
+            "description": "A hall in which every pillar is cut in the shape of a great curling lock of hair.",
+            "exits": {
+                "south": "m_entrance",
+                "west": "m_west",
+                "east": "m_east",
+                "north": "m_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_m1"
+                },
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_m2"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_m1"
+                }
+            ]
+        },
+        "m_west": {
+            "name": "The Iron Passage",
+            "description": "A passage floored in iron, so loud that nothing in it has ever been a secret.",
+            "exits": {
+                "east": "m_hall",
+                "north": "m_tome"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ironclad",
+                    "instance_id": "ironclad_mw1"
+                },
+                {
+                    "template_id": "ironclad",
+                    "instance_id": "ironclad_mw2"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_mw1"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "m_tome": {
+            "name": "The Scorched Library",
+            "description": "A small round library, every shelf of it empty and black. One book still lies open on the lectern, and a blue ironclad stands guard at the other side of the lectern.",
+            "exits": {
+                "south": "m_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_mt1"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_tome"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "the_mane",
+                            "room_id": "m_tome"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the guard stands."
+                    }
+                }
+            }
+        },
+        "m_east": {
+            "name": "The Eaters' Gallery",
+            "description": "A gallery hung with grey cloths and dark with something that is not just the absence of light.",
+            "exits": {
+                "west": "m_hall",
+                "north": "m_key"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_me1"
+                },
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_me2"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_me1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_me2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_small_key"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "m_key": {
+            "name": "The Key Chamber",
+            "description": "A square chamber with a pedestal in it. On the pedestal, a black key with no teeth. The two blue ironclads who stand to either side of it are in no hurry to let you by.",
+            "exits": {
+                "south": "m_east"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_mk1"
+                },
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_mk2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_magic_key"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "the_mane",
+                            "room_id": "m_key"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the guards stand."
+                    }
+                }
+            }
+        },
+        "m_upper": {
+            "name": "The Upper Passage",
+            "description": "The hub of the upper floor, as dark as a well. A door stands to the north, and the east wall is cracked.",
+            "exits": {
+                "south": "m_hall",
+                "north": "m_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_mu1"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_mu1"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_mu1"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "hidden_exits": {
+                    "east": "m_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "east",
+                        "message": "The wall bursts, and a gap stands in it."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of black stone, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "m_cache": {
+            "name": "The Groom's Closet",
+            "description": "A small closet for the mane's grooming, long out of use. There are a few things left on a shelf.",
+            "exits": {
+                "west": "m_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_30"
+                },
+                {
+                    "item_id": "item_bomb"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "m_ante": {
+            "name": "The Hall of the Heads",
+            "description": "A long hall in which the carved heads of lions look down from every pillar. Some of the lions are stone.",
+            "exits": {
+                "south": "m_upper",
+                "north": "m_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_ma1"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_ma1"
+                },
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_ma1"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "m_boss": {
+            "name": "The Great Hydra's Lair",
+            "description": "A vast, high pit with a floor of bones. A great coiled body rises out of it on four long necks, and every head turns to look at you.",
+            "exits": {
+                "south": "m_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_hydra",
+                    "instance_id": "great_hydra_lair"
+                },
+                {
+                    "template_id": "hydra_head",
+                    "instance_id": "ghead_1"
+                },
+                {
+                    "template_id": "hydra_head",
+                    "instance_id": "ghead_2"
+                },
+                {
+                    "template_id": "hydra_head",
+                    "instance_id": "ghead_3"
+                },
+                {
+                    "template_id": "hydra_head",
+                    "instance_id": "ghead_4"
+                }
+            ]
+        }
+    }
+}

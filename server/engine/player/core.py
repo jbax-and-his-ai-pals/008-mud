@@ -57,7 +57,9 @@ class Player(
         super().__init__(obj_id=obj_id, name=name, description="The main character.")
         # Optional gameplay state lives here.
         self.runtime_state = PlayerRuntimeState()
-        self.inventory = Inventory(max_slots=DEFAULT_INVENTORY_MAX_SLOTS, max_weight=DEFAULT_INVENTORY_MAX_WEIGHT)
+        slots = world.ruleset_section("player_defaults").get("inventory_slots")   # a set may carry more (or less) than the engine's default
+        slots = slots if isinstance(slots, int) and not isinstance(slots, bool) and slots > 0 else DEFAULT_INVENTORY_MAX_SLOTS
+        self.inventory = Inventory(max_slots=slots, max_weight=DEFAULT_INVENTORY_MAX_WEIGHT)
         self.last_mana_regen_time = 0.0
         self.stats = PLAYER_DEFAULT_STATS.copy()
         # How much the ability pool holds is decided by the content set's

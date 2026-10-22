@@ -1,0 +1,244 @@
+{
+    "region_id": "fiends_hold",
+    "name": "The Fiend's Hold",
+    "description": "A hold of black iron in a cliff above a silent bay, a fiend's face over its door. The seventh piece of the Starcrown is held in the roost at the top of it.",
+    "properties": {
+        "entrance": "f_entrance"
+    },
+    "rooms": {
+        "f_entrance": {
+            "name": "The Hold Door",
+            "description": "A heavy door of black iron set in a cliff of grey rock, with a fiend's face cast on the lintel. The bay is silent behind you.",
+            "exits": {
+                "out": "ardenmoor_east:ae_bay",
+                "north": "f_hall"
+            }
+        },
+        "f_hall": {
+            "name": "The Hall of Faces",
+            "description": "A hall lined with cast faces, each different, each a fiend, each looking at the door.",
+            "exits": {
+                "south": "f_entrance",
+                "west": "f_west",
+                "east": "f_east",
+                "north": "f_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_f1"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_f1"
+                }
+            ]
+        },
+        "f_west": {
+            "name": "The Iron Gallery",
+            "description": "A gallery of iron plate and iron floor, loud underfoot. Iron men walk it.",
+            "exits": {
+                "east": "f_hall",
+                "north": "f_candle"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ironclad",
+                    "instance_id": "ironclad_fw1"
+                },
+                {
+                    "template_id": "ironclad",
+                    "instance_id": "ironclad_fw2"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "f_candle": {
+            "name": "The Red Vault",
+            "description": "A small vault lit by a single tall red candle that stands on a stone block and has never gone out. Two strong hexers have been waiting to say so.",
+            "exits": {
+                "south": "f_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_fc1"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_fc2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_red_candle"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "fiends_hold",
+                            "room_id": "f_candle"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the hexers stand."
+                    }
+                }
+            }
+        },
+        "f_east": {
+            "name": "The Eaters' Hall",
+            "description": "A hall hung with grey cloths, many of them alive.",
+            "exits": {
+                "west": "f_hall",
+                "north": "f_bag"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_fe1"
+                },
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_fe2"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_fe1"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_small_key"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "f_bag": {
+            "name": "The Bagman's Nook",
+            "description": "A nook in the wall just big enough for an old man and his pile of bags.",
+            "exits": {
+                "south": "f_east"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_big_bags",
+                    "instance_id": "old_man_big_bags"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "f_upper": {
+            "name": "The Upper Gallery",
+            "description": "A gallery of black plate, too wide to see across. A door of black iron stands to the north, and the west wall has a long crack in it.",
+            "exits": {
+                "south": "f_hall",
+                "north": "f_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_fu1"
+                },
+                {
+                    "template_id": "ironclad",
+                    "instance_id": "ironclad_fu1"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_fu1"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "hidden_exits": {
+                    "west": "f_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "west",
+                        "message": "The wall bursts, and a dark gap stands open."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of black iron, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "f_cache": {
+            "name": "The Fiend's Pantry",
+            "description": "A cold closet with empty shelves. A few things on them are not empty.",
+            "exits": {
+                "east": "f_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_30"
+                },
+                {
+                    "item_id": "item_bomb"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "f_ante": {
+            "name": "The Hall of Heat",
+            "description": "The air is warm here and gets warmer, and the stone is the colour of a coal.",
+            "exits": {
+                "south": "f_upper",
+                "north": "f_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ironclad",
+                    "instance_id": "ironclad_fa1"
+                },
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_fa1"
+                },
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_fa2"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "f_boss": {
+            "name": "The Elder's Roost",
+            "description": "A round, open chamber, scorched to the colour of ash and silent. The elder drake lowers its head out of the wind, and its crest rises like a rack of antlers.",
+            "exits": {
+                "south": "f_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "aquilor_elder",
+                    "instance_id": "aquilor_elder_roost"
+                }
+            ]
+        }
+    }
+}

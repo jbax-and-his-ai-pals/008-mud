@@ -61,7 +61,8 @@
         ],
         "magic": {
             "known_spells": []
-        }
+        },
+        "inventory_slots": 40
     },
     "skills": {
         "stat_bonuses": {

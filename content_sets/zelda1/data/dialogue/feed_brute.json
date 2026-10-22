@@ -1,0 +1,31 @@
+{
+    "id": "feed_brute",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "(It grumbles, and the grumble goes on a long time.)",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Throw it the bait.",
+                    "next_node": "fed",
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "item_bait"
+                    },
+                    "effects": {
+                        "take_item": "item_bait",
+                        "remove_npc": "hungry_brute",
+                        "set_flag": "brute_fed",
+                        "message": "You throw the bait. The brute catches it in one hand, looks at it, looks at you, and goes off up the pass with the whole joint in its mouth, leaving the way clear."
+                    }
+                }
+            ]
+        },
+        "fed": {
+            "text": "(It is gone.)",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

@@ -1326,6 +1326,12 @@ class TestSimpleRulesetSections(unittest.TestCase):
         self.assertTrue(any("elites.name_pattern" in m and "rank" in m for m in errors), errors)
         self.assertTrue(any("npc_naming.random_name_pattern" in m and "surname" in m for m in errors), errors)
 
+    def test_a_carrying_limit_the_engine_would_ignore_is_an_error(self):
+        self.assertEqual([], self._errors(player_defaults={"inventory_slots": 40}))
+        for bad in (0, -1, 501, 2.5, "lots", True):
+            errors = self._errors(player_defaults={"inventory_slots": bad})
+            self.assertTrue(any("player_defaults.inventory_slots" in m for m in errors), (bad, errors))
+
     def test_a_heart_size_the_engine_would_ignore_is_an_error(self):
         self.assertEqual([], self._errors(world={"health_per_heart": 2}))
         self.assertTrue(any("dark_requires_light" in m for m in self._errors(world={"dark_requires_light": "yes"})))
