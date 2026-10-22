@@ -108,7 +108,7 @@ def cast_handler(args, context):
                   return f"{FORMAT_ERROR}Who do you want to cast {spell.name} on?{FORMAT_RESET}"
     
     # 5. Auto-Targeting (AoE)
-    elif spell.target_type == "all_enemies":
+    elif spell.target_type == "all_enemies" or spell.target_type == "room":
         # Player.cast_spell handles the actual list generation for AoE.
         # We just need to pass a valid non-None value to bypass "Invalid target" checks below if needed,
         # or rely on Player.cast_spell handling None.
@@ -122,7 +122,7 @@ def cast_handler(args, context):
     # --- Target Validation ---
     
     # Allow passing None for AoE spells (Player.cast_spell handles it)
-    if not target and spell.target_type != "all_enemies":
+    if not target and spell.target_type != "all_enemies" and spell.target_type != "room":
         return f"{FORMAT_ERROR}Invalid target for {spell.name}.{FORMAT_RESET}"
 
     # Validate Entity Types (Don't allow healing enemies, etc.)

@@ -9,7 +9,7 @@ from engine.utils.articles import the
 # list to the branches below so a new one cannot be added in one place only.
 CONSUMABLE_EFFECT_TYPES = (
     "heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
-    "cleanse", "target_damage", "effects", "revive", "cast",
+    "cleanse", "target_damage", "effects", "revive", "cast", "ability",
 )
 
 
@@ -263,6 +263,26 @@ class Consumable(Item):
                     message = "\n".join(lines) or f"You use {the(self.name)}."
                     if not total:
                         consumed = False
+
+        elif effect_type == "ability":
+            # An ability worked through an item (a bomb): the whole cast, kill and rewards included, with no cost or
+            # cooldown and no need to know it. `use <item>` for a room-wide ability, `use <item> on <target>` to aim one.
+            from engine.magic.spell_registry import get_spell
+
+            spell = get_spell(str(self.get_property("ability") or ""))
+            world = getattr(user, "world", None)
+            if spell is None or world is None or not hasattr(user, "cast_spell"):
+                consumed = False
+                message = f"{the(self.name, capital=True)} seems improperly configured."
+            else:
+                target = kwargs.get("target")
+                if spell.target_type in ("enemy", "friendly") and target is None:
+                    consumed = False
+                    message = f"{the(self.name, capital=True)} needs a target: use it on someone."
+                else:
+                    result = user.cast_spell(spell, target, world.clock.now(), world, via_item=True)
+                    message = str(result.get("message") or f"You use {the(self.name)}.")
+                    consumed = result.get("success") is True
 
         elif effect_type == "target_damage":
             # A consumable can be used on an NPC in the room, which gives

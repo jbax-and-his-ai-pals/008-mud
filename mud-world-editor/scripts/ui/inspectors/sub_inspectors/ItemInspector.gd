@@ -20,7 +20,7 @@ const ITEM_CLASSES := [
 # and is used up doing it, so the picker offers no other.
 const CONSUMABLE_EFFECT_TYPES := [
 	"heal", "mana_restore", "learn_spell", "learn_recipe", "apply_dot", "apply_effect",
-	"cleanse", "target_damage", "effects", "revive", "cast",
+	"cleanse", "target_damage", "effects", "revive", "cast", "ability",
 ]
 const EFFECT_ROWS = preload("res://scripts/ui/inspectors/panels/EffectRows.gd")
 const CONDITION_ROWS = preload("res://scripts/ui/inspectors/panels/ConditionRows.gd")
@@ -46,8 +46,93 @@ func build(c: VBoxContainer, data: Dictionary, db_mgr: DatabaseManager = null):
 	_build_resistances()
 	_build_attack_modes()
 	_build_grants_spells()
+	_build_carry_limits()
 	_build_contract()
 	_build_properties()
+
+# `properties.carry_limit` (`items/inventory/core.py::carry_cap`): the most of this a pack can hold (bombs, arrows), and
+# `properties.carry_limits`: other items it raises that limit for while it is carried (a bomb bag lifts bombs from eight to twelve).
+func _build_carry_limits():
+	container.add_child(HSeparator.new())
+	container.add_child(InspectorStyle.create_sub_header("Carry limits"))
+	var card = InspectorStyle.create_card(); var vbox = card.get_child(0).get_child(0)
+	container.add_child(card)
+	vbox.add_child(InspectorStyle.lbl("Most of this a pack can hold (0: no limit)", InspectorStyle.COLOR_TEXT_DIM))
+	var limit := SpinBox.new(); limit.name = "CarryLimit"; limit.min_value = 0; limit.max_value = 9999; limit.step = 1
+	limit.value = int(_properties().get("carry_limit", 0)) if typeof(_properties().get("carry_limit", 0)) in [TYPE_INT, TYPE_FLOAT] else 0
+	InspectorStyle.apply_input_style(limit)
+	limit.value_changed.connect(func(value):
+		if int(value) <= 0: _properties().erase("carry_limit")
+		else: _properties()["carry_limit"] = int(value)
+		database_modified.emit())
+	vbox.add_child(limit)
+	var header := HBoxContainer.new(); header.add_child(InspectorStyle.lbl("While carried, raises the limit of", InspectorStyle.COLOR_TEXT_DIM))
+	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; header.add_child(spacer)
+	var add := Button.new(); add.name = "AddCarryLimit"; add.text = "+ Item"; InspectorStyle.apply_button_style(add, Color(0.2, 0.3, 0.4))
+	vbox.add_child(header); header.add_child(add)
+	var rows := VBoxContainer.new(); rows.name = "CarryLimits"; rows.add_theme_constant_override("separation", 4)
+	vbox.add_child(rows)
+	add.pressed.connect(func():
+		var raised := _carry_limits().duplicate(true)
+		var key := "item_id"
+		var n := 2
+		while raised.has(key): key = "item_id_%d" % n; n += 1
+		raised[key] = 1
+		_properties()["carry_limits"] = raised
+		database_modified.emit()
+		_refresh_carry_limits(rows))
+	_refresh_carry_limits(rows)
+
+func _carry_limits() -> Dictionary:
+	var raised = _properties().get("carry_limits", {})
+	return raised if raised is Dictionary else {}
+
+func _refresh_carry_limits(rows: VBoxContainer):
+	for child in rows.get_children():
+		rows.remove_child(child)
+		child.queue_free()
+	var raised := _carry_limits()
+	var item_ids: Array = database_mgr.get_ids("items") if database_mgr != null else []
+	var index := 0
+	for item_id in raised.keys():
+		var row := HBoxContainer.new(); row.name = "CarryLimitRow_%d" % index; row.add_theme_constant_override("separation", 6)
+		var current := str(item_id)
+		var picker := OptionButton.new(); picker.name = "CarryLimitItem_%d" % index; picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var selected := -1
+		for candidate in item_ids:
+			picker.add_item(str(candidate)); picker.set_item_metadata(picker.item_count - 1, str(candidate))
+			if str(candidate) == current: selected = picker.item_count - 1
+		if selected == -1:
+			picker.add_item("Missing: " + current); picker.set_item_metadata(picker.item_count - 1, current); selected = picker.item_count - 1
+		picker.select(selected)
+		InspectorStyle.apply_button_style(picker)
+		picker.item_selected.connect(func(chosen):
+			var live := _carry_limits()
+			var renamed := {}
+			for key in live.keys(): renamed[str(picker.get_item_metadata(chosen)) if str(key) == current else key] = live[key]
+			_properties()["carry_limits"] = renamed
+			database_modified.emit()
+			_refresh_carry_limits(rows))
+		row.add_child(picker)
+		var amount := SpinBox.new(); amount.name = "CarryLimitValue_%d" % index; amount.min_value = 1; amount.max_value = 9999; amount.step = 1
+		amount.value = int(raised[item_id]) if typeof(raised[item_id]) in [TYPE_INT, TYPE_FLOAT] else 1
+		InspectorStyle.apply_input_style(amount)
+		amount.value_changed.connect(func(value):
+			var live := _carry_limits()
+			if live.has(current): live[current] = int(value)
+			database_modified.emit())
+		row.add_child(amount)
+		var remove := Button.new(); remove.name = "RemoveCarryLimit_%d" % index; remove.text = "×"; InspectorStyle.apply_button_style(remove, Color(0.4, 0.1, 0.1))
+		remove.pressed.connect(func():
+			var live := _carry_limits()
+			live.erase(current)
+			if live.is_empty(): _properties().erase("carry_limits")
+			database_modified.emit()
+			_refresh_carry_limits(rows))
+		row.add_child(remove); rows.add_child(row)
+		index += 1
+	if raised.is_empty(): rows.add_child(InspectorStyle.lbl("None.", InspectorStyle.COLOR_TEXT_DIM))
+
 
 # `properties.grants_spells` (`npcs/companion_gear.py::granted_spells`): abilities a companion who holds this can cast (a harp that
 # carries a song); put down, the song goes with it. A picker per ability, from the set's own.
@@ -415,6 +500,17 @@ func _refill_consumable():
 			else: properties["spell"] = text.strip_edges()
 			database_modified.emit())
 		vbox.add_child(spell)
+
+	if current == "ability":
+		vbox.add_child(InspectorStyle.lbl("Ability it works, whole and free (an ability id; a room-wide one needs no target, `use <item> on <target>` aims the rest)", InspectorStyle.COLOR_TEXT_DIM))
+		var ability := LineEdit.new(); ability.name = "ConsumableAbility"; ability.text = str(properties.get("ability", ""))
+		ability.placeholder_text = "bomb_blast"
+		InspectorStyle.apply_input_style(ability)
+		ability.text_changed.connect(func(text):
+			if text.strip_edges() == "": properties.erase("ability")
+			else: properties["ability"] = text.strip_edges()
+			database_modified.emit())
+		vbox.add_child(ability)
 
 	if current == "effects":
 		var effects_box := VBoxContainer.new()
@@ -1026,10 +1122,10 @@ func _refresh_props():
 	# These fields have a dedicated, lossless authoring surface above. Showing
 	# them again as generic rows invites two conflicting edits and makes the
 	# useful controls look like decoration.
-	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells"]
+	var specialized := ["salvage_output", "resistances", "attack_modes", "grants_spells", "carry_limit", "carry_limits"]
 	if _engine_item_class() == "Consumable":
 		# The "When used" section owns these two.
-		specialized.append_array(["effect_type", "effects", "requires", "requires_message", "reusable", "spell"])
+		specialized.append_array(["effect_type", "effects", "requires", "requires_message", "reusable", "spell", "ability"])
 	if _engine_item_class() == "Container":
 		specialized.append_array(["capacity", "locked", "key_id", "is_open", "contains"])
 	if _engine_item_class() == "ResourceNode":

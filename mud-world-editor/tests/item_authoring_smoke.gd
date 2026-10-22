@@ -41,6 +41,7 @@ func _init() -> void:
 	_check_items_load()
 	_check_salvage_output_is_editable()
 	_check_container_and_resource_node_authoring()
+	_check_bombs_and_their_limits()
 	_check_a_written_salvage_output_is_kept()
 
 	if python_exe != "":
@@ -160,6 +161,36 @@ func _check_container_and_resource_node_authoring() -> void:
 	for button in _buttons(node_holder):
 		if button.text == "+ Yield": button.pressed.emit()
 	_assert(node.get("properties", {}).get("yield_table", []).size() == 1, "adding an alternate yield writes the engine array")
+
+
+func _check_bombs_and_their_limits() -> void:
+	print("\n[an item that works an ability, and what a pack can hold]")
+	var database := DatabaseManager.new()
+	var bomb: Dictionary = database.items["item_bomb"]
+	var holder := _inspector_for(bomb, database)
+	var ability_box: LineEdit = holder.find_child("ConsumableAbility", true, false)
+	_assert(ability_box != null and ability_box.text == "blast", "an ability item shows the ability it works")
+	ability_box.text_changed.emit("blast_wide")
+	_assert(bomb["properties"]["ability"] == "blast_wide", "and edits it")
+	var limit: SpinBox = holder.find_child("CarryLimit", true, false)
+	_assert(limit != null and int(limit.value) == 8, "the most a pack can hold is shown")
+	limit.value = 12; limit.value_changed.emit(12)
+	_assert(bomb["properties"]["carry_limit"] == 12 and typeof(bomb["properties"]["carry_limit"]) == TYPE_INT, "and written as a whole number")
+	limit.value = 0; limit.value_changed.emit(0)
+	_assert(not bomb["properties"].has("carry_limit"), "zero erases it: no limit is the default")
+	var bag: Dictionary = database.items["item_bomb_bag"]
+	var bag_holder := _inspector_for(bag, database)
+	_assert(bag_holder.find_child("CarryLimitItem_0", true, false) != null, "a bag shows the item whose limit it raises")
+	var amount: SpinBox = bag_holder.find_child("CarryLimitValue_0", true, false)
+	_assert(amount != null and int(amount.value) == 12, "and by how much")
+	amount.value = 16; amount.value_changed.emit(16)
+	_assert(bag["properties"]["carry_limits"]["item_bomb"] == 16, "an edit is written")
+	for button in _buttons(bag_holder):
+		if button.name == "AddCarryLimit": button.pressed.emit()
+	_assert(bag["properties"]["carry_limits"].size() == 2, "adding a row adds an entry")
+	for button in _buttons(_inspector_for(bag, database)):
+		if str(button.name).begins_with("RemoveCarryLimit_"): button.pressed.emit()
+	_assert(not bag["properties"].has("carry_limits") or bag["properties"]["carry_limits"].size() < 2, "removing a row removes its entry")
 
 
 # The proof: the engine resolves what the inspector wrote.
@@ -307,6 +338,14 @@ func _build_fixture() -> void:
 			"name": "ore vein", "type": "ResourceNode", "properties": {
 				"resource_item_id": "item_scrap_alloy", "charges": 3, "respawn_days": 1,
 			},
+		},
+		"item_bomb": {
+			"name": "bomb", "type": "Consumable", "stackable": true, "value": 10, "weight": 0,
+			"properties": {"effect_type": "ability", "ability": "blast", "uses": 1, "carry_limit": 8},
+		},
+		"item_bomb_bag": {
+			"name": "bomb bag", "type": "Item", "value": 100, "weight": 0,
+			"properties": {"carry_limits": {"item_bomb": 12}},
 		},
 	})
 

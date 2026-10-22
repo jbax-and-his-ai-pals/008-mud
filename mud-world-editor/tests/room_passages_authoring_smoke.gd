@@ -124,6 +124,15 @@ func _run():
 	(reaction_row.find_child("Permanent", true, false) as CheckBox).button_pressed = false
 	_assert(not reactions[damage_type].has("permanent"), "unticking erases it, so the default stays unwritten")
 
+	print("\n[a revealing reaction]")
+	reactions[damage_type] = {"type": "reveal_exit", "direction": "secret", "message": "The wall gives way."}
+	holder = _panel(square, database)
+	reaction_row = holder.find_child("Reaction_" + damage_type, true, false)
+	_assert(reaction_row != null, "a reveal_exit reaction is shown as a row")
+	_assert(reaction_row.find_child("Permanent", true, false) == null and reaction_row.find_child("Duration", true, false) == null,
+		"with no permanent box or duration: a way that opens stays open")
+	reactions.erase(damage_type)
+
 	print("\n[removing]")
 	_button(holder.find_child("Hidden_secret", true, false), "×").pressed.emit()
 	_assert(not square["properties"].has("hidden_exits"), "removing the last hidden exit removes the key")

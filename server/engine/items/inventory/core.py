@@ -18,8 +18,28 @@ class Inventory(InventoryDisplayMixin, InventoryPersistenceMixin):
         self.max_slots = max_slots
         self.max_weight = max_weight
 
+    def carry_cap(self, item: Item) -> Optional[int]:
+        """The most of `item` that can be carried, or None for no limit.
+
+        An item's own `carry_limit` is the base. Something else carried can raise it: a bag's
+        `carry_limits` ({"item_bomb": 12}) lifts the cap for that item while the bag is held, so an
+        upgrade is an item, and the limit goes where the pack goes (death, save and load) with nothing of its own to keep.
+        """
+        base = item.get_property("carry_limit")
+        if isinstance(base, bool) or not isinstance(base, int) or base <= 0:
+            return None
+        for slot in self.slots:
+            raised = slot.item.get_property("carry_limits") if slot.item else None
+            value = raised.get(item.obj_id) if isinstance(raised, dict) else None
+            if isinstance(value, int) and not isinstance(value, bool) and value > base:
+                base = value
+        return base
+
     def can_add_item(self, item: Item, quantity: int = 1) -> Tuple[bool, str]:
-         """Check weight and slot constraints before adding."""
+         """Check weight, slot and carry-limit constraints before adding."""
+         cap = self.carry_cap(item)
+         if cap is not None and self.count_item(item.obj_id) + quantity > cap:
+             return False, f"You cannot carry more than {cap} {item.name}."
          current_weight = self.get_total_weight()
          added_weight = item.weight * quantity
          if current_weight + added_weight > self.max_weight:

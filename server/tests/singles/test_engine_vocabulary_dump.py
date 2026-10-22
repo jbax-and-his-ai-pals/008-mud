@@ -123,7 +123,7 @@ class TestTheManifestBlockReadsTheEngine(unittest.TestCase):
         self.assertTrue(payload["objective_types"])
         self.assertEqual(18, len(payload["effect_fields"]))
         self.assertIn("effects", payload["consumable_effect_types"])
-        self.assertEqual(11, len(payload["consumable_effect_types"]))
+        self.assertEqual(12, len(payload["consumable_effect_types"]))
 
     def test_exit_reciprocals_are_the_engine_mapping(self):
         """The editor must not invent a vertical pair such as climb <-> dive."""

@@ -1689,6 +1689,14 @@ class TestRoomPassageProperties(unittest.TestCase):
         self.assertTrue(any("env_interactions.ice.direction" in m for m in errors), errors)
         self.assertTrue(any("env_interactions.water" in m and "no hazard_type" in m for m in errors), errors)
 
+    def test_a_revealing_reaction_needs_a_hidden_exit_to_reveal(self):
+        errors = self._errors({"env_interactions": {"fire": {"type": "reveal_exit", "direction": "north"}}})
+        self.assertTrue(any("env_interactions.fire.direction must name one of this room's hidden_exits" in m for m in errors), errors)
+        errors = self._errors({"hidden_exits": {"north": "vault"}, "env_interactions": {"fire": {"type": "reveal_exit", "direction": "north", "message": "It gives way."}}})
+        self.assertFalse([m for m in errors if "env_interactions" in m], errors)
+        errors = self._errors({"hidden_exits": {"north": "vault"}, "env_interactions": {"fire": {"type": "reveal_exit", "direction": "north", "duration": 5}}})
+        self.assertTrue(any("duration is not read for 'reveal_exit'" in m for m in errors), errors)
+
     def test_an_undeclared_damage_type_is_an_error(self):
         errors = self._errors(
             {"hazard_type": "smoke", "env_interactions": {"frost": {"type": "suppress_hazard"}}},

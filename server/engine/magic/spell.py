@@ -5,7 +5,9 @@ from typing import Any, Dict, List
 # The target types the cast path resolves (commands/magic.py cast_handler,
 # player/magic.py cast_spell, npcs/combat.py). Any other value falls through to
 # "cast it on yourself".
-ABILITY_TARGET_TYPES = ("self", "friendly", "enemy", "all_enemies", "item")
+# `room` is the whole room at once: every enemy in it and the room itself (a bomb: it hurts what is there and
+# fires the room's reaction to its damage type, a wall that gives way), whether or not anything is there to hit.
+ABILITY_TARGET_TYPES = ("self", "friendly", "enemy", "all_enemies", "item", "room")
 
 # The effect types apply_spell_effect (magic/effects.py) executes, and the keys
 # each one reads besides `type` and `damage_type` (every effect's `damage_type`

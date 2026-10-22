@@ -406,6 +406,9 @@ class TestContentSetRuntime(unittest.TestCase):
                 }}},
                 "item_cleanse": {"properties": {"effect_type": "cleanse", "effect_tags": []}},
                 "item_flask": {"properties": {"effect_type": "target_damage", "damage_amount": 0, "damage_type": ""}},
+                "item_bomb": {"properties": {"effect_type": "ability", "ability": "", "carry_limit": 0}},
+                "item_bag": {"properties": {"carry_limits": {"item_bomb": 0}}},
+                "item_empty_bag": {"properties": {"carry_limits": {}}},
             }), encoding="utf-8")
             issues: list[ContentSetIssue] = []
             _validate_item_extension_data(content_root, issues)
@@ -420,6 +423,10 @@ class TestContentSetRuntime(unittest.TestCase):
         self.assertTrue(any("effect_tags must be a non-empty array of tags" in message for message in messages))
         self.assertTrue(any("damage_amount must be a positive number" in message for message in messages))
         self.assertTrue(any("damage_type must be a non-empty string" in message for message in messages))
+        self.assertTrue(any("properties.ability must name the ability this item works" in message for message in messages))
+        self.assertTrue(any("carry_limit must be a whole number of at least 1" in message for message in messages))
+        self.assertTrue(any("carry_limits.item_bomb must be a whole number of at least 1" in message for message in messages))
+        self.assertTrue(any("item 'item_empty_bag'.properties.carry_limits must map item ids" in message for message in messages))
 
     def test_discovery_references_are_validated(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

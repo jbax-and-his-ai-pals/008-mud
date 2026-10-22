@@ -429,6 +429,7 @@ EXIT_REQUIREMENT_KEYS = {
 ENV_INTERACTION_KEYS = {
     "clear_exit_req": ("type", "direction", "duration", "permanent", "message"),
     "suppress_hazard": ("type", "duration", "permanent", "message", "channel"),
+    "reveal_exit": ("type", "direction", "message"),
 }
 
 
@@ -609,7 +610,7 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                     continue
                 kind = reaction.get("type")
                 if kind not in ENV_INTERACTION_KEYS:
-                    error(f"{label}.type must be 'clear_exit_req' or 'suppress_hazard'")
+                    error(f"{label}.type must be one of {', '.join(ENV_INTERACTION_KEYS)}")
                     continue
                 for key in reaction:
                     if key not in ENV_INTERACTION_KEYS[kind]:
@@ -623,6 +624,11 @@ def _validate_room_passage_properties(content_root: Path, issues: list[ContentSe
                     error(f"{label}.duration must be a positive number of seconds")
                 if "message" in reaction and not isinstance(reaction["message"], str):
                     error(f"{label}.message must be a string")
+                if kind == "reveal_exit":
+                    hidden = properties.get("hidden_exits")
+                    if not isinstance(hidden, dict) or reaction.get("direction") not in hidden:
+                        error(f"{label}.direction must name one of this room's hidden_exits, or the reaction opens nothing")
+                    continue
                 if kind == "clear_exit_req" and reaction.get("direction") not in requirement_directions:
                     error(f"{label}.direction must name one of this room's exit_requirements, or the reaction does nothing")
                 elif kind == "clear_exit_req" and isinstance(requirements, dict) \

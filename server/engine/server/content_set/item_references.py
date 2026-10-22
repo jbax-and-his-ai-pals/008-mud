@@ -357,6 +357,15 @@ def _validate_item_extension_data(
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.spell must name the ability this item casts"))
                 elif known and spell_id not in known:
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.spell names '{spell_id}', which is not an ability of this content set"))
+            elif effect_type == "ability":
+                ability_id = properties.get("ability")
+                from .abilities import _ability_ids as _known_abilities
+
+                known = _known_abilities(content_root, [])
+                if not isinstance(ability_id, str) or not ability_id.strip():
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.ability must name the ability this item works"))
+                elif known and ability_id not in known:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.ability names '{ability_id}', which is not an ability of this content set"))
             elif effect_type == "target_damage":
                 damage_amount = properties.get("damage_amount")
                 damage_type = properties.get("damage_type")
@@ -378,6 +387,18 @@ def _validate_item_extension_data(
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment_slots must be a non-empty array of slot names"))
                 elif len(set(slots)) != len(slots):
                     issues.append(ContentSetIssue("error", str(path), f"{label}.properties.attachment_slots must not contain duplicates"))
+            if "carry_limit" in properties:
+                limit = properties["carry_limit"]
+                if isinstance(limit, bool) or not isinstance(limit, int) or limit < 1:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.carry_limit must be a whole number of at least 1: the most of it a pack can hold"))
+            if "carry_limits" in properties:
+                raised = properties["carry_limits"]
+                if not isinstance(raised, dict) or not raised:
+                    issues.append(ContentSetIssue("error", str(path), f"{label}.properties.carry_limits must map item ids to the limit this item raises them to"))
+                else:
+                    for raised_id, value in raised.items():
+                        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                            issues.append(ContentSetIssue("error", str(path), f"{label}.properties.carry_limits.{raised_id} must be a whole number of at least 1"))
             if "attachment" not in properties:
                 continue
             attachment = properties["attachment"]

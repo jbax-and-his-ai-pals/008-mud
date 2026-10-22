@@ -95,7 +95,10 @@ class PlayerMagicMixin:
             
         return True, ""
 
-    def cast_spell(self, spell: Spell, target, current_time: float, world: Optional['World'] = None) -> Dict[str, Any]:
+    def cast_spell(self, spell: Spell, target, current_time: float, world: Optional['World'] = None,
+                   via_item: bool = False) -> Dict[str, Any]:
+        """Cast `spell`. `via_item` is an ability worked through an item (a bomb): it need not be known and costs
+        no mana and has no cooldown, but everything after that is the same cast, so a kill pays out as any kill."""
         p = cast('Player', self)
         if p.runtime_state.magic is None:
             return {"success": False, "message": "Magic is not enabled for this game.", "mana_cost": 0}
@@ -109,7 +112,14 @@ class PlayerMagicMixin:
 
         targets = []
         # AoE Logic
-        if target_type == "all_enemies":
+        if target_type == "room":
+            target_world = world or p.world
+            if not target_world:
+                return {"success": False, "message": "System Error: No world context for a blast.", "mana_cost": 0}
+            from engine.npcs.combat import is_hostile_to
+            targets = [n for n in target_world.get_npcs_in_room(p.current_region_id or "", p.current_room_id or "")
+                       if n.is_alive and is_hostile_to(n, p)]
+        elif target_type == "all_enemies":
             target_world = world or p.world
             if not target_world: 
                 return {"success": False, "message": "System Error: No world context for AoE.", "mana_cost": 0}
@@ -135,20 +145,21 @@ class PlayerMagicMixin:
             # but here we just process what is passed.
             targets = [target]
 
-        can_cast, reason = self.can_cast_spell(spell, current_time, world)
-        if not can_cast: return {"success": False, "message": reason, "mana_cost": 0}
+        if not via_item:
+            can_cast, reason = self.can_cast_spell(spell, current_time, world)
+            if not can_cast: return {"success": False, "message": reason, "mana_cost": 0}
 
-        # Deduct Cost & Set Cooldown -- from the contract, not the definition.
-        p.runtime_state.magic.mana -= numbers["mana_cost"]
-        p.health -= spell.health_cost(p.max_health)
-        p.runtime_state.magic.cooldowns[spell.spell_id] = current_time + numbers["cooldown"]
+            # Deduct Cost & Set Cooldown -- from the contract, not the definition.
+            p.runtime_state.magic.mana -= numbers["mana_cost"]
+            p.health -= spell.health_cost(p.max_health)
+            p.runtime_state.magic.cooldowns[spell.spell_id] = current_time + numbers["cooldown"]
         
         results = []
         from engine.npcs.npc import NPC
         
         for target_index, t in enumerate(targets):
             # Auto-engage if offensive
-            if target_type == "all_enemies" or (target_type == "enemy" and t != p): 
+            if target_type in ("all_enemies", "room") or (target_type == "enemy" and t != p): 
                 if hasattr(t, 'is_alive') and t.is_alive:
                     if p.runtime_state.combat is not None:
                         p.enter_combat(t)
@@ -220,6 +231,15 @@ class PlayerMagicMixin:
                      paragraphs.append(kill_note)
                  for paragraph in paragraphs:
                      results.append("\n" + paragraph)
+
+        if target_type == "room":
+            # The room itself answers last: a wall gives way to a blast whether or not anyone stood in it.
+            room = (world or p.world).get_room_for_player(p)
+            for effect_def in spell.effects:
+                dmg_type = effect_def.get("damage_type")
+                reaction = room.apply_elemental_interaction(dmg_type) if room is not None and dmg_type else None
+                if reaction:
+                    results.append(chr(10) + reaction)
 
         # Formatting Output
         # (Single-target casts can still accumulate multiple result lines --

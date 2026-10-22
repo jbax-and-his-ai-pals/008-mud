@@ -488,6 +488,16 @@ item's `properties.heal_per_step` (health) mends its wearer each time they move 
 `properties.spell` casts that ability as its user, on the target of `use <item> on <target>`, with no cost or need to know it (a flute that
 puts a creature to sleep).
 
+**Bombs and what a pack holds.** An ability with `target_type: "room"` is the whole room at once: it hurts every enemy there and fires the room's
+`env_interactions` reaction to its damage type, whether or not anything stood in the room (a bomb in an empty room goes off and does nothing). A consumable
+with `effect_type: "ability"` and `properties.ability` works one of those (or any ability) whole and free: no need to know it, no cost, no cooldown, but the
+full cast (a kill pays out, drops loot and fires `npc_killed` as any kill does); `use bomb` for a room-wide one, `use <item> on <target>` to aim the rest.
+A room reaction `{"type": "reveal_exit", "direction": "north", "message": "..."}` opens one of the room's `hidden_exits` for good (the exit becomes part of the
+room, which the world snapshot keeps), so a bomb in the right room opens the way and a bomb anywhere else does not. An item's `properties.carry_limit`
+(a whole number) is the most of it a pack holds, and a carried item with `properties.carry_limits` (`{"item_bomb": 12}`) raises that for the items it names
+while it is held, so a bomb bag is an item, not a setting: put it down and the limit falls back, buying or picking up beyond it is refused with the limit
+said and the money kept.
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms

@@ -16,10 +16,10 @@ var db_manager: DatabaseManager = null
 # Copies of the engine's vocabulary (magic/spell.py), kept equal by
 # schema_parity_smoke.gd. A target the cast command does not resolve casts on
 # yourself; an effect type the executor does not know does nothing.
-const TARGET_TYPES := ["self", "friendly", "enemy", "all_enemies", "item"]
+const TARGET_TYPES := ["self", "friendly", "enemy", "all_enemies", "item", "room"]
 const TARGET_LABELS := {
 	"self": "Self", "friendly": "Friendly (you or an ally)", "enemy": "Enemy",
-	"all_enemies": "All Enemies Here", "item": "Item or Container",
+	"all_enemies": "All Enemies Here", "item": "Item or Container", "room": "The Whole Room (enemies and the room itself)",
 }
 # The keys each effect type reads besides `type` and `damage_type`.
 const EFFECT_FIELDS := {

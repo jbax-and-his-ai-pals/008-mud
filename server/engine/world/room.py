@@ -129,6 +129,15 @@ class Room(GameObject):
                     })
                 return f"{FORMAT_HIGHLIGHT}{msg}{FORMAT_RESET}"
         
+        elif action == "reveal_exit":
+            # A hidden way the room keeps (`hidden_exits`) opens, for good: the exit is part of the room, which the
+            # world snapshot keeps. A way already open is nothing to react to.
+            direction = reaction.get("direction")
+            hidden = self.properties.get("hidden_exits", {})
+            if isinstance(hidden, dict) and direction in hidden and direction not in self.exits:
+                self.exits[direction] = hidden[direction]
+                return f"{FORMAT_HIGHLIGHT}{msg}{FORMAT_RESET}"
+
         elif action == "suppress_hazard":
             # A reaction naming a `channel` (or a list of them) quiets only the
             # hazards dealing through it -- frost quenches heat and leaves the
