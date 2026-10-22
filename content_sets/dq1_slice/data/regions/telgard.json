@@ -1,0 +1,179 @@
+{
+    "region_id": "telgard",
+    "name": "Telgard Castle",
+    "description": "The castle of King Tavor, grey and square on its hill, the last unbroken stone in Vaelmoor.",
+    "properties": {
+        "safe_zone": true,
+        "outdoors": false
+    },
+    "rooms": {
+        "throne_room": {
+            "name": "The Throne Room",
+            "description": "A long, high room hung with the old kingdom's banners, faded from red to the colour of weak wine. The throne stands on a low dais at the far end, and a stair goes down to the hall below. A narrow doorway in the south wall leads into a smaller room.",
+            "exits": {
+                "south": "treasury",
+                "down": "great_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "king_tavor",
+                    "instance_id": "king_tavor_court"
+                },
+                {
+                    "template_id": "throne_guard",
+                    "instance_id": "guard_throne"
+                },
+                {
+                    "template_id": "counsellor",
+                    "instance_id": "counsellor_court"
+                }
+            ]
+        },
+        "treasury": {
+            "name": "The Royal Treasury",
+            "description": "A small, stone-vaulted room with a barred window, kept dim and cool. Three chests stand along the wall, and none of them is quite the one you would have chosen to guard a kingdom's money.",
+            "exits": {
+                "north": "throne_room"
+            },
+            "items": [
+                {
+                    "item_id": "chest_royal_gold"
+                },
+                {
+                    "item_id": "chest_royal_torch"
+                },
+                {
+                    "item_id": "chest_royal_key"
+                }
+            ]
+        },
+        "great_hall": {
+            "name": "The Great Hall",
+            "description": "A broad, echoing hall with a floor of worn flagstones and a hearth at each end. Doors stand in the west and east walls, a stair climbs to the throne room, and another goes down into the cellar. The great doors to the courtyard are south.",
+            "exits": {
+                "up": "throne_room",
+                "west": "west_room",
+                "east": "east_hall",
+                "down": "cellar",
+                "south": "courtyard"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hall_soldier",
+                    "instance_id": "soldier_hall"
+                },
+                {
+                    "template_id": "castle_priestess",
+                    "instance_id": "priestess_hall"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The storeroom door is locked, and the lock is a good one. A brass key would answer it."
+                    },
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The keysmith keeps his door locked, and expects visitors to have brought their own key."
+                    }
+                }
+            }
+        },
+        "west_room": {
+            "name": "The Western Storeroom",
+            "description": "A low, dusty storeroom full of barrels and the smell of old apples. Four chests are lined up against the wall, as if somebody meant to count them and then lost heart.",
+            "exits": {
+                "east": "great_hall"
+            },
+            "items": [
+                {
+                    "item_id": "chest_store_1"
+                },
+                {
+                    "item_id": "chest_store_2"
+                },
+                {
+                    "item_id": "chest_store_3"
+                },
+                {
+                    "item_id": "chest_store_4"
+                }
+            ]
+        },
+        "east_hall": {
+            "name": "The Keysmith's Hall",
+            "description": "A narrow hall lined with hooks, and on every hook a key. A small, sharp-eyed man sits at a bench in the middle of them, filing something.",
+            "exits": {
+                "west": "great_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "keysmith",
+                    "instance_id": "keysmith_hall"
+                }
+            ]
+        },
+        "cellar": {
+            "name": "The Cellar",
+            "description": "A cool, vaulted cellar of barrels and sacking. A stair climbs back up to the hall. At the far end, behind the last barrel, an old oak door is set into the wall.",
+            "exits": {
+                "up": "great_hall",
+                "south": "sunstone_vault"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cellarer",
+                    "instance_id": "cellarer_cellar"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The old oak door is locked. It wants a brass key."
+                    }
+                }
+            }
+        },
+        "sunstone_vault": {
+            "name": "The Sunstone Vault",
+            "description": "A bare, round chamber below the cellar, cut from the living rock. A single stone casket sits in a shaft of light that has no business reaching this deep.",
+            "exits": {
+                "north": "cellar"
+            },
+            "items": [
+                {
+                    "item_id": "chest_sunstones"
+                }
+            ]
+        },
+        "courtyard": {
+            "name": "The Castle Courtyard",
+            "description": "A wide courtyard of packed earth and old cobbles, with a well in the middle and the castle's great doors to the north. The gate stands open to the south, and beyond it the fields of Vaelmoor.",
+            "exits": {
+                "north": "great_hall",
+                "south": "heartland:hl_1_2"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "gate_guard",
+                    "instance_id": "guard_gate"
+                },
+                {
+                    "template_id": "courtyard_gossip",
+                    "instance_id": "gossip_court"
+                }
+            ]
+        }
+    }
+}

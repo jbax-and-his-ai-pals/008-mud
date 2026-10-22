@@ -1,0 +1,109 @@
+{
+    "item_healing_moss": {
+        "type": "Consumable",
+        "name": "healing moss",
+        "description": "A damp handful of pale moss that closes a cut when pressed to it.",
+        "weight": 0.5,
+        "value": 12,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "heal",
+            "effect_value": 26
+        },
+        "item_family": "consumable"
+    },
+    "item_pitch_torch": {
+        "type": "Consumable",
+        "name": "pitch torch",
+        "description": "A stick wrapped in pitch-soaked rag. It lights the dark for a while, and then it is a stick.",
+        "weight": 0.5,
+        "value": 4,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "apply_effect",
+            "effect_data": {
+                "name": "Torchlight",
+                "type": "status",
+                "tags": [
+                    "light"
+                ],
+                "base_duration": 1200
+            }
+        },
+        "item_family": "consumable"
+    },
+    "item_wisp_dew": {
+        "type": "Consumable",
+        "name": "wisp dew",
+        "description": "A vial of cold, faintly glowing dew that lesser creatures will not cross.",
+        "weight": 0.5,
+        "value": 19,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "apply_effect",
+            "effect_data": {
+                "name": "Warded",
+                "type": "status",
+                "tags": [
+                    "repel"
+                ],
+                "base_duration": 600
+            }
+        },
+        "item_family": "consumable"
+    },
+    "item_wyrm_scale": {
+        "type": "Consumable",
+        "name": "wyrm scale",
+        "description": "A single hard scale from a drake. Worn against the skin, it makes the skin tougher.",
+        "weight": 0.5,
+        "value": 10,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "effects",
+            "effects": {
+                "raise": {
+                    "defense": 2
+                },
+                "message": "The scale sinks into your skin like a cold coin into water."
+            }
+        },
+        "item_family": "consumable"
+    },
+    "item_homing_feather": {
+        "type": "Consumable",
+        "name": "homing feather",
+        "description": "A long, pale feather that wants very much to be at Telgard.",
+        "weight": 0.5,
+        "value": 35,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "effects",
+            "effects": {
+                "teleport": {
+                    "region": "telgard",
+                    "room": "courtyard",
+                    "message": "The feather takes you up, and the fields drop away."
+                }
+            },
+            "requires": {
+                "not": {
+                    "kind": "room_is",
+                    "property": "dark"
+                }
+            },
+            "requires_message": "The feather will not rise through that much stone."
+        },
+        "item_family": "consumable"
+    }
+}

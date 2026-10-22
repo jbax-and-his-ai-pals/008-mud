@@ -1,0 +1,98 @@
+{
+    "purse_small": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_small"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_small"
+        },
+        "effects": {
+            "give_gold": 9,
+            "take_item": "item_purse_small",
+            "message": "You open the purse: 9 gold."
+        }
+    },
+    "purse_medium": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_medium"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_medium"
+        },
+        "effects": {
+            "give_gold": 13,
+            "take_item": "item_purse_medium",
+            "message": "You open the purse: 13 gold."
+        }
+    },
+    "purse_odd": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_odd"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_odd"
+        },
+        "effects": {
+            "give_gold": 12,
+            "take_item": "item_purse_odd",
+            "message": "You open the purse: 12 gold."
+        }
+    },
+    "purse_royal": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_royal"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_royal"
+        },
+        "effects": {
+            "give_gold": 120,
+            "take_item": "item_purse_royal",
+            "message": "You open the purse: 120 gold."
+        }
+    },
+    "purse_cave": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_cave"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_cave"
+        },
+        "effects": {
+            "give_gold": 115,
+            "take_item": "item_purse_cave",
+            "message": "You open the purse: 115 gold."
+        }
+    },
+    "purse_hoard": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_hoard"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_hoard"
+        },
+        "effects": {
+            "give_gold": 628,
+            "take_item": "item_purse_hoard",
+            "message": "You open the purse: 628 gold."
+        }
+    }
+}

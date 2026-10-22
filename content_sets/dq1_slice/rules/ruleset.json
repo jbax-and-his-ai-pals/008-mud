@@ -1,0 +1,363 @@
+{
+    "progression_model": "level_based",
+    "systems": {
+        "combat": {
+            "enabled": true
+        },
+        "magic": {
+            "enabled": true
+        },
+        "quests": {
+            "enabled": true
+        },
+        "economy": {
+            "enabled": true
+        }
+    },
+    "combat": {
+        "player_level_counts": true,
+        "retreat": {
+            "skill": "evasion",
+            "base_difficulty": 8,
+            "difficulty_per_hostile_level": 2
+        },
+        "pacing": {
+            "npc_cooldown_scale": 1.0,
+            "action_gap": 1.0
+        }
+    },
+    "companions": {
+        "max": 1
+    },
+    "death": {
+        "gold_loss_fraction": 0.5
+    },
+    "world": {
+        "dark_requires_light": true
+    },
+    "advancement": {
+        "level_table": [
+            {
+                "xp": 7,
+                "stats": {
+                    "strength": 4,
+                    "agility": 4
+                },
+                "max_health": 15,
+                "max_mana": 0
+            },
+            {
+                "xp": 16,
+                "stats": {
+                    "strength": 5,
+                    "agility": 4
+                },
+                "max_health": 22,
+                "max_mana": 0
+            },
+            {
+                "xp": 24,
+                "stats": {
+                    "strength": 7,
+                    "agility": 6
+                },
+                "max_health": 24,
+                "max_mana": 5,
+                "spells": [
+                    "mend"
+                ]
+            },
+            {
+                "xp": 63,
+                "stats": {
+                    "strength": 7,
+                    "agility": 8
+                },
+                "max_health": 31,
+                "max_mana": 16,
+                "spells": [
+                    "singe"
+                ]
+            },
+            {
+                "xp": 110,
+                "stats": {
+                    "strength": 12,
+                    "agility": 10
+                },
+                "max_health": 35,
+                "max_mana": 20
+            },
+            {
+                "xp": 230,
+                "stats": {
+                    "strength": 16,
+                    "agility": 10
+                },
+                "max_health": 38,
+                "max_mana": 24
+            },
+            {
+                "xp": 350,
+                "stats": {
+                    "strength": 18,
+                    "agility": 17
+                },
+                "max_health": 40,
+                "max_mana": 26,
+                "spells": [
+                    "lull"
+                ]
+            },
+            {
+                "xp": 500,
+                "stats": {
+                    "strength": 22,
+                    "agility": 20
+                },
+                "max_health": 46,
+                "max_mana": 29
+            },
+            {
+                "xp": 700,
+                "stats": {
+                    "strength": 30,
+                    "agility": 22
+                },
+                "max_health": 50,
+                "max_mana": 36,
+                "spells": [
+                    "glimmer"
+                ]
+            },
+            {
+                "xp": 900,
+                "stats": {
+                    "strength": 35,
+                    "agility": 31
+                },
+                "max_health": 54,
+                "max_mana": 40,
+                "spells": [
+                    "hush"
+                ]
+            },
+            {
+                "xp": 1100,
+                "stats": {
+                    "strength": 40,
+                    "agility": 35
+                },
+                "max_health": 62,
+                "max_mana": 50
+            },
+            {
+                "xp": 1500,
+                "stats": {
+                    "strength": 48,
+                    "agility": 40
+                },
+                "max_health": 63,
+                "max_mana": 58,
+                "spells": [
+                    "egress"
+                ]
+            },
+            {
+                "xp": 2000,
+                "stats": {
+                    "strength": 52,
+                    "agility": 48
+                },
+                "max_health": 70,
+                "max_mana": 64,
+                "spells": [
+                    "recall"
+                ]
+            },
+            {
+                "xp": 2500,
+                "stats": {
+                    "strength": 60,
+                    "agility": 55
+                },
+                "max_health": 78,
+                "max_mana": 70
+            },
+            {
+                "xp": 3000,
+                "stats": {
+                    "strength": 68,
+                    "agility": 64
+                },
+                "max_health": 86,
+                "max_mana": 72,
+                "spells": [
+                    "ward"
+                ]
+            },
+            {
+                "xp": 3000,
+                "stats": {
+                    "strength": 72,
+                    "agility": 70
+                },
+                "max_health": 92,
+                "max_mana": 95
+            },
+            {
+                "xp": 3000,
+                "stats": {
+                    "strength": 72,
+                    "agility": 78
+                },
+                "max_health": 100,
+                "max_mana": 100,
+                "spells": [
+                    "restore"
+                ]
+            },
+            {
+                "xp": 3000,
+                "stats": {
+                    "strength": 85,
+                    "agility": 84
+                },
+                "max_health": 115,
+                "max_mana": 108
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 87,
+                    "agility": 86
+                },
+                "max_health": 130,
+                "max_mana": 115,
+                "spells": [
+                    "conflagrate"
+                ]
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 92,
+                    "agility": 88
+                },
+                "max_health": 138,
+                "max_mana": 128
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 96,
+                    "agility": 92
+                },
+                "max_health": 144,
+                "max_mana": 134
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 101,
+                    "agility": 96
+                },
+                "max_health": 149,
+                "max_mana": 141
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 105,
+                    "agility": 99
+                },
+                "max_health": 155,
+                "max_mana": 148
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 110,
+                    "agility": 103
+                },
+                "max_health": 161,
+                "max_mana": 154
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 114,
+                    "agility": 107
+                },
+                "max_health": 166,
+                "max_mana": 160
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 118,
+                    "agility": 111
+                },
+                "max_health": 172,
+                "max_mana": 167
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 123,
+                    "agility": 115
+                },
+                "max_health": 178,
+                "max_mana": 174
+            },
+            {
+                "xp": 4000,
+                "stats": {
+                    "strength": 127,
+                    "agility": 118
+                },
+                "max_health": 184,
+                "max_mana": 180
+            },
+            {
+                "xp": 3000,
+                "stats": {
+                    "strength": 132,
+                    "agility": 122
+                },
+                "max_health": 189,
+                "max_mana": 186
+            },
+            {
+                "stats": {
+                    "strength": 136,
+                    "agility": 126
+                },
+                "max_health": 195,
+                "max_mana": 193
+            }
+        ]
+    },
+    "player_defaults": {
+        "player_class": "Lightbearer's Heir",
+        "starting_inventory": [],
+        "magic": {
+            "known_spells": []
+        }
+    },
+    "skills": {
+        "stat_bonuses": {
+            "evasion": {
+                "stat": "agility",
+                "per_point": 1
+            }
+        }
+    },
+    "economy": {
+        "currency_name": "gold"
+    },
+    "messages": {
+        "defeated": "Your sight goes dark. The king's voice reaches you from a long way off.",
+        "respawn_hint": "Type 'respawn' and King Tavor will call you back to {place}."
+    }
+}

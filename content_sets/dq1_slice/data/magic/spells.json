@@ -1,0 +1,400 @@
+{
+    "mend": {
+        "name": "Mend",
+        "description": "A small, quick mending of your own wounds.",
+        "mana_cost": 4,
+        "cooldown": 2,
+        "target_type": "friendly",
+        "cast_message": "You close your hands over the wound and speak the words.",
+        "heal_message": "{caster_name} mends {target_name} for {value} health!",
+        "self_heal_message": "A warmth closes your wounds, restoring {value} health.",
+        "level_required": 3,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 14
+            }
+        ]
+    },
+    "singe": {
+        "name": "Singe",
+        "description": "A flick of flame thrown at one enemy.",
+        "mana_cost": 2,
+        "cooldown": 2,
+        "target_type": "enemy",
+        "cast_message": "You snap your fingers and a spark leaps.",
+        "hit_message": "The flame catches {target_name} for {value} damage!",
+        "level_required": 4,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 8,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "lull": {
+        "name": "Lull",
+        "description": "A slow, heavy phrase that closes the eyes of one enemy.",
+        "mana_cost": 2,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "You speak a slow, heavy phrase.",
+        "level_required": 7,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 25,
+                "effect_data": {
+                    "name": "Asleep",
+                    "type": "status",
+                    "tags": [
+                        "sleep"
+                    ]
+                }
+            }
+        ]
+    },
+    "glimmer": {
+        "name": "Glimmer",
+        "description": "A ball of pale light that follows you through the dark.",
+        "mana_cost": 3,
+        "cooldown": 5,
+        "target_type": "self",
+        "cast_message": "You open your hand, and a small light stays in it.",
+        "level_required": 9,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 1800,
+                "effect_data": {
+                    "name": "Glimmer",
+                    "type": "status",
+                    "tags": [
+                        "light"
+                    ]
+                }
+            }
+        ]
+    },
+    "hush": {
+        "name": "Hush",
+        "description": "A word that takes the voice out of one enemy's spells.",
+        "mana_cost": 2,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "You lay a finger across your lips and point.",
+        "level_required": 10,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 40,
+                "effect_data": {
+                    "name": "Hushed",
+                    "type": "status",
+                    "tags": [
+                        "silence"
+                    ]
+                }
+            }
+        ]
+    },
+    "egress": {
+        "name": "Egress",
+        "description": "A way back up out of the deep places.",
+        "mana_cost": 6,
+        "cooldown": 5,
+        "target_type": "self",
+        "cast_message": "You speak of daylight until the stone believes you.",
+        "level_required": 12,
+        "requires": {
+            "kind": "room_is",
+            "property": "dark"
+        },
+        "requires_message": "Egress opens a way out of the deep places only. There is nothing above you here but sky.",
+        "effects": [
+            {
+                "type": "effects",
+                "effects": {
+                    "teleport": {
+                        "to": "entrance",
+                        "message": "The air folds, and the stone is gone."
+                    }
+                }
+            }
+        ]
+    },
+    "recall": {
+        "name": "Recall",
+        "description": "A call that carries you back to Telgard, if you are under the sky or a roof, and not underground.",
+        "mana_cost": 8,
+        "cooldown": 5,
+        "target_type": "self",
+        "cast_message": "You say the name of the castle three times.",
+        "level_required": 13,
+        "requires": {
+            "not": {
+                "kind": "room_is",
+                "property": "dark"
+            }
+        },
+        "requires_message": "Recall cannot find its way up through that much stone.",
+        "effects": [
+            {
+                "type": "effects",
+                "effects": {
+                    "teleport": {
+                        "region": "telgard",
+                        "room": "courtyard",
+                        "message": "The words pull you up and over, and set you down at Telgard's gate."
+                    }
+                }
+            }
+        ]
+    },
+    "ward": {
+        "name": "Ward",
+        "description": "A faint ring about you that weaker creatures will not cross.",
+        "mana_cost": 2,
+        "cooldown": 5,
+        "target_type": "self",
+        "cast_message": "You draw a ring in the air about you.",
+        "level_required": 15,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 600,
+                "effect_data": {
+                    "name": "Warded",
+                    "type": "status",
+                    "tags": [
+                        "repel"
+                    ]
+                }
+            }
+        ]
+    },
+    "restore": {
+        "name": "Restore",
+        "description": "A deep mending of your own wounds.",
+        "mana_cost": 10,
+        "cooldown": 3,
+        "target_type": "friendly",
+        "cast_message": "You press both palms to the wound and speak the long words.",
+        "heal_message": "{caster_name} restores {target_name} for {value} health!",
+        "self_heal_message": "A great warmth runs through you, restoring {value} health.",
+        "level_required": 17,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 92
+            }
+        ]
+    },
+    "conflagrate": {
+        "name": "Conflagrate",
+        "description": "A roaring fire flung at one enemy.",
+        "mana_cost": 5,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "You fling both hands wide and a fire answers.",
+        "hit_message": "The fire engulfs {target_name} for {value} damage!",
+        "level_required": 19,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 62,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "mon_singe": {
+        "name": "Singe",
+        "description": "A spit of flame.",
+        "mana_cost": 0,
+        "cooldown": 4,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} mutters, and a spark leaps.",
+        "hit_message": "The flame catches {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 6,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "mon_mend": {
+        "name": "Mend",
+        "description": "A mending.",
+        "mana_cost": 0,
+        "cooldown": 6,
+        "target_type": "self",
+        "cast_message": "{caster_name} mutters over its own wounds.",
+        "self_heal_message": "{caster_name} mends itself for {value}.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 24
+            }
+        ]
+    },
+    "mon_restore": {
+        "name": "Restore",
+        "description": "A deep mending.",
+        "mana_cost": 0,
+        "cooldown": 8,
+        "target_type": "self",
+        "cast_message": "{caster_name} breathes in, and its wounds close.",
+        "self_heal_message": "{caster_name} restores itself for {value}.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "heal",
+                "value": 92
+            }
+        ]
+    },
+    "mon_lull": {
+        "name": "Lull",
+        "description": "A slow phrase.",
+        "mana_cost": 0,
+        "cooldown": 8,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} speaks a slow, heavy phrase.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 6,
+                "effect_data": {
+                    "name": "Asleep",
+                    "type": "status",
+                    "tags": [
+                        "sleep"
+                    ]
+                }
+            }
+        ]
+    },
+    "mon_hush": {
+        "name": "Hush",
+        "description": "A word that takes your voice.",
+        "mana_cost": 0,
+        "cooldown": 8,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} lays a finger across its lips and points at you.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 25,
+                "effect_data": {
+                    "name": "Hushed",
+                    "type": "status",
+                    "tags": [
+                        "silence"
+                    ]
+                }
+            }
+        ]
+    },
+    "mon_scorch": {
+        "name": "Conflagrate",
+        "description": "A roaring fire.",
+        "mana_cost": 0,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} flings both hands wide, and a fire answers.",
+        "hit_message": "The fire engulfs {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 38,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "mon_flame": {
+        "name": "Fire Breath",
+        "description": "A gout of flame.",
+        "mana_cost": 0,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} draws a deep breath.",
+        "hit_message": "The fire washes over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 20,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "mon_inferno": {
+        "name": "Inferno Breath",
+        "description": "A great gout of flame.",
+        "mana_cost": 0,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} rears back and the air shivers.",
+        "hit_message": "The inferno rolls over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 68,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "slumber_tune": {
+        "name": "Slumber Tune",
+        "description": "A tune that sends stone to sleep.",
+        "mana_cost": 0,
+        "cooldown": 2,
+        "target_type": "enemy",
+        "cast_message": "You raise the pipe and play a slow, old tune.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "apply_effect",
+                "base_duration": 3600,
+                "effect_data": {
+                    "name": "Asleep",
+                    "type": "status",
+                    "tags": [
+                        "sleep"
+                    ]
+                }
+            },
+            {
+                "type": "effects",
+                "effects": {
+                    "set_flag": "golem_asleep"
+                }
+            }
+        ]
+    },
+    "harp_call": {
+        "name": "Moon Harp",
+        "description": "A tune that draws something of the dark.",
+        "mana_cost": 0,
+        "cooldown": 2,
+        "target_type": "self",
+        "cast_message": "You pluck the silver strings, and the dark leans in to listen.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "effects",
+                "effects": {
+                    "call_encounter": "here"
+                }
+            }
+        ]
+    }
+}

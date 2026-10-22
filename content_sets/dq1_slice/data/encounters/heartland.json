@@ -1,0 +1,63 @@
+{
+    "heartland_near": {
+        "region": "heartland",
+        "rooms": [
+            "hl_1_2",
+            "hl_0_2",
+            "hl_2_2",
+            "hl_1_1",
+            "hl_1_3"
+        ],
+        "chance": 0.3,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "mire_blob",
+                "weight": 3
+            },
+            {
+                "npc": "crimson_blob",
+                "weight": 2
+            }
+        ],
+        "message": "A {name} lurches out of the grass at you!",
+        "note": "The original's first encounter group, by the castle."
+    },
+    "heartland_far": {
+        "region": "heartland",
+        "rooms": [
+            "hl_0_0",
+            "hl_0_1",
+            "hl_0_3",
+            "hl_0_4",
+            "hl_1_0",
+            "hl_2_0",
+            "hl_2_1",
+            "hl_2_3",
+            "hl_2_4",
+            "hl_3_0",
+            "hl_3_1",
+            "hl_3_2",
+            "hl_3_3",
+            "hl_3_4"
+        ],
+        "chance": 0.35,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "crimson_blob",
+                "weight": 3
+            },
+            {
+                "npc": "mire_blob",
+                "weight": 1
+            },
+            {
+                "npc": "gloomwing",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} lurches out of the grass at you!",
+        "note": "The second group, farther out."
+    }
+}

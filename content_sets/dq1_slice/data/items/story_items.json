@@ -1,0 +1,187 @@
+{
+    "item_slumber_pipe": {
+        "type": "Consumable",
+        "name": "slumber pipe",
+        "description": "A reed pipe whose one tune is a lullaby older than the kingdom. Stone, they say, sleeps to it.",
+        "weight": 0.3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "cast",
+            "spell": "slumber_tune",
+            "reusable": true,
+            "quest_item": true
+        },
+        "item_family": "consumable"
+    },
+    "item_moon_harp": {
+        "type": "Consumable",
+        "name": "moon harp",
+        "description": "A harp strung with silver wire. A tune on it draws one of the creatures of the dark to the player.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "cast",
+            "spell": "harp_call",
+            "reusable": true,
+            "quest_item": true
+        },
+        "item_family": "consumable"
+    },
+    "item_brass_key": {
+        "type": "Key",
+        "name": "brass key",
+        "description": "A short brass key with a notched bow. It opens one door, and then it has done its work.",
+        "weight": 0.5,
+        "value": 26,
+        "stackable": true,
+        "properties": {},
+        "item_family": "key"
+    },
+    "item_brawlers_band": {
+        "type": "Item",
+        "name": "brawler's band",
+        "description": "A plain iron ring. Whatever luck it carried is gone.",
+        "weight": 0.5,
+        "value": 15,
+        "stackable": false,
+        "properties": {},
+        "item_family": "treasure"
+    },
+    "item_sunstones": {
+        "type": "Item",
+        "name": "the sunstones",
+        "description": "Three small stones the colour of a low afternoon sun. They are warm whatever the weather.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "treasure"
+    },
+    "item_cloudcallers_staff": {
+        "type": "Item",
+        "name": "the cloudcaller's staff",
+        "description": "A staff of grey wood that smells of rain before it is lifted. One of the three things Ostrun left.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "treasure"
+    },
+    "item_ostruns_signet": {
+        "type": "Item",
+        "name": "Ostrun's signet",
+        "description": "A heavy ring stamped with a sun and a sword. It belonged to Ostrun the Lightbearer.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "treasure"
+    },
+    "item_prism_tear": {
+        "type": "Item",
+        "name": "the prism tear",
+        "description": "A drop of glass that holds a rainbow caught mid-turn. Poured on water, it will make a way.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        },
+        "item_family": "treasure"
+    },
+    "item_elowens_locket": {
+        "type": "Consumable",
+        "name": "Elowen's locket",
+        "description": "A small gold locket the princess gave you. Open it and a thread of light points home, and a small voice tells you how far you have come.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "effects",
+            "reusable": true,
+            "quest_item": true,
+            "effects": {
+                "tell_distance": {
+                    "region": "telgard",
+                    "room": "courtyard",
+                    "message": "The locket warms in your hand. Telgard is {steps} steps behind you."
+                }
+            }
+        },
+        "item_family": "consumable"
+    },
+    "item_purse_small": {
+        "type": "Item",
+        "name": "purse of coins",
+        "description": "A leather purse, heavy with coin.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {},
+        "item_family": "curio"
+    },
+    "item_purse_medium": {
+        "type": "Item",
+        "name": "purse of coins",
+        "description": "A leather purse, heavy with coin.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {},
+        "item_family": "curio"
+    },
+    "item_purse_odd": {
+        "type": "Item",
+        "name": "purse of coins",
+        "description": "A leather purse, heavy with coin.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {},
+        "item_family": "curio"
+    },
+    "item_purse_royal": {
+        "type": "Item",
+        "name": "heavy purse",
+        "description": "A leather purse, heavy with coin.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {},
+        "item_family": "curio"
+    },
+    "item_purse_cave": {
+        "type": "Item",
+        "name": "heavy purse",
+        "description": "A leather purse, heavy with coin.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {},
+        "item_family": "curio"
+    },
+    "item_purse_hoard": {
+        "type": "Item",
+        "name": "heavy purse",
+        "description": "A leather purse, heavy with coin.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {},
+        "item_family": "curio"
+    }
+}

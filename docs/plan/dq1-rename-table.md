@@ -52,7 +52,7 @@ the tunnel), `southwilds` (round Haskarth and Cairnwall) and `skarn_isle` (the S
 | Fighter's Ring | brawler's band |
 | Erdrick's Token | Ostrun's signet |
 | Gwaelin's Love | Elowen's locket |
-| Cursed Belt | gravebound girdle |
+| Cursed Belt | gravebound circlet |
 | Death Necklace | mourner's choker |
 | Silver Harp | moon harp |
 | Stones of Sunlight | the sunstones |

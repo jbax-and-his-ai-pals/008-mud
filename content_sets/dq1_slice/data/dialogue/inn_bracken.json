@@ -1,0 +1,36 @@
+{
+    "id": "inn_bracken",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "A bed is six gold, and the sheets are clean. Sleep as long as you need.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Pay the 6 gold and take a bed.",
+                    "next_node": "slept",
+                    "effects": {
+                        "take_gold": 6,
+                        "restore": {
+                            "resource": "all"
+                        },
+                        "message": "You sleep deeply and wake with every hurt eased."
+                    },
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 6
+                    }
+                },
+                {
+                    "text": "Not tonight.",
+                    "end": true
+                }
+            ]
+        },
+        "slept": {
+            "text": "Come back whenever the road has the better of you.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "id": "priestess_rest",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "You look worn thin, child. Sit a while, and I will see what I can do about the weariness in your spirit.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Thank you. Please.",
+                    "next_node": "restored",
+                    "effects": {
+                        "restore": {
+                            "resource": "mana"
+                        },
+                        "message": "A quiet light settles over you, and your spirit feels full again."
+                    }
+                },
+                {
+                    "text": "Another time.",
+                    "end": true
+                }
+            ]
+        },
+        "restored": {
+            "text": "Go carefully. The dark is not what it was.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

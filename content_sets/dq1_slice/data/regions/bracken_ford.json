@@ -1,0 +1,109 @@
+{
+    "region_id": "bracken_ford",
+    "name": "Bracken Ford",
+    "description": "A small riverside town where the old road fords the Brenn, with a market, an inn and no great opinion of itself.",
+    "properties": {
+        "safe_zone": true,
+        "outdoors": true
+    },
+    "rooms": {
+        "gate": {
+            "name": "The Ford Gate",
+            "description": "A low timber gate in a palisade, standing open. The road you came by runs west along the river toward Telgard, and the town lies ahead.",
+            "exits": {
+                "east": "square",
+                "west": "heartland:hl_1_4"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ford_watchman",
+                    "instance_id": "watchman_ford"
+                }
+            ]
+        },
+        "square": {
+            "name": "The Market Square",
+            "description": "A small square of beaten earth round a well. Doors open off it on every side, and the river sounds just behind the houses.",
+            "exits": {
+                "west": "gate",
+                "north": "armoury",
+                "south": "provisions",
+                "east": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ford_gossip",
+                    "instance_id": "gossip_ford"
+                },
+                {
+                    "template_id": "ford_elder",
+                    "instance_id": "elder_ford"
+                }
+            ]
+        },
+        "armoury": {
+            "name": "The Armoury",
+            "description": "A cramped shop whose walls are hung with blades and cudgels, and whose floor is hidden under shields.",
+            "exits": {
+                "south": "square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ford_armourer",
+                    "instance_id": "armourer_ford"
+                }
+            ]
+        },
+        "provisions": {
+            "name": "The Provisions Store",
+            "description": "A dim store of sacks and jars and bundles of moss, smelling pleasantly of rope and herbs.",
+            "exits": {
+                "north": "square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ford_provisioner",
+                    "instance_id": "provisioner_ford"
+                }
+            ]
+        },
+        "inn": {
+            "name": "The Sign of the Ford",
+            "description": "A clean, low-beamed inn with a hearth and a smell of bread. The innkeeper keeps a ledger of the beds on a slate.",
+            "exits": {
+                "west": "square",
+                "north": "dew_shop"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ford_innkeeper",
+                    "instance_id": "innkeeper_ford"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A narrow door at the back of the inn is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "dew_shop": {
+            "name": "The Dew Seller's",
+            "description": "A small, cold room behind a locked door, where a woman sells vials of glimmering water from a shelf cut into the wall.",
+            "exits": {
+                "south": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ford_dewseller",
+                    "instance_id": "dewseller_ford"
+                }
+            ]
+        }
+    }
+}

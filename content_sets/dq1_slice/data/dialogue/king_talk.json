@@ -1,0 +1,70 @@
+{
+    "id": "king_talk",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "hunting",
+            "condition": {
+                "kind": "flag",
+                "flag": "met_king"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Maldrath has stolen the Dawnglass, and the dark has come in with the creatures, and my daughter Elowen is in his keeping. You are the Lightbearer's heir, or so my counsellor says. I have little to give you but my blessing and what is in the treasury. Will you go after them?",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "I will.",
+                    "next_node": "go_well",
+                    "effects": {
+                        "set_flag": "met_king"
+                    }
+                },
+                {
+                    "text": "Tell me more.",
+                    "next_node": "more"
+                }
+            ]
+        },
+        "more": {
+            "text": "Maldrath came from the south-east, from an island no ship will land on. He was a mage once, they say, and he has the Dawnglass in a fortress there. The only road to it is the one the Lightbearer's own signet will help you find. That is all I know.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "I will go, then.",
+                    "next_node": "go_well",
+                    "effects": {
+                        "set_flag": "met_king"
+                    }
+                }
+            ]
+        },
+        "go_well": {
+            "text": "Then take the treasury's gold, and the torch, and the key; they are yours. And take my thanks, in advance of any deed. Come back and tell me what you find.",
+            "pace": "slow",
+            "end": true
+        },
+        "hunting": {
+            "text": "Take care out there. Rest at the inn, and strengthen yourself on the fields before you go farther. Is there anything you wish to ask?",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Where must I go?",
+                    "next_node": "where"
+                },
+                {
+                    "text": "Nothing, majesty.",
+                    "end": true
+                }
+            ]
+        },
+        "where": {
+            "text": "There is a vault in the north that holds a tablet from the old days. Begin there. The rest, I think, the tablet will tell you.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

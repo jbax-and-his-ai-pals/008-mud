@@ -1,0 +1,25 @@
+{
+    "campaign_id": "the_stolen_light",
+    "name": "The Stolen Light",
+    "description": "The Dawnglass is gone, and the princess with it. Bring both home.",
+    "start_node_id": "the_charge",
+    "nodes": {
+        "the_charge": {
+            "description": "The king sends you out.",
+            "type": "CUTSCENE",
+            "effects": {
+                "message": "King Tavor has charged you with the Dawnglass and his daughter."
+            },
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "the_end"
+                }
+            ]
+        },
+        "the_end": {
+            "type": "END",
+            "outcome": "THE_LIGHT_RETURNS"
+        }
+    }
+}

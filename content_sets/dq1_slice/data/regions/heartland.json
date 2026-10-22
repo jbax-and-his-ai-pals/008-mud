@@ -1,0 +1,216 @@
+{
+    "region_id": "heartland",
+    "name": "The Telgard Heartland",
+    "description": "The fields round Telgard Castle: green, quiet, and not as safe as they used to be.",
+    "properties": {
+        "outdoors": true,
+        "biome": "plain"
+    },
+    "rooms": {
+        "hl_0_0": {
+            "name": "Northwatch Down",
+            "description": "Open grass under a wide sky, the wind moving it in long waves. Telgard is a smudge on the horizon.",
+            "exits": {
+                "east": "hl_0_1",
+                "south": "hl_1_0"
+            }
+        },
+        "hl_0_1": {
+            "name": "Windy Rise",
+            "description": "Rough pasture with scattered stones and the occasional thorn. Telgard's towers stand against the sky.",
+            "exits": {
+                "west": "hl_0_0",
+                "east": "hl_0_2",
+                "south": "hl_1_1"
+            }
+        },
+        "hl_0_2": {
+            "name": "The Old Orchard",
+            "description": "A stretch of rolling meadow, bright with weeds. Telgard's towers stand against the sky.",
+            "exits": {
+                "west": "hl_0_1",
+                "east": "hl_0_3",
+                "south": "hl_1_2"
+            }
+        },
+        "hl_0_3": {
+            "name": "Tavor's Mile",
+            "description": "Low fields and hedgerows, with the smoke of far-off hearths. Telgard's towers stand against the sky.",
+            "exits": {
+                "west": "hl_0_2",
+                "east": "hl_0_4",
+                "south": "hl_1_3"
+            }
+        },
+        "hl_0_4": {
+            "name": "Brenn Meadow",
+            "description": "Open grass under a wide sky, the wind moving it in long waves. Telgard is a smudge on the horizon.",
+            "exits": {
+                "west": "hl_0_3",
+                "south": "hl_1_4"
+            }
+        },
+        "hl_1_0": {
+            "name": "Hollow Lane",
+            "description": "Low fields and hedgerows, with the smoke of far-off hearths. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_0_0",
+                "east": "hl_1_1",
+                "south": "hl_2_0"
+            }
+        },
+        "hl_1_1": {
+            "name": "Telgard Green",
+            "description": "Open grass under a wide sky, the wind moving it in long waves. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_0_1",
+                "west": "hl_1_0",
+                "east": "hl_1_2",
+                "south": "hl_2_1"
+            }
+        },
+        "hl_1_2": {
+            "name": "The Gate of Telgard",
+            "description": "The road runs up to the open gate of Telgard Castle, which stands to the north on its hill. Fields spread in every direction, green and uneasy.",
+            "exits": {
+                "north": "telgard:courtyard",
+                "west": "hl_1_1",
+                "east": "hl_1_3",
+                "south": "hl_2_2"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "not": {
+                                "any": [
+                                    {
+                                        "kind": "equipped",
+                                        "item_id": "item_gravebound_circlet"
+                                    },
+                                    {
+                                        "kind": "equipped",
+                                        "item_id": "item_mourners_choker"
+                                    }
+                                ]
+                            }
+                        },
+                        "failure_message": "The guards cross their spears. \"Not wearing that. Take that cursed thing off before you come near the king.\""
+                    }
+                }
+            }
+        },
+        "hl_1_3": {
+            "name": "Ford Road",
+            "description": "A stretch of rolling meadow, bright with weeds. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_0_3",
+                "west": "hl_1_2",
+                "east": "hl_1_4",
+                "south": "hl_2_3"
+            }
+        },
+        "hl_1_4": {
+            "name": "Willow Bend",
+            "description": "Low fields and hedgerows, with the smoke of far-off hearths. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_0_4",
+                "west": "hl_1_3",
+                "south": "hl_2_4",
+                "east": "bracken_ford:gate"
+            }
+        },
+        "hl_2_0": {
+            "name": "Cobbler's Field",
+            "description": "A stretch of rolling meadow, bright with weeds. Telgard is a smudge on the horizon.",
+            "exits": {
+                "north": "hl_1_0",
+                "east": "hl_2_1",
+                "south": "hl_3_0"
+            }
+        },
+        "hl_2_1": {
+            "name": "South Meadow",
+            "description": "Low fields and hedgerows, with the smoke of far-off hearths. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_1_1",
+                "west": "hl_2_0",
+                "east": "hl_2_2",
+                "south": "hl_3_1"
+            }
+        },
+        "hl_2_2": {
+            "name": "The Drovers' Way",
+            "description": "Open grass under a wide sky, the wind moving it in long waves. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_1_2",
+                "west": "hl_2_1",
+                "east": "hl_2_3",
+                "south": "hl_3_2"
+            }
+        },
+        "hl_2_3": {
+            "name": "Tilled Fields",
+            "description": "Rough pasture with scattered stones and the occasional thorn. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_1_3",
+                "west": "hl_2_2",
+                "east": "hl_2_4",
+                "south": "hl_3_3"
+            }
+        },
+        "hl_2_4": {
+            "name": "Reed Flats",
+            "description": "A stretch of rolling meadow, bright with weeds. Telgard is a smudge on the horizon.",
+            "exits": {
+                "north": "hl_1_4",
+                "west": "hl_2_3",
+                "south": "hl_3_4"
+            }
+        },
+        "hl_3_0": {
+            "name": "Thistle Heath",
+            "description": "Rough pasture with scattered stones and the occasional thorn. Telgard is a smudge on the horizon.",
+            "exits": {
+                "north": "hl_2_0",
+                "east": "hl_3_1"
+            }
+        },
+        "hl_3_1": {
+            "name": "Greyhorn Fork",
+            "description": "A stretch of rolling meadow, bright with weeds. Telgard is a smudge on the horizon.",
+            "exits": {
+                "north": "hl_2_1",
+                "west": "hl_3_0",
+                "east": "hl_3_2"
+            }
+        },
+        "hl_3_2": {
+            "name": "Barrow Verge",
+            "description": "Low fields and hedgerows, with the smoke of far-off hearths. Telgard's towers stand against the sky.",
+            "exits": {
+                "north": "hl_2_2",
+                "west": "hl_3_1",
+                "east": "hl_3_3"
+            }
+        },
+        "hl_3_3": {
+            "name": "Long Furrow",
+            "description": "Open grass under a wide sky, the wind moving it in long waves. Telgard is a smudge on the horizon.",
+            "exits": {
+                "north": "hl_2_3",
+                "west": "hl_3_2",
+                "east": "hl_3_4"
+            }
+        },
+        "hl_3_4": {
+            "name": "Salt Margin",
+            "description": "Rough pasture with scattered stones and the occasional thorn. Telgard is a smudge on the horizon.",
+            "exits": {
+                "north": "hl_2_4",
+                "west": "hl_3_3"
+            }
+        }
+    }
+}

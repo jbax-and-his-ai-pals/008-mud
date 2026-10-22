@@ -1,0 +1,374 @@
+{
+    "king_tavor": {
+        "name": "King Tavor",
+        "description": "An old man with a young man's frown, in a worn crown and a grey mantle, who has not slept properly in a month.",
+        "max_health": 60,
+        "level": 10,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Come closer."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "king_talk"
+        }
+    },
+    "throne_guard": {
+        "name": "a throne-room guard",
+        "description": "A guard in a polished helm, standing very straight.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The king is waiting for you. Speak to him; do not make him ask twice."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "counsellor": {
+        "name": "the king's counsellor",
+        "description": "A thin, spectacled man with ink on his sleeve and a roll of maps under his arm.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Dark times. The old tales say a Lightbearer's heir would come, and here you are. Take the royal treasury before you go, and buy armour with what you have. North of here, the old vault of Ostrun the Lightbearer is said to hold a tablet worth reading."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "hall_soldier": {
+        "name": "a castle soldier",
+        "description": "A tired soldier on watch beside the hearth.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "There are doors in this hall that want brass keys. Keys are sold in the keysmith's hall, if you can find the way in, and in the lands to the south."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "castle_priestess": {
+        "name": "the castle priestess",
+        "description": "A calm woman in grey with a silver sun on a cord about her neck.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "priestess_rest"
+        }
+    },
+    "keysmith": {
+        "name": "the keysmith",
+        "description": "A small, sharp-eyed man with a file in one hand.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "A key opens one door, and then it is spent. Eighty-four gold a time, and I do not haggle."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_brass_key"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cellarer": {
+        "name": "the cellarer",
+        "description": "An old man with a lantern, counting barrels under his breath.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Behind the last barrel there is a door that was old before the castle. Folk say the stones of the first king lie beyond it, and that a key opens it."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "gate_guard": {
+        "name": "a gate guard",
+        "description": "A guard at the gate, one hand on the hilt.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Fields past the gate are no place for a man with no sword. Armour and weapons are sold in Bracken Ford, east along the road."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "courtyard_gossip": {
+        "name": "a washerwoman",
+        "description": "A woman with a basket of linen on her hip.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "They say a cave in the far north holds a tablet from the old days. A dark cave, mind. Bring a light."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "ford_watchman": {
+        "name": "the watchman",
+        "description": "A big man leaning on a pike at the gate.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Bracken Ford is a peaceful place. The monsters mostly leave us alone. It is the roads that are the trouble."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "ford_gossip": {
+        "name": "a townsman",
+        "description": "A man mending a net on the lip of the well.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "A monster that has hurt you is a monster that has learned something. Rest at the inn, and go back out stronger."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "ford_elder": {
+        "name": "the old ferryman",
+        "description": "A bent, brown old man with hands like roots.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The princess was carried north and east, over the bridgeless marsh, to a place no honest road reaches. Find the way, if you can, and bring her back."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "ford_armourer": {
+        "name": "the armourer",
+        "description": "A broad woman in a leather apron, sharpening a cudgel.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Take a good look. Everything here is honest, and everything here is for sale."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_willow_staff"
+                },
+                {
+                    "item_id": "item_oak_cudgel"
+                },
+                {
+                    "item_id": "item_bronze_blade"
+                },
+                {
+                    "item_id": "item_linen_tunic"
+                },
+                {
+                    "item_id": "item_hide_jerkin"
+                },
+                {
+                    "item_id": "item_buckler"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "ford_provisioner": {
+        "name": "the provisioner",
+        "description": "A cheerful man behind a counter of jars and sacks.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Moss for wounds, torches for the dark, and the occasional scale off a drake."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_healing_moss"
+                },
+                {
+                    "item_id": "item_pitch_torch"
+                },
+                {
+                    "item_id": "item_wyrm_scale"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "ford_innkeeper": {
+        "name": "the innkeeper",
+        "description": "A round, calm man in a flour-streaked apron.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "inn_bracken"
+        }
+    },
+    "ford_dewseller": {
+        "name": "the dew seller",
+        "description": "A thin woman with cold hands and a quiet voice.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Weak creatures will not cross a ring of this. Thirty-eight gold a vial, and I will not tell you where I get it."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_wisp_dew"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    }
+}

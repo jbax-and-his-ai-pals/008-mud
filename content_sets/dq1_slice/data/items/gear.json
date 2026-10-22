@@ -1,0 +1,355 @@
+{
+    "item_willow_staff": {
+        "type": "Weapon",
+        "name": "willow staff",
+        "description": "A green switch of willow, trimmed and hardened in the fire. Better than bare hands.",
+        "weight": 1,
+        "value": 5,
+        "stackable": false,
+        "properties": {
+            "damage": 2,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_oak_cudgel": {
+        "type": "Weapon",
+        "name": "oak cudgel",
+        "description": "A short club of knotted oak, heavy at one end.",
+        "weight": 3,
+        "value": 30,
+        "stackable": false,
+        "properties": {
+            "damage": 4,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_bronze_blade": {
+        "type": "Weapon",
+        "name": "bronze blade",
+        "description": "A plain bronze sword, dull gold in the light.",
+        "weight": 3,
+        "value": 90,
+        "stackable": false,
+        "properties": {
+            "damage": 10,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_woodsmans_axe": {
+        "type": "Weapon",
+        "name": "woodsman's axe",
+        "description": "A long-hafted axe with a wide, well-kept bit.",
+        "weight": 3,
+        "value": 280,
+        "stackable": false,
+        "properties": {
+            "damage": 15,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_longblade": {
+        "type": "Weapon",
+        "name": "longblade",
+        "description": "A long steel sword made for a strong arm and two hands' worth of nerve.",
+        "weight": 3,
+        "value": 750,
+        "stackable": false,
+        "properties": {
+            "damage": 20,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_emberbrand": {
+        "type": "Weapon",
+        "name": "emberbrand",
+        "description": "A sword whose blade is always faintly warm, and sometimes faintly lit.",
+        "weight": 3,
+        "value": 4900,
+        "stackable": false,
+        "properties": {
+            "damage": 28,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_ostruns_edge": {
+        "type": "Weapon",
+        "name": "Ostrun's edge",
+        "description": "The blade of the first Lightbearer. It was laid down where only his heir would come looking.",
+        "weight": 3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "damage": 40,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_linen_tunic": {
+        "type": "Armor",
+        "name": "linen tunic",
+        "description": "A plain tunic, undyed and softened by washing.",
+        "weight": 1,
+        "value": 10,
+        "stackable": false,
+        "properties": {
+            "defense": 2,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_hide_jerkin": {
+        "type": "Armor",
+        "name": "hide jerkin",
+        "description": "A jerkin of boiled hide, stiff and smelling of tallow.",
+        "weight": 3,
+        "value": 35,
+        "stackable": false,
+        "properties": {
+            "defense": 4,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_ringmail_hauberk": {
+        "type": "Armor",
+        "name": "ringmail hauberk",
+        "description": "A shirt of linked iron rings that chimes when you walk.",
+        "weight": 6,
+        "value": 150,
+        "stackable": false,
+        "properties": {
+            "defense": 10,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_half_harness": {
+        "type": "Armor",
+        "name": "half-harness",
+        "description": "Breast and back plates, and not much else, buckled over padding.",
+        "weight": 6,
+        "value": 500,
+        "stackable": false,
+        "properties": {
+            "defense": 16,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_plate_harness": {
+        "type": "Armor",
+        "name": "plate harness",
+        "description": "A full harness of steel plate, with a visor you will fog up.",
+        "weight": 12,
+        "value": 1500,
+        "stackable": false,
+        "properties": {
+            "defense": 24,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "body"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_spellwoven_mail": {
+        "type": "Armor",
+        "name": "spellwoven mail",
+        "description": "Mail of fine steel, worked with charms that close small wounds as you walk and turn aside a third of any spell.",
+        "weight": 6,
+        "value": 3850,
+        "stackable": false,
+        "properties": {
+            "defense": 24,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "body"
+            ],
+            "heal_per_step": 1,
+            "resistances": {
+                "magical": 33,
+                "fire": 33
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_ostruns_mail": {
+        "type": "Armor",
+        "name": "Ostrun's mail",
+        "description": "Light, bright mail that has not tarnished in a thousand years. It mends you as you go, walks you unharmed across poisoned floors and turns aside a third of any spell or flame.",
+        "weight": 6,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 28,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "body"
+            ],
+            "heal_per_step": 1,
+            "resistances": {
+                "barrier": 100,
+                "magical": 33,
+                "fire": 33
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_buckler": {
+        "type": "Armor",
+        "name": "buckler",
+        "description": "A small round shield of wood, rimmed with iron.",
+        "weight": 2,
+        "value": 45,
+        "stackable": false,
+        "properties": {
+            "defense": 4,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "off_hand"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_kite_shield": {
+        "type": "Armor",
+        "name": "kite shield",
+        "description": "A tall shield, narrow at the foot, that covers a man from chin to knee.",
+        "weight": 5,
+        "value": 400,
+        "stackable": false,
+        "properties": {
+            "defense": 10,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "off_hand"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_moonsilver_shield": {
+        "type": "Armor",
+        "name": "moonsilver shield",
+        "description": "A shield of pale metal that gives back no reflection, only a faint, cool light.",
+        "weight": 4,
+        "value": 7400,
+        "stackable": false,
+        "properties": {
+            "defense": 20,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "off_hand"
+            ]
+        },
+        "item_family": "armor"
+    },
+    "item_gravebound_circlet": {
+        "type": "Armor",
+        "name": "gravebound circlet",
+        "description": "A circlet of black leather, stitched with thread that was never any colour. Telgard will not let you through its gate wearing it.",
+        "weight": 0.5,
+        "value": 90,
+        "stackable": false,
+        "properties": {
+            "defense": 0,
+            "equip_slot": [
+                "head"
+            ],
+            "cursed": true,
+            "durability": 9999,
+            "max_durability": 9999
+        },
+        "item_family": "armor"
+    },
+    "item_mourners_choker": {
+        "type": "Armor",
+        "name": "mourner's choker",
+        "description": "A necklace of cold black beads. It does not feel like a gift.",
+        "weight": 0.5,
+        "value": 600,
+        "stackable": false,
+        "properties": {
+            "defense": 0,
+            "equip_slot": [
+                "neck"
+            ],
+            "cursed": true,
+            "durability": 9999,
+            "max_durability": 9999
+        },
+        "item_family": "armor"
+    }
+}

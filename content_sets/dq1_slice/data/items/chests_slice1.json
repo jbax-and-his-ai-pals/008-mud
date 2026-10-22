@@ -1,0 +1,162 @@
+{
+    "chest_royal_gold": {
+        "type": "Container",
+        "name": "royal coffer",
+        "description": "A lacquered coffer with the royal sun stamped on the lid.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_royal",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_royal_torch": {
+        "type": "Container",
+        "name": "cedar box",
+        "description": "A cedar box, plain, with a rope handle.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_pitch_torch",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_royal_key": {
+        "type": "Container",
+        "name": "iron-banded chest",
+        "description": "A squat chest, banded in iron, with a keyhole that has clearly never been used.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_brass_key",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_store_1": {
+        "type": "Container",
+        "name": "storeroom chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_small",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_store_2": {
+        "type": "Container",
+        "name": "storeroom chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_small",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_store_3": {
+        "type": "Container",
+        "name": "storeroom chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_small",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_store_4": {
+        "type": "Container",
+        "name": "storeroom chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_small",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_sunstones": {
+        "type": "Container",
+        "name": "stone casket",
+        "description": "A casket cut from one block of pale stone, older than the castle that sits on it.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_sunstones",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    }
+}

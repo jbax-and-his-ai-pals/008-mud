@@ -1,0 +1,1852 @@
+{
+    "mire_blob": {
+        "name": "mire blob",
+        "description": "A quivering, knee-high blob of grey-green jelly that smells of the ditch.",
+        "max_health": 3,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 5,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 3,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 4,
+        "defense": 4,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    1,
+                    1
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 1
+        }
+    },
+    "crimson_blob": {
+        "name": "crimson blob",
+        "description": "A blob the colour of a fresh bruise, rather sharper tempered than its grey cousins.",
+        "max_health": 4,
+        "level": 2,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 7,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 3,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 4,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    2,
+                    2
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 1
+        }
+    },
+    "gloomwing": {
+        "name": "gloomwing",
+        "description": "A small leathery thing, half bat and half lizard, that flaps out of the dusk at your face.",
+        "max_health": 6,
+        "level": 2,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 9,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 6,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 4,
+        "defense": 4,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    2,
+                    2
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 2
+        }
+    },
+    "pale_shade": {
+        "name": "pale shade",
+        "description": "A smear of cold white that drifts a hand's breadth above the grass.",
+        "max_health": 7,
+        "level": 3,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 11,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 8,
+        "defense": 6,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    3,
+                    4
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 3
+        }
+    },
+    "hedge_mage": {
+        "name": "hedge mage",
+        "description": "A ragged hedge-wizard with a bundle of crooked twigs and a worse temper.",
+        "max_health": 12,
+        "level": 3,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 11,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 12,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 8,
+        "defense": 7,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    9,
+                    11
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 4
+        },
+        "usable_spells": [
+            "mon_singe"
+        ],
+        "max_mana": 100
+    },
+    "hexwing": {
+        "name": "hexwing",
+        "description": "A gloomwing grown clever, with a smear of arcane chalk on its brow.",
+        "max_health": 14,
+        "level": 4,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 14,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 14,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 9,
+        "defense": 8,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    9,
+                    11
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 5
+        },
+        "usable_spells": [
+            "mon_singe"
+        ],
+        "max_mana": 100
+    },
+    "dune_stinger": {
+        "name": "dune stinger",
+        "description": "A scorpion the length of a forearm, the colour of dry grass.",
+        "max_health": 18,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 18,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 16,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 11,
+        "defense": 6,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    12,
+                    15
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 6
+        }
+    },
+    "bog_imp": {
+        "name": "bog imp",
+        "description": "A squat, mud-streaked imp with a grin full of reeds.",
+        "max_health": 20,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 20,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 18,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 12,
+        "defense": 7,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    12,
+                    15
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 7
+        }
+    },
+    "rattling_spirit": {
+        "name": "rattling spirit",
+        "description": "A knot of cold air that clatters the stones around it like dice in a cup.",
+        "max_health": 21,
+        "level": 6,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 18,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 20,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 11,
+        "defense": 8,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    13,
+                    17
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 8
+        },
+        "usable_spells": [
+            "mon_singe"
+        ],
+        "max_mana": 100
+    },
+    "fen_brute": {
+        "name": "fen brute",
+        "description": "A heavy, hunched thing out of the marsh with arms too long for it.",
+        "max_health": 22,
+        "level": 8,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 24,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 24,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 7,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    18,
+                    24
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 10
+        }
+    },
+    "fellwing": {
+        "name": "fellwing",
+        "description": "A big black gloomwing that mends itself between bites.",
+        "max_health": 18,
+        "level": 7,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 22,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 26,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 10,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    15,
+                    19
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 11
+        },
+        "usable_spells": [
+            "mon_singe",
+            "mon_mend"
+        ],
+        "max_mana": 100
+    },
+    "bone_walker": {
+        "name": "bone walker",
+        "description": "A walking skeleton in the rags of whoever it used to be, with a notched blade.",
+        "max_health": 27,
+        "level": 9,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 28,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 22,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 19,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    22,
+                    29
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 11
+        }
+    },
+    "hexer": {
+        "name": "hexer",
+        "description": "A hooded, hollow-eyed caster who is always muttering.",
+        "max_health": 27,
+        "level": 9,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 28,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 22,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 19,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    26,
+                    34
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.375,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 13
+        },
+        "usable_spells": [
+            "mon_singe",
+            "mon_lull"
+        ],
+        "max_mana": 100
+    },
+    "iron_stinger": {
+        "name": "iron stinger",
+        "description": "A scorpion with a shell like riveted plate, and a surprising turn of speed.",
+        "max_health": 20,
+        "level": 10,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 36,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 42,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 30,
+        "defense": 9,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    30,
+                    39
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 14
+        }
+    },
+    "grey_wolf": {
+        "name": "grey wolf",
+        "description": "A lean grey wolf with a ruff of scars.",
+        "max_health": 30,
+        "level": 11,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 40,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 30,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 31,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    37,
+                    49
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 16
+        }
+    },
+    "gaunt_wraith": {
+        "name": "gaunt wraith",
+        "description": "A tall, tattered shape of dark air with two points of cold light where the eyes would be.",
+        "max_health": 32,
+        "level": 12,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 44,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 34,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 33,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    45,
+                    59
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 17
+        },
+        "usable_spells": [
+            "mon_mend"
+        ],
+        "max_mana": 100
+    },
+    "quicksilver_blob": {
+        "name": "quicksilver blob",
+        "description": "A small, bright blob of mercury-grey that turns and runs the moment it sees you.",
+        "max_health": 4,
+        "level": 2,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 10,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 255,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 4,
+        "defense": 6,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    4,
+                    5
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0.5,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 115,
+            "status_immune": true
+        },
+        "usable_spells": [
+            "mon_singe"
+        ],
+        "max_mana": 100
+    },
+    "barrow_haunt": {
+        "name": "barrow haunt",
+        "description": "A pale figure that rises out of the earth with a grave-cloth about it.",
+        "max_health": 32,
+        "level": 11,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 40,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 38,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 31,
+        "defense": 6,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    52,
+                    69
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 18
+        },
+        "usable_spells": [
+            "mon_lull",
+            "mon_singe"
+        ],
+        "max_mana": 100
+    },
+    "packlord": {
+        "name": "packlord",
+        "description": "A great black wolf that stands a hand taller than the rest and does not blink.",
+        "max_health": 34,
+        "level": 13,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 50,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 36,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 34,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    60,
+                    79
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 20
+        },
+        "usable_spells": [
+            "mon_hush"
+        ],
+        "max_mana": 100
+    },
+    "bog_chieftain": {
+        "name": "bog chieftain",
+        "description": "An imp grown to a man's height, wearing a necklace of finger bones.",
+        "max_health": 31,
+        "level": 12,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 47,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 40,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 33,
+        "defense": 4,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    63,
+                    84
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 20
+        },
+        "usable_spells": [
+            "mon_mend",
+            "mon_singe"
+        ],
+        "max_mana": 100
+    },
+    "fen_sage": {
+        "name": "fen sage",
+        "description": "A brute with a sage's staff and a sage's sneer.",
+        "max_health": 34,
+        "level": 13,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 52,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 50,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 34,
+        "defense": 6,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    67,
+                    89
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 22
+        },
+        "usable_spells": [
+            "mon_hush"
+        ],
+        "max_mana": 100
+    },
+    "crag_wyvern": {
+        "name": "crag wyvern",
+        "description": "A grey, long-necked wyvern with a barbed tail and nothing like a sense of humour.",
+        "max_health": 37,
+        "level": 14,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 56,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 48,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 41,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    75,
+                    99
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 24
+        }
+    },
+    "pale_stinger": {
+        "name": "pale stinger",
+        "description": "A bone-white scorpion as large as a hound.",
+        "max_health": 31,
+        "level": 15,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 60,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 90,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 43,
+        "defense": 15,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    82,
+                    109
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 26
+        }
+    },
+    "hollow_knight": {
+        "name": "hollow knight",
+        "description": "An empty suit of black armour, with something in it that heals.",
+        "max_health": 41,
+        "level": 17,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 68,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 56,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 46,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    90,
+                    119
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 28
+        },
+        "usable_spells": [
+            "mon_mend"
+        ],
+        "max_mana": 100
+    },
+    "mossback_colossus": {
+        "name": "mossback colossus",
+        "description": "A man-shaped heap of mossy stone, taller than a door, that has stood there longer than the road.",
+        "max_health": 62,
+        "level": 26,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 120,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 60,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 64,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    7,
+                    9
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 5,
+            "unique": true
+        }
+    },
+    "gilded_husk": {
+        "name": "gilded husk",
+        "description": "A statue of a man in beaten gold that has no business walking.",
+        "max_health": 44,
+        "level": 13,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 48,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 40,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 34,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    150,
+                    199
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 6
+        }
+    },
+    "sable_knight": {
+        "name": "sable knight",
+        "description": "A knight in black plate and a black plume who does not talk.",
+        "max_health": 49,
+        "level": 18,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 76,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 78,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 47,
+        "defense": 6,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    97,
+                    129
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 33
+        },
+        "usable_spells": [
+            "mon_hush"
+        ],
+        "max_mana": 100
+    },
+    "hexwyvern": {
+        "name": "hexwyvern",
+        "description": "A wyvern with runes scratched into its scales, and a drowsy, murmuring gaze.",
+        "max_health": 51,
+        "level": 19,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 78,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 68,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 47,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    105,
+                    139
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 34
+        },
+        "usable_spells": [
+            "mon_lull"
+        ],
+        "max_mana": 100
+    },
+    "dread_knight": {
+        "name": "dread knight",
+        "description": "A towering knight in horned plate, and nothing, you suspect, behind the visor.",
+        "max_health": 44,
+        "level": 19,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 79,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 64,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 47,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    112,
+                    149
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 37,
+            "status_immune": true
+        }
+    },
+    "moonhowler": {
+        "name": "moonhowler",
+        "description": "A wolf that walks on two legs and wears the ragged remains of a man's coat.",
+        "max_health": 53,
+        "level": 20,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 86,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 70,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 49,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    116,
+                    154
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 40
+        }
+    },
+    "verdant_drake": {
+        "name": "verdant drake",
+        "description": "A thick-bodied green drake with a throat that glows when it breathes in.",
+        "max_health": 57,
+        "level": 21,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 88,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 74,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 49,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    120,
+                    159
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 45
+        },
+        "usable_spells": [
+            "mon_flame"
+        ],
+        "max_mana": 100
+    },
+    "skylord_wyvern": {
+        "name": "skylord wyvern",
+        "description": "A great winged wyvern with a gold crest, mending itself as it circles.",
+        "max_health": 57,
+        "level": 20,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 86,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 80,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 49,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    120,
+                    159
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 43
+        },
+        "usable_spells": [
+            "mon_restore",
+            "mon_flame"
+        ],
+        "max_mana": 100
+    },
+    "archmage": {
+        "name": "archmage",
+        "description": "A gaunt mage in star-patterned robes whose spells hurt a good deal.",
+        "max_health": 57,
+        "level": 19,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 80,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 70,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 48,
+        "defense": 2,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    123,
+                    164
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 50
+        },
+        "usable_spells": [
+            "mon_scorch"
+        ],
+        "max_mana": 100
+    },
+    "cleaver_knight": {
+        "name": "cleaver knight",
+        "description": "A knight with a broad, double-bladed axe and a habit of putting people to sleep first.",
+        "max_health": 62,
+        "level": 22,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 94,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 82,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 61,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    123,
+                    164
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 54,
+            "unique": true
+        },
+        "usable_spells": [
+            "mon_lull"
+        ],
+        "max_mana": 100
+    },
+    "azure_drake": {
+        "name": "azure drake",
+        "description": "A blue drake with frost on its scales and fire in its throat.",
+        "max_health": 62,
+        "level": 23,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 98,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 84,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 61,
+        "defense": 3,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    112,
+                    149
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.25,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 60
+        },
+        "usable_spells": [
+            "mon_flame"
+        ],
+        "max_mana": 100
+    },
+    "granite_giant": {
+        "name": "granite giant",
+        "description": "A giant of grey stone as big as a cart, slow and very hard to hurt.",
+        "max_health": 141,
+        "level": 23,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 100,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 40,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 61,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    105,
+                    139
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 65
+        }
+    },
+    "bastion_knight": {
+        "name": "bastion knight",
+        "description": "A knight in towering plate, behind a shield taller than he is.",
+        "max_health": 79,
+        "level": 24,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 105,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 86,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 62,
+        "defense": 1,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    105,
+                    139
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 70
+        },
+        "usable_spells": [
+            "mon_restore",
+            "mon_scorch"
+        ],
+        "max_mana": 100
+    },
+    "crimson_drake": {
+        "name": "crimson drake",
+        "description": "A red drake of the old kind, the size of a barn door, with a mouth like a forge.",
+        "max_health": 88,
+        "level": 26,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 120,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 90,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 64,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 1,
+                "quantity": [
+                    105,
+                    139
+                ]
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 100
+        },
+        "usable_spells": [
+            "mon_lull",
+            "mon_flame"
+        ],
+        "max_mana": 100
+    },
+    "maldrath_man": {
+        "name": "Maldrath, the Drake Sovereign",
+        "description": "A tall man in black robes and a crown of iron thorns, with the cold patience of a long winter. The Dawnglass burns in the air behind his shoulder.",
+        "max_health": 88,
+        "level": 21,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 90,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 75,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 49,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.75,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 0,
+            "status_immune": true,
+            "unique": true
+        },
+        "usable_spells": [
+            "mon_hush",
+            "mon_scorch"
+        ],
+        "max_mana": 100
+    },
+    "maldrath_wyrm": {
+        "name": "Maldrath, the Drake Sovereign (wyrm)",
+        "description": "The man is gone. What fills the hall is a drake the size of a barn, black as a burnt tree, wearing the crown of iron thorns.",
+        "max_health": 130,
+        "level": 29,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 140,
+            "dexterity": 8,
+            "constitution": 4,
+            "agility": 200,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 67,
+        "defense": 35,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "xp_reward": 0,
+            "status_immune": true,
+            "unique": true
+        },
+        "usable_spells": [
+            "mon_inferno"
+        ],
+        "max_mana": 100
+    }
+}

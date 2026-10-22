@@ -1,0 +1,24 @@
+{
+    "scenario_id": "the_stolen_light",
+    "heading": "The Stolen Light",
+    "intro": "You are the last of the Lightbearer's line, and you have walked in from the road with nothing but your name. Since Maldrath took the Dawnglass, the fields of Vaelmoor have filled with things that were never there before, and Princess Elowen was carried off in the same night. King Tavor has sent for you.",
+    "objectives_heading": "What is asked of you:",
+    "objectives": [
+        {
+            "id": "hear_the_king",
+            "instruction": "Speak with King Tavor",
+            "command": "talk king"
+        },
+        {
+            "id": "take_the_treasury",
+            "instruction": "Take what the king has set aside for you in the treasury",
+            "command": "south"
+        },
+        {
+            "id": "grow_strong",
+            "instruction": "Win your first battles on the fields outside the castle",
+            "command": "look"
+        }
+    ],
+    "pace": "slow"
+}
