@@ -206,6 +206,10 @@ def cast_spell(npc: 'NPC', spell, target, current_time: float) -> Dict[str, Any]
         return {"message": chr(10).join(lines) + _sacrifice(npc, spell), "target_defeated": False}
 
     _, effect_message = apply_spell_effect(npc, target, spell, viewer)
+    if any(isinstance(ef, dict) and ef.get("on") == "caster" for ef in spell.effects):
+        _, own_message = apply_spell_effect(npc, npc, spell, viewer, only_caster=True)
+        if own_message:
+            effect_message = (effect_message + chr(10) + own_message) if effect_message else own_message
     
     full_message = f"{spell.format_cast_message(npc)}\n{effect_message}" + _sacrifice(npc, spell)
     

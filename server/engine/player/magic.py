@@ -232,6 +232,11 @@ class PlayerMagicMixin:
                  for paragraph in paragraphs:
                      results.append("\n" + paragraph)
 
+        if any(isinstance(ef, dict) and ef.get("on") == "caster" for ef in spell.effects):
+            _value, own_text = apply_spell_effect(p, p, spell, p, only_caster=True)
+            if own_text:
+                results.append(chr(10) + own_text)
+
         if target_type == "room":
             # The room itself answers last: a wall gives way to a blast whether or not anyone stood in it.
             room = (world or p.world).get_room_for_player(p)

@@ -40,7 +40,7 @@ class TestAbilityVocabulary(unittest.TestCase):
 
     def test_effect_keys_are_the_ones_the_executor_reads(self):
         read = set(re.findall(r'effect_def(?:\.get\(|\[)"([a-z_]+)"', self.executor)) - {"type"}
-        declared = {"damage_type"} | {key for fields in ABILITY_EFFECT_FIELDS.values() for key in fields}
+        declared = {"damage_type", "on"} | {key for fields in ABILITY_EFFECT_FIELDS.values() for key in fields}
         self.assertEqual(declared, read)
 
     def test_target_types_are_the_ones_the_cast_command_resolves(self):

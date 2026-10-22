@@ -498,6 +498,15 @@ room, which the world snapshot keeps), so a bomb in the right room opens the way
 while it is held, so a bomb bag is an item, not a setting: put it down and the limit falls back, buying or picking up beyond it is refused with the limit
 said and the money kept.
 
+**A candle.** An ability effect with `"on": "caster"` lands on whoever casts it, once per cast, whoever the targets are and even when there are none; the
+rest of the ability's effects land on each target as before. A candle is a `room` ability with a `damage` effect (fire, for the creatures in the room and
+the bush that burns: a `reveal_exit` reaction to `fire`) and an `apply_effect` on the caster whose `effect_data` is `{"name": "Candlelight", "tags": ["light",
+"candlelight"], "base_duration": 3600, "ends_on_move": true}`. `ends_on_move: true` puts the effect out the moment its bearer moves to another room, so
+the light stays in the room it lit. A candle that works once in each room is the same item with `requires: {"not": {"kind": "status_active", "tag":
+"candlelight"}}` (the condition `status_active` is true while an effect with that tag is on the player), because the light it leaves is what refuses the
+second use; the one that works without limit simply has no `requires`. The condition `max_health_at_least` (`value`) reads the most health a player can
+have, for a sword that wants five hearts.
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms

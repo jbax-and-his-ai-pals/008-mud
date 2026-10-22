@@ -32,7 +32,7 @@ ViewerType = Union['Player']
 DEFAULT_ABILITY_POWER_BONUS = 0
 
 def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell, viewer: Optional[ViewerType],
-                       first_target: bool = True, landing: bool = False) -> Tuple[int, str]:
+                       first_target: bool = True, landing: bool = False, only_caster: bool = False) -> Tuple[int, str]:
     """`first_target` is False for the second and later targets of one cast: a summon happens once per cast, not once per target.
     `landing` is the second half of an ability with a wind-up (magic/windup.py): the effects fall now."""
     from engine.npcs.npc_factory import NPCFactory
@@ -86,6 +86,8 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
     # Re-pasting the core loop for completeness/context is safest to ensure no regression.
     
     for effect_def in spell.effects:
+        if (effect_def.get("on") == "caster") != only_caster:
+            continue   # the caster's own effects are applied by themselves, once (`only_caster`), not once per target
         eff_type = effect_def.get("type")
         eff_value = effect_def.get("value", 0)
         eff_dmg_type = effect_def.get("damage_type") or spell_default_damage_type()

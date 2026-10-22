@@ -161,6 +161,16 @@ CONDITION_SPECS: Dict[str, Dict[str, Any]] = {
         "fields": {"value": "int"},
         "note": "The set's own currency, whatever it is called.",
     },
+    "max_health_at_least": {
+        "label": "Maximum health at least",
+        "fields": {"value": "int"},
+        "note": "The most health the player can have, not what they have now (a sword that wants five hearts).",
+    },
+    "status_active": {
+        "label": "Under an effect",
+        "fields": {"tag": "string"},
+        "note": "An effect with that tag is on the player now (a lit candle, a charm); it is false once the effect wears off or ends.",
+    },
     "title_earned": {
         "label": "Title earned",
         "fields": {"title_id": "string"},
@@ -554,6 +564,21 @@ def _evaluate_kind(kind: str, node: Dict[str, Any], player: Any, reasons: List[s
         gold = getattr(getattr(player, "runtime_state", None), "gold", 0) or 0
         if int(gold) < value:
             reasons.append("needs %d gold (has %d)" % (value, int(gold)))
+            return False
+        return True
+
+    if kind == "max_health_at_least":
+        value = int(_number(node.get("value", 1), 1))
+        most = int(getattr(player, "max_health", 0) or 0)
+        if most < value:
+            reasons.append("needs %d maximum health (has %d)" % (value, most))
+            return False
+        return True
+
+    if kind == "status_active":
+        tag = str(node.get("tag", "")).strip()
+        if not tag or not hasattr(player, "has_effect_tag") or not player.has_effect_tag(tag):
+            reasons.append("is not under the %s effect" % tag)
             return False
         return True
 

@@ -2254,6 +2254,10 @@ class TestAbilities(unittest.TestCase):
             imp=_ability(target_type="self", effects=[{"type": "summon", "summon_template_id": "imp", "summon_duration": 60, "max_summons": 2}]),
             knock=_ability(target_type="item", effects=[{"type": "unlock"}]),
             purify=_ability(target_type="friendly", effects=[{"type": "cleanse", "effect_data": {"tags": ["poison"]}}]),
+            blast=_ability(target_type="room", effects=[
+                {"type": "damage", "value": 5, "damage_type": "fire"},
+                {"type": "apply_effect", "on": "caster", "effect_data": {"name": "Candlelight", "tags": ["light"], "base_duration": 60, "ends_on_move": True}},
+            ]),
         ))
 
     def test_what_the_constructor_refuses_is_an_error(self):
@@ -2275,6 +2279,15 @@ class TestAbilities(unittest.TestCase):
         self.assertTrue(any("stray: effects[0].dot_duration is not read by a heal effect" in m for m in errors), errors)
         self.assertTrue(any("locked: effects[0] is a lock effect" in m and "must be 'item'" in m for m in errors), errors)
         self.assertTrue(any("noop: effects[0] is an apply_effect with no effect_data" in m for m in errors), errors)
+
+    def test_a_caster_effect_and_a_move_ending_status_are_checked(self):
+        errors = self._errors(
+            wrong=_ability(effects=[{"type": "heal", "value": 1, "on": "target"}]),
+            ends=_ability(effects=[{"type": "apply_effect", "effect_data": {"name": "Glow", "base_duration": 5, "ends_on_move": "yes", "tags": []}}]),
+        )
+        self.assertTrue(any("wrong: effects[0].on must be 'caster'" in m for m in errors), errors)
+        self.assertTrue(any("ends: effects[0].effect_data.ends_on_move must be true or false" in m for m in errors), errors)
+        self.assertTrue(any("ends: effects[0].effect_data.tags must be a non-empty array" in m for m in errors), errors)
 
     def test_effect_payloads_are_checked(self):
         errors = self._errors(

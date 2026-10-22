@@ -512,6 +512,7 @@ func _check_ability_vocabulary(vocabulary: Dictionary) -> void:
 	_assert(not abilities.is_empty(), "the engine's ability vocabulary was read")
 	var engine_targets := _as_set(abilities.get("target_types", []))
 	_assert(engine_targets == _as_set(MagicInspector.TARGET_TYPES), "ability target types match exactly (engine %s, editor %s)" % [str(_sorted(engine_targets)), str(_sorted(_as_set(MagicInspector.TARGET_TYPES)))])
+	_assert(_as_set(abilities.get("effect_on", [])) == _as_set(MagicInspector.EFFECT_ON), "who an effect may be aimed at matches (engine %s, editor %s)" % [str(abilities.get("effect_on", [])), str(MagicInspector.EFFECT_ON)])
 	var engine_fields: Dictionary = abilities.get("effect_fields", {})
 	_assert(_as_set(engine_fields.keys()) == _as_set(MagicInspector.EFFECT_FIELDS.keys()), "effect types match exactly (engine %s, editor %s)" % [str(_sorted(_as_set(engine_fields.keys()))), str(_sorted(_as_set(MagicInspector.EFFECT_FIELDS.keys())))])
 	for effect_type in engine_fields:

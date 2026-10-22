@@ -631,6 +631,9 @@ class World:
         came_from = (active_player.current_region_id, active_player.current_room_id)
         active_player.current_region_id = new_region_id
         active_player.current_room_id = new_room_id
+        if came_from != (new_region_id, new_room_id):
+            for lingering in [e for e in getattr(active_player, "active_effects", []) if isinstance(e, dict) and e.get("ends_on_move") is True]:
+                active_player.remove_effect(lingering.get("name", ""))   # a candle's light stays in the room it lit
         if hasattr(active_player, "drop_distant_targets"):
             active_player.drop_distant_targets()   # a fight left behind is over for you
         from engine.dialogue import runner as dialogue_runner

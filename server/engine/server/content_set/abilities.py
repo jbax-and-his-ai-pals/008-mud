@@ -103,7 +103,7 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
     import inspect
 
     from engine.magic.spell import (
-        ABILITY_EFFECT_FIELDS, ABILITY_MESSAGE_PLACEHOLDERS, ABILITY_TARGET_TYPES, Spell,
+        ABILITY_EFFECT_FIELDS, ABILITY_EFFECT_ON, ABILITY_MESSAGE_PLACEHOLDERS, ABILITY_TARGET_TYPES, Spell,
     )
 
     directory = next((content_root / name for name in ("abilities", "magic") if (content_root / name).is_dir()), None)
@@ -262,7 +262,9 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                 if effect_type not in ABILITY_EFFECT_FIELDS:
                     error(f"{e_label}.type {effect_type!r} is not an effect the engine executes (known: {', '.join(ABILITY_EFFECT_FIELDS)}), so it does nothing")
                     continue
-                reads = ("type", "damage_type") + ABILITY_EFFECT_FIELDS[effect_type]
+                reads = ("type", "damage_type", "on") + ABILITY_EFFECT_FIELDS[effect_type]
+                if "on" in effect and effect["on"] not in ABILITY_EFFECT_ON:
+                    error(f"{e_label}.on must be 'caster' (the effect lands on whoever casts it, once) or left out (it lands on each target)")
                 for key in effect:
                     if not str(key).startswith("_") and key not in reads:
                         error(f"{e_label}.{key} is not read by a {effect_type} effect (it reads: {', '.join(reads[1:]) or 'nothing else'})")
@@ -301,6 +303,10 @@ def _validate_abilities(content_root: Path, issues: list[ContentSetIssue]) -> No
                             modifiers = data.get("modifiers")
                             if not isinstance(modifiers, dict) or not modifiers or not all(number(v) for v in modifiers.values()):
                                 error(f"{e_label}.effect_data.modifiers must be a non-empty object of stat -> number for a stat_mod")
+                        if "ends_on_move" in data and not isinstance(data["ends_on_move"], bool):
+                            error(f"{e_label}.effect_data.ends_on_move must be true or false: whether the effect ends when its bearer leaves the room")
+                        if "tags" in data and (not isinstance(data["tags"], list) or not data["tags"] or not all(isinstance(tag, str) and tag.strip() for tag in data["tags"])):
+                            error(f"{e_label}.effect_data.tags must be a non-empty array of tags")
                         duration = data.get("base_duration", effect.get("dot_duration", effect.get("base_duration")))
                         if duration is None:
                             issues.append(ContentSetIssue("warning", source, f"{label}: {e_label} has no duration (effect_data.base_duration or dot_duration), so it never wears off"))

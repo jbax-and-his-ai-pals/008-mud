@@ -128,6 +128,16 @@ const CONDITION_KINDS := {
 		"fields": {"value": "int"},
 		"note": "The set's own currency, whatever it is called.",
 	},
+	"max_health_at_least": {
+		"label": "Maximum health at least",
+		"fields": {"value": "int"},
+		"note": "The most health the player can have, not what they have now (a sword that wants five hearts).",
+	},
+	"status_active": {
+		"label": "Under an effect",
+		"fields": {"tag": "string"},
+		"note": "An effect with that tag is on the player now (a lit candle, a charm); it is false once the effect wears off or ends.",
+	},
 	"title_earned": {
 		"label": "Title earned",
 		"fields": {"title_id": "string"},

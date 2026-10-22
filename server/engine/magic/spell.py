@@ -9,6 +9,10 @@ from typing import Any, Dict, List
 # fires the room's reaction to its damage type, a wall that gives way), whether or not anything is there to hit.
 ABILITY_TARGET_TYPES = ("self", "friendly", "enemy", "all_enemies", "item", "room")
 
+# Who an effect lands on besides the target: `"on": "caster"` makes it the caster's own, once per cast, whoever
+# or however many the targets are (a bomb that hurts the room and lights the caster's way; nothing at all in the room still lights it).
+ABILITY_EFFECT_ON = ("caster",)
+
 # The effect types apply_spell_effect (magic/effects.py) executes, and the keys
 # each one reads besides `type` and `damage_type` (every effect's `damage_type`
 # is read when the ability is cast at a room). Any other type does nothing.

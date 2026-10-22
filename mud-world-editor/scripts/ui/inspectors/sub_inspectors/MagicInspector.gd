@@ -21,6 +21,8 @@ const TARGET_LABELS := {
 	"self": "Self", "friendly": "Friendly (you or an ally)", "enemy": "Enemy",
 	"all_enemies": "All Enemies Here", "item": "Item or Container", "room": "The Whole Room (enemies and the room itself)",
 }
+# Who an effect may be aimed at besides the target (magic/spell.py ABILITY_EFFECT_ON).
+const EFFECT_ON := ["caster"]
 # The keys each effect type reads besides `type` and `damage_type`.
 const EFFECT_FIELDS := {
 	"damage": ["value"], "heal": ["value"], "revive": ["value"], "life_tap": ["value"], "percent_damage": ["value"], "steal": [],
@@ -283,6 +285,13 @@ func _effect_card(index: int, effect: Dictionary) -> PanelContainer:
 		if option == effect_type: type_picker.select(type_picker.item_count - 1)
 	type_picker.item_selected.connect(func(choice): _retype(index, str(type_picker.get_item_metadata(choice))))
 	title.add_child(type_picker)
+	var on_caster := CheckBox.new(); on_caster.name = "OnCaster"; on_caster.text = "on the caster"
+	on_caster.tooltip_text = "Lands on whoever casts it, once, whoever the targets are (and even with none): a bomb that also lights the caster's way."
+	on_caster.button_pressed = effect.get("on", "") == "caster"
+	on_caster.toggled.connect(func(on):
+		if on: _set_effect_value(index, "on", "caster")
+		else: _erase_effect_value(index, "on"))
+	title.add_child(on_caster)
 	var spacer := Control.new(); spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; title.add_child(spacer)
 	var remove := Button.new(); remove.text = "×"; remove.flat = true; remove.tooltip_text = "Remove this effect"
 	remove.pressed.connect(func(): _remove_effect(index)); title.add_child(remove); box.add_child(title)
@@ -358,6 +367,21 @@ func _build_applied_effect(box: VBoxContainer, grid: GridContainer, index: int, 
 		else: _erase_effect_data(index, "base_duration")
 	)
 	grid.add_child(_labeled("Duration (sec, 0 = never ends)", duration))
+	var tags := LineEdit.new(); tags.name = "EffectTags"; InspectorStyle.apply_input_style(tags)
+	tags.text = ", ".join(PackedStringArray(data.get("tags", []))) if data.get("tags") is Array else ""
+	tags.placeholder_text = "light, sleep, repel"
+	tags.tooltip_text = "Other rules look for these: `light` lights a dark room, `repel` keeps wandering monsters off."
+	tags.text_changed.connect(func(text):
+		var list := _split_tags(text)
+		if list.is_empty(): _erase_effect_data(index, "tags")
+		else: _set_effect_data(index, "tags", list))
+	grid.add_child(_labeled("Tags (comma-separated)", tags))
+	var ends := CheckBox.new(); ends.name = "EndsOnMove"; ends.text = "Ends when the bearer leaves the room (a candle's light)"
+	ends.button_pressed = data.get("ends_on_move", false) == true
+	ends.toggled.connect(func(on):
+		if on: _set_effect_data(index, "ends_on_move", true)
+		else: _erase_effect_data(index, "ends_on_move"))
+	box.add_child(ends)
 	if str(data.get("type", "")) != "stat_mod": return
 
 	var header := HBoxContainer.new(); header.add_child(InspectorStyle.lbl("Modifiers", InspectorStyle.COLOR_TEXT_DIM))
@@ -527,7 +551,7 @@ func _retype(index: int, effect_type: String):
 	if effect.is_empty() or str(effect.get("type", "")) == effect_type: return
 	var reads: Array = ["damage_type"] + EFFECT_FIELDS.get(effect_type, [])
 	for key in effect.keys():
-		if str(key).begins_with("_") or key == "type": continue
+		if str(key).begins_with("_") or key == "type" or key == "on": continue
 		if not reads.has(key) or key == "effect_data": effect.erase(key)
 	effect["type"] = effect_type
 	if effect_type not in ["damage", "life_tap", "apply_dot"]: effect.erase("damage_type")

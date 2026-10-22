@@ -208,10 +208,11 @@ def _campaign_vocabulary() -> dict:
 
 
 def _ability_vocabulary() -> dict:
-    from engine.magic.spell import ABILITY_EFFECT_FIELDS, ABILITY_MESSAGE_PLACEHOLDERS, ABILITY_TARGET_TYPES
+    from engine.magic.spell import ABILITY_EFFECT_FIELDS, ABILITY_EFFECT_ON, ABILITY_MESSAGE_PLACEHOLDERS, ABILITY_TARGET_TYPES
 
     return {
         "target_types": sorted(ABILITY_TARGET_TYPES),
+        "effect_on": sorted(ABILITY_EFFECT_ON),
         "effect_fields": {name: sorted(fields) for name, fields in sorted(ABILITY_EFFECT_FIELDS.items())},
         "message_placeholders": {name: sorted(names) for name, names in sorted(ABILITY_MESSAGE_PLACEHOLDERS.items())},
     }
