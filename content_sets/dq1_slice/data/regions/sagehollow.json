@@ -1,0 +1,41 @@
+{
+    "region_id": "sagehollow",
+    "name": "The Sagehollow",
+    "description": "A small sunken shrine in the southern heath, where the last sage of the Lightbearer's order keeps his vigil.",
+    "properties": {
+        "dark": true,
+        "outdoors": false,
+        "entrance": "fenlands:fn_5_4"
+    },
+    "rooms": {
+        "s_mouth": {
+            "name": "The Sunken Door",
+            "description": "A stone stair goes down out of the heath into a low, still chamber that smells of cold wax. Stone figures line the walls, and not all of them are carved.",
+            "exits": {
+                "north": "s_gallery",
+                "up": "fenlands:fn_5_4"
+            }
+        },
+        "s_gallery": {
+            "name": "The Gallery of Candles",
+            "description": "A long gallery where hundreds of tallow candles burn in niches along both walls, though no one has been in to light them for a long time.",
+            "exits": {
+                "south": "s_mouth",
+                "north": "s_hall"
+            }
+        },
+        "s_hall": {
+            "name": "The Sage's Room",
+            "description": "A small, round, warm room with a table, three chairs and a floor swept clean. An ancient man in a plain robe sits waiting, as though he has sat there a long time.",
+            "exits": {
+                "south": "s_gallery"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "last_sage",
+                    "instance_id": "sage_hollow"
+                }
+            ]
+        }
+    }
+}

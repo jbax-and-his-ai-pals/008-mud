@@ -1,0 +1,22 @@
+{
+    "chest_rivenhal_feather": {
+        "type": "Container",
+        "name": "inner chest",
+        "description": "A small iron chest on a stand, in a room you had to open two doors to see.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_homing_feather",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    }
+}

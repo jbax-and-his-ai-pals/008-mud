@@ -1,0 +1,85 @@
+{
+    "id": "sage_prism",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "prism_made"
+            }
+        },
+        {
+            "node": "ready",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "has_item",
+                        "item_id": "item_sunstones"
+                    },
+                    {
+                        "kind": "has_item",
+                        "item_id": "item_cloudcallers_staff"
+                    },
+                    {
+                        "kind": "has_item",
+                        "item_id": "item_ostruns_signet"
+                    }
+                ]
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Heir of the Lightbearer. I knew you would come, though not how long it would be. I can make the prism, and I will, when you bring me the three things: the sunstones, the cloudcaller's staff, and Ostrun's own signet.",
+            "pace": "slow",
+            "end": true
+        },
+        "ready": {
+            "text": "You have all three. I can make the prism now. Stand quite still.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Please.",
+                    "next_node": "made",
+                    "effects": {
+                        "take_item": [
+                            "item_sunstones",
+                            "item_cloudcallers_staff",
+                            "item_ostruns_signet"
+                        ],
+                        "give_item": "item_prism_tear",
+                        "set_flag": "prism_made",
+                        "message": "The sage lays the three things on the table and passes his hands over them. They run together like wax and come away as a single bead of glass that holds a rainbow caught half-turned."
+                    },
+                    "condition": {
+                        "all": [
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_sunstones"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_cloudcallers_staff"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_ostruns_signet"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "made": {
+            "text": "Carry it to the shore south-east of Telgard, to the water's edge across from the dark isle. Pour it out there. The Lightbearer's way will rise to meet you.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "The prism will answer at the water, and only there. Go well, heir.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

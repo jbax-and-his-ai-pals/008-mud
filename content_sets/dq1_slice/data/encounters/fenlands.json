@@ -1,0 +1,117 @@
+{
+    "fenlands_north": {
+        "region": "fenlands",
+        "rooms": [
+            "fn_0_0",
+            "fn_0_1",
+            "fn_0_2",
+            "fn_0_3",
+            "fn_0_4",
+            "fn_1_0",
+            "fn_1_1",
+            "fn_1_2",
+            "fn_1_3",
+            "fn_1_4"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "hexwing",
+                "weight": 1
+            },
+            {
+                "npc": "dune_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "bone_walker",
+                "weight": 1
+            },
+            {
+                "npc": "hexer",
+                "weight": 1
+            },
+            {
+                "npc": "grey_wolf",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes at you out of the mist!",
+        "note": "The eighth group: north of Rivenhal."
+    },
+    "fenlands_mid": {
+        "region": "fenlands",
+        "rooms": [
+            "fn_2_0",
+            "fn_2_1",
+            "fn_2_3",
+            "fn_2_4",
+            "fn_3_0",
+            "fn_3_1",
+            "fn_3_2",
+            "fn_3_3",
+            "fn_3_4",
+            "fn_2_2"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "bone_walker",
+                "weight": 1
+            },
+            {
+                "npc": "hexer",
+                "weight": 1
+            },
+            {
+                "npc": "iron_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "grey_wolf",
+                "weight": 2
+            }
+        ],
+        "message": "A {name} stalks out of the heath!",
+        "note": "The tenth group: round Rivenhal."
+    },
+    "fenlands_south": {
+        "region": "fenlands",
+        "rooms": [
+            "fn_4_0",
+            "fn_4_1",
+            "fn_4_2",
+            "fn_4_3",
+            "fn_4_4",
+            "fn_5_0",
+            "fn_5_1",
+            "fn_5_2",
+            "fn_5_3",
+            "fn_5_4"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "iron_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "gaunt_wraith",
+                "weight": 1
+            },
+            {
+                "npc": "packlord",
+                "weight": 2
+            },
+            {
+                "npc": "gilded_husk",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes down the ridge at you!",
+        "note": "The eleventh group: south of Rivenhal."
+    }
+}

@@ -1,0 +1,137 @@
+{
+    "region_id": "rivenhal",
+    "name": "Rivenhal",
+    "description": "A trading town of brick and tar on the fenland road, where keys are sold and nothing is given away.",
+    "properties": {
+        "safe_zone": true,
+        "outdoors": true
+    },
+    "rooms": {
+        "gate": {
+            "name": "The East Gate",
+            "description": "A broad brick gate with a tar-black timber door, standing open. The town smells of rope and salt.",
+            "exits": {
+                "east": "street",
+                "west": "fenlands:fn_2_2",
+                "north": "elder"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "riven_guard",
+                    "instance_id": "guard_riven"
+                }
+            ]
+        },
+        "street": {
+            "name": "Tarry Street",
+            "description": "A crooked street of brick shopfronts and tarred shutters, busy with carts. Doors open to every side.",
+            "exits": {
+                "west": "gate",
+                "north": "arms",
+                "south": "keys",
+                "east": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "riven_gossip",
+                    "instance_id": "gossip_riven"
+                }
+            ]
+        },
+        "arms": {
+            "name": "The Armourers' Row",
+            "description": "A wide shop with racks of every sort of arm, run by a man with a loud voice.",
+            "exits": {
+                "south": "street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "riven_armourer",
+                    "instance_id": "armourer_riven"
+                }
+            ]
+        },
+        "keys": {
+            "name": "The Locksmith's",
+            "description": "A small, bright shop of hooks and boards, hung with keys of brass in rows.",
+            "exits": {
+                "north": "street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "riven_locksmith",
+                    "instance_id": "locksmith_riven"
+                }
+            ]
+        },
+        "inn": {
+            "name": "The Sign of the Pilgrim",
+            "description": "A big, busy inn, always a little too warm. The landlord keeps a narrow door at the back that is always shut.",
+            "exits": {
+                "west": "street",
+                "north": "back_room"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "riven_innkeeper",
+                    "instance_id": "innkeeper_riven"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The door at the back of the inn is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "back_room": {
+            "name": "The Inn's Back Room",
+            "description": "A cramped back room behind a locked door, holding a stack of crates and a second locked door.",
+            "exits": {
+                "south": "inn",
+                "north": "strongroom"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A second door, locked as well. Another key."
+                    }
+                }
+            }
+        },
+        "strongroom": {
+            "name": "The Strongroom",
+            "description": "A tiny, dry strongroom, locked twice over. A small chest stands on a stand.",
+            "exits": {
+                "south": "back_room"
+            },
+            "items": [
+                {
+                    "item_id": "chest_rivenhal_feather"
+                }
+            ]
+        },
+        "elder": {
+            "name": "The Scholar's House",
+            "description": "A house crowded with maps and pots of ink. An elderly scholar peers over a half-finished chart.",
+            "exits": {
+                "south": "gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "riven_scholar",
+                    "instance_id": "scholar_riven"
+                }
+            ]
+        }
+    }
+}

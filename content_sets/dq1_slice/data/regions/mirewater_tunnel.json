@@ -90,7 +90,8 @@
             "name": "The Southern Mouth",
             "description": "A ragged hole in the hillside, with daylight beyond it and a very different country.",
             "exits": {
-                "north": "t_pass3"
+                "north": "t_pass3",
+                "south": "fenlands:fn_0_2"
             }
         }
     }

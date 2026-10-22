@@ -1,0 +1,30 @@
+{
+    "sagehollow": {
+        "region": "sagehollow",
+        "rooms": [
+            "s_gallery"
+        ],
+        "chance": 0.25,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "gaunt_wraith",
+                "weight": 1
+            },
+            {
+                "npc": "crag_wyvern",
+                "weight": 2
+            },
+            {
+                "npc": "packlord",
+                "weight": 1
+            },
+            {
+                "npc": "gilded_husk",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes up out of the shadow!",
+        "note": "The twelfth group, in the Southern Cave."
+    }
+}

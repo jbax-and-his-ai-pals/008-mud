@@ -1,0 +1,36 @@
+{
+    "id": "inn_rivenhal",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "A bed is fifty-five gold, and you can have it with a hot meal if you do not mind the noise.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Pay the 55 gold and take a bed.",
+                    "next_node": "slept",
+                    "effects": {
+                        "take_gold": 55,
+                        "restore": {
+                            "resource": "all"
+                        },
+                        "message": "You sleep deeply and wake with every hurt eased."
+                    },
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 55
+                    }
+                },
+                {
+                    "text": "Not tonight.",
+                    "end": true
+                }
+            ]
+        },
+        "slept": {
+            "text": "Safe road.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

@@ -321,6 +321,47 @@ out = say("use elowen's locket")
 check("the locket tells how far Telgard is", "steps behind" in out, out[:120])
 check("and is not used up", "item_elowens_locket" in g.items(), "")
 
+
+# ============================================================ the south-east: the stones, Rivenhal and the sage
+goto("telgard:sunstone_vault")
+take_from("stone casket")
+check("the sunstones under the castle", "item_sunstones" in g.items() and "item_brass_key" in [i for i in g.items()] or "item_sunstones" in g.items(), g.items())
+
+goto("mirewater_tunnel:t_exit")
+check("out of the tunnel's southern mouth", g.where() == "mirewater_tunnel:t_exit", g.where())
+check("the fenlands beyond", goto("fenlands:fn_2_2") == "fenlands:fn_2_2", g.where())
+goto("rivenhal:gate")
+check("Rivenhal", g.where() == "rivenhal:gate", g.where())
+goto("rivenhal:keys")
+say("trade locksmith")
+listing = say("list")
+check("the locksmith sells brass keys", "brass key" in listing, listing[:120])
+before = gold()
+g.player.runtime_state.gold = max(gold(), 200)
+before = gold()
+say("buy brass key")
+say("stoptrade")
+check("a key costs about fifty-two", 50 <= before - gold() <= 54, before - gold())
+goto("rivenhal:strongroom")
+take_from("inner chest")
+check("two locked doors and the inn's inner chest hold a homing feather", "item_homing_feather" in g.items(), g.items())
+goto("rivenhal:arms")
+say("trade armourer")
+listing = say("list")
+check("the armourer sells spellwoven mail and a plate harness", "spellwoven mail" in listing and "plate harness" in listing, listing[:200])
+say("stoptrade")
+
+# the sage and the prism
+goto("sagehollow:s_hall")
+out = say("talk sage")
+check("without the three things the sage only waits", "item_prism_tear" not in g.items(), out[:100])
+give("item_ostruns_signet")
+g.player.inventory.add_item(ItemFactory.create_item_from_template("item_cloudcallers_staff", g.world)) if "item_cloudcallers_staff" not in g.items() else None
+out = say("talk sage")
+say("reply 1")
+check("with the sunstones, the staff and the signet he makes the prism",
+      "item_prism_tear" in g.items() and not ({"item_sunstones", "item_cloudcallers_staff", "item_ostruns_signet"} & set(g.items())), g.items())
+
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])
 g.close()

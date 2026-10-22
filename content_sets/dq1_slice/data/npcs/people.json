@@ -812,5 +812,176 @@
             "unique": true,
             "dialogue": "elowen_court"
         }
+    },
+    "riven_guard": {
+        "name": "a gate guard",
+        "description": "A broad guard with a salt-cracked face.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Welcome to Rivenhal. Keys are cheap here, and doors are everywhere. Mind the inn's back rooms; the landlord guards them like gold."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "riven_gossip": {
+        "name": "a carter",
+        "description": "A man with a rope over his shoulder and a long face.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The sunstones? Under the king's own castle, if you want my guess. The old Lightbearer put the first of them there. A door below the cellar, and you'll want a key for it."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "riven_armourer": {
+        "name": "the armourer",
+        "description": "A red-faced man with an immense voice.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Best steel on the south road, and I'll tell you so as often as you like!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_bronze_blade"
+                },
+                {
+                    "item_id": "item_woodsmans_axe"
+                },
+                {
+                    "item_id": "item_longblade"
+                },
+                {
+                    "item_id": "item_half_harness"
+                },
+                {
+                    "item_id": "item_plate_harness"
+                },
+                {
+                    "item_id": "item_spellwoven_mail"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "riven_locksmith": {
+        "name": "the locksmith",
+        "description": "A neat young man with a ring of keys at his belt and no sign of nerves at all.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Fifty-two gold the key, and every one a good one. Buy a handful. You will use them."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_brass_key"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "riven_innkeeper": {
+        "name": "the landlord",
+        "description": "A big, calm man in a clean apron.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "inn_rivenhal"
+        }
+    },
+    "riven_scholar": {
+        "name": "the scholar",
+        "description": "An elderly man, ink on his cuffs.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Ostrun left three things for his heir. Two are easy enough to find if you know where to dig. The third, the signet, lies in the great fen south of the walled city, and only the princess's locket will show you how far you are from the castle, step by step, as you walk it. Count carefully."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "last_sage": {
+        "name": "the last sage",
+        "description": "A very old man in a plain robe, who looks as though he is made of paper and patience.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "sage_prism"
+        }
     }
 }

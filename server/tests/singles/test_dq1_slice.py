@@ -278,5 +278,52 @@ class TestTheEast(Base):
         self.assertEqual({"pale_shade", "hedge_mage", "dune_stinger", "bog_imp"}, {m["npc"] for m in zones["mirewater"]["monsters"]})
 
 
+class TestTheSouthEast(Base):
+    def _held(self, item_id):
+        return any(slot.item and slot.item.obj_id == item_id for slot in self.player.inventory.slots)
+
+    def _give(self, item_id):
+        from engine.items.item_factory import ItemFactory
+
+        self.player.inventory.add_item(ItemFactory.create_item_from_template(item_id, self.world))
+
+    def test_rivenhal_sells_keys_and_the_best_buyable_arms(self):
+        keys = {e["item_id"] for e in self.world.npc_templates["riven_locksmith"]["properties"]["sells_items"]}
+        arms = {e["item_id"] for e in self.world.npc_templates["riven_armourer"]["properties"]["sells_items"]}
+        self.assertEqual({"item_brass_key"}, keys)
+        self.assertEqual({"item_bronze_blade", "item_woodsmans_axe", "item_longblade", "item_half_harness", "item_plate_harness", "item_spellwoven_mail"}, arms)
+
+    def test_the_inns_inner_chest_is_behind_two_locked_doors(self):
+        self.at("rivenhal", "inn")
+        self.assertIn("locked", self.say("go north").lower())
+        self._give("item_brass_key")
+        self.say("go north")
+        self.assertEqual("rivenhal:back_room", self.where())
+        self.assertIn("locked", self.say("go north").lower())
+        self._give("item_brass_key")
+        self.say("go north")
+        self.assertEqual("rivenhal:strongroom", self.where())
+
+    def test_the_sage_makes_the_prism_only_from_all_three_things(self):
+        self.at("sagehollow", "s_hall")
+        self.player.apply_effect({"type": "status", "name": "Torchlight", "tags": ["light"], "base_duration": 100}, 0.0)
+        for item in ("item_sunstones", "item_cloudcallers_staff"):
+            self._give(item)
+        self.say("talk sage")
+        self.assertFalse(self._held("item_prism_tear"), "two of three is not enough")
+        self._give("item_ostruns_signet")
+        self.say("talk sage")
+        self.say("reply 1")
+        self.assertTrue(self._held("item_prism_tear"))
+        self.assertFalse(self._held("item_sunstones") or self._held("item_cloudcallers_staff") or self._held("item_ostruns_signet"))
+        self.assertIs(True, self.player.flags.get("prism_made"))
+
+    def test_the_fens_creatures_are_the_originals_eighth_tenth_eleventh_and_twelfth_groups(self):
+        zones = self.world.encounters.zones
+        self.assertEqual({"hexwing", "dune_stinger", "bone_walker", "hexer", "grey_wolf"}, {m["npc"] for m in zones["fenlands_north"]["monsters"]})
+        self.assertEqual({"iron_stinger", "gaunt_wraith", "packlord", "gilded_husk"}, {m["npc"] for m in zones["fenlands_south"]["monsters"]})
+        self.assertEqual({"gaunt_wraith", "crag_wyvern", "packlord", "gilded_husk"}, {m["npc"] for m in zones["sagehollow"]["monsters"]})
+
+
 if __name__ == "__main__":
     unittest.main()

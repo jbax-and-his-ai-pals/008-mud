@@ -1,0 +1,291 @@
+{
+    "region_id": "fenlands",
+    "name": "The Fenlands",
+    "description": "The wide country past the Mirewater Tunnel: marsh to the north, heath to the south, and the trading town of Rivenhal in the middle of it.",
+    "properties": {
+        "outdoors": true,
+        "biome": "plain"
+    },
+    "rooms": {
+        "fn_0_0": {
+            "name": "Tunnel Fen",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. The tunnel country is behind you to the north.",
+            "exits": {
+                "east": "fn_0_1",
+                "south": "fn_1_0"
+            }
+        },
+        "fn_0_1": {
+            "name": "Reedwater",
+            "description": "A low, tussocky country of standing water and old cart tracks. The tunnel country is behind you to the north.",
+            "exits": {
+                "west": "fn_0_0",
+                "east": "fn_0_2",
+                "south": "fn_1_1"
+            }
+        },
+        "fn_0_2": {
+            "name": "The Southern Mouth",
+            "description": "The tunnel lets you out onto a wide, wet plain under a low sky. A black arch behind you leads back into the mire. To the south, a town's walls show faintly through the mist.",
+            "exits": {
+                "west": "fn_0_1",
+                "east": "fn_0_3",
+                "south": "fn_1_2",
+                "north": "mirewater_tunnel:t_exit"
+            }
+        },
+        "fn_0_3": {
+            "name": "Sallow Mere",
+            "description": "Scattered stones, grass, and the occasional hunched tree. The tunnel country is behind you to the north.",
+            "exits": {
+                "west": "fn_0_2",
+                "east": "fn_0_4",
+                "south": "fn_1_3"
+            }
+        },
+        "fn_0_4": {
+            "name": "Dun Water",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. The tunnel country is behind you to the north.",
+            "exits": {
+                "west": "fn_0_3",
+                "south": "fn_1_4"
+            }
+        },
+        "fn_1_0": {
+            "name": "Mist Bank",
+            "description": "Dry heath and thistle, the wind never still. The tunnel country is behind you to the north.",
+            "exits": {
+                "north": "fn_0_0",
+                "east": "fn_1_1",
+                "south": "fn_2_0"
+            }
+        },
+        "fn_1_1": {
+            "name": "Crane Flats",
+            "description": "Scattered stones, grass, and the occasional hunched tree. The tunnel country is behind you to the north.",
+            "exits": {
+                "north": "fn_0_1",
+                "west": "fn_1_0",
+                "east": "fn_1_2",
+                "south": "fn_2_1"
+            }
+        },
+        "fn_1_2": {
+            "name": "Tallow Marsh",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. The tunnel country is behind you to the north.",
+            "exits": {
+                "north": "fn_0_2",
+                "west": "fn_1_1",
+                "east": "fn_1_3",
+                "south": "fn_2_2"
+            }
+        },
+        "fn_1_3": {
+            "name": "Sedge Ford",
+            "description": "A low, tussocky country of standing water and old cart tracks. The tunnel country is behind you to the north.",
+            "exits": {
+                "north": "fn_0_3",
+                "west": "fn_1_2",
+                "east": "fn_1_4",
+                "south": "fn_2_3"
+            }
+        },
+        "fn_1_4": {
+            "name": "Greywater",
+            "description": "Dry heath and thistle, the wind never still. The tunnel country is behind you to the north.",
+            "exits": {
+                "north": "fn_0_4",
+                "west": "fn_1_3",
+                "south": "fn_2_4"
+            }
+        },
+        "fn_2_0": {
+            "name": "Wind Hollow",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_1_0",
+                "east": "fn_2_1",
+                "south": "fn_3_0"
+            }
+        },
+        "fn_2_1": {
+            "name": "Heron Strand",
+            "description": "A low, tussocky country of standing water and old cart tracks. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_1_1",
+                "west": "fn_2_0",
+                "east": "fn_2_2",
+                "south": "fn_3_1"
+            }
+        },
+        "fn_2_2": {
+            "name": "Rivenhal Gate",
+            "description": "The road ends at the walls of Rivenhal, a trading town of brick and tar, with its gate open on the east.",
+            "exits": {
+                "north": "fn_1_2",
+                "west": "fn_2_1",
+                "east": "rivenhal:gate",
+                "south": "fn_3_2"
+            }
+        },
+        "fn_2_3": {
+            "name": "Salt Meadow",
+            "description": "Scattered stones, grass, and the occasional hunched tree. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_1_3",
+                "west": "fn_2_2",
+                "east": "fn_2_4",
+                "south": "fn_3_3"
+            }
+        },
+        "fn_2_4": {
+            "name": "Pilgrim's Walk",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_1_4",
+                "west": "fn_2_3",
+                "south": "fn_3_4"
+            }
+        },
+        "fn_3_0": {
+            "name": "Drover's Rest",
+            "description": "Dry heath and thistle, the wind never still. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_2_0",
+                "east": "fn_3_1",
+                "south": "fn_4_0"
+            }
+        },
+        "fn_3_1": {
+            "name": "Low Pasture",
+            "description": "Scattered stones, grass, and the occasional hunched tree. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_2_1",
+                "west": "fn_3_0",
+                "east": "fn_3_2",
+                "south": "fn_4_1"
+            }
+        },
+        "fn_3_2": {
+            "name": "Standing Stones",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_2_2",
+                "west": "fn_3_1",
+                "east": "fn_3_3",
+                "south": "fn_4_2"
+            }
+        },
+        "fn_3_3": {
+            "name": "Barley Sward",
+            "description": "A low, tussocky country of standing water and old cart tracks. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_2_3",
+                "west": "fn_3_2",
+                "east": "fn_3_4",
+                "south": "fn_4_3"
+            }
+        },
+        "fn_3_4": {
+            "name": "The Old Causeway",
+            "description": "Dry heath and thistle, the wind never still. Rivenhal's walls are near.",
+            "exits": {
+                "north": "fn_2_4",
+                "west": "fn_3_3",
+                "south": "fn_4_4"
+            }
+        },
+        "fn_4_0": {
+            "name": "Grey Stretch",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_3_0",
+                "east": "fn_4_1",
+                "south": "fn_5_0"
+            }
+        },
+        "fn_4_1": {
+            "name": "Cinder Heath",
+            "description": "A low, tussocky country of standing water and old cart tracks. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_3_1",
+                "west": "fn_4_0",
+                "east": "fn_4_2",
+                "south": "fn_5_1"
+            }
+        },
+        "fn_4_2": {
+            "name": "Hollow Road",
+            "description": "Dry heath and thistle, the wind never still. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_3_2",
+                "west": "fn_4_1",
+                "east": "fn_4_3",
+                "south": "fn_5_2"
+            }
+        },
+        "fn_4_3": {
+            "name": "Long Dry Marsh",
+            "description": "Scattered stones, grass, and the occasional hunched tree. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_3_3",
+                "west": "fn_4_2",
+                "east": "fn_4_4",
+                "south": "fn_5_3"
+            }
+        },
+        "fn_4_4": {
+            "name": "Sagehollow Rise",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_3_4",
+                "west": "fn_4_3",
+                "south": "fn_5_4"
+            }
+        },
+        "fn_5_0": {
+            "name": "The Southern Reach",
+            "description": "Dry heath and thistle, the wind never still. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_4_0",
+                "east": "fn_5_1"
+            }
+        },
+        "fn_5_1": {
+            "name": "Cold Meadow",
+            "description": "Scattered stones, grass, and the occasional hunched tree. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_4_1",
+                "west": "fn_5_0",
+                "east": "fn_5_2"
+            }
+        },
+        "fn_5_2": {
+            "name": "Last Ditch",
+            "description": "Flat wet ground and tall reeds under a wide, pale sky. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_4_2",
+                "west": "fn_5_1",
+                "east": "fn_5_3"
+            }
+        },
+        "fn_5_3": {
+            "name": "Bare Ridge",
+            "description": "A low, tussocky country of standing water and old cart tracks. The land climbs and thins, and the sea is somewhere beyond it.",
+            "exits": {
+                "north": "fn_4_3",
+                "west": "fn_5_2",
+                "east": "fn_5_4"
+            }
+        },
+        "fn_5_4": {
+            "name": "The Sunken Door",
+            "description": "A bare, cold rise with a stone stair going down into the ground, and a worn path leading to it. This is the way to the Sagehollow.",
+            "exits": {
+                "north": "fn_4_4",
+                "west": "fn_5_3",
+                "down": "sagehollow:s_mouth"
+            }
+        }
+    }
+}
