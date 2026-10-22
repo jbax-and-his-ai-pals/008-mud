@@ -1,0 +1,27 @@
+{
+    "id": "fairy_mend",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "Oh, you are hurt. Come into the light.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Be healed.",
+                    "next_node": "done",
+                    "effects": {
+                        "restore": {
+                            "resource": "all"
+                        },
+                        "message": "A warmth moves through you, and every wound closes."
+                    }
+                }
+            ]
+        },
+        "done": {
+            "text": "Go well, and come again when you need to.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

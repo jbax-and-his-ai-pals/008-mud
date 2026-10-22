@@ -159,11 +159,59 @@
             "name": "A Small Island",
             "description": "A hump of rock and grass in the middle of the lake, with a single crooked tree. Something red glows in the roots of it.",
             "exits": {
-                "west": "ae_1_1"
+                "west": "ae_1_1",
+                "north": "ae_far_shore"
             },
             "items": [
                 {
                     "item_id": "item_heart_container"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_raft",
+                        "pick_difficulty": 999,
+                        "failure_message": "The water to the north is too wide and too cold to wade. A raft would carry you."
+                    }
+                }
+            }
+        },
+        "ae_far_shore": {
+            "name": "The Far Shore",
+            "description": "A grey strand under a ring of dead pines. A great coiled snake is carved in the rock above a dark doorway.",
+            "exits": {
+                "south": "ae_island",
+                "in": "adders_coil:c_entrance",
+                "east": "ae_far_dock"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "locked",
+                        "key_id": "item_raft",
+                        "pick_difficulty": 999,
+                        "failure_message": "The water to the south is too wide and too cold to wade. A raft would carry you."
+                    },
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_ladder",
+                        "pick_difficulty": 999,
+                        "failure_message": "A black gap of water, wider than you can jump and narrower than a boat. A ladder laid across it would do."
+                    }
+                }
+            }
+        },
+        "ae_far_dock": {
+            "name": "The Far Dock",
+            "description": "A broken dock jutting into a bay nobody visits. At the end of it something red glows on the planks.",
+            "exits": {
+                "west": "ae_far_shore"
+            },
+            "items": [
+                {
+                    "item_id": "item_dock_heart"
                 }
             ]
         }

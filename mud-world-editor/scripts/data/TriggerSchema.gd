@@ -7,7 +7,7 @@
 # a headless check must not depend on the editor having scanned a new class.
 extends RefCounted
 
-const EVENTS := ["on_enter", "npc_killed", "room_cleared", "item_taken", "health_below", "searched"]
+const EVENTS := ["on_enter", "npc_killed", "room_cleared", "item_taken", "item_used", "health_below", "searched"]
 # The fields each event's `on` may carry, and the ones it needs (`region` and `room`
 # always come as a pair). Mirrors `engine/world/triggers.py`.
 const EVENT_FIELDS := {
@@ -15,6 +15,7 @@ const EVENT_FIELDS := {
 	"npc_killed": ["npc", "region", "room"],
 	"room_cleared": ["region", "room"],
 	"item_taken": ["item", "region", "room"],
+	"item_used": ["item", "region", "room"],
 	"health_below": ["who", "fraction", "region", "room"],
 	"searched": ["region", "room"],
 }
@@ -23,6 +24,7 @@ const EVENT_REQUIRED := {
 	"npc_killed": ["npc"],
 	"room_cleared": ["region", "room"],
 	"item_taken": ["item"],
+	"item_used": ["item"],
 	"health_below": ["who", "fraction"],
 	"searched": ["region", "room"],
 }
@@ -31,6 +33,7 @@ const EVENT_LABELS := {
 	"npc_killed": "a creature is killed",
 	"room_cleared": "the last enemy in a room dies",
 	"item_taken": "the player picks up an item",
+	"item_used": "the player uses an item (in a place, if one is named)",
 	"health_below": "someone is struck down past a share of their health",
 	"searched": "the player searches a room",
 }

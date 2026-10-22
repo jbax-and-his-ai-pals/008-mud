@@ -24,7 +24,7 @@
                 "chance": 0.5,
                 "quantity": [
                     1,
-                    2
+                    5
                 ]
             },
             "item_recovery_heart": {
@@ -74,7 +74,7 @@
                 "chance": 0.6,
                 "quantity": [
                     2,
-                    5
+                    12
                 ]
             },
             "item_recovery_heart": {
@@ -124,7 +124,7 @@
                 "chance": 0.3,
                 "quantity": [
                     1,
-                    1
+                    2
                 ]
             },
             "item_recovery_heart": {
@@ -170,7 +170,7 @@
                 "chance": 0.6,
                 "quantity": [
                     1,
-                    3
+                    7
                 ]
             },
             "item_bomb": {
@@ -219,7 +219,7 @@
                 "chance": 0.3,
                 "quantity": [
                     1,
-                    1
+                    2
                 ]
             },
             "item_bomb": {
@@ -265,7 +265,7 @@
                 "chance": 0.7,
                 "quantity": [
                     2,
-                    5
+                    12
                 ]
             },
             "item_recovery_heart": {
@@ -393,7 +393,7 @@
                 "chance": 0.5,
                 "quantity": [
                     1,
-                    3
+                    7
                 ]
             },
             "item_recovery_heart": {
@@ -439,7 +439,7 @@
                 "chance": 0.6,
                 "quantity": [
                     1,
-                    4
+                    10
                 ]
             },
             "item_recovery_heart": {
@@ -485,7 +485,7 @@
                 "chance": 0.5,
                 "quantity": [
                     1,
-                    2
+                    5
                 ]
             },
             "item_bomb": {
@@ -531,7 +531,7 @@
                 "chance": 0.5,
                 "quantity": [
                     1,
-                    3
+                    7
                 ]
             },
             "item_recovery_heart": {
@@ -582,7 +582,7 @@
                 "chance": 0.8,
                 "quantity": [
                     3,
-                    8
+                    20
                 ]
             },
             "item_recovery_heart": {
@@ -716,5 +716,574 @@
             ],
             "shield_text": "{attacker} swings at {defender}, but the four mouths lunge across the blow and snap it aside."
         }
+    },
+    "horned_centaur": {
+        "name": "horned centaur",
+        "description": "A man-bodied thing on a horse's legs, with a bull's horns and a spear it throws and catches again.",
+        "max_health": 28,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    3,
+                    10
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.12
+            },
+            "item_bomb": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        },
+        "usable_spells": [
+            "hurl_whirlwing"
+        ],
+        "max_mana": 100
+    },
+    "revenant": {
+        "name": "revenant",
+        "description": "A grey figure that comes up out of a grave without disturbing the earth. It does not hurry.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.6,
+                "quantity": [
+                    2,
+                    6
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.12
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        }
+    },
+    "hexer": {
+        "name": "hexer",
+        "description": "A hooded caster in a blue-grey robe that flickers in and out of the air, always a little nearer, and never where you struck.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    3,
+                    8
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.15
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0.6,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "phases": [
+                {
+                    "name": "here",
+                    "seconds": 8,
+                    "message": "[[CYAN]]The hexer steps out of the air.[[/]]"
+                },
+                {
+                    "name": "gone",
+                    "seconds": 6,
+                    "untouchable": true,
+                    "message": "[[CYAN]]The hexer blurs and is gone.[[/]]",
+                    "miss_text": "{attacker} strikes at the place the hexer was, and finds only air."
+                }
+            ]
+        },
+        "usable_spells": [
+            "hexer_bolt"
+        ],
+        "max_mana": 100
+    },
+    "strong_hexer": {
+        "name": "strong hexer",
+        "description": "A hooded caster in a robe the colour of old bone, quick to appear and quicker to vanish.",
+        "max_health": 28,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    5,
+                    12
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.15
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0.6,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "phases": [
+                {
+                    "name": "here",
+                    "seconds": 7,
+                    "message": "[[CYAN]]The hexer steps out of the air.[[/]]"
+                },
+                {
+                    "name": "gone",
+                    "seconds": 6,
+                    "untouchable": true,
+                    "message": "[[CYAN]]The hexer blurs and is gone.[[/]]",
+                    "miss_text": "{attacker} strikes at the place the hexer was, and finds only air."
+                }
+            ]
+        },
+        "usable_spells": [
+            "hexer_bolt_strong"
+        ],
+        "max_mana": 100
+    },
+    "shield_eater": {
+        "name": "shield-eater",
+        "description": "A low, tent-shaped thing of grey flesh that drops over whoever walks under it and swallows what they carry on their arm.",
+        "max_health": 28,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.7,
+                "quantity": [
+                    3,
+                    8
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        },
+        "usable_spells": [
+            "devour_shield"
+        ],
+        "max_mana": 100
+    },
+    "hydra_head": {
+        "name": "hydra head",
+        "description": "A scaled head on a long neck, mouth already smoking.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.5,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        },
+        "usable_spells": [
+            "hydra_flame"
+        ],
+        "max_mana": 100
+    },
+    "hydra": {
+        "name": "the hydra",
+        "description": "A great coiled body with two long necks, the heads of which do all the fighting. The body can be struck only when the heads are down.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "unique": true,
+            "status_immune": true,
+            "shielded_by": [
+                "hydra_head"
+            ],
+            "shield_text": "{attacker} swings at {defender}, but a long neck whips across the blow and the head snaps at the sword."
+        }
+    },
+    "hydra_lesser_head": {
+        "name": "lesser hydra head",
+        "description": "A scaled head on a long neck, smaller than a hydra's own but with the same bad temper.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.4,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        },
+        "usable_spells": [
+            "hydra_flame"
+        ],
+        "max_mana": 100
+    },
+    "hydra_lesser": {
+        "name": "a lesser hydra",
+        "description": "A small coiled body with a single neck, its head already swaying.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "shielded_by": [
+                "hydra_lesser_head"
+            ],
+            "shield_text": "{attacker} swings at {defender}, but the neck whips across the blow."
+        }
+    },
+    "burrowing_eye_large": {
+        "name": "the burrowing eye",
+        "description": "A great round eye the size of a cart, ringed with spines, that rolls and bounds about the room. No blade or blast goes through its lid; it would take something to make it small.",
+        "max_health": 40,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "physical": 100,
+                "missile": 100,
+                "explosive": 100,
+                "fire": 100,
+                "magical": 100
+            }
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3,
+            "unique": true,
+            "status_immune": true
+        }
+    },
+    "burrowing_eye_small": {
+        "name": "a small burrowing eye",
+        "description": "The burrowing eye, shrunk to the size of a boulder by the tune and angry about it.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 14,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2,
+            "unique": true,
+            "status_immune": true
+        }
+    },
+    "great_claw": {
+        "name": "the great claw",
+        "description": "A crab as big as a hay-cart, one huge claw up and one huge eye in the middle of it. Blades are wasted on its shell; only a shaft through the open eye will hurt it.",
+        "max_health": 64,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "physical": 100,
+                "explosive": 100,
+                "magical": 100
+            }
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.4,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "unique": true,
+            "status_immune": true,
+            "phases": [
+                {
+                    "name": "shut",
+                    "seconds": 6,
+                    "untouchable": true,
+                    "message": "[[RED]]The great claw shuts its eye.[[/]]",
+                    "miss_text": "{attacker} strikes at the great claw, and the blow rings off a shell that nothing can enter."
+                },
+                {
+                    "name": "open",
+                    "seconds": 6,
+                    "message": "[[RED]]The great claw opens its eye, wide and wet.[[/]]"
+                }
+            ]
+        },
+        "usable_spells": [
+            "claw_flame"
+        ],
+        "max_mana": 100
     }
 }

@@ -300,5 +300,137 @@ class TestThePinwheel(Base):
         self.assertEqual(1, self.player.inventory.count_item("item_shard_3"))
 
 
+class TestTheNorthAndTheLostHills(Base):
+    def test_the_lost_hills_take_five_steps_up_and_turn_you_round_for_a_step_aside(self):
+        self.at("lost_hills", "h0")
+        for _ in range(2):
+            self.say("go north")
+        self.say("go east")
+        self.assertEqual("lost_hills:h0", self.where())
+        for _ in range(5):
+            self.say("go north")
+        self.assertEqual("lost_hills:h5", self.where())
+        self.say("go in")
+        self.assertEqual("gecko_halls:g_entrance", self.where())
+
+    def test_a_blue_candle_burns_the_bush_away_once_and_the_heart_under_it_is_taken_once(self):
+        self.give("item_blue_candle")
+        self.at("ardenmoor_north", "an_1_2")
+        self.say("go in")
+        self.assertEqual("ardenmoor_north:an_1_2", self.where())
+        self.assertIn("goes up", self.say("use blue candle"))
+        self.assertIn("already burns", self.say("use blue candle"))
+        self.say("go in")
+        self.say("take heart container")
+        self.assertEqual(4 * HEART, self.player.max_health)
+
+    def test_the_reed_pipe_opens_the_pool_and_only_the_pool(self):
+        self.give("item_reed_pipe")
+        self.at("ardenmoor_north", "an_0_0")
+        self.say("use reed pipe")
+        self.assertNotIn("in", self.world.get_region("ardenmoor_north").get_room("an_1_1").exits)
+        self.at("ardenmoor_north", "an_1_1")
+        self.assertIn("stair of wet stone", self.say("use reed pipe"))
+        self.say("go in")
+        self.assertEqual("ardenmoor_north:fairy_pool", self.where())
+
+    def test_the_fairy_mends_every_wound(self):
+        self.at("ardenmoor_north", "fairy_pool")
+        self.player.health = 3
+        self.say("talk fairy")
+        self.say("reply 1")
+        self.assertEqual(self.player.max_health, self.player.health)
+
+    def test_the_magical_shield_and_the_bomb_bag_cost_what_the_original_asks(self):
+        self.player.runtime_state.gold = 1000
+        self.at("ardenmoor_north", "shield_shop")
+        self.say("trade old man")
+        self.say("buy magical shield")
+        self.assertEqual(1000 - 130, self.player.runtime_state.gold)
+        self.at("gecko_halls", "g_shop")
+        self.say("trade old man")
+        self.say("buy bomb bag")
+        self.assertEqual(1000 - 130 - 100, self.player.runtime_state.gold)
+        self.give("item_bomb", 12)
+        self.assertEqual(12, self.player.inventory.count_item("item_bomb"))
+
+
+class TestTheShieldEater(Base):
+    def _devour(self):
+        from engine.magic.spell_registry import get_spell
+        from engine.npcs import combat as npc_combat
+
+        self.at("wyvern_deep", "w_east")
+        eater = self.foes("shield_eater")[0]
+        return npc_combat.cast_spell(eater, get_spell("devour_shield"), self.player, 1000.0)
+
+    def test_it_swallows_the_magical_shield_and_the_shield_is_gone(self):
+        self.give("item_magic_shield")
+        self.say("equip magical shield")
+        self.assertEqual("item_magic_shield", self.player.equipment["off_hand"].obj_id)
+        result = self._devour()
+        self.assertIsNone(self.player.equipment.get("off_hand"))
+        self.assertEqual(0, self.player.inventory.count_item("item_magic_shield"))
+        self.assertIn("magical shield is gone", result["message"])
+
+    def test_the_small_shield_is_not_to_its_taste_and_nothing_is_said_of_it(self):
+        result = self._devour()
+        self.assertEqual("item_small_shield", self.player.equipment["off_hand"].obj_id)
+        self.assertNotIn("Nothing happens", result["message"])
+
+
+class TestTheThreeMoreBosses(Base):
+    def test_the_hydras_body_waits_for_both_heads(self):
+        from engine.core.combat_system import CombatSystem
+
+        self.at("adders_coil", "c_boss")
+        body = self.foes("hydra")[0]
+        self.assertIn("neck", CombatSystem.execute_attack(self.player, body, 50, always_hit=True)["message"])
+        for head in self.foes("hydra_head"):
+            head.take_damage(10 ** 5, "physical")
+        self.assertGreater(CombatSystem.execute_attack(self.player, body, 50, always_hit=True)["damage"], 0)
+
+    def test_nothing_hurts_the_great_eye_until_the_pipe_makes_it_small(self):
+        self.at("gecko_halls", "g_boss")
+        eye = self.foes("burrowing_eye_large")[0]
+        for kind in ("physical", "missile", "explosive", "fire", "magical"):
+            self.assertEqual(0, eye.take_damage(100, kind), kind)
+        self.give("item_reed_pipe")
+        self.say("use reed pipe")
+        self.assertFalse(eye.is_alive)
+        small = self.foes("burrowing_eye_small")
+        self.assertEqual(1, len(small))
+        self.assertGreater(small[0].take_damage(8, "physical"), 0)
+
+    def test_the_small_eye_gives_the_fifth_shard(self):
+        self.at("gecko_halls", "g_boss")
+        self.give("item_reed_pipe")
+        self.say("use reed pipe")
+        self.world.dispatch_event("npc_killed", {"player": self.player, "npc": self.foes("burrowing_eye_small")[0]})
+        self.assertEqual(1, self.player.inventory.count_item("item_shard_5"))
+
+    def test_the_great_claw_takes_only_a_shaft_and_only_through_its_open_eye(self):
+        self.at("wyvern_deep", "w_boss")
+        claw = self.foes("great_claw")[0]
+        self.assertEqual(0, claw.take_damage(100, "physical"))
+        self.assertEqual(0, claw.take_damage(100, "explosive"))
+        phases = [p["name"] for p in claw.properties["phases"]]
+        self.assertEqual(["shut", "open"], phases)
+        self.assertTrue(claw.properties["phases"][0]["untouchable"])
+        self.assertGreater(claw.take_damage(16, "missile"), 0)
+
+    def test_a_hexer_is_there_and_gone_in_turn(self):
+        hexer = self.world.npc_templates["hexer"]["properties"]["phases"]
+        self.assertEqual([False, True], [bool(p.get("untouchable")) for p in hexer])
+
+    def test_a_ladder_crosses_the_gap_to_the_far_dock_and_is_not_used_up(self):
+        self.at("ardenmoor_east", "ae_far_shore")
+        self.assertIn("ladder", self.say("go east").lower())
+        self.give("item_ladder")
+        self.say("go east")
+        self.assertEqual("ardenmoor_east:ae_far_dock", self.where())
+        self.assertEqual(1, self.player.inventory.count_item("item_ladder"))
+
+
 if __name__ == "__main__":
     unittest.main()

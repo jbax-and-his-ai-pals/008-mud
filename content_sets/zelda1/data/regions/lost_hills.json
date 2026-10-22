@@ -1,0 +1,71 @@
+{
+    "region_id": "lost_hills",
+    "name": "The Lost Hills",
+    "description": "Hills lost in mist. Five steps up lead to the top; any step aside lets the mist turn you round.",
+    "rooms": {
+        "h0": {
+            "name": "The Foot of the Hills",
+            "description": "Low hills in a thick, wet mist. Every way looks the same as every other, and the ground is soft underfoot.",
+            "exits": {
+                "out": "ardenmoor_north:an_0_0",
+                "north": "h1"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_lost",
+                    "instance_id": "old_man_lost"
+                }
+            ]
+        },
+        "h1": {
+            "name": "Lost in the Hills",
+            "description": "The mist is so thick that you cannot see your own hands. Somewhere above you the ground rises.",
+            "exits": {
+                "south": "h0",
+                "east": "h0",
+                "west": "h0",
+                "north": "h2"
+            }
+        },
+        "h2": {
+            "name": "Lost in the Hills",
+            "description": "The mist is so thick that you cannot see your own hands. Somewhere above you the ground rises.",
+            "exits": {
+                "south": "h1",
+                "east": "h0",
+                "west": "h0",
+                "north": "h3"
+            }
+        },
+        "h3": {
+            "name": "Lost in the Hills",
+            "description": "The mist is so thick that you cannot see your own hands. Somewhere above you the ground rises.",
+            "exits": {
+                "south": "h2",
+                "east": "h0",
+                "west": "h0",
+                "north": "h4"
+            }
+        },
+        "h4": {
+            "name": "Lost in the Hills",
+            "description": "The mist is so thick that you cannot see your own hands. Somewhere above you the ground rises.",
+            "exits": {
+                "south": "h3",
+                "east": "h0",
+                "west": "h0",
+                "north": "h5"
+            }
+        },
+        "h5": {
+            "name": "The Hilltop",
+            "description": "The mist thins at last. A low, round door stands in the hillside, with a lizard carved over it.",
+            "exits": {
+                "south": "h4",
+                "east": "h0",
+                "west": "h0",
+                "in": "gecko_halls:g_entrance"
+            }
+        }
+    }
+}

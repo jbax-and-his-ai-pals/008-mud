@@ -121,7 +121,11 @@ def use_handler(args, context):
              if remaining is not None:
                   remaining.update_property("uses", remaining.get_property("max_uses", 1))
 
-        return f"{FORMAT_HIGHLIGHT}{res}{FORMAT_RESET}"
+        # What using it sets off in this place (a pipe played at the foot of a hill): `item_used` triggers.
+        runner = getattr(world, "trigger_runner", None)
+        extra = runner.fire_item_used(player, item) if runner is not None else []
+        tail = ("\n\n" + "\n\n".join(line for line in extra if line)) if extra else ""
+        return f"{FORMAT_HIGHLIGHT}{res}{FORMAT_RESET}{tail}"
 
     except Exception as e:
         return f"{FORMAT_ERROR}Failed to use item: {e}{FORMAT_RESET}"

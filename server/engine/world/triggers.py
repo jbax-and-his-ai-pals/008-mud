@@ -24,6 +24,8 @@ Three events fire a trigger:
     room_cleared  the last living hostile in `region`/`room` is gone.
     item_taken    the player picks up `item` (a template id), optionally only in `region`/`room`:
                   the crystal on its altar, the key in the cell.
+    item_used     the player uses `item` (a template id), optionally only in `region`/`room`: a pipe played at the
+                  foot of a hill, a lantern lit at the door. The item does what it does; this adds what the place does.
     health_below  `who` ("player", or an NPC's template or placed id) is struck down past `fraction` of
                   its health (0 to 1), optionally only in `region`/`room`: the duel the hero cannot win,
                   the boss that yields at half. It fires as the line is crossed, once per crossing.
@@ -55,12 +57,13 @@ TRIGGERS_DIRECTORY = "triggers"
 
 # The events a trigger can be `on`, the fields each event's `on` may carry, and the ones it
 # needs. `region` and `room` always come as a pair. `TriggerSchema.gd` is the editor's copy.
-TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared", "item_taken", "health_below", "searched")
+TRIGGER_EVENTS = ("on_enter", "npc_killed", "room_cleared", "item_taken", "item_used", "health_below", "searched")
 EVENT_FIELDS = {
     "on_enter": ("region", "room"),
     "npc_killed": ("npc", "region", "room"),
     "room_cleared": ("region", "room"),
     "item_taken": ("item", "region", "room"),
+    "item_used": ("item", "region", "room"),
     "health_below": ("who", "fraction", "region", "room"),
     "searched": ("region", "room"),
 }
@@ -69,6 +72,7 @@ EVENT_REQUIRED = {
     "npc_killed": ("npc",),
     "room_cleared": ("region", "room"),
     "item_taken": ("item",),
+    "item_used": ("item",),
     "health_below": ("who", "fraction"),
     "searched": ("region", "room"),
 }
@@ -160,6 +164,23 @@ class TriggerRunner:
         for trigger_id, definition in self.triggers.items():
             on = definition.get("on")
             if not isinstance(on, dict) or on.get("event") != "item_taken":
+                continue
+            if on.get("item") != getattr(item, "obj_id", None):
+                continue
+            if "region" in on and (on.get("region"), on.get("room")) != (region_id, room_id):
+                continue
+            lines.extend(self._run(trigger_id, definition, player))
+        return lines
+
+    def fire_item_used(self, player, item) -> List[str]:
+        """The lines for the player having just used `item`, wherever they stand."""
+        lines: List[str] = []
+        if player is None or item is None or self._depth >= MAX_DEPTH:
+            return lines
+        region_id, room_id = getattr(player, "current_region_id", None), getattr(player, "current_room_id", None)
+        for trigger_id, definition in self.triggers.items():
+            on = definition.get("on")
+            if not isinstance(on, dict) or on.get("event") != "item_used":
                 continue
             if on.get("item") != getattr(item, "obj_id", None):
                 continue

@@ -266,5 +266,122 @@
         "value": 0,
         "stackable": false,
         "properties": {}
+    },
+    "item_ladder": {
+        "type": "Item",
+        "name": "ladder",
+        "description": "A light folding ladder of pale wood. Laid flat, it crosses any gap as wide as a person is long.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_reed_pipe": {
+        "type": "Consumable",
+        "name": "reed pipe",
+        "description": "A little pipe of cut reed. Its tune is low and sweet, and some places in Ardenmoor answer it: a hill, a pool, a sleeping thing in the earth.",
+        "weight": 0.3,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "effects",
+            "reusable": true,
+            "quest_item": true,
+            "effects": {
+                "message": "You raise the reed pipe and play a low, sweet tune."
+            }
+        },
+        "item_family": "consumable"
+    },
+    "item_wyrmrod": {
+        "type": "Item",
+        "name": "wyrmrod",
+        "description": "A rod of black horn with a bronze tip. Pointed, it throws a bolt of cold fire that goes where you point it.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_blue_candle": {
+        "type": "Consumable",
+        "name": "blue candle",
+        "description": "A squat blue candle. Lit, it makes a room of light that stays while you stay, and it will burn anything that burns. It will light one room, once each visit.",
+        "weight": 0.3,
+        "value": 30,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "ability",
+            "ability": "candle_flame",
+            "reusable": true,
+            "requires": {
+                "not": {
+                    "kind": "status_active",
+                    "tag": "candlelight"
+                }
+            },
+            "requires_message": "The candle already burns in this room."
+        },
+        "item_family": "consumable"
+    },
+    "item_magic_shield": {
+        "type": "Armor",
+        "name": "magical shield",
+        "description": "A tall shield of dark wood faced with beaten silver. It turns thrown stones, arrows and most fire.",
+        "weight": 2,
+        "value": 65,
+        "stackable": false,
+        "properties": {
+            "defense": 0,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "off_hand"
+            ],
+            "resistances": {
+                "missile": 100,
+                "fire": 75
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_bomb_bag": {
+        "type": "Item",
+        "name": "bomb bag",
+        "description": "A leather bag with a drawstring and room for twelve bombs. While you carry it, twelve is your limit and not eight.",
+        "weight": 0.3,
+        "value": 50,
+        "stackable": false,
+        "properties": {
+            "carry_limits": {
+                "item_bomb": 12
+            }
+        }
+    },
+    "item_dock_heart": {
+        "type": "Item",
+        "name": "heart container",
+        "description": "A glowing red vessel on a far dock, warm and a little heavier than it looks. Take it, and you have more heart than before.",
+        "weight": 0,
+        "value": 0,
+        "stackable": false,
+        "properties": {}
+    },
+    "item_bush_heart": {
+        "type": "Item",
+        "name": "heart container",
+        "description": "A glowing red vessel that was hidden under a bush, warm and a little heavier than it looks. Take it, and you have more heart than before.",
+        "weight": 0,
+        "value": 0,
+        "stackable": false,
+        "properties": {}
     }
 }

@@ -110,5 +110,187 @@
             "essential": true,
             "unique": true
         }
+    },
+    "old_man_candles": {
+        "name": "an old man",
+        "description": "A very old man surrounded by candles, with one in his hand.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Buy something, will you!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_blue_candle"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "old_man_shields": {
+        "name": "an old man",
+        "description": "A very old man behind a pile of shields, leaning on the biggest of them.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Buy something, will you!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_magic_shield"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "old_man_bags": {
+        "name": "an old man",
+        "description": "A very old man in a nook in the wall, with a big leather bag hung on a hook.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Buy something, will you!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_bomb_bag"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "old_man_lost": {
+        "name": "an old man",
+        "description": "A very old man who has been sitting in the same place for as long as the hills have been lost.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Five steps toward the sky, and no step to the side."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "old_man_pool": {
+        "name": "an old man",
+        "description": "A very old man in the shade of a dead tree, sitting beside a black pool, humming.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "There is a pool here that opens to a tune, if a tune is played at it."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "old_man_wood": {
+        "name": "an old man",
+        "description": "A very old man on a tree stump with a sack of kindling.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Burn the bush on the hill road, and look what the fire shows."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "fairy": {
+        "name": "a fairy",
+        "description": "A small winged light the colour of a summer dawn, hovering over a pool.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Rest here, traveller. I will mend what is broken."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "fairy_mend"
+        }
+    },
+    "old_man_gecko": {
+        "name": "an old man",
+        "description": "A very old man huddled in the dark with his hands round a stone cup.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Go to the sleeping thing with a pipe, and it will wake small."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
     }
 }

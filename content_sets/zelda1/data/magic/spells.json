@@ -192,5 +192,144 @@
                 }
             }
         ]
+    },
+    "candle_flame": {
+        "name": "Candle",
+        "description": "A candle's flame: it lights the room you stand in until you leave it, and burns what is there.",
+        "mana_cost": 0,
+        "cooldown": 0,
+        "target_type": "room",
+        "cast_message": "You touch the wick to a spark, and a small flame stands up and widens into a room of light.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 4,
+                "damage_type": "fire"
+            },
+            {
+                "type": "apply_effect",
+                "on": "caster",
+                "effect_data": {
+                    "name": "Candlelight",
+                    "type": "status",
+                    "tags": [
+                        "light",
+                        "candlelight"
+                    ],
+                    "base_duration": 3600,
+                    "ends_on_move": true
+                }
+            }
+        ]
+    },
+    "rod_bolt": {
+        "name": "Wyrmrod",
+        "description": "Point the wyrmrod: a bolt of cold fire flies from it.",
+        "mana_cost": 0,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "You point the wyrmrod and a bolt of cold fire leaps from its tip.",
+        "hit_message": "The bolt strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "requires": {
+            "kind": "has_item",
+            "item_id": "item_wyrmrod"
+        },
+        "requires_message": "You have no wyrmrod.",
+        "effects": [
+            {
+                "type": "damage",
+                "value": 16,
+                "damage_type": "magical"
+            }
+        ]
+    },
+    "hydra_flame": {
+        "name": "Hydra Flame",
+        "description": "A ball of fire from a hydra's head.",
+        "mana_cost": 0,
+        "cooldown": 4,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} rears back and spits a ball of fire.",
+        "hit_message": "The fire washes over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 10,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "hexer_bolt": {
+        "name": "Hexer Bolt",
+        "description": "A bolt of hex, thrown in a flash.",
+        "mana_cost": 0,
+        "cooldown": 4,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} flings a bolt of blue light.",
+        "hit_message": "The hex strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 12,
+                "damage_type": "magical"
+            }
+        ]
+    },
+    "hexer_bolt_strong": {
+        "name": "Hexer Bolt",
+        "description": "A hard bolt of hex, thrown in a flash.",
+        "mana_cost": 0,
+        "cooldown": 4,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} flings a bolt of white light.",
+        "hit_message": "The hex strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 24,
+                "damage_type": "magical"
+            }
+        ]
+    },
+    "claw_flame": {
+        "name": "Claw Flame",
+        "description": "Fire from a great crab's eye.",
+        "mana_cost": 0,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "{caster_name}'s eye flares and spits a ball of fire.",
+        "hit_message": "The fire washes over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 10,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "devour_shield": {
+        "name": "Devour",
+        "description": "The shield-eater wraps round you and swallows what you carry on your arm.",
+        "mana_cost": 0,
+        "cooldown": 6,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} drops over you like a wet cloth.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "effects",
+                "for_target": true,
+                "effects": {
+                    "take_item": "item_magic_shield",
+                    "message": "The shield-eater folds round your arm, and when it lets go the magical shield is gone."
+                }
+            }
+        ]
     }
 }

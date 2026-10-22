@@ -68,6 +68,16 @@ class TestAnEffectForTheTarget(unittest.TestCase):
         self.assertEqual((region_id, other), (player.current_region_id, player.current_room_id), "the player was carried off")
         self.assertEqual((region_id, here), (foe.current_region_id, foe.current_room_id), "and the creature stayed")
 
+    def test_a_block_for_the_target_that_finds_nothing_to_do_says_nothing(self):
+        server, player = _game(self)
+        foe, region_id, here, other = _foe(server, player)
+        SPELL_REGISTRY["t_eat"] = Spell("t_eat", "Devour", "d", effects=[
+            {"type": "effects", "for_target": True, "effects": {"take_item": "item_not_carried"}}],
+            mana_cost=0, cooldown=0, target_type="enemy", cast_message="{caster_name} wraps around you.")
+        self.addCleanup(SPELL_REGISTRY.pop, "t_eat", None)
+        result = npc_combat.cast_spell(foe, SPELL_REGISTRY["t_eat"], player, 100.0)
+        self.assertNotIn("Nothing happens", result["message"])
+
     def test_without_the_flag_the_block_runs_for_the_caster(self):
         server, player = _game(self)
         foe, region_id, here, other = _foe(server, player)

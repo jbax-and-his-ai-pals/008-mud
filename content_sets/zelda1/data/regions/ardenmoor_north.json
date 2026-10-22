@@ -1,0 +1,160 @@
+{
+    "region_id": "ardenmoor_north",
+    "name": "Ardenmoor, the North",
+    "description": "Hills, mist and a very old graveyard. The land goes quiet here, and the quiet is not restful.",
+    "rooms": {
+        "an_0_0": {
+            "name": "The Standing Stones",
+            "description": "A circle of tall grey stones, leaning in toward one another as though to share a secret. The hills rise beyond them, and the mist lies on the hills.",
+            "exits": {
+                "east": "an_0_1",
+                "south": "an_1_0",
+                "in": "lost_hills:h0"
+            }
+        },
+        "an_0_1": {
+            "name": "The Hollow Graves",
+            "description": "A wide field of low stones that nobody keeps. A great mausoleum of black marble stands at its heart, and the door of it is open.",
+            "exits": {
+                "west": "an_0_0",
+                "east": "an_0_2",
+                "south": "an_1_1",
+                "in": "wyvern_deep:w_entrance"
+            }
+        },
+        "an_0_2": {
+            "name": "The Eastern Rise",
+            "description": "A bare, round rise of earth. A lantern hangs from a stake by a cave mouth, and the door of the cave is open.",
+            "exits": {
+                "west": "an_0_1",
+                "south": "an_1_2",
+                "in": "candle_shop"
+            }
+        },
+        "an_1_0": {
+            "name": "The Withered Wood",
+            "description": "A wood of dead trees, standing grey and dry, with a trader's cave dug into a bank among the roots.",
+            "exits": {
+                "north": "an_0_0",
+                "east": "an_1_1",
+                "south": "an_2_0",
+                "in": "shield_shop"
+            }
+        },
+        "an_1_1": {
+            "name": "The Black Pool",
+            "description": "A round pool of water so black that it takes the sky. A dead tree leans over it. The ground around it is very still.",
+            "exits": {
+                "north": "an_0_1",
+                "west": "an_1_0",
+                "east": "an_1_2",
+                "south": "an_2_1"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "fairy_pool"
+                }
+            }
+        },
+        "an_1_2": {
+            "name": "The Hill Road",
+            "description": "A road along a hill, and a thick green bush as tall as a man beside it. It looks as though it has stood there longer than the hill.",
+            "exits": {
+                "north": "an_0_2",
+                "west": "an_1_1",
+                "south": "an_2_2"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "heart_cave"
+                },
+                "env_interactions": {
+                    "fire": {
+                        "type": "reveal_exit",
+                        "direction": "in",
+                        "message": "The bush goes up in a rush of orange, and where it stood there is a low dark doorway."
+                    }
+                }
+            }
+        },
+        "an_2_0": {
+            "name": "The Northern Road, West",
+            "description": "A cart road running north between hedges, rutted and empty.",
+            "exits": {
+                "north": "an_1_0",
+                "east": "an_2_1",
+                "south": "ardenmoor_south:as_0_0"
+            }
+        },
+        "an_2_1": {
+            "name": "The Northern Road",
+            "description": "A cart road running north between hedges, rutted and empty.",
+            "exits": {
+                "north": "an_1_1",
+                "west": "an_2_0",
+                "east": "an_2_2",
+                "south": "ardenmoor_south:as_0_1"
+            }
+        },
+        "an_2_2": {
+            "name": "The Northern Road, East",
+            "description": "A cart road running north between hedges, rutted and empty.",
+            "exits": {
+                "north": "an_1_2",
+                "west": "an_2_1",
+                "south": "ardenmoor_south:as_0_2"
+            }
+        },
+        "candle_shop": {
+            "name": "A Candle-Lit Cave",
+            "description": "A cave lit by more candles than it needs, set in niches all over the walls.",
+            "exits": {
+                "out": "an_0_2"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_candles",
+                    "instance_id": "old_man_candles"
+                }
+            ]
+        },
+        "shield_shop": {
+            "name": "A Shield-Hung Cave",
+            "description": "A cave whose walls are hung with shields of every size.",
+            "exits": {
+                "out": "an_1_0"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_shields",
+                    "instance_id": "old_man_shields"
+                }
+            ]
+        },
+        "fairy_pool": {
+            "name": "The Fairy Pool",
+            "description": "A round pool of water as clear as glass, and over it a small light hovers, humming a tune of its own.",
+            "exits": {
+                "out": "an_1_1"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "fairy",
+                    "instance_id": "fairy_pool"
+                }
+            ]
+        },
+        "heart_cave": {
+            "name": "A Cave Under the Bush",
+            "description": "A little cave behind where the bush stood, dry and very quiet. Something red shines at the back of it.",
+            "exits": {
+                "out": "an_1_2"
+            },
+            "items": [
+                {
+                    "item_id": "item_bush_heart"
+                }
+            ]
+        }
+    }
+}

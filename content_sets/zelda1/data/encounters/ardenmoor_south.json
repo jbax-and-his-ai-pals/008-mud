@@ -108,5 +108,51 @@
         ],
         "message": "The sand heaves, and a {name} comes up out of it!",
         "note": "The dunes: burrowers."
+    },
+    "north_road": {
+        "region": "ardenmoor_north",
+        "rooms": [
+            "an_2_0",
+            "an_2_1",
+            "an_2_2",
+            "an_1_2"
+        ],
+        "chance": 0.4,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "blue_spitter",
+                "weight": 2
+            },
+            {
+                "npc": "horned_centaur",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes out of the hedge at you!",
+        "note": "The cart road: blue spitters and, now and then, a centaur."
+    },
+    "north_graves": {
+        "region": "ardenmoor_north",
+        "rooms": [
+            "an_0_0",
+            "an_0_1",
+            "an_0_2",
+            "an_1_0"
+        ],
+        "chance": 0.45,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "revenant",
+                "weight": 3
+            },
+            {
+                "npc": "horned_centaur",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} rises out of the ground in front of you!",
+        "note": "The graves: revenants, and the odd centaur."
     }
 }

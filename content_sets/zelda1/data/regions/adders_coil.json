@@ -1,0 +1,233 @@
+{
+    "region_id": "adders_coil",
+    "name": "The Adder's Coil",
+    "description": "A ring-shaped keep with a snake carved over its door, on a shore only a raft can reach. The fourth piece of the Starcrown lies in the pit at its heart.",
+    "properties": {
+        "entrance": "c_entrance"
+    },
+    "rooms": {
+        "c_entrance": {
+            "name": "The Mouth of the Coil",
+            "description": "A doorway shaped like a snake's gaping mouth, with the carved fangs hanging over your head. A cold, dry draught comes out of it.",
+            "exits": {
+                "out": "ardenmoor_east:ae_far_shore",
+                "north": "c_hall"
+            }
+        },
+        "c_hall": {
+            "name": "The First Loop",
+            "description": "A wide hall that curves out of sight to either hand, as though it ran round the inside of a great ring.",
+            "exits": {
+                "south": "c_entrance",
+                "west": "c_west",
+                "east": "c_east",
+                "north": "c_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cord_snake",
+                    "instance_id": "snake_c1"
+                },
+                {
+                    "template_id": "cord_snake",
+                    "instance_id": "snake_c2"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_c1"
+                }
+            ]
+        },
+        "c_west": {
+            "name": "The Scale Gallery",
+            "description": "A long gallery whose walls are cut in scales, each the size of a shield. Old guards are walking it.",
+            "exits": {
+                "east": "c_hall",
+                "north": "c_ladder"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_cw1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_cw2"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_cw3"
+                }
+            ]
+        },
+        "c_ladder": {
+            "name": "The Ladder Store",
+            "description": "A store hung with coils of rope and with long poles stacked in the corners. A light folding ladder leans against the back wall, and the room has more than one lodger.",
+            "exits": {
+                "south": "c_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_cl1"
+                },
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_cl2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_ladder"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "adders_coil",
+                            "room_id": "c_ladder"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the slimes still heave."
+                    }
+                }
+            }
+        },
+        "c_east": {
+            "name": "The Hexer's Turn",
+            "description": "A curved hall of blue stone. The air in it shivers, as if something were just on the other side of it.",
+            "exits": {
+                "west": "c_hall",
+                "north": "c_key"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hexer",
+                    "instance_id": "hexer_ce1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_ce1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_ce2"
+                }
+            ]
+        },
+        "c_key": {
+            "name": "The Keeper's Niche",
+            "description": "A niche in the wall with a stool and a hook. A small key hangs from the hook, and a bomb sits on the stool.",
+            "exits": {
+                "south": "c_east"
+            },
+            "items": [
+                {
+                    "item_id": "item_small_key"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ]
+        },
+        "c_upper": {
+            "name": "The Upper Loop",
+            "description": "The inner ring of the coil. A great door of black iron stands to the north, and the west wall is cracked from floor to roof.",
+            "exits": {
+                "south": "c_hall",
+                "north": "c_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hexer",
+                    "instance_id": "hexer_cu1"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_cu1"
+                }
+            ],
+            "properties": {
+                "hidden_exits": {
+                    "west": "c_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "west",
+                        "message": "The wall bursts inward, and a low way stands open."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of black iron, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "c_cache": {
+            "name": "The Snake-Charmer's Closet",
+            "description": "A tiny closet with a basket in it, and nothing in the basket but a few things the snake did not want.",
+            "exits": {
+                "east": "c_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_10"
+                },
+                {
+                    "item_id": "item_purse_5"
+                }
+            ]
+        },
+        "c_ante": {
+            "name": "The Coil's Throat",
+            "description": "A narrow, curving corridor of cold, polished stone that gets steadily narrower and warmer.",
+            "exits": {
+                "south": "c_upper",
+                "north": "c_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_ca1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_ca2"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_ca1"
+                }
+            ]
+        },
+        "c_boss": {
+            "name": "The Hydra's Pit",
+            "description": "A deep round pit lit from below by a red glow. A great coiled body rises out of it on two long necks, and both heads turn to look.",
+            "exits": {
+                "south": "c_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hydra",
+                    "instance_id": "hydra_pit"
+                },
+                {
+                    "template_id": "hydra_head",
+                    "instance_id": "hydra_head_1"
+                },
+                {
+                    "template_id": "hydra_head",
+                    "instance_id": "hydra_head_2"
+                }
+            ]
+        }
+    }
+}

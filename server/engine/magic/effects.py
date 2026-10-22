@@ -217,8 +217,8 @@ def apply_spell_effect(caster: CasterType, target: SpellTargetType, spell: Spell
                     total_value += 1
                     if report.message():
                         messages.append(report.message())
-                else:
-                    messages.append("Nothing happens.")
+                elif effect_def.get("for_target") is not True:
+                    messages.append("Nothing happens.")   # a block aimed at the target that finds nothing to do (no shield to eat) says nothing
 
         elif eff_type == "revive":
             from engine.npcs import companions as _companions

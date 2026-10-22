@@ -8,7 +8,8 @@
             "description": "Tall pines whisper above a floor of old needles. Something large has been through here, and not recently.",
             "exits": {
                 "east": "as_0_1",
-                "south": "as_1_0"
+                "south": "as_1_0",
+                "north": "ardenmoor_north:an_2_0"
             }
         },
         "as_0_1": {
@@ -17,7 +18,8 @@
             "exits": {
                 "west": "as_0_0",
                 "east": "as_0_2",
-                "south": "meadow_start"
+                "south": "meadow_start",
+                "north": "ardenmoor_north:an_2_1"
             }
         },
         "as_0_2": {
@@ -26,7 +28,8 @@
             "exits": {
                 "west": "as_0_1",
                 "south": "as_1_2",
-                "east": "ardenmoor_east:ae_0_0"
+                "east": "ardenmoor_east:ae_0_0",
+                "north": "ardenmoor_north:an_2_2"
             },
             "properties": {
                 "hidden_exits": {

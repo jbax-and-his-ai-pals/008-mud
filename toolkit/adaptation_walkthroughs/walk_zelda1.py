@@ -441,6 +441,336 @@ out = say("status")
 check("shown as seven hearts", "7/7 hearts" in out, out[:200])
 walk("west")
 
+
+# ============================================================ slice 3: the north, the lost hills, three more dungeons
+HEART = 16
+
+
+def room_fight(*pairs):
+    return fight_room(*pairs)
+
+
+def kill_room_of(*templates):
+    """Fight everything of those kinds in the room by name."""
+    for template in templates:
+        label = template.replace("_", " ")
+        guard = 0
+        while hostile_here(template) and guard < 14:
+            guard += 1
+            if g.where().split(":")[0] != g.player.current_region_id:
+                break
+            heal()
+            g.fight(label.split()[-1], potion="recovery heart")
+            if not g.player.is_alive:
+                return False
+    return True
+
+
+g.player.runtime_state.gold = 400
+# ---- the candle shop and the bush
+goto("ardenmoor_north:an_0_2")
+walk("in")
+say("trade old man")
+listing = say("list")
+check("a blue candle for sixty rupees", "blue candle" in listing and "60" in listing, listing[:160])
+say("buy blue candle")
+say("stoptrade")
+check("the candle is bought", "item_blue_candle" in g.items() and g.player.runtime_state.gold == 340, g.player.runtime_state.gold)
+walk("out")
+goto("ardenmoor_north:an_1_2")
+hearts_before = g.player.max_health
+out = say("go in")
+check("a thick bush stands where a doorway would be", g.where() == "ardenmoor_north:an_1_2", out[:100])
+out = say("use blue candle")
+check("the candle burns the bush away", "bush goes up" in out, out[:200])
+out = say("use blue candle")
+check("a blue candle burns once in a room", "already burns" in out, out[:100])
+walk("in")
+say("take heart container")
+check("a heart container under the bush", g.player.max_health == hearts_before + HEART, g.player.max_health)
+walk("out")
+walk("west", "west")   # out of the room: the light goes out
+check("and the light does not follow you out", not g.player.has_effect_tag("light"), "")
+out = say("use blue candle")
+check("in a new room the candle works again", g.player.has_effect_tag("light") and "already burns" not in out, out[:80])
+
+# ---- the shield shop
+goto("ardenmoor_north:an_1_0")
+walk("in")
+say("trade old man")
+say("buy magical shield")
+say("stoptrade")
+check("a magical shield is bought for one hundred and thirty", "item_magic_shield" in g.items() and g.player.runtime_state.gold == 340 - 130, g.player.runtime_state.gold)
+say("equip magical shield")
+check("and worn in place of the small one", g.player.equipment["off_hand"].obj_id == "item_magic_shield", g.player.equipment.get("off_hand"))
+walk("out")
+
+# ---- the black pool: no way in until a tune
+goto("ardenmoor_north:an_1_1")
+out = say("go in")
+check("the pool is only a pool", g.where() == "ardenmoor_north:an_1_1", out[:100])
+
+# ---- the lost hills
+goto("ardenmoor_north:an_0_0")
+walk("in")
+check("the foot of the hills", g.where() == "lost_hills:h0", g.where())
+say("talk old man")
+walk("north", "north")
+walk("east")
+check("a step to the side lets the mist turn you round", g.where() == "lost_hills:h0", g.where())
+walk("north", "north", "north", "north", "north")
+check("five steps up and no step aside", g.where() == "lost_hills:h5", g.where())
+walk("in")
+check("the Gecko Halls", g.where() == "gecko_halls:g_entrance", g.where())
+
+# ---- the Gecko Halls (dark)
+walk("north")
+check("the lamp hall: bats and a revenant", len(hostile_here("cave_bat")) == 2 and len(hostile_here("revenant")) == 1, [n.template_id for n in hostile_here()])
+check("they fall", fight_room(("bat", "cave_bat"), ("revenant", "revenant")), "")
+out = say("go west")
+check("the long gallery is dark and shows nothing", g.where() == "gecko_halls:g_gallery" and "pitch dark" in say("look"), out[:100])
+say("use blue candle")
+check("a candle shows the gallery", "Exits" in say("look") and "gallery" in say("look").lower(), "")
+check("two bone warriors and a revenant fall in the candlelight", fight_room(("bone", "bone_warrior"), ("revenant", "revenant")), "")
+walk("north")
+say("use blue candle")
+check("the reed store: slimes and a revenant shut the door", g.where() == "gecko_halls:g_pipe" and len(hostile_here("great_slime")) == 1, g.where())
+check("they fall", fight_room(("great slime", "great_slime"), ("slime", "slime"), ("revenant", "revenant")), "")
+say("take reed pipe")
+check("the reed pipe", "item_reed_pipe" in g.items(), g.items())
+out = say("use reed pipe")
+check("the pipe plays a tune and, here, nothing else", "tune" in out and g.where() == "gecko_halls:g_pipe", out[:120])
+goto("gecko_halls:g_east")
+say("use blue candle")
+check("the dusty cell: a hexer and a bone warrior", len(hostile_here("hexer")) == 1 and len(hostile_here("bone_warrior")) == 1, [n.template_id for n in hostile_here()])
+check("they fall", fight_room(("hexer", "hexer"), ("bone", "bone_warrior")), "")
+say("take small key")
+walk("north")
+check("a nook in the wall and an old man with a bag", g.where() == "gecko_halls:g_shop", g.where())
+say("trade old man")
+gold_before = g.player.runtime_state.gold
+say("buy bomb bag")
+say("stoptrade")
+check("a bomb bag for one hundred rupees", "item_bomb_bag" in g.items() and gold_before - g.player.runtime_state.gold == 100, g.player.runtime_state.gold)
+give("item_bomb", 12 - g.player.inventory.count_item("item_bomb"))
+check("and twelve bombs is the limit now, not eight", g.player.inventory.count_item("item_bomb") == 12, g.player.inventory.count_item("item_bomb"))
+ok, said = g.player.inventory.add_item(__import__("engine.items.item_factory", fromlist=["ItemFactory"]).ItemFactory.create_item_from_template("item_bomb", g.world))
+check("a thirteenth is refused", not ok, said)
+goto("gecko_halls:g_upper")
+say("use blue candle")
+grabbed = False
+for name, template in (("bone", "bone_warrior"), ("revenant", "revenant"), ("hand", "grasping_hand")):
+    guard = 0
+    while guard < 12:
+        guard += 1
+        if g.where() != "gecko_halls:g_upper":
+            grabbed = True
+            goto("gecko_halls:g_upper")
+            say("use blue candle")
+        if not hostile_here(template):
+            break
+        heal()
+        g.fight(name, potion="recovery heart")
+say("use bomb")
+walk("east")
+say("take 30 rupees")
+check("a hole in the east wall with thirty rupees", g.where() == "gecko_halls:g_cache" and g.player.runtime_state.gold >= 30, g.where())
+goto("gecko_halls:g_upper")
+out = say("go north")
+check("the heavy door yields to the key", g.where() == "gecko_halls:g_ante" and "item_small_key" not in g.items(), "%s %s" % (g.where(), out[:80]))
+say("use blue candle")
+check("bats and a revenant in the dry throat fall", fight_room(("bat", "cave_bat"), ("revenant", "revenant")), "")
+heal()
+walk("north")
+check("the digging floor and the great eye", g.where() == "gecko_halls:g_boss" and len(hostile_here("burrowing_eye_large")) == 1, g.where())
+eye = hostile_here("burrowing_eye_large")[0]
+health = eye.health
+for _ in range(2):
+    say("attack eye")
+    wait(2)
+check("nothing hurts the great eye", eye.health == health, "%s -> %s" % (health, eye.health))
+say("use bomb")
+check("not even a bomb", eye.health == health, eye.health)
+heal()
+out = say("use reed pipe")
+check("the tune shrinks it", not eye.is_alive and len(hostile_here("burrowing_eye_small")) == 1 and "shrinks" in out, out[:200])
+small = hostile_here("burrowing_eye_small")[0]
+heal()
+g.fight("eye", potion="recovery heart")
+wait(3)
+check("the small eye falls", not small.is_alive, small.health)
+check("the fifth shard and a heart more", "item_shard_5" in g.items() and g.player.flags.get("shard_5") is True, g.items())
+
+# ---- the pool answers the pipe
+goto("ardenmoor_north:an_1_1")
+out = say("use reed pipe")
+check("played at the black pool the pipe opens a stair", "stair of wet stone" in out, out[:160])
+walk("in")
+check("the fairy pool", g.where() == "ardenmoor_north:fairy_pool", g.where())
+g.player.health = 5
+say("talk fairy")
+say("reply 1")
+check("the fairy mends every wound", g.player.health == g.player.max_health, g.player.health)
+walk("out")
+
+# ---- the far shore and the Adder's Coil
+goto("ardenmoor_east:ae_island")
+out = say("go north")
+check("a far shore past the island", g.where() == "ardenmoor_east:ae_far_shore", g.where() + out[:60])
+out = say("go east")
+check("a gap of water wants a ladder", g.where() == "ardenmoor_east:ae_far_shore" and "ladder" in out.lower(), out[:120])
+hearts_before = g.player.max_health
+walk("in")
+check("the mouth of the Adder's Coil", g.where() == "adders_coil:c_entrance", g.where())
+walk("north")
+check("the first loop: two cord-snakes and a bat fall", fight_room(("cord", "cord_snake"), ("bat", "cave_bat")), "")
+walk("west")
+check("the scale gallery: three bone warriors", len(hostile_here("bone_warrior")) == 3, len(hostile_here("bone_warrior")))
+check("they fall", fight_room(("bone", "bone_warrior")), "")
+walk("north")
+check("the ladder store: two great slimes", len(hostile_here("great_slime")) == 2, g.where())
+check("they and their children fall", fight_room(("great slime", "great_slime"), ("slime", "slime")), "")
+say("take ladder")
+check("the ladder", "item_ladder" in g.items(), g.items())
+goto("adders_coil:c_east")
+check("the hexer's turn: a hexer and two bats", len(hostile_here("hexer")) == 1, [n.template_id for n in hostile_here()])
+check("they fall", fight_room(("hexer", "hexer"), ("bat", "cave_bat")), "")
+walk("north")
+say("take small key")
+say("take bomb")
+goto("adders_coil:c_upper")
+grabbed = False
+for name, template in (("hexer", "hexer"), ("hand", "grasping_hand")):
+    guard = 0
+    while guard < 14:
+        guard += 1
+        if g.where() != "adders_coil:c_upper":
+            grabbed = True
+            goto("adders_coil:c_upper")
+        if not hostile_here(template):
+            break
+        heal()
+        g.fight(name, potion="recovery heart")
+say("use bomb")
+walk("west")
+check("a closet behind the west wall", g.where() == "adders_coil:c_cache", g.where())
+walk("east")
+out = say("go north")
+check("the iron door yields to the key", g.where() == "adders_coil:c_ante" and "item_small_key" not in g.items(), "%s %s" % (g.where(), out[:80]))
+check("the coil's throat: two bone warriors and a bat fall", fight_room(("bone", "bone_warrior"), ("bat", "cave_bat")), "")
+heal()
+walk("north")
+check("the hydra's pit: a body and two heads", len(hostile_here("hydra_head")) == 2 and len(hostile_here("hydra")) == 1, [n.template_id for n in hostile_here()])
+body = hostile_here("hydra")[0]
+out = say("attack the hydra")
+check("the body cannot be struck past the heads", body.health == body.max_health and "neck" in out.lower(), out[:140])
+guard = 0
+while hostile_here("hydra_head") and guard < 14:
+    guard += 1
+    heal()
+    g.fight("head", potion="recovery heart")
+check("both heads fall", not hostile_here("hydra_head") and g.player.is_alive, [n.template_id for n in hostile_here()])
+heal()
+g.fight("hydra", potion="recovery heart")
+wait(3)
+check("and the body", not body.is_alive, body.health)
+check("the fourth shard and a heart more", "item_shard_4" in g.items() and g.player.max_health == hearts_before + HEART, "%s %s" % (g.items(), g.player.max_health))
+goto("ardenmoor_east:ae_far_shore")
+hearts_before = g.player.max_health
+walk("east")
+check("with the ladder the gap is crossed", g.where() == "ardenmoor_east:ae_far_dock", g.where())
+say("take heart container")
+check("a heart container on the far dock", g.player.max_health == hearts_before + HEART, g.player.max_health)
+walk("west")
+
+# ---- the Wyvern Deep
+goto("ardenmoor_north:an_0_1")
+walk("in")
+check("the steps down into the Wyvern Deep", g.where() == "wyvern_deep:w_entrance", g.where())
+walk("north")
+check("the hall of wings: two revenants and a hexer fall", fight_room(("revenant", "revenant"), ("hexer", "hexer")), "")
+walk("west")
+check("the ossuary: three bone warriors and a revenant fall", fight_room(("bone", "bone_warrior"), ("revenant", "revenant")), "")
+walk("north")
+check("the wyrm shrine: a lesser hydra", len(hostile_here("hydra_lesser")) == 1, g.where())
+out = say("attack a lesser hydra")
+check("its body is guarded by its one head", "neck" in out.lower(), out[:120])
+guard = 0
+while hostile_here("hydra_lesser_head") and guard < 10:
+    guard += 1
+    heal()
+    g.fight("lesser hydra head", potion="recovery heart")
+heal()
+g.fight("lesser hydra", potion="recovery heart")
+wait(2)
+say("take wyrmrod")
+check("the wyrmrod", "item_wyrmrod" in g.items() and "rod_bolt" in g.player.runtime_state.magic.known_spells, g.items())
+goto("wyvern_deep:w_east")
+check("the shield-eaters' hall: two shield-eaters and a bat", len(hostile_here("shield_eater")) == 2, [n.template_id for n in hostile_here()])
+shield_gone = False
+guard = 0
+while hostile_here("shield_eater", "cave_bat") and guard < 20:
+    guard += 1
+    heal()
+    for foe in hostile_here("shield_eater", "cave_bat"):
+        g.fight(foe.name.split()[-1], max_rounds=6, potion="recovery heart")
+        break
+shield_gone = g.player.equipment.get("off_hand") is None
+check("a shield-eater may swallow the magical shield (and it is then gone)", True if not shield_gone else "item_magic_shield" not in g.items(), "")
+say("take small key")
+heal()
+goto("wyvern_deep:w_stairs")
+check("the lower stair is dark; the hexer and the revenant", len(hostile_here("strong_hexer")) == 1, [n.template_id for n in hostile_here()])
+say("use blue candle")
+check("they fall", fight_room(("hexer", "strong_hexer"), ("revenant", "revenant")), "")
+walk("north")
+say("use blue candle")
+grabbed = False
+for name, template in (("hexer", "strong_hexer"), ("eater", "shield_eater"), ("hand", "grasping_hand")):
+    guard = 0
+    while guard < 14:
+        guard += 1
+        if g.where() != "wyvern_deep:w_upper":
+            grabbed = True
+            goto("wyvern_deep:w_upper")
+            say("use blue candle")
+        if not hostile_here(template):
+            break
+        heal()
+        g.fight(name, potion="recovery heart")
+give("item_bomb", 2 - g.player.inventory.count_item("item_bomb")) if g.player.inventory.count_item("item_bomb") < 2 else None
+say("use bomb")
+walk("east")
+check("a reliquary closet", g.where() == "wyvern_deep:w_cache", g.where())
+walk("west")
+out = say("go north")
+check("the black door yields to the key", g.where() == "wyvern_deep:w_ante" and "item_small_key" not in g.items(), "%s %s" % (g.where(), out[:80]))
+say("use blue candle")
+check("the long dark: a hexer and two revenants fall", fight_room(("hexer", "strong_hexer"), ("revenant", "revenant")), "")
+heal()
+hearts_before = g.player.max_health
+walk("north")
+check("the claw's cavern", g.where() == "wyvern_deep:w_boss" and len(hostile_here("great_claw")) == 1, g.where())
+claw = hostile_here("great_claw")[0]
+health = claw.health
+for _ in range(2):
+    say("attack claw")
+    wait(2)
+check("a sword does nothing to the great claw", claw.health == health, "%s -> %s" % (health, claw.health))
+g.player.runtime_state.gold = 40
+shots = 0
+for _ in range(60):
+    heal()
+    if not claw.is_alive:
+        break
+    out = say("cast arrow on claw")
+    shots += 1
+    wait(2)
+check("only arrows through the open eye hurt it", not claw.is_alive, "%s hp, %d shots" % (claw.health, shots))
+wait(3)
+check("the arrows cost rupees", g.player.runtime_state.gold < 40, g.player.runtime_state.gold)
+check("the sixth shard and a heart more", "item_shard_6" in g.items() and g.player.max_health == hearts_before + HEART, "%s %s" % (g.items(), g.player.max_health))
+
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])
 g.close()

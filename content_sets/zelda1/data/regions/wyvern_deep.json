@@ -1,0 +1,264 @@
+{
+    "region_id": "wyvern_deep",
+    "name": "The Wyvern Deep",
+    "description": "A crypt under the graves, a wyvern carved over its stair. The sixth piece of the Starcrown lies with a great crab at the bottom.",
+    "properties": {
+        "entrance": "w_entrance"
+    },
+    "rooms": {
+        "w_entrance": {
+            "name": "The Crypt Steps",
+            "description": "A flight of black marble steps going down from the graves into a cold that makes your teeth ache. A wyvern is carved over the foot of the stair.",
+            "exits": {
+                "out": "ardenmoor_north:an_0_1",
+                "north": "w_hall"
+            }
+        },
+        "w_hall": {
+            "name": "The Hall of Wings",
+            "description": "A tall hall with a row of stone wings along each wall, folded, like the wings of sleeping things.",
+            "exits": {
+                "south": "w_entrance",
+                "west": "w_west",
+                "east": "w_east",
+                "north": "w_stairs"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_w1"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_w2"
+                },
+                {
+                    "template_id": "hexer",
+                    "instance_id": "hexer_w1"
+                }
+            ]
+        },
+        "w_west": {
+            "name": "The Ossuary",
+            "description": "A low vault stacked with bones to the roof. Some of the bones have got up.",
+            "exits": {
+                "east": "w_hall",
+                "north": "w_rod"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_ww1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_ww2"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_ww3"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_ww1"
+                }
+            ]
+        },
+        "w_rod": {
+            "name": "The Wyrm Shrine",
+            "description": "A shrine to a god long out of fashion. On the altar a rod of black horn lies on a cloth, and a small hydra twists on the steps with its head already swaying.",
+            "exits": {
+                "south": "w_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hydra_lesser",
+                    "instance_id": "hydra_lesser_wr"
+                },
+                {
+                    "template_id": "hydra_lesser_head",
+                    "instance_id": "hydra_lesser_head_wr"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_wyrmrod"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "wyvern_deep",
+                            "room_id": "w_rod"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the hydra lives."
+                    }
+                }
+            }
+        },
+        "w_east": {
+            "name": "The Shield-Eaters' Hall",
+            "description": "A hall hung with grey cloths. Some of the cloths are moving on the ceiling.",
+            "exits": {
+                "west": "w_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_we1"
+                },
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_we2"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_we1"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_small_key"
+                }
+            ]
+        },
+        "w_stairs": {
+            "name": "The Lower Stair",
+            "description": "A stair that goes down into a darker place, with a wyvern's tail carved in its rail.",
+            "exits": {
+                "south": "w_hall",
+                "north": "w_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_ws1"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_ws1"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "wyvern_deep",
+                            "room_id": "w_stairs"
+                        },
+                        "failure_message": "The way down is barred by a stone grille. It will not lift while anything lives in this hall."
+                    }
+                }
+            }
+        },
+        "w_upper": {
+            "name": "The Deep Hall",
+            "description": "The deep hall of the Wyvern. A door of black stone stands to the north, and the east wall has a long crack in it.",
+            "exits": {
+                "south": "w_stairs",
+                "north": "w_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_wu1"
+                },
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_wu1"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_wu1"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "hidden_exits": {
+                    "east": "w_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "east",
+                        "message": "The wall bursts, and a dark gap stands open."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of black stone, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "w_cache": {
+            "name": "The Reliquary Closet",
+            "description": "A tiny closet with a shelf, and on the shelf a few things nobody wanted to pay for.",
+            "exits": {
+                "west": "w_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_30"
+                },
+                {
+                    "item_id": "item_bomb"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "w_ante": {
+            "name": "The Long Dark",
+            "description": "A corridor in which the air is warm and the dark is very thick.",
+            "exits": {
+                "south": "w_upper",
+                "north": "w_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_wa1"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_wa1"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_wa2"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "w_boss": {
+            "name": "The Claw's Cavern",
+            "description": "A broad cavern lit with a dull orange light from nowhere. A crab the size of a hay-cart sits across the middle of it, one great claw up, one great eye in the middle of its shell.",
+            "exits": {
+                "south": "w_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_claw",
+                    "instance_id": "great_claw_cavern"
+                }
+            ]
+        }
+    }
+}

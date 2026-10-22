@@ -1,0 +1,249 @@
+{
+    "region_id": "gecko_halls",
+    "name": "The Gecko Halls",
+    "description": "A dark keep inside the hills, a lizard carved over its door. Without a light you will feel your way. The fifth piece of the Starcrown lies where the floor is heaved up.",
+    "properties": {
+        "entrance": "g_entrance"
+    },
+    "rooms": {
+        "g_entrance": {
+            "name": "The Gecko Door",
+            "description": "A low round door in a hillside, a lizard carved over it, clinging to the stone. The mist of the hills is behind you; the dark is ahead.",
+            "exits": {
+                "out": "lost_hills:h5",
+                "north": "g_hall"
+            }
+        },
+        "g_hall": {
+            "name": "The Lamp Hall",
+            "description": "A hall of grey stone with a few old lamp-brackets in the walls and no lamps. There is light enough, here, from the door.",
+            "exits": {
+                "south": "g_entrance",
+                "west": "g_gallery",
+                "east": "g_east",
+                "north": "g_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_g1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_g2"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_g1"
+                }
+            ]
+        },
+        "g_gallery": {
+            "name": "The Long Gallery",
+            "description": "A long gallery with pillars down the middle. The dark has a texture to it.",
+            "exits": {
+                "east": "g_hall",
+                "north": "g_pipe"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_gg1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_gg2"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_gg1"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "g_pipe": {
+            "name": "The Reed Store",
+            "description": "A narrow store whose shelves are full of cut reeds, bundled and dry. One small pipe lies on the floor with nothing guarding it but the two grey things that came out of the shelves.",
+            "exits": {
+                "south": "g_gallery"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_gp1"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_gp1"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_reed_pipe"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "gecko_halls",
+                            "room_id": "g_pipe"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the lodgers stand."
+                    }
+                }
+            }
+        },
+        "g_east": {
+            "name": "The Dusty Cell",
+            "description": "A cell with a cot, a table, and the dried remains of a feast. There is a small key on the table.",
+            "exits": {
+                "west": "g_hall",
+                "north": "g_shop"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hexer",
+                    "instance_id": "hexer_ge1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_ge1"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_small_key"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "g_shop": {
+            "name": "A Nook in the Wall",
+            "description": "A nook the width of one old man and his bag.",
+            "exits": {
+                "south": "g_east"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_bags",
+                    "instance_id": "old_man_bags"
+                },
+                {
+                    "template_id": "old_man_gecko",
+                    "instance_id": "old_man_gecko"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "g_upper": {
+            "name": "The Upper Gallery",
+            "description": "The dark gets thicker here. A heavy door stands to the north, and a cold seam runs down the east wall.",
+            "exits": {
+                "south": "g_hall",
+                "north": "g_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_gu1"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_gu1"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_gu1"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "hidden_exits": {
+                    "east": "g_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "east",
+                        "message": "The wall bursts, and a hole stands where it was."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A heavy door, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "g_cache": {
+            "name": "The Lizard's Hole",
+            "description": "A small hole in the wall where something small once slept. A few bright things are left in it.",
+            "exits": {
+                "west": "g_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_30"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "g_ante": {
+            "name": "The Dry Throat",
+            "description": "A passage where the floor trembles every few seconds, faintly, as if under it something very large were turning over.",
+            "exits": {
+                "south": "g_upper",
+                "north": "g_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_ga1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_ga2"
+                },
+                {
+                    "template_id": "revenant",
+                    "instance_id": "revenant_ga1"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "g_boss": {
+            "name": "The Digging Floor",
+            "description": "A huge round chamber with a floor of loose earth, heaved up in ridges. In the middle of it a great round eye rolls out of the soil, ringed with spines, and fixes on you.",
+            "exits": {
+                "south": "g_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "burrowing_eye_large",
+                    "instance_id": "eye_large"
+                }
+            ]
+        }
+    }
+}

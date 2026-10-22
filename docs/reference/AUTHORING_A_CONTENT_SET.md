@@ -518,6 +518,10 @@ creature untouchable while any creature of those templates stands in its room, a
 ability passes through it: a plant whose mouths must be silenced before its stem can be struck, a hydra's heads, a core ringed by its eyes. The parts are
 ordinary creatures with their own health and blows.
 
+**What a place does when an item is used.** The trigger event `item_used` (`{"event": "item_used", "item": "item_reed_pipe", "region": ..., "room": ...}`; the
+place is optional) fires after the player uses the item, and what it says is added to what the item said. A reed pipe that does nothing of its own, with three
+triggers, opens a hidden way at one hill, shrinks a creature in one room (`remove_npc` + `spawn_npc`) and calls a fairy at one pool.
+
 **Finding things.** The trigger event `searched` (`{"event": "searched", "region": ..., "room": ...}`) fires when the player types
 `search` in that room: a hidden item at one place, found once (`once`) with `give_item`. A consumable with `"reusable": true` is not used up
 (a locator, a key item), and the effect `tell_distance` (`{region, room, message}`, `{steps}` in the message) says how many rooms

@@ -165,5 +165,169 @@
             },
             "message": "The flower shudders and goes slack all at once. A third sliver of the Starcrown glows among the leaves, and a warmth runs through you."
         }
+    },
+    "dock_heart_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_dock_heart"
+        },
+        "once": false,
+        "when": {
+            "all": [
+                {
+                    "kind": "has_item",
+                    "item_id": "item_dock_heart"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "dock_heart"
+                    }
+                }
+            ]
+        },
+        "effects": {
+            "take_item": "item_dock_heart",
+            "set_flag": "dock_heart",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "You hold the heart container to your chest, and it sinks in. You have more heart than you had."
+        }
+    },
+    "bush_heart_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_bush_heart"
+        },
+        "once": false,
+        "when": {
+            "all": [
+                {
+                    "kind": "has_item",
+                    "item_id": "item_bush_heart"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "bush_heart"
+                    }
+                }
+            ]
+        },
+        "effects": {
+            "take_item": "item_bush_heart",
+            "set_flag": "bush_heart",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "You hold the heart container to your chest, and it sinks in. You have more heart than you had."
+        }
+    },
+    "rod_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_wyrmrod"
+        },
+        "once": "player",
+        "effects": {
+            "teach_spell": "rod_bolt",
+            "message": "You turn the wyrmrod in your hand. Type 'cast wyrmrod' (or 'cast wyrmrod on <creature>') to point it."
+        }
+    },
+    "pipe_pool": {
+        "on": {
+            "event": "item_used",
+            "item": "item_reed_pipe",
+            "region": "ardenmoor_north",
+            "room": "an_1_1"
+        },
+        "once": "world",
+        "effects": {
+            "reveal_exit": {
+                "room": "ardenmoor_north:an_1_1",
+                "direction": "in"
+            },
+            "message": "The black water shivers at the tune, and clears, and a stair of wet stone shows beneath it, going down to a bright place."
+        }
+    },
+    "pipe_eye": {
+        "on": {
+            "event": "item_used",
+            "item": "item_reed_pipe",
+            "region": "gecko_halls",
+            "room": "g_boss"
+        },
+        "once": "world",
+        "effects": {
+            "remove_npc": "eye_large",
+            "spawn_npc": {
+                "npc": "burrowing_eye_small",
+                "region": "gecko_halls",
+                "room": "g_boss",
+                "instance_id": "eye_small"
+            },
+            "message": "The tune goes out into the room, and the great eye stops rolling. It shudders, and shrinks, and shrinks, and sits blinking in the dust at the size of a boulder, furious."
+        }
+    },
+    "hydra_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "hydra"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_4",
+            "set_flag": "shard_4",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The hydra's body slumps into the pit and is still. A fourth sliver of the Starcrown lies in the ash of it, and a warmth runs through you."
+        }
+    },
+    "eye_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "burrowing_eye_small"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_5",
+            "set_flag": "shard_5",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The little eye rolls over and goes dim. A fifth sliver of the Starcrown glows in the loose earth where it lay, and a warmth runs through you."
+        }
+    },
+    "claw_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "great_claw"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_6",
+            "set_flag": "shard_6",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The great claw folds up, eye shut at last, and goes still. A sixth sliver of the Starcrown lies in the dust under it, and a warmth runs through you."
+        }
     }
 }
