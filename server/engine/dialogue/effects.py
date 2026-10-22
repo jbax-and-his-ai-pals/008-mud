@@ -755,11 +755,29 @@ def _apply_item_effects(effects: Dict[str, Any], player, world, report: EffectRe
                 report.failed.append("take_item %s (no inventory)" % item_id)
                 continue
             if inventory.count_item(item_id) < quantity:
-                report.failed.append("take_item %s (not carried)" % item_id)
+                if _take_worn_item(player, item_id):
+                    report.applied.append("took %s off the player" % item_id)   # worn, cursed or not: whatever binds it is let go
+                else:
+                    report.failed.append("take_item %s (not carried)" % item_id)
                 continue
             inventory.remove_item(item_id, quantity)
             report.applied.append("took %s" % item_id)
 
+
+
+def _take_worn_item(player, item_id: str) -> bool:
+    """Take away something the player has on (a curse lifted, a loan called in): its slot is emptied and its worn effect ends."""
+    equipment = getattr(player, "equipment", None)
+    if not isinstance(equipment, dict):
+        return False
+    for slot, item in equipment.items():
+        if item is not None and getattr(item, "obj_id", None) == item_id:
+            effect = item.get_property("equip_effect")
+            if isinstance(effect, dict) and effect.get("name") and hasattr(player, "remove_effect"):
+                player.remove_effect(effect["name"])
+            equipment[slot] = None
+            return True
+    return False
 
 
 def _currency(world) -> str:

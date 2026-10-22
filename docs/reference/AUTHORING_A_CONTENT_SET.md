@@ -475,6 +475,8 @@ in the room, hostile and aggressive. It is not one of the room's own: it does no
 without it. Under a status with the tag `repel` (an `apply_effect`: a spell, a consumable) creatures whose attack is below the player's
 defence do not come. Overlapping zones are tried in order.
 
+**Taking what is worn.** `take_item` takes an item the player has on as well as one they carry (a priest who lifts a curse).
+
 **A creature worth a fixed amount.** `properties.xp_reward` (a whole number) is the experience a creature is worth, whoever kills it, at whatever level;
 without it the engine's formula (its health and level, scaled by how they compare with the killer's) is used.
 

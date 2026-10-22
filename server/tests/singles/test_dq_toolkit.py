@@ -128,6 +128,25 @@ class TestAPermanentGainInDefense(unittest.TestCase):
         self.assertTrue(apply_effects({"raise": {"defense": 0}}, {"player": player, "world": server.world}).failed)
 
 
+class TestTakingWhatIsWorn(unittest.TestCase):
+    def test_take_item_takes_a_worn_item_even_a_cursed_one(self):
+        from engine.dialogue.effects import apply_effects
+
+        server, player = _game(self)
+        worn = _wear(server, player)
+        worn.properties["cursed"] = True
+        player.inventory.remove_item(worn.obj_id, 99)   # the fixture's hero also carries a spare
+        report = apply_effects({"take_item": worn.obj_id}, {"player": player, "world": server.world})
+        self.assertTrue(report.applied, report.failed)
+        self.assertIsNone(player.equipment["body"])
+
+    def test_it_still_fails_when_it_is_neither_carried_nor_worn(self):
+        from engine.dialogue.effects import apply_effects
+
+        server, player = _game(self)
+        self.assertTrue(apply_effects({"take_item": "item_nothing"}, {"player": player, "world": server.world}).failed)
+
+
 class TestTheGameCanEnd(unittest.TestCase):
     def test_game_over_kills_the_character_and_respawn_refuses(self):
         from engine.dialogue.effects import apply_effects
