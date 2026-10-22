@@ -325,5 +325,78 @@ class TestTheSouthEast(Base):
         self.assertEqual({"gaunt_wraith", "crag_wyvern", "packlord", "gilded_husk"}, {m["npc"] for m in zones["sagehollow"]["monsters"]})
 
 
+class TestTheSouth(Base):
+    def _give(self, item_id):
+        from engine.items.item_factory import ItemFactory
+
+        self.player.inventory.add_item(ItemFactory.create_item_from_template(item_id, self.world))
+
+    def _held(self, item_id):
+        return any(slot.item and slot.item.obj_id == item_id for slot in self.player.inventory.slots)
+
+    def test_the_colossus_bars_the_road_until_it_sleeps_or_is_dead(self):
+        self.at("southwilds", "sw_6_3")
+        self.player.health = self.player.max_health = 10 ** 5
+        golem, _ = self.world.spawn_npc("mossback_colossus", "southwilds", "sw_6_3", "golem_gate")
+        self.assertIn("does not move aside", self.say("go south"))
+        self.assertEqual("southwilds:sw_6_3", self.where())
+        self.player.flags["golem_asleep"] = True
+        golem.apply_effect({"type": "status", "name": "Slumber", "tags": ["sleep"], "base_duration": 3600}, 0.0)
+        self.say("go south")
+        self.assertEqual("cairnwall:gate", self.where())
+
+    def test_the_slumber_pipe_puts_it_to_sleep_and_sets_the_flag(self):
+        self.at("southwilds", "sw_6_3")
+        golem, _ = self.world.spawn_npc("mossback_colossus", "southwilds", "sw_6_3", "golem_gate")
+        self._give("item_slumber_pipe")
+        self.say("use slumber pipe on mossback colossus")
+        self.assertTrue(golem.has_effect_tag("sleep"))
+        self.assertIs(True, self.player.flags.get("golem_asleep"))
+        self.assertTrue(self._held("item_slumber_pipe"), "the pipe is kept")
+
+    def test_a_dead_colossus_opens_the_road_too(self):
+        self.at("southwilds", "sw_6_3")
+        self.world.remove_npcs("mossback_colossus")
+        self.say("go south")
+        self.assertEqual("cairnwall:gate", self.where())
+
+    def test_ostruns_mail_comes_only_after_the_knight_is_dead(self):
+        self.at("haskarth", "h_trees")
+        knight = [n for n in self.world.npcs.values() if n.template_id == "cleaver_knight" and n.current_room_id == "h_trees"]
+        self.assertTrue(knight, "the knight is placed in the trees")
+        self.assertIn("nothing to search", self.say("search"))
+        knight[0].take_damage(10 ** 6, "physical")
+        self.say("search")
+        self.assertTrue(self._held("item_ostruns_mail"))
+
+    def test_the_mail_heals_a_little_each_step_and_turns_a_barrier_floor_aside(self):
+        mail = self.world.item_templates["item_ostruns_mail"]["properties"] if hasattr(self.world, "item_templates") else {}
+        if mail:
+            self.assertEqual(1, mail["heal_per_step"])
+            self.assertEqual(100, mail["resistances"]["barrier"])
+        from engine.items.item_factory import ItemFactory
+
+        self.player.equipment["body"] = ItemFactory.create_item_from_template("item_ostruns_mail", self.world)
+        self.assertEqual(100, self.player.get_resistance("barrier"))
+        self.assertEqual(0, self.player.take_damage(5, "barrier"), "a poisoned floor does nothing to it")
+
+    def test_the_locket_reads_the_number_the_scholar_gives_at_the_place_of_the_signet(self):
+        from engine.items.item_factory import ItemFactory
+
+        self.player.inventory.add_item(ItemFactory.create_item_from_template("item_elowens_locket", self.world))
+        self.at("southwilds", "fen_end")
+        said = self.say("use elowen's locket")
+        told = re.search(r"(\d+) steps from the castle courtyard", self.world.npc_templates["cairn_scholar"]["dialog"]["greeting"]).group(1)
+        self.assertIn(told, said)
+        self.say("search")
+        self.assertTrue(self._held("item_ostruns_signet"))
+
+    def test_cairnwall_has_the_locked_vault_shop(self):
+        stock = {e["item_id"] for e in self.world.npc_templates["cairn_vaultsmith"]["properties"]["sells_items"]}
+        self.assertEqual({"item_emberbrand", "item_moonsilver_shield"}, stock)
+        self.at("cairnwall", "inn")
+        self.assertIn("locked", self.say("go west").lower())
+
+
 if __name__ == "__main__":
     unittest.main()

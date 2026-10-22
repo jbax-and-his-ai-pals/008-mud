@@ -1,0 +1,253 @@
+{
+    "region_id": "cairnwall",
+    "name": "Cairnwall",
+    "description": "A walled town in the south, the last place for a hundred miles that sells steel and keeps its doors locked.",
+    "properties": {
+        "safe_zone": true,
+        "outdoors": true
+    },
+    "rooms": {
+        "gate": {
+            "name": "The Great Gate",
+            "description": "A wide stone gate, shut at night and open now. The wall around the town is old and patched. A broad road runs inside.",
+            "exits": {
+                "north": "southwilds:sw_6_3",
+                "south": "plaza"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_guard",
+                    "instance_id": "guard_cairn"
+                }
+            ]
+        },
+        "plaza": {
+            "name": "The Plaza of Cairnwall",
+            "description": "A broad paved plaza ringed with doors. Merchants shout over each other. This is the only safe place for a hundred miles.",
+            "exits": {
+                "north": "gate",
+                "west": "north_arms",
+                "east": "north_tools",
+                "south": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_gossip",
+                    "instance_id": "gossip_cairn"
+                }
+            ]
+        },
+        "north_arms": {
+            "name": "The North Armoury",
+            "description": "A shop of plain arms for plain purses.",
+            "exits": {
+                "east": "plaza",
+                "south": "south_arms",
+                "west": "dew_shop"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_smith_n",
+                    "instance_id": "smith_cairn_n"
+                }
+            ]
+        },
+        "north_tools": {
+            "name": "The North Stall",
+            "description": "A stall of moss and torches.",
+            "exits": {
+                "west": "plaza",
+                "south": "south_tools",
+                "east": "key_shop"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_trader_n",
+                    "instance_id": "trader_cairn_n"
+                }
+            ]
+        },
+        "south_arms": {
+            "name": "The South Armoury",
+            "description": "A bigger shop with better stock, at higher prices.",
+            "exits": {
+                "north": "north_arms",
+                "west": "house_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_smith_s",
+                    "instance_id": "smith_cairn_s"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The weaver's door is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "south_tools": {
+            "name": "The South Stall",
+            "description": "A stall of scales and bright feathers.",
+            "exits": {
+                "north": "north_tools",
+                "east": "house_mid_l"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_trader_s",
+                    "instance_id": "trader_cairn_s"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The scribe's door is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "dew_shop": {
+            "name": "The Dew Seller",
+            "description": "A shaded room of cool shelves, with glass vials set out on them.",
+            "exits": {
+                "east": "north_arms"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_dewseller",
+                    "instance_id": "dewseller_cairn"
+                }
+            ]
+        },
+        "key_shop": {
+            "name": "The Key Shop",
+            "description": "A narrow shop full of key blanks and filings.",
+            "exits": {
+                "west": "north_tools"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_locksmith",
+                    "instance_id": "locksmith_cairn"
+                }
+            ]
+        },
+        "inn": {
+            "name": "The Sign of the Wall",
+            "description": "A quiet inn with thick walls. It costs more here, and for once the price is worth it.",
+            "exits": {
+                "north": "plaza",
+                "west": "locked_arms",
+                "east": "house_east",
+                "south": "house_mid_r"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_innkeeper",
+                    "instance_id": "innkeeper_cairn"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The vault shop's door is locked. A brass key would answer it."
+                    },
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The soldier's door is locked. A brass key would answer it."
+                    },
+                    "south": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "This door is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "locked_arms": {
+            "name": "The Vault Armoury",
+            "description": "A locked shop behind a heavy door, with a short rack of very good steel and very high prices.",
+            "exits": {
+                "east": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_vaultsmith",
+                    "instance_id": "vaultsmith_cairn"
+                }
+            ]
+        },
+        "house_west": {
+            "name": "The Weaver's House",
+            "description": "A small house with a loom in the window.",
+            "exits": {
+                "east": "south_arms"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_weaver",
+                    "instance_id": "weaver_cairn"
+                }
+            ]
+        },
+        "house_east": {
+            "name": "The Soldier's House",
+            "description": "A bare house with a pallet and a spear in the corner.",
+            "exits": {
+                "west": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_soldier",
+                    "instance_id": "soldier_cairn"
+                }
+            ]
+        },
+        "house_mid_l": {
+            "name": "The Scribe's House",
+            "description": "A house of books and a good fire.",
+            "exits": {
+                "west": "south_tools"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_scribe",
+                    "instance_id": "scribe_cairn"
+                }
+            ]
+        },
+        "house_mid_r": {
+            "name": "The Hermit Scholar's House",
+            "description": "A bare house with a single shelf of books and a very large map on the wall.",
+            "exits": {
+                "north": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cairn_scholar",
+                    "instance_id": "scholar_cairn"
+                }
+            ]
+        }
+    }
+}

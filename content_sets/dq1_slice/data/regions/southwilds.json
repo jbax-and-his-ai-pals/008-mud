@@ -1,0 +1,530 @@
+{
+    "region_id": "southwilds",
+    "name": "The Southwilds",
+    "description": "A hard, wide country south of the bridge: ruined towns, dry heath and hungry creatures, with Cairnwall at the heart of it.",
+    "properties": {
+        "outdoors": true,
+        "biome": "plain"
+    },
+    "rooms": {
+        "sw_0_0": {
+            "name": "Ashen Scarp",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. The wind has teeth.",
+            "exits": {
+                "east": "sw_0_1",
+                "south": "sw_1_0"
+            }
+        },
+        "sw_0_1": {
+            "name": "Dry Reach",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "west": "sw_0_0",
+                "east": "sw_0_2",
+                "south": "sw_1_1"
+            }
+        },
+        "sw_0_2": {
+            "name": "Brokenstone",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "west": "sw_0_1",
+                "east": "sw_0_3",
+                "south": "sw_1_2"
+            }
+        },
+        "sw_0_3": {
+            "name": "Crow Hill",
+            "description": "Dead trees and black pools, a long way from anywhere kind. The wind has teeth.",
+            "exits": {
+                "west": "sw_0_2",
+                "east": "sw_0_4",
+                "south": "sw_1_3"
+            }
+        },
+        "sw_0_4": {
+            "name": "Scree Run",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. The wind has teeth.",
+            "exits": {
+                "west": "sw_0_3",
+                "east": "sw_0_5",
+                "south": "sw_1_4"
+            }
+        },
+        "sw_0_5": {
+            "name": "The Bridge Ridge",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "west": "sw_0_4",
+                "east": "sw_0_6",
+                "south": "sw_1_5"
+            }
+        },
+        "sw_0_6": {
+            "name": "The Great Bridge",
+            "description": "A great arched bridge of old white stone carries the road over a black chasm. To the east lies the fenland country; to the west, a harder one.",
+            "exits": {
+                "west": "sw_0_5",
+                "south": "sw_1_6",
+                "east": "fenlands:fn_5_0"
+            }
+        },
+        "sw_1_0": {
+            "name": "Cold Barrens",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "north": "sw_0_0",
+                "east": "sw_1_1",
+                "south": "sw_2_0"
+            }
+        },
+        "sw_1_1": {
+            "name": "The Gaunt Ridge",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_0_1",
+                "west": "sw_1_0",
+                "east": "sw_1_2",
+                "south": "sw_2_1"
+            }
+        },
+        "sw_1_2": {
+            "name": "Hollow Tor",
+            "description": "Dead trees and black pools, a long way from anywhere kind. The wind has teeth.",
+            "exits": {
+                "north": "sw_0_2",
+                "west": "sw_1_1",
+                "east": "sw_1_3",
+                "south": "sw_2_2"
+            }
+        },
+        "sw_1_3": {
+            "name": "Rime Heath",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. The wind has teeth.",
+            "exits": {
+                "north": "sw_0_3",
+                "west": "sw_1_2",
+                "east": "sw_1_4",
+                "south": "sw_2_3"
+            }
+        },
+        "sw_1_4": {
+            "name": "Pale Marsh",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "north": "sw_0_4",
+                "west": "sw_1_3",
+                "east": "sw_1_5",
+                "south": "sw_2_4"
+            }
+        },
+        "sw_1_5": {
+            "name": "Cinder Vale",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_0_5",
+                "west": "sw_1_4",
+                "east": "sw_1_6",
+                "south": "sw_2_5"
+            }
+        },
+        "sw_1_6": {
+            "name": "Saltwind Edge",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_0_6",
+                "west": "sw_1_5",
+                "south": "sw_2_6"
+            }
+        },
+        "sw_2_0": {
+            "name": "Withered Heath",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_1_0",
+                "east": "sw_2_1",
+                "south": "sw_3_0"
+            }
+        },
+        "sw_2_1": {
+            "name": "Dead Orchard",
+            "description": "Dead trees and black pools, a long way from anywhere kind. The wind has teeth.",
+            "exits": {
+                "north": "sw_1_1",
+                "west": "sw_2_0",
+                "east": "sw_2_2",
+                "south": "sw_3_1"
+            }
+        },
+        "sw_2_2": {
+            "name": "Old Furrows",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. The wind has teeth.",
+            "exits": {
+                "north": "sw_1_2",
+                "west": "sw_2_1",
+                "east": "sw_2_3",
+                "south": "sw_3_2"
+            }
+        },
+        "sw_2_3": {
+            "name": "Bone Hill",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "north": "sw_1_3",
+                "west": "sw_2_2",
+                "east": "sw_2_4",
+                "south": "sw_3_3"
+            }
+        },
+        "sw_2_4": {
+            "name": "Long Slope",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_1_4",
+                "west": "sw_2_3",
+                "east": "sw_2_5",
+                "south": "sw_3_4"
+            }
+        },
+        "sw_2_5": {
+            "name": "Wolf Run",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_1_5",
+                "west": "sw_2_4",
+                "east": "sw_2_6",
+                "south": "sw_3_5"
+            }
+        },
+        "sw_2_6": {
+            "name": "Gallows Rise",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_1_6",
+                "west": "sw_2_5",
+                "south": "sw_3_6"
+            }
+        },
+        "sw_3_0": {
+            "name": "The Ruin Road",
+            "description": "Dead trees and black pools, a long way from anywhere kind. The wind has teeth.",
+            "exits": {
+                "north": "sw_2_0",
+                "east": "sw_3_1",
+                "south": "sw_4_0"
+            }
+        },
+        "sw_3_1": {
+            "name": "Haskarth Gate",
+            "description": "A gap in a tumbled wall, with the remains of a town beyond it. Nothing lives there that you would care to meet, but there is a reason to go.",
+            "exits": {
+                "north": "sw_2_1",
+                "west": "sw_3_0",
+                "east": "sw_3_2",
+                "south": "sw_4_1",
+                "in": "haskarth:h_gate"
+            }
+        },
+        "sw_3_2": {
+            "name": "Lichen Down",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "north": "sw_2_2",
+                "west": "sw_3_1",
+                "east": "sw_3_3",
+                "south": "sw_4_2"
+            }
+        },
+        "sw_3_3": {
+            "name": "Black Tarn",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_2_3",
+                "west": "sw_3_2",
+                "east": "sw_3_4",
+                "south": "sw_4_3"
+            }
+        },
+        "sw_3_4": {
+            "name": "Hawthorn Waste",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_2_4",
+                "west": "sw_3_3",
+                "east": "sw_3_5",
+                "south": "sw_4_4"
+            }
+        },
+        "sw_3_5": {
+            "name": "Burnt Ridge",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_2_5",
+                "west": "sw_3_4",
+                "east": "sw_3_6",
+                "south": "sw_4_5"
+            }
+        },
+        "sw_3_6": {
+            "name": "Grey Fold",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_2_6",
+                "west": "sw_3_5",
+                "south": "sw_4_6"
+            }
+        },
+        "sw_4_0": {
+            "name": "Cairn Barrow",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. The wind has teeth.",
+            "exits": {
+                "north": "sw_3_0",
+                "east": "sw_4_1",
+                "south": "sw_5_0"
+            }
+        },
+        "sw_4_1": {
+            "name": "Tumbled Wall",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "north": "sw_3_1",
+                "west": "sw_4_0",
+                "east": "sw_4_2",
+                "south": "sw_5_1"
+            }
+        },
+        "sw_4_2": {
+            "name": "Low Stones",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_3_2",
+                "west": "sw_4_1",
+                "east": "sw_4_3",
+                "south": "sw_5_2"
+            }
+        },
+        "sw_4_3": {
+            "name": "Raven Gap",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_3_3",
+                "west": "sw_4_2",
+                "east": "sw_4_4",
+                "south": "sw_5_3"
+            }
+        },
+        "sw_4_4": {
+            "name": "The Outer Road",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_3_4",
+                "west": "sw_4_3",
+                "east": "sw_4_5",
+                "south": "sw_5_4"
+            }
+        },
+        "sw_4_5": {
+            "name": "Cinder Slope",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_3_5",
+                "west": "sw_4_4",
+                "east": "sw_4_6",
+                "south": "sw_5_5"
+            }
+        },
+        "sw_4_6": {
+            "name": "Wide Mere",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_3_6",
+                "west": "sw_4_5",
+                "south": "sw_5_6"
+            }
+        },
+        "sw_5_0": {
+            "name": "Hag's Hollow",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. The wind has teeth.",
+            "exits": {
+                "north": "sw_4_0",
+                "east": "sw_5_1",
+                "south": "sw_6_0"
+            }
+        },
+        "sw_5_1": {
+            "name": "Dire Fold",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_4_1",
+                "west": "sw_5_0",
+                "east": "sw_5_2",
+                "south": "sw_6_1"
+            }
+        },
+        "sw_5_2": {
+            "name": "Pilgrim Cairns",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_4_2",
+                "west": "sw_5_1",
+                "east": "sw_5_3",
+                "south": "sw_6_2"
+            }
+        },
+        "sw_5_3": {
+            "name": "Stone Mile",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_4_3",
+                "west": "sw_5_2",
+                "east": "sw_5_4",
+                "south": "sw_6_3"
+            }
+        },
+        "sw_5_4": {
+            "name": "Cairnwall Approach",
+            "description": "Dry grass and broken stone, and the sense that the sky is a lid. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_4_4",
+                "west": "sw_5_3",
+                "east": "sw_5_5",
+                "south": "sw_6_4"
+            }
+        },
+        "sw_5_5": {
+            "name": "Tarn End",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_4_5",
+                "west": "sw_5_4",
+                "east": "sw_5_6",
+                "south": "sw_6_5"
+            }
+        },
+        "sw_5_6": {
+            "name": "Dun Heath",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_4_6",
+                "west": "sw_5_5",
+                "south": "sw_6_6"
+            }
+        },
+        "sw_6_0": {
+            "name": "Cold Marches",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. The wind has teeth.",
+            "exits": {
+                "north": "sw_5_0",
+                "east": "sw_6_1"
+            }
+        },
+        "sw_6_1": {
+            "name": "The Last Ditch",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_5_1",
+                "west": "sw_6_0",
+                "east": "sw_6_2"
+            }
+        },
+        "sw_6_2": {
+            "name": "Rubble Fall",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_5_2",
+                "west": "sw_6_1",
+                "east": "sw_6_3"
+            }
+        },
+        "sw_6_3": {
+            "name": "The Warden's Road",
+            "description": "The road squeezes between two walls of tumbled stone. Beyond them, a gate in a great wall stands open on the south. In the middle of the road, as still as a statue, stands something that is not a statue.",
+            "exits": {
+                "north": "sw_5_3",
+                "west": "sw_6_2",
+                "east": "sw_6_4",
+                "south": "cairnwall:gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "mossback_colossus",
+                    "instance_id": "golem_gate"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "any": [
+                                {
+                                    "kind": "flag",
+                                    "flag": "golem_asleep"
+                                },
+                                {
+                                    "not": {
+                                        "kind": "npc_present",
+                                        "npc_id": "mossback_colossus",
+                                        "region_id": "southwilds",
+                                        "room_id": "sw_6_3"
+                                    }
+                                }
+                            ]
+                        },
+                        "failure_message": "The colossus does not move aside. It will take a very old, very quiet tune to get past it, or a very long fight."
+                    }
+                }
+            }
+        },
+        "sw_6_4": {
+            "name": "Walled Fields",
+            "description": "Windswept heath under a purple dusk-light that doesn't quite belong to the hour. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_5_4",
+                "west": "sw_6_3",
+                "east": "sw_6_5"
+            }
+        },
+        "sw_6_5": {
+            "name": "Fen Verge",
+            "description": "Dead trees and black pools, a long way from anywhere kind. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_5_5",
+                "west": "sw_6_4",
+                "east": "sw_6_6"
+            }
+        },
+        "sw_6_6": {
+            "name": "The Grey Fen",
+            "description": "Barren land under a heavy sky, scattered with the debris of some old war. Something large stirs in the distance.",
+            "exits": {
+                "north": "sw_5_6",
+                "west": "sw_6_5",
+                "south": "fen_edge"
+            }
+        },
+        "fen_edge": {
+            "name": "The Fen's Edge",
+            "description": "The ground goes soft and black, and the path ends at a dead tree in a pool of green scum.",
+            "exits": {
+                "north": "sw_6_6",
+                "east": "fen_deep"
+            }
+        },
+        "fen_deep": {
+            "name": "The Deep Fen",
+            "description": "Reeds taller than a man close in on every side, and the water is up to your knees.",
+            "exits": {
+                "west": "fen_edge",
+                "south": "fen_end"
+            }
+        },
+        "fen_end": {
+            "name": "A Place in the Fen",
+            "description": "A small hummock of firmer ground in the middle of the reeds, with a flat stone sunk half into it, and nothing at all to say why you should search it.",
+            "exits": {
+                "north": "fen_deep"
+            }
+        }
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "haskarth": {
+        "region": "haskarth",
+        "rooms": [
+            "h_street",
+            "h_square"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "moonhowler",
+                "weight": 1
+            },
+            {
+                "npc": "verdant_drake",
+                "weight": 1
+            },
+            {
+                "npc": "skylord_wyvern",
+                "weight": 2
+            },
+            {
+                "npc": "archmage",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes out of the burnt houses!",
+        "note": "The seventeenth group, in the ruins."
+    }
+}

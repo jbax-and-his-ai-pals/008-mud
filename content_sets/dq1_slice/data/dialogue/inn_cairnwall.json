@@ -1,0 +1,36 @@
+{
+    "id": "inn_cairnwall",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "A hundred gold for a bed. It is the only bed for a hundred miles, so I suppose it is fair.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Pay the 100 gold and take a bed.",
+                    "next_node": "slept",
+                    "effects": {
+                        "take_gold": 100,
+                        "restore": {
+                            "resource": "all"
+                        },
+                        "message": "You sleep deeply and wake with every hurt eased."
+                    },
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 100
+                    }
+                },
+                {
+                    "text": "Not tonight.",
+                    "end": true
+                }
+            ]
+        },
+        "slept": {
+            "text": "Safe road.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

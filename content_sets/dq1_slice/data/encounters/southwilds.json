@@ -1,0 +1,198 @@
+{
+    "southwilds_bridge": {
+        "region": "southwilds",
+        "rooms": [
+            "sw_0_4",
+            "sw_0_5",
+            "sw_1_4",
+            "sw_1_5",
+            "sw_1_6",
+            "sw_2_4",
+            "sw_2_5",
+            "sw_2_6",
+            "sw_3_4",
+            "sw_3_5",
+            "sw_3_6"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "gaunt_wraith",
+                "weight": 1
+            },
+            {
+                "npc": "crag_wyvern",
+                "weight": 2
+            },
+            {
+                "npc": "packlord",
+                "weight": 1
+            },
+            {
+                "npc": "gilded_husk",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes down at you from the rocks!",
+        "note": "The twelfth group: round the bridge."
+    },
+    "southwilds_north_west": {
+        "region": "southwilds",
+        "rooms": [
+            "sw_0_0",
+            "sw_0_1",
+            "sw_0_2",
+            "sw_0_3",
+            "sw_1_0",
+            "sw_1_1",
+            "sw_1_2",
+            "sw_1_3",
+            "sw_2_0",
+            "sw_2_1",
+            "sw_2_2",
+            "sw_2_3",
+            "sw_3_0",
+            "sw_3_2",
+            "sw_3_3"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "crag_wyvern",
+                "weight": 1
+            },
+            {
+                "npc": "pale_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "hollow_knight",
+                "weight": 1
+            },
+            {
+                "npc": "sable_knight",
+                "weight": 1
+            },
+            {
+                "npc": "dread_knight",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} bars the road!",
+        "note": "The fourteenth group: the road to Haskarth."
+    },
+    "southwilds_south_west": {
+        "region": "southwilds",
+        "rooms": [
+            "sw_4_0",
+            "sw_4_1",
+            "sw_4_2",
+            "sw_5_0",
+            "sw_5_1",
+            "sw_5_2",
+            "sw_6_0",
+            "sw_6_1",
+            "sw_6_2"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "hollow_knight",
+                "weight": 1
+            },
+            {
+                "npc": "sable_knight",
+                "weight": 1
+            },
+            {
+                "npc": "hexwyvern",
+                "weight": 1
+            },
+            {
+                "npc": "dread_knight",
+                "weight": 1
+            },
+            {
+                "npc": "quicksilver_blob",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes out of the stones!",
+        "note": "The fifteenth group: south of the ruins."
+    },
+    "southwilds_outer_cairnwall": {
+        "region": "southwilds",
+        "rooms": [
+            "sw_4_3",
+            "sw_4_4",
+            "sw_4_5",
+            "sw_4_6",
+            "sw_5_3",
+            "sw_5_4",
+            "sw_5_5",
+            "sw_5_6"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "sable_knight",
+                "weight": 1
+            },
+            {
+                "npc": "hexwyvern",
+                "weight": 1
+            },
+            {
+                "npc": "dread_knight",
+                "weight": 1
+            },
+            {
+                "npc": "moonhowler",
+                "weight": 1
+            },
+            {
+                "npc": "skylord_wyvern",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} strides out of the dusk!",
+        "note": "The sixteenth group: outside the walled town."
+    },
+    "southwilds_cairnwall": {
+        "region": "southwilds",
+        "rooms": [
+            "sw_6_4",
+            "sw_6_5",
+            "sw_6_6",
+            "fen_edge",
+            "fen_deep",
+            "fen_end"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "moonhowler",
+                "weight": 1
+            },
+            {
+                "npc": "verdant_drake",
+                "weight": 1
+            },
+            {
+                "npc": "skylord_wyvern",
+                "weight": 2
+            },
+            {
+                "npc": "archmage",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} rises out of the dark!",
+        "note": "The seventeenth group: the walled town's own country."
+    }
+}

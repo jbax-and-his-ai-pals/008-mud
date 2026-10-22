@@ -983,5 +983,388 @@
             "unique": true,
             "dialogue": "sage_prism"
         }
+    },
+    "haskarth_ghost": {
+        "name": "a pale child",
+        "description": "A pale child, sitting on the hearth with the toys, who is not quite there.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "There is a knight in the trees behind the old armoury. He guards something that was left for your people. Search where he stands. Only after he is gone, mind."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "cairn_guard": {
+        "name": "a gate guard",
+        "description": "A guard in a shining, scarred helm.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Cairnwall! Go inside, buy what you can, and sleep before you go on. And mind the colossus on the road. It does not like visitors, and it does not die easily."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "cairn_gossip": {
+        "name": "a merchant",
+        "description": "A well-fed merchant counting coins on a bench.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "I bought a key at the north stall, and the house on the east side of the inn belongs to a soldier who knows where Ostrun's armour lies. Ask him."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "cairn_smith_n": {
+        "name": "the smith",
+        "description": "A stooped old smith with a ruined hand.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Cudgels, blades, and a few good shields. Nothing fancy."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_willow_staff"
+                },
+                {
+                    "item_id": "item_oak_cudgel"
+                },
+                {
+                    "item_id": "item_bronze_blade"
+                },
+                {
+                    "item_id": "item_hide_jerkin"
+                },
+                {
+                    "item_id": "item_ringmail_hauberk"
+                },
+                {
+                    "item_id": "item_kite_shield"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cairn_trader_n": {
+        "name": "the trader",
+        "description": "A cheerful man with a lantern.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Moss and torches."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_healing_moss"
+                },
+                {
+                    "item_id": "item_pitch_torch"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cairn_smith_s": {
+        "name": "the master smith",
+        "description": "A broad woman with a hammer on her belt.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The good stuff. Be sure you can pay for it."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_woodsmans_axe"
+                },
+                {
+                    "item_id": "item_longblade"
+                },
+                {
+                    "item_id": "item_plate_harness"
+                },
+                {
+                    "item_id": "item_spellwoven_mail"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cairn_trader_s": {
+        "name": "the trader",
+        "description": "A woman with a feather in her hat.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Scales, and feathers to take you home."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_wyrm_scale"
+                },
+                {
+                    "item_id": "item_homing_feather"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cairn_dewseller": {
+        "name": "the dew seller",
+        "description": "A woman in a grey scarf.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Thirty-eight, and worth every coin."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_wisp_dew"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cairn_locksmith": {
+        "name": "the locksmith",
+        "description": "A thin man with oily hands.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Ninety-eight gold a key. Do not complain; there is nobody else to sell them to you."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_brass_key"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cairn_innkeeper": {
+        "name": "the innkeeper",
+        "description": "A tall, polite man with a long ledger.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "inn_cairnwall"
+        }
+    },
+    "cairn_vaultsmith": {
+        "name": "the vault smith",
+        "description": "A silent, immaculate man with very clean hands.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The best, for those who can pay. Emberbrand and the moonsilver shield are not yet for sale to anyone I do not know."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_emberbrand"
+                },
+                {
+                    "item_id": "item_moonsilver_shield"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "cairn_weaver": {
+        "name": "the weaver",
+        "description": "A woman at her loom, not looking up.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The colossus on the road is a thing older than Cairnwall. They say a pipe played in the old way will send it to sleep. A reed pipe, with one tune. There is one in Kalder, if you know where to search."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "cairn_soldier": {
+        "name": "the retired soldier",
+        "description": "A scarred man on a pallet bed.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Ostrun's armour is in the ruins of Haskarth, west of here, behind the old armoury. Search the trees where the cleaver knight stands. Kill him first. Nobody has ever done it politely."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "cairn_scribe": {
+        "name": "the scribe",
+        "description": "A hunched woman with ink up to her elbows.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "I have written down everything that is known of the Lightbearer's signet. It was lost in a fen, far from any road."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "cairn_scholar": {
+        "name": "the scholar",
+        "description": "A thin man, surrounded by charts and an unlit lamp.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The signet is in the grey fen south-east of the town. If you have the princess's locket, it will tell you how far from Telgard you are. The place you want is 39 steps from the castle courtyard. Search there."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
     }
 }

@@ -248,7 +248,8 @@
             "description": "Dry heath and thistle, the wind never still. The land climbs and thins, and the sea is somewhere beyond it.",
             "exits": {
                 "north": "fn_4_0",
-                "east": "fn_5_1"
+                "east": "fn_5_1",
+                "west": "southwilds:sw_0_6"
             }
         },
         "fn_5_1": {

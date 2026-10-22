@@ -1,0 +1,34 @@
+{
+    "signet_found": {
+        "on": {
+            "event": "searched",
+            "region": "southwilds",
+            "room": "fen_end"
+        },
+        "once": "player",
+        "effects": {
+            "give_item": "item_ostruns_signet",
+            "message": "You lift the flat stone, and under it, in a nest of black mud, is a heavy ring stamped with a sun and a sword."
+        }
+    },
+    "mail_found": {
+        "on": {
+            "event": "searched",
+            "region": "haskarth",
+            "room": "h_trees"
+        },
+        "once": "player",
+        "when": {
+            "not": {
+                "kind": "npc_present",
+                "npc_id": "cleaver_knight",
+                "region_id": "haskarth",
+                "room_id": "h_trees"
+            }
+        },
+        "effects": {
+            "give_item": "item_ostruns_mail",
+            "message": "Behind the largest tree, wedged into a hollow, is a bundle of oilskin. Inside it lies a suit of mail that has not tarnished in a thousand years."
+        }
+    }
+}

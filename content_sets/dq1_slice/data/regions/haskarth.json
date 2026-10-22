@@ -1,0 +1,62 @@
+{
+    "region_id": "haskarth",
+    "name": "Haskarth",
+    "description": "A town the Sovereign's creatures burnt and then moved into. There is one thing worth risking it for.",
+    "properties": {
+        "outdoors": true,
+        "biome": "plain"
+    },
+    "rooms": {
+        "h_gate": {
+            "name": "The Broken Gate",
+            "description": "A broken gate in a wall that was once taller than a house. Beyond it, the shells of buildings, black and open to the sky.",
+            "exits": {
+                "north": "h_street",
+                "out": "southwilds:sw_3_1"
+            }
+        },
+        "h_street": {
+            "name": "The Ruined Street",
+            "description": "A street of cracked flags between burnt shells. Weeds grow out of the hearthstones.",
+            "exits": {
+                "south": "h_gate",
+                "east": "h_square",
+                "west": "h_houses"
+            }
+        },
+        "h_square": {
+            "name": "The Dead Market",
+            "description": "A square of fallen stalls and rusted weights. A well stands in the middle of it, its cover long gone.",
+            "exits": {
+                "west": "h_street",
+                "north": "h_trees"
+            }
+        },
+        "h_houses": {
+            "name": "A Roofless House",
+            "description": "The walls of a house stand, and the roof does not. On the hearth lies a scatter of children's toys, quite unspoilt.",
+            "exits": {
+                "east": "h_street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "haskarth_ghost",
+                    "instance_id": "ghost_haskarth"
+                }
+            ]
+        },
+        "h_trees": {
+            "name": "The Grove Behind the Armoury",
+            "description": "A small knot of black trees behind what was an armourer's shop, in the one corner of the town the fire never reached. Something large is standing under the biggest tree, with an axe.",
+            "exits": {
+                "south": "h_square"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cleaver_knight",
+                    "instance_id": "cleaver_haskarth"
+                }
+            ]
+        }
+    }
+}
