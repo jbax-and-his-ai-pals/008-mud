@@ -1,0 +1,25 @@
+{
+    "campaign_id": "the_starcrown",
+    "name": "The Starcrown",
+    "description": "Eight shards, one tyrant, and a princess in the Hollow Peak.",
+    "start_node_id": "the_charge",
+    "nodes": {
+        "the_charge": {
+            "description": "The land is broken.",
+            "type": "CUTSCENE",
+            "effects": {
+                "message": "Eight shards of the Starcrown lie scattered through Ardenmoor."
+            },
+            "transitions": [
+                {
+                    "trigger": "SUCCESS",
+                    "target_node_id": "the_end"
+                }
+            ]
+        },
+        "the_end": {
+            "type": "END",
+            "outcome": "THE_CROWN_IS_WHOLE"
+        }
+    }
+}

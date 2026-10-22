@@ -1,0 +1,221 @@
+{
+    "item_wooden_sword": {
+        "type": "Weapon",
+        "name": "wooden sword",
+        "description": "A plain sword of dark wood bound with cord. It cuts better than it has any right to.",
+        "weight": 2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "damage": 3,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_small_shield": {
+        "type": "Armor",
+        "name": "small shield",
+        "description": "A small round shield of dark wood. It turns thrown stones and little else.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 0,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "off_hand"
+            ],
+            "resistances": {
+                "missile": 50
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_bow": {
+        "type": "Item",
+        "name": "bow",
+        "description": "A short bow of yew. Each arrow you loose costs you a rupee, and is worth it.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_boomerang": {
+        "type": "Item",
+        "name": "whirlwing",
+        "description": "A curved throwing-stick of pale wood. Thrown, it spins out, stuns what it strikes and comes back to your hand.",
+        "weight": 0.5,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_small_key": {
+        "type": "Key",
+        "name": "small key",
+        "description": "A small iron key. It opens one door, and then it has done its work.",
+        "weight": 0.2,
+        "value": 50,
+        "stackable": true,
+        "properties": {
+            "carry_limit": 9
+        },
+        "item_family": "key"
+    },
+    "item_bomb": {
+        "type": "Consumable",
+        "name": "bomb",
+        "description": "A fused ball of black powder. Lit where you stand, it hurts what is near, and some walls give way to it.",
+        "weight": 0,
+        "value": 10,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "ability",
+            "ability": "bomb_blast",
+            "carry_limit": 8
+        },
+        "item_family": "consumable"
+    },
+    "item_recovery_heart": {
+        "type": "Consumable",
+        "name": "recovery heart",
+        "description": "A small red heart that glows faintly. Held to the chest, it mends a heart's worth of wounds.",
+        "weight": 0,
+        "value": 0,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "heal",
+            "effect_value": 16
+        },
+        "item_family": "consumable"
+    },
+    "item_shard_1": {
+        "type": "Item",
+        "name": "first shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_shard_2": {
+        "type": "Item",
+        "name": "second shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_shard_3": {
+        "type": "Item",
+        "name": "third shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_shard_4": {
+        "type": "Item",
+        "name": "fourth shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_shard_5": {
+        "type": "Item",
+        "name": "fifth shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_shard_6": {
+        "type": "Item",
+        "name": "sixth shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_shard_7": {
+        "type": "Item",
+        "name": "seventh shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_shard_8": {
+        "type": "Item",
+        "name": "eighth shard of the Starcrown",
+        "description": "A bright sliver of the Starcrown that once held Ardenmoor whole. It is warm to the touch.",
+        "weight": 0.2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_purse_5": {
+        "type": "Item",
+        "name": "5 rupees",
+        "description": "A few blue stones that pass for money in Ardenmoor.",
+        "weight": 0,
+        "value": 0,
+        "stackable": false,
+        "properties": {}
+    },
+    "item_purse_10": {
+        "type": "Item",
+        "name": "10 rupees",
+        "description": "A few blue stones that pass for money in Ardenmoor.",
+        "weight": 0,
+        "value": 0,
+        "stackable": false,
+        "properties": {}
+    },
+    "item_purse_30": {
+        "type": "Item",
+        "name": "30 rupees",
+        "description": "A few blue stones that pass for money in Ardenmoor.",
+        "weight": 0,
+        "value": 0,
+        "stackable": false,
+        "properties": {}
+    }
+}

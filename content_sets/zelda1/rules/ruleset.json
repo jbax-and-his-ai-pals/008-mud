@@ -1,0 +1,81 @@
+{
+    "progression_model": "level_based",
+    "systems": {
+        "combat": {
+            "enabled": true
+        },
+        "magic": {
+            "enabled": true
+        },
+        "quests": {
+            "enabled": true
+        },
+        "economy": {
+            "enabled": true
+        }
+    },
+    "combat": {
+        "retreat": {
+            "skill": "evasion",
+            "base_difficulty": 8,
+            "difficulty_per_hostile_level": 2
+        },
+        "pacing": {
+            "npc_cooldown_scale": 1.0,
+            "action_gap": 1.0
+        }
+    },
+    "companions": {
+        "max": 1
+    },
+    "death": {
+        "gold_loss_fraction": 0
+    },
+    "world": {
+        "dark_requires_light": true,
+        "health_per_heart": 16
+    },
+    "advancement": {
+        "level_table": [
+            {
+                "xp": 1,
+                "stats": {
+                    "strength": 1,
+                    "dexterity": 28,
+                    "constitution": 4,
+                    "agility": 1
+                },
+                "max_health": 48,
+                "max_mana": 0
+            }
+        ]
+    },
+    "player_defaults": {
+        "player_class": "Wanderer",
+        "starting_inventory": [
+            {
+                "item_id": "item_small_shield",
+                "quantity": 1,
+                "equip": true
+            }
+        ],
+        "magic": {
+            "known_spells": []
+        }
+    },
+    "skills": {
+        "stat_bonuses": {
+            "evasion": {
+                "stat": "dexterity",
+                "per_point": 1
+            }
+        }
+    },
+    "economy": {
+        "currency_name": "rupees"
+    },
+    "messages": {
+        "defeated": "The world goes grey and quiet, and you wake where you began.",
+        "respawn_hint": "Type 'respawn' and you will stand up again at {place}."
+    }
+}

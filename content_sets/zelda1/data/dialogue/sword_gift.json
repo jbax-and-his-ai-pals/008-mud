@@ -1,0 +1,43 @@
+{
+    "id": "sword_gift",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "has_sword"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "It is no road to walk with bare hands. Take this. I have no more use for it.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Take the sword.",
+                    "next_node": "done",
+                    "effects": {
+                        "give_item": "item_wooden_sword",
+                        "equip_item": [
+                            "item_wooden_sword"
+                        ],
+                        "set_flag": "has_sword",
+                        "message": "The old man puts a plain wooden sword in your hands."
+                    }
+                }
+            ]
+        },
+        "done": {
+            "text": "Go carefully. The land is not what it was.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "I have said all I know. The first of the pieces is held in a keep to the west, among the pines.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

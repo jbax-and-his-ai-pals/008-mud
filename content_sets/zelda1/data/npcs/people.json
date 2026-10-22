@@ -1,0 +1,43 @@
+{
+    "old_man_sword": {
+        "name": "an old man",
+        "description": "A very old man in a plain brown cloak, sitting by a small fire as if he had always been there.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "It is no road to walk with bare hands."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "sword_gift"
+        }
+    },
+    "old_man_bombs": {
+        "name": "an old man",
+        "description": "A very old man with a long white beard, sitting in the dark with his knees drawn up.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Most people do not look for the quiet places. Take this, and don't tell the others."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    }
+}

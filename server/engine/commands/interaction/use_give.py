@@ -116,6 +116,10 @@ def use_handler(args, context):
         # Consumable Logic
         if isinstance(item, Consumable) and item.get_property("uses", 1) <= 0:
              player.inventory.remove_item(item.obj_id)
+             # A stack shares one item: if more of it remain, the next is whole, not already used up.
+             remaining = player.inventory.get_item(item.obj_id)
+             if remaining is not None:
+                  remaining.update_property("uses", remaining.get_property("max_uses", 1))
 
         return f"{FORMAT_HIGHLIGHT}{res}{FORMAT_RESET}"
 

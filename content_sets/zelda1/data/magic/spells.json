@@ -1,0 +1,164 @@
+{
+    "bomb_blast": {
+        "name": "Bomb",
+        "description": "A fused ball of powder, lit where you stand.",
+        "mana_cost": 0,
+        "cooldown": 0,
+        "target_type": "room",
+        "cast_message": "You light the fuse and step back. The bomb goes off with a crack and a cloud of grit.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 32,
+                "damage_type": "explosive"
+            }
+        ]
+    },
+    "fire_arrow": {
+        "name": "Arrow",
+        "description": "Loose an arrow at one enemy. It costs a rupee.",
+        "mana_cost": 0,
+        "cooldown": 1.5,
+        "target_type": "enemy",
+        "cast_message": "You draw the bow and loose an arrow.",
+        "hit_message": "The arrow strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "requires": {
+            "kind": "has_item",
+            "item_id": "item_bow"
+        },
+        "requires_message": "You have no bow.",
+        "gold_cost": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 16,
+                "damage_type": "missile"
+            }
+        ]
+    },
+    "throw_whirlwing": {
+        "name": "Whirlwing",
+        "description": "Throw the whirlwing: it stuns what it strikes and comes back.",
+        "mana_cost": 0,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "You throw the whirlwing, and it spins out and comes back to your hand.",
+        "hit_message": "The whirlwing cracks against {target_name} for {value} damage!",
+        "level_required": 1,
+        "requires": {
+            "kind": "has_item",
+            "item_id": "item_boomerang"
+        },
+        "requires_message": "You have no whirlwing.",
+        "effects": [
+            {
+                "type": "damage",
+                "value": 4,
+                "damage_type": "missile"
+            },
+            {
+                "type": "apply_effect",
+                "base_duration": 4,
+                "effect_data": {
+                    "name": "Stun",
+                    "type": "status",
+                    "tags": [
+                        "stun"
+                    ]
+                }
+            }
+        ]
+    },
+    "spit_big": {
+        "name": "Spit Rock",
+        "description": "A rock the size of a fist, spat across the room.",
+        "mana_cost": 0,
+        "cooldown": 5,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} gulps and spits a rock at you.",
+        "hit_message": "The rock strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 24,
+                "damage_type": "missile"
+            }
+        ]
+    },
+    "spit_stone": {
+        "name": "Spit Stone",
+        "description": "A stone spat across the room.",
+        "mana_cost": 0,
+        "cooldown": 5,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} gulps and spits a stone at you.",
+        "hit_message": "The stone strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 12,
+                "damage_type": "missile"
+            }
+        ]
+    },
+    "hurl_whirlwing": {
+        "name": "Hurl",
+        "description": "A curved stick, thrown hard.",
+        "mana_cost": 0,
+        "cooldown": 5,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} hurls a curved stick at you.",
+        "hit_message": "The stick cracks against {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 12,
+                "damage_type": "missile"
+            }
+        ]
+    },
+    "aquilor_flame": {
+        "name": "Drake Flame",
+        "description": "A ball of drake-fire.",
+        "mana_cost": 0,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} spits a ball of fire at you.",
+        "hit_message": "The fire washes over {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 10,
+                "damage_type": "fire"
+            }
+        ]
+    },
+    "hand_grab": {
+        "name": "Grasp",
+        "description": "A cold hand reaches out of the wall and carries you off.",
+        "mana_cost": 0,
+        "cooldown": 12,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} closes on you out of the wall.",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "effects",
+                "for_target": true,
+                "effects": {
+                    "teleport": {
+                        "region": "kestrel_keep",
+                        "room": "k_entrance",
+                        "message": "The hand drags you through the wall and lets go at the door you came in by."
+                    }
+                }
+            }
+        ]
+    }
+}

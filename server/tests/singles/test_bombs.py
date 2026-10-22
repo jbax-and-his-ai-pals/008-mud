@@ -73,6 +73,12 @@ class TestABomb(unittest.TestCase):
         self.assertEqual(2, player.inventory.count_item("item_t_bomb"))
         self.assertNotIn("north", room.exits)
 
+    def test_every_bomb_of_a_stack_goes_off_not_only_the_first(self):
+        server, player, room, region_id, here = _setup(self)
+        for expected in (2, 1, 0):
+            self.assertIn("crack", self._say(server, player))
+            self.assertEqual(expected, player.inventory.count_item("item_t_bomb"))
+
     def test_it_does_not_need_to_be_a_known_ability_or_cost_anything(self):
         server, player, room, region_id, here = _setup(self)
         self.assertNotIn("t_blast", player.runtime_state.magic.known_spells)

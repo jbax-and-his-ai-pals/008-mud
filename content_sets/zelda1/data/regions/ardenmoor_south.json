@@ -1,0 +1,124 @@
+{
+    "region_id": "ardenmoor_south",
+    "name": "Ardenmoor, the South",
+    "description": "Open meadow, pines and reed-lake country at the foot of a broken land. Nothing here is safe, but little here is cruel.",
+    "rooms": {
+        "as_0_0": {
+            "name": "Whispering Pines",
+            "description": "Tall pines whisper above a floor of old needles. Something large has been through here, and not recently.",
+            "exits": {
+                "east": "as_0_1",
+                "south": "as_1_0"
+            }
+        },
+        "as_0_1": {
+            "name": "The Ruined Path",
+            "description": "A paved path, broken into islands by roots and frost, wanders north between toppled gateposts.",
+            "exits": {
+                "west": "as_0_0",
+                "east": "as_0_2",
+                "south": "meadow_start"
+            }
+        },
+        "as_0_2": {
+            "name": "Stony Rise",
+            "description": "A low hill of grey stone. The slope is split by a ledge, and the rock under it rings hollow when you kick it.",
+            "exits": {
+                "west": "as_0_1",
+                "south": "as_1_2"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "bomb_cave"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "in",
+                        "message": "The rock under the ledge blows in, and a low black opening shows where it stood."
+                    }
+                }
+            }
+        },
+        "as_1_0": {
+            "name": "The Tree-Line Gap",
+            "description": "A gap in the tree line where the pines part around a low, round doorway in a bank of earth. A carved bird, long weathered, looks down from the lintel.",
+            "exits": {
+                "north": "as_0_0",
+                "east": "meadow_start",
+                "south": "as_2_0",
+                "in": "kestrel_keep:k_entrance"
+            }
+        },
+        "meadow_start": {
+            "name": "The Meadow",
+            "description": "A wide, windy meadow of long grass. A path runs east and west, and a small dark cave opens in a bank to one side.",
+            "exits": {
+                "north": "as_0_1",
+                "west": "as_1_0",
+                "east": "as_1_2",
+                "south": "as_2_1",
+                "in": "sword_cave"
+            }
+        },
+        "as_1_2": {
+            "name": "Lakeshore Reeds",
+            "description": "Reeds stand thick along a lake the colour of slate. The shore is soft, and tracks come out of the water and go back in.",
+            "exits": {
+                "north": "as_0_2",
+                "west": "meadow_start",
+                "south": "as_2_2"
+            }
+        },
+        "as_2_0": {
+            "name": "Briar Hollow",
+            "description": "A dip in the land thick with briar, so that you pick your way along the one thing that is nearly a path.",
+            "exits": {
+                "north": "as_1_0",
+                "east": "as_2_1"
+            }
+        },
+        "as_2_1": {
+            "name": "The Southern Road",
+            "description": "A rutted road that runs on south toward other country, empty and a long way from anywhere.",
+            "exits": {
+                "north": "meadow_start",
+                "west": "as_2_0",
+                "east": "as_2_2"
+            }
+        },
+        "as_2_2": {
+            "name": "Reed Marsh",
+            "description": "Wet ground, pale reeds, and a smell of mud. Things move in the reeds when you are not looking at them.",
+            "exits": {
+                "north": "as_1_2",
+                "west": "as_2_1"
+            }
+        },
+        "sword_cave": {
+            "name": "A Small Cave",
+            "description": "A small, dry cave with a fire in the middle of it, hardly bigger than the old man who sits there. The air smells of smoke and age.",
+            "exits": {
+                "out": "meadow_start"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_sword",
+                    "instance_id": "old_man_sword"
+                }
+            ]
+        },
+        "bomb_cave": {
+            "name": "A Hollow in the Rock",
+            "description": "A hollow behind the rock, so small you must sit to stand it. Someone has left a few things here, a long time ago.",
+            "exits": {
+                "out": "as_0_2"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_30"
+                }
+            ]
+        }
+    }
+}

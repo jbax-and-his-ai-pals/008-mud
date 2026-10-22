@@ -1,0 +1,19 @@
+{
+    "scenario_id": "a_broken_crown",
+    "heading": "A Broken Crown",
+    "intro": "The Starcrown that kept Ardenmoor whole has been broken in eight pieces, and the pale tyrant Ghaldur holds the Hollow Peak and the princess Ismera in it. You come out of the meadow with nothing in your hands. An old man in the cave by the path says it is dangerous to go alone.",
+    "objectives_heading": "What is before you:",
+    "objectives": [
+        {
+            "id": "find_a_blade",
+            "instruction": "Find the old man in the cave and take what he offers",
+            "command": "look"
+        },
+        {
+            "id": "the_first_shard",
+            "instruction": "Find the first dungeon and bring out the first shard of the Starcrown",
+            "command": "look"
+        }
+    ],
+    "pace": "slow"
+}

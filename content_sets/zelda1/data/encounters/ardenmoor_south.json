@@ -1,0 +1,44 @@
+{
+    "south_near": {
+        "region": "ardenmoor_south",
+        "rooms": [
+            "as_0_1",
+            "as_1_0",
+            "as_1_2",
+            "as_2_1"
+        ],
+        "chance": 0.35,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "spitter",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} pops up out of the grass and spits at you!",
+        "note": "The first screens: red spitters only."
+    },
+    "south_far": {
+        "region": "ardenmoor_south",
+        "rooms": [
+            "as_0_0",
+            "as_0_2",
+            "as_2_0",
+            "as_2_2"
+        ],
+        "chance": 0.4,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "spitter",
+                "weight": 3
+            },
+            {
+                "npc": "blue_spitter",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} pops up out of the grass and spits at you!",
+        "note": "The corners: a blue one now and then."
+    }
+}

@@ -1,0 +1,254 @@
+{
+    "region_id": "kestrel_keep",
+    "name": "The Kestrel Keep",
+    "description": "A ruined keep under the pines, with a carved bird over its door. The first piece of the Starcrown is said to be held in the roost at its top.",
+    "properties": {
+        "entrance": "k_entrance"
+    },
+    "rooms": {
+        "k_entrance": {
+            "name": "The Keep Door",
+            "description": "A low stone hall under a round arch, the carved bird on its lintel worn nearly smooth. The doorway behind you is the only light.",
+            "exits": {
+                "out": "ardenmoor_south:as_1_0",
+                "north": "k_hall"
+            }
+        },
+        "k_hall": {
+            "name": "The Mustering Hall",
+            "description": "A long hall, the floor cracked and the roof gone in places. Doorways lead off to the west, east and north.",
+            "exits": {
+                "south": "k_entrance",
+                "west": "k_west",
+                "east": "k_east",
+                "north": "k_hall2"
+            }
+        },
+        "k_west": {
+            "name": "The Guardroom",
+            "description": "A bare guardroom. A rack of rusted pikes stands against one wall, and the bones of the guards that held it have not all lain down.",
+            "exits": {
+                "east": "k_hall",
+                "north": "k_bow"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_w1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_w2"
+                }
+            ]
+        },
+        "k_bow": {
+            "name": "The Archers' Gallery",
+            "description": "A narrow gallery with arrow slits along one wall. Three of the old guard still stand to the slits, and a short bow of yew lies on the sill.",
+            "exits": {
+                "south": "k_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_b1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_b2"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_b3"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_bow"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "kestrel_keep",
+                            "room_id": "k_bow"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the archers still stand."
+                    }
+                }
+            }
+        },
+        "k_east": {
+            "name": "The Cistern Gallery",
+            "description": "A gallery over a dry cistern. Green things have grown in the damp of its floor, and some of them have begun to move.",
+            "exits": {
+                "west": "k_hall",
+                "east": "k_boom"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "slime",
+                    "instance_id": "slime_e1"
+                },
+                {
+                    "template_id": "slime",
+                    "instance_id": "slime_e2"
+                },
+                {
+                    "template_id": "slime",
+                    "instance_id": "slime_e3"
+                }
+            ]
+        },
+        "k_boom": {
+            "name": "The Store",
+            "description": "A long store, ringed with empty shelves. Two hurlers crouch among the barrels, and a curved stick of pale wood lies in the dust beside a small key.",
+            "exits": {
+                "west": "k_east"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "hurler",
+                    "instance_id": "hurler_m1"
+                },
+                {
+                    "template_id": "hurler",
+                    "instance_id": "hurler_m2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_boomerang"
+                },
+                {
+                    "item_id": "item_small_key"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "kestrel_keep",
+                            "room_id": "k_boom"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the hurlers still stand."
+                    }
+                }
+            }
+        },
+        "k_hall2": {
+            "name": "The Upper Hall",
+            "description": "A hall under a broken vault. The north door is iron and shut, and the walls are old, and not all of them are as they look.",
+            "exits": {
+                "south": "k_hall",
+                "east": "k_wall",
+                "north": "k_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_u1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_u2"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_u1"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of iron, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "k_wall": {
+            "name": "The Cracked Chamber",
+            "description": "A small chamber in which one wall has a long crack in it from floor to ceiling, and cool air seeps through the crack.",
+            "exits": {
+                "west": "k_hall2"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_x1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_x2"
+                }
+            ],
+            "properties": {
+                "hidden_exits": {
+                    "north": "k_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "north",
+                        "message": "The wall bursts inward in a cloud of dust, and a dark gap stands where it was."
+                    }
+                }
+            }
+        },
+        "k_cache": {
+            "name": "The Hidden Cache",
+            "description": "A cramped store behind the wall. Someone put a few things here and never came back for them.",
+            "exits": {
+                "south": "k_wall"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_10"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ]
+        },
+        "k_ante": {
+            "name": "The Antechamber",
+            "description": "A cold antechamber with a great double door of black wood to the north. The carved bird on its lintel has its wings spread.",
+            "exits": {
+                "south": "k_hall2",
+                "north": "k_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_a1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_a2"
+                }
+            ]
+        },
+        "k_boss": {
+            "name": "The Drake's Roost",
+            "description": "A round, high chamber open to the sky through a ring of broken roof, and every stone of it scorched. The drake coils around the middle of the floor and turns its head.",
+            "exits": {
+                "south": "k_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "aquilor",
+                    "instance_id": "aquilor_roost"
+                }
+            ]
+        }
+    }
+}

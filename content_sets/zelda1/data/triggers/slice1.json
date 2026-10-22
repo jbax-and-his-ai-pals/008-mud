@@ -1,0 +1,90 @@
+{
+    "purse_5": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_5"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_5"
+        },
+        "effects": {
+            "give_gold": 5,
+            "take_item": "item_purse_5",
+            "message": "You gather up the stones: 5 rupees."
+        }
+    },
+    "purse_10": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_10"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_10"
+        },
+        "effects": {
+            "give_gold": 10,
+            "take_item": "item_purse_10",
+            "message": "You gather up the stones: 10 rupees."
+        }
+    },
+    "purse_30": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_purse_30"
+        },
+        "once": false,
+        "when": {
+            "kind": "has_item",
+            "item_id": "item_purse_30"
+        },
+        "effects": {
+            "give_gold": 30,
+            "take_item": "item_purse_30",
+            "message": "You gather up the stones: 30 rupees."
+        }
+    },
+    "bow_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_bow"
+        },
+        "once": "player",
+        "effects": {
+            "teach_spell": "fire_arrow",
+            "message": "You string the bow. Type 'cast arrow' (or 'cast arrow on <creature>') to loose one at a creature; each costs a rupee."
+        }
+    },
+    "whirlwing_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_boomerang"
+        },
+        "once": "player",
+        "effects": {
+            "teach_spell": "throw_whirlwing",
+            "message": "You turn the whirlwing over. Type 'cast whirlwing' (or 'cast whirlwing on <creature>') to throw it."
+        }
+    },
+    "aquilor_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "aquilor"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_1",
+            "set_flag": "shard_1",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The drake falls, and the roost goes quiet. A sliver of bright crown lies in the ash where it lay, and a warmth runs through you: you have more heart than you had."
+        }
+    }
+}
