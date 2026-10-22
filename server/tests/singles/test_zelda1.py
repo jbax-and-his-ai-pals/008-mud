@@ -685,5 +685,64 @@ class TestGhaldur(Base):
         self.assertEqual(0, self.player.inventory.count_item("item_shard_1"))
 
 
+class TestTheCheckpoints(unittest.TestCase):
+    """`checkpoint <name>` in a test session puts a fresh character at that point of the story with what was won by then."""
+
+    EXPECTED = {
+        "armed": ("ardenmoor_south:as_1_0", 3, "item_wooden_sword"),
+        "crescent": ("ardenmoor_east:ae_3_2", 4, "item_bow"),
+        "pinwheel": ("ardenmoor_east:ae_1_0", 5, "item_pale_blade"),
+        "adders": ("ardenmoor_east:ae_far_shore", 7, "item_raft"),
+        "gecko": ("lost_hills:h5", 10, "item_ladder"),
+        "wyvern": ("ardenmoor_north:an_0_1", 11, "item_reed_pipe"),
+        "fiend": ("ardenmoor_east:ae_bay", 12, "item_wyrmrod"),
+        "mane": ("ardenmoor_east:ae_burnt_rise", 13, "item_red_candle"),
+        "peak": ("ashgrave:ma_2", 14, "item_dawn_blade"),
+        "ghaldur": ("ghaldur_lair:g_a", 14, "item_silver_arrows"),
+    }
+
+    def _game(self, name):
+        server = HeadlessServer(db_path=":memory:", content_set_path=str(ZELDA1), deterministic_test_mode=True, default_presentation_mode="test")
+        self.addCleanup(server.shutdown)
+        sid = server.create_session(player_id="hero").session_id
+        server.execute_command(sid, "char create Hero")
+        server.execute_command(sid, "checkpoint %s" % name)
+        return server, sid, server.get_player_for_session(sid)
+
+    def test_every_checkpoint_stands_where_it_says_with_the_hearts_and_the_thing_it_says(self):
+        for name, (place, hearts, item) in self.EXPECTED.items():
+            with self.subTest(checkpoint=name):
+                _server, _sid, player = self._game(name)
+                self.assertEqual(place, "%s:%s" % (player.current_region_id, player.current_room_id))
+                self.assertEqual(hearts * HEART, player.max_health)
+                self.assertGreaterEqual(player.health, player.max_health - HEART, "restored (an overworld arrival may be met by a spitter)")
+                carried = [slot.item.obj_id for slot in player.inventory.slots if slot.item] + [i.obj_id for i in player.equipment.values() if i]
+                self.assertIn(item, carried)
+
+    def test_the_names_are_exactly_the_scenes_the_set_ships(self):
+        import json
+
+        shipped = json.loads((ZELDA1 / "data" / "scenes" / "checkpoints.json").read_text(encoding="utf-8"))
+        self.assertEqual({"checkpoint_%s" % n for n in self.EXPECTED}, set(shipped))
+
+    def test_the_peak_checkpoint_walks_straight_into_the_citadel(self):
+        server, sid, player = self._game("peak")
+        server.execute_command(sid, "go in")
+        self.assertEqual("ashgrave_citadel:a_entrance", "%s:%s" % (player.current_region_id, player.current_room_id))
+
+    def test_the_last_checkpoint_can_finish_the_game(self):
+        server, sid, player = self._game("ghaldur")
+        self.assertIn("fire_silver_arrow", player.runtime_state.magic.known_spells)
+        self.assertEqual("item_red_ring", player.equipment["hands"].obj_id)
+        for shard in range(1, 9):
+            self.assertEqual(1, player.inventory.count_item("item_shard_%d" % shard), "the princess wants all eight")
+
+    def test_no_checkpoint_gives_a_heart_the_story_would_give_again(self):
+        """The flags a checkpoint sets are the ones the heart triggers read, so walking on from it never doubles a heart."""
+        server, sid, player = self._game("gecko")
+        for flag in ("island_heart", "dock_heart", "bush_heart", "shard_4"):
+            self.assertTrue(player.flags.get(flag), flag)
+
+
 if __name__ == "__main__":
     unittest.main()

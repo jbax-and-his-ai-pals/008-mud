@@ -1,0 +1,1869 @@
+{
+    "checkpoint_armed": {
+        "note": "For testing: three hearts and the wooden sword, at the tree-line gap in front of the Kestrel Keep.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ardenmoor_south",
+                        "room": "as_1_0"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_crescent": {
+        "note": "For testing: four hearts, the bow and the whirlwing and the first shard, at the stairs of the Crescent Vault.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "shard_1"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 80
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 4
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 2
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ardenmoor_east",
+                        "room": "ae_3_2"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_pinwheel": {
+        "note": "For testing: five hearts and the pale blade, the stormwing and two shards, at the door of the Pinwheel.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "shard_1",
+                        "shard_2"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 150
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 6
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 2
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ardenmoor_east",
+                        "room": "ae_1_0"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_adders": {
+        "note": "For testing: seven hearts, the raft and three shards, at the far shore in front of the Adder's Coil.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "island_heart",
+                        "shard_1",
+                        "shard_2",
+                        "shard_3"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 250
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_blue_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 8
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_raft",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 2
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_3",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_small_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ardenmoor_east",
+                        "room": "ae_far_shore"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_gecko": {
+        "note": "For testing: ten hearts, the ladder, the magical shield and four shards, at the top of the Lost Hills before the Gecko Halls.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "bush_heart",
+                        "dock_heart",
+                        "island_heart",
+                        "shard_1",
+                        "shard_2",
+                        "shard_3",
+                        "shard_4"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 300
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_blue_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 10
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_ladder",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_shield",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_raft",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 2
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_3",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_4",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_small_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade",
+                        "item_magic_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "lost_hills",
+                        "room": "h5"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_wyvern": {
+        "note": "For testing: eleven hearts, the reed pipe, the bomb bag and five shards, at the steps of the Wyvern Deep.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "bush_heart",
+                        "dock_heart",
+                        "island_heart",
+                        "shard_1",
+                        "shard_2",
+                        "shard_3",
+                        "shard_4",
+                        "shard_5"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 300
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_blue_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 14
+                        },
+                        {
+                            "item_id": "item_bomb_bag",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_ladder",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_shield",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_raft",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 2
+                        },
+                        {
+                            "item_id": "item_reed_pipe",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_3",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_4",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_5",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_small_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade",
+                        "item_magic_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ardenmoor_north",
+                        "room": "an_0_1"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_fiend": {
+        "note": "For testing: twelve hearts, the wyrmrod, bait and six shards, at the quiet bay where the pipe opens the Fiend's Hold.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "brute_fed",
+                        "bush_heart",
+                        "dock_heart",
+                        "island_heart",
+                        "shard_1",
+                        "shard_2",
+                        "shard_3",
+                        "shard_4",
+                        "shard_5",
+                        "shard_6"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 300
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_bait",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_blue_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 14
+                        },
+                        {
+                            "item_id": "item_bomb_bag",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_ladder",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_shield",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_raft",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 6
+                        },
+                        {
+                            "item_id": "item_reed_pipe",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_3",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_4",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_5",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_6",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_small_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wyrmrod",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing",
+                        "rod_bolt"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade",
+                        "item_magic_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ardenmoor_east",
+                        "room": "ae_bay"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_mane": {
+        "note": "For testing: thirteen hearts, the red candle, the large bomb bag and seven shards, at the bush that hides the Mane.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "brute_fed",
+                        "bush_heart",
+                        "dock_heart",
+                        "island_heart",
+                        "shard_1",
+                        "shard_2",
+                        "shard_3",
+                        "shard_4",
+                        "shard_5",
+                        "shard_6",
+                        "shard_7"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 400
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_blue_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 20
+                        },
+                        {
+                            "item_id": "item_bomb_bag",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb_bag_16",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_ladder",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_shield",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_raft",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 6
+                        },
+                        {
+                            "item_id": "item_red_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_reed_pipe",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_3",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_4",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_5",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_6",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_7",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_small_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wyrmrod",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing",
+                        "rod_bolt"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade",
+                        "item_magic_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ardenmoor_east",
+                        "room": "ae_burnt_rise"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_peak": {
+        "note": "For testing: fourteen hearts, the dawn blade, the open key, the tome and all eight shards, at the door of the Hollow Peak.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "brute_fed",
+                        "bush_heart",
+                        "dock_heart",
+                        "has_dawn_blade",
+                        "island_heart",
+                        "shard_1",
+                        "shard_2",
+                        "shard_3",
+                        "shard_4",
+                        "shard_5",
+                        "shard_6",
+                        "shard_7",
+                        "shard_8"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 500
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_blue_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_blue_ring",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 20
+                        },
+                        {
+                            "item_id": "item_bomb_bag",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb_bag_16",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bracer",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_dawn_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_ladder",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_shield",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_raft",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 6
+                        },
+                        {
+                            "item_id": "item_red_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_reed_pipe",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_3",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_4",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_5",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_6",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_7",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_8",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_small_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_tome",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wyrmrod",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing",
+                        "rod_bolt",
+                        "rod_flame"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade",
+                        "item_magic_shield",
+                        "item_dawn_blade",
+                        "item_blue_ring"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ashgrave",
+                        "room": "ma_2"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_ghaldur": {
+        "note": "For testing: fourteen hearts, the ruby band and the silver arrows, in the first gallery of Ghaldur's lair.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "set_flag": [
+                        "brute_fed",
+                        "bush_heart",
+                        "dock_heart",
+                        "has_dawn_blade",
+                        "island_heart",
+                        "shard_1",
+                        "shard_2",
+                        "shard_3",
+                        "shard_4",
+                        "shard_5",
+                        "shard_6",
+                        "shard_7",
+                        "shard_8"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "raise": {
+                        "max_health": 16
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_gold": 120
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": [
+                        {
+                            "item_id": "item_blue_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_blue_ring",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb",
+                            "quantity": 20
+                        },
+                        {
+                            "item_id": "item_bomb_bag",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bomb_bag_16",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_boomerang",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bow",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_bracer",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_dawn_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_ladder",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_magic_shield",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_pale_blade",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_raft",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_recovery_heart",
+                            "quantity": 10
+                        },
+                        {
+                            "item_id": "item_red_candle",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_red_draught",
+                            "quantity": 2
+                        },
+                        {
+                            "item_id": "item_red_ring",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_reed_pipe",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_1",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_2",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_3",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_4",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_5",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_6",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_7",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_shard_8",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_silver_arrows",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_small_key",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_stormwing",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_tome",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wooden_sword",
+                            "quantity": 1
+                        },
+                        {
+                            "item_id": "item_wyrmrod",
+                            "quantity": 1
+                        }
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "teach_spell": [
+                        "fire_arrow",
+                        "throw_whirlwing",
+                        "throw_stormwing",
+                        "rod_bolt",
+                        "rod_flame",
+                        "fire_silver_arrow"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_wooden_sword",
+                        "item_pale_blade",
+                        "item_magic_shield",
+                        "item_dawn_blade",
+                        "item_blue_ring",
+                        "item_red_ring"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "ghaldur_lair",
+                        "room": "g_a"
+                    },
+                    "set_respawn": {
+                        "region": "ardenmoor_south",
+                        "room": "meadow_start"
+                    }
+                }
+            }
+        ]
+    }
+}
