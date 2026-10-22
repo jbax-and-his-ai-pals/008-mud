@@ -1,0 +1,182 @@
+{
+    "chest_barrow_moss": {
+        "type": "Container",
+        "name": "mouldering chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_healing_moss",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_barrow_odd": {
+        "type": "Container",
+        "name": "rotted chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_odd",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_barrow_small": {
+        "type": "Container",
+        "name": "barrow chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_small",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_barrow_circlet": {
+        "type": "Container",
+        "name": "black coffer",
+        "description": "A coffer of black wood that is cold to the hand and seems very pleased to be opened.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_gravebound_circlet",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_barrow_harp": {
+        "type": "Container",
+        "name": "silver-bound chest",
+        "description": "A narrow chest bound in silver, with a lid carved to look like a harp.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_moon_harp",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_harrow_house_gold": {
+        "type": "Container",
+        "name": "oak house chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_medium",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_harrow_house_torch": {
+        "type": "Container",
+        "name": "pine house chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_pitch_torch",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_harrow_house_moss": {
+        "type": "Container",
+        "name": "elm house chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_healing_moss",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_vault_cache": {
+        "type": "Container",
+        "name": "dusty cache",
+        "description": "A shallow alcove with a bundle in it, put there for the next traveller.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_pitch_torch",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    }
+}

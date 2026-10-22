@@ -1,0 +1,111 @@
+{
+    "barrow_first": {
+        "region": "harrow_barrow",
+        "rooms": [
+            "b1_gallery",
+            "b1_cell",
+            "b1_hall",
+            "b1_vault",
+            "b1_stair"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "rattling_spirit",
+                "weight": 1
+            },
+            {
+                "npc": "fen_brute",
+                "weight": 1
+            },
+            {
+                "npc": "fellwing",
+                "weight": 1
+            },
+            {
+                "npc": "bone_walker",
+                "weight": 1
+            },
+            {
+                "npc": "hexer",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} lurches out of the dark!",
+        "note": "The original's ninth group: Garinham's first floor."
+    },
+    "barrow_second": {
+        "region": "harrow_barrow",
+        "rooms": [
+            "b2_landing",
+            "b2_cross",
+            "b2_ossuary",
+            "b2_pit",
+            "b2_stair"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "bone_walker",
+                "weight": 1
+            },
+            {
+                "npc": "hexer",
+                "weight": 1
+            },
+            {
+                "npc": "iron_stinger",
+                "weight": 1
+            },
+            {
+                "npc": "grey_wolf",
+                "weight": 2
+            }
+        ],
+        "message": "A {name} comes at you out of the dark!",
+        "note": "The tenth group."
+    },
+    "barrow_deep": {
+        "region": "harrow_barrow",
+        "rooms": [
+            "b3_landing",
+            "b3_gallery",
+            "b3_circlet",
+            "b3_sanctum",
+            "b3_side",
+            "b3_stair",
+            "b4_landing",
+            "b4_hall",
+            "b4_ward",
+            "b4_end"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "barrow_haunt",
+                "weight": 1
+            },
+            {
+                "npc": "packlord",
+                "weight": 1
+            },
+            {
+                "npc": "bog_chieftain",
+                "weight": 1
+            },
+            {
+                "npc": "fen_sage",
+                "weight": 1
+            },
+            {
+                "npc": "hollow_knight",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} rises out of the dark!",
+        "note": "The thirteenth group: the two lowest floors."
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "id": "priest_curse",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "There are things that cling to a man that no sword cuts away. If you carry something cursed, I can lift it, and it will crumble to ash as it goes.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Lift the curse from me.",
+                    "next_node": "lifted",
+                    "effects": {
+                        "take_item": [
+                            "item_gravebound_circlet",
+                            "item_mourners_choker"
+                        ],
+                        "message": "The priest lays a hand on your brow and speaks a few quiet words. The cursed thing crumbles, and the weight goes out of you."
+                    }
+                },
+                {
+                    "text": "Nothing today.",
+                    "end": true
+                }
+            ]
+        },
+        "lifted": {
+            "text": "Go in peace, and be careful what you pick up in the dark.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

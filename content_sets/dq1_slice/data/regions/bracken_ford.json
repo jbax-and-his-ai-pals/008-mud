@@ -12,7 +12,8 @@
             "description": "A low timber gate in a palisade, standing open. The road you came by runs west along the river toward Telgard, and the town lies ahead.",
             "exits": {
                 "east": "square",
-                "west": "heartland:hl_1_4"
+                "west": "heartland:hl_1_4",
+                "north": "chapel"
             },
             "initial_npcs": [
                 {
@@ -102,6 +103,19 @@
                 {
                     "template_id": "ford_dewseller",
                     "instance_id": "dewseller_ford"
+                }
+            ]
+        },
+        "chapel": {
+            "name": "The Little Chapel",
+            "description": "A small whitewashed chapel with a lamp burning at the end of it. A priest in grey tends it.",
+            "exits": {
+                "south": "gate"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "ford_priest",
+                    "instance_id": "priest_ford"
                 }
             ]
         }

@@ -1,0 +1,200 @@
+{
+    "region_id": "northmarch",
+    "name": "The Northmarch",
+    "description": "The high, empty country north of Telgard: moor, tarn and cairn, and the road to Harrowmere.",
+    "properties": {
+        "outdoors": true,
+        "biome": "plain"
+    },
+    "rooms": {
+        "nm_0_0": {
+            "name": "Barrow Downs",
+            "description": "Bare moorland under a hard sky. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "east": "nm_0_1",
+                "south": "nm_1_0"
+            }
+        },
+        "nm_0_1": {
+            "name": "Grey Fell",
+            "description": "Heather and stone, and a wind with nothing to stop it. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "west": "nm_0_0",
+                "east": "nm_0_2",
+                "south": "nm_1_1"
+            }
+        },
+        "nm_0_2": {
+            "name": "Harrow Road",
+            "description": "Rough grass climbing toward higher ground. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "west": "nm_0_1",
+                "east": "nm_0_3",
+                "south": "nm_1_2"
+            }
+        },
+        "nm_0_3": {
+            "name": "The High Moor",
+            "description": "A cold, thin country of tarns and boulders. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "west": "nm_0_2",
+                "east": "nm_0_4",
+                "south": "nm_1_3"
+            }
+        },
+        "nm_0_4": {
+            "name": "Stonefold",
+            "description": "Bare moorland under a hard sky. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "west": "nm_0_3",
+                "south": "nm_1_4"
+            }
+        },
+        "nm_1_0": {
+            "name": "Mere Path",
+            "description": "The moor road narrows to a track here and turns west toward a grey huddle of roofs on the horizon: Harrowmere, the last town in the north.",
+            "exits": {
+                "north": "nm_0_0",
+                "east": "nm_1_1",
+                "south": "nm_2_0",
+                "west": "harrowmere:gate"
+            }
+        },
+        "nm_1_1": {
+            "name": "Cairn Hill",
+            "description": "Rough grass climbing toward higher ground. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "north": "nm_0_1",
+                "west": "nm_1_0",
+                "east": "nm_1_2",
+                "south": "nm_2_1"
+            }
+        },
+        "nm_1_2": {
+            "name": "The Long Moor",
+            "description": "A cold, thin country of tarns and boulders. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "north": "nm_0_2",
+                "west": "nm_1_1",
+                "east": "nm_1_3",
+                "south": "nm_2_2"
+            }
+        },
+        "nm_1_3": {
+            "name": "Windward Ridge",
+            "description": "Bare moorland under a hard sky. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "north": "nm_0_3",
+                "west": "nm_1_2",
+                "east": "nm_1_4",
+                "south": "nm_2_3"
+            }
+        },
+        "nm_1_4": {
+            "name": "Brenn Headwaters",
+            "description": "Heather and stone, and a wind with nothing to stop it. The north is empty and wide, and Telgard is far behind.",
+            "exits": {
+                "north": "nm_0_4",
+                "west": "nm_1_3",
+                "south": "nm_2_4"
+            }
+        },
+        "nm_2_0": {
+            "name": "Orchard Verge",
+            "description": "Rough grass climbing toward higher ground. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_1_0",
+                "east": "nm_2_1",
+                "south": "nm_3_0"
+            }
+        },
+        "nm_2_1": {
+            "name": "The Weathered Door",
+            "description": "A low hill with an old stone door set into its side, half buried in turf and wild thyme. Cold air breathes out of the crack at its foot. It is a place to bring a light.",
+            "exits": {
+                "north": "nm_1_1",
+                "west": "nm_2_0",
+                "east": "nm_2_2",
+                "south": "nm_3_1",
+                "down": "ostrun_vault:v1_hall"
+            }
+        },
+        "nm_2_2": {
+            "name": "Fallow Strip",
+            "description": "Bare moorland under a hard sky. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_1_2",
+                "west": "nm_2_1",
+                "east": "nm_2_3",
+                "south": "nm_3_2"
+            }
+        },
+        "nm_2_3": {
+            "name": "Lark Rise",
+            "description": "Heather and stone, and a wind with nothing to stop it. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_1_3",
+                "west": "nm_2_2",
+                "east": "nm_2_4",
+                "south": "nm_3_3"
+            }
+        },
+        "nm_2_4": {
+            "name": "Outer Furrow",
+            "description": "Rough grass climbing toward higher ground. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_1_4",
+                "west": "nm_2_3",
+                "south": "nm_3_4"
+            }
+        },
+        "nm_3_0": {
+            "name": "Hollow Lane North",
+            "description": "A cold, thin country of tarns and boulders. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_2_0",
+                "east": "nm_3_1",
+                "south": "heartland:hl_0_0"
+            }
+        },
+        "nm_3_1": {
+            "name": "Telgard Road North",
+            "description": "Bare moorland under a hard sky. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_2_1",
+                "west": "nm_3_0",
+                "east": "nm_3_2",
+                "south": "heartland:hl_0_1"
+            }
+        },
+        "nm_3_2": {
+            "name": "Northgate Fields",
+            "description": "Heather and stone, and a wind with nothing to stop it. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_2_2",
+                "west": "nm_3_1",
+                "east": "nm_3_3",
+                "south": "heartland:hl_0_2"
+            }
+        },
+        "nm_3_3": {
+            "name": "Drover's Rise",
+            "description": "Rough grass climbing toward higher ground. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_2_3",
+                "west": "nm_3_2",
+                "east": "nm_3_4",
+                "south": "heartland:hl_0_3"
+            }
+        },
+        "nm_3_4": {
+            "name": "Quarry Edge",
+            "description": "A cold, thin country of tarns and boulders. The castle's hill is still in sight to the south.",
+            "exits": {
+                "north": "nm_2_4",
+                "west": "nm_3_3",
+                "south": "heartland:hl_0_4"
+            }
+        }
+    }
+}

@@ -370,5 +370,185 @@
             ],
             "sell_rate_multiplier": 1.0
         }
+    },
+    "ford_priest": {
+        "name": "the priest",
+        "description": "A tall, tired priest in a grey robe with a lamp of oil on a cord.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "priest_curse"
+        }
+    },
+    "harrow_watchman": {
+        "name": "the gatekeeper",
+        "description": "An old man with a blanket round his shoulders, keeping a gate nobody comes to.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Harrowmere is a quiet town. The quiet comes from underneath, they say. From the barrow up the hill."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "harrow_gossip": {
+        "name": "a townswoman",
+        "description": "A woman in a shawl, carrying a bucket she seems to have forgotten about.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "A harp of silver lies deep in the barrow, they say. It was our lord's, and he would not part with it, even after."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
+    },
+    "harrow_smith": {
+        "name": "the smith",
+        "description": "A soot-black man with huge forearms and a small, careful voice.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Good steel, and honest prices. It will not make you a hero, but it may keep you alive for the part where you decide to be one."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_oak_cudgel"
+                },
+                {
+                    "item_id": "item_bronze_blade"
+                },
+                {
+                    "item_id": "item_woodsmans_axe"
+                },
+                {
+                    "item_id": "item_hide_jerkin"
+                },
+                {
+                    "item_id": "item_ringmail_hauberk"
+                },
+                {
+                    "item_id": "item_kite_shield"
+                },
+                {
+                    "item_id": "item_half_harness"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "harrow_provisioner": {
+        "name": "the provisioner",
+        "description": "A bent old man behind a counter piled with jars.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Moss, torches and scales. Nothing grand."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_healing_moss"
+                },
+                {
+                    "item_id": "item_pitch_torch"
+                },
+                {
+                    "item_id": "item_wyrm_scale"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "harrow_innkeeper": {
+        "name": "the landlady",
+        "description": "A broad woman in a heavy shawl, polishing a mug.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "inn_harrow"
+        }
+    },
+    "harrow_elder": {
+        "name": "the town elder",
+        "description": "A very old man, blind in one eye, who has read everything in the house twice.",
+        "max_health": 30,
+        "level": 3,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "There is a staff of the clouds in the frost-hollow, north and east of here, kept by a hermit who will part with it for the right thing. A harp, I think. And the harp is in the barrow."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
     }
 }

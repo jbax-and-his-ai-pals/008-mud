@@ -161,5 +161,60 @@ class TestTheCreatures(Base):
             self.assertIn(template, self.world.npc_templates)
 
 
+class TestTheNorth(Base):
+    def test_the_vault_is_dark_and_a_torch_lights_it(self):
+        self.at("ostrun_vault", "v1_hall")
+        self.assertIn("pitch dark", self.say("look"))
+        self.assertIn("no way north", self.say("go north"))
+        from engine.items.item_factory import ItemFactory
+
+        self.player.inventory.add_item(ItemFactory.create_item_from_template("item_pitch_torch", self.world))
+        self.say("use pitch torch")
+        self.assertIn("vault door", self.say("look").lower())
+
+    def test_the_tablet_names_the_three_things(self):
+        self.at("ostrun_vault", "v2_sanctum")
+        self.player.apply_effect({"type": "status", "name": "Torchlight", "tags": ["light"], "base_duration": 100}, 0.0)
+        said = self.say("look at stone tablet")
+        for word in ("sunstones", "cloudcaller", "signet", "moon harp", "prism"):
+            self.assertIn(word, said)
+
+    def test_the_barrow_has_four_floors_the_harp_and_the_circlet(self):
+        region = self.world.get_region("harrow_barrow")
+        floors = {room_id.split("_")[0] for room_id in region.rooms}
+        self.assertEqual({"b1", "b2", "b3", "b4"}, floors)
+        contents = {chest: [i["item_id"] for i in self.world.item_templates[chest]["properties"]["contains"]] for chest in
+                    ("chest_barrow_harp", "chest_barrow_circlet")} if hasattr(self.world, "item_templates") else {}
+        if contents:
+            self.assertEqual(["item_moon_harp"], contents["chest_barrow_harp"])
+            self.assertEqual(["item_gravebound_circlet"], contents["chest_barrow_circlet"])
+
+    def test_the_barrows_creatures_are_the_originals_by_depth(self):
+        zones = self.world.encounters.zones
+        self.assertEqual({"rattling_spirit", "fen_brute", "fellwing", "bone_walker", "hexer"}, {m["npc"] for m in zones["barrow_first"]["monsters"]})
+        self.assertEqual({"barrow_haunt", "packlord", "bog_chieftain", "fen_sage", "hollow_knight"}, {m["npc"] for m in zones["barrow_deep"]["monsters"]})
+
+    def test_egress_works_only_underground_and_recall_only_above_it(self):
+        while self.player.runtime_state.progression.level < 13:
+            self.player.gain_experience(self.player.runtime_state.progression.experience_to_level)
+        self.at("harrow_barrow", "b2_cross")
+        self.assertIn("stone", self.say("cast recall"))
+        self.assertEqual("harrow_barrow:b2_cross", self.where())
+        self.say("cast egress")
+        self.assertEqual("harrowmere:graveyard", self.where())
+        self.assertIn("nothing above you", self.say("cast egress"))
+        self.say("cast recall")
+        self.assertEqual("telgard:courtyard", self.where())
+
+    def test_the_priest_takes_a_worn_curse_away(self):
+        from engine.items.item_factory import ItemFactory
+
+        self.at("bracken_ford", "chapel")
+        self.player.equipment["head"] = ItemFactory.create_item_from_template("item_gravebound_circlet", self.world)
+        self.say("talk priest")
+        self.say("reply 1")
+        self.assertIsNone(self.player.equipment["head"])
+
+
 if __name__ == "__main__":
     unittest.main()

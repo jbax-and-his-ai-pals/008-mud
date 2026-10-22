@@ -12,7 +12,8 @@
             "description": "Open grass under a wide sky, the wind moving it in long waves. Telgard is a smudge on the horizon.",
             "exits": {
                 "east": "hl_0_1",
-                "south": "hl_1_0"
+                "south": "hl_1_0",
+                "north": "northmarch:nm_3_0"
             }
         },
         "hl_0_1": {
@@ -21,7 +22,8 @@
             "exits": {
                 "west": "hl_0_0",
                 "east": "hl_0_2",
-                "south": "hl_1_1"
+                "south": "hl_1_1",
+                "north": "northmarch:nm_3_1"
             }
         },
         "hl_0_2": {
@@ -30,7 +32,8 @@
             "exits": {
                 "west": "hl_0_1",
                 "east": "hl_0_3",
-                "south": "hl_1_2"
+                "south": "hl_1_2",
+                "north": "northmarch:nm_3_2"
             }
         },
         "hl_0_3": {
@@ -39,7 +42,8 @@
             "exits": {
                 "west": "hl_0_2",
                 "east": "hl_0_4",
-                "south": "hl_1_3"
+                "south": "hl_1_3",
+                "north": "northmarch:nm_3_3"
             }
         },
         "hl_0_4": {
@@ -47,7 +51,8 @@
             "description": "Open grass under a wide sky, the wind moving it in long waves. Telgard is a smudge on the horizon.",
             "exits": {
                 "west": "hl_0_3",
-                "south": "hl_1_4"
+                "south": "hl_1_4",
+                "north": "northmarch:nm_3_4"
             }
         },
         "hl_1_0": {

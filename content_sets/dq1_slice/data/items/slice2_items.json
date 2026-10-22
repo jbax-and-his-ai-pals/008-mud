@@ -1,0 +1,26 @@
+{
+    "item_ostrun_tablet": {
+        "type": "Item",
+        "name": "stone tablet",
+        "description": "A slab of black stone, set upright, cut with plain square letters. They read: \"For the heir who comes after me. Maldrath's keep is ringed by water no ship will cross. Three things will open the way: the sunstones, which the first king laid beneath his own castle; the cloudcaller's staff, which a hermit in the frost-hollow to the north-east gives to anyone who brings him the moon harp; and my signet, which I lost in the mire to the south. Bring all three to the last sage in the sunken hollow, and he will make of them a prism. Then walk across the rainbow.\"",
+        "weight": 100,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "can_take": false
+        },
+        "item_family": "curio"
+    },
+    "item_barrow_notice": {
+        "type": "Item",
+        "name": "weathered stone",
+        "description": "A leaning stone at the barrow's mouth, cut with a few worn words: \"Harrow lies below, and what he guarded with him.\"",
+        "weight": 100,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "can_take": false
+        },
+        "item_family": "curio"
+    }
+}

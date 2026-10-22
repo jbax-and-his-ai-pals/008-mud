@@ -1,0 +1,76 @@
+{
+    "northmarch_south": {
+        "region": "northmarch",
+        "rooms": [
+            "nm_2_0",
+            "nm_2_1",
+            "nm_2_2",
+            "nm_2_3",
+            "nm_2_4",
+            "nm_3_0",
+            "nm_3_1",
+            "nm_3_2",
+            "nm_3_3",
+            "nm_3_4"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "mire_blob",
+                "weight": 1
+            },
+            {
+                "npc": "pale_shade",
+                "weight": 2
+            },
+            {
+                "npc": "gloomwing",
+                "weight": 1
+            },
+            {
+                "npc": "crimson_blob",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes down off the moor at you!",
+        "note": "The original's third group, north of the castle."
+    },
+    "northmarch_far": {
+        "region": "northmarch",
+        "rooms": [
+            "nm_0_0",
+            "nm_0_1",
+            "nm_0_2",
+            "nm_0_3",
+            "nm_0_4",
+            "nm_1_0",
+            "nm_1_1",
+            "nm_1_2",
+            "nm_1_3",
+            "nm_1_4"
+        ],
+        "chance": 0.3,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "crimson_blob",
+                "weight": 2
+            },
+            {
+                "npc": "gloomwing",
+                "weight": 1
+            },
+            {
+                "npc": "pale_shade",
+                "weight": 1
+            },
+            {
+                "npc": "hedge_mage",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} steps out of the heather!",
+        "note": "The original's fourth group, toward Harrowmere."
+    }
+}

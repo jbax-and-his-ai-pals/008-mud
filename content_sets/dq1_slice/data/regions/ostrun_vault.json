@@ -1,0 +1,62 @@
+{
+    "region_id": "ostrun_vault",
+    "name": "Ostrun's Vault",
+    "description": "A small, perfectly empty tomb-vault, cut into a hillside in the north by the first Lightbearer, for the heir who would come after.",
+    "properties": {
+        "dark": true,
+        "outdoors": false,
+        "entrance": "northmarch:nm_2_1",
+        "safe_zone": true
+    },
+    "rooms": {
+        "v1_hall": {
+            "name": "The Vault Door",
+            "description": "A square hall of black stone, dry and silent. Dust lies on the floor in a thick, undisturbed skin. Steps climb to the door above; a passage leads on.",
+            "exits": {
+                "east": "v1_passage",
+                "up": "northmarch:nm_2_1"
+            },
+            "items": [
+                {
+                    "item_id": "chest_vault_cache"
+                }
+            ]
+        },
+        "v1_passage": {
+            "name": "The Dry Passage",
+            "description": "A narrow passage with a ceiling you could touch, and walls cut so truly they could have been poured. It bends, and a stair goes down at the bend.",
+            "exits": {
+                "west": "v1_hall",
+                "down": "v2_landing"
+            }
+        },
+        "v2_landing": {
+            "name": "The Lower Landing",
+            "description": "A small landing at the foot of the stair, with a doorway east. The air is colder, and quite still.",
+            "exits": {
+                "up": "v1_passage",
+                "east": "v2_cross"
+            }
+        },
+        "v2_cross": {
+            "name": "The Crossing",
+            "description": "Two passages meet here under a low vault. The one leading north ends in a lit doorway, though nothing here should be lit.",
+            "exits": {
+                "west": "v2_landing",
+                "north": "v2_sanctum"
+            }
+        },
+        "v2_sanctum": {
+            "name": "The Sanctum of the Tablet",
+            "description": "A small round chamber. In the middle stands one upright slab of black stone, carved with letters. Nothing else is here, and nothing else is needed.",
+            "exits": {
+                "south": "v2_cross"
+            },
+            "items": [
+                {
+                    "item_id": "item_ostrun_tablet"
+                }
+            ]
+        }
+    }
+}

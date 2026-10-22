@@ -1,0 +1,138 @@
+{
+    "region_id": "harrowmere",
+    "name": "Harrowmere",
+    "description": "A grey town of drystone and slate on the northern moor, older than the castle and not much more cheerful.",
+    "properties": {
+        "safe_zone": true,
+        "outdoors": true
+    },
+    "rooms": {
+        "gate": {
+            "name": "The Moor Gate",
+            "description": "A low gate in a drystone wall. The moor road comes in from the east, and the town huddles inside, grey roofs under a grey sky.",
+            "exits": {
+                "west": "street",
+                "north": "graveyard",
+                "east": "northmarch:nm_1_0"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "harrow_watchman",
+                    "instance_id": "watchman_harrow"
+                }
+            ]
+        },
+        "street": {
+            "name": "The Narrow Street",
+            "description": "A cobbled street no wider than a cart, with a shop door on each side and a cold wind funnelling down the middle.",
+            "exits": {
+                "east": "gate",
+                "north": "smithy",
+                "south": "provisions",
+                "west": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "harrow_gossip",
+                    "instance_id": "gossip_harrow"
+                }
+            ]
+        },
+        "smithy": {
+            "name": "The Smithy",
+            "description": "A hot, low room that smells of iron. Blades and plate hang from the rafters on chains.",
+            "exits": {
+                "south": "street"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "harrow_smith",
+                    "instance_id": "smith_harrow"
+                }
+            ]
+        },
+        "provisions": {
+            "name": "The Provisions Store",
+            "description": "A cramped store of baskets, bundles and jars, lit by a single candle.",
+            "exits": {
+                "north": "street",
+                "west": "locked_house"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "harrow_provisioner",
+                    "instance_id": "provisioner_harrow"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The door of the shuttered house is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "inn": {
+            "name": "The Grey Heron",
+            "description": "A smoky inn with three tables and a single, very old dog. The landlady keeps the beds aired in spite of the damp.",
+            "exits": {
+                "east": "street",
+                "north": "elder_house"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "harrow_innkeeper",
+                    "instance_id": "innkeeper_harrow"
+                }
+            ]
+        },
+        "elder_house": {
+            "name": "The Elder's House",
+            "description": "A low house crowded with books and drying herbs. An old man sits in a chair too large for him.",
+            "exits": {
+                "south": "inn"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "harrow_elder",
+                    "instance_id": "elder_harrow"
+                }
+            ]
+        },
+        "locked_house": {
+            "name": "The Shuttered House",
+            "description": "A shuttered house whose owner has gone, leaving three chests against the back wall and a great deal of dust.",
+            "exits": {
+                "east": "provisions"
+            },
+            "items": [
+                {
+                    "item_id": "chest_harrow_house_gold"
+                },
+                {
+                    "item_id": "chest_harrow_house_torch"
+                },
+                {
+                    "item_id": "chest_harrow_house_moss"
+                }
+            ]
+        },
+        "graveyard": {
+            "name": "The Hill Graveyard",
+            "description": "A walled burial ground on the slope above the town, thick with cold grass and leaning stones. At its upper end an iron-bound hatch stands in the ground, half open. A stair leads down.",
+            "exits": {
+                "south": "gate",
+                "down": "harrow_barrow:b1_entry"
+            },
+            "items": [
+                {
+                    "item_id": "item_barrow_notice"
+                }
+            ]
+        }
+    }
+}

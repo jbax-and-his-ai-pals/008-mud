@@ -1,0 +1,215 @@
+{
+    "region_id": "harrow_barrow",
+    "name": "Harrow's Barrow",
+    "description": "The burial barrow of the old lord of Harrowmere, four floors of cold earth and cut stone, whose dead have not stayed put.",
+    "properties": {
+        "dark": true,
+        "outdoors": false,
+        "entrance": "harrowmere:graveyard"
+    },
+    "rooms": {
+        "b1_entry": {
+            "name": "The Barrow Mouth",
+            "description": "A stair comes down into a low, damp chamber that stinks of old earth. A passage runs north into the dark.",
+            "exits": {
+                "north": "b1_gallery",
+                "up": "harrowmere:graveyard"
+            }
+        },
+        "b1_gallery": {
+            "name": "The Gallery of Niches",
+            "description": "A long gallery whose walls are pierced with shelves for the dead. Most of the shelves are empty now.",
+            "exits": {
+                "south": "b1_entry",
+                "east": "b1_cell",
+                "north": "b1_hall"
+            }
+        },
+        "b1_cell": {
+            "name": "The Mourners' Cell",
+            "description": "A narrow cell with a stone bench and a chest, tucked away from the main way.",
+            "exits": {
+                "west": "b1_gallery"
+            },
+            "items": [
+                {
+                    "item_id": "chest_barrow_moss"
+                }
+            ]
+        },
+        "b1_hall": {
+            "name": "The Hall of Lamps",
+            "description": "A hall of broken lamp-stands, with a chest under the dust and a door of old oak in its south-east corner.",
+            "exits": {
+                "south": "b1_gallery",
+                "southeast": "b1_vault",
+                "east": "b1_stair"
+            },
+            "items": [
+                {
+                    "item_id": "chest_barrow_odd"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "southeast": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The oak door in the corner is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "b1_vault": {
+            "name": "The Keepers' Vault",
+            "description": "A little vault behind a locked door, with a chest whose lid has not been lifted in a lifetime.",
+            "exits": {
+                "northwest": "b1_hall"
+            },
+            "items": [
+                {
+                    "item_id": "chest_barrow_small"
+                }
+            ]
+        },
+        "b1_stair": {
+            "name": "The Stair Down",
+            "description": "A steep, ruined stair going down into the cold.",
+            "exits": {
+                "west": "b1_hall",
+                "down": "b2_landing"
+            }
+        },
+        "b2_landing": {
+            "name": "The Second Landing",
+            "description": "The stair ends in a damp landing, floored with fallen plaster.",
+            "exits": {
+                "up": "b1_stair",
+                "north": "b2_cross"
+            }
+        },
+        "b2_cross": {
+            "name": "The Bone Crossing",
+            "description": "Four passages meet over a floor strewn with small, pale bones.",
+            "exits": {
+                "south": "b2_landing",
+                "east": "b2_ossuary",
+                "west": "b2_pit",
+                "north": "b2_stair"
+            }
+        },
+        "b2_ossuary": {
+            "name": "The Ossuary",
+            "description": "A chamber stacked to the ceiling with skulls, neatly, by a careful hand.",
+            "exits": {
+                "west": "b2_cross"
+            }
+        },
+        "b2_pit": {
+            "name": "The Dry Well",
+            "description": "A round chamber with a dry well in the middle. The echo is wrong.",
+            "exits": {
+                "east": "b2_cross"
+            }
+        },
+        "b2_stair": {
+            "name": "The Deeper Stair",
+            "description": "A narrow stair, slick with seeping water.",
+            "exits": {
+                "south": "b2_cross",
+                "down": "b3_landing"
+            }
+        },
+        "b3_landing": {
+            "name": "The Third Landing",
+            "description": "A cold landing. The walls here are not stone but packed, pale clay.",
+            "exits": {
+                "up": "b2_stair",
+                "north": "b3_gallery"
+            }
+        },
+        "b3_gallery": {
+            "name": "The Long Crypt",
+            "description": "A crypt longer than it is wide, lined with sealed tombs.",
+            "exits": {
+                "south": "b3_landing",
+                "west": "b3_circlet",
+                "east": "b3_sanctum",
+                "north": "b3_side"
+            }
+        },
+        "b3_circlet": {
+            "name": "The Dark Alcove",
+            "description": "A small alcove, colder than the rest. A black coffer sits on a stone shelf.",
+            "exits": {
+                "east": "b3_gallery"
+            },
+            "items": [
+                {
+                    "item_id": "chest_barrow_circlet"
+                }
+            ]
+        },
+        "b3_sanctum": {
+            "name": "The Harper's Rest",
+            "description": "A round chamber hung with the rags of old tapestries. A narrow silver-bound chest sits where an altar should be.",
+            "exits": {
+                "west": "b3_gallery"
+            },
+            "items": [
+                {
+                    "item_id": "chest_barrow_harp"
+                }
+            ]
+        },
+        "b3_side": {
+            "name": "The Collapsed Gallery",
+            "description": "A gallery half-choked with fallen stone; a way squeezes through.",
+            "exits": {
+                "south": "b3_gallery",
+                "east": "b3_stair"
+            }
+        },
+        "b3_stair": {
+            "name": "The Lowest Stair",
+            "description": "The last stair, a dozen steps of black stone.",
+            "exits": {
+                "west": "b3_side",
+                "down": "b4_landing"
+            }
+        },
+        "b4_landing": {
+            "name": "The Last Landing",
+            "description": "A landing of black stone, bare as a swept hearth.",
+            "exits": {
+                "up": "b3_stair",
+                "north": "b4_hall"
+            }
+        },
+        "b4_hall": {
+            "name": "The Silent Hall",
+            "description": "A long hall without a single carving. Your footsteps seem to arrive before you do.",
+            "exits": {
+                "south": "b4_landing",
+                "west": "b4_ward",
+                "north": "b4_end"
+            }
+        },
+        "b4_ward": {
+            "name": "The Empty Ward",
+            "description": "A small chamber with an empty niche, long robbed.",
+            "exits": {
+                "east": "b4_hall"
+            }
+        },
+        "b4_end": {
+            "name": "The End of the Barrow",
+            "description": "A dead end, with a smooth wall. There is nothing here but the silence, and the feeling of being watched.",
+            "exits": {
+                "south": "b4_hall"
+            }
+        }
+    }
+}

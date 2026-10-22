@@ -1,0 +1,36 @@
+{
+    "id": "inn_harrow",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "A bed is twenty-five gold, with a fire and a clean blanket. The cold gets into everything up here.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Pay the 25 gold and take a bed.",
+                    "next_node": "slept",
+                    "effects": {
+                        "take_gold": 25,
+                        "restore": {
+                            "resource": "all"
+                        },
+                        "message": "You sleep deeply and wake with every hurt eased."
+                    },
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 25
+                    }
+                },
+                {
+                    "text": "Not tonight.",
+                    "end": true
+                }
+            ]
+        },
+        "slept": {
+            "text": "Mind the moor on your way out.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}
