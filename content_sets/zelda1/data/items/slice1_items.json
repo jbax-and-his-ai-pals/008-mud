@@ -93,7 +93,7 @@
         "name": "recovery heart",
         "description": "A small red heart that glows faintly. Held to the chest, it mends a heart's worth of wounds.",
         "weight": 0,
-        "value": 0,
+        "value": 5,
         "stackable": true,
         "properties": {
             "uses": 1,
@@ -213,6 +213,55 @@
         "type": "Item",
         "name": "30 rupees",
         "description": "A few blue stones that pass for money in Ardenmoor.",
+        "weight": 0,
+        "value": 0,
+        "stackable": false,
+        "properties": {}
+    },
+    "item_pale_blade": {
+        "type": "Weapon",
+        "name": "pale blade",
+        "description": "A sword of pale, ringing metal that was kept behind a waterfall. It cuts twice as deep as the wooden one.",
+        "weight": 2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "damage": 11,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_stormwing": {
+        "type": "Item",
+        "name": "stormwing",
+        "description": "A great curved throwing-stick of grey wood bound in iron. It stuns for a long while and comes back to the hand.",
+        "weight": 0.8,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_raft": {
+        "type": "Item",
+        "name": "raft",
+        "description": "A flat raft of lashed logs, small enough to carry and big enough to carry you. Wherever there is a dock, you can cross.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_heart_container": {
+        "type": "Item",
+        "name": "heart container",
+        "description": "A glowing red vessel, warm and a little heavier than it looks. Take it, and you have more heart than before.",
         "weight": 0,
         "value": 0,
         "stackable": false,

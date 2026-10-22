@@ -1,0 +1,55 @@
+{
+    "id": "pale_blade_gift",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "has_pale_blade"
+            }
+        },
+        {
+            "node": "offer",
+            "condition": {
+                "kind": "max_health_at_least",
+                "value": 80
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Those who come for the blade must carry five hearts. I do not give it to the frail. Come back when you have the heart for it.",
+            "pace": "slow",
+            "end": true
+        },
+        "offer": {
+            "text": "Five hearts, and you walked in anyway. Take it. It was never mine.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Take the pale blade.",
+                    "next_node": "done",
+                    "effects": {
+                        "give_item": "item_pale_blade",
+                        "equip_item": [
+                            "item_pale_blade"
+                        ],
+                        "set_flag": "has_pale_blade",
+                        "message": "The old man puts a sword of pale, ringing metal in your hands."
+                    }
+                }
+            ]
+        },
+        "done": {
+            "text": "It will cut where the wooden one would only dent.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "I have nothing more. Go and be careful with it.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

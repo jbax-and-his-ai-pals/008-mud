@@ -1,0 +1,171 @@
+{
+    "region_id": "ardenmoor_east",
+    "name": "Ardenmoor, the East",
+    "description": "Lake, cliff, salt and sand. The land is bigger here and the people are fewer, and the dangers are the kind that look like scenery.",
+    "rooms": {
+        "ae_0_0": {
+            "name": "The Cliff Path",
+            "description": "A path along the foot of a grey cliff. Water is falling somewhere above you, and the rock is dark with spray.",
+            "exits": {
+                "east": "ae_0_1",
+                "south": "ae_1_0",
+                "west": "ardenmoor_south:as_0_2"
+            }
+        },
+        "ae_0_1": {
+            "name": "The Waterfall Ledge",
+            "description": "A narrow ledge under a long white fall. Behind the water there is a dark seam in the rock that might be a doorway.",
+            "exits": {
+                "west": "ae_0_0",
+                "east": "ae_0_2",
+                "south": "ae_1_1",
+                "in": "waterfall_cave"
+            }
+        },
+        "ae_0_2": {
+            "name": "The Windy Plateau",
+            "description": "A bare shelf of hill where the wind never stops. A cave mouth has been cut into the bank, and someone has hung a lantern at its entrance.",
+            "exits": {
+                "west": "ae_0_1",
+                "in": "shop_cave"
+            }
+        },
+        "ae_1_0": {
+            "name": "Lake Sorrel, West Shore",
+            "description": "The west shore of a wide slate-grey lake. A squat, round building of black stone stands at the edge of the water, with a pinwheel carved over its door.",
+            "exits": {
+                "north": "ae_0_0",
+                "east": "ae_1_1",
+                "south": "ae_2_0",
+                "in": "pinwheel:l_entrance",
+                "west": "ardenmoor_south:as_1_2"
+            }
+        },
+        "ae_1_1": {
+            "name": "The Old Dock",
+            "description": "A long grey dock of silvered planks, running out into the lake until the lake takes it. The water beyond is too wide and too cold to wade.",
+            "exits": {
+                "north": "ae_0_1",
+                "west": "ae_1_0",
+                "south": "ae_2_1",
+                "east": "ae_island"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_raft",
+                        "pick_difficulty": 999,
+                        "failure_message": "The water past the dock is too wide and too cold to wade. A raft would carry you."
+                    }
+                }
+            }
+        },
+        "ae_2_0": {
+            "name": "Dry Reeds",
+            "description": "Reeds gone to straw, rattling together, over ground that has stopped being wet. A narrow cave has been dug into the bank.",
+            "exits": {
+                "north": "ae_1_0",
+                "east": "ae_2_1",
+                "south": "ae_3_0",
+                "in": "hint_cave",
+                "west": "ardenmoor_south:as_2_2"
+            }
+        },
+        "ae_2_1": {
+            "name": "The Salt Flats",
+            "description": "A white crust of salt over cracked mud, shining under the sky. Things move under it.",
+            "exits": {
+                "north": "ae_1_1",
+                "west": "ae_2_0",
+                "east": "ae_2_2",
+                "south": "ae_3_1"
+            }
+        },
+        "ae_2_2": {
+            "name": "The Dune Edge",
+            "description": "Where the salt gives way to sand, in long yellow ridges that run on south as far as you can see.",
+            "exits": {
+                "west": "ae_2_1",
+                "south": "ae_3_2"
+            }
+        },
+        "ae_3_0": {
+            "name": "The Cracked Flats",
+            "description": "Baked earth in plates the size of tables, curled at the edges. The air shimmers over it.",
+            "exits": {
+                "north": "ae_2_0",
+                "east": "ae_3_1"
+            }
+        },
+        "ae_3_1": {
+            "name": "The Dune Sea",
+            "description": "A sea of dunes under a white sun. Your footprints fill in behind you before you have turned to look.",
+            "exits": {
+                "north": "ae_2_1",
+                "west": "ae_3_0",
+                "east": "ae_3_2"
+            }
+        },
+        "ae_3_2": {
+            "name": "The Crescent Stones",
+            "description": "A ring of leaning stones in the sand, open on one side, like a moon that has lost its other half. A stair goes down into the ground between the horns.",
+            "exits": {
+                "north": "ae_2_2",
+                "west": "ae_3_1",
+                "in": "crescent_vault:v_entrance"
+            }
+        },
+        "waterfall_cave": {
+            "name": "A Cave Behind the Fall",
+            "description": "A cave behind the water, green with moss, with a black pool in the middle and the roar of the fall filling it.",
+            "exits": {
+                "out": "ae_0_1"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_pale_blade",
+                    "instance_id": "old_man_pale_blade"
+                }
+            ]
+        },
+        "shop_cave": {
+            "name": "A Lantern-Lit Cave",
+            "description": "A shallow cave with a lantern hung at its mouth and a barrel for a counter.",
+            "exits": {
+                "out": "ae_0_2"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_shop",
+                    "instance_id": "old_man_shop"
+                }
+            ]
+        },
+        "hint_cave": {
+            "name": "A Dry Hollow",
+            "description": "A dry hollow in the bank, hardly more than a hole.",
+            "exits": {
+                "out": "ae_2_0"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_dodongo",
+                    "instance_id": "old_man_dodongo"
+                }
+            ]
+        },
+        "ae_island": {
+            "name": "A Small Island",
+            "description": "A hump of rock and grass in the middle of the lake, with a single crooked tree. Something red glows in the roots of it.",
+            "exits": {
+                "west": "ae_1_1"
+            },
+            "items": [
+                {
+                    "item_id": "item_heart_container"
+                }
+            ]
+        }
+    }
+}

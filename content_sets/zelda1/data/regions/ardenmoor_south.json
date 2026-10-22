@@ -25,7 +25,8 @@
             "description": "A low hill of grey stone. The slope is split by a ledge, and the rock under it rings hollow when you kick it.",
             "exits": {
                 "west": "as_0_1",
-                "south": "as_1_2"
+                "south": "as_1_2",
+                "east": "ardenmoor_east:ae_0_0"
             },
             "properties": {
                 "hidden_exits": {
@@ -67,7 +68,8 @@
             "exits": {
                 "north": "as_0_2",
                 "west": "meadow_start",
-                "south": "as_2_2"
+                "south": "as_2_2",
+                "east": "ardenmoor_east:ae_1_0"
             }
         },
         "as_2_0": {
@@ -92,7 +94,8 @@
             "description": "Wet ground, pale reeds, and a smell of mud. Things move in the reeds when you are not looking at them.",
             "exits": {
                 "north": "as_1_2",
-                "west": "as_2_1"
+                "west": "as_2_1",
+                "east": "ardenmoor_east:ae_2_0"
             }
         },
         "sword_cave": {

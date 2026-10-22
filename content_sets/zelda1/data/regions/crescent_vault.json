@@ -1,0 +1,229 @@
+{
+    "region_id": "crescent_vault",
+    "name": "The Crescent Vault",
+    "description": "A buried vault of pale stone with a crescent cut over its stair. The second piece of the Starcrown lies in the lair at the bottom of it.",
+    "properties": {
+        "entrance": "v_entrance"
+    },
+    "rooms": {
+        "v_entrance": {
+            "name": "The Stair",
+            "description": "A broad stair of pale stone going down out of the sun, into a cool that smells of old dust. A crescent is cut into the wall over the foot of it.",
+            "exits": {
+                "out": "ardenmoor_east:ae_3_2",
+                "north": "v_hall"
+            }
+        },
+        "v_hall": {
+            "name": "The Hall of Horns",
+            "description": "A long hall with a vaulted roof, and horns of stone standing out of the walls like the curve of a moon.",
+            "exits": {
+                "south": "v_entrance",
+                "west": "v_west",
+                "east": "v_east",
+                "north": "v_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cord_snake",
+                    "instance_id": "snake_h1"
+                },
+                {
+                    "template_id": "cord_snake",
+                    "instance_id": "snake_h2"
+                },
+                {
+                    "template_id": "cord_snake",
+                    "instance_id": "snake_h3"
+                }
+            ]
+        },
+        "v_west": {
+            "name": "The Dry Cistern",
+            "description": "A round, dry cistern with a broken stair round the inside of it. Green jelly has gathered in the floor.",
+            "exits": {
+                "east": "v_hall",
+                "north": "v_powder"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_w1"
+                },
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_w2"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "north": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "crescent_vault",
+                            "room_id": "v_west"
+                        },
+                        "failure_message": "A stone door is down across the way north. It will not lift while the slimes still heave."
+                    }
+                }
+            }
+        },
+        "v_powder": {
+            "name": "The Powder Store",
+            "description": "A low store with a barrel of black powder, mostly spilled, and a few round bombs still sitting on a shelf where someone put them.",
+            "exits": {
+                "south": "v_west"
+            },
+            "items": [
+                {
+                    "item_id": "item_bomb"
+                },
+                {
+                    "item_id": "item_bomb"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ]
+        },
+        "v_east": {
+            "name": "The Colonnade",
+            "description": "A colonnade of squat pillars, with cave bats hanging among the capitals.",
+            "exits": {
+                "west": "v_hall",
+                "north": "v_worm"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_e1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_e2"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_e3"
+                }
+            ]
+        },
+        "v_worm": {
+            "name": "The Worm's Den",
+            "description": "A wide, bare room with a great hole in the floor from which something has just come. The walls are scored in long grooves.",
+            "exits": {
+                "south": "v_east"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_worm",
+                    "instance_id": "worm_e1"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_stormwing"
+                },
+                {
+                    "item_id": "item_small_key"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "crescent_vault",
+                            "room_id": "v_worm"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the worm still lives."
+                    }
+                }
+            }
+        },
+        "v_upper": {
+            "name": "The Upper Hall",
+            "description": "A hall under a roof of carved moons. The north door is black and shut. In the east wall, a long crack runs from floor to roof.",
+            "exits": {
+                "south": "v_hall",
+                "north": "v_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_u1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_u2"
+                }
+            ],
+            "properties": {
+                "hidden_exits": {
+                    "east": "v_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "east",
+                        "message": "The wall bursts, and a dark way stands open beyond it."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of black stone, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "v_cache": {
+            "name": "The Sealed Closet",
+            "description": "A closet behind the wall, where somebody put a few things for safekeeping.",
+            "exits": {
+                "west": "v_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_30"
+                }
+            ]
+        },
+        "v_ante": {
+            "name": "The Antechamber of the Jaw",
+            "description": "A bare chamber, scorched black. Something heavy has gone back and forth across the floor for years, wearing a groove.",
+            "exits": {
+                "south": "v_upper",
+                "north": "v_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cord_snake",
+                    "instance_id": "snake_a1"
+                },
+                {
+                    "template_id": "cord_snake",
+                    "instance_id": "snake_a2"
+                }
+            ]
+        },
+        "v_boss": {
+            "name": "The Jaw's Lair",
+            "description": "A round pit of a room, its floor strewn with bones and broken weapons. The stone-jaw lifts its head from the middle of it and opens a mouth like a quarry gate.",
+            "exits": {
+                "south": "v_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "stone_jaw",
+                    "instance_id": "stone_jaw_lair"
+                }
+            ]
+        }
+    }
+}

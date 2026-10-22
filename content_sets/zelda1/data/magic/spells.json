@@ -153,10 +153,42 @@
                 "for_target": true,
                 "effects": {
                     "teleport": {
-                        "region": "kestrel_keep",
-                        "room": "k_entrance",
+                        "to": "entrance",
                         "message": "The hand drags you through the wall and lets go at the door you came in by."
                     }
+                }
+            }
+        ]
+    },
+    "throw_stormwing": {
+        "name": "Stormwing",
+        "description": "Throw the stormwing: it hits hard, stuns for a long while and comes back.",
+        "mana_cost": 0,
+        "cooldown": 3,
+        "target_type": "enemy",
+        "cast_message": "You throw the stormwing, and it howls out and comes back.",
+        "hit_message": "The stormwing smashes into {target_name} for {value} damage!",
+        "level_required": 1,
+        "requires": {
+            "kind": "has_item",
+            "item_id": "item_stormwing"
+        },
+        "requires_message": "You have no stormwing.",
+        "effects": [
+            {
+                "type": "damage",
+                "value": 8,
+                "damage_type": "missile"
+            },
+            {
+                "type": "apply_effect",
+                "base_duration": 8,
+                "effect_data": {
+                    "name": "Stun",
+                    "type": "status",
+                    "tags": [
+                        "stun"
+                    ]
                 }
             }
         ]

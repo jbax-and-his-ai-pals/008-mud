@@ -86,5 +86,84 @@
             },
             "message": "The drake falls, and the roost goes quiet. A sliver of bright crown lies in the ash where it lay, and a warmth runs through you: you have more heart than you had."
         }
+    },
+    "stormwing_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_stormwing"
+        },
+        "once": "player",
+        "effects": {
+            "teach_spell": "throw_stormwing",
+            "message": "You turn the stormwing over. Type 'cast stormwing' (or 'cast stormwing on <creature>') to throw it."
+        }
+    },
+    "heart_container_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_heart_container"
+        },
+        "once": false,
+        "when": {
+            "all": [
+                {
+                    "kind": "has_item",
+                    "item_id": "item_heart_container"
+                },
+                {
+                    "not": {
+                        "kind": "flag",
+                        "flag": "island_heart"
+                    }
+                }
+            ]
+        },
+        "effects": {
+            "take_item": "item_heart_container",
+            "set_flag": "island_heart",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "You hold the heart container to your chest, and it sinks in. You have more heart than you had."
+        }
+    },
+    "stone_jaw_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "stone_jaw"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_2",
+            "set_flag": "shard_2",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The stone-jaw falls with a noise like a dropped wall. A second sliver of the Starcrown lies in the grit, and a warmth runs through you."
+        }
+    },
+    "bloom_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "snapjaw_bloom"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_shard_3",
+            "set_flag": "shard_3",
+            "raise": {
+                "max_health": 16
+            },
+            "restore": {
+                "resource": "all"
+            },
+            "message": "The flower shudders and goes slack all at once. A third sliver of the Starcrown glows among the leaves, and a warmth runs through you."
+        }
     }
 }

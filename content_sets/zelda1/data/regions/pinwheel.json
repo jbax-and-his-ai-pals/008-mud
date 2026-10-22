@@ -1,0 +1,226 @@
+{
+    "region_id": "pinwheel",
+    "name": "The Pinwheel",
+    "description": "A round black keep on a slate-grey lake, a pinwheel carved over its door. The third piece of the Starcrown is held in a garden at the top of it.",
+    "properties": {
+        "entrance": "l_entrance"
+    },
+    "rooms": {
+        "l_entrance": {
+            "name": "The Pinwheel Door",
+            "description": "A round black door under a pinwheel carved in the stone, its four arms bent the same way. The lake wind comes in behind you.",
+            "exits": {
+                "out": "ardenmoor_east:ae_1_0",
+                "north": "l_hall"
+            }
+        },
+        "l_hall": {
+            "name": "The Wheel Hall",
+            "description": "A round hall with a floor patterned like a wheel, four wide passages running off it like spokes.",
+            "exits": {
+                "south": "l_entrance",
+                "west": "l_west",
+                "east": "l_east",
+                "north": "l_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_h1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_l1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_l2"
+                }
+            ]
+        },
+        "l_west": {
+            "name": "The Weir Gallery",
+            "description": "A gallery that was once flooded and is now a wide bed of black silt. The old guard are still walking it.",
+            "exits": {
+                "east": "l_hall",
+                "north": "l_raft"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_lw1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_lw2"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_lw3"
+                }
+            ]
+        },
+        "l_raft": {
+            "name": "The Boat Store",
+            "description": "A long store hung with oars and coils of rope. A raft of lashed logs lies on its side along the back wall, and the room has more than one lodger.",
+            "exits": {
+                "south": "l_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_r1"
+                },
+                {
+                    "template_id": "great_slime",
+                    "instance_id": "gslime_r2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_raft"
+                }
+            ],
+            "properties": {
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "pinwheel",
+                            "room_id": "l_raft"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the slimes still heave."
+                    }
+                }
+            }
+        },
+        "l_east": {
+            "name": "The Spoke of Teeth",
+            "description": "A passage lined with stone teeth, and not all the teeth are stone.",
+            "exits": {
+                "west": "l_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_le1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_le1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_le2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_small_key"
+                }
+            ]
+        },
+        "l_upper": {
+            "name": "The Upper Wheel",
+            "description": "The hub of the upper floor. A great door stands to the north, and a crack runs up the west wall.",
+            "exits": {
+                "south": "l_hall",
+                "north": "l_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_lu1"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_lu1"
+                }
+            ],
+            "properties": {
+                "hidden_exits": {
+                    "west": "l_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "west",
+                        "message": "The wall bursts inward, and a low way stands open."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of black wood, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "l_cache": {
+            "name": "The Wheelwright's Closet",
+            "description": "A cramped closet, with a bench and some tools. Someone left a few things under the bench.",
+            "exits": {
+                "east": "l_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_10"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ]
+        },
+        "l_ante": {
+            "name": "The Hall of Stalks",
+            "description": "A long hall of pillars wound about with thick green stalks. There are mouths in them.",
+            "exits": {
+                "south": "l_upper",
+                "north": "l_boss"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_la1"
+                },
+                {
+                    "template_id": "bone_warrior",
+                    "instance_id": "bone_warrior_la2"
+                }
+            ]
+        },
+        "l_boss": {
+            "name": "The Bloom Chamber",
+            "description": "A round chamber open to the sky, and every wall of it green. A great flower on a stalk as thick as a man rises from the middle, ringed with mouths.",
+            "exits": {
+                "south": "l_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "snapjaw_bloom",
+                    "instance_id": "bloom_chamber"
+                },
+                {
+                    "template_id": "snapjaw_mouth",
+                    "instance_id": "mouth_1"
+                },
+                {
+                    "template_id": "snapjaw_mouth",
+                    "instance_id": "mouth_2"
+                },
+                {
+                    "template_id": "snapjaw_mouth",
+                    "instance_id": "mouth_3"
+                },
+                {
+                    "template_id": "snapjaw_mouth",
+                    "instance_id": "mouth_4"
+                }
+            ]
+        }
+    }
+}

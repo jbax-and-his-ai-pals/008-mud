@@ -39,5 +39,76 @@
             "essential": true,
             "unique": true
         }
+    },
+    "old_man_pale_blade": {
+        "name": "an old man",
+        "description": "A very old man sitting by a black pool, wrapped in a blanket against the spray.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Those who come for the blade must carry five hearts. I do not give it to the frail."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "pale_blade_gift"
+        }
+    },
+    "old_man_shop": {
+        "name": "an old man",
+        "description": "A very old man behind a barrel with a few things on it, who is not too old to haggle.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Buy something, will you!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_bomb"
+                },
+                {
+                    "item_id": "item_recovery_heart"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "old_man_dodongo": {
+        "name": "an old man",
+        "description": "A very old man, deaf in one ear, who talks to the dark.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "The stone-jaw cannot abide smoke and thunder. The sword is wasted on it."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true
+        }
     }
 }

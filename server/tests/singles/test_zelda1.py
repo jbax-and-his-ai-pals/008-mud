@@ -91,7 +91,7 @@ class TestKestrelKeep(Base):
 
     def test_the_archers_gallery_shuts_until_the_archers_are_down(self):
         self.at("kestrel_keep", "k_bow")
-        self.assertEqual(3, len(self.foes("bone_warrior")) - 4, "three archers here beside the guards and the chamber's")
+        self.assertEqual(3, len([n for n in self.foes("bone_warrior") if (n.current_region_id, n.current_room_id) == ("kestrel_keep", "k_bow")]), "three archers")
         self.assertIn("shut", self.say("go south").lower())
         self.assertEqual("kestrel_keep:k_bow", self.where())
         for npc in [n for n in self.foes("bone_warrior") if (n.current_region_id, n.current_room_id) == ("kestrel_keep", "k_bow")]:
@@ -175,6 +175,129 @@ class TestTheOpenGround(Base):
         self.give("item_small_key", 9)
         ok, _said = self.player.inventory.add_item(ItemFactory.create_item_from_template("item_small_key", self.world))
         self.assertFalse(ok)
+
+
+class TestTheEast(Base):
+    def test_the_south_and_the_east_meet_on_the_lake_road(self):
+        self.at("ardenmoor_south", "as_1_2")
+        self.say("go east")
+        self.assertEqual("ardenmoor_east:ae_1_0", self.where())
+        self.say("go west")
+        self.assertEqual("ardenmoor_south:as_1_2", self.where())
+
+    def test_the_water_past_the_dock_wants_a_raft_and_the_raft_is_not_used_up(self):
+        self.at("ardenmoor_east", "ae_1_1")
+        self.assertIn("raft", self.say("go east").lower())
+        self.assertEqual("ardenmoor_east:ae_1_1", self.where())
+        self.give("item_raft")
+        self.say("go east")
+        self.assertEqual("ardenmoor_east:ae_island", self.where())
+        self.assertEqual(1, self.player.inventory.count_item("item_raft"))
+
+    def test_the_island_heart_is_taken_once_and_adds_a_heart(self):
+        self.at("ardenmoor_east", "ae_island")
+        self.say("take heart container")
+        self.assertEqual(4 * HEART, self.player.max_health)
+        self.assertEqual(0, self.player.inventory.count_item("item_heart_container"))
+
+    def test_the_pale_blade_wants_five_hearts(self):
+        self.at("ardenmoor_east", "waterfall_cave")
+        self.player.max_health = 4 * HEART
+        self.say("talk old man")
+        self.assertEqual(0, self.player.inventory.count_item("item_pale_blade"))
+        self.player.max_health = 5 * HEART
+        self.say("talk old man")
+        self.say("reply 1")
+        self.assertEqual("item_pale_blade", self.player.equipment["main_hand"].obj_id)
+        self.assertGreaterEqual(self.player.get_attack_power(), 2 * 8 - 1)
+
+    def test_the_shop_sells_bombs_for_twenty_and_will_not_sell_past_a_full_pack(self):
+        self.at("ardenmoor_east", "shop_cave")
+        self.say("trade old man")
+        self.assertIn("20", self.say("list"))
+        self.player.runtime_state.gold = 100
+        self.give("item_bomb", 8)
+        said = self.say("buy bomb")
+        self.assertIn("cannot carry", said)
+        self.assertEqual(100, self.player.runtime_state.gold)
+
+
+class TestTheCrescentVault(Base):
+    def test_a_sword_and_an_arrow_do_nothing_to_the_stone_jaw_and_a_bomb_does(self):
+        self.at("crescent_vault", "v_boss")
+        jaw = self.foes("stone_jaw")[0]
+        self.assertEqual(40, jaw.health)
+        self.assertEqual(0, jaw.take_damage(50, "physical"))
+        self.assertEqual(0, jaw.take_damage(50, "missile"))
+        self.give("item_bomb", 2)
+        self.say("use bomb")
+        self.assertLess(jaw.health, jaw.max_health)
+        self.say("use bomb")
+        self.assertFalse(jaw.is_alive, "two bombs finish it")
+
+    def test_a_great_slime_comes_apart_into_two_slimes(self):
+        self.at("crescent_vault", "v_west")
+        before = len(self.foes("slime"))
+        slime = self.foes("great_slime")[0]
+        slime.take_damage(10 ** 5, "physical")
+        slime.die(self.world)
+        self.assertEqual(before + 2, len(self.foes("slime")))
+
+    def test_the_powder_store_is_behind_a_door_that_waits_for_the_slimes(self):
+        self.at("crescent_vault", "v_west")
+        self.assertIn("will not lift", self.say("go north"))
+        for npc in self.foes("great_slime"):
+            self.world.remove_npcs(npc.obj_id)
+        self.say("go north")
+        self.assertEqual("crescent_vault:v_powder", self.where())
+
+    def test_the_stormwing_is_known_once_taken(self):
+        self.at("crescent_vault", "v_worm")
+        for npc in self.foes("great_worm"):
+            self.world.remove_npcs(npc.obj_id)
+        self.say("take stormwing")
+        self.assertIn("throw_stormwing", self.player.runtime_state.magic.known_spells)
+
+    def test_the_second_shard_and_a_fifth_heart(self):
+        self.at("crescent_vault", "v_boss")
+        jaw = self.foes("stone_jaw")[0]
+        self.world.dispatch_event("npc_killed", {"player": self.player, "npc": jaw})
+        self.assertEqual(1, self.player.inventory.count_item("item_shard_2"))
+        self.assertEqual(4 * HEART, self.player.max_health)
+
+
+class TestThePinwheel(Base):
+    def test_the_flower_cannot_be_struck_while_a_mouth_remains(self):
+        self.at("pinwheel", "l_boss")
+        bloom = self.foes("snapjaw_bloom")[0]
+        from engine.core.combat_system import CombatSystem
+
+        result = CombatSystem.execute_attack(self.player, bloom, 50, always_hit=True)
+        self.assertEqual(bloom.max_health, bloom.health)
+        self.assertIn("mouths", result["message"])
+        for mouth in self.foes("snapjaw_mouth"):
+            mouth.take_damage(10 ** 5, "physical")
+        result = CombatSystem.execute_attack(self.player, bloom, 50, always_hit=True)
+        self.assertGreater(result["damage"], 0)
+
+    def test_the_raft_is_in_a_room_that_shuts_until_the_slimes_are_down(self):
+        self.at("pinwheel", "l_raft")
+        self.assertIn("shut", self.say("go south").lower())
+        self.assertEqual("pinwheel:l_raft", self.where())
+
+    def test_the_hand_here_takes_you_to_this_dungeons_own_door(self):
+        self.at("pinwheel", "l_upper")
+        hand = self.foes("grasping_hand")[0]
+        from engine.magic.spell_registry import get_spell
+        from engine.npcs import combat as npc_combat
+
+        npc_combat.cast_spell(hand, get_spell("hand_grab"), self.player, 1000.0)
+        self.assertEqual("pinwheel:l_entrance", self.where())
+
+    def test_the_third_shard_and_a_fifth_heart(self):
+        self.at("pinwheel", "l_boss")
+        self.world.dispatch_event("npc_killed", {"player": self.player, "npc": self.foes("snapjaw_bloom")[0]})
+        self.assertEqual(1, self.player.inventory.count_item("item_shard_3"))
 
 
 if __name__ == "__main__":

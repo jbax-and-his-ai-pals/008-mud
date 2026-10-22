@@ -40,5 +40,73 @@
         ],
         "message": "A {name} pops up out of the grass and spits at you!",
         "note": "The corners: a blue one now and then."
+    },
+    "east_lake": {
+        "region": "ardenmoor_east",
+        "rooms": [
+            "ae_0_0",
+            "ae_0_1",
+            "ae_0_2",
+            "ae_1_0",
+            "ae_1_1"
+        ],
+        "chance": 0.35,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "spitter",
+                "weight": 2
+            },
+            {
+                "npc": "blue_spitter",
+                "weight": 2
+            }
+        ],
+        "message": "A {name} pops up out of the grass and spits at you!",
+        "note": "The lake and the cliff: blue spitters as often as red."
+    },
+    "east_salt": {
+        "region": "ardenmoor_east",
+        "rooms": [
+            "ae_2_0",
+            "ae_2_1",
+            "ae_2_2"
+        ],
+        "chance": 0.4,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "hopper",
+                "weight": 3
+            },
+            {
+                "npc": "blue_spitter",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} bounds out of the glare at you!",
+        "note": "The salt flats: hoppers."
+    },
+    "east_dunes": {
+        "region": "ardenmoor_east",
+        "rooms": [
+            "ae_3_0",
+            "ae_3_1",
+            "ae_3_2"
+        ],
+        "chance": 0.45,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "burrower",
+                "weight": 3
+            },
+            {
+                "npc": "hopper",
+                "weight": 1
+            }
+        ],
+        "message": "The sand heaves, and a {name} comes up out of it!",
+        "note": "The dunes: burrowers."
     }
 }

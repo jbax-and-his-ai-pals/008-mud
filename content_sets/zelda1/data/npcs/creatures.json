@@ -367,5 +367,354 @@
             "aquilor_flame"
         ],
         "max_mana": 100
+    },
+    "hopper": {
+        "name": "hopper",
+        "description": "A spindly red thing like a flea the size of a hound, that bounds about the dunes on springy legs.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 14,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.5,
+                "quantity": [
+                    1,
+                    3
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.08
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4
+        }
+    },
+    "burrower": {
+        "name": "burrower",
+        "description": "A pale, blunt-headed creature that rises out of the sand under your feet and drops back as soon as it has bitten.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.6,
+                "quantity": [
+                    1,
+                    4
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.1
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        }
+    },
+    "cord_snake": {
+        "name": "cord-snake",
+        "description": "A thin brown snake that lies in coils till it sees you, and then comes at a rush.",
+        "max_health": 6,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 14,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.5,
+                "quantity": [
+                    1,
+                    2
+                ]
+            },
+            "item_bomb": {
+                "chance": 0.08
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2
+        }
+    },
+    "great_slime": {
+        "name": "great slime",
+        "description": "A knee-high mass of green jelly, with a surface that heaves. When it breaks, it breaks into more of itself.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.5,
+                "quantity": [
+                    1,
+                    3
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.08
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "on_death_spawn": {
+                "npc": "slime",
+                "count": 2,
+                "message": "The great slime bursts, and the jelly comes apart into two small slimes."
+            }
+        }
+    },
+    "great_worm": {
+        "name": "great worm",
+        "description": "A long grey worm in many hard joints, that rolls and lashes about the room in a rage.",
+        "max_health": 28,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 14,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.8,
+                "quantity": [
+                    3,
+                    8
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.2
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4
+        }
+    },
+    "stone_jaw": {
+        "name": "the stone-jaw",
+        "description": "A squat, armoured beast with a jaw like a quarry gate. Its hide turns every blade, and it hates nothing but loud things and smoke.",
+        "max_health": 40,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "physical": 100,
+                "missile": 100
+            }
+        },
+        "attack_power": 14,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3.5,
+            "unique": true,
+            "status_immune": true
+        }
+    },
+    "snapjaw_mouth": {
+        "name": "snap-jaw mouth",
+        "description": "One of four heads on the same stalk, a ring of teeth on a fleshy neck that lunges and snaps.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2
+        }
+    },
+    "snapjaw_bloom": {
+        "name": "the snap-jaw bloom",
+        "description": "A great fleshy flower on a stalk as thick as a man, with four hungry mouths about its heart. Its heart is safe until the mouths are gone.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "unique": true,
+            "status_immune": true,
+            "shielded_by": [
+                "snapjaw_mouth"
+            ],
+            "shield_text": "{attacker} swings at {defender}, but the four mouths lunge across the blow and snap it aside."
+        }
     }
 }

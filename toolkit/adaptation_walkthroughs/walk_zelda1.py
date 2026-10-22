@@ -241,6 +241,206 @@ before = rupees()
 say("take 30 rupees")
 check("thirty rupees in the hollow", rupees() - before == 30, rupees() - before)
 
+
+# ============================================================ slice 2: the east
+def fight_room(*pairs):
+    """Fight every named creature of the room in turn, mending between, and say whether the hero is alive."""
+    for name, template in pairs:
+        guard = 0
+        while hostile_here(template) and guard < 12:
+            guard += 1
+            heal()
+            g.fight(name, potion="recovery heart")
+            if not g.player.is_alive:
+                return False
+    return True
+
+
+goto("ardenmoor_east:ae_1_1")
+check("the old dock on Lake Sorrel", g.where() == "ardenmoor_east:ae_1_1", g.where())
+out = say("go east")
+check("the water past the dock needs a raft", g.where() == "ardenmoor_east:ae_1_1" and "raft" in out.lower(), out[:120])
+
+# the lantern shop
+goto("ardenmoor_east:ae_0_2")
+walk("in")
+check("a lantern-lit cave and a shopkeeper", g.where() == "ardenmoor_east:shop_cave", g.where())
+say("trade old man")
+listing = say("list")
+check("bombs for twenty rupees and hearts for ten", "bomb" in listing and "20" in listing and "recovery heart" in listing and "10" in listing, listing[:200])
+g.player.runtime_state.gold = 100
+before = g.player.inventory.count_item("item_bomb")
+say("buy bomb")
+check("a bomb is bought for twenty", g.player.runtime_state.gold == 80 and g.player.inventory.count_item("item_bomb") == before + 1, g.player.runtime_state.gold)
+give("item_bomb", 8 - g.player.inventory.count_item("item_bomb"))
+gold = g.player.runtime_state.gold
+out = say("buy bomb")
+check("a full pack refuses a ninth and keeps the money", g.player.runtime_state.gold == gold and g.player.inventory.count_item("item_bomb") == 8 and "cannot carry" in out, out[:100])
+say("stoptrade")
+walk("out")
+
+# the white sword's gate
+goto("ardenmoor_east:ae_0_1")
+walk("in")
+check("a cave behind the waterfall", g.where() == "ardenmoor_east:waterfall_cave", g.where())
+out = say("talk old man")
+check("with four hearts he gives nothing", "item_pale_blade" not in g.items() and g.player.equipment["main_hand"].obj_id == "item_wooden_sword", out[:100])
+walk("out")
+
+# the stone-jaw's hint
+goto("ardenmoor_east:ae_2_0")
+walk("in")
+out = say("talk old man")
+check("a hint about smoke and thunder", "smoke" in out.lower(), out[:120])
+walk("out")
+
+# ---- the Crescent Vault
+goto("ardenmoor_east:ae_3_2")
+walk("in")
+check("the stair down to the Crescent Vault", g.where() == "crescent_vault:v_entrance", g.where())
+walk("north")
+check("the Hall of Horns: three cord-snakes", len(hostile_here("cord_snake")) == 3, len(hostile_here("cord_snake")))
+check("they fall", fight_room(("cord", "cord_snake")), "")
+walk("west")
+check("the dry cistern: two great slimes", len(hostile_here("great_slime")) == 2, len(hostile_here("great_slime")))
+heal()
+g.fight("great slime", potion="recovery heart")
+check("a great slime bursts into two slimes", len(hostile_here("slime")) >= 2, [n.template_id for n in hostile_here()])
+check("all of them fall", fight_room(("great slime", "great_slime"), ("slime", "slime")), "")
+walk("north")
+check("the powder store, through the lifted door", g.where() == "crescent_vault:v_powder", g.where())
+while g.player.inventory.count_item("item_bomb") > 0:
+    g.player.inventory.remove_item("item_bomb", 1)
+for _ in range(3):
+    say("take bomb")
+check("three bombs on the shelf", g.player.inventory.count_item("item_bomb") == 3, g.player.inventory.count_item("item_bomb"))
+goto("crescent_vault:v_worm")
+check("the worm's den", g.where() == "crescent_vault:v_worm", g.where())
+check("the great worm falls", fight_room(("worm", "great_worm")), "")
+say("take stormwing")
+say("take small key")
+check("the stormwing and a key", "item_stormwing" in g.items() and "item_small_key" in g.items(), g.items())
+check("the stormwing is known", "throw_stormwing" in g.player.runtime_state.magic.known_spells, "")
+goto("crescent_vault:v_upper")
+check("the upper hall: two bone warriors", len(hostile_here("bone_warrior")) == 2, len(hostile_here("bone_warrior")))
+check("they fall", fight_room(("bone", "bone_warrior")), "")
+before = rupees()
+say("use bomb")
+walk("east")
+check("a bomb opens the cracked wall to a closet", g.where() == "crescent_vault:v_cache", g.where())
+say("take 30 rupees")
+check("thirty rupees in the closet", rupees() - before == 30, rupees() - before)
+goto("crescent_vault:v_upper")
+out = say("go north")
+check("the black door yields to the key", g.where() == "crescent_vault:v_ante" and "item_small_key" not in g.items(), "%s %s" % (g.where(), out[:80]))
+check("two cord-snakes in the antechamber fall", fight_room(("cord", "cord_snake")), "")
+heal()
+walk("north")
+check("the jaw's lair", g.where() == "crescent_vault:v_boss" and len(hostile_here("stone_jaw")) == 1, g.where())
+jaw = hostile_here("stone_jaw")[0]
+health = jaw.health
+heal()
+for _ in range(3):
+    say("attack stone")
+    wait(2)
+check("a sword does nothing to the stone-jaw", jaw.health == health, "%s -> %s" % (health, jaw.health))
+give("item_bomb", 2 - g.player.inventory.count_item("item_bomb")) if g.player.inventory.count_item("item_bomb") < 2 else None
+heal()
+say("use bomb")
+check("a bomb hurts it", jaw.health < health, "%s -> %s" % (health, jaw.health))
+heal()
+say("use bomb")
+wait(3)
+check("and two bombs finish it", not jaw.is_alive, jaw.health)
+check("the second shard of the Starcrown", "item_shard_2" in g.items() and g.player.flags.get("shard_2") is True, g.items())
+check("and a fifth heart", g.player.max_health == 80, g.player.max_health)
+
+# ---- the white sword
+goto("ardenmoor_east:ae_0_1")
+walk("in")
+say("talk old man")
+say("reply 1")
+check("with five hearts the old man gives the pale blade, and it is wielded", g.player.equipment["main_hand"].obj_id == "item_pale_blade", g.player.equipment["main_hand"].obj_id)
+check("it cuts twice as deep: sixteen against the wooden sword's eight", g.player.get_attack_power() in range(15, 20), g.player.get_attack_power())
+say("talk old man")
+walk("out")
+
+# ---- the Pinwheel
+goto("ardenmoor_east:ae_1_0")
+walk("in")
+check("the pinwheel door", g.where() == "pinwheel:l_entrance", g.where())
+walk("north")
+check("the wheel hall: a great slime and two bats", len(hostile_here("great_slime")) == 1 and len(hostile_here("cave_bat")) == 2, [n.template_id for n in hostile_here()])
+check("they fall", fight_room(("great slime", "great_slime"), ("slime", "slime"), ("bat", "cave_bat")), "")
+walk("west")
+check("the weir gallery: three bone warriors", len(hostile_here("bone_warrior")) == 3, len(hostile_here("bone_warrior")))
+check("they fall", fight_room(("bone", "bone_warrior")), "")
+walk("north")
+check("the boat store: two great slimes shut the door behind", g.where() == "pinwheel:l_raft" and len(hostile_here("great_slime")) == 2, g.where())
+out = say("go south")
+check("the door stays shut while they heave", g.where() == "pinwheel:l_raft", out[:100])
+check("they and their children fall", fight_room(("great slime", "great_slime"), ("slime", "slime")), "")
+say("take raft")
+check("the raft", "item_raft" in g.items(), g.items())
+goto("pinwheel:l_east")
+check("the spoke of teeth", g.where() == "pinwheel:l_east", g.where())
+check("its guards fall", fight_room(("bone", "bone_warrior"), ("bat", "cave_bat")), "")
+say("take small key")
+goto("pinwheel:l_upper")
+check("the upper wheel", g.where() == "pinwheel:l_upper", g.where())
+heal()
+grabbed = False
+for name, template in (("bat", "cave_bat"), ("hand", "grasping_hand")):
+    guard = 0
+    while guard < 12:
+        guard += 1
+        if g.where() != "pinwheel:l_upper":
+            grabbed = True
+            goto("pinwheel:l_upper")
+        if not hostile_here(template):
+            break
+        heal()
+        g.fight(name, potion="recovery heart")
+give("item_bomb", 2 - g.player.inventory.count_item("item_bomb")) if g.player.inventory.count_item("item_bomb") < 2 else None
+before = rupees()
+say("use bomb")
+walk("west")
+check("a closet behind the west wall", g.where() == "pinwheel:l_cache", g.where())
+say("take 10 rupees")
+check("ten rupees", rupees() - before == 10, rupees() - before)
+walk("east")
+out = say("go north")
+check("the black door yields to the key", g.where() == "pinwheel:l_ante" and "item_small_key" not in g.items(), "%s %s" % (g.where(), out[:80]))
+check("the hall of stalks: two bone warriors fall", fight_room(("bone", "bone_warrior")), "")
+heal()
+walk("north")
+check("the bloom chamber: the flower and four mouths", len(hostile_here("snapjaw_mouth")) == 4 and len(hostile_here("snapjaw_bloom")) == 1, [n.template_id for n in hostile_here()])
+bloom = hostile_here("snapjaw_bloom")[0]
+out = say("attack bloom")
+check("the flower cannot be reached past its mouths", bloom.health == bloom.max_health and "mouths" in out.lower(), out[:140])
+guard = 0
+while hostile_here("snapjaw_mouth") and guard < 12:
+    guard += 1
+    heal()
+    g.fight("mouth", potion="recovery heart")
+check("the four mouths fall", not hostile_here("snapjaw_mouth") and g.player.is_alive, [n.template_id for n in hostile_here()])
+heal()
+g.fight("bloom", potion="recovery heart")
+wait(3)
+check("and then the flower", not bloom.is_alive, bloom.health)
+check("the third shard and a sixth heart", "item_shard_3" in g.items() and g.player.max_health == 96, "%s %s" % (g.items(), g.player.max_health))
+
+# ---- the raft, and the island
+goto("ardenmoor_east:ae_1_1")
+out = say("go east")
+check("with the raft the dock reaches an island", g.where() == "ardenmoor_east:ae_island", g.where() + " " + out[:80])
+check("and the raft is not used up", "item_raft" in g.items(), g.items())
+say("take heart container")
+check("a heart container in the roots: seven hearts", g.player.max_health == 112 and "item_heart_container" not in g.items(), "%s %s" % (g.player.max_health, g.items()))
+out = say("status")
+check("shown as seven hearts", "7/7 hearts" in out, out[:200])
+walk("west")
+
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])
 g.close()
