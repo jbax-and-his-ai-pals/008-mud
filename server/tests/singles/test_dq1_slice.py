@@ -398,5 +398,123 @@ class TestTheSouth(Base):
         self.assertIn("locked", self.say("go west").lower())
 
 
+class TestTheEnd(Base):
+    def _tick(self, seconds):
+        for _ in range(seconds):
+            self.world.clock.advance(1.0)
+            self.server.tick(self.sid)
+
+    def test_the_prism_tear_makes_a_bridge_only_at_the_shore(self):
+        from engine.items.item_factory import ItemFactory
+
+        self.player.inventory.add_item(ItemFactory.create_item_from_template("item_prism_tear", self.world))
+        self.at("heartland", "hl_1_2")
+        self.assertIn("water's edge", self.say("use the prism tear"))
+        self.assertEqual({"east"} - set(self.world.get_region("heartland").get_room("hl_shore").exits), {"east"})
+        self.at("heartland", "hl_shore")
+        self.say("use the prism tear")
+        self.assertEqual("skarn_isle:landing", self.world.get_region("heartland").get_room("hl_shore").exits["east"])
+        self.assertFalse(any(slot.item and slot.item.obj_id == "item_prism_tear" for slot in self.player.inventory.slots), "it is used up")
+
+    def test_saying_yes_to_the_sovereign_ends_the_game_for_good(self):
+        self.at("skarnhold", "k_b7_throne")
+        self.say("talk maldrath")
+        self.say("reply 1")
+        self.assertFalse(self.player.is_alive)
+        self.assertIs(True, self.player.flags.get("_game_over"))
+        self.assertIn("adventure is over", self.say("respawn"))
+        self.assertFalse(self.player.is_alive)
+
+    def test_saying_no_makes_him_fight_in_his_first_form_and_the_wyrm_follows(self):
+        self.at("skarnhold", "k_b7_throne")
+        self.player.health = self.player.max_health = 10 ** 5
+        self.say("talk maldrath")
+        self.say("reply 2")
+        man = [n for n in self.world.npcs.values() if n.template_id == "maldrath_man"]
+        self.assertEqual(1, len(man))
+        self.assertEqual([], [n for n in self.world.npcs.values() if n.template_id == "maldrath_herald"])
+        man[0].take_damage(10 ** 6, "physical")
+        self._tick(15)
+        wyrm = [n for n in self.world.npcs.values() if n.template_id == "maldrath_wyrm" and n.is_alive]
+        self.assertEqual(1, len(wyrm))
+        wyrm[0].take_damage(10 ** 6, "physical")
+        self._tick(30)
+        self.assertIs(True, self.player.flags.get("maldrath_down"))
+
+    def test_once_he_is_down_every_zone_is_quiet(self):
+        self.player.flags["maldrath_down"] = True
+        self.at("heartland", "hl_0_0")
+        self.player.health = self.player.max_health = 10 ** 5
+        self.world.encounters._rng.seed(1)
+        for definition in self.world.encounters.zones.values():
+            definition["chance"] = 1
+        for room_id in ("hl_0_1", "hl_0_0", "hl_0_1", "hl_0_0"):
+            self.world._arrive(self.player, "heartland", room_id, "heartland")
+        self.assertFalse([n for n in self.world.npcs.values() if n.properties.get("encounter")])
+
+    def test_the_castle_has_its_barrier_floors_and_its_three_locked_doors(self):
+        region = self.world.get_region("skarnhold")
+        self.assertEqual([{"type": "barrier"}], region.get_room("k_b5_a").properties["hazards"])
+        locked = [room_id for room_id, room in region.rooms.items() if any(r.get("type") == "locked" for r in room.properties.get("exit_requirements", {}).values())]
+        self.assertEqual({"k1_hall", "k_b7_hall"}, set(locked))
+        self.assertEqual({"west", "east"}, set(region.get_room("k1_hall").properties["exit_requirements"]))
+
+    def test_every_zone_of_the_game_goes_quiet_with_the_victory(self):
+        for zone_id, definition in self.world.encounters.zones.items():
+            self.assertEqual({"not": {"kind": "flag", "flag": "maldrath_down"}}, definition.get("when"), zone_id)
+
+
+class TestTheCheckpoints(unittest.TestCase):
+    """`checkpoint <name>` in a test session puts a fresh character at that point of the story, ready to play on."""
+
+    EXPECTED = {
+        "armed": ("bracken_ford:square", 3), "vault": ("northmarch:nm_2_1", 5), "barrow": ("harrowmere:graveyard", 8),
+        "hermit": ("frostfell_hollow:f_hall", 10), "tunnel": ("mirewater_tunnel:t_den", 13), "court": ("telgard:throne_room", 14),
+        "sage": ("sagehollow:s_hall", 20), "shore": ("heartland:hl_shore", 26), "throne": ("skarnhold:k_b7_hall", 28),
+    }
+
+    def _game(self, name):
+        server = HeadlessServer(db_path=":memory:", content_set_path=str(DQ1), deterministic_test_mode=True, default_presentation_mode="test")
+        self.addCleanup(server.shutdown)
+        sid = server.create_session(player_id="hero").session_id
+        server.execute_command(sid, "char create Hero")
+        server.execute_command(sid, "checkpoint %s" % name)
+        return server, server.get_player_for_session(sid)
+
+    def test_every_checkpoint_puts_the_hero_where_it_says_at_the_level_it_says(self):
+        for name, (place, level) in self.EXPECTED.items():
+            with self.subTest(checkpoint=name):
+                _server, player = self._game(name)
+                self.assertEqual(place, "%s:%s" % (player.current_region_id, player.current_room_id))
+                self.assertEqual(level, player.runtime_state.progression.level)
+                if name != "tunnel":  # the drake is already in the den, and a test server's clock does not wait for the hero
+                    self.assertEqual(player.max_health, player.health)
+
+    def test_each_one_ends_every_scene_of_the_set_first(self):
+        scenes = set()
+        for path in (DQ1 / "data" / "scenes").glob("*.json"):
+            if path.name != "checkpoints.json":
+                import json
+
+                scenes |= {k for k in json.loads(path.read_text(encoding="utf-8")) if not k.startswith("_")}
+        import json
+
+        checkpoints = json.loads((DQ1 / "data" / "scenes" / "checkpoints.json").read_text(encoding="utf-8"))
+        self.assertEqual({"checkpoint_%s" % name for name in self.EXPECTED}, set(checkpoints))
+        for name, definition in checkpoints.items():
+            self.assertEqual(scenes, set(definition["beats"][0]["effects"]["end_scene"]), name)
+
+    def test_the_last_ones_leave_the_hero_armed_for_the_end(self):
+        _server, player = self._game("throne")
+        self.assertEqual("item_ostruns_mail", player.equipment["body"].obj_id)
+        held = [slot.item.obj_id for slot in player.inventory.slots if slot.item]
+        self.assertIn("item_ostruns_edge", held + [i.obj_id for i in player.equipment.values() if i])
+
+    def test_the_court_checkpoint_has_the_princess_home_and_the_locket_given(self):
+        server, player = self._game("court")
+        self.assertIs(True, player.flags.get("princess_home"))
+        self.assertTrue([n for n in server.world.npcs.values() if n.template_id == "princess_elowen_court"])
+
+
 if __name__ == "__main__":
     unittest.main()

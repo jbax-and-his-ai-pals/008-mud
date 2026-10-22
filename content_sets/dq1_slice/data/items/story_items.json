@@ -90,16 +90,32 @@
         "item_family": "treasure"
     },
     "item_prism_tear": {
-        "type": "Item",
+        "type": "Consumable",
         "name": "the prism tear",
         "description": "A drop of glass that holds a rainbow caught mid-turn. Poured on water, it will make a way.",
         "weight": 0.5,
         "value": 0,
         "stackable": false,
         "properties": {
-            "quest_item": true
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "effects",
+            "quest_item": true,
+            "requires": {
+                "kind": "in_room",
+                "region_id": "heartland",
+                "room_id": "hl_shore"
+            },
+            "requires_message": "You turn the prism tear in the light, and it only glints. It wants the water's edge across from the dark isle, and nowhere else.",
+            "effects": {
+                "reveal_exit": {
+                    "room": "heartland:hl_shore",
+                    "direction": "east"
+                },
+                "message": "You pour the prism tear onto the black water. The light in it spills and runs out across the sea in seven colours, and where it touches, the water holds. A bridge of light climbs from your feet to the far shore."
+            }
         },
-        "item_family": "treasure"
+        "item_family": "consumable"
     },
     "item_elowens_locket": {
         "type": "Consumable",

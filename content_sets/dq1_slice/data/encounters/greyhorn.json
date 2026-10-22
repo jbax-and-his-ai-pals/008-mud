@@ -27,7 +27,13 @@
             }
         ],
         "message": "A {name} drops out of the dark!",
-        "note": "The sixth group."
+        "note": "The sixth group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "greyhorn_second": {
         "region": "greyhorn_cavern",
@@ -64,6 +70,12 @@
             }
         ],
         "message": "A {name} steps out of the dark!",
-        "note": "The ninth group."
+        "note": "The ninth group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

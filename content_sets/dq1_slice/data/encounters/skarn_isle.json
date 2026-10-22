@@ -1,0 +1,36 @@
+{
+    "skarn_isle": {
+        "region": "skarn_isle",
+        "rooms": [
+            "fields",
+            "approach"
+        ],
+        "chance": 0.35,
+        "cooldown": 5,
+        "monsters": [
+            {
+                "npc": "sable_knight"
+            },
+            {
+                "npc": "hexwyvern"
+            },
+            {
+                "npc": "dread_knight"
+            },
+            {
+                "npc": "moonhowler"
+            },
+            {
+                "npc": "skylord_wyvern"
+            }
+        ],
+        "message": "A {name} comes down the road at you!",
+        "note": "The sixteenth group, on the Sovereign's island.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
+    }
+}

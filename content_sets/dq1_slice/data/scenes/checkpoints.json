@@ -1,0 +1,1127 @@
+{
+    "checkpoint_armed": {
+        "note": "For testing: level 3, a bronze blade, a jerkin and a buckler, in Bracken Ford's square.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "met_king"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 23,
+                        "gold": 60
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_bronze_blade"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_hide_jerkin"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_buckler"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_bronze_blade",
+                        "item_hide_jerkin",
+                        "item_buckler"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "bracken_ford",
+                        "room": "square"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_vault": {
+        "note": "For testing: level 5 at the door of Ostrun's Vault, with a torch and some keys.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "met_king"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 110,
+                        "gold": 200
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_bronze_blade"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_hide_jerkin"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_buckler"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_bronze_blade",
+                        "item_hide_jerkin",
+                        "item_buckler"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "northmarch",
+                        "room": "nm_2_1"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_barrow": {
+        "note": "For testing: level 8 at the graveyard above Harrow's Barrow, with torches, keys and moss.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "met_king"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 800,
+                        "gold": 400
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_woodsmans_axe"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ringmail_hauberk"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_kite_shield"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_woodsmans_axe",
+                        "item_ringmail_hauberk",
+                        "item_kite_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "harrowmere",
+                        "room": "graveyard"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_hermit": {
+        "note": "For testing: level 10 in the Hermit's Hall with the moon harp, to trade for the staff.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "met_king"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 2000,
+                        "gold": 500
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_woodsmans_axe"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ringmail_hauberk"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_kite_shield"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_moon_harp"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_woodsmans_axe",
+                        "item_ringmail_hauberk",
+                        "item_kite_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "frostfell_hollow",
+                        "room": "f_hall"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_tunnel": {
+        "note": "For testing: level 13 in the drake's den, with the staff, keys and moss.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "met_king",
+                        "staff_won"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 5500,
+                        "gold": 800
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_woodsmans_axe"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ringmail_hauberk"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_kite_shield"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_cloudcallers_staff"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_slumber_pipe"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_woodsmans_axe",
+                        "item_ringmail_hauberk",
+                        "item_kite_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "mirewater_tunnel",
+                        "room": "t_den"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_court": {
+        "note": "For testing: level 14 in the throne room, the princess home and her locket in hand.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "drake_slain",
+                        "locket_given",
+                        "met_king",
+                        "princess_home",
+                        "staff_won"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 7500,
+                        "gold": 800
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_woodsmans_axe"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ringmail_hauberk"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_kite_shield"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_cloudcallers_staff"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_elowens_locket"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_slumber_pipe"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_woodsmans_axe",
+                        "item_ringmail_hauberk",
+                        "item_kite_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "drake_warden"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "elowen_in_the_cell"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "princess_elowen_court",
+                        "region": "telgard",
+                        "room": "throne_room",
+                        "instance_id": "elowen_at_court"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_sage": {
+        "note": "For testing: level 20 in the sage's room with the sunstones, the staff and the signet, to make the prism.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "drake_slain",
+                        "locket_given",
+                        "met_king",
+                        "princess_home",
+                        "staff_won"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 26000,
+                        "gold": 3000
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_longblade"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_plate_harness"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_kite_shield"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_sunstones"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_cloudcallers_staff"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ostruns_signet"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_elowens_locket"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_slumber_pipe"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_longblade",
+                        "item_plate_harness",
+                        "item_kite_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "drake_warden"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "elowen_in_the_cell"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "princess_elowen_court",
+                        "region": "telgard",
+                        "room": "throne_room",
+                        "instance_id": "elowen_at_court"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "sagehollow",
+                        "room": "s_hall"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_shore": {
+        "note": "For testing: level 26, fully armed, at the dark shore with the prism tear.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "drake_slain",
+                        "locket_given",
+                        "met_king",
+                        "princess_home",
+                        "prism_made",
+                        "staff_won"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 50000,
+                        "gold": 5000
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_emberbrand"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ostruns_mail"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_moonsilver_shield"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_prism_tear"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_elowens_locket"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_brass_key"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_wisp_dew"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_emberbrand",
+                        "item_ostruns_mail",
+                        "item_moonsilver_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "drake_warden"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "elowen_in_the_cell"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "princess_elowen_court",
+                        "region": "telgard",
+                        "room": "throne_room",
+                        "instance_id": "elowen_at_court"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "heartland",
+                        "room": "hl_shore"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    },
+    "checkpoint_throne": {
+        "note": "For testing: level 28 in the anteroom before Maldrath, with Ostrun's edge.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 0,
+                "effects": {
+                    "end_scene": [
+                        "princess_home",
+                        "drake_down",
+                        "maldrath_transforms",
+                        "the_light_returns",
+                        "the_end"
+                    ],
+                    "set_flag": [
+                        "drake_slain",
+                        "locket_given",
+                        "met_king",
+                        "princess_home",
+                        "prism_made",
+                        "staff_won"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_rewards": {
+                        "xp": 58000,
+                        "gold": 5000
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_emberbrand"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ostruns_mail"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_moonsilver_shield"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_ostruns_edge"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_elowens_locket"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_healing_moss"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "give_item": "item_pitch_torch"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "equip_item": [
+                        "item_emberbrand",
+                        "item_ostruns_mail",
+                        "item_moonsilver_shield"
+                    ]
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "drake_warden"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "remove_npc": "elowen_in_the_cell"
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "princess_elowen_court",
+                        "region": "telgard",
+                        "room": "throne_room",
+                        "instance_id": "elowen_at_court"
+                    }
+                }
+            },
+            {
+                "after": 0,
+                "effects": {
+                    "restore": {
+                        "resource": "all"
+                    },
+                    "teleport": {
+                        "region": "skarnhold",
+                        "room": "k_b7_hall"
+                    },
+                    "set_respawn": {
+                        "region": "telgard",
+                        "room": "throne_room"
+                    }
+                }
+            }
+        ]
+    }
+}

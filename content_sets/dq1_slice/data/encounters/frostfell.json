@@ -29,6 +29,12 @@
             }
         ],
         "message": "A {name} stirs in the ice!",
-        "note": "The northern cave, like the seventh group."
+        "note": "The northern cave, like the seventh group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

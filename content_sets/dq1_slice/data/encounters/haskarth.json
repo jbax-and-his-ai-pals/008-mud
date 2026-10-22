@@ -26,6 +26,12 @@
             }
         ],
         "message": "A {name} comes out of the burnt houses!",
-        "note": "The seventeenth group, in the ruins."
+        "note": "The seventeenth group, in the ruins.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

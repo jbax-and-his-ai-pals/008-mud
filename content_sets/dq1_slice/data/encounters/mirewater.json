@@ -28,6 +28,12 @@
             }
         ],
         "message": "A {name} slides out of the mud!",
-        "note": "The sixth group, again, in the tunnel."
+        "note": "The sixth group, again, in the tunnel.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

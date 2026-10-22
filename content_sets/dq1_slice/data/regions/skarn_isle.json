@@ -1,0 +1,43 @@
+{
+    "region_id": "skarn_isle",
+    "name": "Skarn Isle",
+    "description": "A black island in the sea south-east of Telgard, bare of anything but Maldrath's fortress.",
+    "properties": {
+        "outdoors": true,
+        "biome": "plain"
+    },
+    "rooms": {
+        "landing": {
+            "name": "The Bridge of Light",
+            "description": "The end of the rainbow bridge on the island side. The light dims behind you, and the island is a place of black shale and dead trees.",
+            "exits": {
+                "north": "fields",
+                "west": "heartland:hl_shore"
+            }
+        },
+        "fields": {
+            "name": "The Blasted Shore",
+            "description": "Fused black rock and ash, and a single path winding up toward the fortress.",
+            "exits": {
+                "south": "landing",
+                "north": "approach"
+            }
+        },
+        "approach": {
+            "name": "The Approach",
+            "description": "A broad, scarred road up to a pair of iron gates with the keep's towers behind them.",
+            "exits": {
+                "south": "fields",
+                "north": "gate"
+            }
+        },
+        "gate": {
+            "name": "The Iron Gate",
+            "description": "The gates of Skarnhold stand open, as if the owner did not expect to need them closed. A great dark hall waits beyond.",
+            "exits": {
+                "south": "approach",
+                "in": "skarnhold:k1_hall"
+            }
+        }
+    }
+}

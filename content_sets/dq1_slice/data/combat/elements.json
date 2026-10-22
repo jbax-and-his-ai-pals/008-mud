@@ -95,8 +95,8 @@
         "barrier": {
             "channel": "barrier",
             "flavor": "The poisonous floor eats at your feet!",
-            "damage": 2,
-            "tick_interval": 2
+            "damage": 4,
+            "tick_interval": 3
         }
     }
 }

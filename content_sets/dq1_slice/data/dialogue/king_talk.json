@@ -3,6 +3,23 @@
     "root": "greeting",
     "entries": [
         {
+            "node": "victory",
+            "condition": {
+                "all": [
+                    {
+                        "kind": "flag",
+                        "flag": "maldrath_down"
+                    },
+                    {
+                        "not": {
+                            "kind": "flag",
+                            "flag": "the_end"
+                        }
+                    }
+                ]
+            }
+        },
+        {
             "node": "home",
             "condition": {
                 "kind": "flag",
@@ -89,6 +106,24 @@
         },
         "where_now": {
             "text": "The tablet says what is needed: the sunstones, the staff, the signet, and the sage who will make them one. The sunstones, I am told, lie under this very castle, behind a door that wants a key. After that, the rest is road.",
+            "pace": "slow",
+            "end": true
+        },
+        "victory": {
+            "text": "It is done. I can feel it from here: the air has changed. My daughter told me that you would come back. I told her not to be foolish.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "It is done, majesty.",
+                    "next_node": "end_choice",
+                    "effects": {
+                        "play_scene": "the_end"
+                    }
+                }
+            ]
+        },
+        "end_choice": {
+            "text": "Go well, both of you.",
             "pace": "slow",
             "end": true
         }

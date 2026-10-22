@@ -1,0 +1,44 @@
+{
+    "id": "maldrath_offer",
+    "root": "greeting",
+    "nodes": {
+        "greeting": {
+            "text": "So the Lightbearer's heir has come after all. I wondered if you would. You have walked a very long way to stand in front of me, and you are tired, and I admire that. I have a proposal. Stand with me, and I will give you half of Vaelmoor to rule as you like, and you will never be hungry or afraid again. Will you?",
+            "pace": "slow",
+            "must_answer": true,
+            "choices": [
+                {
+                    "text": "Yes. I will stand with you.",
+                    "next_node": "yes",
+                    "effects": {
+                        "game_over": "The Sovereign smiles, and the hall tilts, and the floor comes up very gently to meet you. He has put you to sleep. You will sleep a long time, and in the end the dark that he promised will be quite complete."
+                    }
+                },
+                {
+                    "text": "No. I have come for the Dawnglass, and for you.",
+                    "next_node": "no",
+                    "effects": {
+                        "remove_npc": "maldrath_herald",
+                        "spawn_npc": {
+                            "npc": "maldrath_man",
+                            "region": "skarnhold",
+                            "room": "k_b7_throne",
+                            "instance_id": "maldrath_form_one"
+                        },
+                        "message": "\"Then you are a fool,\" says Maldrath, rising, \"and a brave one. It will make no difference.\""
+                    }
+                }
+            ]
+        },
+        "yes": {
+            "text": "The Sovereign smiles.",
+            "pace": "slow",
+            "end": true
+        },
+        "no": {
+            "text": "Maldrath rises from the throne.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

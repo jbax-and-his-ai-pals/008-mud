@@ -1,0 +1,22 @@
+{
+    "form_one_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "maldrath_man"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "maldrath_transforms"
+        }
+    },
+    "form_two_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "maldrath_wyrm"
+        },
+        "once": "world",
+        "effects": {
+            "play_scene": "the_light_returns"
+        }
+    }
+}

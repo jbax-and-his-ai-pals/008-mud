@@ -36,7 +36,13 @@
             }
         ],
         "message": "A {name} comes out of the reeds at you!",
-        "note": "The original's fifth group."
+        "note": "The original's fifth group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "eastreach_east": {
         "region": "eastreach",
@@ -79,6 +85,12 @@
             }
         ],
         "message": "A {name} comes out of the heath at you!",
-        "note": "The seventh group."
+        "note": "The seventh group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

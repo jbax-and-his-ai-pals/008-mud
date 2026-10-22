@@ -171,7 +171,8 @@
             "exits": {
                 "north": "hl_1_4",
                 "west": "hl_2_3",
-                "south": "hl_3_4"
+                "south": "hl_3_4",
+                "east": "hl_shore"
             }
         },
         "hl_3_0": {
@@ -216,6 +217,18 @@
             "exits": {
                 "north": "hl_2_4",
                 "west": "hl_3_3"
+            }
+        },
+        "hl_shore": {
+            "name": "The Dark Shore",
+            "description": "A stretch of pale, cold shingle. Across a mile of black water stands an island of grey rock with a tall, many-towered fortress on it, under a sky that is darker there than anywhere.",
+            "exits": {
+                "west": "hl_2_4"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "east": "skarn_isle:landing"
+                }
             }
         }
     }

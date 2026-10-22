@@ -33,7 +33,13 @@
             }
         ],
         "message": "A {name} lurches out of the dark!",
-        "note": "The original's ninth group: Garinham's first floor."
+        "note": "The original's ninth group: Garinham's first floor.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "barrow_second": {
         "region": "harrow_barrow",
@@ -65,7 +71,13 @@
             }
         ],
         "message": "A {name} comes at you out of the dark!",
-        "note": "The tenth group."
+        "note": "The tenth group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "barrow_deep": {
         "region": "harrow_barrow",
@@ -106,6 +118,12 @@
             }
         ],
         "message": "A {name} rises out of the dark!",
-        "note": "The thirteenth group: the two lowest floors."
+        "note": "The thirteenth group: the two lowest floors.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

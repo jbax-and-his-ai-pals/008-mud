@@ -21,7 +21,13 @@
             }
         ],
         "message": "A {name} lurches out of the grass at you!",
-        "note": "The original's first encounter group, by the castle."
+        "note": "The original's first encounter group, by the castle.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "heartland_far": {
         "region": "heartland",
@@ -58,6 +64,12 @@
             }
         ],
         "message": "A {name} lurches out of the grass at you!",
-        "note": "The second group, farther out."
+        "note": "The second group, farther out.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

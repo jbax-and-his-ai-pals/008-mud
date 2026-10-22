@@ -1,0 +1,322 @@
+{
+    "region_id": "skarnhold",
+    "name": "Skarnhold",
+    "description": "Maldrath's fortress on its black island: eight levels of stone, poison and the Sovereign's creatures, with the Dawnglass at the bottom.",
+    "properties": {
+        "dark": true,
+        "outdoors": false,
+        "entrance": "skarn_isle:gate"
+    },
+    "rooms": {
+        "k1_hall": {
+            "name": "The Black Hall",
+            "description": "A vast hall of black marble lit by braziers of green flame. Doors stand in the east and west walls, and a stair goes down at the far end.",
+            "exits": {
+                "west": "k1_west",
+                "east": "k1_east",
+                "north": "k1_stair",
+                "out": "skarn_isle:gate"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The west wing's door is locked. A brass key would answer it."
+                    },
+                    "east": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The east wing's door is locked. A brass key would answer it."
+                    }
+                },
+                "dark": false
+            }
+        },
+        "k1_west": {
+            "name": "The West Wing",
+            "description": "A bare wing of cells and guardrooms. The air smells of cold iron.",
+            "exits": {
+                "east": "k1_hall"
+            },
+            "items": [
+                {
+                    "item_id": "chest_sk_moss_a"
+                }
+            ],
+            "properties": {
+                "dark": false
+            }
+        },
+        "k1_east": {
+            "name": "The East Wing",
+            "description": "A bare wing of storerooms and stairs. A heavy door stands open on dust.",
+            "exits": {
+                "west": "k1_hall"
+            },
+            "items": [
+                {
+                    "item_id": "chest_sk_moss_b"
+                }
+            ],
+            "properties": {
+                "dark": false
+            }
+        },
+        "k1_stair": {
+            "name": "The Great Stair",
+            "description": "A broad, black stair spiralling down into the heart of the fortress.",
+            "exits": {
+                "south": "k1_hall",
+                "down": "k_b1_a"
+            },
+            "properties": {
+                "dark": false
+            }
+        },
+        "k_b1_a": {
+            "name": "The Lower Hall",
+            "description": "A cold vaulted hall with a floor of black and white flags.",
+            "exits": {
+                "up": "k1_stair",
+                "east": "k_b1_b"
+            },
+            "properties": {
+                "dark": false
+            }
+        },
+        "k_b1_b": {
+            "name": "The Guardroom",
+            "description": "A guardroom with a long table and no guards.",
+            "exits": {
+                "west": "k_b1_a",
+                "north": "k_b1_stair"
+            },
+            "properties": {
+                "dark": false
+            }
+        },
+        "k_b1_stair": {
+            "name": "The Winding Stair",
+            "description": "A tight stair, down again.",
+            "exits": {
+                "south": "k_b1_b",
+                "down": "k_b2_a"
+            },
+            "properties": {
+                "dark": false
+            }
+        },
+        "k_b2_a": {
+            "name": "The Cellar Way",
+            "description": "A damp stone corridor, running between rows of iron-barred cells.",
+            "exits": {
+                "up": "k_b1_stair",
+                "east": "k_b2_sword",
+                "north": "k_b2_stair"
+            }
+        },
+        "k_b2_sword": {
+            "name": "The Sealed Chamber",
+            "description": "A small, bare chamber behind a door that was never meant to be found. A single strongbox sits on a plinth in a shaft of light.",
+            "exits": {
+                "west": "k_b2_a"
+            },
+            "items": [
+                {
+                    "item_id": "chest_sk_edge"
+                }
+            ]
+        },
+        "k_b2_stair": {
+            "name": "The Stair of Chains",
+            "description": "A stair hung with rusted chains.",
+            "exits": {
+                "south": "k_b2_a",
+                "down": "k_b3_a"
+            }
+        },
+        "k_b3_a": {
+            "name": "The Hall of Banners",
+            "description": "A hall hung with banners of black cloth, each stitched with a single coiled drake.",
+            "exits": {
+                "up": "k_b2_stair",
+                "east": "k_b3_b"
+            }
+        },
+        "k_b3_b": {
+            "name": "The Chapel of Ash",
+            "description": "A ruined chapel, its altar black, its windows bricked up.",
+            "exits": {
+                "west": "k_b3_a",
+                "north": "k_b3_stair"
+            }
+        },
+        "k_b3_stair": {
+            "name": "The Echoing Stair",
+            "description": "A long stair that echoes.",
+            "exits": {
+                "south": "k_b3_b",
+                "down": "k_b4_fork"
+            }
+        },
+        "k_b4_fork": {
+            "name": "The Fork",
+            "description": "A broad landing where two stairs and two passages meet. From here, it is said, one can go back up toward a sealed chamber, or on down to the Sovereign.",
+            "exits": {
+                "up": "k_b2_a",
+                "east": "k_b4_a"
+            }
+        },
+        "k_b4_a": {
+            "name": "The Armoury",
+            "description": "An armoury of racks full of black weapons, rusted past use.",
+            "exits": {
+                "west": "k_b4_fork",
+                "north": "k_b4_stair"
+            }
+        },
+        "k_b4_stair": {
+            "name": "The Stair of Embers",
+            "description": "A stair lit from below by a dull red glow.",
+            "exits": {
+                "south": "k_b4_a",
+                "down": "k_b5_a"
+            }
+        },
+        "k_b5_a": {
+            "name": "The Poisoned Gallery",
+            "description": "A gallery whose floor glows with a sickly blue-green light. Your feet burn where they touch it.",
+            "exits": {
+                "up": "k_b4_stair",
+                "east": "k_b5_b"
+            },
+            "properties": {
+                "hazards": [
+                    {
+                        "type": "barrier"
+                    }
+                ]
+            }
+        },
+        "k_b5_b": {
+            "name": "The Burning Floor",
+            "description": "A narrow hall whose flags are slick with the same blue-green poison.",
+            "exits": {
+                "west": "k_b5_a",
+                "north": "k_b5_stair"
+            },
+            "properties": {
+                "hazards": [
+                    {
+                        "type": "barrier"
+                    }
+                ]
+            }
+        },
+        "k_b5_stair": {
+            "name": "The Stair of Venom",
+            "description": "A stair that is the only clean thing in sight.",
+            "exits": {
+                "south": "k_b5_b",
+                "down": "k_b6_a"
+            }
+        },
+        "k_b6_a": {
+            "name": "The Hall of Venom",
+            "description": "A great hall where the poison has pooled in the low places.",
+            "exits": {
+                "up": "k_b5_stair",
+                "east": "k_b6_b"
+            },
+            "properties": {
+                "hazards": [
+                    {
+                        "type": "barrier"
+                    }
+                ]
+            }
+        },
+        "k_b6_b": {
+            "name": "The Last Gallery",
+            "description": "A gallery whose floor is as bad as the rest, and whose far end shows a door of black iron.",
+            "exits": {
+                "west": "k_b6_a",
+                "north": "k_b6_stair"
+            },
+            "properties": {
+                "hazards": [
+                    {
+                        "type": "barrier"
+                    }
+                ]
+            }
+        },
+        "k_b6_stair": {
+            "name": "The Last Stair",
+            "description": "A stair of black glass, going down to a single door.",
+            "exits": {
+                "south": "k_b6_b",
+                "down": "k_b7_hall"
+            }
+        },
+        "k_b7_hall": {
+            "name": "The Anteroom of the Throne",
+            "description": "A round chamber with a vaulted ceiling and a great door of black iron standing open on the south. Another, smaller door is locked in the west wall.",
+            "exits": {
+                "up": "k_b6_stair",
+                "south": "k_b7_throne",
+                "west": "k_b7_treasure"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "west": {
+                        "type": "locked",
+                        "key_id": "item_brass_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "The treasure room's door is locked. A brass key would answer it."
+                    }
+                }
+            }
+        },
+        "k_b7_throne": {
+            "name": "The Throne of Iron Thorns",
+            "description": "A great round hall with a throne of black iron thorns on a dais. The Dawnglass burns in the air behind it like a small, captive sun.",
+            "exits": {
+                "north": "k_b7_hall"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "maldrath_herald",
+                    "instance_id": "maldrath_throne"
+                }
+            ]
+        },
+        "k_b7_treasure": {
+            "name": "The Treasure Room",
+            "description": "A small, close room stacked with chests, and the faint, stale smell of a plan.",
+            "exits": {
+                "east": "k_b7_hall"
+            },
+            "items": [
+                {
+                    "item_id": "chest_sk_hoard"
+                },
+                {
+                    "item_id": "chest_sk_key"
+                },
+                {
+                    "item_id": "chest_sk_feather"
+                },
+                {
+                    "item_id": "chest_sk_circlet"
+                }
+            ]
+        }
+    }
+}

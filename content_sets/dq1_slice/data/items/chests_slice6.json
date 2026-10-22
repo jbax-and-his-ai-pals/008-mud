@@ -1,0 +1,142 @@
+{
+    "chest_sk_edge": {
+        "type": "Container",
+        "name": "iron strongbox",
+        "description": "A strongbox of black iron in a bare chamber, with the sun and the sword stamped on the lid.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_ostruns_edge",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_sk_moss_a": {
+        "type": "Container",
+        "name": "old chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_healing_moss",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_sk_moss_b": {
+        "type": "Container",
+        "name": "dented chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_healing_moss",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_sk_hoard": {
+        "type": "Container",
+        "name": "gilded chest",
+        "description": "A chest overflowing with gold, set in the middle of the treasure room as if it were bait.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_purse_hoard",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_sk_key": {
+        "type": "Container",
+        "name": "small chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_brass_key",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_sk_feather": {
+        "type": "Container",
+        "name": "pale chest",
+        "description": "A plain wooden chest bound in iron.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_homing_feather",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    },
+    "chest_sk_circlet": {
+        "type": "Container",
+        "name": "black chest",
+        "description": "A black chest that feels colder than the room around it. This is probably a trap.",
+        "weight": 30,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "locked": false,
+            "is_open": false,
+            "capacity": 10,
+            "contains": [
+                {
+                    "item_id": "item_gravebound_circlet",
+                    "quantity": 1
+                }
+            ]
+        },
+        "item_family": "container"
+    }
+}

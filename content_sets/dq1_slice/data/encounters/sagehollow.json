@@ -25,6 +25,12 @@
             }
         ],
         "message": "A {name} comes up out of the shadow!",
-        "note": "The twelfth group, in the Southern Cave."
+        "note": "The twelfth group, in the Southern Cave.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

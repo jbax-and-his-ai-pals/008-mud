@@ -35,7 +35,13 @@
             }
         ],
         "message": "A {name} comes down at you from the rocks!",
-        "note": "The twelfth group: round the bridge."
+        "note": "The twelfth group: round the bridge.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "southwilds_north_west": {
         "region": "southwilds",
@@ -81,7 +87,13 @@
             }
         ],
         "message": "A {name} bars the road!",
-        "note": "The fourteenth group: the road to Haskarth."
+        "note": "The fourteenth group: the road to Haskarth.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "southwilds_south_west": {
         "region": "southwilds",
@@ -121,7 +133,13 @@
             }
         ],
         "message": "A {name} comes out of the stones!",
-        "note": "The fifteenth group: south of the ruins."
+        "note": "The fifteenth group: south of the ruins.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "southwilds_outer_cairnwall": {
         "region": "southwilds",
@@ -160,7 +178,13 @@
             }
         ],
         "message": "A {name} strides out of the dusk!",
-        "note": "The sixteenth group: outside the walled town."
+        "note": "The sixteenth group: outside the walled town.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "southwilds_cairnwall": {
         "region": "southwilds",
@@ -193,6 +217,12 @@
             }
         ],
         "message": "A {name} rises out of the dark!",
-        "note": "The seventeenth group: the walled town's own country."
+        "note": "The seventeenth group: the walled town's own country.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

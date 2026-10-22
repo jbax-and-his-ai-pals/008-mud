@@ -38,7 +38,13 @@
             }
         ],
         "message": "A {name} comes at you out of the mist!",
-        "note": "The eighth group: north of Rivenhal."
+        "note": "The eighth group: north of Rivenhal.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "fenlands_mid": {
         "region": "fenlands",
@@ -75,7 +81,13 @@
             }
         ],
         "message": "A {name} stalks out of the heath!",
-        "note": "The tenth group: round Rivenhal."
+        "note": "The tenth group: round Rivenhal.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "fenlands_south": {
         "region": "fenlands",
@@ -112,6 +124,12 @@
             }
         ],
         "message": "A {name} comes down the ridge at you!",
-        "note": "The eleventh group: south of Rivenhal."
+        "note": "The eleventh group: south of Rivenhal.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

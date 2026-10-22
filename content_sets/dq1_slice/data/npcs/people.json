@@ -1366,5 +1366,26 @@
             "essential": true,
             "unique": true
         }
+    },
+    "maldrath_herald": {
+        "name": "Maldrath, the Drake Sovereign",
+        "description": "A tall man in black robes and a crown of iron thorns, with the cold patience of a long winter. He is sitting on the throne, and he does not get up. The Dawnglass turns in the air behind his shoulder.",
+        "max_health": 100,
+        "level": 30,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": ""
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "maldrath_offer"
+        }
     }
 }

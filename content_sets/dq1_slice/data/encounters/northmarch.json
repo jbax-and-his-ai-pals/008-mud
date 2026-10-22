@@ -34,7 +34,13 @@
             }
         ],
         "message": "A {name} comes down off the moor at you!",
-        "note": "The original's third group, north of the castle."
+        "note": "The original's third group, north of the castle.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     },
     "northmarch_far": {
         "region": "northmarch",
@@ -71,6 +77,12 @@
             }
         ],
         "message": "A {name} steps out of the heather!",
-        "note": "The original's fourth group, toward Harrowmere."
+        "note": "The original's fourth group, toward Harrowmere.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
     }
 }

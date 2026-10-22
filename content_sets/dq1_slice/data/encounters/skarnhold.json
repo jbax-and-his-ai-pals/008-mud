@@ -1,0 +1,116 @@
+{
+    "skarnhold_upper": {
+        "region": "skarnhold",
+        "rooms": [
+            "k1_west",
+            "k1_east",
+            "k1_stair",
+            "k_b1_a",
+            "k_b1_b",
+            "k_b1_stair"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "moonhowler"
+            },
+            {
+                "npc": "verdant_drake"
+            },
+            {
+                "npc": "skylord_wyvern"
+            },
+            {
+                "npc": "archmage"
+            },
+            {
+                "npc": "cleaver_knight"
+            }
+        ],
+        "message": "A {name} rushes you out of the green light!",
+        "note": "The eighteenth group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
+    },
+    "skarnhold_middle": {
+        "region": "skarnhold",
+        "rooms": [
+            "k_b2_a",
+            "k_b2_sword",
+            "k_b2_stair",
+            "k_b3_a",
+            "k_b3_b",
+            "k_b3_stair",
+            "k_b4_fork",
+            "k_b4_a",
+            "k_b4_stair"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "archmage"
+            },
+            {
+                "npc": "cleaver_knight"
+            },
+            {
+                "npc": "azure_drake",
+                "weight": 2
+            },
+            {
+                "npc": "granite_giant"
+            }
+        ],
+        "message": "A {name} steps out of the dark!",
+        "note": "The nineteenth group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
+    },
+    "skarnhold_lower": {
+        "region": "skarnhold",
+        "rooms": [
+            "k_b5_a",
+            "k_b5_b",
+            "k_b5_stair",
+            "k_b6_a",
+            "k_b6_b",
+            "k_b6_stair",
+            "k_b7_hall"
+        ],
+        "chance": 0.3,
+        "cooldown": 4,
+        "monsters": [
+            {
+                "npc": "archmage"
+            },
+            {
+                "npc": "granite_giant"
+            },
+            {
+                "npc": "bastion_knight",
+                "weight": 2
+            },
+            {
+                "npc": "crimson_drake"
+            }
+        ],
+        "message": "A {name} comes at you through the poison light!",
+        "note": "The twentieth group.",
+        "when": {
+            "not": {
+                "kind": "flag",
+                "flag": "maldrath_down"
+            }
+        }
+    }
+}

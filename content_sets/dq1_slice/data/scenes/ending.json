@@ -1,0 +1,97 @@
+{
+    "maldrath_transforms": {
+        "note": "The first form is beaten; the second is not.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 4,
+                "pace": "slow",
+                "text": "[[RED]]Maldrath falls to one knee, and laughs, and the laugh goes on far too long. His robes burst. Something enormous, black as a burnt tree, unfolds from the man's body and fills the throne hall to the roof.[[/]]",
+                "effects": {
+                    "spawn_npc": {
+                        "npc": "maldrath_wyrm",
+                        "region": "skarnhold",
+                        "room": "k_b7_throne",
+                        "instance_id": "maldrath_form_two"
+                    }
+                }
+            },
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "It looks at you with a drake's eyes, and the crown of iron thorns is still on its brow."
+            }
+        ]
+    },
+    "the_light_returns": {
+        "note": "Maldrath is dead; the Dawnglass is free.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "The great black body shudders, and shrinks, and lies still. A man's shape is left on the throne's steps, very small. The crown of iron thorns rolls off the stair and spins to rest.",
+                "effects": {
+                    "set_flag": "maldrath_down"
+                }
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "Behind the throne, the Dawnglass wavers, and then it burns white and rises to the roof of the hall like a morning. The dark rolls back from the corners of the room, and then from the stair, and then, you somehow know, from the whole of Vaelmoor."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "[[CYAN]]Far away, in every field and cave in the kingdom, the creatures that have hunted travellers for a year stop, and listen, and are gone.[[/]]",
+                "effects": {
+                    "remove_npc": "mossback_colossus"
+                }
+            },
+            {
+                "after": 3,
+                "pace": "slow",
+                "text": "You are standing alone in a bright hall. It is a long way back to Telgard. The king will want to hear it from you."
+            }
+        ]
+    },
+    "the_end": {
+        "note": "The king offers his kingdom, and it is declined.",
+        "lock": false,
+        "beats": [
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "King Tavor stands, and takes your hand in both of his, and for once he has no speech ready. When he does speak, it is simple."
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[YELLOW]]King Tavor speaks:[[/]] [[GREEN]]\"You gave me back the light, and my daughter, and my country. I have nothing left to give you but this crown, and it would be your own, if you wanted it.\"[[/]]"
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "You look at the crown a long time. Then you look at Elowen, who is standing very still and watching you the way you would watch something you were not sure of keeping."
+            },
+            {
+                "after": 5,
+                "pace": "slow",
+                "text": "\"Keep it,\" you tell the king gently. \"There is a great deal of Vaelmoor that I haven't seen. Elowen, will you come and see it with me?\""
+            },
+            {
+                "after": 6,
+                "pace": "slow",
+                "text": "[[CYAN]]And so the heir of the Lightbearer and the king's daughter went out of Telgard together, in the early morning, with the light on the road ahead of them. The land is quiet now. The rest of the story is theirs to make.[[/]]",
+                "effects": {
+                    "set_flag": "the_end"
+                }
+            },
+            {
+                "after": 2,
+                "pace": "slow",
+                "text": "[[YELLOW]]THE END[[/]]"
+            }
+        ]
+    }
+}
