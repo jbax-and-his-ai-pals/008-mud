@@ -13,6 +13,13 @@ guide for that release (it uses its spellings, including "Tantagel" in places), 
 against the NES game itself: who trades the staff (the sage in the Northern Cave, for the silver harp, is what is recorded here) and who
 combines the rainbow drop (the sage in the Southern Cave, for the stones, the staff and the token).
 
+## Settled quest givers (NES)
+
+* The sage in the Northern Cave trades the **staff of rain** for the **silver harp**.
+* The sage in the Southern Cave makes the **rainbow drop** from the stones, the staff and the token.
+* Cumulative experience to reach a level: 7, 23, 47, 110, 220, 450, 800, 1300, 2000, 2900, 4000, 5500, 7500, 10000, 13000, 16000, 19000,
+  22000, 26000 (level 20), then 30000 to 62000 in steps of 4000, then 65000 (level 30). A `level_table` row's `xp` is the cost to the **next** level.
+
 ## Fidelity rule
 
 Locations, caves, floors, items, quests and the numbers in these tables are kept **1:1**. The overworld map is not tile-exact: it is a set of
@@ -42,7 +49,10 @@ sensible regions that keep the shape of the original (what lies north, east, sou
 | 18 | 3000 | 85 | 84 | 115 | 108 | |
 | 19 | 3000 | 87 | 86 | 130 | 115 | Hurtmore |
 | 20 | 4000 | 92 | 88 | 138 | 128 | |
-| 21 to 30 | not read | | | | | (the cap is 30) |
+| 21 to 30 | to reach: 30000, 34000, 38000, 42000, 46000, 50000, 54000, 58000, 62000, 65000 (cumulative) | interpolated | interpolated | interpolated | interpolated | none |
+
+Levels 21 to 30: the experience is the original's; the other columns are **interpolated** in a straight line from level 20 towards the level-30
+maximum of one name (strength 136, agility 126, HP 195, MP 193), because the NES hero's growth depends on the letters of the name. The cap is 30.
 
 ## Spells
 
